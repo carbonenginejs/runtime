@@ -61,7 +61,7 @@ for (const [ role, format, texel ] of [
     const path = CjsIncarnaTextureConstructor.texturePath(role, SOURCE);
     assert.equal(path, `${IncarnaTexturePrefix}${role}/${SOURCE}`);
     const texture = resMan.GetResource(path);
-    await texture.Ready();
+    await resMan.Ready(texture);
 
     const bitmap = texture.GetBitmap();
     assert.equal(bitmap.GetFormat(), format);
@@ -75,7 +75,9 @@ test("an unknown role or a missing source is not a recipe", async () =>
   assert.equal(CjsIncarnaTextureConstructor.buildRecipe(`specular/${SOURCE}`), null);
   assert.equal(CjsIncarnaTextureConstructor.buildRecipe("albedo/"), null);
   assert.equal(CjsIncarnaTextureConstructor.buildRecipe(SOURCE), null);
-  assert.equal((await manager()).GetResource(`${IncarnaTexturePrefix}specular/${SOURCE}`).error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
+  const resMan = await manager();
+  const resource = resMan.GetResource(`${IncarnaTexturePrefix}specular/${SOURCE}`);
+  assert.equal(resMan.GetResourceStatus(resource).error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
 });
 
 /** A 2x2 BGRA DDS with its 1x1 mip, the shape of a shipped texture's chain. */
@@ -108,7 +110,7 @@ test("a source with mips keeps its chain, which a mip step would have refused", 
   await configureResourceManager(resMan);
   RegisterIncarnaTextures(resMan);
   const texture = resMan.GetResource(CjsIncarnaTextureConstructor.texturePath("albedo", "res:/x/mipped_os.dds"));
-  await texture.Ready();
+  await resMan.Ready(texture);
 
   const bitmap = texture.GetBitmap();
   assert.ok(bitmap, "the recipe produced a bitmap");

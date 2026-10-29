@@ -1,9 +1,9 @@
+import { blue as blueService } from "#blue/blue";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
 import { CjsSchema, meta } from "#schema";
-import { CjsResource, ICacheable } from "#blue";
+import { BlueAsyncRes, ICacheable } from "#blue";
 import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../../../resource/resourceBoundary.js";
-import { ResourceRequirement } from "#blue";
 
 /**
  * Runtime-owned GState resource.
@@ -30,7 +30,7 @@ import { ResourceRequirement } from "#blue";
  * test built a literal to satisfy the guard rather than reading a file, which
  * is a test proving its own premise.
  */
-export class Tr2GrannyStateRes extends CjsResource
+export class Tr2GrannyStateRes extends BlueAsyncRes
 {
   /** Resolved animation path to its loaded resource, as Carbon's m_gStateAnimFiles. */
   _animations = new Map();
@@ -38,15 +38,20 @@ export class Tr2GrannyStateRes extends CjsResource
   /** m_dataSize: the byte length of the file `DoLoad` read, or 0 when handed a document. */
   _dataSize = 0;
 
-  /** Updates payload in the current resource payload lifecycle. */
-  SetPayload(payload = null)
+
+
+
+  /**
+   * Carbon DoLoad (Tr2GrannyStateRes.cpp:47-76), through the configured GSF reader.
+   * Browser decoding completes before replacing the owning resource's state graph.
+   * @returns {Promise<number>} Native LoadingResult.
+   */
+  async _DoLoad()
   {
-    if (payload === null)
-    {
-      this._dataSize = 0;
-      super.SetPayload(null);
-      return this;
-    }
+    const bytes = this._dataStream.data;
+    const payload = await blueService.resMan.ReadResourceObjectPayload(this, bytes);
+    this._animations.clear();
+    this._dataSize = bytes.byteLength || 0;
     assertResourcePayloadObject("Tr2GrannyStateRes", payload);
     // The state machine is what makes it a GState. Carbon walks the animation
     // sets straight after, so an absent or malformed set list is worth
@@ -65,71 +70,32 @@ export class Tr2GrannyStateRes extends CjsResource
         "animationSets must be an array of animation sets when present."
       );
     }
-    super.SetPayload(payload);
-    return this;
-  }
-
-
-  /**
-   * Turn GSF source into this resource.
-   *
-   * `data` may be an already-projected GSF document or the raw reflected
-   * Granny result. Bytes require `options.format` - a `CjsGr2Format`-shaped
-   * reader - rather than an import, because every format here is a
-   * tree-shakeable subpath and a resource that imports its reader drags the
-   * whole of gr2 into anything that touches GState.
-   *
-   * @param {object|ArrayBuffer|ArrayBufferView} data GSF document, raw result, or bytes.
-   * @param {object|null} [options] `{ format }` plus model values applied after the read.
-   * @returns {Tr2GrannyStateRes} This resource.
-   */
-  DoLoad(data, options = null)
-  {
-    const { format = null, ...values } = options || {};
-    let document = data;
-
-    if (!data?.stateMachine)
-    {
-      // `readGsf`, not `read`: a `.gsf` and a `.gr2` are the same container
-      // family read two different ways, and gr2 carries a separate entry point
-      // for the state-machine one. Naming it here is the fallback for a caller
-      // that passed a bare format; a registered route carries the reader name
-      // as data, so the store's answer needs no such knowledge.
-      const route = this.ResolveFormat(data, format ? { format, read: "readGsf" } : null);
-      if (!route) throw resourceFormatRequiredError("Tr2GrannyStateRes", this.ext);
-      document = route.Read(data);
-    }
-
-    this._animations.clear();
-    this.SetPayload(document);
-    // Tr2GrannyStateRes.cpp:59.
-    this._dataSize = data instanceof ArrayBuffer || ArrayBuffer.isView(data) ? data.byteLength : 0;
-    this.SetValues(values);
-    return this;
+    this._gStateFile = payload;
+    return BlueAsyncRes.LoadingResult.LR_SUCCESS;
   }
 
   /** The authored animation state graph. */
   GetStateMachine()
   {
-    return this.GetPayload()?.stateMachine ?? null;
+    return this._gStateFile?.stateMachine ?? null;
   }
 
   /** Named slots the state machine binds clips into. */
   GetAnimationSlots()
   {
-    return this.GetPayload()?.animationSlots ?? [];
+    return this._gStateFile?.animationSlots ?? [];
   }
 
   /** Animation sets, each naming external `.gr2` clips. */
   GetAnimationSets()
   {
-    return this.GetPayload()?.animationSets ?? [];
+    return this._gStateFile?.animationSets ?? [];
   }
 
   /** Which model in the referenced geometry this graph drives, and its retarget source. */
   GetCharacterInfo()
   {
-    return this.GetPayload()?.character ?? null;
+    return this._gStateFile?.character ?? null;
   }
 
   /**
@@ -151,7 +117,7 @@ export class Tr2GrannyStateRes extends CjsResource
     {
       for (const reference of (set?.sourceFileReferences || []))
       {
-        const resolved = Tr2GrannyStateRes.ResolveAnimPath(reference, this.path);
+        const resolved = Tr2GrannyStateRes.ResolveAnimPath(reference, this.GetPath());
         if (resolved && !seen.includes(resolved)) seen.push(resolved);
       }
     }
@@ -229,7 +195,7 @@ export class Tr2GrannyStateRes extends CjsResource
    */
   IsFullyLoaded()
   {
-    if (!this.GetPayload()) return false;
+    if (!this._gStateFile) return false;
     return this.GetGStateAnimFileRefPaths().every(path => this._animations.has(path));
   }
 
@@ -259,11 +225,42 @@ export class Tr2GrannyStateRes extends CjsResource
     return this._dataSize ? this._dataSize + 8 : 1024;
   }
 
-  static payload = ResourceRequirement.GRANNY_STATE;
+
+  /** m_gStateFile: the decoded browser GState projection. */
+  _gStateFile = null;
+
+  /**
+   * Explicitly drop owned state and animation references at JS teardown.
+   * Adapted: explicit JS teardown replaces native destruction; the existing
+   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   * @param {object} [options={}] Existing MotherLode cleanup policy.
+   * @param {boolean} [options.releasePayload=true] Release owned family data.
+   * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
+   * @returns {void}
+   */
+  _OnShutdown(options = {})
+  {
+    if (options.releasePayload === false) return;
+    this._animations.clear();
+    this._gStateFile = null;
+    this._dataSize = 0;
+  }
+
+  /**
+   * Carbon DoPrepare (Tr2GrannyStateRes.cpp:164-168) reports success after
+   * starting animation acquisition. Adapted: GState SDK binding is not ported;
+   * the existing explicit animation-resource map remains the binding input.
+   * @returns {boolean} The decoded state file is ready for its consumer.
+   */
+  _DoPrepare()
+  {
+    return this._gStateFile !== null;
+  }
+
 }
 
 
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "DoLoad", meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "_DoLoad", meta.adapted);
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetCharacterInfo", meta.adapted);
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetGStateAnimFileRefPaths", meta.adapted);
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsFullyLoaded", meta.adapted);
@@ -274,4 +271,14 @@ CjsSchema.exposure.define("Tr2GrannyStateRes")(Tr2GrannyStateRes);
 be.inherit(ICacheable)(Tr2GrannyStateRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2GrannyStateRes);
 // Carbon: Tr2GrannyStateRes::ExposeToBlue (trinity/trinity/Resources/Tr2GrannyStateRes_Blue.cpp:30).
-CjsSchema.blue.chainTo(CjsResource)(Tr2GrannyStateRes);
+CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2GrannyStateRes);
+
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "_OnShutdown", meta.adapted);
+
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "_DoPrepare", meta.adapted);
+
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetStateMachine", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetAnimationSlots", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetAnimationSets", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

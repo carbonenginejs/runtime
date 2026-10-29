@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2SkinnedModel.h
 // Source: trinity/trinity/Tr2SkinnedModel.cpp
-import { blue, IsMatch, IInitialize, INotify, IListNotify } from "#blue";
+import { BlueAsyncRes, blue, IsMatch, IInitialize, INotify, IListNotify } from "#blue";
 import { meta, type, blue as legacyBlue } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
@@ -168,15 +168,16 @@ export class Tr2SkinnedModel extends Tr2Model
     this._skeletonIx = NO_SKELETON;
     this._areAllMeshesBound = false;
 
-    if (!this.geometryResPath)
-    {
-      return true;
-    }
+
 
     if (this.geometryRes)
     {
       this.geometryRes.RemoveNotifyTarget(this);
       this.geometryRes = null;
+    }
+    if (!this.geometryResPath)
+    {
+      return true;
     }
     this.geometryRes = blue.resMan.GetResource(this.geometryResPath);
     if (this.geometryRes)
@@ -364,5 +365,15 @@ export class Tr2SkinnedModel extends Tr2Model
     return true;
   }
 
+
+  /** Carbon destructor (Tr2SkinnedModel.cpp:23-28): release the geometry target. */
+  @meta.adapted
+  Destruct()
+  {
+    if (this.geometryRes) this.geometryRes.RemoveNotifyTarget(this);
+    this.geometryRes = null;
+    this.ReleaseCachedData();
+    BlueAsyncRes.markNotifyTargetDestructed(this);
+  }
 }
 

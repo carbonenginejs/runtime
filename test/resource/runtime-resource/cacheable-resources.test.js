@@ -48,10 +48,12 @@ test("every Carbon ICacheable resource class maps ICacheable", () =>
 test("Tr2EffectRes reports its container and each translated container once", () =>
 {
   const bytes = effectContainer("A");
-  const effect = new Tr2EffectRes().Initialize("res:/graphics/effect.dx11/quad/quadv5.sm_hi");
+  const effect = new Tr2EffectRes();
 
   assert.equal(effect.GetMemoryUsage(), 0);
-  effect.DoLoad(bytes);
+  effect._dataStream = {data: bytes};
+  effect._DoLoad();
+  effect._CloseStream();
   assert.equal(effect.IsMemoryUsageKnown(), true);
   assert.equal(effect.GetMemoryUsage(), bytes.byteLength, "Tr2EffectRes.cpp:379-384: m_data.size()");
 
@@ -69,45 +71,47 @@ test("Tr2EffectRes reports its container and each translated container once", ()
   assert.equal(translations, 1);
   assert.equal(effect.GetMemoryUsage(), bytes.byteLength + translated.byteLength);
 
-  effect.ReleasePayload();
+  effect.Shutdown();
   assert.equal(effect.GetMemoryUsage(), 0);
 });
 
 test("TriTextureRes estimates every mip times the array size, and forgets it with the bitmap", () =>
 {
-  const texture = new TriTextureRes().Initialize("res:/synthetic/size.dds");
+  const texture = new TriTextureRes();
   const bitmap = new HostBitmap();
   bitmap.Create(4, 4, 3, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
 
-  texture.SetPayload(bitmap);
+  texture.CreateFromHostBitmap(bitmap);
 
   // TriTextureRes.cpp:1182-1189: 4x4, 2x2 and 1x1 at four bytes a pixel.
   assert.equal(texture.GetMemoryUsage(), 64 + 16 + 4);
-  texture.ReleasePayload();
+  texture.Shutdown();
   assert.equal(texture.GetMemoryUsage(), 0);
 });
 
 test("Tr2LightProfileRes reports the profile strip once good, and nothing is known while loading", () =>
 {
-  const profile = new Tr2LightProfileRes().Initialize("res:/synthetic/profile.ies");
+  const profile = new Tr2LightProfileRes();
 
-  profile.MarkLoading();
+  profile._isLoading = true;
   assert.equal(profile.IsMemoryUsageKnown(), false);
   assert.equal(profile.GetMemoryUsage(), 0);
-  profile.MarkPrepared();
+  profile._isLoading = false;
+  profile._SetPrepared(true);
+  profile._SetGood(true);
   assert.equal(profile.IsMemoryUsageKnown(), true);
   assert.equal(profile.GetMemoryUsage(), 1024, "Tr2LightProfileRes.cpp:58-61: PROFILE_LIGHTMAP_SIZE");
 });
 
 test("Tr2GrannyStateRes reports Carbon's no-file 1024 for a document decoded elsewhere", () =>
 {
-  const state = new Tr2GrannyStateRes().Initialize("res:/synthetic/state.gsf");
+  const state = new Tr2GrannyStateRes();
 
-  state.DoLoad({ stateMachine: {}, animationSets: [] });
+  state._gStateFile = { stateMachine: {}, animationSets: [] };
   assert.equal(state.GetMemoryUsage(), 1024);
 });
 
-test("TriGrannyRes has no load path yet, so it reports nothing and is never cached", () =>
+test("an empty TriGrannyRes reports no allocated file memory", () =>
 {
   assert.equal(new TriGrannyRes().GetMemoryUsage(), 0);
 });

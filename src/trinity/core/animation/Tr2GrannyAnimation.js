@@ -1,3 +1,4 @@
+import { BlueAsyncRes } from "#blue";
 import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2AnimationUpdater } from "./ITr2AnimationUpdater.js";
@@ -14,7 +15,8 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta, type } from "#schema";
-import { CjsResource } from "#blue";
+import { TriGeometryRes } from "../../resources/geometry/TriGeometryRes.js";
+import { TriGrannyRes } from "../../resources/geometry/granny/TriGrannyRes.js";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 import { CjsCmfFormat } from "#resource/formats/cmf";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
@@ -279,11 +281,15 @@ export class Tr2GrannyAnimation extends IRoot
     return this.RebuildCachedData();
   }
 
-  /** Attaches an already decoded TriGrannyRes-compatible resource. */
+  /**
+   * Attaches an already decoded TriGrannyRes-compatible resource.
+   * @param {TriGrannyRes|null} resource Clip resource to subscribe to, or null to detach.
+   */
   @meta.cjs
     @meta.adapted
   SetGrannyResource(resource)
   {
+    if (this._sharedGeometry && this.grannyRes) this.grannyRes.RemoveNotifyTarget(this);
     this.grannyRes = resource ?? null;
     this._sharedGeometry = false;
     this._resolvedPath = "";
@@ -1701,11 +1707,13 @@ export class Tr2GrannyAnimation extends IRoot
    * Source: trinity/trinity/Tr2GrannyAnimation.cpp:367-389
    * Custom: decoded payloads represent native Granny file-info pointers; resource
    * identity selects the required GetPayload method without probing its presence.
+   * @param {TriGrannyRes} resource Native resource whose retained Granny graph is inspected.
    */
   _getSource(resource)
   {
-    const wrapper = CjsSchema.cast(resource, CjsResource);
-    let value = wrapper ? wrapper.GetPayload() : resource;
+    const geometry = CjsSchema.cast(resource, TriGeometryRes);
+    const granny = CjsSchema.cast(resource, TriGrannyRes);
+    let value = geometry ? geometry.GetGrannyInfo() : granny ? granny.GetGrannyFile() : resource;
     const seen = new Set();
     while (value && typeof value === "object" && !seen.has(value))
     {
@@ -2144,4 +2152,17 @@ export class Tr2GrannyAnimation extends IRoot
     }
   }
 
+
+  /** Carbon destructor (Tr2GrannyAnimation.cpp:99-117): detach shared geometry. */
+  @meta.adapted
+  Destruct()
+  {
+    if (this._sharedGeometry && this.grannyRes) this.grannyRes.RemoveNotifyTarget(this);
+    this.grannyRes = null;
+    this._sharedGeometry = false;
+    this._runtimeModel = null;
+    BlueAsyncRes.markNotifyTargetDestructed(this);
+  }
 }
+
+CjsSchema.decorateMethod(Tr2GrannyAnimation, "_getSource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

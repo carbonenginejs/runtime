@@ -1,3 +1,4 @@
+import { CjsPngFormat } from "../../resource/formats/png/CjsPngFormat.js";
 import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
 import { CjsCharacterGeneric } from "./kinds/CjsCharacterGeneric.js";
 import { exposure as be } from "#be";
@@ -812,12 +813,17 @@ export class CjsCharacterLibrary
      *
      * The extension-neutral name, `.dds` and `.png` address the same record.
      * An existing record is returned directly; otherwise the `.png` is
-     * requested raw through `resMan.GetResource(...).Ready()`, and concurrent requests for one
+     * read as bytes through resMan, then inspected by the PNG reader; concurrent requests for one
      * identity share that operation. A discovered record is added through
      * `Create`, so it raises the ordinary `recordadded` event.
      * This enriches the catalog's source evidence. Character texture loading
      * uses the ordinary texture resource path; composition reads that texture's
      * native cutout, never this optional catalog record or its sibling PNG.
+     * @param {string} resourcePath Texture path or extension-neutral identity.
+     * @param {object} [options={}] Inspection services and catalog attribution.
+     * @param {CjsBlueResMan} [options.resMan=this._resourceManager] Configured byte/format reader.
+     * @param {*} [options.source=this] Attribution for the discovered catalog record.
+     * @returns {Promise<object>} Existing or discovered metadata record.
      */
     async InspectResourceForData(resourcePath, {
         resMan = this._resourceManager,
@@ -837,11 +843,10 @@ export class CjsCharacterLibrary
         {
             const request = (async () =>
             {
-                // PNG inspection data is the resource's decoded output, not an
-                // object: read through the resource (Ready answers what the
-                // load published, as LoadObject did before it served objects only).
+                // Catalog inspection reads PNG metadata without populating a texture resource.
                 const request = { emit: "raw", cacheSource: true };
-                const payload = await resMan.GetResource(pngPath, request).Ready(request);
+                const bytes = await resMan.ReadResource(pngPath, request);
+                const payload = await resMan.ReadFormat({ Format: CjsPngFormat }, bytes, request);
                 const metadata = payload?.metadata ?? payload;
                 const values = CjsCharacterTextureMetadata.fromPngInspection(
                     identity,
@@ -1198,3 +1203,5 @@ function ValidateKindNames(kind, records, names)
     if (names.some(name => typeof name !== "string" || !name.trim()) || new Set(names).size !== names.length)
         throw new TypeError(`Character ${kind} source names must be nonempty and unique.`);
 }
+
+CjsSchema.decorateMethod(CjsCharacterLibrary, "InspectResourceForData", CjsSchema.meta.implemented);

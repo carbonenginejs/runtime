@@ -2,7 +2,7 @@ import { CjsSchema } from "#schema/CjsSchema";
 
 import { coerceNonNegativeInteger } from "#utils/validation";
 import { CjsError } from "#utils/errors";
-import { CjsResource } from "#blue";
+import { BlueAsyncRes, blue } from "#blue";
 
 import { CjsAudioBufferRes } from "./CjsAudioBufferRes.js";
 
@@ -13,7 +13,7 @@ import { CjsAudioBufferRes } from "./CjsAudioBufferRes.js";
  * Loose files, prepared files, API results, and bank windows therefore expose
  * the same byte and lifetime methods.
  */
-export class CjsAudioRes extends CjsResource
+export class CjsAudioRes extends BlueAsyncRes
 {
 
     _audioInfo = {};
@@ -60,13 +60,20 @@ export class CjsAudioRes extends CjsResource
         return this._audioInfo;
     }
 
-    /** Binds the shared physical resource and this file's byte window. */
+    /**
+     * Binds the shared physical resource and this file's byte window.
+     * @param {CjsAudioBufferRes} backing Physical owner shared by logical bank windows.
+     * @param {object} [options={}] Window bounds.
+     * @param {number} [options.offset=0] Byte offset in the physical source.
+     * @param {number|null} [options.byteLength=null] Byte length, or remaining source length.
+     * @returns {CjsAudioRes} This logical resource.
+     */
     SetBackingResource(backing, {
         offset = 0,
         byteLength = null,
     } = {})
     {
-        if (!(backing instanceof CjsAudioBufferRes))
+        if (!(CjsSchema.cast(backing, CjsAudioBufferRes)))
         {
             throw new TypeError(
                 "CjsAudioRes backing must be a CjsAudioBufferRes",
@@ -118,7 +125,7 @@ export class CjsAudioRes extends CjsResource
 
         if (!this.IsPrepared())
         {
-            this.MarkPrepared();
+            this._isPrepared = this._isGood = true;
         }
 
         return this;
@@ -230,18 +237,25 @@ export class CjsAudioRes extends CjsResource
         return this;
     }
 
-    /** Renews the child identity and the shared backing payload lease. */
+    /**
+     * Renews the child identity and the shared backing payload lease.
+     * @param {object} [options={}] Existing activity frame/time overrides.
+     * @returns {CjsAudioRes} This logical resource.
+     */
     KeepPayloadAlive(options = {})
     {
         super.KeepAlive(options);
-        this._backing?.KeepPayloadAlive(options);
+        if (this._backing) this._backing.KeepAlive(options);
         return this;
     }
 
-    /** Locks this child and increments the shared backing lock count. */
+    /**
+     * Locks this child and increments the shared backing lock count.
+     * @returns {number} Logical resource lock count after balancing its backing lock.
+     */
     Lock()
     {
-        const count = super.Lock();
+        const count = blue.resMan.LockResource(this);
 
         if (!this._backing)
         {
@@ -250,26 +264,29 @@ export class CjsAudioRes extends CjsResource
 
         try
         {
-            this._backing.Lock();
+            blue.resMan.LockResource(this._backing);
             this._backingLocks += 1;
             return count;
         }
         catch (cause)
         {
-            super.Unlock();
+            blue.resMan.UnlockResource(this);
             throw cause;
         }
     }
 
-    /** Unlocks this child and releases one shared backing lock. */
+    /**
+     * Unlocks this child and releases one shared backing lock.
+     * @returns {number} Logical resource lock count after balancing its backing lock.
+     */
     Unlock()
     {
-        const count = super.Unlock();
+        const count = blue.resMan.UnlockResource(this);
 
         if (this._backingLocks > 0)
         {
             this._backingLocks -= 1;
-            this._backing?.Unlock();
+            if (this._backing) blue.resMan.UnlockResource(this._backing);
         }
 
         return count;
@@ -312,6 +329,50 @@ export class CjsAudioRes extends CjsResource
         };
     }
 
+
+    /**
+     * Use the existing physical byte owner instead of opening the logical audio
+     * identifier as a second file. This class is a browser audio adapter.
+     * @returns {boolean} Whether a backing source is bound.
+     */
+    _DoOpenStream()
+    {
+        return this._backing !== null;
+    }
+
+    /**
+     * Wait for the physical resource without retaining another bank byte view.
+     * @returns {Promise<number>} Native asynchronous-load result.
+     */
+    async _DoLoad()
+    {
+        await this._backing.GetByteView();
+        return BlueAsyncRes.LoadingResult.LR_SUCCESS;
+    }
+
+    /**
+     * The logical file is usable once its backing load has completed.
+     * @returns {boolean} Whether its backing source remains bound.
+     */
+    _DoPrepare()
+    {
+        return this._backing !== null;
+    }
+
 }
 
 CjsSchema.meta.define("CjsAudioRes")(CjsAudioRes);
+
+CjsSchema.decorateMethod(CjsAudioRes, "SetBackingResource", CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsAudioRes, "KeepPayloadAlive", CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsAudioRes, "Lock", CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsAudioRes, "Unlock", CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsAudioRes, "_DoOpenStream", CjsSchema.meta.adapted);
+
+CjsSchema.decorateMethod(CjsAudioRes, "_DoLoad", CjsSchema.meta.adapted);
+
+CjsSchema.decorateMethod(CjsAudioRes, "_DoPrepare", CjsSchema.meta.adapted);

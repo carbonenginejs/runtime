@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -64,7 +65,7 @@ test("a local low-detail sibling renders until the authored texture is prepared"
     const authored = stub.resources.get("res:/texture/a.dds");
     assert.equal(parameter.GetResource(), lowRes);
 
-    authored.MarkPrepared();
+    prepareResourceFixture(authored);
     assert.equal(parameter.GetResource(), authored);
   });
 });

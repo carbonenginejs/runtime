@@ -17,14 +17,9 @@ test("the slots are filled before anything can read them", () =>
   assert.equal(blue.paths instanceof IBluePaths, true);
 });
 
-test("an unconfigured manager answers: a path it cannot fetch fails on the resource", async () =>
+test("an unconfigured manager has no factory for an unknown extension", () =>
 {
-  const resource = blue.resMan.GetResource("res:/model/holder-unconfigured.gr2");
-  // The load fails on the resource once the read through be.paths answers.
-  await blue.resMan.Wait();
-
-  assert.equal(resource.IsFailed(), true, "no file system serves res: yet");
-  blue.resMan.Delete("res:/model/holder-unconfigured.gr2");
+  assert.equal(blue.resMan.GetResource("res:/model/holder-unconfigured.gr2"), null);
 });
 
 test("the manager waits for explicit initialization before registering for ticks", () =>

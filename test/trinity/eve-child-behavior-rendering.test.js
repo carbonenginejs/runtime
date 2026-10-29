@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -63,12 +64,12 @@ function group(count = 1)
 function mesh()
 {
   const geometry = new TriGeometryRes();
-  geometry.SetPayload({ meshes: [{
+  geometry.ReadCMFFile({ meshes: [{
     decl: [{usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0}],
     vertex: {position: [0, 0, 0, 1, 0, 0, 0, 1, 0]},
     indices: [{faces: [0, 1, 2]}], areas: [{firstElement: 0, elementCount: 1}]
   }] });
-  geometry.MarkPrepared();
+  prepareResourceFixture(geometry);
   const value = new Tr2Mesh();
   value.SetGeometryRes(geometry);
   const area = new Tr2MeshArea();

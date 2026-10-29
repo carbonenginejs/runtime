@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
 import { meta, type, blue as legacyBlue } from "#schema";
-import { IsMatch, blue, IInitialize, INotify } from "#blue";
+import { BlueAsyncRes, IsMatch, blue, IInitialize, INotify } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 
@@ -63,20 +63,7 @@ export class Tr2Mesh extends Tr2MeshBase
   _loadFenceResource = null;
   _loadFenceReached = true;
 
-  /**
-   * Notify target for the load fence. It records completion once; the resource
-   * releases it on completion, so a later purge and reload does not reopen the
-   * fence.
-   */
-  _loadFenceTarget = {
-    RebuildCachedData: resource =>
-    {
-      if (resource !== this._loadFenceResource) return;
-      this._loadFenceReached = true;
-      this._loadFenceResource = null;
-    },
-    ReleaseCachedData: () => {}
-  };
+
 
   /**
    * Adapted: Carbon's fence covers all earlier manager jobs through preparation.
@@ -112,7 +99,7 @@ export class Tr2Mesh extends Tr2MeshBase
   @meta.adapted
   InitializeGeometryResource()
   {
-    if (this._loadFenceResource) this._loadFenceResource.RemoveNotifyTarget(this._loadFenceTarget);
+    this._loadFenceGeneration += 1;
     this._loadFenceResource = null;
     this._loadFenceReached = true;
     if (!this.geometryResPath)
@@ -144,7 +131,17 @@ export class Tr2Mesh extends Tr2MeshBase
     // low-detail sibling exists. Capture that request even if it is later unbound.
     this._loadFenceResource = lowRes ?? geometry;
     this._loadFenceReached = !this._loadFenceResource;
-    if (this._loadFenceResource) this._loadFenceResource.AddNotifyTarget(this._loadFenceTarget);
+    if (this._loadFenceResource)
+    {
+      const generation = this._loadFenceGeneration;
+      const complete = () =>
+      {
+        if (generation !== this._loadFenceGeneration) return;
+        this._loadFenceReached = true;
+        this._loadFenceResource = null;
+      };
+      blue.resMan.Ready(this._loadFenceResource).then(complete, complete);
+    }
     this.SetLowResGeometryRes(lowRes);
     this.SetGeometryRes(geometry);
   }
@@ -285,7 +282,7 @@ export class Tr2Mesh extends Tr2MeshBase
    *
    * Adapted: while the primary is pending or reviving from a purge, the mesh
    * re-registers as its notify target, because the resource released it when it
-   * last completed (`CjsResource.AddNotifyTarget`). A failed primary is not
+   * last completed (`BlueAsyncRes.AddNotifyTarget`). A failed primary is not
    * re-registered, or it would call back every frame.
    */
 
@@ -294,7 +291,6 @@ export class Tr2Mesh extends Tr2MeshBase
   {
     const geometry = this.geometry;
     if (geometry && geometry.IsGood()) return geometry;
-    if (geometry && !geometry.IsFailed()) geometry.AddNotifyTarget(this);
     return this.lowResGeometry ?? geometry;
   }
 
@@ -503,6 +499,21 @@ export class Tr2Mesh extends Tr2MeshBase
   GetMorphAnimations()
   {
     return new Map([ ...this._morphAnimations ].map(([ name, value ]) => [ name, { ...value } ]));
+  }
+
+  /** Distinguishes an older one-shot wait when a mesh rebinds the same handle. */
+  _loadFenceGeneration = 0;
+
+  /** Carbon destructor (Tr2Mesh.cpp:14-22): detach both geometry subscriptions. */
+  @meta.adapted
+  Destruct()
+  {
+    this._loadFenceGeneration += 1;
+    this._loadFenceResource = null;
+    this._loadFenceReached = true;
+    this.SetGeometryRes(null);
+    this.SetLowResGeometryRes(null);
+    BlueAsyncRes.markNotifyTargetDestructed(this);
   }
 }
 

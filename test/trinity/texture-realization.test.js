@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import { CjsTextureArrayBridge } from "../../npm/dist/trinity/shader/parameter/CjsTextureArrayBridge.js";
 import { CjsWebgpuResourceSetAL } from "../../npm/dist/trinityal/webgpu/CjsWebgpuResourceSetAL.js";
 import { composeStubResMan } from "../support/stubResMan.js";
@@ -99,8 +100,8 @@ test("RealizeTexture makes the resource's texture once it is prepared, and store
   assert.equal(RealizeTexture(resource, context), null, "nothing before the payload arrives");
   assert.equal(resource.GetTexture(), null);
 
-  resource.SetPayload(bc1Bitmap());
-  resource.SetState(TriTextureRes.State.PREPARED);
+  resource.CreateFromHostBitmap(bc1Bitmap());
+  prepareResourceFixture(resource);
 
   const texture = RealizeTexture(resource, context);
 
@@ -111,7 +112,7 @@ test("RealizeTexture makes the resource's texture once it is prepared, and store
   assert.equal(texture.GetMipCount(), 2);
 
   // Dropping the payload drops the texture made from it.
-  resource.SetPayload(null);
+  resource.Shutdown();
   assert.equal(resource.GetTexture(), null);
   assert.equal(CreateTexture(new TriTextureRes(), context), null);
 });
@@ -134,8 +135,8 @@ test("a texture parameter binds the realized texture, or the resource until it i
   assert.equal(parameter.CopyToResourceSet(description, 1, 3, 0, context), true);
   assert.equal(description._srv[0].texture, null);
 
-  resource.SetPayload(bc1Bitmap());
-  resource.SetState(TriTextureRes.State.PREPARED);
+  resource.CreateFromHostBitmap(bc1Bitmap());
+  prepareResourceFixture(resource);
 
   assert.ok(dirtied.length >= 1, "becoming prepared fired m_onTextureChange, which re-dirtied the material");
   assert.equal(parameter.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), true, "the slot changed: texture replaces the fallback");
@@ -147,7 +148,7 @@ test("a texture parameter binds the realized texture, or the resource until it i
 });
 
 
-test("merged texture parameters bind a fallback while pending, then a shared AL texture", () =>
+test("merged texture parameters bind a fallback while pending, then a shared AL texture", async () =>
 {
   const manager = composeStubResMan();
   const context = new Tr2RenderContext();
@@ -171,8 +172,9 @@ test("merged texture parameters bind a fallback while pending, then a shared AL 
       assert.equal(description._srv[0].texture, null, "a pending provider must never enter an AL value copy");
       const resource = bridge.GetResource();
       const before = changed;
-      resource.SetPayload(bc1Bitmap());
-      resource.MarkPrepared();
+      resource.CreateFromHostBitmap(bc1Bitmap());
+      prepareResourceFixture(resource);
+      await Promise.resolve();
       assert.equal(changed, before + 1, "completion invalidates the effect's cached resource sets");
       assert.equal(bridge.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), true);
       assert.equal(description._srv[0].texture.IsValid(), true);
@@ -180,7 +182,7 @@ test("merged texture parameters bind a fallback while pending, then a shared AL 
       assert.equal(description._srv[0].colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB);
       assert.equal(bridge.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), false, "the completed texture remains shared");
       description.ClearResources();
-      resource.SetPayload(null);
+      resource.Shutdown();
     }
   }
   finally { manager.restore(); }

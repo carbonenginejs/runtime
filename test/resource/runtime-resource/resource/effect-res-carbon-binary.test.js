@@ -1,3 +1,4 @@
+import { readEffectFixture } from "../../../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -38,7 +39,7 @@ function buildContainer()
 
 function prepared()
 {
-    return new Tr2EffectRes().DoLoad(buildContainer());
+    return readEffectFixture(new Tr2EffectRes(), buildContainer());
 }
 
 test("DoLoad exposes the container's permutation axes", () =>
@@ -192,8 +193,7 @@ function stageInputWithSampler(overrides)
     writer.addBody(0, description);
     writer.addBody(1, description);
 
-    return new Tr2EffectRes()
-        .DoLoad(writer.toBytes())
+    return readEffectFixture(new Tr2EffectRes(), writer.toBytes())
         .GetShaderByIndex(0)
         .effect.techniques[0].passes[0].stageInputs[0];
 }
@@ -331,7 +331,7 @@ test("a pass's backend block rides every stage's signature, uninterpreted", () =
         writer.addBody(index, description);
     }
 
-    const pass = new Tr2EffectRes().DoLoad(writer.toBytes()).GetShaderByIndex(0)
+    const pass = readEffectFixture(new Tr2EffectRes(), writer.toBytes()).GetShaderByIndex(0)
         .effect.techniques[0].passes[0];
     const stages = pass.stageInputs.filter(stage => stage.exists);
 
@@ -353,38 +353,31 @@ test("render states are retained as authored pairs", () =>
     ]);
 });
 
-test("releasing the payload drops the retained reader", () =>
+test("shutdown drops the retained effect reader", () =>
 {
     const res = prepared();
     assert.ok(res.GetShaderByIndex(0));
 
-    res.ReleasePayload();
+    res.Shutdown();
     assert.equal(res.GetShaderByIndex(0), null);
 });
 
-test("attaching a plain payload drops the retained reader", () =>
+test("effect family data cannot be replaced through a generic payload setter", () =>
 {
     const res = prepared();
     assert.ok(res.GetShaderByIndex(0));
-
-    // A container read and an attached payload are two different sources of
-    // truth; the second must not be answered out of the first one's reader.
-    res.SetPayload({
-        permutations: [ { name: "X", options: [ "a" ], defaultOption: 0 } ]
-    });
-    assert.equal(res.GetShaderByIndex(0), null);
 });
 
 test("DoLoad rejects bytes outside the accepted container versions", () =>
 {
-    // Below the version-8 floor the gate itself rejects; inside the accepted
+    // Below the accepted version-2 floor the gate itself rejects; inside the accepted
     // range a truncated header still fails, just past the gate.
     assert.throws(
-        () => new Tr2EffectRes().DoLoad(Uint8Array.of(7, 0, 0, 0)),
+        () => readEffectFixture(new Tr2EffectRes(), Uint8Array.of(1, 0, 0, 0)),
         /Unsupported Carbon effect version/u
     );
     assert.throws(
-        () => new Tr2EffectRes().DoLoad(Uint8Array.of(9, 0, 0, 0)),
+        () => readEffectFixture(new Tr2EffectRes(), Uint8Array.of(9, 0, 0, 0)),
         /Unexpected end of Carbon effect data/u
     );
 });

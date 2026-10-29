@@ -1,3 +1,4 @@
+import { readEffectFixture, resourceIdentityFixture } from "../../support/resourceFixtures.js";
 // The loader knows which tree its bytes came from, because backend selection is
 // by resource path. Before this, nothing could read that back, so every body was
 // parsed twice on the chance it carried a per-pass backend block - a fallback the
@@ -89,17 +90,17 @@ test("a loaded resource records what its path handed it", async () =>
   const bytes = writer.toBytes();
 
   // A stock Carbon tree: no per-pass block to expect.
-  const carbon = new Tr2EffectRes().Initialize("res:/graphics/effect.dx11/quad/quadv5.sm_hi");
-  carbon.DoLoad(bytes);
+  const carbon = resourceIdentityFixture(new Tr2EffectRes(), "res:/graphics/effect.dx11/quad/quadv5.sm_hi");
+  readEffectFixture(carbon, bytes);
   assert.equal(carbon.CarriesBackendBlock(), false);
 
   // One of ours: translated, so a block is expected without probing for it.
-  const translated = new Tr2EffectRes().Initialize("res:/graphics/effect.webgpu/quad/quadv5.sm_hi");
-  translated.DoLoad(bytes);
+  const translated = resourceIdentityFixture(new Tr2EffectRes(), "res:/graphics/effect.webgpu/quad/quadv5.sm_hi");
+  readEffectFixture(translated, bytes);
   assert.equal(translated.CarriesBackendBlock(), true);
 
   // No path: the reader detects, which is what its fallback is for.
   const unknown = new Tr2EffectRes();
-  unknown.DoLoad(bytes);
+  readEffectFixture(unknown, bytes);
   assert.equal(unknown.CarriesBackendBlock(), null);
 });

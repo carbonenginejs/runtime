@@ -1,3 +1,4 @@
+import { readEffectFixture } from "../../../../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -139,7 +140,7 @@ test("format choices ignore runtime globals while Trinity retains its own select
     try
     {
         const resource = new Tr2EffectRes();
-        resource.DoLoad(bytes);
+        readEffectFixture(resource, bytes);
         const exact = resource.GetShaderByIndex(0);
         assert.equal(resource.GetShaderByIndex(0), exact);
         ModifyGlobalEffectOptions([ { name: "MODE", value: "OFF" } ]);

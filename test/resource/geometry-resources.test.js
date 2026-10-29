@@ -47,10 +47,10 @@ test("the .gr2 format route retains Granny provenance and rebuilds missing bound
   const route = DefaultConfiguration.extensions.gr2;
   const decoded = route.Format.read(new Uint8Array(4), route.defaults);
   decoded.grannyFileFormatRevision = 7;
-  resource.SetPayload(decoded);
-  const payload = resource.GetPayload();
+  resource.ReadGrannyFile(decoded);
+  const payload = resource.GetCMFData();
 
-  assert.deepEqual(payload, { meshes: [], projected: decoded });
+  assert.deepEqual(payload, { meshes: [], projected: decoded, skeletons: [] });
   assert.equal(seen.length, 1);
   assert.equal(seen[0]?.rebuildMissingBounds, true);
   assert.equal(resource.GetGrannyInfo(), decoded, "the Granny graph is retained without another decode or clone");
@@ -63,11 +63,11 @@ test("IsUsingCMF follows the reader that ran, not the payload's shape", (t) =>
 
   assert.equal(resource.IsUsingCMF(), true, "Carbon's default (cpp:210)");
 
-  resource.SetPayload(resource.ReadGrannyFile(new Uint8Array(4)));
+  resource.ReadGrannyFile(new Uint8Array(4));
   assert.equal(resource.IsUsingCMF(), false, "a granny file, although its payload is CMF-shaped");
   assert.ok(resource.GetGrannyInfo());
 
-  resource.SetPayload(resource.ReadCMFFile(new Uint8Array(4)));
+  resource.ReadCMFFile(new Uint8Array(4));
   assert.equal(resource.IsUsingCMF(), true);
   assert.equal(resource.GetGrannyInfo(), null, "a CMF file has no granny file");
 });
@@ -77,13 +77,13 @@ test("the granny file goes with its payload: releasing or replacing it forgets t
   WithStubbedReaders(t);
   const resource = new TriGeometryRes();
 
-  resource.SetPayload(resource.ReadGrannyFile(new Uint8Array(4)));
-  resource.ReleasePayload();
+  resource.ReadGrannyFile(new Uint8Array(4));
+  resource.Shutdown();
   assert.equal(resource.GetGrannyInfo(), null);
   assert.equal(resource.IsUsingCMF(), true);
 
-  resource.SetPayload(resource.ReadGrannyFile(new Uint8Array(4)));
-  resource.SetPayload({ meshes: [] });
+  resource.ReadGrannyFile(new Uint8Array(4));
+  resource.ReadCMFFile({ meshes: [] });
   assert.equal(resource.GetGrannyInfo(), null, "a payload no granny read produced");
   assert.equal(resource.IsUsingCMF(), true);
 });

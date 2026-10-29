@@ -7,10 +7,10 @@ for (const [name, create, read, data, absent] of [
   ["Granny animation", resource => Object.assign(new Tr2GrannyAnimation(), { grannyRes: resource }), owner => owner.GetFileInfo(), { animations: [{ name: "idle" }] }, null]
 ])
 {
-  test(`${name} requires GetPayload on a runtime resource`, () =>
+  test(`${name} requires GetGrannyFile on a runtime resource`, () =>
   {
     const resource = new TriGrannyRes();
-    resource.GetPayload = undefined;
+    resource.GetGrannyFile = undefined;
     assert.throws(() => read(create(resource)), TypeError);
   });
 
@@ -22,7 +22,7 @@ for (const [name, create, read, data, absent] of [
 
   test(`${name} retains decoded records without treating structural methods as resource identity`, () =>
   {
-    const decoded = { ...data, GetPayload() { throw new Error("Decoded record is not a resource"); } };
+    const decoded = { ...data, GetGrannyFile() { throw new Error("Decoded record is not a resource"); } };
     const value = read(create(decoded));
     assert.equal(value, decoded);
   });
@@ -30,7 +30,7 @@ for (const [name, create, read, data, absent] of [
   test(`${name} reads a concrete resource payload`, () =>
   {
     const resource = new TriGrannyRes();
-    resource.SetPayload(data);
+    resource._grannyFile = data;
     const value = read(create(resource));
     assert.equal(value, data);
   });

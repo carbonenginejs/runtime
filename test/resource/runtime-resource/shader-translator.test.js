@@ -2,7 +2,7 @@ import { configureResourceManager } from "../../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsBlueResMan, ResourceRequirement } from "../../../npm/dist/resource/index.js";
+import { CjsBlueResMan } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
 
 // A browser backend has no shipped containers of its own. The orchestrator
@@ -26,10 +26,10 @@ async function Load(path)
 {
   calls.length = 0;
   const resourceManager = await configureResourceManager(new CjsBlueResMan({ source: { Read: () => SHIPPED } }));
-  const resource = resourceManager.GetResource(path, { requirement: ResourceRequirement.SHADER });
+  const resource = resourceManager.GetResource(path);
   // The synthetic bytes are not a container; the load fails after the
   // translation decision, which is what these tests observe.
-  await resource.Ready().catch(() => {});
+  await resourceManager.Ready(resource).catch(() => {});
   return [ ...calls ];
 }
 

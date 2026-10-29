@@ -1,3 +1,4 @@
+import { BlueAsyncRes } from "#blue";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -294,6 +295,7 @@ export class Tr2Effect extends Tr2Material
    */
   Destruct()
   {
+    BlueAsyncRes.markNotifyTargetDestructed(this);
     if (this._destroyed) return;
     this._destroyed = true;
     if (this.effectResource) this.effectResource.RemoveNotifyTarget(this);
@@ -915,7 +917,7 @@ export class Tr2Effect extends Tr2Material
     this._acquiredEffectResource = resource;
     this._acquiredEffectPath = this.actualEffectFilePath;
     resource.AddNotifyTarget(this);
-    resource.Ready();
+
   }
 
   /** Re-runs Initialize after notified fields change; always returns true. */
@@ -1048,7 +1050,6 @@ export class Tr2Effect extends Tr2Material
     const resource = this.effectResource;
     if (resource !== null && !resource.IsGood())
     {
-      if (!resource.IsFailed()) resource.AddNotifyTarget(this);
       return false;
     }
     return this.shader !== null;
@@ -2379,3 +2380,5 @@ export class Tr2Effect extends Tr2Material
 
 }
 
+
+CjsSchema.decorateMethod(Tr2Effect, "Destruct", CjsSchema.meta.adapted);

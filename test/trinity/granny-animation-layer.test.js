@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
@@ -19,8 +20,8 @@ const identity4 = [0, 0, 0, 1];
 function geometryOf(grannyFile)
 {
   const resource = new TriGeometryRes();
-  resource.SetPayload({ ...grannyFile, grannyFileFormatRevision: 7 });
-  resource.MarkPrepared();
+  resource.ReadGrannyFile({ ...grannyFile, grannyFileFormatRevision: 7 });
+  prepareResourceFixture(resource);
   return resource;
 }
 

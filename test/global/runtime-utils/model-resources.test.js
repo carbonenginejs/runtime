@@ -41,7 +41,7 @@ CjsSchema.decorateField(BranchHolder, "res", type.resource("TestRes"));
 CjsSchema.define(BranchHolder, { className: "BranchHolder" });
 
 
-/** Stands in for a Res class: what marks it is the static, as CjsResource does. */
+/** Stands in for a Res class: what marks it is the static, as BlueAsyncRes does. */
 class TestRes
 {
   static isResource = true;

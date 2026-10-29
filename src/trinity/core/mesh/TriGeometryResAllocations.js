@@ -109,7 +109,7 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
   if (!lod) return false;
   if (lod.allocationsValid) return true;
 
-  const mesh = geometry ? geometry.GetPayload()?.meshes?.[meshIndex] : null;
+  const mesh = geometry ? geometry.GetCMFData()?.meshes?.[meshIndex] : null;
 
   if (!mesh) return false;
 
@@ -228,7 +228,7 @@ export function CreateLodWireframeIndices(geometry, meshIndex, lod, renderContex
 {
   if (lod.wireframeIndexAllocation) return true;
 
-  const mesh = geometry.GetPayload()?.meshes?.[meshIndex];
+  const mesh = geometry.GetCMFData()?.meshes?.[meshIndex];
   const lodIndex = mesh && Array.isArray(mesh.lods) ? Math.max(0, mesh.lods.indexOf(lod)) : 0;
   const indices = mesh ? TriGeometryRes.packLodIndices(mesh, lodIndex) : null;
 

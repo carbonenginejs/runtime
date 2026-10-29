@@ -1,5 +1,6 @@
 import { CjsSchema, meta, blue } from "#schema";
-import { ResourceRequirement } from "../consts/resourceRequirement.js";
+import { blue as blueService } from "./blue.js";
+
 import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/validation";
 
 // Source: blue/include/IMotherLode.h
@@ -8,7 +9,7 @@ import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/valida
 import { normalizeResourcePath } from "#utils/path";
 import { CjsBlueOS } from "./CjsBlueOS.js";
 import { ICacheable } from "./ICacheable.js";
-import { CjsResource } from "./CjsResource.js";
+import { IBlueResource } from "./IBlueResource.js";
 import { IRoot } from "./IRoot.js";
 
 /** mMaxMemUsage's initial value (MotherLode.cpp:44). */
@@ -46,13 +47,6 @@ const BEQI_SILENT = 0x1;
  *   whether the entry may enter the cache once unused, if its class is `ICacheable`.
  * @property {number} [frame] Explicit non-negative activity frame; otherwise the counter advances.
  * @property {number} [time] Explicit non-negative activity timestamp; otherwise `now()` is called.
- */
-
-/**
- * Exact-owner conditional replacement options.
- *
- * @typedef {CjsMotherLodeInsertOptions & object} CjsMotherLodeConditionalReplaceOptions
- * @property {() => boolean} [commitGuard] Final side-effect-free caller authority check performed immediately before the exact-record comparison.
  */
 
 /**
@@ -120,16 +114,6 @@ const BEQI_SILENT = 0x1;
  * @property {boolean} inserted Whether the supplied resource was newly registered.
  * @property {boolean} replaced Whether a different registered resource was displaced.
  * @property {object|Function|null} displaced Previous resource returned after successful cleanup or retention.
- */
-
-/**
- * Result from an exact-owner conditional replacement.
- *
- * @typedef {object} CjsMotherLodeConditionalReplaceResult
- * @property {string} key Canonical resolved identity key.
- * @property {boolean} committed Whether the expected owner was replaced.
- * @property {object|Function|null} resource Canonical resource after the compare-and-swap attempt.
- * @property {object|Function|null} displaced Former exact owner when the replacement committed.
  */
 
 /**
@@ -295,100 +279,6 @@ export class CjsMotherLode
     return createInsertResult(key, resource, true, Boolean(existing), existing?.resource || null);
   }
 
-  /**
-   * Replace one exact canonical owner without running user cleanup between the
-   * final ownership comparison and registry publication.
-   *
-   * The prepared replacement becomes canonical first; displaced-owner cleanup
-   * then runs exactly once. A cleanup failure therefore cannot roll lookup
-   * ownership back to a partially cleaned former resource. Such a failure is
-   * reported as `CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED` with a committed
-   * result attached. When the expected owner is no longer current, no mutation
-   * or cleanup occurs and `committed` is `false`.
-   *
-   * Cacheability inherits from the expected record unless explicitly
-   * supplied. The replacement is live because a successful staged reload is
-   * an activity observation.
-   *
-   * @param {string} key Canonical resolved identity key.
-   * @param {object|Function} expected Exact resource that must still own `key`.
-   * @param {object|Function} resource Fully prepared replacement resource.
-   * @param {CjsMotherLodeConditionalReplaceOptions} [options={}] Replacement metadata, authority guard, and displaced-owner cleanup policy.
-   * @returns {CjsMotherLodeConditionalReplaceResult} Compare-and-swap outcome.
-   * @throws {TypeError} If the key, resources, metadata, or activity values are invalid.
-   * @throws {Error} If the registry is inactive or the prepared resource aliases the expected owner.
-   * @throws {AggregateError} After a committed swap when displaced-owner cleanup fails.
-   */
-  ReplaceExpected(key, expected, resource, options = {})
-  {
-    if (!this._active)
-    {
-      throw motherLodeInactiveError();
-    }
-
-    const resolvedKey = normalizeResolvedKey(key);
-    const policy = normalizeOptions(options, "conditional replace");
-    if (policy.commitGuard !== undefined && typeof policy.commitGuard !== "function")
-    {
-      throw new TypeError("CjsMotherLode conditional replace commitGuard must be a function.");
-    }
-    assertResource(expected);
-    assertResource(resource);
-    if (resource === expected)
-    {
-      const error = new Error("CjsMotherLode conditional replacement requires a distinct resource.");
-      error.code = "CJS_MOTHERLODE_REPLACE_ALIAS";
-      throw error;
-    }
-
-    const existing = this._entries.get(resolvedKey) || null;
-    if (!existing || existing.resource !== expected)
-    {
-      return createConditionalReplaceResult(
-        resolvedKey,
-        false,
-        existing?.resource || null,
-        null
-      );
-    }
-
-    const recordOptions = {
-      ...policy,
-      cacheable: policy.cacheable === undefined ? existing.cacheable : policy.cacheable
-    };
-    const record = this._CreateRecord(resolvedKey, resource, recordOptions);
-
-    // Re-check after clock/metadata validation, then publish with no user code
-    // between the exact-record comparison and Map mutation.
-    if ((policy.commitGuard && !policy.commitGuard())
-      || this._entries.get(resolvedKey) !== existing)
-    {
-      return createConditionalReplaceResult(
-        resolvedKey,
-        false,
-        this._entries.get(resolvedKey)?.resource || null,
-        null
-      );
-    }
-    this._entries.set(resolvedKey, record);
-
-    const result = createConditionalReplaceResult(resolvedKey, true, resource, expected);
-    try
-    {
-      this._CleanupRecord(existing, policy, "conditional replace");
-    }
-    catch (cause)
-    {
-      const error = new AggregateError(
-        [ cause ],
-        `CjsMotherLode conditional replacement committed but cleanup failed for ${resolvedKey}.`
-      );
-      error.code = "CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED";
-      error.result = result;
-      throw error;
-    }
-    return result;
-  }
 
   /**
    * Test a canonical identity without loading or renewing its activity.
@@ -532,7 +422,7 @@ export class CjsMotherLode
 
   /**
    * The registry clock's current time, which the manager stamps once per tick
-   * for resources to renew with (`CjsResource.activityTime`).
+   * for resources to renew with (`BlueAsyncRes.activityTime`).
    *
    * @returns {number} Milliseconds on this registry's clock.
    */
@@ -549,7 +439,7 @@ export class CjsMotherLode
    * over-budget cache trim - so those see every renewal. Frame counts are not
    * advanced: the manager configures time limits only.
    *
-   * Ours: see `CjsResource.KeepAlive`.
+   * Ours: see `BlueAsyncRes.KeepAlive`.
    */
   _SettleRenewals()
   {
@@ -566,8 +456,8 @@ export class CjsMotherLode
   /**
    * `KeepAlive` for a key this registry produced, without normalizing it again.
    *
-   * Ours: the manager's per-resource lifecycle controller renews through this
-   * on every `CjsResource.IsGood()`, which every draw path calls each frame.
+   * Ours: the global manager renews resources through this
+   * on every `BlueAsyncRes.IsGood()`, which every draw path calls each frame.
    * Normalizing an already canonical key was about three quarters of
    * `KeepAlive`'s cost (216 of 587 ns a call, measured 2026-10-04); a direct
    * map get is about 6 ns. A key that misses falls back to `KeepAlive`, so a
@@ -663,7 +553,7 @@ export class CjsMotherLode
    *
    * Identity limits remove unlocked canonical entries, destroy their adapter
    * allocations, release payloads, detach resource-facing lifecycle callbacks,
-   * and mark CjsResource-compatible handles purged. Payload limits release only
+   * and mark BlueAsyncRes-compatible handles purged. Payload limits release only
    * the CPU payload while retaining identity and adapters. Textures retain their
    * bitmap until full purge because rebinding needs it. Geometry retains its
    * meshes for the same reason: Carbon has no prepared-but-empty geometry tier
@@ -745,7 +635,7 @@ export class CjsMotherLode
         purgedKeys.push(key);
         try
         {
-          CastResource(record.resource)?.MarkPurged();
+          if (CastResource(record.resource)) blueService.resMan._MarkResourcePurged(record.resource);
         }
         catch (cause)
         {
@@ -755,8 +645,6 @@ export class CjsMotherLode
       }
 
       if (policy.releasePayload !== false
-        && record.resource.constructor?.payload !== ResourceRequirement.TEXTURE
-        && record.resource.constructor?.payload !== ResourceRequirement.GEOMETRY
         && hasOwnedPayload(record.resource)
         && isInactive(
           record.payloadLastUsedFrame,
@@ -769,7 +657,7 @@ export class CjsMotherLode
       {
         try
         {
-          record.resource.ReleasePayload();
+          blueService.resMan.ReleaseResourcePayload(record.resource);
           payloadKeys.push(key);
         }
         catch (cause)
@@ -971,7 +859,7 @@ export class CjsMotherLode
 
     try
     {
-      CastResource(record.resource)?.MarkPurged();
+      if (CastResource(record.resource)) blueService.resMan._MarkResourcePurged(record.resource);
     }
     catch (cause)
     {
@@ -1073,7 +961,7 @@ export class CjsMotherLode
       const path = CastResource(record.resource)?.GetPath() || getKeyPath(record.key);
       if (path) paths.add(path);
 
-      const state = typeof record.resource?.state === "string" ? record.resource.state : "unknown";
+      const state = CastResource(record.resource) ? blueService.resMan.GetResourceStatus(record.resource).phase : "unknown";
       states[state] = (states[state] || 0) + 1;
     }
 
@@ -1228,49 +1116,30 @@ export class CjsMotherLode
   }
 
   /**
-   * Clean one displaced record and attach canonical ownership context to errors.
-   *
-   * @param {object} record Internal ownership record being removed.
-   * @param {CjsMotherLodeMutationOptions} options Cleanup policy.
-   * @param {string} operation Human-readable ownership operation.
-   * @param {boolean} [preserveOnFailure=false] Keep lifecycle binding when the record remains canonical.
+   * Clean one record, preserving the existing contextual error contract.
+   * @param {object} record Removed cache record.
+   * @param {object} options Existing cleanup, adapter and payload switches.
+   * @param {string} operation Operation name for contextual cleanup errors.
    * @returns {void}
-   * @throws {Error} Contextual `CJS_MOTHERLODE_CLEANUP_FAILED` error on failure.
    */
-  _CleanupRecord(record, options, operation, preserveOnFailure = false)
+  _CleanupRecord(record, options, operation)
   {
-    let cleanupComplete = false;
     try
     {
       cleanupOwnedResource(record.resource, options);
-      cleanupComplete = true;
-      detachResourceLifecycle(record.resource);
     }
     catch (cause)
     {
-      if (!preserveOnFailure && !cleanupComplete)
-      {
-        try
-        {
-          detachResourceLifecycle(record.resource);
-        }
-        catch (detachCause)
-        {
-          cause = new AggregateError([ cause, detachCause ], "Resource cleanup and detach failed.");
-        }
-      }
       throw motherLodeCleanupError(operation, record.key, record.resource, cause);
     }
   }
 
   /**
-   * Clean every removed record and aggregate failures without skipping entries.
-   *
-   * @param {object[]} records Internal ownership records already removed from the registry.
-   * @param {CjsMotherLodeMutationOptions} options Shared cleanup policy.
-   * @param {string} operation Human-readable ownership operation.
+   * Clean every removed record and report failures without skipping later entries.
+   * @param {object[]} records Removed cache records.
+   * @param {object} options Existing cleanup, adapter and payload switches.
+   * @param {string} operation Operation name for contextual cleanup errors.
    * @returns {void}
-   * @throws {AggregateError} Contextual errors for every failed cleanup.
    */
   _CleanupRecords(records, options, operation)
   {
@@ -1285,19 +1154,8 @@ export class CjsMotherLode
       {
         errors.push(motherLodeCleanupError(operation, record.key, record.resource, cause));
       }
-      try
-      {
-        detachResourceLifecycle(record.resource);
-      }
-      catch (cause)
-      {
-        errors.push(motherLodeCleanupError(`${operation} detach`, record.key, record.resource, cause));
-      }
     }
-    if (errors.length)
-    {
-      throw new AggregateError(errors, `CjsMotherLode ${operation} cleanup failed.`);
-    }
+    if (errors.length) throw new AggregateError(errors, "CjsMotherLode " + operation + " cleanup failed.");
   }
 
 }
@@ -1477,42 +1335,33 @@ function isInactive(lastFrame, lastTime, frame, time, maxFrames, maxMilliseconds
 }
 
 /**
- * The registered object as a {@link CjsResource}, or null. Carbon's registry
+ * The registered object as a {@link BlueAsyncRes}, or null. Carbon's registry
  * holds any `IRoot` (IMotherLode.h:60) and reaches a narrower interface by
  * cast (MotherLode.cpp:77, 340); payload, adapter and lifecycle ownership are
- * CjsResource's, so they are reached the same way.
+ * BlueAsyncRes's, so they are reached the same way.
  *
  * @param {object|Function} resource Registered object.
- * @returns {CjsResource|null} The resource, or null.
+ * @returns {BlueAsyncRes|null} The resource, or null.
  */
 function CastResource(resource)
 {
-  return CjsSchema.cast(resource, CjsResource);
+  return CjsSchema.cast(resource, IBlueResource);
 }
 
 /**
  * Return whether a resource currently holds a releasable CPU payload.
  *
  * @param {object|Function} resource Candidate resource.
- * @returns {boolean} Whether `ReleasePayload()` can remove an attached payload.
+ * @returns {boolean} Whether the manager retains releasable plain or object data.
  */
 function hasOwnedPayload(resource)
 {
   const owned = CastResource(resource);
-  return owned !== null && owned.HasPayload();
+  return owned !== null && blueService.resMan.HasResourcePayload(owned);
 }
 
-/**
- * Detach resource-facing lifecycle callbacks after canonical ownership ends.
- *
- * @param {object|Function} resource Removed resource.
- * @returns {void}
- */
-function detachResourceLifecycle(resource)
-{
-  CastResource(resource)?.SetLifecycleController(null);
-}
 
+/** Clean an owned native resource through the global manager. */
 function cleanupOwnedResource(resource, options)
 {
   if (options.cleanup === false) return;
@@ -1521,36 +1370,7 @@ function cleanupOwnedResource(resource, options)
     options.cleanup(resource);
     return;
   }
-
-  const owned = CastResource(resource);
-  if (owned === null) return;
-  const errors = [];
-  if (options.destroyAdapters !== false)
-  {
-    try
-    {
-      owned.DestroyAdapterResources({ destroy: true });
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-  }
-  if (options.releasePayload !== false)
-  {
-    try
-    {
-      owned.ReleasePayload();
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-  }
-  if (errors.length)
-  {
-    throw errors.length === 1 ? errors[0] : new AggregateError(errors, "Resource cleanup failed.");
-  }
+  if (CastResource(resource)) blueService.resMan._CleanupResource(resource, options);
 }
 
 function assertResource(resource)
@@ -1698,3 +1518,11 @@ CjsSchema.decorateMethod(CjsMotherLode, "_WeakRefNotify", meta.renamed("WeakRefN
 CjsSchema.blue.define(CjsMotherLode, {
   className: "CjsMotherLode"
 });
+
+CjsSchema.decorateMethod(CjsMotherLode, "PurgeInactive", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsMotherLode, "_EvictCached", CjsSchema.meta.adapted);
+
+CjsSchema.decorateMethod(CjsMotherLode, "_CleanupRecord", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsMotherLode, "_CleanupRecords", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

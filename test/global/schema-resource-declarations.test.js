@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
 import { DictReader } from "../../src/global/blue/DictReader.js";
 import { DictWriter } from "../../src/global/blue/DictWriter.js";
-import { CjsResource } from "../../src/global/blue/CjsResource.js";
+import { BlueAsyncRes } from "../../src/global/blue/BlueAsyncRes.js";
 import { exportCarbonValue } from "../../src/global/schema/types/carbonTypes.js";
 import { GetResources } from "../../src/global/blue/getResources.js";
 
@@ -100,10 +100,10 @@ test("stateless recursive output excludes child resources in objects and collect
 });
 
 test("model, composed and resource-owned values routes omit caches", () => {
-  for (const Base of [class {}, CjsResource]) {
+  for (const Base of [class {}, BlueAsyncRes]) {
     class Owner extends Base { cache = { loaded: true }; authored = 1; }
     CjsSchema.define(Owner, { className: name(), fields: { cache: [type.resource("Resource"), CjsSchema.blue.persist], authored: type.int32 } });
-    if (Base !== CjsResource) CjsSchema.meta.values(Owner, { kind: "class" });
+    CjsSchema.meta.values(Owner, { kind: "class" });
     const target = new Owner();
     const cache = target.cache;
     target.SetValues(incoming("cache"));
@@ -157,7 +157,7 @@ test("derived ordinary type replaces resource marker while edit-only overrides r
   assert.equal(Object.hasOwn(write(resource), "cache"), false);
   assert.equal(Object.hasOwn(CjsSchema.getDefaults(StillResource), "cache"), false);
   const traversed = new StillResource();
-  traversed.cache = new CjsResource();
+  traversed.cache = new BlueAsyncRes();
   assert.deepEqual(GetResources(traversed, []), [traversed.cache]);
 });
 

@@ -1,3 +1,4 @@
+import { prepareResourceFixture, failResourceFixture, pendingResourceFixture, purgeResourceFixture } from "../support/resourceFixtures.js";
 // Tr2Effect.IsGood: "am I good to draw", answered from the effect's own
 // resource, after renewing every resource the effect holds.
 //
@@ -5,24 +6,26 @@
 // here are both silent: an early exit that leaves later textures unrenewed, and
 // a failed texture that switches the whole effect off.
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 
 import { Tr2Effect, Tr2Shader, TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
-import { CjsResource, TriTextureRes } from "../../npm/dist/resource/index.js";
+import { TriTextureRes } from "../../npm/dist/resource/index.js";
 
 
-const { State } = CjsResource;
+import { blue, BlueAsyncRes, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 
 
 /** Adds a texture parameter bound to a resource in `state`, counting renewals. */
 function addTexture(effect, name, state)
 {
   const resource = new TriTextureRes();
-  resource.path = `res:/${name}.dds`;
-  resource.SetState(state);
+  resource._path = `res:/${name}.dds`;
+  resource._isLoading = state === "pending";
+  resource._isPrepared = state !== "pending";
+  resource._isGood = state === "ready";
   const renewals = { count: 0 };
-  resource.SetLifecycleController({ keepAlive: () => { renewals.count += 1; } });
+  resource.KeepAlive = () => { renewals.count += 1; };
 
   const parameter = new TriTextureParameter();
   parameter.SetParameterName(name);
@@ -35,9 +38,9 @@ function addTexture(effect, name, state)
 test("IsGood renews every texture, with no early exit at the first one not ready", () =>
 {
   const effect = new Tr2Effect();
-  const pending = addTexture(effect, "pending", State.REQUESTED);
-  const failed = addTexture(effect, "failed", State.FAILED);
-  const ready = addTexture(effect, "ready", State.PREPARED);
+  const pending = addTexture(effect, "pending", "pending");
+  const failed = addTexture(effect, "failed", "failed");
+  const ready = addTexture(effect, "ready", "ready");
 
   effect.IsGood();
   assert.deepEqual([ pending.count, failed.count, ready.count ], [ 1, 1, 1 ]);
@@ -49,7 +52,7 @@ test("IsGood renews every texture, with no early exit at the first one not ready
 test("a failed texture does not make the effect bad; it draws with the fallback", () =>
 {
   const effect = new Tr2Effect();
-  addTexture(effect, "missing", State.FAILED);
+  addTexture(effect, "missing", "failed");
   effect.shader = new Tr2Shader();
   assert.equal(effect.IsGood(), true);
 });
@@ -75,17 +78,18 @@ test("a pending effect resource is not good, and registers the effect once", () 
   }
   const effect = new Tr2Effect();
   const resource = new CountingEffectRes();
-  resource.SetState(State.REQUESTED);
+  pendingResourceFixture(resource);
   effect.effectResource = resource;
+  resource.AddNotifyTarget(effect);
   effect.shader = new Tr2Shader();      // stale: from before a purge, say
 
   assert.equal(effect.IsGood(), false, "the resource answers, not a leftover shader");
   assert.equal(effect.IsGood(), false);
-  assert.equal(registrations, 2, "asked each time; the resource keeps one");
+  assert.equal(registrations, 1, "the owner subscribes once, never during IsGood");
 
   let rebuilds = 0;
   effect.RebuildCachedDataInternal = () => { rebuilds += 1; };
-  resource.MarkPrepared();
+  prepareResourceFixture(resource);
   assert.equal(rebuilds, 1, "told once when the resource finished");
 });
 
@@ -94,7 +98,7 @@ test("a failed effect resource is not re-registered, so it is not rebuilt every 
 {
   const effect = new Tr2Effect();
   const resource = new Tr2EffectRes();
-  resource.SetError(new Error("missing effect"));
+  failResourceFixture(resource, new Error("missing effect"));
   effect.effectResource = resource;
 
   let rebuilds = 0;
@@ -106,22 +110,19 @@ test("a failed effect resource is not re-registered, so it is not rebuilt every 
 
 test("pure queries on a purged resource do not revive it", () =>
 {
-  const resource = new CjsResource();
-  resource.path = "res:/thing.dds";
-  resource.MarkPrepared();
-  let reloads = 0;
-  resource.SetReloadHook(() => { reloads += 1; resource.MarkRequested(); });
-  resource.MarkPurged();
-
-  resource.IsPrepared();
-  resource.HasCompleted();
-  resource.IsPurged();
-  resource.IsFailed();
-  assert.equal(reloads, 0, "looking is not using");
-  assert.equal(resource.state, State.PURGED);
-
+  class CountingResource extends BlueAsyncRes
+  {
+    reloads = 0;
+    Reload() { this.reloads++; pendingResourceFixture(this); }
+  }
+  const resource = new CountingResource();
+  resource._path = "res:/thing.dds";
+  blue.resMan._MarkResourcePurged(resource);
+  resource.IsPrepared(); resource.IsLoading(); blue.resMan.GetResourceStatus(resource);
+  assert.equal(resource.reloads, 0);
+  assert.equal(blue.resMan.GetResourceStatus(resource).purged, true);
   resource.IsGood();
-  assert.equal(reloads, 1, "asking IsGood is using");
+  assert.equal(resource.reloads, 1);
 });
 
 
@@ -147,10 +148,10 @@ test("a runtime texture parameter renews a cached texture it binds; a texture re
 {
   const { Tr2RuntimeTextureParameter, Tr2TextureReference } = await import("../../npm/dist/trinity/index.js");
   const texture = new TriTextureRes();
-  texture.path = "res:/lut.dds";
-  texture.SetState(State.PREPARED);
+  texture._path = "res:/lut.dds";
+  texture._isGood = texture._isPrepared = true;
   let renewals = 0;
-  texture.SetLifecycleController({ keepAlive: () => { renewals += 1; } });
+  texture.KeepAlive = () => { renewals += 1; };
 
   const parameter = new Tr2RuntimeTextureParameter();
   parameter.texture = texture;
@@ -169,9 +170,9 @@ test("the light manager asks a profile IsGood where it packs it, and packs none 
   const { Tr2LightProfileRes } = await import("../../npm/dist/resource/index.js");
   const manager = new Tr2LightManager();
   const profile = new Tr2LightProfileRes();
-  profile.SetState(State.REQUESTED);
+  profile._isLoading = true;
   let renewals = 0;
-  profile.SetLifecycleController({ keepAlive: () => { renewals += 1; } });
+  profile.KeepAlive = () => { renewals += 1; };
 
   assert.equal(manager._ProfileSlot(profile), 0, "loading: no profile");
   assert.equal(renewals, 1, "and asking renewed it");
@@ -183,10 +184,10 @@ test("the scene renews the environment maps it publishes, once a frame", async (
   const { EveSpaceScene, Tr2TextureReference } = await import("../../npm/dist/trinity/index.js");
   const scene = new EveSpaceScene();
   const envMap = new TriTextureRes();
-  envMap.path = "res:/env/cube.dds";
-  envMap.SetState(State.PREPARED);
+  envMap._path = "res:/env/cube.dds";
+  envMap._isGood = envMap._isPrepared = true;
   let renewals = 0;
-  envMap.SetLifecycleController({ keepAlive: () => { renewals += 1; } });
+  envMap.KeepAlive = () => { renewals += 1; };
   scene.envMap1 = envMap;
   scene.envMap2 = new Tr2TextureReference();      // not a cached resource: nothing to renew
 
@@ -202,3 +203,7 @@ test("the scene renews the environment maps it publishes, once a frame", async (
     scene.Destruct();
   }
 });
+
+let previousManager;
+beforeEach(() => { previousManager=blue.resMan; blue.resMan=new CjsBlueResMan(); });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan=previousManager; } });

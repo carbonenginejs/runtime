@@ -4,18 +4,25 @@
 // Ours (CjsBlueResMan.Watch JSDoc): the operator's ccpwgl Tw2MotherLode.Watch,
 // not Carbon's Tr2LoadPrepareFence. Also pins the two error paths agreed with
 // it: a resource left EMPTY is failed rather than waited on forever, and a
-// result arriving after a failure is an error, not a success.
+// failed load is prepared but bad; late cancelled attempts are covered separately.
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 
 import "../../../npm/dist/index.js";
-import { CjsBlueResMan, CjsResource } from "../../../npm/dist/global/blue/index.js";
+import { CjsBlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/global/blue/index.js";
 import { Tr2Effect, TriTextureParameter } from "../../../npm/dist/trinity/index.js";
 import { TriTextureRes } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
 
 
-const { State } = CjsResource;
+/** Fixture completion uses the native flags and manager operation settlement. */
+function prepared(resource)
+{
+  resource._isLoading = false;
+  resource._SetGood(true);
+  resource._SetPrepared(true);
+  blue.resMan._FinishResourceLoad(resource);
+}
 
 
 /** An effect holding an effect resource and one texture, both in REQUESTED. */
@@ -23,10 +30,10 @@ function watchedEffect()
 {
   const effect = new Tr2Effect();
   const effectRes = new Tr2EffectRes();
-  effectRes.path = "res:/fx/thing.sm_hi";
-  effectRes.SetState(State.REQUESTED);
+  effectRes._path = "res:/fx/thing.sm_hi";
+  effectRes._isLoading = true;
   effect.effectResource = effectRes;
-  const texture = addTexture(effect, "res:/tex/a.dds", State.REQUESTED);
+  const texture = addTexture(effect, "res:/tex/a.dds", true);
   return { effect, effectRes, texture };
 }
 
@@ -34,8 +41,8 @@ function watchedEffect()
 function addTexture(effect, path, state)
 {
   const texture = new TriTextureRes();
-  texture.path = path;
-  texture.SetState(state);
+  texture._path = path;
+  texture._isLoading = state;
   const parameter = new TriTextureParameter();
   parameter.SetParameterName(path);
   parameter.SetResource(texture);
@@ -60,16 +67,17 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
 test("a watch resolves after two updates with nothing pending", async () =>
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
   const outcome = track(resMan.Watch(effect));
 
   resMan.UpdateWatched({ time: 0 });
-  effectRes.MarkPrepared();
+  prepared(effectRes);
   resMan.UpdateWatched({ time: 10 });
   await tick();
   assert.equal(outcome.settled, false, "the texture is still loading");
 
-  texture.MarkPrepared();
+  prepared(texture);
   resMan.UpdateWatched({ time: 20 });
   await tick();
   assert.equal(outcome.settled, false, "one quiet update is not enough");
@@ -84,15 +92,16 @@ test("a watch resolves after two updates with nothing pending", async () =>
 test("a resource added by a finishing parent is still counted", async () =>
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
-  effectRes.MarkPrepared();
-  texture.MarkPrepared();
+  prepared(effectRes);
+  prepared(texture);
   const outcome = track(resMan.Watch(effect));
 
   resMan.UpdateWatched({ time: 0 });                   // quiet once
-  const late = addTexture(effect, "res:/tex/late.dds", State.REQUESTED);
+  const late = addTexture(effect, "res:/tex/late.dds", true);
   resMan.UpdateWatched({ time: 10 });                  // the late child resets it
-  late.MarkPrepared();
+  prepared(late);
   resMan.UpdateWatched({ time: 20 });
   resMan.UpdateWatched({ time: 30 });
   await tick();
@@ -103,10 +112,11 @@ test("a resource added by a finishing parent is still counted", async () =>
 test("a failed resource does not hold the watch, and is reported", async () =>
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
   const outcome = track(resMan.Watch(effect));
-  effectRes.MarkPrepared();
-  texture.SetError(new Error("missing"));
+  prepared(effectRes);
+  resMan._FailResourceLoad(texture, new Error("missing"));
   resMan.UpdateWatched({ time: 0 });
   resMan.UpdateWatched({ time: 1 });
   await tick();
@@ -114,53 +124,59 @@ test("a failed resource does not hold the watch, and is reported", async () =>
 });
 
 
-test("the watch renews everything, and a purged resource counts as pending", async () =>
+test("the watch renews a purged resource and waits for its same-handle reload", async () =>
 {
-  const resMan = new CjsBlueResMan();
-  const { effect, effectRes, texture } = watchedEffect();
-  effectRes.MarkPrepared();
-  texture.MarkPrepared();
-  let renewals = 0;
-  let reloads = 0;
-  texture.SetLifecycleController({ keepAlive: () => { renewals += 1; } });
-  texture.SetReloadHook(() => { reloads += 1; texture.MarkRequested(); });
-  texture.MarkPurged();
-
-  const outcome = track(resMan.Watch(effect));
-  resMan.UpdateWatched({ time: 0 });
-  resMan.UpdateWatched({ time: 1 });
+  let release, reads = 0;
+  class WatchedResource extends BlueAsyncRes
+  {
+    _DoLoad() { return BlueAsyncRes.LoadingResult.LR_SUCCESS; }
+    _DoPrepare() { return true; }
+  }
+  const resMan = new CjsBlueResMan({ source: {Read() { reads++; return new Promise(resolve => { release = resolve; }); }} });
+  blue.resMan = resMan;
+  resMan.RegisterObjectLoader("watch", data => data);
+  resMan.RegisterExtension("watch", WatchedResource);
+  const resource = new WatchedResource();
+  resource._path = "res:/watch.watch";
+  resMan._MarkResourcePurged(resource);
+  const outcome = track(resMan.Watch(resource));
+  resMan.UpdateWatched({time: 0});
+  resMan.UpdateWatched({time: 1});
   await tick();
-  assert.equal(outcome.settled, false, "purged is not finished");
-  assert.equal(reloads, 1, "renewing the purged texture started its reload");
-  assert.ok(renewals >= 2, "renewed on every update");
-
-  texture.MarkPrepared();
-  resMan.UpdateWatched({ time: 2 });
-  resMan.UpdateWatched({ time: 3 });
+  assert.equal(outcome.settled, false);
+  assert.equal(reads, 1);
+  assert.equal(resource.IsLoading(), true);
+  release(new Uint8Array([1]));
+  await resMan.Ready(resource);
+  resMan.UpdateWatched({time: 2});
+  resMan.UpdateWatched({time: 3});
   await tick();
-  assert.equal(outcome.value.object, effect);
+  assert.equal(outcome.value.object, resource);
+  assert.equal(resMan.Lookup(resource.GetPath()), resource);
 });
 
 
 test("a resource left EMPTY is failed after the stall limit, and the watch completes", async () =>
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
-  effectRes.MarkPrepared();
-  texture.MarkPrepared();
-  const stub = addTexture(effect, "res:/tex/never.dds", State.EMPTY);
+  prepared(effectRes);
+  prepared(texture);
+  const stub = addTexture(effect, "res:/tex/never.dds", false);
   const outcome = track(resMan.Watch(effect, { stallMilliseconds: 100 }));
 
   resMan.UpdateWatched({ time: 0 });
   resMan.UpdateWatched({ time: 99 });
   await tick();
   assert.equal(outcome.settled, false);
-  assert.equal(stub.state, State.EMPTY);
+  assert.equal(stub.IsPrepared(), false);
 
   resMan.UpdateWatched({ time: 100 });
-  assert.equal(stub.state, State.FAILED);
-  assert.equal(stub.error.code, "CJS_RESOURCE_NEVER_STARTED");
-  assert.match(stub.error.message, /remained EMPTY for 100 ms; it was never requested/);
+  assert.equal(stub.IsPrepared(), true);
+  assert.equal(stub.IsGood(), false);
+  assert.equal(resMan.GetResourceStatus(stub).error.code, "CJS_RESOURCE_NEVER_STARTED");
+  assert.match(resMan.GetResourceStatus(stub).error.message, /Resource never started/);
   resMan.UpdateWatched({ time: 101 });
   await tick();
   assert.deepEqual(outcome.value.failed, [ stub ]);
@@ -170,6 +186,7 @@ test("a resource left EMPTY is failed after the stall limit, and the watch compl
 test("a watch times out naming what was still pending", async () =>
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   const { effect } = watchedEffect();
   const outcome = track(resMan.Watch(effect, { timeoutMilliseconds: 50 }));
   resMan.UpdateWatched({ time: 0 });
@@ -183,6 +200,7 @@ test("a watch times out naming what was still pending", async () =>
 test("Unwatch rejects the watch and stops counting it", async () =>
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   const { effect } = watchedEffect();
   const outcome = track(resMan.Watch(effect));
   assert.equal(resMan.Unwatch(effect), true);
@@ -196,9 +214,10 @@ test("Unwatch rejects the watch and stops counting it", async () =>
 test("the manager's Update advances watches", async () =>
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
-  effectRes.MarkPrepared();
-  texture.MarkPrepared();
+  prepared(effectRes);
+  prepared(texture);
   const outcome = track(resMan.Watch(effect));
   resMan.Update({ watch: { time: 0 } });
   resMan.Update({ watch: { time: 1 } });
@@ -207,30 +226,11 @@ test("the manager's Update advances watches", async () =>
 });
 
 
-test("a result after a failure is an error, and the resource stays failed", () =>
-{
-  const resource = new CjsResource();
-  resource.path = "res:/late.dds";
-  const original = new Error("timed out");
-  resource.SetError(original);
-
-  const seen = [];
-  resource.OnEvent("lateresult", (_name, _res, error) => seen.push(error.code));
-  resource.MarkPrepared();
-
-  assert.equal(resource.state, State.FAILED);
-  assert.equal(resource.IsGood(), false);
-  assert.equal(resource.error.code, "CJS_RESOURCE_COMPLETED_AFTER_FAILURE");
-  assert.equal(resource.error.cause, original);
-  assert.deepEqual(seen, [ "CJS_RESOURCE_COMPLETED_AFTER_FAILURE" ]);
-});
 
 
-test("a failed resource still reloads through a new request", () =>
-{
-  const resource = new CjsResource();
-  resource.SetError(new Error("first try"));
-  resource.MarkRequested();
-  resource.MarkPrepared();
-  assert.equal(resource.state, State.PREPARED);
-});
+
+
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previousManager; } });

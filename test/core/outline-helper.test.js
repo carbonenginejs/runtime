@@ -1,3 +1,4 @@
+import { readEffectFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { existsSync, readFileSync } from "node:fs";
@@ -33,9 +34,9 @@ function resource(path)
     assert.ok(result.bytes);
     compiled.set(name, result.bytes);
   }
-  const result = new Tr2EffectRes().DoLoad(compiled.get(name));
-  result.MarkGood();
-  result.SetObjectLoader(() => result);
+  const result = readEffectFixture(new Tr2EffectRes(), compiled.get(name));
+  result._isGood = true;
+  result._isPrepared = true;
   return result;
 }
 
@@ -43,7 +44,7 @@ function resource(path)
 function hull(name, draws, skinned = false)
 {
   const geometry = new TriGeometryRes();
-  geometry.SetPayload({ meshes: [{
+  geometry.ReadCMFFile({ meshes: [{
     decl: [{ usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 }],
     vertex: { position: [0, 0, 0, 1, 0, 0, 0, 1, 0] },
     indices: [{ faces: [0, 1, 2] }], areas: [{ firstElement: 0, elementCount: 1 }]

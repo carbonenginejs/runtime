@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Resources/Tr2LightProfileRes.h
 import { exposure as be } from "#be";
 import { CjsSchema, meta } from "#schema";
-import { CjsResource, ICacheable, blue as blueService } from "#blue";
+import { BlueAsyncRes, ICacheable, blue as blueService } from "#blue";
 import { assertResourcePayloadObject } from "../../resource/resourceBoundary.js";
 import { HostBitmap, LoadParameters } from "#imageio";
 import { PixelFormat, TextureType } from "#consts/render-context";
-import { ResourceRequirement } from "#blue";
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
@@ -80,7 +79,7 @@ function BlueStdResultError(code, message)
  * The attached plain payload may be richer than the data retained by the
  * resource or active engine adapter.
  */
-export class Tr2LightProfileRes extends CjsResource
+export class Tr2LightProfileRes extends BlueAsyncRes
 {
   // The light-profile array slice this resource occupies, or null before
   // registration. Carbon's DoPrepare acquires it (Tr2LightProfileRes.cpp:
@@ -98,33 +97,19 @@ export class Tr2LightProfileRes extends CjsResource
   bitmap = new HostBitmap();
 
   /**
-   * Carbon: Tr2LightProfileRes::DoLoad (trinity/trinity/Resources/Tr2LightProfileRes.cpp:64-92).
-   * Accepts the DDS bitmap or the IES reader's baked strip. Adapted: configured
-   * readers may run asynchronously before this owning-thread publication step.
+   * Carbon DoLoad (Tr2LightProfileRes.cpp:64-92). The configured browser reader
+   * returns a DDS bitmap or an IES bake; this resource owns the resulting strip.
+   * @returns {Promise<number>} Native LoadingResult.
    */
-  SetPayload(payload = null)
+  async _DoLoad()
   {
-    if (payload === null)
-    {
-      // Losing the payload releases the slice - Carbon's element handle
-      // frees its slot when the resource lets go (Tr2TextureArray.cpp:
-      // 233-236); with no destructors the unload path is the release site.
-      if (this._element)
-      {
-        this._element.Release();
-        this._element = null;
-      }
-      this.bitmap = new HostBitmap();
-      super.SetPayload(null);
-      return this;
-    }
-    assertResourcePayloadObject("Tr2LightProfileRes", payload);
-    const bitmap = CjsSchema.cast(payload, HostBitmap) || Tr2LightProfileRes.bitmapFromBake(payload);
+    const value = await blueService.resMan.ReadResourceObjectPayload(this, this._dataStream.data);
+    const bitmap = CjsSchema.cast(value, HostBitmap) || Tr2LightProfileRes.bitmapFromBake(value);
     if (!IsCompatibleBitmap(bitmap))
       throw new Error("Tr2LightProfileRes requires a 1024x1 R16F light profile with 11 mip levels.");
+    this._OnShutdown();
     this.bitmap = bitmap;
-    super.SetPayload(payload);
-    return this;
+    return BlueAsyncRes.LoadingResult.LR_SUCCESS;
   }
 
   /**
@@ -353,15 +338,15 @@ export class Tr2LightProfileRes extends CjsResource
    */
   async GetThumbnail(width, height)
   {
-    const stream = await blueService.paths.GetStreamFromPath(this.path, { accept: [ "bytes" ] });
+    const stream = await blueService.paths.GetStreamFromPath(this.GetPath(), { accept: [ "bytes" ] });
     if (stream === null)
     {
-      throw BlueStdResultError("BLUE_STD_RESULT_IO_ERROR", `Unable to read ${this.path}`);
+      throw BlueStdResultError("BLUE_STD_RESULT_IO_ERROR", `Unable to read ${this.GetPath()}`);
     }
 
     const lightmap = new HostBitmap();
 
-    if (IsIesExtension(this.path))
+    if (IsIesExtension(this.GetPath()))
     {
       const contents = new TextDecoder().decode(stream.data);
 
@@ -372,7 +357,7 @@ export class Tr2LightProfileRes extends CjsResource
     }
     else
     {
-      const result = await ImageIO.readImageAsync(stream.data, new LoadParameters(this.path), lightmap);
+      const result = await ImageIO.readImageAsync(stream.data, new LoadParameters(this.GetPath()), lightmap);
 
       if (!result.IsOk())
       {
@@ -466,7 +451,23 @@ export class Tr2LightProfileRes extends CjsResource
     return bitmap;
   }
 
-  static payload = ResourceRequirement.LIGHT_PROFILE;
+
+  /**
+   * Release the native element and bitmap at final JS teardown.
+   * Adapted: explicit JS teardown replaces native destruction; the existing
+   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   * @param {object} [options={}] Existing MotherLode cleanup policy.
+   * @param {boolean} [options.releasePayload=true] Release owned family data.
+   * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
+   * @returns {void}
+   */
+  _OnShutdown(options = {})
+  {
+    if (options.releasePayload === false) return;
+    if (this._element) this._element.Release();
+    this._element = null;
+    this.bitmap.Destroy();
+  }
 }
 
 
@@ -483,4 +484,8 @@ CjsSchema.exposure.define("Tr2LightProfileRes")(Tr2LightProfileRes);
 be.inherit(ICacheable)(Tr2LightProfileRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2LightProfileRes);
 // Carbon: Tr2LightProfileRes::ExposeToBlue (trinity/trinity/Resources/Tr2LightProfileRes_Blue.cpp:44).
-CjsSchema.blue.chainTo(CjsResource)(Tr2LightProfileRes);
+CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2LightProfileRes);
+
+CjsSchema.decorateMethod(Tr2LightProfileRes, "_DoLoad", meta.adapted);
+
+CjsSchema.decorateMethod(Tr2LightProfileRes, "_OnShutdown", meta.adapted);

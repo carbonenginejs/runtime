@@ -60,11 +60,7 @@ export class CjsTextureArrayBridge
     return this._prefix + paths.join(";");
   }
 
-  /** Re-dirties the effect's resource sets when the merged texture finishes. */
-  _completionTarget = {
-    RebuildCachedData: () => this._effect.ResourceChanged(),
-    ReleaseCachedData: () => {}
-  };
+
 
   /**
    * The merged texture resource. Re-resolved when a member's path changed: a
@@ -80,8 +76,16 @@ export class CjsTextureArrayBridge
     {
       this._path = path;
       this._resource = path ? blue.resMan.GetResource(path) : null;
-      // Told once when it finishes; the resource then releases the target.
-      if (this._resource && !this._resource.HasCompleted()) this._resource.AddNotifyTarget(this._completionTarget);
+      // A one-shot promise leaves no persistent target on the shared resource.
+      if (this._resource && !this._resource.IsPrepared())
+      {
+        const resource = this._resource;
+        const complete = () =>
+        {
+          if (resource === this._resource && !this._effect._destroyed) this._effect.ResourceChanged();
+        };
+        blue.resMan.Ready(resource).then(complete, complete);
+      }
     }
 
     return this._resource;
@@ -113,3 +117,5 @@ export class CjsTextureArrayBridge
 }
 
 CjsSchema.meta.define("CjsTextureArrayBridge")(CjsTextureArrayBridge);
+
+CjsSchema.decorateMethod(CjsTextureArrayBridge, "GetResource", CjsSchema.meta.implemented);

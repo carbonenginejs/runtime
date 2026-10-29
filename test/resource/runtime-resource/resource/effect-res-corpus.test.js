@@ -1,3 +1,4 @@
+import { readEffectFixture } from "../../../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readdir, readFile, stat } from "node:fs/promises";
@@ -78,7 +79,7 @@ async function collectContainers(dir, out = [])
 function reemit(bytes)
 {
     const reader = new CjsCarbonEffectReader(bytes);
-    const res = new Tr2EffectRes().DoLoad(bytes);
+    const res = readEffectFixture(new Tr2EffectRes(), bytes);
     const writer = new CjsCarbonEffectWriter({
         compilerVersion: reader.compilerVersion,
         sourceHash: new TextDecoder().decode(reader.sourceHash)

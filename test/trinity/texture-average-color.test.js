@@ -18,7 +18,7 @@ function solidBitmap()
 function loadedTexture()
 {
     const texture = new TriTextureRes();
-    texture.SetPayload(solidBitmap());
+    texture.CreateFromHostBitmap(solidBitmap());
     return texture;
 }
 

@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { TriGrannyRes, Tr2GrannyIntersectionResult } from "../../../npm/dist/resource/index.js";
-import { BlueResFileSystemForm, CjsBluePaths, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
+import { BlueResFileSystemForm, CjsBluePaths, IBlueResFileSystem, CjsBlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -38,7 +38,9 @@ function withFiles(t, files)
 {
   const paths = new CjsBluePaths();
   paths.RegisterFileSystem(memoryFileSystem(files));
-  const previous = installBlueServices({ paths }, false);
+  const resMan = new CjsBlueResMan({ source: { async Read(path) { const stream = await paths.GetStreamFromPath(path, {accept: ["bytes"]}); return stream?.data; } } });
+  resMan.RegisterFormat(CjsGr2Format, {emit: "json"});
+  const previous = installBlueServices({ paths, resMan }, false);
   t.after(() => installBlueServices(previous, previous.running));
 }
 
@@ -96,7 +98,8 @@ function payload()
 function loaded(source = payload())
 {
   const resource = new TriGrannyRes();
-  resource.SetPayload(source);
+  // Query fixture: Carbon keeps the decoded file in m_grannyFile.
+  resource._grannyFile = source;
 
   return resource;
 }
@@ -123,7 +126,7 @@ test("Load reads a GR2 through blue.paths, decodes it and marks the resource goo
 
   const junk = new TriGrannyRes();
   assert.equal(await junk.Load("res:/junk.gr2"), false, "an undecodable file fails the load");
-  assert.equal(junk.IsFailed(), true);
+  assert.equal(junk.IsGood(), false);
 
   const cmf = new TriGrannyRes();
   assert.equal(await cmf.Load("res:/a.cmf"), false, "Tr2CmfContents is not ported");
@@ -157,7 +160,7 @@ test("model, mesh and animation counts and names (cpp:959-1007, 1547-1725)", () 
   assert.equal(empty.GetModelName(0), "");
   assert.equal(empty.GetAnimationDuration(0), 0);
   assert.equal(empty.ValidateFileInfo(), null);
-  assert.equal(resource.ValidateFileInfo(), resource.GetPayload());
+  assert.equal(resource.ValidateFileInfo(), resource.GetGrannyFile());
 });
 
 test("mesh queries answer the output and throw Carbon's result messages (cpp:1024-1404)", () =>
@@ -239,9 +242,9 @@ test("a hit on a mesh without normals, texture coordinates or bone indices says 
 test("RayIntersection against the real track.gr2 hits a triangle through its centroid", () =>
 {
   const real = new TriGrannyRes();
-  real.SetPayload(CjsGr2Format.read(new Uint8Array(readFileSync(TRACK)), { emit: "json" }));
+  real._grannyFile = CjsGr2Format.read(new Uint8Array(readFileSync(TRACK)), { emit: "json" });
 
-  const track = real.GetPayload().meshes[0];
+  const track = real.GetGrannyFile().meshes[0];
   const width = track.vertex.position.length / (track.vertexCount ?? track.vertex.position.length / 3);
   const [ a, b, c ] = track.indexBuffer;
   const p = index => [ 0, 1, 2 ].map(k => track.vertex.position[index * width + k]);
@@ -289,15 +292,44 @@ test("rows and states: Carbon's exposure names and what the projection cannot an
     assert.throws(() => new TriGrannyRes()[name](), /is not implemented in CarbonEngineJS/u, name);
   }
 
+  assert.equal(row("GetGrannyFile").impl.status, "adapted");
+  assert.equal(loaded().GetGrannyFile().models[0].name, "ship");
+
   // Ported for character morph baking (CPU blendshape bake into independent geometry).
   for (const name of [ "CreateGeometryRes", "BakeBlendshapeFromScript" ])
   {
     assert.equal(row(name).impl.status, "adapted", name);
   }
 
-  for (const name of [ "GetGrannyFile", "GetCMFData", "GetCMFViewData", "GetCMFContents" ])
+  for (const name of [ "GetCMFData", "GetCMFViewData", "GetCMFContents" ])
   {
     assert.equal(row(name).impl.status, "notSupported", name);
     assert.throws(() => new TriGrannyRes()[name](), Error, name);
   }
+});
+
+
+test("a superseded direct tools load cannot finish or close its successor", async t =>
+{
+  const previous = blue.resMan;
+  const pending = [];
+  const manager = new CjsBlueResMan({ source: { Read() { return new Promise(resolve => pending.push(resolve)); } } });
+  blue.resMan = manager;
+  manager.RegisterObjectLoader("gr2", bytes => ({ models: [{ name: String(bytes[0]) }], meshes: [], animations: [] }));
+  t.after(() => { manager.Clear(); blue.resMan = previous; });
+  const resource = new TriGrannyRes();
+  const first = resource.Load("res:/first.gr2");
+  while (pending.length < 1) await new Promise(resolve => setImmediate(resolve));
+  const second = resource.Load("res:/second.gr2");
+  while (pending.length < 2) await new Promise(resolve => setImmediate(resolve));
+  const secondAttempt = manager._GetResourceLoad(resource);
+  pending[0](new Uint8Array([1]));
+  assert.equal(await first, false);
+  assert.equal(manager._GetResourceLoad(resource), secondAttempt);
+  assert.equal(resource.IsLoading(), true);
+  pending[1](new Uint8Array([2]));
+  assert.equal(await second, true);
+  assert.equal(resource.GetGrannyFile().models[0].name, "2");
+  assert.equal(resource.IsGood(), true);
+  assert.equal(manager._GetResourceLoad(resource), null);
 });

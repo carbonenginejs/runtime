@@ -1,218 +1,153 @@
-// Notify targets are told once, when the resource finishes, and then released.
-//
-// Carbon keeps a target until its owner's destructor removes it
-// (BlueAsyncRes.cpp:261-334). JavaScript has no destructor, so a kept target
-// holds its owner for as long as the resource is cached. Owners instead ask
-// IsGood() before use and re-register while the resource is pending; these
-// tests pin both halves of that.
+import { Tr2SkinnedModel } from "../../../npm/dist/character/trinity/trinityCore/Tr2SkinnedModel.js";
+import { Tr2GrannyPrimitiveSet } from "../../../npm/dist/trinity/core/line/Tr2GrannyPrimitiveSet.js";
+import { EveTrailsSet } from "../../../npm/dist/trinity/eve/attachment/booster/EveTrailsSet.js";
+import { EveTurretSet } from "../../../npm/dist/trinity/eve/attachment/turrets/EveTurretSet.js";
+// Carbon keeps notify targets until their owners explicitly detach them.
+// BlueAsyncRes.cpp:261-334; completion does not surrender owner subscriptions.
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { BlueAsyncRes, blue, CjsBlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
+import { Tr2Mesh } from "../../../npm/dist/trinity/core/mesh/Tr2Mesh.js";
+import { Tr2GrannyAnimation } from "../../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
+import { Tr2Effect } from "../../../npm/dist/trinity/shader/index.js";
 
-import { CjsResource } from "../../../npm/dist/resource/index.js";
-
-
-const { State } = CjsResource;
-
-
-/** A notify target that records what it was told, as primitives. */
-function recordingTarget(seen, label)
+/** Record native flags without renewing the resource. */
+function targetFor(seen)
 {
   return {
-    RebuildCachedData: res => seen.push([ label, "rebuild", res.state ]),
-    ReleaseCachedData: res => seen.push([ label, "release", res.state ])
+    RebuildCachedData: resource => seen.push(["rebuild", resource.IsPrepared(), resource._isGood]),
+    ReleaseCachedData: resource => seen.push(["release", resource.IsPrepared(), resource._isGood])
   };
 }
 
-
-/** A resource with a stub manager whose reload hook restarts the load. */
-function createBound(state)
+test("both outcomes notify persistent targets with Carbon's prepared flag", () =>
 {
-  const resource = new CjsResource();
-  resource.path = "res:/thing.png";
-  resource.SetState(state);
-  resource.SetLifecycleController({ keepAlive: () => {} });
-  resource.SetReloadHook(() => { resource.MarkRequested(); });
-  return resource;
-}
-
-
-test("a target hears RebuildCachedData for both outcomes (BlueAsyncRes.cpp:160-189)", () =>
-{
-  const seen = [];
-  const good = new CjsResource();
-  const bad = new CjsResource();
-  good.AddNotifyTarget(recordingTarget(seen, "good"));
-  bad.AddNotifyTarget(recordingTarget(seen, "bad"));
-
-  good.MarkPrepared();
-  bad.SetError(new Error("nope"));
-
-  assert.deepEqual(seen, [ [ "good", "rebuild", State.PREPARED ], [ "bad", "rebuild", State.FAILED ] ]);
-});
-
-
-test("completion releases every target", () =>
-{
-  const seen = [];
-  const resource = new CjsResource();
-  resource.AddNotifyTarget(recordingTarget(seen, "once"));
-  resource.MarkPrepared();
-
-  resource.NotifyRebuildCachedData();
-  resource.NotifyReleaseCachedData();
-  assert.equal(seen.length, 1, "told once, then no longer held");
-});
-
-
-test("a finished resource tells a new target at once and stores nothing", () =>
-{
-  const seen = [];
-  const resource = new CjsResource();
-  resource.MarkPrepared();
-
-  const target = recordingTarget(seen, "late");
-  resource.AddNotifyTarget(target);
-  assert.deepEqual(seen, [ [ "late", "rebuild", State.PREPARED ] ]);
-
-  resource.NotifyRebuildCachedData();
-  assert.equal(seen.length, 1, "nothing was stored");
-});
-
-
-test("a duplicate registration while pending is ignored", () =>
-{
-  const seen = [];
-  const resource = new CjsResource();
-  const target = recordingTarget(seen, "twice");
-  resource.AddNotifyTarget(target);
-  resource.AddNotifyTarget(target);
-  resource.MarkPrepared();
-  assert.equal(seen.length, 1);
-});
-
-
-test("RemoveNotifyTarget stops a pending notification", () =>
-{
-  const seen = [];
-  const resource = new CjsResource();
-  const target = recordingTarget(seen, "gone");
-  resource.AddNotifyTarget(target);
-  resource.RemoveNotifyTarget(target);
-  resource.RemoveNotifyTarget(target);      // already gone: does nothing
-  resource.MarkPrepared();
-  assert.equal(seen.length, 0);
-});
-
-
-test("a target that re-registers inside its own call is kept for the next completion", () =>
-{
-  const resource = createBound(State.REQUESTED);
-  let calls = 0;
-  const plain = { RebuildCachedData: () => { calls += 1; }, ReleaseCachedData: () => {} };
-  resource.AddNotifyTarget(plain);
-
-  // Re-registers from inside its own rebuild, once the resource is pending again.
-  const rearming = {
-    RebuildCachedData: res =>
-    {
-      calls += 1;
-      res.MarkPurged();
-      res.IsGood();                       // revives: back to REQUESTED
-      res.AddNotifyTarget(rearming);      // pending, so it is stored
-    },
-    ReleaseCachedData: () => {}
-  };
-  resource.AddNotifyTarget(rearming);
-  resource.MarkPrepared();
-  assert.equal(calls, 2, "both told once");
-  assert.equal(resource.state, State.REQUESTED, "the re-arming target revived it");
-
-  resource.MarkPrepared();
-  assert.equal(calls, 3, "the re-registered target heard the second completion");
-});
-
-
-test("an owner that checks every frame re-arms through a purge and rebuilds once", () =>
-{
-  const resource = createBound(State.REQUESTED);
-  let rebuilds = 0;
-  const owner = {
-    RebuildCachedData: () => { rebuilds += 1; },
-    ReleaseCachedData: () => {},
-    // The agreed owner pattern: check before use, re-arm while pending.
-    Use()
-    {
-      if (resource.IsGood()) return true;
-      if (!resource.IsFailed()) resource.AddNotifyTarget(this);
-      return false;
-    }
-  };
-
-  assert.equal(owner.Use(), false);
-  assert.equal(owner.Use(), false);
-  resource.MarkPrepared();
-  assert.equal(rebuilds, 1);
-  assert.equal(owner.Use(), true);
-
-  resource.MarkPurged();
-  assert.equal(owner.Use(), false, "purged: not good, and IsGood started a reload");
-  assert.equal(resource.state, State.REQUESTED);
-  owner.Use();
-  resource.MarkPrepared();
-  assert.equal(rebuilds, 2, "the revived resource rebuilt the owner once");
-  assert.equal(owner.Use(), true);
-});
-
-
-test("an owner of a failed resource is not rebuilt every frame", () =>
-{
-  const resource = new CjsResource();
-  let rebuilds = 0;
-  const owner = {
-    RebuildCachedData: () => { rebuilds += 1; },
-    ReleaseCachedData: () => {},
-    Use()
-    {
-      if (resource.IsGood()) return true;
-      if (!resource.IsFailed()) resource.AddNotifyTarget(this);
-      return false;
-    }
-  };
-
-  owner.Use();
-  resource.SetError(new Error("missing"));
-  assert.equal(rebuilds, 1, "told of the failure once");
-  for (let frame = 0; frame < 10; frame++) owner.Use();
-  assert.equal(rebuilds, 1, "no re-arm on FAILED, so no rebuild storm");
-});
-
-
-test("many owners waiting on one resource are all released when it completes", () =>
-{
-  const resource = new CjsResource();
-  let told = 0;
-  for (let i = 0; i < 10000; i++)
+  for (const good of [true, false])
   {
-    resource.AddNotifyTarget({ RebuildCachedData: () => { told += 1; }, ReleaseCachedData: () => {} });
+    const resource = new BlueAsyncRes(), seen = [], target = targetFor(seen);
+    resource.AddNotifyTarget(target);
+    resource._SetPrepared(true);
+    resource._SetGood(good);
+    resource._NotifyRebuildCachedData();
+    assert.deepEqual(seen, [["rebuild", true, good]]);
+    assert.deepEqual(resource._reloadNotifyTargets, [target]);
+    resource._NotifyReleaseCachedData();
+    assert.deepEqual(seen[1], ["release", true, good]);
+    resource.RemoveNotifyTarget(target);
+    resource.AssertNoNotifyTargets();
   }
-  resource.MarkPrepared();
-  assert.equal(told, 10000);
-
-  told = 0;
-  resource.NotifyRebuildCachedData();
-  assert.equal(told, 0, "the resource holds none of them");
 });
 
-
-test("a purge releases targets still waiting, which then hear the reload", () =>
+test("a late target is called immediately and remains subscribed", () =>
 {
-  // Normally nobody is waiting at purge time - completion released them - but
-  // a target registered on a purged handle before it revives is kept.
-  const seen = [];
-  const resource = createBound(State.PREPARED);
-  resource.MarkPurged();
-  resource.AddNotifyTarget(recordingTarget(seen, "waiting"));
-  resource.IsGood();
-  resource.MarkPrepared();
-  assert.deepEqual(seen, [ [ "waiting", "rebuild", State.PREPARED ] ]);
+  const resource = new BlueAsyncRes(), seen = [], target = targetFor(seen);
+  resource._SetPrepared(true);
+  resource._SetGood(true);
+  resource.AddNotifyTarget(target);
+  resource._NotifyRebuildCachedData();
+  assert.equal(seen.length, 2);
+  resource.RemoveNotifyTarget(target);
+  resource._NotifyRebuildCachedData();
+  assert.equal(seen.length, 2);
+});
+
+test("native duplicate registration is preserved and removal erases every occurrence", () =>
+{
+  const resource = new BlueAsyncRes(), seen = [], target = targetFor(seen);
+  resource.AddNotifyTarget(target);
+  resource.AddNotifyTarget(target);
+  resource._NotifyRebuildCachedData();
+  assert.equal(seen.length, 2);
+  resource.RemoveNotifyTarget(target);
+  resource.AssertNoNotifyTargets();
+});
+
+test("many completed subscriptions are released by deterministic owner teardown", () =>
+{
+  const resource = new BlueAsyncRes();
+  let told = 0;
+  const targets = Array.from({length: 1000}, () => ({ RebuildCachedData() { told++; }, ReleaseCachedData() {} }));
+  for (const target of targets) resource.AddNotifyTarget(target);
+  resource._NotifyRebuildCachedData();
+  assert.equal(told, targets.length);
+  for (const target of targets) resource.RemoveNotifyTarget(target);
+  resource.AssertNoNotifyTargets();
+});
+
+test("a mesh rebinds and destructs both native geometry subscriptions", () =>
+{
+  const mesh = new Tr2Mesh(), first = new TriGeometryRes(), second = new TriGeometryRes(), low = new TriGeometryRes();
+  mesh.SetGeometryRes(first);
+  mesh.SetLowResGeometryRes(low);
+  mesh.SetGeometryRes(second);
+  first.AssertNoNotifyTargets();
+  assert.deepEqual(second._reloadNotifyTargets, [mesh]);
+  assert.deepEqual(low._reloadNotifyTargets, [mesh]);
+  mesh.Destruct();
+  second.AssertNoNotifyTargets();
+  low.AssertNoNotifyTargets();
+});
+
+test("a shared-geometry animation detaches on rebinding and destruction", () =>
+{
+  const animation = new Tr2GrannyAnimation(), first = new TriGeometryRes(), second = new TriGeometryRes();
+  animation.SetSharedGeometryRes(first);
+  animation.SetSharedGeometryRes(second);
+  first.AssertNoNotifyTargets();
+  assert.deepEqual(second._reloadNotifyTargets, [animation]);
+  animation.Destruct();
+  second.AssertNoNotifyTargets();
+});
+
+test("an effect destructor detaches both resource references without duplicate removal", () =>
+{
+  const effect = new Tr2Effect(), first = new BlueAsyncRes(), second = new BlueAsyncRes();
+  effect.effectResource = first;
+  effect._acquiredEffectResource = second;
+  first.AddNotifyTarget(effect);
+  second.AddNotifyTarget(effect);
+  effect.Destruct();
+  first.AssertNoNotifyTargets();
+  second.AssertNoNotifyTargets();
+  effect.Destruct();
+});
+
+test("trails detach old geometry when rebound and current geometry when destructed", () =>
+{
+  const owner = new EveTrailsSet(), first = new TriGeometryRes(), second = new TriGeometryRes();
+  owner.SetGeometryResource(first);
+  owner.SetGeometryResource(second);
+  first.AssertNoNotifyTargets();
+  assert.deepEqual(second._reloadNotifyTargets, [owner]);
+  owner.Destruct();
+  second.AssertNoNotifyTargets();
+});
+
+test("skinned models, primitive sets and turrets detach their path-acquired resources", t =>
+{
+  const manager = blue.resMan, original = manager.GetResource;
+  let next;
+  manager.GetResource = () => next;
+  t.after(() => { manager.GetResource = original; });
+  const cases = [
+    [new Tr2SkinnedModel(), "geometryResPath", "Initialize"],
+    [new Tr2GrannyPrimitiveSet(), "grannyResPath", "SetGrannyResource"],
+    [new EveTurretSet(), "geometryResPath", "InitializeGeometryResource"]
+  ];
+  for (const [owner, field, method] of cases)
+  {
+    if (owner.constructor === EveTurretSet) owner.lodLevel = EveTurretSet.LOD.LOD_HIGHEST;
+    owner[field] = "res:/first.gr2";
+    const first = next = new TriGeometryRes();
+    owner[method]();
+    assert.deepEqual(first._reloadNotifyTargets, [owner]);
+    owner[field] = "res:/second.gr2";
+    const second = next = new TriGeometryRes();
+    owner[method]();
+    first.AssertNoNotifyTargets();
+    assert.deepEqual(second._reloadNotifyTargets, [owner]);
+    owner.Destruct();
+    second.AssertNoNotifyTargets();
+  }
 });

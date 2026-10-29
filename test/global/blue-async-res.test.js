@@ -6,7 +6,7 @@ import {
 } from "../../npm/dist/global/blue/index.js";
 
 /** Records queued callbacks so a test can run them as the queue would. */
-class QueueResMan extends IBlueResMan
+class QueueResMan extends CjsBlueResMan
 {
   queued = [];
   cancelled = [];
@@ -120,6 +120,8 @@ test("a successful load opens the file without its query, prepares and notifies"
   res.Initialize("res:/a.bin?q=1", "");
 
   await resMan.Run(resMan.queued[0]);
+  assert.equal(res.IsPrepared(), false);
+  resMan.Run(resMan.queued[1]);
 
   assert.deepEqual(paths.requested, [ "res:/a.bin" ]);
   assert.equal(res.loadedBytes.byteLength, 12);
@@ -138,35 +140,28 @@ test("a successful load opens the file without its query, prepares and notifies"
   assert.deepEqual(late.calls, [ [ "rebuild", res ] ]);
 });
 
-test("a data stream loads and closes through the real resMan without a memory-budget limit", async t =>
+test("a data stream loads through the global manager without a new memory budget", async t =>
 {
-  const { resMan: queue, paths } = setup(t);
+  const { paths } = setup(t);
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   const bytes = new Uint8Array([ 1, 2, 3 ]);
   paths.files.set("res:/budget.bin", { form: "bytes", data: bytes });
   const res = new TestRes(), target = new Target();
   res.AddNotifyTarget(target);
   res.Initialize("res:/budget.bin", "");
-
-  // The queue fixture dispatches Carbon's numeric queue ID; the load itself
-  // uses the real manager's reserve/release and main-thread methods.
-  blue.resMan = resMan;
-  await queue.Run(queue.queued[0]);
-
+  await resMan.Ready(res);
   assert.equal(res.loadedBytes, bytes);
   assert.equal(res.IsGood(), true);
-  assert.equal(res.IsPrepared(), true);
   assert.equal(res.IsLoading(), false);
   assert.equal(res._dataStream, null);
   assert.equal(res._reservedMemory, 0);
   assert.deepEqual(target.calls, [ [ "rebuild", res ] ]);
   for (const method of [ "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
-  {
     assert.equal(CjsSchema.getMethod(CjsBlueResMan, method).impl.status, "noop");
-  }
 });
 
-test("off the main thread prepare is queued on the main queue; DONTNOTIFY skips the targets", async t =>
+test("prepare is budgeted on the logical main queue; DONTNOTIFY skips the targets", async t =>
 {
   const { resMan, paths } = setup(t);
   resMan.mainThread = false;

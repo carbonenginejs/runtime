@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 // Skinned hulls animate from the granny file their geometry was read from.
 //
 // A hull's updater borrows the mesh geometry (EveSpaceObject2.cpp:3180-3199:
@@ -43,7 +44,7 @@ async function ReadHull(name)
   assert.equal(createHash("sha256").update(bytes).digest("hex"), sha256, `${name} is ${resPath} at build 3552227`);
 
   const geometry = new TriGeometryRes();
-  geometry.SetPayload(geometry.ReadGrannyFile(bytes));
+  geometry.ReadGrannyFile(bytes);
   return geometry;
 }
 
@@ -112,8 +113,8 @@ test("a ship binds its updater to the mesh geometry, and geometry still loading 
 
   // The geometry arrives: the updater's notify target rebuilds it
   // (Tr2GrannyAnimation.cpp:293).
-  geometry.SetPayload(geometry.ReadGrannyFile(await readFile(path.join(CORPUS_DIR, "gb1_t1.gr2"))));
-  geometry.MarkPrepared();
+  geometry.ReadGrannyFile(await readFile(path.join(CORPUS_DIR, "gb1_t1.gr2")));
+  prepareResourceFixture(geometry);
 
   assert.equal(ship.animationUpdater.IsInitialized(), true, "rebuilt on completion");
   assert.equal(ship.animationUpdater.GetMeshBoneCount(), loaded.GetGrannyInfo().meshes[0].boneBindings.length);
@@ -279,9 +280,9 @@ test("the CMF branch animates a hull's CMF projection as the gr2 branch animates
   const bytes = new Uint8Array(await readFile(path.join(CORPUS_DIR, "gb1_t1.gr2")));
   await ReadHull("gb1_t1.gr2");
   const granny = new TriGeometryRes();
-  granny.SetPayload(granny.ReadGrannyFile(bytes));
+  granny.ReadGrannyFile(bytes);
   const cmf = new TriGeometryRes();
-  cmf.SetPayload(CjsCmfFormat.loadShared(CjsGr2Format.read(bytes, { rebuildMissingBounds: true })));
+  cmf.ReadCMFFile(CjsCmfFormat.loadShared(CjsGr2Format.read(bytes, { rebuildMissingBounds: true })));
 
   const viaGr2 = BindToGeometry(granny);
   const viaCmf = BindToGeometry(cmf);

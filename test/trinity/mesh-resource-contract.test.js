@@ -1,3 +1,4 @@
+import { pendingResourceFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2Mesh } from "../../npm/dist/trinity/index.js";
@@ -7,7 +8,7 @@ test("mesh isLoading reads its fence even when resource loading disagrees", () =
 {
   const mesh = new Tr2Mesh();
   const geometry = new TriGeometryRes();
-  geometry.MarkLoading();
+  pendingResourceFixture(geometry);
   mesh.geometry = geometry;
   assert.equal(mesh.isLoading, false);
   mesh.geometry = null;
@@ -29,7 +30,7 @@ test("geometry path follows low-detail selection and has no authored-path fallba
   assert.equal(mesh.GetGeometryResPath(), "", "Tr2MeshBase.cpp:425-434");
   const primary = new TriGeometryRes();
   primary.Initialize("res:/primary.gr2");
-  primary.MarkLoading();
+  pendingResourceFixture(primary);
   const low = new TriGeometryRes();
   low.Initialize("res:/low.gr2");
   mesh.geometry = primary;

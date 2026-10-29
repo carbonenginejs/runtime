@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import test from "node:test";
-import { CjsBlueResMan, IBlueResource, ICacheable } from "../../../npm/dist/global/blue/index.js";
+import test, { beforeEach, afterEach } from "node:test";
+import { blue, CjsBlueResMan, IBlueResource, ICacheable } from "../../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { TriTextureRes, Tr2ImageRes } from "../../../npm/dist/trinity/resources/texture/index.js";
 import { Tr2LightProfileRes } from "../../../npm/dist/resource/index.js";
@@ -21,6 +21,7 @@ function managerWithSource(bytes)
 {
   const paths = [];
   const manager = new CjsBlueResMan({ source: { Read(path) { paths.push(path); return bytes; } } });
+  blue.resMan = manager;
   manager.Register(DefaultConfiguration);
   return { manager, paths };
 }
@@ -35,7 +36,7 @@ test("extension plus ex selects the factory without changing the source file", a
   assert.ok(CjsSchema.cast(texture, TriTextureRes));
   assert.ok(CjsSchema.cast(raw, Tr2ImageRes));
   assert.ok(CjsSchema.cast(light, Tr2LightProfileRes));
-  await Promise.all([ texture.Ready(), raw.Ready(), light.Ready() ]);
+  await Promise.all([ manager.Ready(texture), manager.Ready(raw), manager.Ready(light) ]);
   assert.ok(paths.length);
   assert.ok(paths.every(value => value === path));
   assert.equal(light.GetExt(), "lp");
@@ -52,7 +53,7 @@ test("iid validates the cached resource without selecting a replacement", async 
   const { manager } = managerWithSource(profileBytes());
   const path = "res:/profile.dds";
   const raw = manager.GetResource(path, { ex: "raw", iid: IBlueResource });
-  await raw.Ready();
+  await manager.Ready(raw);
   assert.equal(manager.GetResource(path, { ex: "raw", iid: TriTextureRes }), null);
   assert.equal(manager.GetResource(path, { ex: "raw", iid: ICacheable }), raw);
   assert.equal(manager.GetResource(path, { ex: "raw", iid: Tr2ImageRes }), raw);
@@ -76,7 +77,7 @@ test("factory lookup folds case but suffix and query remain part of identity", a
   assert.notEqual(lower, upper);
   assert.notEqual(lower, query);
   assert.equal(upper.GetExt(), "LP");
-  await Promise.all([ lower.Ready(), upper.Ready(), query.Ready() ]);
+  await Promise.all([ manager.Ready(lower), manager.Ready(upper), manager.Ready(query) ]);
 });
 
 test("light-profile resource refuses a DDS with incompatible dimensions", async () =>
@@ -97,11 +98,11 @@ test("ieslp uses the configured photometry reader and publishes a complete profi
   assert.deepEqual(paths, [ "res:/test.ies" ]);
 });
 
-test("a suffixed handle keeps its identity when Ready requests another suffix", async () =>
+test("a suffixed handle keeps its identity through manager readiness", async () =>
 {
   const { manager } = managerWithSource(profileBytes());
   const raw = manager.GetResource("res:/profile.dds", { ex: "raw" });
-  await raw.Ready({ ex: "lp" });
+  await manager.Ready(raw);
   assert.equal(raw.GetExt(), "raw");
   assert.ok(CjsSchema.cast(raw, Tr2ImageRes));
   assert.equal(manager.Lookup("res:/profile.dds", { ex: "lp" }), null);
@@ -111,12 +112,20 @@ test("the omitted suffix is pinned through readiness and reconstruction", async 
 {
   const { manager } = managerWithSource(profileBytes());
   const texture = manager.GetResource("res:/profile.dds");
-  await texture.Ready({ ex: "raw" });
+  await manager.Ready(texture);
   assert.equal(texture.IsPrepared(), true);
   assert.equal(texture.GetExt(), "");
   assert.equal(manager.Lookup("res:/profile.dds", { ex: "raw" }), null);
-  texture.ReleasePayload();
-  await texture.Ready();
+  texture.Reload();
+  await manager.Ready(texture);
   assert.equal(texture.IsPrepared(), true);
   assert.equal(manager.Lookup("res:/profile.dds"), texture);
+});
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() =>
+{
+  try { if (blue.resMan !== previousManager) blue.resMan.Clear(); }
+  finally { blue.resMan = previousManager; }
 });

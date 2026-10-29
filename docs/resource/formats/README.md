@@ -43,12 +43,13 @@ blue.paths.RegisterFileSystem(new CjsBlueResFileSystemCallback(path => readBytes
 blue.resMan.Register({ formats: [ CjsMp4Format ] });
 
 const resource = blue.resMan.GetResource("res:/video/intro.mp4");
-const video = await resource.Ready();
+const video = await blue.resMan.Ready(resource);
 ```
 
-Formats return plain payload objects. Semantic resource classes apply them
-through `SetPayload()`, validate their own required fields, and throw
-`CJS_RESOURCE_PAYLOAD_INVALID` before replacing a previously valid payload.
+Formats return decoded data. Native resource families adopt it in their load
+hooks and retain it in family-owned fields, such as `TriTextureRes.loadedBitmap`
+or `TriGeometryRes` mesh data. Plain data and cached object builders belong to
+the manager; use `blue.resMan.GetResourcePayload(resource)` to inspect plain data.
 
 ## Black resource names
 

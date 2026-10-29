@@ -390,7 +390,7 @@ export class Tr2AtlasTexture extends IRoot
    * `ICacheable` and the `ddsatlas`/`sddatlas`/`pngatlas`/`jpgatlas`/
    * `jpegatlas`/`ecsatlas` extensions (`Tr2AtlasTexture_Blue.cpp:10-22`).
    * Porting them needs decisions outside this class: `Tr2AtlasTexture` would
-   * have to become a `CjsResource` (the BlueAsyncRes port), the extensions
+   * have to become a `BlueAsyncRes` (the BlueAsyncRes port), the extensions
    * would need a registrar composed by whoever builds a resource manager (as
    * `CjsLibrary configuration` is), and browser image decoding is
    * asynchronous, so the read moves into a loader as it does for

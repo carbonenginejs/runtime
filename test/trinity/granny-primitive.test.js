@@ -1,3 +1,4 @@
+import { prepareResourceFixture, purgeResourceFixture, failResourceFixture, pendingResourceFixture } from "../support/resourceFixtures.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync,existsSync} from 'node:fs';
@@ -20,7 +21,7 @@ function mesh(name='ordinary',x=0) {
   return {name,vertex:{position:[x,0,0,x+6,0,0,x,3,0],normal:[0,0,1,0,0,1,0,0,1]},
     indices:[{faces:new Uint16Array([0,1,2])}],areas:[{firstElement:0,elementCount:1}]};
 }
-function geometry(meshes=[mesh()],ready=true){const r=new TriGeometryRes();r.SetPayload({meshes});if(ready)r.MarkPrepared();return r;}
+function geometry(meshes=[mesh()],ready=true){const r=new TriGeometryRes();r.ReadCMFFile({meshes});if(ready)prepareResourceFixture(r);return r;}
 function setup(t,resolve=null){
  const context=Tr2RenderContext_GetMainThreadRenderContext(),previous=context.GetRenderContextAL(),manager=be.resMan;
  const before=new Set(TriDevice.GetResourcesRegistered());
@@ -57,21 +58,21 @@ test('coalesced path/color changes acquire once and retain old storage while rep
  const old=p._points;
  CjsSchema.setValues(p,{grannyResPath:'res:/b.gr2',color:[1,0,0,1]});
  assert.equal(manager.requests.length,2);assert.equal(p._points,old);near(p._points.slice(6,10),[1,0,0,1]);
- a.NotifyRebuildCachedData();a.MarkPurged();assert.equal(p._points,old,'stale handle must not clear or rebuild');
- b.MarkPrepared();assert.notEqual(p._points,old);assert.equal(p._points[0],50);near(p._points.slice(6,10),[1,0,0,1]);
+ a._NotifyRebuildCachedData();purgeResourceFixture(a);assert.equal(p._points,old,'stale handle must not clear or rebuild');
+ prepareResourceFixture(b);assert.notEqual(p._points,old);assert.equal(p._points[0],50);near(p._points.slice(6,10),[1,0,0,1]);
  // A purge reaches nobody (targets are released on completion); the next draw
  // asks IsGood, releases what it built, and re-registers for the reload.
- const bound=p.boundingSphere.slice();p.effect=effect;b.MarkPurged();assert.equal(batches(p).length,0);
+ const bound=p.boundingSphere.slice();p.effect=effect;purgeResourceFixture(b);assert.equal(batches(p).length,0);
  assert.equal(p._points.length,0);assert.equal(p._vertexBuffer.IsValid(),false);near(p.boundingSphere,bound);
- b.MarkPrepared();assert.equal(p._points[0],50,'the owner re-registered while purged and rebuilt on reload');
+ prepareResourceFixture(b);assert.equal(p._points[0],50,'the owner re-registered while purged and rebuilt on reload');
  CjsSchema.setValues(p,{grannyResPath:''});assert.equal(p.grannyRes,null);assert.equal(p._points.length,0);
- b.MarkPurged();b.MarkPrepared();assert.equal(p._points.length,0,'a detached owner hears nothing');
+ purgeResourceFixture(b);prepareResourceFixture(b);assert.equal(p._points.length,0,'a detached owner hears nothing');
 });
 
 test('failed replacement retains cached geometry; completion after destroy cannot resurrect it',t=>{
  const a=geometry(),b=geometry([mesh('new',50)],false);setup(t,path=>path.endsWith('a.gr2')?a:b);const p=make('res:/a.gr2'),old=p._points;
- CjsSchema.setValues(p,{grannyResPath:'res:/bad.gr2'});b.SetError(new Error('fixture failure'));assert.equal(p._points,old);
- p.Destruct();b.MarkPrepared();assert.equal(p._points.length,0);assert.equal(p._vertexBuffer.IsValid(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(p),false);
+ CjsSchema.setValues(p,{grannyResPath:'res:/bad.gr2'});failResourceFixture(b, new Error('fixture failure'));assert.equal(p._points,old);
+ p.Destruct();prepareResourceFixture(b);assert.equal(p._points.length,0);assert.equal(p._vertexBuffer.IsValid(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(p),false);
 });
 
 test('direct color edits upload cached vertices without changing the authored field',t=>{
@@ -83,7 +84,7 @@ test('CMF uses full binary indices, explicit LOD zero and four-wide positions',t
  const first=mesh(),wrong=mesh('wrong',99);first.vertex.position=[0,0,0,123,6,0,0,456,0,3,0,789];first.vertexCount=3;
  const bytes=new Uint8Array(20),dv=new DataView(bytes.buffer);[2,0,1,1,0,2].forEach((v,i)=>dv.setUint16(4+i*2,v,true));
  first.vb={size:3*28,stride:28};first.ib={index:0,offset:4,size:12,stride:2};first.indices=[{faces:[0,0,0]}];
- const resource=geometry([{name:'cmf',lods:[first,wrong]}]);resource.GetPayload().buffers=[{data:bytes}];
+ const resource=geometry([{name:'cmf',lods:[first,wrong]}]);resource.GetCMFData().buffers=[{data:bytes}];
  setup(t,()=>resource);const p=make();assert.deepEqual([...p._triangleIndices],[2,0,1,1,0,2]);
  near(p._points.slice(0,3),[0,0,0]);near(p._points.slice(10,13),[6,0,0]);near(p._points.slice(20,23),[0,3,0]);
 });
@@ -137,7 +138,7 @@ test('allocation failure remains visible and device preparation can retry',t=>{
 });
 
 test('real Granny asset produces initialized vertices and a submitted draw', {skip:!process.env.CJS_PLACEABLE_GEOMETRY},t=>{
- const r=new TriGeometryRes();r.SetPayload(r.ReadGrannyFile(readFileSync(process.env.CJS_PLACEABLE_GEOMETRY)));r.MarkPrepared();
+ const r=new TriGeometryRes();r.ReadGrannyFile(readFileSync(process.env.CJS_PLACEABLE_GEOMETRY));prepareResourceFixture(r);
  const {context,draws,effect}=setup(t,()=>r),p=make();p.effect=effect;assert.equal(r.IsUsingCMF(),false);assert.ok(p._points.length);assert.ok(p._primitiveCount);
  context.RenderBatches({GetBatches:()=>batches(p)});assert.equal(draws.length,1);assert.equal(draws[0][0],p._primitiveCount*6);
 });
@@ -153,13 +154,15 @@ test('promotion leaves one maintained class and retains registered schema fields
 test('active draws renew the manager lease and recover a purged handle before the storage guard',t=>{
  const r=geometry(),{effect}=setup(t,()=>r),p=make();p.effect=effect;
  let renewals=0,reloads=0;
- r.SetLifecycleController({keepAlive(){renewals++;},keepPayloadAlive(){}});
- r.SetReloadHook(()=>{reloads++;r.MarkLoading();return true;});
+ r._path="res:/primitive.gr2";
+ const manager=be.resMan,renew=manager._KeepResourceAlive;
+ t.mock.method(manager,"_KeepResourceAlive",function(resource,options){renewals++;return renew.call(this,resource,options);});
+ t.mock.method(r,"Reload",()=>{reloads++;pendingResourceFixture(r);return true;});
  assert.equal(batches(p).length,1);assert.equal(renewals,1);
- r.ReleasePayload();r.MarkPurged();
+ r.Shutdown();purgeResourceFixture(r);
  assert.equal(batches(p).length,0);assert.equal(p._vertexBuffer.IsValid(),false);assert.equal(reloads,1);assert.equal(r.IsLoading(),true);
  batches(p);assert.equal(reloads,1,'pending reload must not restart per frame');
- r.SetPayload({meshes:[mesh('reloaded',17)]});r.MarkPrepared();
+ r.ReadCMFFile({meshes:[mesh('reloaded',17)]});prepareResourceFixture(r);
  assert.equal(p.grannyRes,r);assert.equal(batches(p).length,1);assert.equal(p._points[0],17);
 });
 

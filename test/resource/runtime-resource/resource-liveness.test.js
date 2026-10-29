@@ -1,256 +1,87 @@
-// The liveness contract: IsGood renews and KeepAlive revives. How owners hear
-// that a load finished is pinned in resource-notify-targets.test.js.
-//
-// These three are what make a consumer able to ignore purging entirely. Each
-// one has a failure mode that is silent rather than loud - a resource that is
-// never renewed, a purged handle that never comes back, a subscriber that waits
-// forever - so they are pinned here rather than left to integration.
+// Renewal stands in for Carbon's reference-counted MotherLode lifetime.
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { BlueAsyncRes, CjsBlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
 
-import { CjsResource } from "../../../npm/dist/resource/index.js";
-
-
-const { State } = CjsResource;
-
-
-/** A resource with a stub manager, recording what the lifecycle asked for. */
-function createBound(state = State.PREPARED)
+/** One process-wide manager, restored after every test. */
+function managerFor(t)
 {
-  const calls = { keepAlive: 0, reload: 0 };
-  const resource = new CjsResource();
-  resource.path = "res:/thing.png";
-  resource.SetState(state);
-  resource.SetLifecycleController({
-    keepAlive: () => { calls.keepAlive += 1; }
-  });
-  // Bound separately from the controller, because purge detaches the latter.
-  resource.SetReloadHook(() => { calls.reload += 1; resource.MarkRequested(); });
-  return { resource, calls };
+  const previous = blue.resMan;
+  const manager = new CjsBlueResMan({ source: { Read: () => "{}" } });
+  blue.resMan = manager;
+  manager.RegisterObjectLoader("json", value => JSON.parse(value));
+  t.after(() => { try { manager.Clear(); } finally { blue.resMan = previous; } });
+  return manager;
 }
 
-
-test("IsGood renews, because every caller is about to use the resource", () =>
+test("IsGood renews while pure inspection leaves activity unchanged", async t =>
 {
-  // ccpwgl merges these (Tw2Resource.js:108-112) so no call site can forget.
-  const { resource, calls } = createBound();
-
-  assert.equal(resource.IsGood(), true);
-  assert.equal(calls.keepAlive, 1, "the query renewed the resource");
-
+  const manager = managerFor(t), resource = manager.GetResource("res:/renew.json");
+  await manager.Ready(resource);
+  manager.activityTime = 100;
   resource.IsGood();
-  assert.equal(calls.keepAlive, 2, "every query renews");
+  assert.equal(resource._lastUsedTime, 100);
+  manager.activityTime = 200;
+  resource.IsPrepared();
+  resource.IsLoading();
+  manager.GetResourceStatus(resource);
+  assert.equal(resource._lastUsedTime, 100);
+  resource.IsGood();
+  assert.equal(resource._lastUsedTime, 200);
 });
 
-
-test("a purged resource reloads itself the moment anything asks", () =>
+test("explicit Reload cancels a prepared handle and rebuilds that same handle", async t =>
 {
-  const { resource, calls } = createBound();
-  resource.MarkPurged();
+  const manager = managerFor(t), resource = manager.GetResource("res:/reload.json");
+  await manager.Ready(resource);
+  resource.Reload();
+  assert.equal(resource.IsLoading(), true);
+  assert.equal(resource.IsPrepared(), false);
+  await manager.Ready(resource);
+  assert.equal(resource.IsGood(), true);
+  assert.equal(manager.Lookup(resource.GetPath()), resource);
+});
 
-  assert.equal(resource.IsGood(), false, "purged is not good");
-  assert.equal(calls.reload, 1, "asking for it started a reload");
-  assert.equal(resource.state, State.REQUESTED, "back on the normal load path");
-
-  // And it is not good WHILE reloading - which is what stops a half-loaded draw.
+test("a purged handle revives on use and successful preparation resets the retry count", async t =>
+{
+  const manager = managerFor(t), resource = manager.GetResource("res:/purged.json");
+  await manager.Ready(resource);
+  manager.PurgeInactive({ maxIdleFrames: 0, maxIdleMilliseconds: 0 });
+  assert.equal(manager.GetResourceStatus(resource).purged, true);
   assert.equal(resource.IsGood(), false);
-  assert.equal(calls.reload, 1, "no second reload once underway");
+  assert.equal(manager.GetReloadAttempts(resource), 1);
+  await manager.Ready(resource);
+  assert.equal(manager.GetReloadAttempts(resource), 0);
+  assert.equal(manager.Lookup(resource.GetPath()), resource);
 });
 
-
-test("Reload does nothing to a resource that is loaded or still loading", () =>
+test("a failed native resource is prepared, stays bad and never retries on use", async t =>
 {
-  // It recovers a payload that is absent but recoverable. It is not a way to
-  // force a refetch of something already present.
-  for (const state of [ State.PREPARED, State.LOADING, State.LOADED, State.PREPARING, State.EMPTY ])
-  {
-    const { resource, calls } = createBound(state);
-    assert.equal(resource.Reload(), false, state);
-    assert.equal(calls.reload, 0, state);
-    assert.equal(resource.state, state, `${state} is left alone`);
-  }
+  const manager = managerFor(t);
+  manager.RegisterObjectLoader("bad", () => { throw new Error("bad data"); });
+  const resource = manager.GetResource("res:/failed.bad");
+  await assert.rejects(manager.Ready(resource), /bad data/);
+  for (let i = 0; i < 10; i++) assert.equal(resource.IsGood(), false);
+  assert.equal(resource.IsPrepared(), true);
+  assert.equal(resource.IsLoading(), false);
+  assert.equal(manager.GetReloadAttempts(resource), 0);
 });
 
-
-test("a failed resource retries, but only up to the cap", () =>
+test("retry counters belong to the manager and reset explicitly", t =>
 {
-  // Without a cap this is a retry storm: KeepAlive runs from IsGood, which the
-  // render path calls every frame.
-  const { resource, calls } = createBound(State.EMPTY);
-  resource.SetError(new Error("cdn hiccup"));
-
-  for (let i = 0; i < CjsResource.maxReloadAttempts; i++)
-  {
-    assert.equal(resource.Reload(), true, `attempt ${i + 1}`);
-    resource.SetError(new Error("still failing"));
-  }
-
-  assert.equal(resource.Reload(), false, "gives up after the cap");
-  assert.equal(calls.reload, CjsResource.maxReloadAttempts);
+  const manager = managerFor(t), resource = new BlueAsyncRes();
+  manager._GetResourceRecord(resource).attempts = manager.maxReloadAttempts;
+  manager.ResetReloadAttempts(resource);
+  assert.equal(manager.GetReloadAttempts(resource), 0);
 });
 
-
-test("a successful load clears the retry budget", () =>
+test("resources expose the inherited resource marker and no string state events", () =>
 {
-  // The cap bounds CONSECUTIVE failures, not how often a resource may be purged
-  // and reloaded across a long session.
-  const { resource, calls } = createBound(State.EMPTY);
-
-  resource.SetError(new Error("blip"));
-  resource.Reload();
-  assert.equal(resource.GetReloadAttempts(), 1);
-
-  resource.MarkPrepared();
-  assert.equal(resource.GetReloadAttempts(), 0, "success resets the count");
-
-  resource.MarkPurged();
-  resource.Reload();
-  assert.equal(calls.reload, 2, "and the next purge is free to reload");
-});
-
-
-test("ResetReloadAttempts is the deliberate try-again gesture", () =>
-{
-  const { resource } = createBound(State.EMPTY);
-  resource.SetError(new Error("nope"));
-
-  for (let i = 0; i < CjsResource.maxReloadAttempts; i++)
-  {
-    resource.Reload();
-    resource.SetError(new Error("nope"));
-  }
-  assert.equal(resource.Reload(), false, "exhausted");
-
-  resource.ResetReloadAttempts();
-  assert.equal(resource.Reload(), true, "asked again on purpose");
-});
-
-
-test("a detached purged handle stays purged rather than pretending", () =>
-{
-  const resource = new CjsResource();
-  resource.SetState(State.PREPARED);
-  resource.MarkPurged();
-
-  assert.equal(resource.Reload(), false, "no manager to re-register with");
-  assert.equal(resource.state, State.PURGED);
-});
-
-
-test("PURGED is not terminal, because it is recoverable", () =>
-{
-  assert.equal(CjsResource.isTerminalState(State.PURGED), false);
-  assert.equal(CjsResource.isTerminalState(State.PREPARED), true);
-  assert.equal(CjsResource.isTerminalState(State.FAILED), true);
-});
-
-
-test("completed means finished trying, either way", () =>
-{
-  const good = new CjsResource();
-  const bad = new CjsResource();
-
-  assert.equal(good.HasCompleted(), false, "empty has not tried yet");
-
-  good.MarkPrepared();
-  bad.SetError(new Error("nope"));
-
-  assert.equal(good.HasCompleted(), true);
-  assert.equal(bad.HasCompleted(), true, "failure is completion too");
-
-  // The narrower question is still available, and is what handlers branch on.
-  assert.equal(good.IsPrepared(), true);
-  assert.equal(bad.IsPrepared(), false);
-});
-
-
-test("purging is not completion - nothing was tried and nothing concluded", () =>
-{
-  // If it were, subscribers would rebuild cached data from a deleted payload.
-  const resource = new CjsResource();
-  resource.MarkPrepared();
-  resource.MarkPurged();
-
-  assert.equal(resource.HasCompleted(), false);
-});
-
-
-test("there is no completed event or OnCompleted: owners use one-shot notify targets", () =>
-{
-  const resource = new CjsResource();
-  assert.equal("OnCompleted" in resource, false);
-  let heard = 0;
-  resource.OnEvent("completed", () => { heard += 1; });
-  resource.MarkPrepared();
-  assert.equal(heard, 0, "nothing emits it");
-});
-
-
-test("isResource is declared on the class, not just the instance", () =>
-{
-  // So a schema field declared as @type.rootRef("TriGeometryRes") can be
-  // known to hold a resource before any instance exists.
-  class Derived extends CjsResource {}
-
-  assert.equal(CjsResource.isResource, true);
-  assert.equal(Derived.isResource, true, "subclasses inherit the declaration");
-  assert.equal(new Derived().isResource, true, "and the instance agrees");
-});
-
-
-// End-to-end: the whole point of the contract is that a consumer holding a
-// purged handle gets it back without ever learning it was gone.
-test("a purged handle reloads into itself when something asks for it again", async () =>
-{
-  const { CjsBlueResMan } = await import("../../../npm/dist/resource/index.js");
-
-  let reads = 0;
-  const resMan = new CjsBlueResMan({
-    source: { Read: () => { reads += 1; return `{"value":${reads}}`; } }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  const path = "res:/data/liveness.json";
-  const handle = resMan.GetResource(path);
-  assert.deepEqual(await handle.Ready(), { value: 1 });
-  assert.equal(handle.IsGood(), true);
-
-  // Evict it out from under the consumer, exactly as the idle sweep would.
-  resMan.PurgeInactive({ maxIdleFrames: 0, maxIdleMilliseconds: 0 });
-  assert.equal(handle.IsPurged(), true, "the sweep deleted it");
-
-  // The consumer does nothing special - it just asks whether it can draw.
-  assert.equal(handle.IsGood(), false, "not good while it comes back");
-  assert.equal(handle.IsPurged(), false, "asking started the reload");
-
-  await handle.Ready();
-
-  assert.equal(handle.IsGood(), true, "the SAME handle is alive again");
-  assert.equal(resMan.Lookup(path), handle, "and is canonical once more");
-  assert.equal(reads, 2, "it really did reload, rather than never purging");
-});
-
-
-test("a purged handle declines to reload when another has claimed its identity", async () =>
-{
-  // Displacing the newcomer would kill whoever holds it - the exact failure
-  // this contract exists to prevent - so the stale handle stays purged.
-  const { CjsBlueResMan } = await import("../../../npm/dist/resource/index.js");
-
-  const resMan = new CjsBlueResMan({ source: { Read: () => "{}" } });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  const path = "res:/data/contested.json";
-  const stale = resMan.GetResource(path);
-  await stale.Ready();
-
-  resMan.PurgeInactive({ maxIdleFrames: 0, maxIdleMilliseconds: 0 });
-  assert.equal(stale.IsPurged(), true);
-
-  const claimant = resMan.GetResource(path);
-  assert.notEqual(claimant, stale, "a fresh handle took the identity");
-
-  assert.equal(stale.Reload(), false, "declined");
-  assert.equal(stale.IsPurged(), true, "and says so honestly");
-  assert.equal(resMan.Lookup(path), claimant, "the newcomer is untouched");
+  class Derived extends BlueAsyncRes {}
+  const resource = new Derived();
+  assert.equal(BlueAsyncRes.isResource, true);
+  assert.equal(Derived.isResource, true);
+  assert.equal(resource.isResource, true);
+  for (const name of ["OnEvent", "OnCompleted", "SetState", "state", "SetReloadHook", "SetLifecycleController"])
+    assert.equal(name in resource, false, name);
 });

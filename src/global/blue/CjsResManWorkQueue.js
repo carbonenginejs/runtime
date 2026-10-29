@@ -1,3 +1,4 @@
+import { BlueResManQueue } from "./IBlueResMan.js";
 import { CjsSchema } from "#schema/CjsSchema";
 
 // resMan's two queues, `BlueResManQueue` (blue/include/IBlueResMan.h:12-18):
@@ -317,6 +318,8 @@ export class CjsResManWorkQueue
    */
   static normalizeName(value)
   {
+    if (value === BlueResManQueue.BRMQ_MAIN) return CjsResManQueue.MAIN;
+    if (value === BlueResManQueue.BRMQ_BACKGROUND) return CjsResManQueue.BACKGROUND;
     const name = String(value ?? "").trim().toLowerCase();
     if (name === "main" || name === "prepare") return CjsResManQueue.MAIN;
     if (name === "background" || name === "load") return CjsResManQueue.BACKGROUND;
@@ -355,3 +358,5 @@ function defaultNow() {
 }
 
 CjsSchema.meta.define("CjsResManWorkQueue")(CjsResManWorkQueue);
+
+CjsSchema.decorateMethod(CjsResManWorkQueue, "normalizeName", CjsSchema.meta.implemented);

@@ -1,7 +1,8 @@
+import { prepareResourceFixture, resourceIdentityFixture } from "../../support/resourceFixtures.js";
 import { configureResourceManager } from "../../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsBlueResMan, CjsMotherLode, CjsResource, TriGeometryRes } from "../../../npm/dist/resource/index.js";
+import { CjsBlueResMan, CjsMotherLode, TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { Tr2RenderContext } from "../../../npm/dist/trinity/core/index.js";
@@ -79,23 +80,23 @@ test("switching ships lets the idle owner's GPU objects expire while the current
     const effect = new Tr2Effect();
     effect.parametersForPasses = [ { passes: [ { stageInput: [], resourceSetDesc: description, resourceSet: new Tr2ResourceSetAL() } ] } ];
     const geometry = new TriGeometryRes();
-    geometry.Initialize(`res:/${name}.gr2`, "gr2");
+    resourceIdentityFixture(geometry, `res:/${name}.gr2`, "gr2");
     const mesh = {
       decl: [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ],
       vertex: { position: new Float32Array([0,0,0, 1,0,0, 0,1,0]) },
       indices: [ { faces: new Uint16Array([0,1,2]) } ], areas: [ { firstElement: 0, elementCount: 1 } ]
     };
-    geometry.SetPayload({ meshes: [mesh] });
-    geometry.MarkPrepared();
+    geometry.ReadCMFFile({ meshes: [mesh] });
+    prepareResourceFixture(geometry);
     manager.motherLode.Insert(geometry.GetPath(), geometry);
     CreateLodAllocations(geometry, 0, mesh, render);
     const allocation = mesh.vertexAllocation;
     // A private adapter buffer exercises physical buffer destruction separately
     // from Carbon's shared geometry pool, whose surviving slices must stay valid.
-    const privateResource = new CjsResource();
-    privateResource.Initialize(`res:/${name}.private`);
-    privateResource.SetPayload(new Uint8Array(16));
-    privateResource.MarkPrepared();
+    const privateResource = new TriGeometryRes();
+    resourceIdentityFixture(privateResource, `res:/${name}.private`);
+    privateResource.ReadCMFFile({ meshes: [] });
+    prepareResourceFixture(privateResource);
     const buffer = al.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.IMMUTABLE), new Uint8Array(16));
     privateResource.SetAdapterResource("webgpu", buffer);
     manager.motherLode.Insert(privateResource.GetPath(), privateResource);
@@ -115,7 +116,7 @@ test("switching ships lets the idle owner's GPU objects expire while the current
   for (const resource of [a.texture, a.geometry, a.privateResource])
   {
     assert.equal(manager.motherLode.Lookup(resource.GetPath()), null);
-    assert.equal(resource.HasPayload(), false);
+    assert.equal(resource.IsPrepared(), false);
   }
   assert.equal(a.buffer.IsValid(), false);
   assert.equal(a.allocation.IsValid(), false);
@@ -128,7 +129,7 @@ test("switching ships lets the idle owner's GPU objects expire while the current
   manager.motherLode.KeepAlive(b.geometry.GetPath());
   manager.motherLode.KeepAlive(b.privateResource.GetPath());
   manager.Update();
-  assert.equal(b.texture.IsPurged(), false, "binding the current ship's texture renews its idle lease");
+  assert.equal(manager.GetResourceStatus(b.texture).purged, false, "binding the current ship's texture renews its idle lease");
   assert.deepEqual(counts(), first, "a rendered texture does not expire while still bound");
   const beforeReuse = counts();
   now = 21;

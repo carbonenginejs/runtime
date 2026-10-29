@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -19,9 +20,9 @@ const triangle=(theta,phi)=>[point(theta-0.025,phi-0.025),point(theta+0.025,phi-
 function near(actual,expected,epsilon=1e-5){assert.equal(actual.length,expected.length);actual.forEach((v,i)=>assert.ok(Math.abs(v-expected[i])<epsilon,`${i}: ${v} != ${expected[i]}`));}
 function geometry(points=triangle(0,0),faces=points.map((_,i)=>i)) {
   const g=new TriGeometryRes();
-  g.SetPayload({meshes:[{decl:[{usage:'Position',usageIndex:0,type:'Float32',elementCount:3,offset:0}],
+  g.ReadCMFFile({meshes:[{decl:[{usage:'Position',usageIndex:0,type:'Float32',elementCount:3,offset:0}],
     vertex:{position:points.flat()},indices:[{faces}],areas:[{firstElement:0,elementCount:faces.length/3}]}]});
-  g.MarkPrepared();return g;
+  prepareResourceFixture(g);return g;
 }
 function tree(g){const result=new EveSpherePinIndexTree(g);assert.equal(result.Initialize(),1);return result;}
 function indices(index,p,r){const out={primitives:99,indices:[]};assert.equal(index.GetIndices(p,r,out),1);return out;}
@@ -51,7 +52,7 @@ function collect(p,pod=null,type=TRANSPARENT){const batches=[];p.GetBatches({Com
 test('spherical index waits for geometry without changing caller outputs',()=>{
   const g=new TriGeometryRes(),index=new EveSpherePinIndexTree(g),out={primitives:9,indices:[7]};
   assert.equal(index.Initialize(),0);assert.equal(index.GetIndices([1,0,0],0.2,out),0);assert.deepEqual(out,{primitives:9,indices:[7]});
-  g.SetPayload(geometry().GetPayload());g.MarkPrepared();assert.equal(index.Initialize(),1);assert.equal(index.IsInitialized(),1);
+  g.ReadCMFFile(geometry().GetCMFData());prepareResourceFixture(g);assert.equal(index.Initialize(),1);assert.equal(index.IsInitialized(),1);
   // Every class registers its name (class-ownership.md, Class-shape rules), native helpers included.
   assert.equal(CjsSchema.getConstructor('EveSpherePinIndexTree'),EveSpherePinIndexTree);
 });
@@ -86,7 +87,7 @@ test('pole queries span longitude but still filter Cartesian distance',()=>{
 });
 
 test('index source uses LOD zero and truncates native output to uint16',()=>{
-  const g=geometry(),mesh=g.GetPayload().meshes[0];
+  const g=geometry(),mesh=g.GetCMFData().meshes[0];
   const positions=new Float32Array(65539*3);positions.set(triangle(0,0).flat(),65536*3);
   mesh.lods=[{vertex:{position:positions},indices:[{faces:[65536,65537,65538]}]}];
   mesh.vertex.position=triangle(0,Math.PI).flat();

@@ -1,3 +1,4 @@
+import { prepareResourceFixture, resourceIdentityFixture } from "../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2LightManager, TriFrustum } from "../../npm/dist/trinity/index.js";
@@ -12,7 +13,10 @@ function profileResource()
   const numbers = [ 1, 100, 1, 2, 1, 1, 1, 0.2, 0.3, 0.4, 1, 0, 60, 0, 180, 0, 500, 0 ];
   const bytes = new TextEncoder().encode(`IESNA:LM-63-1995\nTILT=NONE\n${numbers.join(" ")}\n`);
   const payload = CjsIESFormat.read(bytes, { emit: "lightProfile" });
-  return new Tr2LightProfileRes().Initialize("res:/lights/profile-a.ies").SetPayload(payload).MarkPrepared();
+  const resource = resourceIdentityFixture(new Tr2LightProfileRes(), "res:/lights/profile-a.ies");
+    resource.bitmap = Tr2LightProfileRes.bitmapFromBake(payload);
+    resource._DoPrepare();
+    return prepareResourceFixture(resource);
 }
 
 /** Decodes one IEEE binary16 half from its bits, for pack assertions. */

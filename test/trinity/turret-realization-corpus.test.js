@@ -1,3 +1,4 @@
+import { prepareResourceFixture, purgeResourceFixture } from "../support/resourceFixtures.js";
 import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/index.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { EveChildContainer, EveChildInstanceContainer, EveChildUpdateParams, EveChildModifierAttachToBone, EveUpdateContext, Tr2Lod } from "../../npm/dist/trinity/index.js";
@@ -89,7 +90,7 @@ async function assets(t)
     return base(path,options);
   };
   blue.resMan=manager;t.after(()=>{blue.resMan=previous;});
-  const makeResource=(prepared=true)=>{const value=new TriGeometryRes();value.SetPayload(value.ReadGrannyFile(bytes));if(prepared)value.MarkPrepared();return value;};
+  const makeResource=(prepared=true)=>{const value=new TriGeometryRes();value.ReadGrannyFile(bytes);if(prepared)prepareResourceFixture(value);return value;};
   const resource=makeResource();resources.set(geometryPath,resource);
   const set=CjsSchema.from("EveTurretSet", CjsBlackFormat.readPayload(turretBytes).object);set.geometryResPath=geometryPath;set.lodLevel=EveTurretSet.LOD.LOD_HIGHEST;set.slotNumber=1;
   t.after(()=>{set.ReleaseResources();TriDevice.UnregisterResource(set);});
@@ -120,13 +121,13 @@ test("late old completion cannot replace current cache; an update after a purge 
   const {set,ship,makeResource,resources}=await assets(t);ship.RebuildTurretPositions();
   const old=makeResource(false),next=makeResource(false);resources.set(geometryPath,old);
   set.Initialize();const second="res:/controlled-replacement.gr2";resources.set(second,next);set.geometryResPath=second;set.OnModified("geometryResPath");
-  old.MarkPrepared();assert.ok(set.geometryResource===next,"replacement handle remains current");assert.ok(set._skeleton===null,"stale completion must not rebuild");
-  next.MarkPrepared();assert.ok(set._skeleton===next.GetSkeletonData(0),"current resource owns cached skeleton");
+  prepareResourceFixture(old);assert.ok(set.geometryResource===next,"replacement handle remains current");assert.ok(set._skeleton===null,"stale completion must not rebuild");
+  prepareResourceFixture(next);assert.ok(set._skeleton===next.GetSkeletonData(0),"current resource owns cached skeleton");
   let rebuilds=0;const rebuild=set.RebuildCachedData.bind(set);set.RebuildCachedData=value=>{rebuilds++;return rebuild(value);};
   set.Initialize();set.Initialize();const before=rebuilds;
-  next.MarkPurged();const frame=()=>set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));
+  purgeResourceFixture(next);const frame=()=>set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));
   frame();assert.ok(set._skeleton===null,"the update after a purge releases the cache and asks again");frame();
-  next.MarkPrepared();assert.equal(rebuilds,before+1,"repeated re-registration while pending rebuilds once");
+  prepareResourceFixture(next);assert.equal(rebuilds,before+1,"repeated re-registration while pending rebuilds once");
   const matrices=set.GetTurrets().map(item=>Array.from(item.localMatrix));set.lodLevel=EveTurretSet.LOD.LOD_EMPTY;set.InitializeGeometryResource();
   assert.equal(set.geometryResource,null);assert.equal(set._turretVertexDeclElementCount,0);assert.ok(Array.from(set._systemBoneID).every(value=>value===0xffffffff));
   assert.deepEqual(set.GetTurrets().map(item=>Array.from(item.localMatrix)),matrices,"resource cleanup preserves mount placement");
@@ -173,7 +174,7 @@ test("real paired mounts own independent sampled poses and native play-idle cloc
   const idle=a.sequencer.GetAnimationLayer(null).queue[0];
   const overshoot=Math.fround(.2)+Math.fround(.3)-.25;
   assert.equal(idle.name,"Active");assert.ok(Math.abs(idle.elapsed-overshoot)<1e-9,"CMF first eligible scheduler preserves float32 delta overshoot");
-  resource.MarkPurged();set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));
+  purgeResourceFixture(resource);set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));
   assert.ok(a.sequencer===null,"the update after a purge drops the sequencer");assert.ok(a.pose===null,"and the pose");assert.equal(a.worldTransforms.length,0);
 });
 
@@ -182,7 +183,7 @@ test("pending native requests replay without delay and late mounts initialize im
   const {set,ship,resources,makeResource}=await assets(t);const pending=makeResource(false);resources.set(geometryPath,pending);
   ship.RebuildTurretPositions();set.Initialize();
   assert.equal(set.PlayAnimation(0,"Deploy","Active",5),0);assert.equal(set._animationQueue.length,1);
-  set.UpdateAsyncronous(updateContext({deltaTime:2}),set._parentData);pending.MarkPrepared();set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);
+  set.UpdateAsyncronous(updateContext({deltaTime:2}),set._parentData);prepareResourceFixture(pending);set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);
   const first=set.GetTurrets()[0].sequencer.GetAnimationLayer(null).queue[0];
   assert.equal(first.name,"Deploy");assert.equal(first.elapsed,0,"cpp:2483 AnimationRequest omits delay");
   assert.equal(set._animationQueue.length,0);
@@ -364,7 +365,7 @@ test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform
   set.useLowLodFiringTransform=true;set.lowLodFiringEffectTranslation.set([2,3,7]);set.lowLodFiringEffectScale.set([2,1,3]);set.lowLodFiringEffectRotation.set([0,Math.sin(.2),0,Math.cos(.2)]);
   const low=mat4.fromRotationTranslationScale(mat4.create(),set.lowLodFiringEffectRotation,set.lowLodFiringEffectTranslation,set.lowLodFiringEffectScale);
   assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),carbonProduct(low,turret.worldMatrix),"native lowLOD * turretWorld");
-  effect.boneName="Pos_Fire";set.InitializeFiringEffect();resource.MarkPurged();set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));assert.ok(turret.pose===null,"the update after a purge releases the pose");
+  effect.boneName="Pos_Fire";set.InitializeFiringEffect();purgeResourceFixture(resource);set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));assert.ok(turret.pose===null,"the update after a purge releases the pose");
   assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),carbonProduct(low,turret.worldMatrix),"unloaded pose uses lowLOD even with retained valid joint ID");
   set.useLowLodFiringTransform=false;set.sysBonePitchMin=0;set.target.position.set([800,900,500]);
   const direct=set.GetFiringBoneWorldTransform(0, mat4.create()),direction=Array.from(set.target.position).map((v,i)=>v-turret.worldMatrix[12+i]);const length=Math.hypot(...direction);
@@ -431,7 +432,7 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   assert.deepEqual(uploads[2].data,Array.from({length:9},()=>[1,0,0,0,0,1,0,0,0,0,1,0]).flat(),"visible invalid record has native identity skin data");
   set.GetTurrets().length=0;ship.UpdateTurretsAsyncronous(updateContext({deltaTime:0}));assert.equal(set._boneOffsets.GetCurrentFrameOffset(),0xffffffff);assert.equal(set._boneOffsets.GetPreviousFrameOffset(),29);
   set.display=false;set.UpdateVisibility(view);assert.equal(set.visibleCount,0);
-  resource.MarkPurged();assert.ok(set.GetPerObjectData(accumulator)===null,"native bad-resource gate");
+  purgeResourceFixture(resource);assert.ok(set.GetPerObjectData(accumulator)===null,"native bad-resource gate");
 });
 
 test("real packed turret shader receives native instance IDs and final opaque/shadow draw offsets",{skip},async t=>
@@ -492,7 +493,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   const firstCount=instanceUploads.length;const allocating=shared.Allocate;shared.Allocate=()=>null;
   assert.equal(set.PrepareResources(),true,"native OnPrepareResources returns true after void InitializeInstanceBuffer");assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);shared.Allocate=allocating;
   assert.equal(set.PrepareResources(),true);assert.equal(instanceUploads.length,firstCount+1);assert.equal(set.GetShadowBatches(accumulator,pod,100),true);
-  resource.MarkPurged();assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
+  purgeResourceFixture(resource);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
   set.Destruct();set.Destruct();assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);assert.equal(set._instanceBuffer.IsValid(),false);
   assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),false);
 });
@@ -531,7 +532,7 @@ test("native turret LOD consumes maximum view estimate, releases and reloads pos
   set.UpdateVisibility(view(5.999));set.UpdateSyncronous(threshold);
   assert.equal(set.lodLevel,EveTurretSet.LOD.LOD_EMPTY);assert.equal(set.geometryResource,null);assert.equal(set.GetTurrets()[0].pose,null);assert.equal(set.firingEffect.GetDisplaySourceObject(),false);
   assert.deepEqual(set.GetTurrets().map(x=>Array.from(x.localMatrix)),mounts,"native resource LOD leaves placements intact");
-  resource.MarkPrepared();assert.equal(set._skeleton,null,"unsubscribed resource completion cannot resurrect EMPTY LOD");
+  prepareResourceFixture(resource);assert.equal(set._skeleton,null,"unsubscribed resource completion cannot resurrect EMPTY LOD");
   set.UpdateVisibility(view(6));set.UpdateSyncronous(threshold);
   assert.equal(set.lodLevel,EveTurretSet.LOD.LOD_HIGHEST);assert.ok(set.geometryResource===resource);assert.ok(set.GetTurrets()[0].pose!==oldPose);assert.equal(set.firingEffect.GetDisplaySourceObject(),true);
   set.estimatedPixelDiameter=0;set.FreezeHighDetailLOD();assert.equal(set.lodLevel,EveTurretSet.LOD.LOD_DISABLED);
@@ -543,7 +544,7 @@ test("GR2 and CMF turret bounds follow donor traversal, animated world joints an
 {
   const {set,ship,resource,resources}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
   const bytes=await client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2");
-  const cmf=new TriGeometryRes();cmf.SetPayload(CjsCmfFormat.loadShared(CjsGr2Format.read(bytes,{rebuildMissingBounds:true})));cmf.MarkPrepared();
+  const cmf=new TriGeometryRes();cmf.ReadCMFFile(CjsCmfFormat.loadShared(CjsGr2Format.read(bytes,{rebuildMissingBounds:true})));prepareResourceFixture(cmf);
   for(const [label,geometry] of [["GR2",resource],["CMF",cmf]])
   {
     resources.set(geometryPath,geometry);set.Initialize();set.useDynamicBounds=true;set.OnModified("useDynamicBounds");
@@ -565,8 +566,8 @@ test("GR2 and CMF turret bounds follow donor traversal, animated world joints an
     let captured;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:value=>{captured??=Array.from(value);return true;},GetPixelSizeAccross:()=>40})});
     const expectedCenter=Array.from({length:3},(_,i)=>sphere[0]*turret.worldMatrix[i]+sphere[1]*turret.worldMatrix[i+4]+sphere[2]*turret.worldMatrix[i+8]+turret.worldMatrix[i+12]);
     assertScalars(captured.slice(0,3),expectedCenter,"dynamic sphere transformed by mount for culling");
-    geometry.MarkPurged();set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));sphere.fill(17);assert.equal(set.GetDynamicBounds(turret,sphere),false);assert.deepEqual(Array.from(sphere),[17,17,17,17]);
-    geometry.MarkPrepared();assert.ok(set._boneBounds.length);set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);assert.equal(set.GetDynamicBounds(turret,sphere),true);
+    purgeResourceFixture(geometry);set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));sphere.fill(17);assert.equal(set.GetDynamicBounds(turret,sphere),false);assert.deepEqual(Array.from(sphere),[17,17,17,17]);
+    prepareResourceFixture(geometry);assert.ok(set._boneBounds.length);set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);assert.equal(set.GetDynamicBounds(turret,sphere),true);
     set.useDynamicBounds=false;set.OnModified("useDynamicBounds");assert.equal(set._boneBounds.length,0);min.fill(8);assert.equal(set.GetLocalBoundingBox(min,max),false);assert.deepEqual(Array.from(min),[8,8,8]);
   }
 });
@@ -599,7 +600,7 @@ test("native ambient instances copy controlled source, isolate controller state 
   let ambientLod;source.UpdateVisibility=(_context,_parent,lod)=>{ambientLod=lod;};
   for(const [turretLod,childLod] of [[EveTurretSet.LOD.LOD_INVALID,Tr2Lod.TR2_LOD_UNSPECIFIED],[EveTurretSet.LOD.LOD_EMPTY,Tr2Lod.TR2_LOD_LOW],[EveTurretSet.LOD.LOD_HIGHEST,Tr2Lod.TR2_LOD_HIGH]]){set.lodLevel=turretLod;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:()=>false})});assert.equal(ambientLod,childLod);}
   set.ambientEffectEditingMode=false;set.OnModified("ambientEffectEditingMode");set.SetAmbientEffect(null);assert.equal(set.GetAmbientEffectOrGeneratedEffect(),null);assert.equal(source.IsInRegistry(),false);
-  set.Destruct();resource.MarkPrepared();assert.equal(set.geometryResource,null);assert.equal(set.IsInRegistry(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);
+  set.Destruct();prepareResourceFixture(resource);assert.equal(set.geometryResource,null);assert.equal(set.IsInRegistry(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);
   ship.turretSets.length=0;assert.equal(ship.GetRenderables__Impostors([]).includes(set),false,"removed/destroyed turret is not collected");
 });
 

@@ -1113,13 +1113,15 @@ export class Tr2LightManager
    * (resource cannot import trinity), so the manager performs it at the
    * first pack instead; same array, same first-fit slot, one seam later.
    * The profile is Carbon's m_lightProfile, a Tr2LightProfileRes.
+   * @param {Tr2LightProfileRes|null} profile Resource bound to this light.
+   * @returns {number} Packed profile slot, or zero while unavailable.
    */
   _ProfileSlot(profile)
   {
     if (!profile) return 0;
     // Asked where it is used, once per packed light per frame: renews the
     // profile and packs "no profile" while it is not good, which is what a
-    // loading profile without a bitmap already packed (CjsResource.IsGood).
+    // loading profile without a bitmap already packed (BlueAsyncRes.IsGood).
     if (!profile.IsGood()) return 0;
     let index = profile.GetTextureIndex();
     if (index < 0)
@@ -1216,3 +1218,5 @@ CjsSchema.decorateMethod(Tr2LightManager, "getOrCreateInstance");
 CjsSchema.decorateMethod(Tr2LightManager, "getInstance");
 CjsSchema.decorateMethod(Tr2LightManager, "deleteInstance");
 CjsSchema.decorateMethod(Tr2LightManager, "getLightProfileArray", meta.implemented);
+
+CjsSchema.decorateMethod(Tr2LightManager, "_ProfileSlot", meta.cjs, meta.adapted);

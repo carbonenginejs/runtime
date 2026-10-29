@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 // TriGeometryRes fills each LOD's morphTargetDeformationAmounts at load, as Carbon does while building its LODs
 // (TriGeometryRes.cpp:2134 for CMF, 2293 for Granny), from a real client head with facial morph targets.
 import assert from "node:assert/strict";
@@ -15,8 +16,8 @@ const HEAD = "res:/graphics/character/female/paperdoll/head/head_generic/head_ge
 test("every LOD carries one deformation amount per morph target, Carbon's largest morph-to-base distance", { skip }, async () =>
 {
   const geometry = new TriGeometryRes();
-  geometry.SetPayload(geometry.ReadGrannyFile(await client.Read(HEAD)));
-  const meshes = geometry.GetPayload().meshes;
+  geometry.ReadGrannyFile(await client.Read(HEAD));
+  const meshes = geometry.GetCMFData().meshes;
   const meshIndex = meshes.findIndex(mesh => mesh.morphTargets?.targets?.length);
   assert.ok(meshIndex >= 0, "the head has facial morph targets");
   const mesh = meshes[meshIndex];
@@ -54,9 +55,9 @@ test("every LOD carries one deformation amount per morph target, Carbon's larges
 test("Tr2MeshBase.GetBounds grows by the loaded morph amounts (Tr2MeshBase.cpp:263-270)", { skip }, async () =>
 {
   const geometry = new TriGeometryRes();
-  geometry.SetPayload(geometry.ReadGrannyFile(await client.Read(HEAD)));
-  geometry.MarkPrepared();
-  const meshIndex = geometry.GetPayload().meshes.findIndex(mesh => mesh.morphTargets?.targets?.length);
+  geometry.ReadGrannyFile(await client.Read(HEAD));
+  prepareResourceFixture(geometry);
+  const meshIndex = geometry.GetCMFData().meshes.findIndex(mesh => mesh.morphTargets?.targets?.length);
   const mesh = new Tr2Mesh();
   mesh.SetGeometryRes(geometry);
   mesh.meshIndex = meshIndex;
@@ -80,9 +81,9 @@ const FACE = "res:/graphics/character/female/paperdoll/head/head_faceonly/head_g
 async function FaceGeometry()
 {
   const geometry = new TriGeometryRes();
-  geometry.SetPayload(geometry.ReadGrannyFile(await client.Read(FACE)));
-  geometry.MarkPrepared();
-  const meshIndex = geometry.GetPayload().meshes.findIndex(mesh => (mesh.morphTargets?.targets ?? []).some(target => target.name.endsWith("Shape")));
+  geometry.ReadGrannyFile(await client.Read(FACE));
+  prepareResourceFixture(geometry);
+  const meshIndex = geometry.GetCMFData().meshes.findIndex(mesh => (mesh.morphTargets?.targets ?? []).some(target => target.name.endsWith("Shape")));
   return { geometry, meshIndex };
 }
 
@@ -90,7 +91,7 @@ test("every LOD stores the target names less \"Shape\" and a cleared baked flag 
 {
   const { geometry, meshIndex } = await FaceGeometry();
   assert.ok(meshIndex >= 0, "the face-only head has Shape-suffixed morph targets");
-  const targets = geometry.GetPayload().meshes[meshIndex].morphTargets.targets;
+  const targets = geometry.GetCMFData().meshes[meshIndex].morphTargets.targets;
   const lod = geometry.GetMeshLod__LodIndex(meshIndex, 0);
   assert.equal(lod.morphTargetNames.length, targets.length);
   targets.forEach((target, index) =>

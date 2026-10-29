@@ -1,3 +1,4 @@
+import { prepareResourceFixture, resourceIdentityFixture } from "../support/resourceFixtures.js";
 import test from "node:test";
 import { UpdateContext } from "../support/eveUpdateContext.js";
 import assert from "node:assert/strict";
@@ -60,8 +61,8 @@ function assertVectorClose(actual, expected, message)
 
 function createGeometry()
 {
-  const geometry = new TriGeometryRes().Initialize("res:/geometry/overlay.cmf");
-  geometry.SetPayload({
+  const geometry = resourceIdentityFixture(new TriGeometryRes(), "res:/geometry/overlay.cmf");
+  geometry.ReadCMFFile({
     version: 1,
     sourceFormat: "cmf",
     meshes: [ {
@@ -75,7 +76,7 @@ function createGeometry()
       } ]
     } ]
   });
-  geometry.MarkPrepared();
+  prepareResourceFixture(geometry);
   return geometry;
 }
 
@@ -869,7 +870,7 @@ test("CollectOwnedGeometry pools areas by batch type and shares them across inst
 {
   // A real, already-loaded geometry resource.
   const geometry = new TriGeometryRes();
-  geometry.MarkPrepared();
+  prepareResourceFixture(geometry);
   const mesh = new Tr2Mesh();
   const opaque = new Tr2MeshArea();
   opaque.index = 0;
@@ -973,7 +974,7 @@ test("damage-locator filtering raycasts every sub-area of a pooled area", () =>
     }
   }
   const geometry = new OccludingGeometryRes();
-  geometry.MarkPrepared();
+  prepareResourceFixture(geometry);
   const mesh = new Tr2Mesh();
   const area = new Tr2MeshArea();
   area.index = 0;

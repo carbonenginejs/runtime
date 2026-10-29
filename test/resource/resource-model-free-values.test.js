@@ -1,3 +1,4 @@
+import { readEffectFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsCarbonEffectReader } from "../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
@@ -21,7 +22,7 @@ test("a real High effect preserves every body through binary shader reconstructi
 {
   const bytes = new Uint8Array(await client.Read(effectFile));
   const reader = new CjsCarbonEffectReader(bytes);
-  const resource = new Tr2EffectRes().DoLoad(bytes);
+  const resource = readEffectFixture(new Tr2EffectRes(), bytes);
   const writer = new CjsCarbonEffectWriter({
     compilerVersion: reader.compilerVersion,
     sourceHash: new TextDecoder().decode(reader.sourceHash)

@@ -1,3 +1,4 @@
+import { prepareResourceFixture, pendingResourceFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2ParticleElementDeclaration, Tr2ParticleSystem, Tr2RenderContext_GetMainThreadRenderContext, Tr2StaticEmitter } from "../../npm/dist/trinity/index.js";
@@ -22,7 +23,7 @@ function geometry(decl = [
 ])
 {
   const resource = new TriGeometryRes();
-  resource.SetPayload({
+  resource.ReadCMFFile({
     meshes: [ {
       decl,
       vertex: {
@@ -31,7 +32,7 @@ function geometry(decl = [
       }
     } ]
   });
-  resource.MarkPrepared();
+  prepareResourceFixture(resource);
   return resource;
 }
 
@@ -87,7 +88,7 @@ test("ForceSpawn waits for good geometry and a valid system, then spawns once fr
   const emitter = new Tr2StaticEmitter();
   emitter.particleSystem = particles;
   const pending = geometry();
-  pending.MarkLoading();
+  pendingResourceFixture(pending);
   emitter.geometryResource = pending;
 
   emitter.Update(null);

@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema/CjsSchema";
 // Source: trinity/trinity/Resources/Procedural/GradientTexture.cpp
 //
 // Carbon registers this constructor at static-initialisation time
@@ -5,45 +6,27 @@
 // RegisterSolidColorTexture, registration here is an explicit composition call.
 import { IBlueDynamicResourceConstructor } from "#blue";
 import { TriTextureRes } from "#trinity/resources";
-import { GradientPrefix, RasterizeGradient } from "./gradientTexture.js";
+import { GradientPrefix } from "./gradientTexture.js";
 
 /**
  * Carbon's `GradientTextureConstructor`: builds the texture a
  * `dynamic:/gradient_1d/<query>` path names.
  *
  * Carbon's constructor only creates the resource and calls Initialize, which
- * rasterizes (TriTextureRes.cpp:223-229). Ours still rasterizes here and
- * publishes the bitmap. Relocating these classes preserves that behavior;
- * moving rasterization into Initialize is separate lifecycle work.
+ * rasterizes (TriTextureRes.cpp:223-229). The resource now owns
+ * rasterization too, so explicit reload follows the same native path.
  */
 export class GradientTextureConstructor extends IBlueDynamicResourceConstructor
 {
   /**
-   * `IBlueDynamicResourceConstructor::GetResource` (GradientTexture.cpp:32-38).
-   *
-   * @param {string} query Base64 text after `dynamic:/gradient_1d/`.
-   * @returns {TriTextureRes} The texture resource, failed when the path is invalid.
+   * Carbon GradientTextureConstructor::GetResource: initialize its native procedural path.
+   * @param {string} query Authored dynamic texture recipe after its registered prefix.
+   * @returns {TriTextureRes} Initialized texture with a recipe retained for same-handle reload.
    */
   GetResource(query)
   {
-    const path = GradientPrefix + query;
     const texture = new TriTextureRes();
-    texture.Initialize(path, "");
-
-    const bitmap = RasterizeGradient(path);
-    if (!bitmap)
-    {
-      // Carbon logs "Failed to parse dynamic:/gradient_1d/ texture path" (or the
-      // zero-width variant) and leaves the bitmap invalid, so the texture is
-      // never prepared.
-      const error = new Error(`Failed to parse ${path} texture path`);
-      error.code = "CJS_TEXTURE_PROCEDURAL_PATH_INVALID";
-      error.path = path;
-      texture.SetError(error);
-      return texture;
-    }
-    texture.SetPayload(bitmap);
-    texture.MarkPrepared();
+    texture.Initialize(GradientPrefix + query, "");
     return texture;
   }
 }
@@ -59,3 +42,5 @@ export function RegisterGradientTexture(resourceManager)
   resourceManager.RegisterResourceConstructor("gradient_1d", new GradientTextureConstructor());
   return resourceManager;
 }
+
+CjsSchema.decorateMethod(GradientTextureConstructor, "GetResource", CjsSchema.meta.adapted);

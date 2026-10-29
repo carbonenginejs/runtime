@@ -18,11 +18,11 @@ export { CjsEventEmitter } from "#model";
 // @carbonenginejs/runtime/resource.
 export {
   CjsLoadingObject,
-  CjsResource,
-  destroyAdapterValue,
+  BlueAsyncRes,
+
   ResourceHandlerMode,
-  ResourceRequirement,
-  isResourceRequirement,
+
+
   CjsFormatRoute,
   CjsFormatStore,
   CjsMotherLode,
@@ -32,3 +32,5 @@ export {
   CjsResManQueue,
   CjsBlueResMan
 } from "#blue";
+
+export { destroyAdapterValue } from "../trinity/core/device/Tr2DeviceResource.js";

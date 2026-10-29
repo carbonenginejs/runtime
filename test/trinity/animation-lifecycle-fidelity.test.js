@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2GrannyAnimation, Tr2TextureAnimationParameter, CjsGrannyCurves, CjsControllerExpressionProgram } from "../../npm/dist/trinity/index.js";
@@ -77,8 +78,8 @@ test("owned Granny paths refresh while borrowed and explicit resources retain ow
     // answers its granny file through GetGrannyInfo. The revision marks the
     // payload as a decoded granny graph, as the gr2 reader's is.
     const borrowed = new TriGeometryRes();
-    borrowed.SetPayload({ ...first, grannyFileFormatRevision: 7 });
-    borrowed.MarkPrepared();
+    borrowed.ReadGrannyFile({ ...first, grannyFileFormatRevision: 7 });
+    prepareResourceFixture(borrowed);
     animation.resPath = pathB;
     animation.SetSharedGeometryRes(borrowed);
     assert.equal(animation.resPath, "");

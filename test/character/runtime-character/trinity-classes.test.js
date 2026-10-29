@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../../support/resourceFixtures.js";
 import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
 import { blue, NotifyModified } from "../../../npm/dist/global/blue/index.js";
 import * as distBlue from "../../../npm/dist/global/blue/index.js";
@@ -37,11 +38,11 @@ const NO_PARENT = 0xffffffff;
 function SkeletonGeometry(skeletons)
 {
   const geometry = new TriGeometryRes();
-  geometry.SetPayload({
+  geometry.ReadCMFFile({
     skeletons,
     meshes: [ { areas: [], boneBindings: (skeletons[0]?.bones ?? []).map(name => ({ name, bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] } })) } ]
   });
-  geometry.MarkPrepared();
+  prepareResourceFixture(geometry);
   return geometry;
 }
 

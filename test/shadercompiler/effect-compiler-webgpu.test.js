@@ -1,3 +1,4 @@
+import { readEffectFixture } from "../support/resourceFixtures.js";
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -201,7 +202,7 @@ test("the runtime loads the container and hands every stage its WGSL and block",
     for (const effect of OUTLINES)
     {
         const { bytes, results } = compile(effect);
-        const res = new Tr2EffectRes().DoLoad(bytes);
+        const res = readEffectFixture(new Tr2EffectRes(), bytes);
         for (let index = 0; index < results.length; ++index)
         {
             const pass = res.GetShaderByIndex(index).effect.techniques[0].passes[0];

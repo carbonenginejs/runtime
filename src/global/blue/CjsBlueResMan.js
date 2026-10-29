@@ -6,6 +6,8 @@ import { StreamType } from "#consts/media";
 import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveInteger } from "#utils/validation";
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
+import { blue as blueService } from "./blue.js";
+import { CjsLoadingObject } from "./CjsLoadingObject.js";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { CjsSchema, meta, blue } from "#schema";
 import { IBlueResMan } from "./IBlueResMan.js";
@@ -20,7 +22,8 @@ import {
   normalizeResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsResource } from "./CjsResource.js";
+
+
 import { GetResources } from "./getResources.js";
 import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
 import {
@@ -43,8 +46,6 @@ const BEQI_SILENT = 1;
 const RESOURCE_REQUEST_OPTION_KEYS = [
   "ex",
   "variant",
-  "requirement",
-  "payload",
   "emit",
   "outputStreams",
   "format",
@@ -57,9 +58,7 @@ const RESOURCE_OUTPUT_OPTION_KEYS = [
   "ex",
   "outputStreams",
   "variant",
-  "emit",
-  "requirement",
-  "payload"
+  "emit"
 ];
 
 /** Source provenance retained by a bound resource handle when present. */
@@ -168,43 +167,6 @@ let nextLocalValueIdentity = 1;
  * @property {() => (*|Promise<*>)} [yield] Cooperative wait between pump attempts.
  */
 
-/**
- * Immutable authority captured by asynchronous work that may mutate a
- * canonical resource. A generation changes whenever ResMan removes and later
- * rebinds the same JavaScript handle, even when owner and key are reused.
- *
- * @typedef {object} CjsResourceOwnership
- * @property {number} generation Manager-local ownership generation.
- * @property {CjsMotherLode} owner Exact registry that owns the resource.
- * @property {string} key Exact canonical registry identity.
- * @property {object|Function} resource Canonical resource handle.
- */
-
-/**
- * Immutable authority for one off-registry reload candidate.
- *
- * The newest generation for a canonical key is the only candidate permitted
- * to commit. `expectedOwnership` keeps the former canonical handle protected
- * by the same exact-owner generation checks used by ordinary asynchronous
- * resource work.
- *
- * @typedef {object} CjsResourceReloadCandidate
- * @property {true} reloadCandidate Distinguishes staged authority from canonical ownership.
- * @property {number} generation Manager-local reload request generation.
- * @property {CjsMotherLode} owner Exact registry expected to receive the candidate.
- * @property {string} key Exact canonical registry identity.
- * @property {object|Function} expected Former canonical resource preserved until commit.
- * @property {CjsResourceOwnership} expectedOwnership Captured authority of the former owner.
- * @property {object|Function} resource Off-registry candidate resource.
- * @property {Readonly<object>} loaderOptions Durable identity/source options restored after commit.
- */
-
-/**
- * Hidden authority accepted by guarded CPU read/publication helpers.
- *
- * @typedef {CjsResourceOwnership|CjsResourceReloadCandidate} CjsResourceMutationAuthority
- */
-
 // `dynamic:` protocol (BlueResMan.cpp:219-223): the name is the segment after
 // this prefix, and everything after the following slash is the query. Carbon
 // accepts both separators after the scheme (BlueFileUtil.cpp:33), and both are
@@ -240,7 +202,7 @@ function watchError(code, message, pending)
 {
   const error = new Error(`CjsBlueResMan ${message}`);
   error.code = code;
-  error.pending = pending.map(resource => resource.path);
+  error.pending = pending.map(resource => resource.GetPath());
   return error;
 }
 
@@ -256,9 +218,10 @@ function dynamicResourceError(path, name, code, message)
 
 /**
  * GPU-free resource manager that resolves paths through registered sources and
- * formats, publishes canonical resources into a `CjsMotherLode` registry under
- * exact-owner generation guards, and drives the main/background work queues,
- * read-operation caching, reload staging, and automatic purge policy.
+ * formats, caches handles in MotherLode, and drives native asynchronous loading
+ * and preparation. Reload refills the same handle; attempt tokens prevent a
+ * cancelled read from publishing late. Plain/object data belongs to this manager,
+ * while each resource family owns its native data.
  *
  * Carbon: BlueResMan (blue/src/BlueResMan.h:21)
  */
@@ -287,8 +250,6 @@ export class CjsBlueResMan
   /** Default source for later requests, or null for be.paths (SetSource). */
   source = null;
 
-  /** Resource classes keyed by semantic requirement (RegisterResourceType). */
-  resourceTypes = new Map();
 
   /** Object loaders keyed by extension (RegisterObjectLoader). */
   objectLoaders = new Map();
@@ -296,8 +257,6 @@ export class CjsBlueResMan
   /** Format registrations keyed by extension (RegisterFormat). */
   formats = new Map();
 
-  /** In-flight object loads, deduplicated per resource. Clear() replaces it. */
-  objectOperations = new WeakMap();
 
   /** In-flight source reads, deduplicated per resource. Clear() replaces it. */
   sourceOperations = new WeakMap();
@@ -340,24 +299,23 @@ export class CjsBlueResMan
 
   _autoPurgePolicy = null;
   _activeResourceOperations = 0;
-  _invalidResourceOwnership = new WeakSet();
+
   _lastAutoPurgeTime = null;
-  _nextResourceReloadGeneration = 1;
-  _nextResourceOwnershipGeneration = 1;
+
+
   _nextResourceOperationId = 1;
   _queueOperations = new Map();
-  _resourceOwnership = new WeakMap();
+
   _resourceOperations = new Map();
 
   /** Urgent loads, reloads and reads while pending (WaitUrgent). */
   _urgentOperations = new Set();
-  _reloadCandidates = new WeakMap();
-  _reloadGenerations = new Map();
-  _reloadOperations = new WeakMap();
+
+
   _extensionRoutes = new Map();
   _resourceExtensionRoutes = new WeakMap();
   _resourceHandlerModes = new WeakMap();
-  _resourceTypeCandidates = new Map();
+
   // BlueResMan::m_dynamicConstructors (BlueResMan.h:154-155).
   _dynamicConstructors = new Map();
   _dynamicResources = new WeakSet();
@@ -373,7 +331,7 @@ export class CjsBlueResMan
    * The default source: the file through be.paths, the bytes Carbon's
    * DoOpenStream gets from BePaths->GetStreamFromPathW.
    */
-  _bluePathsSource = { Read: (path, readOptions = {}) => readThroughBluePaths(CjsBlueResMan.getBluePaths(), path, readOptions) };
+  _bluePathsSource = { Read: (path, readOptions = {}) => readThroughBluePaths(blueService.paths, path, readOptions) };
 
   /**
    * Loaders registered through RegisterObjectBuilder: their result is a
@@ -413,15 +371,15 @@ export class CjsBlueResMan
    * Add or replace resource-manager configuration.
    *
    * The same options object can be forwarded unchanged by CjsLibrary. Format
-   * classes continue to own their input extensions; resource types are keyed
-   * by semantic requirements such as "texture", "image", or "geometry".
+   * classes own their input extensions; resource factories are selected by the
+   * source extension plus Carbon's explicit request suffix.
    * Replacing MotherLode shuts down and cleans the former owner before the new
    * registry is activated. Replacement is rejected while queued or direct
    * resource mutations are active so a synchronous configuration call cannot
    * detach ownership underneath asynchronous publication. Normal `Wait()`
    * drains queued roots only; direct callers must await their own promises.
    *
-   * @param {object} [options={}] Additive source, registry, queue, format, and resource-type settings.
+   * @param {object} [options={}] Additive source, registry, queue, format, and extension settings.
    * @param {number} [options.cacheSize] Recorded-byte budget immediately installed on the active MotherLode.
    * @param {object} [options.cacheCleanup] Cleanup policy used if a smaller configured budget evicts cached identities.
    * @param {object} [options.mainThreadLoader] Direct execution strategy.
@@ -450,12 +408,12 @@ export class CjsBlueResMan
             throw activeResourceOperationsError(this._activeResourceOperations);
           }
           const previousMotherLode = this.motherLode;
-          this._InvalidateMotherLodeOwnership(previousMotherLode);
+
           previousMotherLode.Shutdown();
           this.motherLode = nextMotherLode;
           this.motherLode.Startup();
-          this._BindMotherLodeResources();
-          this._reloadGenerations.clear();
+
+
           this._lastAutoPurgeTime = null;
         }
       },
@@ -503,11 +461,6 @@ export class CjsBlueResMan
     {
       if (typeof entry === "function") this.RegisterFormat(entry);
       else this.RegisterFormat(entry.Format || entry.format, entry.defaults || {});
-    }
-    for (const entry of normalizeRegistrationEntries(options.resourceTypes, true))
-    {
-      if (typeof entry === "function") this.RegisterResourceType(entry);
-      else this.RegisterResourceType(entry.requirement || entry.payload || entry.key, entry.Constructor || entry.Resource || entry.resourceType, entry);
     }
     for (const [ ext, loader ] of Object.entries(options.objectLoaders || {}))
     {
@@ -788,8 +741,7 @@ export class CjsBlueResMan
    * browser that size is unknown or wrong (compressed transfers, decoded and
    * converted results), so loads are limited by counts and time instead.
    *
-   * The 2026-10-13 decision in docs/internal/decisions/resman-in-the-browser.md
-   * leaves Carbon's 256 MB budget (BlueResMan.cpp:75,401-418) unported as a limit.
+   * Carbon's 256 MB budget (BlueResMan.cpp:75,401-418) is not a browser limit.
    */
   ReserveBackgroundLoadMemory(_size)
   {
@@ -798,9 +750,8 @@ export class CjsBlueResMan
   /**
    * `ReleaseBackgroundLoadMemory` (BlueResMan.cpp:420-432).
    *
-   * Deliberate no-op, paired with `ReserveBackgroundLoadMemory`: the
-   * 2026-10-13 decision in docs/internal/decisions/resman-in-the-browser.md
-   * leaves Carbon's budget (BlueResMan.cpp:75,401-418) unported as a limit.
+   * Deliberate no-op paired with `ReserveBackgroundLoadMemory`; browser queue
+   * concurrency and scheduling remain independent of Carbon's byte budget.
    */
   ReleaseBackgroundLoadMemory(_size)
   {
@@ -828,8 +779,8 @@ export class CjsBlueResMan
    */
   Update(options = {}) {
     // One clock read per tick: every plain KeepAlive() until the next update
-    // renews with this time (CjsResource.KeepAlive).
-    CjsResource.activityTime = this.motherLode.GetActivityTime();
+    // renews with this time (BlueAsyncRes.KeepAlive).
+    this.activityTime = this.motherLode.GetActivityTime();
     const loaded = this.PumpBackgroundQueue(options.background || {});
     const prepared = this.PumpMainThreadQueue(options.prepare || options);
     const cacheOptions = options.cache === true || options.cache === undefined
@@ -1037,56 +988,6 @@ export class CjsBlueResMan
     return this;
   }
 
-  /**
-   * Register a resource constructor or factory for one semantic outcome.
-   * An explicit keyed registration replaces the semantic default. Constructor
-   * shorthand is additive: when several classes declare one requirement, a
-   * matching extension handler selects the concrete class and an un-routed
-   * request fails as ambiguous. Registration does not enter resource identity:
-   * changes affect a path/output only after its existing handle is deleted.
-   *
-   * @param {string|Function} requirement Semantic outcome key, or a constructor declaring its own `payload`.
-   * @param {Function|object|null} [Constructor=null] Resource constructor/factory, or options when the first argument is the constructor.
-   * @param {object} [options={}] Registration aliases and optional requirement/payload override.
-   * @param {readonly string[]} [options.aliases=[]] Additional semantic keys mapped to the same constructor.
-   * @returns {CjsBlueResMan} This resource manager.
-   * @throws {TypeError} If the semantic key or constructor/factory is invalid.
-   */
-  RegisterResourceType(requirement, Constructor = null, options = {})
-  {
-    const inferredRequirement = typeof requirement === "function";
-    if (typeof requirement === "function")
-    {
-      options = Constructor && typeof Constructor === "object" ? Constructor : {};
-      Constructor = requirement;
-      requirement = options.requirement || options.payload || Constructor.payload;
-    }
-
-    const key = normalizeRequirement(requirement);
-    if (!key) throw new TypeError("CjsBlueResMan.RegisterResourceType requires a semantic requirement.");
-    if (typeof Constructor !== "function")
-    {
-      throw new TypeError("CjsBlueResMan.RegisterResourceType requires a constructor or factory.");
-    }
-
-    const candidates = inferredRequirement
-      ? this._resourceTypeCandidates.get(key) || new Set()
-      : new Set();
-    candidates.add(Constructor);
-    this._resourceTypeCandidates.set(key, candidates);
-    this.resourceTypes.set(key, Constructor);
-
-    for (const alias of options.aliases || [])
-    {
-      const aliasKey = normalizeRequirement(alias);
-      if (aliasKey)
-      {
-        this._resourceTypeCandidates.set(aliasKey, new Set([ Constructor ]));
-        this.resourceTypes.set(aliasKey, Constructor);
-      }
-    }
-    return this;
-  }
 
   /**
    * Register the direct byte-to-object reader for one input extension.
@@ -1173,7 +1074,7 @@ export class CjsBlueResMan
    * Existing handles retain the route snapshot captured at construction.
    *
    * @param {string} extension Input extension with or without a leading dot.
-   * @param {Function} Handler CjsResource-compatible handler constructor.
+   * @param {Function} Handler IBlueResource-compatible handler constructor.
    * @param {Function|Function[]|object} [formatOrFormatsOrOptions={}] Reader and optional target configuration.
    * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If the extension, handler, formats, or target policy is invalid.
@@ -1185,7 +1086,7 @@ export class CjsBlueResMan
     {
       throw new TypeError("CjsBlueResMan.RegisterExtension requires an extension.");
     }
-    const handlerMode = Handler.handlerMode;
+    const handlerMode = Handler.handlerMode ?? (Handler.isResource === true ? ResourceHandlerMode.RESOURCE : null);
     if (!Object.values(ResourceHandlerMode).includes(handlerMode))
     {
       throw new TypeError(
@@ -1323,16 +1224,14 @@ export class CjsBlueResMan
   }
 
   /**
-   * Return the immediate canonical resource handle for a source path and
-   * promised output. Cache hits explicitly renew MotherLode activity. When
-   * `reload: true` finds an existing owner, this synchronous method returns a
-   * distinct off-registry candidate and leaves the canonical handle untouched.
-   * Calling `Ready()` on that candidate, or using `ReloadResource()` /
-   * `ReloadObject()`, prepares it and conditionally commits it through the
-   * asynchronous atomic-reload contract.
+   * Return the cached resource selected by source path and Carbon's ex suffix.
+   * A new handle is initialized before insertion. Cache hits renew its activity;
+   * reload: true explicitly restarts that same handle, releasing its consumers'
+   * derived data before loading. Await Ready(resource) for completion. Failure
+   * remains prepared but not good until another explicit reload.
    *
    * @param {string} path Carbon-style source resource path.
-   * @param {object} [options={}] Promised output, semantic resource, source provenance, and reload settings.
+   * @param {object} [options={}] Factory suffix, source provenance and explicit reload settings.
    * @param {string} [options.ex=""] Carbon factory suffix, appended to the source extension.
    * @param {Function} [options.iid=IBlueResource] Carbon interface identity, checked after factory selection.
    * Carbon: BlueResMan::GetResourceW/GetResourceHelper (blue/src/BlueResMan.cpp:143-290).
@@ -1343,7 +1242,7 @@ export class CjsBlueResMan
    * (BlueResMan.cpp:269-272); ours throws, because an object file through
    * GetResource is always a caller bug.
    *
-   * @returns {CjsResource|null} Canonical handle, reload candidate, or null for an unsupported factory/interface.
+   * @returns {BlueAsyncRes|null} Cached or newly initialized handle, or null for an unsupported factory/interface.
    * @throws {TypeError} If the path is an object file, or the path, identity settings, or resource constructor are invalid.
    * @throws {Error} If MotherLode is inactive or displaced-resource cleanup fails.
    */
@@ -1372,7 +1271,7 @@ export class CjsBlueResMan
    *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] As `GetResource`.
-   * @returns {CjsResource} As `GetResource`.
+   * @returns {BlueAsyncRes} As `GetResource`.
    */
   GetResourceW(path, options = {}) {
     // Carbon (BlueResMan.cpp:130-141): GetResource widens its strings and calls GetResourceW; a JS string is both.
@@ -1380,168 +1279,54 @@ export class CjsBlueResMan
   }
 
   /**
-   * GetResource's body, also the handle the manager's own object path uses
-   * for an object file (the cached builder's resource).
-   *
-   * @param {string} path Carbon-style source resource path.
-   * @param {object} [options={}] Resource identity and loader options.
-   * @returns {CjsResource} The canonical resource.
+   * Resolve extension plus ex, initialize, then insert as Carbon does.
+   * Object handlers remain internal; their manager result is data or a fresh graph.
+   * @param {string} path
+   * @param {object} [options={}]
+   * @returns {BlueAsyncRes|null}
    */
-  _GetResource(path, options = {}) {
-    // An invalid call throws; a resource that cannot be fetched is recorded on
-    // the resource instead (_RequestResource).
-    if (typeof path !== "string" || !path)
-    {
-      throw new TypeError("CjsBlueResMan.GetResource requires a non-empty path string.");
-    }
-    if (!options || typeof options !== "object" || Array.isArray(options))
-    {
-      throw new TypeError("CjsBlueResMan.GetResource options must be an object.");
-    }
+  _GetResource(path, options = {})
+  {
+    if (typeof path !== "string" || !path) throw new TypeError("Resource path must be non-empty.");
     const key = normalizeResourcePath(path);
-    const variant = this.GetResourceVariant(options);
-    const ex = options.ex ?? "";
-    const ext = normalizeResourceExtension((options.ext || getResourceExtension(key)) + ex);
-    const cacheKey = getMotherLodeKey(key, variant);
+    const ex = this.GetResourceVariant(options);
+    const cacheKey = getMotherLodeKey(key, ex);
     const existing = this.motherLode.Lookup(cacheKey);
-    const extensionRoute = existing
-      ? this._resourceExtensionRoutes.get(existing) || null
-      : this.GetExtensionRoute(ext);
-    if (options.emit !== undefined)
+    if (existing)
     {
-      const objectLoader = extensionRoute?.loader || (!extensionRoute && this.GetObjectLoader(ext));
-      if (objectLoader)
-      {
-        throw createObjectLoaderOutputMissingError(ext, options.emit);
-      }
-      else
-      {
-        const descriptors = extensionRoute
-          ? extensionRoute.formats
-          : this.GetFormatDescriptors(ext);
-        const candidates = filterFormatDescriptors(descriptors, options);
-        if (descriptors.length > 0 && candidates.length === 0)
-        {
-          throw createFormatOutputMissingError(ext, options.emit, descriptors);
-        }
-      }
-    }
-    if (existing && options.reload !== true)
-    {
-      this._BindResourceLifecycle(cacheKey, existing);
       this.motherLode.KeepAlive(cacheKey);
+      if (options.reload === true)
+      {
+        const record = this._GetResourceRecord(existing);
+        record.request = mergeResourceLoaderOptions(record.request, options);
+
+        existing.Reload();
+      }
       return existing;
     }
-    // Below the cache lookup, as in BlueResMan::GetResourceHelper, so identical
-    // queries share one resource.
-    if (isDynamicResourcePath(key))
+    if (isDynamicResourcePath(key)) return this._CreateDynamicResource(key, cacheKey);
+
+    const ext = normalizeResourceExtension((options.ext || getResourceExtension(key)) + ex);
+    const route = this.GetExtensionRoute(ext);
+    const Constructor = route?.Handler || (!ex && (this.GetObjectLoader(ext) || this.GetFormatDescriptors(ext).length)
+      ? CjsLoadingObject : null);
+    if (!Constructor)
     {
-      return this._CreateDynamicResource(key, cacheKey);
-    }
-    // Carbon: BlueResMan::GetResourceHelper (blue/src/BlueResMan.cpp:248-272).
-    // A suffixed request must name a registered factory. Do not fall back to
-    // the ordinary file reader or construct a generic resource for that suffix.
-    if (ex && !extensionRoute)
-    {
-      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"),
-        "BlueResMan::GetResourceW: No factory found for extension (%s, %s)", path, ex);
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "No factory found for extension (%s, %s)", path, ex);
       return null;
     }
-    if (!existing && options.reload === true)
+    const resource = this.CreateResource(Constructor, key, ex, options, route);
+    this.motherLode.Insert(cacheKey, resource);
+    const operation = this._GetResourceLoad(resource);
+    if (operation && !operation.locked)
     {
-      this.InvalidateReadCache(key, { source: options.source || this.source });
+      this.LockResource(resource);
+      operation.locked = true;
     }
-
-    const Constructor = ex ? extensionRoute.Handler : this.ResolveResourceConstructor(options, extensionRoute);
-    const resource = this.CreateResource(
-      Constructor,
-      key,
-      ex,
-      options,
-      existing && options.reload === true ? existing : null,
-      extensionRoute
-    );
-    if (existing && options.reload === true)
-    {
-      this._BindResourceLifecycle(cacheKey, existing);
-      this.motherLode.KeepAlive(cacheKey);
-      const expectedOwnership = this._RequireResourceOwnership(existing, "reload-candidate:create");
-      const generation = this._nextResourceReloadGeneration++;
-      const loaderOptions = getResourceLoaderOptions(
-        options,
-        options.source || this.source
-      );
-      const candidate = {
-        reloadCandidate: true,
-        generation,
-        owner: this.motherLode,
-        key: cacheKey,
-        expected: existing,
-        expectedOwnership,
-        resource,
-        loaderOptions
-      };
-      this._reloadCandidates.set(resource, candidate);
-      this._reloadGenerations.set(cacheKey, generation);
-      const reloadOptions = { ...loaderOptions, reload: true };
-      resource.SetObjectLoader(
-        loadOptions => this._GetReloadCandidateObject(resource, {
-          ...mergeResourceLoaderOptions(reloadOptions, loadOptions),
-          reload: true
-        }),
-        reloadOptions
-      );
-      return resource;
-    }
-
-    const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true });
-    const canonical = insertion?.resource || resource;
-    if (insertion?.displaced && insertion.displaced !== canonical)
-    {
-      this._InvalidateResourceOwnership(insertion.displaced);
-    }
-    else if (existing && existing !== canonical
-      && this.motherLode.Lookup(cacheKey) !== existing)
-    {
-      this._InvalidateResourceOwnership(existing);
-    }
-    this._BindResourceLifecycle(cacheKey, canonical);
     this.motherLode.KeepAlive(cacheKey);
-
-    // A reload request drives its own load (ReloadResource / LoadObject).
-    if (!existing && options.reload !== true) this._RequestResource(canonical, options);
-
-    return canonical;
+    return resource;
   }
 
-  /**
-   * Starts loading a resource just handed out.
-   *
-   * Asking for a resource requests it, as Carbon's does: GetResource calls
-   * Initialize, which queues the load (BlueResMan.cpp:276-288,
-   * BlueAsyncRes.cpp:191-230). A later Ready() joins this operation. A load
-   * that fails, whether before its promise exists or after, is recorded on
-   * the resource rather than thrown from GetResource; a caller that wants the
-   * outcome awaits Ready(), which also retries a resource with no payload.
-   *
-   * The request carries the options GetResource was given, including per-call
-   * controls such as `cacheSource`, which the resource's own loader does not
-   * retain; the request is made here, so that is where they apply.
-   *
-   * @param {CjsResource} resource The resource to request.
-   * @param {object} options The options GetResource was given.
-   */
-  _RequestResource(resource, options)
-  {
-    try
-    {
-      resource.Ready(options).catch(() => {});
-    }
-    catch (error)
-    {
-      resource.SetError(error);
-    }
-  }
 
   /**
    * Resolve one object outcome for a canonical resource identity. For a
@@ -1553,7 +1338,7 @@ export class CjsBlueResMan
    * renewed. If the payload was released, calling this method explicitly starts
    * reconstruction; liveness queries and purge operations never do so.
    * `sourceRevision` selects read-cache provenance but does not replace a
-   * resident payload by itself—use one-shot `reload: true` for replacement.
+   * resident payload by itself—use one-shot `reload: true` to reload the same handle.
    *
    * This is Carbon's `const char*` overload (BlueResMan.h:82); the
    * `const wchar_t*` one (BlueResMan.h:83) is `LoadObject__WChars`, which
@@ -1584,115 +1369,21 @@ export class CjsBlueResMan
   }
 
   /**
-   * LoadObject's body. `build` false is the manager's own loaders (a
-   * resource's object loader, a reload candidate, a queued request): they
-   * drive the load and receive the published outcome, and build no object
-   * from a registered builder, since nobody receives it.
-   *
-   * @param {string} path Carbon-style source resource path.
-   * @param {object} options Identity, source, format, loader, and queue options.
-   * @param {boolean} build Whether this call is a caller that receives an object.
-   * @returns {Promise<*>} The object outcome, or the published outcome when not building.
+   * Load shared source data, then build a fresh object for this caller only.
+   * @param {string} path Carbon-style resource path.
+   * @param {object} options Source and reader options.
+   * @param {boolean} build Whether to construct a fresh graph for this caller.
+   * @returns {Promise<*>} Fresh graph or the load result.
    */
-  _LoadObject(path, options, build)
+  async _LoadObject(path, options, build)
   {
     const resource = this._GetResource(path, options);
+    if (!resource) throw new Error("No resource factory for " + path);
     if (build) this._RequireObjectRoute(resource, path);
-    const operationOptions = mergeResourceLoaderOptions(
-      resource.GetObjectRequest() || {},
-      options
-    );
-    if (this._reloadCandidates.has(resource))
-    {
-      return this._GetReloadCandidateObject(resource, operationOptions);
-    }
-    const ownership = this._RequireResourceOwnership(resource, "object:begin");
-    const existing = this.objectOperations.get(resource);
-    if (existing?.ownership === ownership)
-    {
-      // A joiner shares the load. Where the load keeps a builder - a Target or
-      // Identify route, or a registered object builder - it gets its own
-      // object built from it; the load's own caller has the first.
-      if (this._IsObjectBuilderResource(resource))
-      {
-        return build ? existing.promise.then(() => this._QueueObjectBuild(resource)) : existing.promise;
-      }
-      const route = this._resourceExtensionRoutes.get(resource);
-      if (!route?.Target && !route?.Identify) return existing.promise;
-      return existing.promise.then(result => (build ? this._ObjectOutcome(resource, path, result) : result));
-    }
-
-    if (resource.HasPayload())
-    {
-      resource.KeepPayloadAlive();
-      if (!build && this._IsObjectBuilderResource(resource))
-      {
-        return Promise.resolve(resource.GetPayload());
-      }
-      if (this._IsObjectBuilderResource(resource))
-      {
-        return this._QueueObjectBuild(resource);
-      }
-      if (this._objectBuilders.has(resource))
-      {
-        return Promise.resolve().then(() => this._BuildObject(resource));
-      }
-      return Promise.resolve(getPublishedResourceObject(
-        resource,
-        this._resourceExtensionRoutes.get(resource) || null,
-        this._resourceHandlerModes.get(resource) || null
-      ));
-    }
-
-    if (this._dynamicResources.has(resource))
-    {
-      // One still building is waited for: a texture made from a pipeline loads
-      // its inputs first, as Carbon's .ctr texture does (TriTextureRes.cpp:238-258).
-      if (resource.IsLoading())
-      {
-        // A notify target, told once when the build finishes and then released.
-        return new Promise((resolve, reject) => resource.AddNotifyTarget({
-          RebuildCachedData: () => (resource.HasPayload()
-            ? resolve(this._LoadObject(path, options, build))
-            : reject(resource.error || dynamicResourceError(resource.GetPath(), "",
-              "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE", "dynamic resource finished without a payload"))),
-          ReleaseCachedData: () => {}
-        }));
-      }
-
-      // A dynamic resource is built by its constructor, never read from a
-      // source: without a payload it failed, and there is nothing to fetch.
-      return Promise.reject(resource.error || dynamicResourceError(
-        resource.GetPath(),
-        "",
-        "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE",
-        "dynamic resource has no payload"
-      ));
-    }
-
-    const promise = this.QueueResourceObject(resource, operationOptions);
-    const operation = { promise, ownership };
-    this.objectOperations.set(resource, operation);
-    promise.then(() =>
-    {
-      if (this.objectOperations.get(resource) === operation)
-      {
-        this.objectOperations.delete(resource);
-      }
-    }, () =>
-    {
-      if (this.objectOperations.get(resource) === operation)
-      {
-        this.objectOperations.delete(resource);
-      }
-    });
-    // A registered builder published itself: a caller builds its object. An
-    // Identify route that answered plain values has no builder: refused.
-    if (!build) return promise;
-    if (this._IsObjectBuilderResource(resource)) return promise.then(() => this._QueueObjectBuild(resource));
-    return this._resourceExtensionRoutes.get(resource)?.Identify
-      ? promise.then(result => this._ObjectOutcome(resource, path, result))
-      : promise;
+    const result = await this.Ready(resource);
+    if (!build) return result;
+    if (this._IsObjectBuilderResource(resource)) return this._QueueObjectBuild(resource);
+    return this._ObjectOutcome(resource, path, result);
   }
 
   /**
@@ -1700,7 +1391,7 @@ export class CjsBlueResMan
    * kept a builder, the handle when it published a RESOURCE-mode resource, and
    * otherwise - plain values, e.g. an Identify that answered `true` - a refusal.
    *
-   * @param {CjsResource} resource Canonical resource.
+   * @param {BlueAsyncRes} resource Canonical resource.
    * @param {string} path The requested path, for the message.
    * @param {*} result The load's published outcome.
    * @returns {*} The caller's object or resource handle.
@@ -1723,7 +1414,7 @@ export class CjsBlueResMan
    * values - a format-only route, a bare loader - is refused, pointing at
    * GetResource, whose payload holds those values.
    *
-   * @param {CjsResource} resource Canonical resource.
+   * @param {BlueAsyncRes} resource Canonical resource.
    * @param {string} path The requested path, for the message.
    * @returns {void}
    * @throws {TypeError} When the route yields plain values.
@@ -1738,28 +1429,28 @@ export class CjsBlueResMan
   }
 
   /**
-   * @param {CjsResource} resource Canonical resource.
+   * @param {BlueAsyncRes} resource Canonical resource.
    * @param {string} path The requested path.
    * @returns {never}
    * @throws {TypeError} Always.
    */
   _RefusePlainObject(resource, path)
   {
-    throw new TypeError(`CjsBlueResMan.LoadObject: ${path} yields plain data, not an object; read it with GetResource(path), Ready() and GetPayload().`);
+    throw new TypeError(`CjsBlueResMan.LoadObject: ${path} yields plain data, not an object; read it with GetResource(path), resMan.Ready(resource) and resMan.GetResourcePayload(resource).`);
   }
 
   /**
    * Whether a resource loads through a registered object builder
    * (RegisterObjectBuilder) rather than a route or a plain loader.
    *
-   * @param {CjsResource} resource Canonical resource.
+   * @param {BlueAsyncRes} resource Canonical resource.
    * @returns {boolean} True for a builder-loaded resource.
    */
   _IsObjectBuilderResource(resource)
   {
     return !this._resourceExtensionRoutes.has(resource)
       // Keep the explicit extension aligned with _GetResource and _ResolveResourceObjectRead.
-      && this._objectBuilderLoaders.has(this.GetObjectLoader(resource.GetObjectRequest()?.ext || getResourceExtension(resource.GetPath())));
+      && this._objectBuilderLoaders.has(this.GetObjectLoader(this._GetResourceRequest(resource)?.ext || getResourceExtension(resource.GetPath())));
   }
 
   /**
@@ -1772,369 +1463,53 @@ export class CjsBlueResMan
   }
 
   /**
-   * Read and atomically publish a distinct replacement object while the
-   * former canonical resource remains available. This is the explicit form of
-   * `LoadObject(path, { reload: true })`.
-   *
-   * @param {string} path Carbon-style source resource path.
-   * @param {object} [options={}] Identity, source, format, and queue settings.
-   * @returns {Promise<*>} Published CPU object outcome from the committed candidate.
-   * @throws {TypeError|Error|AggregateError} If candidate creation, conversion, conditional publication, or cleanup fails.
+   * Reload the internal builder in place and return a fresh graph.
+   * @param {string} path Carbon-style resource path.
+   * @param {object} [options={}] Extension suffix, source and read options.
+   * @returns {Promise<*>} The requested graph or resource after the same-handle load settles.
    */
   ReloadObject(path, options = {})
   {
-    if (!options || typeof options !== "object" || Array.isArray(options))
-    {
-      throw new TypeError("CjsBlueResMan.ReloadObject options must be an object.");
-    }
     return this.LoadObject(path, { ...options, reload: true });
   }
 
   /**
-   * Resolve and load one canonical resource handle. One-shot reload creates
-   * a distinct candidate, keeps the former good handle canonical through every
-   * asynchronous CPU operation, and returns only after an exact-owner conditional
-   * publication succeeds. Readiness receives `reload: false` because the
-   * candidate's private loader owns the one-shot freshness request.
-   *
-   * @param {string} path Carbon-style source resource path.
-   * @param {object} [options={}] Resource identity, source provenance, reload, format, and queue options.
-   * @returns {Promise<CjsResource>} Loaded canonical resource selected by this operation.
-   * @throws {TypeError|Error} If identity, source, format, conversion, or cleanup fails.
+   * Await the same resource handle returned by GetResource.
+   * @param {string} path Carbon-style resource path.
+   * @param {object} [options={}] Extension suffix, source and read options.
+   * @returns {Promise<*>} The requested graph or resource after the same-handle load settles.
    */
   async FetchResource(path, options = {})
   {
     const resource = this.GetResource(path, options);
-    if (!resource) throw new Error(`No resource factory or requested interface for ${path} (${options.ex || ""}).`);
-    const readinessOptions = options.reload === true
-      ? { ...options, reload: false }
-      : options;
-    await resource.Ready(readinessOptions);
+    if (!resource) throw new Error("No resource factory for " + path);
+    await this.Ready(resource);
     return resource;
   }
 
   /**
-   * Load and atomically publish a distinct replacement resource while the
-   * former canonical handle remains available. This is the explicit form of
-   * `FetchResource(path, { reload: true })`.
-   *
-   * Diverges from Carbon: `BlueAsyncRes::Reload` reloads the same object in
-   * place, so a failure can leave that handle bad. Here the last good handle
-   * stays canonical until a distinct candidate succeeds, and a failure leaves
-   * its state, payload and adapters in place. Existing references are never
-   * retargeted: they keep the displaced handle, while fresh lookups see the
-   * committed candidate.
-   *
-   * @param {string} path Carbon-style source resource path.
-   * @param {object} [options={}] Identity, source, format, and queue settings.
-   * @returns {Promise<CjsResource>} Fully loaded committed replacement.
-   * @throws {TypeError|Error|AggregateError} If candidate creation, conversion, conditional publication, or cleanup fails.
+   * Reload the existing handle in place, as BlueAsyncRes::Reload does.
+   * @param {string} path Carbon-style resource path.
+   * @param {object} [options={}] Extension suffix, source and read options.
+   * @returns {Promise<*>} The requested graph or resource after the same-handle load settles.
    */
   ReloadResource(path, options = {})
   {
-    if (!options || typeof options !== "object" || Array.isArray(options))
-    {
-      throw new TypeError("CjsBlueResMan.ReloadResource options must be an object.");
-    }
     return this.FetchResource(path, { ...options, reload: true });
   }
 
-  /**
-   * Run or join one off-registry candidate operation. The returned promise
-   * resolves only after exact-owner publication and displaced-owner cleanup
-   * both succeed. A committed cleanup failure rejects with the new candidate
-   * still canonical and attached on the MotherLode error result.
-   *
-   * @param {object|Function} resource Candidate resource returned by `GetResource`.
-   * @param {object} options Reload source, format, and queue options.
-   * @returns {Promise<*>} Candidate object outcome after conditional publication.
-   */
-  _GetReloadCandidateObject(resource, options)
-  {
-    const candidate = this._reloadCandidates.get(resource) || null;
-    if (!candidate)
-    {
-      return Promise.reject(reloadCandidateUnavailableError(resource));
-    }
-
-    const existing = this._reloadOperations.get(resource);
-    if (existing?.candidate === candidate) return existing.promise;
-
-    // BlueAsyncRes::Reload re-runs Initialize, which reads the manager's urgent
-    // mode again (BlueAsyncRes.cpp:363-367, :220).
-    candidate.resource.isUrgent = this.urgentResourceLoads;
-    const operation = {
-      candidate,
-      promise: this._RunReloadCandidate(candidate, options)
-    };
-    if (candidate.resource.isUrgent) this._TrackUrgentOperation(operation.promise);
-    this._reloadOperations.set(resource, operation);
-    operation.promise.then(() =>
-    {
-      if (this._reloadOperations.get(resource) === operation)
-      {
-        this._reloadOperations.delete(resource);
-      }
-    }, () =>
-    {
-      if (this._reloadOperations.get(resource) === operation)
-      {
-        this._reloadOperations.delete(resource);
-      }
-    });
-    return operation.promise;
-  }
-
-  /**
-   * Queue source/read/publication work against a detached candidate, then commit
-   * it only if its former exact owner and newest-request token remain current.
-   * Candidate work is a normal queued root visible to `Wait()` and holds one
-   * purge lock on the former good owner until settlement.
-   *
-   * @param {CjsResourceReloadCandidate} candidate Immutable candidate authority.
-   * @param {object} options Reload source, format, queue, and prepare options.
-   * @returns {Promise<*>} Published object outcome after a successful commit.
-   */
-  async _RunReloadCandidate(candidate, options)
-  {
-    let committed = false;
-    let releaseLock = noop;
-    const finishOperation = this._BeginResourceOperation(true);
-
-    try
-    {
-      this._AssertReloadCandidate(candidate, "reload:begin");
-      releaseLock = this._AcquireResourcePurgeLock(candidate.expectedOwnership);
-      const read = this._BeginReadOperation(candidate.resource.GetPath(), {
-        ...options,
-        reload: true
-      });
-
-      this._AssertReloadCandidate(candidate, "reload:requested");
-      candidate.resource.error = null;
-      candidate.resource.MarkRequested();
-      this._AssertReloadCandidate(candidate, "reload:requested-settled");
-
-      const bytes = await this._QueueReadResource(read.context, read.options, urgentFlags(candidate.resource));
-      this._AssertReloadCandidate(candidate, "reload:loading");
-      candidate.resource.MarkLoading();
-      this._AssertReloadCandidate(candidate, "reload:loading-settled");
-
-      const object = await this._PrepareResourceObjectQueued(
-        candidate.resource,
-        bytes,
-        read.options,
-        candidate
-      );
-      this._AssertReloadCandidate(candidate, "reload:commit");
-
-      try
-      {
-        const result = candidate.owner.ReplaceExpected(
-          candidate.key,
-          candidate.expected,
-          candidate.resource,
-          { commitGuard: () => this._IsReloadCandidateCurrent(candidate) }
-        );
-        if (!result.committed)
-        {
-          throw staleReloadCandidateError(candidate, "reload:commit-compare");
-        }
-        committed = true;
-        this._FinalizeCommittedReload(candidate);
-      }
-      catch (error)
-      {
-        if (error?.code === "CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED"
-          && error.result?.committed === true
-          && error.result.resource === candidate.resource)
-        {
-          committed = true;
-          try
-          {
-            this._FinalizeCommittedReload(candidate);
-          }
-          catch (finalizeError)
-          {
-            const combined = new AggregateError(
-              [ error, finalizeError ],
-              `CjsBlueResMan reload committed with cleanup and finalization failures for ${candidate.key}.`
-            );
-            combined.code = "CJS_RESMAN_RELOAD_COMMIT_FAILED";
-            combined.committed = true;
-            combined.resource = candidate.resource;
-            combined.result = error.result;
-            throw combined;
-          }
-        }
-        throw error;
-      }
-
-      return object;
-    }
-    catch (error)
-    {
-      if (!committed)
-      {
-        throw this._CreateReloadCandidateFailure(candidate, error);
-      }
-      throw error;
-    }
-    finally
-    {
-      releaseLock();
-      finishOperation();
-      if (this._reloadGenerations.get(candidate.key) === candidate.generation)
-      {
-        this._reloadGenerations.delete(candidate.key);
-      }
-    }
-  }
-
-  /**
-   * Bind a successfully committed candidate and invalidate only the displaced
-   * handle's former publication generation. The resource loader is restored
-   * to ordinary canonical reconstruction behavior.
-   *
-   * @param {CjsResourceReloadCandidate} candidate Committed candidate authority.
-   * @returns {void}
-   */
-  _FinalizeCommittedReload(candidate)
-  {
-    this._InvalidateResourceOwnership(candidate.expected);
-    this._reloadCandidates.delete(candidate.resource);
-    const errors = [];
-    try
-    {
-      candidate.resource.SetObjectLoader(
-        loadOptions => this._LoadObject(
-          candidate.resource.GetPath(),
-          mergeResourceLoaderOptions(candidate.loaderOptions, loadOptions),
-          false
-        ),
-        candidate.loaderOptions
-      );
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-    try
-    {
-      this._BindResourceLifecycle(candidate.key, candidate.resource);
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-    try
-    {
-      candidate.owner.KeepAlive(candidate.key);
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-    if (errors.length)
-    {
-      const error = new AggregateError(errors, `CjsBlueResMan committed reload finalization failed for ${candidate.key}.`);
-      error.code = "CJS_RESMAN_RELOAD_COMMIT_FINALIZE_FAILED";
-      error.committed = true;
-      error.resource = candidate.resource;
-      throw error;
-    }
-  }
-
-  /**
-   * Mark and clean a failed or stale detached candidate. The original
-   * load/prepare/stale error remains the rejection when cleanup succeeds;
-   * state-publication or cleanup errors are aggregated without touching the
-   * preserved canonical owner.
-   *
-   * @param {CjsResourceReloadCandidate} candidate Failed candidate authority.
-   * @param {*} cause Original operation failure.
-   * @returns {*} Original error or a contextual AggregateError.
-   */
-  _CreateReloadCandidateFailure(candidate, cause)
-  {
-    const errors = [ cause ];
-    try
-    {
-      candidate.resource.SetError(cause);
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-    try
-    {
-      this._CleanupReloadCandidate(candidate.resource);
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-
-    if (errors.length === 1) return cause;
-    const error = new AggregateError(errors, `CjsBlueResMan reload candidate cleanup failed for ${candidate.key}.`);
-    error.code = "CJS_RESMAN_RELOAD_CANDIDATE_CLEANUP_FAILED";
-    error.resource = candidate.resource;
-    error.cause = cause;
-    return error;
-  }
-
-  /**
-   * Release adapter and CPU-payload ownership accumulated by an off-registry
-   * candidate. This cleanup is idempotent for CjsResource-compatible handles
-   * and never marks the never-canonical candidate `PURGED`.
-   *
-   * @param {object|Function} resource Detached reload candidate.
-   * @returns {void}
-   * @throws {AggregateError} If adapter destruction, payload release, or lifecycle detachment fails.
-   */
-  _CleanupReloadCandidate(resource)
-  {
-    const errors = [];
-    try
-    {
-      resource.DestroyAdapterResources({ destroy: true });
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-    try
-    {
-      resource.ReleasePayload();
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-    try
-    {
-      resource.SetLifecycleController(null);
-    }
-    catch (error)
-    {
-      errors.push(error);
-    }
-    if (errors.length)
-    {
-      throw new AggregateError(errors, "CjsBlueResMan reload candidate ownership cleanup failed.");
-    }
-  }
 
   /**
    * Fetches what a path is: an object (a route or builder that yields one,
    * through FetchObject) or otherwise its resource (FetchResource), whose
    * payload holds decoded values.
+   * @param {string} path Carbon-style resource path.
+   * @param {object} [options={}] Extension suffix, source and read options.
+   * @returns {Promise<*>} The requested graph or resource after the same-handle load settles.
    */
   Fetch(path, options = {})
   {
-    if (options.resource === true
-      || options.requirement !== undefined
-      || options.payload !== undefined)
+    if (options.resource === true)
     {
       return this.FetchResource(path, options);
     }
@@ -2155,89 +1530,6 @@ export class CjsBlueResMan
     return buildsObjects ? this.FetchObject(path, options) : this.FetchResource(path, options);
   }
 
-  /**
-   * Read and prepare an existing resource immediately, outside the manager
-   * queues. One balanced purge lock protects the canonical handle for the
-   * complete asynchronous operation; any caller-owned locks remain intact.
-   * Failure is published to the resource before rejection only while its
-   * captured ownership generation remains canonical. A detached operation
-   * preserves its original failure without changing the old handle.
-   *
-   * @param {CjsResource} resource Existing manager-bound resource handle.
-   * @param {object} [options={}] Source, format, semantic outcome, and queue options.
-   * @returns {Promise<*>} Prepared object, or the semantic resource when it owns the payload.
-   * @throws {TypeError|Error} If the resource, source, format, options, or canonical ownership are invalid.
-   */
-  async LoadResourceObject(resource, options = {})
-  {
-    const read = this._BeginReadOperation(resource.GetPath(), options);
-    const ownership = this._RequireResourceOwnership(resource, "direct-load:begin");
-    const releaseLock = this._AcquireResourcePurgeLock(ownership);
-    const finishOperation = this._BeginResourceOperation(false);
-
-    try {
-      this._AssertResourceOwnership(ownership, "direct-load:loading");
-      resource.error = null;
-      resource.MarkLoading();
-      this._AssertResourceOwnership(ownership, "direct-load:loading-settled");
-      const bytes = await this._ReadResource(read.context, read.options);
-      this._AssertResourceOwnership(ownership, "direct-load:source-settled");
-      return await this._PrepareResourceObject(resource, bytes, read.options, ownership);
-    } catch (error) {
-      if (this._IsResourceOwnershipCurrent(ownership)) resource.SetError(error);
-      throw error;
-    } finally {
-      releaseLock();
-      finishOperation();
-    }
-  }
-
-  /**
-   * Queue a source read followed by CPU conversion and publication. One balanced
-   * purge lock is acquired before request publication and released only after
-   * success or failure, preventing inactivity sweeps from detaching an active
-   * handle. The lock does not reload data and does not consume caller locks.
-   *
-   * @param {CjsResource} resource Existing manager-bound resource handle.
-   * @param {object} [options={}] Source, format, queue, and semantic outcome options.
-   * @returns {Promise<*>} Promise for the loaded object or semantic resource.
-   * @throws {TypeError} If the resource cannot be queued or its options are invalid.
-   */
-  QueueResourceObject(resource, options = {}) {
-    const read = this._BeginReadOperation(resource.GetPath(), options);
-    const ownership = this._RequireResourceOwnership(resource, "queue:begin");
-    const releaseLock = this._AcquireResourcePurgeLock(ownership);
-    const finishOperation = this._BeginResourceOperation(true);
-    let load;
-
-    try {
-      this._AssertResourceOwnership(ownership, "queue:requested");
-      resource.error = null;
-      resource.MarkRequested();
-      this._AssertResourceOwnership(ownership, "queue:requested-settled");
-      load = this._QueueReadResource(read.context, read.options, urgentFlags(resource));
-    } catch (error) {
-      releaseLock();
-      finishOperation();
-      throw error;
-    }
-
-    const operation = load
-      .then(bytes => {
-        this._AssertResourceOwnership(ownership, "queue:loading");
-        resource.MarkLoading();
-        this._AssertResourceOwnership(ownership, "queue:loading-settled");
-        return this._PrepareResourceObjectQueued(resource, bytes, read.options, ownership);
-      })
-      .catch(error => {
-        if (this._IsResourceOwnershipCurrent(ownership)) resource.SetError(error);
-        throw error;
-      })
-      .finally(releaseLock);
-    operation.then(finishOperation, finishOperation);
-    if (resource.isUrgent) this._TrackUrgentOperation(operation);
-    return operation;
-  }
 
   /**
    * Queue one source read under the selected source/path/revision identity.
@@ -2261,203 +1553,29 @@ export class CjsBlueResMan
     return operation;
   }
 
-  /**
-   * Immediately read, transform, and publish one resource payload outside the
-   * manager queues. Canonical resources capture their current ownership
-   * generation and cannot publish after deletion, clearing, or replacement;
-   * historically supported detached resource-like objects remain usable
-   * without manager ownership guards.
-   *
-   * @param {object|Function} resource Resource receiving the final payload.
-   * @param {*} bytes Source bytes or reader-compatible source data.
-   * @param {object} [options={}] Format and semantic outcome options.
-   * @returns {Promise<*>} Final plain payload or semantic resource handle.
-   * @throws {Error} If reading/preparation fails or canonical ownership becomes stale.
-   */
-  async PrepareResourceObject(resource, bytes, options = {}) {
-    const ownership = this._GetResourceOwnership(resource, "direct-prepare:begin");
-    if (!ownership)
-    {
-      return this._PrepareResourceObject(resource, bytes, options, null);
-    }
-
-    const releaseLock = this._AcquireResourcePurgeLock(ownership);
-    const finishOperation = this._BeginResourceOperation(false);
-    try
-    {
-      return await this._PrepareResourceObject(resource, bytes, options, ownership);
-    }
-    finally
-    {
-      releaseLock();
-      finishOperation();
-    }
-  }
 
   /**
-   * Queue one reader/format conversion and then CPU publication on the main
-   * manager queue. A canonical standalone call becomes a queued resource root
-   * for `Wait()` and retains one balanced purge lock through settlement.
-   * The read and publication items validate the captured canonical generation
-   * before dispatch and after asynchronous settlement.
-   *
-   * @param {object|Function} resource Resource receiving the final payload.
-   * @param {*} bytes Source bytes or reader-compatible source data.
-   * @param {object} [options={}] Format and semantic outcome options.
-   * @returns {Promise<*>} Final plain payload or semantic resource handle.
-   * @throws {Error} If queueing/preparation fails or canonical ownership becomes stale.
+   * Decode through the configured reader and reject cancellation before returning to the family.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @param {*} bytes Input accepted by the registered reader.
+   * @param {object|null} [options=null] Explicit read options, or the active attempt request.
+   * @returns {Promise<*>} Decoded family data after the attempt cancellation check.
    */
-  async PrepareResourceObjectQueued(resource, bytes, options = {}) {
-    const ownership = this._GetResourceOwnership(resource, "queued-prepare:begin");
-    if (!ownership)
-    {
-      return this._PrepareResourceObjectQueued(resource, bytes, options, null);
-    }
-
-    const releaseLock = this._AcquireResourcePurgeLock(ownership);
-    const finishOperation = this._BeginResourceOperation(true);
-    try
-    {
-      return await this._PrepareResourceObjectQueued(resource, bytes, options, ownership);
-    }
-    finally
-    {
-      releaseLock();
-      finishOperation();
-    }
-  }
-
-  /**
-   * Read and immediately publish one CPU payload with optional hidden
-   * ownership authority. Format classes own every requested conversion;
-   * backend realization runs separately after this CPU publication.
-   *
-   * @param {object|Function} resource Resource receiving the final payload.
-   * @param {*} bytes Source bytes or reader-compatible source data.
-   * @param {object} options Resolved prepare options.
-   * @param {CjsResourceMutationAuthority|null} ownership Captured canonical or reload-candidate authority.
-   * @returns {Promise<*>} Final plain payload or semantic resource handle.
-   */
-  async _PrepareResourceObject(resource, bytes, options, ownership) {
-    this._AssertOptionalResourceOwnership(ownership, "prepare:read");
-    const resolved = this._ResolveResourceObjectRead(resource, bytes, options);
-    const decoded = await this._ReadResolvedResourceObjectPayload(
-      resource,
-      bytes,
-      options,
-      resolved
-    );
-    const object = this._HydrateExtensionObject(resource, decoded, options, resolved);
-    this._AssertOptionalResourceOwnership(ownership, "prepare:read-settled");
-    return this._PublishResourceObject(ownership, resource, object, options);
-  }
-
-  /**
-   * Queue one main-thread reader/format operation followed by guarded CPU
-   * publication. Both remain distinct budgeted queue items under one resource
-   * root so `Wait()` continues to fence dynamically enqueued publication.
-   *
-   * @param {object|Function} resource Resource receiving the final payload.
-   * @param {*} bytes Source bytes or reader-compatible source data.
-   * @param {object} options Resolved prepare options.
-   * @param {CjsResourceMutationAuthority|null} ownership Captured canonical or reload-candidate authority.
-   * @returns {Promise<*>} Final plain payload or semantic resource handle.
-   */
-  async _PrepareResourceObjectQueued(resource, bytes, options, ownership) {
-    let object = bytes;
-    const resolved = this._ResolveResourceObjectRead(resource, bytes, options);
-    const formatOptions = resolved.descriptor
-      ? createFormatReadOptions(resolved.descriptor, options)
-      : null;
-    const formatContext = resolved.descriptor
-      ? createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options))
-      : null;
-    const runInWorker = Boolean(
-      resolved.descriptor
-      && this.resourceLoader.CanReadFormat(
-        resolved.descriptor,
-        formatOptions,
-        formatContext
-      )
-    );
-
-    let read;
-    if (runInWorker)
-    {
-      this._AssertOptionalResourceOwnership(ownership, "worker-stage:read:run");
-      read = await this._ReadResolvedResourceObjectPayload(
-        resource,
-        bytes,
-        options,
-        resolved
-      );
-    }
-    else
-    {
-      this._AssertOptionalResourceOwnership(ownership, "queue-stage:read:enqueue");
-      const readTask = this.QueueTask(CjsResManQueue.MAIN, () =>
-      {
-        this._AssertOptionalResourceOwnership(ownership, "queue-stage:read:run");
-        return this._ReadResolvedResourceObjectPayload(
-          resource,
-          bytes,
-          options,
-          resolved
-        );
-      }, resource, {
-        kind: "prepare",
-        stage: "read",
-        path: resource.GetPath(),
-        flags: urgentFlags(resource)
-      });
-      read = await readTask.promise;
-    }
-    this._AssertOptionalResourceOwnership(ownership, "queue-stage:read:settled");
-    if (read !== undefined) object = read;
-
-    this._AssertOptionalResourceOwnership(ownership, "queue-stage:publish:enqueue");
-    const publishTask = this.QueueTask(CjsResManQueue.MAIN, () =>
-    {
-      this._AssertOptionalResourceOwnership(ownership, "queue-stage:publish:run");
-      const hydrated = this._HydrateExtensionObject(resource, object, options, resolved);
-      return this._PublishResourceObject(ownership, resource, hydrated, options);
-    }, resource, {
-      kind: "prepare",
-      stage: "publish",
-      path: resource.GetPath(),
-      flags: urgentFlags(resource)
-    });
-    const published = await publishTask.promise;
-    this._AssertOptionalResourceOwnership(ownership, "queue-stage:publish:settled");
-    if (published !== undefined) object = published;
-    return object;
-  }
-
-  /**
-   * Decode source bytes with the currently registered reader for the resource
-   * extension. A direct extension loader wins over registered format candidates;
-   * byte support probes may disambiguate those candidates.
-   *
-   * @param {CjsResource} resource Resource whose reader outcome is requested.
-   * @param {*} bytes Source byte payload.
-   * @param {object} [options={}] Requested output plus per-operation controls.
-   * @returns {Promise<*>} Direct-loader or registered-format reader outcome.
-   * @throws {Error|TypeError} If no registered reader matches or its read contract fails.
-   */
-  async ReadResourceObjectPayload(resource, bytes, options = {}) {
-    return this._ReadResolvedResourceObjectPayload(
-      resource,
-      bytes,
-      options,
-      this._ResolveResourceObjectRead(resource, bytes, options)
-    );
+  async ReadResourceObjectPayload(resource, bytes, options = null)
+  {
+    const attempt = this._GetResourceLoad(resource);
+    const request = options || this._GetResourceRequest(resource);
+    const result = await this._ReadResolvedResourceObjectPayload(resource, bytes, request,
+      this._ResolveResourceObjectRead(resource, bytes, request));
+    this._AssertResourceLoad(resource, attempt);
+    return result;
   }
 
   /**
    * Resolve the configured direct loader or format descriptor once so queue
    * selection and execution use the same registration snapshot.
    *
-   * @param {CjsResource} resource Resource whose CPU outcome is requested.
+   * @param {BlueAsyncRes} resource Resource whose CPU outcome is requested.
    * @param {*} bytes Source input.
    * @param {object} options Requested output options.
    * @returns {{loader: Function|null, descriptor: object|null, route: object|null}} Resolved reader.
@@ -2492,7 +1610,7 @@ export class CjsBlueResMan
   /**
    * Execute one already-resolved reader through its direct or format path.
    *
-   * @param {CjsResource} resource Resource whose CPU outcome is requested.
+   * @param {BlueAsyncRes} resource Resource whose CPU outcome is requested.
    * @param {*} bytes Source input.
    * @param {object} options Requested output options.
    * @param {{loader: Function|null, descriptor: object|null}} resolved Reader selection.
@@ -2514,7 +1632,7 @@ export class CjsBlueResMan
    * and before payload publication. Worker decoding has settled by this point,
    * so constructors and Identify functions remain on the caller thread.
    *
-   * @param {CjsResource} resource Route handler receiving the decoded value.
+   * @param {BlueAsyncRes} resource Route handler receiving the decoded value.
    * @param {*} values Decoded format result.
    * @param {object} options Request options.
    * @param {{descriptor: object|null, route: object|null}} resolved Captured reader route.
@@ -2529,7 +1647,7 @@ export class CjsBlueResMan
       // the payload. Objects are built in LoadObject, one per caller, the
       // loading caller included - the load may have been started by the
       // resource's own object loader, whose result nobody receives.
-      this._objectBuilders.set(resource, { Create: builder => builder.CreateObject(0), values, hydrated: values });
+      this._objectBuilders.set(resource, { Create: createObjectFromBuilder, values });
       return values;
     }
     const route = resolved.route;
@@ -2537,7 +1655,7 @@ export class CjsBlueResMan
 
     const Format = resolved.descriptor?.Format || null;
     const context = {
-      ...createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options)),
+      ...createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options), options.ext),
       Format,
       format: Format?.id || "",
       options,
@@ -2570,11 +1688,10 @@ export class CjsBlueResMan
       }
     }
 
-    const hydrated = this._HydrateTarget(resource, Target, values, context);
-    // Publication decides whether this route builds per caller: only an
-    // OBJECT-mode handle hands its object out, so only it keeps the builder.
-    this._objectBuilders.set(resource, { Target, context, values, hydrated });
-    return hydrated;
+    // Carbon retains the builder and constructs only when a caller asks for an
+    // object (BlueResMan.cpp:722-785). Do not allocate a discarded first graph.
+    this._objectBuilders.set(resource, { Target, context, values });
+    return values;
   }
 
   /**
@@ -2583,7 +1700,7 @@ export class CjsBlueResMan
    * reader carrier however `from` treats its input - Carbon's objects are
    * likewise independent, each read out of the cached reader's bytes.
    *
-   * @param {CjsResource} resource Resource whose values are built.
+   * @param {BlueAsyncRes} resource Resource whose values are built.
    * @param {Function} Target Resolved target constructor.
    * @param {*} values Decoded plain values.
    * @param {object} context Hydration context captured at publication.
@@ -2619,13 +1736,6 @@ export class CjsBlueResMan
   }
 
   /**
-   * A fresh object from a resident builder: Carbon's
-   * `builder->CreateObjectWithYield` (BlueResMan.cpp:785).
-   *
-   * @param {CjsResource} resource Resource holding the decoded values as payload.
-   * @returns {*} A new hydrated object.
-   */
-  /**
    * One LoadObject build from a registered object builder, as a MAIN-queue
    * task. Carbon builds with CreateObjectWithYield (BlueResMan.cpp:785), and a
    * BlackReader serves one build at a time, a second caller waiting until the
@@ -2637,7 +1747,7 @@ export class CjsBlueResMan
    * built at once were one 2.7 s task; drained within the budget, no slice
    * exceeded 50 ms. The caller's promise settles when its build runs.
    *
-   * @param {CjsResource} resource Resource whose payload is the builder.
+   * @param {BlueAsyncRes} resource Resource whose payload is the builder.
    * @returns {Promise<object>} This caller's new object.
    */
   _QueueObjectBuild(resource)
@@ -2654,12 +1764,14 @@ export class CjsBlueResMan
   /**
    * Builds a new object from the resource payload through its registered factory
    * or target hydrator.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {object} New object graph owned by this caller.
    */
   _BuildObject(resource)
   {
     const builder = this._objectBuilders.get(resource);
-    if (builder.Create) return builder.Create(resource.GetPayload());
-    return this._HydrateTarget(resource, builder.Target, resource.GetPayload(), builder.context);
+    if (builder.Create) return builder.Create(this.GetResourcePayload(resource));
+    return this._HydrateTarget(resource, builder.Target, this.GetResourcePayload(resource), builder.context);
   }
 
   /**
@@ -2670,7 +1782,7 @@ export class CjsBlueResMan
    *
    * @param {string} key Normalized `dynamic:/<name>/<query>` path.
    * @param {string} cacheKey MotherLode key.
-   * @returns {CjsResource} Canonical dynamic resource.
+   * @returns {BlueAsyncRes} Canonical dynamic resource.
    * @throws {Error} If no constructor is registered or it yields no resource.
    */
   _CreateDynamicResource(key, cacheKey)
@@ -2686,110 +1798,26 @@ export class CjsBlueResMan
         `no dynamic constructor is registered for "${name}"`);
     }
     const resource = constructor.GetResource(query);
-    if (!CjsSchema.cast(resource, CjsResource))
+    if (!CjsSchema.cast(resource, IBlueResource))
     {
       throw dynamicResourceError(key, name, "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE",
-        `dynamic constructor "${name}" returned no CjsResource-compatible resource`);
+        `dynamic constructor "${name}" returned no IBlueResource-compatible resource`);
     }
     this._dynamicResources.add(resource);
-    resource.SetObjectLoader(() => this._LoadObject(key, {}, false));
+
     const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true, cacheable: constructor.IsCacheable() });
     const canonical = insertion?.resource || resource;
-    this._BindResourceLifecycle(cacheKey, canonical);
+    const operation = this._GetResourceLoad(canonical);
+    if (operation && !operation.locked)
+    {
+      this.LockResource(canonical);
+      operation.locked = true;
+    }
+
     this.motherLode.KeepAlive(cacheKey);
     return canonical;
   }
 
-  /**
-   * Publish the final CPU object outcome and loaded state. Every
-   * CjsResource-compatible handle owns the reader/converter result through
-   * `SetPayload`, making CPU payloads visible to MotherLode retention policy.
-   * Base resources also expose the payload through the compatibility `object`
-   * alias; semantic subclasses continue to return and alias the resource while
-   * retaining their validated payload privately.
-   *
-   * @param {CjsResource} resource Target canonical resource handle.
-   * @param {*} object Final reader or format-converter outcome.
-   * @param {object} [options={}] Semantic resource validation/publication options.
-   * @returns {*} Plain payload for a base resource, or the semantic resource handle.
-   * @throws {TypeError|Error} If ownership, semantic payload validation, or loaded-state publication fails.
-   */
-  PublishResourceObject(resource, object, options = {}) {
-    const ownership = this._GetResourceOwnership(resource, "publish:begin");
-    if (!ownership)
-    {
-      return this._PublishResourceObjectValue(resource, object, options);
-    }
-
-    const finishOperation = this._BeginResourceOperation(false);
-    try
-    {
-      return this._PublishResourceObject(ownership, resource, object, options);
-    }
-    finally
-    {
-      finishOperation();
-    }
-  }
-
-  /**
-   * Publish only while the captured resource authority remains canonical.
-   * The post-publication check catches synchronous reentrant ownership changes
-   * from state listeners before the caller can treat obsolete work as success.
-   *
-   * @param {CjsResourceMutationAuthority|null} ownership Captured canonical or reload-candidate authority.
-   * @param {object|Function} resource Resource receiving the final payload.
-   * @param {*} object Final reader/converter outcome.
-   * @param {object} options Semantic resource publication options.
-   * @returns {*} Plain payload or semantic resource handle.
-   */
-  _PublishResourceObject(ownership, resource, object, options) {
-    this._AssertOptionalResourceOwnership(ownership, "publish");
-    const result = this._PublishResourceObjectValue(resource, object, options);
-    this._AssertOptionalResourceOwnership(ownership, "publish-settled");
-    return result;
-  }
-
-  /**
-   * Apply the unguarded synchronous payload/state mutation after the caller
-   * has established any required canonical authority.
-   *
-   * @param {object|Function} resource Resource receiving the final payload.
-   * @param {*} object Final reader/converter outcome.
-   * @param {object} options Semantic resource publication options.
-   * @returns {*} Plain payload or semantic resource handle.
-   */
-  _PublishResourceObjectValue(resource, object, options) {
-    const mode = resolveResourceHandlerMode(
-      resource,
-      this._resourceExtensionRoutes.get(resource) ? this._resourceHandlerModes.get(resource) : null
-    );
-    const builder = this._objectBuilders.get(resource);
-    const buildsPerCaller = mode === ResourceHandlerMode.OBJECT && builder?.hydrated === object;
-    if (builder && !buildsPerCaller) this._objectBuilders.delete(resource);
-    // A per-caller route retains the decoded values - the builder - and hands
-    // `object` to this publication's caller only. The values then live under the
-    // payload lease, like any payload.
-    const payload = buildsPerCaller ? builder.values : object;
-    if (buildsPerCaller)
-    {
-      delete builder.values;
-      delete builder.hydrated;
-    }
-    resource.SetPayload(payload, options);
-    // The two modes differ in one thing only: what `object` names and what the
-    // caller is handed back. RESOURCE publishes the stable handle, so both
-    // point at the resource; OBJECT publishes the reader outcome.
-    const published = mode === ResourceHandlerMode.RESOURCE ? resource : object;
-    resource.object = buildsPerCaller ? payload : published;
-    // PREPARED, not LOADED: `object` is the reader/converter OUTCOME, so the
-    // bytes have already been turned into whatever they needed to become.
-    // LOADED means raw source data is in hand and still has to be prepared - a
-    // resource in that state is not yet good, and marking it here left IsGood()
-    // permanently false for every resource that does not prepare itself.
-    if (!resource.IsPrepared()) resource.MarkPrepared();
-    return published;
-  }
 
   /**
    * Warms a resource and its discovered dependencies without returning payload
@@ -2872,78 +1900,28 @@ export class CjsBlueResMan
   }
 
   /**
-   * Look up and explicitly renew an existing canonical resource without
-   * creating, loading, or preparing a new handle.
-   *
-   * @param {string} path Carbon-style source resource path.
-   * @param {object} [options={}] Identity-defining resource outcome settings.
-   * @returns {CjsResource|null} Existing canonical handle, or `null` when absent.
-   * @throws {TypeError} If the path or identity settings cannot be normalized.
+   * Look up a path/ex without changing its native state.
+   * @param {string} path Carbon-style resource path.
+   * @param {object} [options={}] Native ex suffix selecting the cached handle.
+   * @returns {BlueAsyncRes|null} Cached handle without starting a read.
    */
-  Lookup(path, options = {}) {
-    const normalizedPath = normalizeResourcePath(path);
-    const key = getMotherLodeKey(normalizedPath, this.GetResourceVariant(options));
-    const resource = this.motherLode.Lookup(key);
-    if (resource)
-    {
-      this._BindResourceLifecycle(key, resource);
-      this.motherLode.KeepAlive(key);
-    }
-    return resource;
+  Lookup(path, options = {})
+  {
+    return this.motherLode.Lookup(getMotherLodeKey(normalizeResourcePath(path), this.GetResourceVariant(options)));
   }
 
   /**
-   * Forget and clean canonical resources for a source path. Omitting options
-   * removes every resolved variant; supplying options removes only the exact
-   * identity derived from those outcome settings. Explicitly retained source
-   * and format records are independent and remain available; call
-   * {@link CjsBlueResMan#InvalidateReadCache} when they must also be forgotten.
-   *
-   * @param {string} path Carbon-style source resource path.
-   * @param {object|null} [options=null] Exact identity settings, or `null` for all variants.
-   * @returns {boolean} Whether at least one canonical resource was removed.
-   * @throws {TypeError} If the path or identity settings cannot be normalized.
-   * @throws {Error|AggregateError} If cleanup fails after identities are forgotten.
+   * Forget the path/ex identity and cancel its pending work through cleanup.
+   * @param {string} path Carbon-style resource path.
+   * @param {object|null} [options=null] An ex suffix, or null to remove every suffix.
+   * @returns {*} MotherLode deletion result.
    */
-  Delete(path, options = null) {
-    if (options !== null && options !== undefined)
-    {
-      const normalizedPath = normalizeResourcePath(path);
-      const key = getMotherLodeKey(normalizedPath, this.GetResourceVariant(options));
-      const resource = this.motherLode.Lookup(key);
-      try
-      {
-        return this.motherLode.Delete(key);
-      }
-      finally
-      {
-        if (resource && this.motherLode.Lookup(key) !== resource)
-        {
-          this._InvalidateResourceOwnership(resource);
-        }
-        this._reloadGenerations.delete(key);
-      }
-    }
-
+  Delete(path, options = null)
+  {
     const normalizedPath = normalizeResourcePath(path);
-    const prefix = `${normalizedPath}\u0000`;
-    const entries = [ ...this.motherLode.Entries() ].filter(([ key ]) =>
-      key === normalizedPath || key.startsWith(prefix));
-    try
-    {
-      return this.motherLode.DeleteAllVariants(normalizedPath);
-    }
-    finally
-    {
-      for (const [ key, resource ] of entries)
-      {
-        this._reloadGenerations.delete(key);
-        if (this.motherLode.Lookup(key) !== resource)
-        {
-          this._InvalidateResourceOwnership(resource);
-        }
-      }
-    }
+    return options === null
+      ? this.motherLode.DeleteAllVariants(normalizedPath)
+      : this.motherLode.Delete(getMotherLodeKey(normalizedPath, this.GetResourceVariant(options)));
   }
 
   /**
@@ -3079,7 +2057,7 @@ export class CjsBlueResMan
    * @param {object} [options={}] Watch limits.
    * @param {number} [options.timeoutMilliseconds=60000] Give up after this long.
    * @param {number} [options.stallMilliseconds=10000] Fail a resource still EMPTY after this long.
-   * @returns {Promise<{object: object, failed: CjsResource[]}>} The object, and the resources that failed.
+   * @returns {Promise<{object: object, failed: BlueAsyncRes[]}>} The object, and the resources that failed.
    * @throws {TypeError} If the root is not an object or a limit is invalid.
    */
   Watch(root, options = {})
@@ -3156,7 +2134,12 @@ export class CjsBlueResMan
     return settled;
   }
 
-  /** One watch pass: renew everything, fail stalled EMPTY resources, sort the rest. */
+  /**
+   * Renew reachable resources while observing completion through pure native flags.
+   * @param {object} watch Existing graph-watch record.
+   * @param {number} time Current manager time in milliseconds.
+   * @returns {{pending: BlueAsyncRes[], failed: BlueAsyncRes[]}} Unfinished and failed resources.
+   */
   _CountWatched(watch, time)
   {
     const pending = [];
@@ -3164,7 +2147,8 @@ export class CjsBlueResMan
     for (const resource of GetResources(watch.root, watch.resources))
     {
       resource.KeepAlive();
-      if (resource.state === CjsResource.State.EMPTY)
+      const status = this.GetResourceStatus(resource);
+      if (status.phase === "empty" && !resource._isLoading && !resource._isPrepared)
       {
         if (!watch.emptySince.has(resource)) watch.emptySince.set(resource, time);
         const waited = time - watch.emptySince.get(resource);
@@ -3173,34 +2157,29 @@ export class CjsBlueResMan
           pending.push(resource);
           continue;
         }
-        const error = new Error(`Resource remained EMPTY for ${waited} ms; it was never requested.`);
+        const error = new Error("Resource never started: " + resource.GetPath());
         error.code = "CJS_RESOURCE_NEVER_STARTED";
-        error.path = resource.path;
-        resource.SetError(error);
+        this._FailResourceLoad(resource, error);
       }
-      if (!resource.HasCompleted()) pending.push(resource);
-      else if (resource.IsFailed()) failed.push(resource);
+      if (!resource._isPrepared) pending.push(resource);
+      else if (!resource._isGood) failed.push(resource);
     }
     return { pending, failed };
   }
 
-  /**
-   * Cancel queued-but-not-started work, remove every canonical resource through
-   * MotherLode cleanup, and reset all in-flight deduplication ledgers.
-   *
-   * @returns {CjsBlueResMan} This empty resource manager.
-   * @throws {AggregateError} If one or more canonical resources fail cleanup.
-   */
-  Clear() {
-    this._InvalidateMotherLodeOwnership(this.motherLode);
+  /** Cancel queued/native attempts and clear the owned cache and read ledgers. */
+  Clear()
+  {
+    for (const [, resource] of this.motherLode.Entries())
+    {
+      if (CjsSchema.cast(resource, IBlueResource)) resource.CancelPendingLoad();
+    }
     this._loadQueue.Clear();
     this._prepareQueue.Clear();
     this.motherLode.Clear();
-    this.objectOperations = new WeakMap();
     this.sourceOperations = new WeakMap();
     this.queuedSourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
-    this._reloadGenerations.clear();
     this._lastAutoPurgeTime = null;
     return this;
   }
@@ -3501,138 +2480,43 @@ export class CjsBlueResMan
   }
 
   /**
-   * Construct and initialize one resource handle, optionally rejecting a
-   * singleton alias before `Initialize()` can mutate the protected owner.
-   *
-   * @param {Function} Constructor Resource constructor selected for the outcome.
-   * @param {string} path Normalized Carbon-style resource path.
-   * @param {string} ext Carbon request suffix, independent of the source extension.
-   * @param {object} [options={}] Constructor values, requested output, semantic requirement, and source provenance.
-   * @param {object|Function|null} [disallowedAlias=null] Existing owner that a staged candidate must not reuse.
-   * @param {object|null} [extensionRoute=null] Immutable explicit extension route captured for this handle.
-   * @returns {CjsResource} Initialized resource-compatible handle.
-   * @throws {TypeError|Error} If construction, candidate identity, or initialization is invalid.
+   * Capture the configured route/request before native Initialize schedules loading.
+   * Carbon inserts into MotherLode after Initialize (BlueResMan.cpp:286-288).
+   * @param {Function} Constructor
+   * @param {string} path
+   * @param {string} ext
+   * @param {object} [options={}]
+   * @param {object|null} [extensionRoute=null]
+   * @returns {BlueAsyncRes}
    */
-  CreateResource(Constructor, path, ext, options = {}, disallowedAlias = null, extensionRoute = null) {
-    const resource = new Constructor(options.values);
-    if (!CjsSchema.cast(resource, CjsResource)) {
-      throw new TypeError("Resource constructor must create a CjsResource-compatible object.");
-    }
-    if (disallowedAlias && resource === disallowedAlias)
-    {
-      throw reloadCandidateAliasError(path, resource);
-    }
+  CreateResource(Constructor, path, ext, options = {}, extensionRoute = null)
+  {
+    const resource = new Constructor();
+    if (!CjsSchema.cast(resource, IBlueResource)) throw new TypeError("Resource factory must implement IBlueResource.");
     if (extensionRoute)
     {
       this._resourceExtensionRoutes.set(resource, extensionRoute);
-      const handlerMode = Constructor === extensionRoute.Handler
-        ? extensionRoute.handlerMode
-        : Object.values(ResourceHandlerMode).includes(Constructor.handlerMode)
-          ? Constructor.handlerMode
-          : ResourceHandlerMode.RESOURCE;
-      this._resourceHandlerModes.set(resource, handlerMode);
+      this._resourceHandlerModes.set(resource, extensionRoute.handlerMode);
     }
-    resource.Initialize(path, ext, normalizeRequirement(options.requirement || options.payload || ""));
-    // BlueAsyncRes::InitializeImpl reads the manager's urgent mode at each
-    // (re)initialisation (BlueAsyncRes.cpp:220); a reload reads it again.
-    resource.isUrgent = this.urgentResourceLoads;
-    const loaderOptions = getResourceLoaderOptions(options, options.source || this.source);
-    resource.SetObjectLoader(
-      loadOptions => this._LoadObject(
-        path,
-        mergeResourceLoaderOptions(loaderOptions, loadOptions),
-        false
-      ),
-      loaderOptions
-    );
+    const record = this._GetResourceRecord(resource);
+    record.request = { ...options, ...getResourceLoaderOptions(options, options.source || this.source) };
+    if (options.values) CjsSchema.setValues(resource, options.values);
+    resource.Initialize(path, ext);
     return resource;
   }
 
-  /**
-   * Resolve the current resource constructor for a semantic request. Explicit
-   * requirement/payload selection normally precedes an emitted-output
-   * registration. When an extension handler declares the same requirement it
-   * wins, because the route is what distinguishes concrete resource classes
-   * sharing one semantic key. Otherwise the generic `CjsResource` is used.
-   *
-   * @param {object} [options={}] Semantic requirement, payload, and emit request.
-   * @param {object|null} [extensionRoute=null] Captured extension-selected default handler.
-   * @returns {Function} Registered resource constructor or `CjsResource`.
-   */
-  ResolveResourceConstructor(options = {}, extensionRoute = null)
-  {
-    const requested = normalizeRequirement(options.requirement || options.payload);
-    if (requested)
-    {
-      if (extensionRoute
-        && normalizeRequirement(extensionRoute.Handler?.payload) === requested)
-      {
-        return extensionRoute.Handler;
-      }
-
-      const candidates = this._resourceTypeCandidates.get(requested);
-      if (candidates?.size > 1)
-      {
-        throw createAmbiguousResourceTypeError(requested, candidates);
-      }
-      if (this.resourceTypes.has(requested)) return this.resourceTypes.get(requested);
-    }
-
-    const emitted = normalizeRequirement(options.emit);
-    if (emitted && this.resourceTypes.has(emitted)) return this.resourceTypes.get(emitted);
-
-    if (extensionRoute) return extensionRoute.Handler;
-    return CjsResource;
-  }
 
   /**
-   * Resolve the promised output tag used with the normalized source path.
-   *
-   * An explicit `variant` wins. Otherwise the requested emitted output is the
-   * promise, followed by the semantic requirement/payload for resource-only
-   * requests. Reader classes, constructors, and format options
-   * are execution details and never enter this identity.
-   *
-   * @param {object} [options={}] Resource request containing an optional output tag.
-   * @returns {string} Normalized promised output tag, or an empty string for the default outcome.
-   * @throws {TypeError} If options or its selected tag is invalid.
+   * Carbon's cache suffix is ex; it does not encode a semantic output kind.
+   * @param {object} [options={}] Request containing Carbon's ex suffix.
+   * @returns {string} Validated suffix; other request options do not select identity.
    */
   GetResourceVariant(options = {})
   {
-    if (!options || typeof options !== "object" || Array.isArray(options))
-    {
-      throw new TypeError("CjsBlueResMan resource variant options must be an object.");
-    }
-    if (Object.hasOwn(options, "ex"))
-    {
-      if (typeof options.ex !== "string" || options.ex.includes("\u0000"))
-        throw new TypeError("CjsBlueResMan ex must be a string without a null character.");
-      for (const name of [ "ext", "variant", "requirement", "payload", "emit", "outputStreams" ])
-      {
-        if (options[name] !== undefined)
-          throw new TypeError(`CjsBlueResMan ex cannot be combined with legacy ${name} selection.`);
-      }
-      // Carbon lowercases the factory key, but retains the supplied suffix in
-      // cache identity (blue/src/BlueResMan.cpp:179-181, 259-264).
-      return options.ex;
-    }
-    const streams = getRequestedStreams(options);
-    const suffix = streams ? `|streams:${streams}` : "";
-    if (Object.hasOwn(options, "variant")
-      && options.variant !== undefined)
-    {
-      if (typeof options.variant !== "string" || options.variant.trim() === "")
-      {
-        throw new TypeError("CjsBlueResMan explicit resource variant must be a non-empty string.");
-      }
-      return normalizeResourceVariant(options.variant);
-    }
-    return normalizeResourceVariant(
-      options.emit
-      ?? options.requirement
-      ?? options.payload
-      ?? ""
-    ) + suffix;
+    if (!options || typeof options !== "object" || Array.isArray(options)) throw new TypeError("Resource options must be an object.");
+    const ex = options.ex ?? "";
+    if (typeof ex !== "string" || ex.includes("\u0000")) throw new TypeError("Resource ex must be a string without a null character.");
+    return ex;
   }
 
   /**
@@ -3693,339 +2577,8 @@ export class CjsBlueResMan
     };
   }
 
-  /**
-   * Return the known canonical authority for a resource and reject a known
-   * stale generation. A never-bound resource returns `null` so historical
-   * detached prepare/publication helpers remain compatible.
-   *
-   * @param {object|Function} resource Candidate resource handle.
-   * @param {string} phase Operation phase used for stale diagnostics.
-   * @returns {CjsResourceOwnership|null} Current authority or `null` when never bound.
-   * @throws {Error} If a previously bound resource is no longer canonical.
-   */
-  _GetResourceOwnership(resource, phase)
-  {
-    const ownership = this._resourceOwnership.get(resource) || null;
-    if (!ownership) return null;
-    this._AssertResourceOwnership(ownership, phase);
-    return ownership;
-  }
 
-  /**
-   * Require a current manager-owned canonical resource authority.
-   *
-   * @param {object|Function} resource Candidate resource handle.
-   * @param {string} phase Operation phase used for diagnostics.
-   * @returns {CjsResourceOwnership} Current canonical authority.
-   * @throws {Error} If the resource is unknown or no longer canonical.
-   */
-  _RequireResourceOwnership(resource, phase)
-  {
-    const ownership = this._GetResourceOwnership(resource, phase);
-    if (ownership) return ownership;
-    throw resourceNotOwnedError(resource, phase);
-  }
 
-  /**
-   * Test whether an asynchronous operation still owns publication authority.
-   * Registry lookup failures are treated as stale ownership so they cannot
-   * replace an operation's more useful underlying source/stage rejection.
-   *
-   * @param {CjsResourceOwnership} ownership Captured authority.
-   * @returns {boolean} Whether the exact generation remains canonical.
-   */
-  _IsResourceOwnershipCurrent(ownership)
-  {
-    try
-    {
-      return Boolean(ownership
-        && this.motherLode === ownership.owner
-        && this._resourceOwnership.get(ownership.resource) === ownership
-        && !this._invalidResourceOwnership.has(ownership.resource)
-        && ownership.owner._LookupCanonical(ownership.key) === ownership.resource
-        && !ownership.resource.IsPurged());
-    }
-    catch
-    {
-      return false;
-    }
-  }
-
-  /**
-   * Assert exact canonical publication authority for one operation phase.
-   *
-   * @param {CjsResourceOwnership} ownership Captured authority.
-   * @param {string} phase Human-readable operation phase.
-   * @returns {void}
-   * @throws {Error} Stable stale-operation error when ownership changed.
-   */
-  _AssertResourceOwnership(ownership, phase)
-  {
-    if (!this._IsResourceOwnershipCurrent(ownership))
-    {
-      throw staleResourceOperationError(ownership, phase);
-    }
-  }
-
-  /**
-   * Assert a captured authority when a compatibility path supplied one.
-   *
-   * @param {CjsResourceMutationAuthority|null} ownership Optional canonical or reload-candidate authority.
-   * @param {string} phase Human-readable operation phase.
-   * @returns {void}
-   */
-  _AssertOptionalResourceOwnership(ownership, phase)
-  {
-    if (!ownership) return;
-    if (ownership.reloadCandidate === true)
-    {
-      this._AssertReloadCandidate(ownership, phase);
-      return;
-    }
-    this._AssertResourceOwnership(ownership, phase);
-  }
-
-  /**
-   * Test the exact former owner plus newest-request token for an off-registry
-   * candidate. Lookup failures are treated as stale so detached work cannot
-   * resurrect a deleted, cleared, replaced, or superseded identity.
-   *
-   * @param {CjsResourceReloadCandidate} candidate Candidate authority.
-   * @returns {boolean} Whether this candidate alone may still commit.
-   */
-  _IsReloadCandidateCurrent(candidate)
-  {
-    try
-    {
-      return Boolean(candidate
-        && candidate.reloadCandidate === true
-        && this.motherLode === candidate.owner
-        && this._reloadCandidates.get(candidate.resource) === candidate
-        && this._reloadGenerations.get(candidate.key) === candidate.generation
-        && this._resourceOwnership.get(candidate.expected) === candidate.expectedOwnership
-        && this._IsResourceOwnershipCurrent(candidate.expectedOwnership)
-        && candidate.owner.Lookup(candidate.key) === candidate.expected);
-    }
-    catch
-    {
-      return false;
-    }
-  }
-
-  /**
-   * Assert that a staged candidate still owns newest-request publication
-   * authority for one operation phase.
-   *
-   * @param {CjsResourceReloadCandidate} candidate Candidate authority.
-   * @param {string} phase Human-readable operation phase.
-   * @returns {void}
-   * @throws {Error} Stable stale-candidate error when authority changed.
-   */
-  _AssertReloadCandidate(candidate, phase)
-  {
-    if (!this._IsReloadCandidateCurrent(candidate))
-    {
-      throw staleReloadCandidateError(candidate, phase);
-    }
-  }
-
-  /**
-   * Invalidate the currently recorded generation for a removed resource.
-   *
-   * @param {object|Function} resource Removed or displaced resource.
-   * @returns {void}
-   */
-  _InvalidateResourceOwnership(resource)
-  {
-    if (resource && (typeof resource === "object" || typeof resource === "function"))
-    {
-      this._invalidResourceOwnership.add(resource);
-    }
-  }
-
-  /**
-   * Invalidate every generation currently owned by one registry. This runs
-   * before Clear cancellation/cleanup so reentrant observers cannot retain
-   * authority after canonical ownership removal begins.
-   *
-   * @param {CjsMotherLode|null|undefined} owner Registry losing ownership.
-   * @returns {void}
-   */
-  _InvalidateMotherLodeOwnership(owner)
-  {
-    for (const [ , resource ] of owner.Entries())
-    {
-      const ownership = this._resourceOwnership.get(resource);
-      if (ownership?.owner === owner) this._invalidResourceOwnership.add(resource);
-    }
-  }
-
-  /**
-   * Add one operation-owned purge lock and release it only while the exact
-   * captured canonical record still exists. If removal/replacement made the
-   * operation stale, its former MotherLode record (and lock count) no longer
-   * exists, so releasing through a rebound resource would corrupt a new owner.
-   *
-   * @param {CjsResourceOwnership} ownership Captured canonical authority.
-   * @returns {() => void} Idempotent balanced release callback.
-   */
-  _AcquireResourcePurgeLock(ownership)
-  {
-    const { owner, key } = ownership;
-
-    this._AssertResourceOwnership(ownership, "lock:acquire");
-    owner.Lock(key);
-    let released = false;
-    return () =>
-    {
-      if (released) return;
-      released = true;
-      if (this._IsResourceOwnershipCurrent(ownership)) owner.Unlock(key);
-    };
-  }
-
-  /**
-   * Bind resource-facing liveness methods to one canonical MotherLode key.
-   * The controller contains no loader/reload callback, so touching a detached
-   * or purged handle cannot start browser/network work.
-   *
-   * @param {string} key Canonical MotherLode identity.
-   * @param {object|Function} resource Canonical resource handle.
-   * @returns {object|Function} The supplied resource.
-   */
-  /**
-   * Reload a purged handle back into itself.
-   *
-   * Purge deletes the payload and drops the registry entry, so a consumer left
-   * holding the handle has no way to reach a replacement - it cannot discover
-   * one, and nothing hands it over. Recovery therefore has to fill THIS handle
-   * rather than resolve whatever the manager currently caches for the path.
-   *
-   * The handle is re-registered BEFORE loading, so the ordinary load path finds
-   * it as the canonical identity and loads into it instead of minting another.
-   *
-   * Declines rather than guesses in two cases: when another resource has since
-   * claimed the identity - displacing it would kill whoever holds that one, the
-   * very failure being fixed here - and when the retained request no longer
-   * resolves to the same identity, which would re-register the handle under the
-   * wrong key.
-   *
-   * @param {string} key Canonical resolved identity key.
-   * @param {CjsResource} resource The purged handle to restore.
-   * @returns {boolean} Whether a reload was started.
-   */
-  _ReloadPurgedResource(key, resource)
-  {
-    if (!resource.IsPurged()) return false;
-
-    try
-    {
-      const current = this.motherLode.Lookup(key);
-      if (current && current !== resource) return false;
-
-      const request = resource.GetObjectRequest() || {};
-      const path = normalizeResourcePath(resource.GetPath());
-      if (getMotherLodeKey(path, this.GetResourceVariant(request)) !== key) return false;
-
-      // Leave PURGED first: ownership is not considered current while purged,
-      // so binding before this would produce a controller that no-ops.
-      resource.MarkRequested();
-      if (!current) this.motherLode.Insert(key, resource, { replace: true });
-      this._invalidResourceOwnership.delete(resource);
-      this._BindResourceLifecycle(key, resource);
-
-      // Failure is recorded on the resource and observed through `completed`.
-      this._LoadObject(path, request, false).catch(() => {});
-      return true;
-    }
-    catch
-    {
-      return false;
-    }
-  }
-
-  /**
-   * Give one resource the liveness callbacks its consumers never manage
-   * themselves: activity renewal, payload renewal, lock counting, and the
-   * reload hook that revives the handle after a purge.
-   *
-   * Ownership is captured by generation, so a late release can never renew or
-   * unlock a rebound owner. The reload hook is bound outside the lifecycle
-   * controller because that controller is detached exactly when canonical
-   * ownership ends, which is precisely when a purged handle needs to come back.
-   *
-   * @param {string} key Canonical resolved key.
-   * @param {object} resource Resource handle to bind.
-   * @returns {object} The same resource handle.
-   */
-  _BindResourceLifecycle(key, resource)
-  {
-    const owner = this.motherLode;
-    let ownership = this._resourceOwnership.get(resource) || null;
-    if (!ownership
-      || ownership.owner !== owner
-      || ownership.key !== key
-      || ownership.resource !== resource
-      || !this._IsResourceOwnershipCurrent(ownership))
-    {
-      ownership = {
-        generation: this._nextResourceOwnershipGeneration++,
-        owner,
-        key,
-        resource
-      };
-      this._resourceOwnership.set(resource, ownership);
-      this._invalidResourceOwnership.delete(resource);
-    }
-
-    // Bound outside the lifecycle controller, which is detached when canonical
-    // ownership ends - which is precisely when a handle needs to come back.
-    if (!resource) return resource;
-    resource.SetReloadHook(() => this._ReloadPurgedResource(key, resource));
-
-    // No hedging on the owner's methods: `owner` is a CjsMotherLode and
-    // `resource` a CjsResource, both of which declare every method called here
-    // on their base. The former `KeepPayloadAlive`-or-`KeepAlive` fallback was
-    // therefore unreachable, and it silently downgraded a payload keep-alive to
-    // a handle keep-alive for anything that ever did reach it.
-    resource.SetLifecycleController({
-      isCurrent: () => this._IsResourceOwnershipCurrent(ownership),
-      // Every IsGood() renews through here, so it skips re-normalizing the
-      // canonical key (CjsMotherLode._KeepAliveCanonical).
-      keepAlive: options => this._IsResourceOwnershipCurrent(ownership)
-        ? owner._KeepAliveCanonical(key, options)
-        : null,
-      keepPayloadAlive: options => this._IsResourceOwnershipCurrent(ownership)
-        ? owner.KeepPayloadAlive(key, options)
-        : null,
-      lock: () => this._IsResourceOwnershipCurrent(ownership)
-        ? owner.Lock(key) || 0
-        : 0,
-      unlock: () => this._IsResourceOwnershipCurrent(ownership)
-        ? owner.Unlock(key) || 0
-        : 0
-    });
-    if (resource.HasPayload() && this._IsResourceOwnershipCurrent(ownership))
-    {
-      owner.KeepPayloadAlive(key);
-    }
-    return resource;
-  }
-
-  /**
-   * Bind lifecycle callbacks for resources supplied by a configured custom
-   * MotherLode before CjsBlueResMan begins serving them.
-   *
-   * @returns {CjsBlueResMan} This resource manager.
-   */
-  _BindMotherLodeResources()
-  {
-    for (const [ key, resource ] of this.motherLode.Entries())
-    {
-      this._BindResourceLifecycle(key, resource);
-    }
-    return this;
-  }
 
   /**
    * Run or join one format read under source/path/revision, registered descriptor,
@@ -4040,7 +2593,7 @@ export class CjsBlueResMan
    * with option instances that cannot be represented safely bypass format
    * sharing regardless of cache policy.
    *
-   * @param {CjsResource} resource Resource whose normalized path identifies the source data.
+   * @param {BlueAsyncRes} resource Resource whose normalized path identifies the source data.
    * @param {object} descriptor Registered format descriptor.
    * @param {*} bytes Source bytes or source-compatible reader input.
    * @param {object} [options={}] Source provenance, reload, cacheFormat, emit, classes, and format options.
@@ -4096,6 +2649,394 @@ export class CjsBlueResMan
     });
     return record.promise;
   }
+
+  /** Manager-owned request, plain data and current asynchronous attempt. */
+  _resourceRecords = new WeakMap();
+
+  /** Current MotherLode time, published once per manager tick for fast renewal. */
+  activityTime = 0;
+
+  /** Maximum automatic revivals after purge; explicit Reload is never capped. */
+  maxReloadAttempts = 3;
+
+  /** @param {BlueAsyncRes} resource @returns {object} Mutable manager-only record. */
+  _GetResourceRecord(resource)
+  {
+    let record = this._resourceRecords.get(resource);
+    if (!record)
+    {
+      record = { request: {}, payload: null, error: null, phase: "empty", purged: false, attempts: 0, operation: null };
+      this._resourceRecords.set(resource, record);
+    }
+    return record;
+  }
+
+  /** @param {BlueAsyncRes} resource @returns {object} Captured request; never stored on the resource. */
+  _GetResourceRequest(resource)
+  {
+    const record = this._GetResourceRecord(resource);
+    return record.operation?.request || record.request;
+  }
+
+  /** @param {BlueAsyncRes} resource @returns {object|null} The active attempt token. */
+  _GetResourceLoad(resource)
+  {
+    return this._GetResourceRecord(resource).operation;
+  }
+
+  /** @param {BlueAsyncRes} resource @param {object|null} attempt @returns {boolean} */
+  _IsResourceLoadCurrent(resource, attempt)
+  {
+    return attempt !== null && this._GetResourceRecord(resource).operation === attempt;
+  }
+
+  /**
+   * Reject a cancelled result before a family mutates its owned data.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @param {object|null} attempt Token captured before asynchronous work.
+   * @returns {void}
+   * @throws {Error} When the token was cancelled or superseded.
+   */
+  _AssertResourceLoad(resource, attempt)
+  {
+    if (!this._IsResourceLoadCurrent(resource, attempt))
+    {
+      const error = new Error("Cancelled resource load: " + resource.GetPath());
+      error.code = "CJS_RESOURCE_LOAD_CANCELLED";
+      throw error;
+    }
+  }
+
+  /**
+   * Start one native load attempt and retain its promise only until settlement.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {object} Attempt token holding its promise and temporary cache pin.
+   */
+  _StartResourceLoad(resource)
+  {
+    this._CancelResourceLoad(resource);
+    const record = this._GetResourceRecord(resource);
+    record.error = null;
+    record.phase = "loading";
+    record.purged = false;
+    record.payload = null;
+    this._objectBuilders.delete(resource);
+    const operation = { request: record.request, promise: null, resolve: null, reject: null, locked: false, finish: this._BeginResourceOperation(true) };
+    record.request = getResourceLoaderOptions(record.request, record.request.source);
+    operation.promise = new Promise((resolve, reject) =>
+    {
+      operation.resolve = resolve;
+      operation.reject = reject;
+    });
+    // GetResource starts the attempt even when nobody awaits it.
+    operation.promise.catch(noop);
+    record.operation = operation;
+    if (resource.GetPath() && this.motherLode.Lookup(getMotherLodeKey(resource.GetPath(), resource.GetExt())) === resource)
+    {
+      this.LockResource(resource);
+      operation.locked = true;
+    }
+    if (resource._isUrgent) this._TrackUrgentOperation(operation.promise);
+    return operation;
+  }
+
+  /**
+   * Cancel only this handle's current attempt; no replacement generation exists.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {void}
+   */
+  _CancelResourceLoad(resource)
+  {
+    const record = this._GetResourceRecord(resource);
+    const operation = record.operation;
+    if (!operation) return;
+    record.operation = null;
+    const error = new Error("Cancelled resource load: " + resource.GetPath());
+    error.code = "CJS_RESOURCE_LOAD_CANCELLED";
+    record.error = error;
+    record.phase = "cancelled";
+    operation.reject(error);
+    if (operation.locked) this.UnlockResource(resource);
+    operation.locked = false;
+    operation.finish();
+    operation.request = operation.resolve = operation.reject = operation.finish = null;
+  }
+
+  /**
+   * Store a native attempt's failure for its MAIN-queue completion.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @param {Error} error Failure retained for explicit inspection and promise rejection.
+   * @returns {void}
+   */
+  _RecordResourceFailure(resource, error)
+  {
+    this._GetResourceRecord(resource).error = error;
+  }
+
+  /**
+   * Settle promises before native callbacks, which may synchronously Reload.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {void}
+   */
+  _FinishResourceLoad(resource)
+  {
+    const record = this._GetResourceRecord(resource);
+    const operation = record.operation;
+    record.operation = null;
+    record.phase = resource._isGood ? "prepared" : "failed";
+    if (resource._isGood)
+    {
+      record.error = null;
+      record.attempts = 0;
+      this.KeepPayloadAlive(resource);
+    }
+    else if (!record.error)
+    {
+      record.error = new Error("Resource preparation failed: " + resource.GetPath());
+    }
+    if (!operation) return;
+    if (resource._isGood) operation.resolve(resource.isResource ? resource : record.payload);
+    else operation.reject(record.error);
+    if (operation.locked) this.UnlockResource(resource);
+    operation.locked = false;
+    operation.finish();
+    operation.request = operation.resolve = operation.reject = operation.finish = null;
+  }
+
+  /**
+   * Fail a never-started or dynamic resource without adding a string-event state machine.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @param {Error} error Failure retained for explicit inspection and promise rejection.
+   * @returns {void}
+   */
+  _FailResourceLoad(resource, error)
+  {
+    this._RecordResourceFailure(resource, error);
+    resource._isGood = false;
+    resource._isPrepared = true;
+    resource._isLoading = false;
+    this._FinishResourceLoad(resource);
+    resource._NotifyRebuildCachedData();
+  }
+
+  /**
+   * Await the existing same-handle attempt. Failure never retries implicitly.
+   * Reconstructing explicitly released plain data is an explicit read request.
+   * @param {BlueAsyncRes} resource
+   * @returns {Promise<*>} Resource handle or the internal handler's plain result.
+   */
+  Ready(resource)
+  {
+    const record = this._GetResourceRecord(resource);
+    if (record.purged)
+    {
+      resource.KeepAlive();
+    }
+    if (record.operation) return record.operation.promise;
+    if (resource._isPrepared && !resource._isGood)
+    {
+      return Promise.reject(record.error || new Error("Resource failed: " + resource.GetPath()));
+    }
+    if (resource._isPrepared && resource._isGood)
+    {
+      if (resource.isResource || record.payload !== null)
+      {
+        this.KeepPayloadAlive(resource);
+        return Promise.resolve(resource.isResource ? resource : record.payload);
+      }
+      resource.Reload();
+      return this._GetResourceRecord(resource).operation.promise;
+    }
+    if (resource._isLoading) return this._StartResourceLoad(resource).promise;
+    return Promise.reject(record.error || new Error("Resource has not been initialized: " + resource.GetPath()));
+  }
+
+  /**
+   * Pure inspection of native flags plus manager-only failure and purge data.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {{phase: string, error: Error|null, purged: boolean, loading: boolean, prepared: boolean, good: boolean, reloadAttempts: number}} Detached inspection snapshot; no renewal or retry.
+   */
+  GetResourceStatus(resource)
+  {
+    const record = this._GetResourceRecord(resource);
+    return { phase: record.phase, error: record.error, purged: record.purged,
+      loading: resource._isLoading, prepared: resource._isPrepared, good: resource._isGood,
+      reloadAttempts: record.attempts };
+  }
+
+  /**
+   * Pure read of retained plain/object data; family data stays on its resource.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {*} Plain/object data, or null for released data and native family resources.
+   */
+  GetResourcePayload(resource)
+  {
+    return resource.isResource ? null : this._GetResourceRecord(resource).payload;
+  }
+
+  /**
+   * Whether plain/object data remains resident.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {boolean} Whether plain/object data is still retained.
+   */
+  HasResourcePayload(resource)
+  {
+    return this.GetResourcePayload(resource) !== null;
+  }
+
+  /**
+   * Release plain/object data without changing identity or reviving a resource.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {void}
+   */
+  ReleaseResourcePayload(resource)
+  {
+    if (resource.isResource) return;
+    this._GetResourceRecord(resource).payload = null;
+  }
+
+  /**
+   * Renew manager-owned plain/object data, without allocating a resource callback.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @param {object} [options] Existing MotherLode activity frame/time overrides.
+   * @returns {void}
+   */
+  KeepPayloadAlive(resource, options = {})
+  {
+    if (!resource.GetPath()) return;
+    this.motherLode.KeepPayloadAlive(getMotherLodeKey(resource.GetPath(), resource.GetExt()), options);
+  }
+
+  /**
+   * Pin one resource against inactivity purge.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {number} Resulting lock count, or zero for an uncached/pathless resource.
+   */
+  LockResource(resource)
+  {
+    if (!resource.GetPath()) return 0;
+    return this.motherLode.Lock(getMotherLodeKey(resource.GetPath(), resource.GetExt()));
+  }
+
+  /**
+   * Release one balanced inactivity pin.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {number} Resulting lock count, or zero for an uncached/pathless resource.
+   */
+  UnlockResource(resource)
+  {
+    if (!resource.GetPath()) return 0;
+    return this.motherLode.Unlock(getMotherLodeKey(resource.GetPath(), resource.GetExt()));
+  }
+
+  /**
+   * Read the automatic purge-revival count.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {number} Automatic purge revival count.
+   */
+  GetReloadAttempts(resource)
+  {
+    return this._GetResourceRecord(resource).attempts;
+  }
+
+  /**
+   * Explicitly reset the automatic revival budget.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {void}
+   */
+  ResetReloadAttempts(resource)
+  {
+    this._GetResourceRecord(resource).attempts = 0;
+  }
+
+  /**
+   * Renew the timestamp; only policy purge triggers the native same-handle Reload.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @param {object} [options] Existing MotherLode activity frame/time overrides.
+   * @returns {void}
+   */
+  _KeepResourceAlive(resource, options)
+  {
+    // Render-target wrappers and directly built textures have no MotherLode identity.
+    if (!resource.GetPath()) return;
+    if (options === undefined && this.activityTime > 0) resource._lastUsedTime = this.activityTime;
+    else this.motherLode.KeepAlive(getMotherLodeKey(resource.GetPath(), resource.GetExt()), options || {});
+    const record = this._resourceRecords.get(resource);
+    if (!record?.purged || record.attempts >= this.maxReloadAttempts) return;
+
+    const key = getMotherLodeKey(resource.GetPath(), resource.GetExt());
+    const current = this.motherLode.Lookup(key);
+    if (current && current !== resource) return;
+    record.attempts += 1;
+    resource.Reload();
+    // Carbon initializes before insertion. The queued async load begins later.
+    if (!current)
+    {
+      this.motherLode.Insert(key, resource);
+      const operation = this._GetResourceLoad(resource);
+      if (operation && !operation.locked)
+      {
+        this.LockResource(resource);
+        operation.locked = true;
+      }
+    }
+  }
+
+  /**
+   * Record data loss due to manager policy, distinct from a sticky load failure.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {void}
+   */
+  _MarkResourcePurged(resource)
+  {
+    this._CancelResourceLoad(resource);
+    const record = this._GetResourceRecord(resource);
+    record.purged = true;
+    record.phase = "purged";
+    record.error = null;
+    resource._isGood = false;
+    resource._isPrepared = false;
+    resource._isLoading = false;
+  }
+
+  /**
+   * Release native owned data while retaining persistent targets for revival.
+   * @param {BlueAsyncRes} resource Cached resource.
+   * @param {object} [options] Existing MotherLode cleanup policy.
+   */
+  _CleanupResource(resource, options = {})
+  {
+    resource.CancelPendingLoad();
+    resource._NotifyReleaseCachedData();
+    resource._OnShutdown(options);
+    if (options.releasePayload !== false) this.ReleaseResourcePayload(resource);
+    resource._isGood = resource._isPrepared = false;
+  }
+
+  /**
+   * Read one internal object/data handler and retain only its builder or plain values.
+   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @returns {Promise<number>} Native success code after retaining decoded builder/plain data.
+   */
+  async _LoadObjectData(resource)
+  {
+    const attempt = this._GetResourceLoad(resource);
+    const options = this._GetResourceRequest(resource);
+    const bytes = resource._dataStream.data;
+    const resolved = this._ResolveResourceObjectRead(resource, bytes, options);
+    const decoded = await this._ReadResolvedResourceObjectPayload(resource, bytes, options, resolved);
+    this._AssertResourceLoad(resource, attempt);
+    const object = this._HydrateExtensionObject(resource, decoded, options, resolved);
+    this._AssertResourceLoad(resource, attempt);
+    const builder = this._objectBuilders.get(resource);
+    this._GetResourceRecord(resource).payload = builder ? builder.values : object;
+    if (builder)
+    {
+      delete builder.values;
+    }
+    return resource.constructor.LoadingResult.LR_SUCCESS;
+  }
+
 }
 
 // The notify surface arrives by composition rather than `extends
@@ -4430,7 +3371,7 @@ function removeOperationRecords(operations, path, revisionKey)
 /**
  * Copy the compact requested-output fields needed for explicit payload
  * reconstruction. This request is retained with the handle but never enters
- * MotherLode identity beyond its `variant`/`emit` output tag.
+ * MotherLode identity beyond Carbon's explicit `ex` suffix.
  *
  * @param {object} [options={}] Original resource request.
  * @returns {object} Shallow reconstruction request without cache/reload policy.
@@ -4442,9 +3383,7 @@ function getResourceRequestOptions(options = {})
   {
     if (options[key] !== undefined) request[key] = options[key];
   }
-  // The omitted suffix is still an identity. Capture it so Ready overrides
-  // cannot turn the ordinary resource into a raw/profile request. Legacy
-  // selectors retain their own identity until their remaining callers migrate.
+  // Capture the omitted suffix too: reconstruction cannot change a handle's identity.
   if (options.ext === undefined &&
     !RESOURCE_REQUEST_OPTION_KEYS.some(key => key !== "ex" && options[key] !== undefined))
     request.ex = options.ex ?? "";
@@ -4721,34 +3660,6 @@ function resolveFormatDescriptorCandidates(descriptors, ext, options)
   return candidates[0];
 }
 
-/**
- * Report shorthand resource registrations that need an extension route or an
- * explicit keyed default to choose between them.
- *
- * @param {string} requirement Normalized semantic requirement.
- * @param {Set<Function>} candidates Registered constructors.
- * @returns {Error} Contextual ambiguity error.
- */
-function createAmbiguousResourceTypeError(requirement, candidates)
-{
-  const names = [ ...candidates ].map(Constructor => CjsSchema.getClassName(Constructor));
-  const error = new Error(
-    `Ambiguous resource types registered for requirement ${JSON.stringify(requirement)}: `
-    + `${names.join(", ")}. Register an extension handler to select the concrete `
-    + "resource for that file, or register one explicit keyed default."
-  );
-  error.code = "CJS_RESOURCE_TYPE_AMBIGUOUS";
-  error.requirement = requirement;
-  error.resourceTypes = names;
-  return error;
-}
-
-function normalizeRequirement(value)
-{
-  return value === null || value === undefined
-    ? ""
-    : String(value).trim().toLowerCase();
-}
 
 /**
  * Normalize one human-readable promised output tag.
@@ -4776,7 +3687,7 @@ function createPrepareContext(resMan, resource, bytes, options, stage)
 {
   return {
     ...options,
-    ...createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options)),
+    ...createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options), options.ext),
     stage,
     bytes,
     resource,
@@ -4792,13 +3703,13 @@ function createPrepareContext(resMan, resource, bytes, options, stage)
  * @param {CjsResourceReadContext|null|undefined} [readContext] Active source read context.
  * @returns {Readonly<{path: string, resFilePath: string, ext: string, fileName: string, url: string|null}>}
  */
-function createResourcePathContext(path, readContext = null)
+function createResourcePathContext(path, readContext = null, extension = undefined)
 {
   const resFilePath = normalizeResourcePath(path);
   return {
     path: resFilePath,
     resFilePath,
-    ext: readContext?.ext ?? getResourceExtension(resFilePath),
+    ext: readContext?.ext ?? normalizeResourceExtension(extension || getResourceExtension(resFilePath)),
     fileName: getResourceFileName(resFilePath),
     url: readContext?.url ?? null
   };
@@ -4832,7 +3743,7 @@ function getResourceFileName(path)
  *
  * The route's captured mode wins when there is one, since that is what the
  * registration declared. Otherwise the class answers for itself: anything
- * deriving from `CjsResource` carries a `handlerMode`, and a bare `CjsResource`
+ * deriving from `BlueAsyncRes` carries a `handlerMode`, and a bare `BlueAsyncRes`
  * is a carrier rather than a semantic resource, so it publishes its payload.
  * That last case is why the class static cannot simply be trusted - the base
  * declares RESOURCE for the subclasses that inherit it, not for itself.
@@ -4845,32 +3756,9 @@ function resolveResourceHandlerMode(resource, routedMode = null)
 {
   if (routedMode === ResourceHandlerMode.RESOURCE) return ResourceHandlerMode.RESOURCE;
   if (routedMode === ResourceHandlerMode.OBJECT) return ResourceHandlerMode.OBJECT;
-  if (resource?.constructor === CjsResource) return ResourceHandlerMode.OBJECT;
-  return CjsSchema.cast(resource, CjsResource) ? ResourceHandlerMode.RESOURCE : ResourceHandlerMode.OBJECT;
+
+  return resource.isResource ? ResourceHandlerMode.RESOURCE : ResourceHandlerMode.OBJECT;
 }
-
-/**
- * Recover the public object result represented by a resident resource payload.
- *
- * The read-back counterpart of publication, and it must agree with it exactly:
- * a resource published as its handle has to be recovered as its handle, or a
- * cache hit answers differently from the load that filled it.
- *
- * @param {CjsResource} resource Resource with an attached CPU payload.
- * @param {object|null} route Captured explicit extension route.
- * @param {string|null} handlerMode Captured effective handler mode.
- * @returns {*} Resident public object outcome.
- */
-function getPublishedResourceObject(resource, route = null, handlerMode = null)
-{
-  const mode = resolveResourceHandlerMode(resource, route ? handlerMode : null);
-  return mode === ResourceHandlerMode.RESOURCE ? resource : resource.GetPayload();
-}
-
-
-
-
-
 
 
 /**
@@ -4988,105 +3876,6 @@ function activeResourceOperationsError(activeOperations)
   return error;
 }
 
-/**
- * Create the stable failure used when a manager-only load API receives a
- * resource that was never bound to this manager.
- *
- * @param {*} resource Candidate resource.
- * @param {string} phase Operation phase.
- * @returns {Error} Contextual ownership error.
- */
-function resourceNotOwnedError(resource, phase)
-{
-  const path = getResourceDiagnosticPath(resource);
-  const error = new Error(`CjsBlueResMan does not own a canonical resource at ${path}.`);
-  error.code = "CJS_RESMAN_RESOURCE_NOT_OWNED";
-  error.resource = resource;
-  error.path = path;
-  error.phase = phase;
-  return error;
-}
-
-/**
- * Create the stable failure used when otherwise-successful obsolete work
- * reaches a canonical mutation boundary.
- *
- * @param {CjsResourceOwnership} ownership Captured stale authority.
- * @param {string} phase Operation phase that detected staleness.
- * @returns {Error} Contextual stale-operation error.
- */
-function staleResourceOperationError(ownership, phase)
-{
-  const path = getResourceDiagnosticPath(ownership?.resource);
-  const error = new Error(
-    `CjsBlueResMan resource operation became stale during ${phase}: ${path}.`
-  );
-  error.code = "CJS_RESMAN_STALE_RESOURCE_OPERATION";
-  error.resource = ownership?.resource || null;
-  error.path = path;
-  error.key = ownership?.key || null;
-  error.generation = ownership?.generation || 0;
-  error.phase = phase;
-  return error;
-}
-
-/**
- * Reject a resource constructor that returns the protected canonical singleton
- * when a distinct reload candidate is required.
- *
- * @param {string} path Requested resource path.
- * @param {object|Function} resource Aliased canonical resource.
- * @returns {Error} Stable candidate-alias error.
- */
-function reloadCandidateAliasError(path, resource)
-{
-  const error = new Error(`CjsBlueResMan reload candidate aliases the canonical resource: ${path}.`);
-  error.code = "CJS_RESMAN_RELOAD_CANDIDATE_ALIAS";
-  error.path = path;
-  error.resource = resource;
-  return error;
-}
-
-/**
- * Create the stable failure used when a candidate loader no longer has a
- * staged authority record.
- *
- * @param {object|Function} resource Candidate resource.
- * @returns {Error} Stable unavailable-candidate error.
- */
-function reloadCandidateUnavailableError(resource)
-{
-  const path = getResourceDiagnosticPath(resource);
-  const error = new Error(`CjsBlueResMan reload candidate is no longer available: ${path}.`);
-  error.code = "CJS_RESMAN_RELOAD_CANDIDATE_UNAVAILABLE";
-  error.path = path;
-  error.resource = resource;
-  return error;
-}
-
-/**
- * Create the stable failure used when a deleted, cleared, replaced, or
- * superseded reload candidate reaches a mutation or commit boundary.
- *
- * @param {CjsResourceReloadCandidate} candidate Captured candidate authority.
- * @param {string} phase Operation phase that detected staleness.
- * @returns {Error} Contextual stale-candidate error.
- */
-function staleReloadCandidateError(candidate, phase)
-{
-  const path = getResourceDiagnosticPath(candidate?.resource);
-  const error = new Error(
-    `CjsBlueResMan reload candidate became stale during ${phase}: ${path}.`
-  );
-  error.code = "CJS_RESMAN_STALE_RELOAD_CANDIDATE";
-  error.resource = candidate?.resource || null;
-  error.expected = candidate?.expected || null;
-  error.path = path;
-  error.key = candidate?.key || null;
-  error.generation = candidate?.generation || 0;
-  error.phase = phase;
-  return error;
-}
 
 /**
  * Read a resource path for diagnostics without allowing an unusual custom
@@ -5168,7 +3957,7 @@ function defaultQueueYield()
   return new Promise(resolve => setTimeout(resolve, 0));
 }
 
-function normalizeRegistrationEntries(value, keyed = false)
+function normalizeRegistrationEntries(value)
 {
   if (value === null || value === undefined) return [];
   if (Array.isArray(value)) return value;
@@ -5178,17 +3967,14 @@ function normalizeRegistrationEntries(value, keyed = false)
     throw new TypeError("CjsBlueResMan registration collections must be arrays or objects.");
   }
 
-  if (value.Format || value.format || value.Constructor || value.Resource || value.resourceType)
+  if (value.Format || value.format)
   {
     return [ value ];
   }
 
   return Object.entries(value).map(([ key, entry ]) =>
   {
-    if (!keyed) return typeof entry === "function" ? entry : { ...entry, key };
-    return typeof entry === "function"
-      ? { key, requirement: key, Constructor: entry }
-      : { ...entry, key, requirement: entry.requirement || entry.payload || key };
+    return typeof entry === "function" ? entry : { ...entry, key };
   });
 }
 
@@ -5319,19 +4105,6 @@ function createExtensionTargetError(resource, message, cause = null)
 // carbon metadata identifies the native service whose responsibility it carries.
 CjsSchema.meta.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
 CjsSchema.exposure.mapInterface(IBlueResMan)(CjsBlueResMan);
-/**
- * The paths service resMan reads through: Carbon's global `BePaths`.
- *
- * Ours: the `blue` holder sets this (blue.js), because resMan importing the
- * holder would be an import cycle - the holder constructs a resMan.
- *
- * @returns {import("./IBluePaths.js").IBluePaths} The current `be.paths`.
- * @throws {Error} When no holder has set it.
- */
-CjsBlueResMan.getBluePaths = () =>
-{
-  throw new Error("CjsBlueResMan: no paths service; import the blue holder (blue.js).");
-};
 
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceW", blue.method, meta.adapted);
@@ -5393,12 +4166,12 @@ async function readThroughBluePaths(paths, path, options)
  * The callback-manager flags for a resource's tasks: urgent when the resource was
  * created in urgent mode (BlueAsyncRes.cpp:108-111, :217-226).
  *
- * @param {CjsResource} resource The resource.
+ * @param {BlueAsyncRes} resource The resource.
  * @returns {number} `BCBF_URGENT` or `BCBF_NONE`.
  */
 function urgentFlags(resource)
 {
-  return resource.isUrgent ? IBlueCallbackMan.BCBF_URGENT : IBlueCallbackMan.BCBF_NONE;
+  return resource._isUrgent ? IBlueCallbackMan.BCBF_URGENT : IBlueCallbackMan.BCBF_NONE;
 }
 
 /** Resolve a request to Carbon StreamType flags. */
@@ -5411,3 +4184,103 @@ function getRequestedStreams(options)
   }
   return streams;
 }
+
+/**
+ * Invoke Carbon's IBlueObjectBuilder operation with the default object marker.
+ * Shared by all internal handler records; no per-resource callback is allocated.
+ * @param {IBlueObjectBuilder} builder Parsed object-file builder.
+ * @returns {object} A new graph for one caller.
+ */
+function createObjectFromBuilder(builder)
+{
+  return builder.CreateObject(0);
+}
+
+
+CjsSchema.decorateMethod(CjsBlueResMan, "Register", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "RegisterExtension", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_GetResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_LoadObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_RefusePlainObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_IsObjectBuilderResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "ReloadObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "FetchResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "ReloadResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "Fetch", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "ReadResourceObjectPayload", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_HydrateExtensionObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_BuildObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_CreateDynamicResource", CjsSchema.meta.adapted);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "Lookup", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "Delete", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_CountWatched", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "Clear", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "CreateResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceVariant", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_GetResourceRecord", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_GetResourceRequest", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_GetResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_IsResourceLoadCurrent", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_AssertResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_StartResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_CancelResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_RecordResourceFailure", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_FinishResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_FailResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "Ready", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceStatus", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "GetResourcePayload", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "HasResourcePayload", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "ReleaseResourcePayload", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "KeepPayloadAlive", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "LockResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "UnlockResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "GetReloadAttempts", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "ResetReloadAttempts", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_KeepResourceAlive", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_MarkResourcePurged", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_CleanupResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "_LoadObjectData", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

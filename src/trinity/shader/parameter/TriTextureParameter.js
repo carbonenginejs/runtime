@@ -8,7 +8,7 @@ import { IInitialize } from "#blue";
 
 import { Tr2EffectResource, Tr2EffectParameterAnnotation } from "#resource/shader";
 import { TriTextureRes } from "#trinity/resources/texture";
-import { blue, CjsResource } from "#blue";
+import { blue, IBlueResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1String } from "#utils/hash";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
@@ -145,7 +145,7 @@ export class TriTextureParameter extends ITriEffectTextureParameter
   @meta.implemented
   GetResourcePath()
   {
-    const resource = CjsSchema.cast(this.GetResource(), CjsResource);
+    const resource = CjsSchema.cast(this.GetResource(), IBlueResource);
     return resource === null ? "" : resource.GetPath();
   }
 
@@ -562,9 +562,9 @@ export class TriTextureParameter extends ITriEffectTextureParameter
     @meta.adapted
   KeepAlive()
   {
-    const resource = CjsSchema.cast(this.resource, CjsResource);
+    const resource = CjsSchema.cast(this.resource, IBlueResource);
     if (resource) resource.KeepAlive();
-    const lowRes = CjsSchema.cast(this._lowResResource, CjsResource);
+    const lowRes = CjsSchema.cast(this._lowResResource, IBlueResource);
     if (lowRes) lowRes.KeepAlive();
   }
 

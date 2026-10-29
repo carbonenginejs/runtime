@@ -1,5 +1,6 @@
+import { blue } from "../../npm/dist/global/blue/index.js";
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 import { CjsBlueResMan, CjsMeshConstructor, MeshPrefix, RegisterMeshConstructor, TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/CjsGr2Format.js";
@@ -31,6 +32,7 @@ function sharedRoot()
 function managerServing(files)
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   resMan.Register({ source: { Read: path => path in files ? Promise.resolve(files[path]) : Promise.reject(new Error(`no ${path}`)) } });
   RegisterMeshConstructor(resMan);
   return resMan;
@@ -56,10 +58,10 @@ for (const [ label, path, bytes ] of [
   {
     const resMan = managerServing({ [path]: bytes() });
     const geometry = resMan.GetResource(`dynamic:/mesh/1/${path}`);
-    await geometry.Ready();
+    await resMan.Ready(geometry);
 
     assert.equal(geometry.IsGood(), true);
-    const meshes = geometry.GetPayload().meshes;
+    const meshes = geometry.GetCMFData().meshes;
     assert.deepEqual(meshes.map(mesh => mesh.name), [ "walkway" ]);
     assert.deepEqual(Array.from(meshes[0].bounds.min), [ 10, 0, 0 ]);
     assert.deepEqual(Array.from(meshes[0].bounds.max), [ 11, 1, 0 ]);
@@ -71,19 +73,16 @@ for (const [ label, path, bytes ] of [
 test("a malformed path, a missing source and an absent mesh fail the resource", async () =>
 {
   const resMan = managerServing({ "res:/x/walkway.gr2": CjsGr2Format.writeShared(sharedRoot()) });
-
   const malformed = resMan.GetResource("dynamic:/mesh/res:/x/walkway.gr2");
-  assert.equal(malformed.IsFailed(), true);
-  assert.equal(malformed.error.code, "CJS_GEOMETRY_DYNAMIC_PATH_INVALID");
-
-  const constructor = new CjsMeshConstructor(resMan);
-  const missing = new TriGeometryRes();
-  missing.Initialize("dynamic:/mesh/0/res:/x/missing.gr2", "");
-  assert.equal(await constructor.Load(missing, 0, "res:/x/missing.gr2"), false);
-  assert.equal(missing.IsFailed(), true);
-
-  const absent = new TriGeometryRes();
-  absent.Initialize("dynamic:/mesh/2/res:/x/walkway.gr2", "");
-  assert.equal(await constructor.Load(absent, 2, "res:/x/walkway.gr2"), false);
-  assert.ok(absent.error instanceof RangeError);
+  await assert.rejects(resMan.Ready(malformed), error => error.code === "CJS_GEOMETRY_DYNAMIC_PATH_INVALID");
+  assert.equal(malformed.IsPrepared(), true);
+  assert.equal(malformed.IsGood(), false);
+  const missing = resMan.GetResource("dynamic:/mesh/0/res:/x/missing.gr2");
+  await assert.rejects(resMan.Ready(missing), /no res:/);
+  const absent = resMan.GetResource("dynamic:/mesh/2/res:/x/walkway.gr2");
+  await assert.rejects(resMan.Ready(absent), RangeError);
 });
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previousManager; } });

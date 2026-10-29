@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 // Real captured light-missile graph, with explicitly labelled owner/placement
 // controls. CPU submission proves no GPU rendering or authored client recipe.
 import assert from "node:assert/strict";
@@ -473,8 +474,8 @@ async function realSvipulTarget(t)
     for (const item of catalog[kind]) files.set(`res:/dx9/model/spaceobjectfactory/${directory}/${item.name}.black`, item);
   }
   const geometry = new TriGeometryRes();
-  geometry.SetPayload(geometry.ReadGrannyFile(hull));
-  geometry.MarkPrepared();
+  geometry.ReadGrannyFile(hull);
+  prepareResourceFixture(geometry);
   assert.equal(managers.has(t), false, "the target installs the test's resource manager before the missile");
   const previous = blue.resMan;
   managers.set(t, new StubResMan(path => path.toLowerCase() === hullGeometryPath ? geometry : undefined));

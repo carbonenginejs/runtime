@@ -1,3 +1,4 @@
+import { blue as blueService } from "#blue/blue";
 // Not Carbon: our emulation of Incarna interiors as SOF data (operator,
 // 2026-10-25). Current Carbon has no renderer for a Tr2InteriorStatic's areas,
 // and EveSOF builds only from SOF data, so each piece becomes an EveSOF hull
@@ -248,7 +249,7 @@ export class CjsIncarnaEmulator
     const texture = resourceManager.GetResource(CjsIncarnaTextureConstructor.texturePath("glow", source));
     try
     {
-      await texture.Ready();
+      await blueService.resMan.Ready(texture);
     }
     catch
     {

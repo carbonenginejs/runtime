@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
@@ -112,7 +113,7 @@ function turretDrawFixture(t)
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL();
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();
   const set=new EveTurretSet(),geometry=new TriGeometryRes();
-  geometry.SetPayload({meshes:[{decl:[{usage:"Position",usageIndex:0,type:"Float32",elementCount:3,offset:0}],vertex:{position:[0,0,0,1,0,0,0,1,0]},indices:[{faces:[0,1,2]}],areas:[{firstElement:0,elementCount:1}]}]});geometry.MarkPrepared();
+  geometry.ReadCMFFile({meshes:[{decl:[{usage:"Position",usageIndex:0,type:"Float32",elementCount:3,offset:0}],vertex:{position:[0,0,0,1,0,0,0,1,0]},indices:[{faces:[0,1,2]}],areas:[{firstElement:0,elementCount:1}]}]});prepareResourceFixture(geometry);
   t.after(()=>{set.Destruct();SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);});
   return {set,geometry};
 }
@@ -282,7 +283,7 @@ test("EveSwarmRenderable emits ordinary batches and sorts transparent areas back
 
   // One triangle; area 1's box is centred at x = 1, area 2's at x = 10, so from the origin area 2 is the far one.
   const geometry = new TriGeometryRes();
-  geometry.SetPayload({ meshes: [ {
+  geometry.ReadCMFFile({ meshes: [ {
     decl: [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ],
     vertex: { position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ] },
     indices: [ { faces: [ 0, 1, 2 ] } ],
@@ -292,7 +293,7 @@ test("EveSwarmRenderable emits ordinary batches and sorts transparent areas back
       { firstElement: 0, elementCount: 1, bounds: { min: [ 10, 0, 0 ], max: [ 10, 0, 0 ] } }
     ]
   } ] });
-  geometry.MarkPrepared();
+  prepareResourceFixture(geometry);
 
   const area = (name, index) =>
   {

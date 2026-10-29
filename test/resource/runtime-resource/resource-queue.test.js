@@ -1,13 +1,20 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+
+import { test, beforeEach, afterEach } from "node:test";
+
 import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
+
 import { CjsBlueResMan } from "../../../npm/dist/global/blue/CjsBlueResMan.js";
-import { CjsResource } from "../../../npm/dist/global/blue/CjsResource.js";
+
+import { blue, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
+
 import { CjsResManQueue as RootCjsResManQueue } from "../../../npm/dist/resource/index.js";
+
 import {
   CjsResManQueue,
   CjsResManWorkQueue
 } from "../../../npm/dist/global/blue/CjsResManWorkQueue.js";
+
 import { LoadData } from "../../support/loadData.js";
 
 test("CjsResManWorkQueue preserves ids, pause state, and queued cancellation", async () => {
@@ -69,6 +76,7 @@ test("CjsResManWorkQueue limits concurrent background work", async () => {
 
 test("CjsBlueResMan exposes Blue-style queue controls", async () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  blue.resMan = resMan;
   const calls = [];
   const nextId = resMan.GetNextIdForQueue(CjsResManQueue.MAIN);
   const id = resMan.AddToQueue(CjsResManQueue.PREPARE, () => calls.push("prepared"));
@@ -84,92 +92,50 @@ test("CjsBlueResMan exposes Blue-style queue controls", async () => {
   assert.equal(resMan.GetPendingPrepares(), 0);
 });
 
-test("CjsBlueResMan queues source load, CPU read, and publication separately", async () => {
-  const calls = [];
-  const bytes = new Uint8Array([ 1, 2, 3 ]);
-  const resMan = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
-    maxConcurrentLoads: 1,
-    source: {
-      Read(path) {
-        calls.push([ "load", path ]);
-        return bytes;
-      }
-    }
-  });
-  resMan.RegisterObjectLoader("bin", (value, context) => {
-    calls.push([ context.stage, context.path ]);
-    return { bytes: value };
-  });
-
+test("native loading reads on BACKGROUND and prepares once on MAIN", async () =>
+{
+  const calls = [], bytes = new Uint8Array([1, 2, 3]);
+  const resMan = new CjsBlueResMan({autoPumpMainThreadQueue: false, maxConcurrentLoads: 1,
+    source: {Read(path) { calls.push(["load", path]); return bytes; }} });
+  blue.resMan = resMan;
+  resMan.RegisterObjectLoader("bin", (value, context) => { calls.push([context.stage, context.path]); return {bytes: value}; });
   const operation = LoadData(resMan, "res:/queue/example.bin");
   const resource = resMan.Lookup("res:/queue/example.bin");
-  assert.equal(resource.state, "requested");
-  assert.equal(resMan.GetPendingLoads(), 1);
-
+  assert.equal(resource.IsLoading(), true);
   resMan.PumpBackgroundQueue();
-  await FlushMicrotasks();
+  await WaitUntil(() => resMan.GetPendingPrepares() === 1);
   assert.equal(resMan.GetPendingLoads(), 0);
-  assert.equal(resMan.GetPendingPrepares(), 1);
-
-  for (const expectedStage of [ "read", "publish" ]) {
-    const pending = resMan.GetQueueStats(CjsResManQueue.MAIN);
-    assert.equal(pending.queued, 1, `${expectedStage} should be the sole queued stage`);
-    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
-    await FlushMicrotasks();
-  }
-
+  assert.equal(resource.IsPrepared(), false);
+  assert.equal(resMan.PumpMainThreadQueue({maxItems: 1, maxTime: 0}), true);
   const object = await operation;
   assert.equal(object.bytes, bytes);
-  assert.equal(resource.object, object);
-  assert.equal(resource.state, "prepared");
+  assert.equal(resMan.GetResourcePayload(resource), object);
+  assert.equal(resource.IsPrepared(), true);
   assert.equal(resMan.GetPendingPrepares(), 0);
-  assert.deepEqual(calls, [
-    [ "load", "res:/queue/example.bin" ],
-    [ "read", "res:/queue/example.bin" ]
-  ]);
+  assert.deepEqual(calls, [["load", "res:/queue/example.bin"], ["read", "res:/queue/example.bin"]]);
 });
 
-test("resource variants share one queued source-load slot", async () => {
+test("suffix-selected resources share source bytes while retaining their native load operations", async () =>
+{
   let reads = 0;
-  class TestQueueVariantFormat
+  class TestFormat
   {
-    static extensions = Object.freeze([ ".bin" ]);
-    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
-
-    static read(value, options)
-    {
-      return { emit: options.emit, value };
-    }
+    static outputs = {raw: {output: "raw"}, json: {output: "json"}};
+    static read(value, options) { return {emit: options.emit, value}; }
   }
-  const resMan = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
-    maxConcurrentLoads: 1,
-    source: {
-      Read() {
-        reads++;
-        return new Uint8Array([ 7 ]);
-      }
-    }
-  }).RegisterFormat(TestQueueVariantFormat);
-
-  const raw = LoadData(resMan, "res:/queue/shared.bin", { emit: "raw" });
-  const json = LoadData(resMan, "res:/queue/shared.bin", { emit: "json" });
-  assert.equal(resMan.GetPendingLoads(), 1);
-
-  resMan.PumpBackgroundQueue();
-  await FlushMicrotasks();
+  const resMan = new CjsBlueResMan({autoPumpMainThreadQueue: false, maxConcurrentLoads: 2,
+    source: {Read() { reads++; return new Uint8Array([7]); }} });
+  blue.resMan = resMan;
+  resMan.RegisterExtension("binraw", CjsLoadingObject, {Format: TestFormat, defaults: {emit: "raw"}});
+  resMan.RegisterExtension("binjson", CjsLoadingObject, {Format: TestFormat, defaults: {emit: "json"}});
+  const raw = LoadData(resMan, "res:/queue/shared.bin", {ex: "raw"});
+  const json = LoadData(resMan, "res:/queue/shared.bin", {ex: "json"});
+  assert.equal(resMan.GetPendingLoads(), 2);
+  await WaitUntil(() => resMan.GetPendingPrepares() === 2);
   assert.equal(reads, 1);
-  assert.equal(resMan.GetPendingPrepares(), 2);
-
-  for (let i = 0; i < 4; i++) {
-    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
-    await FlushMicrotasks();
-  }
-
+  resMan.PumpMainThreadQueue({maxItems: 2, maxTime: 0});
   assert.equal((await raw).emit, "raw");
   assert.equal((await json).emit, "json");
-  assert.equal(reads, 1);
 });
 
 test("Wait captures dynamic resource descendants and excludes later queue tasks", async () => {
@@ -180,6 +146,7 @@ test("Wait captures dynamic resource descendants and excludes later queue tasks"
     maxConcurrentLoads: 2,
     source: { Read() { return new Uint8Array([ 5 ]); } }
   });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
     releaseRead = () => resolve({ bytes });
   }));
@@ -210,6 +177,7 @@ test("Wait captures dynamic resource descendants and excludes later queue tasks"
 test("concurrent Wait calls preserve distinct task snapshot boundaries", async () => {
   const releases = [];
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  blue.resMan = resMan;
   const first = resMan.QueueTask(CjsResManQueue.MAIN, () =>
     new Promise(resolve => releases.push(resolve)));
   const firstFence = resMan.Wait({ pump: false });
@@ -236,6 +204,7 @@ test("concurrent Wait calls preserve distinct task snapshot boundaries", async (
 
 test("Wait treats captured queue failure and cancellation as settlement", async () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  blue.resMan = resMan;
   const failing = resMan.QueueTask(CjsResManQueue.MAIN, () => {
     throw new Error("expected wait failure");
   });
@@ -258,6 +227,7 @@ test("Wait resolves after a captured resource lineage fails", async () => {
     autoPumpMainThreadQueue: false,
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("bin", () => {
     throw new Error("expected resource-stage failure");
   });
@@ -267,7 +237,8 @@ test("Wait resolves after a captured resource lineage fails", async () => {
   const fence = resMan.Wait();
   await operationFailure;
   assert.equal(await fence, resMan);
-  assert.equal(resMan.Lookup("res:/queue/wait-failure.bin").IsFailed(), true);
+  assert.equal(resMan.Lookup("res:/queue/wait-failure.bin").IsPrepared(), true);
+  assert.equal(resMan.Lookup("res:/queue/wait-failure.bin").IsGood(), false);
 });
 
 test("Clear cancellation settles an already captured resource lineage", async () => {
@@ -275,55 +246,28 @@ test("Clear cancellation settles an already captured resource lineage", async ()
     autoPumpMainThreadQueue: false,
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
+  blue.resMan = resMan;
   resMan.PauseQueue(CjsResManQueue.BACKGROUND);
+  resMan.RegisterObjectLoader("bin", value => value);
   const operation = LoadData(resMan, "res:/queue/wait-clear.bin");
   const resource = resMan.Lookup("res:/queue/wait-clear.bin");
   const operationFailure = assert.rejects(
     operation,
-    error => error.code === "CJS_RESMAN_QUEUE_CANCELLED"
+    error => error.code === "CJS_RESOURCE_LOAD_CANCELLED"
   );
   const fence = resMan.Wait({ pump: false });
 
   resMan.Clear();
   await operationFailure;
   assert.equal(await fence, resMan);
-  assert.equal(resource.state, "requested");
-  assert.equal(resource.error, null);
-  assert.equal(resource.HasPayload(), false);
-});
-
-test("Wait excludes direct LoadResourceObject work that bypasses both queues", async () => {
-  let releaseSource;
-  let directSettled = false;
-  let reads = 0;
-  const resMan = new CjsBlueResMan({
-    source: {
-      Read()
-      {
-        // GetResource's own queued load reads first and completes; the direct
-        // load's read stays pending until released.
-        if (++reads === 1) return new Uint8Array([ 1 ]);
-        return new Promise(resolve => { releaseSource = resolve; });
-      }
-    }
-  });
-  resMan.RegisterObjectLoader("bin", bytes => bytes);
-  const resource = resMan.GetResource("res:/queue/direct-wait.bin");
-  await resource.Ready();
-  const direct = resMan.LoadResourceObject(resource).then(value => {
-    directSettled = true;
-    return value;
-  });
-
-  assert.equal(await resMan.Wait(), resMan);
-  await WaitUntil(() => typeof releaseSource === "function");
-  assert.equal(directSettled, false);
-  releaseSource(new Uint8Array([ 9 ]));
-  assert.deepEqual(await direct, new Uint8Array([ 9 ]));
+  assert.equal(resource.IsPrepared(), false);
+  assert.equal(resMan.GetResourceStatus(resource).error.code, "CJS_RESOURCE_LOAD_CANCELLED");
+  assert.equal(resMan.HasResourcePayload(resource), false);
 });
 
 test("Wait pump false relies on an external queue driver", async () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  blue.resMan = resMan;
   let ran = false;
   const task = resMan.QueueTask(CjsResManQueue.MAIN, () => { ran = true; });
   let waitSettled = false;
@@ -342,6 +286,7 @@ test("Wait pump false relies on an external queue driver", async () => {
 
 test("Wait does not resume a paused queue", async () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  blue.resMan = resMan;
   let ran = false;
   const task = resMan.QueueTask(CjsResManQueue.MAIN, () => { ran = true; });
   resMan.PauseQueue(CjsResManQueue.MAIN);
@@ -365,6 +310,7 @@ test("Wait does not resume a paused queue", async () => {
 test("Wait awaits every captured task under background concurrency", async () => {
   const releases = [];
   const resMan = new CjsBlueResMan({ maxConcurrentLoads: 2 });
+  blue.resMan = resMan;
   const first = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
     new Promise(resolve => releases.push(resolve)));
   const second = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
@@ -396,6 +342,7 @@ test("Clear during an active source read prevents late loading, preparation, and
       }
     }
   });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("bin", bytes => {
     loaderCalls += 1;
     return bytes;
@@ -405,8 +352,7 @@ test("Clear during an active source read prevents late loading, preparation, and
   const resource = resMan.Lookup("res:/queue/stale-clear.bin");
   const operationFailure = assert.rejects(
     operation,
-    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
-      && error.phase === "queue:loading"
+    error => error.code === "CJS_RESOURCE_LOAD_CANCELLED"
   );
   const fence = resMan.Wait({ pump: false });
 
@@ -418,20 +364,21 @@ test("Clear during an active source read prevents late loading, preparation, and
   await operationFailure;
   assert.equal(await fence, resMan);
   assert.equal(resMan.Lookup("res:/queue/stale-clear.bin"), null);
-  assert.equal(resource.state, "requested");
-  assert.equal(resource.error, null);
-  assert.equal(resource.HasPayload(), false);
+  assert.equal(resource.IsPrepared(), false);
+  assert.equal(resMan.GetResourceStatus(resource).error.code, "CJS_RESOURCE_LOAD_CANCELLED");
+  assert.equal(resMan.HasResourcePayload(resource), false);
   assert.equal(loaderCalls, 0);
   assert.equal(resMan.GetPendingPrepares(), 0);
 });
 
-test("Delete during an active asynchronous CPU read drops the candidate before publication", async () => {
+test("Delete during an active native reader cancels its late completion", async () => {
   let releaseRead;
-  let publishEvents = 0;
+  let rebuilds = 0;
   const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source: { Read() { return new Uint8Array([ 7 ]); } }
   });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
     releaseRead = () => resolve({ bytes });
   }));
@@ -439,16 +386,14 @@ test("Delete during an active asynchronous CPU read drops the candidate before p
   const path = "res:/queue/stale-prepare.bin";
   const operation = LoadData(resMan, path);
   const resource = resMan.Lookup(path);
-  resource.OnEvent?.("loaded", () => { publishEvents += 1; });
+  const target = {RebuildCachedData() { rebuilds++; }, ReleaseCachedData() {}};
+  resource.AddNotifyTarget(target);
   const operationFailure = assert.rejects(
     operation,
-    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
-      && error.phase === "queue-stage:read:settled"
+    error => error.code === "CJS_RESOURCE_LOAD_CANCELLED"
   );
 
   assert.equal(resMan.PumpBackgroundQueue(), true);
-  await WaitUntil(() => resMan.GetQueueStats(CjsResManQueue.MAIN).queued === 1);
-  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
   await WaitUntil(() => typeof releaseRead === "function");
 
   assert.equal(resMan.Delete(path), true);
@@ -456,392 +401,22 @@ test("Delete during an active asynchronous CPU read drops the candidate before p
   await operationFailure;
 
   assert.equal(resMan.Lookup(path), null);
-  assert.equal(resource.state, "loading");
-  assert.equal(resource.error, null);
-  assert.equal(resource.HasPayload(), false);
-  assert.equal(publishEvents, 0);
+  assert.equal(resource.IsPrepared(), false);
+  assert.equal(resMan.GetResourceStatus(resource).error.code, "CJS_RESOURCE_LOAD_CANCELLED");
+  assert.equal(resMan.HasResourcePayload(resource), false);
+  assert.equal(rebuilds, 0);
+  resource.RemoveNotifyTarget(target);
   assert.equal(resMan.GetPendingPrepares(), 0);
 });
 
-test("stale direct loads preserve their source rejection without marking the detached resource failed", async () => {
-  let rejectSource;
-  const expected = new Error("expected stale direct source failure");
-  const resMan = new CjsBlueResMan({
-    source: {
-      Read()
-      {
-        return new Promise((resolve, reject) => { rejectSource = reject; });
-      }
-    }
-  });
-  resMan.RegisterObjectLoader("bin", bytes => bytes);
-  const path = "res:/queue/stale-direct.bin";
-  const resource = resMan.GetResource(path);
-  const operation = resMan.LoadResourceObject(resource);
-  const operationFailure = assert.rejects(operation, error => error === expected);
-
-  await WaitUntil(() => typeof rejectSource === "function");
-  assert.equal(resMan.Delete(path), true);
-  rejectSource(expected);
-  await operationFailure;
-
-  assert.equal(resource.state, "loading");
-  assert.equal(resource.error, null);
-  assert.equal(resource.HasPayload(), false);
-});
-
-test("an atomic reload commits before an older canonical operation settles last", async () => {
-  const sourceReleases = [];
-  const resMan = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
-    maxConcurrentLoads: 2,
-    source: {
-      Read()
-      {
-        return new Promise(resolve => sourceReleases.push(resolve));
-      }
-    }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
-
-  const path = "res:/queue/reload-generation.json";
-  const oldOperation = LoadData(resMan, path);
-  const oldResource = resMan.Lookup(path);
-  const oldFailure = assert.rejects(
-    oldOperation,
-    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
-  );
-  const replacement = resMan.GetResource(path, { reload: true });
-  const replacementOperation = replacement.Ready();
-
-  assert.notEqual(replacement, oldResource);
-  assert.equal(resMan.Lookup(path), oldResource);
-  resMan.ResumeQueue(CjsResManQueue.BACKGROUND);
-  assert.equal(resMan.PumpBackgroundQueue(), true);
-  await WaitUntil(() => sourceReleases.length === 2);
-
-  sourceReleases[1]("{\"revision\":2}");
-  await WaitUntil(() => resMan.GetPendingPrepares() === 1);
-  for (let stage = 0; stage < 2; stage++)
-  {
-    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
-    await FlushMicrotasks();
-  }
-  assert.deepEqual(await replacementOperation, { revision: 2 });
-  assert.equal(resMan.Lookup(path), replacement);
-
-  sourceReleases[0]("{\"revision\":1}");
-  await oldFailure;
-  assert.equal(resMan.Lookup(path), replacement);
-  assert.deepEqual(replacement.GetPayload(), { revision: 2 });
-  assert.equal(replacement.state, "prepared");
-  assert.equal(oldResource.state, "requested");
-  assert.equal(oldResource.error, null);
-  assert.equal(oldResource.HasPayload(), false);
-});
-
-test("the newest concurrent reload candidate wins regardless of settlement order", async () => {
-  const sourceReleases = [];
-  let reads = 0;
-  const resMan = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
-    maxConcurrentLoads: 2,
-    source: {
-      Read()
-      {
-        // The first read loads the owner; the reloads' reads are held.
-        if (++reads === 1) return "{\"revision\":0}";
-        return new Promise(resolve => sourceReleases.push(resolve));
-      }
-    }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  const path = "res:/queue/newest-reload-wins.json";
-  const current = await LoadOwner(resMan, path);
-  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
-  const firstCandidate = resMan.GetResource(path, { reload: true });
-  let firstCandidateDestroyed = 0;
-  firstCandidate.SetAdapterResource("candidate", {
-    destroy() { firstCandidateDestroyed += 1; }
-  });
-  const firstOperation = firstCandidate.Ready();
-  const firstFailure = assert.rejects(
-    firstOperation,
-    error => error.code === "CJS_RESMAN_STALE_RELOAD_CANDIDATE"
-  );
-  const secondCandidate = resMan.GetResource(path, { reload: true });
-  const secondOperation = secondCandidate.Ready();
-
-  assert.equal(resMan.Lookup(path), current);
-  resMan.ResumeQueue(CjsResManQueue.BACKGROUND);
-  assert.equal(resMan.PumpBackgroundQueue(), true);
-  await WaitUntil(() => sourceReleases.length === 2);
-
-  sourceReleases[0]("{\"revision\":1}");
-  await firstFailure;
-  assert.equal(firstCandidateDestroyed, 1);
-  assert.equal(resMan.Lookup(path), current);
-  assert.deepEqual(current.GetPayload(), { revision: 0 });
-
-  sourceReleases[1]("{\"revision\":2}");
-  await WaitUntil(() => resMan.GetPendingPrepares() === 1);
-  for (let stage = 0; stage < 2; stage++)
-  {
-    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
-    await FlushMicrotasks();
-  }
-  assert.deepEqual(await secondOperation, { revision: 2 });
-  assert.equal(resMan.Lookup(path), secondCandidate);
-  assert.deepEqual(secondCandidate.GetPayload(), { revision: 2 });
-  assert.equal(current.HasPayload(), false);
-});
-
-test("deleting the expected owner during reload prevents candidate resurrection", async () => {
-  let releaseSource;
-  let reads = 0;
-  const resMan = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
-    source: {
-      Read()
-      {
-        // The first read loads the owner; the reload's read is held.
-        if (++reads === 1) return "{\"revision\":1}";
-        return new Promise(resolve => { releaseSource = resolve; });
-      }
-    }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  const path = "res:/queue/delete-during-reload.json";
-  const current = await LoadOwner(resMan, path);
-  const candidate = resMan.GetResource(path, { reload: true });
-  let candidateDestroyed = 0;
-  candidate.SetAdapterResource("candidate", {
-    destroy() { candidateDestroyed += 1; }
-  });
-  const operation = candidate.Ready();
-  const failure = assert.rejects(
-    operation,
-    error => error.code === "CJS_RESMAN_STALE_RELOAD_CANDIDATE"
-  );
-
-  assert.equal(resMan.PumpBackgroundQueue(), true);
-  await WaitUntil(() => typeof releaseSource === "function");
-  assert.equal(resMan.Delete(path), true);
-  releaseSource("{\"revision\":2}");
-  await failure;
-
-  assert.equal(resMan.Lookup(path), null);
-  assert.equal(candidateDestroyed, 1);
-  assert.equal(candidate.HasPayload(), false);
-});
-
-test("Wait and MotherLode replacement account for an active reload candidate", async () => {
-  let releaseSource;
-  let reads = 0;
-  const resMan = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
-    source: {
-      Read()
-      {
-        // The first read loads the owner; the reload's read is held.
-        if (++reads === 1) return "{\"revision\":1}";
-        return new Promise(resolve => { releaseSource = resolve; });
-      }
-    }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  const path = "res:/queue/wait-reload-candidate.json";
-  const current = await LoadOwner(resMan, path);
-  const candidate = resMan.GetResource(path, { reload: true });
-  const operation = candidate.Ready();
-  const wait = resMan.Wait({ pump: false });
-
-  assert.throws(
-    () => resMan.Register({ motherLode: new CjsMotherLode() }),
-    error => error.code === "CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS"
-  );
-  assert.equal(resMan.Lookup(path), current);
-  assert.equal(resMan.PumpBackgroundQueue(), true);
-  await WaitUntil(() => typeof releaseSource === "function");
-  releaseSource("{\"revision\":2}");
-  await WaitUntil(() => resMan.GetPendingPrepares() === 1);
-  for (let stage = 0; stage < 2; stage++)
-  {
-    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
-    await FlushMicrotasks();
-  }
-
-  assert.deepEqual(await operation, { revision: 2 });
-  await wait;
-  assert.equal(resMan.Lookup(path), candidate);
-  assert.equal(resMan.IsLoading(), false);
-});
-
-test("reinserting the same JavaScript resource handle does not reuse its obsolete object operation", async () => {
-  const sourceReleases = [];
-  const sharedResource = new CjsResource();
-  function SingletonResource()
-  {
-    return sharedResource;
-  }
-
-  const resMan = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
-    maxConcurrentLoads: 2,
-    source: {
-      Read()
-      {
-        return new Promise(resolve => sourceReleases.push(resolve));
-      }
-    }
-  });
-  resMan.RegisterResourceType("singleton", SingletonResource);
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
-
-  const path = "res:/queue/reinsert-generation.json";
-  const options = { requirement: "singleton", cacheSource: false };
-  const oldOperation = LoadData(resMan, path, options);
-  const oldFailure = assert.rejects(
-    oldOperation,
-    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
-  );
-  assert.equal(resMan.Delete(path, options), true);
-  const replacementOperation = LoadData(resMan, path, options);
-
-  assert.notEqual(replacementOperation, oldOperation);
-  assert.equal(resMan.Lookup(path, options), sharedResource);
-  resMan.ResumeQueue(CjsResManQueue.BACKGROUND);
-  assert.equal(resMan.PumpBackgroundQueue(), true);
-  await WaitUntil(() => sourceReleases.length === 2);
-
-  sourceReleases[1]("{\"revision\":2}");
-  await WaitUntil(() => resMan.GetQueueStats(CjsResManQueue.MAIN).queued === 1);
-  for (let stage = 0; stage < 2; stage++)
-  {
-    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
-    await FlushMicrotasks();
-  }
-  assert.deepEqual(await replacementOperation, { revision: 2 });
-
-  sourceReleases[0]("{\"revision\":1}");
-  await oldFailure;
-  assert.deepEqual(sharedResource.GetPayload(), { revision: 2 });
-  assert.equal(sharedResource.state, "prepared");
-  assert.equal(sharedResource.error, null);
-});
-
-test("MotherLode replacement rejects active queued and direct resource mutations", async () => {
-  const queuedManager = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
-    source: { Read() { return new Uint8Array([ 1 ]); } }
-  });
-  queuedManager.RegisterObjectLoader("bin", bytes => bytes);
-  queuedManager.PauseQueue(CjsResManQueue.BACKGROUND);
-  const queuedOperation = LoadData(queuedManager, "res:/queue/replace-owner.bin");
-  const queuedFailure = assert.rejects(
-    queuedOperation,
-    error => error.code === "CJS_RESMAN_QUEUE_CANCELLED"
-  );
-  const queuedFence = queuedManager.Wait({ pump: false });
-  const queuedOwner = queuedManager.motherLode;
-  const queuedReplacement = new CjsMotherLode();
-
-  assert.equal(queuedManager.Register({ motherLode: queuedOwner }), queuedManager);
-  assert.throws(
-    () => queuedManager.Register({ motherLode: queuedReplacement }),
-    error => error.code === "CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS"
-      && error.activeOperations === 1
-  );
-  assert.equal(queuedManager.motherLode, queuedOwner);
-  assert.equal(queuedOwner.IsStarted(), true);
-
-  queuedManager.Clear();
-  await queuedFailure;
-  assert.equal(await queuedFence, queuedManager);
-  assert.equal(queuedManager.Register({ motherLode: queuedReplacement }), queuedManager);
-  assert.equal(queuedManager.motherLode, queuedReplacement);
-
-  let releaseDirect;
-  let directReads = 0;
-  const directManager = new CjsBlueResMan({
-    source: {
-      Read()
-      {
-        // GetResource's own load reads first and completes; the direct load's
-        // read stays pending until released.
-        if (++directReads === 1) return new Uint8Array([ 1 ]);
-        return new Promise(resolve => { releaseDirect = resolve; });
-      }
-    }
-  });
-  directManager.RegisterObjectLoader("bin", bytes => bytes);
-  const directResource = directManager.GetResource("res:/queue/replace-direct-owner.bin");
-  await directResource.Ready();
-  const directOperation = directManager.LoadResourceObject(directResource);
-  const directOwner = directManager.motherLode;
-  const directReplacement = new CjsMotherLode();
-
-  assert.throws(
-    () => directManager.Register({ motherLode: directReplacement }),
-    error => error.code === "CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS"
-      && error.activeOperations === 1
-  );
-  assert.equal(directManager.motherLode, directOwner);
-  assert.equal(await directManager.Wait(), directManager);
-  await WaitUntil(() => typeof releaseDirect === "function");
-  releaseDirect(new Uint8Array([ 9 ]));
-  assert.deepEqual(await directOperation, new Uint8Array([ 9 ]));
-  assert.equal(directManager.Register({ motherLode: directReplacement }), directManager);
-  assert.equal(directManager.motherLode, directReplacement);
-});
-
-test("standalone direct preparation cannot publish after its canonical identity is deleted", async () => {
-  let releaseRead;
-  // GetResource requests the path; this source never answers, so that request
-  // stays pending and the test's own direct preparation is the one observed.
-  const resMan = new CjsBlueResMan({ source: { Read: () => new Promise(() => {}) } });
-  resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
-    releaseRead = () => resolve({ bytes });
-  }));
-  const path = "res:/queue/standalone-prepare.bin";
-  const resource = resMan.GetResource(path);
-  const operation = resMan.PrepareResourceObject(resource, new Uint8Array([ 4 ]));
-  const operationFailure = assert.rejects(
-    operation,
-    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
-      && error.phase === "prepare:read-settled"
-  );
-
-  await WaitUntil(() => typeof releaseRead === "function");
-  assert.equal(resMan.Delete(path), true);
-  releaseRead();
-  await operationFailure;
-
-  // The stale direct preparation published nothing. The state is the
-  // manager's own request from GetResource, still pending on a silent source.
-  assert.equal(resource.state, "requested");
-  assert.equal(resource.error, null);
-  assert.equal(resource.HasPayload(), false);
-});
-
-/**
- * Loads a path's first owner through the manager, as a scene would:
- * GetResource requests it, and pumping the queues lets that request finish
- * where a test has turned automatic pumping off.
- */
 async function LoadOwner(resMan, path) {
   const resource = resMan.GetResource(path);
-  for (let pass = 0; pass < 100 && !resource.HasPayload(); pass++) {
+  for (let pass = 0; pass < 100 && !resMan.HasResourcePayload(resource); pass++) {
     resMan.PumpBackgroundQueue();
     resMan.PumpMainThreadQueue();
     await FlushMicrotasks();
   }
-  assert.equal(resource.HasPayload(), true, `${path} loaded`);
+  assert.equal(resMan.HasResourcePayload(resource), true, `${path} loaded`);
   return resource;
 }
 
@@ -872,6 +447,7 @@ test("resources created in urgent mode load and prepare ahead of regular ones (B
       }
     }
   });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("bin", value => ({ bytes: value }));
 
   const regular = [ LoadData(resMan, "res:/urgent/a.bin"), LoadData(resMan, "res:/urgent/b.bin") ];
@@ -879,8 +455,8 @@ test("resources created in urgent mode load and prepare ahead of regular ones (B
   const urgent = LoadData(resMan, "res:/urgent/c.bin");
   resMan.SetUrgentResourceLoads(false);
 
-  assert.equal(resMan.Lookup("res:/urgent/a.bin").isUrgent, false);
-  assert.equal(resMan.Lookup("res:/urgent/c.bin").isUrgent, true);
+  assert.equal(resMan.Lookup("res:/urgent/a.bin")._isUrgent, false);
+  assert.equal(resMan.Lookup("res:/urgent/c.bin")._isUrgent, true);
 
   // WaitUrgent fences the urgent work only: it settles once c has loaded and
   // prepared, with a and b still to go.
@@ -895,8 +471,8 @@ test("resources created in urgent mode load and prepare ahead of regular ones (B
   }
 
   assert.equal(loads[0], "res:/urgent/c.bin", "the urgent load ran first");
-  assert.equal(resMan.Lookup("res:/urgent/c.bin").state, "prepared");
-  assert.notEqual(resMan.Lookup("res:/urgent/b.bin").state, "prepared");
+  assert.equal(resMan.Lookup("res:/urgent/c.bin").IsPrepared(), true);
+  assert.equal(resMan.Lookup("res:/urgent/b.bin").IsPrepared(), false);
 
   await resMan.Wait();
   await Promise.all([ ...regular, urgent ]);
@@ -905,6 +481,7 @@ test("resources created in urgent mode load and prepare ahead of regular ones (B
 
 test("a background queue drains on its own: a finished task starts the next without a tick", async () => {
   const resMan = new CjsBlueResMan({ maxConcurrentLoads: 1 });
+  blue.resMan = resMan;
   const order = [];
   const first = resMan.QueueTask("background", async () => { await null; order.push("first"); return 1; });
   const second = resMan.QueueTask("background", async () => { order.push("second"); return 2; });
@@ -914,11 +491,12 @@ test("a background queue drains on its own: a finished task starts the next with
 
 test("a reload reads the urgent mode again, and WaitUrgent waits for it (BlueAsyncRes.cpp:363-367, 220)", async () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false, source: { Read() { return new Uint8Array([ 1 ]); } } });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("bin", value => ({ bytes: value }));
   const first = LoadData(resMan, "res:/urgent/reloaded.bin");
   await resMan.Wait();
   await first;
-  assert.equal(resMan.Lookup("res:/urgent/reloaded.bin").isUrgent, false);
+  assert.equal(resMan.Lookup("res:/urgent/reloaded.bin")._isUrgent, false);
 
   resMan.SetUrgentResourceLoads(true);
   const reload = resMan.ReloadResource("res:/urgent/reloaded.bin");
@@ -935,11 +513,12 @@ test("a reload reads the urgent mode again, and WaitUrgent waits for it (BlueAsy
     await FlushMicrotasks();
   }
   await reload;
-  assert.equal(resMan.Lookup("res:/urgent/reloaded.bin").isUrgent, true);
+  assert.equal(resMan.Lookup("res:/urgent/reloaded.bin")._isUrgent, true);
 });
 
 test("urgent mode keeps the per-tick prepare budget (BlueResMan.cpp:446-465)", () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  blue.resMan = resMan;
   const ran = [];
   for (const name of [ "a", "b", "c" ]) resMan.QueueTask("main", () => { ran.push(name); });
   resMan.SetUrgentResourceLoads(true);
@@ -947,3 +526,6 @@ test("urgent mode keeps the per-tick prepare budget (BlueResMan.cpp:446-465)", (
   assert.deepEqual(ran, [ "a" ]);
   resMan.SetUrgentResourceLoads(false);
 });
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previousManager; } });

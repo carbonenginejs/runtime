@@ -1,3 +1,4 @@
+import { prepareResourceFixture, resourceIdentityFixture } from "../support/resourceFixtures.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import test from "node:test";
@@ -33,7 +34,10 @@ function profileBitmap(peak = 500)
 /** A loaded profile: Carbon registers it with the array only once prepared (Tr2LightProfileRes.cpp:95-99). */
 function profileResource(payload = bakedProfilePayload())
 {
-    return new Tr2LightProfileRes().Initialize("res:/lights/test.ies").SetPayload(payload).MarkPrepared();
+    const resource = resourceIdentityFixture(new Tr2LightProfileRes(), "res:/lights/test.ies");
+    resource.bitmap = Tr2LightProfileRes.bitmapFromBake(payload);
+    resource._DoPrepare();
+    return prepareResourceFixture(resource);
 }
 
 function lightWith(profile)
@@ -140,7 +144,7 @@ test("unloading a profile releases its slice for reuse", () =>
     const index = resource.GetTextureIndex();
     assert.equal(array.GetElementCount(), before + 1);
 
-    resource.SetPayload(null);
+    resource.Shutdown();
     assert.equal(resource.GetTextureIndex(), -1, "unload releases the slice");
     assert.equal(array.GetElementCount(), before + 1, "the released slot is still counted (cpp:91-94)");
     assert.equal(array.GetElement(index), null, "but it holds nothing");
@@ -151,7 +155,7 @@ test("unloading a profile releases its slice for reuse", () =>
     manager.AddLight(lightWith(next));
     manager.ResolveLightData();
     assert.equal(next.GetTextureIndex(), index, "released slice reused");
-    next.SetPayload(null);
+    next.Shutdown();
 });
 
 test("the element handle class is exported for AL-side consumers", () =>

@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { existsSync } from "node:fs";
@@ -17,7 +18,7 @@ function geometry()
     return {maxScreenSize,areas:[{}],vertexAllocation,indexAllocation};
   });
   const resource = new TriGeometryRes();
-  resource.SetPayload({meshes:[{lods}]}).MarkPrepared();
+  resource.ReadCMFFile({meshes:[{lods}]}); prepareResourceFixture(resource);
   return {resource,lods};
 }
 
@@ -69,7 +70,7 @@ test("a geometry that becomes ready retries LOD selection with unchanged screen 
   mesh.UpdateRtMesh(resource,0,5);
   assert.equal(mesh.lodIndex,-1);
   mesh.GetAndResetDirtyFlag();
-  resource.SetPayload({meshes:[{areas:[{}],maxScreenSize:10}]}).MarkPrepared();
+  resource.ReadCMFFile({meshes:[{areas:[{}],maxScreenSize:10}]}); prepareResourceFixture(resource);
   mesh.UpdateRtMesh(resource,0,5);
   assert.equal(mesh.lodIndex,0);
   assert.equal(mesh.GetAndResetDirtyFlag(),true);

@@ -125,7 +125,7 @@ export class Tr2StaticEmitter extends IRoot
       return;
     }
 
-    const mesh = geometry.GetPayload().meshes[this.meshIndex];
+    const mesh = geometry.GetCMFData().meshes[this.meshIndex];
     const mappings = Tr2StaticEmitter.CreateDeclarationMap(mesh, system.GetElementDeclaration(), this.geometryResourcePath);
     if (!mappings) return;
 

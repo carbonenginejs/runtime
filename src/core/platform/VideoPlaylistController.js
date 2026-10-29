@@ -217,7 +217,7 @@ export function RegisterVideoPlaylists(resourceManager, playlists, { random = ca
     {
       if (previous)
       {
-        if (previous._texture) previous._texture.ReleasePayload();
+        if (previous._texture) previous._texture.Shutdown();
         else previous.Destruct();
       }
       registered.delete(key);

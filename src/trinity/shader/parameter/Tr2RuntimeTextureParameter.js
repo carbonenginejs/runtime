@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.cpp
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
-import { IsMatch, INotify, CjsResource } from "#blue";
+import { IsMatch, INotify, IBlueResource } from "#blue";
 import { CjsSchema, meta, type } from "#schema";
 import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
@@ -142,7 +142,11 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
     return resourceDesc.SetSrv__TextureAL(stage, registerIndex, this._Texture(renderContext), colorSpace);
   }
 
-  /** The provider's texture, realized through the context if it is a resource that has loaded but not yet been created; null otherwise. */
+  /**
+   * The provider's texture, realized through the context if it is a resource that has loaded but not yet been created; null otherwise.
+   * @param {object|null} renderContext Context used for deferred device realization.
+   * @returns {object|null} Native AL texture or null until available.
+   */
   _Texture(renderContext)
   {
     const provider = this.texture;
@@ -152,7 +156,7 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
     const texture = provider.GetTexture();
     // Only a cached resource can be realized; Carbon's BlueCastPtr to a
     // resource, as in KeepAlive below.
-    const resource = CjsSchema.cast(provider, CjsResource);
+    const resource = CjsSchema.cast(provider, IBlueResource);
 
     if (texture || !renderContext || !resource) return texture;
 
@@ -249,7 +253,7 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
     @meta.adapted
   KeepAlive()
   {
-    const resource = CjsSchema.cast(this.texture, CjsResource);
+    const resource = CjsSchema.cast(this.texture, IBlueResource);
     if (resource) resource.KeepAlive();
   }
 
@@ -276,3 +280,5 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
 }
 
 // Exact identities from Tr2RuntimeTextureParameter_Blue.cpp; no exposure chain.
+
+CjsSchema.decorateMethod(Tr2RuntimeTextureParameter, "_Texture", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

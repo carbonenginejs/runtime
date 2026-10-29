@@ -1,3 +1,4 @@
+import { prepareResourceFixture, pendingResourceFixture } from "../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -18,14 +19,11 @@ function CreateGeometry(names, baked = names.map(() => false), { loading = false
   // fence waits on it. Already prepared unless the caller asks for one still
   // loading, which it finishes later with MarkPrepared().
   const resource = new TriGeometryRes();
-  if (loading) resource.MarkLoading();
-  else resource.MarkPrepared();
+  if (loading) pendingResourceFixture(resource);
+  else prepareResourceFixture(resource);
   return Object.assign(resource, {
     lod,
-    GetPayload()
-    {
-      return { meshes: [ { lods: [ lod ] } ] };
-    },
+    _cmfData: { meshes: [ { lods: [ lod ] } ] },
     GetBoundingBox(_meshIndex, outMin = null, outMax = null)
     {
       const min = [ -1, -1, -1 ];
@@ -225,7 +223,7 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
     // The authored resource finishing notifies its targets, which retires the
     // stand-in (cpp:192-195).
     assert.ok(mesh.geometry === authored && authored.IsLoading(), "the authored load is bound and still pending");
-    authored.MarkPrepared();
+    prepareResourceFixture(authored);
     assert.ok(mesh.lowResGeometry === null, "the stand-in outlived the authored mesh");
 
     // Negative control: when the authored file IS here, no

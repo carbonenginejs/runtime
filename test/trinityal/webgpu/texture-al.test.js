@@ -1,3 +1,4 @@
+import { prepareResourceFixture, resourceIdentityFixture } from "../../support/resourceFixtures.js";
 import { configureResourceManager } from "../../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -470,14 +471,14 @@ test("cache eviction reaches WebGPU AL Destroy on every texture reload without a
   // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
   const motherLode = new CjsMotherLode({ now: () => 0, cacheSize: 0 });
   const resource = new TriTextureRes();
-  resource.Initialize("res:/synthetic/evict.dds");
+  resourceIdentityFixture(resource, "res:/synthetic/evict.dds");
 
   for (let cycle = 0; cycle < 8; cycle += 1)
   {
     const bitmap = new HostBitmap();
     assert.equal(bitmap.Create(2, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), true);
     assert.equal(resource.CreateFromHostBitmap(bitmap), true);
-    resource.MarkPrepared();
+    prepareResourceFixture(resource);
     const texture = RealizeTexture(resource, al);
     assert.equal(texture.IsValid(), true);
     calls.destroyed = false;

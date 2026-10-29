@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { classDonorComments } from "../../scripts/lib/carbon-donor-comments.js";
 import assert from "node:assert/strict";
@@ -9,10 +10,11 @@ import { CjsLibrary } from "../../npm/dist/core/CjsLibrary.js";
 import { CjsWwiseSoundEngineStub } from "../../npm/dist/global/audio/CjsWwiseSoundEngineStub.js";
 import { AudGameObjResource } from "../../npm/dist/audio/trinity/audio/AudGameObjResource.js";
 
-test("CjsBlue owns inert defaults with comment donors and shared registries", () =>
+test("Blue composition owns the resource manager and the holder keeps inert shared registries", () =>
 {
   const value = new CjsBlue();
-  assert.equal(value.resMan.constructor, CjsBlueResMan);
+  assert.equal(value.resMan, null);
+  assert.equal(blue.resMan.constructor, CjsBlueResMan);
   assert.equal(value.classes.constructor, CjsBlueClasses);
   assert.equal(value.paths.constructor, CjsBluePaths);
   assert.equal(value.os.constructor, CjsBlueOS);
@@ -22,8 +24,8 @@ test("CjsBlue owns inert defaults with comment donors and shared registries", ()
   assert.equal(value.audio._initialized, false);
   assert.equal(value.os.IsRegisteredForTicks(value.resMan), false);
   assert.equal(value.os.GetInfo().pumpTicksTotal, 0);
-  assert.equal(value.resMan.workerLoader.worker, null);
-  assert.equal(value.resMan.GetPendingLoads(), 0);
+  assert.equal(blue.resMan.workerLoader.worker, null);
+  assert.equal(blue.resMan.GetPendingLoads(), 0);
   for (const [Class, name, donor] of [[CjsBlueResMan, "CjsBlueResMan", "BlueResMan"], [CjsBlueClasses, "CjsBlueClasses", "BlueClasses"]])
   {
     assert.equal(CjsSchema.getClassName(Class), name);
@@ -175,3 +177,17 @@ test("provider hook reentry shares startup and preserves the active-root claim",
   await second.Initialize({sof});
   await second.Shutdown();
 });
+
+for (const entry of ["CjsBlueResMan", "CjsLoadingObject", "BlueAsyncRes", "CjsMotherLode", "CjsBlueClasses", "getResources", "blue"])
+{
+  test(`native ESM accepts resource entry order: ${entry}`, () =>
+  {
+    const first = new URL(`../../src/global/blue/${entry}.js`, import.meta.url).href;
+    const holder = new URL("../../src/global/blue/index.js", import.meta.url).href;
+    const program = `import ${JSON.stringify(first)};
+import { blue } from ${JSON.stringify(holder)};
+if (!blue.resMan || blue.resMan.GetPendingLoads() !== 0) throw new Error("inert manager missing");`;
+    const child = spawnSync(process.execPath, ["--input-type=module", "--eval", program], { encoding: "utf8", timeout: 10000, windowsHide: true });
+    assert.equal(child.status, 0, child.stderr || child.error?.message);
+  });
+}

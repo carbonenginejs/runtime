@@ -1,5 +1,6 @@
+import { blue } from "../../npm/dist/global/blue/index.js";
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 import { readFileSync } from "node:fs";
 import { CjsFormat } from "../../src/resource/format/CjsFormat.js";
 import { StreamType } from "../../src/global/consts/media/metadata.js";
@@ -9,7 +10,7 @@ import { CjsMp4Format } from "../../src/resource/formats/mp4/CjsMp4Format.js";
 import { CjsWebmFormat } from "../../src/resource/formats/webm/CjsWebmFormat.js";
 import { CjsOggFormat } from "../../src/resource/formats/ogg/CjsOggFormat.js";
 import { CjsWavFormat } from "../../src/resource/formats/wav/CjsWavFormat.js";
-import { CjsResource } from "../../npm/dist/global/blue/CjsResource.js";
+import { CjsLoadingObject } from "../../npm/dist/global/blue/CjsLoadingObject.js";
 import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
 
 const { STREAM_AUDIO, STREAM_VIDEO, STREAM_AUDIO_VIDEO } = StreamType;
@@ -63,25 +64,26 @@ class BothFormat extends AudioFormat {
   static outputs = CjsFormat.defineOutputs({ packet: { default: true, outputStreams: STREAM_AUDIO_VIDEO } });
 }
 
-test("ResMan selects declared stream flags and separates cached outcomes", async () => {
+test("format routing selects declared stream flags while resource identity stays path plus ex", async () => {
   const manager = new CjsBlueResMan({ source: { Read: () => new Uint8Array([1]) } });
+  blue.resMan = manager;
   for (const Format of [AudioFormat, VideoFormat, BothFormat]) manager.RegisterFormat(Format);
-  manager.RegisterExtension("streams", CjsResource, { Formats: [AudioFormat, VideoFormat, BothFormat] });
+  manager.RegisterExtension("streams", CjsLoadingObject, { Formats: [AudioFormat, VideoFormat, BothFormat] });
   for (const [outputStreams, format] of [[STREAM_AUDIO,"AudioFormat"],[STREAM_VIDEO,"VideoFormat"],[STREAM_AUDIO_VIDEO,"BothFormat"]]) {
-    const resource = manager.GetResource("res:/sample.streams", { outputStreams });
-    await resource.Ready();
-    const result = resource.GetPayload();
+    const resource = manager.GetResource(`res:/sample-${outputStreams}.streams`, { outputStreams });
+    await manager.Ready(resource);
+    const result = manager.GetResourcePayload(resource);
     assert.equal(result.format, format);
     assert.equal(result.outputStreams, undefined, "routing flags do not leak into decoder options");
   }
   const resource = manager.GetResource("res:/sample.streams", { formatOptions: { outputStreams: STREAM_VIDEO } });
-  await resource.Ready();
-  const video = resource.GetPayload();
+  await manager.Ready(resource);
+  const video = manager.GetResourcePayload(resource);
   assert.equal(video.format, "VideoFormat", "nested stream request uses the same Carbon flags");
   assert.throws(() => manager.ResolveFormatDescriptor("streams", { emit: "inspect", outputStreams: STREAM_VIDEO }), /output|format/i);
-  assert.throws(() => manager.GetResourceVariant({ outputStreams: 4 }), /StreamType/);
-  assert.equal(manager.GetResourceVariant({ outputStreams: STREAM_VIDEO, variant: "pinned" }), "pinned");
-  assert.notEqual(manager.GetResourceVariant({outputStreams:STREAM_AUDIO}), manager.GetResourceVariant({outputStreams:STREAM_VIDEO}));
+  assert.throws(() => manager.ResolveFormatDescriptor("streams", { outputStreams: 4 }), /StreamType/);
+  assert.equal(manager.GetResourceVariant({ outputStreams: STREAM_VIDEO, variant: "pinned" }), "");
+  assert.equal(manager.GetResourceVariant({outputStreams:STREAM_AUDIO}), manager.GetResourceVariant({outputStreams:STREAM_VIDEO}));
   manager.Clear();
 });
 
@@ -89,23 +91,28 @@ test("ResMan consumes stream requests before real Ogg probes and decoders", asyn
   const bytes = readFileSync(new URL("./runtime-resource/fixtures/ogg/sine-440.ogg", import.meta.url));
   for (const ordered of [false, true]) {
     const manager = new CjsBlueResMan({ source: { Read: () => bytes } });
+  blue.resMan = manager;
     manager.RegisterFormat(CjsOggFormat);
-    if (ordered) manager.RegisterExtension("ogg", CjsResource, { Formats: [CjsOggFormat] });
+    if (ordered) manager.RegisterExtension("ogg", CjsLoadingObject, { Formats: [CjsOggFormat] });
     try {
       for (const request of [{ outputStreams: STREAM_AUDIO }, { formatOptions: { outputStreams: STREAM_AUDIO } }]) {
         const resource = manager.GetResource(`res:/fixture-${Object.keys(request)[0]}.ogg`, { ...request, emit: "raw" });
-        await resource.Ready();
-        const payload = resource.GetPayload();
+        await manager.Ready(resource);
+        const payload = manager.GetResourcePayload(resource);
         assert.equal(payload.mimeType, "audio/ogg");
         assert.equal(payload.metadata.outputStreams, STREAM_AUDIO);
         assert.equal(payload.metadata.tracks[0].streamType, STREAM_AUDIO);
       }
       const pcm = manager.GetResource("res:/fixture-pcm.ogg", { emit: "pcm", outputStreams: STREAM_AUDIO });
-      await pcm.Ready();
-      assert.ok(pcm.GetPayload().data.length > 0);
+      await manager.Ready(pcm);
+      assert.ok(manager.GetResourcePayload(pcm).data.length > 0);
       assert.throws(() => manager.ResolveFormatDescriptor("ogg", { emit: "pcm", outputStreams: STREAM_VIDEO }), /output|format/i);
     } finally {
       manager.Clear();
     }
   }
 });
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previousManager; } });

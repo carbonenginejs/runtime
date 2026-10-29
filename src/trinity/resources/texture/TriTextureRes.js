@@ -1,3 +1,6 @@
+import { GradientPrefix, RasterizeGradient } from "../procedural/gradientTexture.js";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
+import { blue as blueService } from "#blue/blue";
 import { CjsGifFormat } from "../../../resource/formats/gif/CjsGifFormat.js";
 import { CjsBmpFormat } from "../../../resource/formats/bmp/CjsBmpFormat.js";
 import { CjsTgaFormat } from "../../../resource/formats/tga/CjsTgaFormat.js";
@@ -20,9 +23,8 @@ import { exposure as be } from "#be";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
-import { CjsResource, ICacheable } from "#blue";
+import { BlueAsyncRes, ICacheable } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "../procedural/solidColorTexture.js";
-import { ResourceRequirement } from "#blue";
 import { Tr2Event } from "#trinity/core/Tr2Event";
 import {
   resourceBoundaryError,
@@ -45,7 +47,7 @@ const DDS_BITMAP_DESCRIPTOR = { Format: CjsDdsFormat, defaults: { emit: "bitmap"
  * RETAINS the one Trinity makes for it, as Carbon's does
  * (`m_texture`), so every parameter sharing the resource binds one texture.
  */
-export class TriTextureRes extends CjsResource
+export class TriTextureRes extends BlueAsyncRes
 {
   /** Carbon: BLUE_REGISTER_RESOURCE_EXTENSION (trinity/trinity/Resources/TriTextureRes.cpp:46-55). */
   static extensions = ["dds", "png", "sdd", "tga", "jpg", "jpeg", "bmp", "ecs", "ctr", "vta"];
@@ -244,51 +246,49 @@ export class TriTextureRes extends CjsResource
 
 
   /**
-   * Carbon's Initialize, with its procedural branch (TriTextureRes.cpp:223-236):
-   * a `dynamic:/color/` path is rasterized here rather than loaded from source.
-   * The `dynamic:/gradient_1d/` branch Carbon checks first is rasterized by
-   * trinity's GradientTextureConstructor instead: a gradient needs Tr2CurveScalar,
-   * which this layer may not import.
-   *
-   * Adapted: Carbon rasterizes a procedural path into a half-float HostBitmap and creates
-   * the GPU texture inside Initialize; this resource cannot reach a render context, so it
-   * publishes the half-float-quantized colour as an rgba32float payload. Trinity
-   * rasterizes gradient_1d paths through GradientTextureConstructor.
-   *
+   * Carbon Initialize (TriTextureRes.cpp:223-236): procedural colors are built
+   * directly; other paths use BlueAsyncRes. GPU creation is deferred in JS.
    * @param {string} path Resource path.
-   * @param {string|null} [ext=""] Carbon request suffix, independent of the file extension.
-   * @param {string} [requirement] Semantic requirement.
+   * @param {string} [ext=""] Native factory suffix.
    * @returns {TriTextureRes} This resource.
    */
-  Initialize(path, ext = "", requirement = "") {
-    super.Initialize(path, ext, requirement);
-    if (IsSolidColorTexturePath(this.path)) this._RasterizeProceduralTexture(RasterizeSolidColor);
+  Initialize(path, ext = "")
+  {
+    if (IsSolidColorTexturePath(path) || path.startsWith(GradientPrefix))
+    {
+      this._path = path;
+      this._ext = ext;
+      this._RasterizeProceduralTexture(path.startsWith(GradientPrefix) ? RasterizeGradient : RasterizeSolidColor);
+    }
+    else if (this._pipeline)
+    {
+      this._path = path;
+      this._ext = ext;
+      this.LoadPipeline(this._pipeline, blueService.resMan, this._pipelineEx);
+    }
+    else super.Initialize(path, ext);
     return this;
   }
 
   /**
-   * `RasterizeProceduralTexture` (TriTextureRes.cpp:181-212). Carbon creates the
-   * GPU texture from the bitmap here; this layer cannot reach a render context,
-   * so it publishes the bitmap as the payload and Trinity makes the texture at
-   * first bind, as it does for every other texture.
-   *
-   * @param {Function} rasterize `(path) => HostBitmap | null`.
+   * Carbon procedural rasterization, with deferred browser GPU allocation.
+   * @param {(path: string) => HostBitmap|null} rasterize Existing procedural path decoder.
    * @returns {void}
    */
-  _RasterizeProceduralTexture(rasterize) {
-    this.MarkLoading();
-    const bitmap = rasterize(this.path);
-    if (!bitmap) {
-      // Carbon: "Failed to parse dynamic:/color/%s texture path", and the
-      // texture is never prepared.
-      const error = new Error(`Failed to parse ${this.path} texture path`);
+  _RasterizeProceduralTexture(rasterize)
+  {
+    blueService.resMan._StartResourceLoad(this);
+    const bitmap = rasterize(this.GetPath());
+    if (!bitmap)
+    {
+      const error = new Error("Failed to parse " + this.GetPath() + " texture path");
       error.code = "CJS_TEXTURE_PROCEDURAL_PATH_INVALID";
-      error.path = this.path;
-      this.SetError(error);
+      blueService.resMan._FailResourceLoad(this, error);
       return;
     }
-    this.SetPayload(bitmap);
-    this.MarkPrepared();
+    this.CreateFromHostBitmap(bitmap);
+    blueService.resMan._FinishResourceLoad(this);
+    this._NotifyRebuildCachedData();
   }
 
   /**
@@ -364,61 +364,24 @@ export class TriTextureRes extends CjsResource
     return this._onTextureChange;
   }
 
-  /**
-   * Changes state, and fires m_onTextureChange when the resource becomes prepared.
-   *
-   * Adapted: Carbon fires it from DoPrepare, whose SetTexture creates the texture
-   * (`TriTextureRes.cpp:662-705`). Ours is created at first bind
-   * (Tr2ImageIOHelpers.RealizeTexture), so the event fires when the resource
-   * becomes ready to make it.
-   *
-   * @param {string} state The new state.
-   * @param {...*} details State details, passed on.
-   * @returns {TriTextureRes} This resource.
-   */
-  SetState(state, ...details) {
-    const wasPrepared = this.IsPrepared();
-    super.SetState(state, ...details);
-    if (!wasPrepared && this.IsPrepared()) this._onTextureChange.Broadcast();
-    return this;
-  }
 
   /**
-   * Build this texture from a texture pipeline: Carbon's `.ctr` route
-   * (`TriTextureRes.cpp:238-258` then `ResourcePrepFinished`, `:296-340`).
-   *
-   * By default every path the pipeline names is a raw `Tr2ImageRes` (Carbon asks
-   * with the `"raw"` suffix), the
-   * pipeline runs once they have all settled, and the result becomes this
-   * texture's bitmap. An input that failed to load reaches the pipeline as
-   * null, exactly as Carbon passes it, so the step that needed it fails.
-   *
-   * adapted: Carbon reads the pipeline from a `.ctr` file with
-   * `BeResMan->LoadObject` and waits on a fence. No shipped build contains a
-   * `.ctr` (checked across 45 resfileindexes, 2026-09-24), so the pipeline is
-   * handed in - built in memory by the `dynamic:/` constructors that use this
-   * route - and the fence is a promise. The manager is passed because the
-   * resource layer has no global `BeResMan`.
-   *
-   * quirk: Carbon marks the resource good even when the pipeline fails
-   * (`m_isGood = true` after the branch, `:337`), so the texture is simply
-   * absent and the parameter binds its fallback. Reproduced: the resource is
-   * prepared either way, with no bitmap when the pipeline failed.
-   *
-   * Adapted: Carbon's .ctr branch reads the pipeline from a file through the global BeResMan
-   * and waits on a fence; no shipped build has a .ctr, so the pipeline is handed in, the
-   * manager passed, and the fence is a promise.
-   *
-   * @param {import("../../texturePipeline/Tr2TexturePipeline.js").Tr2TexturePipeline} pipeline The recipe.
-   * @param {object} resourceManager The `CjsBlueResMan` that loads its inputs.
-   * @param {string} [ex="raw"] Carbon resource suffix. The
-   * WebGPU detail-array extension uses the empty suffix to reuse its named parameters'
-   * already decoded bitmaps; Carbon's raw-image pipeline remains the default.
-   * @returns {Promise<boolean>} Whether the pipeline produced a bitmap.
+   * Carbon's pipeline completion, adapted to await browser inputs. Preserve the
+   * native quirk: a failed Execute still prepares a good, empty texture.
+   * @param {Tr2TexturePipeline} pipeline Recipe supplied by a dynamic constructor.
+   * @param {CjsBlueResMan} resourceManager Global manager used by existing callers.
+   * @param {string} [ex="raw"] Input image factory suffix.
+   * @returns {Promise<boolean>} Whether execution produced a bitmap.
    */
   async LoadPipeline(pipeline, resourceManager, ex = "raw") {
-    this.MarkLoading();
+    this._pipeline = pipeline;
+    this._pipelineEx = ex;
+    this._isLoading = true;
+    this._isGood = this._isPrepared = false;
+    const attempt = blueService.resMan._StartResourceLoad(this);
 
+    try
+    {
     const images = new Map();
 
     for (const path of pipeline.GetResourceDependencies()) {
@@ -426,7 +389,7 @@ export class TriTextureRes extends CjsResource
     }
 
     // Carbon's m_pipelineFence: wait for every input, whatever became of it.
-    await Promise.allSettled([ ...images.values() ].filter(Boolean).map(image => image.Ready()));
+    await Promise.allSettled([ ...images.values() ].filter(Boolean).map(image => blueService.resMan.Ready(image)));
 
     // Carbon: it->second && it->second->IsGood() ? &it->second->GetBitmap() : nullptr
     const inputs = new Map();
@@ -438,29 +401,32 @@ export class TriTextureRes extends CjsResource
     const result = new HostBitmap();
     const executed = await pipeline.Execute(result, inputs);
 
-    if (executed) this.SetPayload(result);
+    blueService.resMan._AssertResourceLoad(this, attempt);
+    if (executed) this.CreateFromHostBitmap(result);
 
-    this.MarkPrepared();
+    this._isLoading = false;
+    this._isGood = this._isPrepared = true;
+    blueService.resMan._FinishResourceLoad(this);
+    this._NotifyRebuildCachedData();
     return executed;
+    }
+    catch (error)
+    {
+      if (blueService.resMan._IsResourceLoadCurrent(this, attempt)) blueService.resMan._FailResourceLoad(this, error);
+      return false;
+    }
   }
 
   /**
-   * Adopt the cutout an image declared (Carbon reads ImageIO::Metadata's
-   * cutout in DoPrepare and stores it as m_cutoutX/Y/Width/Height).
-   *
-   * Adapted: Carbon reads the cutout from ImageIO::Metadata inside DoPrepare; the read
-   * happens in the loader here, so the resource is told.
-   *
-   * @param {{x: number, y: number, width: number, height: number}} cutout The rectangle.
-   * @returns {TriTextureRes} This resource.
+   * Adopt ImageIO cutout metadata read by Carbon's DoPrepare.
+   * @param {object|null} cutout Decoded ImageIO cutout metadata.
    */
-  SetCutout(cutout) {
-    this.SetValues({
-      cutoutX: cutout.x,
-      cutoutY: cutout.y,
-      cutoutWidth: cutout.width,
-      cutoutHeight: cutout.height
-    });
+  SetCutout(cutout)
+  {
+    this.cutoutX = cutout.x;
+    this.cutoutY = cutout.y;
+    this.cutoutWidth = cutout.width;
+    this.cutoutHeight = cutout.height;
     return this;
   }
 
@@ -519,109 +485,51 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
-   * Adopt a decoded bitmap as this resource's image
-   * (`TriTextureRes::CreateFromHostBitmap`, `TriTextureRes.cpp:960-978`).
-   *
-   * adapted: Carbon creates the texture here, on the main thread's render
-   * context (`USE_MAIN_THREAD_RENDER_CONTEXT`). The resource layer may not
-   * reach a render context (layers.json), so the texture is made on first bind
-   * instead - `Tr2ImageIOHelpers.RealizeTexture` - and this only adopts the
-   * bitmap and drops any texture made from the previous one.
-   *
-   * Adapted: Carbon creates the texture here on the main thread's render context; the
-   * resource layer may not reach one, so this adopts the bitmap and the texture is made on
-   * first bind (Tr2ImageIOHelpers.RealizeTexture).
-   *
-   * @param {import("#imageio").HostBitmap|null} bitmap The decoded bitmap.
-   * @returns {boolean} Whether the bitmap was adopted.
+   * Carbon CreateFromHostBitmap (TriTextureRes.cpp:960-978). Browser GPU creation
+   * is deferred until bind; the resource owns the bitmap and native ready flags.
+   * @param {HostBitmap|null} bitmap Decoded image.
+   * @returns {boolean} Whether a valid bitmap was adopted.
    */
-  CreateFromHostBitmap(bitmap) {
+  CreateFromHostBitmap(bitmap)
+  {
     this.ReleaseResources();
-
-    if (!bitmap || !bitmap.IsValid()) {
-      this.loadedBitmap = null;
+    this.loadedBitmap = bitmap;
+    if (!bitmap || !bitmap.IsValid())
+    {
       this.compression = null;
       this._memoryUse = 0;
       return false;
     }
-
-    this.loadedBitmap = bitmap;
     this._memoryUse = TriTextureRes.EstimateMemoryUse(bitmap);
-    this.SetValues({
-      format: bitmap.GetFormat(),
-      width: bitmap.GetWidth(),
-      height: bitmap.GetHeight(),
-      depth: bitmap.GetDepth(),
-      arraySize: bitmap.GetArraySize(),
-      cpuMip: bitmap.GetTrueMipCount()
-    });
+    this.format = bitmap.GetFormat();
+    this.width = bitmap.GetWidth();
+    this.height = bitmap.GetHeight();
+    this.depth = bitmap.GetDepth();
+    this.arraySize = bitmap.GetArraySize();
+    this.cpuMip = bitmap.GetTrueMipCount();
+    this.compression = bitmap.compression ?? null;
+    const average = bitmap.GetAverageColor();
+    if (average) this.SetAverageColor(average.r, average.g, average.b, average.a);
+    if (bitmap.metadata?.cutout) this.SetCutout(bitmap.metadata.cutout);
+    this._isGood = this._isPrepared = true;
+    this._isLoading = false;
+    this._onTextureChange.Broadcast();
     return true;
   }
 
-  /**
-   * Attach a native bitmap and mirror Carbon-exposed
-   * metadata. Invalid payloads are rejected before replacing the current one.
-   *
-   * The registered loader materializes worker results before publication.
-   * Browser video is uploaded by VideoPlayer and never enters this bitmap boundary.
-   *
-   * @param {object|null} payload
-   * @param {object|null} options
-   * @returns {TriTextureRes}
-   */
-  SetPayload(payload = null, options = null) {
-    if (payload === null) {
-      // The bytes are gone; so is the texture made from them.
-      this.ReleaseResources();
-      this.loadedBitmap = null;
-      super.SetPayload(null);
-      return this;
-    }
-
-    // Carbon's resource IS its bitmap (TriTextureRes.cpp:606, 960-978).
-    const bitmap = CjsSchema.cast(payload, HostBitmap);
-
-    if (bitmap) {
-      this.CreateFromHostBitmap(bitmap);
-      this.compression = bitmap.compression ?? null;
-      // A loaded image caches its average colour (TriTextureRes.cpp:627-629).
-      // Carbon's out-parameters stay untouched when the bitmap declines.
-      const average = bitmap.GetAverageColor();
-      if (average) this.SetAverageColor(average.r, average.g, average.b, average.a);
-      super.SetPayload(bitmap, options);
-      if (options) this.SetValues(options);
-      if (bitmap.metadata?.cutout) this.SetCutout(bitmap.metadata.cutout);
-      return this;
-    }
-
-    throw resourcePayloadError("TriTextureRes", "Expected an ImageIO::HostBitmap.", "payload");
-  }
 
   /**
-   * Turn source bytes into this texture.
-   *
-   * This is the family the route design exists for. One `.dds` is readable as a
-   * compressed `texture` or decoded `rgba`, and six formats — dds, png, jpeg,
-   * tga, gif, webp — populate this same resource. Which reader and which
-   * representation is a registration decision, so neither is written here.
-   *
-   * The resource imports none of them. A texture resource that imported its
-   * formats would drag all six into anything that touches a texture, which is
-   * the whole reason the store exists.
-   *
-   * @param {ArrayBuffer|ArrayBufferView|object} data Source bytes, or a payload already read.
-   * @param {object|null} [options] `{ format, read, output }` plus values applied after the read.
-   * @returns {TriTextureRes} This resource.
+   * Carbon DoLoad (TriTextureRes.cpp:583-641). Browser image decoding may await
+   * a worker; the manager rejects cancelled attempts before adoption.
+   * @returns {Promise<number>} Native LoadingResult.
    */
-  DoLoad(data, options = null) {
-    const { format = null, read = null, output = null, ...values } = options || {};
-
-    // Already a payload: the manager read it, and there is nothing to route.
-    if (CjsSchema.cast(data, HostBitmap)) return this.SetPayload(data, values);
-
-    const route = this.ResolveFormat(data, format ? { format, read, output } : { output });
-    if (!route) throw resourceFormatRequiredError("TriTextureRes", this.ext, output);
-    return this.SetPayload(route.Read(data), values);
+  async _DoLoad()
+  {
+    const value = await blueService.resMan.ReadResourceObjectPayload(this, this._dataStream.data);
+    const bitmap = CjsSchema.cast(value, HostBitmap);
+    if (!bitmap) throw resourcePayloadError("TriTextureRes", "Expected an ImageIO::HostBitmap.", "bitmap");
+    this.loadedBitmap = bitmap;
+    return BlueAsyncRes.LoadingResult.LR_SUCCESS;
   }
 
   /**
@@ -630,7 +538,7 @@ export class TriTextureRes extends CjsResource
    * @returns {number}
    */
   GetMipCount() {
-    return this.GetPayload()?.mipCount || this.cpuMip || 0;
+    return this.GetBitmap()?.mipCount || this.cpuMip || 0;
   }
 
   /**
@@ -894,7 +802,7 @@ export class TriTextureRes extends CjsResource
    * @returns {number}
    */
   GetOriginalMemoryUsage() {
-    return this.originalMemoryUsage || getPayloadMemoryUsage(this.GetPayload());
+    return this.originalMemoryUsage || getPayloadMemoryUsage(this.GetBitmap());
   }
 
   /**
@@ -966,29 +874,31 @@ export class TriTextureRes extends CjsResource
       this.wrappedRenderTarget = null;
       this._memoryUse = 0;
       this.originalMemoryUsage = 0;
-      this.SetState(CjsResource.State.UNLOADED);
+      this._isGood = this._isPrepared = false;
       this._onTextureChange.Broadcast();
     }
     return this;
   }
 
   /**
-   * Release the texture and bitmap when the cache relinquishes this resource.
-   *
-   * Adapted: JavaScript full purge explicitly drops the bitmap that Carbon's
-   * resource destructor owns; ReleaseResources alone deliberately retains it.
-   * The payload-only inactivity tier skips textures so they can be rebound.
-   *
-   * @returns {TriTextureRes} This resource without its owned payload.
+   * Full JS teardown releases the video owner and decoded bitmap as well as device allocations.
+   * Adapted: explicit JS teardown replaces native destruction; the existing
+   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   * @param {object} [options={}] Existing MotherLode cleanup policy.
+   * @param {boolean} [options.releasePayload=true] Release owned family data.
+   * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
+   * @returns {void}
    */
-  ReleasePayload()
+  _OnShutdown(options = {})
   {
+    if (options.destroyAdapters !== false) this.DestroyAdapterResources();
+    if (options.releasePayload === false) return;
     if (this.videoController) this.videoController.Destruct();
     this.videoController = null;
     this.ReleaseResources();
     this.loadedBitmap = null;
     this._memoryUse = 0;
-    return super.ReleasePayload();
+
   }
 
   /**
@@ -1027,7 +937,24 @@ export class TriTextureRes extends CjsResource
     return bytes * Math.max(1, bitmap.GetArraySize());
   }
 
-  static payload = ResourceRequirement.TEXTURE;
+
+  /** Carbon DoPrepare, adapted to defer device creation until the first bind. */
+  _DoPrepare()
+  {
+    return this.CreateFromHostBitmap(this.loadedBitmap);
+  }
+
+  /** Opaque browser device allocations, supplied by Tr2DeviceResource. */
+  __adapterResources = null;
+
+  /**
+   * m_pipeline: custom dynamic paths supply the recipe that Carbon reads from
+   * .ctr. Keep that small recipe so native Reload can refill this same handle.
+   */
+  _pipeline = null;
+
+  /** Native raw-image inputs, except the existing texture-array shared route. */
+  _pipelineEx = "raw";
 }
 
 function getPayloadMemoryUsage(payload)
@@ -1066,7 +993,7 @@ CjsSchema.decorateField(TriTextureRes, "width", type.uint32, be.mapAttribute(be.
 CjsSchema.decorateField(TriTextureRes, "cutoutX", type.float32, be.mapAttribute(be.READWRITE));
 CjsSchema.decorateField(TriTextureRes, "cutoutY", type.float32, be.mapAttribute(be.READWRITE));
 CjsSchema.decorateField(TriTextureRes, "loadedBitmap", type.unknown, meta.read);
-CjsSchema.decorateMethod(TriTextureRes, "DoLoad", meta.adapted);
+CjsSchema.decorateMethod(TriTextureRes, "_DoLoad", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "Initialize", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "GetMipCount", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "GetMsaaType", meta.implemented);
@@ -1076,7 +1003,7 @@ CjsSchema.decorateMethod(TriTextureRes, "GetSrvIndexInHeap", meta.notSupported);
 CjsSchema.decorateMethod(TriTextureRes, "GetTexture", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "SetTexture", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "OnTextureChange", meta.implemented);
-CjsSchema.decorateMethod(TriTextureRes, "SetState", meta.adapted);
+
 CjsSchema.decorateMethod(TriTextureRes, "SaveAsync", be.mapMethod(), meta.notSupported);
 CjsSchema.decorateMethod(TriTextureRes, "Save", be.mapMethod(), meta.notSupported);
 CjsSchema.decorateMethod(TriTextureRes, "IsSaving", be.mapMethodAndWrap(), meta.adapted);
@@ -1107,11 +1034,19 @@ CjsSchema.decorateMethod(TriTextureRes, "SetAverageColor", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "UpdateSubresource", meta.notSupported);
 CjsSchema.decorateMethod(TriTextureRes, "PrepareResources", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "ReleaseResources", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "ReleasePayload", meta.adapted);
 be.define("TriTextureRes")(TriTextureRes);
 be.inherit(ICacheable)(TriTextureRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriTextureRes);
 // Carbon: TriTextureRes::ExposeToBlue (trinity/trinity/Resources/TriTextureRes_Blue.cpp:318).
-CjsSchema.blue.chainTo(CjsResource)(TriTextureRes);
-// Carbon maps these in TriTextureRes_Blue.cpp:227-229 although BlueAsyncRes (CjsResource) declares them.
+CjsSchema.blue.chainTo(BlueAsyncRes)(TriTextureRes);
+// Carbon maps these in TriTextureRes_Blue.cpp:227-229 although BlueAsyncRes (BlueAsyncRes) declares them.
 be.mapMethodAndWrap([ "IsPrepared", "IsLoading", "IsGood" ])(TriTextureRes);
+
+CjsSchema.decorateMethod(TriTextureRes, "_DoPrepare", meta.adapted);
+CjsSchema.decorateMethod(TriTextureRes, "_OnShutdown", meta.adapted);
+
+be.inherit(Tr2DeviceResource)(TriTextureRes, { kind: "class" });
+
+CjsSchema.decorateMethod(TriTextureRes, "_RasterizeProceduralTexture", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(TriTextureRes, "SetCutout", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

@@ -1,6 +1,7 @@
+import { blue } from "../../../npm/dist/global/blue/index.js";
 import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -63,6 +64,7 @@ test("main-thread resource loader preserves structural source and format contrac
 
 test("CjsBlueResMan selects worker loading by default with an explicit main-thread override", () => {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   assert.equal(resMan.IsWorkerLoading(), true);
   assert.equal(resMan.UseWorkerLoading(false), resMan);
   assert.equal(resMan.IsWorkerLoading(), false);
@@ -171,6 +173,7 @@ test("CjsBlueResMan loads through the worker when its source offers a worker req
     source,
     workerLoader: new CjsResManWorkerLoader({ worker })
   });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("bin", input => new Uint8Array(input));
 
   const operation = LoadData(resMan, "res:/worker/default.bin");
@@ -192,7 +195,7 @@ test("CjsBlueResMan loads through the worker when its source offers a worker req
     }
   });
   await WaitUntil(() => resMan.GetPendingPrepares() === 1);
-  for (let stage = 0; stage < 2; stage++) {
+  for (let stage = 0; stage < 1; stage++) {
     assert.equal(
       resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }),
       true
@@ -362,6 +365,7 @@ test("CjsBlueResMan sends worker-safe reads off the main queue and publishes on 
     workerLoader,
     useWorkerLoading: true
   }).RegisterFormat(TestWorkerQueueFormat);
+  blue.resMan = resMan;
 
   const operation = LoadData(resMan, "res:/worker/queue.workerqueue", {
     emit: "raw"
@@ -450,3 +454,7 @@ async function WaitUntil(predicate, attempts = 100) {
   }
   assert.fail("Timed out waiting for condition.");
 }
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previousManager; } });

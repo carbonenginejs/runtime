@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+import { blue as blueService } from "#blue/blue";
 // Not Carbon: `dynamic:/incarna` is ours, like `dynamic:/texturepack`. It
 // serves the textures an Incarna material becomes when it is drawn with the
 // quad shaders: each is one channel mapping of one Incarna texture, built by
@@ -61,17 +63,6 @@ const ROLES = {
 export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructor
 {
 
-  /** The `CjsBlueResMan` that loads the sources; set by the constructor. */
-  _resourceManager = null;
-
-  /**
-   * @param {object} resourceManager The `CjsBlueResMan` that loads the sources.
-   */
-  constructor(resourceManager)
-  {
-    super();
-    this._resourceManager = resourceManager ?? null;
-  }
 
   /**
    * A built texture costs a download and a decode to rebuild, so it is kept.
@@ -85,26 +76,26 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
   }
 
   /**
-   * Build the texture an Incarna query describes. The recipe starts running at
-   * once; the texture is prepared when it finishes.
-   *
-   * @param {string} query Text after `dynamic:/incarna/`.
-   * @returns {TriTextureRes} The texture resource.
+   * Build the native texture handle, retaining its recipe for same-handle reload.
+   * @param {string} query Authored dynamic texture recipe after its registered prefix.
+   * @returns {TriTextureRes} Initialized texture with a recipe retained for same-handle reload.
    */
-  @meta.implemented
   GetResource(query)
   {
     const texture = new TriTextureRes();
-    texture.Initialize(IncarnaTexturePrefix + query, "");
+    const path = IncarnaTexturePrefix + query;
     const pipeline = CjsIncarnaTextureConstructor.buildRecipe(query);
     if (!pipeline)
     {
-      const error = new Error(`Failed to parse ${IncarnaTexturePrefix}${query} texture path`);
+      texture._path = path;
+      const error = new Error("Failed to parse " + path + " texture path");
       error.code = "CJS_TEXTURE_PROCEDURAL_PATH_INVALID";
-      texture.SetError(error);
+      blueService.resMan._FailResourceLoad(texture, error);
       return texture;
     }
-    texture.LoadPipeline(pipeline, this._resourceManager);
+    texture._pipeline = pipeline;
+    texture._pipelineEx = "raw";
+    texture.Initialize(path, "");
     return texture;
   }
 
@@ -166,8 +157,10 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
  */
 export function RegisterIncarnaTextures(resourceManager)
 {
-  resourceManager.RegisterResourceConstructor("incarna", new CjsIncarnaTextureConstructor(resourceManager));
+  resourceManager.RegisterResourceConstructor("incarna", new CjsIncarnaTextureConstructor());
   return resourceManager;
 }
 
 export default CjsIncarnaTextureConstructor;
+
+CjsSchema.decorateMethod(CjsIncarnaTextureConstructor, "GetResource", CjsSchema.meta.implemented);

@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 // End-to-end coverage for the bone palette.
 //
 // The palette crosses a boundary that nothing else tests: Tr2GrannyAnimation
@@ -43,8 +44,8 @@ function assertClose(actual, expected, message)
 function geometryOf(grannyFile)
 {
   const resource = new TriGeometryRes();
-  resource.SetPayload({ ...grannyFile, grannyFileFormatRevision: 7 });
-  resource.MarkPrepared();
+  resource.ReadGrannyFile({ ...grannyFile, grannyFileFormatRevision: 7 });
+  prepareResourceFixture(resource);
   return resource;
 }
 

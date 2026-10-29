@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+import { BlueAsyncRes } from "#blue";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet.h
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet.cpp
@@ -194,7 +196,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
       const mesh = resource.GetMeshData(index), lod = resource.GetMeshLod__LodIndex(index, 0);
       if (!lod || !lod.vertex?.position) throw new Error(`Tr2GrannyPrimitiveSet: mesh ${index} has no LOD-zero position stream`);
       const count = lod.vb?.stride ? lod.vb.size / lod.vb.stride : lod.vertexCount ?? mesh.vertexCount ?? lod.vertex.position.length / 3;
-      const faces = ReadIndices(resource.GetPayload(), mesh, lod);
+      const faces = ReadIndices(resource.GetCMFData(), mesh, lod);
       const entry = { mesh, lod, count, faces };
       const name = mesh.name ?? "";
       if (granny ? name.startsWith("picking") : name === "picking") picking = entry;
@@ -308,6 +310,10 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * re-registers as its notify target, because the resource released the set
    * when it last completed; the rebuild on completion replaces the data. A
    * failed source is not re-registered, or it would call back every frame.
+   * @param {Tr2BatchAccumulator} accumulator Batch destination.
+   * @param {object} perObjectData Owner per-object constants.
+   * @param {Tr2Effect|null} effect Explicit effect override.
+   * @param {number} reason Render pass reason.
    */
 
   @meta.adapted
@@ -317,7 +323,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     if (resource && !resource.IsGood())
     {
       if (this._vertexBuffer.IsValid()) this.ReleaseCachedData(resource);
-      if (!resource.IsFailed()) resource.AddNotifyTarget(this);
       return;
     }
     if (!this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
@@ -350,6 +355,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    */
   Destruct()
   {
+    BlueAsyncRes.markNotifyTargetDestructed(this);
     this._destroyed = true;
     this.#DetachResource();
     this.grannyRes = null;
@@ -412,3 +418,5 @@ function ReadNormal(out, offset, vertex, index, count, granny)
   }
 }
 
+
+CjsSchema.decorateMethod(Tr2GrannyPrimitiveSet, "Destruct", CjsSchema.meta.adapted);

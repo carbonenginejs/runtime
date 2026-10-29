@@ -1,3 +1,4 @@
+import { blue as blueService } from "#blue/blue";
 import { CjsSchema, blue as legacyBlue, meta } from "#schema";
 import { blue } from "#blue";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
@@ -112,7 +113,7 @@ export class TnyOutlineHelper extends ITr2RenderNode
     await Promise.all(Object.entries(EFFECTS).map(async ([name, path]) =>
     {
       const resource = blue.resMan.GetResource(Tr2Effect.convertEffectPath(path));
-      await resource.Ready();
+      await blueService.resMan.Ready(resource);
       if (this._destroyed) return;
       const effect = new Tr2Effect();
       this._effects[name] = effect;
@@ -278,3 +279,5 @@ CjsSchema.meta.define(TnyOutlineHelper, {
   className: "TnyOutlineHelper",
   methods: Object.fromEntries(["Validate", "Execute", "Destruct", "_LoadEffects", "_Modes", "_EnsureMask", "_Composite"].map(name => [name, []]))
 });
+
+CjsSchema.decorateMethod(TnyOutlineHelper, "_LoadEffects", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

@@ -1,3 +1,4 @@
+import { BlueAsyncRes } from "#blue";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
@@ -288,7 +289,7 @@ export class EveTrailsSet
     // call back every frame.
     const geometry = this.geometryResource;
     const geometryGood = geometry ? geometry.IsGood() : false;
-    if (geometry && !geometryGood && !geometry.IsFailed()) geometry.AddNotifyTarget(this);
+
     const effectGood = this.effect ? this.effect.IsGood() : false;
     if (!geometryGood || !effectGood) return;
     if (!this._instanceBuffer) return;
@@ -344,4 +345,14 @@ export class EveTrailsSet
   /** Carbon EveTrailsSet::SingleTrailData (private, EveTrailsSet.h:88-94). */
   static SingleTrailData = EveTrailsSetSingleTrailData;
 
+
+  /** Carbon destructor (EveTrailsSet.cpp:31-37): detach and discard cached declaration data. */
+  @meta.adapted
+  Destruct()
+  {
+    this.Cleanup();
+    if (this.geometryResource) this.geometryResource.RemoveNotifyTarget(this);
+    this.geometryResource = null;
+    BlueAsyncRes.markNotifyTargetDestructed(this);
+  }
 }

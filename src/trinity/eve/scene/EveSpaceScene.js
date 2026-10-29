@@ -8,7 +8,7 @@ import { exposure as be } from "#be";
 // EveSpaceScene::Update and the scene-owned EveUpdateContext member (Carbon
 // m_updateContext - protected, so absent from the Blue schema scan).
 import { CjsSchema, meta, type } from "#schema";
-import { IsMatch, BlueList, IInitialize, INotify, IListNotify, CjsResource } from "#blue";
+import { IsMatch, BlueList, IInitialize, INotify, IListNotify, IBlueResource } from "#blue";
 import { ITr2Scene } from "../../core/ITr2Scene.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 import { EvePlanet } from "../spaceObject/planet/EvePlanet.js";
@@ -2268,11 +2268,11 @@ export class EveSpaceScene
   {
     // Ours: every ship samples these through the global store, and nothing
     // else holding them renews them, so the scene that publishes them does,
-    // once a frame (CjsResource.KeepAlive). A provider that is not a cached
+    // once a frame (IBlueResource.KeepAlive). A provider that is not a cached
     // resource holds nothing to renew.
     for (const provider of [ this.envMap1, this.envMap2, this.envMap3, this._staticEnvMapTextureRes, this._envMapTextureRes ])
     {
-      const resource = CjsSchema.cast(provider, CjsResource);
+      const resource = CjsSchema.cast(provider, IBlueResource);
       if (resource) resource.KeepAlive();
     }
     this._envMap1Handle.SetValue(this.envMap1);

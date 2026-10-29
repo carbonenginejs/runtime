@@ -24,7 +24,7 @@ test("real cf2_t2a survives payload expiry and retained handles reload after rel
   }});
   await configureResourceManager(manager);
   const geometry = manager.GetResource(path);
-  await geometry.Ready();
+  await manager.Ready(geometry);
   t.after(() => manager.PurgeInactive({maxIdleFrames: 0, maxIdleMilliseconds: 0}));
   assert.equal(geometry.GetMeshCount(), 7);
   const mesh = new Tr2Mesh(); mesh.SetGeometryRes(geometry);
@@ -61,10 +61,11 @@ test("real cf2_t2a survives payload expiry and retained handles reload after rel
 
   geometry.ReleaseResources();
   assert.equal(geometry.IsPrepared(), false, "TriGeometryRes.cpp:507-508 invalidates released geometry");
-  assert.equal(geometry.HasPayload(), false);
+  assert.equal(geometry.GetCMFData() !== null, false);
   assert.equal(originalAllocation.IsValid(), false);
   assert.equal(mesh.GetGeometryResource(), geometry, "Tr2Mesh.cpp:213-219 checks primary IsGood even without a low-res fallback");
-  assert.equal(geometry.IsLoading(), true, "ordinary mesh reuse must start reload without an explicit Ready call");
+  assert.equal(geometry.IsLoading(), false, "device release is not a manager purge");
+  geometry.Reload();
   await settle(geometry);
   assert.equal(reads, 2);
   assert.equal(manager.Lookup(path), geometry);
@@ -72,7 +73,7 @@ test("real cf2_t2a survives payload expiry and retained handles reload after rel
 
   const sweep2 = manager.PurgeInactive({maxIdleFrames: 0, maxIdleMilliseconds: 0});
   assert.equal(sweep2.purged, 1);
-  assert.equal(geometry.IsPurged(), true);
+  assert.equal(manager.GetResourceStatus(geometry).purged, true);
   assert.equal(geometry.IsGood(), false, "purged retained handle starts recovery without throwing from Reload");
   await settle(geometry);
   assert.equal(reads, 3);
@@ -86,7 +87,7 @@ async function settle(resource)
   // Allow the manager's asynchronous load queue to complete under a full
   // corpus run; 200 empty event-loop turns can finish before its timer fires.
   const deadline = Date.now() + 5000;
-  while (!resource.IsPrepared() && !resource.IsFailed() && Date.now() < deadline)
+  while (!resource.IsPrepared() && Date.now() < deadline)
     await new Promise(resolve => setTimeout(resolve, 5));
   assert.equal(resource.IsPrepared(), true, "automatic recovery completes into the same retained resource");
 }

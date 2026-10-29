@@ -198,7 +198,7 @@ export function CreateTexture(resource, renderContext)
 
   if (bitmap) return CreateTextureFromBitmap(bitmap, renderContext, resource.GetPath() || resource.name || "TriTextureRes");
 
-  const described = DescribeTexturePayload(resource.GetPayload());
+  const described = DescribeTexturePayload(resource.GetBitmap());
 
   if (!described) return null;
 

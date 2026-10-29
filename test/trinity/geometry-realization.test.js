@@ -93,7 +93,7 @@ test("a LOD's allocations are made once, with a reversed index copy, and the bat
   const renderContext = context();
   const geometry = new TriGeometryRes();
 
-  geometry.SetPayload(meshPayload());
+  geometry.ReadCMFFile(meshPayload());
 
   const lod = geometry.GetMeshLod__LodIndex(0, 0);
 
@@ -156,7 +156,7 @@ test("SubmitGeometry realizes a descriptor batch through the submitting context 
   const al = renderContext.GetRenderContextAL();
   const geometry = new TriGeometryRes();
 
-  geometry.SetPayload(meshPayload());
+  geometry.ReadCMFFile(meshPayload());
 
   const batch = new Tr2RenderBatch();
 
@@ -204,7 +204,7 @@ test("a descriptor batch whose area has no primitives is not realized or drawn",
   const geometry = new TriGeometryRes();
   let draws = 0;
 
-  geometry.SetPayload(meshPayload());
+  geometry.ReadCMFFile(meshPayload());
   renderContext.DrawInstanced = () => { draws += 1; return ALResult.S_OK; };
   renderContext.DrawIndexedInstanced = () => { draws += 1; return ALResult.S_OK; };
   al.BeginScene();

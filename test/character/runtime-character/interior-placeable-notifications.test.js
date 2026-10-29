@@ -1,3 +1,4 @@
+import { prepareResourceFixture, pendingResourceFixture, purgeResourceFixture, failResourceFixture } from "../../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
@@ -36,13 +37,13 @@ function deferred()
 function geometry(x = 0)
 {
   const resource = new TriGeometryRes();
-  resource.SetPayload({ meshes: [{
+  resource.ReadCMFFile({ meshes: [{
     bounds: { min: [x, -1, -1], max: [x + 2, 1, 1] },
     decl: [{ usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 }],
     vertex: { position: [x, 0, 0, x + 2, 0, 0, x, 1, 0] },
     indices: [{ faces: [0, 1, 2] }], areas: [{ firstElement: 0, elementCount: 1 }]
   }] });
-  resource.MarkPrepared();
+  prepareResourceFixture(resource);
   return resource;
 }
 
@@ -175,17 +176,17 @@ test("real object manager caches a builder while repeated placeable loads constr
   assert.equal(second.visualModel.name, "authored"); assert.equal(second.nearFadeDistance, 81);
 });
 
-test("strict model bounds require all meshes, while the public local-space query returns available bounds", t =>
+test("strict model bounds require all meshes, while the public local-space query returns available bounds", async t =>
 {
   const model = new Tr2Model(), ready = mesh(4), pending = new Tr2Mesh(), resource = geometry(-10);
   const { manager } = setup(t, () => resource);
-  resource.MarkPreparing(); pending.SetMeshResPath("res:/pending.gr2");
+  pendingResourceFixture(resource); pending.SetMeshResPath("res:/pending.gr2");
   model.AddMesh(ready); model.AddMesh(pending);
   const min = new Float32Array([9, 9, 9]), max = new Float32Array([8, 8, 8]);
   assert.equal(model.IsLoading(), true); assert.equal(model.GetBoundingBox(min, max), false);
   assert.deepEqual([...min], [9, 9, 9]); assert.deepEqual([...max], [8, 8, 8]);
   assert.deepEqual(model.GetBoundingBoxInLocalSpace().map(v => [...v]), [[-10, -1, -1], [6, 1, 1]]);
-  resource.MarkPrepared(); assert.equal(model.IsLoading(), false);
+  prepareResourceFixture(resource); await Promise.resolve(); assert.equal(model.IsLoading(), false);
   assert.equal(model.GetBoundingBox(min, max), true); assert.deepEqual([...min], [-10, -1, -1]);
   pending.SetGeometryRes(null);
   assert.equal(model.GetBoundingBox(min, max), false);
@@ -195,20 +196,20 @@ test("strict model bounds require all meshes, while the public local-space query
   assert.throws(() => new Tr2Model().GetBoundingBoxInLocalSpace(), /No meshes/);
 });
 
-test("mesh prepare completion follows low-detail fallback, survives purge, and releases failed or superseded requests", t =>
+test("mesh prepare completion follows low-detail fallback, survives purge, and releases failed or superseded requests", async t =>
 {
   const low = geometry(), full = geometry(20), replacement = geometry(30);
-  low.MarkPreparing(); full.MarkLoading(); replacement.MarkPreparing();
   setup(t, path => path.includes("lowdetail") ? low : path.includes("replacement") ? replacement : full);
+  pendingResourceFixture(low); pendingResourceFixture(full); pendingResourceFixture(replacement);
   blue.paths.SetLocalFileSystem(localFileSystem(["res:/hull_lowdetail.gr2"]));
   t.after(() => blue.paths.SetLocalFileSystem(null));
   const value = new Tr2Mesh(); value.SetMeshResPath("res:/hull.gr2");
-  assert.equal(value.IsLoading(), true); low.MarkPrepared(); assert.equal(value.IsLoading(), false);
+  assert.equal(value.IsLoading(), true); prepareResourceFixture(low); await Promise.resolve(); assert.equal(value.IsLoading(), false);
   assert.equal(full.IsLoading(), true, "full-detail request must not hold the fallback fence");
-  low.MarkPurged(); assert.equal(value.IsLoading(), false, "reached fence stays reached");
+  purgeResourceFixture(low); assert.equal(value.IsLoading(), false, "reached fence stays reached");
   value.SetMeshResPath("res:/replacement.gr2"); assert.equal(value.IsLoading(), true);
-  full.MarkPrepared(); assert.equal(value.IsLoading(), true, "old completion cannot release the new request");
-  replacement.SetError(new Error("fixture failure")); assert.equal(value.IsLoading(), false);
+  prepareResourceFixture(full); await Promise.resolve(); assert.equal(value.IsLoading(), true, "old completion cannot release the new request");
+  failResourceFixture(replacement, new Error("fixture failure")); await Promise.resolve(); assert.equal(value.IsLoading(), false);
   value.SetMeshResPath(""); assert.equal(value.IsLoading(), false);
 });
 
@@ -256,14 +257,14 @@ test("Wod model batches preserve authored order, transparent distance order, vis
   context.RenderBatches({ GetBatches: () => batches }); assert.equal(draws.length, 2); assert.equal(draws[0][0], 3);
   batches = []; resource.GetBatches(collector, TriBatchType.TRIBATCHTYPE_TRANSPARENT, matrix, null);
   assert.equal(batches[0].geometrySource.geometry, far.geometry); assert.equal(batches[1].geometrySource.geometry, near.geometry);
-  far.transparentAreas[0].display = false; near.geometry.SetError(new Error("fixture failure"));
+  far.transparentAreas[0].display = false; failResourceFixture(near.geometry, new Error("fixture failure"));
   batches = []; resource.GetBatches(collector, TriBatchType.TRIBATCHTYPE_TRANSPARENT, matrix, null); assert.equal(batches.length, 0);
 });
 
 test("real Granny geometry passes through Wod model to a headless indexed draw", { skip: !process.env.CJS_PLACEABLE_GEOMETRY }, async t =>
 {
   const { context, material, draws } = renderSetup(t), resource = new TriGeometryRes();
-  resource.SetPayload(resource.ReadGrannyFile(await readFile(process.env.CJS_PLACEABLE_GEOMETRY))); resource.MarkPrepared();
+  resource.ReadGrannyFile(await readFile(process.env.CJS_PLACEABLE_GEOMETRY)); prepareResourceFixture(resource);
   const item = new Tr2Mesh(), area = new Tr2MeshArea(), model = new Tr2Model(), wod = new WodPlaceableRes();
   item.SetGeometryRes(resource); area.SetMaterial(material); item.opaqueAreas.push(area); model.AddMesh(item); wod.visualModel = model;
   const batches = []; wod.GetBatches({ Commit(batch) { batches.push(batch); return true; } }, TriBatchType.TRIBATCHTYPE_OPAQUE, mat4.create(), null);
@@ -273,7 +274,7 @@ test("real Granny geometry passes through Wod model to a headless indexed draw",
 test("model integer-zero overload selects LOD index zero even when screen-size-zero selects the coarse LOD", t =>
 {
   const { material, context, draws } = renderSetup(t), resource = geometry();
-  const payload = resource.GetPayload(), data = payload.meshes[0];
+  const payload = resource.GetCMFData(), data = payload.meshes[0];
   const fine = { ...data, maxScreenSize: 1, indices: [{ faces: [0, 1, 2, 0, 2, 1] }], areas: [{ firstElement: 0, elementCount: 2 }] };
   const coarse = { ...data, maxScreenSize: 0.1 };
   data.lods = [fine, coarse];

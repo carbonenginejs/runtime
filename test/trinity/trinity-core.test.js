@@ -1,3 +1,4 @@
+import { pendingResourceFixture } from "../support/resourceFixtures.js";
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import { composeStubResMan } from "../support/stubResMan.js";
@@ -379,7 +380,7 @@ test("SOF shield mesh construction stays a CPU object graph", () =>
   // A real geometry resource, still loading.
   const resource = new TriGeometryRes();
   resource.Initialize("res:/provided.gr2");
-  resource.MarkLoading();
+  pendingResourceFixture(resource);
 
   // Carbon SetGeometryRes (cpp:60-74) only rebinds; it is PySetGeometryRes
   // (cpp:202-206) that clears the authored path first.

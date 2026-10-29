@@ -1,17 +1,17 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 
 import { TriStorageFlags } from "../../../npm/dist/global/consts/graphics/index.js";
 import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
-import { CjsResource } from "../../../npm/dist/global/blue/CjsResource.js";
+import { blue, CjsBlueResMan, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../../npm/dist/trinity/resources/geometry/index.js";
 
 // One triangle is enough: the raycaster only has to build, not hit anything.
 function loadedGeometry()
 {
   const res = new TriGeometryRes();
-  res.Initialize("res:/model/test.cmf");
-  res.SetPayload({
+  res._path = "res:/model/test.cmf";
+  res.ReadCMFFile({
     meshes: [ {
       name: "mesh",
       lods: [ {
@@ -23,7 +23,8 @@ function loadedGeometry()
       } ]
     } ]
   });
-  res.MarkPrepared();
+  res._SetPrepared(true);
+  res._SetGood(true);
   return res;
 }
 
@@ -35,9 +36,9 @@ test("releasing the payload takes the raycaster with it", () =>
   res.PrepareRayCaster();
   assert.equal(res.IsRayCasterReady(), true);
 
-  res.ReleasePayload();
+  res.Shutdown();
 
-  assert.equal(res.HasPayload(), false);
+  assert.equal(res.GetCMFData() !== null, false);
   assert.equal(res.IsRayCasterReady(), false);
 });
 
@@ -62,39 +63,59 @@ test("ReleaseResources honours Carbon's storage mask", () =>
   // cpp:496-509 gates the whole body on TRISTORAGE_MANAGEDMEMORY.
   const kept = loadedGeometry();
   kept.ReleaseResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);
-  assert.equal(kept.HasPayload(), true);
+  assert.equal(kept.GetCMFData() !== null, true);
   assert.equal(kept.IsPrepared(), true);
 
   const released = loadedGeometry();
   released.ReleaseResources();
-  assert.equal(released.HasPayload(), false);
+  assert.equal(released.GetCMFData() !== null, false);
   assert.equal(released.IsGood(), false, "TriGeometryRes.cpp:507-508 clears both prepared and good");
-  assert.equal(released.state, CjsResource.State.PURGED, "released geometry must remain eligible for automatic recovery");
+  assert.equal(released.IsPrepared(), false);
+  assert.equal(blue.resMan.GetResourceStatus(released).purged, false, "device release is distinct from a cache purge");
 });
 
 test("payload-only expiry preserves geometry while ordinary payloads still expire", () =>
 {
   const cache = new CjsMotherLode({now: () => 0});
   const geometry = loadedGeometry();
-  const payload = geometry.GetPayload();
-  const ordinary = new CjsResource(); ordinary.Initialize("res:/synthetic/ordinary.bin"); ordinary.SetPayload({value: 1});
+  const payload = geometry.GetCMFData();
+  const ordinary = plainResource("res:/synthetic/ordinary.bin", {value: 1});
   cache.Insert(geometry.GetPath(), geometry, {time: 0});
   cache.Insert(ordinary.GetPath(), ordinary, {time: 0});
   const result = cache.PurgeInactive({time: 10, maxIdleMilliseconds: 100, payloadMaxIdleMilliseconds: 5});
   assert.equal(result.payloadsReleased, 1);
-  assert.equal(ordinary.HasPayload(), false);
-  assert.equal(geometry.GetPayload(), payload, "TriGeometryRes.cpp:496-509 releases meshes and readiness together");
+  assert.equal(blue.resMan.HasResourcePayload(ordinary), false);
+  assert.equal(geometry.GetCMFData(), payload, "TriGeometryRes.cpp:496-509 releases meshes and readiness together");
   assert.equal(geometry.IsGood(), true);
   assert.equal(geometry.GetMeshCount(), 1);
 });
 
-test("released geometry requests recovery through its inherited reload hook", () =>
+test("device-released geometry waits for the native explicit Reload", async () =>
 {
-  const geometry = loadedGeometry(); let reloads = 0;
-  geometry.SetReloadHook(() => {reloads++; geometry.MarkRequested(); return true;});
+  const geometry = loadedGeometry();
+  let reads = 0;
+  blue.resMan.SetSource({Read() { reads++; return {meshes: []}; }});
+  blue.resMan.RegisterObjectLoader("cmf", value => value);
   geometry.ReleaseResources();
-  assert.equal(geometry.IsGood(), false, "released geometry is not ready during recovery");
-  assert.equal(reloads, 1, "TriGeometryRes.cpp:1863 delegates Reload to BlueAsyncRes");
-  geometry.IsGood();
-  assert.equal(reloads, 1, "an in-flight reload is not restarted");
+  assert.equal(geometry.IsGood(), false);
+  assert.equal(reads, 0, "device release does not masquerade as policy purge");
+  geometry.Reload();
+  await blue.resMan.Ready(geometry);
+  assert.equal(reads, 1);
+  assert.equal(geometry.IsGood(), true);
 });
+
+let previous;
+beforeEach(() => { previous = blue.resMan; blue.resMan = new CjsBlueResMan(); });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previous; } });
+
+/** Plain-data fixture for MotherLode's separate data lease. */
+function plainResource(path, value)
+{
+  const resource = new CjsLoadingObject();
+  resource._path = path;
+  resource._SetPrepared(true);
+  resource._SetGood(true);
+  blue.resMan._GetResourceRecord(resource).payload = value;
+  return resource;
+}

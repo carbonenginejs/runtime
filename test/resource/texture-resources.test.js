@@ -3,7 +3,7 @@ import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { beforeEach, afterEach } from "node:test";
 import { buildVta } from "../support/vtaFixture.js";
 
 import { CjsBlueResMan, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/index.js";
@@ -39,6 +39,7 @@ function legacyDds(width, height, pixels)
 async function managerServing(path, bytes, options = {})
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   resMan.Register({ source: { Read: () => Promise.resolve(bytes) } });
   await configureResourceManager(resMan, options);
   return resMan;
@@ -130,6 +131,7 @@ test("a texture built from a pipeline packs images loaded as raw Tr2ImageRes (Ca
     "res:/x/mask.dds": legacyDds(2, 1, [ 0, 0, 7, 255, 0, 0, 9, 255 ])
   };
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
   await configureResourceManager(resMan);
 
@@ -157,6 +159,7 @@ test("a pipeline whose input fails leaves the texture prepared without a bitmap,
 {
   const { Tr2TexturePipeline, Tr2TexturePipelineStepLoad } = await import("../../npm/dist/resource/index.js");
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   resMan.Register({ source: { Read: () => Promise.resolve(new Uint8Array(128)) } });
   await configureResourceManager(resMan);
 
@@ -179,12 +182,13 @@ test("dynamic:/texturepack builds a recipe and packs channels from separate imag
     "res:/x/metal.dds": legacyDds(2, 2, new Array(4).fill([ 0, 0, 90, 255 ]).flat())
   };
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
   await configureResourceManager(resMan);
   RegisterTexturePack(resMan);
 
   const texture = resMan.GetResource("dynamic:/texturepack/res:/x/rough.dds;res:/x/metal.dds");
-  await texture.Ready();
+  await resMan.Ready(texture);
 
   const bitmap = texture.GetBitmap();
   assert.equal(bitmap.GetWidth(), 2, "resized up to the largest source");
@@ -210,12 +214,13 @@ test("dynamic:/texturearray stacks separate images as the layers of one array", 
     "res:/x/detail2.dds": legacyDds(1, 1, [ 4, 5, 6, 255 ])
   };
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
   await configureResourceManager(resMan);
   RegisterTextureArray(resMan);
 
   const texture = resMan.GetResource("dynamic:/texturearray/res:/x/detail1.dds;res:/x/detail2.dds");
-  await texture.Ready();
+  await resMan.Ready(texture);
 
   const bitmap = texture.GetBitmap();
   assert.equal(bitmap.GetArraySize(), 2, "one layer per path, in order");
@@ -237,6 +242,7 @@ test("a loaded texture resource handed to a runtime texture parameter is made on
   const { Tr2TexturePipeline, Tr2TexturePipelineStepLoad } = await import("../../npm/dist/resource/index.js");
   const { StubContext } = await import("../support/stubContext.js");
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
   resMan.Register({ source: { Read: () => Promise.resolve(legacyDds(2, 1, [ 0, 0, 200, 255, 0, 0, 100, 255 ])) } });
   await configureResourceManager(resMan);
 
@@ -328,4 +334,12 @@ test("SetTextureFromRT wraps a render target as a live view (TriTextureRes.cpp:8
   assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP");
   assert.equal(row.exposure.name, "SetFromRenderTarget");
   assert.equal(row.impl.status, "adapted");
+});
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() =>
+{
+  try { if (blue.resMan !== previousManager) blue.resMan.Clear(); }
+  finally { blue.resMan = previousManager; }
 });

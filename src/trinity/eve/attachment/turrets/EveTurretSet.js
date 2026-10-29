@@ -1,3 +1,4 @@
+import { BlueAsyncRes } from "#blue";
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
@@ -577,6 +578,7 @@ export class EveTurretSet extends EveEntity
    */
   Destruct()
   {
+    BlueAsyncRes.markNotifyTargetDestructed(this);
     this.UnRegister(this.GetComponentRegistry());
 
     if (this.firingEffect) this.firingEffect.CleanUp();
@@ -1948,6 +1950,8 @@ export class EveTurretSet extends EveEntity
    * same-frame retarget scheduling remains an open required-update clock gate.
    *
    * Adapted: The existing sampler and explicit phase calls replace native renderer-clock task dispatch.
+   * @param {object} context Owner update context.
+   * @param {ArrayLike<number>} _parentMatrix Unused parent transform in this resource notification path.
    */
 
   @meta.adapted
@@ -1960,7 +1964,7 @@ export class EveTurretSet extends EveEntity
     if (geometry && !geometry.IsGood())
     {
       if (this._skeleton || this._turretVertexDeclElementCount) this.ReleaseCachedData(geometry);
-      if (!geometry.IsFailed()) geometry.AddNotifyTarget(this);
+
     }
     if (this.UpdateLOD(context))
     {
@@ -2724,3 +2728,5 @@ blue.enums.Create("trinity.EveTurretSet.State", EveTurretSet.State);
 // Native Blue explicitly maps its concrete identity.
 
 // EveTurretSet_Blue.cpp: native exposure.
+
+CjsSchema.decorateMethod(EveTurretSet, "Destruct", CjsSchema.meta.adapted);

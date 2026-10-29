@@ -16,6 +16,6 @@
 export async function LoadData(resMan, path, options = {})
 {
   const resource = resMan.GetResource(path, options);
-  await resource.Ready(options);
-  return resource.GetPayload();
+  await resMan.Ready(resource);
+  return resMan.GetResourcePayload(resource);
 }

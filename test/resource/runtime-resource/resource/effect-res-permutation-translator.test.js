@@ -1,3 +1,4 @@
+import { readEffectFixture } from "../../../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -25,7 +26,7 @@ test("a permutation the load did not translate is translated on first request", 
     const calls = [];
     // DoLoad installs a translator itself when it translates, and clears any
     // earlier one, so a hand-installed translator goes on after the load.
-    const res = new Tr2EffectRes().DoLoad(container([ "U", "U", "D", "U" ]));
+    const res = readEffectFixture(new Tr2EffectRes(), container([ "U", "U", "D", "U" ]));
     res.SetPermutationTranslator(permutation =>
     {
         calls.push(permutation);
@@ -45,7 +46,7 @@ test("a permutation the load did not translate is translated on first request", 
 
 test("a translation that lacks the requested body is an error, not a wrong body", () =>
 {
-    const res = new Tr2EffectRes().DoLoad(container([ "U", "U", "D", "U" ]));
+    const res = readEffectFixture(new Tr2EffectRes(), container([ "U", "U", "D", "U" ]));
     res.SetPermutationTranslator(() => ({ bytes: container([ "X", "X", "X", "X" ]), indices: [ 3 ] }), [ 2 ]);
 
     assert.throws(() => res.GetShaderByIndex(0), /produced no body/);
@@ -53,7 +54,7 @@ test("a translation that lacks the requested body is an error, not a wrong body"
 
 test("without a translator every index reads from the loaded container", () =>
 {
-    const res = new Tr2EffectRes().DoLoad(container([ "A", "B", "C", "C" ]));
+    const res = readEffectFixture(new Tr2EffectRes(), container([ "A", "B", "C", "C" ]));
 
     assert.equal(nameOf(res.GetShaderByIndex(1)), "BConstant");
 });

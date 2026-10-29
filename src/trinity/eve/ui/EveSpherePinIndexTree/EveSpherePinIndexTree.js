@@ -108,7 +108,7 @@ export class EveSpherePinIndexTree
   {
     this.initialized = 0;
     if (!this.granny || !this.granny.IsGood()) return 0;
-    const mesh = this.granny.GetPayload()?.meshes?.[0];
+    const mesh = this.granny.GetCMFData()?.meshes?.[0];
     if (!mesh) return 0;
     const lod = mesh.lods?.[0] ?? mesh;
     const positions = (lod.vertex ?? mesh.vertex)?.position;

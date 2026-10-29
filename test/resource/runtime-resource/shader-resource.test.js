@@ -67,7 +67,11 @@ const MODE = {
 
 function loaded(axes, describe = null)
 {
-  return new Tr2EffectRes().DoLoad(buildContainer(axes, describe));
+  const resource = new Tr2EffectRes();
+  resource._dataStream = { form: "bytes", data: buildContainer(axes, describe) };
+  resource._DoLoad();
+  resource._CloseStream();
+  return resource;
 }
 
 test("binary shader loading constructs canonical component identity", () =>
@@ -251,26 +255,16 @@ test("Tr2Shader lookups match Carbon pass-stage traversal", () =>
   assert.equal(shader.GetTechniqueIndex("Any"), -1);
 });
 
-test("Tr2EffectRes reports a malformed permutation payload", () =>
+test("Tr2EffectRes rejects malformed binary containers through its native load hook", () =>
 {
-  const resource = new Tr2EffectRes();
-
-  assert.throws(
-    () => resource.SetPayload({}),
-    error => error?.code === "CJS_RESOURCE_PAYLOAD_INVALID"
-  );
-  assert.throws(
-    () => resource.SetPayload({
-      permutations: [ { name: "X", options: [], defaultOption: 0 } ]
-    }),
-    error => error?.code === "CJS_RESOURCE_PAYLOAD_INVALID"
-  );
-  assert.throws(
-    () => resource.SetPayload({
-      permutations: [ { name: "X", options: [ "a" ], defaultOption: 1 } ]
-    }),
-    error => error?.code === "CJS_RESOURCE_PAYLOAD_INVALID"
-  );
+  const valid = buildContainer([ QUALITY ]);
+  for (const bytes of [ new Uint8Array(0), new Uint8Array([255, 255, 255, 255]), valid.subarray(0, 8) ])
+  {
+    const resource = new Tr2EffectRes();
+    resource._dataStream = { form: "bytes", data: bytes };
+    assert.throws(() => resource._DoLoad());
+    resource._CloseStream();
+  }
 });
 
 test("Tr2Shader retains its native Blue exposure", () =>

@@ -50,7 +50,7 @@ test("the edge list holds each triangle's three lines and is built once", () =>
 {
   const renderContext = context();
   const geometry = new TriGeometryRes();
-  geometry.SetPayload(payload());
+  geometry.ReadCMFFile(payload());
   const lod = geometry.GetMeshLod__LodIndex(0, 0);
 
   // A filler allocation so the edge start index is not zero by accident.
@@ -65,7 +65,7 @@ test("the edge list holds each triangle's three lines and is built once", () =>
   assert.equal(CreateLodWireframeIndices(geometry, 0, lod, renderContext), true);
   assert.equal(lod.wireframeIndexAllocation, edges, "lazy and once");
 
-  geometry.ReleasePayload();
+  geometry.Shutdown();
   assert.equal(lod.wireframeIndexAllocation, null, "freed with the LOD's other allocations");
   assert.equal(edges.IsValid(), false);
 });
@@ -75,7 +75,7 @@ test("with the ESM wireframe flag on, a mesh batch draws TOP_LINES over the edge
   const renderContext = context();
   const al = renderContext.GetRenderContextAL();
   const geometry = new TriGeometryRes();
-  geometry.SetPayload(payload());
+  geometry.ReadCMFFile(payload());
   const lod = geometry.GetMeshLod__LodIndex(0, 0);
   const calls = record(renderContext);
 

@@ -1,57 +1,38 @@
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 import {
   getResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsSchema, blue } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { ICacheable } from "../../../npm/dist/global/blue/index.js";
 import * as runtimeResource from "../../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../../npm/dist/global/blue/formats/black/index.js";
 import { CjsRedFormat } from "../../../npm/dist/global/blue/formats/red/index.js";
-import { CjsEventEmitter, Tr2ImageRes, TriGeometryRes, TriTextureRes, CjsMotherLode, CjsLoadingObject, CjsBlueResMan, CjsResource, CjsResourceProbe, ResourceHandlerMode, Tr2GrannyStateRes, Tr2LightProfileRes, TriGrannyRes, getMotherLodeKey } from "../../../npm/dist/resource/index.js";
+import { CjsEventEmitter, Tr2ImageRes, TriGeometryRes, TriTextureRes, CjsMotherLode, CjsLoadingObject, CjsBlueResMan, BlueAsyncRes, CjsResourceProbe, ResourceHandlerMode, Tr2GrannyStateRes, Tr2LightProfileRes, TriGrannyRes, getMotherLodeKey } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes, Tr2MaterialRes } from "../../../npm/dist/trinity/shader/index.js";
 import { LoadData } from "../../support/loadData.js";
+import {blue} from "../../../npm/dist/global/blue/index.js";
 
-/** A resource reporting the memory use a test gives it: `ICacheable`, as Carbon's resource classes are. */
-class SizedResource extends CjsResource
+/** A concrete family test double that owns its reader result. */
+class TestValueResource extends BlueAsyncRes
 {
-  size = 0;
-  known = true;
-
-  IsMemoryUsageKnown()
-  {
-    return this.known;
-  }
-
-  GetMemoryUsage()
-  {
-    return this.size;
-  }
-}
-blue.inherit(ICacheable)(SizedResource, { kind: "class" });
-blue.interface(ICacheable)(SizedResource);
-
-/**
- * A sized resource registered at time 0, so an inactivity sweep at time 10
- * with a 5 ms limit expires it.
- */
-function insertSized(motherLode, name, size)
-{
-  const key = getMotherLodeKey(`res:/data/${name}.bin`);
-  const resource = new SizedResource().Initialize(key);
-  resource.size = size;
-  resource.SetPayload({ name });
-  motherLode.Insert(key, resource, { time: 0 });
-  return { key, resource };
+  value = null;
+  async _DoLoad() { this.value = await blue.resMan.ReadResourceObjectPayload(this, this._dataStream.data); return BlueAsyncRes.LoadingResult.LR_SUCCESS; }
+  _DoPrepare() { return this.value !== null; }
+  _OnShutdown() { this.value = null; }
 }
 
-/** Expires every entry not used since time 5. */
-function expire(motherLode)
+/** Exercise read caches directly: output choices do not create resource identities. */
+async function readDecodedData(manager, path, options)
 {
-  return motherLode.PurgeInactive({ time: 10, maxIdleMilliseconds: 5 });
+  const bytes = await manager.ReadResource(path, options);
+  const resource = new BlueAsyncRes();
+  resource._path = normalizeResourcePath(path);
+  const descriptor = manager.ResolveFormatDescriptor(getResourceExtension(path), {...options, bytes});
+  return manager.ReadFormatOnce(resource, descriptor, bytes, options);
 }
 
 test("runtime-resource does not export an event scope layer", () => {
@@ -189,163 +170,9 @@ test("resource path helpers normalize Carbon-style paths", () => {
   assert.equal(getResourceExtension("res:/texture/ship.dds?variant=1"), "dds");
 });
 
-test("runtime-owned Carbon resource classes are canonical CjsResource implementations", () => {
-  const granny = new TriGrannyRes().Initialize("res:/character/ship.gr2");
-  const gstate = new Tr2GrannyStateRes().Initialize("res:/character/ship.gstate");
-  const lightProfile = new Tr2LightProfileRes().Initialize("res:/light/ship.lightprofile");
-
-  assert.equal(new Tr2MaterialRes().name, "");
-  assert.equal(granny instanceof CjsResource, true);
-  assert.equal(gstate instanceof CjsResource, true);
-  assert.equal(lightProfile instanceof CjsResource, true);
-  assert.equal(TriGrannyRes.payload, "geometry");
-  assert.equal(Tr2GrannyStateRes.payload, "granny-state");
-  assert.equal(Tr2LightProfileRes.payload, "light-profile");
-
-  // The shape CjsGr2Format.readGsf actually returns. The previous literal used
-  // `skeleton`/`additiveAnimations`, which no reader emits and Carbon does not
-  // have - it was written to satisfy the guard rather than to read a file, so
-  // it proved its own premise and hid the fact that every real GSF was
-  // rejected.
-  const payload = {
-    format: "gsf",
-    container: { family: "granny", revision: 6, sectionCount: 8 },
-    character: { modelNameHint: "male_generic", modelIndexHint: 0 },
-    stateMachine: { states: [] },
-    animationSlots: [],
-    animationSets: [ { index: 0, sourceFileReferences: [ "../anim/idle.gr2" ], raw: {} } ],
-    uniqueTokenCount: 0
-  };
-  gstate.SetPayload(payload);
-  assert.equal(gstate.GetPayload(), payload);
-  // A GSF carries a state machine and references to animations, never geometry.
-  assert.equal("models" in payload, false);
-  assert.equal("meshes" in payload, false);
-  assert.equal("skeleton" in payload, false);
-
-  assert.throws(
-    () => gstate.SetPayload({ animationSlots: [] }),
-    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID",
-    "a GState payload without a state machine is not a GState"
-  );
-  assert.throws(
-    () => gstate.SetPayload({ stateMachine: {}, animationSets: "nope" }),
-    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID",
-    "animation sets are walked, so a non-array is rejected before the first bind"
-  );
-
-  assert.equal(CjsSchema.getConstructor("TriGrannyRes"), TriGrannyRes);
-  assert.equal(CjsSchema.getConstructor("Tr2GrannyStateRes"), Tr2GrannyStateRes);
-  assert.equal(CjsSchema.getConstructor("Tr2LightProfileRes"), Tr2LightProfileRes);
-
-  const resMan = new CjsBlueResMan().RegisterResourceType(TriGrannyRes);
-  assert.equal(
-    resMan.GetResource("res:/character/other.gr2", { requirement: "geometry" }) instanceof TriGrannyRes,
-    true
-  );
-  assert.equal(
-    resMan.GetResource("res:/character/not-granny.bin", { requirement: "granny" }) instanceof TriGrannyRes,
-    false,
-    "granny is not a semantic requirement alias"
-  );
-});
-
-test("extension routes disambiguate resource classes sharing one requirement", () =>
-{
-  class TestGeometryFormat
-  {
-    static outputs = Object.freeze({ "geometry": Object.freeze({ output: "geometry" }) })
-    static read(input) { return input; }
-  }
-
-  for (const resourceTypes of [
-    [ TriGeometryRes, TriGrannyRes ],
-    [ TriGrannyRes, TriGeometryRes ]
-  ])
-  {
-    const resMan = new CjsBlueResMan();
-    resMan.RegisterExtension("gr2", TriGrannyRes, TestGeometryFormat);
-    for (const Resource of resourceTypes) resMan.RegisterResourceType(Resource);
-
-    assert.equal(
-      resMan.GetResource("res:/ship/hull.gr2", { requirement: "geometry" }) instanceof TriGrannyRes,
-      true,
-      "the matching extension handler wins independently of registration order"
-    );
-    assert.throws(
-      () => resMan.GetResource("res:/ship/hull.bin", { requirement: "geometry" }),
-      error => error.code === "CJS_RESOURCE_TYPE_AMBIGUOUS"
-        && error.requirement === "geometry"
-        && error.resourceTypes.includes("TriGeometryRes")
-        && error.resourceTypes.includes("TriGrannyRes"),
-      "without a route, two shorthand defaults fail loudly rather than using the last one"
-    );
-  }
-});
-
-test("CjsBlueResMan.Register adds formats and semantic resource types", async () => {
-  class TestFormat
-  {
-    static className = "TestFormat";
-    static extensions = Object.freeze([ ".foo", ".bar" ]);
-    static outputs = Object.freeze({ "geometry": Object.freeze({ output: "geometry" }), "cmfJson": Object.freeze({ output: "cmfJson" }) })
-    static read(input, options) { return { input, emit: options.emit }; }
-  }
-
-  const source = { Read() { return new Uint8Array([ 1 ]); } };
-  const resMan = new CjsBlueResMan().Register({
-    source,
-    formats: [ TestFormat ],
-    resourceTypes: [ TriGrannyRes ]
-  });
-
-  assert.equal(resMan.source, source);
-  assert.equal(resMan.ResolveFormat("foo", { emit: "geometry" }), TestFormat);
-  assert.equal(resMan.ResolveFormat("bar", { emit: "geometry" }), TestFormat);
-  assert.equal(resMan.ResolveFormat("foo", { emit: "cmfjson" }), TestFormat);
-  assert.deepEqual(
-    await resMan.ReadFormat(resMan.GetFormatDescriptors("foo")[0], 7, { emit: "cmfjson" }),
-    { input: 7, emit: "cmfJson" }
-  );
-  assert.throws(
-    () => resMan.ResolveFormat("foo", { emit: "cmf" }),
-    error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
-      && error.ext === "foo"
-      && error.emit === "cmf"
-  );
-  assert.throws(
-    () => resMan.GetResource("res:/character/value.foo", { emit: "cmf" }),
-    error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
-  );
-  resMan.GetResource("res:/character/cached.foo", { variant: "cmf" });
-  assert.throws(
-    () => resMan.GetResource("res:/character/cached.foo", {
-      variant: "cmf",
-      emit: "cmf"
-    }),
-    error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
-  );
-  assert.equal(
-    resMan.GetResource("res:/character/value.foo", { requirement: "geometry" }) instanceof TriGrannyRes,
-    true
-  );
-  assert.equal(resMan.Register({ formats: [ TestFormat ] }), resMan);
-  assert.deepEqual(resMan.GetFormats("foo"), [ TestFormat ]);
-
-  resMan.RegisterObjectLoader("plain", value => value);
-  resMan.GetResource("res:/character/cached.plain", { variant: "cmf" });
-  assert.throws(
-    () => resMan.GetResource("res:/character/cached.plain", {
-      variant: "cmf",
-      emit: "cmf"
-    }),
-    error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
-  );
-});
-
 test("CjsBlueResMan registers immutable extension handlers through every short form", async () =>
 {
-  class TestRouteResource extends CjsResource {}
+  class TestRouteResource extends TestValueResource {}
   class TestRouteFormat
   {
     static outputs = Object.freeze({ "payload": Object.freeze({ output: "payload" }) })
@@ -354,8 +181,9 @@ test("CjsBlueResMan registers immutable extension handlers through every short f
 
   const source = { Read() { return new Uint8Array([ 7 ]); } };
   const resMan = new CjsBlueResMan({ source });
+  blue.resMan = resMan;
 
-  assert.equal(CjsResource.handlerMode, ResourceHandlerMode.RESOURCE);
+  assert.equal(BlueAsyncRes.isResource, true);
   assert.equal(CjsLoadingObject.handlerMode, ResourceHandlerMode.OBJECT);
   assert.equal(new CjsLoadingObject().isResource, false);
   assert.equal(resMan.RegisterExtension(".RoUtE", TestRouteResource, TestRouteFormat), resMan);
@@ -370,92 +198,14 @@ test("CjsBlueResMan registers immutable extension handlers through every short f
 
   const resource = await resMan.Fetch("res:/data/one.route");
   assert.equal(resource instanceof TestRouteResource, true);
-  assert.deepEqual(resource.GetPayload(), { byte: 7 });
+  assert.deepEqual(resource.value, { byte: 7 });
   assert.equal(await resMan.LoadObject("res:/data/one.route"), resource);
 
-  class MissingMode extends CjsResource {}
+  class MissingMode extends TestValueResource {}
   MissingMode.handlerMode = "other";
   assert.throws(
     () => resMan.RegisterExtension("bad", MissingMode, TestRouteFormat),
     /Handler\.handlerMode/u
-  );
-});
-
-test("CjsBlueResMan object extension routes hydrate targets and retain captured routes", async () =>
-{
-  class TestFirstFormat
-  {
-    static read(bytes) { return { value: bytes[0], source: "first" }; }
-  }
-  class TestSecondFormat
-  {
-    static read(bytes) { return { value: bytes[0], source: "second" }; }
-  }
-  class TestTarget
-  {
-    constructor(values) { Object.assign(this, values); }
-    static from(values) { return new TestTarget(values); }
-  }
-  class TestSemanticResource extends CjsResource {}
-
-  let reads = 0;
-  const path = "res:/data/model.typed";
-  const resMan = new CjsBlueResMan({
-    source: { Read() { reads += 1; return new Uint8Array([ reads ]); } }
-  });
-  resMan.RegisterExtension("typed", CjsLoadingObject, {
-    Format: TestFirstFormat,
-    Target: TestTarget
-  });
-  resMan.RegisterResourceType("semantic", TestSemanticResource);
-
-  const first = await resMan.Fetch(path);
-  assert.equal(first instanceof TestTarget, true);
-  assert.deepEqual({ ...first }, { value: 1, source: "first" });
-  const handler = resMan.GetResource(path);
-  assert.equal(handler instanceof CjsLoadingObject, true);
-  // Carbon caches the builder, not the object (BlueResMan.cpp:653-795): the
-  // payload is the decoded values, and each Fetch builds its own object.
-  assert.deepEqual(handler.GetPayload(), { value: 1, source: "first" });
-  {
-    const again = await resMan.Fetch(path);
-    assert.notEqual(again, first);
-    assert.deepEqual({ ...again }, { value: 1, source: "first" });
-  }
-  assert.equal(reads, 1);
-
-  resMan.RegisterExtension("typed", CjsLoadingObject, {
-    Format: TestSecondFormat,
-    Target: TestTarget
-  });
-  {
-    const again = await resMan.Fetch(path);
-    assert.notEqual(again, first);
-    assert.deepEqual({ ...again }, { value: 1, source: "first" });
-  }
-
-  assert.equal(resMan.Delete(path), true);
-  const second = await resMan.Fetch(path);
-  assert.equal(second instanceof TestTarget, true);
-  assert.deepEqual({ ...second }, { value: 2, source: "second" });
-
-  const semantic = await resMan.Fetch("res:/data/semantic.typed", {
-    requirement: "semantic"
-  });
-  assert.equal(semantic instanceof TestSemanticResource, true);
-  assert.equal(semantic.GetPayload() instanceof TestTarget, true);
-  assert.equal(
-    await resMan.LoadObject("res:/data/semantic.typed", { requirement: "semantic" }),
-    semantic
-  );
-
-  assert.throws(
-    () => resMan.RegisterExtension("invalid", CjsLoadingObject, {
-      Format: TestFirstFormat,
-      Target: TestTarget,
-      Identify() { return true; }
-    }),
-    /either Target or Identify/u
   );
 });
 
@@ -481,6 +231,7 @@ test("CjsBlueResMan ordered extension formats probe once and use only a final fa
 
   const source = { Read() { return new Uint8Array([ 1 ]); } };
   const resMan = new CjsBlueResMan({ source });
+  blue.resMan = resMan;
   resMan.RegisterExtension("ordered", CjsLoadingObject, [
     TestRejectingFormat,
     TestAcceptedFormat,
@@ -493,6 +244,7 @@ test("CjsBlueResMan ordered extension formats probe once and use only a final fa
   const legacy = new CjsBlueResMan()
     .RegisterFormat(TestRejectingFormat)
     .RegisterFormat(TestAcceptedFormat);
+  blue.resMan = legacy;
   assert.equal(
     legacy.ResolveFormat("legacyprobe", { bytes: new Uint8Array([ 1 ]) }),
     TestAcceptedFormat
@@ -517,6 +269,7 @@ test("CjsBlueResMan uses Black-first content routing for both red and black suff
   const encoded = new TextEncoder().encode("type: RedRouteRoot\nname: yaml-content\n");
   const source = { Read() { return encoded; } };
   const resMan = new CjsBlueResMan({ source });
+  blue.resMan = resMan;
   resMan.RegisterExtension("red", CjsLoadingObject, [ CjsBlackFormat, CjsRedFormat ]);
   resMan.RegisterExtension("black", CjsLoadingObject, [ CjsBlackFormat, CjsRedFormat ]);
 
@@ -547,6 +300,7 @@ test("CjsBlueResMan never falls through after an ordered format is selected", as
   const resMan = new CjsBlueResMan({
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
+  blue.resMan = resMan;
   resMan.RegisterExtension("once", CjsLoadingObject, [
     TestSelectedFormat,
     TestUnselectedFallback
@@ -593,6 +347,7 @@ test("CjsBlueResMan Register accepts composed extension route objects", async ()
       }
     }
   });
+  blue.resMan = resMan;
 
   const known = await resMan.Fetch("res:/data/value.shape");
   assert.equal(known instanceof TestKnownTarget, true);
@@ -664,6 +419,7 @@ test("CjsBlueResMan exposes normalized resource paths to sources, formats and ta
       }
     }
   });
+  blue.resMan = resMan;
 
   assert.deepEqual(
     await LoadData(resMan, " RES:\\Character\\Folder\\Metadata.YAML "),
@@ -693,934 +449,6 @@ test("CjsBlueResMan exposes normalized resource paths to sources, formats and ta
   assert.equal(identifyContext.ext, "yaml");
 });
 
-test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
-  const resource = new CjsResource().Initialize("res:/Texture/Ship.DDS");
-  const states = [];
-  resource.OnEvent("statechange", (_name, changed, state, previous) => {
-    assert.equal(changed, resource);
-    states.push([ state, previous ]);
-  });
-
-  // Composed, not inherited: the notify surface is the SAME functions the
-  // emitter base carries, installed by compose.notify with the extends gone.
-  assert.equal(resource instanceof CjsEventEmitter, false);
-  assert.equal(resource.OnEvent, CjsEventEmitter.prototype.OnEvent);
-  assert.equal(resource.EmitEvent, CjsEventEmitter.prototype.EmitEvent);
-  assert.equal(Object.prototype.hasOwnProperty.call(resource, "__state"), true);
-  assert.equal(resource.__state.events instanceof Map, true);
-  assert.equal(Object.prototype.hasOwnProperty.call(resource.__state, "dirty"), false);
-  assert.equal(Object.prototype.hasOwnProperty.call(resource.__state, "rebuild"), false);
-  assert.equal(resource.GetPath(), "res:/texture/ship.dds");
-  assert.equal(resource.GetExt(), "", "BlueAsyncRes::GetExt returns the supplied suffix, not .dds");
-  assert.equal(resource.state, CjsResource.State.EMPTY);
-  assert.equal(CjsResource.isValidState(CjsResource.State.EMPTY), true);
-  assert.equal(CjsResource.isTerminalState(CjsResource.State.EMPTY), false);
-  assert.equal(CjsResource.isTerminalState(CjsResource.State.PREPARED), true);
-  assert.equal(CjsResource.isTerminalState(CjsResource.State.FAILED), true);
-  assert.equal(resource.IsPrepared(), false);
-  assert.equal(resource.IsGood(), false);
-  assert.equal(resource.HasLoaded(), false);
-  assert.equal(resource.MarkLoaded().HasLoaded(), true);
-  assert.equal(resource.MarkPrepared().IsPrepared(), true);
-  assert.equal(resource.MarkGood().IsGood(), true);
-  assert.deepEqual(states, [
-    [ CjsResource.State.LOADED, CjsResource.State.EMPTY ],
-    [ CjsResource.State.PREPARED, CjsResource.State.LOADED ]
-  ]);
-  assert.equal(CjsResource.State.GOOD, undefined);
-  assert.throws(() => resource.SetState("cooked"), /Invalid CjsResource state/u);
-  assert.equal(CjsSchema.getConstructor("CjsResource"), CjsResource);
-  assert.equal(CjsSchema.getField(CjsResource, "path").type.kind, "path");
-  assert.equal(resource.GetValues().path, "res:/texture/ship.dds");
-});
-
-test("CjsMotherLode cache is reused through CjsBlueResMan.GetResource", () => {
-  const resMan = new CjsBlueResMan();
-  const a = resMan.GetResource("res:/Texture/Ship.DDS");
-  const b = resMan.GetResource("RES:/texture/ship.dds");
-
-  assert.equal(a, b);
-  assert.equal(resMan instanceof CjsEventEmitter, false);
-  assert.equal(resMan.OnEvent, CjsEventEmitter.prototype.OnEvent);
-  assert.equal(resMan.motherLode.GetCount(), 1);
-});
-
-test("CjsBlueResMan identity is source path plus promised output", () =>
-{
-  const resMan = new CjsBlueResMan();
-  const converted = resMan.GetResource("res:/ship.gr2", {
-    requirement: "geometry",
-    emit: "cmf",
-    formatOptions: { debug: false }
-  });
-  const equivalent = resMan.GetResource("RES:/SHIP.GR2", {
-    requirement: "geometry",
-    emit: "CMF",
-    formatOptions: { debug: true }
-  });
-  const native = resMan.GetResource("res:/ship.gr2", { emit: "gr2" });
-  const packaged = resMan.GetResource("res:/ship.cmf", { emit: "cmf" });
-
-  assert.equal(equivalent, converted);
-  assert.notEqual(native, converted);
-  assert.notEqual(packaged, converted);
-  assert.equal(resMan.GetResourceVariant({ emit: "CMF" }), "cmf");
-  assert.equal(resMan.GetResourceVariant({ requirement: "Geometry" }), "geometry");
-  assert.equal(resMan.GetResourceVariant({ variant: "cmf2", emit: "cmf" }), "cmf2");
-  assert.equal(resMan.Lookup("res:/ship.gr2", { emit: "cmf" }), converted);
-  assert.equal(resMan.motherLode.GetSize(), 3);
-  assert.throws(
-    () => resMan.GetResourceVariant({ variant: {} }),
-    /variant must be a non-empty string/u
-  );
-  assert.throws(
-    () => resMan.GetResourceVariant({ variant: "", emit: "cmf" }),
-    /variant must be a non-empty string/u
-  );
-});
-
-test("bound resource handles keep their promised output during reconstruction", async () =>
-{
-  let reads = 0;
-  class TestBoundOutputFormat
-  {
-    static extensions = Object.freeze([ ".boundoutput" ]);
-    static outputs = Object.freeze({ "cmf": Object.freeze({ output: "cmf" }), "gr2": Object.freeze({ output: "gr2" }) })
-
-    static read(_bytes, options)
-    {
-      reads += 1;
-      return { emit: options.emit, reads };
-    }
-  }
-
-  const path = "res:/ship.boundoutput";
-  const resMan = new CjsBlueResMan({
-    source: { Read() { return new Uint8Array([ 1 ]); } }
-  }).RegisterFormat(TestBoundOutputFormat);
-  const resource = resMan.GetResource(path, {
-    variant: "cmf",
-    emit: "cmf",
-    pipeline: "ignored",
-    preparePipeline: "ignored",
-    prepareStages: [ () => { throw new Error("must not be retained"); } ]
-  });
-
-  assert.equal(resource.GetObjectRequest().variant, "cmf");
-  assert.equal(resource.GetObjectRequest().emit, "cmf");
-  assert.equal(Object.hasOwn(resource.GetObjectRequest(), "pipeline"), false);
-  assert.equal(Object.hasOwn(resource.GetObjectRequest(), "preparePipeline"), false);
-  assert.equal(Object.hasOwn(resource.GetObjectRequest(), "prepareStages"), false);
-  assert.deepEqual(await resource.Ready({ emit: "gr2" }), { emit: "cmf", reads: 1 });
-  resource.ReleasePayload();
-  assert.deepEqual(
-    await LoadData(resMan, path, { variant: "cmf", emit: "gr2" }),
-    { emit: "cmf", reads: 2 }
-  );
-  assert.equal(resMan.motherLode.GetSize(), 1);
-});
-
-test("registration changes do not create hidden resource identities", () =>
-{
-  class FirstResource extends CjsResource {}
-  class SecondResource extends CjsResource {}
-
-  const resMan = new CjsBlueResMan();
-  const path = "res:/data/configured.bin";
-  resMan.RegisterResourceType("configured", FirstResource);
-  const first = resMan.GetResource(path, { requirement: "configured" });
-
-  resMan.RegisterResourceType("configured", SecondResource);
-  const sameIdentity = resMan.GetResource(path, { requirement: "configured" });
-  assert.equal(sameIdentity, first);
-  assert.equal(sameIdentity instanceof FirstResource, true);
-
-  assert.equal(resMan.Delete(path, { requirement: "configured" }), true);
-  const afterExplicitReset = resMan.GetResource(path, { requirement: "configured" });
-  assert.notEqual(afterExplicitReset, first);
-  assert.equal(afterExplicitReset instanceof SecondResource, true);
-});
-
-test("CjsMotherLode exposes canonical identity and activity diagnostics", () =>
-{
-  let time = 100;
-  const motherLode = new CjsMotherLode({
-    cacheSize: 4096,
-    now: () => time++
-  });
-  const resource = new CjsResource().Initialize("RES:/Texture/Ship.DDS");
-  const key = getMotherLodeKey(resource.GetPath(), "texture/native@1");
-  const result = motherLode.Insert(key, resource);
-
-  assert.equal(result.key, key);
-  assert.equal(result.resource, resource);
-  assert.equal(result.inserted, true);
-  assert.equal(result.replaced, false);
-  assert.equal(result.displaced, null);
-  assert.equal(motherLode.IsStarted(), true);
-  assert.equal(motherLode.HasKey(key), true);
-  assert.equal(motherLode.Has(resource.GetPath(), "texture/native@1"), true);
-  assert.equal(motherLode.Lookup(key), resource);
-  assert.equal(motherLode.GetSize(), 1);
-  assert.equal(motherLode.GetCount(), 1);
-  assert.equal(motherLode.GetCacheSize(), 4096);
-  assert.deepEqual(motherLode.GetKeys(), [ key ]);
-  assert.deepEqual(motherLode.GetValues(), [ resource ]);
-  assert.deepEqual([ ...motherLode.Entries() ], [ [ key, resource ] ]);
-
-  assert.equal(motherLode.Lock(key), 1);
-  assert.equal(motherLode.Lock(key), 2);
-  assert.equal(motherLode.Unlock(key), 1);
-  assert.equal(motherLode.KeepAlive(key), resource);
-
-  const stats = motherLode.GetStats();
-  assert.equal(stats.count, 1);
-  assert.equal(stats.size, 1);
-  assert.equal(stats.live, 1);
-  assert.equal(stats.cached, 0);
-  assert.equal(stats.locked, 1);
-  assert.equal(stats.bytes, 0);
-  assert.equal(stats.cacheSize, 4096);
-  assert.equal(stats.states.empty, 1);
-  assert.deepEqual(stats.paths, [ "res:/texture/ship.dds" ]);
-  assert.ok(stats.activityFrame >= 4);
-});
-
-test("CjsMotherLode replacement and removal clean displaced resource ownership", () =>
-{
-  const motherLode = new CjsMotherLode();
-  const key = getMotherLodeKey("res:/data/value.bin", "raw@1");
-  const first = new CjsResource().Initialize("res:/data/value.bin");
-  const blocked = new CjsResource().Initialize("res:/data/value.bin");
-  const replacement = new CjsResource().Initialize("res:/data/value.bin");
-  let firstDestroyed = 0;
-  let replacementDestroyed = 0;
-
-  first.SetPayload({ value: 1 });
-  first.SetAdapterResource("test", { destroy() { firstDestroyed += 1; } });
-  replacement.SetPayload({ value: 2 });
-  replacement.SetAdapterResource("test", { destroy() { replacementDestroyed += 1; } });
-
-  motherLode.Insert(key, first);
-  const refused = motherLode.Insert(key, blocked, { replace: false });
-
-  assert.equal(refused.resource, first);
-  assert.equal(refused.inserted, false);
-  assert.equal(refused.replaced, false);
-  assert.equal(motherLode.Lookup(key), first);
-  assert.equal(first.HasPayload(), true);
-
-  const replaced = motherLode.Insert(key, replacement);
-
-  assert.equal(replaced.resource, replacement);
-  assert.equal(replaced.inserted, true);
-  assert.equal(replaced.replaced, true);
-  assert.equal(replaced.displaced, first);
-  assert.equal(firstDestroyed, 1);
-  assert.equal(first.HasAdapterResource("test"), false);
-  assert.equal(first.HasPayload(), false);
-  assert.equal(motherLode.Lookup(key), replacement);
-
-  assert.equal(motherLode.Delete(key), true);
-  assert.equal(replacementDestroyed, 1);
-  assert.equal(replacement.HasPayload(), false);
-  assert.equal(motherLode.Delete(key), false);
-
-  const retainedKey = getMotherLodeKey("res:/data/retained.bin");
-  const retained = new CjsResource().Initialize("res:/data/retained.bin");
-  const retainedReplacement = new CjsResource().Initialize("res:/data/retained.bin");
-  let retainedDestroyed = 0;
-  retained.SetPayload({ retained: true });
-  retained.SetAdapterResource("test", { destroy() { retainedDestroyed += 1; } });
-  motherLode.Insert(retainedKey, retained);
-
-  const retainedResult = motherLode.Insert(retainedKey, retainedReplacement, { cleanup: false });
-
-  assert.equal(retainedResult.displaced, retained);
-  assert.equal(retainedDestroyed, 0);
-  assert.equal(retained.HasAdapterResource("test"), true);
-  assert.equal(retained.HasPayload(), true);
-  assert.equal(motherLode.Delete(retainedKey), true);
-
-  const failingKey = getMotherLodeKey("res:/data/failing-cleanup.bin");
-  const failingOwner = new CjsResource().Initialize("res:/data/failing-cleanup.bin");
-  failingOwner.ReleasePayload = () =>
-  {
-    throw new Error("expected cleanup failure");
-  };
-  const rejectedReplacement = new CjsResource().Initialize("res:/data/failing-cleanup.bin");
-  motherLode.Insert(failingKey, failingOwner);
-
-  assert.throws(
-    () => motherLode.Insert(failingKey, rejectedReplacement),
-    error => error.code === "CJS_MOTHERLODE_CLEANUP_FAILED"
-      && error.operation === "replace"
-      && error.resource === failingOwner
-  );
-  assert.equal(motherLode.Lookup(failingKey), failingOwner);
-  assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
-});
-
-test("CjsMotherLode conditional replacement commits before displaced cleanup", () =>
-{
-  const motherLode = new CjsMotherLode();
-  const key = getMotherLodeKey("res:/data/conditional-replace.bin");
-  const expected = new CjsResource().Initialize(key);
-  const candidate = new CjsResource().Initialize(key);
-  const unexpected = new CjsResource().Initialize(key);
-  expected.SetPayload({ revision: 1 });
-  candidate.SetPayload({ revision: 2 });
-  motherLode.Insert(key, expected);
-
-  const mismatch = motherLode.ReplaceExpected(key, unexpected, candidate);
-  assert.deepEqual(mismatch, {
-    key,
-    committed: false,
-    resource: expected,
-    displaced: null
-  });
-  assert.equal(motherLode.Lookup(key), expected);
-
-  assert.throws(
-    () => motherLode.ReplaceExpected(key, expected, candidate, {
-      cleanup(resource)
-      {
-        assert.equal(resource, expected);
-        assert.equal(motherLode.Lookup(key), candidate);
-        throw new Error("expected post-commit cleanup failure");
-      }
-    }),
-    error => error.code === "CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED"
-      && error.result.committed === true
-      && error.result.resource === candidate
-      && error.result.displaced === expected
-  );
-  assert.equal(motherLode.Lookup(key), candidate);
-  assert.equal(motherLode.GetStats().cached, 0);
-  assert.equal(candidate.HasPayload(), true);
-});
-
-test("CjsMotherLode clears cached entries and shuts down idempotently", () =>
-{
-  const motherLode = new CjsMotherLode();
-  const live = new CjsResource().Initialize("res:/data/live.bin");
-  const { resource: cached } = insertSized(motherLode, "cached", 64);
-  let cachedDestroyed = 0;
-
-  cached.SetAdapterResource("test", { destroy() { cachedDestroyed += 1; } });
-  motherLode.Insert(getMotherLodeKey(live.GetPath()), live, { time: 10 });
-  assert.deepEqual(expire(motherLode).cachedKeys, [ getMotherLodeKey(cached.GetPath()) ]);
-
-  assert.equal(motherLode.GetStats().cached, 1);
-  assert.equal(motherLode.GetStats().bytes, 64);
-  assert.equal(motherLode.ClearCached(), 1);
-  assert.equal(cachedDestroyed, 1);
-  assert.equal(cached.HasPayload(), false);
-  assert.equal(motherLode.GetSize(), 1);
-
-  motherLode.Shutdown();
-  motherLode.Shutdown();
-
-  assert.equal(motherLode.IsStarted(), false);
-  assert.equal(motherLode.GetSize(), 0);
-  assert.throws(
-    () => motherLode.Insert(getMotherLodeKey("res:/data/rejected.bin"), {}),
-    error => error.code === "CJS_MOTHERLODE_INACTIVE"
-  );
-
-  motherLode.Startup();
-  const restarted = new CjsResource().Initialize("res:/data/restarted.bin");
-  const restartedResult = motherLode.Insert(getMotherLodeKey(restarted.GetPath(), "legacy"), restarted);
-  assert.equal(restartedResult.inserted, true);
-  assert.equal(restartedResult.key, getMotherLodeKey(restarted.GetPath(), "legacy"));
-  assert.equal(motherLode.Has(restarted.GetPath(), "legacy"), true);
-});
-
-test("CjsMotherLode trims cached identities oldest-first by reported memory use", () =>
-{
-  const motherLode = new CjsMotherLode({ cacheSize: 128 });
-  const destroyed = [];
-
-  const createCached = name =>
-  {
-    const entry = insertSized(motherLode, name, 64);
-    entry.resource.SetAdapterResource("test", { destroy() { destroyed.push(name); } });
-    return entry;
-  };
-
-  const first = createCached("first");
-  const second = createCached("second");
-  const third = createCached("third");
-  const sweep = expire(motherLode);
-
-  assert.equal(sweep.purged, 0);
-  assert.deepEqual(sweep.cachedKeys, [ first.key, second.key, third.key ]);
-
-  const trim = motherLode.TrimCache();
-
-  assert.deepEqual(trim, {
-    cacheSize: 128,
-    beforeBytes: 192,
-    afterBytes: 128,
-    evictedBytes: 64,
-    overBudget: false,
-    evicted: 1,
-    failed: 0,
-    evictedKeys: [ first.key ],
-    failedKeys: []
-  });
-  assert.deepEqual(destroyed, [ "first" ]);
-  assert.equal(first.resource.HasPayload(), false);
-  assert.equal(first.resource.IsPurged(), true);
-  assert.equal(motherLode.Lookup(first.key), null);
-  assert.equal(motherLode.Lookup(second.key), second.resource);
-  assert.equal(motherLode.Lookup(third.key), third.resource);
-  assert.equal(motherLode.TrimCache().evicted, 0);
-
-  assert.equal(motherLode.SetCacheSize(64), motherLode);
-  assert.deepEqual(destroyed, [ "first", "second" ]);
-  assert.equal(second.resource.IsPurged(), true);
-  assert.equal(motherLode.Lookup(third.key), third.resource);
-
-  motherLode.SetCacheSize(0);
-  assert.deepEqual(destroyed, [ "first", "second", "third" ]);
-  assert.equal(third.resource.IsPurged(), true);
-  assert.equal(motherLode.GetSize(), 0);
-});
-
-test("CjsMotherLode validates cache-size cleanup options before changing policy", () =>
-{
-  const motherLode = new CjsMotherLode({ cacheSize: 128 });
-
-  assert.throws(
-    () => motherLode.SetCacheSize(64, []),
-    /set cache size options must be an object/u
-  );
-  assert.equal(motherLode.GetCacheSize(), 128);
-});
-
-test("CjsMotherLode caches only expired ICacheable entries that fit, and use takes them back out", () =>
-{
-  const motherLode = new CjsMotherLode({ cacheSize: 30 });
-  const plainKey = getMotherLodeKey("res:/data/plain.bin");
-  const plain = new CjsResource().Initialize(plainKey);
-  motherLode.Insert(plainKey, plain, { time: 0 });
-  const live = insertSized(motherLode, "live", 1000);
-  motherLode.KeepAlive(live.key, { time: 10 });
-  const zero = insertSized(motherLode, "zero", 0);
-  const tooBig = insertSized(motherLode, "too-big", 31);
-  const locked = insertSized(motherLode, "locked", 20);
-  motherLode.Lock(locked.key);
-  const notAllowed = insertSized(motherLode, "not-allowed", 5);
-  motherLode.Insert(notAllowed.key, notAllowed.resource, { cacheable: false, time: 0 });
-  const renewed = insertSized(motherLode, "renewed", 20);
-  const older = insertSized(motherLode, "older", 20);
-  const newer = insertSized(motherLode, "newer", 10);
-
-  const sweep = expire(motherLode);
-
-  // MotherLode.cpp:339-387: no ICacheable, zero size, larger than the whole
-  // budget, or caching not allowed - each is dropped rather than cached.
-  assert.deepEqual(sweep.purgedKeys, [ plainKey, zero.key, tooBig.key, notAllowed.key ]);
-  assert.deepEqual(sweep.cachedKeys, [ renewed.key, older.key, newer.key ]);
-  assert.equal(sweep.locked, 1);
-  assert.equal(motherLode.GetStats().bytes, 50);
-
-  // Use takes an entry back out of the cache (MotherLode.cpp:149-157).
-  assert.equal(motherLode.KeepAlive(renewed.key), renewed.resource);
-  assert.equal(motherLode.GetStats().bytes, 30);
-  assert.equal(motherLode.TrimCache().evicted, 0);
-
-  const pressure = insertSized(motherLode, "pressure", 10);
-  assert.deepEqual(expire(motherLode).cachedKeys, [ pressure.key ]);
-
-  const trim = motherLode.TrimCache();
-
-  assert.deepEqual(trim.evictedKeys, [ older.key ]);
-  assert.equal(trim.afterBytes, 20);
-  for (const kept of [ live, locked, renewed, newer, pressure ])
-  {
-    assert.equal(motherLode.Lookup(kept.key), kept.resource);
-  }
-  assert.equal(motherLode.ClearCached(), 2);
-  assert.equal(motherLode.Lookup(newer.key), null);
-  assert.equal(motherLode.Lookup(renewed.key), renewed.resource);
-});
-
-test("CjsMotherLode keeps an entry whose size is unknown pending until it is known", () =>
-{
-  const motherLode = new CjsMotherLode({ cacheSize: 100 });
-  const pending = insertSized(motherLode, "pending", 0);
-  pending.resource.known = false;
-  const unwanted = insertSized(motherLode, "unwanted", 0);
-  unwanted.resource.known = false;
-
-  assert.deepEqual(expire(motherLode).cachedKeys, [ pending.key, unwanted.key ]);
-  assert.equal(motherLode.GetStats().cached, 2);
-  assert.equal(motherLode.GetStats().bytes, 0);
-  assert.equal(motherLode.TrimCache().evicted, 0);
-
-  // MotherLode.cpp:208-249: once known, a size joins the LRU; zero is dropped.
-  pending.resource.known = true;
-  pending.resource.size = 40;
-  unwanted.resource.known = true;
-  const trim = motherLode.TrimCache();
-
-  assert.deepEqual(trim.evictedKeys, [ unwanted.key ]);
-  assert.equal(trim.afterBytes, 40);
-  assert.equal(unwanted.resource.IsPurged(), true);
-  assert.equal(motherLode.Lookup(pending.key), pending.resource);
-});
-
-test("CjsMotherLode cache trim preserves failed owners and reports partial pressure relief", () =>
-{
-  const motherLode = new CjsMotherLode({ cacheSize: 100 });
-  const { key: failingKey, resource: failing } = insertSized(motherLode, "failing-cache", 60);
-  const { key: stuckKey, resource: stuck } = insertSized(motherLode, "stuck-cache", 60);
-  const { key: goodKey, resource: good } = insertSized(motherLode, "good-cache", 60);
-  for (const resource of [ failing, stuck ])
-  {
-    resource.SetAdapterResource("test", { destroy() { throw new Error("expected cache cleanup failure"); } });
-  }
-  expire(motherLode);
-
-  assert.throws(
-    () => motherLode.TrimCache(),
-    error => error instanceof AggregateError
-      && error.code === "CJS_MOTHERLODE_CACHE_TRIM_FAILED"
-      && error.result.beforeBytes === 180
-      && error.result.afterBytes === 120
-      && error.result.overBudget === true
-      && error.result.evicted === 1
-      && error.result.failed === 2
-      && error.result.evictedKeys[0] === goodKey
-      && error.result.failedKeys[0] === failingKey
-      && error.result.failedKeys[1] === stuckKey
-  );
-  assert.equal(motherLode.Lookup(failingKey), failing);
-  assert.equal(motherLode.Lookup(stuckKey), stuck);
-  assert.equal(motherLode.Lookup(goodKey), null);
-  assert.equal(failing.IsPurged(), false);
-  assert.equal(good.IsPurged(), true);
-  assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
-  assert.equal(motherLode.Delete(stuckKey, { cleanup: false }), true);
-});
-
-test("CjsBlueResMan Update enforces cache pressure unless one update skips it", async () =>
-{
-  const motherLode = new CjsMotherLode({ cacheSize: 16 });
-  const resMan = new CjsBlueResMan({ motherLode });
-  const { key, resource } = insertSized(motherLode, "update-cache", 8);
-  const later = insertSized(motherLode, "update-cache-later", 12);
-  expire(motherLode);
-
-  assert.equal(resMan.Update({ cache: false, purge: false }), false);
-  assert.equal(motherLode.Lookup(key), resource);
-  assert.equal(resMan.Update({ purge: false }), true);
-  assert.equal(motherLode.Lookup(key), null);
-  assert.equal(motherLode.Lookup(later.key), later.resource);
-  assert.equal(resource.HasPayload(), false);
-  assert.equal(resource.IsPurged(), true);
-});
-
-test("CjsBlueResMan stages reload candidates and cleans displaced ownership only after commit", async () =>
-{
-  const resMan = new CjsBlueResMan({
-    source: { Read: () => "{\"value\":2}" }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-  const path = "res:/data/reload.json";
-  const first = resMan.GetResource(path);
-  assert.equal(first.IsCurrent(), true);
-  let firstDestroyed = 0;
-  first.SetPayload({ value: 1 });
-  first.SetAdapterResource("test", { destroy() { firstDestroyed += 1; } });
-
-  const replacement = resMan.GetResource(path, { reload: true });
-
-  assert.notEqual(replacement, first);
-  assert.equal(firstDestroyed, 0);
-  assert.equal(first.HasPayload(), true);
-  assert.equal(resMan.Lookup(path), first);
-
-  assert.deepEqual(await replacement.Ready(), { value: 2 });
-  assert.equal(firstDestroyed, 1);
-  assert.equal(first.HasPayload(), false);
-  assert.equal(resMan.Lookup(path), replacement);
-  assert.equal(first.IsCurrent(), false);
-  assert.equal(replacement.IsCurrent(), true);
-
-  let replacementDestroyed = 0;
-  replacement.SetAdapterResource("test", { destroy() { replacementDestroyed += 1; } });
-  assert.equal(resMan.Delete(path), true);
-  assert.equal(replacementDestroyed, 1);
-  assert.equal(replacement.HasPayload(), false);
-  assert.equal(replacement.IsCurrent(), false);
-
-  const cleared = resMan.GetResource("res:/data/clear.bin");
-  let clearedDestroyed = 0;
-  cleared.SetAdapterResource("test", { destroy() { clearedDestroyed += 1; } });
-  resMan.Clear();
-  assert.equal(clearedDestroyed, 1);
-  assert.equal(resMan.motherLode.GetSize(), 0);
-});
-
-test("failed reload source work preserves the exact good owner and cleans its candidate", async () =>
-{
-  const expectedError = new Error("expected reload source failure");
-  const path = "res:/data/reload-source-failure.json";
-  let reads = 0;
-  // The first read loads the good owner; the reload's read fails.
-  const resMan = new CjsBlueResMan({
-    source: { Read() { if (++reads > 1) throw expectedError; return "{\"revision\":1}"; } }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-  const current = resMan.GetResource(path);
-  await current.Ready();
-  const currentPayload = current.GetPayload();
-  let currentDestroyed = 0;
-  let candidateDestroyed = 0;
-  current.SetAdapterResource("current", { destroy() { currentDestroyed += 1; } });
-
-  const candidate = resMan.GetResource(path, { reload: true });
-  candidate.SetAdapterResource("candidate", { destroy() { candidateDestroyed += 1; } });
-
-  await assert.rejects(candidate.Ready(), error => error === expectedError);
-  assert.equal(resMan.Lookup(path), current);
-  assert.equal(current.GetPayload(), currentPayload);
-  assert.equal(currentDestroyed, 0);
-  assert.equal(current.HasLoaded(), true);
-  assert.equal(candidateDestroyed, 1);
-  assert.equal(candidate.HasPayload(), false);
-  assert.equal(candidate.IsFailed(), true);
-});
-
-test("failed reload CPU read preserves the good owner and releases candidate adapters", async () =>
-{
-  const expectedError = new Error("expected reload CPU read failure");
-  const path = "res:/data/reload-read-failure.json";
-  let candidateDestroyed = 0;
-  const resMan = new CjsBlueResMan({
-    source: { Read: () => "{\"revision\":2}" }
-  });
-  let reads = 0;
-  // The first read loads the good owner; the reload's CPU read fails.
-  resMan.RegisterObjectLoader("json", value => { if (++reads > 1) throw expectedError; return JSON.parse(value); });
-  const current = resMan.GetResource(path);
-  await current.Ready();
-  const currentPayload = current.GetPayload();
-
-  const candidate = resMan.GetResource(path, { reload: true });
-  candidate.SetAdapterResource("candidate", {
-    destroy() { candidateDestroyed += 1; }
-  });
-  await assert.rejects(candidate.Ready(), error => error === expectedError);
-
-  assert.equal(resMan.Lookup(path), current);
-  assert.equal(current.GetPayload(), currentPayload);
-  assert.equal(current.HasLoaded(), true);
-  assert.equal(candidateDestroyed, 1);
-  assert.equal(candidate.HasAdapterResource("candidate"), false);
-  assert.equal(candidate.IsFailed(), true);
-});
-
-test("reload rejects singleton candidate aliasing before mutating the canonical handle", () =>
-{
-  const shared = new CjsResource();
-  function SingletonResource()
-  {
-    return shared;
-  }
-
-  const path = "res:/data/reload-singleton.bin";
-  const resMan = new CjsBlueResMan({
-    resourceTypes: { singleton: SingletonResource }
-  });
-  const current = resMan.GetResource(path, { requirement: "singleton" });
-  current.SetPayload({ stable: true });
-
-  assert.throws(
-    () => resMan.GetResource(path, { requirement: "singleton", reload: true }),
-    error => error.code === "CJS_RESMAN_RELOAD_CANDIDATE_ALIAS"
-      && error.resource === current
-  );
-  assert.equal(resMan.Lookup(path, { requirement: "singleton" }), current);
-  assert.deepEqual(current.GetPayload(), { stable: true });
-});
-
-test("displaced cleanup failure reports a committed atomic reload", async () =>
-{
-  const path = "res:/data/reload-cleanup-failure.json";
-  const resMan = new CjsBlueResMan({
-    source: { Read: () => "{\"revision\":2}" }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-  const current = resMan.GetResource(path);
-  current.SetPayload({ revision: 1 });
-  current.SetAdapterResource("failing", {
-    destroy() { throw new Error("expected displaced cleanup failure"); }
-  });
-
-  const candidate = resMan.GetResource(path, { reload: true });
-  await assert.rejects(
-    candidate.Ready(),
-    error => error.code === "CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED"
-      && error.result.committed === true
-      && error.result.resource === candidate
-      && error.result.displaced === current
-  );
-
-  assert.equal(resMan.Lookup(path), candidate);
-  assert.deepEqual(candidate.GetPayload(), { revision: 2 });
-  assert.equal(candidate.HasLoaded(), true);
-  assert.equal(current.HasPayload(), false);
-});
-
-test("candidate cleanup failure is aggregated without replacing the good owner", async () =>
-{
-  const expectedError = new Error("expected reload failure");
-  const path = "res:/data/reload-candidate-cleanup-failure.json";
-  let reads = 0;
-  // The first read loads the good owner; the reload's read fails.
-  const resMan = new CjsBlueResMan({
-    source: { Read() { if (++reads > 1) throw expectedError; return "{\"stable\":true}"; } }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-  const current = resMan.GetResource(path);
-  await current.Ready();
-  const candidate = resMan.GetResource(path, { reload: true });
-  candidate.SetAdapterResource("failing", {
-    destroy() { throw new Error("expected candidate cleanup failure"); }
-  });
-
-  await assert.rejects(
-    candidate.Ready(),
-    error => error.code === "CJS_RESMAN_RELOAD_CANDIDATE_CLEANUP_FAILED"
-      && error.cause === expectedError
-      && error.errors[0] === expectedError
-  );
-  assert.equal(resMan.Lookup(path), current);
-  assert.deepEqual(current.GetPayload(), { stable: true });
-  assert.equal(current.HasLoaded(), true);
-});
-
-test("CjsBlueResMan binds explicit resource and payload leases for deterministic purge", async () =>
-{
-  let time = 0;
-  const motherLode = new CjsMotherLode({ now: () => time });
-  const resMan = new CjsBlueResMan({ motherLode });
-  const resource = resMan.GetResource("res:/data/leased.bin");
-  // The load fails on the resource once the read through be.paths answers.
-  await resMan.Wait();
-  let destroyed = 0;
-  resource.SetAdapterResource("test", { destroy() { destroyed += 1; } });
-
-  resource.SetLifecycleController(null);
-  assert.equal(resMan.Lookup(resource.GetPath()), resource);
-
-  time = 10;
-  resource.SetPayload({ revision: 1 });
-  assert.equal(motherLode.GetStats().payloads, 1);
-
-  resource.GetPayload();
-  resource.HasPayload();
-  time = 20;
-  const payloadSweep = resMan.PurgeInactive({
-    time,
-    maxIdleMilliseconds: 50,
-    payloadMaxIdleMilliseconds: 5
-  });
-
-  assert.equal(payloadSweep.purged, 0);
-  assert.equal(payloadSweep.payloadsReleased, 1);
-  assert.deepEqual(payloadSweep.payloadKeys, [ getMotherLodeKey(resource.GetPath()) ]);
-  assert.equal(resource.HasPayload(), false);
-  assert.equal(resource.HasAdapterResource("test"), true);
-  assert.equal(resource.IsPurged(), false);
-
-  resource.SetPayload({ revision: 2 });
-  assert.equal(resource.Lock(), 1);
-  time = 100;
-  const lockedSweep = resMan.PurgeInactive({
-    time,
-    maxIdleMilliseconds: 1,
-    payloadMaxIdleMilliseconds: 1
-  });
-
-  assert.equal(lockedSweep.locked, 1);
-  assert.equal(lockedSweep.purged, 0);
-  assert.equal(lockedSweep.payloadsReleased, 0);
-  assert.equal(resource.HasPayload(), true);
-  assert.equal(resource.Unlock(), 0);
-
-  resource.KeepAlive({ time });
-  time = 101;
-  const separatePayloadSweep = resMan.PurgeInactive({
-    time,
-    maxIdleMilliseconds: 50,
-    payloadMaxIdleMilliseconds: 50
-  });
-  assert.equal(separatePayloadSweep.purged, 0);
-  assert.equal(separatePayloadSweep.payloadsReleased, 1);
-  assert.equal(resource.HasAdapterResource("test"), true);
-
-  resource.SetPayload({ revision: 3 });
-  time = 200;
-  const identitySweep = resMan.PurgeInactive({ time, maxIdleMilliseconds: 50 });
-
-  assert.equal(identitySweep.purged, 1);
-  assert.deepEqual(identitySweep.purgedKeys, [ getMotherLodeKey(resource.GetPath()) ]);
-  assert.equal(destroyed, 1);
-  assert.equal(resource.HasPayload(), false);
-  assert.equal(resource.HasAdapterResource("test"), false);
-  assert.equal(resource.IsPurged(), true);
-  assert.equal(resMan.Lookup(resource.GetPath()), null);
-  assert.equal(resource.Lock(), 0);
-});
-
-test("CjsBlueResMan automatic purge is opt-in and follows deterministic time cadence", async () =>
-{
-  let time = 0;
-  const motherLode = new CjsMotherLode({ now: () => time });
-  const resMan = new CjsBlueResMan({
-    motherLode,
-    autoPurgePolicy: {
-      intervalMilliseconds: 10,
-      maxIdleMilliseconds: 20,
-      payloadMaxIdleMilliseconds: 5,
-      now: () => time
-    }
-  });
-  const policy = resMan.GetAutoPurgePolicy();
-  const resource = resMan.GetResource("res:/data/automatic-purge.bin");
-  // The load fails on the resource once the read through be.paths answers.
-  await resMan.Wait();
-  resource.SetPayload({ revision: 1 });
-
-  assert.equal(resMan.IsAutoPurgeEnabled(), true);
-  assert.equal(policy.intervalMilliseconds, 10);
-  assert.equal(policy.destroyAdapters, true);
-  assert.equal(policy.releasePayload, true);
-  assert.throws(
-    () => resMan.SetAutoPurgePolicy({ intervalMilliseconds: 1 }),
-    /requires an identity or payload inactivity limit/u
-  );
-  assert.throws(
-    () => resMan.SetAutoPurgePolicy({ maxIdleFrames: 1 }),
-    /does not support: maxIdleFrames/u
-  );
-  assert.equal(resMan.GetAutoPurgePolicy(), policy);
-
-  const initialSweep = resMan.PumpAutoPurge({ time });
-  assert.equal(initialSweep.purged, 0);
-  assert.equal(initialSweep.payloadsReleased, 0);
-
-  time = 5;
-  assert.equal(resMan.Update({ purge: { time } }), false);
-  assert.equal(resource.HasPayload(), true);
-
-  time = 10;
-  assert.equal(resMan.Update({ purge: false }), false);
-  assert.equal(resource.HasPayload(), true);
-  assert.equal(resMan.Update({ purge: { time } }), true);
-  assert.equal(resource.HasPayload(), false);
-  assert.equal(resource.IsPurged(), false);
-
-  time = 20;
-  assert.equal(resMan.Tick({ purge: { time } }), true);
-  assert.equal(resource.IsPurged(), true);
-  assert.equal(resMan.Lookup(resource.GetPath()), null);
-
-  time = 15;
-  assert.equal(resMan.PumpAutoPurge({ time }), null);
-  time = 24;
-  assert.equal(resMan.PumpAutoPurge({ time }), null);
-  time = 25;
-  assert.equal(resMan.PumpAutoPurge({ time }).purged, 0);
-
-  assert.equal(resMan.SetAutoPurgePolicy(false), resMan);
-  assert.equal(resMan.IsAutoPurgeEnabled(), false);
-  assert.equal(resMan.GetAutoPurgePolicy(), null);
-  assert.equal(resMan.PumpAutoPurge({ time }), null);
-});
-
-test("CjsBlueResMan automatic purge protects queued resource work with a balanced lock", async () =>
-{
-  let time = 0;
-  let sourceReads = 0;
-  let releaseRead;
-  const read = new Promise(resolve => { releaseRead = resolve; });
-  const motherLode = new CjsMotherLode({ now: () => time });
-  const resMan = new CjsBlueResMan({
-    motherLode,
-    source: {
-      Read()
-      {
-        sourceReads += 1;
-        return read;
-      }
-    },
-    autoPurgePolicy: {
-      intervalMilliseconds: 0,
-      maxIdleMilliseconds: 0,
-      now: () => time
-    }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  const operation = LoadData(resMan, "res:/data/active-load.json");
-  const resource = resMan.Lookup("res:/data/active-load.json");
-  assert.equal(motherLode.GetStats().locked, 1);
-
-  time = 10;
-  const protectedSweep = resMan.PumpAutoPurge({ time });
-  assert.equal(protectedSweep.locked, 1);
-  assert.equal(protectedSweep.purged, 0);
-  assert.equal(resource.IsPurged(), false);
-
-  releaseRead("{\"loaded\":true}");
-  assert.deepEqual(await operation, { loaded: true });
-  assert.equal(sourceReads, 1);
-  assert.equal(motherLode.GetStats().locked, 0);
-
-  time = 11;
-  const completedSweep = resMan.PumpAutoPurge({ time });
-  assert.equal(completedSweep.locked, 0);
-  assert.equal(completedSweep.purged, 1);
-  assert.equal(resource.IsPurged(), true);
-  assert.equal(sourceReads, 1);
-});
-
-test("CjsMotherLode inactivity purge preserves failed owners and continues", () =>
-{
-  let time = 0;
-  const motherLode = new CjsMotherLode({ now: () => time });
-  const failingKey = getMotherLodeKey("res:/data/failing-purge.bin");
-  const goodKey = getMotherLodeKey("res:/data/good-purge.bin");
-  const failing = new CjsResource().Initialize("res:/data/failing-purge.bin");
-  const good = new CjsResource().Initialize("res:/data/good-purge.bin");
-  failing.SetAdapterResource("test", { destroy() { throw new Error("expected purge failure"); } });
-  good.SetPayload({ good: true });
-  motherLode.Insert(failingKey, failing);
-  motherLode.Insert(goodKey, good);
-
-  time = 10;
-  assert.throws(
-    () => motherLode.PurgeInactive({ time, maxIdleMilliseconds: 1 }),
-    error => error instanceof AggregateError
-      && error.code === "CJS_MOTHERLODE_PURGE_FAILED"
-      && error.result.purged === 1
-      && error.result.purgedKeys[0] === goodKey
-      && error.errors[0].code === "CJS_MOTHERLODE_CLEANUP_FAILED"
-  );
-
-  assert.equal(motherLode.Lookup(failingKey), failing);
-  assert.equal(motherLode.Lookup(goodKey), null);
-  assert.equal(failing.IsPurged(), false);
-  assert.equal(good.IsPurged(), true);
-  assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
-});
-
 test("resource exports no obsolete payload vocabulary or validators", () => {
   for (const name of ["ResourcePayloadType", "ResourcePayloadValues", "validateRgbaPayload",
     "validateTexturePayload", "validateAudioPayload", "validateVideoPayload"])
@@ -1629,48 +457,18 @@ test("resource exports no obsolete payload vocabulary or validators", () => {
   }
 });
 
-test("a resource that never learned to read its bytes fails its load, as Carbon's default does", () =>
+test("the native base declines load and prepare by default", () =>
 {
-  // BlueAsyncRes.h:112: `virtual LoadingResult DoLoad() { return LR_FAILED; }`.
-  const resource = new CjsResource();
-
-  assert.equal(CjsSchema.getMethod(CjsResource, "DoLoad")?.impl?.status, "adapted");
-  assert.equal(resource.DoLoad(new Uint8Array([ 1, 2, 3 ])), CjsResource.LoadingResult.LR_FAILED);
+  const resource = new BlueAsyncRes();
+  assert.equal(resource._DoLoad(), BlueAsyncRes.LoadingResult.LR_FAILED);
+  assert.equal(resource._DoPrepare(), false);
 });
 
-
-test("a resource declines to load itself by default, and says so", () =>
+test("Tr2EffectRes overrides the native load hook", () =>
 {
-  // DoCustomLoad is genuinely optional, so the base answers rather than
-  // refusing - the opposite of DoLoad. A false return is a real answer, which
-  // is why the caller can invoke it plainly instead of optional-chaining.
-  const resource = new CjsResource();
-
-  assert.equal(resource.DoCustomLoad("res:/x.dds", ".dds"), false);
-
-  class SelfLoading extends CjsResource
-  {
-    DoCustomLoad() { return true; }
-  }
-  assert.equal(new SelfLoading().DoCustomLoad("res:/x.dds", ".dds"), true);
+  assert.equal(typeof Tr2EffectRes.prototype._DoLoad, "function");
+  assert.notEqual(Tr2EffectRes.prototype._DoLoad, BlueAsyncRes.prototype._DoLoad);
 });
-
-
-test("a resource states how it wants its bytes delivered", () =>
-{
-  // The manager fetches before it knows the format, so it cannot derive this.
-  assert.equal(new CjsResource().GetRequestResponseType(), "arraybuffer");
-});
-
-
-test("Tr2EffectRes implements the load hook the base declares", () =>
-{
-  // It was the only resource that loaded itself, reached outside the manager's
-  // path. It now overrides a declared hook rather than standing alone.
-  assert.equal(typeof Tr2EffectRes.prototype.DoLoad, "function");
-  assert.notEqual(Tr2EffectRes.prototype.DoLoad, CjsResource.prototype.DoLoad);
-});
-
 
 test("CjsResourceProbe preserves generalized output capabilities", () => {
   const probe = CjsResourceProbe.from({
@@ -1738,27 +536,18 @@ test("CjsResourceProbe.from normalizes plain reports without dropping handoff me
   assert.equal(probe.outputs[0].decoded, false);
 });
 
-test("TriTextureRes refuses video records without replacing its bitmap", () => {
-  const texture = new TriTextureRes().Initialize("dynamic:/color/0,0,0,1", "");
-  const previous = texture.GetPayload();
-  const video = { payloadType: "video", sourceFormat: "webm", duration: 2000,
-    durationTimescale: 1000, tracks: [], width: 1920, height: 1080, sourceBytes: new Uint8Array([1]) };
-  for (const payload of [video, { ...video, payloadType: undefined }])
-  {
-    assert.throws(() => texture.SetPayload(payload), error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID");
-    assert.equal(texture.GetPayload(), previous);
-  }
-});
-
 test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload", () => {
-  const texture = new TriTextureRes().Initialize("res:/texture/ship.dds");
+  const texture = new TriTextureRes();
   // The image is a bitmap; the rest are values the loader knows and the
   // bitmap does not - MSAA, LOD history, the original memory use.
   const bitmap = new HostBitmap();
   bitmap.Create(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
-  texture.SetPayload(bitmap, { hadLodRequests: true, originalMemoryUsage: 64 });
+  texture.CreateFromHostBitmap(bitmap);
+  texture._path = "res:/texture/ship.dds";
+  texture.hadLodRequests = true;
+  texture.originalMemoryUsage = 64;
 
-  const geometry = new TriGeometryRes().Initialize("res:/geometry/ship.cmf");
+  const geometry = new TriGeometryRes();
   const geometryPayload = {
     version: 1,
     sourceFormat: "cmf",
@@ -1778,7 +567,7 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
     skeletons: [ { name: "skeleton" } ],
     animations: []
   };
-  geometry.SetPayload(geometryPayload);
+  geometry.ReadCMFFile(geometryPayload);
 
   assert.equal(texture.GetPath(), "res:/texture/ship.dds");
   assert.equal(texture.width, 4);
@@ -1788,17 +577,15 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
   assert.equal(texture.GetMsaaQuality(), 0);
   assert.equal(texture.HadLodRequests(), true);
   assert.equal(texture.GetOriginalMemoryUsage(), 64);
-  assert.equal(texture.HasPayload(), true);
-  assert.equal(texture.GetPayload(), bitmap, "the bitmap IS what the resource holds");
-  assert.equal(TriTextureRes.payload, "texture");
+  assert.equal(texture.GetBitmap() !== null, true);
+  assert.equal(texture.GetBitmap(), bitmap, "the bitmap IS what the resource holds");
+  assert.equal("payload" in TriTextureRes, false);
   assert.equal(CjsSchema.getConstructor("TriTextureRes"), TriTextureRes);
   assert.equal(CjsSchema.getField(TriTextureRes, "variants"), null);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "PrepareResources").carbon.method, true);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "Save").impl.status, "notSupported");
   assert.equal(CjsSchema.getMethod(TriTextureRes, "CreateEmptyTexture").impl.status, "notSupported");
-  assert.equal(CjsSchema.getMethod(TriTextureRes, "SetPayload")?.carbon, undefined);
-  assert.notEqual(CjsSchema.getMethod(TriTextureRes, "SetPayload")?.carbon?.method, true,
-    "payload application is a marked JS adaptation, not a Carbon-exposed method");
+  assert.equal(CjsSchema.getMethod(TriTextureRes, "_DoLoad").impl.status, "adapted");
 
   assert.equal(geometry.GetMeshCount(), 1);
   assert.equal(geometry.GetAnimationCount(), 0);
@@ -1868,17 +655,17 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
       areaIndex: 0
     }
   );
-  assert.equal(geometry.HasPayload(), true);
-  assert.equal(TriGeometryRes.payload, "geometry");
+  assert.equal(geometry.GetCMFData() !== null, true);
+  assert.equal("payload" in TriGeometryRes, false);
   assert.equal(CjsSchema.getField(TriGeometryRes, "meshes"), null);
   assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetMeshCount").impl.status, "adapted");
   assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetSkeletonCount").impl.status, "adapted");
   assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetSkeletonData").impl.status, "adapted");
   assert.throws(
-    () => geometry.SetPayload({ animations: [] }),
+    () => geometry.SetupMeshes({ animations: [] }),
     error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID" && error.field === "meshes"
   );
-  assert.equal(geometry.GetPayload(), geometryPayload);
+  assert.equal(geometry.GetCMFData(), geometryPayload);
 });
 
 test("a geometry intersection query reports unavailable CPU data instead of a miss", () =>
@@ -1889,7 +676,7 @@ test("a geometry intersection query reports unavailable CPU data instead of a mi
   // clickable" with no error anywhere.
   const geometry = new TriGeometryRes();
 
-  assert.equal(geometry.HasPayload(), false);
+  assert.equal(geometry.GetCMFData() !== null, false);
   assert.throws(
     () => geometry.GetIntersectionPointNormalBoneFromScript([ 0, 0, 1 ], [ 0, 0, -1 ]),
     /CPU geometry is not resident/u,
@@ -1910,8 +697,8 @@ test("a geometry intersection query reports unavailable CPU data instead of a mi
   );
 });
 
-test("CjsResource can hold opaque engine-owned subobjects", () => {
-  const resource = new TriTextureRes().Initialize("res:/texture/ship.dds");
+test("device resource families hold and destroy opaque backend adapters", () => {
+  const resource = new TriTextureRes();
   const gpuTexture = {
     destroyed: false,
     destroy() {
@@ -1930,59 +717,6 @@ test("CjsResource can hold opaque engine-owned subobjects", () => {
   assert.equal(resource.HasAdapterResource("webgpu"), false);
 });
 
-test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
-  const effect = new Tr2EffectRes().Initialize("res:/shader/ship.sm_hi");
-  const shaderPayload = {
-    payloadType: "shader",
-    sourceFormat: "carbonwebgpu",
-    techniques: [ "Main" ],
-    passes: [ "Forward" ],
-    // Axes, not selections. A permutation entry declares the options an effect
-    // was compiled for; which one is wanted is an argument to GetShader.
-    permutations: [
-      { name: "QUALITY", options: [ "HIGH", "LOW" ], defaultOption: 0 }
-    ]
-  };
-  effect.SetPayload(shaderPayload);
-
-  const image = new Tr2ImageRes().Initialize("res:/image/icon.png");
-  // Carbon's image resource IS a HostBitmap (Tr2ImageRes.h:38): opaque white,
-  // then a fully transparent pixel.
-  const imageBitmap = new HostBitmap();
-  imageBitmap.Create(2, 1, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
-  imageBitmap.GetRawData().set([ 255, 255, 255, 255, 0, 0, 0, 0 ]);
-  image.SetPayload(imageBitmap);
-
-  assert.equal(effect.HasPayload(), true);
-  assert.deepEqual(effect.GetPermutationDescription(), [ {
-    name: "QUALITY",
-    options: [ "HIGH", "LOW" ],
-    defaultOption: 0,
-    description: "",
-    type: 0
-  } ]);
-  assert.equal(Tr2EffectRes.payload, "shader");
-  assert.equal(CjsSchema.getConstructor("Tr2EffectRes"), Tr2EffectRes);
-  assert.equal(CjsSchema.getField(Tr2EffectRes, "permutations"), null);
-
-  assert.equal(image.HasPayload(), true);
-  assert.equal(image.width, 2);
-  assert.equal(image.GetWidth(), 2);
-  assert.equal(image.GetHeight(), 1);
-  // Carbon's accessors read m_bitmap, BGRA or BGRX only (Tr2ImageRes.cpp:54-108).
-  assert.deepEqual(image.GetPixelColor(0, 0), { r: 1, g: 1, b: 1, a: 1 });
-  assert.equal(image.IsPixelOpaque(0, 0), true);
-  assert.equal(image.IsPixelOpaque(1, 0), false, "alpha 0");
-  assert.equal(Tr2ImageRes.payload, "image");
-  assert.equal(CjsSchema.getField(Tr2ImageRes, "pixels"), null);
-  assert.throws(
-    () => image.SetPayload({ payloadType: "rgba", width: 2, height: 1 }),
-    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID"
-  );
-  assert.equal(image.GetPayload(), imageBitmap);
-  assert.equal(image.GetBitmap(), imageBitmap);
-});
-
 test("CjsBlueResMan reads source through a registered loader and marks the resource prepared", async () => {
   let loaderContext = null;
   const records = new Map([
@@ -1995,6 +729,7 @@ test("CjsBlueResMan reads source through a registered loader and marks the resou
     }
   };
   const resMan = new CjsBlueResMan({ source });
+  blue.resMan = resMan;
 
   resMan.RegisterObjectLoader("json", (value, context) => {
     loaderContext = context;
@@ -2007,11 +742,11 @@ test("CjsBlueResMan reads source through a registered loader and marks the resou
   assert.deepEqual(object, { name: "example" });
   // Publishing hands over the reader OUTCOME, so the bytes are already what
   // they needed to become - that is preparation, and the resource is good.
-  assert.equal(resource.state, CjsResource.State.PREPARED);
-  assert.equal(resource.HasLoaded(), true);
+  assert.equal(resource.IsPrepared(), true);
+  assert.equal(resource.IsPrepared(), true);
   assert.equal(resource.IsPrepared(), true);
   assert.equal(resource.IsGood(), true);
-  assert.equal(resource.object, object);
+  assert.equal(resMan.GetResourcePayload(resource), object);
   assert.equal(loaderContext.path, "res:/data/example.json");
   assert.equal(loaderContext.resFilePath, "res:/data/example.json");
   assert.equal(loaderContext.ext, "json");
@@ -2047,10 +782,11 @@ test("registered formats and resource readiness share one object operation", asy
   }
 
   const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestFormat);
+  blue.resMan = resMan;
   const resource = resMan.GetResource("res:/data/shared.one", { emit: "raw" });
-  const first = resource.Ready({ emit: "raw" });
-  const second = resource.GetObject({ emit: "raw" });
-  const third = resource.Ready({ emit: "raw" });
+  const first = resMan.Ready(resource);
+  const second = resMan.Ready(resource);
+  const third = resMan.Ready(resource);
   // Plain data is read through its resource (GetObject answers objects only):
   // a manager-level read joins the same operation - one source and one format
   // read below - rather than being the same promise.
@@ -2065,7 +801,7 @@ test("registered formats and resource readiness share one object operation", asy
   assert.equal(formatInput, bytes);
   assert.equal(sourceReads, 1);
   assert.equal(formatReads, 1);
-  assert.equal(resource.object, bytes);
+  assert.equal(resMan.GetResourcePayload(resource), bytes);
 });
 
 test("generic payloads release and reconstruct only on explicit object use", async () =>
@@ -2083,12 +819,13 @@ test("generic payloads release and reconstruct only on explicit object use", asy
       }
     }
   });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
 
   const path = "res:/data/reconstruct.json";
   const resource = resMan.GetResource(path);
-  const first = resource.Ready();
-  const concurrent = resource.GetObject();
+  const first = resMan.Ready(resource);
+  const concurrent = resMan.Ready(resource);
   // The manager-level read of plain data goes through the resource and joins
   // this operation: one source read, the same payload.
   const viaManager = LoadData(resMan, path);
@@ -2097,8 +834,8 @@ test("generic payloads release and reconstruct only on explicit object use", asy
   const firstObject = await first;
   assert.equal(await viaManager, firstObject);
   assert.deepEqual(firstObject, { revision: 1 });
-  assert.equal(resource.GetPayload(), firstObject);
-  assert.equal(resource.object, firstObject);
+  assert.equal(resMan.GetResourcePayload(resource), firstObject);
+  assert.equal(resMan.GetResourcePayload(resource), firstObject);
   assert.equal(motherLode.GetStats().payloads, 1);
 
   const resident = LoadData(resMan, path);
@@ -2113,194 +850,36 @@ test("generic payloads release and reconstruct only on explicit object use", asy
     payloadMaxIdleMilliseconds: 1
   });
   assert.equal(payloadSweep.payloadsReleased, 1);
-  assert.equal(resource.HasPayload(), false);
-  assert.equal(resource.GetPayload(), null);
-  assert.equal(resource.object, null);
+  assert.equal(resMan.HasResourcePayload(resource), false);
+  assert.equal(resMan.GetResourcePayload(resource), null);
+  assert.equal(resMan.GetResourcePayload(resource), null);
   assert.equal(sourceReads, 1);
 
-  resource.HasLoaded();
-  resource.GetPayload();
+  resource.IsPrepared();
+  resMan.GetResourcePayload(resource);
   resource.KeepAlive({ time });
   assert.equal(sourceReads, 1);
 
-  const reconstructed = await resource.Ready();
+  const reconstructed = await resMan.Ready(resource);
   assert.deepEqual(reconstructed, { revision: 2 });
   assert.equal(resMan.Lookup(path), resource);
-  assert.equal(resource.GetPayload(), reconstructed);
-  assert.equal(resource.object, reconstructed);
+  assert.equal(resMan.GetResourcePayload(resource), reconstructed);
+  assert.equal(resMan.GetResourcePayload(resource), reconstructed);
   assert.equal(sourceReads, 2);
 
   time = 20;
   const identitySweep = resMan.PurgeInactive({ time, maxIdleMilliseconds: 1 });
   assert.equal(identitySweep.purged, 1);
-  assert.equal(resource.IsPurged(), true);
-  assert.equal(resource.object, null);
+  assert.equal(resMan.GetResourceStatus(resource).purged, true);
+  assert.equal(resMan.GetResourcePayload(resource), null);
 
-  const replacementObject = await resource.Ready();
+  const replacementObject = await resMan.Ready(resource);
   const replacement = resMan.Lookup(path);
-  assert.notEqual(replacement, resource);
+  assert.equal(replacement, resource);
   assert.deepEqual(replacementObject, { revision: 3 });
-  assert.equal(resource.IsPurged(), true);
-  assert.equal(resource.object, null);
-  assert.equal(replacement.object, replacementObject);
+  assert.equal(resMan.GetResourceStatus(resource).purged, false);
+  assert.equal(resMan.GetResourcePayload(resource), replacementObject);
   assert.equal(sourceReads, 3);
-});
-
-test("failed object operations are removed so explicit retry can succeed", async () =>
-{
-  let attempts = 0;
-  const path = "res:/data/retry.json";
-  const resMan = new CjsBlueResMan({
-    source: {
-      Read()
-      {
-        attempts += 1;
-        if (attempts === 1) throw new Error("expected source failure");
-        return "{\"recovered\":true}";
-      }
-    }
-  });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  await assert.rejects(LoadData(resMan, path), /expected source failure/u);
-  const resource = resMan.Lookup(path);
-  assert.equal(resource.IsFailed(), true);
-
-  const recovered = await resource.Ready();
-  assert.deepEqual(recovered, { recovered: true });
-  assert.equal(attempts, 2);
-  assert.equal(resource.state, CjsResource.State.PREPARED);
-  assert.equal(resource.error, null);
-  assert.equal(resource.GetPayload(), recovered);
-  assert.equal(resource.object, recovered);
-});
-
-test("reload replaces retained source and format results for later reconstruction", async () =>
-{
-  let revision = 1;
-  let sourceReads = 0;
-  let formatReads = 0;
-  const source = {
-    Read()
-    {
-      sourceReads += 1;
-      return new Uint8Array([ revision ]);
-    }
-  };
-
-  class TestReloadCacheFormat
-  {
-    static extensions = Object.freeze([ ".reloadcache" ]);
-    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
-
-    static read(bytes)
-    {
-      formatReads += 1;
-      return { revision: bytes[0] };
-    }
-  }
-
-  const path = "res:/data/value.reloadcache";
-  const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestReloadCacheFormat);
-  const firstObject = await LoadData(resMan, path, {
-    emit: "raw",
-    sourceRevision: "r1",
-    cacheSource: true,
-    cacheFormat: true
-  });
-  const firstResource = resMan.Lookup(path, { emit: "raw" });
-  assert.deepEqual(firstObject, { revision: 1 });
-
-  revision = 2;
-  const replacementObject = await LoadData(resMan, path, { reload: true,
-    emit: "raw",
-    sourceRevision: "r2",
-    cacheSource: true,
-    cacheFormat: true
-  });
-  const replacement = resMan.Lookup(path, { emit: "raw" });
-  assert.deepEqual(replacementObject, { revision: 2 });
-  assert.notEqual(replacement, firstResource);
-  assert.equal(firstResource.HasPayload(), false);
-  assert.equal(firstResource.object, null);
-  assert.equal(sourceReads, 2);
-  assert.equal(formatReads, 2);
-
-  replacement.ReleasePayload();
-  assert.equal(replacement.object, null);
-  assert.equal(await replacement.Ready(), replacementObject);
-  assert.equal(sourceReads, 2);
-  assert.equal(formatReads, 2);
-});
-
-test("ReloadResource consumes freshness once and returns the committed canonical handle", async () =>
-{
-  let revision = 1;
-  let sourceReads = 0;
-  const source = {
-    Read()
-    {
-      sourceReads += 1;
-      return `{"revision":${revision}}`;
-    }
-  };
-  const path = "res:/data/fetch-reload.json";
-  const resMan = new CjsBlueResMan({ source });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  const first = await resMan.FetchResource(path);
-  revision = 2;
-  const replacement = await resMan.ReloadResource(path);
-
-  assert.notEqual(replacement, first);
-  assert.equal(replacement, resMan.Lookup(path));
-  assert.deepEqual(replacement.GetPayload(), { revision: 2 });
-  assert.equal(sourceReads, 2);
-});
-
-test("reload candidates retain the source selected before delayed readiness", async () =>
-{
-  let sourceAReads = 0;
-  let sourceBReads = 0;
-  const sourceA = { Read() { sourceAReads += 1; return `{"source":"a","read":${sourceAReads}}`; } };
-  const sourceB = { Read() { sourceBReads += 1; return `{"source":"b","read":${sourceBReads}}`; } };
-  const path = "res:/data/delayed-reload-source.json";
-  const resMan = new CjsBlueResMan({ source: sourceA });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  await resMan.FetchResource(path);
-  const candidate = resMan.GetResource(path, { reload: true });
-  resMan.SetSource(sourceB);
-
-  assert.deepEqual(await candidate.Ready(), { source: "a", read: 2 });
-  candidate.ReleasePayload();
-  assert.deepEqual(await candidate.Ready(), { source: "a", read: 3 });
-  assert.equal(sourceAReads, 3);
-  assert.equal(sourceBReads, 0);
-});
-
-test("ReloadResource invalidates retained reads before creating a first canonical owner", async () =>
-{
-  let revision = 1;
-  let sourceReads = 0;
-  const source = {
-    Read()
-    {
-      sourceReads += 1;
-      return `{"revision":${revision}}`;
-    }
-  };
-  const path = "res:/data/initial-reload.json";
-  const resMan = new CjsBlueResMan({ source });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  assert.equal(await resMan.ReadResource(path, { cacheSource: true }), "{\"revision\":1}");
-  revision = 2;
-  const resource = await resMan.ReloadResource(path, { cacheSource: true });
-
-  assert.equal(resource, resMan.Lookup(path));
-  assert.deepEqual(resource.GetPayload(), { revision: 2 });
-  assert.equal(sourceReads, 2);
 });
 
 test("source revision scopes shared source and parsed format operations", async () =>
@@ -2329,24 +908,16 @@ test("source revision scopes shared source and parsed format operations", async 
 
   const path = "res:/data/value.revisioncache";
   const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestRevisionCacheFormat);
-  const revisionOneA = await LoadData(resMan, path, {
-    variant: "revision-one-a",
-    requirement: "one-a",
-    emit: "raw",
+  blue.resMan = resMan;
+  const revisionOneA = await readDecodedData(resMan, path, {    emit: "raw",
     sourceRevision: 1,
     cacheSource: true,
     cacheFormat: true
   });
-  const revisionOneB = await LoadData(resMan, path, {
-    variant: "revision-one-b",
-    requirement: "one-b",
-    emit: "raw",
+  const revisionOneB = await readDecodedData(resMan, path, {    emit: "raw",
     sourceRevision: 1
   });
-  const revisionTwo = await LoadData(resMan, path, {
-    variant: "revision-two",
-    requirement: "two",
-    emit: "raw",
+  const revisionTwo = await readDecodedData(resMan, path, {    emit: "raw",
     sourceRevision: 2,
     cacheSource: true,
     cacheFormat: true
@@ -2381,20 +952,13 @@ test("format caches isolate source objects and registration descriptors", async 
   const path = "res:/data/value.descriptorcache";
   const resMan = new CjsBlueResMan({ source: sourceA })
     .RegisterFormat(TestDescriptorCacheFormat, { multiplier: 1 });
-  const fromA = await LoadData(resMan, path, {
-    variant: "source-a",
-    source: sourceA,
-    requirement: "source-a",
-    emit: "raw",
+  blue.resMan = resMan;
+  const fromA = await readDecodedData(resMan, path, {    source: sourceA,    emit: "raw",
     sourceRevision: 1,
     cacheSource: true,
     cacheFormat: true
   });
-  const fromB = await LoadData(resMan, path, {
-    variant: "source-b",
-    source: sourceB,
-    requirement: "source-b",
-    emit: "raw",
+  const fromB = await readDecodedData(resMan, path, {    source: sourceB,    emit: "raw",
     sourceRevision: 1,
     cacheSource: true,
     cacheFormat: true
@@ -2403,27 +967,15 @@ test("format caches isolate source objects and registration descriptors", async 
   assert.deepEqual(fromB, { value: 7, formatRead: 2 });
 
   resMan.RegisterFormat(TestDescriptorCacheFormat, { multiplier: 3 });
-  const reregistered = await LoadData(resMan, path, {
-    variant: "descriptor-v2",
-    source: sourceA,
-    requirement: "descriptor-v2",
-    emit: "raw",
+  const reregistered = await readDecodedData(resMan, path, {    source: sourceA,    emit: "raw",
     sourceRevision: 1,
     cacheFormat: true
   });
-  const bypassed = await LoadData(resMan, path, {
-    variant: "descriptor-bypass",
-    source: sourceA,
-    requirement: "descriptor-bypass",
-    emit: "raw",
+  const bypassed = await readDecodedData(resMan, path, {    source: sourceA,    emit: "raw",
     sourceRevision: 1,
     cacheFormat: false
   });
-  const retained = await LoadData(resMan, path, {
-    variant: "descriptor-v2",
-    source: sourceA,
-    requirement: "descriptor-retained",
-    emit: "raw",
+  const retained = await readDecodedData(resMan, path, {    source: sourceA,    emit: "raw",
     sourceRevision: 1
   });
 
@@ -2463,19 +1015,14 @@ test("format cache identity distinguishes same-named class constructors", async 
 
   const path = "res:/data/classes.classidentity";
   const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestClassIdentityFormat);
-  const first = await LoadData(resMan, path, {
-    variant: "class-a",
-    requirement: "class-a",
-    emit: "raw",
+  blue.resMan = resMan;
+  const first = await readDecodedData(resMan, path, {    emit: "raw",
     classes: { Root: ClassA },
     sourceRevision: 1,
     cacheSource: true,
     cacheFormat: true
   });
-  const second = await LoadData(resMan, path, {
-    variant: "class-b",
-    requirement: "class-b",
-    emit: "raw",
+  const second = await readDecodedData(resMan, path, {    emit: "raw",
     classes: { Root: ClassB },
     sourceRevision: 1,
     cacheFormat: true
@@ -2509,19 +1056,14 @@ test("non-canonical format options bypass retained format sharing", async () =>
   const path = "res:/data/options.noncanonical";
   const formatOptions = { timestamp: new Date(0) };
   const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestNonCanonicalCacheFormat);
-  const first = await LoadData(resMan, path, {
-    variant: "noncanonical-a",
-    requirement: "noncanonical-a",
-    emit: "raw",
+  blue.resMan = resMan;
+  const first = await readDecodedData(resMan, path, {    emit: "raw",
     formatOptions,
     sourceRevision: 1,
     cacheSource: true,
     cacheFormat: true
   });
-  const second = await LoadData(resMan, path, {
-    variant: "noncanonical-b",
-    requirement: "noncanonical-b",
-    emit: "raw",
+  const second = await readDecodedData(resMan, path, {    emit: "raw",
     formatOptions,
     sourceRevision: 1,
     cacheFormat: true
@@ -2557,6 +1099,7 @@ test("registered format defaults are deeply snapshotted", async () =>
   const resMan = new CjsBlueResMan({
     source: { Read() { return new Uint8Array([ 4 ]); } }
   }).RegisterFormat(TestDefaultSnapshotFormat, defaults);
+  blue.resMan = resMan;
   defaults.transform.multiplier = 20;
   defaults.offsets[0] = 10;
   defaults.offsets[1].value = 30;
@@ -2581,6 +1124,7 @@ test("joined cache retention upgrades and cache false bypasses source sharing", 
     }
   };
   const resMan = new CjsBlueResMan({ source });
+  blue.resMan = resMan;
   const path = "res:/data/source-cache.bin";
   const first = resMan.ReadResource(path, { sourceRevision: 4 });
   const upgraded = resMan.ReadResource(path, { sourceRevision: 4, cacheSource: true });
@@ -2615,6 +1159,7 @@ test("late invalidated source settlement cannot displace a newer retained record
     }
   };
   const resMan = new CjsBlueResMan({ source });
+  blue.resMan = resMan;
   const path = "res:/data/late-cache.bin";
   const oldOperation = resMan.ReadResource(path, { sourceRevision: "same", cacheSource: true });
   await Promise.resolve();
@@ -2655,6 +1200,7 @@ test("late invalidated format settlement cannot displace a newer retained record
     cacheFormat: true
   };
   const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestLateFormatCache);
+  blue.resMan = resMan;
   const resource = resMan.GetResource(path, options);
   const descriptor = resMan.ResolveFormatDescriptor("lateformat", options);
   const oldOperation = resMan.ReadFormatOnce(resource, descriptor, new Uint8Array([ 1 ]), options);
@@ -2679,6 +1225,8 @@ test("Delete preserves retained reads while Clear resets every read ledger", asy
   let sourceReads = 0;
   const source = { Read() { sourceReads += 1; return new Uint8Array([ sourceReads ]); } };
   const resMan = new CjsBlueResMan({ source });
+  blue.resMan = resMan;
+  resMan.RegisterObjectLoader("bin", value => value);
   const path = "res:/data/delete-cache.bin";
   const retained = resMan.ReadResource(path, { sourceRevision: 1, cacheSource: true });
   await retained;
@@ -2699,6 +1247,7 @@ test("released resources retain source provenance but not cache policy", async (
   const originalSource = { Read() { originalReads += 1; return "{\"source\":\"original\"}"; } };
   const laterDefaultSource = { Read() { laterDefaultReads += 1; return "{\"source\":\"later\"}"; } };
   const resMan = new CjsBlueResMan({ source: originalSource });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
   const path = "res:/data/provenance.json";
   // Request options go on GetResource, which starts the load; Ready() waits.
@@ -2706,7 +1255,7 @@ test("released resources retain source provenance but not cache policy", async (
     sourceRevision: "original-v1",
     cacheSource: true
   });
-  await resource.Ready();
+  await resMan.Ready(resource);
   assert.equal(originalReads, 1);
   resMan.SetSource(laterDefaultSource);
   assert.equal(resMan.InvalidateReadCache(path, {
@@ -2714,7 +1263,7 @@ test("released resources retain source provenance but not cache policy", async (
     sourceRevision: "original-v1"
   }).source, 1);
 
-  resource.ReleasePayload();
+  resMan.ReleaseResourcePayload(resource);
   assert.deepEqual(
     await LoadData(resMan, path, {
       source: laterDefaultSource,
@@ -2730,86 +1279,9 @@ test("released resources retain source provenance but not cache policy", async (
   }).source, 0);
 });
 
-test("semantic resource readiness resolves the resource and retains its plain payload", async () =>
-{
-  const bytes = new Uint8Array([ 4, 3, 2, 1 ]);
-  class TestFormat
-  {
-    static extensions = Object.freeze([ ".semantic" ]);
-    static outputs = Object.freeze({ "semantic": Object.freeze({ output: "semantic" }) })
-    static read(input) { return { payloadType: "semantic", data: input }; }
-  }
-  class TestResource extends CjsResource
-  {
-    static payload = "semantic";
-  }
-
-  const options = { requirement: "semantic", emit: "semantic" };
-  const resMan = new CjsBlueResMan().Register({
-    source: { Read() { return bytes; } },
-    formats: [ TestFormat ],
-    resourceTypes: [ TestResource ]
-  });
-  const resource = resMan.GetResource("res:/data/value.semantic", options);
-  const first = resMan.LoadObject("res:/data/value.semantic", options);
-  const second = resource.Ready();
-
-  assert.equal(first, second);
-  assert.equal(resource.GetRequirement(), "semantic");
-  assert.equal(await first, resource);
-  assert.equal(resource.object, resource);
-  assert.equal(resource.GetPayload().data, bytes);
-  assert.equal(resource.ReleasePayload(), resource);
-  assert.equal(resource.HasPayload(), false);
-});
-
-test("different outcomes use distinct resources while sharing source bytes", async () =>
-{
-  let sourceReads = 0;
-  let formatReads = 0;
-  class TestFormat
-  {
-    static extensions = Object.freeze([ ".test" ]);
-    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
-
-    static read(input, options)
-    {
-      formatReads += 1;
-      return { emit: options.emit, input };
-    }
-  }
-
-  const resMan = new CjsBlueResMan({
-    source: {
-      Read()
-      {
-        sourceReads += 1;
-        return new Uint8Array([ 7 ]);
-      }
-    }
-  }).RegisterFormat(TestFormat);
-
-  const raw = LoadData(resMan, "res:/data/value.test", { emit: "raw" });
-  const json = LoadData(resMan, "res:/data/value.test", { emit: "json" });
-  const rawResource = resMan.Lookup("res:/data/value.test", { emit: "raw" });
-  const jsonResource = resMan.Lookup("res:/data/value.test", { emit: "json" });
-
-  assert.notEqual(rawResource, jsonResource);
-  assert.deepEqual(resMan.motherLode.GetStats().paths, [ "res:/data/value.test" ]);
-  assert.deepEqual((await raw).input, new Uint8Array([ 7 ]));
-  assert.equal((await json).emit, "json");
-  assert.equal(sourceReads, 1);
-  assert.equal(formatReads, 2);
-  assert.equal(resMan.Delete("res:/data/value.test"), true);
-  assert.equal(resMan.motherLode.GetCount(), 0);
-});
-
-// LOD selection and the primitive-count sum belong to the geometry resource
-// (Carbon declares both beside TriGeometryRes); the mesh draw path in
-// runtime-trinity consumes them to complete a batch's draw arguments.
 test("TriGeometryRes selects a LOD by screen size, lowest quality first", () => {
-  const geometry = new TriGeometryRes().Initialize("res:/geometry/ship.gr2");
-  geometry.SetPayload({
+  const geometry = new TriGeometryRes();
+  geometry.ReadCMFFile({
     version: 1,
     sourceFormat: "gr2",
     meshes: [ {
@@ -2840,8 +1312,8 @@ test("TriGeometryRes selects a LOD by screen size, lowest quality first", () => 
 });
 
 test("TriGeometryRes treats a flattened single-LOD mesh as its own LOD", () => {
-  const geometry = new TriGeometryRes().Initialize("res:/geometry/rock.cmf");
-  geometry.SetPayload({
+  const geometry = new TriGeometryRes();
+  geometry.ReadCMFFile({
     version: 1,
     sourceFormat: "cmf",
     meshes: [ { name: "rock", areas: [ { firstIndex: 0, primitiveCount: 12 } ] } ]
@@ -2866,10 +1338,10 @@ test("TriGeometryRes.getPrimitiveCount sums an area run and clamps it", () => {
 });
 
 test("GetMeshVertexElements reads the element list the readers actually emit", () => {
-  const geometry = new TriGeometryRes().Initialize("res:/geometry/ship.cmf");
+  const geometry = new TriGeometryRes();
 
   // The CMF reader names this `decl`, after the CMF struct field.
-  geometry.SetPayload({
+  geometry.ReadCMFFile({
     version: 1,
     sourceFormat: "cmf",
     meshes: [ {
@@ -2893,6 +1365,7 @@ test("GetResource requests the resource; Ready() waits on that request (Carbon's
 {
   let reads = 0;
   const resMan = new CjsBlueResMan({ source: { Read() { reads += 1; return "{\"loaded\":true}"; } } });
+  blue.resMan = resMan;
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
 
   const resource = resMan.GetResource("res:/data/requested.json");
@@ -2900,7 +1373,7 @@ test("GetResource requests the resource; Ready() waits on that request (Carbon's
   for (let i = 0; i < 20 && reads === 0; i++) await Promise.resolve();
   assert.equal(reads, 1, "GetResource alone read the source");
 
-  assert.deepEqual(await resource.Ready(), { loaded: true });
+  assert.deepEqual(await resMan.Ready(resource), { loaded: true });
   assert.equal(reads, 1, "Ready() joined the request rather than reading again");
   assert.equal(resMan.GetResource("res:/data/requested.json"), resource);
   assert.equal(reads, 1, "a cache hit requests nothing");
@@ -2909,22 +1382,31 @@ test("GetResource requests the resource; Ready() waits on that request (Carbon's
 test("a resource that cannot be fetched fails on the resource, not in GetResource", async () =>
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
+  resMan.RegisterObjectLoader("json", JSON.parse);
   const resource = resMan.GetResource("res:/data/unreachable.json");
   // The load fails on the resource once the read through be.paths answers.
   await resMan.Wait();
 
-  assert.equal(resource.IsFailed(), true);
-  assert.ok(resource.error, "the reason is kept on the resource");
+  assert.equal(resource.IsPrepared() && !resource.IsGood(), true);
+  assert.ok(resMan.GetResourceStatus(resource).error, "the reason is kept on the resource");
 });
 
 test("an invalid GetResource call throws; only resource failures are recorded", async () =>
 {
   const resMan = new CjsBlueResMan();
+  blue.resMan = resMan;
 
   assert.throws(() => resMan.GetResource(42), TypeError);
   assert.throws(() => resMan.GetResource(""), TypeError);
   assert.throws(() => resMan.GetResource("res:/data/x.json", 5), TypeError);
+  resMan.RegisterObjectLoader("json", JSON.parse);
   const resource = resMan.GetResource("res:/data/x.json");
   await resMan.Wait();
-  assert.equal(resource.IsFailed(), true, "no file system is the resource's failure");
+  assert.equal(resource.IsPrepared() && !resource.IsGood(), true, "no file system is the resource's failure");
 });
+
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previousManager; } });

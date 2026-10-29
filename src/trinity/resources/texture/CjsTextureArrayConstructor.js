@@ -1,3 +1,4 @@
+import { blue as blueService } from "#blue/blue";
 import { CjsSchema } from "#schema/CjsSchema";
 
 // Not Carbon: `dynamic:/texturearray` is ours.
@@ -29,17 +30,6 @@ export const TextureArrayPrefix = "dynamic:/texturearray/";
 export class CjsTextureArrayConstructor extends IBlueDynamicResourceConstructor
 {
 
-  /** The `CjsBlueResMan` that loads the layers; set by the constructor. */
-  _resourceManager = null;
-
-  /**
-   * @param {object} resourceManager The `CjsBlueResMan` that loads the layers.
-   */
-  constructor(resourceManager)
-  {
-    super();
-    this._resourceManager = resourceManager ?? null;
-  }
 
   /**
    * An assembled array costs downloads and decodes to rebuild, so it is kept.
@@ -52,31 +42,26 @@ export class CjsTextureArrayConstructor extends IBlueDynamicResourceConstructor
   }
 
   /**
-   * Build the texture array a query describes. The recipe starts at once; the
-   * texture is prepared when it finishes.
-   *
-   * @param {string} query Text after `dynamic:/texturearray/`.
-   * @returns {TriTextureRes} The texture resource.
+   * Build the native texture handle, retaining its recipe for same-handle reload.
+   * @param {string} query Authored dynamic texture recipe after its registered prefix.
+   * @returns {TriTextureRes} Initialized texture with a recipe retained for same-handle reload.
    */
   GetResource(query)
   {
     const texture = new TriTextureRes();
-    texture.Initialize(TextureArrayPrefix + query, "");
-
+    const path = TextureArrayPrefix + query;
     const pipeline = CjsTextureArrayConstructor.buildRecipe(query);
-
     if (!pipeline)
     {
-      const error = new Error(`Failed to parse ${TextureArrayPrefix}${query} texture path`);
+      texture._path = path;
+      const error = new Error("Failed to parse " + path + " texture path");
       error.code = "CJS_TEXTURE_PROCEDURAL_PATH_INVALID";
-      texture.SetError(error);
+      blueService.resMan._FailResourceLoad(texture, error);
       return texture;
     }
-
-    // The named material parameters already request these paths as textures.
-    // Their CPU bitmaps are also pipeline inputs; requesting raw images here
-    // created a second cache identity and repeated each layer's fetch/decode.
-    texture.LoadPipeline(pipeline, this._resourceManager, "");
+    texture._pipeline = pipeline;
+    texture._pipelineEx = "";
+    texture.Initialize(path, "");
     return texture;
   }
 
@@ -115,8 +100,10 @@ export class CjsTextureArrayConstructor extends IBlueDynamicResourceConstructor
  */
 export function RegisterTextureArray(resourceManager)
 {
-  resourceManager.RegisterResourceConstructor("texturearray", new CjsTextureArrayConstructor(resourceManager));
+  resourceManager.RegisterResourceConstructor("texturearray", new CjsTextureArrayConstructor());
   return resourceManager;
 }
 
 CjsSchema.meta.define("CjsTextureArrayConstructor")(CjsTextureArrayConstructor);
+
+CjsSchema.decorateMethod(CjsTextureArrayConstructor, "GetResource", CjsSchema.meta.implemented);

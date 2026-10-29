@@ -17,7 +17,6 @@
 import { CjsSchema, meta } from "#schema";
 import { getCarbonTypeDefinition, inferCarbonTypeFromCpp } from "../schema/types/carbonTypes.js";
 import { ownMappedInterfaces } from "../compose/interface.js";
-import { CjsBlueResMan } from "./CjsBlueResMan.js";
 import { CjsBluePaths } from "./CjsBluePaths.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
 import { CjsBlueClasses } from "./CjsBlueClasses.js";
@@ -36,8 +35,8 @@ export class CjsBlue
   /** Named enum definitions shared with schema. */
   enums = blueEnums;
 
-  /** Resource manager, configured by the application before acquisition. */
-  resMan = new CjsBlueResMan();
+  /** Resource manager installed by Blue composition before acquisition. */
+  resMan = null;
 
   /** Path service with no filesystem or remote cache installed initially. */
   paths = new CjsBluePaths();

@@ -226,7 +226,7 @@ test("Carbon player methods use media nanoseconds, expose unknown alpha, clear a
   f.player.OnModified();f.player.OnTick(0,0,null);assert.equal(f.counts.uploads,3);
   const other=new TriTextureRes();other.Initialize("dynamic:/color/0,0,0,1", "");
   f.player.SetBgraTexture(other);assert.equal(f.player.GetBgraTexture(),other);
-  assert.equal(f.texture.GetPayload(),null);
+  assert.equal(f.texture.loadedBitmap,null);
   f.player.OnTick(0,0,null);assert.equal(other.GetWidth(),640);f.player.Destruct();
 });
 
@@ -263,15 +263,15 @@ test("video renderer bridge creates WebGL2-compatible storage and updates both r
 
 test("player never sends video into bitmap publication and retries unavailable devices", () =>
 {
-  const f=fixture(), original=f.texture.SetPayload.bind(f.texture), values=[];
-  f.texture.SetPayload=value=>{values.push(value);return original(value);};
+  const f=fixture(), original=f.texture.CreateFromHostBitmap.bind(f.texture), values=[];
+  f.texture.CreateFromHostBitmap=value=>{values.push(value);return original(value);};
   f.render.IsValid=()=>false;
   f.player.Create(new Uint8Array([1]));f.videos[0].frame(1,0);
   assert.equal(f.counts.allocations,0);
   f.render.IsValid=()=>true;f.player.OnTick(0,0,null);
-  assert.deepEqual(values,[null]);assert.equal(f.counts.uploads,1);
-  assert.equal(f.texture.GetPayload(),null);assert.equal(f.texture.GetBitmap(),null);
-  f.videos[0].frame(2,40);assert.deepEqual(values,[null]);
+  assert.deepEqual(values,[]);assert.equal(f.counts.uploads,1);
+  assert.equal(f.texture.loadedBitmap,null);assert.equal(f.texture.GetBitmap(),null);
+  f.videos[0].frame(2,40);assert.deepEqual(values,[]);
   assert.equal(f.counts.allocations,1);assert.equal(f.counts.uploads,2);
   f.player.Destruct();
 });
@@ -284,6 +284,6 @@ test("a paused playlist recreates its frame on bind after device loss", () =>
   const replacement=RealizeTexture(f.texture,f.render);
   assert.ok(replacement);assert.notEqual(replacement,previous);
   assert.equal(f.counts.uploads,2);assert.equal(f.counts.allocations,2);
-  assert.equal(f.player.IsPaused(),true);assert.equal(f.texture.GetPayload(),null);
+  assert.equal(f.player.IsPaused(),true);assert.equal(f.texture.loadedBitmap,null);
   f.player.Destruct();
 });

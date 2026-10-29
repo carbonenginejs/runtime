@@ -51,7 +51,7 @@ function ddsBytes({ compressed = false, cube = false, short = false } = {})
   return bytes;
 }
 
-test("GR2 actual worker matches main decode and queued existing-byte preparation performs no fetch", async t =>
+test("GR2 worker decode feeds the native load hook without fetching existing bytes", async t =>
 {
   const { loader, messages } = workerLoader(t);
   const bytes = grannyBytes();
@@ -61,22 +61,25 @@ test("GR2 actual worker matches main decode and queued existing-byte preparation
   let reads = 0;
   manager.SetSource({ Read() { reads++; throw new Error("existing bytes must not fetch"); } });
   const resource = new TriGeometryRes();
-  resource.Initialize("res:/test.gr2", "gr2");
+  resource._path = "res:/test.gr2";
+  resource._ext = "";
+  manager._StartResourceLoad(resource);
+  resource._dataStream = { form: "bytes", data: bytes };
   manager.RegisterFormat(CjsGr2Format, { emit: "json", rebuildMissingBounds: true });
   const original = CjsGr2Format.read;
   CjsGr2Format.read = () => { throw new Error("main-thread GR2 decode must not execute"); };
-  try { await manager.PrepareResourceObjectQueued(resource, bytes); }
-  finally { CjsGr2Format.read = original; }
+  try { assert.equal(await resource._DoLoad(), resource.constructor.LoadingResult.LR_SUCCESS); }
+  finally { CjsGr2Format.read = original; resource._dataStream = null; manager._CancelResourceLoad(resource); }
   assert.deepEqual(resource.GetGrannyInfo(), expected);
   assert.ok(resource.GetGrannyInfo().meshes[0].vertex.position instanceof Float32Array);
-  assert.equal(resource.GetPayload().meshes[0].vertex.position,
+  assert.equal(resource.GetCMFData().meshes[0].vertex.position,
     resource.GetGrannyInfo().meshes[0].vertex.position, "publication borrows the transferred vertex storage");
   assert.equal(resource.IsUsingCMF(), false);
   assert.equal(resource.GetMeshCount(), 1);
   assert.equal(reads, 0);
   assert.equal(messages.filter(x => x.operation === "format.read").length, 1);
   assert.ok(bytes.byteLength > 0, "shared source bytes remain attached");
-  resource.ReleasePayload();
+  resource.Shutdown();
   assert.equal(resource.GetGrannyInfo(), null);
 });
 
@@ -104,14 +107,18 @@ test("DDS worker preserves native BC cube and short-file output and resource bit
     const packet = await loader.ReadFormat({Format:CjsDdsFormat},bytes,{emit:"bitmap"});
     assert.deepEqual(packet,expected);
     assert.ok(bytes.byteLength > 0);
-    const texture = new TriTextureRes().SetPayload(createDdsBitmap(packet));
-    const image = new Tr2ImageRes().SetPayload(createDdsBitmap(packet));
-    assert.ok(CjsSchema.cast(texture.GetPayload(),HostBitmap));
-    assert.ok(CjsSchema.cast(image.GetPayload(),HostBitmap));
-    assert.equal(image.GetPayload().GetArraySize(),options.cube ? 6 : 1);
-    assert.deepEqual(image.GetPayload().GetRawData(),packet.data);
-    image.GetPayload().GetRawData()[0] ^= 255;
-    assert.deepEqual(texture.GetPayload().GetRawData(),packet.data,"mutable image does not corrupt texture or cached decode");
+    const texture = new TriTextureRes();
+    texture.CreateFromHostBitmap(createDdsBitmap(packet));
+    const image = new Tr2ImageRes();
+    image.bitmap = createDdsBitmap(packet);
+    image.width = image.bitmap.GetWidth();
+    image.height = image.bitmap.GetHeight();
+    assert.ok(CjsSchema.cast(texture.GetBitmap(),HostBitmap));
+    assert.ok(CjsSchema.cast(image.GetBitmap(),HostBitmap));
+    assert.equal(image.GetBitmap().GetArraySize(),options.cube ? 6 : 1);
+    assert.deepEqual(image.GetBitmap().GetRawData(),packet.data);
+    image.GetBitmap().GetRawData()[0] ^= 255;
+    assert.deepEqual(texture.GetBitmap().GetRawData(),packet.data,"mutable image does not corrupt texture or cached decode");
   }
 });
 
@@ -141,7 +148,7 @@ test("detail arrays and named texture parameters fetch and decode each cached DD
     const paths = [ "res:/detail1.dds", "res:/detail2.dds", "res:/detail3.dds" ];
     const start = messages.length;
     const parameters = () => Promise.all(paths.map(path => manager.FetchResource(path)));
-    const array = () => manager.GetResource("dynamic:/texturearray/" + paths.join(";")).Ready();
+    const array = () => manager.Ready(manager.GetResource("dynamic:/texturearray/" + paths.join(";")));
     if (order === "parameters-first") { await parameters(); await array(); }
     else if (order === "array-first") { await array(); await parameters(); }
     else await Promise.all([ parameters(), array() ]);
@@ -205,7 +212,7 @@ test("deleting a resource rejects its late worker result without occupying the m
   const deliver = adapter.onmessage;
   adapter.onmessage = event => received(event);
   const resource = manager.GetResource("res:/obsolete.gr2");
-  const pending = resource.Ready().then(()=>null,error=>error);
+  const pending = manager.Ready(resource).then(()=>null,error=>error);
   const result = await arrival;
   assert.equal(await manager.QueueTask(CjsResManQueue.MAIN,()=>"responsive").promise,"responsive");
   manager.Delete("res:/obsolete.gr2");
@@ -213,7 +220,7 @@ test("deleting a resource rejects its late worker result without occupying the m
   assert.ok(await pending,"stale readiness must reject");
   assert.equal(manager.Lookup("res:/obsolete.gr2"),null);
   assert.equal(resource.GetGrannyInfo(),null,"obsolete result must not attach a Granny graph");
-  assert.equal(resource.GetPayload(),null);
+  assert.equal(resource.GetCMFData(),null);
 });
 
 test("abort settles a worker request and ignores its late response without poisoning later jobs", async t =>

@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -69,11 +70,11 @@ test("CMF bounds use first mesh in skeleton order and rebuild with geometry",()=
     restTransforms:[0,1].map(()=>({position:[0,0,0],rotation:[0,0,0,1],scale:[1,1,1]})),invBindTransforms:[mat4.create(),mat4.create()]}],
     meshes:[{skeleton:0,boneBindings:[{name:"tip",bounds:{min:[2,0,0],max:[2,0,0]}},{name:"root",bounds:{min:[0,0,0],max:[0,0,0]}}]},
       {skeleton:0,boneBindings:[{name:"root",bounds:{min:[900,0,0],max:[900,0,0]}}]}],animations:[]};
-  const geometry=new TriGeometryRes();geometry.SetPayload(data);
+  const geometry=new TriGeometryRes();geometry.ReadCMFFile(data);
   const updater=new Tr2GrannyAnimation();updater.SetUseMeshBinding(true);updater.SetSharedGeometryRes(geometry);
   assert.deepEqual(Array.from(bounds(updater).sphere),[1,0,0,1]);
   assert.deepEqual(updater._boneBounds.map(b=>b.boneIndex),[0,1],"cpp:876-899 skeleton order, first mesh only");
-  const replacement=new TriGeometryRes();replacement.SetPayload({...data,meshes:[{skeleton:0,boneBindings:[{name:"root",bounds:{min:[8,0,0],max:[8,0,0]}}]}]});
+  const replacement=new TriGeometryRes();replacement.ReadCMFFile({...data,meshes:[{skeleton:0,boneBindings:[{name:"root",bounds:{min:[8,0,0],max:[8,0,0]}}]}]});
   updater.SetSharedGeometryRes(replacement);
   assert.equal(updater._boneBounds.length,0,"cpp:1889 Cleanup invalidates cached binding corners");
   assert.deepEqual(Array.from(bounds(updater).sphere),[4,0,0,4]);
@@ -93,7 +94,7 @@ test("real Svipul dynamic bounds survive stance animation and GR2/CMF rebinding"
   const sof=(await new EveSOF().Register({lazyData:{source:async path=>{assert.ok(files.has(path),path);return files.get(path);}},resources:{exists:async path=>files.has(path)}}));
   const values=await sof.BuildValuesFromDNAAsync("mde3_t3:minmatarbase:minmatar");
   const ship=CjsSchema.from("EveShip2", values);assert.equal(ship.dynamicBoundingSphereEnabled,true);
-  const geometry=new TriGeometryRes();geometry.SetPayload(geometry.ReadGrannyFile(bytes));geometry.MarkPrepared();
+  const geometry=new TriGeometryRes();geometry.ReadGrannyFile(bytes);prepareResourceFixture(geometry);
   ship.mesh.SetGeometryRes(geometry);ship.PrepareForAnimation();
   assert.equal(ship.animationUpdater.GetMeshBoneCount(),30);
   ship.PrepareShaderData(null);
@@ -108,7 +109,7 @@ test("real Svipul dynamic bounds survive stance animation and GR2/CMF rebinding"
 
   const samples=[];
   for(const cmf of [false,true]){
-    if(cmf){ship.animationUpdater.StopAnimations(0);ship.animationUpdater.Update(0);const other=new TriGeometryRes();other.SetPayload(CjsCmfFormat.loadShared(CjsGr2Format.read(bytes)));other.MarkPrepared();ship.mesh.SetGeometryRes(other);ship.PrepareForAnimation();}
+    if(cmf){ship.animationUpdater.StopAnimations(0);ship.animationUpdater.Update(0);const other=new TriGeometryRes();other.ReadCMFFile(CjsCmfFormat.loadShared(CjsGr2Format.read(bytes)));prepareResourceFixture(other);ship.mesh.SetGeometryRes(other);ship.PrepareForAnimation();}
     const updater=ship.animationUpdater;
     assert.equal(updater.IsUsingCMF(),cmf);
     for(const name of ["NormalLoop","Speed2Sniper","Sniper2Defensive","Defensive2Speed"]){

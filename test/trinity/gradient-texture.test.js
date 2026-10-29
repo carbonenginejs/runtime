@@ -1,6 +1,7 @@
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 
 import { num } from "../../npm/dist/global/math/num.js";
 import {
@@ -118,6 +119,7 @@ test("dynamic:/gradient_1d resolves through the resource manager without a sourc
 {
   let reads = 0;
   const resMan = new CjsBlueResMan({ source: { Read() { reads += 1; return new Uint8Array(0); } } });
+  blue.resMan = resMan;
   RegisterGradientTexture(resMan);
 
   const path = gradientPath(2, [ rampChannel, emptyChannel, emptyChannel, emptyChannel ]);
@@ -129,7 +131,7 @@ test("dynamic:/gradient_1d resolves through the resource manager without a sourc
   // Identical queries share one resource.
   assert.equal(resMan.GetResource(path), texture);
 
-  await texture.Ready();
+  await resMan.Ready(texture);
   assert.equal(reads, 0);
 });
 
@@ -137,14 +139,19 @@ test("an invalid gradient fails its texture instead of reading a source", async 
 {
   let reads = 0;
   const resMan = new CjsBlueResMan({ source: { Read() { reads += 1; return new Uint8Array(0); } } });
+  blue.resMan = resMan;
   RegisterGradientTexture(resMan);
 
   const broken = resMan.GetResource(`${GradientPrefix}!!!!`);
-  assert.equal(broken.IsFailed(), true);
-  assert.equal(broken.error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
+  assert.equal(broken.IsPrepared() && !broken.IsGood(), true);
+  assert.equal(resMan.GetResourceStatus(broken).error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
   await assert.rejects(
-    resMan.LoadObject(`${GradientPrefix}!!!!`),
+    resMan.Ready(broken),
     error => error.code === "CJS_TEXTURE_PROCEDURAL_PATH_INVALID"
   );
   assert.equal(reads, 0);
 });
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previousManager; } });

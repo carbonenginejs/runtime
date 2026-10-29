@@ -1,3 +1,4 @@
+import { prepareResourceFixture, resourceIdentityFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { TriGeometryRes as SourceTriGeometryRes } from "../../src/trinity/resources/geometry/TriGeometryRes.js";
@@ -148,7 +149,7 @@ test("suballocated buffer ReleaseResources honours managed storage and detaches 
 });
 
 // Each geometry is registered with the MotherLode of its own module graph: the
-// registry casts what it holds to its CjsResource, and a src class is not the
+// registry casts what it holds to its BlueAsyncRes, and a src class is not the
 // dist one.
 for (const [ source, Geometry, MotherLode ] of [ [ "source", SourceTriGeometryRes, SourceCjsMotherLode ], [ "dist", TriGeometryRes, CjsMotherLode ] ])
 test(`${source} geometry evict/reload cycles return every LOD's used bytes to the live-resource baseline`, () =>
@@ -161,14 +162,14 @@ test(`${source} geometry evict/reload cycles return every LOD's used bytes to th
   // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
   const motherLode = new MotherLode({ now: () => 0, cacheSize: 0 });
   const geometry = new Geometry();
-  geometry.Initialize("res:/synthetic/eviction.cmf");
+  resourceIdentityFixture(geometry, "res:/synthetic/eviction.cmf");
 
   for (let cycle = 0; cycle < 20; cycle += 1)
   {
     const flat = mesh();
     const multi = { ...mesh(), lods: [ mesh(), mesh() ] };
-    geometry.SetPayload({ meshes: [ flat, multi ] });
-    geometry.MarkPrepared();
+    geometry.ReadCMFFile({ meshes: [ flat, multi ] });
+    prepareResourceFixture(geometry);
     const lods = [ flat, ...multi.lods ];
     const allocations = [];
     for (let index = 0; index < lods.length; index += 1)
@@ -195,7 +196,7 @@ test(`${source} geometry evict/reload cycles return every LOD's used bytes to th
       assert.equal(lod.indexAllocation, null);
       assert.equal(lod.reversedIndexAllocation, null);
     }
-    geometry.ReleasePayload();
+    geometry.Shutdown();
     assert.equal(usedBytes(buffer), baseline, "repeated resource cleanup leaves other owners untouched");
   }
   buffer.Free(live);
@@ -212,7 +213,7 @@ test("failed LOD index uploads unwind before retry or resource eviction", () =>
       const renderContext = context();
       const buffer = SharedGeometryBuffer(renderContext);
       const geometry = new TriGeometryRes();
-      geometry.SetPayload({ meshes: [ mesh() ] });
+      geometry.ReadCMFFile({ meshes: [ mesh() ] });
       const lod = geometry.GetMeshLod__LodIndex(0, 0);
       const seed = buffer.Allocate(4, 1, null, renderContext);
       const block = seed.GetBuffer();
@@ -237,7 +238,7 @@ test("failed LOD index uploads unwind before retry or resource eviction", () =>
       assert.equal(lod.reversedIndexAllocation, null);
       block.UpdateBuffer = update;
       assert.equal(CreateLodAllocations(geometry, 0, lod, renderContext), true);
-      geometry.ReleasePayload();
+      geometry.Shutdown();
       assert.equal(usedBytes(buffer), 0);
       buffer.ReleaseResources();
     }

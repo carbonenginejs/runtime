@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../../support/resourceFixtures.js";
 // Tr2SkinnedModel and the mesh rig binding it drives, on real classes: Tr2Mesh over a payload TriGeometryRes acquired
 // through be.resMan (Tr2SkinnedModel.cpp, Tr2MeshBase.cpp:120-282).
 import assert from "node:assert/strict";
@@ -43,8 +44,8 @@ function meshOn(geometry)
 function preparedGeometry()
 {
   const geometry = new TriGeometryRes();
-  geometry.SetPayload(payload());
-  geometry.MarkPrepared();
+  geometry.ReadCMFFile(payload());
+  prepareResourceFixture(geometry);
   return geometry;
 }
 
@@ -95,8 +96,8 @@ test("Tr2SkinnedModel acquires its geometry, selects the named skeleton, binds i
   assert.ok(model.geometryRes instanceof TriGeometryRes, "acquired through blue.resMan (Tr2SkinnedModel.cpp:202-223)");
   assert.equal(model.GetSkeleton(), null, "no skeleton until the resource is prepared");
 
-  model.geometryRes.SetPayload(payload());
-  model.geometryRes.MarkPrepared();
+  model.geometryRes.ReadCMFFile(payload());
+  prepareResourceFixture(model.geometryRes);
   model.RebuildCachedData(model.geometryRes);
   assert.equal(model.GetSkeleton().name, "body");
 

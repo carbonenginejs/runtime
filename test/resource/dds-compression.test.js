@@ -1,3 +1,4 @@
+import { resourceIdentityFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test, { after } from "node:test";
 import { readFileSync } from "node:fs";
@@ -234,7 +235,7 @@ test("load hook snapshots LOAD settings, bypasses raw images, and publishes pair
     loaders.set("dds", (bytes, context) => TriTextureRes.readImageResource(bytes, context,
       { backend:"webgpu", features:["texture-compression-bc","texture-compression-unaligned"], resolveRole:()=>"colour" }));
     let release;
-    const resource = new TriTextureRes(); resource.Initialize("res:/colour.dds","dds");
+    const resource = new TriTextureRes(); resourceIdentityFixture(resource, "res:/colour.dds", "dds");
     const context = { resource, path: "res:/colour.dds", resMan: { ReadFormatOnce() { return new Promise(resolve=>{release=resolve;}); } } };
     TriTextureRes.compressUncompressedTextures = true;
     const pending = loaders.get("dds")(new Uint8Array(),context);
@@ -243,9 +244,9 @@ test("load hook snapshots LOAD settings, bypasses raw images, and publishes pair
     const bitmap = await pending;
     assert.equal(bitmap.GetFormat(),77); assert.equal(bitmap.compression.requested,true);
     assert.ok(logged.some(line => /^trinity\/Main: Compressed 'res:\/colour\.dds' on load: mode 7, format 28 to 77, \d+ to \d+ bytes in [\d.e+-]+ ms$/u.test(line)), "the compression is logged on trinity/Main");
-    resource.SetPayload(bitmap);
+    resource.CreateFromHostBitmap(bitmap);
     assert.equal(resource.compression.outputFormat,resource.format);
-    const raw = new Tr2ImageRes(); raw.Initialize("res:/colour.dds","dds");
+    const raw = new Tr2ImageRes(); resourceIdentityFixture(raw, "res:/colour.dds", "dds");
     TriTextureRes.compressUncompressedTextures = true;
     const uncompressed = await loaders.get("dds")(new Uint8Array(), {...context,resource:raw,resMan:{ReadFormatOnce:async()=>packet()}});
     assert.equal(uncompressed.GetFormat(),28); assert.equal(uncompressed.compression,undefined);

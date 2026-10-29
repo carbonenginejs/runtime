@@ -12,7 +12,7 @@ const DECL = [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount
 function geometry()
 {
   const resource = new TriGeometryRes();
-  resource.SetPayload({ meshes: [ {
+  resource.ReadCMFFile({ meshes: [ {
     decl: DECL,
     vertex: { position: [ 0, 0, 0, 1, 0, 0, 1, 1, 0 ] },
     indices: [ { faces: [ 0, 1, 2 ] } ],
@@ -54,7 +54,7 @@ test("a mesh whose geometry has no elements keeps UNINITIALIZED_DECLARATION (cpp
   const provider = new EveChildInstancedMeshes();
   provider.AddMesh("res:/geo", false, 0, 0, [ { effect: effect(), batchType: 0, areaIndex: 0, areaCount: 1 } ], [ mat4.create() ]);
   const resource = new TriGeometryRes();
-  resource.SetPayload({ meshes: [ { areas: [] } ] });
+  resource.ReadCMFFile({ meshes: [ { areas: [] } ] });
   provider.SetGeometryResource(0, resource);
   provider.RebuildCachedData(resource);
   assert.equal(provider.meshes[0].combinedVertexDeclaration, Tr2EffectStateManager.Unknown);

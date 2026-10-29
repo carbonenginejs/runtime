@@ -1,5 +1,7 @@
+import { prepareResourceFixture, resourceIdentityFixture } from "../../support/resourceFixtures.js";
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { beforeEach, afterEach } from "node:test";
+import { blue } from "../../../npm/dist/global/blue/index.js";
 import { CjsBlueResMan, TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { CjsCmfFormat } from "../../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { CjsIncarnaEmulator, Tr2InteriorStatic } from "../../../npm/dist/character/index.js";
@@ -18,8 +20,8 @@ const GEOMETRY = "res:/graphics/interior/test/piece.gr2";
 function geometry()
 {
   const resource = new TriGeometryRes();
-  resource.Initialize(GEOMETRY, "");
-  resource.SetPayload(CjsCmfFormat.loadShared({
+  resourceIdentityFixture(resource, GEOMETRY, "");
+  resource.ReadCMFFile(CjsCmfFormat.loadShared({
     meshes: [ 0, 10 ].map(offset => ({
       name: `mesh${offset}`,
       minBounds: [ offset, 0, 0 ],
@@ -28,7 +30,7 @@ function geometry()
       indices: [ { name: "a", bytesPerIndex: 2, faces: [ 0, 1, 2 ] } ]
     }))
   }));
-  resource.MarkPrepared();
+  prepareResourceFixture(resource);
   return resource;
 }
 
@@ -236,15 +238,17 @@ function glowResources()
   const data = new Uint8Array(32);
   for (let row = 0; row < 4; row++) data[row * 8 + 7] = 255;
   const requests = [];
-  return {
+  blue.resMan = Object.assign(new CjsBlueResMan(), {
     requests,
+    Ready: async () => null,
     RegisterResourceConstructor() {},
     GetResource(path)
     {
       requests.push(path);
-      return { Ready: async () => null, GetBitmap: () => ({ GetMipRawData: () => data, GetWidth: () => 8, GetHeight: () => 4 }) };
+      return { GetBitmap: () => ({ GetMipRawData: () => data, GetWidth: () => 8, GetHeight: () => 4 }) };
     }
-  };
+  });
+  return blue.resMan;
 }
 
 /**
@@ -256,8 +260,8 @@ function glowingPiece()
 {
   const path = "res:/graphics/interior/test/glow.gr2";
   const resource = new TriGeometryRes();
-  resource.Initialize(path, "");
-  resource.SetPayload(CjsCmfFormat.loadShared({ meshes: [ {
+  resourceIdentityFixture(resource, path, "");
+  resource.ReadCMFFile(CjsCmfFormat.loadShared({ meshes: [ {
     name: "glow",
     minBounds: [ 0, 0, 0.5 ],
     maxBounds: [ 2, 0, 1.5 ],
@@ -268,7 +272,7 @@ function glowingPiece()
     },
     indices: [ { name: "a", bytesPerIndex: 2, faces: [ 0, 1, 2, 0, 2, 3 ] } ]
   } ] }));
-  resource.MarkPrepared();
+  prepareResourceFixture(resource);
 
   const mesh = new Tr2Mesh();
   mesh.geometryResPath = path;
@@ -316,15 +320,15 @@ function roomPiece()
 {
   const path = "res:/graphics/interior/test/room.gr2";
   const resource = new TriGeometryRes();
-  resource.Initialize(path, "");
-  resource.SetPayload(CjsCmfFormat.loadShared({ meshes: [ {
+  resourceIdentityFixture(resource, path, "");
+  resource.ReadCMFFile(CjsCmfFormat.loadShared({ meshes: [ {
     name: "room",
     minBounds: [ 0, 0, -2 ],
     maxBounds: [ 8, 4, 2 ],
     vertex: { position: [ 0, 0, -2, 0, 0, 2, 8, 0, 2, 8, 0, -2, 0, 4, -2, 0, 4, 2, 8, 4, 2, 8, 4, -2 ] },
     indices: [ { name: "a", bytesPerIndex: 2, faces: [ 0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6 ] } ]
   } ] }));
-  resource.MarkPrepared();
+  prepareResourceFixture(resource);
   const area = new Tr2MeshArea();
   area.index = 0;
   area.count = 1;
@@ -358,3 +362,7 @@ test("each Incarna material takes one SOF material slot, darkest first, so its a
     new Map([ [ "none", 2 ] ])).textures.find(texture => texture.name === "MaterialMap").resFilePath;
   assert.equal(materialMap, "dynamic:/color/0.666667,0,0,1");
 });
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() => { blue.resMan = previousManager; });

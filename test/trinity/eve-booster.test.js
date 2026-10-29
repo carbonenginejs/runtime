@@ -1,3 +1,4 @@
+import { pendingResourceFixture } from "../support/resourceFixtures.js";
 ﻿import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -40,7 +41,7 @@ test("EveTrailsSet preserves Carbon trail records without realizing geometry", (
   // A real TriGeometryRes still loading: the set joins its notify targets and
   // realizes nothing until it completes.
   const geometry = new TriGeometryRes();
-  geometry.MarkLoading();
+  pendingResourceFixture(geometry);
   assert.equal(trails.GetFadeSpeed(), 1);
   trails.SetEffect(effect);
   trails.SetMeshResPath("res:/trail.gr2");

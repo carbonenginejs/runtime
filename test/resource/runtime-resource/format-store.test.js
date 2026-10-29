@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsFormatStore, ResourceRequirement, TriGrannyRes, TriTextureRes } from "../../../npm/dist/resource/index.js";
+import { CjsFormatStore, TriGrannyRes, TriTextureRes } from "../../../npm/dist/resource/index.js";
 import { CjsDdsFormat } from "../../../npm/dist/resource/formats/dds/index.js";
 import { CjsTgaFormat } from "../../../npm/dist/resource/formats/tga/index.js";
 import { CjsWebglFormat } from "../../../npm/dist/resource/formats/webgl/index.js";
@@ -311,42 +311,25 @@ test("an output that selects an unpinned route is applied to its reader", () =>
 });
 
 
-test("a resource's requirement is not a format output, and must not filter routes", () =>
+test("format output selection is independent of the removed resource requirement vocabulary", () =>
 {
-  // requirement selects the resource CLASS - CjsBlueResMan.RegisterResourceType
-  // keys on it. A format's outputs are a different axis. Folding one into the
-  // other made a resource loaded as "geometry" filter the store for routes
-  // emitting "geometry", find none, and resolve to nothing at all.
   const store = new CjsFormatStore().Register(CjsDdsFormat);
-  const resource = new TriTextureRes()
-    .Initialize("res:/texture/hull.dds", null, ResourceRequirement.TEXTURE)
-    .SetFormatStore(store);
-
-  assert.equal(resource.GetRequirement(), ResourceRequirement.TEXTURE);
-  assert.ok(resource.ResolveFormat(), "the requirement must not have filtered the route away");
-
-  // The same, with a requirement no format declares as an output: dds emits
-  // texture, image and rgba, never "geometry".
-  const geometry = new TriGrannyRes()
-    .Initialize("res:/ship/hull.dds", null, ResourceRequirement.GEOMETRY)
-    .SetFormatStore(store);
-  assert.equal(geometry.GetRequirement(), "geometry", "the key must exist, or this proves nothing");
-  assert.ok(geometry.ResolveFormat(), "a requirement is not an output filter");
-
-  // An output asked for explicitly still filters, which is the real axis.
-  assert.equal(resource.ResolveFormat(undefined, { output: "video" }), null);
+  assert.ok(store.Resolve("dds"));
+  assert.equal(store.Resolve("dds", undefined, { output: "video" }), null);
+  assert.equal("GetRequirement" in new TriTextureRes(), false);
+  assert.equal("SetFormatStore" in new TriGrannyRes(), false);
 });
 
 
 test("a Carbon request suffix does not replace the source container extension", () =>
 {
   const store = new CjsFormatStore().Register(CjsDdsFormat);
-  const resource = new TriTextureRes()
-    .Initialize("res:/texture/hull.dds?detail=1", "raw")
-    .SetFormatStore(store);
-  assert.equal(resource.GetExt(), "raw", "BlueAsyncRes.h:77-80 returns m_ext");
-  assert.equal(resource.GetPath(), "res:/texture/hull.dds?detail=1");
-  assert.ok(resource.ResolveFormat(), "raw still reads the DDS source container");
+  const resource = new TriTextureRes();
+  resource._path = "res:/texture/hull.dds?detail=1";
+  resource._ext = "raw";
+  assert.equal(resource.GetExt(), "raw");
+  assert.equal(resource.GetFilePath(), "res:/texture/hull.dds");
+  assert.ok(store.Resolve("dds"));
 });
 
 test("routing accepts only the boolean is contract", () =>

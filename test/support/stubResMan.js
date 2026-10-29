@@ -1,7 +1,7 @@
 import { CjsAudioRes } from "../../npm/dist/audio/resources/index.js";
-import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { getResourceExtension, normalizeResourcePath } from "../../npm/dist/global/utils/path.js";
-import { CjsResource, Tr2ImageRes, Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriGrannyRes, TriTextureRes } from "../../npm/dist/resource/index.js";
+import { Tr2ImageRes, Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriGrannyRes, TriTextureRes } from "../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 
 // Carbon: GetResourceHelper (blue/src/BlueResMan.cpp:249-278).
@@ -36,7 +36,7 @@ const RESOURCE_BY_EXTENSION = new Map([
 // this instead: a manager that is genuinely installed and genuinely answers,
 // rather than one that is absent.
 //
-// Its GetResource answers with a real CjsResource in its EMPTY state, because
+// Its GetResource answers with a native resource with its initial flags, because
 // that is what Carbon's manager does: it hands back the resource for a path,
 // creating one when the cache has none, and loading fills it in later. Callers
 // are written for that - they attach to its completion - so a manager that
@@ -44,11 +44,13 @@ const RESOURCE_BY_EXTENSION = new Map([
 // answer with something else.
 
 /** A composed manager that answers, for a test with no real resource pipeline. */
-export class StubResMan extends IBlueResMan
+export class StubResMan extends CjsBlueResMan
 {
   constructor(resolve = null)
   {
-    super();
+    super({ autoPumpMainThreadQueue: false });
+    this.PauseQueue(0);
+    this.PauseQueue(1);
     this.resolve = resolve;
     this.requests = [];
     this.resources = new Map();
@@ -68,12 +70,12 @@ export class StubResMan extends IBlueResMan
       const Resource = dynamicTexture && !ex ? TriTextureRes : RESOURCE_BY_EXTENSION.get((extension + ex).toLowerCase());
       if (!Resource) return null;
       resource = new Resource();
-      resource.Initialize(normalizedPath, ex);
-      // A test manager has no pipeline behind it, so a caller that asks the
-      // resource for its object must not start a real load. Carbon's manager
-      // always has one; this one answers nothing rather than throwing about a
-      // loader the test never configured.
-      resource.SetObjectLoader(() => null);
+      // Consumer-only fixtures have no pending I/O. Set the native identity
+      // directly; tests that exercise Initialize use the real configured manager.
+      resource._path = normalizedPath;
+      resource._ext = ex;
+      resource._isLoading = true;
+      this._StartResourceLoad(resource);
       this.resources.set(key, resource);
     }
     return resource;
@@ -99,18 +101,9 @@ export class StubResMan extends IBlueResMan
   {
     this.requests.push({ path, load: true });
     if (this.resolve) return this.resolve(path, { load: true });
-    // Preserve the stub's object-loading fixture independently of the factory
-    // table: LoadObject callers can supply their graph through the resolver.
-    let resource = this.resources.get(path);
-    if (!resource)
-    {
-      resource = new CjsResource();
-      resource.Initialize(path);
-      resource.SetObjectLoader(() => null);
-      this.resources.set(path, resource);
-    }
-    return resource;
+    return null;
   }
+
 }
 
 /**

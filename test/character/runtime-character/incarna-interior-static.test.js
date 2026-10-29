@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { blue } from "../../../npm/dist/global/blue/index.js";
@@ -270,13 +271,13 @@ function staticWith(meshes)
 function mesh(x)
 {
   const resource = new TriGeometryRes();
-  resource.SetPayload({ meshes: [ {
+  resource.ReadCMFFile({ meshes: [ {
     bounds: { min: [ x, -1, -1 ], max: [ x + 2, 1, 1 ] },
     decl: [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ],
     vertex: { position: [ x, 0, 0, x + 2, 0, 0, x, 1, 0 ] },
     indices: [ { faces: [ 0, 1, 2 ] } ], areas: [ { firstElement: 0, elementCount: 1 } ]
   } ] });
-  resource.MarkPrepared();
+  prepareResourceFixture(resource);
   const value = new Tr2Mesh();
   value.SetGeometryRes(resource);
   return value;

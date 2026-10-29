@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import { addChild } from "../../npm/dist/global/blue/children.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
@@ -35,7 +36,7 @@ test("real Crisis Angel destroyer bone children follow all warp clips through no
   const fx=await readFile(join(corpus,"angde1_t1_crisis_fx.black"));
   assert.equal(createHash("md5").update(fx).digest("hex"),"007204e6136609a2969ddb38e7a57a8d");
   const ship=new EveShip2(),mesh=new Tr2Mesh(),geometry=new TriGeometryRes();
-  geometry.SetPayload(geometry.ReadGrannyFile(bytes));geometry.MarkPrepared();mesh.SetGeometryRes(geometry);ship.SetMesh(mesh);
+  geometry.ReadGrannyFile(bytes);prepareResourceFixture(geometry);mesh.SetGeometryRes(geometry);ship.SetMesh(mesh);
   const crisis=CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(fx).object);
   addChild(ship, "effectChildren", crisis, { listNotify: ship });
   ship.lodLevel=Tr2Lod.TR2_LOD_HIGH;ship.isVisible=true;

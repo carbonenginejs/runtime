@@ -1,3 +1,4 @@
+import { readEffectFixture } from "../../../support/resourceFixtures.js";
 import { CjsSchema } from "../../../../src/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -97,7 +98,7 @@ test("a body survives records -> classes -> records unchanged", () =>
 {
     const bytes = buildContainer();
     const reader = new CjsCarbonEffectReader(bytes);
-    const res = new Tr2EffectRes().DoLoad(bytes);
+    const res = readEffectFixture(new Tr2EffectRes(), bytes);
 
     for (let index = 0; index < 4; index += 1)
     {
@@ -112,7 +113,7 @@ test("a body survives records -> classes -> records unchanged", () =>
 test("a re-emitted body reads back as the same container", () =>
 {
     const bytes = buildContainer();
-    const res = new Tr2EffectRes().DoLoad(bytes);
+    const res = readEffectFixture(new Tr2EffectRes(), bytes);
 
     const rebuilt = new CjsCarbonEffectWriter({
         compilerVersion: COMPILER_VERSION,
@@ -134,7 +135,7 @@ test("a re-emitted body reads back as the same container", () =>
 
 test("a re-emitted body loads back into equal classes", () =>
 {
-    const res = new Tr2EffectRes().DoLoad(buildContainer());
+    const res = readEffectFixture(new Tr2EffectRes(), buildContainer());
     const first = res.GetShaderByIndex(0);
 
     const rebuilt = new CjsCarbonEffectWriter({
@@ -145,8 +146,7 @@ test("a re-emitted body loads back into equal classes", () =>
     rebuilt.addBody(0, first.effect.toCarbonBinary());
     rebuilt.addBody(1, first.effect.toCarbonBinary());
 
-    const second = new Tr2EffectRes()
-        .DoLoad(rebuilt.toBytes())
+    const second = readEffectFixture(new Tr2EffectRes(), rebuilt.toBytes())
         .GetShaderByIndex(0);
 
     assert.deepEqual(CjsSchema.getValues(second), CjsSchema.getValues(first));
@@ -154,7 +154,7 @@ test("a re-emitted body loads back into equal classes", () =>
 
 test("an emitted stage omits absent stage slots", () =>
 {
-    const res = new Tr2EffectRes().DoLoad(buildContainer());
+    const res = readEffectFixture(new Tr2EffectRes(), buildContainer());
     const record = res.GetShaderByIndex(0).effect.toCarbonBinary();
 
     // The class holds six slots; the file stores only the populated ones.
@@ -169,7 +169,7 @@ test("an emitted stage omits absent stage slots", () =>
 
 test("an emitted UAV record carries no isSRGB field", () =>
 {
-    const res = new Tr2EffectRes().DoLoad(buildContainer());
+    const res = readEffectFixture(new Tr2EffectRes(), buildContainer());
     const record = res.GetShaderByIndex(0).effect.toCarbonBinary();
     const stage = record.techniques[0].passes[0].stages[0];
 
@@ -185,7 +185,7 @@ test("an emitted UAV record carries no isSRGB field", () =>
 
 test("emitted collections are in Carbon's order, not insertion order", () =>
 {
-    const res = new Tr2EffectRes().DoLoad(buildContainer());
+    const res = readEffectFixture(new Tr2EffectRes(), buildContainer());
     const shader = res.GetShaderByIndex(0);
     const input = shader.effect.techniques[0].passes[0].stageInputs[0];
 
@@ -206,7 +206,7 @@ test("emitted collections are in Carbon's order, not insertion order", () =>
 
 test("emitted annotations are sorted by name", () =>
 {
-    const res = new Tr2EffectRes().DoLoad(buildContainer());
+    const res = readEffectFixture(new Tr2EffectRes(), buildContainer());
     const shader = res.GetShaderByIndex(0);
 
     const groups = [ ...shader.effect.annotations ].reverse();

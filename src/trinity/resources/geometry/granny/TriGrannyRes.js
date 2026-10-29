@@ -3,11 +3,10 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/TriGrannyRes.cpp
 // Source: trinity/trinity/Resources/TriGrannyRes_Blue.cpp
 import { CjsSchema, meta, type } from "#schema";
-import { CjsResource, ICacheable, blue as blueService } from "#blue";
+import { BlueAsyncRes, ICacheable, blue as blueService } from "#blue";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { CjsGr2Format } from "../../../../resource/formats/gr2/CjsGr2Format.js";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../../../resource/resourceBoundary.js";
-import { ResourceRequirement } from "#blue";
 import { Failed } from "../../../../trinityal/ALResult.js";
 import { TriGeometryRes } from "../TriGeometryRes.js";
 import { CjsCmfFormat } from "../../../../resource/formats/cmf/index.js";
@@ -98,7 +97,7 @@ function IntersectTri(v0, v1, v2, pos, dir)
  * (resource/dropped), so `m_cmfContents` is always empty: the CMF branch of each query is its
  * empty-contents outcome and a `.cmf` cannot be loaded.
  */
-export class TriGrannyRes extends CjsResource
+export class TriGrannyRes extends BlueAsyncRes
 {
   /**
    * m_memoryUsage: the file's expanded section sizes (TriGrannyRes.cpp:253-258),
@@ -110,14 +109,16 @@ export class TriGrannyRes extends CjsResource
   /** m_useCMF - whether the file is a `.cmf` (TriGrannyRes.h:140). */
   _useCMF = false;
 
-  /** Updates payload in the current resource payload lifecycle. */
-  SetPayload(payload = null)
+  /**
+   * Carbon DoLoad (TriGrannyRes.cpp:200-260). Browser reads may use a worker;
+   * retain the decoded Granny projection after the manager checks cancellation.
+   * @returns {Promise<number>} Native LoadingResult.
+   */
+  async _DoLoad()
   {
-    if (payload === null)
-    {
-      super.SetPayload(null);
-      return this;
-    }
+    this._useCMF = this.GetFilePath().endsWith(".cmf");
+    if (this._useCMF) return BlueAsyncRes.LoadingResult.LR_FAILED;
+    const payload = await blueService.resMan.ReadResourceObjectPayload(this, this._dataStream.data);
     assertResourcePayloadObject("TriGrannyRes", payload);
     // Emptiness, not absence. The old guard asked whether the arrays EXISTED,
     // and `CjsGr2Format.read` always builds them - so reading a `.gsf` state
@@ -140,8 +141,8 @@ export class TriGrannyRes extends CjsResource
         "models"
       );
     }
-    super.SetPayload(payload);
-    return this;
+    this._grannyFile = payload;
+    return BlueAsyncRes.LoadingResult.LR_SUCCESS;
   }
 
 
@@ -166,69 +167,50 @@ export class TriGrannyRes extends CjsResource
   }
 
   /**
-   * Loads the file at a path and prepares it, for tools.
-   *
-   * Carbon: TriGrannyRes::Load (trinity/trinity/Resources/TriGrannyRes.cpp:173-198; TriGrannyRes.h:67).
-   * Exposed as "LoadForTools" (TriGrannyRes_Blue.cpp:166-172, MAP_METHOD_AND_WRAP). Carbon sets the
-   * path and the extension "raw", opens a stream with `BePaths->GetStreamFromPathW` (a missing stream is
-   * logged and answered with false, state untouched), runs `DoLoad` and `DoPrepare` and sets the flags.
-   *
-   * Forced divergences: a Promise, because a JavaScript file read is asynchronous where Carbon's
-   * blocks the thread or tasklet. `DoLoad` is the `CjsGr2Format` decode of the bytes, since the
-   * native Granny library is not available; a `.cmf` path fails because `Tr2CmfContents` is not ported
-   * (resource/dropped), as `DoLoad` fails when its contents are empty (cpp:211). A failed decode, or
-   * a payload `SetPayload` refuses, leaves the resource FAILED, where Carbon leaves the flags clear.
-   * `m_memoryUsage` is left 0: the expanded section sizes (cpp:253-258) are not in the projection.
-   * `HandleGrannyDeprecation` (cpp:220) is a deprecation log and is omitted.
-   *
-   * @param {string} path Res path of the resource.
-   * @returns {Promise<boolean>} Whether the resource loaded and is good.
+   * Carbon Load (TriGrannyRes.cpp:173-198), exposed as LoadForTools. JavaScript
+   * awaits the source read directly; Initialize would wrongly enqueue a second load.
+   * @param {string} path Resource path.
+   * @returns {Promise<boolean>} Whether loading and preparation succeeded.
    */
   async Load(path)
   {
-    this.Initialize(path, "raw");
-    this._useCMF = false;
-
-    let stream = null;
+    this.CancelPendingLoad();
+    this._path = path;
+    this._ext = "raw";
+    const attempt = blueService.resMan._StartResourceLoad(this);
+    this._isLoading = true;
+    this._isPrepared = this._isGood = false;
     try
     {
-      stream = await blueService.paths.GetStreamFromPath(path, { accept: [ "bytes" ] });
-    }
-    catch
-    {
-      stream = null;
-    }
-
-    if (stream === null)
-    {
-      CcpLog.CCP_LOGERR("TriGrannyRes::Load: Failed to open stream for path %ls", path);
-      return false;
-    }
-
-    this.MarkLoading();
-
-    try
-    {
-      if (path.length >= 4 && path.endsWith(".cmf"))
-      {
-        this._useCMF = true;
-        throw new Error("TriGrannyRes: .cmf contents (Tr2CmfContents) are not supported.");
-      }
-
-      // Granny files carry no mesh bounds; read them as the registered .gr2
-      // geometry route does (rebuildMissingBounds), or geometry made from this
-      // resource (CreateGeometryRes) has zero bounds and frames to nothing.
-      this.SetPayload(await CjsGr2Format.readAsync(stream.data, { emit: "json", rebuildMissingBounds: true }));
+      if (!await this._DoOpenStream()) return false;
+      blueService.resMan._AssertResourceLoad(this, attempt);
+      const loaded = await this._DoLoad();
+      blueService.resMan._AssertResourceLoad(this, attempt);
+      this._isLoading = false;
+      this._CleanupLoadData();
+      this._CloseStream();
+      if (loaded !== BlueAsyncRes.LoadingResult.LR_SUCCESS) return false;
+      this._isGood = this._DoPrepare();
+      this._isPrepared = true;
+      return this._isGood;
     }
     catch (error)
     {
-      this.SetError(error);
+      if (blueService.resMan._IsResourceLoadCurrent(this, attempt))
+        blueService.resMan._RecordResourceFailure(this, error);
       return false;
     }
-
-    this.MarkPrepared();
-
-    return true;
+    finally
+    {
+      if (blueService.resMan._IsResourceLoadCurrent(this, attempt))
+      {
+        this._isLoading = false;
+        this._isPrepared = true;
+        this._CleanupLoadData();
+        this._CloseStream();
+        blueService.resMan._FinishResourceLoad(this);
+      }
+    }
   }
 
   /**
@@ -245,17 +227,13 @@ export class TriGrannyRes extends CjsResource
   }
 
   /**
-   * The Granny file.
-   *
-   * Carbon: TriGrannyRes::GetGrannyFile (trinity/trinity/Resources/TriGrannyRes.h:50-53), `m_grannyFile`.
-   * Not supported: it is a pointer into the native Granny library's memory, which does not exist here;
-   * the payload is the projection `CjsGr2Format` emits.
-   *
-   * @throws {Error} Always.
+   * Carbon GetGrannyFile (TriGrannyRes.h:50-53). Adapted: the decoded JS graph
+   * represents the native Granny file; no pointer escapes into JavaScript.
+   * @returns {object|null} Retained Granny graph.
    */
   GetGrannyFile()
   {
-    throw new Error("TriGrannyRes.GetGrannyFile: a native granny_file pointer does not exist; read GetPayload().");
+    return this._grannyFile;
   }
 
   /**
@@ -286,7 +264,7 @@ export class TriGrannyRes extends CjsResource
    */
   GetGrannyMesh(meshIx)
   {
-    const payload = this.GetPayload();
+    const payload = this.GetGrannyFile();
 
     if (!payload)
     {
@@ -358,7 +336,7 @@ export class TriGrannyRes extends CjsResource
    */
   ValidateFileInfo()
   {
-    const payload = this.GetPayload();
+    const payload = this.GetGrannyFile();
 
     if (!payload)
     {
@@ -877,7 +855,7 @@ export class TriGrannyRes extends CjsResource
   {
     if (this.IsUsingCMF()) return null;
 
-    const fi = this.GetPayload();
+    const fi = this.GetGrannyFile();
 
     if (!fi) return null;
 
@@ -1009,18 +987,11 @@ export class TriGrannyRes extends CjsResource
     return -1;
   }
 
-  /**
-   * Creates independent geometry for script-owned blendshape baking.
-   * Carbon: TriGrannyRes.cpp:1737-1752. Adapted: the projected Granny graph
-   * passes through the canonical CMF converter; device allocation remains lazy.
-   * Cached source geometry is never modified or shared with this destination.
-   * @returns {TriGeometryRes} An independently owned prepared resource.
-   */
+  /** Carbon CreateGeometryRes (TriGrannyRes.cpp:1737-1752), with lazy JS device allocation. */
   CreateGeometryRes()
   {
     const geometry = new TriGeometryRes();
-    geometry.SetPayload(structuredClone(CanonicalMorphSource(this.GetPayload())));
-    geometry.MarkPrepared();
+    geometry.PrepareFromGrannyRes(this);
     return geometry;
   }
 
@@ -1081,7 +1052,7 @@ export class TriGrannyRes extends CjsResource
    */
   BakeBlendshapeFromScript(meshIx, weights, geom)
   {
-    const source = CanonicalMorphSource(this.GetPayload()).meshes[meshIx];
+    const source = CanonicalMorphSource(this.GetGrannyFile()).meshes[meshIx];
     const destination = geom.GetMeshData(meshIx);
     const lod = geom.GetMeshLod__LodIndex(meshIx, 0);
     if (!source || !destination || !lod?.allocationsValid) throw new Error("Blendshape requires a valid allocated destination LOD");
@@ -1164,7 +1135,25 @@ export class TriGrannyRes extends CjsResource
     return true;
   }
 
-  static payload = ResourceRequirement.GEOMETRY;
+
+  /** m_grannyFile, represented by the decoded Granny graph in JS. */
+  _grannyFile = null;
+
+  /**
+   * Drop the graph owned by Carbon's resource destructor.
+   * Adapted: explicit JS teardown replaces native destruction; the existing
+   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   * @param {object} [options={}] Existing MotherLode cleanup policy.
+   * @param {boolean} [options.releasePayload=true] Release owned family data.
+   * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
+   * @returns {void}
+   */
+  _OnShutdown(options = {})
+  {
+    if (options.releasePayload === false) return;
+    this._grannyFile = null;
+    this._memoryUsage = 0;
+  }
 }
 
 
@@ -1174,7 +1163,7 @@ CjsSchema.decorateMethod(TriGrannyRes, "GetMemoryUsage", meta.implemented);
 CjsSchema.exposure.mapICacheableMethods()(TriGrannyRes);
 CjsSchema.decorateMethod(TriGrannyRes, "Load", be.mapMethodAndWrap("LoadForTools"), meta.adapted);
 CjsSchema.decorateMethod(TriGrannyRes, "IsUsingCMF", meta.implemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetGrannyFile", meta.notSupported);
+CjsSchema.decorateMethod(TriGrannyRes, "GetGrannyFile", meta.adapted);
 CjsSchema.decorateMethod(TriGrannyRes, "GetGrannySkeleton", meta.notImplemented);
 CjsSchema.decorateMethod(TriGrannyRes, "GetGrannyMesh", meta.adapted);
 CjsSchema.decorateMethod(TriGrannyRes, "GetGrannyVertexType", meta.notImplemented);
@@ -1222,4 +1211,8 @@ CjsSchema.exposure.define("TriGrannyRes")(TriGrannyRes);
 be.inherit(ICacheable)(TriGrannyRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriGrannyRes);
 // Carbon: TriGrannyRes::ExposeToBlue (trinity/trinity/Resources/TriGrannyRes_Blue.cpp:173).
-CjsSchema.blue.chainTo(CjsResource)(TriGrannyRes);
+CjsSchema.blue.chainTo(BlueAsyncRes)(TriGrannyRes);
+
+CjsSchema.decorateMethod(TriGrannyRes, "_DoLoad", meta.adapted);
+
+CjsSchema.decorateMethod(TriGrannyRes, "_OnShutdown", meta.adapted);

@@ -1,11 +1,12 @@
+import { blue as blueService } from "#blue/blue";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 import { CjsSchema, meta, type, blue } from "#schema";
-import { CjsResource } from "#blue";
+import { BlueAsyncRes } from "#blue";
 
 
 /** CPU raycast session resource borrowed from a resident TriGeometryRes. */
-export class Tr2RaycastGeometryRes extends CjsResource
+export class Tr2RaycastGeometryRes extends BlueAsyncRes
 {
   lodIndices = [];
 
@@ -45,11 +46,14 @@ export class Tr2RaycastGeometryRes extends CjsResource
     return true;
   }
 
-  /** Attaches the resident geometry that answers this raycast session. */
+  /**
+   * Attaches the resident geometry that answers this raycast session.
+   * @param {object} source Canonical geometry projection retained for CPU ray tests.
+   */
   SetSource(source)
   {
     this._source = source;
-    this.state = CjsResource.State.PREPARED;
+    this._isPrepared = this._isGood = true;
     return this;
   }
 
@@ -74,4 +78,6 @@ CjsSchema.decorateField(Tr2RaycastGeometryRes, "lodIndices", type.list("int32_t"
 CjsSchema.decorateField(Tr2RaycastGeometryRes, "bvh", type.rawStruct("BVH::BoundingVolumeHierarchy"));
 CjsSchema.exposure.define("Tr2RaycastGeometryRes")(Tr2RaycastGeometryRes);
 // Carbon: Tr2RaycastGeometryRes::ExposeToBlue (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:33).
-CjsSchema.blue.chainTo(CjsResource)(Tr2RaycastGeometryRes);
+CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2RaycastGeometryRes);
+
+CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "SetSource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

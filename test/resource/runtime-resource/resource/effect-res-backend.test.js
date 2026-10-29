@@ -1,3 +1,4 @@
+import { readEffectFixture, resourceIdentityFixture } from "../../../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -39,8 +40,8 @@ const translator = {
 function Load(path)
 {
   calls.length = 0;
-  const res = path === null ? new Tr2EffectRes() : new Tr2EffectRes().Initialize(path);
-  res.DoLoad(SHIPPED);
+  const res = path === null ? new Tr2EffectRes() : resourceIdentityFixture(new Tr2EffectRes(), path);
+  readEffectFixture(res, SHIPPED);
   return { res, calls: [ ...calls ] };
 }
 
@@ -114,7 +115,7 @@ test("a reload as stored drops the previous translator and block answer", () =>
 {
   const res = new Tr2EffectRes();
   res.SetPermutationTranslator(() => { throw new Error("stale translator ran"); }, [ 2 ]);
-  res.DoLoad(SHIPPED);
+  readEffectFixture(res, SHIPPED);
 
   assert.equal(res._translatePermutation, null);
   assert.equal(res.CarriesBackendBlock(), null);

@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriVariable.h
 // Source: trinity/trinity/TriVariable.cpp
 import { CjsSchema, meta, type, blue } from "#schema";
-import { CjsResource } from "#blue";
+import { IBlueResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { ITr2EffectValue, ResourceFlags } from "../../shader/parameter/ITr2EffectValue.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
@@ -251,7 +251,7 @@ export class TriVariable extends ITr2EffectValue
 
     const texture = provider.GetTexture();
 
-    if (texture || !renderContext || !CjsSchema.cast(provider, CjsResource)) return texture;
+    if (texture || !renderContext || !CjsSchema.cast(provider, IBlueResource)) return texture;
 
     return RealizeTexture(provider, renderContext);
   }
@@ -495,3 +495,5 @@ export class TriVariable extends ITr2EffectValue
 }
 
 // Native nonexposed table has only concrete/IRoot identity; ITr2EffectValue is nominal only.
+
+CjsSchema.decorateMethod(TriVariable, "_Texture", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

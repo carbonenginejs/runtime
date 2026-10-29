@@ -1,14 +1,14 @@
+import { blue as blueService } from "#blue/blue";
 // Source: trinity/trinity/Resources/Tr2ImageRes.h
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
 import { exposure as be } from "#be";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsSchema, meta, type, blue } from "#schema";
-import { CjsResource, ICacheable } from "#blue";
+import { BlueAsyncRes, ICacheable } from "#blue";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
 import { resourcePayloadError, validateResourcePayload } from "../../../resource/resourceBoundary.js";
-import { ResourceRequirement } from "#blue";
 
 /**
  * Tr2ImageRes resource record.
@@ -16,7 +16,7 @@ import { ResourceRequirement } from "#blue";
  * Carbon treats this as image payload data. Engine-gpu decides whether it ever
  * becomes device texture state.
  */
-export class Tr2ImageRes extends CjsResource
+export class Tr2ImageRes extends BlueAsyncRes
 {
   /** Carbon: BLUE_REGISTER_RESOURCE_EXTENSION (trinity/trinity/Resources/Tr2ImageRes_Blue.cpp:15-18). */
   static extensions = ["pngraw", "ddsraw", "sddraw", "tgaraw"];
@@ -40,36 +40,20 @@ export class Tr2ImageRes extends CjsResource
 
 
   /**
-   * Attach a native bitmap and mirror Carbon-exposed metadata.
-   *
-   * The registered loader materializes worker results before publication.
-   *
-   * @param {object|null} payload
-   * @param {object|null} options
-   * @returns {Tr2ImageRes}
+   * Carbon DoLoad (Tr2ImageRes.cpp:39-52). Browser decoding may run in a worker;
+   * the manager checks cancellation before the decoded bitmap is adopted.
+   * @returns {Promise<number>} Native LoadingResult.
    */
-  SetPayload(payload = null, options = null)
+  async _DoLoad()
   {
-    if (payload === null)
-    {
-      this.bitmap.Destroy();
-      super.SetPayload(null);
-      return this;
-    }
-
-    // Carbon's DoLoad reads straight into m_bitmap (Tr2ImageRes.cpp:39-52),
-    // so a HostBitmap is what this resource is made of.
-    const bitmap = CjsSchema.cast(payload, HostBitmap);
-
-    if (!bitmap)
-    {
-      throw resourcePayloadError("Tr2ImageRes", "Expected an ImageIO::HostBitmap.", "payload");
-    }
-
+    const value = await blueService.resMan.ReadResourceObjectPayload(this, this._dataStream.data);
+    const bitmap = CjsSchema.cast(value, HostBitmap);
+    if (!bitmap) throw resourcePayloadError("Tr2ImageRes", "Expected an ImageIO::HostBitmap.", "bitmap");
+    this.bitmap.Destroy();
     this.bitmap = bitmap;
-    super.SetPayload(bitmap);
-    this.SetValues({ ...(options || {}), width: bitmap.GetWidth(), height: bitmap.GetHeight() });
-    return this;
+    this.width = bitmap.GetWidth();
+    this.height = bitmap.GetHeight();
+    return BlueAsyncRes.LoadingResult.LR_SUCCESS;
   }
 
   /**
@@ -179,23 +163,28 @@ export class Tr2ImageRes extends CjsResource
     return !this.IsLoading();
   }
 
-  /**
-   * Carbon GetMemoryUsage (cpp:19): the bitmap's raw byte size, or a
-   * 1024-byte placeholder so an unloaded resource still has nonzero
-   * accounted cost.
-   *
-   * @returns {number}
-   */
+  /** Carbon GetMemoryUsage (Tr2ImageRes.cpp:19): bitmap size or unloaded placeholder. */
   GetMemoryUsage()
   {
-    if (this.bitmap.IsValid()) return this.bitmap.GetRawDataSize();
-
-    const payload = this.GetPayload();
-
-    return payload?.data?.byteLength ? payload.data.byteLength : 1024;
+    return this.bitmap.IsValid() ? this.bitmap.GetRawDataSize() : 1024;
   }
 
-  static payload = ResourceRequirement.IMAGE;
+
+  /**
+   * Explicit JS cleanup of the bitmap owned by Carbon's resource destructor.
+   * Adapted: explicit JS teardown replaces native destruction; the existing
+   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   * @param {object} [options={}] Existing MotherLode cleanup policy.
+   * @param {boolean} [options.releasePayload=true] Release owned family data.
+   * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
+   * @returns {void}
+   */
+  _OnShutdown(options = {})
+  {
+    if (options.releasePayload === false) return;
+    this.bitmap.Destroy();
+    this.width = this.height = 0;
+  }
 }
 
 // Declared as data rather than with decorators, so the resource tree loads from
@@ -217,4 +206,8 @@ be.define("Tr2ImageRes")(Tr2ImageRes);
 be.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2ImageRes);
 // Carbon: Tr2ImageRes::ExposeToBlue (trinity/trinity/Resources/Tr2ImageRes_Blue.cpp:52).
-CjsSchema.blue.chainTo(CjsResource)(Tr2ImageRes);
+CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2ImageRes);
+
+CjsSchema.decorateMethod(Tr2ImageRes, "_DoLoad", meta.adapted);
+
+CjsSchema.decorateMethod(Tr2ImageRes, "_OnShutdown", meta.adapted);

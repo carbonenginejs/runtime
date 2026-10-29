@@ -16,7 +16,7 @@ test("FileExistsLocally is stored bytes, not what the resource manager holds", a
 
   const path = "res:/paths/fetched.json";
   const resource = blue.resMan.GetResource(path);
-  await resource.Ready();
+  await blue.resMan.Ready(resource);
 
   assert.equal(blue.paths.FileExistsLocally(path), false, "loaded is not local");
 

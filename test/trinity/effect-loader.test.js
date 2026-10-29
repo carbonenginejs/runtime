@@ -268,15 +268,16 @@ test("the slot names the contract, not the implementation", async () =>
   finally { blue.resMan = previous; }
 });
 
-test("container bytes handed to SetPayload load through DoLoad", async () =>
+test("the native effect hook rejects malformed container bytes", async () =>
 {
-  // The publish path calls SetPayload. Tr2EffectRes derives its payload from
+  // The native load hook adopts the decoded reader. Tr2EffectRes derives its data from
   // bytes it must go on holding, so bytes route to DoLoad instead of being
   // rejected as a malformed payload; otherwise publication would clear the
   // retained reader and GetShaderByIndex would return null on a good resource.
   const resource = new Tr2EffectRes();
 
-  assert.throws(() => resource.SetPayload(new Uint8Array([ 1, 2, 3 ])));
+  resource._dataStream = { form: "bytes", data: new Uint8Array([ 1, 2, 3 ]) };
+  assert.throws(() => resource._DoLoad());
   // Reaching DoLoad is what the throw proves: the reader rejects the bytes as
   // a container, rather than the payload validator rejecting them as an object.
 });

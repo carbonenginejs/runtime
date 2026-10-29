@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -23,8 +24,8 @@ test("real angbc2 crisis decals follow flat mesh binding 8 through the hull visi
     item.name === "Crisis_Blackbody_Rear_Right" || item.name === "Crisis_Blackbody_Meter_Front_Right");
   assert.equal(items.length, 2);
   const geometry = new TriGeometryRes();
-  geometry.SetPayload(geometry.ReadGrannyFile(geometryBytes));
-  geometry.MarkPrepared();
+  geometry.ReadGrannyFile(geometryBytes);
+  prepareResourceFixture(geometry);
   const ship = new EveShip2();
   const mesh = new Tr2Mesh();
   mesh.SetGeometryRes(geometry);

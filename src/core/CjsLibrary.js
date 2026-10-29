@@ -1,4 +1,5 @@
-import { blue, installBlueServices } from "../global/blue/blue.js";
+import { blue } from "../global/blue/index.js";
+import { installBlueServices } from "../global/blue/blue.js";
 import { BeCallbackMan } from "../global/blue/BlueCallbackMan.js";
 import { BlueCallbackManTicker } from "../global/blue/BlueCallbackManTicker.js";
 import { CjsSchema, meta } from "#schema";
@@ -16,7 +17,7 @@ let activeLibrary = null;
 
 /** Reader/factory policy is installed at startup; changing it requires reboot. */
 const REBOOT_CONFIGURATION_SECTIONS = new Set([
-  "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes",
+  "formats", "objectLoaders", "objectBuilders", "extensions",
   "resourceConstructors", "imageHandlers", "callbackMan", "effects"
 ]);
 
@@ -121,13 +122,17 @@ export class CjsLibrary
     }
   }
 
-  /** Applies entries through fixed existing owners; records each successful call. */
+  /**
+   * Applies entries through fixed existing owners; records each successful call.
+   * @param {object} configuration Normalized application registration configuration.
+   * @returns {void}
+   */
   _ApplyConfiguration(configuration)
   {
     const { resMan, paths, settings } = this._configurationOwners;
     this._ValidateConfigurationOwners(configuration);
     this._configurationFailure = null;
-    for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes",
+    for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions",
       "resourceConstructors", "imageHandlers", "paths", "settings", "callbackModules", "effects"])
     {
       const entries = configuration[section] || {};
@@ -173,7 +178,7 @@ export class CjsLibrary
       {
         try
         {
-          if (["formats", "resourceTypes", "objectLoaders", "extensions"].includes(section))
+          if (["formats", "objectLoaders", "extensions"].includes(section))
             resMan.Register({ [section]: { [key]: value } });
           else if (section === "objectBuilders") resMan.RegisterObjectBuilder(key, value);
           else if (section === "resourceConstructors")
@@ -241,7 +246,7 @@ export class CjsLibrary
         const installedPolicy = installedResourcePolicies.get(blue.resMan) || null;
         if (this._configurationOwners?.resMan !== blue.resMan)
         {
-          for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes", "resourceConstructors"])
+          for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions", "resourceConstructors"])
             delete this._configured[section];
         }
         if (installedPolicy) Object.assign(this._configured, CopyConfiguration(installedPolicy));
@@ -397,15 +402,11 @@ function ValidateConfiguration(configuration)
         const Format = typeof value === "function" ? value : value?.Format;
         valid = typeof Format === "function" && Array.isArray(Format.extensions) && Format.extensions.length > 0;
       }
-      else if (section === "resourceTypes")
-      {
-        const Constructor = typeof value === "function" ? value : value?.Constructor;
-        valid = typeof Constructor === "function";
-      }
+
       else if (section === "extensions")
       {
         const Handler = typeof value === "function" ? value : value?.Handler;
-        valid = typeof Handler === "function" && !!Handler.handlerMode;
+        valid = typeof Handler === "function" && (!!Handler.handlerMode || Handler.isResource === true);
       }
       else if (section === "imageHandlers") valid = typeof value === "function";
       else if (section === "resourceConstructors") valid = typeof value === "function" || !!CjsSchema.cast(value, IBlueDynamicResourceConstructor);
@@ -442,3 +443,7 @@ function ValidateConfiguration(configuration)
     }
   }
 }
+
+CjsSchema.decorateMethod(CjsLibrary, "_ApplyConfiguration", CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsLibrary, "Initialize", CjsSchema.meta.implemented);

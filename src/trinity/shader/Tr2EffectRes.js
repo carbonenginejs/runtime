@@ -1,14 +1,16 @@
+import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
+import { TriStorageFlags } from "#consts/graphics";
+import { blue as blueService } from "#blue/blue";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
 import { CjsSchema, meta } from "#schema";
-import { CjsResource } from "#blue/CjsResource";
+import { BlueAsyncRes } from "#blue/BlueAsyncRes";
 import { ICacheable } from "#blue/ICacheable";
 import { validateResourcePayload } from "../../resource/resourceBoundary.js";
 import { CjsCarbonEffectFormat } from "../../resource/formats/carbonEffect/index.js";
 import { Tr2Shader } from "./Tr2Shader.js";
-import { ResourceRequirement } from "#consts/resourceRequirement";
 import { EffectCarriesBackendBlock, EffectPlatformFromPath } from "#utils/effectPath";
 
 const globalEffectOptions = [];
@@ -27,7 +29,7 @@ let effectBackend = null;
  * This stores effect/shader payload facts. Engine-gpu decides shader module,
  * pipeline, bind group, and sampler realization.
  */
-export class Tr2EffectRes extends CjsResource
+export class Tr2EffectRes extends BlueAsyncRes
 {
   /** Carbon: BLUE_REGISTER_RESOURCE_EXTENSION (trinity/trinity/Resources/Tr2EffectRes.cpp:25-34). */
   static extensions = ["SM_1_1", "SM_2_0_LO", "SM_2_0_HI", "SM_3_0_LO", "SM_3_0_HI", "SM_3_0_DEPTH", "SM_LO", "SM_HI", "SM_DEPTH"];
@@ -71,34 +73,11 @@ export class Tr2EffectRes extends CjsResource
   _permutationReaders = new Map();
 
   /**
-   * Read a Carbon effect container and take ownership of its reader.
-   *
-   * Carbon's `DoLoad` (`Tr2EffectRes.cpp:137`) does exactly this work: it clears
-   * the previous state, then fills `m_version`, the string table, the permutation
-   * axes and the offset table from the file, and stops there. Bodies are read
-   * later, one at a time, by `GetShader`. The bytes arrive as an argument, where
-   * Carbon locks its own data stream.
-   *
-   * Adapted: a container whose path is in the committed source tree
-   * (`CommitBackend`) is translated into the committed target first, and that
-   * translation is what is read. Carbon loads containers compiled offline for
-   * its one platform; a browser has none for its backend, so the shipped ones
-   * are translated here, keeping their source path as their identity.
-   *
-   * The container is parsed once, here: version, arena, permutation axes and
-   * offset table. Bodies are not. Each one is decoded on first request and
-   * memoised, by seeking the retained reader rather than re-reading the header —
-   * a container with 512 permutations that renders two of them parses two bodies.
-   *
-   * The reader is retained rather than discarded because a body cannot be read
-   * without it: strings are offsets into the container's arena, which lives in
-   * the header this method consumed.
-   *
-   * @param {ArrayBuffer|ArrayBufferView|Uint8Array} data Container bytes.
-   * @param {object|null} options Model values applied after the read.
-   * @returns {Tr2EffectRes}
+   * Carbon DoLoad (Tr2EffectRes.cpp:137-243). Keep the container reader for lazy
+   * permutations; browser backend translation occurs before adopting the reader.
+   * @returns {number} Native LoadingResult.
    */
-  DoLoad(data, options = null)
+  _DoLoad()
   {
     // WHAT KIND OF SHADER WAS THIS. The path names the tree the bytes came
     // from. A container in the committed source tree is translated here into
@@ -108,6 +87,7 @@ export class Tr2EffectRes extends CjsResource
     // detects for itself, which is what its parse-twice fallback is for.
     const path = this.GetPath();
     const backend = effectBackend;
+    const data = this._dataStream.data;
     let bytes = data;
 
     this._ClearPermutationTranslator();
@@ -125,7 +105,7 @@ export class Tr2EffectRes extends CjsResource
     this._shaders.clear();
     this._permutationReaders.clear();
     this._reader = reader;
-    super.SetPayload({
+    this._effectInfo = {
       permutations: reader.permutations.map(axis => ({
         name: axis.name.value,
         options: axis.options.map(option => option.value),
@@ -133,54 +113,12 @@ export class Tr2EffectRes extends CjsResource
         description: axis.description.value,
         type: axis.type
       }))
-    });
-    this.SetValues(options || {});
-    return this;
+    };
+    return BlueAsyncRes.LoadingResult.LR_SUCCESS;
   }
 
 
-  /**
-   * Attach a plain shader/effect payload.
-   *
-   * @param {object|null} payload
-   * @param {object|null} options
-   * @returns {Tr2EffectRes}
-   */
-  SetPayload(payload = null, options = null)
-  {
-    // Container bytes route to DoLoad rather than being rejected as a malformed
-    // payload. The resource manager publishes by calling SetPayload, and this
-    // class is the one resource whose payload is DERIVED from bytes it must go
-    // on holding: DoLoad retains the reader so bodies decode one at a time, as
-    // Carbon's Tr2EffectRes.cpp:137 does. Without this the manager would load
-    // the bytes and the publish step would immediately clear the reader below,
-    // leaving GetShaderByIndex returning null for a resource that reported
-    // good. That is the whole reason this class had bypassed the manager.
-    if (payload instanceof ArrayBuffer || ArrayBuffer.isView(payload))
-    {
-      return this.DoLoad(payload, options);
-    }
 
-    if (payload === null)
-    {
-      this._shaders.clear();
-      this._reader = null;
-      this._ClearPermutationTranslator();
-      this._carriesBackendBlock = null;
-      super.SetPayload(null);
-      return this;
-    }
-    validateResourcePayload(
-      "Tr2EffectRes",
-      payload,
-      validateEffectPayload
-    );
-    this._shaders.clear();
-    this._reader = null;
-    super.SetPayload(payload);
-    this.SetValues(options || {});
-    return this;
-  }
 
   /**
    * Select and hydrate one canonical shader from the complete permutation
@@ -205,7 +143,7 @@ export class Tr2EffectRes extends CjsResource
    */
   GetShader(options = [], count = null)
   {
-    const axes = getPermutationAxes(this.GetPayload());
+    const axes = getPermutationAxes(this._effectInfo);
     const localOptions = normalizeShaderOptions(options);
     const localCount = Number.isSafeInteger(count)
       ? Math.max(0, Math.min(count, localOptions.length))
@@ -302,7 +240,7 @@ export class Tr2EffectRes extends CjsResource
       return this._shaders.get(index);
     }
 
-    const payload = this.GetPayload();
+    const payload = this._effectInfo;
     const variantCount = getPermutationVariantCount(payload);
     if (variantCount !== null && index >= variantCount)
     {
@@ -480,7 +418,7 @@ export class Tr2EffectRes extends CjsResource
     const permutation = [];
     let remainder = index;
 
-    for (const axis of getPermutationAxes(this.GetPayload()))
+    for (const axis of getPermutationAxes(this._effectInfo))
     {
       permutation.push({ name: axis.name, value: axis.options[remainder % axis.options.length] });
       remainder = Math.floor(remainder / axis.options.length);
@@ -498,7 +436,7 @@ export class Tr2EffectRes extends CjsResource
    */
   GetPermutationDescription()
   {
-    const payload = this.GetPayload();
+    const payload = this._effectInfo;
     const axes = getPermutationAxes(payload);
     if (!axes.length && Array.isArray(payload?.permutations))
     {
@@ -514,24 +452,38 @@ export class Tr2EffectRes extends CjsResource
   }
 
   /**
-   * Drop hydrated shader graphs while retaining the validated CPU payload.
-   *
-   * Adapted: Clears the hydrated shader graphs only. Carbon also does SetGood(false),
-   * SetPrepared(false), CancelPendingLoad() and NotifyReleaseCachedData(), and takes a
-   * TriStorage mask; not ported yet, Tr2EffectRes.cpp:328-341.
+   * Carbon ReleaseResources (Tr2EffectRes.cpp:328-341): full storage release
+   * clears flags, cancels loading and releases targets' derived shader state.
+   * @param {number} [storage] Native storage mask.
    */
-  ReleaseResources()
+  ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
+    if ((storage & TriStorageFlags.TRISTORAGE_ALL) !== TriStorageFlags.TRISTORAGE_ALL) return;
+    this._isGood = this._isPrepared = false;
+    this.CancelPendingLoad();
     this._shaders.clear();
+    this._NotifyReleaseCachedData();
   }
 
-  /** Release the payload and every shader graph hydrated from it. */
-  ReleasePayload()
+  /**
+   * Explicit JS teardown of retained container and translated permutation readers.
+   * Adapted: explicit JS teardown replaces native destruction; the existing
+   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   * @param {object} [options={}] Existing MotherLode cleanup policy.
+   * @param {boolean} [options.releasePayload=true] Release owned family data.
+   * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
+   * @returns {void}
+   */
+  _OnShutdown(options = {})
   {
+    if (options.destroyAdapters !== false) this.DestroyAdapterResources();
+    if (options.releasePayload === false) return;
     this._shaders.clear();
     this._reader = null;
+    this._permutationReaders.clear();
     this._ClearPermutationTranslator();
-    return super.ReleasePayload();
+    this._carriesBackendBlock = null;
+    this._effectInfo = null;
   }
 
   /**
@@ -610,24 +562,18 @@ export class Tr2EffectRes extends CjsResource
    */
   GetDescription()
   {
-    return `Tr2EffectRes: '${this.path}'`;
+    return `Tr2EffectRes: '${this.GetPath()}'`;
   }
 
-  static payload = ResourceRequirement.SHADER;
 
+
+  /** Native permutation-axis facts derived from the retained container reader. */
+  _effectInfo = null;
+
+  /** Opaque browser device allocations, supplied by Tr2DeviceResource. */
+  __adapterResources = null;
 }
 
-/**
- * Validate an attached permutation payload.
- *
- * Carbon has no equivalent: it fills `m_permutations` from the file and never
- * accepts one from a caller. This exists only so an attached payload cannot
- * silently produce a wrong permutation index, and it checks the one thing the
- * index arithmetic depends on - that every axis has options and a default that
- * addresses one of them.
- *
- * @param {object} payload Attached payload.
- */
 /**
  * A selected-mode build's container and every permutation index it carries a
  * body for - all the indices that share the translated body.
@@ -644,17 +590,6 @@ function BuiltPermutation(built)
     bytes: built.bytes,
     indices: variants.filter(variant => variant.bodyKey === bodyKey).map(variant => variant.permutationIndex)
   };
-}
-
-function validateEffectPayload(payload)
-{
-  if (!Array.isArray(payload.permutations))
-  {
-    throw new TypeError(
-      "Tr2EffectRes payload requires a permutations array"
-    );
-  }
-  payload.permutations.forEach(normalizePermutationAxis);
 }
 
 /**
@@ -787,7 +722,7 @@ function normalizeShaderOptions(options)
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
 
-CjsSchema.decorateMethod(Tr2EffectRes, "DoLoad", meta.adapted);
+CjsSchema.decorateMethod(Tr2EffectRes, "_DoLoad", meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "GetShader", meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", meta.adapted);
@@ -801,6 +736,14 @@ be.define("Tr2EffectRes")(Tr2EffectRes);
 be.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2EffectRes);
 // Carbon: Tr2EffectRes::ExposeToBlue (trinity/trinity/Resources/Tr2EffectRes_Blue.cpp:87).
-CjsSchema.blue.chainTo(CjsResource)(Tr2EffectRes);
+CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2EffectRes);
 
 CjsSchema.decorateMethod(Tr2EffectRes, "readShaderResource", meta.cjs, meta.adapted);
+
+CjsSchema.decorateMethod(Tr2EffectRes, "_OnShutdown", meta.adapted);
+
+be.inherit(Tr2DeviceResource)(Tr2EffectRes, { kind: "class" });
+
+CjsSchema.decorateMethod(Tr2EffectRes, "GetShaderByIndex", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(Tr2EffectRes, "_PermutationOf", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

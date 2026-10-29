@@ -1,3 +1,4 @@
+import { blue, CjsBlueResMan } from "../../../npm/dist/global/blue/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -26,18 +27,16 @@ function gsfRaw()
 }
 
 
-test("what readGsf produces is what the GState resource accepts", () =>
+test("what readGsf produces is what the native GState load accepts", async t =>
 {
-  // The join nobody checked. The previous guard rejected 100% of this.
   const projected = CjsGr2Format.readGsf(gsfRaw());
-  const resource = new Tr2GrannyStateRes();
-
-  resource.SetPayload(projected);
-
-  assert.equal(resource.GetPayload(), projected);
-  assert.equal(projected.format, "gsf");
-  assert.ok(projected.stateMachine, "the state machine is what makes it a GState");
-  assert.ok(Array.isArray(projected.animationSets));
+  const manager = managerFor(t, projected);
+  manager.RegisterObjectLoader("gsf", data => data);
+  manager.RegisterExtension("gsf", Tr2GrannyStateRes);
+  const resource = await manager.FetchResource("res:/state.gsf");
+  assert.equal(resource.GetStateMachine(), projected.stateMachine);
+  assert.equal(resource.GetAnimationSets(), projected.animationSets);
+  assert.equal(manager.GetResourcePayload(resource), null);
 });
 
 
@@ -59,17 +58,12 @@ test("a GSF carries animation references, not geometry or a skeleton", () =>
 });
 
 
-test("geometry is not mistaken for a GState", () =>
+test("geometry is not mistaken for a GState during native loading", async t =>
 {
-  // Tr2GrannyStateRes and TriGrannyRes read the same container family, so the
-  // guard is the only thing keeping a .gr2 model payload out.
-  const resource = new Tr2GrannyStateRes();
-
-  assert.throws(
-    () => resource.SetPayload({ models: [], meshes: [] }),
-    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID",
-    "a model-bearing payload is a TriGrannyRes payload, not a GState one"
-  );
+  const manager = managerFor(t, {models: [], meshes: []});
+  manager.RegisterObjectLoader("gsf", data => data);
+  manager.RegisterExtension("gsf", Tr2GrannyStateRes);
+  await assert.rejects(manager.FetchResource("res:/wrong.gsf"), {code: "CJS_RESOURCE_PAYLOAD_INVALID"});
 });
 
 
@@ -100,109 +94,55 @@ test("authored references resolve against the GSF's own directory", () =>
 
 test("a GState is fully loaded only once every referenced animation has arrived", () =>
 {
-  const resource = new Tr2GrannyStateRes().Initialize("res:/char/gstate/loco.gsf");
-
-  assert.equal(resource.IsFullyLoaded(), false, "no document yet");
-
-  resource.SetPayload({
-    stateMachine: { states: [] },
-    animationSets: [
-      { index: 0, sourceFileReferences: [ "../anim/idle.gr2", "../anim/walk.gr2" ] },
-      { index: 1, sourceFileReferences: [ "../anim/idle.gr2" ] }
-    ]
-  });
-
-  const paths = resource.GetGStateAnimFileRefPaths();
-  assert.deepEqual(paths, [ "res:/char/anim/idle.gr2", "res:/char/anim/walk.gr2" ],
-    "references are resolved and deduplicated across sets, in first-seen order");
+  const resource = new Tr2GrannyStateRes();
+  resource._path = "res:/char/gstate/loco.gsf";
   assert.equal(resource.IsFullyLoaded(), false);
-
-  resource.SetAnimationResource(paths[0], { name: "idle" });
-  assert.equal(resource.IsFullyLoaded(), false, "one clip short is not loaded");
-
-  resource.SetAnimationResource(paths[1], { name: "walk" });
+  // Query fixture: the native load owns this decoded state file.
+  resource._gStateFile = {stateMachine: {states: []}, animationSets: [
+    {index: 0, sourceFileReferences: ["../anim/idle.gr2", "../anim/walk.gr2"]},
+    {index: 1, sourceFileReferences: ["../anim/idle.gr2"]}
+  ]};
+  const paths = resource.GetGStateAnimFileRefPaths();
+  assert.deepEqual(paths, ["res:/char/anim/idle.gr2", "res:/char/anim/walk.gr2"]);
+  assert.equal(resource.IsFullyLoaded(), false);
+  resource.SetAnimationResource(paths[0], {name: "idle"});
+  assert.equal(resource.IsFullyLoaded(), false);
+  resource.SetAnimationResource(paths[1], {name: "walk"});
   assert.equal(resource.IsFullyLoaded(), true);
-  assert.deepEqual(resource.GetAnimationResource(paths[0]), { name: "idle" });
+  assert.deepEqual(resource.GetAnimationResource(paths[0]), {name: "idle"});
   assert.equal(resource.GetAnimationResource("res:/nope.gr2"), null);
 });
 
 
-test("DoLoad takes a projection, and refuses bytes without an injected reader", () =>
+test("the configured reader supplies GState data through the native load hook", async t =>
 {
-  const projected = CjsGr2Format.readGsf(gsfRaw());
-
-  const fromDocument = new Tr2GrannyStateRes().DoLoad(projected);
-  assert.equal(fromDocument.GetStateMachine(), projected.stateMachine);
-
-  const fromBytes = new Tr2GrannyStateRes().DoLoad(gsfRaw(), { format: CjsGr2Format });
-  assert.deepEqual(fromBytes.GetAnimationSlots(), [ { Name: "base" } ]);
-  assert.ok(fromBytes.GetCharacterInfo());
-
-  // The resource must not import gr2 - that would drag the whole reader into
-  // every consumer of GState and destroy the tree-shakeable subpath.
-  assert.throws(
-    () => new Tr2GrannyStateRes().DoLoad(gsfRaw()),
-    error => error.code === "CJS_RESOURCE_FORMAT_REQUIRED",
-    "raw input needs a reader supplied, not imported"
-  );
+  const manager = managerFor(t, gsfRaw());
+  manager.RegisterObjectLoader("gsf", data => CjsGr2Format.readGsf(data));
+  manager.RegisterExtension("gsf", Tr2GrannyStateRes);
+  const resource = await manager.FetchResource("res:/read.gsf");
+  assert.deepEqual(resource.GetAnimationSlots(), [{Name: "base"}]);
+  assert.ok(resource.GetCharacterInfo());
 });
 
 
-test("a bound format store answers instead of the caller naming the reader", () =>
+test("format stores distinguish GState content from geometry in the same container", () =>
 {
-  // .gr2 and .gsf are the SAME format and the same container - both go through
-  // readRawInput, and the suffix only denotes what the Granny root holds. So
-  // the routes are registered under both suffixes and CONTENT decides, which is
-  // what isGsf is for. Registering readGsf against the .gsf suffix alone would
-  // have encoded a naming convention as if it were a format boundary.
-  const store = new CjsFormatStore()
-    .Register(CjsGr2Format, {
-      extensions: [ ".gr2", ".gsf" ],
-      read: "readGsf",
-      accepts: "isGsf"
-    })
-    // Geometry is the not-a-state-machine case, and saying so is better than
-    // leaving it to Format.is - that answers "is this a Granny file",
-    // which is true of both and so separates nothing.
-    .Register(CjsGr2Format, {
-      extensions: [ ".gr2", ".gsf" ],
-      accepts: data => !CjsGr2Format.isGsf(data)
-    });
-
-  const resource = new Tr2GrannyStateRes()
-    .Initialize("res:/char/gstate/loco.gsf")
-    .SetFormatStore(store);
-
-  assert.equal(resource.GetFormatStore(), store);
-
-  const route = resource.ResolveFormat(gsfRaw());
-  assert.equal(route.Format, CjsGr2Format);
-  assert.equal(route.read, "readGsf", "content selected the state-machine projection");
-
-  resource.DoLoad(gsfRaw());
-  assert.ok(resource.GetStateMachine(), "the store-resolved reader produced the document");
-
-  // The same suffix carrying geometry resolves to the ordinary reader, because
-  // isGsf says no. The extension never entered into it.
-  const geometry = { version: 6, secCount: 8, fileInfo: { Meshes: [], Models: [] } };
-  assert.equal(store.Resolve(".gsf", geometry).read, "read");
+  const store = new CjsFormatStore().Register(CjsGr2Format, {
+    extensions: [".gr2", ".gsf"], read: "readGsf", accepts: "isGsf"
+  }).Register(CjsGr2Format, {
+    extensions: [".gr2", ".gsf"], accepts: data => !CjsGr2Format.isGsf(data)
+  });
+  assert.equal(store.Resolve(".gsf", gsfRaw()).read, "readGsf");
   assert.equal(store.Resolve(".gr2", gsfRaw()).read, "readGsf");
-
-  // A store that routes nothing for this extension is not a reader.
-  const empty = new Tr2GrannyStateRes()
-    .Initialize("res:/char/gstate/loco.unknown")
-    .SetFormatStore(store);
-  assert.equal(empty.ResolveFormat(), null);
-  assert.throws(
-    () => empty.DoLoad(gsfRaw()),
-    error => error.code === "CJS_RESOURCE_FORMAT_REQUIRED"
-  );
+  assert.equal(store.Resolve(".gsf", {version: 6, secCount: 8, fileInfo: {Meshes: [], Models: []}}).read, "read");
+  assert.equal(store.Resolve(".unknown", gsfRaw()), null);
 });
 
 
-test("a format store binding can be cleared", () =>
+test("native resource families retain no per-resource format-store attachment", () =>
 {
-  assert.equal(new Tr2GrannyStateRes().SetFormatStore(null).GetFormatStore(), null);
+  const resource = new Tr2GrannyStateRes();
+  assert.equal("SetFormatStore" in resource, false);
 });
 
 
@@ -231,31 +171,27 @@ test("a GSF read as geometry succeeds and yields nothing, which is why content m
 });
 
 
-test("an empty Granny container is refused rather than published as a model", () =>
+test("an empty Granny container fails while animation-only and geometry files load", async t =>
 {
-  // The other half of the same problem. `CjsGr2Format.read` always builds
-  // `meshes`, `models` and `animations`, so a state machine read as geometry
-  // produced three empty arrays - and the old guard, which asked only whether
-  // the arrays EXISTED, passed it straight through.
-  const asGeometry = CjsGr2Format.read(gsfRaw());
-  assert.deepEqual(asGeometry.meshes, []);
-  assert.deepEqual(asGeometry.models, []);
-
-  assert.throws(
-    () => new TriGrannyRes().SetPayload(asGeometry),
-    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID",
-    "a container with nothing in it is not geometry"
-  );
-
-  // An animation-only .gr2 is a real file and must still load: a GSF's
-  // referenced clips are exactly that, and they carry no meshes by design.
-  const clip = new TriGrannyRes().SetPayload({
-    meshes: [],
-    models: [],
-    animations: [ { name: "idle" } ]
-  });
-  assert.equal(clip.GetPayload().animations.length, 1);
-
-  // And ordinary geometry is unaffected.
-  assert.ok(new TriGrannyRes().SetPayload({ meshes: [ { name: "hull" } ] }));
+  let data = CjsGr2Format.read(gsfRaw());
+  const manager = managerFor(t, null);
+  manager.SetSource({Read: () => data});
+  manager.RegisterObjectLoader("gr2raw", value => value);
+  manager.RegisterExtension("gr2raw", TriGrannyRes);
+  await assert.rejects(manager.FetchResource("res:/empty.gr2", {ex: "raw"}), {code: "CJS_RESOURCE_PAYLOAD_INVALID"});
+  data = {meshes: [], models: [], animations: [{name: "idle"}]};
+  const clip = await manager.FetchResource("res:/clip.gr2", {ex: "raw"});
+  assert.equal(clip.GetGrannyFile().animations.length, 1);
+  data = {meshes: [{name: "hull"}]};
+  assert.ok(await manager.FetchResource("res:/mesh.gr2", {ex: "raw"}));
 });
+
+/** Route fixture data through the real native load/prepare path. */
+function managerFor(t, data)
+{
+  const previous = blue.resMan;
+  const manager = new CjsBlueResMan({source: {Read: () => data}});
+  blue.resMan = manager;
+  t.after(() => { try { manager.Clear(); } finally { blue.resMan = previous; } });
+  return manager;
+}

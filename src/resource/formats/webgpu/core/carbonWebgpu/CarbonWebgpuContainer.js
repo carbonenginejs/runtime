@@ -257,7 +257,7 @@ export class CarbonWebgpuContainer
 
         return {
             // The envelope the chunk `PGRF` document carried. Not provenance:
-            // `Tr2EffectRes.SetPayload` validates it before accepting a payload
+            // `Tr2EffectRes._DoLoad` validates it before adopting the reader
             // at all, so a graph without it is refused outright.
             format: "CJS_EFFECT_PERMUTATION_GRAPH",
             formatVersion: 1,

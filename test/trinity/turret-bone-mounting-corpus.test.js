@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import { removeChild, addChild } from "../../npm/dist/global/blue/children.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
@@ -51,8 +52,8 @@ async function assets(t, slots = [1, 2, 8])
   const makeGeometry = bytes =>
   {
     const resource = new TriGeometryRes();
-    resource.SetPayload(resource.ReadGrannyFile(bytes));
-    resource.MarkPrepared();
+    resource.ReadGrannyFile(bytes);
+    prepareResourceFixture(resource);
     return resource;
   };
   const hullGeometry = makeGeometry(data.hullBytes);

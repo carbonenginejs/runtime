@@ -1,3 +1,4 @@
+import { prepareResourceFixture, resourceIdentityFixture } from "../support/resourceFixtures.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 // be.resMan throws until something composes a manager, so a test that
@@ -235,8 +236,8 @@ test("EveSpaceObject2 transparent areas are sorted back-to-front by world-space 
     }
   }
   const geometry = new SortedAreasGeometryRes();
-  geometry.Initialize("res:/geometry.gr2");
-  geometry.MarkPrepared();
+  resourceIdentityFixture(geometry, "res:/geometry.gr2");
+  prepareResourceFixture(geometry);
   object.mesh.SetGeometryRes(geometry);
 
   Tr2Renderer.SetViewTransform([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]);

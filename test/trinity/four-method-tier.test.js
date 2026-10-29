@@ -59,7 +59,9 @@ test("Tr2ImageRes memory accounting follows the load state (cpp:14-27)", () =>
     255, 255, 255, 255, 10, 20, 30, 0,
     0, 0, 0, 255, 0, 0, 0, 128
   ]);
-  image.SetPayload(bitmap);
+  image.bitmap = bitmap;
+  image.width = bitmap.GetWidth();
+  image.height = bitmap.GetHeight();
 
   assert.equal(image.GetBitmap(), bitmap, "Carbon's GetBitmap (cpp:110-113)");
   assert.equal(image.GetMemoryUsage(), 16, "the bitmap raw size once loaded");

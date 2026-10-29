@@ -1,3 +1,4 @@
+import { prepareResourceFixture, resourceIdentityFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -33,8 +34,8 @@ function area(effect, { index = 0, count = 1, castsShadows = true } = {})
 
 function geometry(primitiveCount = 1)
 {
-  const resource = new TriGeometryRes().Initialize("res:/geometry/overlay.cmf");
-  resource.SetPayload({
+  const resource = resourceIdentityFixture(new TriGeometryRes(), "res:/geometry/overlay.cmf");
+  resource.ReadCMFFile({
     version: 1,
     sourceFormat: "cmf",
     meshes: [ {
@@ -45,7 +46,7 @@ function geometry(primitiveCount = 1)
       lods: [ { maxScreenSize: 1000, areas: [ { firstIndex: 0, primitiveCount } ] } ]
     } ]
   });
-  resource.MarkPrepared();
+  prepareResourceFixture(resource);
   return resource;
 }
 

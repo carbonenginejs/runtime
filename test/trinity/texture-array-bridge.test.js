@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -121,6 +122,25 @@ test("a changed member path is a different array", () =>
     effect.GetResourceByName("Detail2Map").SetResourcePath("res:/d.dds");
     bind(effect);
     assert.equal(dynamicRequests(stub).at(-1).path, "dynamic:/texturearray/res:/a.dds;res:/d.dds;res:/c.dds");
+  }
+  finally { stub.restore(); }
+});
+
+
+test("a pending array completion does not notify a destroyed effect", async () =>
+{
+  const stub = composeStubResMan();
+  try
+  {
+    const effect = detailEffect([ "res:/a.dds", "res:/b.dds", "res:/c.dds" ]);
+    bind(effect);
+    const resource = stub.resources.get(dynamicRequests(stub)[0].path);
+    effect.Destruct();
+    let notifications = 0;
+    effect.ResourceChanged = () => { notifications++; };
+    prepareResourceFixture(resource);
+    await Promise.resolve();
+    assert.equal(notifications, 0);
   }
   finally { stub.restore(); }
 });

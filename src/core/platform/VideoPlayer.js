@@ -206,7 +206,8 @@ export class VideoPlayer
       ), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET,
         cpuUsage: Tr2CpuUsage.NONE });
       if (!texture) return false;
-      resource.SetPayload(null);
+      resource.ReleaseResources();
+      resource.loadedBitmap = null;
       resource.width = video.videoWidth;
       resource.height = video.videoHeight;
       resource.depth = 1;
@@ -215,7 +216,8 @@ export class VideoPlayer
       resource.format = PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM;
       resource._ownTexture = texture;
       resource.SetTexture(texture);
-      resource.MarkPrepared();
+      resource._isGood = resource._isPrepared = true;
+      resource._isLoading = false;
       this._texture = texture;
       this._uploadedSerial = -1;
       if (this.onCreateTextures) this.onCreateTextures(this, video.videoWidth, video.videoHeight);

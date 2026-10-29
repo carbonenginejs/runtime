@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import { addChild } from "../../npm/dist/global/blue/children.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
@@ -52,9 +53,9 @@ function setup(t)
 }
 function geometry()
 {
-  const g=new TriGeometryRes();g.SetPayload({meshes:[{decl:[{usage:"Position",usageIndex:0,type:"Float32",elementCount:3,offset:0}],
+  const g=new TriGeometryRes();g.ReadCMFFile({meshes:[{decl:[{usage:"Position",usageIndex:0,type:"Float32",elementCount:3,offset:0}],
     vertex:{position:[0,0,0,1,0,0,1,1,0,0,1,0]},indices:[{faces:[0,1,2,0,2,3]}],areas:[{firstElement:0,elementCount:1},{firstElement:1,elementCount:1}]}]});
-  g.MarkPrepared();return g;
+  prepareResourceFixture(g);return g;
 }
 function particles(t)
 {
@@ -129,7 +130,7 @@ test("real green Crisis smoke on two hulls reaches a nonzero instanced stub draw
       const zap=root.objects[4].objects[0];let zapDraw=null;
       const zapBytes=await readFile(join(corpus,"unit_sphere.gr2"));
       assert.equal(createHash("md5").update(zapBytes).digest("hex"),"761a864d18bf591bb5f92308464eb42e");
-      const zapGeometry=new TriGeometryRes();zapGeometry.SetPayload(zapGeometry.ReadGrannyFile(zapBytes));zapGeometry.MarkPrepared();zap.mesh.SetGeometryRes(zapGeometry);
+      const zapGeometry=new TriGeometryRes();zapGeometry.ReadGrannyFile(zapBytes);prepareResourceFixture(zapGeometry);zap.mesh.SetGeometryRes(zapGeometry);
       for(const area of zap.mesh.additiveAreas)area.SetMaterial(material);
       for(let step=0;step<=200;step++){
         const previousTicks=ticks;
@@ -158,7 +159,7 @@ test("real green Crisis smoke on two hulls reaches a nonzero instanced stub draw
     assert.ok(color.value[3]>0,"authored/controller-driven green smoke intensity");
     const uploadedColor=new Float32Array(4);color.CopyValueToEffect(0,uploadedColor);
     assert.deepEqual(Array.from(uploadedColor),Array.from(color.value),"Tr2Vector4Parameter.cpp CopyValueToEffect preserves authored green effect constants");
-    const g=new TriGeometryRes();g.SetPayload(g.ReadGrannyFile(unit));g.MarkPrepared();child.mesh.SetGeometryRes(g);
+    const g=new TriGeometryRes();g.ReadGrannyFile(unit);prepareResourceFixture(g);child.mesh.SetGeometryRes(g);
     for(const area of child.mesh.transparentAreas)area.SetMaterial(material);
     p.UpdateViewDependentData(null,mat4.create());child._isVisible=true;child.GetRenderables([]);
     const batches=[];child.GetBatches({Commit(b){batches.push(b);return true;}},TriBatchType.TRIBATCHTYPE_TRANSPARENT,null);
@@ -266,14 +267,14 @@ test("real Mabebu traffic geometry hydrates and submits nonzero instances from w
   const values=CjsBlackFormat.readPayload(bytes).object;
   for(const warm of [false,true]) {
     const base=new TriGeometryRes(),provider=new TriGeometryRes();
-    base.SetPayload(base.ReadGrannyFile(await readFile(join(mabebuCorpus,"unit_plane.gr2")))) ;
-    provider.SetPayload(provider.ReadGrannyFile(await readFile(join(mabebuCorpus,"gfr1_mabebu_traffic.gr2"))));
-    if(warm){base.MarkPrepared();provider.MarkPrepared();}
+    base.ReadGrannyFile(await readFile(join(mabebuCorpus,"unit_plane.gr2"))) ;
+    provider.ReadGrannyFile(await readFile(join(mabebuCorpus,"gfr1_mabebu_traffic.gr2")));
+    if(warm){prepareResourceFixture(base);prepareResourceFixture(provider);}
     blue.resMan=new StubResMan(path=>path.endsWith("gfr1_mabebu_traffic.gr2")?provider:base);
     const root=CjsSchema.from("EveChildContainer", values),child=root.objects[0],mesh=child.mesh;
     assert.equal(child.name,"traffic");assert.equal(mesh.GetInstanceGeometryResource(),provider);
     assert.deepEqual(provider.GetMeshVertexElements(0).map(element=>element.elementCount),[4,4],"authored Position4 and TexCoord4 survive projection");
-    if(!warm){base.MarkPrepared();provider.MarkPrepared();}
+    if(!warm){prepareResourceFixture(base);prepareResourceFixture(provider);}
     for(const area of mesh.additiveAreas)area.SetMaterial(material);
     const batches=collect(mesh,mesh.additiveAreas);
     assert.ok(batches.length>0);const before=draws.length;
@@ -292,7 +293,7 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
   for(const [file,hash] of [["unit_sphere.gr2","761a864d18bf591bb5f92308464eb42e"],["unit_plane.gr2","238fdf7d1f76dfc7812f22e5aea40135"]]) {
     const bytes=await readFile(join(electricityCorpus,file));
     assert.equal(createHash("md5").update(bytes).digest("hex"),hash);
-    const resource=new TriGeometryRes();resource.SetPayload(resource.ReadGrannyFile(bytes));resource.MarkPrepared();geometries.set(file,resource);
+    const resource=new TriGeometryRes();resource.ReadGrannyFile(bytes);prepareResourceFixture(resource);geometries.set(file,resource);
   }
   let ticks=100*1e7;
   const actual=blue.os.GetActualTime,frame=blue.os.GetCurrentFrameTime,random=Math.random;

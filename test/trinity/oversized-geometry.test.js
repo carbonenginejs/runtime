@@ -52,7 +52,7 @@ test("Chjita-sized mesh realizes once and reuses its allocation across render pa
   const position = new Array(count * 3).fill(0);
   position[0] = 7;
   position[position.length - 1] = 19;
-  geometry.SetPayload({ meshes: [{
+  geometry.ReadCMFFile({ meshes: [{
     decl: [{usage:"Position",usageIndex:0,type:"Float32",elementCount:3,offset:48}],
     vertex: {position}, indices:[{faces:[0,1,2]}], areas:[{firstElement:0,elementCount:1}]
   }] });

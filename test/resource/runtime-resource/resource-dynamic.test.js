@@ -1,6 +1,7 @@
+import { blue } from "../../../npm/dist/global/blue/index.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { normalizeResourcePath } from "#utils/path";
 import { num } from "../../../npm/dist/global/math/num.js";
@@ -19,6 +20,7 @@ function countingManager()
   const resMan = new CjsBlueResMan({
     source: { Read() { counter.reads += 1; return new Uint8Array(0); } }
   });
+  blue.resMan = resMan;
   return { resMan, counter };
 }
 
@@ -72,7 +74,7 @@ test("dynamic:/color resolves through its constructor, shares by query, and neve
   assert.equal(resMan.GetResource("dynamic:/color/1,0,0,1"), red);
   assert.notEqual(resMan.GetResource("dynamic:/color/0,1,0,1"), red);
 
-  await red.Ready();
+  await resMan.Ready(red);
   await resMan.LoadObject("dynamic:/color/1,0,0,1");
   assert.equal(counter.reads, 0);
 });
@@ -125,9 +127,9 @@ test("a malformed dynamic colour fails without falling back to a source read", a
   RegisterSolidColorTexture(resMan);
 
   const broken = resMan.GetResource("dynamic:/color/1,2");
-  assert.equal(broken.IsFailed(), true);
+  assert.equal(broken.IsPrepared(), true);
   assert.equal(broken.IsGood(), false);
-  assert.equal(broken.error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
+  assert.equal(resMan.GetResourceStatus(broken).error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
   await assert.rejects(
     resMan.LoadObject("dynamic:/color/1,2"),
     error => error.code === "CJS_TEXTURE_PROCEDURAL_PATH_INVALID"
@@ -177,3 +179,7 @@ test("each dynamic constructor declares its cache policy; Carbon's default is no
   // A solid colour is four numbers; it is kept for good.
   assert.equal(new SolidColorTextureConstructor().IsCacheable(), true);
 });
+
+let previousManager;
+beforeEach(() => { previousManager = blue.resMan; });
+afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previousManager; } });

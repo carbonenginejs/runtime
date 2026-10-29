@@ -1,3 +1,4 @@
+import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -65,7 +66,7 @@ function geometry() {
   const make=(count,radius)=>({decl:[{usage:'Position',usageIndex:0,type:'Float32',elementCount:3,offset:0}],
     boundingSphere:[0,0,0,radius],vertex:{position:[0,0,0,1,0,0,1,1,0,0,1,0]},
     indices:[{faces:count===1?[0,1,2]:[0,1,2,0,2,3]}],areas:[{firstElement:0,elementCount:count}]});
-  g.SetPayload({meshes:[make(1,3),make(2,7)]});g.MarkPrepared();return g;
+  g.ReadCMFFile({meshes:[make(1,3),make(2,7)]});prepareResourceFixture(g);return g;
 }
 function mesh(c,material,index=0) {
   const m=new Tr2Mesh(),g=geometry(),area=new Tr2MeshArea();area.SetMaterial(material);

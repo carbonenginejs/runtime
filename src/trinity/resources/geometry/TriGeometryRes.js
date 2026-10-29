@@ -1,6 +1,8 @@
+import { CjsMeshConstructor, MeshPrefix } from "./CjsMeshConstructor.js";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
+import { blue as blueService } from "#blue/blue";
 import { packVertexBuffer, packIndexBuffer } from "../../../resource/formats/cmf/core/pack.js";
 import { exposure as be } from "#be";
-import { ResourceRequirement } from "#blue";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
@@ -11,7 +13,7 @@ import { ray3 } from "#math/ray3";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsResource, ICacheable, IBlueResource } from "#blue";
+import { BlueAsyncRes, ICacheable, IBlueResource } from "#blue";
 import { ITr2InstanceData } from "../../core/mesh/ITr2InstanceData/ITr2InstanceData.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
@@ -57,7 +59,6 @@ function AlignStride(packed)
 }
 
 
-
 // Scratch edges for the picking cross product. Picking is synchronous and the
 // result is consumed before the next hit, so one pair is enough.
 //
@@ -95,7 +96,7 @@ function boundsPair(bounds)
  * with resource-specific payload traversal.
  */
 
-export class TriGeometryRes extends CjsResource
+export class TriGeometryRes extends BlueAsyncRes
 {
   /** Carbon: BLUE_REGISTER_RESOURCE_EXTENSION (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:18-21). */
   static extensions = ["gr2", "cmf"];
@@ -182,8 +183,6 @@ export class TriGeometryRes extends CjsResource
   /** m_pGrannyFile - the gr2 read ReadGrannyFile kept, or null. */
   _grannyFile = null;
 
-  /** The payload ReadGrannyFile returned, so SetPayload can tell it from any other. */
-  _grannyPayload = null;
 
   /**
    * m_memoryUse: what `GetMemoryUsage` reports. Each LOD adds its buffers when
@@ -193,34 +192,14 @@ export class TriGeometryRes extends CjsResource
 
 
   /**
-   * Attach a plain geometry payload or an already decoded Granny graph.
-   *
-   * Ours: resource publication is separate from decoding so a worker can read
-   * Granny bytes while this thread retains and applies the decoded graph.
-   *
-   * @param {object|null} payload
-   * @param {object|null} options
-   * @returns {TriGeometryRes}
+   * Carbon SetupMeshes (TriGeometryRes.cpp:855-1019). Adapted: the registered
+   * reader already projects CMF channels, so retain those owned mesh records.
+   * @param {object} payload Decoded CMF data.
+   * @returns {boolean} Whether the mesh records were installed.
    */
-  SetPayload(payload = null, options = null)
+  SetupMeshes(payload)
   {
-    if (this._raycastUsers !== 0)
-    {
-      throw new Error("TriGeometryRes payload cannot change during an active raycast session.");
-    }
-    // A format route may have decoded the Granny graph in a worker already.
-    // Apply it through the same ownership path without reading its bytes again.
-    if (payload?.grannyFileFormatRevision !== undefined) payload = this.ReadGrannyFile(payload);
-    this._raycastGeometry = null;
-    this._raycastPreparationFailed = false;
-    // A payload ReadGrannyFile did not produce came from no granny file, so the
-    // kept one would describe different geometry.
-    if (payload !== this._grannyPayload) this._ForgetGrannyFile();
-    if (payload === null)
-    {
-      super.SetPayload(null);
-      return this;
-    }
+    if (this._raycastUsers !== 0) throw new Error("TriGeometryRes data cannot change during an active raycast session.");
     assertResourcePayloadObject("TriGeometryRes", payload);
     assertResourcePayloadArray("TriGeometryRes", payload, "meshes");
     for (const field of [ "skeletons", "animations" ])
@@ -230,6 +209,10 @@ export class TriGeometryRes extends CjsResource
         throw resourcePayloadError("TriGeometryRes", "Expected an array when provided.", field);
       }
     }
+    this._OnShutdown();
+    this._raycastGeometry = null;
+    this._raycastPreparationFailed = false;
+
     // Carbon fills each LOD's morph tables while building it (TriGeometryRes.cpp:2110-2134 for CMF, :2260-2293 for
     // Granny): the target names, less the exporter's "Shape" suffix; a cleared baked flag per target; and the
     // deformation amount, the CMF target's maxDisplacement or, for Granny, the largest morph-to-base distance, which
@@ -245,27 +228,25 @@ export class TriGeometryRes extends CjsResource
         lod.morphTargetDeformationAmounts = targets.map(target => target.maxDisplacement);
       }
     }
-    super.SetPayload(payload);
-    this.SetValues(options || {});
-    return this;
+    this._cmfData = payload;
+    return true;
   }
 
   /**
-   * Release the geometry payload, and with it anything derived from it.
-   *
-   * Carbon has no payload-only release: cpp:496-509 drops the meshes and the
-   * raycast geometry together. A manager-driven release here must do the same,
-   * or the raycaster keeps answering from meshes that are gone.
-   * Custom: JS has no deterministic LOD/Allocation destructor, so this bridge
-   * explicitly frees the vertex, index and reversed-index handles that Carbon
-   * destroys when ReleaseResourcesHelper clears m_meshes (cpp:1832-1838).
-   *
-   * @returns {TriGeometryRes} This resource.
+   * Explicitly release the LOD allocations owned by Carbon's resource destructor.
+   * Adapted: explicit JS teardown replaces native destruction; the existing
+   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   * @param {object} [options={}] Existing MotherLode cleanup policy.
+   * @param {boolean} [options.releasePayload=true] Release owned family data.
+   * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
+   * @returns {void}
    */
-  ReleasePayload()
+  _OnShutdown(options = {})
   {
+    if (options.destroyAdapters !== false) this.DestroyAdapterResources();
+    if (options.releasePayload === false) return;
     this.DestroyRayCaster();
-    const payload = this.GetPayload();
+    const payload = this._cmfData;
     for (const mesh of payload?.meshes ?? [])
     {
       const lods = mesh.lods?.length ? mesh.lods : [ mesh ];
@@ -285,7 +266,7 @@ export class TriGeometryRes extends CjsResource
     }
     this._ForgetGrannyFile();
     this._memoryUse = 0;
-    return super.ReleasePayload();
+    this._cmfData = null;
   }
 
   /**
@@ -312,52 +293,35 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
-   * Reads a granny file, keeping it for the animation path, and returns the
-   * CMF form the mesh consumers draw from.
-   *
-   * Adapted: Carbon `ReadGrannyFile` (cpp:1245-1276) clears m_useCMF and keeps
-   * m_pGrannyFile, which `GetGrannyInfo` answers from and Tr2GrannyAnimation
-   * animates. Carbon then builds its meshes from the granny data directly; this
-   * port draws every mesh from the CMF form instead, so the granny read is
-   * also projected, and the projection borrows its arrays rather than copying
-   * them.
-   *
-   * A format worker may supply its plain decoded graph directly. Retaining
-   * that graph preserves its animation references without decoding it twice.
-   *
-   * @param {Uint8Array|object} bytes The .gr2 file or its decoded Granny graph.
-   * @returns {object} The CMF-form payload.
+   * Carbon ReadGrannyFile (TriGeometryRes.cpp:1245-1299). Adapted: preserve the
+   * decoded Granny graph and project shared CMF channels for the JS mesh path.
+   * @param {object|ArrayBufferView} bytes Decoded Granny graph or its bytes.
+   * @returns {boolean} Whether meshes and skeletons were installed.
    */
   ReadGrannyFile(bytes)
   {
-    // Bounds from the vertices: a granny file carries no mesh-level box, and
-    // Carbon's SetupModels accumulates it from them (cpp:1016-1017). Without
-    // the rebuild every mesh read as a zero sphere and EveTransform culled it -
-    // the lens-flare occluder sprites (zsprite.gr2) never drew.
-    const grannyFile = bytes?.grannyFileFormatRevision !== undefined
-      ? bytes
-      : CjsGr2Format.read(bytes, { rebuildMissingBounds: true });
-    const payload = CjsCmfFormat.loadShared(grannyFile);
-
+    const granny = bytes?.grannyFileFormatRevision !== undefined
+      ? bytes : CjsGr2Format.read(bytes, { rebuildMissingBounds: true });
+    const data = CjsCmfFormat.loadShared(granny);
+    if (!this.SetupMeshes(data)) return false;
+    this.SetupSkeletons(data);
     this._useCMF = false;
-    this._grannyFile = grannyFile;
-    this._grannyPayload = payload;
-    return payload;
+    this._grannyFile = granny;
+    return true;
   }
 
   /**
-   * Reads a CMF file and returns it as the payload.
-   *
-   * Adapted: Carbon `ReadCMFFile` (cpp:1224-1242) sets m_useCMF; there is no granny
-   * file.
-   *
-   * @param {Uint8Array} bytes The .cmf file.
-   * @returns {object} The CMF-form payload.
+   * Carbon ReadCMFFile (TriGeometryRes.cpp:1224-1242), using the JS CMF reader.
+   * @param {object|ArrayBufferView} bytes Decoded CMF data or its bytes.
+   * @returns {boolean} Whether meshes and skeletons were installed.
    */
   ReadCMFFile(bytes)
   {
-    this._ForgetGrannyFile();
-    return CjsCmfFormat.read(bytes);
+    const data = bytes?.meshes ? bytes : CjsCmfFormat.read(bytes);
+    if (!this.SetupMeshes(data)) return false;
+    this.SetupSkeletons(data);
+    this._useCMF = true;
+    return true;
   }
 
   /**
@@ -378,7 +342,7 @@ export class TriGeometryRes extends CjsResource
   {
     this._useCMF = true;
     this._grannyFile = null;
-    this._grannyPayload = null;
+
   }
 
   /**
@@ -388,7 +352,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetMeshCount()
   {
-    return this.GetPayload()?.meshes?.length || 0;
+    return this._cmfData?.meshes?.length || 0;
   }
 
   /**
@@ -398,7 +362,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetAnimationCount()
   {
-    return this.GetPayload()?.animations?.length || 0;
+    return this._cmfData?.animations?.length || 0;
   }
 
   /**
@@ -408,7 +372,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetSkeletonCount()
   {
-    return this.GetPayload()?.skeletons?.length || 0;
+    return this._cmfData?.skeletons?.length || 0;
   }
 
   /**
@@ -426,7 +390,7 @@ export class TriGeometryRes extends CjsResource
       return null;
     }
 
-    return this.GetPayload()?.skeletons?.[index] || null;
+    return this._cmfData?.skeletons?.[index] || null;
   }
 
   /**
@@ -437,20 +401,24 @@ export class TriGeometryRes extends CjsResource
    */
   GetMeshAreaCount(meshIndex = 0)
   {
-    const mesh = this.GetPayload()?.meshes?.[meshIndex];
+    const mesh = this._cmfData?.meshes?.[meshIndex];
     return mesh?.areas?.length || 0;
   }
 
-  /** Returns one decoded CPU mesh record, or null when the index is absent. */
+  /**
+   * Returns one decoded CPU mesh record, or null when the index is absent.
+   * @param {number} meshIndex Mesh index within the retained projection.
+   * @returns {object|null} Mesh data, or null when absent.
+   */
   GetMeshData(meshIndex = 0)
   {
-    return this.GetPayload()?.meshes?.[meshIndex] ?? null;
+    return this._cmfData?.meshes?.[meshIndex] ?? null;
   }
 
   /** Returns the decoded CMF-shaped payload used by Carbon mesh consumers. */
   GetCMFData()
   {
-    return this.GetPayload();
+    return this._cmfData;
   }
 
   /**
@@ -483,7 +451,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetLodIndexForScreenSize(meshIndex = 0, screenSize = Infinity)
   {
-    const mesh = this.GetPayload()?.meshes?.[meshIndex];
+    const mesh = this._cmfData?.meshes?.[meshIndex];
 
     if (!mesh) return -1;
 
@@ -535,7 +503,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetMeshLod__LodIndex(meshIndex, lodIndex)
   {
-    const mesh = this.GetPayload()?.meshes?.[meshIndex];
+    const mesh = this._cmfData?.meshes?.[meshIndex];
 
     if (!mesh || lodIndex < 0) return null;
 
@@ -555,7 +523,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetMeshName(meshIndex = 0)
   {
-    return this.GetPayload()?.meshes?.[meshIndex]?.name || "";
+    return this._cmfData?.meshes?.[meshIndex]?.name || "";
   }
 
   /**
@@ -567,7 +535,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetMeshAreaName(meshIndex = 0, areaIndex = 0)
   {
-    return this.GetPayload()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.name || "";
+    return this._cmfData?.meshes?.[meshIndex]?.areas?.[areaIndex]?.name || "";
   }
 
   /**
@@ -618,7 +586,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetBoundingBoxFromScript(meshIx)
   {
-    const meshes = this.GetPayload()?.meshes;
+    const meshes = this._cmfData?.meshes;
     if (!meshes || !(meshIx < meshes.length)) throw new Error("Mesh index out of bounds");
 
     const mesh = meshes[meshIx];
@@ -645,7 +613,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetBoundingSphereFromScript(meshIx)
   {
-    const meshes = this.GetPayload()?.meshes;
+    const meshes = this._cmfData?.meshes;
     if (!meshes || !(meshIx < meshes.length)) throw new Error("Mesh index out of range");
 
     const mesh = meshes[meshIx];
@@ -666,7 +634,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetAreaBoundingBox(meshIndex = 0, areaIndex = 0, outMin = null, outMax = null)
   {
-    const area = TriGeometryRes.getMeshAreas(this.GetPayload()?.meshes?.[meshIndex])?.[areaIndex];
+    const area = TriGeometryRes.getMeshAreas(this._cmfData?.meshes?.[meshIndex])?.[areaIndex];
     const bounds = TriGeometryRes.getBounds(area);
     return TriGeometryRes.copyBounds(bounds, outMin, outMax);
   }
@@ -680,7 +648,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetBoundingBox(meshIndex = 0, outMin = null, outMax = null)
   {
-    const payload = this.GetPayload();
+    const payload = this._cmfData;
     const bounds = TriGeometryRes.getBounds(payload?.meshes?.[meshIndex])
       || TriGeometryRes.getBounds(payload);
     return TriGeometryRes.copyBounds(bounds, outMin, outMax);
@@ -694,7 +662,7 @@ export class TriGeometryRes extends CjsResource
    */
   GetBoundingSphere(meshIndex = 0, out = null)
   {
-    const payload = this.GetPayload();
+    const payload = this._cmfData;
     const mesh = payload?.meshes?.[meshIndex];
     let sphere = TriGeometryRes.getSphere(mesh) || TriGeometryRes.getSphere(payload);
     // Carbon (TriGeometryRes.cpp:439-450) answers for any existing mesh with the
@@ -723,7 +691,7 @@ export class TriGeometryRes extends CjsResource
     {
       throw new TypeError("TriGeometryRes transform must contain 16 matrix elements.");
     }
-    const mesh = this.GetPayload()?.meshes?.[meshIndex];
+    const mesh = this._cmfData?.meshes?.[meshIndex];
     if (!mesh) return null;
     const positions = TriGeometryRes.getMeshPositions(mesh);
     const sourceBounds = TriGeometryRes.getBounds(mesh);
@@ -765,7 +733,7 @@ export class TriGeometryRes extends CjsResource
       point = vec3.alloc();
     try
     {
-      for (const mesh of this.GetPayload()?.meshes || [])
+      for (const mesh of this._cmfData?.meshes || [])
       {
         if (!TriGeometryRes.calculateMeshSphere(sphere, mesh, point)) continue;
         TriGeometryRes.setMeshSphere(mesh, sphere);
@@ -785,7 +753,7 @@ export class TriGeometryRes extends CjsResource
    * Carbon clears geometry caches and delegates to BlueAsyncRes::Reload
    * (TriGeometryRes.cpp:1855-1863). JS release already clears those caches;
    * the base owns bounded same-handle recovery from PURGED/FAILED. A prepared
-   * handle is not force-refetched here; explicit replacement remains manager-owned.
+   * handle is not force-refetched here; an explicit native Reload refills the same handle.
    *
    * @param {object} [options={}] Resource activity options.
    * @returns {boolean} Whether recovery started.
@@ -922,22 +890,18 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
-   * Release this resource's CPU geometry for the requested storage classes.
-   *
-   * cpp:496-509. Carbon also calls CancelPendingLoad, which belongs to the
-   * manager here, and SetGood(false)/SetPrepared(false), which this port
-   * expresses as PURGED so the next IsGood/KeepAlive starts same-handle
-   * recovery through the manager. UNLOADED alone cannot request that recovery.
-   *
-   * @param {number} [storage=TriStorageFlags.TRISTORAGE_ALL] Carbon's TriStorage mask.
+   * Carbon ReleaseResources (TriGeometryRes.cpp:496-509). Explicit JS teardown
+   * replaces the mesh allocation destructors; device release is not cache purge.
+   * @param {number} [storage] Native storage mask.
    * @returns {TriGeometryRes} This resource.
    */
   ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
     if (!(storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)) return this;
-    this.DestroyRayCaster();
-    this.ReleasePayload();
-    this.MarkPurged();
+    this.CancelPendingLoad();
+    this._isGood = this._isPrepared = false;
+    this._NotifyReleaseCachedData();
+    this._OnShutdown();
     return this;
   }
 
@@ -1007,7 +971,7 @@ export class TriGeometryRes extends CjsResource
    */
   RequireIntersectionMeshes()
   {
-    const meshes = this.GetPayload()?.meshes;
+    const meshes = this._cmfData?.meshes;
     if (!Array.isArray(meshes))
     {
       throw new Error(
@@ -1031,7 +995,7 @@ export class TriGeometryRes extends CjsResource
     // field; this accessor read only `vertexElements`, which no reader in this
     // package populates, so it returned an empty list for every real decoded
     // payload. Both names are accepted because the name is the producer's.
-    const mesh = this.GetPayload()?.meshes?.[meshIndex];
+    const mesh = this._cmfData?.meshes?.[meshIndex];
 
     return mesh?.decl || mesh?.vertexElements || [];
   }
@@ -1102,7 +1066,6 @@ export class TriGeometryRes extends CjsResource
     );
   }
 
-  static payload = ResourceRequirement.GEOMETRY;
 
   // Carbon TriGeometryRes.cpp:158-178, declared beside the class
   // (TriGeometryRes.h:202) because it reads LOD data rather than resource
@@ -1695,6 +1658,81 @@ export class TriGeometryRes extends CjsResource
     return Number(indices[vertexIndex]?.[0] ?? -1);
   }
 
+
+  /** Retained CMF projection; family data is never stored on resMan. */
+  _cmfData = null;
+
+  /**
+   * Carbon SetupSkeletons (TriGeometryRes.cpp:1187-1242). The JS format reader
+   * already constructs the joint records retained with the mesh projection.
+   * @param {object} data Decoded CMF records.
+   */
+  SetupSkeletons(data)
+  {
+    if (this._cmfData) this._cmfData.skeletons = data.skeletons || [];
+  }
+
+  /** Decode the native file, or the existing dynamic single-mesh projection. */
+  async _DoLoad()
+  {
+    let data;
+    if (this.GetPath().startsWith(MeshPrefix))
+    {
+      const request = CjsMeshConstructor.parseQuery(this.GetPath().slice(MeshPrefix.length));
+      if (!request) return BlueAsyncRes.LoadingResult.LR_FAILED;
+      const bytes = this._dataStream.data;
+      data = request.path.toLowerCase().endsWith(".cmf")
+        ? CjsCmfFormat.read(bytes, { meshIndex: request.meshIndex })
+        : CjsCmfFormat.loadShared(CjsGr2Format.read(bytes, { rebuildMissingBounds: true, meshIndex: request.meshIndex }));
+    }
+    else data = await blueService.resMan.ReadResourceObjectPayload(this, this._dataStream.data);
+    const loaded = data?.grannyFileFormatRevision !== undefined
+      ? this.ReadGrannyFile(data) : this.ReadCMFFile(data);
+    return loaded ? BlueAsyncRes.LoadingResult.LR_SUCCESS : BlueAsyncRes.LoadingResult.LR_FAILED;
+  }
+
+  /** Carbon DoPrepare; device allocations are deferred to the first draw in JS. */
+  _DoPrepare()
+  {
+    return this._cmfData !== null;
+  }
+
+  /**
+   * Carbon PrepareFromGrannyRes (TriGeometryRes.cpp:1301-1344). JS baking mutates
+   * projected channels, so clone them before installing independently owned meshes.
+   * @param {TriGrannyRes} resource Source Granny resource.
+   */
+  PrepareFromGrannyRes(resource)
+  {
+    const source = resource.GetGrannyFile();
+    if (!source) return;
+    const data = structuredClone(CjsCmfFormat.loadShared(source));
+    this.SetupMeshes(data);
+    this.SetupSkeletons(data);
+    this._useCMF = false;
+    this._isPrepared = this._isGood = true;
+  }
+
+  /** Opaque browser device allocations, supplied by Tr2DeviceResource. */
+  __adapterResources = null;
+
+  /** The existing dynamic mesh path reads its named source, preserving native attempt cancellation. */
+  async _DoOpenStream()
+  {
+    if (!this.GetPath().startsWith(MeshPrefix)) return super._DoOpenStream();
+    const request = CjsMeshConstructor.parseQuery(this.GetPath().slice(MeshPrefix.length));
+    if (!request)
+    {
+      const error = new Error("Invalid dynamic mesh path: " + this.GetPath());
+      error.code = "CJS_GEOMETRY_DYNAMIC_PATH_INVALID";
+      throw error;
+    }
+    const attempt = blueService.resMan._GetResourceLoad(this);
+    const data = await blueService.resMan.ReadResource(request.path);
+    blueService.resMan._AssertResourceLoad(this, attempt);
+    this._dataStream = { form: "bytes", data };
+    return true;
+  }
 }
 
 // Declared as data rather than with decorators, so the resource tree loads from
@@ -1755,7 +1793,27 @@ CjsSchema.exposure.mapInterface(IBlueResource)(TriGeometryRes);
 CjsSchema.exposure.mapInterface(ICacheable)(TriGeometryRes);
 CjsSchema.exposure.mapInterface(ITr2InstanceData)(TriGeometryRes);
 // Carbon: TriGeometryRes::ExposeToBlue (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:175).
-CjsSchema.blue.chainTo(CjsResource)(TriGeometryRes);
+CjsSchema.blue.chainTo(BlueAsyncRes)(TriGeometryRes);
 
 CjsSchema.decorateMethod(TriGeometryRes, "packLodGeometry", meta.cjs, meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "packLodIndices", meta.cjs, meta.adapted);
+
+CjsSchema.decorateMethod(TriGeometryRes, "_DoLoad", meta.adapted);
+
+CjsSchema.decorateMethod(TriGeometryRes, "_DoPrepare", meta.adapted);
+
+CjsSchema.decorateMethod(TriGeometryRes, "_OnShutdown", meta.adapted);
+
+CjsSchema.decorateMethod(TriGeometryRes, "SetupMeshes", meta.adapted);
+
+CjsSchema.decorateMethod(TriGeometryRes, "SetupSkeletons", meta.adapted);
+
+CjsSchema.decorateMethod(TriGeometryRes, "PrepareFromGrannyRes", meta.adapted);
+
+be.inherit(Tr2DeviceResource)(TriGeometryRes, { kind: "class" });
+
+CjsSchema.decorateMethod(TriGeometryRes, "_ForgetGrannyFile", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(TriGeometryRes, "RequireIntersectionMeshes", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(TriGeometryRes, "_DoOpenStream", CjsSchema.meta.adapted);

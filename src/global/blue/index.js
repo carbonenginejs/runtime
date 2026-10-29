@@ -19,7 +19,7 @@
 //     YamlWriter).
 //
 // CcpTime and CcpDateTime port core/include/CcpTime.h. Files with no Carbon
-// header of the same name (CjsResource, CjsScriptCallback, CjsResManWorkQueue,
+// header of the same name (CjsScriptCallback, CjsResManWorkQueue,
 // CjsFormatStore, CjsLoadingObject, the lowercase helper modules) state their
 // donor, or that they have none, in their own headers.
 //
@@ -33,24 +33,9 @@
 // preference, and it does not contradict the decorator direction elsewhere.
 
 /**
- * Resource lifecycle across CjsResource, CjsBlueResMan and CjsMotherLode.
- *
- * States (`CjsResource.State`): EMPTY -> REQUESTED (waiting on a queued or
- * shared source load) -> LOADING (bytes in hand, reader running) -> PREPARED
- * when CjsBlueResMan publishes the reader outcome; FAILED when reading,
- * conversion, validation or publication fails. LOADED and PREPARING serve
- * resources that prepare in a separate phase. PURGED marks a policy eviction;
- * a purged handle reloads itself on its next KeepAlive()/IsGood().
- *
- * Retention has three independent axes: identity (path, state, lightweight
- * metadata), CPU payload, and adapter payload (backend objects in opaque
- * adapter slots, destroyed by their engine adapters). The CPU payload and the
- * adapter payload are released independently while the identity stays
- * resident.
- *
- * Liveness is per handle: `IsGood()` renews only the handle it is called on
- * and never walks child fields, so an aggregate that owns child resources
- * must query or retain them itself.
+ * Native resource flags and persistent notifications live on BlueAsyncRes.
+ * resMan owns pending promises and plain/object data; concrete resources own
+ * their decoded family data. Only a policy purge permits implicit revival.
  */
 
 export * from "./CjsScriptCallback.js";
@@ -112,9 +97,9 @@ export * from "./worker/BlueCallbackManWorker.js";
 // live in Blue, and so does ours. Formats and concrete resources stay in
 // resource and register with it.
 export * from "../consts/resourceHandlerMode.js";
-export * from "../consts/resourceRequirement.js";
+
 export * from "./CjsFormatStore.js";
-export * from "./CjsResource.js";
+
 export * from "./CjsLoadingObject.js";
 export * from "./CjsMotherLode.js";
 export * from "./worker/CjsResManMainThreadLoader.js";
@@ -149,3 +134,10 @@ export { GetResources } from "./getResources.js";
 export * from "./ITriObserverLocal.js";
 
 import "./values.js";
+
+// Composition owns the concrete manager dependency. The holder module imports
+// no manager or resource implementation, so resources and MotherLode can use
+// its live references without an import cycle or deferred constructor lookup.
+import { blue } from "./blue.js";
+import { CjsBlueResMan } from "./CjsBlueResMan.js";
+blue.resMan = new CjsBlueResMan();

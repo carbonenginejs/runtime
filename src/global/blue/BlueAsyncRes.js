@@ -115,30 +115,23 @@ export class BlueAsyncRes
     this._isForcedSynchronous = true;
   }
 
-  /**
-   * Carbon: BlueAsyncRes::CancelPendingLoad (blue/src/BlueAsyncRes.cpp:233-254)
-   *
-   * Cancels a scheduled load or prepare. Safe on a prepared resource.
-   */
+  /** Cancel this attempt; late asynchronous results cannot mutate the next one. */
   CancelPendingLoad()
   {
-    const loadCbId = this._loadCbId;
-    if (loadCbId)
+    blue.resMan._CancelResourceLoad(this);
+    if (this._loadCbId)
     {
-      blue.resMan.CancelFromQueue(BlueResManQueue.BRMQ_BACKGROUND, loadCbId);
+      blue.resMan.CancelFromQueue(BlueResManQueue.BRMQ_BACKGROUND, this._loadCbId);
       this._loadCbId = 0;
-      this._isLoading = false;
     }
-
-    const prepareCbId = this._prepareCbId;
-    if (prepareCbId)
+    if (this._prepareCbId)
     {
-      blue.resMan.CancelFromQueue(BlueResManQueue.BRMQ_MAIN, prepareCbId);
+      blue.resMan.CancelFromQueue(BlueResManQueue.BRMQ_MAIN, this._prepareCbId);
       this._prepareCbId = 0;
-      this._isLoading = false;
     }
-
+    this._isLoading = false;
     this._CleanupLoadData();
+    this._CloseStream();
   }
 
   /**
@@ -193,6 +186,9 @@ export class BlueAsyncRes
    */
   Reload()
   {
+    // Carbon opens the file afresh. Browser source/format caches must not join
+    // the cancelled read or return its retained bytes for this explicit reload.
+    blue.resMan.InvalidateReadCache(this.GetFilePath(), blue.resMan._GetResourceRequest(this));
     this.CancelPendingLoad();
     this._NotifyReleaseCachedData();
     this.Initialize(this._path, this._ext);
@@ -250,12 +246,14 @@ export class BlueAsyncRes
   }
 
   /**
-   * Carbon: BlueAsyncRes::IsGood (blue/include/BlueAsyncRes.h:92-95)
-   *
+   * Native good flag, with browser inactivity renewal before use.
+   * Adapted: MotherLode.h:31-39 uses reference lifetime; JavaScript renews a timestamp.
+   * A failed resource stays failed until an explicit Reload.
    * @returns {boolean}
    */
   IsGood()
   {
+    this.KeepAlive();
     return this._isGood;
   }
 
@@ -282,48 +280,34 @@ export class BlueAsyncRes
   }
 
   /**
-   * Carbon: BlueAsyncRes::InitializeImpl (blue/src/BlueAsyncRes.cpp:191-230)
-   *
-   * Records the path and extension, resets the state and schedules the load.
-   *
-   * Adapted: a forced-synchronous load starts here but cannot finish here,
-   * because the browser's file reads are asynchronous; the started load is
-   * not awaited.
-   *
-   * @param {string} name Resource path, optionally with a `?query`.
-   * @param {string} ext Requested extension.
+   * Carbon InitializeImpl (BlueAsyncRes.cpp:191-230), including its urgent-mode read.
+   * Adapted: resMan retains the promise and cancellation token for asynchronous I/O.
+   * @param {string} name
+   * @param {string} ext
    */
   _InitializeImpl(name, ext)
   {
     this._queryArguments = [];
     const query = name.indexOf("?");
-    if (query !== -1)
-    {
-      this._ParseQuery(name.substring(query + 1));
-    }
+    if (query !== -1) this._ParseQuery(name.substring(query + 1));
     this._path = name;
-
-    CcpLog.CCP_LOG("BlueAsyncRes::Initialize: %s", name);
-
     this._ext = ext;
-
     this._isPrepared = false;
     this._isGood = false;
+    if (!name.length) return;
 
-    if (this._path.length > 0)
+    this._isLoading = true;
+    this._loadSucceeded = false;
+    if (!this._isForcedSynchronous) this._isUrgent = blue.resMan.IsUrgentResourceLoads();
+    blue.resMan._StartResourceLoad(this);
+    if (this._isForcedSynchronous)
     {
-      this._isLoading = true;
-      this._loadSucceeded = false;
-      if (this._isForcedSynchronous)
-      {
-        this._LoadAsync();
-      }
-      else
-      {
-        this._isUrgent = blue.resMan.IsUrgentResourceLoads();
-        const flags = this._isUrgent ? IBlueCallbackMan.BCBF_URGENT : 0;
-        this._loadCbId = blue.resMan.AddToQueue(BlueResManQueue.BRMQ_BACKGROUND, BlueAsyncRes._staticLoadAsync, this, flags);
-      }
+      this._LoadAsync();
+    }
+    else
+    {
+      const flags = this._isUrgent ? IBlueCallbackMan.BCBF_URGENT : 0;
+      this._loadCbId = blue.resMan.AddToQueue(BlueResManQueue.BRMQ_BACKGROUND, BlueAsyncRes._staticLoadAsync, this, flags);
     }
   }
 
@@ -350,19 +334,21 @@ export class BlueAsyncRes
   }
 
   /**
-   * Carbon: BlueAsyncRes::DoOpenStream (blue/src/BlueAsyncRes.cpp:377-390)
-   *
-   * Opens the file without its query.
-   *
-   * Adapted: asynchronous, because the paths service reads asynchronously
-   * (`CjsBluePaths.GetStreamFromPath`, Carbon's `GetStreamFromPathW`); the
-   * stream output parameter becomes `_dataStream`, set from the returned value.
-   *
-   * @returns {Promise<boolean>} Whether the file was found.
+   * Open the query-free path through Blue's configured source.
+   * Adapted: the existing manager read cache preserves worker/source execution;
+   * this already-queued callback must not enqueue a second background read.
+   * @returns {Promise<boolean>}
    */
   async _DoOpenStream()
   {
-    this._dataStream = await blue.paths.GetStreamFromPath(this.GetFilePath());
+    const attempt = blue.resMan._GetResourceLoad(this);
+    // Share one read context with decoding: a reload invalidates prior bytes
+    // once, rather than invalidating its newly retained source at format read.
+    const read = blue.resMan._BeginReadOperation(this.GetFilePath(), blue.resMan._GetResourceRequest(this));
+    attempt.request = read.options;
+    const data = await blue.resMan.ReadResource(this.GetFilePath(), read.options);
+    blue.resMan._AssertResourceLoad(this, attempt);
+    this._dataStream = data === null ? null : { form: "bytes", data };
     return this._dataStream !== null;
   }
 
@@ -391,60 +377,43 @@ export class BlueAsyncRes
   }
 
   /**
-   * Carbon: BlueAsyncRes::LoadAsync (blue/src/BlueAsyncRes.cpp:77-136)
-   *
-   * Opens and loads the file, then queues prepare, or the failure notice, on
-   * the main queue.
-   *
-   * Adapted: asynchronous, because opening the file is (`_DoOpenStream`); a
-   * subclass's `_DoLoad` may also return a promise. Carbon writes the queued
-   * request id through an output parameter; `AddToQueue` returns it.
-   *
+   * Native load phase, with asynchronous reads and attempt cancellation guards.
+   * Adapted: logical background work queues prepare on MAIN even on the same
+   * JavaScript thread, so the existing main-thread time slice remains effective.
    * @returns {Promise<void>}
    */
   async _LoadAsync()
   {
-    let load = BlueAsyncRes.LoadingResult.LR_FAILED;
-    if (await this._DoOpenStream())
+    const attempt = blue.resMan._GetResourceLoad(this);
+    let result = BlueAsyncRes.LoadingResult.LR_FAILED;
+    let failure = null;
+    try
     {
-      // Carbon throttles loads on the assumption that a resource reads its
-      // whole file on the background thread (cpp:89-96).
-      if (this._dataStream)
+      if (await this._DoOpenStream())
       {
-        this._reservedMemory = this._dataStream.data.byteLength;
+        blue.resMan._AssertResourceLoad(this, attempt);
+        this._reservedMemory = this._dataStream?.data?.byteLength || 0;
         blue.resMan.ReserveBackgroundLoadMemory(this._reservedMemory);
+        result = await this._DoLoad();
+        blue.resMan._AssertResourceLoad(this, attempt);
       }
-
-      load = await this._DoLoad();
-
-      this._CloseStream();
     }
-    const loadSucceeded = load !== BlueAsyncRes.LoadingResult.LR_FAILED;
-
-    this._notify = load !== BlueAsyncRes.LoadingResult.LR_SUCCESS_DONTNOTIFY;
-
-    const flags = this._isUrgent ? IBlueCallbackMan.BCBF_URGENT : 0;
-
-    if (loadSucceeded)
+    catch (error)
     {
-      this._loadSucceeded = true;
-      if (blue.resMan.IsOnMainThread())
-      {
-        this._PrepareAsync();
-      }
-      else
-      {
-        this._prepareCbId = blue.resMan.AddToQueue(BlueResManQueue.BRMQ_MAIN, BlueAsyncRes._staticPrepareAsync, this, flags);
-      }
+      failure = error;
     }
-    else
-    {
-      CcpLog.CCP_LOGWARN("BlueAsyncRes::LoadAsync: Failed to load '%s'", this.GetPath());
+    if (!blue.resMan._IsResourceLoadCurrent(this, attempt)) return;
 
-      this._prepareCbId = blue.resMan.AddToQueue(BlueResManQueue.BRMQ_MAIN, BlueAsyncRes._staticFailedLoadNotify, this, flags);
-    }
-
+    this._CloseStream();
     this._loadCbId = 0;
+    this._loadSucceeded = result !== BlueAsyncRes.LoadingResult.LR_FAILED && !failure;
+    this._notify = result !== BlueAsyncRes.LoadingResult.LR_SUCCESS_DONTNOTIFY;
+    if (!this._loadSucceeded) blue.resMan._RecordResourceFailure(this, failure || new Error(
+      "Failed to load resource: " + this.GetPath()));
+    const flags = this._isUrgent ? IBlueCallbackMan.BCBF_URGENT : 0;
+    this._prepareCbId = blue.resMan.AddToQueue(BlueResManQueue.BRMQ_MAIN,
+      this._loadSucceeded ? BlueAsyncRes._staticPrepareAsync : BlueAsyncRes._staticFailedLoadNotify,
+      this, flags);
   }
 
   /**
@@ -457,57 +426,50 @@ export class BlueAsyncRes
     this._PrepareAsync();
   }
 
-  /**
-   * Carbon: BlueAsyncRes::PrepareAsync (blue/src/BlueAsyncRes.cpp:144-172)
-   *
-   * Prepares on the main queue, records the outcome and notifies the targets.
-   */
+  /** Complete the native prepare phase and settle the manager operation before notifying owners. */
   _PrepareAsync()
   {
-    const isGood = this._DoPrepare();
-
-    this._CleanupLoadData();
-
+    const attempt = blue.resMan._GetResourceLoad(this);
+    if (!blue.resMan._IsResourceLoadCurrent(this, attempt)) return;
+    let good = false;
+    try
+    {
+      good = this._DoPrepare();
+      if (typeof good !== "boolean") throw new TypeError("Resource prepare must return a boolean.");
+      this._CleanupLoadData();
+    }
+    catch (error)
+    {
+      blue.resMan._RecordResourceFailure(this, error);
+      good = false;
+    }
+    if (!blue.resMan._IsResourceLoadCurrent(this, attempt)) return;
     this._prepareCbId = 0;
     this._isPrepared = true;
-
-    // Loading is finished, regardless of success.
     this._isLoading = false;
-
-    if (isGood)
-    {
-      this._isGood = true;
-    }
-
-    if (this._notify)
-    {
-      this._NotifyRebuildCachedData();
-    }
+    this._isGood = good;
+    blue.resMan._FinishResourceLoad(this);
+    if (this._notify) this._NotifyRebuildCachedData();
   }
 
-  /**
-   * Carbon: BlueAsyncRes::StaticFailedLoadNotify (blue/src/BlueAsyncRes.cpp:174-189)
-   *
-   * Finishes a failed load on the main queue, so the targets hear of it.
-   *
-   * Adapted: the queue's context arrives as `this` (see `_staticLoadAsync`).
+    /**
+   * Carbon StaticFailedLoadNotify (BlueAsyncRes.cpp:160-189).
+   * Adapted: the queue binds its resource context as this instead of passing
+   * Carbon's void pointer. Failure stays prepared but bad until explicit Reload.
+   * @this {BlueAsyncRes}
+   * @returns {void}
    */
   static _staticFailedLoadNotify()
   {
-    /** @type {BlueAsyncRes} */
-    const pThis = this;
-    if (!pThis)
-    {
-      CcpLog.CCP_LOGERR("BlueAsyncRes::StaticFailedLoadNotify: pContext is NULL!  Debug this, its important");
-      return;
-    }
-    // Loading is finished, regardless of success.
-    pThis._isPrepared = true;
-    pThis._loadSucceeded = false;
-    pThis._isLoading = false;
-    pThis._CleanupLoadData();
-
-    pThis._NotifyRebuildCachedData();
+    const resource = this;
+    resource._prepareCbId = 0;
+    resource._isPrepared = true;
+    resource._loadSucceeded = false;
+    resource._isLoading = false;
+    resource._isGood = false;
+    resource._CleanupLoadData();
+    blue.resMan._FinishResourceLoad(resource);
+    resource._NotifyRebuildCachedData();
   }
 
   /**
@@ -529,14 +491,17 @@ export class BlueAsyncRes
     }
   }
 
-  /**
-   * Carbon: BlueAsyncRes::NotifyRebuildCachedData (blue/src/BlueAsyncRes.cpp:354-360)
-   */
+  /** Notify the persistent native targets; diagnose an owner that missed teardown. */
   _NotifyRebuildCachedData()
   {
     for (let i = 0; i < this._reloadNotifyTargets.length; ++i)
     {
-      this._reloadNotifyTargets[i].RebuildCachedData(this);
+      const target = this._reloadNotifyTargets[i];
+      if (BlueAsyncRes._destructedNotifyTargets.has(target))
+      {
+        throw new Error("Destructed resource notify target: " + CjsSchema.getClassName(target.constructor));
+      }
+      target.RebuildCachedData(this);
     }
   }
 
@@ -616,6 +581,48 @@ export class BlueAsyncRes
     }
     return null;
   }
+
+
+  /** Schema resource discovery; an internal CjsLoadingObject overrides this. */
+  static isResource = true;
+
+  /** Destroyed owner identities, retained weakly only for notification diagnostics. */
+  static _destructedNotifyTargets = new WeakSet();
+
+  /** Browser renewal timestamp, read by MotherLode without allocating per frame. */
+  _lastUsedTime = 0;
+
+  /** Whether this instance is a domain resource for graph enumeration. */
+  get isResource()
+  {
+    return this.constructor.isResource === true;
+  }
+
+  /**
+   * Renew use; only a policy-purged resource revives, through its native Reload.
+   * @param {object} [options] Deterministic activity values for tools/tests.
+   */
+  KeepAlive(options = undefined)
+  {
+    blue.resMan._KeepResourceAlive(this, options);
+  }
+
+  /**
+   * Mark an owner's completed destruction for the next-notify diagnostic.
+   * Ours: JavaScript has no native destructor assertion.
+   * @param {object} target
+   */
+  static markNotifyTargetDestructed(target)
+  {
+    BlueAsyncRes._destructedNotifyTargets.add(target);
+  }
+
+  /** Assert the native destructor's empty-target invariant in teardown tests. */
+  AssertNoNotifyTargets()
+  {
+    if (this._reloadNotifyTargets.length) throw new Error("Resource still has notify targets: " + this.GetPath());
+  }
+
 }
 
 // Declared as data rather than with decorators, so Blue sources import without
@@ -636,7 +643,7 @@ CjsSchema.decorateMethod(BlueAsyncRes, "GetPath", meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "GetExt", meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "IsLoading", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "IsPrepared", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "IsGood", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.decorateMethod(BlueAsyncRes, "IsGood", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(BlueAsyncRes, "GetFilePath", meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "GetQuery", meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "_InitializeImpl", meta.adapted);
@@ -661,4 +668,12 @@ be.inherit(IBlueResource)(BlueAsyncRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(IBlueResource)(BlueAsyncRes);
 // Carbon: BLUE_DEFINE_ABSTRACT( BlueAsyncRes ) (BlueAsyncRes_Blue.cpp:6).
 CjsSchema.exposure.abstract(BlueAsyncRes);
+CjsSchema.decorateField(BlueAsyncRes, "isResource", CjsSchema.meta.implemented);
 be.define("BlueAsyncRes")(BlueAsyncRes);
+
+CjsSchema.decorateMethod(BlueAsyncRes, "KeepAlive", meta.adapted);
+
+
+CjsSchema.decorateMethod(BlueAsyncRes, "markNotifyTargetDestructed", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(BlueAsyncRes, "AssertNoNotifyTargets", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

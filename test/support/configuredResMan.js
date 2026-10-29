@@ -1,6 +1,6 @@
-import { after } from "node:test";
+import { after, beforeEach, afterEach } from "node:test";
 import { CjsLibrary } from "../../npm/dist/core/index.js";
-import { CjsBlueOS, CjsBluePaths } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueOS, CjsBluePaths } from "../../npm/dist/global/blue/index.js";
 import { BeCallbackMan } from "../../npm/dist/global/blue/BlueCallbackMan.js";
 
 // Node has no host frame loop. Pump the same background callback queue while
@@ -23,5 +23,13 @@ export async function configureResourceManager(resMan, configuration = {})
   {
     await library.Shutdown();
   }
+  blue.resMan = resMan;
   return resMan;
 }
+
+let previousResMan;
+beforeEach(() => { previousResMan = blue.resMan; });
+afterEach(() => {
+  try { if (blue.resMan !== previousResMan) blue.resMan.Clear(); }
+  finally { blue.resMan = previousResMan; }
+});
