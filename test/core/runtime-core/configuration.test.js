@@ -7,6 +7,8 @@ import { CjsPngFormat } from "../../../npm/dist/resource/formats/png/CjsPngForma
 import { CjsVtaFormat } from "../../../npm/dist/resource/formats/vta/CjsVtaFormat.js";
 import { TriSettingsRegistrar } from "../../../npm/dist/trinity/core/TriSettingsRegistrar.js";
 import { CreateBlackObjectBuilder } from "../../../npm/dist/global/blue/formats/black/CreateBlackObjectBuilder.js";
+import { TriGeometryRes } from "../../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
+import { TriGrannyRes } from "../../../npm/dist/trinity/resources/geometry/granny/TriGrannyRes.js";
 import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/Tr2EffectRes.js";
 import { GetEffectPathDefaults, SetEffectPathDefaults } from "../../../npm/dist/global/utils/effectPath.js";
@@ -74,7 +76,11 @@ test("Initialize configures the chosen owners and preserves loader and geometry 
   assert.equal(oldRegister.mock.callCount(), 0);
   assert.equal(owners.resMan.maxConcurrentLoads, 3);
   assert.equal(owners.resMan.GetExtensionRoute("dds").loader, TriTextureRes.readImageResource);
-  assert.deepEqual(owners.resMan.GetExtensionRoute("gr2").formats[0].defaults, { emit: "json", rebuildMissingBounds: true });
+  assert.equal(owners.resMan.GetExtensionRoute("gr2").instance, blue.resMan.GetFormat("gr2"));
+  assert.equal(owners.resMan.GetExtensionRoute("gr2raw").instance, blue.resMan.GetFormat("gr2", "raw"));
+  assert.notEqual(blue.resMan.GetFormat("gr2"), blue.resMan.GetFormat("gr2", "raw"));
+  assert.equal(blue.resMan.GetFormat("gr2").GetValues().rebuildMissingBounds, true);
+  assert.equal(blue.resMan.GetFormat("gr2", "raw").GetValues().rebuildMissingBounds, false);
   assert.equal(owners.resMan.GetObjectLoader("red"), CreateBlackObjectBuilder);
   assert.equal(owners.resMan.GetObjectLoader("black"), CreateBlackObjectBuilder);
   assert.equal(owners.resMan.GetObjectLoader("yaml"), CreateBlackObjectBuilder);
@@ -305,4 +311,40 @@ test("effects commit the source tree, target and translator once, at startup", a
 
   library.SetConfiguration({ effects: { target: "webgl2" } });
   assert.equal(Tr2EffectRes.GetBackend().target, "webgpu", "effects change only at a reboot");
+});
+
+
+test("reattaching a cache restores its original geometry instances and Blue policy", async t =>
+{
+  const ownersA = services(), ownersB = services();
+  const first = new CjsLibrary();
+  const second = new CjsLibrary({ formatOptions: { buildClasses: false },
+    formats: { custom: { ...DefaultConfiguration.formats.gr2,
+      routes: [{ extension: "custom", Res: TriGeometryRes }] } } });
+  t.after(() => { first.Shutdown(); second.Shutdown(); });
+  await first.Initialize(ownersA);
+  const original = blue.resMan.GetFormat("gr2");
+  first.Shutdown();
+  await second.Initialize(ownersB);
+  assert.notEqual(blue.resMan.GetFormat("gr2"), original);
+  assert.equal(blue.resMan.GetFormat("gr2")._blue, null);
+  assert.ok(blue.resMan.GetFormat("custom"));
+  second.Shutdown();
+  await first.Initialize(ownersA);
+  assert.equal(blue.resMan.GetFormat("gr2"), original);
+  assert.throws(() => blue.resMan.GetFormat("custom"), /no registered reader/u);
+  assert.equal(ownersA.resMan.GetExtensionRoute("gr2").instance, original);
+  assert.equal(original._blue, blue);
+  assert.equal(first.GetConfiguration().configured.formatOptions.buildClasses, true);
+});
+
+
+test("invalid format routes fail before changing the resource reader table", () =>
+{
+  const original = blue.resMan.GetExtensionRoute("gr2");
+  for (const route of [{ extension: ".", Res: TriGeometryRes }, { extension: "gr2", Res: { Register() {} } }])
+    assert.throws(() => new CjsLibrary({ formats: {
+      invalid: { ...DefaultConfiguration.formats.gr2, routes: [route] }
+    } }), TypeError);
+  assert.equal(blue.resMan.GetExtensionRoute("gr2"), original);
 });

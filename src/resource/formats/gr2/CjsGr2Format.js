@@ -1,6 +1,8 @@
 import { CjsSchema } from "#schema/CjsSchema";
 
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { hydrateShared } from "../../geometry/hydrateShared.js";
+import { canCloneFormatOptions } from "../../format/workerOptions.js";
 import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
 
 import { curves } from "./core/curves.js";
@@ -20,6 +22,7 @@ import {
     normalizeValues,
     readRawInput,
     readWithValues,
+    readSharedData,
     toJsonValue,
 } from "./core/helpers.js";
 
@@ -153,6 +156,43 @@ export class CjsGr2Format extends CjsGeometryFormat
     Read(input, options = {})
     {
         return readWithValues(this, input, this.GetValues(options));
+    }
+
+    /**
+     * Our internal GR2 read returns typed shared data, independent of standalone emit.
+     * @param {*} input GR2 bytes or reflected file data.
+     * @param {object} [options={}] Per-call decode values.
+     * @returns {Promise<object>} Shared geometry data.
+     */
+    async ReadDataAsync(input, options = {})
+    {
+        return readSharedData(this, input, this.GetValues(options));
+    }
+
+    /**
+     * Our worker request carries decode values only; construction stays on the caller.
+     * @param {object} [options={}] Per-call decode values.
+     * @returns {object|null} Worker request, or null for callback-based mesh rules.
+     */
+    GetWorkerRequest(options = {})
+    {
+        const { classes, emit, ...values } = this.GetValues(options);
+        if (!this._workerEnabled || !canCloneFormatOptions(values)) return null;
+        const { module, exportName } = this.constructor.worker;
+        return { module: String(module), exportName, options: values };
+    }
+
+    /**
+     * Construct explicitly mapped nodes once, retaining transferred typed buffers.
+     * No native Blue class corresponds to the shared GR2 node keys by default.
+     * @param {object} data Shared geometry data.
+     * @param {object} [options={}] Per-call construction values.
+     * @returns {object} Shared data or caller-mapped classes.
+     */
+    FinishRead(data, options = {})
+    {
+        const { classes } = this.GetValues(options);
+        return this._blue && Object.keys(classes).length ? hydrateShared(data, { classes }) : data;
     }
 
     /**

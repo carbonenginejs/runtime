@@ -235,6 +235,10 @@ async function readFormat(payload) {
   }
   const options = payload.options || {};
   const context = payload.context || null;
+  if (payload.nativeData)
+  {
+    return new Format(options).ReadDataAsync(payload.input, options, context);
+  }
   if (typeof Format.readAsync === "function") {
     return Format.readAsync(payload.input, options, context);
   }

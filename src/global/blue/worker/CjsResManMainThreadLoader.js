@@ -68,13 +68,19 @@ export class CjsResManMainThreadLoader
  * @param {object|null} context Normalized resource path context.
  * @returns {Promise<*>} Reader result.
  */
-function readFormatOnCurrentThread(
+async function readFormatOnCurrentThread(
   descriptor,
   input,
   formatOptions = {},
   context = null
 )
 {
+  if (!descriptor.Format)
+  {
+    formatOptions = descriptor.GetValues(formatOptions);
+    const data = await descriptor.ReadDataAsync(input, formatOptions, context);
+    return descriptor.FinishRead(data, formatOptions, context);
+  }
   const Format = descriptor?.Format;
 
   if (typeof Format !== "function")

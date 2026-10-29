@@ -1,3 +1,4 @@
+import { getResourceExtension } from "#utils/path";
 import { CjsMeshConstructor, MeshPrefix } from "./CjsMeshConstructor.js";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 import { blue as blueService } from "#blue/blue";
@@ -98,18 +99,6 @@ function boundsPair(bounds)
 
 export class TriGeometryRes extends BlueAsyncRes
 {
-  /** Carbon: BLUE_REGISTER_RESOURCE_EXTENSION (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:18-21). */
-  static extensions = ["gr2", "cmf"];
-
-  /** Native format identities; .cmf is declared but not routed by our current defaults. */
-  static extensionFormats = { gr2: CjsGr2Format, cmf: CjsCmfFormat };
-
-  /** Declared by Carbon, not routed here; keep current loading support during relocation. */
-  static unroutedExtensions = { cmf: "declared by Carbon, not routed here: default CMF resource route pending" };
-
-  /** Our worker read preserves the Granny graph and Carbon's rebuilt geometry bounds. */
-  static readOptions = { gr2: { emit: "json", rebuildMissingBounds: true } };
-
   /**
    * Carbon: TriGeometryRes::CreateLodFromCMFMesh (trinity/trinity/Resources/TriGeometryRes.cpp:2019-2140).
    * Adapted: our worker payload is deinterleaved; repack it and align the stride
@@ -1681,11 +1670,30 @@ export class TriGeometryRes extends BlueAsyncRes
       const request = CjsMeshConstructor.parseQuery(this.GetPath().slice(MeshPrefix.length));
       if (!request) return BlueAsyncRes.LoadingResult.LR_FAILED;
       const bytes = this._dataStream.data;
-      data = request.path.toLowerCase().endsWith(".cmf")
-        ? CjsCmfFormat.read(bytes, { meshIndex: request.meshIndex })
-        : CjsCmfFormat.loadShared(CjsGr2Format.read(bytes, { rebuildMissingBounds: true, meshIndex: request.meshIndex }));
+      if (request.path.toLowerCase().endsWith(".cmf"))
+        data = CjsCmfFormat.read(bytes, { meshIndex: request.meshIndex });
+      else
+      {
+        const resMan = blueService.resMan;
+        const attempt = resMan._GetResourceLoad(this);
+        const format = resMan.GetFormat(getResourceExtension(request.path));
+        const options = resMan._GetResourceRequest(this);
+        const shared = await resMan.ReadFormatOnce(this, format, bytes, {
+          ...options, formatOptions: { ...options.formatOptions, meshIndex: request.meshIndex }
+        });
+        resMan._AssertResourceLoad(this, attempt);
+        data = CjsCmfFormat.loadShared(shared);
+      }
     }
-    else data = await blueService.resMan.ReadResourceObjectPayload(this, this._dataStream.data);
+    else
+    {
+      const resMan = blueService.resMan;
+      const attempt = resMan._GetResourceLoad(this);
+      const descriptor = blueService.resMan.GetResourceFormat(this);
+      data = await resMan.ReadFormatOnce(this, descriptor, this._dataStream.data,
+        resMan._GetResourceRequest(this));
+      resMan._AssertResourceLoad(this, attempt);
+    }
     const loaded = data?.grannyFileFormatRevision !== undefined
       ? this.ReadGrannyFile(data) : this.ReadCMFFile(data);
     return loaded ? BlueAsyncRes.LoadingResult.LR_SUCCESS : BlueAsyncRes.LoadingResult.LR_FAILED;
@@ -1719,7 +1727,11 @@ export class TriGeometryRes extends BlueAsyncRes
   /** The existing dynamic mesh path reads its named source, preserving native attempt cancellation. */
   async _DoOpenStream()
   {
-    if (!this.GetPath().startsWith(MeshPrefix)) return super._DoOpenStream();
+    if (!this.GetPath().startsWith(MeshPrefix))
+    {
+      blueService.resMan.GetResourceFormat(this);
+      return super._DoOpenStream();
+    }
     const request = CjsMeshConstructor.parseQuery(this.GetPath().slice(MeshPrefix.length));
     if (!request)
     {

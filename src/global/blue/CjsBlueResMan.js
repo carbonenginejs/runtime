@@ -1095,8 +1095,20 @@ export class CjsBlueResMan
     }
 
     const options = normalizeExtensionRouteOptions(formatOrFormatsOrOptions);
+    const instance = options.instance || null;
+    if (instance && (typeof instance !== "object" || Array.isArray(instance)))
+      throw new TypeError("Resource format registration requires a configured format instance.");
+    if (instance)
+    {
+      // Registered reader policy is fixed; a new profile has a new cache identity.
+      Object.freeze(instance.options);
+      Object.freeze(instance._classes);
+      Object.freeze(instance);
+    }
     const hasFormat = options.Format !== undefined || options.format !== undefined;
     const hasFormats = options.Formats !== undefined || options.formats !== undefined;
+    if (instance && (hasFormat || hasFormats))
+      throw new TypeError("Resource format registration cannot mix an instance and class descriptors.");
     if (hasFormat && hasFormats)
     {
       throw new TypeError("CjsBlueResMan.RegisterExtension accepts either Format or Formats, not both.");
@@ -1128,15 +1140,15 @@ export class CjsBlueResMan
       throw new TypeError("CjsBlueResMan extension Formats must be an array.");
     }
 
-    const loader = explicitFormats === null ? this.GetObjectLoader(ext) : null;
-    const formats = explicitFormats === null
+    const loader = !instance && explicitFormats === null ? this.GetObjectLoader(ext) : null;
+    const formats = instance ? [] : explicitFormats === null
       ? loader ? [] : this.GetFormatDescriptors(ext)
       : explicitFormats.map((entry, index) => createExtensionFormatDescriptor(
         entry,
         options.defaults || {},
         `Formats[${index}]`
       ));
-    if (!loader && formats.length === 0)
+    if (!instance && !loader && formats.length === 0)
     {
       throw new TypeError(`CjsBlueResMan extension .${ext} requires a Format, Formats, or registered reader.`);
     }
@@ -1148,6 +1160,7 @@ export class CjsBlueResMan
       handlerMode,
       loader,
       formats: [ ...formats ],
+      instance,
       Target,
       Identify
     };
@@ -1555,6 +1568,35 @@ export class CjsBlueResMan
 
 
   /**
+   * Return the configured reader from our resource type table.
+   * @param {string} extension Source extension, with or without a leading dot.
+   * @param {string} [ex=""] Carbon resource suffix.
+   * @returns {object} Configured format instance.
+   * @throws {Error} When no reader is registered for this extension and suffix.
+   */
+  GetFormat(extension, ex = "")
+  {
+    const key = normalizeResourceExtension(extension) + normalizeResourceExtension(ex);
+    const format = this.GetExtensionRoute(key)?.instance;
+    if (!format) throw new Error("CjsBlueResMan: no registered reader for ." + key);
+    return format;
+  }
+
+  /**
+   * Our format-instance lookup uses the manager's sole extension/ex table.
+   * Managed resources retain their captured route; direct loads use the same table.
+   * @param {BlueAsyncRes} resource Resource whose format is required.
+   * @returns {CjsFormat} Configured instance.
+   */
+  GetResourceFormat(resource)
+  {
+    const request = this._GetResourceRequest(resource);
+    const extension = request.ext || getResourceExtension(resource.GetFilePath());
+    return this._resourceExtensionRoutes.get(resource)?.instance
+      || this.GetFormat(extension, resource.GetExt());
+  }
+
+  /**
    * Decode through the configured reader and reject cancellation before returning to the family.
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @param {*} bytes Input accepted by the registered reader.
@@ -1596,13 +1638,13 @@ export class CjsBlueResMan
 
     return {
       loader: null,
-      descriptor: route
+      descriptor: route?.instance || (route
         ? resolveOrderedExtensionFormatDescriptor(
           route.formats,
           extension,
           { ...options, bytes, filename: resource.GetPath() }
         )
-        : this.ResolveFormatDescriptor(extension, { ...options, bytes, filename: resource.GetPath() }),
+        : this.ResolveFormatDescriptor(extension, { ...options, bytes, filename: resource.GetPath() })),
       route
     };
   }
@@ -1879,13 +1921,14 @@ export class CjsBlueResMan
    * @param {object} descriptor Selected immutable registration descriptor.
    * @param {*} bytes Source bytes supplied to the format facade.
    * @param {object} [options={}] Output, class, and `formatOptions` overrides.
+   * @param {object|null} [formatOptions=null] Effective options already captured by ReadFormatOnce.
    * @returns {Promise<*>} Parsed format outcome.
    * @throws {TypeError|Error} If the facade lacks a reader or reading fails.
    * @remarks Resource-backed calls pass normalized path context as the
    * reader's third argument; direct descriptor reads without a resource pass
    * `null`.
    */
-  async ReadFormat(descriptor, bytes, options = {})
+  async ReadFormat(descriptor, bytes, options = {}, formatOptions = null)
   {
     const readContext = READ_CONTEXTS.get(options);
     const context = readContext
@@ -1894,7 +1937,7 @@ export class CjsBlueResMan
     return this.resourceLoader.ReadFormat(
       descriptor,
       bytes,
-      createFormatReadOptions(descriptor, options),
+      formatOptions || createFormatReadOptions(descriptor, options),
       context
     );
   }
@@ -2623,9 +2666,13 @@ export class CjsBlueResMan
       return existing.promise;
     }
 
+    // Preserve caller option identities in the cache key, but snapshot construction
+    // mappings before deferring dispatch so pending reads cannot observe later edits.
+    const formatOptions = !descriptor.Format
+      ? createFormatReadOptions(descriptor, read.options) : null;
     /** @type {CjsResourceReadOperationRecord} */
     const record = {
-      promise: Promise.resolve().then(() => this.ReadFormat(descriptor, bytes, read.options)),
+      promise: Promise.resolve().then(() => this.ReadFormat(descriptor, bytes, read.options, formatOptions)),
       path: read.context.path,
       revisionKey: read.context.revisionKey,
       retain: cachePolicy === true
@@ -3912,7 +3959,8 @@ function noop() {}
  */
 function createFormatReadOptions(descriptor, options)
 {
-  const { Format, defaults } = descriptor;
+  const Format = !descriptor.Format ? descriptor.constructor : descriptor.Format;
+  const defaults = !descriptor.Format ? descriptor.GetValues() : descriptor.defaults;
   const formatOptions = {
     ...defaults,
     ...(options.formatOptions || {})
@@ -3925,7 +3973,7 @@ function createFormatReadOptions(descriptor, options)
   // Stream flags select a declared output; they are not decoder options.
   delete formatOptions.outputStreams;
   if (options.classes !== undefined) formatOptions.classes = options.classes;
-  return formatOptions;
+  return !descriptor.Format ? descriptor.GetValues(formatOptions) : formatOptions;
 }
 
 /**
@@ -4284,3 +4332,7 @@ CjsSchema.decorateMethod(CjsBlueResMan, "_MarkResourcePurged", CjsSchema.meta.cj
 CjsSchema.decorateMethod(CjsBlueResMan, "_CleanupResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
 CjsSchema.decorateMethod(CjsBlueResMan, "_LoadObjectData", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceFormat", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+
+CjsSchema.decorateMethod(CjsBlueResMan, "GetFormat", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

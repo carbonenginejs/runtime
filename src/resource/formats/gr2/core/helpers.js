@@ -900,3 +900,19 @@ export function inspectRawGr2Result(parsed)
         }
     };
 }
+
+/**
+ * Read our native shared GR2 data without selecting a JSON output or constructing classes.
+ * @param {Gr2MeshRuleContext["reader"]} reader Configured format instance.
+ * @param {*} input GR2 bytes or reflected file data.
+ * @param {Gr2Values} values Effective decode values.
+ * @returns {object} Shared geometry with typed channel and index storage.
+ */
+export function readSharedData(reader, input, values)
+{
+    if (values.lodIndex !== null) throw new TypeError("GR2 shared data keeps each LOD as its own mesh.");
+    const raw = selectFileMeshes(readRawInput(input), values.meshIndex);
+    return finishProjection(reader, projectShared(raw.fileInfo, raw.version, {
+        rebuildMissingBounds: values.rebuildMissingBounds
+    }), raw, values);
+}

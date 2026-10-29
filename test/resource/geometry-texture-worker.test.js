@@ -10,6 +10,7 @@ import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
 import { LoadParameters, Metadata } from "../../npm/dist/global/imageio/index.js";
 import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
+import { TriGrannyRes } from "../../npm/dist/trinity/resources/geometry/granny/index.js";
 import { RegisterTextureArray, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -65,11 +66,10 @@ test("GR2 worker decode feeds the native load hook without fetching existing byt
   resource._ext = "";
   manager._StartResourceLoad(resource);
   resource._dataStream = { form: "bytes", data: bytes };
-  manager.RegisterFormat(CjsGr2Format, { emit: "json", rebuildMissingBounds: true });
-  const original = CjsGr2Format.read;
-  CjsGr2Format.read = () => { throw new Error("main-thread GR2 decode must not execute"); };
+  const original = CjsGr2Format.prototype.ReadDataAsync;
+  CjsGr2Format.prototype.ReadDataAsync = () => { throw new Error("main-thread GR2 decode must not execute"); };
   try { assert.equal(await resource._DoLoad(), resource.constructor.LoadingResult.LR_SUCCESS); }
-  finally { CjsGr2Format.read = original; resource._dataStream = null; manager._CancelResourceLoad(resource); }
+  finally { CjsGr2Format.prototype.ReadDataAsync = original; resource._dataStream = null; manager._CancelResourceLoad(resource); }
   assert.deepEqual(resource.GetGrannyInfo(), expected);
   assert.ok(resource.GetGrannyInfo().meshes[0].vertex.position instanceof Float32Array);
   assert.equal(resource.GetCMFData().meshes[0].vertex.position,
@@ -294,4 +294,210 @@ test("a PNG decodes on this thread when no worker is available", async () =>
   await configureResourceManager(manager);
   const image = await manager.FetchResource("res:/plain.png", { ex: "raw" });
   assert.equal(image.GetBitmap().GetWidth(), 2);
+});
+
+test("direct Granny Load uses library registration, both queues and the worker", async t =>
+{
+  const { loader, messages } = workerLoader(t);
+  const bytes = grannyBytes();
+  let reads = 0;
+  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read() { reads++; return bytes; } } });
+  await configureResourceManager(manager);
+  assert.equal(manager.GetFormatDescriptors("gr2").length, 0, "no bare-format registration masks the extension/ex reader");
+  manager.PauseQueue(CjsResManQueue.BACKGROUND);
+  manager.PauseQueue(CjsResManQueue.MAIN);
+  const resource = new TriGrannyRes();
+  const other = new TriGrannyRes();
+  const original = CjsGr2Format.prototype.ReadDataAsync;
+  CjsGr2Format.prototype.ReadDataAsync = () => { throw new Error("direct Granny decode must execute on the worker"); };
+  t.after(() => { CjsGr2Format.prototype.ReadDataAsync = original; });
+  const first = resource.Load("res:/direct.gr2");
+  const second = other.Load("res:/direct.gr2");
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(reads, 0, "a paused background queue prevents source I/O");
+  assert.equal(messages.length, 0);
+  manager.ResumeQueue(CjsResManQueue.BACKGROUND);
+  const deadline = Date.now() + 10000;
+  while (manager.GetPendingLoads() !== 0)
+  {
+    assert.ok(Date.now() < deadline, "background worker loads settle");
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+  assert.equal(resource.IsPrepared(), false, "preparation stays on MAIN");
+  assert.equal(reads, 1, "concurrent direct handles share the source operation");
+  assert.equal(messages.filter(message => message.operation === "format.read").length, 1,
+    "the stable registered descriptor shares the decode operation");
+  manager.ResumeQueue(CjsResManQueue.MAIN);
+  assert.deepEqual(await Promise.all([first, second]), [true, true]);
+  assert.equal(resource.GetExt(), "raw");
+  assert.equal(resource.GetGrannyFile().meshes.length, 1);
+  assert.ok(bytes.byteLength > 0, "worker decoding does not detach shared input");
+  assert.equal(manager.GetExtensionRoute("cmf"), null);
+  assert.equal(manager.GetExtensionRoute("cmfraw"), null);
+});
+
+test("direct geometry Initialize resolves the configured reader without CreateResource", async t =>
+{
+  const { loader, messages } = workerLoader(t);
+  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: grannyBytes } });
+  await configureResourceManager(manager);
+  const geometry = new TriGeometryRes();
+  geometry.Initialize("res:/direct-geometry.gr2", "");
+  await manager.Ready(geometry);
+  assert.equal(geometry.GetMeshCount(), 1);
+  const decode = messages.find(message => message.operation === "format.read");
+  assert.ok(decode, "configured geometry runs through its worker declaration");
+  assert.equal(geometry.IsUsingCMF(), false, "the reduced fix preserves existing Granny animation data");
+  assert.ok(geometry.GetGrannyInfo());
+});
+
+test("direct unregistered file loads fail before I/O and cannot use the bare format registry", async t =>
+{
+  let reads = 0;
+  const manager = new CjsBlueResMan({ source: { Read() { reads++; return grannyBytes(); } } });
+  await configureResourceManager(manager);
+  manager.RegisterFormat(CjsGr2Format, { emit: "json" });
+  const raw = new TriGrannyRes();
+  assert.equal(await raw.Load("res:/unregistered.gsf"), false);
+  assert.match(manager.GetResourceStatus(raw).error.message, /no registered reader for \.gsf/u);
+  const geometry = new TriGeometryRes();
+  geometry.Initialize("res:/unregistered.gsf", "");
+  await assert.rejects(manager.Ready(geometry), /no registered reader for \.gsf/u);
+  assert.equal(reads, 0);
+  assert.throws(() => manager.GetFormat(".gsf"), /no registered reader/u);
+});
+
+
+test("registered GR2 instances finish worker and in-place data once with Blue on and off", async t =>
+{
+  const { loader, messages } = workerLoader(t);
+  const bytes = grannyBytes();
+  let populated = 0, finished = 0;
+  class Mesh
+  {
+    SetValues(values) { populated++; Object.assign(this, values); }
+  }
+  const finish = CjsGr2Format.prototype.FinishRead;
+  t.mock.method(CjsGr2Format.prototype, "FinishRead", function(data, options)
+  {
+    finished++;
+    return finish.call(this, data, options);
+  });
+  for (const buildClasses of [false, true])
+  {
+    const results = [];
+    for (const workers of [false, true])
+    {
+      const before = messages.length;
+      const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
+      await configureResourceManager(manager, {
+        formatOptions: { buildClasses },
+        formats: { gr2: { Format: CjsGr2Format, options: { classes: { Mesh }, rebuildMissingBounds: true },
+          workers, routes: [{ extension: "gr2", Res: TriGeometryRes }] } }
+      });
+      const resource = await manager.FetchResource("res:/parity.gr2");
+      const data = resource.GetGrannyInfo();
+      assert.equal(data.meshes[0] instanceof Mesh, buildClasses);
+      assert.ok(data.meshes[0].vertex.position instanceof Float32Array);
+      assert.ok(ArrayBuffer.isView(data.meshes[0].indices[0].faces));
+      assert.equal(resource.GetCMFData().meshes[0].vertex.position, data.meshes[0].vertex.position);
+      const requests = messages.slice(before).filter(message => message.operation === "format.read");
+      assert.equal(requests.length, workers ? 1 : 0);
+      if (workers)
+      {
+        assert.equal(requests[0].payload.nativeData, true);
+        assert.equal(Object.hasOwn(requests[0].payload.options, "classes"), false);
+        assert.equal(Object.hasOwn(requests[0].payload.options, "emit"), false);
+      }
+      results.push(data);
+      manager.Clear();
+    }
+    assert.deepEqual(results[0], results[1]);
+  }
+  assert.equal(finished, 4);
+  assert.equal(populated, 2);
+  assert.ok(bytes.byteLength > 0);
+});
+
+test("GR2 registrations keep distinct options and cached results for the same source", async t =>
+{
+  const { loader, messages } = workerLoader(t);
+  const bytes = grannyBytes();
+  let reads = 0;
+  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read() { reads++; return bytes; } } });
+  await configureResourceManager(manager, {
+    formats: { gr2raw: { Format: CjsGr2Format, options: { rebuildMissingNormals: true },
+      routes: [{ extension: "gr2", ex: "raw", Res: TriGrannyRes }] } }
+  });
+  const [geometry, granny] = await Promise.all([
+    manager.FetchResource("res:/profiles.gr2", { cacheSource: true, cacheFormat: true }),
+    manager.FetchResource("res:/profiles.gr2", { ex: "raw", cacheSource: true, cacheFormat: true })
+  ]);
+  assert.equal(reads, 1);
+  assert.equal(messages.filter(message => message.operation === "format.read").length, 2);
+  assert.deepEqual(geometry.GetGrannyInfo().meshes[0].vertex.normal, []);
+  assert.deepEqual(Array.from(granny.GetGrannyFile().meshes[0].vertex.normal), [0,0,1, 0,0,1, 0,0,1]);
+  assert.throws(() => manager.GetFormat("gr2").SetValues({ rebuildMissingNormals: true }), TypeError);
+});
+
+test("GR2 callback options stay in place and preserve their per-mesh behavior", async t =>
+{
+  const { loader, messages } = workerLoader(t);
+  let calls = 0;
+  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: grannyBytes } });
+  await configureResourceManager(manager, {
+    formats: { gr2: { Format: CjsGr2Format,
+      options: { rebuildMissingNormals: () => { calls++; return true; } },
+      routes: [{ extension: "gr2", Res: TriGeometryRes }] } }
+  });
+  const resource = await manager.FetchResource("res:/callback.gr2");
+  assert.equal(calls, 1);
+  assert.deepEqual(Array.from(resource.GetGrannyInfo().meshes[0].vertex.normal), [0,0,1, 0,0,1, 0,0,1]);
+  assert.equal(messages.filter(message => message.operation === "format.read").length, 0);
+});
+
+
+test("captured geometry routes preserve explicit extensions and different ex profiles", async t =>
+{
+  const manager = new CjsBlueResMan({ source: { Read: grannyBytes } });
+  await configureResourceManager(manager, {
+    formats: { geometryNormals: { Format: CjsGr2Format, options: { rebuildMissingNormals: true },
+      routes: [{ extension: "gr2", ex: "normals", Res: TriGeometryRes }] } }
+  });
+  const [base, normals] = await Promise.all([
+    manager.FetchResource("res:/opaque", { ext: "gr2" }),
+    manager.FetchResource("res:/opaque", { ext: "gr2", ex: "normals" })
+  ]);
+  assert.deepEqual(base.GetGrannyInfo().meshes[0].vertex.normal, []);
+  assert.deepEqual(Array.from(normals.GetGrannyInfo().meshes[0].vertex.normal), [0,0,1, 0,0,1, 0,0,1]);
+});
+
+
+test("pending GR2 workers finish with the class mapping captured at dispatch", async t =>
+{
+  const { loader } = workerLoader(t);
+  class First { SetValues(values) { Object.assign(this, values); } }
+  class Second { SetValues(values) { Object.assign(this, values); } }
+  const classes = { Mesh: First };
+  const format = new CjsGr2Format().SetBlue({});
+  const pending = loader.ReadFormat(format, grannyBytes(), { classes });
+  classes.Mesh = Second;
+  const result = await pending;
+  assert.ok(result.meshes[0] instanceof First);
+});
+
+
+test("dynamic single-mesh GR2 reads use the configured native-data worker", async t =>
+{
+  const { loader, messages } = workerLoader(t);
+  const bytes = grannyBytes();
+  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
+  await configureResourceManager(manager);
+  const resource = await manager.FetchResource("dynamic:/mesh/0/res:/single.gr2");
+  assert.equal(resource.GetMeshCount(), 1);
+  assert.equal(resource.GetCMFData().meshes[0].vertex.position.length, 9);
+  const request = messages.find(message => message.operation === "format.read");
+  assert.equal(request.payload.nativeData, true);
+  assert.equal(request.payload.options.meshIndex, 0);
+  assert.ok(bytes.byteLength > 0);
 });

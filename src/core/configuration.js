@@ -24,9 +24,10 @@ const imageExtensions = [...Tr2ImageRes.extensions, ...Tr2ImageRes.additionalExt
   .filter(extension => !Object.hasOwn(Tr2ImageRes.unroutedExtensions, extension));
 const shaderExtensions = [...Tr2EffectRes.extensions, ...Tr2EffectRes.additionalExtensions]
   .map(extension => extension.toLowerCase());
-const geometryExtensions = TriGeometryRes.extensions
-  .filter(extension => !Object.hasOwn(TriGeometryRes.unroutedExtensions, extension));
-
+// Carbon: TriGeometryRes_Blue.cpp:18-21 declares gr2 and cmf; TriGrannyRes.cpp:121-123
+// declares gr2raw and cmfraw. GR2 is always supported here. CMF stays declared
+// but unrouted until its worker path and raw-resource query/animation parity land.
+// Reader selection and options are explicit application policy, not class imports.
 /**
  * Explicit Trinity resource defaults. Importing this data installs nothing.
  * Loaders remain with their resource owners; the effect translator and
@@ -34,7 +35,13 @@ const geometryExtensions = TriGeometryRes.extensions
  * is constructed.
  */
 export const DefaultConfiguration = {
+  formatOptions: { buildClasses: true },
+
   formats: {
+    gr2: { Format: CjsGr2Format, options: { rebuildMissingBounds: true },
+      routes: [{ extension: "gr2", Res: TriGeometryRes }] },
+    gr2raw: { Format: CjsGr2Format, options: {},
+      routes: [{ extension: "gr2", ex: "raw", Res: TriGrannyRes }] },
     png: CjsPngFormat,
     vta: CjsVtaFormat
   },
@@ -43,16 +50,10 @@ export const DefaultConfiguration = {
     ...Object.fromEntries(textureExtensions.map(extension => [extension, TriTextureRes])),
     ...Object.fromEntries(imageExtensions.map(extension => [extension, Tr2ImageRes])),
     ...Object.fromEntries(shaderExtensions.map(extension => [extension, Tr2EffectRes])),
-    ...Object.fromEntries(geometryExtensions.map(extension => [extension, {
-      Handler: TriGeometryRes,
-      Format: TriGeometryRes.extensionFormats[extension],
-      defaults: TriGeometryRes.readOptions[extension]
-    }])),
 
     // Carbon: Tr2LightProfileRes_Blue.cpp:25-26. Profile strips are never compressed.
     ddslp: Tr2LightProfileRes,
-    ieslp: { Handler: Tr2LightProfileRes, Format: CjsIESFormat, defaults: { emit: "lightProfile" } },
-    gr2raw: { Handler: TriGrannyRes, Format: CjsGr2Format, defaults: { emit: "json" } }
+    ieslp: { Handler: Tr2LightProfileRes, Format: CjsIESFormat, defaults: { emit: "lightProfile" } }
   },
 
   objectLoaders: {

@@ -110,6 +110,17 @@ export class TriGrannyRes extends BlueAsyncRes
   _useCMF = false;
 
   /**
+   * Check application registration before opening the source through resMan.
+   * @returns {Promise<boolean>} Whether the configured source opened.
+   * @throws {Error} When the source extension has no registered reader.
+   */
+  _DoOpenStream()
+  {
+    blueService.resMan.GetResourceFormat(this);
+    return super._DoOpenStream();
+  }
+
+  /**
    * Carbon DoLoad (TriGrannyRes.cpp:200-260). Browser reads may use a worker;
    * retain the decoded Granny projection after the manager checks cancellation.
    * @returns {Promise<number>} Native LoadingResult.
@@ -118,7 +129,12 @@ export class TriGrannyRes extends BlueAsyncRes
   {
     this._useCMF = this.GetFilePath().endsWith(".cmf");
     if (this._useCMF) return BlueAsyncRes.LoadingResult.LR_FAILED;
-    const payload = await blueService.resMan.ReadResourceObjectPayload(this, this._dataStream.data);
+    const resMan = blueService.resMan;
+    const attempt = resMan._GetResourceLoad(this);
+    const descriptor = blueService.resMan.GetResourceFormat(this);
+    const payload = await resMan.ReadFormatOnce(this, descriptor, this._dataStream.data,
+      resMan._GetResourceRequest(this));
+    resMan._AssertResourceLoad(this, attempt);
     assertResourcePayloadObject("TriGrannyRes", payload);
     // Emptiness, not absence. The old guard asked whether the arrays EXISTED,
     // and `CjsGr2Format.read` always builds them - so reading a `.gsf` state
@@ -167,49 +183,24 @@ export class TriGrannyRes extends BlueAsyncRes
   }
 
   /**
-   * Carbon Load (TriGrannyRes.cpp:173-198), exposed as LoadForTools. JavaScript
-   * awaits the source read directly; Initialize would wrongly enqueue a second load.
+   * Carbon Load (TriGrannyRes.cpp:173-198), exposed as LoadForTools.
+   * Adapted: browser I/O and decoding use resMan's normal background/worker
+   * and main preparation queues instead of Carbon's inline stream read.
    * @param {string} path Resource path.
    * @returns {Promise<boolean>} Whether loading and preparation succeeded.
    */
   async Load(path)
   {
     this.CancelPendingLoad();
-    this._path = path;
-    this._ext = "raw";
-    const attempt = blueService.resMan._StartResourceLoad(this);
-    this._isLoading = true;
-    this._isPrepared = this._isGood = false;
+    this.Initialize(path, "raw");
     try
     {
-      if (!await this._DoOpenStream()) return false;
-      blueService.resMan._AssertResourceLoad(this, attempt);
-      const loaded = await this._DoLoad();
-      blueService.resMan._AssertResourceLoad(this, attempt);
-      this._isLoading = false;
-      this._CleanupLoadData();
-      this._CloseStream();
-      if (loaded !== BlueAsyncRes.LoadingResult.LR_SUCCESS) return false;
-      this._isGood = this._DoPrepare();
-      this._isPrepared = true;
-      return this._isGood;
+      await blueService.resMan.Ready(this);
+      return this.IsGood();
     }
-    catch (error)
+    catch
     {
-      if (blueService.resMan._IsResourceLoadCurrent(this, attempt))
-        blueService.resMan._RecordResourceFailure(this, error);
       return false;
-    }
-    finally
-    {
-      if (blueService.resMan._IsResourceLoadCurrent(this, attempt))
-      {
-        this._isLoading = false;
-        this._isPrepared = true;
-        this._CleanupLoadData();
-        this._CloseStream();
-        blueService.resMan._FinishResourceLoad(this);
-      }
     }
   }
 
@@ -1216,3 +1207,7 @@ CjsSchema.blue.chainTo(BlueAsyncRes)(TriGrannyRes);
 CjsSchema.decorateMethod(TriGrannyRes, "_DoLoad", meta.adapted);
 
 CjsSchema.decorateMethod(TriGrannyRes, "_OnShutdown", meta.adapted);
+
+
+
+CjsSchema.decorateMethod(TriGrannyRes, "_DoOpenStream", meta.adapted, meta.implemented);

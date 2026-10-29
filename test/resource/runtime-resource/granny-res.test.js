@@ -39,7 +39,7 @@ function withFiles(t, files)
   const paths = new CjsBluePaths();
   paths.RegisterFileSystem(memoryFileSystem(files));
   const resMan = new CjsBlueResMan({ source: { async Read(path) { const stream = await paths.GetStreamFromPath(path, {accept: ["bytes"]}); return stream?.data; } } });
-  resMan.RegisterFormat(CjsGr2Format, {emit: "json"});
+  resMan.RegisterExtension("gr2raw", TriGrannyRes, { instance: new CjsGr2Format() });
   const previous = installBlueServices({ paths, resMan }, false);
   t.after(() => installBlueServices(previous, previous.running));
 }
@@ -130,7 +130,7 @@ test("Load reads a GR2 through blue.paths, decodes it and marks the resource goo
 
   const cmf = new TriGrannyRes();
   assert.equal(await cmf.Load("res:/a.cmf"), false, "Tr2CmfContents is not ported");
-  assert.equal(cmf.IsUsingCMF(), true);
+  assert.equal(cmf.IsUsingCMF(), false, "unregistered CMF fails before decoder state changes");
 });
 
 test("model, mesh and animation counts and names (cpp:959-1007, 1547-1725)", () =>
@@ -315,7 +315,11 @@ test("a superseded direct tools load cannot finish or close its successor", asyn
   const pending = [];
   const manager = new CjsBlueResMan({ source: { Read() { return new Promise(resolve => pending.push(resolve)); } } });
   blue.resMan = manager;
-  manager.RegisterObjectLoader("gr2", bytes => ({ models: [{ name: String(bytes[0]) }], meshes: [], animations: [] }));
+  class DelayedGrannyFormat extends CjsGr2Format
+  {
+    async ReadDataAsync(bytes) { return { models: [{ name: String(bytes[0]) }], meshes: [], animations: [] }; }
+  }
+  manager.RegisterExtension("gr2raw", TriGrannyRes, { instance: new DelayedGrannyFormat().SetWorkerEnabled(false) });
   t.after(() => { manager.Clear(); blue.resMan = previous; });
   const resource = new TriGrannyRes();
   const first = resource.Load("res:/first.gr2");

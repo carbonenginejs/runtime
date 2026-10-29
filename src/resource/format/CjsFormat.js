@@ -1,3 +1,4 @@
+import { canCloneFormatOptions } from "./workerOptions.js";
 import { StreamType } from "#consts/media";
 
 /**
@@ -102,6 +103,12 @@ export class CjsFormat
 
   options = {};
 
+  /** Our main-thread construction service; never part of worker options. */
+  _blue = null;
+
+  /** Our per-registration worker policy, separate from decoder options. */
+  _workerEnabled = true;
+
   /**
    * Create a format facade with caller-owned default options.
    * @param {object|null} [options] Default read options.
@@ -126,11 +133,74 @@ export class CjsFormat
   /**
    * Return caller-provided instance defaults.
    *
-   * @returns {object} A copy of the instance options.
+   * @param {object|null} [options=null] Per-call overrides.
+   * @returns {object} A copy of the effective instance options.
    */
-  GetValues()
+  GetValues(options = null)
   {
-    return { ...this.options };
+    return { ...this.options, ...(options || {}) };
+  }
+
+  /**
+   * Supply our optional class-construction service without changing decode options.
+   * @param {object|null} blue Main-thread Blue service, or null for plain data.
+   * @returns {this} This format.
+   */
+  SetBlue(blue)
+  {
+    this._blue = blue;
+    return this;
+  }
+
+  /**
+   * Set our registration's worker permission.
+   * @param {boolean} enabled Whether this registration may execute in a worker.
+   * @returns {this} This format.
+   */
+  SetWorkerEnabled(enabled)
+  {
+    this._workerEnabled = enabled;
+    return this;
+  }
+
+  /**
+   * Describe our transferable read, or keep it on the caller thread.
+   * @param {object} [options={}] Per-call decoder options.
+   * @returns {object|null} Module, export and plain options, or null.
+   */
+  GetWorkerRequest(options = {})
+  {
+    const declaration = this.constructor.worker;
+    const values = this.GetValues(options);
+    if (!this._workerEnabled || !declaration || !canCloneFormatOptions(values)) return null;
+    const output = values.emit ?? declaration.defaultOutput;
+    if (declaration.outputTypes && !declaration.outputTypes.includes(output)) return null;
+    return { module: String(declaration.module),
+      exportName: declaration.exportName || FormatName(this.constructor), options: values };
+  }
+
+  /**
+   * Our internal data operation; formats may keep standalone output APIs separate.
+   * @param {*} input Source bytes.
+   * @param {object} [options={}] Per-call decoder options.
+   * @param {object|null} [context=null] Resource path context.
+   * @returns {Promise<*>} Data suitable for the format's finish operation.
+   */
+  async ReadDataAsync(input, options = {}, context = null)
+  {
+    return this.ReadAsync(input, options, context);
+  }
+
+  /**
+   * Finish our internal read once on the main thread.
+   * @param {*} data Decoded data or transferred buffers.
+   * @param {object} [_options={}] Per-call decoder options.
+   * @param {object|null} [_context=null] Resource path context.
+   * @returns {*} Published data; formats with class mappings override this.
+   */
+  FinishRead(data, _options = {}, _context = null)
+  {
+    return data;
   }
 
   /**

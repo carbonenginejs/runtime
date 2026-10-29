@@ -222,6 +222,12 @@ export class CjsResManWorkerLoader
    * @returns {boolean}
    */
   CanReadFormat(descriptor, formatOptions = {}, context = null) {
+    if (!descriptor.Format) {
+      formatOptions = descriptor.GetValues(formatOptions);
+      const request = descriptor.GetWorkerRequest(formatOptions);
+      return Boolean(request && canCloneWorkerValue(request.options)
+        && canCloneWorkerValue(context) && this.IsAvailable());
+    }
     const declaration = normalizeFormatWorkerDeclaration(descriptor);
     return Boolean(
       declaration
@@ -246,6 +252,18 @@ export class CjsResManWorkerLoader
    * @returns {Promise<*>} Format result.
    */
   ReadFormat(descriptor, input, formatOptions = {}, context = null) {
+    if (!descriptor.Format) {
+      formatOptions = descriptor.GetValues(formatOptions);
+      const request = descriptor.GetWorkerRequest(formatOptions);
+      if (!request || !canCloneWorkerValue(request.options)
+        || !canCloneWorkerValue(context) || !this.IsAvailable()) {
+        return this.fallback.ReadFormat(descriptor, input, formatOptions, context);
+      }
+      // Source cache bytes remain attached. Only the worker's output is transferred.
+      return this.Execute(Operation.FORMAT_READ, {
+        ...request, input, context, nativeData: true
+      }).then(data => descriptor.FinishRead(data, formatOptions, context));
+    }
     const declaration = normalizeFormatWorkerDeclaration(descriptor);
     if (!declaration
       || !isWorkerFormatOutputSupported(declaration, formatOptions)

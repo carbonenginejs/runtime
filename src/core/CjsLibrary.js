@@ -15,9 +15,10 @@ import { SetEffectPathDefaults } from "#utils/effectPath";
 
 let activeLibrary = null;
 
+
 /** Reader/factory policy is installed at startup; changing it requires reboot. */
 const REBOOT_CONFIGURATION_SECTIONS = new Set([
-  "formats", "objectLoaders", "objectBuilders", "extensions",
+  "formats", "formatOptions", "objectLoaders", "objectBuilders", "extensions",
   "resourceConstructors", "imageHandlers", "callbackMan", "effects"
 ]);
 
@@ -132,7 +133,7 @@ export class CjsLibrary
     const { resMan, paths, settings } = this._configurationOwners;
     this._ValidateConfigurationOwners(configuration);
     this._configurationFailure = null;
-    for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions",
+    for (const section of ["formatOptions", "resMan", "formats", "objectLoaders", "objectBuilders", "extensions",
       "resourceConstructors", "imageHandlers", "paths", "settings", "callbackModules", "effects"])
     {
       const entries = configuration[section] || {};
@@ -178,7 +179,17 @@ export class CjsLibrary
       {
         try
         {
-          if (["formats", "objectLoaders", "extensions"].includes(section))
+          if (section === "formats" && value.routes)
+          {
+            const format = new value.Format(value.options || {});
+            format.SetBlue(this._configuration.formatOptions.buildClasses ? blue : null);
+            format.SetWorkerEnabled(value.workers !== false);
+            for (const { extension, ex = "", Res } of value.routes)
+            {
+              resMan.RegisterExtension(extension + ex, Res, { instance: format });
+            }
+          }
+          else if (["formats", "objectLoaders", "extensions"].includes(section))
             resMan.Register({ [section]: { [key]: value } });
           else if (section === "objectBuilders") resMan.RegisterObjectBuilder(key, value);
           else if (section === "resourceConstructors")
@@ -246,7 +257,7 @@ export class CjsLibrary
         const installedPolicy = installedResourcePolicies.get(blue.resMan) || null;
         if (this._configurationOwners?.resMan !== blue.resMan)
         {
-          for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions", "resourceConstructors"])
+          for (const section of ["resMan", "formats", "formatOptions", "objectLoaders", "objectBuilders", "extensions", "resourceConstructors"])
             delete this._configured[section];
         }
         if (installedPolicy) Object.assign(this._configured, CopyConfiguration(installedPolicy));
@@ -401,6 +412,18 @@ function ValidateConfiguration(configuration)
       {
         const Format = typeof value === "function" ? value : value?.Format;
         valid = typeof Format === "function" && Array.isArray(Format.extensions) && Format.extensions.length > 0;
+        if (valid && value.routes !== undefined)
+          valid = Array.isArray(value.routes) && value.routes.length > 0
+            && value.routes.every(route =>
+            {
+              if (!plain(route)) return false;
+              const { Res, extension, ex } = route;
+              return typeof extension === "string" && extension.trim().replace(/^\./u, "") !== ""
+                && typeof Res === "function" && Res.isResource === true
+                && (ex === undefined || typeof ex === "string");
+            })
+            && (value.options === undefined || plain(value.options))
+            && (value.workers === undefined || typeof value.workers === "boolean");
       }
 
       else if (section === "extensions")
@@ -408,6 +431,7 @@ function ValidateConfiguration(configuration)
         const Handler = typeof value === "function" ? value : value?.Handler;
         valid = typeof Handler === "function" && (!!Handler.handlerMode || Handler.isResource === true);
       }
+      else if (section === "formatOptions") valid = key === "buildClasses" && typeof value === "boolean";
       else if (section === "imageHandlers") valid = typeof value === "function";
       else if (section === "resourceConstructors") valid = typeof value === "function" || !!CjsSchema.cast(value, IBlueDynamicResourceConstructor);
       else if (section === "paths") valid = !!CjsSchema.cast(value, IBlueResFileSystem);

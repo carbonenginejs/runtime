@@ -51,6 +51,45 @@ hooks and retain it in family-owned fields, such as `TriTextureRes.loadedBitmap`
 or `TriGeometryRes` mesh data. Plain data and cached object builders belong to
 the manager; use `blue.resMan.GetResourcePayload(resource)` to inspect plain data.
 
+## Geometry reader instances
+
+CjsLibrary configures GR2 through one format instance per named registration.
+The formats.gr2 and formats.gr2raw entries name CjsGr2Format, their options,
+and routes containing extension, optional ex, and the receiving Res class.
+Geometry enables missing bounds; the raw Granny profile keeps its own options.
+One manager entry contains the receiving class and format instance.
+GetFormat(extension, ex) reads that entry on blue.resMan; resource classes keep
+no reader table. Profiles are fixed after registration; supply a fresh
+configuration and manager when changing reader policy.
+
+TriGrannyRes.Load(path) uses the ordinary background load and main prepare
+queues and returns a promise for a boolean. Direct TriGeometryRes.Initialize
+also resolves the configured reader. Missing registrations fail before opening
+the source. Direct construction no longer requires an unrelated bare format
+registration to make .gr2 readable.
+
+An instance's GetWorkerRequest supplies its module, export, and cloneable
+decode options. Worker decoding and in-place decoding call ReadDataAsync;
+both call FinishRead once on the main thread. GR2 uses its native shared
+projection with typed source channels and indices, preserving shared buffers.
+The internal path does not select a JSON output. Public static reads and their
+standalone emit choices remain available.
+
+The library-wide formatOptions.buildClasses switch defaults to true and
+supplies Blue to registered instances. Explicit node-class mappings are applied
+in the finish step; there are no default Blue targets for the shared GR2 nodes,
+so an unmapped read remains plain data. Setting the switch to false always
+returns plain data. Class references never cross the worker boundary. Callback
+options that cannot be cloned keep the read in place, and workers: false
+disables workers for that registration. Shared source-cache bytes are not
+detached.
+
+CMF and CMF-raw remain declared but unrouted. GSF is state-machine data;
+gr2Json is an output, not an independently registered file reader. Other
+geometry importers retain their standalone APIs. Texture, effect and object
+registrations retain their existing configuration while their instance
+migration is pending.
+
 ## Black resource names
 
 Black payload and JSON output preserve each field's exact file name and casing.
