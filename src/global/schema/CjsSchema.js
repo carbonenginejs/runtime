@@ -721,8 +721,8 @@ export class CjsSchema
         mat4: wrappableTypeDecorator("mat4"),
         map: valueType => fieldDecorator("type", { kind: "map", valueType }),
         /**
-         * Carbon's IROOTPTR: a pointer to an object of the class, owned or
-         * not; ownership is declared separately (`meta.owned`).
+         * Carbon's IROOTPTR: a pointer to an object of the class; the same kind
+         * as `object.ref`.
          */
         rootRef: className => objectTypeDecorator("rootRef", className),
         /** Declares a live resource edge that values, persistence and copying must omit. */
@@ -827,14 +827,6 @@ export class CjsSchema
         persistOnly: fieldDecorator("edit", { persist: true, persistOnly: true, hidden: true }),
 
 
-    };
-
-    // Stored ownership metadata remains available to explicit graph traversal.
-    // Readers initialize only their own newly allocated objects; ownership does
-    // not make them initialize constructor defaults or borrowed instances.
-    static #lifecycle = {
-        owned: fieldDecorator("lifecycle", { ownership: "owned" }),
-        reference: fieldDecorator("lifecycle", { ownership: "reference" })
     };
 
     // Composition decorators: type/edit/carbon/impl/jessica DESCRIBE, compose
@@ -1028,7 +1020,6 @@ export class CjsSchema
             if (!Number.isSafeInteger(index) || index < 0) throw new TypeError("meta.keyIndex requires a nonnegative safe integer.");
             return fieldDecorator("keyIndex", index);
         },
-        ...this.#lifecycle,
         events: this.#compose.notify,
         values: this.#compose.values,
         /**

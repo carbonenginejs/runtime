@@ -202,10 +202,8 @@ test("EnumerateChildren walks are cycle-safe and GetResources visits every model
     }
     CjsSchema.defineField(GraphModel, "children", "type", { kind: "array", itemType: "GraphModel" });
     CjsSchema.defineField(GraphModel, "children", "edit", { read: true, write: true, persist: true });
-    CjsSchema.defineField(GraphModel, "children", "lifecycle", { ownership: "owned" });
     CjsSchema.defineField(GraphModel, "peer", "type", { kind: "rootRef", className: "GraphModel" });
     CjsSchema.defineField(GraphModel, "peer", "edit", { read: true, write: true, persist: true });
-    CjsSchema.defineField(GraphModel, "peer", "lifecycle", { ownership: "reference" });
     CjsSchema.define(GraphModel, { className: "GraphModel" });
 
     const root = new GraphModel();

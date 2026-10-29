@@ -12,8 +12,8 @@ class Graph
 CjsSchema.define(Graph, {
     className: "BlueTraversalGraph",
     members: [
-        { name: "child", key: "child", type: { kind: "rootRef", className: Graph }, lifecycle: { ownership: "owned" } },
-        { name: "list", key: "list", type: { kind: "list", itemType: "BlueTraversalGraph" }, lifecycle: { ownership: "owned" } },
+        { name: "child", key: "child", type: { kind: "rootRef", className: Graph } },
+        { name: "list", key: "list", type: { kind: "list", itemType: "BlueTraversalGraph" } },
         { name: "map", key: "map", type: { kind: "map", valueType: Graph } },
         { name: "set", key: "set", type: { kind: "set", itemType: { kind: "rootRef", className: Graph } } },
         { name: "embedded", key: "embedded", type: { kind: "root", className: Graph } },
@@ -86,11 +86,6 @@ test("the filtered overload reports attributes, list items and map values separa
         ["list", "c", 0, "list", true],
         ["list", "d", 1, "list", true]
     ]);
-    // Declared ownership is an ordinary member fact a filter can test.
-    const owned = [];
-    blue.EnumerateChildren__Filter(root, child => owned.push(child.name), child => owned.push(child.name),
-        child => owned.push(child.name), member => member.lifecycle !== undefined && member.lifecycle.ownership === "owned");
-    assert.deepEqual(owned, ["a", "c", "d"]);
 });
 
 test("native default is derived declarations before inherited storage, even under a live property", () =>

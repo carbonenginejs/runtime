@@ -76,7 +76,6 @@ CjsSchema.defineField(ParentModel, "children", "type", {
     itemType: "ChildMutationTestChild"
 });
 CjsSchema.defineField(ParentModel, "children", "edit", { persist: true, notify: true });
-CjsSchema.defineField(ParentModel, "children", "lifecycle", { ownership: "owned" });
 CjsSchema.define(ParentModel, { className: "ChildMutationTestParent" });
 
 test("Schema child factories hydrate, append, notify and settle", () => {
