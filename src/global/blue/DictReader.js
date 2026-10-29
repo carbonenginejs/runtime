@@ -236,7 +236,15 @@ export class DictReader extends IRootReaderBase
       }
       this._created.add(instance);
       if (source._id !== undefined && source._id !== null) this._anchors.register(source._id, instance);
-      this.ReadMembers(instance, this._DeclaredNotify(instance));
+      try
+      {
+        this.ReadMembers(instance, this._DeclaredNotify(instance));
+      }
+      catch (error)
+      {
+        this._ReleaseUnassigned(instance);
+        throw error;
+      }
       return instance;
     }
     if (!IsPlainObject(source)) this._ThrowError("Expected a dictionary");
@@ -263,24 +271,49 @@ export class DictReader extends IRootReaderBase
 
     const notify = this._DeclaredNotify(instance);
     const options = notify ? this._options : { ...this._options, notify: false };
-    if (typeof instance.SetValues === "function")
+    try
     {
-      instance.SetValues(source, { ...options, importContext: this._anchors });
-    }
-    else if (this._populate)
-    {
-      const writes = [];
-      this.ReadMembers(instance, null, (field, changed) => writes.push([field, changed]));
-      const complete = () => this._populate(instance, options, recordWrite =>
+      if (typeof instance.SetValues === "function")
       {
-        for (const [field, changed] of writes) recordWrite(field, changed);
-      });
-      if (this._anchors.hasListEdits()) this._anchors.deferValuesCompletion(complete);
-      else complete();
+        instance.SetValues(source, { ...options, importContext: this._anchors });
+      }
+      else if (this._populate)
+      {
+        const writes = [];
+        this.ReadMembers(instance, null, (field, changed) => writes.push([field, changed]));
+        const complete = () => this._populate(instance, options, recordWrite =>
+        {
+          for (const [field, changed] of writes) recordWrite(field, changed);
+        });
+        if (this._anchors.hasListEdits()) this._anchors.deferValuesCompletion(complete);
+        else complete();
+      }
+      else this.ReadMembers(instance, notify);
     }
-    else this.ReadMembers(instance, notify);
+    catch (error)
+    {
+      this._ReleaseUnassigned(instance);
+      throw error;
+    }
 
     return instance;
+  }
+
+  /**
+   * Releases an object whose population threw before anything held it.
+   *
+   * Adapted: Carbon populates a new object through a local smart pointer
+   * (`CreateObjectInternal`, DictReader.cpp:34-90), so a thrown read unwinds
+   * that pointer and runs the destructor. JavaScript has no final-release
+   * destructor, so the reader calls the object's own `Destruct` before
+   * rethrowing; members it already filled, notify targets included, go with
+   * it. A class without `Destruct` owns nothing to release.
+   *
+   * @param {object} instance The object the failed read constructed.
+   */
+  _ReleaseUnassigned(instance)
+  {
+    if (instance.Destruct) instance.Destruct();
   }
 
   /**
@@ -1597,6 +1630,7 @@ CjsSchema.decorateMethod(DictReader, "ReadStructureList", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadIRootPtr", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "_ReadIList", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "_CreateObjectInternal", meta.adapted);
+CjsSchema.decorateMethod(DictReader, "_ReleaseUnassigned", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadMembers", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadMetadata", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadValue", meta.adapted);
