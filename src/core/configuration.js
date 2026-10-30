@@ -40,7 +40,7 @@ export const DefaultConfiguration = {
   formats: {
     gr2: { Format: CjsGr2Format, options: { rebuildMissingBounds: true },
       routes: [{ extension: "gr2", Res: TriGeometryRes }] },
-    gr2raw: { Format: CjsGr2Format, options: {},
+    gr2raw: { Format: CjsGr2Format, options: { rebuildMissingBounds: true },
       routes: [{ extension: "gr2", ex: "raw", Res: TriGrannyRes }] },
     png: CjsPngFormat,
     vta: CjsVtaFormat
