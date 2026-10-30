@@ -1,7 +1,8 @@
-import { CjsSchema } from "#schema";
 /** Reports that a pattern has no projection for the requested hull. */
 export class ErrSOFProjectionNotFound extends Error
 {
+  static className = "ErrSOFProjectionNotFound";
+
   /**
    * The error's class name, shadowing Error.prototype.name.
    * @type {string}
@@ -38,4 +39,3 @@ export class ErrSOFProjectionNotFound extends Error
   }
 }
 
-CjsSchema.meta.define("ErrSOFProjectionNotFound")(ErrSOFProjectionNotFound);

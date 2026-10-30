@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { readIes } from "./core/readIes.js";
 import { bakeLightProfile } from "./core/bakeLightProfile.js";
@@ -87,4 +85,3 @@ export class CjsIESFormat extends CjsFormat
 
 export default CjsIESFormat;
 
-CjsSchema.meta.define("CjsIESFormat")(CjsIESFormat);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
@@ -197,4 +195,3 @@ export class CjsMp4Format extends CjsFormat
 
 export default CjsMp4Format;
 
-CjsSchema.meta.define("CjsMp4Format")(CjsMp4Format);

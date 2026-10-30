@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
@@ -240,4 +238,3 @@ export class CjsGltfFormat extends CjsGeometryFormat
 
 export default CjsGltfFormat;
 
-CjsSchema.meta.define("CjsGltfFormat")(CjsGltfFormat);

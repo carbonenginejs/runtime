@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 /**
  * Bit-level IO for Wwise Vorbis repacking.
  *
@@ -65,6 +63,8 @@ export function oggChecksum(bytes, length)
  */
 class WemBitstreamError extends CjsFormatRangeError
 {
+    static className = "WemBitstreamError";
+
     /**
      * Creates a truncation error with the cursor state that produced it.
      *
@@ -89,6 +89,8 @@ class WemBitstreamError extends CjsFormatRangeError
  */
 export class BitReader extends CjsBitReader
 {
+    static className = "BitReader";
+
     static ReadError = WemBitstreamError;
 
     static endOfDataMessage = "wem: bitstream out of bits";
@@ -110,6 +112,8 @@ export class BitReader extends CjsBitReader
  */
 export class OggPageWriter
 {
+    static className = "OggPageWriter";
+
     _pages = [];
 
     _payload = new Uint8Array(OGG_MAX_PAYLOAD);
@@ -290,9 +294,3 @@ export function ilog(value)
     }
     return result;
 }
-
-CjsSchema.meta.define("WemBitstreamError")(WemBitstreamError);
-
-CjsSchema.meta.define("BitReader")(BitReader);
-
-CjsSchema.meta.define("OggPageWriter")(OggPageWriter);

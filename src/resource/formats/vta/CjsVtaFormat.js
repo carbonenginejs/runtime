@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { asUint8Array } from "#utils/bytes";
 import { ImageIOResult } from "#imageio";
 import { PixelFormatFromCanonical } from "#consts/render-context";
@@ -294,4 +292,3 @@ export class CjsVtaFormat extends CjsImageFormat
 
 export default CjsVtaFormat;
 
-CjsSchema.meta.define("CjsVtaFormat")(CjsVtaFormat);

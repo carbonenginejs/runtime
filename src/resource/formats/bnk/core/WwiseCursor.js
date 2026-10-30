@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // The one byte cursor for every exact Wwise payload, and the variable-length
 // integer it reads.
 //
@@ -59,6 +57,8 @@ export function readWwiseVar(bytes, offset = 0)
 /** Bounds-aware little-endian cursor over one HIRC payload. */
 export class WwiseCursor
 {
+    static className = "WwiseCursor";
+
     /**
      * Payload bytes; set by the constructor.
      * @type {Uint8Array|null}
@@ -344,4 +344,3 @@ export class WwiseCursor
     }
 }
 
-CjsSchema.meta.define("WwiseCursor")(WwiseCursor);

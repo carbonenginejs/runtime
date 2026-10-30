@@ -1,8 +1,8 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 /** Our collection-scoped handle. It cannot close or purge the shared backend. */
 export class TnyStore
 {
+    static className = "TnyStore";
+
     _owner = null;
     _name = "";
 
@@ -32,4 +32,3 @@ export class TnyStore
     async List() { return this._owner._GetStorage().List(this._name); }
 }
 
-CjsSchema.meta.define("TnyStore")(TnyStore);

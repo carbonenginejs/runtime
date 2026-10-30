@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: resources/src/ResourceGroupImpl.cpp (YAML document fields).
 // JS extension: canonical JSON persistence; this facade does not replace ResourceGroup.
 import { stringify } from "yaml";
@@ -200,4 +198,3 @@ export class CjsResourceGroupFormat extends CjsFormat
     static inputs = CjsFormat.defineInputs({ json: { default: true } });
 }
 
-CjsSchema.meta.define("CjsResourceGroupFormat")(CjsResourceGroupFormat);

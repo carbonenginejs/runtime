@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 /**
  * Scan position to natural coefficient index.
  *
@@ -81,6 +79,8 @@ export function canDecodeJpeg(metadata = {})
  */
 class BaselineJpegDecoder
 {
+    static className = "BaselineJpegDecoder";
+
     _bytes;
 
     _offset = 0;
@@ -467,6 +467,8 @@ class BaselineJpegDecoder
  */
 class EntropyReader
 {
+    static className = "EntropyReader";
+
     _bytes;
 
     _offset;
@@ -664,7 +666,3 @@ function clampByte(value)
 {
     return Math.max(0, Math.min(255, Math.round(value)));
 }
-
-CjsSchema.meta.define("BaselineJpegDecoder")(BaselineJpegDecoder);
-
-CjsSchema.meta.define("EntropyReader")(EntropyReader);

@@ -1,6 +1,5 @@
 // Source: imageio/include/Tr2BmpHandler.h
 // Source: imageio/Tr2BmpHandler.cpp
-import { CjsSchema } from "#schema/CjsSchema";
 import { asUint8Array } from "#utils/bytes";
 import { HostBitmap, ImageIOResult } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
@@ -170,4 +169,3 @@ export class CjsBmpFormat extends CjsImageFormat
 }
 
 export default CjsBmpFormat;
-CjsSchema.meta.define("CjsBmpFormat")(CjsBmpFormat);

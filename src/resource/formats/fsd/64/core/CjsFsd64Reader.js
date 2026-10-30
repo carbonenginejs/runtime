@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 /**
  * Dispatches caller-supplied bytes to an explicitly registered FSD reader.
  *
@@ -8,6 +6,8 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class CjsFsd64Reader
 {
+    static className = "CjsFsd64Reader";
+
     _readers = new Map();
 
     /**
@@ -208,4 +208,3 @@ function NormalizeBytes(input)
 
 export default CjsFsd64Reader;
 
-CjsSchema.meta.define("CjsFsd64Reader")(CjsFsd64Reader);

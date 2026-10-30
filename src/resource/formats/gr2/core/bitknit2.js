@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Clean-room BitKnit2 (Granny .gr2 section format 4) codec support.
 //
 // BitKnit2 is RAD Game Tools' format; this is not RAD code. The decoder was
@@ -66,6 +64,8 @@ for (let i = 0; i <= 32; i++)
  */
 class FrequencyModel
 {
+    static className = "FrequencyModel";
+
     /**
      * Total symbols V; set by the constructor.
      * @type {number}
@@ -453,4 +453,3 @@ export function decompressBitKnit2(bytes, expandedSize)
     return out;
 }
 
-CjsSchema.meta.define("FrequencyModel")(FrequencyModel);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
@@ -212,4 +210,3 @@ export class CjsOggFormat extends CjsFormat
 
 export default CjsOggFormat;
 
-CjsSchema.meta.define("CjsOggFormat")(CjsOggFormat);

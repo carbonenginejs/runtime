@@ -1,6 +1,4 @@
 import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { adler32 } from "#utils/checksum";
 import { asUint8Array, getArrayBufferViewName } from "#utils/bytes";
 import {
@@ -2189,6 +2187,8 @@ function copyInflatedBytes(state, distance, length)
  */
 class DeflateBitReader
 {
+    static className = "DeflateBitReader";
+
     /**
      * Raw deflate stream bytes; set by the constructor.
      * @type {Uint8Array|null}
@@ -2306,6 +2306,8 @@ class DeflateBitReader
  */
 class DeflateHuffmanTable
 {
+    static className = "DeflateHuffmanTable";
+
     /**
      * Symbols by code length, then by bit-reversed code.
      * @type {Array<number[]>}
@@ -8371,7 +8373,3 @@ function readF64LE(bytes, offset)
 {
     return new DataView(bytes.buffer, bytes.byteOffset + offset, 8).getFloat64(0, true);
 }
-
-CjsSchema.meta.define("DeflateBitReader")(DeflateBitReader);
-
-CjsSchema.meta.define("DeflateHuffmanTable")(DeflateHuffmanTable);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsYamlFormat } from "../yaml/index.js";
 import { ReadValue } from "./core/schemaBoundValues.js";
@@ -287,4 +285,3 @@ function Normalize(input) {
 
 export default CjsSchemaBoundFormat;
 
-CjsSchema.meta.define("CjsSchemaBoundFormat")(CjsSchemaBoundFormat);

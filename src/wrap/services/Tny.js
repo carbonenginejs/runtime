@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { TnyDatabase } from "./TnyDatabase.js";
 import { TnyStorage } from "./TnyStorage.js";
 import { TnyServices } from "./TnyServices.js";
@@ -7,6 +5,8 @@ import { TnyServices } from "./TnyServices.js";
 /** Our inert orchestration owner; importable without Blue, rendering or a browser. */
 export class Tny
 {
+    static className = "Tny";
+
     _storage = null;
     _services = null;
     _database = null;
@@ -52,4 +52,3 @@ export class Tny
     }
 }
 
-CjsSchema.meta.define("Tny")(Tny);

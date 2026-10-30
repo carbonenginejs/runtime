@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
@@ -222,4 +220,3 @@ export class CjsWebpFormat extends CjsFormat
 
 export default CjsWebpFormat;
 
-CjsSchema.meta.define("CjsWebpFormat")(CjsWebpFormat);

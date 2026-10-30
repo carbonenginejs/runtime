@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { createHandlers, isRecord } from "../graph/core/dataTypes.js";
 import { plainGraph, readGraph, writeGraph, throwReports } from "../graph/core/graph.js";
 import { binaryArray, createBinaryWriter, openBinary, writePayload } from "./core/container.js";
@@ -125,4 +123,3 @@ export class CjsGraphBinaryFormat extends CjsFormat
 }
 import { CjsFormat } from "../../../../resource/format/CjsFormat.js";
 
-CjsSchema.meta.define("CjsGraphBinaryFormat")(CjsGraphBinaryFormat);

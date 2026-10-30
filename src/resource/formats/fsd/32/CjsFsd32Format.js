@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "../../../format/CjsFormat.js";
 import { BinaryLoader } from "./BinaryLoader.js";
 import { FsdSchemaAttributes } from "./FsdSchema/FsdSchemaAttributes.js";
@@ -211,4 +209,3 @@ function NormalizeBytes(input, options)
 
 export default CjsFsd32Format;
 
-CjsSchema.meta.define("CjsFsd32Format")(CjsFsd32Format);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
@@ -203,4 +201,3 @@ export class CjsWavFormat extends CjsFormat
 
 export default CjsWavFormat;
 
-CjsSchema.meta.define("CjsWavFormat")(CjsWavFormat);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { crc32 } from "#utils/checksum";
 import { CjsByteWriter } from "../../../format/CjsByteWriter.js";
 import { CjsFormatWriteError } from "../../../format/CjsFormatError.js";
@@ -152,6 +150,8 @@ export function gr2Variant(type, value)
 /** Serializes one reflected Granny object graph into relocatable section data. */
 class SectionSerializer
 {
+    static className = "SectionSerializer";
+
     /**
      * Every type the graph uses; set by the constructor.
      * @type {Array<object>}
@@ -791,4 +791,3 @@ export const container = {
     writeGr2Container
 };
 
-CjsSchema.meta.define("SectionSerializer")(SectionSerializer);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsTableData } from "../../resource/format/CjsTableData.js";
 
 // Source: operator-approved Tny orchestration extension; see services/README.md.
@@ -8,6 +6,8 @@ import { CjsTableData } from "../../resource/format/CjsTableData.js";
 /** Host-owned table registry. Providers own acquisition; callers use one query surface. */
 export class TnyDatabase
 {
+    static className = "TnyDatabase";
+
     _services = null;
     _tables = new Map();
     _closed = false;
@@ -98,4 +98,3 @@ export class TnyDatabase
     }
 }
 
-CjsSchema.meta.define("TnyDatabase")(TnyDatabase);

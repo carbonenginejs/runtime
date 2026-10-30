@@ -1,11 +1,11 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { TnyService } from "./TnyService.js";
 
 // Source: operator-approved host data-provider orchestration, not a native Carbon cache.
 /** Shared query caching; only successful, build-verified provider results enter storage. */
 export class TnyServiceDatabase extends TnyService
 {
+    static className = "TnyServiceDatabase";
+
     static storagePolicy = {};
     _store = null;
     _scope = "";
@@ -54,4 +54,3 @@ export class TnyServiceDatabase extends TnyService
     }
 }
 
-CjsSchema.meta.define("TnyServiceDatabase")(TnyServiceDatabase);

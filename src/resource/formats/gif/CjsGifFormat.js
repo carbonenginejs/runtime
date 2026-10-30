@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
@@ -217,4 +215,3 @@ export class CjsGifFormat extends CjsImageFormat
 
 export default CjsGifFormat;
 
-CjsSchema.meta.define("CjsGifFormat")(CjsGifFormat);

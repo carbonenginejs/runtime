@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 const HEADER_SIZE = 32;
 const strictTextDecoder = new TextDecoder("utf-8", { fatal: true });
 
@@ -8,6 +6,8 @@ const strictTextDecoder = new TextDecoder("utf-8", { fatal: true });
  */
 export class CjsFsd64Binary
 {
+    static className = "CjsFsd64Binary";
+
     /**
      * Binary value types accepted by declarative reader schemas.
      *
@@ -671,4 +671,3 @@ function NormalizeBytes(input)
 
 export default CjsFsd64Binary;
 
-CjsSchema.meta.define("CjsFsd64Binary")(CjsFsd64Binary);

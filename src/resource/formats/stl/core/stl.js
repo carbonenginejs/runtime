@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { assertFiniteNumber } from "#utils/validation";
 import { asUint8Array } from "#utils/bytes";
 
@@ -197,6 +195,8 @@ function rootSource(input)
  */
 class DisjointSet
 {
+    static className = "DisjointSet";
+
     /**
      * Parent index per element; set by the constructor.
      * @type {number[]}
@@ -850,6 +850,3 @@ export function inspectTriangles(triangles, values, source = {})
         issues
     };
 }
-
-
-CjsSchema.meta.define("DisjointSet")(DisjointSet);

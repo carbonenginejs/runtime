@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsBitReader } from "../../../format/CjsBitReader.js";
 import { imdct, vorbisWindowSlope } from "./imdct.js";
 
@@ -149,6 +147,8 @@ function lookup1Values(entries, dimensions)
  */
 class PacketReader extends CjsBitReader
 {
+    static className = "PacketReader";
+
     /** True once a read has run past the end of the packet. */
     eop = false;
 
@@ -183,6 +183,8 @@ class PacketReader extends CjsBitReader
  */
 class Codebook
 {
+    static className = "Codebook";
+
     /**
      * Vector dimension count.
      * @type {number}
@@ -1327,7 +1329,3 @@ export function decodeVorbis(bytes)
         declaredGranule: lastGranule
     };
 }
-
-CjsSchema.meta.define("PacketReader")(PacketReader);
-
-CjsSchema.meta.define("Codebook")(Codebook);

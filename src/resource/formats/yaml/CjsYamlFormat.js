@@ -1,6 +1,4 @@
 import { writeYaml } from "./core/write.js";
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsYamlReader } from "./core/CjsYamlReader.js";
 import {
@@ -263,4 +261,3 @@ export class CjsYamlFormat extends CjsFormat
 
 export default CjsYamlFormat;
 
-CjsSchema.meta.define("CjsYamlFormat")(CjsYamlFormat);

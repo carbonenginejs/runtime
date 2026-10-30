@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFsd64SchemaDecoder } from "./CjsFsd64SchemaDecoder.js";
 
 /**
@@ -7,6 +5,8 @@ import { CjsFsd64SchemaDecoder } from "./CjsFsd64SchemaDecoder.js";
  */
 export class CjsFsd64SchemaReader
 {
+    static className = "CjsFsd64SchemaReader";
+
     /**
      * Decodes bytes to the existing private Map-based reader representation.
      *
@@ -79,4 +79,3 @@ export class CjsFsd64SchemaReader
 
 export default CjsFsd64SchemaReader;
 
-CjsSchema.meta.define("CjsFsd64SchemaReader")(CjsFsd64SchemaReader);

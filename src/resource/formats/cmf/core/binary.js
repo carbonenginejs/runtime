@@ -1,6 +1,4 @@
 import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { crc32 as sharedCrc32 } from "#utils/checksum";
 
 const textDecoder = new TextDecoder();
@@ -38,6 +36,8 @@ export function asUint8Array(input)
  */
 export class BinaryReader
 {
+    static className = "BinaryReader";
+
     /**
      * CMF file bytes; set by the constructor.
      * @type {Uint8Array|null}
@@ -309,7 +309,3 @@ export function crc32(bytes, start = 0, end = bytes.byteLength)
 {
     return sharedCrc32(bytes, start, end);
 }
-
-
-
-CjsSchema.meta.define("BinaryReader")(BinaryReader);

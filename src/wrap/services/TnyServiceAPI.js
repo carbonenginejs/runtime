@@ -1,11 +1,11 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { TnyServiceDatabase } from "./TnyServiceDatabase.js";
 
 // Source: tools-core CjsToolHttpProxy.HandleSdeRoute wire contract; Tny host extension.
 /** Remote tools-core SDE provider. HTTP transport is injectable for Node and workers. */
 export class TnyServiceAPI extends TnyServiceDatabase
 {
+    static className = "TnyServiceAPI";
+
     _url = "";
     _target = "";
     _fetch = null;
@@ -96,4 +96,3 @@ export class TnyServiceAPI extends TnyServiceDatabase
     }
 }
 
-CjsSchema.meta.define("TnyServiceAPI")(TnyServiceAPI);

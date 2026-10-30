@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { readOpenType, lookupGlyphIndex, isOpenType, glyphCodePoints } from "./core/readSfnt.js";
 import { readCharstring } from "./core/readCharstring.js";
@@ -204,4 +202,3 @@ export class CjsOpenTypeFormat extends CjsFormat
 
 export default CjsOpenTypeFormat;
 
-CjsSchema.meta.define("CjsOpenTypeFormat")(CjsOpenTypeFormat);

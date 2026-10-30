@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import {
   MARK,
   PICKLE_LIMITS,
@@ -64,6 +62,8 @@ const UTF8 = new TextDecoder("utf-8", { fatal: true });
  */
 export class CjsPickleProtocol4Reader
 {
+  static className = "CjsPickleProtocol4Reader";
+
   _bytes;
 
   _limits;
@@ -561,4 +561,3 @@ function readStackGlobal(state, offset)
 
 export default CjsPickleProtocol4Reader;
 
-CjsSchema.meta.define("CjsPickleProtocol4Reader")(CjsPickleProtocol4Reader);

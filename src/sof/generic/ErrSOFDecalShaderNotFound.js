@@ -1,7 +1,8 @@
-import { CjsSchema } from "#schema";
 /** Reports that a requested decal shader is absent from the generic SOF catalog. */
 export class ErrSOFDecalShaderNotFound extends Error
 {
+  static className = "ErrSOFDecalShaderNotFound";
+
   /**
    * The error's class name, shadowing Error.prototype.name.
    * @type {string}
@@ -31,4 +32,3 @@ export class ErrSOFDecalShaderNotFound extends Error
   }
 }
 
-CjsSchema.meta.define("ErrSOFDecalShaderNotFound")(ErrSOFDecalShaderNotFound);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { assertPositiveInteger } from "#utils/validation";
 import { AssertFlags, ReadRequiredString } from "./fsd64Records.js";
 import { CjsFsd64Binary } from "./CjsFsd64Binary.js";
@@ -65,6 +63,8 @@ const TYPE_SIZES = {
  */
 export class CjsFsd64SchemaDecoder
 {
+    static className = "CjsFsd64SchemaDecoder";
+
     /**
      * Validates and returns one inert JSON schema definition.
      *
@@ -889,4 +889,3 @@ function SchemaError(message)
 
 export default CjsFsd64SchemaDecoder;
 
-CjsSchema.meta.define("CjsFsd64SchemaDecoder")(CjsFsd64SchemaDecoder);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
 /**
@@ -214,4 +212,3 @@ export class CjsObjFormat extends CjsGeometryFormat
 
 export default CjsObjFormat;
 
-CjsSchema.meta.define("CjsObjFormat")(CjsObjFormat);

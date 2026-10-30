@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 /**
  * Baseline JPEG encoding, from the same normalized RGBA payload every image
  * format in this package decodes TO.
@@ -112,6 +110,8 @@ const SUBSAMPLINGS = { "4:2:0": [ 2, 2 ], "4:4:4": [ 1, 1 ] };
 /** Collects bytes and packs Huffman codes, stuffing 0x00 after every 0xFF. */
 class BitWriter
 {
+    static className = "BitWriter";
+
     /**
      * Bytes written so far.
      * @type {number[]}
@@ -594,4 +594,3 @@ export function encodeJpeg(payload, options = {})
     return Uint8Array.from(writer.bytes);
 }
 
-CjsSchema.meta.define("BitWriter")(BitWriter);

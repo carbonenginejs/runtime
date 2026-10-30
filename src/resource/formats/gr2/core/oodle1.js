@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 /**
  * Granny Oodle1 section decompressor.
  *
@@ -27,6 +25,8 @@ export const OODLE1_OUTPUT_SLACK = 512;
  */
 class Decoder
 {
+    static className = "Decoder";
+
     /**
      * Padded compressed stream; set by the constructor.
      * @type {Uint8Array|null}
@@ -124,6 +124,8 @@ class Decoder
  */
 class WeighWindow
 {
+    static className = "WeighWindow";
+
     /**
      * Sum of the symbol weights; set by the constructor.
      * @type {number}
@@ -385,6 +387,8 @@ const BACKREF_SIZES = OODLE1_BACKREF_SIZES;
  */
 class Dictionary
 {
+    static className = "Dictionary";
+
     /**
      * Decoded bytes so far; set by the constructor.
      * @type {number}
@@ -638,9 +642,3 @@ export const oodle1 = {
     decompress: decompressOodle1,
     decompressOodle1
 };
-
-CjsSchema.meta.define("Decoder")(Decoder);
-
-CjsSchema.meta.define("WeighWindow")(WeighWindow);
-
-CjsSchema.meta.define("Dictionary")(Dictionary);

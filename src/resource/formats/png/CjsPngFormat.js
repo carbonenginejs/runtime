@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { asUint8Array } from "#utils/bytes";
 import { decompressBytes } from "#utils/compression";
 import { crc32 } from "#utils/checksum";
@@ -477,4 +475,3 @@ export class CjsPngFormat extends CjsImageFormat
 
 export default CjsPngFormat;
 
-CjsSchema.meta.define("CjsPngFormat")(CjsPngFormat);

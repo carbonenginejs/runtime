@@ -1,7 +1,8 @@
-import { CjsSchema } from "#schema";
 /** Reports that a requested area shader is absent from the generic SOF catalog. */
 export class ErrSOFAreaShaderNotFound extends Error
 {
+  static className = "ErrSOFAreaShaderNotFound";
+
   /**
    * The error's class name, shadowing Error.prototype.name.
    * @type {string}
@@ -31,4 +32,3 @@ export class ErrSOFAreaShaderNotFound extends Error
   }
 }
 
-CjsSchema.meta.define("ErrSOFAreaShaderNotFound")(ErrSOFAreaShaderNotFound);

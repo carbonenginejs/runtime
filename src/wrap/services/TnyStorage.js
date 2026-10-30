@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsStorage } from "../../resource/storage/CjsStorage.js";
 import { TnyStore } from "./TnyStore.js";
 
@@ -10,6 +8,8 @@ import { TnyStore } from "./TnyStore.js";
  */
 export class TnyStorage
 {
+    static className = "TnyStorage";
+
     _storage = null;
     _stores = new Map();
     _closed = false;
@@ -59,4 +59,3 @@ export class TnyStorage
     }
 }
 
-CjsSchema.meta.define("TnyStorage")(TnyStorage);

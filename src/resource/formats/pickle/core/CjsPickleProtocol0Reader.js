@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import {
   MARK,
   PICKLE_LIMITS,
@@ -40,6 +38,8 @@ const PROTOCOL = 0;
  */
 export class CjsPickleProtocol0Reader
 {
+  static className = "CjsPickleProtocol0Reader";
+
   _bytes;
 
   _limits;
@@ -522,4 +522,3 @@ function decodeSimpleEscape(byte)
 
 export default CjsPickleProtocol0Reader;
 
-CjsSchema.meta.define("CjsPickleProtocol0Reader")(CjsPickleProtocol0Reader);

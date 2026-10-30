@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import {
     LineCounter,
     isAlias,
@@ -59,6 +57,8 @@ function defineMappingValue(target, key, value)
  */
 export class CjsYamlReader extends CjsReader
 {
+    static className = "CjsYamlReader";
+
     /**
      * YAML source text; set by the constructor.
      * @type {string}
@@ -554,4 +554,3 @@ export class CjsYamlReader extends CjsReader
 
 export default CjsYamlReader;
 
-CjsSchema.meta.define("CjsYamlReader")(CjsYamlReader);

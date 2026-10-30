@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { validateStoragePolicy } from "./storagePolicy.js";
 
 /**
@@ -8,6 +6,8 @@ import { validateStoragePolicy } from "./storagePolicy.js";
  */
 export class TnyServices
 {
+    static className = "TnyServices";
+
     _storage = null;
     _services = new Map();
     _closed = false;
@@ -86,4 +86,3 @@ export class TnyServices
     }
 }
 
-CjsSchema.meta.define("TnyServices")(TnyServices);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { hydrateShared } from "../../geometry/hydrateShared.js";
 import { canCloneFormatOptions } from "../../format/workerOptions.js";
@@ -476,4 +474,3 @@ export class CjsGr2Format extends CjsGeometryFormat
 
 export default CjsGr2Format;
 
-CjsSchema.meta.define("CjsGr2Format")(CjsGr2Format);
