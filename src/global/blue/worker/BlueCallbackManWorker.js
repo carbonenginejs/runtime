@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // The worker side of a `BlueCallbackMan` running its own threads.
 //
 // Ours: Carbon's callback threads run functions already in the process
@@ -44,6 +42,8 @@ function collectTransfer(value)
 /** Installs the callback host on a worker scope. */
 export class BlueCallbackManWorker
 {
+  static className = "BlueCallbackManWorker";
+
   /**
    * Answers the manager's messages with the named callbacks.
    *
@@ -107,5 +107,3 @@ export class BlueCallbackManWorker
     return () => scope.removeEventListener("message", onMessage);
   }
 }
-
-CjsSchema.meta.define("BlueCallbackManWorker")(BlueCallbackManWorker);

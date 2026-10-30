@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { Message, Operation } from "./protocol.js";
 
 /**
@@ -9,6 +7,8 @@ import { Message, Operation } from "./protocol.js";
  */
 export class CjsResManWorker
 {
+  static className = "CjsResManWorker";
+
   /** Stable operations understood by the bundled resource module worker. */
   static Operation = Operation;
 
@@ -259,5 +259,3 @@ async function readFormat(payload) {
 const isWorkerScope = typeof WorkerGlobalScope !== "undefined"
   && globalThis instanceof WorkerGlobalScope;
 if (isWorkerScope) CjsResManWorker.install(globalThis);
-
-CjsSchema.meta.define("CjsResManWorker")(CjsResManWorker);
