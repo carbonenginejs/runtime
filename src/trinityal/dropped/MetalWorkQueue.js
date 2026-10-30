@@ -7,14 +7,14 @@
 // command encoder per frame, fixed-attachment render passes, and compute and
 // copies that may not happen inside one.
 //
-// CjsWebgpuWorkQueue ports that split and declares `modelledOn: "MetalWorkQueue"`.
+// CjsWebgpuWorkQueue ports that split and is modelled on MetalWorkQueue.
 // It takes the ENCODER LIFETIME - BeginFrame/EndFrame, the current encoder, the
 // deferred render-pass hint, the pending bindings a draw needs - and nothing
 // else. Metal's queue is the whole command recorder (113 methods to that file's
 // 27); the rest went to the pipeline, the resource sets and the render context's
 // draw verbs, and CjsWebgpuWorkQueue's head comment maps each one.
 //
-// Written because a `modelledOn` declaration does not count as a port: until
+// Written because a modelled-on donor does not count as a port: until
 // this file existed, donor coverage reported MetalWorkQueue as covered only by a
 // class that declines to replicate it.
 import { meta } from "#schema";
