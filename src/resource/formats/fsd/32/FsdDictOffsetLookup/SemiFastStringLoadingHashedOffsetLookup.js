@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: fsd/FsdDictOffsetLookup.h
 // Source: fsd/FsdDictOffsetLookup.cpp
 import { BinaryLoader } from "../BinaryLoader.js";
@@ -128,4 +126,3 @@ function Utf8Key(key)
 
 export default SemiFastStringLoadingHashedOffsetLookup;
 
-CjsSchema.meta.carbon("SemiFastStringLoadingHashedOffsetLookup")(SemiFastStringLoadingHashedOffsetLookup);

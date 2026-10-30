@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: fsd/FsdSchema.h
 // Source: fsd/FsdSchema.cpp
 import { PyErr_SetString, PyExc } from "../pyErr.js";
@@ -788,4 +786,3 @@ function RequireExtractedInt(value, dictKey)
 
 export default FsdSchemaAttributes;
 
-CjsSchema.meta.carbon("FsdSchemaAttributes")(FsdSchemaAttributes);

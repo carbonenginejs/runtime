@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: fsd/FsdDictOffsetLookup.h
 
 /**
@@ -23,4 +21,3 @@ export class FooterOffsetSize
 
 export default FooterOffsetSize;
 
-CjsSchema.meta.carbon("FooterOffsetSize")(FooterOffsetSize);

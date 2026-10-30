@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: fsd/BinaryLoader.h
 // Source: fsd/BinaryLoader.cpp
 // Source: fsd/BinaryLoader_Blue.cpp
@@ -484,4 +482,3 @@ export function ReadComponents(data, offset, count, isDouble)
 
 export default BinaryLoader;
 
-CjsSchema.meta.carbon("BinaryLoader")(BinaryLoader);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: fsd/FsdDictOffsetLookup.h
 // Source: fsd/FsdDictOffsetLookup.cpp
 import { FsdList } from "../FsdList.js";
@@ -64,4 +62,3 @@ export class SlowBinarySearchOffsetLookup extends FsdDictOffsetLookup
 
 export default SlowBinarySearchOffsetLookup;
 
-CjsSchema.meta.carbon("SlowBinarySearchOffsetLookup")(SlowBinarySearchOffsetLookup);

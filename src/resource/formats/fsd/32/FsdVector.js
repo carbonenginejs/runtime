@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: fsd/FsdVector.h
 // Source: fsd/FsdVector.cpp
 import { BinaryLoaderHelper } from "./BinaryLoaderHelper.js";
@@ -208,4 +206,3 @@ export class FsdVector
 
 export default FsdVector;
 
-CjsSchema.meta.carbon("FsdVector")(FsdVector);

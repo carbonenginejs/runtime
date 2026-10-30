@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: fsd/FsdSchema.h
 // Source: fsd/FsdSchema.cpp
 
@@ -35,4 +33,3 @@ export class ObjectSchemaAttributes
 
 export default ObjectSchemaAttributes;
 
-CjsSchema.meta.carbon("ObjectSchemaAttributes")(ObjectSchemaAttributes);
