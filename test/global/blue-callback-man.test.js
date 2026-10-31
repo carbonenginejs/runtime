@@ -120,11 +120,41 @@ test("queue statistics accumulate and reset", () =>
   assert.equal(man.GetTimeInQueueAverage(), 0);
 });
 
-test("Pause and Resume need the own threads; SetPriority is clamped and stored", () =>
+test("Pause holds an Update-mode manager; the last Resume calls the slot-free callback", () =>
 {
   const man = new BlueCallbackMan();
-  assert.throws(() => man.Pause(), /not running its own threads/);
-  assert.throws(() => man.Resume(), /not running its own threads/);
+  const ran = [];
+  let woken = 0;
+  man.SetSlotFreeCallback(() => { woken++; });
+  man.Add(() => ran.push("held"));
+
+  man.Pause();
+  man.Pause();
+  assert.equal(man.IsPaused(), true);
+  assert.equal(man.Update(), false);
+  assert.deepEqual(ran, []);
+  assert.equal(man.GetSize(), 1);
+
+  man.Resume();
+  assert.equal(woken, 0);
+  assert.equal(man.Update(), false);
+
+  man.Resume();
+  assert.equal(woken, 1);
+  assert.equal(man.IsPaused(), false);
+  assert.equal(man.Update(), true);
+  assert.deepEqual(ran, [ "held" ]);
+
+  // An unpaired Resume leaves the counter at zero and wakes nobody.
+  const wokenBefore = woken;
+  man.Resume();
+  assert.equal(man.IsPaused(), false);
+  assert.equal(woken, wokenBefore);
+});
+
+test("Add rejects a non-function; SetPriority is clamped and stored", () =>
+{
+  const man = new BlueCallbackMan();
   assert.throws(() => man.Add("name"), TypeError);
   man.SetPriority(9);
   assert.equal(man._threadPriority, 2);

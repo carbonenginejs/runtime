@@ -560,21 +560,34 @@ export class BlueCallbackMan extends IBlueCallbackMan
     }
   }
 
-  /** `Pause` (CallbackMan.cpp:273-279) - no new entry starts until resumed. */
+  /**
+   * `Pause` (CallbackMan.cpp:273-279) - no new entry starts until resumed.
+   *
+   * Adapted: Carbon asserts the own threads. Here it also holds an `Update`-mode
+   * manager, whose `Update` starts nothing while paused, because resMan's
+   * background queue is not threaded and is paused through this.
+   */
   Pause()
   {
-    if (!this._isRunningOwnThreads) throw new Error("BlueCallbackMan.Pause: the manager is not running its own threads.");
     this._pauseCounter++;
   }
 
-  /** `Resume` (CallbackMan.cpp:281-295) - undoes one `Pause`. */
+  /**
+   * `Resume` (CallbackMan.cpp:281-295) - undoes one `Pause`.
+   *
+   * Adapted: as `Pause`, it also serves an `Update`-mode manager. The last
+   * `Resume` wakes the own threads through the alarm, as Carbon's semaphore
+   * does; in `Update` mode it calls the slot-free callback instead, the
+   * owner's stand-in for that semaphore (see `SetSlotFreeCallback`).
+   */
   Resume()
   {
-    if (!this._isRunningOwnThreads) throw new Error("BlueCallbackMan.Resume: the manager is not running its own threads.");
-
     const pauseCounter = this._pauseCounter;
     if (pauseCounter > 0) this._pauseCounter--;
-    if (pauseCounter === 1) this._Alarm();
+    if (pauseCounter !== 1) return;
+
+    if (this._isRunningOwnThreads) this._Alarm();
+    else if (this._onSlotFree !== null) this._onSlotFree();
   }
 
   /** `IsPaused` (CallbackMan.cpp:297-301). */
@@ -598,13 +611,15 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * which a synchronous callback always frees before the next call. Idle
    * slots take turns, so each one checks the fence queue as Carbon's threads
    * do; always taking the first idle slot would leave the others' fence bits
-   * set while regular entries keep coming.
+   * set while regular entries keep coming. A paused manager starts nothing
+   * (see `Pause`).
    *
    * @returns {boolean} Whether an entry was started.
    */
   Update()
   {
     if (this._isRunningOwnThreads) throw new Error("BlueCallbackMan.Update: the manager runs its own threads.");
+    if (this._pauseCounter > 0) return false;
 
     while (this._threads.length < this._threadCount) this._threads.push(new BlueCallbackManThreadData(this._threads.length));
     // A lowered thread count retires the surplus slots once they are idle;
@@ -1167,8 +1182,8 @@ CjsSchema.decorateMethod(BlueCallbackMan, "Add__Name", meta.adapted);
 CjsSchema.decorateMethod(BlueCallbackMan, "Cancel", meta.adapted);
 CjsSchema.decorateMethod(BlueCallbackMan, "Run", meta.adapted);
 CjsSchema.decorateMethod(BlueCallbackMan, "Stop", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "Pause", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "Resume", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "Pause", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "Resume", meta.adapted);
 CjsSchema.decorateMethod(BlueCallbackMan, "IsPaused", meta.implemented);
 CjsSchema.decorateMethod(BlueCallbackMan, "Throttle", meta.implemented);
 CjsSchema.decorateMethod(BlueCallbackMan, "Unthrottle", meta.implemented);
