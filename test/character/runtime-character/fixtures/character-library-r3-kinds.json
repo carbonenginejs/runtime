@@ -1,0 +1,687 @@
+{
+ "build": 3662168,
+ "tattooFields": [
+  "angleRotation",
+  "aspectRatio",
+  "flipx",
+  "flipy",
+  "headEnabled",
+  "height",
+  "maskPath",
+  "maskPathEnabled",
+  "mode",
+  "offsetx",
+  "offsety",
+  "pitch",
+  "posx",
+  "posy",
+  "posz",
+  "radius",
+  "roll",
+  "scale",
+  "texturePath",
+  "yaw"
+ ],
+ "types": [
+  {
+   "path": "res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/types/jewelryforehead_01.type",
+   "value": [
+    "accessories/brow/jewelryforehead_01",
+    "",
+    ""
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/types/eyeimpf01_leftdark.type",
+   "value": [
+    "accessories/glasses/eyeimp01",
+    "v1",
+    "dark"
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/types/eyeimpf01_right_ep.type",
+   "value": [
+    "accessories/glasses/eyeimp01",
+    "",
+    "ep",
+    []
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/accessories/glasses/glasses_citadel_f01/types/glassescitadelf01_black.type",
+   "value": [
+    "accessories/glasses/glasses_citadel_f01",
+    "",
+    "black"
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/accessories/glasses/glasses_slick_01/types/glasses_slick_01_ep.type",
+   "value": [
+    "accessories/glasses/glasses_slick_01",
+    "v1",
+    "bgum",
+    []
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/accessories/glasses/goggles_01/types/goggles_01_min.type",
+   "value": [
+    "accessories/glasses/goggles_01",
+    "v3",
+    "",
+    []
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/accessories/masks/mask_cyberpunk_f01/types/mask_cyberpunk_f01.type",
+   "value": [
+    "accessories/masks/mask_cyberpunk_f01",
+    "",
+    "",
+    []
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/hair/hair_bun_hp_02/types/hair_bun_hp_02_black.type",
+   "value": [
+    "hair/hair_bun_hp_02",
+    "v0",
+    ""
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/types/tattooelabm_ld_01.type",
+   "value": [
+    "tattoo/head/TattooElabM_LD_01",
+    "",
+    "",
+    [
+     5,
+     6,
+     13,
+     1,
+     2,
+     11,
+     7,
+     8,
+     12
+    ]
+   ]
+  }
+ ],
+ "projections": [
+  {
+   "path": "res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj",
+   "value": {
+    "angleRotation": 0,
+    "aspectRatio": 1,
+    "flipx": false,
+    "flipy": false,
+    "headEnabled": false,
+    "height": 0.7,
+    "maskPath": "res:/graphics/character/global/tattoomask/tattoomaskarms.dds",
+    "maskPathEnabled": true,
+    "mode": 1,
+    "offsetx": -0.25,
+    "offsety": 0,
+    "pitch": -1.5836419500895749,
+    "posx": 0.325,
+    "posy": 1.43,
+    "posz": -0.076,
+    "radius": 0.15,
+    "roll": -0.050946160865714483,
+    "scale": 0,
+    "texturePath": "res:/graphics/character/decals/tattoos/sleeve/sleeve01/sleeve01.dds",
+    "yaw": 0.1938188134339703
+   }
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/tattoo/armright/sleeve01/sleeve01.proj",
+   "value": {
+    "angleRotation": 0,
+    "aspectRatio": 1,
+    "flipx": false,
+    "flipy": true,
+    "headEnabled": false,
+    "height": 0.7,
+    "maskPath": "res:/graphics/character/global/tattoomask/tattoomaskarms.dds",
+    "maskPathEnabled": true,
+    "mode": 1,
+    "offsetx": -0.25,
+    "offsety": 0,
+    "pitch": -1.5836419500895749,
+    "posx": -0.325,
+    "posy": 1.43,
+    "posz": -0.076,
+    "radius": 0.15,
+    "roll": -0.050946160865714483,
+    "scale": 0,
+    "texturePath": "res:/graphics/character/decals/tattoos/sleeve/sleeve01/sleeve01.dds",
+    "yaw": -0.1938188134339703
+   }
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm01/projection.proj",
+   "value": {
+    "angleRotation": 0,
+    "aspectRatio": 1,
+    "flipx": true,
+    "flipy": true,
+    "headEnabled": true,
+    "height": 0.22956,
+    "maskPath": "res:/graphics/character/global/tattoomask/tattoomask.dds",
+    "maskPathEnabled": true,
+    "mode": 1,
+    "offsetx": 0,
+    "offsety": 0,
+    "pitch": 0,
+    "posx": 0,
+    "posy": 1.6420000000000001,
+    "posz": 0.031,
+    "radius": 0.12,
+    "roll": 0,
+    "scale": 0,
+    "texturePath": "res:/graphics/character/decals/tattoos/face/tattooelabm01/tattooelabm01_d.dds",
+    "yaw": 0
+   }
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/tattoo/head/tattoofacea02r/projection.proj",
+   "value": {
+    "angleRotation": 0,
+    "aspectRatio": 1,
+    "flipx": false,
+    "flipy": true,
+    "headEnabled": true,
+    "height": 0.22956,
+    "maskPath": "res:/graphics/character/global/tattoomask/tattoomask.dds",
+    "maskPathEnabled": true,
+    "mode": 1,
+    "offsetx": 0,
+    "offsety": 0,
+    "pitch": 0,
+    "posx": 0,
+    "posy": 1.6420000000000001,
+    "posz": 0.031,
+    "radius": 0.12,
+    "roll": 0,
+    "scale": 0,
+    "texturePath": "res:/graphics/character/decals/tattoos/face/tattoofacea02/tattoofacea02_d.dds",
+    "yaw": 0
+   }
+  }
+ ],
+ "recipes": [
+  {
+   "path": "res:/graphics/character/dnafiles/characterselect/deteisfemaleclothing.prs",
+   "value": [
+    "female",
+    {
+     "category": "head",
+     "path": "head/head_generic",
+     "weight": 1
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/cheeksupper_rightshape",
+     "weight": 0.435
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/innerbrow_leftshape",
+     "weight": 0.79
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/outerbrow_upshape",
+     "weight": 0.18
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/outerbrow_leftshape",
+     "weight": 0.12
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/jaw_leftshape",
+     "weight": 0.16499999999999992
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/jaw_downshape",
+     "weight": 0.255
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/chin_upshape",
+     "weight": 0.26
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/chin_rightshape",
+     "weight": 0.18
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/nose_upshape",
+     "weight": 0.015
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/lowerlip_leftshape",
+     "weight": 0.02999999999999997
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/mouthcorner_rightshape",
+     "weight": 0.12
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/eyesouter_rightshape",
+     "weight": 0.135
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/ears_leftshape",
+     "weight": 0.48
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/ears_upshape",
+     "weight": 0.045
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/cheeksmiddle_rightshape",
+     "weight": 0.015
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/jawcheek_leftshape",
+     "weight": 0.015000000000000012
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/cheeksupper_downshape",
+     "weight": 0.135
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/innerbrow_upshape",
+     "weight": 0.04500001668930054
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/upperlip_downshape",
+     "weight": 0.18
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/upperlip_rightshape",
+     "weight": 0.18
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/eyes_upshape",
+     "weight": 0.16499999999999998
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/eyes_leftshape",
+     "weight": 0.015
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/nose_backshape",
+     "weight": 0.015000000000000012
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/nosebone_upshape",
+     "weight": 0.15
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/cheeksmiddle_upshape",
+     "weight": 0.12
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/mouthcorner_upshape",
+     "weight": 0.015
+    },
+    {
+     "category": "facemodifiers",
+     "path": "facemodifiers/jawcheek_downshape",
+     "weight": 0.015
+    },
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/pinchdrapeshape",
+     "weight": 1
+    },
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/pinchforearmlowshape",
+     "weight": 1
+    },
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/pinchchestshape",
+     "weight": 1
+    },
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/pinchinnershape",
+     "weight": 1
+    },
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/pantstuckshinshape",
+     "weight": 1
+    },
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/pinchtuckshape",
+     "weight": 1
+    },
+    {
+     "category": "head",
+     "path": "head/caldari_deteis",
+     "weight": 1
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/cdshape",
+     "weight": 1
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/thinshape",
+     "weight": 0.20370370370370372
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/pelvis_leftshape",
+     "weight": 0.615
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/pelvis_downshape",
+     "weight": 0.18
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/chest_forwardshape",
+     "weight": 0.48000000000000004
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/chest_upshape",
+     "weight": 0.10499999999999998
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/chest_rightshape",
+     "weight": 0.255
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/neck_leftshape",
+     "weight": 1
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/neck_upshape",
+     "weight": 0.04499995708465576
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/shoulders_downshape",
+     "weight": 0.47000001430511473
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/shoulders_rightshape",
+     "weight": 1
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/muscularshape",
+     "weight": 0.4722222222222222
+    },
+    {
+     "category": "bodyshapes",
+     "path": "bodyshapes/legs_upshape",
+     "weight": 0.21
+    },
+    {
+     "category": "makeup",
+     "path": "makeup/eyeshadow/eyeshadow_08",
+     "weight": 0.12149532710280374
+    },
+    {
+     "category": "makeup",
+     "path": "makeup/eyebrows/eyebrows_01",
+     "weight": 1
+    },
+    {
+     "category": "makeup",
+     "path": "makeup/blush/blush_01",
+     "weight": 0.056074766355140186
+    },
+    {
+     "category": "makeup",
+     "path": "makeup/eyelashes/eyelashes_01",
+     "weight": 1
+    },
+    {
+     "category": "makeup",
+     "path": "makeup/implants/plugs_02",
+     "weight": 1
+    },
+    {
+     "category": "makeup",
+     "path": "makeup/lipstick/lipstick_02",
+     "weight": 0.09345794392523364
+    },
+    {
+     "category": "makeup",
+     "path": "makeup/eyeliner/eyeliner_02",
+     "weight": 0.5
+    },
+    {
+     "category": "bottominner",
+     "path": "bottominner/bikinibottomcf01",
+     "weight": 1
+    },
+    {
+     "category": "topinner",
+     "path": "topinner/bikinitopcf01",
+     "weight": 1
+    },
+    {
+     "category": "topinner",
+     "path": "topinner/torso_nude",
+     "weight": 1
+    },
+    {
+     "category": "bottomouter",
+     "path": "bottomouter/pantscf01",
+     "weight": 1
+    },
+    {
+     "category": "topmiddle",
+     "path": "topmiddle/shirtcf01",
+     "weight": 1
+    },
+    {
+     "category": "dependants",
+     "path": "dependants/ragdoll/ragdollthicktop",
+     "weight": 1
+    },
+    {
+     "category": "dependants",
+     "path": "dependants/drape/standard",
+     "weight": 1
+    },
+    {
+     "category": "dependants",
+     "path": "dependants/ragdoll/ragdollhair",
+     "weight": 1
+    },
+    {
+     "category": "dependants",
+     "path": "dependants/boottucking/shin",
+     "weight": 1
+    },
+    {
+     "category": "feet",
+     "path": "feet/bootscf01",
+     "weight": 1
+    },
+    {
+     "category": "hands",
+     "path": "hands/hands_nude",
+     "weight": 1
+    },
+    {
+     "category": "hair",
+     "path": "hair/hair_ponytail_02",
+     "weight": 1
+    },
+    {
+     "category": "outer",
+     "path": "outer/jacketcf01",
+     "weight": 1
+    }
+   ]
+  },
+  {
+   "path": "res:/graphics/character/dnafiles/mannequin/femalemannequin.prs",
+   "value": [
+    "female",
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/tucktopshape",
+     "weight": 1
+    },
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/pushdrapeshape",
+     "weight": 0.6
+    },
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/pushhemshape",
+     "weight": 0.6
+    },
+    {
+     "category": "utilityshapes",
+     "path": "utilityshapes/pushjackethighshape",
+     "weight": 0.55
+    },
+    {
+     "category": "head",
+     "path": "head/head_generic",
+     "weight": 1
+    },
+    {
+     "category": "head",
+     "path": "head/caldari_deteis",
+     "weight": 1
+    },
+    {
+     "category": "dependants",
+     "path": "dependants/sleevesupper/standard",
+     "weight": 1
+    },
+    {
+     "category": "dependants",
+     "path": "dependants/sleeveslower/standard",
+     "weight": 1
+    },
+    {
+     "category": "dependants",
+     "path": "dependants/ragdoll/ragdollhair",
+     "weight": 1
+    },
+    {
+     "category": "dependants",
+     "path": "dependants/waisttucking/standard",
+     "weight": 1
+    },
+    {
+     "category": "dependants",
+     "path": "dependants/tuck/basic",
+     "weight": 1
+    },
+    {
+     "category": "archetypes",
+     "path": "archetypes/cdshape",
+     "weight": 1
+    },
+    {
+     "category": "archetypes",
+     "path": "archetypes/mannequinshape",
+     "weight": 1
+    },
+    {
+     "category": "makeup",
+     "path": "makeup/eyelashes/eyelashes_01",
+     "weight": 1
+    },
+    {
+     "category": "makeup",
+     "path": "makeup/eybrows/bushy_01",
+     "weight": 1
+    },
+    {
+     "category": "topinner",
+     "path": "topinner/torso_nude",
+     "weight": 1
+    },
+    {
+     "category": "bottomouter",
+     "path": "bottomouter/pantsmilf01",
+     "weight": 1
+    },
+    {
+     "category": "accessories",
+     "path": "accessories/browbase/cd",
+     "weight": 1
+    },
+    {
+     "category": "feet",
+     "path": "feet/bootsmilf03",
+     "weight": 1
+    },
+    {
+     "category": "hands",
+     "path": "hands/hands_nude",
+     "weight": 1
+    }
+   ]
+  }
+ ],
+ "texts": {
+  "res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/types/jewelryforehead_01.type": "!!python/tuple\r\n- accessories/brow/jewelryforehead_01\r\n- ''\r\n- ''\r\n",
+  "res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/types/eyeimpf01_leftdark.type": "!!python/tuple\r\n- accessories/glasses/eyeimp01\r\n- v1\r\n- dark\r\n",
+  "res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/types/eyeimpf01_right_ep.type": "!!python/tuple\r\n- accessories/glasses/eyeimp01\r\n- ''\r\n- ep\r\n- []\r\n",
+  "res:/graphics/character/female/paperdoll/accessories/glasses/glasses_citadel_f01/types/glassescitadelf01_black.type": "!!python/tuple\r\n- accessories/glasses/glasses_citadel_f01\r\n- ''\r\n- black\r\n",
+  "res:/graphics/character/female/paperdoll/accessories/glasses/glasses_slick_01/types/glasses_slick_01_ep.type": "!!python/tuple\r\n- accessories/glasses/glasses_slick_01\r\n- v1\r\n- bgum\r\n- []\r\n",
+  "res:/graphics/character/female/paperdoll/accessories/glasses/goggles_01/types/goggles_01_min.type": "!!python/tuple\r\n- accessories/glasses/goggles_01\r\n- v3\r\n- ''\r\n- []\r\n",
+  "res:/graphics/character/female/paperdoll/accessories/masks/mask_cyberpunk_f01/types/mask_cyberpunk_f01.type": "!!python/tuple\r\n- accessories/masks/mask_cyberpunk_f01\r\n- ''\r\n- ''\r\n- []\r\n",
+  "res:/graphics/character/female/paperdoll/hair/hair_bun_hp_02/types/hair_bun_hp_02_black.type": "!!python/tuple\r\n- hair/hair_bun_hp_02\r\n- v0\r\n- ''\r\n",
+  "res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/types/tattooelabm_ld_01.type": "!!python/tuple\r\n- tattoo/head/TattooElabM_LD_01\r\n- ''\r\n- ''\r\n- [5, 6, 13, 1, 2, 11, 7, 8, 12]\r\n",
+  "res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj": "!!python/object:paperDoll.ProjectedDecal {angleRotation: 0.0, aspectRatio: 1.0, azimuth: 0.0,\r\n  bodyEnabled: true, flipx: false, flipy: false, headEnabled: false, height: 0.7,\r\n  incline: 1.5707963267948966, label: !!python/unicode 'arml', layer: 0, maskPath: !!python/unicode 'res:/graphics/character/global/tattoomask/tattoomaskarms.dds',\r\n  maskPathEnabled: true, maskResource: null, mode: 1.0, offsetx: -0.25, offsety: 0.0,\r\n  pitch: -1.5836419500895749, planarBeta: 1.5, planarScale: 1.5, posx: 0.325, posy: 1.43,\r\n  posz: -0.076, radius: 0.15, roll: -0.050946160865714483, scale: 0.0, texturePath: !!python/unicode 'res:/graphics/character/decals/tattoos/sleeve/sleeve01/sleeve01.dds',\r\n  textureResource: null, yaw: 0.1938188134339703}\r\n",
+  "res:/graphics/character/female/paperdoll/tattoo/armright/sleeve01/sleeve01.proj": "!!python/object:paperDoll.ProjectedDecal {angleRotation: 0.0, aspectRatio: 1.0, azimuth: 0.0,\r\n  bodyEnabled: true, flipx: false, flipy: true, headEnabled: false, height: 0.7, incline: 1.5707963267948966,\r\n  label: !!python/unicode 'arml', layer: 0, maskPath: !!python/unicode 'res:/graphics/character/global/tattoomask/tattoomaskarms.dds',\r\n  maskPathEnabled: true, maskResource: null, mode: 1.0, offsetx: -0.25, offsety: 0.0,\r\n  pitch: -1.5836419500895749, planarBeta: 1.5, planarScale: 1.5, posx: -0.325, posy: 1.43,\r\n  posz: -0.076, radius: 0.15, roll: -0.050946160865714483, scale: 0.0, texturePath: !!python/unicode 'res:/graphics/character/decals/tattoos/sleeve/sleeve01/sleeve01.dds',\r\n  textureResource: null, yaw: -0.1938188134339703}\r\n",
+  "res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm01/projection.proj": "!!python/object:paperDoll.ProjectedDecal {angleRotation: 0.0, aspectRatio: 1.0, azimuth: 0.0,\r\n  bodyEnabled: false, flipx: true, flipy: true, headEnabled: true, height: 0.22956,\r\n  incline: 1.5707963267948966, label: !!python/unicode 'Head', layer: 0, maskPath: !!python/unicode 'res:/graphics/character/global/tattoomask/tattoomask.dds',\r\n  maskPathEnabled: true, maskResource: null, mode: 1.0, offsetx: 0.0, offsety: 0.0,\r\n  pitch: 0, planarBeta: 1.5, planarScale: 1.5, posx: 0.0, posy: 1.6420000000000001,\r\n  posz: 0.031, radius: 0.12, roll: 0, scale: 0.0, texturePath: !!python/unicode 'res:/graphics/character/decals/tattoos/face/tattooelabm01/tattooelabm01_d.dds',\r\n  textureResource: null, yaw: 0}\r\n",
+  "res:/graphics/character/female/paperdoll/tattoo/head/tattoofacea02r/projection.proj": "!!python/object:paperDoll.ProjectedDecal {angleRotation: 0.0, aspectRatio: 1.0, azimuth: 0.0,\r\n  bodyEnabled: false, flipx: false, flipy: true, headEnabled: true, height: 0.22956,\r\n  incline: 1.5707963267948966, label: !!python/unicode 'Head', layer: 0, maskPath: !!python/unicode 'res:/graphics/character/global/tattoomask/tattoomask.dds',\r\n  maskPathEnabled: true, maskResource: null, mode: 1.0, offsetx: 0.0, offsety: 0.0,\r\n  pitch: 0, planarBeta: 1.5, planarScale: 1.5, posx: 0.0, posy: 1.6420000000000001,\r\n  posz: 0.031, radius: 0.12, roll: 0, scale: 0.0, texturePath: !!python/unicode 'res:/graphics/character/decals/tattoos/face/tattoofacea02/tattoofacea02_d.dds',\r\n  textureResource: null, yaw: 0}\r\n",
+  "res:/graphics/character/dnafiles/characterselect/deteisfemaleclothing.prs": "- female\r\n- category: head\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: head/head_generic\r\n  tuck: true\r\n  weight: 1.0\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/cheeksupper_rightshape\r\n  tuck: true\r\n  weight: 0.435\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/innerbrow_leftshape\r\n  tuck: true\r\n  weight: 0.79\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/outerbrow_upshape\r\n  tuck: true\r\n  weight: 0.18\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/outerbrow_leftshape\r\n  tuck: true\r\n  weight: 0.12\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/jaw_leftshape\r\n  tuck: true\r\n  weight: 0.16499999999999992\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/jaw_downshape\r\n  tuck: true\r\n  weight: 0.255\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/chin_upshape\r\n  tuck: true\r\n  weight: 0.26\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/chin_rightshape\r\n  tuck: true\r\n  weight: 0.18\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/nose_upshape\r\n  tuck: true\r\n  weight: 0.015\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/lowerlip_leftshape\r\n  tuck: true\r\n  weight: 0.02999999999999997\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/mouthcorner_rightshape\r\n  tuck: true\r\n  weight: 0.12\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/eyesouter_rightshape\r\n  tuck: true\r\n  weight: 0.135\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/ears_leftshape\r\n  tuck: true\r\n  weight: 0.48\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/ears_upshape\r\n  tuck: true\r\n  weight: 0.045\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/cheeksmiddle_rightshape\r\n  tuck: true\r\n  weight: 0.015\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/jawcheek_leftshape\r\n  tuck: true\r\n  weight: 0.015000000000000012\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/cheeksupper_downshape\r\n  tuck: true\r\n  weight: 0.135\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/innerbrow_upshape\r\n  tuck: true\r\n  weight: 0.04500001668930054\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/upperlip_downshape\r\n  tuck: true\r\n  weight: 0.18\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/upperlip_rightshape\r\n  tuck: true\r\n  weight: 0.18\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/eyes_upshape\r\n  tuck: true\r\n  weight: 0.16499999999999998\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/eyes_leftshape\r\n  tuck: true\r\n  weight: 0.015\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/nose_backshape\r\n  tuck: true\r\n  weight: 0.015000000000000012\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/nosebone_upshape\r\n  tuck: true\r\n  weight: 0.15\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/cheeksmiddle_upshape\r\n  tuck: true\r\n  weight: 0.12\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/mouthcorner_upshape\r\n  tuck: true\r\n  weight: 0.015\r\n- category: facemodifiers\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: facemodifiers/jawcheek_downshape\r\n  tuck: true\r\n  weight: 0.015\r\n- category: utilityshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: utilityshapes/pinchdrapeshape\r\n  tuck: true\r\n  weight: 1.0\r\n- category: utilityshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: utilityshapes/pinchforearmlowshape\r\n  tuck: true\r\n  weight: 1.0\r\n- category: utilityshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: utilityshapes/pinchchestshape\r\n  tuck: true\r\n  weight: 1.0\r\n- category: utilityshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: utilityshapes/pinchinnershape\r\n  tuck: true\r\n  weight: 1.0\r\n- category: utilityshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: utilityshapes/pantstuckshinshape\r\n  tuck: true\r\n  weight: 1.0\r\n- category: utilityshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: utilityshapes/pinchtuckshape\r\n  tuck: true\r\n  weight: 1.0\r\n- category: head\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: head/caldari_deteis\r\n  tuck: true\r\n  weight: 1.0\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/cdshape\r\n  tuck: true\r\n  weight: 1.0\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/thinshape\r\n  tuck: true\r\n  weight: 0.20370370370370372\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/pelvis_leftshape\r\n  tuck: true\r\n  weight: 0.615\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/pelvis_downshape\r\n  tuck: true\r\n  weight: 0.18\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/chest_forwardshape\r\n  tuck: true\r\n  weight: 0.48000000000000004\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/chest_upshape\r\n  tuck: true\r\n  weight: 0.10499999999999998\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/chest_rightshape\r\n  tuck: true\r\n  weight: 0.255\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/neck_leftshape\r\n  tuck: true\r\n  weight: 1.0\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/neck_upshape\r\n  tuck: true\r\n  weight: 0.04499995708465576\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/shoulders_downshape\r\n  tuck: true\r\n  weight: 0.47000001430511473\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/shoulders_rightshape\r\n  tuck: true\r\n  weight: 1.0\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/muscularshape\r\n  tuck: true\r\n  weight: 0.4722222222222222\r\n- category: bodyshapes\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: bodyshapes/legs_upshape\r\n  tuck: true\r\n  weight: 0.21\r\n- category: makeup\r\n  colors: '[(0.25098, 0.572549, 0.72549, 1), (0.6, 0.815686, 0.901961, 1), (0.5, 0.5,\r\n    0.5, 1.0)]'\r\n  colorvariation:\r\n  path: makeup/eyeshadow/eyeshadow_08\r\n  tuck: true\r\n  weight: 0.12149532710280374\r\n- category: makeup\r\n  colors: '[(0.384314, 0.345098, 0.317647, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5,\r\n    1.0)]'\r\n  colorvariation:\r\n  path: makeup/eyebrows/eyebrows_01\r\n  tuck: true\r\n  weight: 1.0\r\n- category: makeup\r\n  colors: '[(0.729412, 0.388235, 0.6, 1), (0.717647, 0.4, 0.478431, 1), (0.717647,\r\n    0.4, 0.478431, 1)]'\r\n  colorvariation:\r\n  path: makeup/blush/blush_01\r\n  tuck: true\r\n  weight: 0.056074766355140186\r\n- category: makeup\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: makeup/eyelashes/eyelashes_01\r\n  tuck: true\r\n  weight: 1.0\r\n- category: makeup\r\n  colors: '[(0.541176, 0.560784, 0.584314, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5,\r\n    1.0)]'\r\n  colorvariation:\r\n  path: makeup/implants/plugs_02\r\n  specularcolors:\r\n  - !!python/tuple\r\n    - 0.572549\r\n    - 0.654902\r\n    - 0.694118\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.5\r\n    - 0.5\r\n    - 0.5\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.5\r\n    - 0.5\r\n    - 0.5\r\n    - 1.0\r\n  tuck: true\r\n  weight: 1.0\r\n- category: makeup\r\n  colors: '[(0.435294, 0.101961, 0.109804, 1), (0.235294, 0.235294, 0.235294, 1),\r\n    (0.5, 0.5, 0.5, 1.0)]'\r\n  path: makeup/lipstick/lipstick_02\r\n  tuck: true\r\n  weight: 0.09345794392523364\r\n- category: makeup\r\n  colors: '[(0, 0, 0, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  colorvariation:\r\n  path: makeup/eyeliner/eyeliner_02\r\n  tuck: true\r\n  weight: 0.5\r\n- category: bottominner\r\n  colors: '[(0.0431373, 0.0431373, 0.0431373, 1), (0.211765, 0.211765, 0.211765, 1),\r\n    (0.219608, 0.219608, 0.219608, 1)]'\r\n  colorvariation:\r\n  path: bottominner/bikinibottomcf01\r\n  specularcolors:\r\n  - !!python/tuple\r\n    - 0.294118\r\n    - 0.294118\r\n    - 0.294118\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.329412\r\n    - 0.329412\r\n    - 0.329412\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.211765\r\n    - 0.211765\r\n    - 0.211765\r\n    - 1\r\n  tuck: true\r\n  weight: 1.0\r\n- category: topinner\r\n  colors: '[(0.0470588, 0.0470588, 0.0470588, 1), (0.215686, 0.215686, 0.215686, 1),\r\n    (0.219608, 0.219608, 0.219608, 1)]'\r\n  colorvariation:\r\n  path: topinner/bikinitopcf01\r\n  specularcolors:\r\n  - !!python/tuple\r\n    - 0.294118\r\n    - 0.294118\r\n    - 0.294118\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.333333\r\n    - 0.333333\r\n    - 0.333333\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.211765\r\n    - 0.211765\r\n    - 0.211765\r\n    - 1\r\n  tuck: true\r\n  weight: 1.0\r\n- category: topinner\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: topinner/torso_nude\r\n  tuck: true\r\n  weight: 1.0\r\n- category: bottomouter\r\n  colors: '[(0.796078, 0.803922, 0.819608, 1), (0.172549, 0.184314, 0.196078, 1),\r\n    (0.815686, 0.827451, 0.843137, 1)]'\r\n  colorvariation: deteis\r\n  path: bottomouter/pantscf01\r\n  specularcolors:\r\n  - !!python/tuple\r\n    - 0.0666667\r\n    - 0.0666667\r\n    - 0.0666667\r\n    - 1\r\n  - &id001 !!python/tuple\r\n    - 0.5\r\n    - 0.5\r\n    - 0.5\r\n    - 1.0\r\n  - *id001\r\n  tuck: true\r\n  weight: 1.0\r\n- category: topmiddle\r\n  colors: '[(0.101961, 0.121569, 0.14902, 1), (0.0666667, 0.0784314, 0.0901961, 1),\r\n    (0.101961, 0.101961, 0.101961, 1)]'\r\n  colorvariation: deteis\r\n  path: topmiddle/shirtcf01\r\n  specularcolors:\r\n  - !!python/tuple\r\n    - 0.192157\r\n    - 0.2\r\n    - 0.215686\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.0784314\r\n    - 0.0941176\r\n    - 0.113725\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.0627451\r\n    - 0.0666667\r\n    - 0.0705882\r\n    - 1\r\n  tuck: true\r\n  weight: 1.0\r\n- category: dependants\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: dependants/ragdoll/ragdollthicktop\r\n  tuck: true\r\n  weight: 1.0\r\n- category: dependants\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: dependants/drape/standard\r\n  tuck: true\r\n  variation: v1\r\n  weight: 1.0\r\n- category: dependants\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: dependants/ragdoll/ragdollhair\r\n  tuck: true\r\n  weight: 1.0\r\n- category: dependants\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: dependants/boottucking/shin\r\n  tuck: true\r\n  weight: 1.0\r\n- category: feet\r\n  colors: '[(0.0941176, 0.121569, 0.152941, 1), (0.396078, 0.439216, 0.486275, 1),\r\n    (0.5, 0.5, 0.5, 1)]'\r\n  colorvariation: deteis\r\n  path: feet/bootscf01\r\n  specularcolors:\r\n  - !!python/tuple\r\n    - 0.682353\r\n    - 0.682353\r\n    - 0.682353\r\n    - 1\r\n  - &id002 !!python/tuple\r\n    - 0.5\r\n    - 0.5\r\n    - 0.5\r\n    - 1.0\r\n  - *id002\r\n  tuck: true\r\n  variation: v0\r\n  weight: 1.0\r\n- category: hands\r\n  colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'\r\n  path: hands/hands_nude\r\n  tuck: true\r\n  weight: 1.0\r\n- category: hair\r\n  colors: '[(0.607843, 0.576471, 0.533333, 1), (0.607843, 0.576471, 0.533333, 1),\r\n    (0.803922, 0.796078, 0.772549, 1)]'\r\n  colorvariation: 02_bc\r\n  path: hair/hair_ponytail_02\r\n  specularcolors:\r\n  - !!python/tuple\r\n    - 0.360784\r\n    - 0.356863\r\n    - 0.329412\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.360784\r\n    - 0.356863\r\n    - 0.329412\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.360784\r\n    - 0.356863\r\n    - 0.329412\r\n    - 1\r\n  tuck: true\r\n  weight: 1.0\r\n- category: outer\r\n  colors: '[(0.180392, 0.223529, 0.270588, 1), (0.121569, 0.121569, 0.121569, 1),\r\n    (0.239216, 0.27451, 0.372549, 1)]'\r\n  colorvariation: deteis\r\n  path: outer/jacketcf01\r\n  specularcolors:\r\n  - !!python/tuple\r\n    - 0.368627\r\n    - 0.407843\r\n    - 0.435294\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.5\r\n    - 0.5\r\n    - 0.5\r\n    - 1\r\n  - !!python/tuple\r\n    - 0.227451\r\n    - 0.25098\r\n    - 0.278431\r\n    - 0.7\r\n  tuck: true\r\n  variation: v1\r\n  weight: 1.0\r\n",
+  "res:/graphics/character/dnafiles/mannequin/femalemannequin.prs": "- female\r\n- category: utilityshapes\r\n  path: utilityshapes/tucktopshape\r\n  weight: 1.0\r\n- category: utilityshapes\r\n  path: utilityshapes/pushdrapeshape\r\n  weight: 0.6\r\n- category: utilityshapes\r\n  path: utilityshapes/pushhemshape\r\n  weight: 0.6\r\n- category: utilityshapes\r\n  path: utilityshapes/pushjackethighshape\r\n  weight: 0.55\r\n- category: head\r\n  path: head/head_generic\r\n  weight: 1.0\r\n- category: head\r\n  path: head/caldari_deteis\r\n  weight: 1.0\r\n- category: dependants\r\n  path: dependants/sleevesupper/standard\r\n  weight: 1.0\r\n- category: dependants\r\n  path: dependants/sleeveslower/standard\r\n  weight: 1.0\r\n- category: dependants\r\n  path: dependants/ragdoll/ragdollhair\r\n  weight: 1.0\r\n- category: dependants\r\n  path: dependants/waisttucking/standard\r\n  weight: 1.0\r\n- category: dependants\r\n  path: dependants/tuck/basic\r\n  weight: 1.0\r\n- category: archetypes\r\n  path: archetypes/cdshape\r\n  weight: 1.0\r\n- category: archetypes\r\n  path: archetypes/mannequinshape\r\n  weight: 1.0\r\n- category: makeup\r\n  path: makeup/eyelashes/eyelashes_01\r\n  weight: 1.0\r\n- category: makeup\r\n  path: makeup/eybrows/bushy_01\r\n  weight: 1.0\r\n- category: topinner\r\n  path: topinner/torso_nude\r\n  weight: 1.0\r\n- category: bottomouter\r\n  path: bottomouter/pantsmilf01\r\n  variation: v2\r\n  weight: 1.0\r\n- category: accessories\r\n  path: accessories/browbase/cd\r\n  weight: 1.0\r\n- category: feet\r\n  path: feet/bootsmilf03\r\n  variation: v2\r\n  weight: 1.0\r\n- category: hands\r\n  path: hands/hands_nude\r\n  weight: 1.0\r\n"
+ }
+}

@@ -292,6 +292,22 @@ export class CjsCharacterLibraryManager
     }
 
     /**
+     * A part's `.type` file, as its typed record, from the one library every character shares.
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*): the read Graphene's composers made
+     * for themselves (graphene `readYaml` on `.type` files), moved onto the library. It starts the shared library's lazy source, as
+     * every Fetch does.
+     *
+     * @param {string} path The file's canonical `res:` path.
+     * @returns {Promise<object>} The record, whose `value` is the file's tuple (part path, variation, colour variant, bloodlines); a path that is not indexed rejects.
+     */
+    async FetchType(path)
+    {
+        this._StartLazySource();
+        return this.GetType(path);
+    }
+
+    /**
      * Returns one types record by its canonical identity.
      * @param {string} name Stored or indexed source name.
      * @returns {Promise<object>} Typed record.
@@ -308,6 +324,22 @@ export class CjsCharacterLibraryManager
     }
 
     /**
+     * A `.proj` projected decal (a tattoo's projection), as its typed record, from the one library every character shares.
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*): the read Graphene's composers made
+     * for themselves (graphene `tattoos.js`, `readYaml` on the profile's projection), moved onto the library. It starts the shared library's lazy source, as
+     * every Fetch does.
+     *
+     * @param {string} path The file's canonical `res:` path.
+     * @returns {Promise<object>} The `CjsProjectedDecal` record; a path that is not indexed rejects.
+     */
+    async FetchProjectedDecal(path)
+    {
+        this._StartLazySource();
+        return this.GetProjectedDecal(path);
+    }
+
+    /**
      * Returns one projectedDecals record by its canonical identity.
      * @param {string} name Stored or indexed source name.
      * @returns {Promise<object>} Typed record.
@@ -321,6 +353,22 @@ export class CjsCharacterLibraryManager
     ListProjectedDecalNames()
     {
         return this.ListKindNames("projectedDecals");
+    }
+
+    /**
+     * A `.prs` recipe, as its typed record, from the one library every character shares.
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*): the read Graphene's composers made
+     * for themselves (graphene `readYaml` on `.prs` files: the foundation's mannequin and the selected blush), moved onto the library. It starts the shared library's lazy source, as
+     * every Fetch does.
+     *
+     * @param {string} path The file's canonical `res:` path.
+     * @returns {Promise<object>} The record, whose `value` is the recipe's list of modifiers; a path that is not indexed rejects.
+     */
+    async FetchRecipe(path)
+    {
+        this._StartLazySource();
+        return this.GetRecipe(path);
     }
 
     /**
