@@ -14,3 +14,5 @@ export { CjsCharacterTextureMetadata } from "./CjsCharacterTextureMetadata.js";
 export { CjsCharacterMaterialBinding } from "./CjsCharacterMaterialBinding.js";
 export { CjsCharacterCatalogTextureBinding } from "./CjsCharacterCatalogTextureBinding.js";
 export { CjsCharacterTextureCandidateInput } from "./CjsCharacterTextureCandidateInput.js";
+export { CjsCharacterModifier } from "./CjsCharacterModifier.js";
+export { CjsCharacterPart } from "./CjsCharacterPart.js";

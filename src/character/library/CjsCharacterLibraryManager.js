@@ -1,6 +1,6 @@
 import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
-import { CjsCharacterPart } from "./CjsCharacterPart.js";
-import { CjsCharacterModifier } from "./CjsCharacterModifier.js";
+import { CjsCharacterPart } from "../model/catalog/CjsCharacterPart.js";
+import { CjsCharacterModifier } from "../model/catalog/CjsCharacterModifier.js";
 import { CjsSchema } from "#schema";
 import { blue } from "#blue";
 import { CjsCharacterLibraryBuilder } from "./CjsCharacterLibraryBuilder.js";

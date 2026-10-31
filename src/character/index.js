@@ -11,7 +11,6 @@ export { CjsCharacterLibraryBuilder } from "./library/CjsCharacterLibraryBuilder
 export { CjsCharacterLibrary } from "./library/CjsCharacterLibrary.js";
 export { CjsCharacterLibraryDocuments } from "./library/CjsCharacterLibraryDocuments.js";
 export { CjsCharacterLibraryManager } from "./library/CjsCharacterLibraryManager.js";
-export { CjsCharacterUnresolvedRelationship } from "./library/CjsCharacterUnresolvedRelationship.js";
 export * from "./model/index.js";
 export { CjsCharacterRigBinding } from "./controls/CjsCharacterRigBinding.js";
 export * from "./generated/index.js";
@@ -21,10 +20,3 @@ export * from "./application/index.js";
 export { createCharacterYamlTagHandlers, readCharacterYamlObject } from "./formats/yaml.js";
 export { CjsCharacterObjectBuilder } from "./formats/CjsCharacterObjectBuilder.js";
 export { CjsCharacterLibraryConfiguration } from "./library/CjsCharacterLibraryConfiguration.js";
-export { CjsCharacterNamedValue } from "./library/CjsCharacterNamedValue.js";
-export { CjsCharacterTexture } from "./library/CjsCharacterTexture.js";
-export { CjsCharacterClip } from "./library/CjsCharacterClip.js";
-export { CjsCharacterRig } from "./library/CjsCharacterRig.js";
-export { CjsCharacterGState } from "./library/CjsCharacterGState.js";
-export { CjsCharacterModifier } from "./library/CjsCharacterModifier.js";
-export { CjsCharacterPart } from "./library/CjsCharacterPart.js";

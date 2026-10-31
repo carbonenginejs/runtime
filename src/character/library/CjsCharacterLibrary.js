@@ -9,7 +9,7 @@ import { ReadValues } from "../../global/blue/values.js";
 import { NOTIFY_METHODS } from "../../global/compose/notify.js";
 import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
 import { CjsCharacterTextureMetadata } from "../model/catalog/CjsCharacterTextureMetadata.js";
-import { CjsCharacterUnresolvedRelationship } from "./CjsCharacterUnresolvedRelationship.js";
+import { CjsCharacterUnresolvedRelationship } from "../model/resolution/CjsCharacterUnresolvedRelationship.js";
 
 /**
  * Hydrated character library whose public fields have the same shape as its JSON values.
