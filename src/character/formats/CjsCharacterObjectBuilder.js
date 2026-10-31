@@ -1,7 +1,7 @@
 import { CjsSchema } from "../../global/schema/CjsSchema.js";
 import { CjsYamlFormat } from "../../resource/formats/yaml/CjsYamlFormat.js";
 import { CjsYamlReader } from "../../resource/formats/yaml/core/CjsYamlReader.js";
-import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
+import { CjsCharacterLibraryConfiguration } from "../library/CjsCharacterLibraryConfiguration.js";
 import { createCharacterYamlTagHandlers, normalizeCharacterYamlValues } from "./yaml.js";
 
 /**

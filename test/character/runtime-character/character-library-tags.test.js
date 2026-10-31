@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { CjsSchema } from "../../../npm/dist/global/schema/CjsSchema.js";
 import { CjsYamlFormat } from "../../../npm/dist/resource/formats/yaml/index.js";
 import { CjsAvatarPartMetaData, CjsProjectedDecal, Tr2InteriorLightSource } from "../../../npm/dist/character/index.js";
-import { createCharacterYamlTagHandlers, readCharacterYamlObject } from "../../../npm/dist/character/library/yaml.js";
+import { createCharacterYamlTagHandlers, readCharacterYamlObject } from "../../../npm/dist/character/formats/yaml.js";
 
 const prefix = "tag:yaml.org,2002:python/object:";
 

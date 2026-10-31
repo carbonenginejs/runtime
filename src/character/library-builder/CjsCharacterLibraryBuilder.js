@@ -1,6 +1,6 @@
 import { getResourceExtension, normalizeResourcePath } from "#utils/path";
 import { CjsCharacterLibraryConfiguration } from "../library/CjsCharacterLibraryConfiguration.js";
-import { CjsCharacterObjectBuilder } from "../library/CjsCharacterObjectBuilder.js";
+import { CjsCharacterObjectBuilder } from "../formats/CjsCharacterObjectBuilder.js";
 import { CjsSchema } from "#schema";
 
 import * as CcpLog from "../../global/logging/ccpLog.js";
