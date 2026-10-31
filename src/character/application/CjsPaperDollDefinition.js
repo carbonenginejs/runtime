@@ -36,6 +36,12 @@ import { CjsPaperDollMask } from "./CjsPaperDollMask.js";
 import { PaperDollPass } from "./paperDollOrder.js";
 
 /**
+ * The paper-doll map size tiers, largest first, by `characterTextureQuality` value:
+ * `_4k`, unsuffixed (half of it), `_512`, `_256`.
+ */
+const TEXTURE_TIERS = { "4k": "_4k", "2k": "", "512": "_512", "256": "_256" };
+
+/**
  * Who and what one paper doll character is: its identity, its foundation and
  * part settings, and the order those parts bake in. It holds settings only;
  * what is built from them (targets, effects, captured passes) belongs to a
@@ -386,6 +392,68 @@ export class CjsPaperDollDefinition
      */
     @meta.setting("characterTextureQuality", { applies: meta.setting.CREATE, values: [ "4k", "2k", "512", "256" ] })
     static characterTextureQuality = "4k";
+
+    /**
+     * A `.png` map path's stem and tier suffix: `.../colorize_body_l_4k.png` gives
+     * `.../colorize_body_l` and `_4k`; an unsuffixed file gives an empty suffix.
+     * Ours, with the tiers of `characterTextureQuality` (non-carbon-extensions.md
+     * § *Character texture quality*).
+     * @param {string} path The map's `.png` path.
+     * @returns {[string, string]} The stem and the tier suffix.
+     */
+    static splitTier(path)
+    {
+        const [ , stem, tier = "" ] = path.match(/^(.*?)(_4k|_512|_256)?\.png$/u);
+        return [ stem, tier ];
+    }
+
+    /**
+     * The tier suffixes to try for a quality: its own, then each smaller, then each
+     * larger. A map missing at the set size is taken from the nearest size below,
+     * and from above only when nothing below exists (`shirtqf01` ships its zone map
+     * unsuffixed only). Ours: the fallback order the operator approved with
+     * `characterTextureQuality` (non-carbon-extensions.md § *Character texture quality*).
+     * @param {string} [quality] A `characterTextureQuality` value; the setting's by default.
+     * @returns {string[]} The tier suffixes in the order to try.
+     * @throws {Error} For a quality that is not one of the setting's values.
+     */
+    static tierOrder(quality = CjsPaperDollDefinition.characterTextureQuality)
+    {
+        if (!(quality in TEXTURE_TIERS)) throw new Error("Unknown character texture quality " + quality);
+        const tiers = Object.values(TEXTURE_TIERS), index = tiers.indexOf(TEXTURE_TIERS[quality]);
+        return [ ...tiers.slice(index), ...tiers.slice(0, index).reverse() ];
+    }
+
+    /**
+     * A map at the character texture quality: the first listed file of `tierOrder`
+     * for a map path written at any tier (`.../colorize_head_l.png`, or a `_4k` path).
+     * Ours (non-carbon-extensions.md § *Character texture quality*).
+     * @param {string} path The map's `.png` path, at any tier.
+     * @param {string[]} files The listed files holding it.
+     * @returns {string|null} The file to load, or null when no tier exists.
+     */
+    static pickTier(path, files)
+    {
+        const [ stem ] = CjsPaperDollDefinition.splitTier(path);
+        return CjsPaperDollDefinition.tierOrder().map(tier => stem + tier + ".png").find(file => files.includes(file)) ?? null;
+    }
+
+    /**
+     * The files ending in `ending` plus a tier, at the first tier of `tierOrder`
+     * that has any. Ours (non-carbon-extensions.md § *Character texture quality*).
+     * @param {string[]} files The listed files.
+     * @param {string} ending The name's end without tier or extension (`comp_head_d`).
+     * @returns {string[]} The matches at that tier; empty when no tier has one.
+     */
+    static tierCandidates(files, ending)
+    {
+        for (const tier of CjsPaperDollDefinition.tierOrder())
+        {
+            const found = files.filter(file => file.endsWith(ending + tier + ".png"));
+            if (found.length) return found;
+        }
+        return [];
+    }
 
     /** The collected parts, by member name. Each pass composes its parts by bake rank, not by this order. */
     static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle", "bottomOuter", "feet", "topOuter", "outer", "hair", "glasses", "earsLow", "earsHigh", "nose", "lips", "chin", "brow", "mask" ];

@@ -1,0 +1,659 @@
+{
+ "lists": {
+  "shirtqf01": [
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_256.dds",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_256.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_512.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v1/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v1/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v1/colorize_body_l_512.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v10/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v10/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v11/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v11/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v12/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v12/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v13/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v13/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v14/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v14/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v15/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v15/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v16/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v16/colorize_body_l_4k.png"
+  ],
+  "catsuit01": [
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l_256.dds",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l_512.png",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_z.png",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_l_256.dds",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_l_512.png",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z.png",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_256.dds",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_4k.png",
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_512.png"
+  ],
+  "skintone": [
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_l.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_l_256.dds",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_l_4k.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_l_512.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_z.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_z_256.dds",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_z_4k.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_z_512.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l_256.dds",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l_4k.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l_512.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_z.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_z_256.dds",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_z_4k.png",
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_z_512.png"
+  ],
+  "freckles": [
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_01/comp_head_d.png",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_01/comp_head_d_256.dds",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_01/comp_head_d_4k.png",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_01/comp_head_d_512.png",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_02/comp_head_d.png",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_02/comp_head_d_256.dds",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_02/comp_head_d_4k.png",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_02/comp_head_d_512.png",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_03/comp_head_d.png",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_03/comp_head_d_256.dds",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_03/comp_head_d_4k.png",
+   "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_03/comp_head_d_512.png"
+  ],
+  "empty": []
+ },
+ "paths": [
+  "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png",
+  "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_4k.png",
+  "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_512.png",
+  "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l.png",
+  "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l.png",
+  "res:/graphics/character/female/paperdoll/skintone/basic/missing_map.png"
+ ],
+ "endings": [
+  "colorize_body_l",
+  "colorize_body_z",
+  "comp_head_d",
+  "comp_body_n",
+  "nothing_here"
+ ],
+ "splitTier": {
+  "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png": [
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z",
+   ""
+  ],
+  "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_4k.png": [
+   "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l",
+   "_4k"
+  ],
+  "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_512.png": [
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z",
+   "_512"
+  ],
+  "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l.png": [
+   "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l",
+   ""
+  ],
+  "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l.png": [
+   "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l",
+   ""
+  ],
+  "res:/graphics/character/female/paperdoll/skintone/basic/missing_map.png": [
+   "res:/graphics/character/female/paperdoll/skintone/basic/missing_map",
+   ""
+  ]
+ },
+ "byQuality": {
+  "256": {
+   "tierOrder": [
+    "_256",
+    "_512",
+    "_4k",
+    ""
+   ],
+   "tierOrderExplicit": {
+    "256": [
+     "_256",
+     "_512",
+     "_4k",
+     ""
+    ],
+    "512": [
+     "_512",
+     "_4k",
+     "",
+     "_256"
+    ],
+    "4k": [
+     "_4k",
+     "",
+     "_512",
+     "_256"
+    ],
+    "2k": [
+     "",
+     "_4k",
+     "_512",
+     "_256"
+    ]
+   },
+   "pickTier": {
+    "shirtqf01": [
+     "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png",
+     "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_256.png",
+     null,
+     null,
+     null,
+     null
+    ],
+    "catsuit01": [
+     null,
+     null,
+     "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_512.png",
+     "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l_512.png",
+     null,
+     null
+    ],
+    "skintone": [
+     null,
+     null,
+     null,
+     null,
+     "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l_512.png",
+     null
+    ],
+    "freckles": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "empty": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   "tierCandidates": {
+    "shirtqf01": [
+     [
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_256.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "catsuit01": [
+     [
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l_512.png",
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_l_512.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_512.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "skintone": [
+     [
+      "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_l_512.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_z_512.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "freckles": [
+     [],
+     [],
+     [
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_01/comp_head_d_512.png",
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_02/comp_head_d_512.png",
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_03/comp_head_d_512.png"
+     ],
+     [],
+     []
+    ],
+    "empty": [
+     [],
+     [],
+     [],
+     [],
+     []
+    ]
+   }
+  },
+  "512": {
+   "tierOrder": [
+    "_512",
+    "_4k",
+    "",
+    "_256"
+   ],
+   "tierOrderExplicit": {
+    "256": [
+     "_256",
+     "_512",
+     "_4k",
+     ""
+    ],
+    "512": [
+     "_512",
+     "_4k",
+     "",
+     "_256"
+    ],
+    "4k": [
+     "_4k",
+     "",
+     "_512",
+     "_256"
+    ],
+    "2k": [
+     "",
+     "_4k",
+     "_512",
+     "_256"
+    ]
+   },
+   "pickTier": {
+    "shirtqf01": [
+     "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png",
+     "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_512.png",
+     null,
+     null,
+     null,
+     null
+    ],
+    "catsuit01": [
+     null,
+     null,
+     "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_512.png",
+     "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l_512.png",
+     null,
+     null
+    ],
+    "skintone": [
+     null,
+     null,
+     null,
+     null,
+     "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l_512.png",
+     null
+    ],
+    "freckles": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "empty": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   "tierCandidates": {
+    "shirtqf01": [
+     [
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_512.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v1/colorize_body_l_512.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "catsuit01": [
+     [
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l_512.png",
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_l_512.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_512.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "skintone": [
+     [
+      "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_l_512.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_z_512.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "freckles": [
+     [],
+     [],
+     [
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_01/comp_head_d_512.png",
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_02/comp_head_d_512.png",
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_03/comp_head_d_512.png"
+     ],
+     [],
+     []
+    ],
+    "empty": [
+     [],
+     [],
+     [],
+     [],
+     []
+    ]
+   }
+  },
+  "4k": {
+   "tierOrder": [
+    "_4k",
+    "",
+    "_512",
+    "_256"
+   ],
+   "tierOrderExplicit": {
+    "256": [
+     "_256",
+     "_512",
+     "_4k",
+     ""
+    ],
+    "512": [
+     "_512",
+     "_4k",
+     "",
+     "_256"
+    ],
+    "4k": [
+     "_4k",
+     "",
+     "_512",
+     "_256"
+    ],
+    "2k": [
+     "",
+     "_4k",
+     "_512",
+     "_256"
+    ]
+   },
+   "pickTier": {
+    "shirtqf01": [
+     "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png",
+     "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_4k.png",
+     null,
+     null,
+     null,
+     null
+    ],
+    "catsuit01": [
+     null,
+     null,
+     "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_4k.png",
+     "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l_4k.png",
+     null,
+     null
+    ],
+    "skintone": [
+     null,
+     null,
+     null,
+     null,
+     "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l_4k.png",
+     null
+    ],
+    "freckles": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "empty": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   "tierCandidates": {
+    "shirtqf01": [
+     [
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l_4k.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v1/colorize_body_l_4k.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v10/colorize_body_l_4k.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v11/colorize_body_l_4k.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v12/colorize_body_l_4k.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v13/colorize_body_l_4k.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v14/colorize_body_l_4k.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v15/colorize_body_l_4k.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v16/colorize_body_l_4k.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "catsuit01": [
+     [
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l_4k.png",
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_l_4k.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z_4k.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "skintone": [
+     [
+      "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_l_4k.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_z_4k.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "freckles": [
+     [],
+     [],
+     [
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_01/comp_head_d_4k.png",
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_02/comp_head_d_4k.png",
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_03/comp_head_d_4k.png"
+     ],
+     [],
+     []
+    ],
+    "empty": [
+     [],
+     [],
+     [],
+     [],
+     []
+    ]
+   }
+  },
+  "2k": {
+   "tierOrder": [
+    "",
+    "_4k",
+    "_512",
+    "_256"
+   ],
+   "tierOrderExplicit": {
+    "256": [
+     "_256",
+     "_512",
+     "_4k",
+     ""
+    ],
+    "512": [
+     "_512",
+     "_4k",
+     "",
+     "_256"
+    ],
+    "4k": [
+     "_4k",
+     "",
+     "_512",
+     "_256"
+    ],
+    "2k": [
+     "",
+     "_4k",
+     "_512",
+     "_256"
+    ]
+   },
+   "pickTier": {
+    "shirtqf01": [
+     "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png",
+     "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l.png",
+     null,
+     null,
+     null,
+     null
+    ],
+    "catsuit01": [
+     null,
+     null,
+     "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z.png",
+     "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l.png",
+     null,
+     null
+    ],
+    "skintone": [
+     null,
+     null,
+     null,
+     null,
+     "res:/graphics/character/female/paperdoll/skintone/basic/colorize_head_l.png",
+     null
+    ],
+    "freckles": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "empty": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   "tierCandidates": {
+    "shirtqf01": [
+     [
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_l.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v1/colorize_body_l.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v10/colorize_body_l.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v11/colorize_body_l.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v12/colorize_body_l.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v13/colorize_body_l.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v14/colorize_body_l.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v15/colorize_body_l.png",
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/v16/colorize_body_l.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/topmiddle/shirtqf01/colorize_body_z.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "catsuit01": [
+     [
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_l.png",
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_l.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/colorize_body_z.png",
+      "res:/graphics/character/female/paperdoll/outer/catsuit01/v1/colorize_body_z.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "skintone": [
+     [
+      "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_l.png"
+     ],
+     [
+      "res:/graphics/character/female/paperdoll/skintone/basic/colorize_body_z.png"
+     ],
+     [],
+     [],
+     []
+    ],
+    "freckles": [
+     [],
+     [],
+     [
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_01/comp_head_d.png",
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_02/comp_head_d.png",
+      "res:/graphics/character/female/paperdoll/makeup/freckles/freckles_03/comp_head_d.png"
+     ],
+     [],
+     []
+    ],
+    "empty": [
+     [],
+     [],
+     [],
+     [],
+     []
+    ]
+   }
+  }
+ },
+ "unknownQualityError": "Unknown character texture quality 8k"
+}
