@@ -16,37 +16,37 @@ import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 export class CjsPaperDollTattoo extends CjsPaperDollComponent
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Tattoos")
     enabled = true;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Tattoo")
     option = "";
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Tattoo ink")
     palette = "";
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Tattoo custom ink")
     customColors = false;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.color
     @meta.ui.description("Ink colour")
     color1 = Float32Array.of(.5, .5, .5, 1);
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.color
     @meta.ui.description("Ink colour")
     color2 = Float32Array.of(.5, .5, .5, 1);
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.color
     @meta.ui.description("Ink colour")
     color3 = Float32Array.of(.5, .5, .5, 1);

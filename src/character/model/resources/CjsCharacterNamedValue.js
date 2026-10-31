@@ -6,12 +6,12 @@ export class CjsCharacterNamedValue
 {
 
     /** Lookup name. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Named primitive value or opaque resource path. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.unknown
     value = null;
 

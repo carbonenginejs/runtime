@@ -7,7 +7,7 @@ import { vec4 } from "#math/vec4";
 export class CjsCharacterColorValue
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec4
     value = vec4.fromValues(0, 0, 0, 1);
 

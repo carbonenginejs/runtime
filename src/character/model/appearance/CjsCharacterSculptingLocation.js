@@ -7,11 +7,11 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterSculptingLocation extends CjsCharacterRecord
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     weightKeyCategory = "";
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     weightKeyPrefix = "";
 

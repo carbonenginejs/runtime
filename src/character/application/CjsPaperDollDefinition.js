@@ -69,143 +69,143 @@ export class CjsPaperDollDefinition
     _passDirty = 0;
 
     /** The character's name. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollEyes")
     eyes = new CjsPaperDollEyes();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollEyebrows")
     eyebrows = new CjsPaperDollEyebrows();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollBlush")
     blush = new CjsPaperDollBlush();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollArchetype")
     archetype = new CjsPaperDollArchetype();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollSkin")
     skin = new CjsPaperDollSkin();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollFreckles")
     freckles = new CjsPaperDollFreckles();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollAging")
     aging = new CjsPaperDollAging();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollScarring")
     scarring = new CjsPaperDollScarring();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollScars")
     scars = new CjsPaperDollScars();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollTattoo")
     tattoo = new CjsPaperDollTattoo();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollLipstick")
     lipstick = new CjsPaperDollLipstick();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollAugmentations")
     augmentations = new CjsPaperDollAugmentations();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollBodyAugmentation")
     bodyAugmentation = new CjsPaperDollBodyAugmentation();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollArmLeft")
     armLeft = new CjsPaperDollArmLeft();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollArmRight")
     armRight = new CjsPaperDollArmRight();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollEyeshadow")
     eyeshadow = new CjsPaperDollEyeshadow();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollEyeliner")
     eyeliner = new CjsPaperDollEyeliner();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollBottomUnderwear")
     bottomUnderwear = new CjsPaperDollBottomUnderwear();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollTopUnderwear")
     topUnderwear = new CjsPaperDollTopUnderwear();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollBottomMiddle")
     bottomMiddle = new CjsPaperDollBottomMiddle();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollTopMiddle")
     topMiddle = new CjsPaperDollTopMiddle();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollBottomOuter")
     bottomOuter = new CjsPaperDollBottomOuter();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollFeet")
     feet = new CjsPaperDollFeet();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollTopOuter")
     topOuter = new CjsPaperDollTopOuter();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollOuter")
     outer = new CjsPaperDollOuter();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollHair")
     hair = new CjsPaperDollHair();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollGlasses")
     glasses = new CjsPaperDollGlasses();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollEarsLow")
     earsLow = new CjsPaperDollEarsLow();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollEarsHigh")
     earsHigh = new CjsPaperDollEarsHigh();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollNose")
     nose = new CjsPaperDollNose();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollLips")
     lips = new CjsPaperDollLips();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollChin")
     chin = new CjsPaperDollChin();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollBrow")
     brow = new CjsPaperDollBrow();
 
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollMask")
     mask = new CjsPaperDollMask();
 

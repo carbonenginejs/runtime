@@ -230,7 +230,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * values carry the boosters, and Initialize derives the flares, bounds and
    * max size from it.
    */
-  @meta.attribute(meta.PERSISTONLY)
+  @meta.mapAttribute(meta.PERSISTONLY)
   @type.list("EveChildBoosterSet::SingleBoosterData")
   _singleBoosters = [];
 

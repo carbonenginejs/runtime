@@ -12,12 +12,12 @@ export class CjsCharacterAnimationDataEntry
 {
 
     /** Authored female settings. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterFemale")
     female = null;
 
     /** Authored male settings. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterMale")
     male = null;
 

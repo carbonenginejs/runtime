@@ -12,12 +12,12 @@ export class CjsCharacterMovementStates
 {
 
     /** Library identity for this unnamed root; not a key added to the original file. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Authored movement states in source order. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterMovementState")
     value = [];
 

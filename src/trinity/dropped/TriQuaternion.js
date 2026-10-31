@@ -8,22 +8,22 @@ export class TriQuaternion
 {
 
   /** x (unknown) [READWRITE, PERSIST] */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.unknown
   x = null;
 
   /** y (unknown) [READWRITE, PERSIST] */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.unknown
   y = null;
 
   /** z (unknown) [READWRITE, PERSIST] */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.unknown
   z = null;
 
   /** w (unknown) [READWRITE, PERSIST] */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.unknown
   w = null;
 

@@ -12,27 +12,27 @@ export class CjsCharacterHookNames
 {
 
     /** Authored string, retained without normalization of spelling. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     fov = "";
 
     /** Authored string, retained without normalization of spelling. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Authored string, retained without normalization of spelling. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     target = "";
 
     /** Authored string, retained without normalization of spelling. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     transform = "";
 
     /** Authored string, retained without normalization of spelling. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     translation = "";
 

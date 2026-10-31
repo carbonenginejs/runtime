@@ -146,25 +146,25 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @type.list("EvePlaneSetItem")
   planes = [];
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EvePlaneLight")
   lights = [];
 
   // SOF-authored shared texture parameters; persisted so the values
   // interchange reproduces Carbon's hidden plane-set bindings.
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.object.ref("TriTextureParameter")
   imageMapParameter = null;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.object.ref("TriTextureParameter")
   layerMap1Parameter = null;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.object.ref("TriTextureParameter")
   layerMap2Parameter = null;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.object.ref("TriTextureParameter")
   maskMapParameter = null;
   _rebuildRevision = 0;

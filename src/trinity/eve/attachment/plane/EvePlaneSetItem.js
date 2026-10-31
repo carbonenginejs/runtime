@@ -77,7 +77,7 @@ export class EvePlaneSetItem extends IRoot
   // Carbon omits this SOF-authored value from Blue serialization, but it is
   // part of the editable plane description and must survive values exchange.
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.vec4
   blinkData = vec4.fromValues(1, 0, 1, 0);
 

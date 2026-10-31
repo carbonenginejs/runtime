@@ -6,37 +6,37 @@ import { meta, type } from "#schema";
 export class CjsCharacterResolvedPart
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.path
     configurationPath = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.path
     geometryPath = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.list("string")
     texturePaths = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.int32
     requestedLod = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.int32
     resolvedLod = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     modelFamily = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.object.ref("CjsCharacterOrigin")
     origin = null;

@@ -18,52 +18,52 @@ export class Tr2SamplerOverride
 {
 
   /** name (BlueSharedString) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.SHAREDSTRING_1(0)
   name = "";
 
   /** addressU (Tr2RenderContextEnum::TextureAddressMode - enum Tr2RenderContextEnum) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.UINT32_1(8)
   @type.enum("trinity.Tr2RenderContextEnum.TextureAddressMode")
   addressU = 1;
 
   /** addressV (Tr2RenderContextEnum::TextureAddressMode - enum Tr2RenderContextEnum) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.UINT32_1(12)
   @type.enum("trinity.Tr2RenderContextEnum.TextureAddressMode")
   addressV = 1;
 
   /** addressW (Tr2RenderContextEnum::TextureAddressMode - enum Tr2RenderContextEnum) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.UINT32_1(16)
   @type.enum("trinity.Tr2RenderContextEnum.TextureAddressMode")
   addressW = 1;
 
   /** filter (Tr2RenderContextEnum::TextureFilter) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.UINT32_1(20)
   @type.enum("trinity.Tr2RenderContextEnum.TextureFilter")
   filter = 2;
 
   /** mipFilter (Tr2RenderContextEnum::TextureFilter) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.UINT32_1(24)
   @type.enum("trinity.Tr2RenderContextEnum.TextureFilter")
   mipFilter = 2;
 
   /** lodBias (float) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(28)
   lodBias = 0;
 
   /** maxMipLevel (uint32_t) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.UINT32_1(32)
   maxMipLevel = 0;
 
   /** maxAnisotropy (uint32_t) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.UINT32_1(36)
   maxAnisotropy = 4;
 

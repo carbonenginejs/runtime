@@ -12,17 +12,17 @@ export class CjsCharacterScalarPost
 {
 
     /** Authored string; not coerced to a boolean. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     lut = "";
 
     /** Authored scalar; not expanded to a four-component tuple. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     lut_influence = 0;
 
     /** Authored resource reference; resolution never replaces this string. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.path("TriTextureRes")
     lut_path = "";
 

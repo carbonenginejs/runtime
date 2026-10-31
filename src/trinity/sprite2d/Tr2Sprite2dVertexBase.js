@@ -23,7 +23,7 @@ export class Tr2Sprite2dVertexBase
    * Native position (Vector3).
    * @type {Float32Array}
    */
-  @meta.attribute(meta.READWRITE | meta.PERSIST)
+  @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
   @type.vec3
   position = vec3.create();

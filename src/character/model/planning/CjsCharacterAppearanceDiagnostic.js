@@ -6,22 +6,22 @@ import { meta, type } from "#schema";
 export class CjsCharacterAppearanceDiagnostic
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     code = "";
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     message = "";
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     severity = "warning";
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.object.ref("CjsCharacterOrigin")
     origin = null;

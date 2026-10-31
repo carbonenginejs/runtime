@@ -14,23 +14,23 @@ export class EveChildInstanceTransform
 {
 
   /** scale (Vector3) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(0)
   scale = vec3.fromValues(1, 1, 1);
 
   /** rotation (Quaternion) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_4(12)
   @type.quat
   rotation = quat.create();
 
   /** translation (Vector3) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(28)
   translation = vec3.create();
 
   /** boneIndex (int32_t) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.INT32_1(40)
   boneIndex = -1;
 

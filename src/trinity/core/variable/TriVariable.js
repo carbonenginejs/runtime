@@ -21,12 +21,12 @@ import { float32FromBits } from "#utils/bytes";
 export class TriVariable extends ITr2EffectValue
 {
   /** Existing JavaScript name inspection declaration; not a native Blue member. */
-  @meta.attribute(meta.READ)
+  @meta.mapAttribute(meta.READ)
   @type.string
   name = "";
 
   /** Existing JavaScript type inspection declaration; native TriVariable exposes no members. */
-  @meta.attribute(meta.READ)
+  @meta.mapAttribute(meta.READ)
   @type.int32
   contentType = TriVariableContentType.TRIVARIABLE_INVALID;
 

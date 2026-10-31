@@ -12,12 +12,12 @@ export class CjsCharacterMaterial
 {
 
     /** Authored material attribute record. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterAttributes")
     Attributes = null;
 
     /** Only an empty map is evidenced; no texture entry shape is invented. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.map("unknown")
     Textures = new Map();
 

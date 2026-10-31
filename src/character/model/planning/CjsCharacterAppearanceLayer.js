@@ -12,23 +12,23 @@ import { meta, type } from "#schema";
 export class CjsCharacterAppearanceLayer
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.object.ref("CjsCharacterAppearanceSelection")
     owner = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.object.ref("CjsCharacterResolvedPart")
     contributor = null;
 
     /** Authored contribution weight when the dependency carries one. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.float64
     weight = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.object.ref("CjsCharacterOrigin")
     origin = null;

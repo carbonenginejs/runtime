@@ -29,147 +29,147 @@ export class CjsCharacterLibrary
     _kindIndexes = new Map();
 
     /** Shared original source documents; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterGeneric")
     generic = new CjsCharacterGeneric();
 
     /** Names aligned with each kind list. Mutate both through AddKind/RemoveKind. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.map({ kind: "list", itemType: "string" })
     sourceNames = new Map();
 
     /** Flat parts holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterPart")
     parts = [];
 
     /** Flat avatarPartMetaData holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsAvatarPartMetaData")
     avatarPartMetaData = [];
 
     /** Flat colorVariations holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterColorVariation")
     colorVariations = [];
 
     /** Flat baseColors holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterBaseColor")
     baseColors = [];
 
     /** Flat types holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterType")
     types = [];
 
     /** Flat projectedDecals holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsProjectedDecal")
     projectedDecals = [];
 
     /** Flat recipes holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterRecipe")
     recipes = [];
 
     /** Flat cameras holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterCamera")
     cameras = [];
 
     /** Flat cameraSequences holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterCameraSequence")
     cameraSequences = [];
 
     /** Flat positions holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterPosition")
     positions = [];
 
     /** Flat poses holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterPose")
     poses = [];
 
     /** Flat lights holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("Tr2InteriorScene")
     lights = [];
 
     /** Flat backgrounds holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterBackground")
     backgrounds = [];
 
     /** Flat posts holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterPost")
     posts = [];
 
     /** Flat scalarPosts holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterScalarPost")
     scalarPosts = [];
 
     /** Flat characters holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterPreset")
     characters = [];
 
     /** Flat scenes holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterScene")
     scenes = [];
 
     /** Flat curveSetMetadata holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterCurveSetMetadata")
     curveSetMetadata = [];
 
     /** Flat curveCacheLists holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterCurveCacheList")
     curveCacheLists = [];
 
     /** Flat materialSets holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterMaterialSet")
     materialSets = [];
 
     /** Flat clips holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterClip")
     clips = [];
 
     /** Flat rigs holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterRig")
     rigs = [];
 
     /** Flat gstates holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterGState")
     gstates = [];
 
     /** Flat textures holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterTexture")
     textures = [];
 
     /** Flat blackResources holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterNamedValue")
     blackResources = [];
 
     /** Flat geometryResources holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterNamedValue")
     geometryResources = [];
 
     /** Flat staticResources holdings; schema 13 only. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterNamedValue")
     staticResources = [];
 
@@ -317,42 +317,42 @@ export class CjsCharacterLibrary
         return unresolved;
     }
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     schema = "carbonenginejs.characterLibrary";
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.uint32
     schemaVersion = 11;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     sourceTarget = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     sourceGame = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     sourceProvider = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     sourceBuild = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     generatedAt = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.object.ref("CjsCharacterLibraryDocuments")
     documents = new CjsCharacterLibraryDocuments();
@@ -361,12 +361,12 @@ export class CjsCharacterLibrary
      * Source relationships whose target record does not exist. Each owning
      * member holds null; the builder records here which identity it named.
      */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.list("CjsCharacterUnresolvedRelationship")
     unresolvedRelationships = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.unknown
     rawDocuments = null;
 

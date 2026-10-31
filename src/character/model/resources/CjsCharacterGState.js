@@ -6,12 +6,12 @@ export class CjsCharacterGState
 {
 
     /** Lookup name. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Opaque animation state path. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.path(".gsf")
     resFilePath = "";
 

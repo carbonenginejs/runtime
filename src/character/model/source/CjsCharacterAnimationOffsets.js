@@ -12,12 +12,12 @@ export class CjsCharacterAnimationOffsets
 {
 
     /** Library identity for this unnamed root; not a key added to the original file. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Authored keys and vec3 Python tuples; JS number components preserve precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.map({ kind: "list", itemType: "float64" })
     value = new Map();
 

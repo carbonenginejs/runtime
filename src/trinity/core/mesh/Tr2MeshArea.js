@@ -69,7 +69,7 @@ export class Tr2MeshArea extends IRoot
    * Adapted: Carbon declares m_generateDepthArea (trinity/trinity/Tr2MeshArea.h:95) but does not expose it; exposed here for the values interface.
    */
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.adapted
   @type.boolean
   generateDepthArea = false;
@@ -79,7 +79,7 @@ export class Tr2MeshArea extends IRoot
    * Adapted: Carbon declares m_alphaCutout (trinity/trinity/Tr2MeshArea.h:99) but does not expose it; exposed here for the values interface.
    */
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.adapted
   @type.boolean
   alphaCutout = false;
@@ -89,7 +89,7 @@ export class Tr2MeshArea extends IRoot
    * Adapted: Carbon declares m_minLod (trinity/trinity/Tr2MeshArea.h:82) but does not expose it; exposed here for the values interface.
    */
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.adapted
   @type.int32
   minLod = -1;

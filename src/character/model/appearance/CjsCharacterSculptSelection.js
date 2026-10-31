@@ -6,19 +6,19 @@ import { meta, type } from "#schema";
 export class CjsCharacterSculptSelection
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     weightForwardBack = 0;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     weightLeftRight = 0;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     weightUpDown = 0;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "sculptLocationID")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "sculptLocationID")
     @type.object.ref("CjsCharacterSculptingLocation")
     sculptingLocation = null;
 

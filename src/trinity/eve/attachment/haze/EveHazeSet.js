@@ -107,7 +107,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   @type.list("EveHazeSetItem")
   hazes = [];
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveHazeSetLight")
   lights = [];
 

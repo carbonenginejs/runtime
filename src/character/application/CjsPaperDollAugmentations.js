@@ -12,12 +12,12 @@ import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 export class CjsPaperDollAugmentations extends CjsPaperDollComponent
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Augmentations")
     enabled = true;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Style")
     option = "";

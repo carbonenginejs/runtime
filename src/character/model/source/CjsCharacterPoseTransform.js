@@ -13,7 +13,7 @@ export class CjsCharacterPoseTransform
 {
 
     /** Authored 3-component numeric tuple. Plain number storage avoids float32 rounding; source length is 3. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("float64")
     orientation = [0, 0, 0];
 
@@ -21,12 +21,12 @@ export class CjsCharacterPoseTransform
      * Authored three-component rotation; not a quaternion. Plain number storage avoids float32 rounding;
      * source length is 3.
      */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("float64")
     rotation = [0, 0, 0];
 
     /** Authored 3-component numeric tuple. Plain number storage avoids float32 rounding; source length is 3. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("float64")
     translation = [0, 0, 0];
 

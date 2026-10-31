@@ -6,15 +6,15 @@ import { meta, type } from "#schema";
 export class CjsCharacterModifierSelection
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "modifierLocationID")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "modifierLocationID")
     @type.object.ref("CjsCharacterModifierLocation")
     modifierLocation = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "paperdollResourceID")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "paperdollResourceID")
     @type.object.ref("CjsCharacterResource")
     paperdollResource = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32
     paperdollResourceVariation = 0;
 

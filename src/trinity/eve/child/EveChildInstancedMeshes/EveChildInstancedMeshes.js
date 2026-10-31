@@ -77,15 +77,15 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   @type.string
   name = "";
 
-  @meta.attribute(meta.READ)
+  @meta.mapAttribute(meta.READ)
   @type.mat4
   worldTransform = mat4.create();
 
-  @meta.attribute(meta.READ)
+  @meta.mapAttribute(meta.READ)
   @type.boolean
   hasUpdated = false;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveChildInstancedMeshes::Mesh")
   meshes = [];
 

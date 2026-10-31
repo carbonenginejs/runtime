@@ -12,12 +12,12 @@ export class CjsCharacterColorVariation
 {
 
     /** Three authored four-component tuples, without float32 rounding. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list({ kind: "list", itemType: "float64" })
     colors = [];
 
     /** Authored pattern name, retained as written. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     pattern = "";
 
@@ -25,12 +25,12 @@ export class CjsCharacterColorVariation
      * Seven positional values: six four-component tuples followed by one scalar. This is not a homogeneous
      * colour list.
      */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("unknown")
     patternColors = [];
 
     /** Optional three four-component tuples. The reader/writer preserves whether the member was authored. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list({ kind: "list", itemType: "float64" })
     specularColors = [];
 

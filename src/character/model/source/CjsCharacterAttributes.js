@@ -12,22 +12,22 @@ export class CjsCharacterAttributes
 {
 
     /** Authored one-element list of a vec3 tuple. Numeric precision and nesting are retained. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list({ kind: "list", itemType: "float64" })
     ambientColor = [];
 
     /** Authored one-element list of a vec3 tuple. Numeric precision and nesting are retained. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list({ kind: "list", itemType: "float64" })
     color = [];
 
     /** Authored one-element list of a vec3 tuple. Numeric precision and nesting are retained. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list({ kind: "list", itemType: "float64" })
     incandescence = [];
 
     /** Authored one-element list of a vec3 tuple. Numeric precision and nesting are retained. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list({ kind: "list", itemType: "float64" })
     transparency = [];
 

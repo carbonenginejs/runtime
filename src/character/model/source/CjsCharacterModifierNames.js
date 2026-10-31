@@ -12,12 +12,12 @@ export class CjsCharacterModifierNames
 {
 
     /** Library identity for this unnamed root; not a key added to the original file. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Complete authored scalar string. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     value = "";
 

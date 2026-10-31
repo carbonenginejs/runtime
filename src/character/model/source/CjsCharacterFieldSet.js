@@ -12,7 +12,7 @@ export class CjsCharacterFieldSet
 {
 
     /** Authored field identifiers and records. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.map({ kind: "rootRef", className: "CjsCharacterField" })
     Fields = new Map();
 

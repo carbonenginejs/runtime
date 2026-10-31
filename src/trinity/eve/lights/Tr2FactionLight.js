@@ -274,7 +274,7 @@ export class Tr2FactionLight extends Tr2Light
    * "color" row (the faction colour drives it, cpp:46), so this carries meta
    * flags, not Carbon's.
    */
-  @meta.attribute(meta.NOTIFY | meta.PERSIST)
+  @meta.mapAttribute(meta.NOTIFY | meta.PERSIST)
 
   @type.color
   get color()

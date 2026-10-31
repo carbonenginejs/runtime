@@ -7,12 +7,12 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterModifierLocation extends CjsCharacterRecord
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     modifierKey = "";
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     variationKey = "";

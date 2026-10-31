@@ -12,17 +12,17 @@ export class CjsCharacterFaceTweakSettings
 {
 
     /** Authored names and gamma values. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.map("float64")
     gammaCurves = new Map();
 
     /** Authored numeric value, retained at JavaScript number precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     wrinkleMultiplier = 0;
 
     /** Authored numeric value, retained at JavaScript number precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     correctionMultiplier = 0;
 

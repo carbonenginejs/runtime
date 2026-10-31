@@ -149,7 +149,7 @@ export class EveSpaceObjectDecal
   // SOF-authored per-LOD triangle indices; persisted so the values
   // interchange reproduces Carbon's hidden decal geometry selection.
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.array("unknown")
   staticIndexBuffers = [];
 

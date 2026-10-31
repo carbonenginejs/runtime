@@ -6,12 +6,12 @@ export class CjsCharacterTexture
 {
 
     /** Lookup name. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Original texture path; no selection or decoding. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.path
     resFilePath = "";
 

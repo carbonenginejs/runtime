@@ -273,9 +273,9 @@ test("own complete attributes keep explicit flags and aliases without Carbon ori
     class Parent { value = 0; }
     class Child extends Parent {}
     CjsSchema.defineEnum({ ZERO: 0 }, { name: "Goal3.OwnEnum", chooser: [{name:"ZERO",value:0}] });
-    CjsSchema.decorateField(Parent, "value", meta.attribute(meta.READWRITE | meta.PERSIST), type.int32);
+    CjsSchema.decorateField(Parent, "value", meta.mapAttribute(meta.READWRITE | meta.PERSIST), type.int32);
     meta.define("Goal3OwnParent")(Parent);
-    CjsSchema.decorateField(Child, "value", meta.attribute(meta.READ, "alias"), type.enum("Goal3.OwnEnum"));
+    CjsSchema.decorateField(Child, "value", meta.mapAttribute(meta.READ, "alias"), type.enum("Goal3.OwnEnum"));
     meta.define("Goal3OwnChild")(Child);
     const member = CjsSchema.getSchema(Child).members.find(m => m.name === "alias");
     assert.deepEqual(member.edit, {read:true});
@@ -286,16 +286,16 @@ test("own complete attributes keep explicit flags and aliases without Carbon ori
     assert.equal(member.exposure.macro, undefined);
     assert.equal(new CjsBlueClasses().GetTypeInfo(new Child())[2].alias, undefined);
     assert.equal(CjsSchema.getSchema(Parent).members[0].exposure.flags, 19);
-    for (const invalid of [-1, 1.5, NaN, Infinity, 0x100000000]) assert.throws(() => meta.attribute(invalid), /flags/);
-    assert.throws(() => meta.attribute(meta.READ, ""), /non-empty/);
+    for (const invalid of [-1, 1.5, NaN, Infinity, 0x100000000]) assert.throws(() => meta.mapAttribute(invalid), /flags/);
+    assert.throws(() => meta.mapAttribute(meta.READ, ""), /non-empty/);
     assert.equal(meta.EDIT_FORCELONG, exposure.EDIT_FORCELONG);
 });
 
 test("legacy named/indexed own attributes coexist with zero-mask target declarations", () =>
 {
     class Sample { value = 0; other = 0; }
-    CjsSchema.decorateField(Sample, "value", meta.attribute(meta.NONE, "legacy"), meta.readwrite, type.float32);
-    CjsSchema.decorateField(Sample, "other", meta.attribute(meta.NONE), type.int32);
+    CjsSchema.decorateField(Sample, "value", meta.mapAttribute(meta.NONE, "legacy"), meta.readwrite, type.float32);
+    CjsSchema.decorateField(Sample, "other", meta.mapAttribute(meta.NONE), type.int32);
     meta.define("Goal3LegacyAttribute")(Sample);
     const members=CjsSchema.getSchema(Sample).members;
     assert.equal(members.find(m=>m.name==="legacy").key,"value");
@@ -328,7 +328,7 @@ test("Stage-3 own attributes and all object aliases register before construction
     const schemaUrl=new URL("../../src/global/schema/index.js",import.meta.url).href;
     const source=`import {meta,type} from ${JSON.stringify(schemaUrl)};
       @meta.define("Goal3StageOwn") export class Sample {
-        @meta.attribute(meta.READ | meta.PERSIST, "alias") @type.float32 value=2;
+        @meta.mapAttribute(meta.READ | meta.PERSIST, "alias") @type.float32 value=2;
         @type.object.embed("Goal3ObjectItem") embedded=null;
         @type.object.ref("Goal3ObjectItem") counted=null;
         @type.object.weak("Goal3ObjectItem") weak=null;

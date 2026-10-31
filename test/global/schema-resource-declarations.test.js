@@ -133,7 +133,7 @@ test("defaults never snapshot mapped Stage-3 resource storage", () => {
   const metadata = Object.create(null);
   const context = { kind: "field", name: "_cache", metadata, addInitializer() {} };
   type.resource("Resource")(undefined, context);
-  CjsSchema.meta.attribute(meta.NONE, "cache")(undefined, context);
+  CjsSchema.meta.mapAttribute(meta.NONE, "cache")(undefined, context);
   class Owner { constructor() { this._cache = incoming("loaded"); } }
   meta.define({ className: name() })(Owner, { kind: "class", metadata });
   new Owner();

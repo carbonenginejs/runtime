@@ -28,26 +28,26 @@ import { meta, type } from "#schema";
 export class EveChildInstancedMeshInstance
 {
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.mat4
   transform = mat4.create();
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.uint32
   sphereIndex = 0;
 
   /** mirrored (bool, h:42): the transform's determinant is negative (IsMirrored), so its winding flips. */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.boolean
   mirrored = false;
 
   /** pickingMeshIndex (uint32_t, h:43): the owning mesh's index in EveChildInstancedMeshes.meshes. */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.uint32
   pickingMeshIndex = 0;
 
   /** pickingInstanceIndex (uint32_t, h:44): this instance's index in its mesh. */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.uint32
   pickingInstanceIndex = 0;
 }

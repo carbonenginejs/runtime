@@ -75,7 +75,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Primary = vec4.create();
 
@@ -89,7 +89,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Secondary = vec4.create();
 
@@ -103,7 +103,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Tertiary = vec4.create();
 
@@ -117,7 +117,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Black = vec4.create();
 
@@ -131,7 +131,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   White = vec4.create();
 
@@ -145,7 +145,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Yellow = vec4.create();
 
@@ -159,7 +159,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Orange = vec4.create();
 
@@ -173,7 +173,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Red = vec4.create();
 
@@ -187,7 +187,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Blue = vec4.create();
 
@@ -201,7 +201,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Green = vec4.create();
 
@@ -215,7 +215,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Cyan = vec4.create();
 
@@ -229,7 +229,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Fire = vec4.create();
 
@@ -243,7 +243,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Hull = vec4.create();
 
@@ -257,7 +257,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Glass = vec4.create();
 
@@ -271,7 +271,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Reactor = vec4.create();
 
@@ -285,7 +285,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Darkhull = vec4.create();
 
@@ -299,7 +299,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Booster = vec4.create();
 
@@ -313,7 +313,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   Killmark = vec4.create();
 
@@ -327,7 +327,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimaryLight = vec4.create();
 
@@ -341,7 +341,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   SecondaryLight = vec4.create();
 
@@ -355,7 +355,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   TertiaryLight = vec4.create();
 
@@ -369,7 +369,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   WhiteLight = vec4.create();
 
@@ -383,7 +383,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimarySpotlight = vec4.create();
 
@@ -397,7 +397,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   SecondarySpotlight = vec4.create();
 
@@ -411,7 +411,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   TertiarySpotlight = vec4.create();
 
@@ -425,7 +425,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimaryHologram = vec4.create();
 
@@ -439,7 +439,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   SecondaryHologram = vec4.create();
 
@@ -453,7 +453,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   TertiaryHologram = vec4.create();
 
@@ -467,7 +467,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   State0 = vec4.create();
 
@@ -481,7 +481,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   State1 = vec4.create();
 
@@ -495,7 +495,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   State2 = vec4.create();
 
@@ -509,7 +509,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   State3 = vec4.create();
 
@@ -523,7 +523,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   StateVulnerable = vec4.create();
 
@@ -537,7 +537,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   StateInvulnerable = vec4.create();
 
@@ -551,7 +551,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimaryForcefield = vec4.create();
 
@@ -565,7 +565,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   SecondaryForcefield = vec4.create();
 
@@ -579,7 +579,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimaryBanner = vec4.create();
 
@@ -593,7 +593,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimaryBillboard = vec4.create();
 
@@ -607,7 +607,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimaryFx = vec4.create();
 
@@ -621,7 +621,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   SecondaryFx = vec4.create();
 
@@ -635,7 +635,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimaryWarpFx = vec4.create();
 
@@ -649,7 +649,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimaryAttackFx = vec4.create();
 
@@ -663,7 +663,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimarySiegeFx = vec4.create();
 
@@ -677,7 +677,7 @@ export class EveChildInheritProperties extends IRoot
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.color
   PrimaryDockedFx = vec4.create();
 

@@ -78,7 +78,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   @type.string
   name = "";
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveSpriteLight")
   lights = [];
 

@@ -12,7 +12,7 @@ export class CjsCharacterFemale
 {
 
     /** Authored numeric value, retained at JavaScript number precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     BlinkMult = 0;
 

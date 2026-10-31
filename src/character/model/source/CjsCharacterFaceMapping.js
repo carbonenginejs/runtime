@@ -12,12 +12,12 @@ export class CjsCharacterFaceMapping
 {
 
     /** Library identity for this unnamed root; not a key added to the original file. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Authored keys and four- or seven-slot tuples containing strings, integers and scalar values. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.map({ kind: "list", itemType: "unknown" })
     value = new Map();
 

@@ -23,15 +23,15 @@ import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";
 @be.exposureChainTo(EveSpaceObjectChild)
 export class EveChildPartData extends EveSpaceObjectChild
 {
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.string
   faction = "";
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.string
   race = "";
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveChildPartData::PartData")
   parts = [];
 

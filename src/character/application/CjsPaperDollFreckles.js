@@ -7,12 +7,12 @@ import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 export class CjsPaperDollFreckles extends CjsPaperDollComponent
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Freckles")
     enabled = true;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Level")
     option = "";

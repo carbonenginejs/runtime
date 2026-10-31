@@ -49,7 +49,7 @@ test("the public decorator surface has one namespace per vocabulary and preserve
     for (const name of ["carbon", "interface", "inherit", "cjs", "notUsed"]) assert.equal(typeof meta[name], "function");
     assert.equal(Object.hasOwn(meta, "ours"), false);
     // Amendment 2026-10-17: the stored-member declaration is `attribute` (MAP_ATTRIBUTE).
-    assert.equal(typeof meta.attribute, "function");
+    assert.equal(typeof meta.mapAttribute, "function");
     assert.equal(Object.hasOwn(meta, "member"), false, "removed: meta.member");
     class Types {}
     CjsSchema.define(Types, {
@@ -101,12 +101,12 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
     assert.equal(decorated.members[0].declaringClass, Decorated);
 });
 
-test("meta.attribute names a member as ours and be.mapAttribute__Index carries the element index", () =>
+test("meta.mapAttribute names a member as ours and be.mapAttribute__Index carries the element index", () =>
 {
     class Ours {}
     CjsSchema.define(Ours, {
         className: "DeclarationAttributeOurs",
-        fields: { _ratio: [ meta.attribute(meta.NONE, "ratio"), type.float32 ] }
+        fields: { _ratio: [ meta.mapAttribute(meta.NONE, "ratio"), type.float32 ] }
     });
     class Carbon {}
     CjsSchema.define(Carbon, {
@@ -209,7 +209,7 @@ test("native tables keep class occurrences and derived-first ordering while lega
     class Base {}
     CjsSchema.define(Base, {
         className: "DeclarationBase",
-        fields: { stored: [ meta.attribute(meta.NONE, "shared"), type.float32, blue.persist ], baseOnly: type.uint32 }
+        fields: { stored: [ meta.mapAttribute(meta.NONE, "shared"), type.float32, blue.persist ], baseOnly: type.uint32 }
     });
     class Derived extends Base { get shared() { throw new Error("getter read"); } }
     CjsSchema.define(Derived, {

@@ -357,7 +357,7 @@ rgba, linear and mixed use vector4; rotation uses quaternion; local and world
 use matrix4. Scale uses vector3 with a unit default. Components supplies labels
 for packed channels. Formats dispatch the resolved data type, not these meanings.
 Flags stores uint32 and carries enum/FLAGS metadata. A stored member's exposed
-name is `meta.attribute(name, { index })`, or `blue.attribute` for Carbon's
+name is `meta.mapAttribute(name, { index })`, or `blue.attribute` for Carbon's
 `MAP_ATTRIBUTE`; it is omitted when it only repeats the JS key without an index.
 `type.enum` sets the ENUM bit and reports its registered enum's chooser.
 `blue.chooser(name)` (`meta.chooser` for ours) is Carbon's

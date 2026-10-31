@@ -27,13 +27,13 @@ export class CjsPaperDollArchetype
     _sculpt = new Map();
 
     /** Selected prepared foundation identity. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Archetype")
     option = "";
 
     /** Shape weight, independent of retained authored dependency weights. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.float32
     @meta.ui.description("Archetype strength")
     strength = 1;

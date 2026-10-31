@@ -6,12 +6,12 @@ export class CjsCharacterRig
 {
 
     /** Lookup name. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Opaque rig path. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.path(".gr2")
     resFilePath = "";
 

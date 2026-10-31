@@ -7,12 +7,12 @@ import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 export class CjsPaperDollScars extends CjsPaperDollComponent
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Scars")
     enabled = true;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Scar")
     option = "";

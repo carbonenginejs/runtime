@@ -12,7 +12,7 @@ export class CjsCharacterScene
 {
 
     /** Ordered authored character records. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterSceneCharacter")
     characters = [];
 

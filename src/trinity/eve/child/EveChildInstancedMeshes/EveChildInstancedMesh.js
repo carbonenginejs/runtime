@@ -19,65 +19,65 @@ import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js"
 @meta.define({"className":"EveChildInstancedMeshes::Mesh","carbon":"EveChildInstancedMeshes::Mesh"})
 export class EveChildInstancedMesh
 {
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.path("TriGeometryRes")
   geometryPath = "";
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.boolean
   castsShadow = false;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.int32
   reflectionMode = 3;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.uint32
   meshIndex = 0;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveChildInstancedMeshes::MeshArea")
   areas = [];
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveInstancedMeshManager::StaticPerInstanceData")
   instances = [];
 
   /** Carbon's one-to-one modular ownership tag array for instances. */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.array("uint32")
   partTags = [];
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.string
   sofHullName = "";
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.string
   sofLocatorSetName = "";
 
   // Carbon Mesh::ownedLocatorSets and Mesh::armorDamageShader
   // (EveChildInstancedMeshes.h:163-164), set by SOF BuildChild through AddMesh;
   // CarbonEngineJS delivers built objects as documents, so both persist.
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveLocatorSets")
   ownedLocatorSets = [];
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   /** Carbon: armorDamageShader (trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h:164).
    */
   @type.object.ref("Tr2Effect")
   armorDamageShader = null;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.boolean
   display = true;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.boolean
   inheritOverlayEffects = true;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveMeshOverlayEffect")
   ownOverlayEffects = [];
 

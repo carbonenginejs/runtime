@@ -8,22 +8,22 @@ export class TriColor
 {
 
   /** r (unknown) [READWRITE, PERSIST] */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.unknown
   r = null;
 
   /** g (unknown) [READWRITE, PERSIST] */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.unknown
   g = null;
 
   /** b (unknown) [READWRITE, PERSIST] */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.unknown
   b = null;
 
   /** a (float) [READWRITE, PERSIST] */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.float32
   a = 0;
 

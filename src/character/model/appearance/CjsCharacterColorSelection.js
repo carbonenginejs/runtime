@@ -6,23 +6,23 @@ import { meta, type } from "#schema";
 export class CjsCharacterColorSelection
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     gloss = 0;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     weight = 0;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "colorID")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "colorID")
     @type.object.ref("CjsCharacterColorLocation")
     colorLocation = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "colorNameA")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "colorNameA")
     @type.object.ref("CjsCharacterColorName")
     colorA = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "colorNameBC")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "colorNameBC")
     @type.object.ref("CjsCharacterColorName")
     colorBC = null;
 

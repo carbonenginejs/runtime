@@ -526,7 +526,7 @@ export class EveSpaceObject2 extends EveEntity
    * Adapted: Carbon declares m_spaceObjectShipData (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:625) but does not expose it; exposed here for the values interface.
    * @type {Float32Array}
    */
-  @meta.attribute(meta.READ)
+  @meta.mapAttribute(meta.READ)
   @meta.adapted
   @type.vec4
   spaceObjectShipData = vec4.create();
@@ -645,7 +645,7 @@ export class EveSpaceObject2 extends EveEntity
    * Adapted: Carbon declares m_worldVelocity (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:615) but does not expose it; exposed here for the values interface.
    * @type {Float32Array}
    */
-  @meta.attribute(meta.READ)
+  @meta.mapAttribute(meta.READ)
   @meta.adapted
   @type.vec3
   worldVelocity = vec3.create();

@@ -18,7 +18,7 @@ export class CjsPaperDoll
 {
 
     /** Who and what this character is: identity, foundation and part settings. */
-    @meta.attribute(meta.READ)
+    @meta.mapAttribute(meta.READ)
     @type.object.embed("CjsPaperDollDefinition")
     definition = new CjsPaperDollDefinition();
 

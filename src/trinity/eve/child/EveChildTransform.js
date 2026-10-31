@@ -48,23 +48,23 @@ export class EveChildTransform extends EveSpaceObjectChild
   @type.mat4
   localTransform = mat4.create();
 
-  @meta.attribute(meta.READ)
+  @meta.mapAttribute(meta.READ)
   @type.mat4
   worldTransform = mat4.create();
 
-  @meta.attribute(meta.READWRITE | meta.PERSIST)
+  @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
   @type.boolean
   staticTransform = false;
 
-  @meta.attribute(meta.READWRITE | meta.PERSIST)
+  @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
   @type.boolean
   useSRT = true;
 
-  @meta.attribute(meta.READWRITE | meta.PERSIST)
+  @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
   @type.boolean
   useStaticRotation = false;
 
-  @meta.attribute(meta.READWRITE | meta.PERSIST)
+  @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
   @type.boolean
   useStaticScale = false;
 

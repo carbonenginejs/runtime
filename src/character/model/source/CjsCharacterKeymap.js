@@ -12,12 +12,12 @@ export class CjsCharacterKeymap
 {
 
     /** Three authored integer input components. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("int32")
     input = [];
 
     /** Authored state name, resolved separately. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     state = "";
 

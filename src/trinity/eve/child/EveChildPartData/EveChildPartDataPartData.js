@@ -16,24 +16,24 @@ import { meta, type } from "#schema";
 @meta.define({"className":"EveChildPartData::PartData","carbon":"EveChildPartData::PartData"})
 export class EveChildPartDataPartData
 {
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.uint32
   partId = 0;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.vec3
   position = vec3.create();
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.quat
   rotation = quat.create();
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
   /** Packed CcpMath::Sphere: xyz center and w radius. */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.vec4
   boundingSphere = vec4.create();
 }

@@ -55,7 +55,7 @@ export class AudManager extends IRoot
    * values interchange.
    */
   @meta.adapted
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.object.ref("AudSettings")
   settings = null;
 

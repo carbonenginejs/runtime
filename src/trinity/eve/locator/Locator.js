@@ -14,25 +14,25 @@ import { meta, type } from "#schema";
 @meta.struct.define({ size: 48 })
 export class Locator
 {
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(0)
   position = vec3.create();
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_4(12)
   @type.quat
   direction = quat.create();
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(28)
   scale = vec3.fromValues(1, 1, 1);
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.INT32_1(40)
   boneIndex = -1;
 
   /** Carbon modular-object ownership tag for this locator record. */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.UINT32_1(44)
   partTag = 0;
 }

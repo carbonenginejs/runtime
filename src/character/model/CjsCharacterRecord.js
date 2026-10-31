@@ -6,7 +6,7 @@ import { meta, type } from "#schema";
 export class CjsCharacterRecord
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
     recordID = "";

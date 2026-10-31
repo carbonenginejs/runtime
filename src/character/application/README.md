@@ -14,7 +14,7 @@ captures. The reserved `back` instance is not built by this integration.
 ## Inputs and notification
 
 Editable component values are ordinary fields decorated with
-`meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)`, a storage type
+`meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)`, a storage type
 and UI description. Colour-capable components declare their palette, custom
 flag and colour buffers directly. There are no item-wrapper classes.
 `GetColorAreas()` reads the selected option's areas; `GetControls()` filters

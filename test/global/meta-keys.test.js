@@ -14,7 +14,7 @@ test("member maps external names without changing storage and keyIndex is not a 
     CjsSchema.define(Record, {
         className: "KeyMetadataRecord",
         fields: {
-            ssao: [meta.attribute(meta.NONE, "SSAO"), type.boolean, blue.readwrite, blue.persist],
+            ssao: [meta.mapAttribute(meta.NONE, "SSAO"), type.boolean, blue.readwrite, blue.persist],
             Primary: [meta.keyIndex(0), type.int32, blue.readwrite, blue.persist],
             ordinary: [type.int32, blue.readwrite, blue.persist]
         }
@@ -49,7 +49,7 @@ test("Stage-3 external keys preserve the JS key in either decorator order", () =
     for (const reverse of [false, true])
     {
         const metadata = {};
-        const decorators = [type.boolean, meta.attribute(meta.NONE, "SSAO"), blue.persist];
+        const decorators = [type.boolean, meta.mapAttribute(meta.NONE, "SSAO"), blue.persist];
         if (reverse) decorators.reverse();
         for (const decorator of decorators)
             decorator(undefined, { metadata, name: "ssao", kind: "field", addInitializer() {} });

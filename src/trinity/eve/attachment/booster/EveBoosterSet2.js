@@ -304,7 +304,7 @@ export class EveBoosterSet2 extends EveEntity
    * Carbon does not map it; it persists here so values carry the boosters,
    * and Initialize derives the flares, bounds and max size from it.
    */
-  @meta.attribute(meta.PERSISTONLY)
+  @meta.mapAttribute(meta.PERSISTONLY)
   @type.list("EveBoosterSet2::SingleBoosterData")
   _singleBoosters = [];
 

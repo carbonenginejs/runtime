@@ -988,9 +988,9 @@ export class CjsSchema
 
     /**
      * Public grouping; these aliases share the existing implementations.
-     * `attribute(name?, { index? })` declares stored data (Carbon's
-     * `MAP_ATTRIBUTE`), with an exposed name independent of the decorated JS
-     * key. `property(name?, { persisted? })` declares a getter, with its
+     * The `map*` family is our own exposure rows, the same decorators as
+     * `be`'s without the Blue flag (`createMapNamespace`).
+     * `property(name?, { persisted? })` declares a getter, with its
      * setter, as Carbon's `MAP_PROPERTY*` row; its flags are derived
      * (`propertyDecorator`).
      * Explicit `members`/`properties` arrays use { name, key, index?, ...metadata }
@@ -1008,13 +1008,13 @@ export class CjsSchema
         ...this.#impl,
         // Status `abstract` AND the generated throwing body (ruling 2026-10-17);
         // `#impl.abstract` stays the status alone, for `_inheritedImplDecorators`.
-        abstract: abstractDecorator([ { namespace: "impl", value: { abstract: true, status: "abstract" } } ]),
+        abstract: abstractDecorator(abstractParts(false)),
         renamed: this.#renamed,
         // New origin facts coexist with the legacy stamps until the migration.
         carbon: names => carbonClassDecorator(names),
         cjs: memberDecorator("carbon", { cjs: true, method: false, member: false }),
         notUsed: unusedMethodDecorator(),
-        interface: name => classDefinitionDecorator({ className: exposureName(name), interface: true }),
+        interface: name => exposureClassDecorator(name, true, false),
         inherit: (...Bases) => this.blue.inherit(...Bases),
         keyIndex: index => {
             if (!Number.isSafeInteger(index) || index < 0) throw new TypeError("meta.keyIndex requires a nonnegative safe integer.");
@@ -1037,7 +1037,7 @@ export class CjsSchema
          */
         setting: SETTING_DECORATOR,
         struct: createStructNamespace(),
-        attribute: (flags, name) => ownAttributeDecorator(flags, name),
+        ...createMapNamespace(false),
         property: (name, options) => propertyDecorator(name, options, false),
         chooser: values => chooserDecorator(values),
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, false),
@@ -1074,10 +1074,7 @@ export class CjsSchema
             return combinedFieldDecorator({ [namespace]: value, carbon: { member: true } });
         },
         // A Carbon pure virtual: `meta.abstract` stamped as Carbon's method.
-        abstract: abstractDecorator([
-            { namespace: "impl", value: { abstract: true, status: "abstract" } },
-            { namespace: "carbon", value: { method: true } }
-        ]),
+        abstract: abstractDecorator(abstractParts(true)),
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, true)
     };
 
@@ -2111,7 +2108,7 @@ function refreshLegacyFields(schema)
     schema.fieldsByName = new Map(schema.fields.map(field => [ field.name, field ]));
 }
 
-/** Whether an exposure record is one of Carbon's attribute or property rows. Our own `meta.attribute` flags merge into the Carbon row instead. */
+/** Whether an exposure record is one of Carbon's attribute or property rows. Our own `meta.mapAttribute` flags merge into the Carbon row instead. */
 function isRowExposure(exposure)
 {
     return Boolean(exposure) && typeof exposure.macro === "string" && /^MAP_(ATTRIBUTE|PROPERTY)/.test(exposure.macro);
@@ -3793,35 +3790,65 @@ function exposureConstants()
         ENUM: 512, EDMASK: 3840, PERSISTONLY: 24, EDIT_FORCELONG: 0xFFFFFFFF };
 }
 
+/**
+ * The status a pure virtual records: `meta.abstract`, and with `blue` set Carbon's method stamp as well (`be.abstract`).
+ *
+ * @param {boolean} blue Whether the method is Carbon's.
+ * @returns {Array<{namespace: string, value: object}>} The metadata parts.
+ */
+function abstractParts(blue)
+{
+    const parts = [ { namespace: "impl", value: { abstract: true, status: "abstract" } } ];
+    if (blue) parts.push({ namespace: "carbon", value: { method: true } });
+    return parts;
+}
+
 /** The target API is isolated until the namespace swap; old declarations keep working. */
 function createExposureNamespace(legacy)
 {
     return {
         ...exposureConstants(),
-        define: name => exposureClassDecorator(name, false),
-        interface: name => exposureClassDecorator(name, true),
+        define: name => exposureClassDecorator(name, false, true),
+        interface: name => exposureClassDecorator(name, true, true),
         // One MAP_INTERFACE line, or several as one ordered array (`mapInterface([A, B])`), registered in that order.
         mapInterface: (...Interfaces) => carbonInterfaceDecorator(Interfaces.flat(), true),
         exposureChainTo: Parent => carbonChainToDecorator(Parent),
         inherit: (...Bases) => CjsSchema.blue.inherit(...Bases),
         abstract: legacy.abstract,
-        mapAttribute: (flags, name) => inheritedAware("mapAttribute", "member", name, key => exposureAttributeDecorator("MAP_ATTRIBUTE", flags, undefined, key)),
+        ...createMapNamespace(true)
+    };
+}
+
+/**
+ * The `map*` family, once for `meta` and once for `be`: `be` is `meta` plus Blue (decorator-upgrade.md § 6.8). With `blue` set,
+ * each row is Carbon's exposure: it carries the macro and Carbon's member or method stamp. Without it, the row is ours: the same
+ * arguments, flags and exposed name, with `origin: "ours"` in place of the macro and no Carbon stamp. Our attribute row then merges into
+ * a Carbon row on the same member (`isRowExposure`), and Blue's class info leaves it out.
+ *
+ * @param {boolean} blue Whether the rows are Carbon's exposure (`be`) or ours (`meta`).
+ * @returns {object} The decorators.
+ */
+function createMapNamespace(blue)
+{
+    const ns = blue ? "be" : "meta";
+    return {
+        mapAttribute: (flags, name) => inheritedAware(ns, "mapAttribute", "member", name, key => exposureAttributeDecorator("MAP_ATTRIBUTE", flags, undefined, key, blue)),
         // Carbon's `MAP_ATTRIBUTE( name, member[index], ... )` for one element of an array member: the row sits on the array field.
-        mapAttribute__Index: (flags, name, index) => exposureIndexDecorator(flags, name, index),
-        mapAttributeWithChooser: (flags, chooser, name) => inheritedAware("mapAttributeWithChooser", "member", name, key => exposureAttributeDecorator("MAP_ATTRIBUTE_WITH_CHOOSER", flags, chooser, key)),
-        mapProperty: name => inheritedAware("mapProperty", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY", key)),
-        mapPropertyReadOnly: name => inheritedAware("mapPropertyReadOnly", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY_READONLY", key)),
-        mapPropertyPersisted: name => inheritedAware("mapPropertyPersisted", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", key)),
+        mapAttribute__Index: (flags, name, index) => exposureIndexDecorator(flags, name, index, blue),
+        mapAttributeWithChooser: (flags, chooser, name) => inheritedAware(ns, "mapAttributeWithChooser", "member", name, key => exposureAttributeDecorator("MAP_ATTRIBUTE_WITH_CHOOSER", flags, chooser, key, blue)),
+        mapProperty: name => inheritedAware(ns, "mapProperty", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY", key, false, blue)),
+        mapPropertyReadOnly: name => inheritedAware(ns, "mapPropertyReadOnly", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY_READONLY", key, false, blue)),
+        mapPropertyPersisted: name => inheritedAware(ns, "mapPropertyPersisted", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", key, false, blue)),
         // The same Carbon lines realised as a plain field under the exposed name (the lint checks Carbon's accessors only read and write it).
-        mapProperty__Field: name => inheritedAware("mapProperty__Field", "member", name, key => exposurePropertyDecorator("MAP_PROPERTY", key, true)),
-        mapPropertyReadOnly__Field: name => inheritedAware("mapPropertyReadOnly__Field", "member", name, key => exposurePropertyDecorator("MAP_PROPERTY_READONLY", key, true)),
-        mapPropertyPersisted__Field: name => inheritedAware("mapPropertyPersisted__Field", "member", name, key => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", key, true)),
-        mapMethod: name => inheritedAware("mapMethod", "method", name, key => exposureMethodDecorator("MAP_METHOD", key)),
-        mapMethodAndWrap: name => inheritedAware("mapMethodAndWrap", "method", name, key => exposureMethodDecorator("MAP_METHOD_AND_WRAP", key)),
-        mapMethodAndWrapOptionalArgs: name => inheritedAware("mapMethodAndWrapOptionalArgs", "method", name, key => exposureMethodDecorator("MAP_METHOD_AND_WRAP_OPTIONAL_ARGS", key)),
-        mapMethodAsMethod: name => inheritedAware("mapMethodAsMethod", "method", name, key => exposureMethodDecorator("MAP_METHOD_AS_METHOD", key)),
+        mapProperty__Field: name => inheritedAware(ns, "mapProperty__Field", "member", name, key => exposurePropertyDecorator("MAP_PROPERTY", key, true, blue)),
+        mapPropertyReadOnly__Field: name => inheritedAware(ns, "mapPropertyReadOnly__Field", "member", name, key => exposurePropertyDecorator("MAP_PROPERTY_READONLY", key, true, blue)),
+        mapPropertyPersisted__Field: name => inheritedAware(ns, "mapPropertyPersisted__Field", "member", name, key => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", key, true, blue)),
+        mapMethod: name => inheritedAware(ns, "mapMethod", "method", name, key => exposureMethodDecorator("MAP_METHOD", key, blue)),
+        mapMethodAndWrap: name => inheritedAware(ns, "mapMethodAndWrap", "method", name, key => exposureMethodDecorator("MAP_METHOD_AND_WRAP", key, blue)),
+        mapMethodAndWrapOptionalArgs: name => inheritedAware(ns, "mapMethodAndWrapOptionalArgs", "method", name, key => exposureMethodDecorator("MAP_METHOD_AND_WRAP_OPTIONAL_ARGS", key, blue)),
+        mapMethodAsMethod: name => inheritedAware(ns, "mapMethodAsMethod", "method", name, key => exposureMethodDecorator("MAP_METHOD_AS_METHOD", key, blue)),
         // Carbon's `MAP_ICACHEABLE_METHODS()` (ICacheable.h:21): both ICacheable rows, one line in the class's exposure block.
-        mapICacheableMethods: () => icacheableMethodsDecorator()
+        mapICacheableMethods: () => icacheableMethodsDecorator(blue)
     };
 }
 
@@ -3829,17 +3856,18 @@ function createExposureNamespace(legacy)
  * Carbon's `MAP_ICACHEABLE_METHODS()` (ICacheable.h:21-25), which expands to `MAP_METHOD_AND_WRAP` rows for `IsMemoryUsageKnown` and
  * `GetMemoryUsage`. Placed on the class that calls the macro; both methods must be the class's own or inherited.
  *
+ * @param {boolean} blue Whether the rows are Carbon's exposure (`be`) or ours (`meta`).
  * @returns {Function} The class decorator.
  */
-function icacheableMethodsDecorator()
+function icacheableMethodsDecorator(blue)
 {
     return target =>
     {
         for (const key of [ "IsMemoryUsageKnown", "GetMemoryUsage" ])
         {
             if (typeof target !== "function" || !(key in target.prototype))
-                throw new TypeError(`be.mapICacheableMethods on ${target?.name || "a class"} needs the ICacheable method "${key}".`);
-            for (const part of getDecoratorMetadata(exposureMethodDecorator("MAP_METHOD_AND_WRAP", key)).parts)
+                throw new TypeError(`${blue ? "be" : "meta"}.mapICacheableMethods on ${target?.name || "a class"} needs the ICacheable method "${key}".`);
+            for (const part of getDecoratorMetadata(exposureMethodDecorator("MAP_METHOD_AND_WRAP", key, blue)).parts)
                 defineMethodMetadata(target, key, part.namespace, part.value);
         }
     };
@@ -3853,13 +3881,14 @@ function icacheableMethodsDecorator()
  *
  * Attribute and property rows must be placed below the class's identity decorator so they run before it registers; method rows may sit anywhere.
  *
+ * @param {"be"|"meta"} ns The decorator's namespace, for error messages.
  * @param {string} macroName Decorator name, for error messages.
  * @param {"member"|"property"|"method"} role Which table the row lands in.
  * @param {string|string[]|undefined} name Exposed name on a member, the inherited member's key above a class.
  * @param {Function} build Builds the member-level decorator for one name.
  * @returns {Function} The decorator.
  */
-function inheritedAware(macroName, role, name, build)
+function inheritedAware(ns, macroName, role, name, build)
 {
     // An array of names is only meaningful above a class, so no member-level decorator is built for it.
     const own = Array.isArray(name) ? null : build(name);
@@ -3868,18 +3897,18 @@ function inheritedAware(macroName, role, name, build)
         const aboveClass = (context && typeof context === "object" && context.kind === "class") || (context === undefined && typeof target === "function");
         if (!aboveClass)
         {
-            if (!own) throw new TypeError(`be.${macroName} takes an array of names only above a class.`);
+            if (!own) throw new TypeError(`${ns}.${macroName} takes an array of names only above a class.`);
             return own(target, context);
         }
         const names = Array.isArray(name) ? name : [ name ];
-        if (role !== "method" && Array.isArray(name)) throw new TypeError(`be.${macroName} above a class takes one inherited member name; only methods take an array.`);
+        if (role !== "method" && Array.isArray(name)) throw new TypeError(`${ns}.${macroName} above a class takes one inherited member name; only methods take an array.`);
         if (!names.length || names.some(entry => typeof entry !== "string" || !entry.trim()))
-            throw new TypeError(`be.${macroName} above a class requires the name of the inherited member it maps${typeof target === "function" ? ` (${target.name || "anonymous class"})` : ""}.`);
+            throw new TypeError(`${ns}.${macroName} above a class requires the name of the inherited member it maps${typeof target === "function" ? ` (${target.name || "anonymous class"})` : ""}.`);
         for (const entry of names)
         {
             const key = entry.trim();
             if (role !== "member" && !(key in target.prototype))
-                throw new TypeError(`be.${macroName} above ${target.name || "a class"} names "${key}", which the class does not have or inherit.`);
+                throw new TypeError(`${ns}.${macroName} above ${target.name || "a class"} names "${key}", which the class does not have or inherit.`);
             const parts = [ { namespace: "mapsInherited", value: { inherited: true } }, ...getDecoratorMetadata(build(key)).parts ];
             for (const part of parts)
             {
@@ -3899,11 +3928,20 @@ function exposureName(name)
     return name.trim();
 }
 
-/** EXPOSURE_BEGIN creates an own table, including self and lazy IRoot; interface identity does not. */
-function exposureClassDecorator(name, identityOnly)
+/**
+ * A class identity by literal name: `meta.interface`, and with `blue` set `be.define` and `be.interface`. Carbon's `EXPOSURE_BEGIN`
+ * creates the class's own interface table, including itself and the lazy IRoot entry; an interface identity does not.
+ *
+ * @param {string} name The registered name.
+ * @param {boolean} identityOnly Whether this is an interface identity, which has no table of its own.
+ * @param {boolean} blue Whether the class is Carbon's exposure.
+ * @returns {Function} The class decorator.
+ */
+function exposureClassDecorator(name, identityOnly, blue)
 {
     name = exposureName(name);
-    const define = classDefinitionDecorator({ className: name, blue: true, ...(identityOnly ? { interface: true } : {}) });
+    const define = classDefinitionDecorator({ className: name, ...(blue ? { blue: true } : {}), ...(identityOnly ? { interface: true } : {}) });
+    if (!blue) return define;
     return function (Constructor, context)
     {
         if (context && context.kind !== "class") throw new TypeError("Exposure identity decorates a class.");
@@ -3932,33 +3970,38 @@ function exposureEditFlags(flags)
     return edit;
 }
 
-/** Our complete attribute row carries explicit flags without claiming Carbon origin. */
-function ownAttributeDecorator(flags, name)
+/**
+ * The exposure record of one row. Carbon's (`blue` set) names its macro; ours says `origin: "ours"` and carries no macro, so nothing
+ * reads it as Carbon's exposure.
+ *
+ * @param {string} macro Carbon's macro.
+ * @param {object} rest The row's flags, and for a chooser row the chooser's enum type.
+ * @param {boolean} blue Whether the row is Carbon's exposure.
+ * @returns {object} The exposure record.
+ */
+function exposureRecord(macro, rest, blue)
 {
-    // Ours: the row records its flags and says so. It carries no Carbon macro, so nothing reads it as Carbon's exposure.
-    const definition = { edit: exposureEditFlags(flags), exposure: { origin: "ours", flags } };
-    if (name !== undefined) definition.declaration = { name: exposureName(name) };
-    return combinedFieldDecorator(definition);
+    return blue ? { macro, ...rest } : { origin: "ours", ...rest };
 }
 
 /** One element of an array member under its own exposed name: the `{ key, index }` reroute the readers follow. */
-function exposureIndexDecorator(flags, name, index)
+function exposureIndexDecorator(flags, name, index, blue)
 {
     if (typeof flags !== "number") throw new TypeError("mapAttribute__Index requires the Carbon flags first.");
     if (typeof name !== "string" || !name.trim()) throw new TypeError("mapAttribute__Index requires the exposed name.");
     if (!Number.isSafeInteger(index) || index < 0) throw new TypeError("mapAttribute__Index requires the element index.");
     return combinedFieldDecorator({
         edit: exposureEditFlags(flags),
-        carbon: { member: true },
-        exposure: { macro: "MAP_ATTRIBUTE", flags },
+        ...(blue ? { carbon: { member: true } } : {}),
+        exposure: exposureRecord("MAP_ATTRIBUTE", { flags }, blue),
         declaration: { name: exposureName(name), index }
     });
 }
 
 /** One complete attribute row; chooser identity and literal flags are independent. */
-function exposureAttributeDecorator(macro, flags, chooser, name)
+function exposureAttributeDecorator(macro, flags, chooser, name, blue)
 {
-    const definition = { edit: exposureEditFlags(flags), carbon: { member: true }, exposure: { macro, flags } };
+    const definition = { edit: exposureEditFlags(flags), ...(blue ? { carbon: { member: true } } : {}), exposure: exposureRecord(macro, { flags }, blue) };
     if (name !== undefined) definition.declaration = { name: exposureName(name) };
     if (macro === "MAP_ATTRIBUTE_WITH_CHOOSER")
     {
@@ -3970,15 +4013,15 @@ function exposureAttributeDecorator(macro, flags, chooser, name)
 }
 
 /** The explicit property macro fixes read/write/persist bits, independently of other JS accessors. */
-function exposurePropertyDecorator(macro, name, asField = false)
+function exposurePropertyDecorator(macro, name, asField, blue)
 {
-    const legacy = propertyDecorator(name, { persisted: macro === "MAP_PROPERTY_PERSISTED" }, true);
+    const legacy = propertyDecorator(name, { persisted: macro === "MAP_PROPERTY_PERSISTED" }, blue);
     const definition = Object.fromEntries(getDecoratorMetadata(legacy).parts.map(part => [ part.namespace, part.value ]));
-    definition.exposure = { macro, flags: macro === "MAP_PROPERTY_READONLY" ? 1 : macro === "MAP_PROPERTY_PERSISTED" ? 19 : 3 };
+    definition.exposure = exposureRecord(macro, { flags: macro === "MAP_PROPERTY_READONLY" ? 1 : macro === "MAP_PROPERTY_PERSISTED" ? 19 : 3 }, blue);
     const combined = combinedFieldDecorator(definition);
     // Where our class stores the value in a plain field under the exposed name, the line sits on the field: the member then carries the
     // macro's own flags and no accessor pair (the lint checks Carbon's getter and setter only read and write that one member).
-    const fieldDefinition = { edit: exposureEditFlags(definition.exposure.flags), carbon: { member: true }, exposure: definition.exposure };
+    const fieldDefinition = { edit: exposureEditFlags(definition.exposure.flags), ...(blue ? { carbon: { member: true } } : {}), exposure: definition.exposure };
     if (name !== undefined) fieldDefinition.declaration = { name: exposureName(name) };
     const fieldCombined = combinedFieldDecorator(fieldDefinition);
     const decorator = (target, context) =>
@@ -4002,12 +4045,12 @@ function exposurePropertyDecorator(macro, name, asField = false)
     return decorator;
 }
 
-/** Keeps the native method stamp for old consumers and records the exact exposure macro and alias. */
-function exposureMethodDecorator(macro, name)
+/** Keeps the native method stamp for old consumers and records the exact exposure macro and alias; ours records neither. */
+function exposureMethodDecorator(macro, name, blue)
 {
     if (name !== undefined) name = exposureName(name);
-    const parts = [ { namespace: "carbon", value: { method: true } },
-        { namespace: "exposure", value: { macro, ...(name === undefined ? {} : { name }) } } ];
+    const parts = [ ...(blue ? [ { namespace: "carbon", value: { method: true } } ] : []),
+        { namespace: "exposure", value: exposureRecord(macro, name === undefined ? {} : { name }, blue) } ];
     const decorator = (target, context) =>
     {
         for (const part of parts) methodDecorator(part.namespace, part.value)(target, context);

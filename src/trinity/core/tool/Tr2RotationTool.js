@@ -215,7 +215,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
   /** m_wwLine (Tr2LineSetPtr, Tr2RotationTool.h:33): the screen-space ring
    *  primitive whose scale is the arcball radius, built by GenLineSets.
    *  Adapted: Carbon declares m_wwLine (trinity/trinity/Tr2RotationTool.h:33) but does not expose it; exposed here for the values interface. */
-  @meta.attribute(meta.READWRITE)
+  @meta.mapAttribute(meta.READWRITE)
   @meta.adapted
   @type.object.ref("Tr2LineSet")
   wwLine = null;

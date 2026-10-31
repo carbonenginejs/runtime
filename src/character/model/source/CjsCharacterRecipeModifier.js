@@ -13,57 +13,57 @@ export class CjsCharacterRecipeModifier
 {
 
     /** Authored string, retained without normalization of spelling. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     category = "";
 
     /** Authored string; unlike a colour variation this field is not a colour array. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     colors = "";
 
     /** Authored part or modifier reference; retained without resolving it to an object. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     path = "";
 
     /** Optional authored tuck flag. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.boolean
     tuck = false;
 
     /** Authored numeric value, retained at JavaScript number precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     weight = 0;
 
     /** Authored local colour-variation name. Input null normalizes to an empty string. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.path(".color")
     colorvariation = "";
 
     /** Optional three four-component tuples. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list({ kind: "list", itemType: "float64" })
     specularcolors = [];
 
     /** Authored variation name. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     variation = "";
 
     /** Authored string, retained without normalization of spelling. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     pattern = "";
 
     /** Optional inline tagged decal record, or null. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsProjectedDecal")
     decaldata = null;
 
     /** Optional authored decal weight. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     decalweight = 0;
 

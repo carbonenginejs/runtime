@@ -12,12 +12,12 @@ export class CjsCharacterPose
 {
 
     /** Library identity for this unnamed root; not a key added to the original file. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
     /** Authored bone keys and pose records; not a SOF transform. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.map({ kind: "rootRef", className: "CjsCharacterPoseTransform" })
     value = new Map();
 

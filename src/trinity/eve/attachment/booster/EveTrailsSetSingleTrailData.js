@@ -15,12 +15,12 @@ export class EveTrailsSetSingleTrailData
 {
 
   /** transform (Matrix): where the trail starts. */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.mat4
   transform = mat4.create();
 
   /** size (float) */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.float32
   size = 0;
 

@@ -147,11 +147,11 @@ export class EveChildMesh extends EveChildTransform
 
   // Carbon sets these two programmatically from SOF (EveSOF.cpp:3971-3972);
   // CarbonEngineJS delivers built objects as documents, so both persist.
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveLocatorSets")
   ownedLocatorSets = [];
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.object.ref("Tr2Effect")
   armorDamageShader = null;
 
@@ -337,28 +337,28 @@ export class EveChildMesh extends EveChildTransform
    */
   @meta.adapted
   @be.mapAttribute(be.READ)
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.int32
   @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.array("mat4")
   instanceTransforms = [];
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.string
   sofDna = "";
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.string
   sofParentHullName = "";
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.string
   sofLocatorSetName = "";
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.string
   sofLocatorIndex = "";
 

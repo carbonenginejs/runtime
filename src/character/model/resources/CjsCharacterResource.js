@@ -7,43 +7,43 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterResource extends CjsCharacterRecord
 {
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("string")
     empireRestrictions = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.path
     resPath = "";
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterPartType")
     partType = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "clothingAlsoCoversCategory")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "clothingAlsoCoversCategory")
     @type.object.ref("CjsCharacterModifierLocation")
     clothingAlsoCoversModifierLocation = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "clothingAlsoCoversCategory2")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "clothingAlsoCoversCategory2")
     @type.object.ref("CjsCharacterModifierLocation")
     clothingAlsoCoversModifierLocation2 = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "clothingRemovesCategory")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "clothingRemovesCategory")
     @type.object.ref("CjsCharacterModifierLocation")
     clothingRemovesModifierLocation = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST, "clothingRemovesCategory2")
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "clothingRemovesCategory2")
     @type.object.ref("CjsCharacterModifierLocation")
     clothingRemovesModifierLocation2 = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     typeID = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.uint8
     clothingRuleException = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.uint8
     resGender = null;
 

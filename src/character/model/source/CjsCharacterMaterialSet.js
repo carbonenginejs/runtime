@@ -12,7 +12,7 @@ export class CjsCharacterMaterialSet
 {
 
     /** Authored material identifiers and their records. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.map({ kind: "rootRef", className: "CjsCharacterMaterial" })
     Materials = new Map();
 

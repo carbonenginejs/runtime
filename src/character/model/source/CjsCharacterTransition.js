@@ -12,32 +12,32 @@ export class CjsCharacterTransition
 {
 
     /** Authored numeric value, retained at JavaScript number precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     blendTime = 0;
 
     /** Authored numeric value, retained at JavaScript number precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     maxInterruptPercent = 0;
 
     /** Authored state name; resolved separately. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     fromState = "";
 
     /** Authored numeric value, retained at JavaScript number precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     targetRotation = 0;
 
     /** Authored numeric value, retained at JavaScript number precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     tolerance = 0;
 
     /** Authored numeric value, retained at JavaScript number precision. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     executeRotation = 0;
 

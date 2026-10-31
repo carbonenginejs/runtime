@@ -17,37 +17,37 @@ import { meta, type } from "#schema";
 export class EveChildInstancedMeshArea
 {
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   /** Carbon: effect (trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h:76).
    */
   @type.object.ref("Tr2Effect")
   effect = null;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.uint32
   batchType = 0;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.uint32
   areaIndex = 0;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.uint32
   areaCount = 1;
 
   /** Carbon MeshArea::alphaCutout (h:78) - one-sided cutout areas are ignored
    * for backface classification when raycasting occluders. */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.boolean
   alphaCutout = false;
 
   /** Carbon MeshArea::reversed (h:79) - winding-reversed areas flip the
    * backface test during occluder raycasts. */
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.boolean
   reversed = false;
 
-  @meta.attribute(meta.READ)
+  @meta.mapAttribute(meta.READ)
   @type.uint64
   effectHash = 0;
 

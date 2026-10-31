@@ -118,7 +118,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   @type.float32
   intensity = 1;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.list("EveSpotlightLight")
   lights = [];
 

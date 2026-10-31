@@ -13,7 +13,7 @@ export class CjsCharacterRecipe
 {
 
     /** Library identity for this unnamed root; not a key added to the original file. */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     name = "";
 
@@ -21,7 +21,7 @@ export class CjsCharacterRecipe
      * Mixed source sequence: optional leading string and CjsCharacterRecipeModifier records. The reader
      * supplies record instances; the writer retains source layout.
      */
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("unknown")
     value = [];
 

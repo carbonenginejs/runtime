@@ -24,34 +24,34 @@ import { meta, type } from "#schema";
 export class EveBannerItem
 {
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.INT32_1(0)
   bone = -1;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(4)
   position = vec3.create();
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_4(16)
   @type.quat
   rotation = quat.create();
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(32)
   scaling = vec3.fromValues(1, 1, 1);
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(44)
   angleX = 0;
 
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(48)
   angleY = 0;
 
   // Carbon keeps this as private structure metadata, but SOF-authored banner
   // identity is part of the editable description in CarbonEngineJS.
-  @meta.attribute(meta.PERSIST)
+  @meta.mapAttribute(meta.PERSIST)
   @type.int32
   reference = 0;
 

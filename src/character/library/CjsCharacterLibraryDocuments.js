@@ -116,121 +116,121 @@ export class CjsCharacterLibraryDocuments
         return clearChildren(this, RequireDocumentName(documentName), { ...options, listNotify: this });
     }
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterAncestry")
     ancestries = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterArchetype")
     archetypes = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterBloodline")
     bloodlines = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterAvatarBehavior")
     characterAvatarBehaviors = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterColorLocation")
     characterColorLocations = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterColorName")
     characterColorNames = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterModifierLocation")
     characterModifierLocations = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterPortraitResource")
     characterPortraitResources = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterResource")
     characterResources = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterSculptingLocation")
     characterSculptingLocations = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterPaperdoll")
     paperdolls = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterRace")
     races = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterDefinition")
     characterDefinitions = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterPartType")
     characterPartTypes = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterPartSource")
     characterPartSources = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsAvatarPartMetaData")
     characterPartMetadata = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterMaterialProfile")
     characterMaterialProfiles = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsProjectedDecal")
     characterProjectionProfiles = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterRecipeProfile")
     characterRecipeProfiles = [];
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
 
     @type.list("CjsCharacterTextureMetadata")
