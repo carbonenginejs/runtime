@@ -78,12 +78,15 @@ test("an asynchronous entry holds its slot until it settles", async () =>
   man.Add(() => new Promise(resolve => { release = resolve; }));
   man.Add(() => {});
 
+  assert.equal(man.GetActiveCount(), 0, "nothing runs before Update");
   assert.equal(man.Update(), true);
   assert.equal(man.Update(), false, "the only slot is busy");
   assert.equal(man.GetSize(), 2);
+  assert.equal(man.GetActiveCount(), 1, "one of the two is running, the other waits");
 
   release();
   await tick();
+  assert.equal(man.GetActiveCount(), 0);
   assert.equal(man.Update(), true);
   assert.equal(man.IsEmpty(), true);
 });

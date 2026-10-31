@@ -1006,6 +1006,24 @@ export class BlueCallbackMan extends IBlueCallbackMan
     return this._size;
   }
 
+  /**
+   * How many of the `GetSize` entries are running: the slots holding one.
+   *
+   * Ours: Carbon has no such count; its threads record what they run in
+   * `m_currentId` (CallbackMan.cpp:158), and nothing reads them all. A slot is
+   * busy while its entry is in progress, including an entry `Cancel` has let go
+   * of but that has not finished yet, since it still holds the slot.
+   *
+   * @returns {number} The busy slots.
+   */
+  GetActiveCount()
+  {
+    const threads = this._threads;
+    let active = 0;
+    for (let i = threads.length; i--;) if (threads[i].inProgress !== null) active++;
+    return active;
+  }
+
   /** `GetTimeInQueueMax` (CallbackMan.cpp:444-451), in seconds. */
   GetTimeInQueueMax()
   {
