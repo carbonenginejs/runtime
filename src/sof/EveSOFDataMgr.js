@@ -109,9 +109,19 @@ export class EveSOFDataMgr extends IRoot
     return operation;
   }
 
-  /** Rebuilds the manager's lookup tables from a hydrated EveSOFData graph. */
+  /**
+   * `SetData` (EveSOFDataMgr.cpp:514-589) - rebuilds the manager's lookup
+   * tables from a hydrated EveSOFData graph.
+   *
+   * Adapted: Carbon prepares every record here (`LoadHullData` and the rest,
+   * `GenerateHullData` per hull, :645-1203). Ours stores each record by name and
+   * prepares it on its first request (`GetHullData` and the rest), keeping the
+   * result: a page that builds a dozen ships should not prepare thousands of
+   * records. Generic data is still prepared here, as every build reads it.
+   * Callers get the same prepared records as before.
+   */
   @be.mapMethodAndWrap()
-  @meta.implemented
+  @meta.adapted
   SetData(data)
   {
     if (!data) return false;
@@ -140,12 +150,15 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Returns the normalized hull projection for an exact key, or null when
    * absent.
+   *
+   * Adapted: the record is prepared on its first request and the result kept
+   * (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.implemented
+  @meta.adapted
   GetHullData(name)
   {
-    return this._hullData.get(String(name)) ?? null;
+    return getProjection(this._hullData.get(String(name)));
   }
 
   /** Tests the exact faction key in the manager's normalized projection table. */
@@ -159,12 +172,15 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Returns the normalized faction projection for an exact key, or null when
    * absent.
+   *
+   * Adapted: the record is prepared on its first request and the result kept
+   * (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.implemented
+  @meta.adapted
   GetFactionData(name)
   {
-    return this._factionData.get(String(name)) ?? null;
+    return getProjection(this._factionData.get(String(name)));
   }
 
   /** Tests the exact race key in the manager's normalized projection table. */
@@ -178,12 +194,15 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Returns the normalized race projection for an exact key, or null when
    * absent.
+   *
+   * Adapted: the record is prepared on its first request and the result kept
+   * (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.implemented
+  @meta.adapted
   GetRaceData(name)
   {
-    return this._raceData.get(String(name)) ?? null;
+    return getProjection(this._raceData.get(String(name)));
   }
 
   /** Tests the exact material key in the manager's normalized projection table. */
@@ -197,12 +216,15 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Returns the normalized material projection for an exact key, or null when
    * absent.
+   *
+   * Adapted: the record is prepared on its first request and the result kept
+   * (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.implemented
+  @meta.adapted
   GetMaterialData(name)
   {
-    return this._materialData.get(String(name)) ?? null;
+    return getProjection(this._materialData.get(String(name)));
   }
 
   /** Tests the exact pattern key in the manager's normalized projection table. */
@@ -216,12 +238,15 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Returns the normalized pattern projection for an exact key, or null when
    * absent.
+   *
+   * Adapted: the record is prepared on its first request and the result kept
+   * (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.implemented
+  @meta.adapted
   GetPatternData(name)
   {
-    return this._patternData.get(String(name)) ?? null;
+    return getProjection(this._patternData.get(String(name)));
   }
 
   /** Tests the exact layout key in the manager's normalized projection table. */
@@ -232,12 +257,17 @@ export class EveSOFDataMgr extends IRoot
     return this._layoutData.has(String(name));
   }
 
-  /** Carbon's GetLayoutData( name ) (EveSOFDataMgr.cpp:321): one layout, or null. */
+  /**
+   * Carbon's GetLayoutData( name ) (EveSOFDataMgr.cpp:321): one layout, or null.
+   *
+   * Adapted: the record is prepared on its first request and the result kept
+   * (see `SetData`); Carbon prepared it at load.
+   */
 
-  @meta.implemented
+  @meta.adapted
   GetLayoutData(name)
   {
-    return this._layoutData.get(String(name)) ?? null;
+    return getProjection(this._layoutData.get(String(name)));
   }
 
   /**
@@ -311,9 +341,9 @@ export class EveSOFDataMgr extends IRoot
   {
     if (!getCatalogValue(this._hullData, hullName)) return null;
     const result = [];
-    for (const [name, pattern] of this._patternData)
+    for (const [name, entry] of this._patternData)
     {
-      if (getMapValue(getPatternApplications(pattern), hullName))
+      if (getMapValue(getPatternApplications(getProjection(entry)), hullName))
       {
         result.push(normalizeCatalogName(name));
       }
@@ -508,9 +538,35 @@ function indexNamed(values, target, projector)
   for (const value of Array.isArray(values) ? values : [])
   {
     if (!value || target.has(String(value.name))) return false;
-    target.set(String(value.name), projector(value));
+    target.set(String(value.name), createRecordEntry(value, projector));
   }
   return true;
+}
+
+/**
+ * One stored record: the authored record, how to prepare it, and the prepared
+ * projection once a caller has asked for it.
+ *
+ * @param {object} record Authored SOF record.
+ * @param {(record: object) => object} projector Its prepare step (`projectHull` and the rest).
+ * @returns {{record: object, projector: Function, projection: ?object}} The entry.
+ */
+function createRecordEntry(record, projector)
+{
+  return { record, projector, projection: null };
+}
+
+/**
+ * The prepared projection of a stored record, preparing it on first request.
+ *
+ * @param {{record: object, projector: Function, projection: ?object}|undefined} entry The stored record.
+ * @returns {object|null} The projection, or null when there is no record.
+ */
+function getProjection(entry)
+{
+  if (entry === undefined) return null;
+  if (entry.projection === null) entry.projection = entry.projector(entry.record);
+  return entry.projection;
 }
 
 function listCatalogNames(values)
@@ -526,9 +582,9 @@ function getCatalogValue(values, name)
 {
   const requested = normalizeCatalogName(name);
   if (!requested) return null;
-  for (const [key, value] of values)
+  for (const [key, entry] of values)
   {
-    if (normalizeCatalogName(key) === requested) return value;
+    if (normalizeCatalogName(key) === requested) return getProjection(entry);
   }
   return null;
 }
@@ -663,7 +719,7 @@ function compareJsonValues(left, right)
 function updateNamed(target, name, value, projector)
 {
   if (!value) return false;
-  target.set(String(name), projector(value));
+  target.set(String(name), createRecordEntry(value, projector));
   return true;
 }
 

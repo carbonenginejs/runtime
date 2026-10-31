@@ -946,8 +946,12 @@ test("SOF manager projections copy authored vectors and per-application layers",
   const manager = new EveSOFDataMgr();
   assert.equal(manager.SetData(data), true);
 
+  // A record is prepared on its first request (EveSOFDataMgr.SetData, adapted),
+  // so the copy is taken there: an edit after it does not reach the projection.
+  const material = manager.GetMaterialData("rust");
   data.material[0].parameters[0].value[0] = 99;
-  assert.deepEqual(Array.from(manager.GetMaterialData("rust").parameters.get("PaintColor")), [1, 2, 3, 4]);
+  assert.deepEqual(Array.from(material.parameters.get("PaintColor")), [1, 2, 3, 4]);
+  assert.equal(manager.GetMaterialData("rust"), material, "the prepared record is kept");
 
   const pattern = manager.GetPatternData("stripes");
   const first = pattern.oldApplicationData.get("rifter").layerAndProjection[0].layer;
