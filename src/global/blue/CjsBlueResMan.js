@@ -261,9 +261,6 @@ export class CjsBlueResMan
   /** In-flight source reads, deduplicated per resource. Clear() replaces it. */
   sourceOperations = new WeakMap();
 
-  /** Queued source reads, deduplicated per resource. Clear() replaces it. */
-  queuedSourceOperations = new WeakMap();
-
   /** In-flight format reads, deduplicated per resource. Clear() replaces it. */
   formatOperations = new WeakMap();
 
@@ -1651,29 +1648,6 @@ export class CjsBlueResMan
 
 
   /**
-   * Queue one source read under the selected source/path/revision identity.
-   * Cache policy is tri-state: omitted shares an in-flight or explicitly
-   * retained record, `true` additionally retains success, and `false` bypasses
-   * both sharing and retention. `reload: true` invalidates this source/path
-   * before the new task and does not cancel detached existing consumers.
-   *
-   * @param {string} path Carbon-style source resource path.
-   * @param {CjsResManReadCacheOptions} [options={}] Source, revision, reload, and cache controls forwarded to the read.
-   * @returns {Promise<*>} Promise for source bytes or source-compatible data.
-   * @throws {TypeError} If path, source, revision, or options are invalid.
-   */
-  QueueReadResource(path, options = {})
-  {
-    const read = this._BeginReadOperation(path, options);
-    const urgent = this.urgentResourceLoads;
-    const operation = this._QueueReadResource(read.context, read.options,
-      urgent ? IBlueCallbackMan.BCBF_URGENT : IBlueCallbackMan.BCBF_NONE);
-    if (urgent) this._TrackUrgentOperation(operation);
-    return operation;
-  }
-
-
-  /**
    * Return the configured reader from our resource type table.
    * @param {string} extension Source extension, with or without a leading dot.
    * @param {string} [ex=""] Carbon resource suffix.
@@ -2327,7 +2301,6 @@ export class CjsBlueResMan
     this._prepareQueue.Clear();
     this.motherLode.Clear();
     this.sourceOperations = new WeakMap();
-    this.queuedSourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
     this._lastAutoPurgeTime = null;
     return this;
@@ -2346,7 +2319,7 @@ export class CjsBlueResMan
    *
    * @param {string} path Carbon-style source resource path.
    * @param {CjsResManReadCacheOptions} [options={}] Optional `source` and exact `sourceRevision` selection.
-   * @returns {{path: string, queuedSource: number, source: number, format: number}} Detached-record counts.
+   * @returns {{path: string, source: number, format: number}} Detached-record counts.
    * @throws {TypeError} If path, source, revision, or options are invalid.
    */
   InvalidateReadCache(path, options = {})
@@ -2365,7 +2338,6 @@ export class CjsBlueResMan
     {
       return {
         path: normalizedPath,
-        queuedSource: 0,
         source: 0,
         format: 0
       };
@@ -2463,28 +2435,22 @@ export class CjsBlueResMan
   }
 
   /**
-   * Queue one normalized source operation and deduplicate according to the
-   * caller's cache policy.
+   * Run or join one normalized direct source operation.
    *
    * @param {Readonly<CjsResourceReadContext>} context Normalized provenance.
    * @param {object} options Detached read options.
    * @returns {Promise<*>} Promise for source bytes/data.
    */
-  _QueueReadResource(context, options, flags = IBlueCallbackMan.BCBF_NONE)
+  _ReadResource(context, options)
   {
     const cachePolicy = normalizeCachePolicy(options.cacheSource, "cacheSource");
-    const operations = getOwnerOperations(this.queuedSourceOperations, context.source, true);
+    const operations = getOwnerOperations(this.sourceOperations, context.source, true);
     const key = getReadOperationKey(context);
     const bypassExisting = options.reload === true || cachePolicy === false;
     const existing = bypassExisting ? null : operations.get(key);
     if (existing)
     {
-      if (cachePolicy === true)
-      {
-        existing.retain = true;
-        const sourceRecord = getOwnerOperations(this.sourceOperations, context.source, false)?.get(key);
-        if (sourceRecord) sourceRecord.retain = true;
-      }
+      if (cachePolicy === true) existing.retain = true;
       return existing.promise;
     }
 
@@ -2494,54 +2460,6 @@ export class CjsBlueResMan
       path: context.path,
       revisionKey: context.revisionKey,
       retain: cachePolicy === true
-    };
-    record.promise = this.QueueTask(
-      CjsResManQueue.BACKGROUND,
-      () => this._ReadResource(context, options, record),
-      context.source,
-      { kind: "load", path: context.path, flags }
-    ).promise;
-    if (cachePolicy !== false) operations.set(key, record);
-
-    record.promise.then(value =>
-    {
-      if (cachePolicy === false || operations.get(key) !== record) return;
-      if (record.retain) this._RetainSourceResult(context, value);
-      operations.delete(key);
-    }, () =>
-    {
-      if (cachePolicy !== false && operations.get(key) === record) operations.delete(key);
-    });
-    return record.promise;
-  }
-
-  /**
-   * Run or join one normalized direct source operation.
-   *
-   * @param {Readonly<CjsResourceReadContext>} context Normalized provenance.
-   * @param {object} options Detached read options.
-   * @param {CjsResourceReadOperationRecord|null} [queuedRecord=null] Parent queued record whose retention may be promoted by a later join.
-   * @returns {Promise<*>} Promise for source bytes/data.
-   */
-  _ReadResource(context, options, queuedRecord = null)
-  {
-    const cachePolicy = normalizeCachePolicy(options.cacheSource, "cacheSource");
-    const operations = getOwnerOperations(this.sourceOperations, context.source, true);
-    const key = getReadOperationKey(context);
-    const bypassExisting = options.reload === true || cachePolicy === false;
-    const existing = bypassExisting ? null : operations.get(key);
-    if (existing)
-    {
-      if (cachePolicy === true || queuedRecord?.retain) existing.retain = true;
-      return existing.promise;
-    }
-
-    /** @type {CjsResourceReadOperationRecord} */
-    const record = {
-      promise: null,
-      path: context.path,
-      revisionKey: context.revisionKey,
-      retain: cachePolicy === true || queuedRecord?.retain === true
     };
     record.promise = Promise.resolve().then(() =>
       this.resourceLoader.Read(
@@ -2568,47 +2486,16 @@ export class CjsBlueResMan
   }
 
   /**
-   * Retain a settled source result when a queued caller upgraded cache policy
-   * after the direct source promise had already completed its cleanup reaction.
-   *
-   * @param {Readonly<CjsResourceReadContext>} context Normalized provenance.
-   * @param {*} value Settled source result.
-   * @returns {void}
-   */
-  _RetainSourceResult(context, value)
-  {
-    const operations = getOwnerOperations(this.sourceOperations, context.source, true);
-    const key = getReadOperationKey(context);
-    const existing = operations.get(key);
-    if (existing)
-    {
-      existing.retain = true;
-      return;
-    }
-    operations.set(key, {
-      promise: Promise.resolve(value),
-      path: context.path,
-      revisionKey: context.revisionKey,
-      retain: true
-    });
-  }
-
-  /**
    * Remove future-reuse records matching one selected source and path.
    * A null revision removes all revisions.
    *
    * @param {object|Function} source Selected source.
    * @param {string} path Normalized source path.
    * @param {string|null} revisionKey Exact revision key or `null` for all.
-   * @returns {{path: string, queuedSource: number, source: number, format: number}} Detached counts.
+   * @returns {{path: string, source: number, format: number}} Detached counts.
    */
   _InvalidateReadCache(source, path, revisionKey)
   {
-    const queuedSource = removeOperationRecords(
-      getOwnerOperations(this.queuedSourceOperations, source, false),
-      path,
-      revisionKey
-    );
     const sourceCount = removeOperationRecords(
       getOwnerOperations(this.sourceOperations, source, false),
       path,
@@ -2625,7 +2512,7 @@ export class CjsBlueResMan
       }
       if (descriptors.size === 0) this.formatOperations.delete(source);
     }
-    return { path, queuedSource, source: sourceCount, format };
+    return { path, source: sourceCount, format };
   }
 
   /**
