@@ -65,8 +65,10 @@ function track(promise)
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
 
-test("a watch resolves after two updates with nothing pending", async () =>
+test("a watch resolves after two updates with nothing pending", async t =>
 {
+  // The test counts its own updates; a frame-loop Update between them is a third.
+  HoldFrameLoop(t);
   const resMan = new BlueResMan();
   blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
