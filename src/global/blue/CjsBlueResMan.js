@@ -1357,6 +1357,12 @@ export class CjsBlueResMan
    * `const wchar_t*` one (BlueResMan.h:83) is `LoadObject__WChars`, which
    * differs only in string encoding, which JavaScript strings do not have.
    *
+   * @adapted Carbon's LoadObject yields its Stackless tasklet while it reads and builds
+   * (`GetFileContentsWithYield`, `CreateObjectWithYield`, BlueResMan.cpp:753,785), so its caller
+   * sees a plain return while the program keeps running. A browser cannot block on a read, and
+   * `await` suspends only the function it is written in, so this returns a promise and every
+   * caller that wants the object awaits it in turn; a caller cannot be made synchronous.
+   *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Identity, source, format, loader, and queue options.
    * @returns {Promise<*>} In-flight, resident, or reconstructed object outcome.
