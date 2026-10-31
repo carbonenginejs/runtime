@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.cpp
 import { ITriQuaternionFunction, ITriCurveLength, ITriFunction } from "#blue";
 import { quat } from "#math/quat";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from "../enums.js";
 import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 
@@ -80,7 +80,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
@@ -95,7 +94,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.UpdateValue(time);
@@ -110,7 +108,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     return this.Evaluate(out, time);
@@ -125,7 +122,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
 
-  @meta.implemented
   GetValueDotAt(_time, out)
   {
     return quat.identity(out);
@@ -140,7 +136,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
 
-  @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
     return quat.identity(out);
@@ -153,7 +148,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {number} The curve result.
    */
 
-  @meta.implemented
   Length()
   {
     return this.keys.length ? this.keys[this.keys.length - 1].time : 0;
@@ -189,7 +183,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     return this.Evaluate(out, time);
@@ -202,7 +195,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The live cached quaternion storage.
    */
 
-  @meta.adapted
   GetCurrentValue()
   {
     return this.currentValue;
@@ -215,7 +207,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   OnKeysChanged()
   {
     this.keys.sort((a, b) => a.time - b.time);
@@ -232,7 +223,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {void}
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.LINEAR)
   {
     const key = new Tr2CurveQuaternionKey();
@@ -252,7 +242,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetExtrapolation(extrapolation)
   {
     this.extrapolationAfter = this.extrapolationBefore = extrapolation;
@@ -266,7 +255,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {number} The curve result.
    */
 
-  @meta.adapted
   GetLocalTime(time)
   {
     if (!this.keys.length)
@@ -405,7 +393,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
 
-  @meta.adapted
   GetSegmentValue(out, time, k0, k1)
   {
     if (k0.interpolation === Tr2CurveInterpolation.CONSTANT)

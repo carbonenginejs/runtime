@@ -5,7 +5,7 @@ import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
 import { ITr2Pickable } from "../../../trinity/core/ITr2Pickable.js";
 import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 // Source: trinity/trinity/Interior/Tr2IntSkinnedObject.h
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
 import { Tr2PerObjectDataSkinned, TR2_MAX_BONES_PER_MESHAREA } from "../trinityCore/Tr2PerObjectDataSkinned.js";
@@ -63,7 +63,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _currentPosition = vec3.fromValues(0, 0, 0);
 
   /**
@@ -71,7 +70,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _currentScaling = vec3.fromValues(1, 1, 1);
 
   /**
@@ -79,7 +77,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _currentRotation = quat.fromValues(0, 0, 0, 1);
 
   /**
@@ -87,7 +84,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _positionSet = false;
 
   /**
@@ -95,7 +91,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _scalingSet = false;
 
   /**
@@ -103,7 +98,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _rotationSet = false;
 
   /**
@@ -111,7 +105,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _isInApexScene = false;
 
   /**
@@ -119,7 +112,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _lightSet = new Tr2InteriorLightSet();
 
   /**
@@ -127,7 +119,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _cellReflectionMaps = [ null, null ];
 
   /**
@@ -135,7 +126,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _cellReflectionTime = 0;
 
   /**
@@ -143,7 +133,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   _previousUpdateTime = 0;
 
   /**
@@ -170,7 +159,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @adapted
    */
-  @meta.adapted
   static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(), quat_0: quat.create(), quat_1: quat.create(), mat4_0: mat4.create() };
 
   /**
@@ -179,7 +167,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @implemented
    */
   @blue.method
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     return this.visualModel && this.DoDisplay()
@@ -193,7 +180,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @implemented
    */
   @blue.method
-  @meta.implemented
   GetPerObjectDataWithPerInstanceLighting(accumulator, lightSet, objectToWorldMatrix)
   {
     return this.visualModel ? this.GetPerObjectDataGpuSkinning(accumulator, lightSet, objectToWorldMatrix) : null;
@@ -207,7 +193,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *   including unused light slots and non-identity unused spotlight matrices.
    */
   @blue.method
-  @meta.adapted
   GetPerObjectDataGpuSkinning(accumulator, lightSet, objectToWorldMatrix)
   {
     this.UpdatePerObjectData();
@@ -234,7 +219,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *   object picked as candidate 0.
    */
   @blue.method
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (!this.DoDisplay()) return;
@@ -307,7 +291,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *   alias its proxy storage.
    */
 
-  @meta.adapted
   Initialize()
   {
     this.lod.PopulateLods();
@@ -320,7 +303,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     super.OnModified(propertyName);
@@ -338,7 +320,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {number} _time Blue time in ticks.
    * @returns {void}
    */
-  @meta.notImplemented
   PrePhysicsUpdate(_time)
   {
     throw new Error("Tr2IntSkinnedObject.PrePhysicsUpdate requires the unported Tr2SkinnedObject.PrePhysicsUpdate.");
@@ -356,7 +337,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {object|null} _apexScene Physics scene.
    * @returns {void}
    */
-  @meta.notImplemented
   PostPhysicsUpdate(_time, _apexScene)
   {
     throw new Error("Tr2IntSkinnedObject.PostPhysicsUpdate requires the unported Tr2SkinnedObject.PostPhysicsUpdate.");
@@ -370,7 +350,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {object|null} texture The per-cell reflection map; null is ignored.
    * @returns {void}
    */
-  @meta.implemented
   _AddReflectionMap(texture)
   {
     const maps = this._cellReflectionMaps;
@@ -413,7 +392,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {object|null} texture The per-cell reflection map; null is ignored.
    * @returns {void}
    */
-  @meta.implemented
   _RemoveReflectionMap(texture)
   {
     const maps = this._cellReflectionMaps;
@@ -444,7 +422,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @returns {boolean} Whether local bounds were available.
    */
   @blue.method
-  @meta.adapted
   GetWorldBoundingBox(min, max)
   {
     if (!this.GetLocalBoundingBox(min, max)) return false;
@@ -494,7 +471,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    *
    * @implemented
    */
-  @meta.implemented
   IsBoundingBoxReady()
   {
     const { vec3_0, vec3_1 } = Tr2IntSkinnedObject.scratch;
@@ -509,7 +485,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {object|null} _apexScene Unused physics scene.
    * @returns {void}
    */
-  @meta.implemented
   AddToApexScene(_apexScene)
   {
     if (!this._isInApexScene)
@@ -525,7 +500,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   RemoveFromApexScene()
   {
     if (this._isInApexScene)
@@ -542,7 +516,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {object|null} apexScene Physics scene.
    * @returns {boolean} Whether the object was ready to enter the scene.
    */
-  @meta.implemented
   AddToScene(apexScene)
   {
     if (!this.IsBoundingBoxReady()) return false;
@@ -558,7 +531,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   RemoveFromScene()
   {
     // Get out of the Apex scene
@@ -572,7 +544,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {number} _areaId Unused.
    * @returns {Tr2IntSkinnedObject} This object (Carbon's GetRawRoot()).
    */
-  @meta.implemented
   GetID(_areaId)
   {
     return this;
@@ -590,7 +561,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {vec3} pos The position.
    * @returns {void}
    */
-  @meta.implemented
   SetPosition(pos)
   {
     if (!vec3.exactEquals(this._currentPosition, pos) || !this._positionSet)
@@ -614,7 +584,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {quat} rotQuat The rotation.
    * @returns {void}
    */
-  @meta.implemented
   SetRotation(rotQuat)
   {
     if (!quat.exactEquals(this._currentRotation, rotQuat) || !this._rotationSet)
@@ -639,7 +608,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {vec3} scaleVec The scaling.
    * @returns {void}
    */
-  @meta.implemented
   SetScaling(scaleVec)
   {
     if (!vec3.exactEquals(this._currentScaling, scaleVec) || !this._scalingSet)
@@ -670,7 +638,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {vec3} pos The position.
    * @returns {void}
    */
-  @meta.implemented
   UpdatePlacement(front, _top, pos)
   {
     // Terrible workaround since the UpdatePlacement takes in a position and a front vector.
@@ -713,7 +680,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {mat4} objectToWorld Receives the transform.
    * @returns {boolean} Whether the box is visible.
    */
-  @meta.implemented
   IsInFrustum(frustum, objectToWorld)
   {
     const { vec3_0, vec3_1 } = Tr2IntSkinnedObject.scratch;
@@ -733,7 +699,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @param {object} perObjectData The object's per-object data.
    * @returns {void}
    */
-  @meta.implemented
   GetPickingBatches(batches, pickTypes, perObjectData)
   {
     if ((pickTypes & Tr2PickType.PICK_TYPE_PICKING) !== 0)
@@ -757,7 +722,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @implemented
    */
 
-  @meta.implemented
   SetLOD(frustum)
   {
     return super.SetLOD(frustum);

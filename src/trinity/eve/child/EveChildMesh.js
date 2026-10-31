@@ -334,7 +334,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {number}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.int32
@@ -368,7 +367,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     if (this.staticTransform)
@@ -390,7 +388,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted JS arrays use the shared list mutation entry points; component interface IDs use the existing EveComponentType map.
    */
 
-  @meta.adapted
   OnListModified(event, key, key2, value, list)
   {
     const kind = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -459,7 +456,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     super.Setup(scale, rotation, translation, lowestLodVisible);
@@ -478,7 +474,6 @@ export class EveChildMesh extends EveChildTransform
    * @returns {Array<Float32Array>} the stored list
    */
 
-  @meta.implemented
   SetInstanceTransforms(instances)
   {
     const next = [];
@@ -501,8 +496,6 @@ export class EveChildMesh extends EveChildTransform
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetInstanceTransforms()
   {
     return this.instanceTransforms;
@@ -514,7 +507,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetMesh()
   {
     return this.mesh;
@@ -528,7 +520,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetMesh(mesh)
   {
     this.mesh = mesh ?? null;
@@ -542,7 +533,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddOverlayEffect(effect)
   {
     if (!effect) throw new TypeError("EveChildMesh overlay effect must not be null");
@@ -555,7 +545,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RemoveOverlayEffect(effect)
   {
     const index = this.overlayEffects.indexOf(effect);
@@ -568,7 +557,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetOverlayEffectByName(name)
   {
     return this.overlayEffects.find(effect => effect.name === String(name)) ?? null;
@@ -581,7 +569,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetOrigin(origin)
   {
     this.origin = Number(origin) | 0;
@@ -594,7 +581,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetScale(scale)
   {
     vec3.copy(this.scaling, scale);
@@ -607,7 +593,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetReflectionMode(mode)
   {
     this.reflectionMode = Number(mode) | 0;
@@ -620,7 +605,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetCastShadow(castShadow)
   {
     this.castShadow = !!castShadow;
@@ -634,7 +618,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetMinScreenSize(minScreenSize)
   {
     this.minScreenSize = Number(minScreenSize);
@@ -648,7 +631,6 @@ export class EveChildMesh extends EveChildTransform
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -660,7 +642,6 @@ export class EveChildMesh extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -671,7 +652,6 @@ export class EveChildMesh extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -684,7 +664,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddTransformModifier(modifier)
   {
     this.transformModifiers.push(modifier);
@@ -698,7 +677,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddDecal(decal)
   {
     this.decals.push(decal);
@@ -711,7 +689,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddAttachment(attachment)
   {
     this.attachments.push(attachment);
@@ -724,7 +701,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ClearAttachments()
   {
     this.attachments.length = 0;
@@ -737,7 +713,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddLight(light)
   {
     this.lights.push(light);
@@ -750,7 +725,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ClearLights()
   {
     this.lights.length = 0;
@@ -762,7 +736,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   IsAlwaysOn()
   {
     return true;
@@ -774,7 +747,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     this.mesh?.SetShaderOption(name, value);
@@ -797,7 +769,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetMorphTargetNames()
   {
     return this.mesh?.GetMorphTargetNames() ?? [];
@@ -810,7 +781,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetMorphTargetWeight(name, weight)
   {
     this.mesh?.SetMorphTargetWeight(name, weight);
@@ -824,7 +794,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetMorphTargetWeight(name)
   {
     return this.mesh?.GetMorphTargetWeight(name) ?? 0;
@@ -841,7 +810,6 @@ export class EveChildMesh extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   UpdateMorphAnimationBuffer()
   {
     const names = this.mesh?.GetMorphTargetNames();
@@ -918,7 +886,6 @@ export class EveChildMesh extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   GetMorphTargets(filter = 2)
   {
     const normalized = NormalizeMorphFilter(filter);
@@ -965,7 +932,6 @@ export class EveChildMesh extends EveChildTransform
    * @returns {Array|null} [hullName, locatorSetName, locatorIndex], or null.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetSofSourceLocator(areaId)
   {
     const metadata = BeObjectMetadata.GetMetadata(this);
@@ -1017,7 +983,6 @@ export class EveChildMesh extends EveChildTransform
    *   there.
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, _params)
   {
     if (this.damageOverlay) this.damageOverlay.UpdateSyncronous(updateContext);
@@ -1052,7 +1017,6 @@ export class EveChildMesh extends EveChildTransform
    * @returns {Float32Array} worldTransform
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
     this._boneOffsets.AdvanceFrame();
@@ -1195,7 +1159,6 @@ export class EveChildMesh extends EveChildTransform
    * @returns {Tr2GrannyAnimation|null} The updater.
    */
 
-  @meta.implemented
   GetAnimationController()
   {
     return this.animationUpdater;
@@ -1216,7 +1179,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted Tr2AnimationMeshBinding remains unported; Carbon's identity rest-pose fallback is used when neither live palette source is available.
    */
 
-  @meta.adapted
   GetBoneTransforms()
   {
     const updater = this.animationUpdater;
@@ -1243,7 +1205,6 @@ export class EveChildMesh extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetRestPoseBoneTransforms()
   {
     const geometry = this.mesh ? this.mesh.GetGeometryResource() : null;
@@ -1277,7 +1238,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted Bone-fed decal bounds still await the decal seam and the raytracing refresh is not ported yet; the LOD/screen-size math and the bone-fed attachment pass are ported.
    */
 
-  @meta.adapted
   UpdateVisibility(updateContext, _parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
     this._isVisible = false;
@@ -1386,7 +1346,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted The decal mesh cache is not ported yet (null placeholder); collection structure is ported.
    */
 
-  @meta.adapted
   GetRenderables(out)
   {
     if (!this._isVisible)
@@ -1433,7 +1392,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     if (this._worldBoundingSphere[3] > 0)
@@ -1450,7 +1408,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     if (this.display && this.mesh)
@@ -1475,7 +1432,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   IsVisible(updateContext)
   {
     if (this._worldBoundingSphere[3] > 0)
@@ -1504,7 +1460,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (!this.display)
@@ -1543,7 +1498,6 @@ export class EveChildMesh extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   RebuildOverlayAreaBlocks()
   {
     EveMeshOverlayEffect.collectOverlayAreaBlocks(this.mesh, this._overlayAreaBlocks);
@@ -1556,7 +1510,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   GetBatchesFromOverlayVector(batches, perObjectData, batchType)
   {
     const damageEffect = this.damageOverlay
@@ -1604,7 +1557,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetShadowBatches(batches, perObjectData, shadowPixelSize = Infinity)
   {
     if (this.display && this.mesh && this._hasUpdated)
@@ -1626,7 +1578,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const viewPosition = Tr2Renderer.GetViewPosition();
@@ -1643,7 +1594,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetShadowPerObjectData(accumulator = null)
   {
     return this.GetPerObjectData(accumulator);
@@ -1664,7 +1614,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   GetPerObjectData(_accumulator = null)
   {
     this._perObjectData.vs.Set("activeMorphTargetsCount", [ 0 ]);
@@ -1701,7 +1650,6 @@ export class EveChildMesh extends EveChildTransform
    * @param {Number} renderReason
    * @returns {Boolean}
    */
-  @meta.implemented
   IsCastingShadow__PositionRadius(cameraFrustum, position, radius, renderReason)
   {
     if (!this.display || !this.castShadow || !this._hasUpdated)
@@ -1738,7 +1686,6 @@ export class EveChildMesh extends EveChildTransform
    * @param {Array|null} sizeOut
    * @returns {Boolean}
    */
-  @meta.adapted
   IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeOut = null)
   {
     if (!this.display || !this.castShadow || !this._hasUpdated)
@@ -1810,7 +1757,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ChangeLOD(_lod)
   {
   }
@@ -1827,7 +1773,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1866,7 +1811,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1891,7 +1835,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetLights(lightManager)
   {
     if (!this.lights.length || !this.display)
@@ -1915,7 +1858,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetID(_area = 0)
   {
     return this;
@@ -1931,7 +1873,6 @@ export class EveChildMesh extends EveChildTransform
    *   cache and casts the mesh where the instanced interface is used.
    */
 
-  @meta.adapted
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "reflectionMode") || IsMatch(propertyName, "display")
@@ -1959,7 +1900,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   InvalidateOwnerMergedLocators(reason = "structure")
   {
     this.GetOwner()?.InvalidateMergedLocators(reason);
@@ -1971,7 +1911,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetOwner(owner)
   {
     if (this.GetOwner() === owner) return;
@@ -1987,7 +1926,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   CollectOwnedLocatorSets(parentTransform, out)
   {
     if (!this.ownedLocatorSets.length) return;
@@ -2008,7 +1946,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   CollectOwnedGeometry(type, parentTransform, out, areaPool)
   {
     const geometry = this.mesh ? this.mesh.GetGeometryResource() : null;
@@ -2027,7 +1964,6 @@ export class EveChildMesh extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   SetOwnedLocatorSets(sets)
   {
     this.ownedLocatorSets = Array.from(sets ?? []);
@@ -2042,7 +1978,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetPartDamageOverlay(_partTag)
   {
     return this.damageOverlay;
@@ -2054,7 +1989,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   CreatePartDamageOverlay(_partTag)
   {
     this.damageOverlay ??= new EveDamageOverlay();
@@ -2066,7 +2000,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetArmorDamageShaderEffect(effect)
   {
     this.armorDamageShader = effect ?? null;
@@ -2078,7 +2011,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetPartArmorDamageShaderEffect(_partTag)
   {
     return this.armorDamageShader;
@@ -2091,7 +2023,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetOwnedDamageLocators()
   {
     for (const set of this.ownedLocatorSets)
@@ -2109,7 +2040,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetDamageLocatorBindPositionLocal(index, out)
   {
     const locators = this.GetOwnedDamageLocators();
@@ -2127,7 +2057,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetPartDamageLocatorAnimatedLocal(_partTag, index, outPosition, outDirection)
   {
     const locators = this.GetOwnedDamageLocators();
@@ -2148,7 +2077,6 @@ export class EveChildMesh extends EveChildTransform
    * @param {Object} perObjectData - this child's per-object record
    */
 
-  @meta.implemented
   GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
     if (pickTypes & Tr2PickType.PICK_TYPE_PICKING)
@@ -2197,7 +2125,6 @@ export class EveChildMesh extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   InitializeAnimation()
   {
     const updater = this.animationUpdater;
@@ -2225,7 +2152,6 @@ export class EveChildMesh extends EveChildTransform
    * @notImplemented
    */
 
-  @meta.notImplemented
   BakeMorphs(..._args)
   {
     throw new Error("EveChildMesh.BakeMorphs is not implemented in CarbonEngineJS.");
@@ -2237,7 +2163,6 @@ export class EveChildMesh extends EveChildTransform
    * @notImplemented
    */
 
-  @meta.notImplemented
   UnbakeMorphs(..._args)
   {
     throw new Error("EveChildMesh.UnbakeMorphs is not implemented in CarbonEngineJS.");
@@ -2249,7 +2174,6 @@ export class EveChildMesh extends EveChildTransform
    * @notImplemented
    */
 
-  @meta.notImplemented
   IsMeshBaked(..._args)
   {
     throw new Error("EveChildMesh.IsMeshBaked is not implemented in CarbonEngineJS.");

@@ -12,7 +12,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2FenceAL.cpp:5`): we ship every backend at
 // once, so the context that knows its backend is the factory
 // (`CreateFence(true)`).
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -75,7 +75,6 @@ export class Tr2FenceAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(renderContext)
   {
     this.Destroy();
@@ -94,7 +93,6 @@ export class Tr2FenceAL
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   PutFence(renderContext)
   {
     return this._fence.implementation.PutFence(renderContext);
@@ -107,7 +105,6 @@ export class Tr2FenceAL
    * @param {object} renderContext The context whose stream is asked.
    * @returns {{result: number, isReached: boolean}} The answer.
    */
-  @meta.adapted
   IsReached(renderContext)
   {
     return this._fence.implementation.IsReached(renderContext);
@@ -120,7 +117,6 @@ export class Tr2FenceAL
    * @param {object} renderContext The context whose stream is waited on.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Wait(renderContext)
   {
     return this._fence.implementation.Wait(renderContext);
@@ -132,7 +128,6 @@ export class Tr2FenceAL
    * @implemented
    * @returns {boolean} True once created.
    */
-  @meta.implemented
   IsValid()
   {
     return this._fence.implementation.IsValid();
@@ -146,7 +141,6 @@ export class Tr2FenceAL
    * @param {Tr2FenceAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @meta.adapted
   Equals(other)
   {
     return this._fence === other._fence;
@@ -158,7 +152,6 @@ export class Tr2FenceAL
    * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._fence.implementation.GetMemoryClass();
@@ -172,7 +165,6 @@ export class Tr2FenceAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -198,5 +190,4 @@ export class Tr2FenceAL
 }
 
 CjsSchema.decorateField(Tr2FenceAL, "_fence", type.unknown);
-CjsSchema.decorateMethod(Tr2FenceAL, "Equals", meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2FenceAL")(Tr2FenceAL);

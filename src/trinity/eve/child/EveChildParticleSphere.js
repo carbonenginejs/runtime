@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSphere.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSphere.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
@@ -153,7 +153,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    *   retaining Carbon's shared element-claim validation.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Refresh()
   {
     if (!this.particleSystem)
@@ -217,7 +216,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   CheckBinding()
   {
     if (this._bindStatus === BIND_PENDING) this.Refresh();
@@ -230,7 +228,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @adapted returns the caller-owned array, as the sibling EveChildParticleSystem does.
    */
 
-  @meta.adapted
   GetRenderables(renderables)
   {
     if (this.mesh && this.particleSystem && this.display && this._hasUpdated)
@@ -247,7 +244,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
     const frustum = updateContext.GetFrustum();
@@ -263,7 +259,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this._boundingSphere);
@@ -276,7 +271,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, _params)
   {
     this.CheckBinding();
@@ -293,7 +287,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     const parent = params.localToWorldTransform;
@@ -312,7 +305,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this._worldTransform);
@@ -324,7 +316,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   Setup(_scale = null, _rotation = null, _translation = null, _lowestLodVisible = null)
   {
   }
@@ -335,7 +326,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (!this.display || !this.mesh || !this.mesh.GetDisplay()) return;
@@ -349,7 +339,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     if (!this.mesh || !this.particleSystem) return false;
@@ -362,7 +351,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -375,7 +363,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveChildParticleSpherePerObjectData");

@@ -24,7 +24,6 @@ export class ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   async PickObject(context, x, y, projection, view, viewport, results)
   {
     results.object = null;
@@ -126,7 +125,6 @@ export class ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   SetupTransformsForPicking(fx, fy, projection, view, viewport)
   {
     Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
@@ -144,7 +142,6 @@ export class ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   GetBatches(objects, opaque, picking)
   {
     for (let i = 0; i < objects.length; i++)
@@ -166,7 +163,6 @@ export class ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   RenderPicking(opaque, picking, pass, context)
   {
     Tr2VariableStore.globalStore().RegisterVariableInternal("PickingComponents", TriVariableContentType.TRIVARIABLE_FLOAT4, [pass & 1 ? 1 : 0, pass & 2 ? 1 : 0, pass & 4 ? 1 : 0, pass & 8 ? 1 : 0]);

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Lights/Tr2PointLight.cpp
 // Source: trinity/trinity/Lights/Tr2PointLight_Blue.cpp
 import { IInitialize, INotify } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -274,7 +274,6 @@ export class Tr2PointLight extends Tr2Light
    * @param {number} [boneCount] Number of bones in `bones`.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, worldMatrix, bones = null, boneCount = 0)
   {
     const baseColor = color.scale(DEBUG_BASE_COLOR, this._lightData.color, this._lightData.brightness);

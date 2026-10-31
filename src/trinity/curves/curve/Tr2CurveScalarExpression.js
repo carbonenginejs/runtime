@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.cpp
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression_Blue.cpp
 import { ITriScalarFunction, ITriFunction, IInitialize } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
@@ -47,7 +47,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    */
   @be.mapProperty()
   @type.expression
-  @meta.implemented
   get expression()
   {
     return this.GetExpression();
@@ -57,7 +56,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @implemented
    * @param {string} value Source compiled immediately by the native setter.
    */
-  @meta.implemented
   set expression(value)
   {
     this.SetExpression(value);
@@ -120,7 +118,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @returns {boolean} True.
    */
 
-  @meta.adapted
   Initialize()
   {
     if (this._expression !== "")
@@ -138,7 +135,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @implemented
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.currentValue = this.GetValue(time);
@@ -150,7 +146,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @implemented
    */
 
-  @meta.implemented
   Update(time)
   {
     this.currentValue = this.GetValue(time);
@@ -162,7 +157,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    *
    * @implemented
    */
-  @meta.implemented
   GetValueAt(time)
   {
     return this.GetValue(time);
@@ -174,7 +168,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @implemented
    */
 
-  @meta.implemented
   ScaleTime(scale)
   {
     this.timeScale = scale;
@@ -186,7 +179,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @adapted retains the JavaScript program and evaluation-result fallback.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time)
   {
     if (!this.expression)
@@ -220,7 +212,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @implemented
    */
 
-  @meta.implemented
   GetExpression()
   {
     return this._expression;
@@ -235,7 +226,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetExpression(expression)
   {
     if (expression === "")
@@ -256,7 +246,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @implemented
    */
 
-  @meta.implemented
   GetRandomConstant()
   {
     return this.randomConstant;
@@ -271,7 +260,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @returns {number}
    */
 
-  @meta.implemented
   GetInputValue(index)
   {
     return this.GetInputValue__Time(index, this._currentTime);
@@ -285,7 +273,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @param {number} time Sample time.
    * @returns {number}
    */
-  @meta.implemented
   GetInputValue__Time(index, time)
   {
     index |= 0;
@@ -302,7 +289,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ResetRandomConstant()
   {
     this.randomConstant = carbonRandom.triFloatRandom01();
@@ -314,7 +300,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @adapted returns the existing JavaScript expression-term records.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetExpressionTermInfo()
   {
     return CjsControllerExpressionProgram.getCurveTermInfo();
@@ -326,7 +311,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @adapted retains the JavaScript compiler and zero-on-invalid result contract.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EvaluateExpression(expression)
   {
     const program = CjsControllerExpressionProgram.Compile(expression, {

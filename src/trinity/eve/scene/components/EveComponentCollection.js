@@ -27,7 +27,6 @@ export class EveComponentCollection
    *
    * @implemented
    */
-  @meta.implemented
   Add(entity)
   {
     const index = this.collection.length;
@@ -50,7 +49,6 @@ export class EveComponentCollection
    * @returns {object|null} The entity moved into index, or null.
    * @throws {RangeError} When the write at index or the pop falls outside the collection.
    */
-  @meta.implemented
   SwapWithBack(index)
   {
     const size = this.collection.length;
@@ -80,7 +78,6 @@ export class EveComponentCollection
    *
    * @implemented
    */
-  @meta.implemented
   Clear()
   {
     this.collection.length = 0;
@@ -92,7 +89,6 @@ export class EveComponentCollection
    *
    * @implemented
    */
-  @meta.implemented
   GetBit()
   {
     return this.bit;
@@ -103,7 +99,6 @@ export class EveComponentCollection
    *
    * @implemented
    */
-  @meta.implemented
   Size()
   {
     return this.collection.length;

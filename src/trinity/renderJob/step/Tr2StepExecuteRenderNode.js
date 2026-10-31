@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode.cpp
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode_Blue.cpp
 // Promoted from generated source to supply TriRenderStep.Execute.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
@@ -42,7 +42,6 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
    *   Tr2StepExecuteRenderNode.cpp:35-49.
    */
 
-  @meta.adapted
   Execute(realTime, simTime, renderContext)
   {
     const target = this.destinationTarget;

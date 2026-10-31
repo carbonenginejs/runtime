@@ -104,7 +104,3 @@ export function RegisterMeshConstructor(resourceManager)
 
 // Imperative metadata keeps native resource source imports valid ESM.
 meta.define("CjsMeshConstructor")(CjsMeshConstructor);
-CjsSchema.decorateMethod(CjsMeshConstructor, "IsCacheable", meta.implemented);
-CjsSchema.decorateMethod(CjsMeshConstructor, "GetResource", meta.adapted);
-CjsSchema.decorateMethod(CjsMeshConstructor, "parseQuery", meta.implemented);
-CjsSchema.decorateMethod(CjsMeshConstructor, "meshPath", meta.implemented);

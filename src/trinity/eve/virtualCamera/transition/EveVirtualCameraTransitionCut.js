@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase.js";
 
 
@@ -19,7 +19,6 @@ export class EveVirtualCameraTransitionCut extends EveVirtualCameraTransitionBas
    * @implemented
    */
 
-  @meta.implemented
   IsComplete()
   {
     return true;
@@ -32,7 +31,6 @@ export class EveVirtualCameraTransitionCut extends EveVirtualCameraTransitionBas
    * @implemented
    */
 
-  @meta.implemented
   Update(deltaTime)
   {
     super.Update(deltaTime);

@@ -22,7 +22,6 @@ export class EveChildLineSetPerObjectData extends Tr2PerObjectData
    *
    * @adapted
    */
-  @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
     return Tr2PerObjectData.setPerObjectDataToDevice(this, buffers, constantTypeMask, renderContext);

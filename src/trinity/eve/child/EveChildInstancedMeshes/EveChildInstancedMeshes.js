@@ -151,7 +151,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -162,7 +161,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -176,7 +174,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   UpdateVisibility(updateContext)
   {
     this._lastCameraFrustum = updateContext.GetFrustum();
@@ -191,7 +188,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (this.hasUpdated &&
@@ -211,7 +207,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere()
   {
     return false;
@@ -290,7 +285,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (params?.localToWorldTransform?.length === 16)
@@ -328,7 +322,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *   skipped.
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
     const previousWorldTransform = mat4.create();
@@ -601,7 +594,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -615,7 +607,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   Setup()
   {
   }
@@ -626,7 +617,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   ChangeLOD()
   {
   }
@@ -637,7 +627,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *
    * @adapted
    */
-  @meta.adapted
   SetOrigin()
   {
   }
@@ -648,7 +637,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   IsAlwaysOn()
   {
     return false;
@@ -665,7 +653,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *   write, hash refresh and registration lifecycle otherwise follow Carbon.
    */
 
-  @meta.adapted
   SetShaderOption(name, value)
   {
     for (const mesh of this.meshes)
@@ -697,7 +684,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @returns {Boolean} false when no areas or no instances were supplied (nothing is added)
    * Carbon declaration: EveChildInstancedMeshes::AddMesh (trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h:86).
    */
-  @meta.adapted
   AddMesh(
     geometryPath,
     castsShadow,
@@ -871,7 +857,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *   them by reference.
    */
 
-  @meta.adapted
   RemoveInstancesByPartTag(partTag)
   {
     const tag = Number(partTag) >>> 0;
@@ -948,7 +933,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   CollectOwnedGeometry(type, parentTransform, out, areaPool)
   {
     for (const mesh of this.meshes)
@@ -988,7 +972,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   CollectOwnedLocatorSets(parentTransform, out)
   {
     for (const mesh of this.meshes)
@@ -1012,7 +995,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPartDamageOverlay(partTag)
   {
     return this._FindPartDamageOverlay(partTag);
@@ -1024,7 +1006,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   CreatePartDamageOverlay(partTag)
   {
     if (!this._partDamageOverlays.has(partTag))
@@ -1039,7 +1020,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPartArmorDamageShaderEffect(partTag)
   {
     return this._FindMeshByPartTag(partTag)?.mesh.armorDamageShader ?? null;
@@ -1053,7 +1033,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPartDamageLocatorAnimatedLocal(partTag, index, position, direction)
   {
     const found = this._FindMeshByPartTag(partTag);
@@ -1075,7 +1054,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   SetInstanceTransformByPartTag(partTag, translation, rotation, scale)
   {
     const tag = Number(partTag) >>> 0;
@@ -1110,7 +1088,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetInstancesTransforms(meshId)
   {
     const index = Number(meshId) >>> 0;
@@ -1139,8 +1116,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   Clear()
   {
     this.meshes.length = 0;
@@ -1156,7 +1131,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @returns {Array|null} [sofHullName, sofLocatorSetName, locatorIndex], or null when the mesh is unknown or carries no SOF hull name
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetSofSourceLocator(areaId)
   {
     const value = Number(areaId) >>> 0;
@@ -1174,7 +1148,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetMeshCount()
   {
     return this.meshes.length;
@@ -1188,7 +1161,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @returns {Array} [geometryPath, geometryResource, meshIndex, castsShadow, reflectionMode, areaCount, instanceCount]
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetMeshInfo(meshId)
   {
     const mesh = EveChildInstancedMeshes._GetMesh(this.meshes, meshId);
@@ -1212,7 +1184,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @returns {Array} [effect, batchType, areaIndex, areaCount] - the effect is the live reference
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetAreaInfo(meshId, areaId)
   {
     const mesh = EveChildInstancedMeshes._GetMesh(this.meshes, meshId);
@@ -1232,7 +1203,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetMeshDisplay(meshId)
   {
     return EveChildInstancedMeshes._GetMesh(this.meshes, meshId).display;
@@ -1248,7 +1218,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *   invalidated by the manager by reference).
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetMeshDisplay(meshId, display)
   {
     const mesh = EveChildInstancedMeshes._GetMesh(this.meshes, meshId);
@@ -1283,7 +1252,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetMeshInheritOverlayEffects(meshId)
   {
     return EveChildInstancedMeshes._GetMesh(this.meshes, meshId).inheritOverlayEffects;
@@ -1295,7 +1263,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetMeshInheritOverlayEffects(meshId, inherit)
   {
     const mesh = EveChildInstancedMeshes._GetMesh(this.meshes, meshId);
@@ -1318,7 +1285,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddMeshOverlayEffect(meshId, overlayEffect)
   {
     if (!overlayEffect) throw new TypeError("overlayEffect must not be null");
@@ -1331,7 +1297,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RemoveMeshOverlayEffect(meshId, overlayEffect)
   {
     const overlays = EveChildInstancedMeshes._GetMesh(this.meshes, meshId).ownOverlayEffects;
@@ -1345,7 +1310,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearMeshOverlayEffects(meshId)
   {
     EveChildInstancedMeshes._GetMesh(this.meshes, meshId).ownOverlayEffects.length = 0;
@@ -1357,7 +1321,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetMeshOverlayEffectCount(meshId)
   {
     return EveChildInstancedMeshes._GetMesh(this.meshes, meshId).ownOverlayEffects.length;
@@ -1370,8 +1333,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   SetGeometryResource(meshId, geometry)
   {
     const mesh = EveChildInstancedMeshes._GetMesh(this.meshes, meshId);
@@ -1390,8 +1351,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetMeshData(meshId)
   {
     const mesh = EveChildInstancedMeshes._GetMesh(this.meshes, meshId);
@@ -1406,8 +1365,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   GetRevision()
   {
     return this._revision;
@@ -1419,7 +1376,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     for (const overlay of this._parentOverlayEffects ?? [])
@@ -1442,7 +1398,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   GetSortValue()
   {
     const viewPosition = Tr2Renderer.GetViewPosition();
@@ -1458,7 +1413,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   GetPerObjectData(_accumulator = null)
   {
     if ((!this._parentOverlayEffects || !this._AnyMeshInheritsOverlayEffects()) &&
@@ -1488,7 +1442,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(
     batches,
     batchType,
@@ -1567,7 +1520,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1586,7 +1538,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     this.UnregisterFromMeshManager();
@@ -1601,7 +1552,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *   invalidated by the manager by reference).
    */
 
-  @meta.adapted
   UnregisterFromMeshManager()
   {
     for (const mesh of this.meshes)
@@ -1657,7 +1607,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *   gate; the declaration argument is zero and the JavaScript object is the picking owner.
    */
 
-  @meta.adapted
   AddMeshesToManager(manager)
   {
     if (!this.hasUpdated)
@@ -1778,7 +1727,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   IsCastingShadow__ShadowFrustum(..._args)
   {
     return false;
@@ -1791,7 +1739,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   GetShadowBatches(..._args)
   {
   }
@@ -1803,7 +1750,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetShadowPerObjectData(..._args)
   {
     return null;
@@ -1899,7 +1845,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    *   are not ported.
    * @param {TriGeometryRes} resource The geometry that finished loading.
    */
-  @meta.adapted
   RebuildCachedData(resource)
   {
     for (const mesh of this.meshes)

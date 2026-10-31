@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2GrannyEventTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyEventTrack.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -30,7 +30,6 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
    * @implemented
    */
 
-  @meta.implemented
   TracksReady()
   {
     return this.#entries !== null;
@@ -42,7 +41,6 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
    * @implemented
    */
 
-  @meta.implemented
   ResetTracks()
   {
     this.#entries = null;
@@ -56,7 +54,6 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
    * @adapted
    */
 
-  @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
     const track = CjsGrannyCurves.findTextTrack(group, this.name);
@@ -76,7 +73,6 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
    * @adapted
    */
 
-  @meta.adapted
   UpdateValueImpl(time)
   {
     const entries = this.#entries;

@@ -48,7 +48,6 @@ export class ITr2Controller extends IRoot
    * @param {object} _owner The object being controlled.
    */
 
-  @meta.adapted
   Link(_owner)
   {
   }
@@ -60,7 +59,6 @@ export class ITr2Controller extends IRoot
    * @param {number} [_reason] An `UnlinkReason`; DELETING means the owner is going away.
    */
 
-  @meta.adapted
   Unlink(_reason = UnlinkReason.UNLINKING)
   {
   }
@@ -84,7 +82,6 @@ export class ITr2Controller extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Start()
   {
   }
@@ -95,7 +92,6 @@ export class ITr2Controller extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Stop()
   {
   }
@@ -107,7 +103,6 @@ export class ITr2Controller extends IRoot
    * @param {number} _normalizedUpdateFrequency Carbon's normalised frame delta.
    */
 
-  @meta.adapted
   Update(_normalizedUpdateFrequency)
   {
   }
@@ -120,7 +115,6 @@ export class ITr2Controller extends IRoot
    * @param {number} _value Its new value.
    */
 
-  @meta.adapted
   SetVariable(_name, _value)
   {
   }
@@ -132,7 +126,6 @@ export class ITr2Controller extends IRoot
    * @param {string} _eventName The event's name.
    */
 
-  @meta.adapted
   HandleEvent(_eventName)
   {
   }

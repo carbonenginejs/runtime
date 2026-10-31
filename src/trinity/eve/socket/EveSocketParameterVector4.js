@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named four-component vector socket value to external parameters, preserving defaults by copy for restoration. */
@@ -30,7 +30,6 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
    * @implemented
    */
 
-  @meta.implemented
   ClearBindings()
   {
     this._defaults.length = 0;
@@ -43,7 +42,6 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
    * @implemented
    */
 
-  @meta.implemented
   Reset()
   {
     for (let index = 0; index < this.bindings.length; index++)
@@ -86,7 +84,6 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetValueToDefault()
   {
     if (this._defaults.length)

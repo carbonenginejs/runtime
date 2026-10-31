@@ -15,6 +15,7 @@ import { Tr2CurveQuaternionKey } from "../../npm/dist/trinity/curves/key/Tr2Curv
 import { TriCurveSet } from "../../npm/dist/trinity/curves/TriCurveSet.js";
 import { ITriFunction, ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriCurveLength } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const classes = [Tr2CurveConstant,Tr2CurveScalar,Tr2CurveQuaternion,Tr2CurveScalarKey,Tr2CurveQuaternionKey];
 test("native private methods and JavaScript curve helpers have explicit provenance", () =>
@@ -23,8 +24,8 @@ test("native private methods and JavaScript curve helpers have explicit provenan
     {
         const method=CjsSchema.getMethod(Class,name);
         assert.equal(CjsSchema.getSchema(Class).blue,true);
-        assert.equal(method.carbon?.cjs,undefined);
-        assert.equal(method.impl.status,"adapted");
+        assert.equal(method?.carbon?.cjs,undefined);
+        assert.equal(MarkerTag(CjsSchema.getClassName(Class),name),"adapted");
     }
     for(const [Class,name] of [[Tr2CurveScalar,"FindSegment"],[Tr2CurveQuaternion,"Evaluate"],[Tr2CurveQuaternion,"SetName"],[Tr2CurveConstant,"_copyValue"]])
         assert.equal(CjsSchema.getMethod(Class,name)?.carbon,undefined);

@@ -3,7 +3,7 @@ import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectR
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume_Blue.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -233,7 +233,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @adapted
    */
 
-  @meta.adapted
   RebuildBoundingSphere()
   {
     vec3.set(this.boundingSphereCenter, 0, 0, 0);
@@ -261,7 +260,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -272,7 +270,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -295,7 +292,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    *
    * @implemented
    */
-  @meta.implemented
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -308,7 +304,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @implemented
    */
 
-  @meta.implemented
   UpdateTransformFromParent(params)
   {
     this.UpdateTransform(params.localToWorldTransform);
@@ -325,7 +320,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
     this.UpdateTransform(params.localToWorldTransform);
@@ -362,7 +356,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @returns {Float32Array} out
    */
 
-  @meta.adapted
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -403,7 +396,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Volumes");
@@ -419,7 +411,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "Volumes"))
@@ -451,7 +442,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -470,7 +460,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     this.GetComponentRegistry().UnRegisterComponent(EveComponentType.FroxelFogSettings, this);
@@ -484,7 +473,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @adapted
    */
 
-  @meta.adapted
   GetFroxelFogSettings()
   {
     const out = this._froxelFogSettings;
@@ -522,7 +510,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    *
    * @implemented
    */
-  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
@@ -532,7 +519,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetRenderables(_renderables)
   {
   }
@@ -542,7 +528,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    *
    * @implemented
    */
-  @meta.implemented
   ChangeLOD(_lod)
   {
   }

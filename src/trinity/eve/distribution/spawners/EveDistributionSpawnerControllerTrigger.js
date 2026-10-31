@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Gates a nested set of distribution spawners from a named controller variable. */
@@ -56,7 +56,6 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * @implemented
    */
 
-  @meta.implemented
   Reset(_placements)
   {
     this.Restart();
@@ -68,7 +67,6 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * @implemented
    */
 
-  @meta.implemented
   Restart()
   {
     for (const spawner of this.spawners)
@@ -84,7 +82,6 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * @implemented
    */
 
-  @meta.implemented
   OnModified(name)
   {
     if (IsMatch(name, "value"))
@@ -100,7 +97,6 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params, owner)
   {
     if (!this.isActive)
@@ -121,7 +117,6 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     if (this.variableName !== name)

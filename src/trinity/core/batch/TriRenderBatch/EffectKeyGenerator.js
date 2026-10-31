@@ -13,7 +13,6 @@ export class EffectKeyGenerator
    * @adapted JavaScript has no pointer ordering; the existing per-reference ordinal keeps
    *   equal shader identities contiguous.
    */
-  @meta.adapted
   static Less(batch1, batch2)
   {
     const shaderOrder = OrderOf(batch1.shader) - OrderOf(batch2.shader);
@@ -26,7 +25,6 @@ export class EffectKeyGenerator
    *
    * @implemented
    */
-  @meta.implemented
   static GetSortType()
   {
     return RenderBatchSortType.RENDERBATCHSORTTYPE_SORT;

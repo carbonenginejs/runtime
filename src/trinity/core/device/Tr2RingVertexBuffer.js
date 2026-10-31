@@ -17,7 +17,6 @@ export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   Create(bufferSize)
   {
     this.ReleaseResources();
@@ -31,7 +30,6 @@ export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   CreateBuffer(size)
   {
     this._buffer?.Destroy();

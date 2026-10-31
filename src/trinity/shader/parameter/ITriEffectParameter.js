@@ -67,5 +67,4 @@ CjsSchema.exposure.inherit(ITr2EffectValue)(ITriEffectParameter);
 CjsSchema.decorateMethod(ITriEffectParameter, "GetParameterName", meta.abstract);
 CjsSchema.decorateMethod(ITriEffectParameter, "RebuildEffectHandles", meta.abstract);
 CjsSchema.decorateMethod(ITriEffectParameter, "GetHashValue", meta.abstract);
-CjsSchema.decorateMethod(ITriEffectParameter, "SupportsDirtyNotification", meta.implemented);
 CjsSchema.exposure.interface("ITriEffectParameter")(ITriEffectParameter);

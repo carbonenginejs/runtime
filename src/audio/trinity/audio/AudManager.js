@@ -54,7 +54,6 @@ export class AudManager extends IRoot
    * @adapted Carbon supplies this via UpdateSettings() outside Blue serialization; CarbonEngineJS persists it for
    *   values interchange.
    */
-  @meta.adapted
   @meta.mapAttribute(meta.PERSIST)
   @type.object.ref("AudSettings")
   settings = null;
@@ -94,7 +93,6 @@ export class AudManager extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   GetState()
   {
     return this._state;
@@ -106,7 +104,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap("GetState")
-  @meta.implemented
   GetStateValue()
   {
     return this._state === "uninitialized" ? 0 : this._state === "disabled" ? 1 : 2;
@@ -120,7 +117,6 @@ export class AudManager extends IRoot
    *   pass follow audio/src/AudManager.cpp:148-180 and 848-881.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Enable(soundBanksToLoad = [])
   {
     if (this._state === "enabled")
@@ -174,7 +170,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Disable()
   {
     if (this._state !== "enabled")
@@ -197,7 +192,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   LoadBank(name)
   {
     if (this._state !== "enabled")
@@ -236,7 +230,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UnloadBank(name)
   {
     if (this._state !== "enabled")
@@ -269,7 +262,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearBanks()
   {
     if (this._state !== "uninitialized")
@@ -287,7 +279,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateSoundBankStatus(bankID, status)
   {
     const info = this._soundBankInfoMap.get(bankID);
@@ -312,7 +303,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RegisterEventAfterSoundBankLoad(soundBankName, eventName, emitter)
   {
     for (const info of this._soundBankInfoMap.values())
@@ -330,7 +320,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetSoundBankStatus(name)
   {
     const byKey = this._soundBankInfoMap.get(BankKey(name));
@@ -354,7 +343,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetLoadedSoundBanks()
   {
     const names = [];
@@ -374,7 +362,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetGlobalRTPC(rtpcName, value)
   {
     if (this._state !== "enabled")
@@ -395,7 +382,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetState(stateGroup, stateName)
   {
     if (this._state !== "enabled")
@@ -413,7 +399,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   LogPostEvent(emitterID, playID, eventID, name)
   {
     if (this.log)
@@ -428,7 +413,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
     if (this.log)
@@ -443,7 +427,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   LogSetSwitch(emitterID, group, state)
   {
     if (this.log)
@@ -458,7 +441,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   LogSetState(group, state)
   {
     if (this.log)
@@ -473,7 +455,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
     if (this.log)
@@ -488,7 +469,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetSpatialAudioGeometryEnabled()
   {
     return this._spatialAudioSettings.GetSpatialAudioGeometryEnabled();
@@ -510,7 +490,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
     return this._obstructionOcclusion.SetEmitterLineOfSightBlockage(
@@ -525,7 +504,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetEmitterOcclusion(emitterID)
   {
     return this._obstructionOcclusion.GetEmitterOcclusion(emitterID);
@@ -537,7 +515,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearObstructionOcclusion()
   {
     this._obstructionOcclusion.ClearAll();
@@ -549,7 +526,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetObstructionOcclusionEnabled()
   {
     return this._obstructionOcclusion.IsEnabled();
@@ -561,7 +537,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetObstructionOcclusionEnabled(value)
   {
     this._obstructionOcclusion.SetEnabled(value);
@@ -574,14 +549,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get obstructionOcclusionEnabled()
   {
     return this.GetObstructionOcclusionEnabled();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set obstructionOcclusionEnabled(value)
   {
@@ -594,7 +567,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetObstructionOcclusionFadeRate()
   {
     return this._obstructionOcclusion.GetFadeRate();
@@ -606,7 +578,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetObstructionOcclusionFadeRate(value)
   {
     this._obstructionOcclusion.SetFadeRate(value);
@@ -619,14 +590,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get obstructionOcclusionFadeRate()
   {
     return this.GetObstructionOcclusionFadeRate();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set obstructionOcclusionFadeRate(value)
   {
@@ -640,7 +609,6 @@ export class AudManager extends IRoot
    *   available even though WebAudio has no native diffraction engine.
    */
 
-  @meta.adapted
   SetSpatialAudioGeometryEnabled(enabled)
   {
     const value = Boolean(enabled);
@@ -698,7 +666,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetMovementThreshold()
   {
     return this._spatialAudioSettings.GetMovementThreshold();
@@ -709,7 +676,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetMovementThreshold(value)
   {
     this._spatialAudioSettings.SetMovementThreshold(value);
@@ -722,14 +688,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get movementThreshold()
   {
     return this.GetMovementThreshold();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set movementThreshold(value)
   {
@@ -741,7 +705,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetNumberOfPrimaryRays()
   {
     return this._spatialAudioSettings.GetNumberOfPrimaryRays();
@@ -752,7 +715,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetNumberOfPrimaryRays(value)
   {
     this._spatialAudioSettings.SetNumberOfPrimaryRays(value);
@@ -765,14 +727,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get numberOfPrimaryRays()
   {
     return this.GetNumberOfPrimaryRays();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set numberOfPrimaryRays(value)
   {
@@ -784,7 +744,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxReflectionOrder()
   {
     return this._spatialAudioSettings.GetMaxReflectionOrder();
@@ -795,7 +754,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxReflectionOrder(value)
   {
     this._spatialAudioSettings.SetMaxReflectionOrder(value);
@@ -808,14 +766,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get maxReflectionOrder()
   {
     return this.GetMaxReflectionOrder();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set maxReflectionOrder(value)
   {
@@ -827,7 +783,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxDiffractionOrder()
   {
     return this._spatialAudioSettings.GetMaxDiffractionOrder();
@@ -838,7 +793,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxDiffractionOrder(value)
   {
     this._spatialAudioSettings.SetMaxDiffractionOrder(value);
@@ -851,14 +805,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get maxDiffractionOrder()
   {
     return this.GetMaxDiffractionOrder();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set maxDiffractionOrder(value)
   {
@@ -870,7 +822,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxEmitterRoomAuxSends()
   {
     return this._spatialAudioSettings.GetMaxEmitterRoomAuxSends();
@@ -881,7 +832,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
     this._spatialAudioSettings.SetMaxEmitterRoomAuxSends(value);
@@ -894,14 +844,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get maxEmitterRoomAuxSends()
   {
     return this.GetMaxEmitterRoomAuxSends();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set maxEmitterRoomAuxSends(value)
   {
@@ -913,7 +861,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetDiffractionOnReflectionsOrder()
   {
     return this._spatialAudioSettings.GetDiffractionOnReflectionsOrder();
@@ -924,7 +871,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
     this._spatialAudioSettings.SetDiffractionOnReflectionsOrder(value);
@@ -937,14 +883,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get diffractionOnReflectionsOrder()
   {
     return this.GetDiffractionOnReflectionsOrder();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set diffractionOnReflectionsOrder(value)
   {
@@ -956,7 +900,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxPathLength()
   {
     return this._spatialAudioSettings.GetMaxPathLength();
@@ -967,7 +910,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxPathLength(value)
   {
     this._spatialAudioSettings.SetMaxPathLength(value);
@@ -980,14 +922,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get maxPathLength()
   {
     return this.GetMaxPathLength();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set maxPathLength(value)
   {
@@ -999,7 +939,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetCPULimitPercentage()
   {
     return this._spatialAudioSettings.GetCPULimitPercentage();
@@ -1010,7 +949,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetCPULimitPercentage(value)
   {
     this._spatialAudioSettings.SetCPULimitPercentage(value);
@@ -1023,14 +961,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get cpuLimitPercentage()
   {
     return this.GetCPULimitPercentage();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set cpuLimitPercentage(value)
   {
@@ -1042,7 +978,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetLoadBalancingSpread()
   {
     return this._spatialAudioSettings.GetLoadBalancingSpread();
@@ -1053,7 +988,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetLoadBalancingSpread(value)
   {
     this._spatialAudioSettings.SetLoadBalancingSpread(value);
@@ -1066,14 +1000,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get loadBalancingSpread()
   {
     return this.GetLoadBalancingSpread();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set loadBalancingSpread(value)
   {
@@ -1085,7 +1017,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetEnableDiffractionAndTransmission()
   {
     return this._spatialAudioSettings.GetEnableDiffractionAndTransmission();
@@ -1096,7 +1027,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetEnableDiffractionAndTransmission(value)
   {
     this._spatialAudioSettings.SetEnableDiffractionAndTransmission(value);
@@ -1109,14 +1039,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get enableDiffractionAndTransmission()
   {
     return this.GetEnableDiffractionAndTransmission();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set enableDiffractionAndTransmission(value)
   {
@@ -1128,7 +1056,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetCalcEmitterVirtualPosition()
   {
     return this._spatialAudioSettings.GetCalcEmitterVirtualPosition();
@@ -1139,7 +1066,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetCalcEmitterVirtualPosition(value)
   {
     this._spatialAudioSettings.SetCalcEmitterVirtualPosition(value);
@@ -1152,14 +1078,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get calcEmitterVirtualPosition()
   {
     return this.GetCalcEmitterVirtualPosition();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set calcEmitterVirtualPosition(value)
   {
@@ -1171,7 +1095,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetTransmissionLoss()
   {
     return this._spatialAudioSettings.GetTransmissionLoss();
@@ -1182,7 +1105,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetTransmissionLoss(value)
   {
     this._spatialAudioSettings.SetTransmissionLoss(value);
@@ -1195,14 +1117,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get transmissionLoss()
   {
     return this.GetTransmissionLoss();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set transmissionLoss(value)
   {
@@ -1214,7 +1134,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetEnableDiffraction()
   {
     return this._spatialAudioSettings.GetEnableDiffraction();
@@ -1225,7 +1144,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetEnableDiffraction(value)
   {
     this._spatialAudioSettings.SetEnableDiffraction(value);
@@ -1238,14 +1156,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get enableDiffraction()
   {
     return this.GetEnableDiffraction();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set enableDiffraction(value)
   {
@@ -1257,7 +1173,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetEnableDiffractionOnBoundaryEdges()
   {
     return this._spatialAudioSettings.GetEnableDiffractionOnBoundaryEdges();
@@ -1268,7 +1183,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetEnableDiffractionOnBoundaryEdges(value)
   {
     this._spatialAudioSettings.SetEnableDiffractionOnBoundaryEdges(value);
@@ -1281,14 +1195,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get enableDiffractionOnBoundaryEdges()
   {
     return this.GetEnableDiffractionOnBoundaryEdges();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set enableDiffractionOnBoundaryEdges(value)
   {
@@ -1300,7 +1212,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetOneShotWindow()
   {
     return this.soundPrioritization.GetOneShotWindow();
@@ -1311,7 +1222,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetOneShotWindow(value)
   {
     this.soundPrioritization.SetOneShotWindow(value);
@@ -1324,14 +1234,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get oneShotWindow()
   {
     return this.GetOneShotWindow();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set oneShotWindow(value)
   {
@@ -1343,7 +1251,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetPlaying2DWeight()
   {
     return this.soundPrioritization.GetPlaying2DWeight();
@@ -1354,7 +1261,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetPlaying2DWeight(value)
   {
     this.soundPrioritization.SetPlaying2DWeight(value);
@@ -1367,14 +1273,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get playing2DWeight()
   {
     return this.GetPlaying2DWeight();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set playing2DWeight(value)
   {
@@ -1386,7 +1290,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetPlayingEventsWeight()
   {
     return this.soundPrioritization.GetPlayingEventsWeight();
@@ -1397,7 +1300,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetPlayingEventsWeight(value)
   {
     this.soundPrioritization.SetPlayingEventsWeight(value);
@@ -1410,14 +1312,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get activeSoundsWeight()
   {
     return this.GetPlayingEventsWeight();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set activeSoundsWeight(value)
   {
@@ -1429,7 +1329,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetPlayingVitalSoundWeight()
   {
     return this.soundPrioritization.GetPlayingVitalSoundWeight();
@@ -1440,7 +1339,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetPlayingVitalSoundWeight(value)
   {
     this.soundPrioritization.SetPlayingVitalSoundWeight(value);
@@ -1451,7 +1349,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetRangeWeight()
   {
     return this.soundPrioritization.GetRangeWeight();
@@ -1462,7 +1359,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetRangeWeight(value)
   {
     this.soundPrioritization.SetRangeWeight(value);
@@ -1475,14 +1371,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get rangeWeight()
   {
     return this.GetRangeWeight();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set rangeWeight(value)
   {
@@ -1494,7 +1388,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetUsedEmitterWeight()
   {
     return this.soundPrioritization.GetUsedEmitterWeight();
@@ -1505,7 +1398,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetUsedEmitterWeight(value)
   {
     this.soundPrioritization.SetUsedEmitterWeight(value);
@@ -1518,14 +1410,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get usedEmitterWeight()
   {
     return this.GetUsedEmitterWeight();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set usedEmitterWeight(value)
   {
@@ -1537,7 +1427,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetVisibleWeight()
   {
     return this.soundPrioritization.GetVisibleWeight();
@@ -1548,7 +1437,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetVisibleWeight(value)
   {
     this.soundPrioritization.SetVisibleWeight(value);
@@ -1561,14 +1449,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get visibleWeight()
   {
     return this.GetVisibleWeight();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set visibleWeight(value)
   {
@@ -1580,7 +1466,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetWaitingOneShotWeight()
   {
     return this.soundPrioritization.GetWaitingOneShotWeight();
@@ -1591,7 +1476,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetWaitingOneShotWeight(value)
   {
     this.soundPrioritization.SetWaitingOneShotWeight(value);
@@ -1604,14 +1488,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get waitingOneShotWeight()
   {
     return this.GetWaitingOneShotWeight();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set waitingOneShotWeight(value)
   {
@@ -1623,7 +1505,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetWeightMultiplier()
   {
     return this.soundPrioritization.GetWeightMultiplier();
@@ -1634,7 +1515,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetWeightMultiplier(value)
   {
     this.soundPrioritization.SetWeightMultiplier(value);
@@ -1647,14 +1527,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get weightMultiplier()
   {
     return this.GetWeightMultiplier();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set weightMultiplier(value)
   {
@@ -1666,7 +1544,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxAwakeGameObjects()
   {
     return this.soundPrioritization.GetMaxAwakeGameObjects();
@@ -1677,7 +1554,6 @@ export class AudManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxAwakeGameObjects(value)
   {
     this.soundPrioritization.SetMaxAwakeGameObjects(value);
@@ -1690,14 +1566,12 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get maxAwakeGameObjects()
   {
     return this.GetMaxAwakeGameObjects();
   }
 
   /** @implemented */
-  @meta.implemented
 
   set maxAwakeGameObjects(value)
   {
@@ -1710,7 +1584,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap("GetAwakeEmitters")
-  @meta.implemented
   GetAwakeAudioEmitters()
   {
     const result = [];
@@ -1731,7 +1604,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StopAll()
   {
     if (this._state !== "uninitialized")
@@ -1749,7 +1621,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RegisterGameObject(gameObjID, gameObject)
   {
     if (!gameObject)
@@ -1770,7 +1641,6 @@ export class AudManager extends IRoot
    *   prevent a stale post after re-adoption.
    */
 
-  @meta.adapted
   UnregisterGameObject(gameObjID)
   {
     this.soundPrioritization.UnregisterGameObject(gameObjID);
@@ -1789,7 +1659,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RemoveCallbackGameObject(gameObjID)
   {
     this._callbackGameObjects.delete(gameObjID);
@@ -1801,7 +1670,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetAudioEmitter(gameObjID)
   {
     return this._callbackGameObjects.get(gameObjID) ?? null;
@@ -1813,7 +1681,6 @@ export class AudManager extends IRoot
    * @adapted The native locked callback map is synchronous in JavaScript's single-threaded graph runtime.
    */
 
-  @meta.adapted
   WithCallbackGameObject(gameObjID, callback)
   {
     const emitter = this._callbackGameObjects.get(gameObjID);
@@ -1832,7 +1699,6 @@ export class AudManager extends IRoot
    *   when no emitter is registered.
    */
 
-  @meta.adapted
   GetEventName(emitterID, playingID)
   {
     const emitter = this.GetAudioEmitter(emitterID);
@@ -1845,7 +1711,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetListener()
   {
     return this.GetAudioEmitter(LISTENER_GAME_OBJ_ID);
@@ -1857,7 +1722,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RegisterParameter(name)
   {
     if (this._state === "uninitialized")
@@ -1875,7 +1739,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UnregisterParameter(name)
   {
     if (this._state === "uninitialized")
@@ -1895,7 +1758,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetParameterInfo(name)
   {
     return this._monitoredParameters.get(String(name)) ?? null;
@@ -1907,7 +1769,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateMonitoredParameters()
   {
     for (const [name, entry] of this._monitoredParameters)
@@ -1924,7 +1785,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetAudioCullingEnabled()
   {
     this.audioCullingEnabled = this.soundPrioritization.GetAudioCullingEnabled();
@@ -1937,7 +1797,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetAudioCullingEnabledProperty()
   {
     return this.GetAudioCullingEnabled();
@@ -1949,7 +1808,6 @@ export class AudManager extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Process()
   {
     if (this._state === "uninitialized")
@@ -1983,7 +1841,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UpdateSettings(settings)
   {
     this.settings = settings;
@@ -1995,7 +1852,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   DisableAudioCulling()
   {
     for (const object of this.soundPrioritization.GetPrioritizedAudioObjects())
@@ -2015,7 +1871,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   EnableAudioCulling()
   {
     this.soundPrioritization.EnableAudioCulling();
@@ -2029,8 +1884,6 @@ export class AudManager extends IRoot
    *   same current order.
    * @renamed GetPrioritizedAudioEmitters
    */
-  @meta.renamed("GetPrioritizedAudioEmitters")
-  @meta.adapted
   GetPrioritizedEmitters()
   {
     return this.soundPrioritization.GetPrioritizedAudioObjects();
@@ -2043,7 +1896,6 @@ export class AudManager extends IRoot
    *   renderer.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnableDebugDisplayAllEmitters()
   {
     this._debugDisplayAllEmitters = true;
@@ -2056,7 +1908,6 @@ export class AudManager extends IRoot
    *   renderer.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   DisableDebugDisplayAllEmitters()
   {
     this._debugDisplayAllEmitters = false;
@@ -2068,7 +1919,6 @@ export class AudManager extends IRoot
    * @adapted The value is available to browser renderers even though the audio layer does not draw debug geometry.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetDebugDisplayAllEmitters()
   {
     return this._debugDisplayAllEmitters;
@@ -2080,7 +1930,6 @@ export class AudManager extends IRoot
    * @notSupported
    */
   @be.mapMethodAndWrap()
-  @meta.notSupported
   EnableSpatialAudio()
   {
     return false;
@@ -2092,7 +1941,6 @@ export class AudManager extends IRoot
    * @notSupported
    */
   @be.mapMethodAndWrap()
-  @meta.notSupported
   DisableSpatialAudio()
   {
     return false;
@@ -2104,7 +1952,6 @@ export class AudManager extends IRoot
    * @notSupported
    */
   @be.mapMethodAndWrap()
-  @meta.notSupported
   SpatialAudioIsSupported()
   {
     return false;
@@ -2116,7 +1963,6 @@ export class AudManager extends IRoot
    * @notSupported
    */
   @be.mapMethodAndWrap()
-  @meta.notSupported
   RegisterAudioDeviceChangeCallback(callback)
   {
     return false;
@@ -2128,7 +1974,6 @@ export class AudManager extends IRoot
    * @notSupported
    */
   @be.mapMethodAndWrap()
-  @meta.notSupported
   StartProfilerCapture()
   {
     return false;
@@ -2140,7 +1985,6 @@ export class AudManager extends IRoot
    * @notSupported
    */
   @be.mapMethodAndWrap()
-  @meta.notSupported
   StopProfilerCapture()
   {
     return false;
@@ -2152,7 +1996,6 @@ export class AudManager extends IRoot
    * @notSupported
    */
   @be.mapMethodAndWrap()
-  @meta.notSupported
   IsProfilerCapturing()
   {
     return false;
@@ -2164,7 +2007,6 @@ export class AudManager extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ResetCullingSettings()
   {
     this.soundPrioritization.ResetCullingSettings();

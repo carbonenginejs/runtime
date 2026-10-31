@@ -6,7 +6,7 @@ import { blue } from "#blue";
 import { random } from "#math/random";
 import { fromYawPitchRollCarbon, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, IInitialize } from "#blue";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { CcpTime } from "#blue";
 
 
@@ -48,7 +48,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    */
   @be.mapProperty()
   @type.uint32
-  @meta.implemented
   get seed()
   {
     return this.GetSeed();
@@ -58,7 +57,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @implemented
    * @param {number} value New seed; every assignment rebuilds rotations.
    */
-  @meta.implemented
   set seed(value)
   {
     this.SetSeed(value);
@@ -101,7 +99,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
@@ -117,7 +114,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The same output buffer.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.UpdateValue(time);
@@ -134,7 +130,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The same output buffer.
    */
   @legacyBlue.method
-  @meta.adapted
   GetValueAt(time, out)
   {
     return this.Evaluate(out, time);
@@ -149,7 +144,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.adapted
   Update__Ticks(time, out)
   {
     this.Evaluate(this.currentValue, this.GetWrappedTime(time));
@@ -164,7 +158,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.adapted
   GetValueAt__Ticks(time, out)
   {
     return this.Evaluate(out, this.GetWrappedTime(time));
@@ -190,7 +183,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -205,7 +197,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -220,7 +211,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The same output buffer.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -258,7 +248,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.seed !== 0)
@@ -275,7 +264,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {number} Unsigned 32-bit seed.
    */
 
-  @meta.implemented
   GetSeed()
   {
     return this._seed;
@@ -290,7 +278,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetSeed(seed)
   {
     this._seed = seed >>> 0;
@@ -306,7 +293,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SeedChanged()
   {
     const engine = Tr2CurveRandomAxisRotation._makeMsvcDefaultRandomEngine(this.seed !== 0 ? this.seed : blue.os.GetActualTime());
@@ -337,7 +323,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Function} engine Existing unit-interval generator.
    * @returns {number} Angle in radians.
    */
-  @meta.adapted
   static _randomAngle(engine)
   {
     return Math.fround(Math.fround(engine() * Math.fround(Math.PI)) * 2);

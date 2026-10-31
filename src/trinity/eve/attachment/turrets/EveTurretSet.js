@@ -8,7 +8,7 @@ import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectR
 
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
-import { meta, CjsSchema, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js";
@@ -104,7 +104,6 @@ export class EveTurretSet extends EveEntity
    */
   @be.mapProperty()
   @type.rootRef("EveTurretFiringFX")
-  @meta.implemented
   get firingEffect()
   {
     return this.GetFiringEffect();
@@ -115,7 +114,6 @@ export class EveTurretSet extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   set firingEffect(value)
   {
     this.SetFiringEffect(value);
@@ -139,7 +137,6 @@ export class EveTurretSet extends EveEntity
    */
   @be.mapProperty()
   @type.rootRef("EveSpaceObjectChild")
-  @meta.implemented
   get ambientEffect()
   {
     return this.GetAmbientEffect();
@@ -150,7 +147,6 @@ export class EveTurretSet extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   set ambientEffect(value)
   {
     this.SetAmbientEffect(value);
@@ -164,7 +160,6 @@ export class EveTurretSet extends EveEntity
    */
   @be.mapProperty()
   @type.rootRef("ITriTargetable")
-  @meta.implemented
   get targetObject()
   {
     return this.GetTargetObject();
@@ -175,7 +170,6 @@ export class EveTurretSet extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   set targetObject(value)
   {
     this.SetTargetObject(value);
@@ -618,7 +612,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   InitializeInstanceBuffer()
   {
     if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
@@ -635,7 +628,6 @@ export class EveTurretSet extends EveEntity
    *   the shared buffer here is per render context (TriGeometryResAllocations).
    */
 
-  @meta.adapted
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -648,7 +640,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     if (this._turretVertexDeclElementCount && this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
@@ -666,7 +657,6 @@ export class EveTurretSet extends EveEntity
    * @adapted returns whether the existing resource output operation succeeded.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RebuildBoundingSphere()
   {
     const resource = this.geometryResource;
@@ -681,7 +671,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetState()
   {
     return this.state;
@@ -693,7 +682,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetLocatorName()
   {
     return this.locatorName;
@@ -705,7 +693,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetSlotNumber()
   {
     return this.slotNumber;
@@ -717,7 +704,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetSwarmID()
   {
     return this.swarmID;
@@ -729,7 +715,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetFiringEffect()
   {
     return this._firingEffect;
@@ -741,7 +726,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetAmbientEffect()
   {
     return this._ambientEffect;
@@ -755,7 +739,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ForceStateDeactive()
   {
     this.trackingInfluence = 0;
@@ -774,7 +757,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ForceStateTargeting()
   {
     this.trackingInfluence = this.maxTrackingTime;
@@ -790,7 +772,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   FreezeHighDetailLOD()
   {
     this.lodLevel = EveTurretSet.LOD.LOD_DISABLED;
@@ -803,7 +784,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     if (this.turretEffect) this.turretEffect.SetOption(name, value);
@@ -817,7 +797,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetShader()
   {
     return this.turretEffect;
@@ -833,8 +812,6 @@ export class EveTurretSet extends EveEntity
    * @cjs
    * @adapted Carbon's by-value embed becomes an accessor because the pose pipeline (the aiming consumer) lives behind the animation seam.
    */
-  @meta.cjs
-    @meta.adapted
   GetAiming()
   {
     const aiming = this._aiming;
@@ -929,7 +906,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetShotTimeVariance()
   {
     return EVE_TURRET_RANDOM_DELAY_MAX;
@@ -941,7 +917,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   MissQueueSize()
   {
     return this.target.MissQueueSize();
@@ -953,7 +928,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetLastShotTime()
   {
     return this.target.GetLastShotTime();
@@ -967,7 +941,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnterStateDeactive()
   {
     switch (this.state)
@@ -1005,7 +978,6 @@ export class EveTurretSet extends EveEntity
    *   does not broadcast. JS retains its Boolean success return for the native void method.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnterStateFiring()
   {
     if (!this.SetupFiringState()) return false;
@@ -1037,7 +1009,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnterStateIdle()
   {
     if (!this.isOnline) return;
@@ -1079,7 +1050,6 @@ export class EveTurretSet extends EveEntity
    * @adapted Animation calls are forwarded to hydrated turret/controller objects without Carbon's Granny controller.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnterStateReloading()
   {
     if (this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING)
@@ -1103,7 +1073,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnterStateTargeting()
   {
     if (!this.isOnline) return;
@@ -1138,7 +1107,6 @@ export class EveTurretSet extends EveEntity
    * @adapted Controller ownership is represented by direct firing/ambient child forwarding.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   HandleControllerEvent(name)
   {
     if (this.firingEffect) this.firingEffect.HandleControllerEvent(name);
@@ -1154,7 +1122,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetFiringBoneWorldTransform(muzzle = 0, out)
   {
     let turretIndex = this._activeTurret;
@@ -1175,7 +1142,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetTurretBoneTransform(turretIndex, boneID, out) // alloc: returned native matrix value belongs to the caller; hot-path callers provide out
   {
     const turret = this._turrets[turretIndex];
@@ -1214,7 +1180,6 @@ export class EveTurretSet extends EveEntity
    * @adapted Controller ownership is represented by direct firing/ambient child forwarding.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetControllerVariable(name, value)
   {
     if (this.firingEffect) this.firingEffect.SetControllerVariable(name, value);
@@ -1228,7 +1193,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetShotMissed(missed)
   {
     this.target.SetShotMissed(missed);
@@ -1240,7 +1204,6 @@ export class EveTurretSet extends EveEntity
    * @adapted Controller ownership is represented by direct firing/ambient child forwarding.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StartControllers()
   {
     if (this.firingEffect) this.firingEffect.StartControllers();
@@ -1256,7 +1219,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
@@ -1274,7 +1236,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "display") || IsMatch(propertyName, "geometryResPath"))
@@ -1310,7 +1271,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   InitializeGeometryResource()
   {
     const previous = this.geometryResource;
@@ -1330,7 +1290,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetAmbientEffect(ambientEffect)
   {
     const previous = this._ambientEffect;
@@ -1345,7 +1304,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   InitializeAmbientEffect()
   {
     const registry = this.GetComponentRegistry();
@@ -1377,7 +1335,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetAmbientEffectControllerVariableOnInstance(index, name, value)
   {
     if (this.ambientEffectEditingMode) this.ambientEffect.SetControllerVariable(name, value);
@@ -1391,7 +1348,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   InitializeDynamicBounds(cmfData = null, skeleton = null)
   {
     this._boneBounds.length = 0;
@@ -1439,7 +1395,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   InitializeGrannyDynamicBounds(fi = null, skeleton = null)
   {
     this._boneBounds.length = 0;
@@ -1483,7 +1438,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetDynamicBounds(turret, boundingSphere = null, aabbMin = null, aabbMax = null)
   {
     if (!this._boneBounds.length || !this.geometryResource || !turret.sequencer) return false;
@@ -1530,7 +1484,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(aabbMin, aabbMax)
   {
     if (!this.useDynamicBounds) return false;
@@ -1564,7 +1517,6 @@ export class EveTurretSet extends EveEntity
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.adapted
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "TurretBounds"))
@@ -1617,7 +1569,6 @@ export class EveTurretSet extends EveEntity
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("TurretBounds");
@@ -1650,7 +1601,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   UpdateLOD(context)
   {
     if (this.lodLevel === EveTurretSet.LOD.LOD_DISABLED || this.estimatedPixelDiameter < 0) return false;
@@ -1669,7 +1619,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   Cleanup()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -1703,7 +1652,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   RebuildCachedData(resource)
   {
     if (resource !== this.geometryResource || !resource.IsPrepared()) return;
@@ -1749,7 +1697,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   InitializeAnimation()
   {
     if (!this._skeleton || !this.geometryResource || !this.geometryResource.IsPrepared()) return;
@@ -1811,7 +1758,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   PlayAnimation(turretIndex, animName, animNameIdle = "", delay = 0)
   {
     if (!this.geometryResource || !this.turretEffect) return 0;
@@ -1849,7 +1795,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   StopAnimation(turretIndex, delay = 0)
   {
     if (!this.geometryResource || !this.turretEffect) return;
@@ -1868,7 +1813,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   ForceIdleAnimation()
   {
     let name = "";
@@ -1890,7 +1834,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   UpdateSingleTurrets()
   {
     this.GetAiming();
@@ -1917,7 +1860,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   ReleaseCachedData(_resource)
   {
     this.Cleanup();
@@ -1932,7 +1874,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   InitializeFiringEffect()
   {
     if (!this.firingEffect) return;
@@ -1954,7 +1895,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetFiringEffect(effect)
   {
     const registry = this.GetComponentRegistry();
@@ -1975,7 +1915,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   SetTargetObject(object)
   {
     if (!object) return false;
@@ -1999,7 +1938,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetTargetObject()
   {
     return this.target.GetTargetable();
@@ -2012,7 +1950,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetTargetScale()
   {
     if (this.firingEffect) this.firingEffect.SetScaleByRadius(this.target.GetRadius());
@@ -2036,7 +1973,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   SetLocalTransform(turretIndex, localMatrix)
   {
     const index = Number(turretIndex) >>> 0;
@@ -2084,7 +2020,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateTurretTransforms(parentTransform)
   {
     for (const turret of this._turrets)
@@ -2102,8 +2037,6 @@ export class EveTurretSet extends EveEntity
    * @cjs
    * @adapted The closest portable turret is selected from its world up-axis and the target tracking position.
    */
-  @meta.cjs
-    @meta.adapted
   GetClosestTurret()
   {
     return this._GetClosestTurretAndLocator().turret;
@@ -2133,7 +2066,6 @@ export class EveTurretSet extends EveEntity
    * @param {ArrayLike<number>} _parentMatrix Unused parent transform in this resource notification path.
    */
 
-  @meta.adapted
   UpdateSyncronous(context, _parentMatrix)
   {
     if (!this._turrets.length) return;
@@ -2186,7 +2118,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(context, parentData)
   {
     this._boneOffsets.AdvanceFrame();
@@ -2264,7 +2195,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.firingEffect) this.firingEffect.RegisterWithQuadRenderer(quadRenderer);
@@ -2278,7 +2208,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display) return;
@@ -2294,7 +2223,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetRenderables(out, shLighting = null)
   {
     this._parentShLighting = null;
@@ -2316,7 +2244,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   IsAmbientVisible()
   {
     return this.display && this.displayEffects && Math.abs(this._parentData.clipRadiusSq) < 0.05;
@@ -2330,7 +2257,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   UpdateVisibility(context)
   {
     this._parentShLighting = null;
@@ -2363,7 +2289,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -2384,7 +2309,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -2403,7 +2327,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -2418,7 +2341,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_OPAQUE || !this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
@@ -2444,7 +2366,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 1;
@@ -2464,7 +2385,6 @@ export class EveTurretSet extends EveEntity
    *
    * @adapted The length-1 out array replaces the float& out-param; the shadow math is ported, including exactly which paths write the out value.
    */
-  @meta.adapted
   IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || !this.geometryResource)
@@ -2506,7 +2426,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
     if (!this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
@@ -2539,7 +2458,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetPerObjectData(accumulator = null)
   {
     if (!this.geometryResource || !this.geometryResource.IsGood() || this.geometryResource.GetMeshCount() < 1 || !accumulator)
@@ -2640,7 +2558,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetShadowPerObjectData(accumulator = null)
   {
     return this.GetPerObjectData(accumulator);
@@ -2660,7 +2577,6 @@ export class EveTurretSet extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   SetupFiringState()
   {
     if (this.state === EveTurretSet.State.STATE_DEACTIVE) return false;
@@ -2717,7 +2633,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    * @returns {string} The fire animation name.
    */
-  @meta.implemented
 
   _GetFireAnimationName()
   {
@@ -2738,7 +2653,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
   _CalcRandomDelay()
   {
@@ -2761,7 +2675,6 @@ export class EveTurretSet extends EveEntity
    *   where Carbon returns false.
    * @returns {{turret: number, locator: number}} The shared pair record.
    */
-  @meta.adapted
 
   _GetClosestTurretAndLocator()
   {
@@ -2847,7 +2760,6 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetAmbientEffectOrGeneratedEffect()
   {
     return this.ambientEffectEditingMode ? this.ambientEffect : this.generatedDistributedAmbientEffect;
@@ -2959,4 +2871,3 @@ blue.enums.Create("trinity.EveTurretSet.State", EveTurretSet.State);
 
 // EveTurretSet_Blue.cpp: native exposure.
 
-CjsSchema.decorateMethod(EveTurretSet, "Destruct", CjsSchema.meta.adapted);

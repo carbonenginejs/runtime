@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { IInitialize } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
 
 
@@ -28,7 +28,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @implemented
    */
   @be.mapAttribute(be.PERSISTONLY, "value")
-  @meta.implemented
   @type.float32
   get _value()
   {
@@ -36,7 +35,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
   }
 
   /** @implemented */
-  @meta.implemented
   set _value(value)
   {
     this.#valueRef[0] = Number(value);
@@ -61,7 +59,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -73,7 +70,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     return hashFnv1String(this.name, hashFnv1Floats(this.#valueRef, startingHash));
@@ -86,7 +82,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   GetValue()
   {
     if (this.#reroutedValue)
@@ -102,7 +97,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   SetValue(value)
   {
     this.#valueRef[0] = Number(value);
@@ -119,14 +113,12 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get value()
   {
     return this.GetValue();
   }
 
   /** @implemented */
-  @meta.implemented
   set value(value)
   {
     this.SetValue(value);
@@ -138,7 +130,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   IsRerouted()
   {
     return this.#reroutedValue !== null;
@@ -151,7 +142,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @param size destination capacity in bytes
    */
 
-  @meta.adapted
   SetDestination(dest, size = 4)
   {
     if (size >= 4)
@@ -177,7 +167,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   GetDestination()
   {
     return {
@@ -193,7 +182,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   RegisterBinding(binding)
   {
     // Carbon push_back (Tr2FloatParameter.cpp:108).
@@ -206,7 +194,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   UnregisterBinding(binding)
   {
     // Carbon erases the first match (Tr2FloatParameter.cpp:114).
@@ -225,7 +212,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     if (!effectRes && this.#reroutedValue)
@@ -242,7 +228,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.#reroutedValue)
@@ -259,7 +244,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
    *
    * @adapted
    */
-  @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
     out[0] = (this.#reroutedValue ?? this.#valueRef)[0];

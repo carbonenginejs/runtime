@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "#blue";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, type, blue as legacyBlue } from "#schema";
 import { blue } from "#blue";
 import { ITr2GpuBuffer } from "../../core/ITr2GpuBuffer.js";
 import { FNV1_INITIAL, hashFnv1String } from "#utils/hash";
@@ -62,7 +62,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -74,7 +73,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     if (this.resourcePath)
@@ -96,7 +94,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.resourcePath)
@@ -114,7 +111,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "resourcePath"))
@@ -133,7 +129,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @adapted
    */
 
-  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this.cachedEffect = effectRes;
@@ -161,7 +156,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @returns {boolean} Whether the slot took the binding.
    * Carbon declaration: Tr2GeometryBufferParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter.h:34).
    */
-  @meta.implemented
   CopyToResourceSet(resourceDesc, stage, registerIndex, _flags = 0)
   {
     const buffer = this.gpuBuffer?.GetGpuBuffer(this.meshIndex);
@@ -184,7 +178,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @returns {boolean} Whether the slot took the binding.
    * Carbon declaration: Tr2GeometryBufferParameter::ApplyUav (trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter.h:39).
    */
-  @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
     return resourceDesc.SetUav__BufferAL(stage, registerIndex, this.gpuBuffer?.GetGpuBuffer(this.meshIndex) ?? null);
@@ -197,7 +190,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   IsValid()
   {
     return !!this.gpuBuffer;
@@ -210,7 +202,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get isValid()
   {
     return this.IsValid();
@@ -223,7 +214,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   SetGpuBuffer(buffer)
   {
     this.resourcePath = "";
@@ -237,7 +227,6 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   GetGpuBuffer()
   {
     return this.gpuBuffer;

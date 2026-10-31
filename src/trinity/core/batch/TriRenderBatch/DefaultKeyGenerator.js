@@ -11,7 +11,6 @@ export class DefaultKeyGenerator
    *
    * @implemented
    */
-  @meta.implemented
   static Less(_batch1, _batch2)
   {
     return false;
@@ -22,7 +21,6 @@ export class DefaultKeyGenerator
    *
    * @implemented
    */
-  @meta.implemented
   static GetSortType()
   {
     return RenderBatchSortType.RENDERBATCHSORTTYPE_NONE;

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRunComputeShader.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
@@ -48,7 +48,6 @@ export class TriStepRunComputeShader extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(effect = null, groupDimX = 1, groupDimY = 1, groupDimZ = 1)
   {
     this.effect = effect;
@@ -64,7 +63,6 @@ export class TriStepRunComputeShader extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (this.indirectionBuffer)

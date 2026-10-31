@@ -10,7 +10,7 @@
 // branch to take. So compute is denied until dispatch works here, even though
 // the plan is to lower it to fragment passes.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 
 /**
  * The platform capability constants (`Tr2CapsALDx11.h:9-18`), WebGL2's answers.
@@ -73,7 +73,6 @@ export class Tr2CapsALWebgl2
    * @adapted
    * @returns {boolean} Whether half-float render targets work.
    */
-  @meta.adapted
   SupportsFloat16()
   {
     const gl = this._gl;
@@ -100,7 +99,6 @@ export class Tr2CapsALWebgl2
    * @adapted
    * @returns {boolean} False.
    */
-  @meta.adapted
   SupportsStandaloneSwapChain()
   {
     return false;
@@ -142,9 +140,5 @@ export class Tr2CapsALWebgl2
 
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsFloat16");
 // States against dx11/Tr2CapsALDx11.cpp: true, true, false, false, statement for statement.
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsGpuBuffer", meta.implemented);
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsStandaloneSwapChain");
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVertexShaderTextures", meta.implemented);
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVariableRefreshRate", meta.implemented);
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsRaytracing", meta.implemented);
 CjsSchema.meta.define("Tr2CapsALWebgl2")(Tr2CapsALWebgl2);

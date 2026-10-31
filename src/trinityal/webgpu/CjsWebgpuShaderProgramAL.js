@@ -4,7 +4,7 @@
 // its partner - why these exist at all, why bytecode here is WGSL text rather
 // than DXBC, and why fields are public and Carbon-named - is recorded in the
 // head comment of CjsWebgpuShaderAL.js, which several other files already cite.
-import { CjsSchema, type, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Tr2RegisterMapAL } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -447,12 +447,4 @@ export class CjsWebgpuShaderProgramAL
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(CjsWebgpuShaderProgramAL, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 // Donor: metal/Tr2ShaderProgramALMetal.mm (the stage-bitmask refusals are Metal's and the stub's). Create is adapted: it also merges the stages' bindings into bind-group layouts and a pipeline layout (what dx12 does for its root signature) and creates no function objects. Describe writes memoryClass only and SetName does not store the name.
-CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "GetRegisterMap", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Create", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "GetInputs", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Describe", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "SetName", meta.adapted);
 CjsSchema.meta.define("CjsWebgpuShaderProgramAL")(CjsWebgpuShaderProgramAL);

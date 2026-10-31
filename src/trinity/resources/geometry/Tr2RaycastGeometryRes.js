@@ -1,7 +1,7 @@
 import { blue as blueService } from "#blue/blue";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { BlueAsyncRes } from "#blue";
 
 
@@ -79,13 +79,9 @@ export class Tr2RaycastGeometryRes extends BlueAsyncRes
 
 
 
-CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "SetLodIndices", meta.implemented);
-CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "GetBVH", meta.adapted);
-CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "_DoPrepare", meta.implemented);
 CjsSchema.decorateField(Tr2RaycastGeometryRes, "lodIndices", type.list("int32_t"));
 CjsSchema.decorateField(Tr2RaycastGeometryRes, "bvh", type.rawStruct("BVH::BoundingVolumeHierarchy"));
 CjsSchema.exposure.define("Tr2RaycastGeometryRes")(Tr2RaycastGeometryRes);
 // Carbon: Tr2RaycastGeometryRes::ExposeToBlue (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:33).
 CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2RaycastGeometryRes);
 
-CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "SetSource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

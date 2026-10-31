@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
@@ -45,7 +45,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    */
   @be.mapProperty()
   @type.expression
-  @meta.implemented
   get expression()
   {
     return this.GetExpression();
@@ -56,7 +55,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    *
    * @implemented
    */
-  @meta.implemented
   set expression(value)
   {
     this.SetExpression(value);
@@ -105,7 +103,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    *   the Tr2CurveScalarExpression consumer pattern.
    */
 
-  @meta.adapted
   Initialize()
   {
     super.Initialize();
@@ -125,7 +122,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @returns {number}
    */
 
-  @meta.implemented
   GetInputValue(index)
   {
     return this.GetInputValue__Time(index, this._arguments.time);
@@ -139,7 +135,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @param {number} time Sample time.
    * @returns {number}
    */
-  @meta.implemented
 
   GetInputValue__Time(index, time)
   {
@@ -158,7 +153,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @implemented
    */
 
-  @meta.implemented
   GetRandomConstant()
   {
     return this._randomConstant;
@@ -170,7 +164,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @implemented
    */
 
-  @meta.implemented
   GetExpression()
   {
     return this._expression;
@@ -188,7 +181,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    *   and its temp arena (cpp:162) has no counterpart.
    */
 
-  @meta.adapted
   SetExpression(expression)
   {
     const text = String(expression ?? "");
@@ -214,7 +206,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @implemented
    */
 
-  @meta.implemented
   ResetRandomConstant()
   {
     this._randomConstant = carbonRandom.triFloatRandom01();
@@ -228,7 +219,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    *   instead of Tr2ExpressionTermInfo instances.
    */
 
-  @meta.adapted
   GetExpressionTermInfo()
   {
     return [
@@ -257,7 +247,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    *   instead of Carbon's BlueStdResult out-parameter pair.
    */
 
-  @meta.adapted
   EvaluateExpression(expression)
   {
     const program = CjsControllerExpressionProgram.Compile(String(expression ?? ""), { emptyValue: 0 });
@@ -276,7 +265,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const modifier of this.attributeModifiers)
@@ -295,7 +283,6 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {
     this.finalAttributeMultiplier = activationMultiplier * this.attributeMultiplier * this.activationValue;

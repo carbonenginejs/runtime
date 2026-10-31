@@ -15,7 +15,7 @@ import { exposure as be } from "#be";
 //   pointer as a `WeakRef`, and runs no code when the last reference goes. So
 //   the two sets are keyed by each texture's `_selfRef`, and
 //   `_ReclaimCollectedTextures` (ours) returns what a collected texture held.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import {
   PixelFormat,
@@ -422,7 +422,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {number} height Atlas height.
    * @returns {void}
    */
-  @meta.implemented
   Initialize(fmt, width, height)
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
@@ -441,7 +440,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {boolean} False only when preparation was attempted and failed.
    */
-  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
@@ -459,7 +457,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {number} s A `TriStorageFlags` mask.
    * @returns {void}
    */
-  @meta.implemented
   ReleaseResources(s)
   {
     if (s & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)
@@ -482,7 +479,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {boolean} False when the atlas shrank to nothing.
    */
-  @meta.implemented
   OnPrepareResources()
   {
     if (this._texture.IsValid()) return true;
@@ -532,7 +528,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2AtlasTexture} tex The texture being prepared.
    * @returns {boolean} False when it does not belong in, or does not fit, the atlas.
    */
-  @meta.implemented
   _DoPrepare(tex)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -575,7 +570,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {void}
    */
-  @meta.implemented
   _RegisterInsider(tex)
   {
     this._texturesInAtlas.set(tex._selfRef, tex._atlasArea);
@@ -589,7 +583,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {void}
    */
-  @meta.implemented
   _RegisterOutsider(tex)
   {
     this._texturesOutsideAtlas.set(tex._selfRef, tex._texture);
@@ -603,7 +596,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {void}
    */
-  @meta.implemented
   _RemoveFromAtlas(tex)
   {
     this._texturesInAtlas.delete(tex._selfRef);
@@ -646,7 +638,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ConsolidateFreeAreas()
   {
     this._ReleasePendingFreeAreas();
@@ -841,7 +832,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CollapseFreeAreas()
   {
     this._ReleasePendingFreeAreas();
@@ -962,7 +952,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2TextureAtlasArea} area2 The area merged into it.
    * @returns {boolean} True when the areas were adjacent and merged.
    */
-  @meta.implemented
   _CollapseAreas(area1, area2)
   {
     let newRect = null;
@@ -1019,7 +1008,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {number} height Requested height, margins included.
    * @returns {Tr2TextureAtlasArea|null} The allocated area, removed from the free list.
    */
-  @meta.implemented
   _GetFreeArea(width, height)
   {
     if (this._IsLargeTexture(width, height)) return null;
@@ -1166,7 +1154,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {number} A `PixelFormat` value.
    */
-  @meta.implemented
   GetFormat()
   {
     return this.format;
@@ -1186,7 +1173,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2TextureAtlasArea|null} area The area.
    * @returns {void}
    */
-  @meta.implemented
   _PaintEmptyArea(area)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1261,7 +1247,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {Tr2TextureAL} The atlas texture.
    */
-  @meta.implemented
   GetTexture()
   {
     return this._texture;
@@ -1275,7 +1260,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {Tr2Event} m_onTextureChange.
    */
-  @meta.implemented
   OnTextureChange()
   {
     return this._onTextureChange;
@@ -1298,7 +1282,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @adapted
    * @returns {number} The count.
    */
-  @meta.adapted
   GetTexturesInAtlasCount()
   {
     let count = 0;
@@ -1313,7 +1296,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @adapted
    * @returns {number} The count.
    */
-  @meta.adapted
   GetTexturesOutsideAtlasCount()
   {
     let count = 0;
@@ -1339,7 +1321,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   PullInOutsiders(optimiseInsertion = false)
   {
     this._ReclaimCollectedTextures();
@@ -1406,7 +1387,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2AtlasTexture} tex The texture, already holding its area.
    * @returns {boolean} True when the copy succeeded.
    */
-  @meta.implemented
   _CopyTextureIntoAtlas(tex)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1466,7 +1446,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {Tr2AtlasTexture|null} The texture, or null.
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   CreateTexture(width, height, type = Tr2TextureAtlas.AtlasTextureType.ATT_DEFAULT)
   {
     const tex = new Tr2AtlasTexture();
@@ -1545,7 +1524,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @adapted
    * @returns {Tr2AtlasTexture[]} The textures.
    */
-  @meta.adapted
   GetTexturesInAtlas()
   {
     const textures = [];
@@ -1564,7 +1542,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {Tr2AtlasTexture[]} The textures.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetTexturesOutsideAtlas()
   {
     const textures = [];
@@ -1582,7 +1559,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {number} Margin in pixels.
    */
-  @meta.implemented
   GetMargin()
   {
     return this.margin;
@@ -1594,7 +1570,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {number} Width in pixels.
    */
-  @meta.implemented
   GetWidth()
   {
     return this.width;
@@ -1606,7 +1581,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {number} Height in pixels.
    */
-  @meta.implemented
   GetHeight()
   {
     return this.height;
@@ -1619,7 +1593,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {number} margin Margin in pixels.
    * @returns {void}
    */
-  @meta.implemented
   SetMargin(margin)
   {
     this.margin = margin;
@@ -1632,7 +1605,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {boolean} paintEmptyAreas Whether to paint empty areas.
    * @returns {void}
    */
-  @meta.implemented
   SetPaintEmptyAreas(paintEmptyAreas)
   {
     this.paintEmptyAreas = paintEmptyAreas;
@@ -1646,7 +1618,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {boolean} createOutsiders Whether to create outsiders.
    * @returns {void}
    */
-  @meta.implemented
   SetCreateOutsiders(createOutsiders)
   {
     this._createOutsiders = createOutsiders;
@@ -1660,7 +1631,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {number} maxTextureArea Area in texels.
    * @returns {void}
    */
-  @meta.implemented
   SetMaxTextureArea(maxTextureArea)
   {
     this._maxTextureArea = maxTextureArea;
@@ -1673,7 +1643,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {Array<{left: number, top: number, right: number, bottom: number}>} The rectangles.
    */
-  @meta.implemented
   GetFreeAreas()
   {
     const areas = [];
@@ -1689,7 +1658,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {Array<{left: number, top: number, right: number, bottom: number}>} The rectangles.
    */
-  @meta.implemented
   GetUsedAreas()
   {
     const areas = [];
@@ -1709,7 +1677,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   _UpdateFreeMaxima()
   {
     this._freeMaxWidth = this._freeMaxHeight = 0;
@@ -1730,7 +1697,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {boolean} True when it was ejected.
    */
-  @meta.implemented
   EjectTexture(tex)
   {
     if (!tex.atlas || !tex._atlasArea) return false;
@@ -1759,7 +1725,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {boolean} True when the copy succeeded.
    */
-  @meta.implemented
   _EjectTextureHelper(tex)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1838,7 +1803,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   EjectAllTextures()
   {
     this._ReclaimCollectedTextures();
@@ -1872,7 +1836,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   _ReleasePendingFreeAreas()
   {
     if (this._pendingFreeAreas.length === 0) return;
@@ -1956,7 +1919,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2TextureAtlasArea|null} area The area.
    * @returns {void}
    */
-  @meta.implemented
   _FreeArea(area)
   {
     if (area === null ||
@@ -1982,7 +1944,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {number} height Height.
    * @returns {boolean} True above `_maxTextureArea` texels.
    */
-  @meta.implemented
   _IsLargeTexture(width, height)
   {
     return width * height > this._maxTextureArea;
@@ -1996,7 +1957,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {object} renderContext The render context.
    * @returns {void}
    */
-  @meta.implemented
   UpdateMipMaps(renderContext)
   {
     if (!this._hasMipMaps || this._dirtyMipRegions.length === 0) return;
@@ -2096,7 +2056,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {{left: number, top: number, right: number, bottom: number}} rect The region.
    * @returns {void}
    */
-  @meta.implemented
   DirtyRegion(rect)
   {
     if (this._hasMipMaps) this._dirtyMipRegions.push(CopyRect(rect));
@@ -2114,7 +2073,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {boolean} True when it is the atlas texture.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   HasALObject(type, object)
   {
     switch (type)
@@ -2131,7 +2089,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {number} 1.
    */
-  @meta.implemented
   GetMsaaSamples()
   {
     return 1;
@@ -2143,7 +2100,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {number} 0.
    */
-  @meta.implemented
   GetMsaaQuality()
   {
     return 0;
@@ -2156,7 +2112,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {number} Free texels.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetFreeTexels()
   {
     return this._freeTexels;
@@ -2169,7 +2124,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {number} Free texels over total texels, as a float.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetFreeTexelPercentage()
   {
     return Math.fround(this._freeTexels / Math.fround(this.width * this.height));
@@ -2182,7 +2136,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {number} Width.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetFreeMaxWidth()
   {
     return this._freeMaxWidth;
@@ -2195,7 +2148,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @returns {number} Height.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetFreeMaxHeight()
   {
     return this._freeMaxHeight;

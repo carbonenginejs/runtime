@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard2D.cpp
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
 
 
@@ -26,7 +26,6 @@ export class EveChildModifierBillboard2D extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   ApplyTransform(transform, boneCount, bones, out)
   {
     return EveChildModifierTransformCommon.billboard2D(transform, out);

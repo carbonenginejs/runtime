@@ -13,7 +13,7 @@
 // refuses there with `E_FAIL`, as Metal's `Create` does when the device has no
 // statistics counter set (`Tr2PipelineStatsQueryALMetal.mm:69-72`, `:88-91`,
 // `:107-110`), and the value stays on the null implementation.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -85,7 +85,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(renderContext)
   {
     this.Destroy();
@@ -104,7 +103,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Begin(renderContext)
   {
     return this._query.implementation.Begin(renderContext);
@@ -117,7 +115,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   End(renderContext)
   {
     return this._query.implementation.End(renderContext);
@@ -131,7 +128,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} renderContext The context whose results are read.
    * @returns {{result: number, data: object}} The statistics record.
    */
-  @meta.adapted
   GetStats(renderContext)
   {
     const implementation = this._query.implementation;
@@ -147,7 +143,6 @@ export class Tr2PipelineStatsQueryAL
    * @implemented
    * @returns {boolean} True once created.
    */
-  @meta.implemented
   IsValid()
   {
     return this._query.implementation.IsValid();
@@ -161,7 +156,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {Tr2PipelineStatsQueryAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @meta.adapted
   Equals(other)
   {
     return this._query === other._query;
@@ -173,7 +167,6 @@ export class Tr2PipelineStatsQueryAL
    * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._query.implementation.GetMemoryClass();
@@ -188,7 +181,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} data A statistics record from `GetStats`.
    * @returns {number} The value count.
    */
-  @meta.adapted
   static GetValueCount(data)
   {
     const source = recordSource.get(data);
@@ -203,7 +195,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {number} index Which value.
    * @returns {string} The label.
    */
-  @meta.adapted
   static GetLabel(data, index)
   {
     const source = recordSource.get(data);
@@ -218,7 +209,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {number} index Which value.
    * @returns {string} The description.
    */
-  @meta.adapted
   static GetDescription(data, index)
   {
     const source = recordSource.get(data);
@@ -233,7 +223,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {number} index Which value.
    * @returns {number} The value.
    */
-  @meta.adapted
   static GetValue(data, index)
   {
     const source = recordSource.get(data);
@@ -248,7 +237,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -273,5 +261,4 @@ export class Tr2PipelineStatsQueryAL
 }
 
 CjsSchema.decorateField(Tr2PipelineStatsQueryAL, "_query", type.unknown);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryAL, "Equals", meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2PipelineStatsQueryAL")(Tr2PipelineStatsQueryAL);

@@ -18,7 +18,7 @@ import * as CcpLog from "../../global/logging/ccpLog.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene_Blue.cpp
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { IsMatch, INotify, BlueList } from "#blue";
 import { ITr2Scene } from "../core/ITr2Scene.js";
 import { ITr2Updateable } from "../core/ITr2Updateable.js";
@@ -74,8 +74,8 @@ const s_layerIndices = [0, 1, 3, 3, 1, 2];
     {"carbon":{"member":true},"name":"is2dRender","type":{"kind":"boolean"},"edit":{"read":true,"write":true,"persist":true}},
     {"carbon":{"member":true},"name":"is2dPick","type":{"kind":"boolean"},"edit":{"read":true,"write":true,"persist":true}},
     {"carbon":{"member":true},"name":"translation","type":{"kind":"vec3"},"edit":{"read":true,"write":true,"persist":true}},
-    {"carbon":{"member":true},"name":"displayX","type":{"kind":"float32"},"edit":{"read":true,"write":true,"persist":true},"key":"translation","index":0,"impl":{"status":"adapted","adapted":true,"reason":"Native stored translation component exposed through an indexed canonical member."}},
-    {"carbon":{"member":true},"name":"displayY","type":{"kind":"float32"},"edit":{"read":true,"write":true,"persist":true},"key":"translation","index":1,"impl":{"status":"adapted","adapted":true,"reason":"Native stored translation component exposed through an indexed canonical member."}},
+    {"carbon":{"member":true},"name":"displayX","type":{"kind":"float32"},"edit":{"read":true,"write":true,"persist":true},"key":"translation","index":0},
+    {"carbon":{"member":true},"name":"displayY","type":{"kind":"float32"},"edit":{"read":true,"write":true,"persist":true},"key":"translation","index":1},
     {"carbon":{"member":true},"name":"rotation","type":{"kind":"quat"},"edit":{"read":true,"write":true,"persist":true}},
     {"carbon":{"member":true},"name":"scaling","type":{"kind":"vec3"},"edit":{"read":true,"write":true,"persist":true}},
     {"carbon":{"member":true},"name":"displayWidth","type":{"kind":"float32"},"edit":{"read":true,"write":true,"persist":true}},
@@ -133,7 +133,12 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /** Selects screen-space picking rather than a projected 3D pick. @type {boolean} */
   is2dPick = true;
 
-  /** Scene translation; displayX and displayY alias the first two components. @type {Float32Array} */
+  /**
+   * Scene translation; displayX and displayY alias the first two components.
+   *
+   * @adapted Native stored translation component exposed through an indexed canonical member (displayX, displayY).
+   * @type {Float32Array}
+   */
   translation = vec3.create();
 
   /** Reads the native translation component alias. @returns {number} displayX coordinate. */
@@ -287,7 +292,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @implemented
    * @returns {boolean} Whether the scene renders in linear colour space.
    */
-  @meta.implemented
 
   _IsUsingLinearColorSpace()
   {
@@ -306,7 +310,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {boolean} use Whether to render in linear colour space.
    * @returns {void}
    */
-  @meta.implemented
 
   _SetUseLinearColorSpace(use)
   {
@@ -324,7 +327,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {boolean} use Whether font output is gamma corrected.
    * @returns {void}
    */
-  @meta.implemented
 
   _SetGammaCorrectText(use)
   {
@@ -338,7 +340,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @implemented
    * @returns {boolean} Whether font output is gamma corrected.
    */
-  @meta.implemented
 
   _IsGammaCorrectingText()
   {
@@ -375,7 +376,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   PushTranslation(translation)
   {
@@ -400,7 +400,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   PopTranslation()
   {
@@ -412,7 +411,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   GetTranslation()
   {
@@ -424,7 +422,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   PushTransform(matrix)
   {
@@ -449,7 +446,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   PopTransform()
   {
@@ -461,7 +457,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   PushTransformAbsolute()
   {
@@ -473,7 +468,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   PopTransformAbsolute()
   {
@@ -485,7 +479,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   InverseTransformPoint(point)
   {
@@ -515,7 +508,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {Float32Array} matrix The transform.
    * @returns {void}
    */
-  @meta.implemented
 
   _TransformPoint(result, point, matrix)
   {
@@ -529,7 +521,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   PushClipRectangle(x, y, width, height)
   {
@@ -583,7 +574,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   PopClipRectangle()
   {
@@ -597,7 +587,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   GetClipRectangle()
   {
@@ -609,7 +598,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   IsInsideClipRect(point)
   {
@@ -622,7 +610,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   IsInside(point, topLeft, width, height, radius)
   {
@@ -651,7 +638,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   IsInsideLineSegment(point, start, end, lineWidth)
   {
@@ -686,7 +672,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   IsInsideTriangle(point, v0, v1, v2)
   {
@@ -749,7 +734,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetColor(value)
   {
@@ -761,7 +745,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetOutlineColor(value)
   {
@@ -773,7 +756,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetOutlineThreshold(value)
   {
@@ -785,7 +767,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetBlendmode(value)
   {
@@ -797,7 +778,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetSpriteTarget(value)
   {
@@ -809,7 +789,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetGlowBrightness(value)
   {
@@ -821,7 +800,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetTileMode(value)
   {
@@ -833,7 +811,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetSpriteEffect(value)
   {
@@ -854,7 +831,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetTextureWindow(index, x, y, width, height)
   {
@@ -866,7 +842,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetTextureTransform(index, matrix)
   {
@@ -880,7 +855,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   _TexturesReady()
   {
@@ -902,7 +876,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {number} height Sprite height, for tiling.
    * @returns {void}
    */
-  @meta.implemented
 
   SetSpriteVerticesUVs(uv, width, height)
   {
@@ -935,7 +908,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @adapted unused native UV stack slots are zero-filled deterministically in JS.
    *   Carbon declaration: Tr2Sprite2dScene::PrepareSpriteVerts (trinity/trinity/Sprite2d/Tr2Sprite2dScene.h:99).
    */
-  @meta.adapted
   PrepareSpriteVerts(vertices, position, width, height, effect)
   {
     if (!this._TexturesReady()) return false;
@@ -1005,7 +977,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {boolean} False when a texture the current effect needs is not ready.
    * Carbon declaration: Tr2Sprite2dScene::PrepareTriangleVerts (trinity/trinity/Sprite2d/Tr2Sprite2dScene.h:108).
    */
-  @meta.adapted
   PrepareTriangleVerts(destVerts, verts, _stride, vertexCount)
   {
     if (!this._TexturesReady()) return false;
@@ -1063,7 +1034,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetAccumulatedAlpha(value)
   {
@@ -1075,7 +1045,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   GetAccumulatedAlpha()
   {
@@ -1087,7 +1056,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   _PrepareStacksBeforeRender()
   {
@@ -1102,7 +1070,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   _CleanUpStacksAfterRender()
   {
@@ -1115,7 +1082,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   PushDepthRange(min, max)
   {
@@ -1130,7 +1096,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   PopDepthRange()
   {
@@ -1142,7 +1107,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   SetDepth(depth)
   {
@@ -1171,7 +1135,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @returns {void}
    */
-  @meta.adapted
 
   Update(realTime, simTime)
   {
@@ -1209,7 +1172,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
   _RemoveFinishedCurveSets()
   {
@@ -1228,7 +1190,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {*} value The modified Blue value.
    * @returns {boolean} Always true.
    */
-  @meta.implemented
 
   OnModified(value)
   {
@@ -1245,7 +1206,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   ReleaseResources(storage)
   {
@@ -1293,7 +1253,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {Tr2RenderContext} renderContext The context to render into.
    * @returns {void}
    */
-  @meta.adapted
 
   Render(renderContext)
   {
@@ -1344,7 +1303,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
   _DetermineWorldTransform()
   {
@@ -1363,7 +1321,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
   _DetermineViewportSize()
   {
@@ -1385,7 +1342,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {number} displayHeight Height in pixels.
    * @returns {void}
    */
-  @meta.implemented
 
   _SetViewportSizeToVariableStore(displayWidth, displayHeight)
   {
@@ -1400,7 +1356,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {Tr2RenderContext} renderContext The rendering context.
    * @returns {void}
    */
-  @meta.implemented
 
   _PrepareRenderContextForRendering(renderContext)
   {
@@ -1424,7 +1379,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {Tr2RenderContext} renderContext The rendering context.
    * @returns {void}
    */
-  @meta.implemented
 
   _PrepareRenderContextAfterRendering(renderContext)
   {
@@ -1445,7 +1399,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
   _FlashDefaultTexture()
   {
@@ -1475,7 +1428,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   RenderDebugInfo(_renderContext)
   {
@@ -1495,7 +1447,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {ITr2SpriteObject|null} The picked object.
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   PickObject(x, y, projection = null, view = null, viewport = null, _pickFilter = undefined)
   {
     let finalX = x, finalY = y;
@@ -1594,7 +1545,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @adapted
    * @returns {boolean} Whether rendering can go forward.
    */
-  @meta.adapted
 
   _PrepareResourcesForRender()
   {
@@ -1630,7 +1580,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   _OnPrepareResources()
   {
@@ -1671,7 +1620,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   _SelectEffect()
   {
@@ -1709,7 +1657,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {number} settings Tr2Sprite2dTextureSettings bits.
    * @returns {void}
    */
-  @meta.implemented
 
   SetTexture(index, texture, settings)
   {
@@ -1737,7 +1684,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   IsCapturing()
   {
@@ -1763,7 +1709,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {ITr2SpriteObject} owner The display list's owner.
    * @returns {boolean} Always true; the capture storage always exists here.
    */
-  @meta.implemented
 
   StartCapture(owner)
   {
@@ -1778,7 +1723,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   _GrowCaptureVertexBuffer(vertexCount)
   {
@@ -1793,7 +1737,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   _GrowCaptureIndexBuffer(indexCount)
   {
@@ -1809,7 +1752,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   EndCapture(previousDisplayList)
   {
@@ -1857,7 +1799,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @adapted
    */
-  @meta.adapted
 
   _ResetCapture()
   {
@@ -1879,7 +1820,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {Tr2Sprite2dDisplayList} list The display list to replay.
    * @returns {void}
    */
-  @meta.implemented
 
   ReplayCapture(list)
   {
@@ -1933,7 +1873,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {TriRenderJob} job The render job.
    * @returns {void}
    */
-  @meta.implemented
 
   RunJob(job)
   {
@@ -1965,7 +1904,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {TriRenderJob} job The render job.
    * @returns {void}
    */
-  @meta.implemented
 
   RunJobHelper(job)
   {
@@ -2007,7 +1945,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {Tr2TextureAL} rt The layer's render-target texture.
    * @returns {void}
    */
-  @meta.implemented
 
   StartLayer(rt)
   {
@@ -2062,7 +1999,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {ITr2Sprite2dTexture|null} secondaryTexture Optional secondary texture.
    * @returns {void}
    */
-  @meta.adapted
 
   EndLayer(x, y, width, height, secondaryTexture)
   {
@@ -2122,7 +2058,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   GetMaxVertexCountPerDrawCall()
   {
@@ -2134,7 +2069,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    *
    * @implemented
    */
-  @meta.implemented
 
   GetMaxIndexCountPerDrawCall()
   {
@@ -2157,7 +2091,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {number} indexCount Number of indices.
    * @returns {void}
    */
-  @meta.adapted
   RenderTriangleVerts(vertices, vertexCount, indices, indexCount)
   {
     // Buffers are full, kick off what we've got
@@ -2234,7 +2167,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {number} indexCount Number of indices.
    * @returns {void}
    */
-  @meta.adapted
   RenderTriangleVerts__Tr2BufferAL(vertices, vertexCount, indices, indexCount)
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext(), esm = context.GetEffectStateManager();
@@ -2284,7 +2216,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
   _IssueDrawCall()
   {
@@ -2375,7 +2306,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {Tr2RenderContext} context The rendering context.
    * @returns {void}
    */
-  @meta.adapted
 
   SubmitGeometry(context)
   {

@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
 // Source: trinity/trinity/Controllers/Tr2Controller_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { blue, BlueList, IListNotify, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -101,7 +101,6 @@ export class Tr2Controller extends EveThrottleable
    */
   @be.mapPropertyReadOnly()
   @type.uint64
-  @meta.implemented
   get callbackCount()
   {
     return this.GetCallbackCount();
@@ -113,7 +112,6 @@ export class Tr2Controller extends EveThrottleable
    * @implemented
    * @returns {number} Number of registered callbacks.
    */
-  @meta.implemented
   GetCallbackCount()
   {
     return this._callbacks.length;
@@ -132,7 +130,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
 
-  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list === this.stateMachines)
@@ -158,7 +155,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
 
-  @meta.adapted
   Link(owner)
   {
     this.Unlink();
@@ -201,7 +197,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
 
-  @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     if (!this._owner)
@@ -236,7 +231,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ReLink()
   {
     const owner = this._owner;
@@ -253,7 +247,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {boolean} Whether Link has run without a following Unlink.
    */
 
-  @meta.implemented
   IsLinked()
   {
     return this._owner !== null;
@@ -266,7 +259,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Start()
   {
     if (this.isPlaying)
@@ -288,7 +280,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Stop()
   {
     if (!this.isPlaying)
@@ -312,7 +303,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
 
-  @meta.adapted
   Update(normalizedUpdateFrequency = 0.5)
   {
     if (!this.isPlaying)
@@ -352,7 +342,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
 
-  @meta.implemented
   SetVariable(name, value)
   {
     this.SetVariableValue(name, value);
@@ -366,7 +355,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleEvent(eventName)
   {
     if (!this.isPlaying)
@@ -389,7 +377,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {object|null} Owner, or null when unlinked.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetOwner()
   {
     return this._owner;
@@ -403,7 +390,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {Tr2ControllerFloatVariable|null} Matching variable or null.
    */
 
-  @meta.implemented
   GetVariableByName(name)
   {
     return this.variables.find(variable => variable.GetName() === name) ?? null;
@@ -417,7 +403,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {number|undefined} Value, or undefined when absent.
    */
 
-  @meta.adapted
   GetFloatVariableByName(name)
   {
     const variable = this.GetVariableByName(name);
@@ -466,7 +451,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
 
-  @meta.adapted
   GetExpressionTermInfo(out)
   {
     for (const variable of this.variables)
@@ -487,7 +471,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {BlueList} Configured variable list.
    */
 
-  @meta.implemented
   GetVariables()
   {
     return this.variables;
@@ -500,7 +483,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {Array<object>} Borrowed variable layout records.
    */
 
-  @meta.adapted
   GetVariableView()
   {
     return this._variableView;
@@ -513,7 +495,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {Float32Array} Borrowed variable storage.
    */
 
-  @meta.adapted
   GetVariableBuffer()
   {
     return this._variableData;
@@ -527,7 +508,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
 
-  @meta.adapted
   EnsureTempArenaSize(size)
   {
     if (this._tempArena.byteLength < size)
@@ -543,7 +523,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {ArrayBuffer} Borrowed scratch storage.
    */
 
-  @meta.adapted
   GetTempArena()
   {
     return this._tempArena;
@@ -556,7 +535,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {Array<Array>} Borrowed name/object pairs.
    */
 
-  @meta.adapted
   GetBindingPathRoots()
   {
     if (!this._bindingPathRoots.length)
@@ -581,7 +559,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
 
-  @meta.implemented
   RegisterUpdateable(updateable)
   {
     this._updateables.add(updateable);
@@ -595,7 +572,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
 
-  @meta.implemented
   UnRegisterUpdateable(updateable)
   {
     this._updateables.delete(updateable);
@@ -610,7 +586,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {boolean} Whether a matching callback was invoked.
    */
 
-  @meta.adapted
   Callback(callbackName)
   {
     if (!this.isPlaying || !this._callbacks.length)
@@ -647,7 +622,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {boolean} Always true after registration.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RegisterCallback(callbackName, callback)
   {
     this._callbacks.push({
@@ -664,7 +638,6 @@ export class Tr2Controller extends EveThrottleable
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearCallbacks()
   {
     this._callbacks = [];

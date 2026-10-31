@@ -1,6 +1,6 @@
 // Source: blue/include/IBlueOS.h, blue/src/BlueOS.h and BlueOS.cpp.
 // Host-driven clock and tick pump; scheduler, IO and process services remain on the interface.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { BeInfo } from "./BeInfo.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { IBlueOS } from "./IBlueOS.js";
@@ -325,16 +325,7 @@ export class CjsBlueOS extends IBlueOS
 CjsSchema.exposure.mapInterface(IBlueOS)(CjsBlueOS);
 CjsSchema.meta.inherit(BeInfo)(CjsBlueOS);
 CjsSchema.decorateField(CjsBlueOS, "frameClock", blue.readwrite);
-CjsSchema.decorateMethod(CjsBlueOS, "GetSmoothedTime", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueOS, "GetActualTime", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueOS, "GetCurrentFrameTime", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueOS, "PumpOS", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueOS, "GetInfo", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueOS, "RegisterForTicks", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueOS, "UnregisterForTicks", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueOS, "RegisterForSimTimeRebase", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueOS, "UnregisterForSimTimeRebase", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueOS, "RunStackless", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "PumpOS", blue.method);
 CjsSchema.blue.define(CjsBlueOS, {
   className: "CjsBlueOS"
 });

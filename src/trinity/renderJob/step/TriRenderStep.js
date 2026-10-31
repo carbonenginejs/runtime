@@ -44,7 +44,6 @@ export class TriRenderStep extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsEnabled()
   {
     return this.enabled;
@@ -57,7 +56,6 @@ export class TriRenderStep extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   BeginExecute()
   {
   }
@@ -82,7 +80,6 @@ export class TriRenderStep extends IRoot
    * @notImplemented
    * @returns {boolean} Never returns.
    */
-  @meta.notImplemented
   _GetCaptureGpuTime()
   {
     throw new Error("TriRenderStep.GetCaptureGpuTime requires the unported Tr2ProfileTimer.");
@@ -99,7 +96,6 @@ export class TriRenderStep extends IRoot
    * @param {boolean} _value Whether to capture.
    * @returns {void} Never returns.
    */
-  @meta.notImplemented
   _SetCaptureGpuTime(_value)
   {
     throw new Error("TriRenderStep.SetCaptureGpuTime requires the unported Tr2ProfileTimer.");
@@ -115,7 +111,6 @@ export class TriRenderStep extends IRoot
    * @notImplemented
    * @returns {boolean} Never returns.
    */
-  @meta.notImplemented
   _GetCaptureCpuTime()
   {
     throw new Error("TriRenderStep.GetCaptureCpuTime requires the unported Tr2ProfileTimer.");
@@ -132,7 +127,6 @@ export class TriRenderStep extends IRoot
    * @param {boolean} _value Whether to capture.
    * @returns {void} Never returns.
    */
-  @meta.notImplemented
   _SetCaptureCpuTime(_value)
   {
     throw new Error("TriRenderStep.SetCaptureCpuTime requires the unported Tr2ProfileTimer.");
@@ -148,7 +142,6 @@ export class TriRenderStep extends IRoot
    * @notImplemented
    * @returns {number} Never returns.
    */
-  @meta.notImplemented
   _GpuTime()
   {
     throw new Error("TriRenderStep.GpuTime requires the unported Tr2ProfileTimer.");
@@ -164,7 +157,6 @@ export class TriRenderStep extends IRoot
    * @notImplemented
    * @returns {number} Never returns.
    */
-  @meta.notImplemented
   _CpuTime()
   {
     throw new Error("TriRenderStep.CpuTime requires the unported Tr2ProfileTimer.");
@@ -180,7 +172,6 @@ export class TriRenderStep extends IRoot
    * @notImplemented
    * @returns {string} Never returns.
    */
-  @meta.notImplemented
   _GetStatName()
   {
     throw new Error("TriRenderStep.GetStatName requires the unported Tr2ProfileTimer.");
@@ -197,7 +188,6 @@ export class TriRenderStep extends IRoot
    * @param {string} _value The statistics entry name.
    * @returns {void} Never returns.
    */
-  @meta.notImplemented
   _SetStatName(_value)
   {
     throw new Error("TriRenderStep.SetStatName requires the unported Tr2ProfileTimer.");
@@ -210,7 +200,6 @@ export class TriRenderStep extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   EndExecute()
   {
   }

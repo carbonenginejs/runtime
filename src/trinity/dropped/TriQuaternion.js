@@ -32,7 +32,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   __init__(...args)
   {
     throw new Error("TriQuaternion.__init__ is not implemented in CarbonEngineJS.");
@@ -43,7 +42,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   GetYawPitchRoll(...args)
   {
     throw new Error("TriQuaternion.GetYawPitchRoll is not implemented in CarbonEngineJS.");
@@ -54,7 +52,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Identity(...args)
   {
     throw new Error("TriQuaternion.Identity is not implemented in CarbonEngineJS.");
@@ -65,7 +62,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Multiply(...args)
   {
     throw new Error("TriQuaternion.Multiply is not implemented in CarbonEngineJS.");
@@ -76,7 +72,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Normalize(...args)
   {
     throw new Error("TriQuaternion.Normalize is not implemented in CarbonEngineJS.");
@@ -87,7 +82,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Length(...args)
   {
     throw new Error("TriQuaternion.Length is not implemented in CarbonEngineJS.");
@@ -98,7 +92,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Scale(...args)
   {
     throw new Error("TriQuaternion.Scale is not implemented in CarbonEngineJS.");
@@ -109,7 +102,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SetRotationAxis(...args)
   {
     throw new Error("TriQuaternion.SetRotationAxis is not implemented in CarbonEngineJS.");
@@ -120,7 +112,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   RotationAxis(...args)
   {
     throw new Error("TriQuaternion.RotationAxis is not implemented in CarbonEngineJS.");
@@ -131,7 +122,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SetYawPitchRoll(...args)
   {
     throw new Error("TriQuaternion.SetYawPitchRoll is not implemented in CarbonEngineJS.");
@@ -142,7 +132,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SetIdentity(...args)
   {
     throw new Error("TriQuaternion.SetIdentity is not implemented in CarbonEngineJS.");
@@ -153,7 +142,6 @@ export class TriQuaternion
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SetXYZW(...args)
   {
     throw new Error("TriQuaternion.SetXYZW is not implemented in CarbonEngineJS.");

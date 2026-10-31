@@ -207,14 +207,8 @@ export class Tr2ImageRes extends BlueAsyncRes
 
 CjsSchema.decorateField(Tr2ImageRes, "width", type.int32, blue.read, meta.persist);
 CjsSchema.decorateField(Tr2ImageRes, "height", type.int32, blue.read, meta.persist);
-CjsSchema.decorateMethod(Tr2ImageRes, "GetWidth", meta.adapted);
-CjsSchema.decorateMethod(Tr2ImageRes, "GetHeight", meta.adapted);
-CjsSchema.decorateMethod(Tr2ImageRes, "GetPixelColor", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(Tr2ImageRes, "IsPixelOpaque", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(Tr2ImageRes, "GetBitmap", meta.adapted);
-CjsSchema.decorateMethod(Tr2ImageRes, "_DoPrepare", meta.implemented);
-CjsSchema.decorateMethod(Tr2ImageRes, "IsMemoryUsageKnown", meta.implemented);
-CjsSchema.decorateMethod(Tr2ImageRes, "GetMemoryUsage", meta.adapted);
+CjsSchema.decorateMethod(Tr2ImageRes, "GetPixelColor", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(Tr2ImageRes, "IsPixelOpaque", be.mapMethodAndWrap());
 CjsSchema.exposure.mapICacheableMethods()(Tr2ImageRes);
 be.define("Tr2ImageRes")(Tr2ImageRes);
 be.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
@@ -222,6 +216,4 @@ CjsSchema.exposure.mapInterface(ICacheable)(Tr2ImageRes);
 // Carbon: Tr2ImageRes::ExposeToBlue (trinity/trinity/Resources/Tr2ImageRes_Blue.cpp:52).
 CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2ImageRes);
 
-CjsSchema.decorateMethod(Tr2ImageRes, "_DoLoad", meta.adapted);
 
-CjsSchema.decorateMethod(Tr2ImageRes, "_OnShutdown", meta.adapted);

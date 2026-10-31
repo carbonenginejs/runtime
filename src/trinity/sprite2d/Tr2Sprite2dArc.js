@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dArc.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dArc_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -215,7 +215,6 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @adapted a negative arc length (negative radius) is clamped to zero steps; see `stepCount`.
    * @returns {number} The vertex capacity the next dirty gather allocates.
    */
-  @meta.adapted
 
   GetVertexCount()
   {
@@ -260,7 +259,6 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @param {Tr2Sprite2dScene} renderer Scene gathering this arc.
    * @returns {void}
    */
-  @meta.adapted
 
   GatherSprites(renderer)
   {
@@ -430,7 +428,6 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @param {Tr2Sprite2dScene} _renderer Scene supplying the active transform.
    * @returns {null} Always null.
    */
-  @meta.implemented
 
   PickPoint(_x, _y, _renderer)
   {
@@ -444,7 +441,6 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
   _ClearVertices()
   {

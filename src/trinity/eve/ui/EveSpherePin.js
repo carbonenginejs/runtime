@@ -4,7 +4,7 @@ import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/UI/EveSpherePin.h
 // Source: trinity/trinity/Eve/UI/EveSpherePin.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { IEveTransform } from "../IEveTransform.js";
 import { mat4 } from "#math/mat4";
@@ -228,7 +228,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.InitializeGeometryResource();
@@ -243,7 +242,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   OnModified(name)
   {
     if (IsMatch(name, "geometryResPath")) this.InitializeGeometryResource();
@@ -266,7 +264,6 @@ export class EveSpherePin
    * @adapted
    */
 
-  @meta.adapted
   InitializeGeometryResource()
   {
     this._tree = null;
@@ -281,7 +278,6 @@ export class EveSpherePin
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources(_storage)
   {
   }
@@ -292,7 +288,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     if (this._tree && this._tree.IsInitialized() && !this._indexBuffer.IsValid()) this._rebuildIndices = 1;
@@ -305,7 +300,6 @@ export class EveSpherePin
    * @adapted
    */
 
-  @meta.adapted
   RebuildCachedData(_resource)
   {
   }
@@ -316,7 +310,6 @@ export class EveSpherePin
    * @adapted
    */
 
-  @meta.adapted
   ReleaseCachedData(_resource)
   {
   }
@@ -329,7 +322,6 @@ export class EveSpherePin
    * @adapted
    */
 
-  @meta.adapted
   CreateIndexBuffer()
   {
     const output = this._indexResult;
@@ -355,7 +347,6 @@ export class EveSpherePin
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(_updateContext)
   {
     if (!this._tree && this.geometryResPath)
@@ -382,7 +373,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext)
   {
     for (const curveSet of this.curveSets) curveSet.Update(CcpTime.timeAsDouble(updateContext.GetTime()));
@@ -394,7 +384,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   Update__UpdateContext(updateContext)
   {
     this.UpdateSyncronous(updateContext);
@@ -407,7 +396,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   Update(updateContext)
   {
     return this.Update__UpdateContext(updateContext);
@@ -419,7 +407,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
     if (!this.display) return;
@@ -432,7 +419,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     return this.GetRenderables__Impostors(renderables, null);
@@ -443,7 +429,6 @@ export class EveSpherePin
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables__Impostors(renderables, _impostors)
   {
@@ -456,7 +441,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this.boundingSphere);
@@ -469,7 +453,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   BuildBoundingSphere()
   {
     vec4.set(this.boundingSphere, this.centerNormal[0], this.centerNormal[1], this.centerNormal[2], this.pinRadius);
@@ -481,7 +464,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetLODLevel()
   {
     return Tr2Lod.TR2_LOD_HIGH;
@@ -493,7 +475,6 @@ export class EveSpherePin
    * @adapted
    */
 
-  @meta.adapted
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
@@ -504,7 +485,6 @@ export class EveSpherePin
    * @adapted
    */
 
-  @meta.adapted
   GetModelCenterWorldPosition(_position)
   {
   }
@@ -515,7 +495,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
     return false;
@@ -527,7 +506,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     mat4.identity(out);
@@ -540,7 +518,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -552,7 +529,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const vec3_0 = EveSpherePin.scratch.vec3_0;
@@ -566,7 +542,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
     if (batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT && this.pinEffect)
@@ -586,7 +561,6 @@ export class EveSpherePin
    * @adapted
    */
 
-  @meta.adapted
   GetBatchWithEffect(accumulator, perObjectData, effect)
   {
     const geometry = this._geometryResource;
@@ -613,7 +587,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetPickingBatches(accumulator, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
     if (pickTypes & Tr2PickType.PICK_TYPE_PICKING) this.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_PICKING, perObjectData);
@@ -632,7 +605,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetID()
   {
     return this;
@@ -649,7 +621,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   UpdateViewDependentData(_frustum, parentTransform)
   {
     const mat4_0 = EveSpherePin.scratch.mat4_0;
@@ -667,7 +638,6 @@ export class EveSpherePin
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveSpherePinPerObjectData");

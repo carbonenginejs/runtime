@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/metal/Tr2TextureALMetal.h
 // Source: trinity/trinityal/metal/Tr2TextureALMetal.mm
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "../ALResult.js";
@@ -116,10 +116,4 @@ CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Map");
 CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Destroy");
 CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Describe");
 CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "GetMemoryClass");
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "IsReady", meta.adapted);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Map", meta.adapted);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Destroy", meta.adapted);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "GetMemoryClass", meta.implemented);
 CjsSchema.meta.define("Tr2ReadbackALWebgpu")(Tr2ReadbackALWebgpu);

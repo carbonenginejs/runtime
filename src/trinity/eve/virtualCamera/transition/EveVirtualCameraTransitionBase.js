@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { EveVirtualCamera } from "../EveVirtualCamera.js";
 
 
@@ -33,7 +33,6 @@ export class EveVirtualCameraTransitionBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetCamera()
   {
     return this.IsComplete() ? this.targetCamera : this.transitionCamera;
@@ -46,7 +45,6 @@ export class EveVirtualCameraTransitionBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetSource(camera)
   {
     this.sourceCamera = camera;
@@ -59,7 +57,6 @@ export class EveVirtualCameraTransitionBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetTarget(camera)
   {
     this.targetCamera = camera;
@@ -73,7 +70,6 @@ export class EveVirtualCameraTransitionBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Play()
   {
     this.transitionCamera = new EveVirtualCamera();
@@ -93,7 +89,6 @@ export class EveVirtualCameraTransitionBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Stop()
   {
     this.targetCamera?.Play();
@@ -108,7 +103,6 @@ export class EveVirtualCameraTransitionBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Update(deltaTime)
   {
     this.transitionCamera?.Update(deltaTime);

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2Shader } from "./Tr2Shader.js";
 import { ShaderType, CompareFunc } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Floats } from "../../global/utils/hash.js";
@@ -576,7 +576,6 @@ export class Tr2Material extends IRoot
    * @implemented
    * @returns {boolean}
    */
-  @meta.implemented
 
   CompatibleWithGdr()
   {
@@ -592,7 +591,6 @@ export class Tr2Material extends IRoot
    * @param {string} techniqueName Technique name.
    * @returns {boolean}
    */
-  @meta.implemented
 
   CompatibleWithGdr__TechniqueName(techniqueName)
   {

@@ -12,7 +12,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { box3 } from "#math/box3";
 import { TriBatchType } from "#consts/graphics";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EntityComponents.js";
@@ -156,7 +156,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.PrepareResources();
@@ -171,7 +170,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "quadCount"))
@@ -187,7 +185,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
@@ -199,7 +196,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources(_storage = null)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -212,7 +208,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(STRETCH_VERTEX_DECL);
@@ -227,7 +222,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDestObjectScale(scale)
   {
     this._destinationScale = this._currentDestinationScale = Number(scale);
@@ -239,7 +233,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   StartMoving()
   {
   }
@@ -250,7 +243,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetCurveDuration()
   {
     let duration = 0;
@@ -268,7 +260,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
    */
 
-  @meta.adapted
   StartFiring(delay = 0)
   {
     this._effectData[0][3] = carbonRandom.triFloatRandom01();
@@ -283,7 +274,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   StopFiring()
   {
     this.start?.Stop();
@@ -299,7 +289,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetFiringTransform(source, destination)
   {
     if (source?.length === 16) mat4.getTranslation(this._source, source);
@@ -314,7 +303,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   DisplayEndPoints(_displaySource, displayDestination)
   {
     this._currentDestinationScale = displayDestination ? this._destinationScale : 0;
@@ -327,7 +315,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDisplay(display)
   {
     const previous = this._visible;
@@ -343,7 +330,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetIntensity(intensity)
   {
     const previous = this._intensity;
@@ -358,7 +344,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   UpdateEffectSync(_context)
   {
     return true;
@@ -370,7 +355,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   UpdateEffectAsync(context)
   {
     return this.Update(context);
@@ -386,7 +370,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    *   object per end, rather than a stack-constructed structure.
    */
 
-  @meta.adapted
   Update(context)
   {
     const time = context.GetTime();
@@ -448,7 +431,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @returns {boolean} Whether the stretch is in the frustum.
    */
 
-  @meta.adapted
   UpdateVisibility(context)
   {
     if (!(this._visible && this._intensity > 0))
@@ -477,7 +459,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @param {mat4} source Receives the source basis, translated to the source.
    * @param {mat4} destination Receives the destination basis, translated to the destination.
    */
-  @meta.implemented
 
   GetEndPointTransforms(source, destination)
   {
@@ -520,7 +501,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @returns {Array} out
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     if (this._visible && this._intensity > 0 && this._inFrustum) out.push(this);
@@ -536,7 +516,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     this._effectData[1][0] = this._intensity;
@@ -564,7 +543,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @returns {Boolean} whether the batch was committed
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     // The shared allocation is null until a device has run the factory (Tr2ProceduralBuffer.GetSharedResource).
@@ -595,7 +573,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -607,7 +584,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -621,7 +597,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetLights(lightManager)
   {
     if (!this._visible || this._intensity === 0) return;
@@ -637,7 +612,6 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();

@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { ITriColorFunction, ITriFunction, ITriCurveLength } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -103,7 +103,6 @@ export class Tr2CurveColor extends ITriColorFunction
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateValue(time)
   {
     const t = time - this.timeOffset;
@@ -127,7 +126,6 @@ export class Tr2CurveColor extends ITriColorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, this.currentValue);
@@ -142,7 +140,6 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     const t = time - this.timeOffset;
@@ -166,7 +163,6 @@ export class Tr2CurveColor extends ITriColorFunction
    * @returns {number} Longest scalar component length.
    */
 
-  @meta.implemented
   Length()
   {
     return Math.max(this.r.Length(), this.g.Length(), this.b.Length(), this.a.Length());
@@ -181,7 +177,6 @@ export class Tr2CurveColor extends ITriColorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -202,7 +197,6 @@ export class Tr2CurveColor extends ITriColorFunction
    * @returns {void}
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
     const useRightTangent = !!leftTangent && !!rightTangent;
@@ -220,7 +214,6 @@ export class Tr2CurveColor extends ITriColorFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetExtrapolation(extrapolation)
   {
     this.r.SetExtrapolation(extrapolation);

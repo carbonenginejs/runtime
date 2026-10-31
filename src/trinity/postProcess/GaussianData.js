@@ -95,7 +95,6 @@ export class GaussianData
    * @param {number} weight The centre weight.
    * @returns {number} The tap weight.
    */
-  @meta.adapted
   static normalDistribution(x, sigma, weight)
   {
     const dx = Math.abs(x);
@@ -126,7 +125,6 @@ export class GaussianData
    *   keeps, so a pass allocates nothing. Its previous taps are overwritten.
    * @returns {GaussianData} `out`, filled.
    */
-  @meta.adapted
   static calculateGaussianPassParameters(radius, centerWeight, normalizingFactor, overallWeight, _direction, out)
   {
     const clampedRadius = Math.min(Math.max(radius, 0.0001), MAX_FILTER_STEPS - 1);

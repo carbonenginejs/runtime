@@ -7,7 +7,7 @@ import { exposure as be } from "#be";
 // Tr2DeviceResource; this one is none of them yet. The load path (DoLoad,
 // DoPrepare, OnPrepareResources and the six `*atlas` resource extensions) is
 // left as explicit obligations: see `DoLoad`.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ICacheable, IBlueResource } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { TriStorageFlags } from "#consts/graphics";
@@ -194,7 +194,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {Tr2TextureAL|null} The texture, or null.
    */
-  @meta.implemented
   GetTexture()
   {
     // are we part of an atlas? If so, go get the texture from that to guarantee pointer identity.
@@ -213,7 +212,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {Tr2TextureAL|null} The render target.
    */
-  @meta.implemented
   GetRenderTarget()
   {
     return this._renderTarget;
@@ -227,7 +225,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {Tr2TextureAL|null} rt The render target.
    * @returns {void}
    */
-  @meta.implemented
   SetRenderTarget(rt)
   {
     this._renderTarget = rt;
@@ -256,7 +253,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {Float32Array|number[]} tw Receives the window.
    * @returns {void}
    */
-  @meta.implemented
   GetTextureWindow(tw)
   {
     tw[0] = this._textureWindow[0];
@@ -271,7 +267,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   _CalcTextureWindow()
   {
     this.CalcSubTextureWindow(this._textureWindow, 0, 0, 0, 0);
@@ -289,7 +284,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {number} rectHeight Height, or 0 for the texture height.
    * @returns {void}
    */
-  @meta.implemented
   CalcSubTextureWindow(tw, rectX, rectY, rectWidth, rectHeight)
   {
     const tex = this.GetTexture();
@@ -331,7 +325,6 @@ export class Tr2AtlasTexture extends IRoot
    * @adapted
    * @returns {void}
    */
-  @meta.adapted
   OnShutdown()
   {
     if (this.atlas) this.atlas._RemoveFromAtlas(this);
@@ -353,7 +346,6 @@ export class Tr2AtlasTexture extends IRoot
    * @notImplemented
    * @returns {boolean} Never returns.
    */
-  @meta.notImplemented
   OnPrepareResources()
   {
     throw new Error("Tr2AtlasTexture.OnPrepareResources is not implemented in CarbonEngineJS: it reloads through the unported BlueAsyncRes load path.");
@@ -372,7 +364,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {number} s A `TriStorageFlags` mask.
    * @returns {void}
    */
-  @meta.adapted
   ReleaseResources(s)
   {
     let texture = null;
@@ -408,7 +399,6 @@ export class Tr2AtlasTexture extends IRoot
    * @notImplemented
    * @returns {number} Never returns.
    */
-  @meta.notImplemented
   DoLoad()
   {
     throw new Error("Tr2AtlasTexture.DoLoad is not implemented in CarbonEngineJS: the BlueAsyncRes load path and *atlas extensions need a resource-manager design decision.");
@@ -421,7 +411,6 @@ export class Tr2AtlasTexture extends IRoot
    * @notImplemented
    * @returns {boolean} Never returns.
    */
-  @meta.notImplemented
   DoPrepare()
   {
     throw new Error("Tr2AtlasTexture.DoPrepare is not implemented in CarbonEngineJS: it belongs to the unported BlueAsyncRes load path.");
@@ -433,7 +422,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {number} X.
    */
-  @meta.implemented
   GetX()
   {
     return this.x;
@@ -445,7 +433,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {number} Y.
    */
-  @meta.implemented
   GetY()
   {
     return this.y;
@@ -457,7 +444,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {number} Width.
    */
-  @meta.implemented
   GetWidth()
   {
     return this.width;
@@ -469,7 +455,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {number} The reciprocal.
    */
-  @meta.implemented
   GetWidthReciprocal()
   {
     return this._widthReciprocal;
@@ -481,7 +466,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {number} Height.
    */
-  @meta.implemented
   GetHeight()
   {
     return this.height;
@@ -493,7 +477,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {number} The reciprocal.
    */
-  @meta.implemented
   GetHeightReciprocal()
   {
     return this._heightReciprocal;
@@ -505,7 +488,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {number} Width.
    */
-  @meta.implemented
   GetTextureWidth()
   {
     return this.atlasWidth;
@@ -517,7 +499,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {number} Height.
    */
-  @meta.implemented
   GetTextureHeight()
   {
     return this.atlasHeight;
@@ -534,7 +515,6 @@ export class Tr2AtlasTexture extends IRoot
    * @returns {{result: number, data: Uint8Array, pitch: number}|null} The mapping, or null.
    */
   @be.mapMethod()
-  @meta.adapted
   LockBuffer()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -575,7 +555,6 @@ export class Tr2AtlasTexture extends IRoot
    * @returns {{result: number, data: Uint8Array, pitch: number, margin: number}|null} The mapping, or null.
    */
   @be.mapMethod()
-  @meta.adapted
   LockBufferAndMargin()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -613,7 +592,6 @@ export class Tr2AtlasTexture extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UnlockBuffer()
   {
     if (!this._isLocked)
@@ -644,7 +622,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {boolean} True unless loading.
    */
-  @meta.implemented
   IsMemoryUsageKnown()
   {
     return !this.IsLoading();
@@ -656,7 +633,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {number} Bytes.
    */
-  @meta.implemented
   GetMemoryUsage()
   {
     return this._memoryUsage;
@@ -669,7 +645,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   _CalcReciprocals()
   {
     if (this.width) this._widthReciprocal = Math.fround(1 / this.width);
@@ -684,7 +659,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   _FinalizePrepare()
   {
     this._CalcReciprocals();
@@ -700,7 +674,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {{AtlasTextureChanged: Function}} p The listener.
    * @returns {void}
    */
-  @meta.implemented
   RegisterForChangeNotification(p)
   {
     this._changeListeners.add(p);
@@ -713,7 +686,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {{AtlasTextureChanged: Function}} p The listener.
    * @returns {void}
    */
-  @meta.implemented
   UnregisterForChangeNotification(p)
   {
     this._changeListeners.delete(p);
@@ -727,7 +699,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {boolean} b Stand-alone.
    * @returns {void}
    */
-  @meta.implemented
   SetStandAlone(b)
   {
     this._isStandAlone = b;
@@ -744,7 +715,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {boolean} Stand-alone.
    */
-  @meta.implemented
   IsStandAlone()
   {
     return this._isStandAlone;
@@ -756,7 +726,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   _NotifyListenersOfChange()
   {
     for (const target of this._changeListeners) target.AtlasTextureChanged(this);
@@ -769,7 +738,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {import("./Tr2TextureAtlas.js").Tr2TextureAtlas} atlas The atlas.
    * @returns {void}
    */
-  @meta.implemented
   SetTargetAtlasBeforeLoad(atlas)
   {
     if (this.atlas) return;
@@ -784,7 +752,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {object} p A `TriTextureRes`.
    * @returns {void}
    */
-  @meta.implemented
   SetTextureRes(p)
   {
     this._textureRes = p;
@@ -808,7 +775,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {object|null} The texture resource.
    */
-  @meta.implemented
   GetTextureRes()
   {
     return this._textureRes;
@@ -820,7 +786,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {boolean} Whether the texture holds valid pixels.
    */
-  @meta.implemented
   IsGood()
   {
     return this._isGood;
@@ -832,7 +797,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {boolean} Whether the texture is prepared.
    */
-  @meta.implemented
   IsPrepared()
   {
     return this._isPrepared;
@@ -844,7 +808,6 @@ export class Tr2AtlasTexture extends IRoot
    * @implemented
    * @returns {boolean} Whether a load is in flight.
    */
-  @meta.implemented
   IsLoading()
   {
     return this._isLoading;
@@ -857,7 +820,6 @@ export class Tr2AtlasTexture extends IRoot
    * @param {string} name The resource path.
    * @param {string} ext The extension.
    */
-  @meta.notImplemented
   Initialize(name, ext)
   {
     throw new Error("Tr2AtlasTexture.Initialize is not implemented in CarbonEngineJS.");
@@ -869,7 +831,6 @@ export class Tr2AtlasTexture extends IRoot
    * @notImplemented
    * @returns {string} The resource path.
    */
-  @meta.notImplemented
   GetPath()
   {
     throw new Error("Tr2AtlasTexture.GetPath is not implemented in CarbonEngineJS.");
@@ -881,7 +842,6 @@ export class Tr2AtlasTexture extends IRoot
    * @notImplemented
    * @returns {string} The resource extension.
    */
-  @meta.notImplemented
   GetExt()
   {
     throw new Error("Tr2AtlasTexture.GetExt is not implemented in CarbonEngineJS.");

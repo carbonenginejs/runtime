@@ -51,7 +51,6 @@ export class EveSOFUtilsParameterName
    *
    * @implemented
    */
-  @meta.implemented
   IsMaterialIdxValid()
   {
     return this.materialIdx !== -1;
@@ -62,7 +61,6 @@ export class EveSOFUtilsParameterName
    *
    * @implemented
    */
-  @meta.implemented
   GetMaterialIdx()
   {
     return this.materialIdx;
@@ -73,7 +71,6 @@ export class EveSOFUtilsParameterName
    *
    * @implemented
    */
-  @meta.implemented
   GetFullName()
   {
     return this.fullname;
@@ -84,7 +81,6 @@ export class EveSOFUtilsParameterName
    *
    * @implemented
    */
-  @meta.implemented
   GetShortName()
   {
     return this.shortname;
@@ -96,7 +92,6 @@ export class EveSOFUtilsParameterName
    *
    * @implemented
    */
-  @meta.implemented
   ChangeMaterialIdx(genericData, index)
   {
     if (this.IsMaterialIdxValid())

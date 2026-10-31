@@ -2,7 +2,7 @@ import { Tr2ResourceSetDescriptionAL } from "./Tr2ResourceSetDescriptionAL.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.cpp
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.h
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -36,7 +36,6 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult`.
    */
-  @meta.adapted
   Create(description, program, _renderContext)
   {
     if (this._description) this._description.ClearResources();
@@ -135,9 +134,4 @@ CjsSchema.decorateField(Tr2ResourceSetALStub, "_isValid", type.boolean);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Create");
 // States: Tr2ResourceSetALStub.cpp:21-48. Destroy is adapted: Carbon only clears the valid flag, this also releases the description,
 // the program and the registered base resource, which a garbage-collected port has to drop explicitly.
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Destroy", meta.adapted);
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2ResourceSetALStub")(Tr2ResourceSetALStub);

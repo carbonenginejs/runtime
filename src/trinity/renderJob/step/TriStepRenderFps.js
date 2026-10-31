@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderFps.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A step that averages the frame rate over a quarter second and reports it as text with a threshold colour. */
@@ -65,8 +65,6 @@ export class TriStepRenderFps extends TriRenderStep
    *   debug renderer; both are host concerns, so the sample and time are supplied and the text
    *   is the caller's.
    */
-  @meta.cjs
-    @meta.adapted
   Sample(framesPerSecond, nowSeconds)
   {
     this.#fpsValuesCount += 1;
@@ -91,8 +89,6 @@ export class TriStepRenderFps extends TriRenderStep
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   GetTextColor()
   {
     if (this.averageFPS > 59.9) return TriStepRenderFps.Color.GOOD;
@@ -107,8 +103,6 @@ export class TriStepRenderFps extends TriRenderStep
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   GetDisplayRect(viewport, out)
   {
     const x = viewport?.x ?? 0;

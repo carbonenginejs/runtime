@@ -9,7 +9,7 @@ import { exposure as be } from "#be";
 // CopyToResourceSet (cpp:415-433) is deliberately NOT here: it is
 // Tr2ResourceSetDescriptionAL/Tr2TextureAL device work and stays with the
 // engine lane.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITriEffectResourceParameter } from "../../shader/parameter/ITriEffectResourceParameter.js";
 import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 
@@ -48,7 +48,6 @@ export class EveCloudVolumeTextureParameter extends IRoot
    *   gives the same same-object-same-hash contract.
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     return hashFnv1Identity(this.volume, startingHash);
@@ -60,7 +59,6 @@ export class EveCloudVolumeTextureParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -77,7 +75,6 @@ export class EveCloudVolumeTextureParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RebuildEffectHandles(effectRes)
   {
     this.isUsedByEffect = false;

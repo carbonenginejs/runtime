@@ -115,7 +115,6 @@ export class ITriTargetable extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetImpactConfiguration()
   {
     return ImpactConfiguration.IMPACT_INVALID;
@@ -149,7 +148,6 @@ export class ITriTargetable extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetLastDamageLocatorHit(_locator)
   {
   }

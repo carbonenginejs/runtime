@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRunJob.h
 // Source: trinity/trinity/RenderJob/TriStepRunJob.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -22,7 +22,6 @@ export class TriStepRunJob extends TriRenderStep
    *
    * @adapted
    */
-  @meta.adapted
   __init__(job = null)
   {
     this.SetRenderJob(job);
@@ -34,7 +33,6 @@ export class TriStepRunJob extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
-  @meta.adapted
   SetRenderJob(job)
   {
     this.job = job ?? null;
@@ -48,7 +46,6 @@ export class TriStepRunJob extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(realTime, simTime, renderContext)
   {
     if (!this.job) return TriRenderJob.StepResult.RS_OK;

@@ -4,7 +4,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
 import { INotify } from "../../../../global/blue/INotify.js";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
@@ -46,7 +46,6 @@ export class EveMultiEffectParameter extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isValid()
   {
     return this.IsValid();
@@ -58,7 +57,6 @@ export class EveMultiEffectParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetParameterObject(object)
   {
     this.object = object ?? null;
@@ -72,7 +70,6 @@ export class EveMultiEffectParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsValid()
   {
     if (!this.object) return false;
@@ -96,7 +93,6 @@ export class EveMultiEffectParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetOwner(owner)
   {
     this._owner = owner ?? null;
@@ -108,7 +104,6 @@ export class EveMultiEffectParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetParameterObject()
   {
     return this.object;
@@ -120,7 +115,6 @@ export class EveMultiEffectParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -133,7 +127,6 @@ export class EveMultiEffectParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "object") && this._owner) this._owner.Rebind();

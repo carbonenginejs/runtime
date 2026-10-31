@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: audio/src/AudEventCurve.h + AudEventCurve.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEventCurve.json.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { ITriFunction } from "#blue/ITriFunction";
 import { ITriCurveLength } from "#blue/ITriCurveLength";
@@ -85,7 +85,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddKey(time, evtName)
   {
     const key = new AudEventKey();
@@ -100,7 +99,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   InsertKey(key)
   {
     this.keys.push(key);
@@ -115,7 +113,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyCount()
   {
     return this.keys.length;
@@ -127,7 +124,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyTime(ix)
   {
     return InRange(this.keys, ix) ? this.keys[ix].time : 0;
@@ -139,7 +135,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyValue(ix)
   {
     return InRange(this.keys, ix) ? this.keys[ix].value : "";
@@ -151,7 +146,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetKeyTime(ix, time)
   {
     if (!InRange(this.keys, ix))
@@ -169,7 +163,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetKeyValue(ix, value)
   {
     if (InRange(this.keys, ix))
@@ -185,7 +178,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RemoveKey(ix)
   {
     if (!InRange(this.keys, ix))
@@ -207,7 +199,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     SortKeys(this.keys);
@@ -236,7 +227,6 @@ export class AudEventCurve extends IRoot
    *   mutating call site runs.
    */
 
-  @meta.adapted
   Sort()
   {
     SortKeys(this.keys);
@@ -249,7 +239,6 @@ export class AudEventCurve extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   Length()
   {
     return this.length;
@@ -261,7 +250,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Reset()
   {
     this._currentKeyIndex = 0;
@@ -273,7 +261,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetSourceTriObserver()
   {
     return this.sourceTriObserver;
@@ -285,7 +272,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetSourceTriObserver(sourceTriObserver)
   {
     this.sourceTriObserver = sourceTriObserver;
@@ -300,7 +286,6 @@ export class AudEventCurve extends IRoot
    *   contract.
    */
 
-  @meta.adapted
   CreateAudioEmitter()
   {
     if (!this.sourceTriObserver)
@@ -330,7 +315,6 @@ export class AudEventCurve extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     if (this.length === 0)

@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAvoidance.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { color } from "#math/color";
@@ -75,7 +75,6 @@ export class DroneAvoidance extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -97,7 +96,6 @@ export class DroneAvoidance extends IRoot
    * @returns {Array} debug force pairs when group.collectForces is on
    */
 
-  @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -220,7 +218,6 @@ export class DroneAvoidance extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBehaviorSearchRadius()
   {
     if (this._frameCounter >= this.framesBetweenUpdates)
@@ -239,7 +236,6 @@ export class DroneAvoidance extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("BehaviorVisionRanges");
@@ -256,7 +252,6 @@ export class DroneAvoidance extends IRoot
    * @param {mat4} parentWorldLocation Places the agents in world space.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, agents, parentWorldLocation)
   {
     if (renderer.HasOption(this, "BehaviorVisionRanges"))

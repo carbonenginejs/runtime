@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard3D_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
@@ -37,7 +37,6 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {
     const { scaleVec, scaleMat, invScaleMat, sansScale, basis, alignMat, d } = EveChildModifierBillboard3D._scratch;

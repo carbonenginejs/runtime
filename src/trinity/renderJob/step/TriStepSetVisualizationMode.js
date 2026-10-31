@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetVisualizationMode.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -28,7 +28,6 @@ export class TriStepSetVisualizationMode extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(object = null, mode = 0)
   {
     this.SetObject(object);
@@ -60,7 +59,6 @@ export class TriStepSetVisualizationMode extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute()
   {
     this.object?.SetVisualizationMode(this.mode);

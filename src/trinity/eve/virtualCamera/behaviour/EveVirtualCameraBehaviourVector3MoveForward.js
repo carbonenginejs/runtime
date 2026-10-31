@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
@@ -49,7 +49,6 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -62,7 +61,6 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
    * @adapted
    */
 
-  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out)
   {
     return vec3.scale(out, camera.GetForwardDirection(out), this.GetCurrentValue(camera, localElapsedTime, anchorRadius));
@@ -76,7 +74,6 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
    *
    * @implemented
    */
-  @meta.implemented
 
   GetCurrentValue(camera, localElapsedTime, anchorRadius)
   {

@@ -12,7 +12,7 @@ import { vec4 } from "#math/vec4";
 import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { Tr2Lod } from "../../EveLODHelper.js";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, type, blue as legacyBlue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
@@ -122,7 +122,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapProperty()
   @type.rootRef("EveSpaceObjectChild")
-  @meta.implemented
   get destObject()
   {
     return this.GetDestObject();
@@ -133,7 +132,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   set destObject(value)
   {
     this.SetDestObject(value);
@@ -155,7 +153,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapProperty()
   @type.rootRef("EveSpaceObjectChild")
-  @meta.implemented
   get sourceObject()
   {
     return this.GetSourceObject();
@@ -166,7 +163,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   set sourceObject(value)
   {
     this.SetSourceObject(value);
@@ -188,7 +184,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapProperty()
   @type.rootRef("EveSpaceObjectChild")
-  @meta.implemented
   get stretchObject()
   {
     return this.GetStretchObject();
@@ -199,7 +194,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   set stretchObject(value)
   {
     this.SetStretchObject(value);
@@ -229,7 +223,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapProperty()
   @type.rootRef("EveSpaceObjectChild")
-  @meta.implemented
   get moveObject()
   {
     return this.GetMoveObject();
@@ -240,7 +233,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   set moveObject(value)
   {
     this.SetMoveObject(value);
@@ -253,7 +245,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapProperty()
   @type.rootRef("IEveSpaceObject2")
-  @meta.implemented
   get sourceSpaceObject()
   {
     return this.GetSourceSpaceObject();
@@ -264,7 +255,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   set sourceSpaceObject(value)
   {
     this.SetSourceSpaceObject(value);
@@ -277,7 +267,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapProperty()
   @type.rootRef("IEveSpaceObject2")
-  @meta.implemented
   get destSpaceObject()
   {
     return this.GetDestSpaceObject();
@@ -288,7 +277,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   set destSpaceObject(value)
   {
     this.SetDestSpaceObject(value);
@@ -310,7 +298,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     if (this.stretchObject) this._stretchModifier = new EveChildModifierStretch();
@@ -330,7 +317,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetSourceSpaceObject()
   {
     return this._sourceSpaceObject;
@@ -343,7 +329,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetSourceSpaceObject(value)
   {
     this._sourceSpaceObject = value ?? null;
@@ -356,7 +341,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetDestSpaceObject()
   {
     return this._destinationSpaceObject;
@@ -369,7 +353,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDestSpaceObject(value)
   {
     this._destinationSpaceObject = value ?? null;
@@ -384,7 +367,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @param {Boolean} [onlyUpdateBindings] - leave the controllers linked as they are
    */
 
-  @meta.adapted
   Rebind(onlyUpdateBindings = false)
   {
     for (const binding of this.dynamicBindings)
@@ -407,7 +389,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   GetParameterMap()
   {
     const out = Object.create(null);
@@ -433,7 +414,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @returns {Object} out
    */
 
-  @meta.implemented
   GetBindingRoots(out)
   {
     out.Owner = this;
@@ -454,7 +434,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if ((event & BLUELISTEVENT.BELIST_LOADING) !== 0) return;
@@ -491,7 +470,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "dest"))
@@ -513,7 +491,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetSourceObject()
   {
     return this._sourceObject;
@@ -525,7 +502,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetSourceObject(value)
   {
     const registry = this.GetComponentRegistry();
@@ -543,7 +519,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetDestObject()
   {
     return this._destObject;
@@ -555,7 +530,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDestObject(value)
   {
     const registry = this.GetComponentRegistry();
@@ -573,7 +547,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetStretchObject()
   {
     return this._stretchObject;
@@ -585,7 +558,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetStretchObject(value)
   {
     const registry = this.GetComponentRegistry();
@@ -609,7 +581,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetMoveObject()
   {
     return this._moveObject;
@@ -621,7 +592,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetMoveObject(value)
   {
     const registry = this.GetComponentRegistry();
@@ -692,7 +662,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(context)
   {
     return this.UpdateSynchronous(context);
@@ -767,7 +736,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(context)
   {
     return this.UpdateAsynchronous(context);
@@ -780,7 +748,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   UpdateEffectSync(context)
   {
     return this.UpdateSynchronous(context);
@@ -793,7 +760,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   UpdateEffectAsync(context)
   {
     return this.UpdateAsynchronous(context);
@@ -806,7 +772,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   StartMoving()
   {
   }
@@ -821,7 +786,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(context, parentTransform = EveStretch3._identity)
   {
     if (!this.display) return;
@@ -845,7 +809,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (!this.display) return;
@@ -858,7 +821,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display) return;
@@ -871,7 +833,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     return this.GetRenderables__Impostors(out, null);
@@ -884,7 +845,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    * @returns {Array} out
    */
-  @meta.implemented
 
   GetRenderables__Impostors(out, _impostors)
   {
@@ -899,7 +859,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDisplay(display)
   {
     this.display = !!display;
@@ -916,7 +875,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @returns {Boolean} whether any child contributed a sphere
    */
 
-  @meta.adapted
   GetBoundingSphere(out, query = 0)
   {
     let valid = false;
@@ -940,7 +898,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetCurveDuration()
   {
     let duration = 0;
@@ -958,7 +915,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @param {Number} [delay] - seconds handed to the controllers as the FiringDelay variable
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartFiring(delay = 0)
   {
     this._delay = Number(delay);
@@ -976,7 +932,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StopFiring()
   {
     this._stretchState = EveStretch3.StretchState.STRETCH_STATE_STOPPING;
@@ -995,7 +950,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetFiringTransform(source, destination)
   {
     this.source = null;
@@ -1021,7 +975,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
@@ -1032,7 +985,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   GetModelCenterWorldPosition(_position)
   {
   }
@@ -1043,7 +995,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
     return false;
@@ -1055,7 +1006,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   GetLocalToWorldTransform(_transform)
   {
   }
@@ -1066,7 +1016,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   DisplayEndPoints(_displaySource, _displayDestination)
   {
   }
@@ -1077,7 +1026,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDestObjectScale(scale)
   {
     this._destinationScale = Number(scale);
@@ -1090,7 +1038,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
   @legacyBlue.method
-  @meta.adapted
   SetIntensity(_intensity)
   {
   }
@@ -1102,7 +1049,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     this._RunOnComponents((component) => component.SetControllerVariable(name, value));
@@ -1116,7 +1062,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   HandleControllerEvent(name)
   {
     this._RunOnComponents((component) => component.HandleControllerEvent(name));
@@ -1129,7 +1074,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   StartControllers()
   {
     this._RunOnComponents((component) => component.StartControllers());
@@ -1144,7 +1088,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     if (!this.display) return;
@@ -1168,7 +1111,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     if (!this.display) return;
@@ -1188,7 +1130,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     for (const curveSet of this.curveSets)
@@ -1212,7 +1153,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     if (!this.display) return 0;
@@ -1233,7 +1173,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     if (!this.display) return 0;
@@ -1255,7 +1194,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @adapted
    */
 
-  @meta.adapted
   FindSoundEmitter(name)
   {
     const audioType = CjsSchema.getConstructor("Tr2AudioStretchBase");
@@ -1274,7 +1212,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1294,7 +1231,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1316,7 +1252,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @param {function(*): void} func
    * @returns {void}
    */
-  @meta.implemented
 
   _RunOnComponents(func)
   {
@@ -1335,7 +1270,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @param {function(*): number} func
    * @returns {number}
    */
-  @meta.implemented
 
   _RunOnComponentsGetMax(func)
   {

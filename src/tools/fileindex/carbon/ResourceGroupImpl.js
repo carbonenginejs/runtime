@@ -13,7 +13,7 @@
 // every scalar kept as its source text, as yaml-cpp's `as<std::string>()` reads
 // it, and written through the `yaml` package, so the formatting is not
 // byte-identical to yaml-cpp.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { parse, stringify } from "yaml";
 import { CjsResFileIndexFormat } from "../../../resource/formats/resfileindex/CjsResFileIndexFormat.js";
 import { DocumentParameter } from "./DocumentParameter.js";
@@ -734,35 +734,35 @@ CjsSchema.meta.define(ResourceGroupImpl, {
   carbon: "ResourceGroup::ResourceGroupImpl",
   fields: {},
   methods: {
-        typeId: [ meta.renamed("TypeId"), meta.implemented ],
-        GetType: [ meta.implemented ],
-        GetSize: [ meta.implemented ],
-        AddResource: [ meta.implemented ],
-        ImportFromData: [ meta.implemented ],
-        ImportFromCSV: [ meta.adapted ],
-        ImportFromYamlString: [ meta.adapted ],
-        ImportFromYaml: [ meta.adapted ],
-        CreateResourceFromYaml: [ meta.adapted ],
-        ImportGroupSpecialisedYaml: [ meta.implemented ],
-        ExportGroupSpecialisedYaml: [ meta.implemented ],
-        GetGroupSpecificResourcesToBundle: [ meta.implemented ],
-        ExportToData: [ meta.implemented ],
-        ExportYaml: [ meta.adapted ],
-        ExportCsv: [ meta.adapted ],
-        Merge: [ meta.implemented ],
-        CreateResourceFromResource: [ meta.adapted ],
-        DiffChangesAsLists: [ meta.adapted ],
-        RemoveResource: [ meta.implemented ],
-        RemoveResources: [ meta.implemented ],
-        GetLargestResourceSize: [ meta.adapted ],
-        ImportFromFile: [ meta.adapted ],
-        ExportToFile: [ meta.adapted ],
+        typeId: [],
+        GetType: [],
+        GetSize: [],
+        AddResource: [],
+        ImportFromData: [],
+        ImportFromCSV: [],
+        ImportFromYamlString: [],
+        ImportFromYaml: [],
+        CreateResourceFromYaml: [],
+        ImportGroupSpecialisedYaml: [],
+        ExportGroupSpecialisedYaml: [],
+        GetGroupSpecificResourcesToBundle: [],
+        ExportToData: [],
+        ExportYaml: [],
+        ExportCsv: [],
+        Merge: [],
+        CreateResourceFromResource: [],
+        DiffChangesAsLists: [],
+        RemoveResource: [],
+        RemoveResources: [],
+        GetLargestResourceSize: [],
+        ImportFromFile: [],
+        ExportToFile: [],
         _Compare: [],
-        CreateFromDirectory: [ meta.notImplemented ],
-        CreateBundle: [ meta.notImplemented ],
-        ConstructPatchResourceInfo: [ meta.notImplemented ],
-        CreatePatch: [ meta.notImplemented ],
-        Diff: [ meta.notImplemented ],
-        createFromFilter: [ meta.renamed("CreateFromFilter"), meta.notImplemented ]
+        CreateFromDirectory: [],
+        CreateBundle: [],
+        ConstructPatchResourceInfo: [],
+        CreatePatch: [],
+        Diff: [],
+        createFromFilter: []
     }
 });

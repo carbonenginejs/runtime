@@ -26,7 +26,6 @@ export class EveChildCloudPerObjectData extends Tr2PerObjectData
   /**
    * @adapted RawData replaces the native struct and the shared uploader gates stages by the technique mask, as documented in this family's README (CE-19).
    */
-  @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
     return Tr2PerObjectData.setPerObjectDataToDevice(this, buffers, constantTypeMask, renderContext);
@@ -37,7 +36,6 @@ export class EveChildCloudPerObjectData extends Tr2PerObjectData
    *
    * @notImplemented
    */
-  @meta.notImplemented
   ApplyConstantBuffers()
   {
     throw new Error("EveChildCloudPerObjectData.ApplyConstantBuffers requires Tr2IndirectDrawBufferWriter.");

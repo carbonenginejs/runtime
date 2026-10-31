@@ -20,7 +20,7 @@ import { exposure as be } from "#be";
 // Carbon's BeginRender/GatherBatches into scene-owned CPU methods that a driver
 // calls in order; that contract is written on EveSpaceScene itself, and this is
 // the driver it describes.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
@@ -182,7 +182,6 @@ export class EveSpaceSceneRenderDriver
    */
   @be.mapProperty()
   @type.rootRef("EveSpaceScene")
-  @meta.implemented
   get scene()
   {
     return this.GetScene();
@@ -193,7 +192,6 @@ export class EveSpaceSceneRenderDriver
    *
    * @implemented
    */
-  @meta.implemented
   set scene(value)
   {
     this.SetScene(value);
@@ -208,7 +206,6 @@ export class EveSpaceSceneRenderDriver
    */
   @be.mapProperty()
   @type.boolean
-  @meta.implemented
   get debugMode()
   {
     return this.GetDebugMode();
@@ -219,7 +216,6 @@ export class EveSpaceSceneRenderDriver
    *
    * @implemented
    */
-  @meta.implemented
   set debugMode(value)
   {
     this.SetDebugMode(value);
@@ -351,7 +347,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {Tr2TextureReference[]} One reference per pooled temp texture.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetAllTempTextures()
   {
     const textures = this._gpuResourcePool.DebugGetAllTempTextures();
@@ -379,7 +374,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {void}
    */
 
-  @meta.adapted
   SetSettings(settings)
   {
     this.shadowQuality = settings.shadowQuality;
@@ -408,7 +402,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {void}
    */
 
-  @meta.implemented
   SetDebugMode(enable)
   {
     if (enable !== this.GetDebugMode())
@@ -424,7 +417,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {boolean} The pool's debug mode.
    */
 
-  @meta.implemented
   GetDebugMode()
   {
     return this._gpuResourcePool.GetDebugMode();
@@ -437,7 +429,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {EveSpaceScene|null} The scene this driver renders.
    */
 
-  @meta.implemented
   GetScene()
   {
     return this._scene;
@@ -452,7 +443,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {void}
    */
 
-  @meta.implemented
   SetScene(scene)
   {
     if (this._scene === scene)
@@ -477,7 +467,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {void}
    */
 
-  @meta.implemented
   ReleaseResources(s)
   {
     if (s === TriStorageFlags.TRISTORAGE_ALL)
@@ -495,7 +484,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     return true;
@@ -514,7 +502,6 @@ export class EveSpaceSceneRenderDriver
    * @param {object|null} context A Tr2UpscalingContextAL, or null.
    * @returns {void}
    */
-  @meta.implemented
   static deleteUpscalingContext(context)
   {
     if (context)
@@ -543,7 +530,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {void}
    */
 
-  @meta.adapted
   _SetupUpscaling(displaySize)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -589,7 +575,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {TextureSize2D} The size the scene renders at.
    */
 
-  @meta.adapted
   _GetRenderSize(displaySize)
   {
     if (this._upscalingContext)
@@ -766,7 +751,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {boolean} Whether the render-job step may execute this frame.
    */
 
-  @meta.adapted
   Validate(destinationDimensions = [], _outputs = [], realTime = 0, simTime = 0)
   {
     if (!destinationDimensions.length) return false;
@@ -817,7 +801,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {boolean} Whether anything was submitted.
    */
 
-  @meta.adapted
   Execute(destinations = null, _outputs = null, realTime = 0, simTime = 0, rootTimer = null, renderContext = null)
   {
     if (this._destroyed || !renderContext || !this.scene || !(this.camera || (this.view && this.projection))) return false;
@@ -1055,7 +1038,6 @@ export class EveSpaceSceneRenderDriver
    * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
    * @returns {GpuResourceHandle} The texture.
    */
-  @meta.implemented
   static getEmptySSAO(gpuResourcePool)
   {
     return gpuResourcePool.GetPersistentTexture__WidthHeight("EmptySSAO", 1, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
@@ -1115,8 +1097,6 @@ export class EveSpaceSceneRenderDriver
    * @param {object|null} offscreen The scene's borrowed targets, if any.
    * @returns {boolean} Whether anything was submitted.
    */
-  @meta.cjs
-    @meta.adapted
   _RenderMainPass(renderContext, offscreen)
   {
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
@@ -1549,7 +1529,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {GpuResourceHandle|null} The map, or null.
    */
 
-  @meta.adapted
   _GetVelocityMapIfNeeded(size)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1573,7 +1552,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {GpuResourceHandle|null} The map, or null.
    */
 
-  @meta.adapted
   _GetCustomStencilMapIfNeeded(size)
   {
     if (this.customStencilFormat === PixelFormat.PIXEL_FORMAT_UNKNOWN) return null;
@@ -1594,7 +1572,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {GpuResourceHandle|null} The copy, or null.
    */
 
-  @meta.adapted
   _GetOpaqueColorMapIfNeeded(size)
   {
     const needsOpaqueBackBuffer = this._upscalingContext !== null || this.antiAliasingQuality >= AntiAliasingQuality.Medium || this.forceOpaqueBuffer;
@@ -1842,7 +1819,6 @@ export class EveSpaceSceneRenderDriver
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateGpuParticleSystem(renderContext)
   {
     const ps = this.scene.GetGpuParticleSystem();

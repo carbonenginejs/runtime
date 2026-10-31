@@ -51,7 +51,6 @@ export class Tr2MaterialStageInput
    * @adapted
    * @param size requested mirror size in bytes
    */
-  @meta.adapted
   AllocateConstants(size = 0)
   {
     const byteSize = Math.max(0, Number(size) || 0);
@@ -66,7 +65,6 @@ export class Tr2MaterialStageInput
    * @adapted
    * @param size byte count to copy, defaulting to the contents' own byte length
    */
-  @meta.adapted
   GetSharedConstantBuffer(contents, size = contents?.byteLength ?? contents?.length ?? 0)
   {
     const byteSize = Math.max(0, Number(size) || 0);

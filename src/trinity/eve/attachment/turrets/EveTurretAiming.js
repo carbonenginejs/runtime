@@ -88,7 +88,6 @@ export class EveTurretAiming
    *
    * @implemented
    */
-  @meta.implemented
   static getSystemBoneName(bone)
   {
     const index = Number(bone) >>> 0;
@@ -113,7 +112,6 @@ export class EveTurretAiming
    * @param {Float32Array} position - the bone position to modify
    * @param {Float32Array} rotation - the bone rotation to modify
    */
-  @meta.implemented
   ModifySystemBoneTransform(bone, target, localTransform, trackingInfluence, position, rotation)
   {
     const bones = EveTurretAiming.SystemBones;
@@ -176,7 +174,6 @@ export class EveTurretAiming
    *
    * @implemented
    */
-  @meta.implemented
   CalcTransformForPitchBone(target, minPitch, maxPitch, boneIndex, localTransform, trackingInfluence, rotation)
   {
     const pitchOffset = this.GetBonePitchOffset(boneIndex);
@@ -221,7 +218,6 @@ export class EveTurretAiming
    *
    * @implemented
    */
-  @meta.implemented
   GetBonePitchFactor(boneIndex)
   {
     const bones = EveTurretAiming.SystemBones;
@@ -247,7 +243,6 @@ export class EveTurretAiming
    *
    * @implemented
    */
-  @meta.implemented
   GetBonePitchOffset(boneIndex)
   {
     const bones = EveTurretAiming.SystemBones;

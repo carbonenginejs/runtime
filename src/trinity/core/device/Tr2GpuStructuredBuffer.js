@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.h
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.cpp
 // Hand-maintained from Carbon source; promoted from generated/trinityCore.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { INotify, IInitialize } from "#blue";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -24,7 +24,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   Initialize()
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -36,7 +35,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   OnModified(_names)
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -90,7 +88,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @meta.adapted
   Create(count, stride, creationFlags, renderContext)
   {
     this.count = count;
@@ -109,7 +106,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @meta.adapted
   CreateBuffer(renderContext)
   {
     if (!this.count || !this.stride) return ALResult.E_INVALIDARG;
@@ -134,7 +130,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this._name = String(name ?? "");
@@ -151,7 +146,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     if (this._buffer) this._buffer.Destroy();
@@ -166,7 +160,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
-  @meta.implemented
   GetGpuBuffer(_index = 0)
   {
     return this._buffer;
@@ -177,7 +170,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   IsValid()
   {
     return this._buffer !== null;
@@ -190,7 +182,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get isValid()
   {
     return this.IsValid();
@@ -201,7 +192,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetCount()
   {
     return this._buffer ? this._buffer.GetDesc().count : 0;
@@ -213,7 +203,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.notImplemented
   __init__(...args)
   {
     throw new Error("Tr2GpuStructuredBuffer.__init__ is not implemented in CarbonEngineJS.");
@@ -225,7 +214,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * @notImplemented
    */
   @be.mapMethod()
-  @meta.notImplemented
   DebugGetData(...args)
   {
     throw new Error("Tr2GpuStructuredBuffer.DebugGetData is not implemented in CarbonEngineJS.");

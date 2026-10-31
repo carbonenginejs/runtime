@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Tr2RingBuffer.h
 // Source: trinity/trinity/Tr2RingBuffer.cpp
 //
@@ -123,8 +123,4 @@ export class Tr2RingBufferOffsets
 }
 
 // States: Tr2RingBuffer.h:84-99 and Tr2RingBuffer.cpp:156-184 statement for statement; UploadTransforms is the template instantiated for a typed array.
-CjsSchema.decorateMethod(Tr2RingBufferOffsets, "GetCurrentFrameOffset", meta.implemented);
-CjsSchema.decorateMethod(Tr2RingBufferOffsets, "GetPreviousFrameOffset", meta.implemented);
-CjsSchema.decorateMethod(Tr2RingBufferOffsets, "UploadTransforms", meta.implemented);
-CjsSchema.decorateMethod(Tr2RingBufferOffsets, "AdvanceFrame", meta.implemented);
 CjsSchema.meta.carbon("Tr2RingBufferOffsets")(Tr2RingBufferOffsets);

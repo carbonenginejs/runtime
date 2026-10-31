@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ResetBehavior } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -53,7 +53,6 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * @returns {void}
    */
 
-  @meta.implemented
   Start(controller)
   {
     const owner = CjsSchema.cast(controller.GetOwner(), EveSpaceObject2);
@@ -89,7 +88,6 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * @returns {void}
    */
 
-  @meta.adapted
   _ResetClipSphereToLocator(owner, locatorSetName, locatorIndex)
   {
     const locators = owner.GetLocatorsForSet(locatorSetName);

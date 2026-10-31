@@ -14,7 +14,7 @@ import { exposure as be } from "#be";
 // behaviour: the pre-check never fails and the REAL format gate is
 // SaveHeader's switch, whose default returns SAVE_NOT_SUPPORTED. This port
 // keeps that net behaviour: no pre-check, the header switch rejects.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { GetBytesPerPixel, PixelFormat } from "#consts/render-context";
 import { ALResult } from "../../trinityal/ALResult.js";
 import "#consts/renderContext/formats";
@@ -81,7 +81,6 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * @returns {number} An ALResult value.
    */
 
-  @meta.adapted
   StartSaving(output, width, height, pixelFormat)
   {
     if (this.IsSaving())
@@ -131,7 +130,6 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsSaving()
   {
     return this.#output !== null;
@@ -143,7 +141,6 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasStartedBatch()
   {
     return this.#rowsPerBatch !== 0;
@@ -156,7 +153,6 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get hasStartedBatch()
   {
     return this.HasStartedBatch();
@@ -168,7 +164,6 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   CopyFromRenderTargetRegion(...args)
   {
     throw new Error("Tr2StreamingBitmapSaver.CopyFromRenderTargetRegion is not implemented in CarbonEngineJS.");
@@ -180,7 +175,6 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   EndSaving(...args)
   {
     throw new Error("Tr2StreamingBitmapSaver.EndSaving is not implemented in CarbonEngineJS.");
@@ -192,7 +186,6 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   FlushBatch(...args)
   {
     throw new Error("Tr2StreamingBitmapSaver.FlushBatch is not implemented in CarbonEngineJS.");
@@ -204,7 +197,6 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   StartBatch(...args)
   {
     throw new Error("Tr2StreamingBitmapSaver.StartBatch is not implemented in CarbonEngineJS.");

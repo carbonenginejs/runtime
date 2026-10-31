@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.cpp
 import { IBehavior } from "./IBehavior.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
 
@@ -60,7 +60,6 @@ export class CollisionAvoidance extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -81,7 +80,6 @@ export class CollisionAvoidance extends IRoot
    * @returns {Array} empty (as Carbon)
    */
 
-  @meta.implemented
   CalculateBehavior(agents, _scratchData, _deltaTime, _group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -120,7 +118,6 @@ export class CollisionAvoidance extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("ExclusionVolumes");
@@ -136,7 +133,6 @@ export class CollisionAvoidance extends IRoot
    * @param {mat4} parentWorldLocation
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     if (renderer.HasOption(this, "ExclusionVolumes"))

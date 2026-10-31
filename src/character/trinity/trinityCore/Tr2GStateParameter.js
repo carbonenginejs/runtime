@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GStateParameter.h
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 
 /** Named, node-scoped scalar value for a character GState animation. */
@@ -30,7 +30,6 @@ export class Tr2GStateParameter extends IInitialize
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -42,7 +41,6 @@ export class Tr2GStateParameter extends IInitialize
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetNodeName()
   {
     return this.nodename;
@@ -54,7 +52,6 @@ export class Tr2GStateParameter extends IInitialize
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetValue()
   {
     return this.value;
@@ -66,7 +63,6 @@ export class Tr2GStateParameter extends IInitialize
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -78,7 +74,6 @@ export class Tr2GStateParameter extends IInitialize
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetNodeName(name)
   {
     this.nodename = String(name ?? "");
@@ -90,7 +85,6 @@ export class Tr2GStateParameter extends IInitialize
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetValue(value)
   {
     this.value = Number(value);
@@ -102,7 +96,6 @@ export class Tr2GStateParameter extends IInitialize
    *
    * @implemented
    */
-  @meta.implemented
   Initialize()
   {
     return true;

@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp
 import { finiteNumberOr } from "#utils/validation";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { noise } from "#math/noise";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
@@ -156,7 +156,6 @@ export class Tr2ScalarExprKey extends IInitialize
    * @returns {boolean} True.
    */
 
-  @meta.adapted
   Initialize()
   {
     this.RegenRandomConstant();
@@ -175,7 +174,6 @@ export class Tr2ScalarExprKey extends IInitialize
    * @returns {boolean} True after evaluation completes.
    */
 
-  @meta.adapted
   OnModified(propertyName)
   {
     const variables = this._expressionVariables();
@@ -196,7 +194,6 @@ export class Tr2ScalarExprKey extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RegenRandomConstant()
   {
     this.randomConstant = this.randomMin + carbonRandom.triFloatRandom01() * (this.randomMax - this.randomMin);
@@ -213,7 +210,6 @@ export class Tr2ScalarExprKey extends IInitialize
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateValues(previousKey)
   {
     this.prevKeyTime = Number(previousKey?.time ?? 0);
@@ -276,7 +272,6 @@ export class Tr2ScalarExprKey extends IInitialize
    * @param {string} expression Expression source.
    * @returns {CjsControllerExpressionProgram|null} The compiled program, null for an empty expression, or the passed program when the parse fails.
    */
-  @meta.adapted
   SetExpression(parser, expression)
   {
     if (!expression)

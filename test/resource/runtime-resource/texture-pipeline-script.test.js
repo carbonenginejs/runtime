@@ -10,6 +10,7 @@ import { ImageIO } from "../../../npm/dist/resource/imageio/index.js";
 import { BlueResFileSystemForm, CjsBluePaths, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { MarkerTag } from "../../support/markerTags.js";
 
 /** A 32-bit BMP: pixel (x, y) is b = 10 + x, g = 20 + y, r = 30, a = 200 (top-left origin). */
 function bmp(width, height)
@@ -100,7 +101,7 @@ test("ExecuteFromScript loads each dependency, runs the pipeline and returns the
   const row = CjsSchema.getMethod(Tr2TexturePipeline, "ExecuteFromScript");
   assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP_OPTIONAL_ARGS");
   assert.equal(row.exposure.name, "Execute");
-  assert.equal(row.impl.status, "adapted");
+  assert.equal(MarkerTag("Tr2TexturePipeline", "ExecuteFromScript"), "adapted");
 });
 
 test("ExecuteFromScript reports Carbon's out-of-memory result when Tr2HostBitmap cannot be created (cpp:68)", async () =>

@@ -6,6 +6,7 @@ import { BlueResFileSystemRemote, CjsBluePaths, RemoteFileCache } from "../../np
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { normalizeResPath } from "../../npm/dist/global/utils/index.js";
 import { localFileSystem } from "../support/localFileSystem.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 // Carbon blue/src/RemoteFileCache.cpp, BlueResFileSystemRemote.cpp and
 // BluePaths.cpp: an index says a file CAN be had; the cache folder says its
@@ -217,5 +218,5 @@ test("GetStreamFromPathW is Carbon's method, exposed as GetStreamFromPath (Remot
   const row = CjsSchema.getMethod(RemoteFileCache, "GetStreamFromPathW");
   assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP");
   assert.equal(row.exposure.name, "GetStreamFromPath");
-  assert.equal(row.impl.status, "adapted");
+  assert.equal(MarkerTag("RemoteFileCache", row.name), "adapted");
 });

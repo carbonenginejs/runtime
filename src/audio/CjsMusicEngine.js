@@ -25,7 +25,7 @@ import {
     indexBusStateCatalog,
 } from "./internal/busState.js";
 import { wwiseFilterPercentToHz } from "./internal/wwiseFilter.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 import {
     createBusEffectChain,
@@ -4024,4 +4024,3 @@ export class CjsMusicEngine extends ICjsMusicEngine
 }
 
 CjsSchema.meta.define("CjsMusicEngine")(CjsMusicEngine);
-CjsSchema.decorateMethod(CjsMusicEngine, "GetSourcePlayPosition", meta.notImplemented);

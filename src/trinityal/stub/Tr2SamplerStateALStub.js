@@ -19,7 +19,7 @@
 // for authored overrides and `Tr2RenderContext.TextureAddressMode` for the
 // address vocabulary - so the AL takes the description as given.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -153,11 +153,4 @@ export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2SamplerStateALStub, "_isValid", type.boolean);
 // States against stub/Tr2SamplerStateALStub.cpp:11-39 and .h:23-26. Create and Destroy are adapted: this port keeps the description (GetDescription) where Carbon's stub ignores it.
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "Create", meta.adapted);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "Destroy", meta.adapted);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetIndexInHeap", meta.implemented);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2SamplerStateALStub")(Tr2SamplerStateALStub);

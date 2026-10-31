@@ -5,7 +5,7 @@ import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
@@ -88,7 +88,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface through the shared resolveGroupColor helper.
    */
-  @meta.adapted
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -106,7 +105,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface.
    */
-  @meta.adapted
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
@@ -118,7 +116,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "display")) this.ReRegister();
@@ -133,7 +130,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
     const maskedEvent = Number(event) & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -181,7 +177,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -203,7 +198,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -225,7 +219,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
   {
     if (!this.display)
@@ -245,7 +238,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (!this.display)
@@ -266,7 +258,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
@@ -289,7 +280,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateAsyncronous__Distribution(updateContext, params, distribution)
   {
@@ -325,7 +315,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -347,7 +336,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -370,7 +358,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const group of this.lightGroups)
@@ -385,7 +372,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, placements, size)
   {
     if (!this.display)
@@ -404,7 +390,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
     for (const group of this.lightGroups)

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -31,7 +31,6 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(depthStencil)
   {
     this.pushCurrent = arguments.length === 0;
@@ -47,7 +46,6 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     const esm = renderContext.GetEffectStateManager();

@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/EveStarfield.cpp
 // Source: trinity/trinity/Eve/EveStarfield_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../../trinityal/ALResult.js";
@@ -122,7 +122,6 @@ export class EveStarfield
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.PrepareResources();
@@ -134,7 +133,6 @@ export class EveStarfield
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -146,7 +144,6 @@ export class EveStarfield
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -161,7 +158,6 @@ export class EveStarfield
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     if (this.numStars <= 0) return true;
@@ -192,7 +188,6 @@ export class EveStarfield
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_name)
   {
     this._dirty = true;
@@ -205,7 +200,6 @@ export class EveStarfield
    * @implemented
    */
 
-  @meta.implemented
   Update(_time)
   {
     if (!this._dirty) return;
@@ -219,7 +213,6 @@ export class EveStarfield
    * @implemented
    */
 
-  @meta.implemented
   GetEffect()
   {
     return this.effect;
@@ -231,7 +224,6 @@ export class EveStarfield
    * @implemented
    */
 
-  @meta.implemented
   SetEffect(effect)
   {
     this.effect = effect;
@@ -243,7 +235,6 @@ export class EveStarfield
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(accumulator, perObjectData)
   {
     if (!this._vertexBuffer.IsValid() || !this.effect || !this.display || this.numStars <= 0) return;

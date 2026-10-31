@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue, CjsBlueClasses } from "#blue";
 import { IListNotify } from "#blue/IListNotify";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -54,7 +54,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     super.Initialize();
@@ -71,7 +70,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   PrepareShaderData(updateContext)
   {
     super.PrepareShaderData(updateContext);
@@ -86,7 +84,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, key = 0, key2 = 0, value = null, list = null)
   {
     super.OnListModified(event, key, key2, value, list);
@@ -118,7 +115,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     super.RegisterComponents();
@@ -139,7 +135,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     super.UnRegisterComponents();
@@ -160,7 +155,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetTurretLocatorIndex(turretSetIndex, slotIndex)
   {
     const info = this._turretSetsLocatorInfo[turretSetIndex];
@@ -175,7 +169,6 @@ export class EveMobile extends EveSpaceObject2
    *   the existing JS return reports completion.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RebuildTurretPositions()
   {
     this._turretSetsLocatorInfo.length = 0;
@@ -248,7 +241,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetTurretLocatorCount()
   {
     let foundA = 0;
@@ -281,7 +273,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   GetActiveTurretCount()
   {
     return this.ActiveTurretCount;
@@ -295,7 +286,6 @@ export class EveMobile extends EveSpaceObject2
    *   and the existing JS update returns completion.
    */
 
-  @meta.adapted
   UpdateSyncronous(context)
   {
     super.UpdateSyncronous(context);
@@ -329,7 +319,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(context)
   {
     super.UpdateAsyncronous(context);
@@ -344,7 +333,6 @@ export class EveMobile extends EveSpaceObject2
    * @adapted
    */
 
-  @meta.adapted
   UpdateTurretsAsyncronous(context)
   {
     const parent = this._turretParentData;
@@ -366,7 +354,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(context, _parentTransform = EveMobile._identity)
   {
     const visible = super.UpdateVisibility(context, _parentTransform);
@@ -382,7 +369,6 @@ export class EveMobile extends EveSpaceObject2
    *
    * @adapted
    */
-  @meta.adapted
 
   GetRenderables__Impostors(out, _impostors)
   {
@@ -400,7 +386,6 @@ export class EveMobile extends EveSpaceObject2
    * @adapted
    */
 
-  @meta.adapted
   GetLocalBoundingBox(outMin, outMax)
   {
     const returnObject = !outMin || !outMax;
@@ -425,7 +410,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     super.SetControllerVariable(name, value);
@@ -438,7 +422,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   HandleControllerEvent(name)
   {
     super.HandleControllerEvent(name);
@@ -451,7 +434,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   StartControllers()
   {
     super.StartControllers();
@@ -465,7 +447,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   DisplayChildren()
   {
     return this.activationStrength > 0.5;
@@ -477,7 +458,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     super.SetShaderOption(name, value);
@@ -490,7 +470,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     super.RegisterWithQuadRenderer(quadRenderer);
@@ -503,7 +482,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     super.AddQuadsToQuadRenderer(frustum, quadRenderer);
@@ -517,7 +495,6 @@ export class EveMobile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   GetTurretTransform(_turretSetIndex = 0)
   {
     return this.worldTransform;

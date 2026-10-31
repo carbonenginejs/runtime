@@ -16,7 +16,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2VertexLayoutAL.cpp:5`): we ship every
 // backend at once, so the context that knows its backend is the factory
 // (`CreateVertexLayout(definition, true)`).
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -79,7 +79,6 @@ export class Tr2VertexLayoutAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(definition, renderContext)
   {
     this.Destroy();
@@ -97,7 +96,6 @@ export class Tr2VertexLayoutAL
    * @implemented
    * @returns {boolean} True once created.
    */
-  @meta.implemented
   IsValid()
   {
     return this._layout.implementation.IsValid();
@@ -111,7 +109,6 @@ export class Tr2VertexLayoutAL
    * @param {Tr2VertexLayoutAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @meta.adapted
   Equals(other)
   {
     return this._layout === other._layout;
@@ -123,7 +120,6 @@ export class Tr2VertexLayoutAL
    * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._layout.implementation.GetMemoryClass();
@@ -137,7 +133,6 @@ export class Tr2VertexLayoutAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -162,5 +157,4 @@ export class Tr2VertexLayoutAL
 }
 
 CjsSchema.decorateField(Tr2VertexLayoutAL, "_layout", type.unknown);
-CjsSchema.decorateMethod(Tr2VertexLayoutAL, "Equals", meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2VertexLayoutAL")(Tr2VertexLayoutAL);

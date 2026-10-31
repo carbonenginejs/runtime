@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetUpscalingContextID.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that selects which upscaling context subsequent work resolves against. */
@@ -22,7 +22,6 @@ export class TriStepSetUpscalingContextID extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(upscalingContextID = 0xffffffff)
   {
     this.upscalingContextID = Number(upscalingContextID) >>> 0;
@@ -34,7 +33,6 @@ export class TriStepSetUpscalingContextID extends TriRenderStep
    * @adapted
    */
 
-  @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.SetUpscalingContextID(this.upscalingContextID);

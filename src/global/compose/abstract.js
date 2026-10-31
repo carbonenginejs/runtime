@@ -256,6 +256,17 @@ export function installAbstractMethod(target, methodName)
 }
 
 /**
+ * Whether a function is a generated abstract thrower (`meta.abstract`, `be.abstract`).
+ *
+ * @param {*} value The function to ask about.
+ * @returns {boolean} True for a thrower.
+ */
+export function isAbstractMethod(value)
+{
+    return typeof value === "function" && ABSTRACT_RECORDS.has(value);
+}
+
+/**
  * Records `Constructor` as the declaring class of every abstract thrower it
  * holds as its own and that has no declaring class yet. Registration calls it,
  * before any consumer can copy the throwers (`blue.inherit`).

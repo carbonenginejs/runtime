@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IsMatch, INotify } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
@@ -45,7 +45,6 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -57,7 +56,6 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     return hashFnv1Identity(this.animation, startingHash);
@@ -69,7 +67,6 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (!IsMatch(propertyName, "animation")) return true;
@@ -88,7 +85,6 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * @adapted
    */
 
-  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     // Tr2TextureAnimationParameter.cpp:61-69
@@ -114,7 +110,6 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * @returns {boolean} Whether the slot took the binding.
    * Carbon declaration: Tr2TextureAnimationParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h:20).
    */
-  @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
   {
     const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
@@ -132,7 +127,6 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * @returns {boolean} False, always.
    * Carbon declaration: Tr2TextureAnimationParameter::ApplyUav (trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h:25).
    */
-  @meta.implemented
   ApplyUav()
   {
     return false;
@@ -144,7 +138,6 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   OnAddedToMaterial(material)
   {
     this._materials.push(material);
@@ -156,7 +149,6 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   OnRemovedFromMaterial(material)
   {
     const index = this._materials.indexOf(material);
@@ -173,7 +165,6 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * @adapted
    */
 
-  @meta.adapted
   GetTexture()
   {
     return this.animation ? this.animation.GetTexture(this.channel) : null;

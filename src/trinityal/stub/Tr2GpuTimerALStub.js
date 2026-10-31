@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2GpuTimerALStub.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -140,13 +140,4 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2GpuTimerALStub, "_isValid", type.boolean);
 // States against stub/Tr2GpuTimerALStub.cpp (Create/Destroy/IsValid/Begin/End/GetTime/SetName) and .h (GetMemoryClass = AL_MEMORY_VIDEO). Destroy also runs the base resource's Destroy.
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Create", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Begin", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "End", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetTime", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2GpuTimerALStub")(Tr2GpuTimerALStub);

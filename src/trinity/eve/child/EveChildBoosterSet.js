@@ -316,7 +316,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    *   the max size.
    */
 
-  @meta.adapted
   Initialize()
   {
     if (this._singleBoosters.length) this._DeriveFromBoosters();
@@ -354,7 +353,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
@@ -370,7 +368,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveChildBoosterSet._BoosterVertex());
@@ -383,7 +380,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -413,7 +409,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (this.glows && (IsMatch(value, "glowScale") || IsMatch(value, "haloScaleX") || IsMatch(value, "haloScaleY")
@@ -492,7 +487,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    *   stays INVALID (Carbon's own no-draw state) until a ring buffer is installed.
    */
 
-  @meta.adapted
   UpdateAsyncronous(_updateContext = null, params = null)
   {
     // Carbon cpp:103; the offsets cursor owns its methods - nullability is
@@ -566,7 +560,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   Clear()
   {
     this._singleBoosters.length = 0;
@@ -589,7 +582,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   Add(localMatrix, atlasIndex0, atlasIndex1, lightScale = 1)
   {
     this._AddSingleBooster(localMatrix, atlasIndex0, atlasIndex1, lightScale);
@@ -637,7 +629,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   SetData(glowScale, glowColor, warpGlowColor, symHaloScale, haloScaleX, haloScaleY, haloColor, warpHaloColor)
   {
     this.glowScale = Number(glowScale);
@@ -656,7 +647,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   SetLightData(offset, flickerAmplitude, flickerFrequency, radius, color, warpRadius, warpColor)
   {
     this.lightOffset = Number(offset);
@@ -674,7 +664,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   SetEffect(effect, effectFar)
   {
     this.effect = effect ?? null;
@@ -687,7 +676,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   SetGlow(glow)
   {
     this.glows = glow ?? null;
@@ -699,7 +687,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   SetDriveName(driveName)
   {
     this.driveName = String(driveName ?? "");
@@ -713,7 +700,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, _parentTransform = null, _parentLod = 0)
   {
     this._glowsVisible = false;
@@ -747,7 +733,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (!this.display) return renderables;
@@ -766,7 +751,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(sphere, _query = 0)
   {
     if (!this._hasUpdated) return false;
@@ -781,7 +765,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.glows)
@@ -796,7 +779,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (!this.glows || !this._glowsVisible || !this.display) return;
@@ -814,7 +796,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetLights(lightManager)
   {
     if (!this._hasUpdated) return;
@@ -842,7 +823,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     if (name === this.driveName)
@@ -861,7 +841,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -873,7 +852,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 1;
@@ -886,7 +864,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Boosters");
@@ -903,7 +880,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (!this._hasUpdated)
@@ -947,7 +923,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    *   material, per-object data, vertex declaration, draw arguments and the shared buffer name.
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData = null)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
@@ -978,7 +953,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    *   carries the AL ring offset when one is installed.
    */
 
-  @meta.adapted
   GetPerObjectData(accumulator = null)
   {
     if (!accumulator) return null;

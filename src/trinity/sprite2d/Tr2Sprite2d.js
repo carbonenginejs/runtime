@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2d.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2d.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
 import { Tr2SpriteObjectPickState, Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
 import { INotify } from "#blue";
@@ -55,7 +55,6 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
    *
    * @adapted Array slices replace native pointers; indices stay relative to the slice.
    */
-  @meta.adapted
 
   GatherSprites(renderer)
   {
@@ -123,7 +122,6 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   PickPoint(x, y, renderer)
   {
@@ -142,7 +140,6 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   GetVertexCount()
   {

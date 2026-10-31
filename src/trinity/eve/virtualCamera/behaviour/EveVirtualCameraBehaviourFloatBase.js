@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 
 
 /**
@@ -36,7 +36,6 @@ export class EveVirtualCameraBehaviourFloatBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -49,7 +48,6 @@ export class EveVirtualCameraBehaviourFloatBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name);
@@ -62,7 +60,6 @@ export class EveVirtualCameraBehaviourFloatBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "name")) this.SetName(this.name);
@@ -75,7 +72,6 @@ export class EveVirtualCameraBehaviourFloatBase extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsActive()
   {
     return this.active;

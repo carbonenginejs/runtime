@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLine.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLine_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2Sprite2dTextureSettings, Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
@@ -109,7 +109,6 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
    * @param {Tr2Sprite2dScene} renderer Scene gathering this line.
    * @returns {void}
    */
-  @meta.implemented
 
   GatherSprites(renderer)
   {
@@ -203,7 +202,6 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
    * @param {Tr2Sprite2dScene} _renderer Scene supplying the active transform.
    * @returns {null} Always null.
    */
-  @meta.implemented
 
   PickPoint(_x, _y, _renderer)
   {
@@ -216,7 +214,6 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
    * @implemented
    * @returns {number} 4.
    */
-  @meta.implemented
 
   GetVertexCount()
   {

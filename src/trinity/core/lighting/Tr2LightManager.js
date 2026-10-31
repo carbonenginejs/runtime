@@ -242,7 +242,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   static areLightFlagsValid(flags)
   {
     return (flags & (Tr2LightManager.FLAG_AFFECTS_SURFACES | Tr2LightManager.FLAG_AFFECTS_PARTICLES)) !== 0;
@@ -259,7 +258,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   SetShadowQuality(quality, frameCounter = 0)
   {
     const shadowQuality = Number(quality) || 0;
@@ -301,7 +299,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   GetShadowMapAtlasSettings()
   {
     return this._shadowMap.atlasSettings;
@@ -316,7 +313,6 @@ export class Tr2LightManager
    * @param {object} out Receives scale/offsetX/offsetY.
    * @returns {object} out
    */
-  @meta.implemented
   GetUnpackedShadowMapData(record, out)
   {
     const shift = this._shadowMap.atlasSettings.entryMinSizeLog2;
@@ -336,7 +332,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   Clear(renderContext = null)
   {
     this.SetVariableStore();
@@ -356,7 +351,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   SetFrustum(frustum)
   {
     this._frustum = frustum ?? null;
@@ -367,7 +361,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   AdjustLightCutoff(lodFactor)
   {
     this._adjustedCutoff = CUTOFF_PIXEL_SIZE * (Number(lodFactor) || 0);
@@ -383,7 +376,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   AddPointLight(position, radius, color, innerRadius = 0, flags = Tr2LightManager.FLAG_DEFAULT)
   {
     if (!Tr2LightManager.areLightFlagsValid(flags)) return;
@@ -422,7 +414,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   AddLight(record)
   {
     if (!Tr2LightManager.areLightFlagsValid(record.flags)) return;
@@ -475,7 +466,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   ResolveLightData()
   {
     const volumetric = [];
@@ -735,7 +725,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   GetCurrentSpaceSceneShadowQuality()
   {
     return this._currentSpaceSceneShadowQuality;
@@ -746,7 +735,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   GetLightData()
   {
     return this._records;
@@ -757,7 +745,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   GetVolumetricLights()
   {
     return this._volumetricLights;
@@ -768,7 +755,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   GetShadowCastingLights()
   {
     return this._shadowCastingLights;
@@ -856,7 +842,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   static getOrCreateInstance(effectPath)
   {
     Tr2LightManager._instance ??= new Tr2LightManager()._InitializeDevice(effectPath);
@@ -868,7 +853,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   static getInstance()
   {
     return Tr2LightManager._instance;
@@ -884,7 +868,6 @@ export class Tr2LightManager
    *   LightProfileArray and ShadowMapAtlas re-registrations are not made; the
    *   manager does not publish either.
    */
-  @meta.adapted
   static deleteInstance()
   {
     const instance = Tr2LightManager._instance;
@@ -905,7 +888,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   SetVariableStore()
   {
     this._lightBufferVariable?.SetValue(this._lightBuffer);
@@ -917,7 +899,6 @@ export class Tr2LightManager
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
@@ -936,7 +917,6 @@ export class Tr2LightManager
    * @implemented
    * @returns {boolean} True.
    */
-  @meta.implemented
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -963,7 +943,6 @@ export class Tr2LightManager
    * @implemented
    * @param {number} storage The TriStorage classes being released.
    */
-  @meta.implemented
   ReleaseResources(storage)
   {
     // m_perFrameData = Tr2ConstantBufferAL() (cpp:645).
@@ -978,7 +957,6 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The context to clear through.
    * @returns {boolean} Whether the clear succeeded, or there was no buffer.
    */
-  @meta.implemented
   ClearLightIndices(renderContext)
   {
     const buffer = this._indexBuffer.GetGpuBuffer(0);
@@ -996,7 +974,6 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The context to write through.
    * @returns {boolean} Whether the upload succeeded.
    */
-  @meta.implemented
   UpdateLightBuffer(renderContext)
   {
     const count = this._packedCount;
@@ -1021,7 +998,6 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {boolean} Whether the lists were built.
    */
-  @meta.implemented
   UpdateLists(depthMap, renderContext)
   {
     this.SetVariableStore();
@@ -1050,7 +1026,6 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {boolean} Whether both dispatches ran.
    */
-  @meta.implemented
   DoUpdateLists(depthMap, renderContext)
   {
     if (!this._lightBuffer.IsValid() || !this._indexBuffer.IsValid() || !this._indexBufferCounter.IsValid()) return false;
@@ -1283,13 +1258,8 @@ export class Tr2LightManager
 // States: _InsertAtlasNode is Tr2LightManager.cpp:719-788 branch for branch and getLightProfileArray is cpp:682-686. _CreateShadowMapAtlas (cpp:442-504) and
 // _GetShadowMapAtlasEntry (cpp:790-808) are adapted: the position comes back through an out object, the records are the flat _records, and the
 // "everything fit" assert is dropped.
-CjsSchema.decorateMethod(Tr2LightManager, "_CreateShadowMapAtlas", meta.adapted);
-CjsSchema.decorateMethod(Tr2LightManager, "_GetShadowMapAtlasEntry", meta.adapted);
-CjsSchema.decorateMethod(Tr2LightManager, "_InsertAtlasNode", meta.implemented);
 CjsSchema.decorateMethod(Tr2LightManager, "areLightFlagsValid");
 CjsSchema.decorateMethod(Tr2LightManager, "getOrCreateInstance");
 CjsSchema.decorateMethod(Tr2LightManager, "getInstance");
 CjsSchema.decorateMethod(Tr2LightManager, "deleteInstance");
-CjsSchema.decorateMethod(Tr2LightManager, "getLightProfileArray", meta.implemented);
 
-CjsSchema.decorateMethod(Tr2LightManager, "_ProfileSlot", meta.cjs, meta.adapted);

@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython_Blue.cpp
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { IsMatch, blue, INotify, IInitialize, ICustomPersist, CcpTime } from "#blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
@@ -150,7 +150,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
   @legacyBlue.persistOnly
   @type.binary
   @type.uint8Array
-  @meta.notSupported
   state = new Uint8Array(0);
 
   _controller = null;
@@ -179,7 +178,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @returns {boolean} True after successful initialization.
    */
 
-  @meta.adapted
   Initialize()
   {
     this._ensureInstance();
@@ -196,7 +194,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @returns {boolean} True after successful notification.
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (!IsMatch(propertyName, "module") && !IsMatch(propertyName, "className")) return true;
@@ -232,7 +229,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {ITr2ActionController} controller The linked controller.
    */
 
-  @meta.adapted
   Link(controller)
   {
     this._controller = controller;
@@ -248,7 +244,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    *   propagate instead of native BlueScriptCallback exception handling.
    */
 
-  @meta.adapted
   Unlink()
   {
     this._controller = null;
@@ -267,7 +262,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {ITr2ActionController} [controller] Invoking or linked controller.
    */
 
-  @meta.adapted
   Start(controller = this._controller)
   {
     if (!controller)
@@ -303,7 +297,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {ITr2ActionController} [controller] Invoking or linked controller.
    */
 
-  @meta.adapted
   Stop(controller = this._controller)
   {
     if (!controller)
@@ -335,7 +328,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {number} simTime Simulation time in Blue ticks.
    */
 
-  @meta.adapted
   Update(realTime, simTime)
   {
     const controller = this._controller;
@@ -362,7 +354,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @returns {object|null} The cached host instance.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetInstance()
   {
     return this._instance;
@@ -378,7 +369,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @returns {Uint8Array|null} Copied host bytes, or null.
    */
 
-  @meta.adapted
   GetWriteBufferAndSize(_memberName = "state")
   {
     const bytes = this._vtable.onSave ? Tr2ActionPython.stateToBytes(this._vtable.onSave()) : null;
@@ -396,7 +386,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {Uint8Array} _buffer Caller-owned buffer.
    */
 
-  @meta.adapted
   ReleaseWriteBuffer(_buffer)
   {
   }
@@ -410,7 +399,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @returns {Uint8Array} New zero-filled read buffer.
    */
 
-  @meta.adapted
   AllocateReadBuffer(_memberName, bufferSize)
   {
     return new Uint8Array(bufferSize);
@@ -426,7 +414,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {number} [bufferSize=buffer.byteLength] Number of bytes to copy.
    */
 
-  @meta.adapted
   SetBufferAndSize(_memberName, buffer, bufferSize = buffer.byteLength)
   {
     this.state = buffer.slice(0, bufferSize);
@@ -465,7 +452,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    *
    * @adapted the registered JS factory replaces the Python import.
    */
-  @meta.adapted
   _InstantiateObject()
   {
     this._vtable = Tr2ActionPython.emptyVTable();

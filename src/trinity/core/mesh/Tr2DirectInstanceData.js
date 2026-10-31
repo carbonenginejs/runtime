@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 //   trinity/trinity/Tr2DirectInstanceData.cpp
 //   trinity/trinity/Tr2DirectInstanceData_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
@@ -79,7 +79,6 @@ export class Tr2DirectInstanceData
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources()
   {
     this._vertexDeclaration = Tr2EffectStateManager.Unknown;
@@ -91,7 +90,6 @@ export class Tr2DirectInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed() && !this.OnPrepareResources()) return false;
@@ -105,7 +103,6 @@ export class Tr2DirectInstanceData
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     if (this._stride && this.count &&
@@ -131,7 +128,6 @@ export class Tr2DirectInstanceData
    * @implemented
    */
 
-  @meta.implemented
   IsInstanceDataReady()
   {
     return this._vertexDeclaration !== Tr2EffectStateManager.Unknown && this._vertexBuffer.IsValid();
@@ -143,7 +139,6 @@ export class Tr2DirectInstanceData
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
     return { buffer: this._vertexBuffer, offset: 0, stride: this._stride, count: this.count };
@@ -155,7 +150,6 @@ export class Tr2DirectInstanceData
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
     return this._vertexDeclaration;
@@ -168,7 +162,6 @@ export class Tr2DirectInstanceData
    * @adapted
    */
 
-  @meta.adapted
   GetData(count)
   {
     this.count = count;
@@ -191,7 +184,6 @@ export class Tr2DirectInstanceData
    * @implemented
    */
 
-  @meta.implemented
   UpdateData()
   {
     if (!this._vertexBuffer.IsValid()) return;
@@ -204,7 +196,6 @@ export class Tr2DirectInstanceData
    * @adapted
    */
 
-  @meta.adapted
   DestroyData()
   {
     this._vertexBuffer.Destroy();
@@ -219,7 +210,6 @@ export class Tr2DirectInstanceData
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetBoundingBox(bounds, maxBounds)
   {
     const min = maxBounds === undefined ? bounds?.min ?? bounds?.minBounds : bounds;
@@ -238,7 +228,6 @@ export class Tr2DirectInstanceData
    * @implemented
    */
 
-  @meta.implemented
   GetCount()
   {
     return this.count;
@@ -251,7 +240,6 @@ export class Tr2DirectInstanceData
    * @implemented
    */
 
-  @meta.implemented
   GetStride()
   {
     return this._stride;
@@ -265,7 +253,6 @@ export class Tr2DirectInstanceData
    * @adapted
    */
 
-  @meta.adapted
   SetLayout(layout)
   {
     const items = layout.items ?? layout;
@@ -299,7 +286,6 @@ export class Tr2DirectInstanceData
    * @implemented
    */
 
-  @meta.implemented
   GetLayout()
   {
     return this._layout;
@@ -312,7 +298,6 @@ export class Tr2DirectInstanceData
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {
     return {

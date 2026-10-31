@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { noise } from "#math/noise";
 import { vec3 } from "#math/vec3";
@@ -45,7 +45,6 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
    * @adapted Uses core-math's browser port of Carbon's four-dimensional turbulence lookup.
    */
 
-  @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out)
   {
     vec3.set(out, 0, 0, 0);
@@ -88,7 +87,6 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
    * @implemented
    */
 
-  @meta.implemented
   Update(dt)
   {
     this.#time += dt;

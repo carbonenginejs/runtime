@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { BlueAsyncRes } from "#blue/BlueAsyncRes";
 import { ICacheable } from "#blue/ICacheable";
 import { validateResourcePayload } from "../../resource/resourceBoundary.js";
@@ -731,28 +731,16 @@ function normalizeShaderOptions(options)
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
 
-CjsSchema.decorateMethod(Tr2EffectRes, "_DoLoad", meta.adapted);
-CjsSchema.decorateMethod(Tr2EffectRes, "GetShader", meta.adapted);
-CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", meta.adapted);
-CjsSchema.decorateMethod(Tr2EffectRes, "IsMemoryUsageKnown", meta.implemented);
-CjsSchema.decorateMethod(Tr2EffectRes, "GetMemoryUsage", meta.adapted);
+CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", be.mapMethodAndWrap());
 CjsSchema.exposure.mapICacheableMethods()(Tr2EffectRes);
-CjsSchema.decorateMethod(Tr2EffectRes, "_DoPrepare", meta.adapted);
-CjsSchema.decorateMethod(Tr2EffectRes, "_OnPrepareResources", meta.notImplemented);
-CjsSchema.decorateMethod(Tr2EffectRes, "GetDescription", meta.adapted);
 be.define("Tr2EffectRes")(Tr2EffectRes);
 be.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2EffectRes);
 // Carbon: Tr2EffectRes::ExposeToBlue (trinity/trinity/Resources/Tr2EffectRes_Blue.cpp:87).
 CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2EffectRes);
 
-CjsSchema.decorateMethod(Tr2EffectRes, "readShaderResource", meta.cjs, meta.adapted);
 
-CjsSchema.decorateMethod(Tr2EffectRes, "_OnShutdown", meta.adapted);
 
 be.inherit(Tr2DeviceResource)(Tr2EffectRes, { kind: "class" });
 
-CjsSchema.decorateMethod(Tr2EffectRes, "GetShaderByIndex", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(Tr2EffectRes, "_PermutationOf", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

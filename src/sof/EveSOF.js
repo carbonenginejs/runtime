@@ -734,7 +734,6 @@ export class EveSOF extends IRoot
    *   so explicit reloads cannot bypass pending reads or source-replacement checks.
    */
 
-  @meta.adapted
   async LoadData(filePath = this._dataPath)
   {
     return this.LoadDataAsync(filePath);
@@ -798,7 +797,6 @@ export class EveSOF extends IRoot
    * @adapted Carbon starts with a monolithic catalog; JS callers await readiness.
    */
 
-  @meta.adapted
   async CreateDna(dnaString, options = {})
   {
     if (!await this._EnsureDnaData(dnaString, options)) return null;
@@ -810,7 +808,6 @@ export class EveSOF extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
 
   _CreateDna(dnaString)
   {
@@ -903,7 +900,6 @@ export class EveSOF extends IRoot
    * @adapted asynchronous catalogs must be ready before native validation runs.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async ValidateDNA(dnaString, options = {})
   {
     const dna = await this.CreateDna(dnaString, options);
@@ -917,7 +913,6 @@ export class EveSOF extends IRoot
    *   Carbon's live space-object instance.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async Build(hullName, factionName, raceName, options = {})
   {
     return this.BuildFromDNA(`${hullName}:${factionName}:${raceName}`, options);
@@ -1023,7 +1018,6 @@ export class EveSOF extends IRoot
    * @throws {TypeError|RangeError} If the owner, part tag or transform is invalid; downstream build and hydration errors also propagate.
    */
 
-  @meta.adapted
   async BuildChild(owner, dnaString, partTag, transform = identityMatrix(), options = {})
   {
     transform = normalizePlacementTransform(transform);
@@ -1040,7 +1034,6 @@ export class EveSOF extends IRoot
    *
    * @adapted JS values composition replaces native in-place object assembly.
    */
-  @meta.adapted
 
   _BuildChild(owner, dnaString, partTag, transform, options, collectOnly = false)
   {
@@ -1331,7 +1324,6 @@ export class EveSOF extends IRoot
    *   2026-10-27).
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async BuildFromDNA(dnaString, options = {})
   {
     return this.BuildValuesFromDNA(dnaString, options);
@@ -1343,7 +1335,6 @@ export class EveSOF extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   _BuildFromDNA(dnaString, options)
   {
     this._buildDiagnostics = [];
@@ -1696,7 +1687,6 @@ export class EveSOF extends IRoot
    *   shader records produce build diagnostics.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   CreateMesh(dna, document)
   {
@@ -1724,7 +1714,6 @@ export class EveSOF extends IRoot
    *   follow Carbon; the method returns true instead of void.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupShaders(dna, document, meshFields, transparent)
   {
@@ -1758,7 +1747,6 @@ export class EveSOF extends IRoot
    *   retained while that source contributes zero count. Missing source vectors are empty.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   FillMeshAreaVector(target, batchType, dna, hullIndex, meshIndexOffset, document)
   {
@@ -1813,7 +1801,6 @@ export class EveSOF extends IRoot
    *   retains the transparency-resource reference selected by the generic depth shader.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   GenerateDepthFromAreaVector(document, depthAreas, transparentAreas, dna)
   {
@@ -1847,7 +1834,6 @@ export class EveSOF extends IRoot
    *   calling their Setup method.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupCustomMask(document, rootFields, dna)
   {
@@ -1881,7 +1867,6 @@ export class EveSOF extends IRoot
    *   of constructing live decals and calling their initialization methods.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupDecalSets(document, rootFields, dna, stampOrigins = false)
   {
@@ -2003,7 +1988,6 @@ export class EveSOF extends IRoot
    *   the damage-locator count after hydration.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupImpactEffects(document, rootFields, dna)
   {
@@ -2087,7 +2071,6 @@ export class EveSOF extends IRoot
    *   of live object interfaces.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupEffects(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
@@ -2110,7 +2093,6 @@ export class EveSOF extends IRoot
    *   Curves and bindings are data for later initialization.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupChildrenAndAnimations(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
@@ -2215,7 +2197,6 @@ export class EveSOF extends IRoot
    *   and wrong-type early termination follow Carbon.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupEffectChildren(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
@@ -2386,7 +2367,6 @@ export class EveSOF extends IRoot
    *   audio realization remain caller-owned.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupAudio(document, rootFields, dna, parentOffset = identityMatrix())
   {
@@ -2446,7 +2426,6 @@ export class EveSOF extends IRoot
    *   are diagnosed and skipped.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupControllers(document, rootFields, dna, buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
@@ -2466,7 +2445,6 @@ export class EveSOF extends IRoot
    *   resources immediately.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupModelCurves(document, rootFields, dna)
   {
@@ -2492,7 +2470,6 @@ export class EveSOF extends IRoot
    *   transform paths retain Carbon’s different auxiliary-matrix orientations.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupInstancedMeshes(document, rootFields, dna, offsets = [identityMatrix()])
   {
@@ -2576,7 +2553,6 @@ export class EveSOF extends IRoot
    *   returns null.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   CreateInstancedMesh(document, instances, resourcePath)
   {
@@ -2617,7 +2593,6 @@ export class EveSOF extends IRoot
    *   part tag through buildContext.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupLayout(document, rootFields, dna, options = {}, targetFields = null, buildContext = {})
   {
@@ -2958,7 +2933,6 @@ export class EveSOF extends IRoot
    *   the last hull supplies alwaysOn, and any hull can enable trails.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupBoosters(document, rootFields, dna)
   {
@@ -3140,7 +3114,6 @@ export class EveSOF extends IRoot
    *   texture overrides for the whole set; all hulls contribute items with offsets.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupChildBoosters(document, placementFields, dna)
   {
@@ -3356,7 +3329,6 @@ export class EveSOF extends IRoot
    *   build flag is a boolean here. Sprite and sprite-line effects share within this call.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupAttachments(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
@@ -3387,7 +3359,6 @@ export class EveSOF extends IRoot
    *   effect identity, and light timestamps use the injected buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupSpriteSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
   {
@@ -3495,7 +3466,6 @@ export class EveSOF extends IRoot
    *   constructing and rebuilding native attachments. Light timestamps use buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupSpotlightSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
@@ -3646,7 +3616,6 @@ export class EveSOF extends IRoot
    *   Light timestamps use the injected buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupPlaneSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
@@ -3837,7 +3806,6 @@ export class EveSOF extends IRoot
    *   Light timestamps use the injected buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupSpriteLineSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
   {
@@ -3967,7 +3935,6 @@ export class EveSOF extends IRoot
    *   on the EveSOF instance. Light timestamps use the injected buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupHazeSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
@@ -4116,7 +4083,6 @@ export class EveSOF extends IRoot
    *   Carbon can retain an empty set and external parameter for visible authored items.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupBanners(document, rootFields, dna, offsets = [identityMatrix()])
   {
@@ -4180,7 +4146,6 @@ export class EveSOF extends IRoot
    *   Carbon can retain an empty set and external parameter for visible authored items.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupBannerSets(document, rootFields, dna, offsets = [identityMatrix()])
   {
@@ -4264,7 +4229,6 @@ export class EveSOF extends IRoot
    *   missing colors are skipped without native error logging.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupLights(document, rootFields, dna, offsets = [identityMatrix()])
   {
@@ -4348,7 +4312,6 @@ export class EveSOF extends IRoot
    *   objects; hull selection and translation offsets follow Carbon.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupLocators(document, rootFields, dna)
   {
@@ -4394,7 +4357,6 @@ export class EveSOF extends IRoot
    * @returns {object|null} Effect node reference or null.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
   CreateArmorDamageEffect(document, dna)
   {
     const damage = dna.GetGenericDamageData();
@@ -4421,7 +4383,6 @@ export class EveSOF extends IRoot
    *   remain available to the placement child.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   BuildHullLocalLocatorSets(document, dna)
   {
@@ -4468,7 +4429,6 @@ export class EveSOF extends IRoot
    *   empty-offset branch. Optional part tags are normalized to uint32 here.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.adapted
 
   SetupLocatorSets(document, rootFields, dna, offsets = [identityMatrix()], partTag = null)
   {
@@ -4626,7 +4586,6 @@ export class EveSOF extends IRoot
    *   ApplySofTurretMaterial interface instead of walking Trinity objects inside SOF.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async SetupTurretMaterialFromFaction(turretSet, factionName, options = {})
   {
     const factionData = await this.GetFactionData(factionName, options);
@@ -4646,7 +4605,6 @@ export class EveSOF extends IRoot
    * @returns {Promise<void>} Resolves after materials have been applied.
    */
 
-  @meta.adapted
   async ApplyFactionToTurretShader(turret, genericData, factionData, options = {})
   {
     await this.InitializeAsync(options);
@@ -4662,7 +4620,6 @@ export class EveSOF extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
 
   _ApplyFactionToTurretShader(turret, genericData, factionData)
   {
@@ -4682,7 +4639,6 @@ export class EveSOF extends IRoot
    *   turret’s ApplySofTurretMaterial interface instead of walking Trinity objects in SOF.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async SetupChildTurretMaterialFromFaction(childTurret, factionName, options = {})
   {
     const factionData = await this.GetFactionData(factionName, options);
@@ -4698,7 +4654,6 @@ export class EveSOF extends IRoot
    *   ApplySofTurretMaterial interface. Invalid DNA returns without Carbon’s error log.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async SetupTurretMaterialFromDNA(turretSet, dnaString, options = {})
   {
     const dna = await this.CreateDna(dnaString, options);

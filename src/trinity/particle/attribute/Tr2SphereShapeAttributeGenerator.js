@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2SphereShapeAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -117,7 +117,6 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    */
   @be.mapPropertyReadOnly()
   @type.string
-  @meta.implemented
   get name()
   {
     return this.GetName();
@@ -129,7 +128,6 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    *
    * @implemented
    */
-  @meta.implemented
   Bind(particleSystem, boundElements)
   {
     this.#positionElement = this.controlPosition
@@ -159,7 +157,6 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    * @adapted
    */
 
-  @meta.adapted
   Generate(parentPosition, parentVelocity, index)
   {
     if (!this.valid || (!this.controlPosition && !this.controlVelocity))
@@ -211,7 +208,6 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.controlPosition
@@ -226,7 +222,6 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    * @adapted Carbon's paired reference outputs become caller-provided out arguments.
    */
 
-  @meta.adapted
   GetTransform(outPosition, outRotation)
   {
     vec3.copy(outPosition, this.position);
@@ -239,7 +234,6 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    * @implemented
    */
 
-  @meta.implemented
   SetTransform(position, rotation)
   {
     vec3.copy(this.position, position);

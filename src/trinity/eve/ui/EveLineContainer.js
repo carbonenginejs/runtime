@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/UI/EveLineContainer.cpp
 // Source: trinity/trinity/Eve/UI/EveLineContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 
 
@@ -44,7 +44,6 @@ export class EveLineContainer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Update(context)
   {
     if (!this.lineSet)
@@ -67,7 +66,6 @@ export class EveLineContainer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     this.Update(updateContext);
@@ -79,7 +77,6 @@ export class EveLineContainer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
@@ -91,7 +88,6 @@ export class EveLineContainer extends IRoot
    */
 
   @blue.contextual(["camera"])
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
     if (this.display && this.lineSet)
@@ -105,7 +101,6 @@ export class EveLineContainer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables__Impostors(renderables, impostors)
   {
@@ -121,7 +116,6 @@ export class EveLineContainer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
     return this.lineSet ? this.lineSet.GetBoundingSphere(sphere, query) : false;
@@ -133,7 +127,6 @@ export class EveLineContainer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateModelCenterWorldPosition(position, time)
   {
     if (this.lineSet)
@@ -148,7 +141,6 @@ export class EveLineContainer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetModelCenterWorldPosition(position)
   {
     if (this.lineSet)
@@ -163,7 +155,6 @@ export class EveLineContainer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(minBounds, maxBounds)
   {
     return this.lineSet ? this.lineSet.GetLocalBoundingBox(minBounds, maxBounds) : false;
@@ -175,7 +166,6 @@ export class EveLineContainer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     if (this.lineSet)

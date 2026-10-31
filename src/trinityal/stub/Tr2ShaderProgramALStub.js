@@ -10,7 +10,7 @@
 // and draw with whichever the backend happened to keep.
 //
 // Carbon quirk: Create leaves the stub map empty (stub cpp:23-49; CE-26).
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -169,11 +169,4 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
 CjsSchema.decorateField(Tr2ShaderProgramALStub, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2ShaderProgramALStub, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 // States against stub/Tr2ShaderProgramALStub.cpp:11-68 and .h:20-26. Create is adapted: it also keeps the shaders (GetShaders), which Carbon's stub does not.
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetRegisterMap", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Create", meta.adapted);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2ShaderProgramALStub")(Tr2ShaderProgramALStub);

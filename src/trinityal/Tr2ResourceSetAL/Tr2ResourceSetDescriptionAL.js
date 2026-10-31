@@ -3,7 +3,7 @@ import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 import { Tr2SamplerStateAL } from "../Tr2SamplerStateAL/index.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:44-127
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:152-543
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { MAX_RESOURCES_IN_STAGE, Tr2RegisterMapAL } from "./Tr2RegisterMapAL.js";
 
 // Hash identities for the native invalid buffer and texture implementations
@@ -72,7 +72,6 @@ export class Tr2ResourceSetDescriptionAL
    *   replaces; JavaScript has no copy assignment or destructors.
    * @returns {boolean} Whether the record changed.
    */
-  @meta.adapted
   SetSrv__BufferAL(stage, registerIndex, buffer)
   {
     const current = this._SrvRecord(stage, registerIndex);
@@ -98,7 +97,6 @@ export class Tr2ResourceSetDescriptionAL
    *   replaces; JavaScript has no copy assignment or destructors.
    * @returns {boolean} Whether the record changed.
    */
-  @meta.adapted
   SetSrv__TextureAL(stage, registerIndex, texture, colorSpace = 0)
   {
     const current = this._SrvRecord(stage, registerIndex);
@@ -138,7 +136,6 @@ export class Tr2ResourceSetDescriptionAL
    *   replaces; JavaScript has no copy assignment or destructors.
    * @returns {boolean} Whether the record changed.
    */
-  @meta.adapted
   SetUav__BufferAL(stage, registerIndex, buffer)
   {
     const current = this._UavRecord(stage, registerIndex);
@@ -163,7 +160,6 @@ export class Tr2ResourceSetDescriptionAL
    * @adapted JS has no unions: colorSpace stores the shared mip/colour-space word.
    * @returns {boolean} Whether the record changed.
    */
-  @meta.adapted
   SetUav__TextureAL(stage, registerIndex, texture, mip = 0)
   {
     const current = this._UavRecord(stage, registerIndex);
@@ -206,7 +202,6 @@ export class Tr2ResourceSetDescriptionAL
    * @param {Tr2SamplerStateAL} sampler The sampler state.
    * @returns {boolean} Whether the record changed.
    */
-  @meta.adapted
   SetSampler(stage, registerIndex, sampler)
   {
     if (this._registerMap.samplerCount === 0) return false;
@@ -229,7 +224,6 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @implemented
    */
-  @meta.implemented
   SetSrvHeapView(stage, registerIndex)
   {
     if (this._registerMap.srvCount === 0) return false;
@@ -250,7 +244,6 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @implemented
    */
-  @meta.implemented
   SetUavHeapView(stage, registerIndex)
   {
     if (this._registerMap.uavCount === 0) return false;
@@ -271,7 +264,6 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @implemented
    */
-  @meta.implemented
   SetSamplerHeapView(stage, registerIndex)
   {
     if (this._registerMap.samplerCount === 0) return false;
@@ -290,7 +282,6 @@ export class Tr2ResourceSetDescriptionAL
    *   preserve unique_ptr comparison.
    * @renamed operator==
    */
-  @meta.adapted
   Equals(other)
   {
     // Carbon quirk: allocation identity, not contents (cpp:434-437; CE-24).
@@ -306,7 +297,6 @@ export class Tr2ResourceSetDescriptionAL
    * @adapted the handles are destroyed explicitly; JavaScript has no
    *   destructors.
    */
-  @meta.adapted
   ClearResources()
   {
     for (const [ records, count ] of [ [ this._srv, this._registerMap.srvCount ], [ this._uav, this._registerMap.uavCount ] ])
@@ -335,7 +325,6 @@ export class Tr2ResourceSetDescriptionAL
    *   process-local 32-bit IDs. Distinct invalid backend identities are retained. Traversal,
    *   zero seed, signed-byte FNV and donor omissions are preserved.
    */
-  @meta.adapted
   ComputeHash()
   {
     let hash = 0;
@@ -395,7 +384,6 @@ CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_registerMap", type.rawStr
 CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_srv", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
 CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_uav", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
 CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_samplers", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Sampler" }));
-CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "Equals", meta.renamed("operator=="));
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSrv__BufferAL");
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSrv__TextureAL");
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetUav__BufferAL");

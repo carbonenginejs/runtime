@@ -105,7 +105,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "pickBufferID")) this.Rebuild();
@@ -201,7 +200,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Rebuild()
   {
     this._rebuildRevision++;
@@ -248,7 +246,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this.Rebuild();
@@ -263,7 +260,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.effect) this._effectHash = Number(this.effect.GetHashValue()) >>> 0;
@@ -278,7 +274,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain, bones, boneCount)
   {
     if (!this.display) return;
@@ -328,7 +323,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetEffect(effect)
   {
     this.effect = effect ?? null;
@@ -342,7 +336,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   SetPickBufferID(pickBufferID)
   {
     this.pickBufferID = Number(pickBufferID) & 0xff;
@@ -356,7 +349,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
     return GetItemSetAabb(
@@ -376,7 +368,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = this.GetAabb(EvePlaneSet._aabbScratch, bones, boneCount);
@@ -396,7 +387,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetIsSkinned(skinned)
   {
     this.skinned = !!skinned;
@@ -409,7 +399,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   AddPlaneItem(item)
   {
     this.planes.push(item);
@@ -421,7 +410,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetPlanes()
   {
     return this.planes;
@@ -434,7 +422,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Plane Sets");
@@ -463,7 +450,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @param {number} boneCount
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
     if (renderer.HasOption(this, "Plane Sets"))
@@ -574,7 +560,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     if (this.effect)
@@ -590,7 +575,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   SetImageMapParameter(parameter)
   {
     this.imageMapParameter = parameter ?? null;
@@ -603,7 +587,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   SetLayerMap1Parameter(parameter)
   {
     this.layerMap1Parameter = parameter ?? null;
@@ -616,7 +599,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   SetLayerMap2Parameter(parameter)
   {
     this.layerMap2Parameter = parameter ?? null;
@@ -629,7 +611,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   SetMaskMapParameter(parameter)
   {
     this.maskMapParameter = parameter ?? null;
@@ -642,7 +623,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EvePlaneLight.FromSOF(light));
@@ -655,7 +635,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -678,7 +657,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    *   Normal2Warp - so ours applies bone 0 like any other.
    */
 
-  @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
@@ -712,7 +690,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @param {TriTextureParameter|null} map
    * @returns {ArrayLike<number>}
    */
-  @meta.implemented
   GetAverageColor__Map(map)
   {
     if (!map || !map.GetResource()) return WHITE;
@@ -731,7 +708,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @returns {vec4} The destination colour.
    */
 
-  @meta.adapted
   GetAverageColor(out)
   {
     const layer1 = this.GetAverageColor__Map(this.layerMap1Parameter);
@@ -757,7 +733,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @adapted Light-profile packing follows the adapted light-manager surface.
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     const features = EvePlaneSet._features;

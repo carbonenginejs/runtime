@@ -9,7 +9,7 @@
 // (`SetThreadStatus__Thread`). `SetThreadStatus` reports for this thread,
 // under `MAIN_THREAD`. One realm needs no mutex.
 import { exposure as be } from "#be";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { IBlueThreadMonitor } from "./IBlueThreadMonitor.js";
 
 /** `BlueThreadMonitor` - remembers each thread's last reported status. */
@@ -62,8 +62,7 @@ export class BlueThreadMonitor extends IBlueThreadMonitor
 }
 
 CjsSchema.exposure.mapInterface(IBlueThreadMonitor)(BlueThreadMonitor);
-CjsSchema.decorateMethod(BlueThreadMonitor, "SetThreadStatus", meta.adapted);
-CjsSchema.decorateMethod(BlueThreadMonitor, "GetStatus", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(BlueThreadMonitor, "GetStatus", be.mapMethodAndWrap());
 be.define("BlueThreadMonitor")(BlueThreadMonitor);
 
 /**

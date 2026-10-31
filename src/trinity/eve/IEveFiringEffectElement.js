@@ -1,6 +1,5 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/IEveFiringEffectElement.h
-import { meta } from "#schema";
 import { EveEntity } from "./EveEntity.js";
 
 
@@ -103,7 +102,6 @@ export class IEveFiringEffectElement extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   Update(_updateContext)
   {
   }
@@ -114,7 +112,6 @@ export class IEveFiringEffectElement extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -125,7 +122,6 @@ export class IEveFiringEffectElement extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }
@@ -136,7 +132,6 @@ export class IEveFiringEffectElement extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   SetIntensity(_intensity)
   {
   }
@@ -147,7 +142,6 @@ export class IEveFiringEffectElement extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   SetDisplay(_display)
   {
   }

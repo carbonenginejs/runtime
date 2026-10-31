@@ -35,7 +35,6 @@ export class Tr2PrimitiveSet extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   OnModified(names)
   {
     if (IsMatch(names, "color")) this.SetCurrentColor(this.color);
@@ -109,7 +108,6 @@ export class Tr2PrimitiveSet extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetCurrentColor(_color)
   {
   }
@@ -125,7 +123,6 @@ export class Tr2PrimitiveSet extends IRoot
    *   and skips it while its resource is not good (Tr2Effect.IsGood).
    */
 
-  @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
     if (batchType === TriBatchType.TRIBATCHTYPE_OPAQUE && this.effect && this.effect.IsGood())
@@ -148,7 +145,6 @@ export class Tr2PrimitiveSet extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -160,7 +156,6 @@ export class Tr2PrimitiveSet extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const bound = this.GetBoundingSphere(Tr2PrimitiveSet.scratch.vec4_0);
@@ -174,7 +169,6 @@ export class Tr2PrimitiveSet extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetBoundingSphere(out) // alloc: value-returned sphere belongs to the caller.
   {
     vec3.transformMat4(out, this.boundingSphere, this.worldTransform);
@@ -188,7 +182,6 @@ export class Tr2PrimitiveSet extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetWorldTransform()
   {
     return this.worldTransform;
@@ -201,7 +194,6 @@ export class Tr2PrimitiveSet extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetID(_areaId)
   {
     return this;
@@ -213,7 +205,6 @@ export class Tr2PrimitiveSet extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetPerObjectData(accumulator)
   {
     // These existing layouts have the identical native single-matrix shape.
@@ -236,7 +227,6 @@ export class Tr2PrimitiveSet extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateTransform()
   {
     const view = Tr2Renderer.GetViewTransform(), local = this.localTransform;
@@ -271,7 +261,6 @@ export class Tr2PrimitiveSet extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPickingBatches(accumulator, pickTypes, perObjectData)
   {
     if (pickTypes & Tr2PickType.PICK_TYPE_PICKING) this.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_PICKING, perObjectData);

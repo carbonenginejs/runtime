@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2TextureAL.h
 // Source: trinity/trinityal/src/Tr2TextureAL.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -36,7 +36,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Create__GpuUsage(desc, gpuUsage, renderContext)
   {
     return this.Create(desc, new Tr2MsaaDesc(), gpuUsage, Tr2CpuUsage.NONE, null, renderContext);
@@ -54,7 +53,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Create__MsaaGpuUsage(desc, msaa, gpuUsage, renderContext)
   {
     return this.Create(desc, msaa, gpuUsage, Tr2CpuUsage.NONE, null, renderContext);
@@ -72,7 +70,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Create__GpuUsageInitialData(desc, gpuUsage, initialData, renderContext)
   {
     return this.Create(desc, new Tr2MsaaDesc(), gpuUsage, Tr2CpuUsage.NONE, initialData, renderContext);
@@ -90,7 +87,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Create__GpuUsageCpuUsage(desc, gpuUsage, cpuUsage, renderContext)
   {
     return this.Create(desc, new Tr2MsaaDesc(), gpuUsage, cpuUsage, null, renderContext);
@@ -109,7 +105,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Create__GpuUsageCpuUsageInitialData(desc, gpuUsage, cpuUsage, initialData, renderContext)
   {
     return this.Create(desc, new Tr2MsaaDesc(), gpuUsage, cpuUsage, initialData, renderContext);
@@ -133,7 +128,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(desc, msaa, gpuUsage, cpuUsage, initialData, renderContext)
   {
     desc = Object.assign(new BitmapDimensions(), desc);
@@ -148,7 +142,6 @@ export class Tr2TextureAL
    *
    * @notSupported
    */
-  @meta.notSupported
   OpenShared(_handle, _gpuUsage, _renderContext)
   {
     this.Destroy();
@@ -167,7 +160,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   IsValid()
   {
     return this._texture !== null && this._texture.implementation.IsValid();
@@ -178,7 +170,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._texture ? this._texture.implementation.GetMemoryClass() : Tr2ALMemoryType.AL_MEMORY_MANAGED;
@@ -189,7 +180,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetDesc()
   {
     return this._texture ? this._texture.implementation.GetDesc() : emptyDescription;
@@ -200,7 +190,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetMsaaDesc()
   {
     return this._texture ? this._texture.implementation.GetMsaaDesc() : emptyMsaa;
@@ -211,7 +200,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetGpuUsage()
   {
     return this._texture ? this._texture.implementation.GetGpuUsage() : 0;
@@ -222,7 +210,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetCpuUsage()
   {
     return this._texture ? this._texture.implementation.GetCpuUsage() : 0;
@@ -233,7 +220,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetWidth()
   {
     return this.GetDesc().GetWidth();
@@ -244,7 +230,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetHeight()
   {
     return this.GetDesc().GetHeight();
@@ -255,7 +240,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetDepth()
   {
     return this.GetDesc().GetDepth();
@@ -266,7 +250,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetMipCount()
   {
     return this.GetDesc().GetMipCount();
@@ -277,7 +260,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetTrueMipCount()
   {
     return this.GetDesc().GetTrueMipCount();
@@ -288,7 +270,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetFormat()
   {
     return this.GetDesc().GetFormat();
@@ -299,7 +280,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetType()
   {
     return this.GetDesc().GetType();
@@ -310,7 +290,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetArraySize()
   {
     return this.GetDesc().GetArraySize();
@@ -321,7 +300,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetMipSize(mip)
   {
     return this.GetDesc().GetMipSize(mip);
@@ -333,7 +311,6 @@ export class Tr2TextureAL
    * @adapted
    * @renamed operator==
    */
-  @meta.adapted
   Equals(other)
   {
     return this._texture === other._texture;
@@ -344,7 +321,6 @@ export class Tr2TextureAL
    *
    * @adapted
    */
-  @meta.adapted
   CreateReadback(region, renderContext)
   {
     return new Tr2ReadbackAL({ implementation: this._texture
@@ -356,7 +332,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   MapForReading(region, renderContext)
   {
     return this._texture ? this._texture.implementation.MapForReading(region, renderContext) : { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
@@ -367,7 +342,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   UnmapForReading(renderContext)
   {
     return this._texture ? this._texture.implementation.UnmapForReading(renderContext) : undefined;
@@ -378,7 +352,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   MapForWriting(region, renderContext)
   {
     return this._texture ? this._texture.implementation.MapForWriting(region, renderContext) : { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
@@ -389,7 +362,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   UnmapForWriting(renderContext)
   {
     return this._texture ? this._texture.implementation.UnmapForWriting(renderContext) : undefined;
@@ -400,7 +372,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   UpdateSubresource(region, source, pitch, slicePitch, renderContext)
   {
     return this._texture ? this._texture.implementation.UpdateSubresource(region, source, pitch, slicePitch, renderContext) : ALResult.E_INVALIDCALL;
@@ -411,7 +382,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   CopySubresourceRegion(destinationRegion, source, sourceRegion, renderContext)
   {
     if (!this.IsValid() || !RenderContextALOf(renderContext).IsValid()) return ALResult.E_INVALIDCALL;
@@ -424,7 +394,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   Resolve(destination, renderContext)
   {
     if (this.GetMsaaDesc().samples <= 1)
@@ -441,7 +410,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetSharedHandle()
   {
     return this._texture ? this._texture.implementation.GetSharedHandle() : 0;
@@ -452,7 +420,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetSrvIndexInHeap(colorSpace = 0)
   {
     return this._texture ? this._texture.implementation.GetSrvIndexInHeap(colorSpace) : 0xffffffff;
@@ -463,7 +430,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetUavIndexInHeap(mip)
   {
     return this._texture ? this._texture.implementation.GetUavIndexInHeap(mip) : 0xffffffff;
@@ -474,7 +440,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GenerateMipMaps(renderContext)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -488,7 +453,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -501,7 +465,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.IsValid() ? this._texture.implementation.GetName() : null;
@@ -512,7 +475,6 @@ export class Tr2TextureAL
    *
    * @implemented
    */
-  @meta.implemented
   TrinityALImpl_GetObject()
   {
     return this._texture ? this._texture.implementation : null;
@@ -530,6 +492,5 @@ export class Tr2TextureAL
 
 
 CjsSchema.decorateField(Tr2TextureAL, "_texture", type.unknown);
-CjsSchema.decorateMethod(Tr2TextureAL, "Equals", meta.renamed("operator=="));
 CjsSchema.decorateMethod(Tr2TextureAL, "CreateReadback");
 CjsSchema.meta.carbon("Tr2TextureAL")(Tr2TextureAL);

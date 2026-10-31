@@ -1,7 +1,6 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/IEveProceduralSelectionMethod.h
-import { meta } from "#schema";
 
 
 /** Required procedural-child selection contract. */
@@ -48,7 +47,6 @@ export class IEveProceduralSelectionMethod extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetProceduralMethodVariable(_name, _value)
   {
   }
@@ -59,7 +57,6 @@ export class IEveProceduralSelectionMethod extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProceduralMethodVariable(_name)
   {
     return "not Implemented";

@@ -32,7 +32,6 @@ export class Tr2Sprite2dDisplayListEntry
    *
    * @adapted
    */
-  @meta.adapted
   SubmitGeometry(context)
   {
     for (let i = 0; i < 32; i++) mat4.transpose(this._transposedTransforms.subarray(i * 16, (i + 1) * 16), this.transformArray[i]);

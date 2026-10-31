@@ -7,7 +7,7 @@ import { CjsBlueClasses } from "../../src/global/blue/CjsBlueClasses.js";
 test("define({ unused }) installs throwers raising CjsUnusedMethodError", () =>
 {
   class UnusedHost { Used() { return 1; } }
-  CjsSchema.define(UnusedHost, { className: "DefineUnusedHost", unused: [ "Dropped", " Other " ], methods: { Used: [ blue.method, meta.implemented ] } });
+  CjsSchema.define(UnusedHost, { className: "DefineUnusedHost", unused: [ "Dropped", " Other " ], methods: { Used: [ blue.method ] } });
   const host = new UnusedHost();
   assert.equal(host.Used(), 1);
   for (const name of [ "Dropped", "Other" ])

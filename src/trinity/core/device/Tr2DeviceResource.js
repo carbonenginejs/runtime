@@ -223,14 +223,6 @@ export function destroyAdapterValue(value)
 
 // Imperative metadata keeps native resource source imports valid ESM.
 meta.carbon("Tr2DeviceResource")(Tr2DeviceResource);
-CjsSchema.decorateMethod(Tr2DeviceResource, "GetDescription", meta.adapted);
 CjsSchema.decorateMethod(Tr2DeviceResource, "ReleaseResources", meta.abstract);
-CjsSchema.decorateMethod(Tr2DeviceResource, "PrepareResources", meta.implemented);
 CjsSchema.decorateMethod(Tr2DeviceResource, "OnPrepareResources", meta.abstract);
-CjsSchema.decorateMethod(Tr2DeviceResource, "SetAdapterResource", meta.cjs, meta.adapted);
-CjsSchema.decorateMethod(Tr2DeviceResource, "GetAdapterResource", meta.cjs, meta.adapted);
-CjsSchema.decorateMethod(Tr2DeviceResource, "HasAdapterResource", meta.cjs, meta.adapted);
-CjsSchema.decorateMethod(Tr2DeviceResource, "DestroyAdapterResource", meta.cjs, meta.adapted);
-CjsSchema.decorateMethod(Tr2DeviceResource, "DestroyAdapterResources", meta.cjs, meta.adapted);
 
-CjsSchema.decorateMethod(Tr2DeviceResource, "constructor", CjsSchema.meta.adapted);

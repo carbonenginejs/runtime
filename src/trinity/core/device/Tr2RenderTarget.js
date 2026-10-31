@@ -17,7 +17,7 @@ import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 //
 // The `@blue.read` properties are the Blue READ projection, refreshed wherever
 // the texture changes.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2Event } from "../Tr2Event.js";
 import { ExFlag, PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult } from "#trinityal";
@@ -64,7 +64,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapAttribute(be.PERSISTONLY, "name")
-  @meta.implemented
   @type.string
   _name = "";
 
@@ -89,7 +88,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(width = 0, height = 0, mipCount = 1, format = PixelFormat.PIXEL_FORMAT_UNKNOWN, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D)
   {
     if (width && height && format)
@@ -109,7 +107,6 @@ export class Tr2RenderTarget extends IRoot
   /** @implemented */
   @be.mapMethodAndWrapOptionalArgs("CreateArray")
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   Create(width, height, mipLevelCount, format, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (this.IsAttached()) return ALResult.E_INVALIDARG;
@@ -128,7 +125,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   CreateArray(width, height, arraySize, mipLevelCount, format, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (this.IsAttached()) return ALResult.E_INVALIDARG;
@@ -149,7 +145,6 @@ export class Tr2RenderTarget extends IRoot
    * @returns {number} An `ALResult` value.
    * Carbon declaration: Tr2RenderTarget::CreateManual (trinity/trinity/Tr2RenderTarget.h:57).
    */
-  @meta.implemented
   CreateManual(width, height, mipLevelCount, format, msaaType, msaaQuality, flags, type, cpuUsage, gpuUsage, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (this.IsAttached()) return ALResult.E_INVALIDARG;
@@ -188,7 +183,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetTexture()
   {
     const texture = this.GetRenderTarget();
@@ -204,7 +198,6 @@ export class Tr2RenderTarget extends IRoot
    * @returns {Tr2Event} m_onTextureChange.
    */
 
-  @meta.implemented
   OnTextureChange()
   {
     return this._onTextureChange;
@@ -217,7 +210,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Attach(renderTarget, owner)
   {
     const next = renderTarget ? new Tr2TextureAL({ copy: renderTarget }) : null;
@@ -234,7 +226,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Detach()
   {
     if (this._attachedOwner)
@@ -251,7 +242,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsAttached()
   {
     return this._attachedOwner !== null;
@@ -265,7 +255,6 @@ export class Tr2RenderTarget extends IRoot
    * @returns {object|null} The `Tr2TextureAL`.
    */
 
-  @meta.implemented
   GetRenderTarget()
   {
     return this.IsAttached() ? this._attachedRenderTarget : this._renderTarget;
@@ -277,7 +266,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsValid()
   {
     return Boolean(this.GetRenderTarget()?.IsValid());
@@ -289,7 +277,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Destroy()
   {
     const wasValid = Boolean(this._renderTarget?.IsValid());
@@ -320,7 +307,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsReadable()
   {
     const texture = this.GetRenderTarget();
@@ -334,7 +320,6 @@ export class Tr2RenderTarget extends IRoot
    * @returns {number} An `ALResult` value.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GenerateMipMaps(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     return this.GetRenderTarget().GenerateMipMaps(renderContext);
@@ -348,7 +333,6 @@ export class Tr2RenderTarget extends IRoot
    * @returns {number} An `ALResult` value.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Resolve(destination, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (!destination) return ALResult.E_FAIL;
@@ -361,7 +345,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasALObject(_type, _object)
   {
     return false;
@@ -373,7 +356,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   sharedHandle()
   {
     return this._renderTarget?.GetSharedHandle() ?? null;
@@ -385,7 +367,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetWidth()
   {
     return this.GetRenderTarget()?.GetWidth() ?? 0;
@@ -397,7 +378,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHeight()
   {
     return this.GetRenderTarget()?.GetHeight() ?? 0;
@@ -409,7 +389,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMipCount()
   {
     return this.GetRenderTarget()?.GetMipCount() ?? 0;
@@ -421,7 +400,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetArraySize()
   {
     return this.GetRenderTarget()?.GetArraySize() ?? 0;
@@ -433,7 +411,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMsaaType()
   {
     return this.GetRenderTarget()?.GetMsaaDesc().samples ?? 0;
@@ -445,7 +422,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMsaaQuality()
   {
     return this.GetRenderTarget()?.GetMsaaDesc().quality ?? 0;
@@ -457,7 +433,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetFormat()
   {
     return this.GetRenderTarget()?.GetFormat() ?? PixelFormat.PIXEL_FORMAT_UNKNOWN;
@@ -469,7 +444,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetType()
   {
     return this.GetRenderTarget()?.GetType() ?? TextureType.TEX_TYPE_INVALID;
@@ -481,7 +455,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this._name = name ?? "";
@@ -494,7 +467,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this._name;
@@ -507,14 +479,12 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get name()
   {
     return this.GetName();
   }
 
   /** @implemented */
-  @meta.implemented
   set name(value)
   {
     this.SetName(value);
@@ -527,7 +497,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get width()
   {
     return this.GetWidth();
@@ -540,7 +509,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get height()
   {
     return this.GetHeight();
@@ -553,7 +521,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get mipCount()
   {
     return this.GetMipCount();
@@ -566,7 +533,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get multiSampleType()
   {
     return this.GetMsaaType();
@@ -579,7 +545,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get multiSampleQuality()
   {
     return this.GetMsaaQuality();
@@ -592,7 +557,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get arraySize()
   {
     return this.GetArraySize();
@@ -605,7 +569,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get format()
   {
     return this.GetFormat();
@@ -618,7 +581,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get type()
   {
     return this.GetType();
@@ -631,7 +593,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get isValid()
   {
     return this.IsValid();
@@ -644,7 +605,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get isReadable()
   {
     return this.IsReadable();
@@ -657,7 +617,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources(storage)
   {
     if (this._renderTarget?.IsValid() && (this._renderTarget.GetMemoryClass() & storage))
@@ -675,7 +634,6 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (!this._renderTarget && this._created)

@@ -8,7 +8,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "#math/mat4";
@@ -252,7 +252,6 @@ export class BehaviorGroup extends EveEntity
    *   are the group's own arrays.
    */
 
-  @meta.adapted
   Initialize()
   {
     this._EnsureScratchArrays();
@@ -274,7 +273,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "mesh"))
@@ -295,7 +293,6 @@ export class BehaviorGroup extends EveEntity
    * @adapted per-agent records replace native scratch-memory byte buffers.
    *   Carbon declaration: BehaviorGroup::OnListModified (trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h:47).
    */
-  @meta.adapted
   OnListModified(event, key = 0, key2 = 0, _value = null, list = null)
   {
     if (list === this.behaviors && (event & BLUELISTEVENT.BELIST_LOADING) === 0)
@@ -335,7 +332,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   InitializeGeometryResource()
   {
     this._agents.length = 0;
@@ -360,7 +356,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetVertexFunctionReferance(callback)
   {
     this._changeBufferVertexCount = callback;
@@ -372,7 +367,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetSize()
   {
     return this._agents.length;
@@ -384,7 +378,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetCount()
   {
     return this.actualCount;
@@ -396,7 +389,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CreateAgentTree()
   {
     this._tree = new EveKDdroneManagementTree();
@@ -410,7 +402,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetBehaviorByName(name)
   {
     const target = String(name ?? "");
@@ -430,7 +421,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SortBehaviorIndexes()
   {
     this._sortedBehaviorIndexes.length = 0;
@@ -452,7 +442,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetMesh()
   {
     return this.mesh;
@@ -464,7 +453,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetMaxVelocity()
   {
     return this.maxVelocity;
@@ -476,7 +464,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetGroupIndexIndicator(index)
   {
     this._groupIndex = Number(index) | 0;
@@ -488,7 +475,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetGroupIndexIndicator()
   {
     return this._groupIndex;
@@ -500,7 +486,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddAgent()
   {
     this._AddAgentPrivate();
@@ -515,7 +500,6 @@ export class BehaviorGroup extends EveEntity
    * @param {Array<Float32Array>} positions
    */
 
-  @meta.implemented
   AddAgents(positions)
   {
     if (!Array.isArray(positions))
@@ -549,7 +533,6 @@ export class BehaviorGroup extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RemoveAgent()
   {
     if (this._agents.length === 0)
@@ -569,7 +552,6 @@ export class BehaviorGroup extends EveEntity
    * @param {Number} index
    */
 
-  @meta.implemented
   RemoveSpecificAgent(index)
   {
     const lastIndex = this._agents.length - 1;
@@ -602,7 +584,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetCount(count)
   {
     const value = Number(count);
@@ -637,7 +618,6 @@ export class BehaviorGroup extends EveEntity
    * @param {Object} system - owning EveChildBehaviorSystem
    */
 
-  @meta.implemented
   UpdateAgents(dt, system)
   {
     // make sure the update isn't too big when e.g. a player resizes his window
@@ -747,7 +727,6 @@ export class BehaviorGroup extends EveEntity
    * @param {Float32Array} worldTransform - owning system's world transform
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, worldTransform)
   {
     this.currentScreenSize = 0;
@@ -797,7 +776,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   IsGroupVisible()
   {
     return this.currentScreenSize >= this.renderThreshold;
@@ -810,7 +788,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   AllTheSame()
   {
     let same = -1;
@@ -836,7 +813,6 @@ export class BehaviorGroup extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetShipInfoForBuffer(data, _parentWorldLocation, offset = 0)
   {
     this._lightInfo.clear();
@@ -876,7 +852,6 @@ export class BehaviorGroup extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetBoosterInfoForBuffer(data, parentWorldLocation, offset = 0)
   {
     this._lightInfo.clear();
@@ -928,7 +903,6 @@ export class BehaviorGroup extends EveEntity
    *   the existing CarbonVertexElements bridge translates its CMF vocabulary.
    */
 
-  @meta.adapted
   CreateVertexDeclaration()
   {
     const geometry = this.mesh ? this.mesh.GetGeometryResource() : null;
@@ -955,7 +929,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetVertexDeclarationHandle()
   {
     return this._vertexDeclarationHandle;
@@ -967,7 +940,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (this._playFXBehavior !== null)
@@ -983,7 +955,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext)
   {
     if (!this.update)
@@ -1004,7 +975,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (!this.update)
@@ -1034,7 +1004,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetParent()
   {
     return this._parent;
@@ -1048,7 +1017,6 @@ export class BehaviorGroup extends EveEntity
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("AgentsKDTree");
@@ -1074,7 +1042,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphereRadius()
   {
     return this.boundingSphereRadius * this.scale;
@@ -1086,7 +1053,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetKDTree()
   {
     return this._tree;
@@ -1098,7 +1064,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetBooster()
   {
     return this.boosters;
@@ -1114,7 +1079,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetPlayFXBehavior()
   {
     // PlayFX is an EveEntity, so Carbon's BlueCastPtr to one (cpp:977, 982) only tests for null.
@@ -1144,7 +1108,6 @@ export class BehaviorGroup extends EveEntity
    * @param {Object} lightManager
    */
 
-  @meta.implemented
   GetLights(lightManager)
   {
     if (this.boosters && this.boosters.GetDisplay())
@@ -1162,7 +1125,6 @@ export class BehaviorGroup extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   AddLight(_light)
   {
   }
@@ -1173,7 +1135,6 @@ export class BehaviorGroup extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   ClearLights()
   {
   }
@@ -1186,7 +1147,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1206,7 +1166,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1226,7 +1185,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.boosters)
@@ -1247,7 +1205,6 @@ export class BehaviorGroup extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (this.display && this.IsGroupVisible())
@@ -1276,7 +1233,6 @@ export class BehaviorGroup extends EveEntity
    * @param {mat4} parentWorldLocation Places the agents in world space.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentWorldLocation)
   {
     const { Wireframe } = ITr2DebugRenderer2.Effect;
@@ -1393,8 +1349,6 @@ export class BehaviorGroup extends EveEntity
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetAgents()
   {
     return this._agents;
@@ -1406,8 +1360,6 @@ export class BehaviorGroup extends EveEntity
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetForces()
   {
     return this._forces;

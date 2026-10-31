@@ -45,7 +45,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list === this.constraints && (event & BLUELISTEVENT.BELIST_EVENTMASK) === BLUELISTEVENT.BELIST_INSERTED && value)
@@ -259,7 +258,6 @@ export class Tr2ParticleSystem
    */
   @be.mapProperty()
   @type.uint32
-  @meta.implemented
   get maxParticleCount()
   {
     return this._GetMaxParticleCount();
@@ -270,7 +268,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   set maxParticleCount(value)
   {
     this.SetMaxParticleCount(value);
@@ -285,7 +282,6 @@ export class Tr2ParticleSystem
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get gpuStride()
   {
     return this.GetGpuStride();
@@ -308,7 +304,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   SetMaxParticleCount(value)
   {
     this._DestroyBuffers();
@@ -328,7 +323,6 @@ export class Tr2ParticleSystem
    *   buffer with no stride stays null, so either buffer marks a built set.
    *   The CCP_STATS counters have no JavaScript counterpart and are omitted.
    */
-  @meta.adapted
   _DestroyBuffers()
   {
     if (this._buffers[0] === null && this._buffers[1] === null)
@@ -361,7 +355,6 @@ export class Tr2ParticleSystem
    * @adapted typed arrays replace aligned allocations, and a buffer with no
    *   stride stays null. The CCP_STATS counter is omitted.
    */
-  @meta.adapted
   _BuildBuffers()
   {
     if (!this._maxParticleCount)
@@ -415,7 +408,6 @@ export class Tr2ParticleSystem
    * @implemented
    * @returns {number} m_maxParticleCount.
    */
-  @meta.implemented
   _GetMaxParticleCount()
   {
     return this._maxParticleCount;
@@ -426,7 +418,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   GetOriginalMaxParticles()
   {
     return this.originalMaxParticles;
@@ -438,7 +429,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   SetThreadSafeFlag()
   {
   }
@@ -449,7 +439,6 @@ export class Tr2ParticleSystem
    * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Particle Systems");
@@ -464,7 +453,6 @@ export class Tr2ParticleSystem
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldTransform The owner's world transform.
    */
-  @meta.implemented
   RenderDebugInfo(renderer, worldTransform)
   {
     if (!renderer.HasOption(this, "Particle Systems"))
@@ -488,7 +476,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   IsValid()
   {
     return this.isValid;
@@ -499,7 +486,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   IsDynamic()
   {
     return this.updateSimulation;
@@ -513,7 +499,6 @@ export class Tr2ParticleSystem
    * @implemented
    * @returns {number}
    */
-  @meta.implemented
   GetGpuStride()
   {
     return this._strides[0] * 4;
@@ -525,7 +510,6 @@ export class Tr2ParticleSystem
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearParticles()
   {
     this.aliveCount = 0;
@@ -540,7 +524,6 @@ export class Tr2ParticleSystem
    * @implemented
    * @param {Function} constraint - (buffers, strides, count) => void
    */
-  @meta.implemented
   ApplyConstraint(constraint)
   {
     constraint(this._buffers, this._strides, this.aliveCount);
@@ -554,7 +537,6 @@ export class Tr2ParticleSystem
    *   owning model directly.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RebindConstraints()
   {
     for (const constraint of this.constraints)
@@ -569,7 +551,6 @@ export class Tr2ParticleSystem
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   SaveToCMF(...args)
   {
     throw new Error("Tr2ParticleSystem.SaveToCMF is not implemented in CarbonEngineJS.");
@@ -581,7 +562,6 @@ export class Tr2ParticleSystem
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   SaveToGranny(...args)
   {
     throw new Error("Tr2ParticleSystem.SaveToGranny is not implemented in CarbonEngineJS.");
@@ -596,7 +576,6 @@ export class Tr2ParticleSystem
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UpdateElementDeclaration()
   {
     this.isValid = false;
@@ -693,7 +672,6 @@ export class Tr2ParticleSystem
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UpdateSimulation(dt, updateArguments = Tr2ParticleSystem._defaultUpdateArguments)
   {
     if (!this.isValid)
@@ -814,7 +792,6 @@ export class Tr2ParticleSystem
    * @adapted the per-system argument record is a reused member rather than
    *   Carbon's stack copy.
    */
-  @meta.adapted
   Update(globalArguments)
   {
     const argumentsValue = this._updateArguments;
@@ -866,7 +843,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   IsInstanceDataReady()
   {
     return this._declaration !== Tr2EffectStateManager.Unknown;
@@ -878,7 +854,6 @@ export class Tr2ParticleSystem
    * @adapted JS reuses a mutable record; Carbon returns InstanceData by value
    *   (Tr2ParticleSystem.cpp:306-309). Copy fields before retaining a snapshot.
    */
-  @meta.adapted
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
     this._instanceData.buffer = this._vertexBuffer;
@@ -893,7 +868,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
     return this._declaration;
@@ -904,7 +878,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   GetGpuBuffer(_bufferIndex = 0)
   {
     return this._vertexBuffer;
@@ -916,7 +889,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   ReleaseResources()
   {
     this._declaration = Tr2EffectStateManager.Unknown;
@@ -931,7 +903,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   OnPrepareResources()
   {
     this.RebuildDeclaration();
@@ -946,7 +917,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   CreateVertexBuffer()
   {
     if (this._maxParticleCount > 0 && this._strides[0] > 0)
@@ -971,7 +941,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   RebuildDeclaration()
   {
     const definition = new Tr2VertexDefinition();
@@ -1009,7 +978,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   EnsureAligned()
   {
     const position = this._semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
@@ -1036,7 +1004,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   ShiftOffsets(bufferType, start, shift)
   {
     for (const element of this._runtimeElements)
@@ -1053,7 +1020,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {
     if (this.aliveCount > 0)
@@ -1076,7 +1042,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   Initialize()
   {
     this.UpdateElementDeclaration();
@@ -1093,7 +1058,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   OnModified(names)
   {
     if (IsMatch(names, "requiresSorting"))
@@ -1111,7 +1075,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
     this._lastUpdate += newTime - oldTime;
@@ -1136,7 +1099,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   GetElementDeclaration()
   {
     return this._elementMap;
@@ -1147,7 +1109,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   GetElementDeclarationHash()
   {
     return this._declarationHash;
@@ -1158,7 +1119,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   HasElement(type)
   {
     return !!this._ResolveElement(type);
@@ -1170,8 +1130,6 @@ export class Tr2ParticleSystem
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetElement(type)
   {
     return this._ResolveElement(type);
@@ -1189,7 +1147,6 @@ export class Tr2ParticleSystem
    * @param {{ element: Float32Array|null, stride: number }} out
    * @returns {boolean} Whether the element exists.
    */
-  @meta.adapted
   GetElementStream(type, out)
   {
     const element = this._semanticElements[type];
@@ -1215,7 +1172,6 @@ export class Tr2ParticleSystem
    * @param {Array<Float32Array|null>} particle Filled with one view per Tr2ParticleElementData buffer.
    * @returns {boolean} true if inserted; false if the system is full.
    */
-  @meta.adapted
   InsertParticle(particle)
   {
     if (this.aliveCount < this._maxParticleCount)
@@ -1239,7 +1195,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   DoneInsertingParticle()
   {
   }
@@ -1256,7 +1211,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   BeginSpawnParticle()
   {
     if (!this.isValid || this.aliveCount >= this._maxParticleCount)
@@ -1277,7 +1231,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   EndSpawnParticle()
   {
     this.peakAliveCount = Math.max(this.peakAliveCount, this.aliveCount);
@@ -1289,8 +1242,6 @@ export class Tr2ParticleSystem
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   SpawnParticle(values = {})
   {
     const index = this.BeginSpawnParticle();
@@ -1320,8 +1271,6 @@ export class Tr2ParticleSystem
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   SetParticleElement(index, type, value)
   {
     const element = this._ResolveElement(type);
@@ -1352,8 +1301,6 @@ export class Tr2ParticleSystem
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetParticleElement(index, type)
   {
     const element = this._ResolveElement(type);
@@ -1365,7 +1312,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   GetBoundingBox(outMin, outMax)
   {
     if (this.aliveCount === 0)
@@ -1384,7 +1330,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   UpdateViewDependentData(frustum, worldTransform)
   {
     this._shouldSortVisible = false;
@@ -1436,7 +1381,6 @@ export class Tr2ParticleSystem
    *
    * @adapted
    */
-  @meta.adapted
   SortParticles()
   {
     if (!this._bufferDirty && !this.requiresSorting) return;
@@ -1497,7 +1441,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   CompareParticles(particle1, particle2)
   {
     const position = this._semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
@@ -1515,7 +1458,6 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  @meta.implemented
   UpdateTransform(worldTransform)
   {
     mat4.copy(this._worldTransform, worldTransform);
@@ -1634,7 +1576,6 @@ export class Tr2ParticleSystem
    *   resets and publishes are omitted. Nothing in Carbon calls it.
    * @param {ITr2GenericEmitterUpdateArguments} updateArguments
    */
-  @meta.adapted
 
   static updateAllSystems(updateArguments)
   {

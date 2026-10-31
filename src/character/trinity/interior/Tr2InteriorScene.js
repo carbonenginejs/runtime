@@ -12,7 +12,7 @@ import { VisualizeMethod, VisibilityQueryType, Tr2InteriorBatchGroup } from "../
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
 // Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { blue, IInitialize, INotify, IsMatch } from "#blue";
 import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
 import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js";
@@ -112,7 +112,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @adapted array identity search replaces FindKey; JS has no QI reference unlock.
    */
 
-  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list === this.lights) this.SetupShadowMaps();
@@ -325,8 +324,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @returns {Promise<object|null>} The picked object, or null.
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
-  @meta.renamed("PickObjectOnly")
   async PickObject(x, y, projection, view, viewport, _pickTypes = 0)
   {
     const results = { components: ITr2PickableScene.PickComponent.PICK_OBJECT, object: null };
@@ -344,7 +341,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddDynamic(dynamic)
   {
     if (!dynamic)
@@ -375,7 +371,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddLightSource(lightSource)
   {
     if (!lightSource)
@@ -406,7 +401,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @returns {Promise<Map<number, *>>} The picked components.
    */
   @be.mapMethod()
-  @meta.adapted
   async Pick(x, y, projection, view, viewport, components)
   {
     const { PICK_OBJECT, PICK_AREA, PICK_POSITION, PICK_UV } = ITr2PickableScene.PickComponent;
@@ -430,7 +424,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @notImplemented
    */
   @be.mapMethod()
-  @meta.notImplemented
   PickObjectAndArea(...args)
   {
     throw new Error("Tr2InteriorScene.PickObjectAndArea is not implemented in CarbonEngineJS.");
@@ -442,7 +435,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @notImplemented
    */
   @be.mapMethod()
-  @meta.notImplemented
   PickPointAndObject(...args)
   {
     throw new Error("Tr2InteriorScene.PickPointAndObject is not implemented in CarbonEngineJS.");
@@ -462,7 +454,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @returns {Promise<number[]>} The UV, [0, 0] when nothing was hit (Carbon's default Vector2).
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async PickObjectUV(x, y, projection, view, viewport)
   {
     const results = { components: ITr2PickableScene.PickComponent.PICK_UV, object: null, uv: [ 0, 0 ] };
@@ -484,7 +475,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {TriViewport} viewport The viewport picked in.
    * @returns {void}
    */
-  @meta.implemented
   SetupTransformsForPicking(fx, fy, projection, view, viewport)
   {
     Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
@@ -520,7 +510,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {Tr2RenderContext} [_context] The base class's context argument, unused here.
    * @returns {object[]} The renderables to pick among.
    */
-  @meta.adapted
   GetPickingObjectsToRender(dirWorld, _context)
   {
     return this.GetPickingObjectsToRender__FovAspect(dirWorld, Tr2Renderer.GetFieldOfView(), Tr2Renderer.GetAspectRatio());
@@ -542,7 +531,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {number} aspect Width over height.
    * @returns {object[]} The renderables to pick among.
    */
-  @meta.implemented
   GetPickingObjectsToRender__FovAspect(dirWorld, fov, aspect)
   {
     const { view, projection, focus, up } = Tr2InteriorScene.pickingScratch;
@@ -565,7 +553,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {Tr2RenderContext} renderContext The context the pick renders on.
    * @returns {void}
    */
-  @meta.implemented
   SetPerFrameDataForPicking(renderContext)
   {
     this._PopulatePerFramePSData(this._perFramePSData, renderContext);
@@ -581,7 +568,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @implemented
    * @returns {TriRenderBatchAccumulator} The scene's opaque picking batches.
    */
-  @meta.implemented
   GetOpaquePickingBatchAccumulator()
   {
     return this._opaquePickingBatches;
@@ -593,7 +579,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @implemented
    * @returns {TriRenderBatchAccumulator} The scene's picking-area batches.
    */
-  @meta.implemented
   GetPickingBatchAccumulator()
   {
     return this._pickingBatches;
@@ -606,7 +591,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {number} _pass The pass's PickComponent bits.
    * @returns {boolean} Always true.
    */
-  @meta.implemented
   RenderPickingAreasForComponents(_pass)
   {
     return true;
@@ -618,7 +602,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @implemented
    * @returns {Tr2PickBuffer} The scene's one-pixel float pick target.
    */
-  @meta.implemented
   GetPickBuffer()
   {
     return this._pickBuffer;
@@ -633,7 +616,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {number} requestedComponents The requested PickComponent bits.
    * @returns {number[]} The PickComponent bits each pass renders.
    */
-  @meta.adapted
   GetRequiredPasses(requestedComponents)
   {
     const { PICK_OBJECT, PICK_AREA, PICK_POSITION, PICK_UV } = ITr2PickableScene.PickComponent;
@@ -655,7 +637,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {object} results Receives objectId, areaId, depth and uv.
    * @returns {void}
    */
-  @meta.adapted
   DecodeBufferPixel(data, pass, results)
   {
     const { PICK_POSITION, PICK_UV } = ITr2PickableScene.PickComponent;
@@ -685,7 +666,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RebuildSceneData()
   {
     this._dynamicsPendingLoad.length = 0;
@@ -706,7 +686,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RemoveDynamic(dynamic)
   {
     const index = this.dynamics.FindKey(dynamic);
@@ -732,7 +711,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RemoveLightSource(lightSource)
   {
     if (!lightSource)
@@ -756,8 +734,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @notImplemented
    * @renamed UpdateSceneFromScript
    */
-  @meta.renamed("UpdateSceneFromScript")
-  @meta.notImplemented
   UpdateScene(...args)
   {
     throw new Error("Tr2InteriorScene.UpdateScene is not implemented in CarbonEngineJS.");
@@ -778,7 +754,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   Render(renderContext)
   {
     this._RenderFullForward(renderContext);
@@ -791,7 +766,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   RenderPass(pass, renderContext)
   {
     if (pass === ITr2MultiPassScene.PassType.RP_MAIN_RENDER) this.Render(renderContext);
@@ -803,7 +777,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   SetRenderBackgroundCubeMap(renderBackgroundCubeMap)
   {
     this._renderBackgroundCubeMap = renderBackgroundCubeMap;
@@ -814,7 +787,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   VisibilityQuery(results, renderContext)
   {
     if (!results)
@@ -844,7 +816,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   _ResolveVisibility(view, projection, _maxDepth)
   {
     const { frustum_1, viewport_0, mat4_0, mat4_1, vec3_0 } = Tr2InteriorScene.scratch;
@@ -863,7 +834,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   _OnQueryBegin()
   {
     const event = new Tr2VisibilityEvent();
@@ -877,7 +847,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   _OnInstanceVisible(cullable, objectToWorld)
   {
     const event = new Tr2VisibilityEvent();
@@ -898,7 +867,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   _DoQueryBegin(_event)
   {
     this._activeLightSet.Clear();
@@ -912,7 +880,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   _DoInstanceVisible(event)
   {
     const interior = CjsSchema.cast(event.userData, ITr2Interior);
@@ -938,7 +905,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   _GatherFullForwardBatches(results)
   {
     if (!results) return;
@@ -954,7 +920,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   _ConstructKey(objectGroup, batchGroup)
   {
     return BigInt.asIntN(64, (BigInt(objectGroup >>> 0) << 48n) | (BigInt(batchGroup) << 32n));
@@ -965,7 +930,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   _PopulatePerFrameVSData(data)
   {
     Tr2ConstantBufferFormats.tr2PopulatePerFrameVSDataTransformations(data);
@@ -978,7 +942,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @adapted gl-matrix reverses composition; the ESM exposes target dimensions
    *   as fields. Viewport arithmetic rounds at native float operation boundaries.
    */
-  @meta.adapted
   _PopulatePerFramePSData(data, renderContext)
   {
     const { mat4_0 } = Tr2InteriorScene.scratch;
@@ -1019,7 +982,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @adapted the allocator belongs to the active JS context, so bind it here.
    *   Profiling markers are omitted; shadows retain their explicit unported gate.
    */
-  @meta.adapted
   _RenderFullForward(renderContext)
   {
     if (!this.visibilityResults) this.visibilityResults = new Tr2VisibilityResults();
@@ -1069,7 +1031,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *   values _PopulatePerFrameVSData already writes.
    * @param {Tr2RenderContext} renderContext The frame's context.
    */
-  @meta.adapted
   _RenderShadows(renderContext)
   {
     if (!this.renderShadows) return;
@@ -1171,7 +1132,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {TriView} view The light's view.
    * @param {TriFrustum} frustum The camera frustum the bounds are clipped to.
    */
-  @meta.implemented
   _MaximizeShadowMapUsage(projection, view, frustum)
   {
     let character = null;
@@ -1227,7 +1187,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   _RenderGeometry(overrideEffect, renderContext)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -1248,7 +1207,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @adapted
    * @returns {boolean} Whether initialization was accepted.
    */
-  @meta.adapted
   Initialize()
   {
     this.SetBackgroundCubemapResPath();
@@ -1266,7 +1224,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @implemented
    */
 
-  @meta.implemented
   OnModified(name)
   {
     if (IsMatch(name, "backgroundCubemapPath")) this.SetBackgroundCubemapResPath();
@@ -1282,7 +1239,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @adapted
    */
 
-  @meta.adapted
   SetBackgroundCubemapResPath(resMan = blue.resMan)
   {
     this.backgroundCubemapRes = null;
@@ -1301,7 +1257,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetupShadowMaps(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     for (const target of this.lightRenderTargets) target.Destroy();
@@ -1337,7 +1292,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @implemented
    * @param {Tr2RenderContext} renderContext
    */
-  @meta.implemented
   RenderDebugInfo__RenderContext(renderContext)
   {
     if (!this.debugRenderer)
@@ -1409,7 +1363,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {Tr2RenderContext|ITr2DebugRenderer2} contextOrRenderer
    */
 
-  @meta.implemented
   RenderDebugInfo(contextOrRenderer)
   {
     if (CjsSchema.cast(contextOrRenderer, Tr2RenderContext))
@@ -1430,7 +1383,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @param {Set<string>} options
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Shadow Maps");
@@ -1447,7 +1399,6 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
-  @meta.implemented
   RenderDebugInfo__Renderer(renderer)
   {
     if (renderer.HasOption(this, "Shadow Maps") || this.debugRenderShadowMaps)

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ExternalParameter.h
 // Source: trinity/trinity/Tr2ExternalParameter.cpp
 // Source: trinity/trinity/Tr2ExternalParameter_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { TriValueBinding } from "./TriValueBinding.js";
@@ -62,7 +62,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {*} Defensive copy for arrays, otherwise the bound value.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetValue()
   {
     if (!this.valid) this.Initialize();
@@ -82,7 +81,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {boolean} True after assignment and notification.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetValue(value)
   {
     if (!this.valid) this.Initialize();
@@ -125,7 +123,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {boolean} True, including when the destination is invalid.
    */
 
-  @meta.adapted
   Initialize()
   {
     this.valid = false;
@@ -166,7 +163,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {boolean} True after resolving the destination.
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this.Initialize();
@@ -180,7 +176,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {string} Exposed name.
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -194,7 +189,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {void}
    */
 
-  @meta.adapted
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -209,7 +203,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {void}
    */
 
-  @meta.adapted
   SetDestinationObject(destinationObject)
   {
     this.destinationObject = destinationObject ?? null;
@@ -225,7 +218,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {void}
    */
 
-  @meta.adapted
   SetDestinationAttribute(destinationAttribute)
   {
     this.destinationAttribute = String(destinationAttribute ?? "");
@@ -240,7 +232,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {boolean} Whether the destination resolved.
    */
 
-  @meta.implemented
   IsValid()
   {
     return this.valid;
@@ -255,7 +246,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {*} Live destination value, or null.
    */
 
-  @meta.adapted
   GetDestination()
   {
     if (!this.valid) this.Initialize();
@@ -270,7 +260,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {object|null} Portable field metadata and component offset.
    */
 
-  @meta.adapted
   GetDestinationEntry()
   {
     return this.valid ? { ...this._destinationEntry, offset: this._destinationOffset } : null;
@@ -284,7 +273,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @returns {TriValueBinding} Binding with its destination assigned.
    */
 
-  @meta.adapted
   CreateBinding()
   {
     const binding = new TriValueBinding();

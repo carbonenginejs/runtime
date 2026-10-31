@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2TimelineController.h
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue, CcpTime, ISimTimeRebaseNotify } from "#blue";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
 import { ITr2Controller, ITr2ActionController } from "../ITr2Controller/index.js";
@@ -98,7 +98,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @adapted
    */
 
-  @meta.adapted
   Link(owner)
   {
     this.Unlink();
@@ -132,7 +131,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     if (!this._owner)
@@ -166,7 +164,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   IsLinked()
   {
     return this._owner !== null;
@@ -178,7 +175,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Start()
   {
     if (this.isPlaying)
@@ -203,7 +199,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Stop()
   {
     if (!this.isPlaying)
@@ -231,7 +226,6 @@ export class Tr2TimelineController extends EveThrottleable
    *   controller mutex and stats scopes are omitted (one JavaScript thread).
    */
 
-  @meta.adapted
   Update(normalizedUpdateFrequency = 0.5)
   {
     if (!this.isPlaying)
@@ -265,7 +259,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   SetVariable(name, value)
   {
     this.variables.find(variable => variable.GetName() === name)?.SetValue(value);
@@ -277,7 +270,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleEvent(eventName)
   {
     if (!this.isPlaying)
@@ -299,7 +291,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetOwner()
   {
     return this._owner;
@@ -313,7 +304,6 @@ export class Tr2TimelineController extends EveThrottleable
    *   Returns whether a matching callback was invoked; native returns void.
    */
 
-  @meta.adapted
   Callback(callbackName)
   {
     if (!this.isPlaying)
@@ -346,7 +336,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   RegisterUpdateable(updateable)
   {
     this._updateables.add(updateable);
@@ -358,7 +347,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterUpdateable(updateable)
   {
     this._updateables.delete(updateable);
@@ -370,7 +358,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @adapted
    */
 
-  @meta.adapted
   GetBindingPathRoots()
   {
     if (!this._bindingPathRoots.length)
@@ -393,7 +380,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   GetFloatVariableByName(name)
   {
     return this.variables.find(variable => variable.GetName() === name)?.GetValue();
@@ -405,7 +391,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   GetExpressionTermInfo(out)
   {
     for (const variable of this.variables)
@@ -425,7 +410,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   GetVariableView()
   {
     return this._variableView;
@@ -437,7 +421,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   GetVariableBuffer()
   {
     return this._variableData;
@@ -449,7 +432,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   EnsureTempArenaSize(size)
   {
     if (this._tempArena.byteLength < size)
@@ -464,7 +446,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   GetTempArena()
   {
     return this._tempArena;
@@ -477,7 +458,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @adapted JavaScript numeric timestamps represent native Be::Time values.
    */
 
-  @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
     const diff = newTime - oldTime;
@@ -494,7 +474,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetActionCount()
   {
     return this.actions.length;
@@ -509,7 +488,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetAction(index)
   {
     if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
@@ -529,7 +507,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetActionStartTime(index)
   {
     if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
@@ -549,7 +526,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetActionEndTime(index)
   {
     if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
@@ -569,7 +545,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetActionTrackID(index)
   {
     if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
@@ -591,7 +566,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetActionStartTime(index, startTime)
   {
     if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
@@ -630,7 +604,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetActionEndTime(index, endTime)
   {
     if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
@@ -669,7 +642,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetActionTrackID(index, trackID)
   {
     if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
@@ -700,7 +672,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @adapted Stores a Tr2TimelineEntry object in place of Carbon's value struct.
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   AddAction(action, startTime, endTime, trackID = 0)
   {
     if (!action)
@@ -733,7 +704,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RemoveAction(index)
   {
     if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
@@ -763,7 +733,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @throws {RangeError} When no entry exists at index (ruling 11).
    */
 
-  @meta.implemented
   IsActionEnabled(index)
   {
     return !this._disabledTracks.has(this._entryAt(index).trackID);
@@ -775,7 +744,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   IsTrackEnabled(trackID)
   {
     return !this._disabledTracks.has(trackID);
@@ -787,7 +755,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnableTrack(trackID, enable)
   {
     const wasEnabled = this.IsTrackEnabled(trackID);
@@ -825,7 +792,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RegisterCallback(name, callback)
   {
     this._callbacks.push({
@@ -840,7 +806,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearCallbacks()
   {
     this._callbacks = [];
@@ -852,7 +817,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
 
-  @meta.implemented
   GetTime()
   {
     return this._time;
@@ -864,7 +828,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @adapted
    */
 
-  @meta.adapted
   SetTime(time)
   {
     if (!this.isPlaying || time === this._time)
@@ -915,7 +878,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Pause()
   {
     this.isPaused = true;
@@ -927,7 +889,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Resume()
   {
     this.isPaused = false;
@@ -939,7 +900,6 @@ export class Tr2TimelineController extends EveThrottleable
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ReLink()
   {
     const owner = this._owner;

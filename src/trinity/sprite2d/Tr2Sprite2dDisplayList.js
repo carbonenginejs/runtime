@@ -27,7 +27,6 @@ export class Tr2Sprite2dDisplayList
    *
    * @implemented
    */
-  @meta.implemented
   ReleaseResources(_storage)
   {
     this.vertexBuffer.Destroy();
@@ -48,7 +47,6 @@ export class Tr2Sprite2dDisplayList
    * @implemented
    * @returns {boolean} Always true, as Carbon returns.
    */
-  @meta.implemented
   OnPrepareResources()
   {
     return true;

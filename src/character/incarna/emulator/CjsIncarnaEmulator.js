@@ -143,7 +143,6 @@ export class CjsIncarnaEmulator
    * @throws {Error} When a piece's geometry is not loaded, or the generic data lacks a packed quad shader.
    * @throws {TypeError} When the pieces have no mesh.
    */
-  @meta.implemented
   AddAssembly(name, pieces, faction, race, lights = [])
   {
     this._RegisterAreaShaders();
@@ -207,7 +206,6 @@ export class CjsIncarnaEmulator
    * @param {number|null} [options.mirror=null] The axis, 0 to 2, whose positive side is read and mirrored; null reads every side.
    * @returns {Promise<Float32Array[]>} The places.
    */
-  @meta.implemented
   static async findGlowLightPositions(resourceManager, pieces, { threshold = 0.25, cell = 0.25, spacing = 0.8, distance = 0.1, mirror = null } = {})
   {
     RegisterIncarnaTextures(resourceManager);
@@ -246,7 +244,6 @@ export class CjsIncarnaEmulator
    * @param {string} source The overlay map's resource path.
    * @returns {Promise<{data: Uint8Array, width: number, height: number, max: number}|null>} The mask's top level and its brightest texel; null when it did not load.
    */
-  @meta.implemented
   static async glowMask(resourceManager, source)
   {
     const texture = resourceManager.GetResource(CjsIncarnaTextureConstructor.texturePath("glow", source));
@@ -287,7 +284,6 @@ export class CjsIncarnaEmulator
    * @param {number} [options.headroom=2.5] The least height, in metres, between a floor and the ceiling above it.
    * @returns {Float32Array[]} The places.
    */
-  @meta.implemented
   static findFillLightPositions(pieces, { spacing = 3.6, height = 1.8, headroom = 2.5 } = {})
   {
     const meshes = pieces.flatMap(({ object, transform }) => object.detailMeshes.map(mesh => ({ mesh, transform })));
@@ -369,7 +365,6 @@ export class CjsIncarnaEmulator
    * @implemented
    * @throws {Error} When the generic data lacks a packed quad shader.
    */
-  @meta.implemented
   _RegisterAreaShaders()
   {
     const shaders = this._dataMgr.GetGenericData().areaShaderData;
@@ -392,7 +387,6 @@ export class CjsIncarnaEmulator
    * @param {string} race The SOF race.
    * @returns {string} `<name>:<faction>:<race>:layout?<name>`.
    */
-  @meta.implemented
   static assemblyDna(name, faction, race)
   {
     return `${name}:${faction}:${race}:layout?${name}`;
@@ -408,7 +402,6 @@ export class CjsIncarnaEmulator
    * @returns {object} The EveSOFDataHull.
    * @throws {Error} When the mesh's geometry is not loaded.
    */
-  @meta.implemented
   CreateHull(name, mesh, slots = new Map())
   {
     const geometry = mesh.GetGeometryResource();
@@ -440,7 +433,6 @@ export class CjsIncarnaEmulator
    * @param {Map<string, number>} [slots] Each Incarna material's SOF material slot, as `CreateHull` takes them.
    * @returns {object} The EveSOFDataHullArea.
    */
-  @meta.implemented
   static hullArea(area, kind, slots = new Map())
   {
     const slot = slots.get(CjsIncarnaEmulator.materialKey(area));
@@ -485,7 +477,6 @@ export class CjsIncarnaEmulator
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
    * @returns {boolean} True when the area glows.
    */
-  @meta.implemented
   static glows(area)
   {
     const color = area.GetMaterialInterface().parameters.find(parameter => parameter.name === "MaterialGlowColor");
@@ -506,7 +497,6 @@ export class CjsIncarnaEmulator
    * @param {object[]} areas Tr2MeshAreas holding the Tr2Effects their materials became.
    * @returns {Map<string, number>} Slots by `materialKey`.
    */
-  @meta.implemented
   static materialSlots(areas)
   {
     const colours = new Map();
@@ -527,7 +517,6 @@ export class CjsIncarnaEmulator
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
    * @returns {string} Such as "0.34,0.39,0.41".
    */
-  @meta.implemented
   static materialKey(area)
   {
     const colour = area.GetMaterialInterface().parameters.find(parameter => parameter.name === "MaterialDiffuseColor");
@@ -541,7 +530,6 @@ export class CjsIncarnaEmulator
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
    * @returns {Map<string, string>} Resource paths, such as "OverlayMap" to the `_os` map's.
    */
-  @meta.implemented
   static areaSources(area)
   {
     const sources = new Map();
@@ -567,7 +555,6 @@ export class CjsIncarnaEmulator
    * @param {ArrayLike<number>} transform The mesh's place in the assembly's root.
    * @param {{threshold: number, cell: number, mirror: number|null}} options As `findGlowLightPositions` takes them.
    */
-  @meta.implemented
   static gatherGlow(cells, data, area, mask, transform, { threshold, cell, mirror })
   {
     const { position, normal, texcoord0 } = data.vertex;
@@ -668,7 +655,6 @@ export class CjsIncarnaEmulator
    * @param {{cell: number, spacing: number, distance: number, mirror: number|null}} options As `findGlowLightPositions` takes them.
    * @returns {Float32Array[]} The places.
    */
-  @meta.implemented
   static glowPositions(cells, { cell, spacing, distance, mirror })
   {
     const parents = new Map([ ...cells.keys() ].map(key => [ key, key ]));
@@ -750,7 +736,6 @@ export class CjsIncarnaEmulator
    * @param {Array<{position: ArrayLike<number>, radius: number, innerRadius: number, brightness: number, lightColor: number}>} lights The lights, in the hull's space.
    * @returns {object} The EveSOFDataHullLightSet.
    */
-  @meta.implemented
   static lightSet(name, lights)
   {
     const set = blue.classes.CreateInstanceFromName("EveSOFDataHullLightSet");
@@ -777,7 +762,6 @@ export class CjsIncarnaEmulator
    * @param {object} mesh A Tr2Mesh.
    * @returns {string} Such as "incarna_walkway_04_cal_1".
    */
-  @meta.implemented
   static hullName(mesh)
   {
     const file = String(mesh.geometryResPath).split("/").pop().replace(/\.[^.]*$/u, "").toLowerCase();
@@ -794,7 +778,6 @@ export class CjsIncarnaEmulator
    * @param {Array<ArrayLike<number>>} transforms Where each placement sits in the assembly.
    * @returns {object} The EveSOFDataHullLocatorSet.
    */
-  @meta.implemented
   static locatorSet(name, transforms)
   {
     const set = blue.classes.CreateInstanceFromName("EveSOFDataHullLocatorSet");
@@ -816,7 +799,6 @@ export class CjsIncarnaEmulator
    * @param {string} hullName The piece hull, whose locator set has the same name.
    * @returns {object} The EveSOFDataHullExtensionPlacement.
    */
-  @meta.implemented
   static placement(hullName)
   {
     const placement = blue.classes.CreateInstanceFromName("EveSOFDataHullExtensionPlacement");
@@ -835,7 +817,6 @@ export class CjsIncarnaEmulator
    * @param {Array<{sphere: ArrayLike<number>, transforms: Array<ArrayLike<number>>}>} hulls Each piece hull's sphere and placements.
    * @returns {Float32Array} The sphere, centre then radius.
    */
-  @meta.implemented
   static assemblySphere(hulls)
   {
     const min = vec3.fromValues(Infinity, Infinity, Infinity);
@@ -864,7 +845,6 @@ export class CjsIncarnaEmulator
    * @param {*} value The value.
    * @returns {object} The instance.
    */
-  @meta.implemented
   static namedValue(className, name, field, value)
   {
     const instance = blue.classes.CreateInstanceFromName(className);

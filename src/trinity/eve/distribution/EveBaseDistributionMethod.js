@@ -4,7 +4,7 @@ import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IEveDistributionMethod } from "./IEveDistributionMethod.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -95,7 +95,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    *
    * @implemented
    */
-  @meta.implemented
   AddEntity(howMany = 1)
   {
     this.AddEntities(howMany);
@@ -106,7 +105,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    *
    * @implemented
    */
-  @meta.implemented
   Restart()
   {
     this.RestartDistribution();
@@ -118,7 +116,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @adapted
    */
 
-  @meta.adapted
   RegeneratePlacementData()
   {
     this._initialPlacements.length = 0;
@@ -146,7 +143,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetNumberOfPlacements()
   {
     return this.placementData.length;
@@ -159,7 +155,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @adapted
    */
 
-  @meta.adapted
   GetPlacementData()
   {
     return this.placementData;
@@ -172,7 +167,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @adapted
    */
 
-  @meta.adapted
   GetPlacementDataCenter()
   {
     return vec3.clone(this._placementDataCenter);
@@ -186,7 +180,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetHasDynamicMovement()
   {
     return this._resetTransformOnUpdate;
@@ -198,7 +191,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.RestartDistribution();
@@ -213,7 +205,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @adapted
    */
 
-  @meta.adapted
   OnListModified(_event, _key, _key2, _value, list)
   {
     if (list === this.placementGenerators || list === this.spawnTriggers)
@@ -234,7 +225,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @implemented
    */
   @be.mapMethodAndWrap("Restart")
-  @meta.implemented
   RestartDistribution()
   {
     this.placementData.length = 0;
@@ -258,7 +248,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @param params Supplies the bone array and the space-object parent read by the bone transform and the lifetime modifiers.
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, params = new EveChildUpdateParams())
   {
     for (const generator of this.placementGenerators)
@@ -342,7 +331,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
   }
@@ -354,7 +342,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @implemented
    */
   @be.mapMethodAndWrap("AddEntity")
-  @meta.implemented
   AddEntities(howMany = 1)
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
@@ -378,7 +365,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @returns {number} The index the placement ends up at, or -1 when nothing is free, the id is unknown, or the placement is still timing out.
    */
 
-  @meta.adapted
   TriggerEntityByID(entityID)
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
@@ -416,7 +402,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetFreePlacementCount()
   {
     return this.freePlacements;
@@ -429,7 +414,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @adapted
    */
 
-  @meta.adapted
   GetClosestFreePlacement(position)
   {
     if (this._initialPlacements.length === 0 || this.freePlacements < 1)
@@ -458,7 +442,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @adapted
    */
 
-  @meta.adapted
   GetInitialPlacementData(uniqueID)
   {
     const index = this._GetInitialPlacementIndexByID(uniqueID);
@@ -474,7 +457,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const spawner of this.spawnTriggers)
@@ -637,7 +619,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * @renamed GetInitialPlacementMatrixForPlacement
    */
 
-  @meta.renamed("GetInitialPlacementMatrixForPlacement")
   _getInitialPlacementMatrix(placement)
   {
     const originIndex = this._GetInitialPlacementIndexByID(placement.initialPlacementID);

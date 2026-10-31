@@ -11,7 +11,6 @@ export class Tr2IntKeyGenerator
    *
    * @implemented
    */
-  @meta.implemented
   static Less(batch1, batch2)
   {
     if (batch1.renderingMode < batch2.renderingMode) return true;
@@ -24,7 +23,6 @@ export class Tr2IntKeyGenerator
    *
    * @implemented
    */
-  @meta.implemented
   static GetSortType()
   {
     return 2;

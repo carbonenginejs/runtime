@@ -10,7 +10,7 @@ import {
     inferCarbonTypeFromCpp,
     normalizeCarbonValue
 } from "./types/carbonTypes.js";
-import { claimAbstractMethods, decorateAbstractMethod, installAbstractMethod } from "../compose/abstract.js";
+import { claimAbstractMethods, decorateAbstractMethod, installAbstractMethod, isAbstractMethod } from "../compose/abstract.js";
 import { CJS_CLASS_NAME, getRegisteredClassName, requireRegisteredClassName } from "../compose/className.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast, mappedInterfaces, setInterfaceClassResolver } from "../compose/interface.js";
@@ -880,10 +880,14 @@ export class CjsSchema
      * the donor. Marking that second kind `impl.abstract` on every consumer
      * writes a divergence that does not exist, onto dozens of classes at once.
      *
-     * So the interface's own declaration is carried across, and
-     * `impl.abstract` is only the fallback for a member the interface said
-     * nothing about. The chain is walked because `CollectMembers` does: a
-     * member may be declared on an ancestor of the contract named here.
+     * So the interface's own declaration is carried across. Only the statuses a
+     * decorator still records travel this way (abstract, notUsed, noop); the
+     * others are JSDoc tags since decorator-upgrade.md § 00 (2026-10-30) and
+     * stay on the interface's source. A member the interface records nothing
+     * about is marked `impl.abstract` only when the installed function is a
+     * generated abstract thrower. The chain is walked because
+     * `CollectMembers` does: a member may be declared on an ancestor of the
+     * contract named here.
      *
      * @param {Function} Contract The interface the member was installed from.
      * @param {String} name The member.
@@ -892,40 +896,27 @@ export class CjsSchema
     static _inheritedImplDecorators(Contract, name)
     {
         let declared = null;
+        let installed = null;
         for (
             let base = Contract;
             typeof base === "function" && base.prototype && base !== Object;
             base = Object.getPrototypeOf(base)
         )
         {
+            installed ??= Object.getOwnPropertyDescriptor(base.prototype, name)?.value ?? null;
             declared = CjsSchema.getMethod(base, name)?.impl ?? null;
             if (declared) break;
         }
 
         const status = declared?.status;
         const decorator = status ? CjsSchema.#impl[status] : null;
-        const decorators = [ typeof decorator === "function" ? decorator : CjsSchema.#impl.abstract ];
+        const decorators = typeof decorator === "function" ? [ decorator ]
+            : isAbstractMethod(installed) ? [ CjsSchema.#impl.abstract ] : [];
 
         if (declared?.note) decorators.push(CjsSchema.#impl.note(declared.note));
 
         return decorators;
     }
-
-    /**
-     * `@meta.renamed("Original")`: a method ported under another name. Records
-     * the Carbon original in the method's `carbon` metadata, as before.
-     */
-    static #renamed = originalName => {
-        if (typeof originalName !== "string" || !originalName.trim())
-        {
-            throw new TypeError("meta.renamed requires a non-empty original method name.");
-        }
-        return methodDecorator("carbon", {
-            method: true,
-            renamed: true,
-            originalName: originalName.trim()
-        });
-    };
 
     static #carbon = {
         // Carbon's base list and Carbon's exposure table: two different facts,
@@ -1005,14 +996,16 @@ export class CjsSchema
         ...Object.fromEntries(FLAG_NAMES.map(name => [ name, this.#edit[name] ])),
         ui: { ...this.#jessica, components: createComponentsNamespace() },
         // No `ours`: a member or method without the blue stamp is ours (ruling 2026-10-15).
-        ...this.#impl,
+        // The status-only markers (implemented, adapted, notImplemented, notSupported, renamed, cjs) are JSDoc tags
+        // (decorator-upgrade.md § 00, 2026-10-30); what stays here installs behaviour or is parked (noop).
+        noop: this.#impl.noop,
+        invalidates: this.#impl.invalidates,
+        note: this.#impl.note,
         // Status `abstract` AND the generated throwing body (ruling 2026-10-17);
         // `#impl.abstract` stays the status alone, for `_inheritedImplDecorators`.
         abstract: abstractDecorator(abstractParts(false)),
-        renamed: this.#renamed,
         // New origin facts coexist with the legacy stamps until the migration.
         carbon: names => carbonClassDecorator(names),
-        cjs: memberDecorator("carbon", { cjs: true, method: false, member: false }),
         notUsed: unusedMethodDecorator(),
         interface: name => exposureClassDecorator(name, true, false),
         inherit: (...Bases) => this.blue.inherit(...Bases),
@@ -2433,6 +2426,11 @@ function RejectInvalidBinaryMembers(Constructor, schema)
 /**
  * A class's method provenance by name, its own merged over its ancestors':
  * an inherited method reports the provenance of the class that declares it.
+ *
+ * An inherited `abstract` status describes the base's generated thrower. Where
+ * the function this class reaches is a real body, the class implements it, as a
+ * C++ override of a pure virtual does, so the status is not carried; the
+ * override's own state is its JSDoc tag (decorator-upgrade.md § 00).
  */
 function computeEffectiveMethods(Constructor)
 {
@@ -2445,6 +2443,17 @@ function computeEffectiveMethods(Constructor)
             const existing = byName.get(method.name);
             byName.set(method.name, mergeMemberMetadata(existing ? { ...existing } : { name: method.name }, method));
         }
+    }
+
+    for (const [ name, method ] of byName)
+    {
+        if (method.impl?.status !== "abstract") continue;
+        const value = findPropertyDescriptor(Constructor.prototype, name)?.value ?? Object.getOwnPropertyDescriptor(Constructor, name)?.value;
+        if (typeof value !== "function" || isAbstractMethod(value)) continue;
+        const { abstract, status, ...impl } = method.impl;
+        void abstract; void status;
+        if (Object.keys(impl).length) method.impl = impl;
+        else delete method.impl;
     }
 
     return byName;

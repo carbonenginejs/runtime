@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue, CcpTime } from "#blue";
 
 
@@ -49,7 +49,6 @@ export class EveThrottleable extends IRoot
    * @returns {boolean} True to skip this update.
    */
 
-  @meta.implemented
   ShouldSkipUpdate(normalizedUpdateFrequency = 0.5)
   {
     const currentTime = blue.os.GetActualTime();

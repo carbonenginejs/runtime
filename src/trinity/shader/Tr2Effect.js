@@ -2,7 +2,7 @@ import { BlueAsyncRes } from "#blue";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, normalizeCarbonValue, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, normalizeCarbonValue, type, blue as legacyBlue } from "#schema";
 import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "#trinityal";
 import { Tr2Material } from "./Tr2Material.js";
 import { vec4 } from "#math/vec4";
@@ -330,7 +330,6 @@ export class Tr2Effect extends Tr2Material
    * @param {object} [resource] Resource that finished loading.
    */
   @legacyBlue.method
-  @meta.adapted
   RebuildCachedData(resource)
   {
     if (resource === undefined)
@@ -352,7 +351,6 @@ export class Tr2Effect extends Tr2Material
    * @implemented
    */
 
-  @meta.implemented
   SetVariableStore(store)
   {
     this.variableStore = store ?? null;
@@ -381,7 +379,6 @@ export class Tr2Effect extends Tr2Material
    * @implemented
    */
 
-  @meta.implemented
   GetVariableStore()
   {
     return this.variableStore ?? Tr2VariableStore.globalStore();
@@ -394,7 +391,6 @@ export class Tr2Effect extends Tr2Material
    * @implemented
    */
 
-  @meta.implemented
   GetConstParameters()
   {
     return this.constParameters;
@@ -409,7 +405,6 @@ export class Tr2Effect extends Tr2Material
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue()
   {
     let hash = 0;
@@ -445,7 +440,6 @@ export class Tr2Effect extends Tr2Material
    * @implemented
    */
   @be.mapMethod()
-  @meta.implemented
   GetParameterAnnotations(parameterName)
   {
     // Tr2Effect.cpp:1672
@@ -458,7 +452,6 @@ export class Tr2Effect extends Tr2Material
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   PopulateParameters()
   {
     if (!this.shader)
@@ -506,7 +499,6 @@ export class Tr2Effect extends Tr2Material
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   EndUpdate()
   {
     if (this.insideStartUpdate)
@@ -522,7 +514,6 @@ export class Tr2Effect extends Tr2Material
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   PruneParameters()
   {
     if (!this.shader)
@@ -542,7 +533,6 @@ export class Tr2Effect extends Tr2Material
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   IsParameterUsedByTechnique(parameterName)
   {
     return this.shader === null ? false : !!requireShader(this.shader).GetConstant(parameterName);
@@ -561,7 +551,6 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
 
-  @meta.implemented
   Render(callback, renderContext)
   {
     const shader = this.GetShaderStateInterface();
@@ -584,7 +573,6 @@ export class Tr2Effect extends Tr2Material
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartUpdate()
   {
     this.insideStartUpdate = true;
@@ -630,8 +618,6 @@ export class Tr2Effect extends Tr2Material
    *   context.
    * @returns {void}
    */
-  @meta.cjs
-    @meta.adapted
   #BuildParametersForPasses()
   {
     this._ClearPassBindings();
@@ -720,7 +706,6 @@ export class Tr2Effect extends Tr2Material
    * @param {object} passParameters Owning pass parameters.
    * @returns {void}
    */
-  @meta.adapted
   _MapPassParameters(stage, stageInput, passParameters)
   {
     const constantSize = stage.GetConstantBufferSize();
@@ -820,7 +805,6 @@ export class Tr2Effect extends Tr2Material
    * @param {object} passParameters Owning pass parameters.
    * @returns {void}
    */
-  @meta.adapted
   _MapPassResources(resources, into, passParameters)
   {
     if (!resources || typeof resources.entries !== "function") return;
@@ -932,8 +916,6 @@ export class Tr2Effect extends Tr2Material
    * @adapted
    * @returns {void}
    */
-  @meta.cjs
-    @meta.adapted
   #AcquireEffectResource()
   {
     const acquired = this._acquiredEffectResource;
@@ -978,7 +960,6 @@ export class Tr2Effect extends Tr2Material
    *
    * @implemented
    */
-  @meta.implemented
   OnListModified(event, _key, _key2, value)
   {
     if (event & BLUELISTEVENT.BELIST_LOADING) return;
@@ -1087,8 +1068,6 @@ export class Tr2Effect extends Tr2Material
    * @adapted
    * @returns {boolean} Whether the effect can be drawn now.
    */
-  @meta.cjs
-    @meta.adapted
   IsGood()
   {
     for (const parameter of this.resources) parameter.KeepAlive();
@@ -1132,7 +1111,6 @@ export class Tr2Effect extends Tr2Material
    * @implemented
    * @param {string} path The authored effect path, or empty to clear it.
    */
-  @meta.implemented
 
   SetEffectPathName(path)
   {
@@ -1216,7 +1194,6 @@ export class Tr2Effect extends Tr2Material
    * @adapted
    */
 
-  @meta.adapted
   SetResourceTexture2D(name, resourcePath = "")
   {
     const updated = this.#setNamedTexture(name, resourcePath);
@@ -1308,8 +1285,6 @@ export class Tr2Effect extends Tr2Material
    * @param {object|null} [values={}] Parameter names mapped to values, descriptors or null.
    * @returns {boolean} Whether any parameter or resource was added, updated or removed.
    */
-  @meta.cjs
-    @meta.adapted
   SetParameters(values = {})
   {
     let updated = false;
@@ -1347,7 +1322,6 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
 
-  @meta.implemented
   SetParameter(name, value)
   {
     this.#SetValueParameter(name, Tr2FloatParameter, value);
@@ -1363,7 +1337,6 @@ export class Tr2Effect extends Tr2Material
    * @param {number} value Unsigned 32-bit integer.
    * @returns {void}
    */
-  @meta.implemented
 
   SetParameter__UInt32(name, value)
   {
@@ -1380,7 +1353,6 @@ export class Tr2Effect extends Tr2Material
    * @param {ArrayLike<number>} value Two components.
    * @returns {void}
    */
-  @meta.implemented
 
   SetParameter__Vector2(name, value)
   {
@@ -1396,7 +1368,6 @@ export class Tr2Effect extends Tr2Material
    * @param {ArrayLike<number>} value Three components.
    * @returns {void}
    */
-  @meta.implemented
 
   SetParameter__Vector3(name, value)
   {
@@ -1412,7 +1383,6 @@ export class Tr2Effect extends Tr2Material
    * @param {ArrayLike<number>} value Four components.
    * @returns {void}
    */
-  @meta.implemented
 
   SetParameter__Vector4(name, value)
   {
@@ -1428,7 +1398,6 @@ export class Tr2Effect extends Tr2Material
    * @param {ArrayLike<number>} value Sixteen components.
    * @returns {void}
    */
-  @meta.implemented
 
   SetParameter__Matrix(name, value)
   {
@@ -1445,7 +1414,6 @@ export class Tr2Effect extends Tr2Material
    * @param {?Object} buffer GPU buffer provider, or null to clear.
    * @returns {void}
    */
-  @meta.implemented
 
   SetParameter__GpuBuffer(name, buffer)
   {
@@ -1472,7 +1440,6 @@ export class Tr2Effect extends Tr2Material
    * @param {number} [uavMipLevel=0] UAV mip level.
    * @returns {void}
    */
-  @meta.adapted
 
   SetParameter__TextureProvider(name, texture, uavMipLevel = 0)
   {
@@ -1491,7 +1458,6 @@ export class Tr2Effect extends Tr2Material
    * @param {number} [uavMipLevel=0] UAV mip level.
    * @returns {void}
    */
-  @meta.adapted
 
   SetParameter__TextureAL(name, texture, uavMipLevel = 0)
   {
@@ -1508,7 +1474,6 @@ export class Tr2Effect extends Tr2Material
    * @param {?Tr2BufferAL} buffer Buffer, or null for an empty one.
    * @returns {void}
    */
-  @meta.adapted
 
   SetParameter__BufferAL(name, buffer)
   {
@@ -1655,8 +1620,6 @@ export class Tr2Effect extends Tr2Material
    * @param {object|null} [values={}] Resource names mapped to res path strings or null.
    * @returns {boolean} Whether any resource was added, updated or removed.
    */
-  @meta.cjs
-    @meta.adapted
   SetTextures(values = {})
   {
     let updated = false;
@@ -1695,8 +1658,6 @@ export class Tr2Effect extends Tr2Material
    * @returns {boolean} Whether any constant was added, updated or removed.
    * @throws {TypeError} If a value cannot be read as a vec4.
    */
-  @meta.cjs
-    @meta.adapted
   SetConstParameters(values = {})
   {
     let updated = false;
@@ -1755,8 +1716,6 @@ export class Tr2Effect extends Tr2Material
    * @returns {boolean} Whether an override was inserted, removed, replaced or changed.
    * @throws {TypeError} If the map, a row or a field is unsupported.
    */
-  @meta.cjs
-    @meta.adapted
   SetSamplerOverrides(values = {})
   {
     if (values !== null && (typeof values !== "object" || Array.isArray(values) || ArrayBuffer.isView(values)))
@@ -2458,4 +2417,3 @@ export class Tr2Effect extends Tr2Material
 }
 
 
-CjsSchema.decorateMethod(Tr2Effect, "Destruct", CjsSchema.meta.adapted);

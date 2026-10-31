@@ -566,53 +566,35 @@ test("registers Carbon method provenance and implementation metadata", () => {
     CjsSchema.decorateMethod(
         MethodNode,
         "Reset",
-        CjsSchema.blue.method,
-        CjsSchema.meta.notImplemented
+        CjsSchema.blue.method
     );
     CjsSchema.decorateMethod(
         MethodNode,
         "GpuOnly",
         CjsSchema.blue.method,
-        CjsSchema.meta.notSupported,
         CjsSchema.meta.note("requires a native graphics boundary")
     );
 
     const reset = CjsSchema.getMethod(MethodNode, "Reset");
     assert.equal(reset.carbon.method, true);
-    assert.equal(reset.impl.status, "notImplemented");
-    assert.equal(reset.impl.notImplemented, true);
+    assert.equal(reset.impl, undefined);
     assert.equal(Object.hasOwn(CjsSchema.meta, "reason"), false, "reason decorators are retired");
+    // Status-only markers are JSDoc tags (decorator-upgrade.md § 00, 2026-10-30).
+    for (const name of [ "implemented", "adapted", "notImplemented", "notSupported", "renamed", "cjs" ])
+        assert.equal(Object.hasOwn(CjsSchema.meta, name), false, `meta.${name} is a JSDoc tag`);
 
     const gpuOnly = CjsSchema.getMethod(MethodNode, "GpuOnly");
     assert.equal(gpuOnly.carbon.method, true);
-    assert.equal(gpuOnly.impl.status, "notSupported");
-    assert.equal(gpuOnly.impl.notSupported, true);
+    assert.equal(gpuOnly.impl.status, undefined);
     assert.equal(gpuOnly.impl.note, "requires a native graphics boundary");
 
     const exported = CjsSchema.getSchema(MethodNode);
     assert.deepEqual(exported.methods.map(method => method.name), ["Reset", "GpuOnly"]);
 });
 
-test("records renamed Carbon method provenance", () => {
-    class RenamedMethodNode
-    {
-        ReEvaluate()
-        {}
-    }
-
-    CjsSchema.define(RenamedMethodNode, { className: "RenamedMethodNode" });
-    CjsSchema.decorateMethod(
-        RenamedMethodNode,
-        "ReEvaluate",
-        CjsSchema.meta.renamed("UpdateValues"),
-        CjsSchema.meta.adapted
-    );
-
-    const method = CjsSchema.getMethod(RenamedMethodNode, "ReEvaluate");
-    assert.equal(method.carbon.method, true);
-    assert.equal(method.carbon.renamed, true);
-    assert.equal(method.carbon.originalName, "UpdateValues");
-    assert.equal(method.impl.adapted, true);
+test("renamed Carbon method provenance is a JSDoc tag, not a decorator", () => {
+    // `@renamed Original reason` (decorator-upgrade.md § 00); lint-native-method-parity reads it from source.
+    assert.equal(Object.hasOwn(CjsSchema.meta, "renamed"), false);
 });
 
 test("registers component metadata and reads vector swizzles", () => {
@@ -688,7 +670,6 @@ test("stage-3 static method decorators register on the class constructor", () =>
 
     // Recorded when applied, replayed when the class registers; nothing per instance.
     CjsSchema.blue.method(StaticMethodNode.Rasterize, context);
-    CjsSchema.meta.adapted(StaticMethodNode.Rasterize, context);
     assert.deepEqual(initializers, []);
 
     CjsSchema.meta.define({
@@ -697,7 +678,6 @@ test("stage-3 static method decorators register on the class constructor", () =>
 
     const rasterize = CjsSchema.getMethod(StaticMethodNode, "Rasterize");
     assert.equal(rasterize.carbon.method, true);
-    assert.equal(rasterize.impl.status, "adapted");
     assert.equal(CjsSchema.getMethod(Function, "Rasterize"), null);
 });
 
@@ -1289,15 +1269,13 @@ test("records carbon.contextual tier provenance", () => {
     CjsSchema.decorateMethod(
         ContextualNode,
         "ApplyTransform",
-        CjsSchema.blue.contextual(["camera"]),
-        CjsSchema.meta.implemented
+        CjsSchema.blue.contextual(["camera"])
     );
 
     const method = CjsSchema.getMethod(ContextualNode, "ApplyTransform");
     assert.equal(method.carbon.method, true);
     assert.equal(method.carbon.contextual, true);
     assert.deepEqual(Array.from(method.carbon.contextTiers), ["camera"]);
-    assert.equal(method.impl.implemented, true);
 
     // Rejects an empty tier list.
     assert.throws(() => CjsSchema.blue.contextual([]), TypeError);

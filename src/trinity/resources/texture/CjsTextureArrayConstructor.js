@@ -108,4 +108,3 @@ export function RegisterTextureArray(resourceManager)
 
 CjsSchema.meta.define("CjsTextureArrayConstructor")(CjsTextureArrayConstructor);
 
-CjsSchema.decorateMethod(CjsTextureArrayConstructor, "GetResource", CjsSchema.meta.implemented);

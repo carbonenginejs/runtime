@@ -4,7 +4,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2TextureArray.h
 //   trinity/trinity/Tr2TextureArray.cpp
 
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2Event } from "../Tr2Event.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions, HostBitmap } from "#imageio";
@@ -142,7 +142,6 @@ export class Tr2TextureArray extends IRoot
      * @implemented
      * @returns {Tr2Event} m_onTextureChange.
      */
-    @meta.implemented
     OnTextureChange()
     {
         return this.onTextureChange;

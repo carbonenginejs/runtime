@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ScalingTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -62,7 +62,6 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   Init(transform)
   {
     const vec3_0 = vec3.alloc();
@@ -95,7 +94,6 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   Move(_mouseX, _mouseY, dx, dy, viewport, view, projection)
   {
     const vec3_0 = vec3.alloc();
@@ -193,7 +191,6 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   Update(context)
   {
     const mat4_0 = mat4.alloc();
@@ -214,7 +211,6 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    *
    * @implemented
    */
-  @meta.implemented
   UpdateLines()
   {
     const center = this.wBox.GetCenterOfMass(vec3.create());
@@ -233,7 +229,6 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   GenLineSets()
   {
     const solidEffect = new Tr2Effect(), lineEffect = new Tr2Effect(), pickEffect = new Tr2Effect();
@@ -280,7 +275,6 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ResetPrimitives()
   {
     for (const primitive of this.primitives)
@@ -302,7 +296,6 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    *   visible-object vector.
    */
 
-  @meta.adapted
   GetPrimitivesToRender()
   {
     if (!this.captured || this.selectedAxis === "w")
@@ -321,7 +314,6 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    * @implemented
    */
 
-  @meta.implemented
   ResetPrimitiveColors()
   {
     for (const primitive of this.primitives)

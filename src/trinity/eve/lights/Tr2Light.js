@@ -96,7 +96,6 @@ export class Tr2Light
    * @param {LightData} lightData The light data to copy.
    */
 
-  @meta.implemented
   SetLightData(lightData)
   {
     this._lightData.Copy(lightData);
@@ -109,7 +108,6 @@ export class Tr2Light
    * @implemented
    */
 
-  @meta.implemented
   SetBrightnessMultiplier(multiplier)
   {
     this.brightnessMultiplier = Number(multiplier);
@@ -122,7 +120,6 @@ export class Tr2Light
    * @param {Float32Array|number[]} value The new colour.
    */
 
-  @meta.implemented
   ChangeLightColor(value)
   {
     color.copy(this._lightData.color, value);
@@ -136,7 +133,6 @@ export class Tr2Light
    * @returns {LightData}
    */
 
-  @meta.implemented
   GetLightData()
   {
     return this._lightData;
@@ -149,7 +145,6 @@ export class Tr2Light
    * @implemented
    */
 
-  @meta.implemented
   GetBrightnessMultiplier()
   {
     return this.brightnessMultiplier;
@@ -166,7 +161,6 @@ export class Tr2Light
    * @implemented
    */
 
-  @meta.implemented
   SetBoneMatrix(bones, boneCount)
   {
     const boneIndex = this._lightData.boneIndex;
@@ -207,7 +201,6 @@ export class Tr2Light
    * @adapted
    */
 
-  @meta.adapted
   Update()
   {
   }
@@ -220,7 +213,6 @@ export class Tr2Light
    *   concerns (record carries the profile by reference); the Perlin brightness flicker awaits
    *   the frame-clock seam (see lightConversion.js).
    */
-  @meta.adapted
 
   AddLight(lightManager, transform, scale, bones = null, boneCount = 0)
   {
@@ -275,7 +267,6 @@ export class Tr2Light
    *   GetCurrentFrameTime) - an engine seam; the base brightness is used until it lands.
    */
 
-  @meta.adapted
   GetLight(out)
   {
     const lightData = this._lightData;
@@ -294,7 +285,6 @@ export class Tr2Light
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._ResolveLightProfile();
@@ -308,7 +298,6 @@ export class Tr2Light
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "lightProfilePath")) this._ResolveLightProfile();
@@ -346,7 +335,6 @@ export class Tr2Light
    * @param {number} [_boneCount] Number of bones in `_bones`.
    */
 
-  @meta.adapted
   RenderDebugInfo(_renderer, _worldMatrix, _bones = null, _boneCount = 0)
   {
   }

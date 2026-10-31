@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2DxtCompressor.h:40-67; cpp:926-977.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 
 /** Carbon's completion/cancellation control for a single asynchronous encode. */
 export class Tr2DxtCompressControl
@@ -54,8 +54,4 @@ export class Tr2DxtCompressControl
     }
 }
 
-CjsSchema.decorateMethod(Tr2DxtCompressControl, "Cancel", meta.adapted);
-CjsSchema.decorateMethod(Tr2DxtCompressControl, "IsDone", meta.implemented);
-CjsSchema.decorateMethod(Tr2DxtCompressControl, "IsCanceling", meta.implemented);
-CjsSchema.decorateMethod(Tr2DxtCompressControl, "Done", meta.implemented);
 CjsSchema.meta.carbon("Tr2DxtCompressControl")(Tr2DxtCompressControl);

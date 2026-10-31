@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorLocators.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
@@ -26,7 +26,6 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
    * @adapted
    */
 
-  @meta.adapted
   OnStructureListModified(_event, _item, _index, _list)
   {
     this._requestRegeneration = true;
@@ -40,7 +39,6 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
 
-  @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
     for (const locator of this.locators)
@@ -66,7 +64,6 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
    * @implemented
    */
 
-  @meta.implemented
   IsRequestingRegeneration()
   {
     return this._requestRegeneration;
@@ -78,7 +75,6 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(_updateContext, _params, _owner)
   {
   }

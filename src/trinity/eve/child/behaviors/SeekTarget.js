@@ -5,7 +5,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue } from "#blue";
 import { CjsScriptCallback } from "#blue/CjsScriptCallback";
 import { mat3 } from "#math/mat3";
@@ -152,7 +152,6 @@ export class SeekTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddLocatorSet()
   {
     const locatorSet = new EveLocatorSets();
@@ -166,7 +165,6 @@ export class SeekTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetTarget(target)
   {
     this.target = target;
@@ -178,7 +176,6 @@ export class SeekTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ResetBehavior()
   {
     this._counter = 0;
@@ -194,7 +191,6 @@ export class SeekTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetBehaviorWeight(value)
   {
     this.behaviorWeight = value;
@@ -206,7 +202,6 @@ export class SeekTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetExit(value)
   {
     this.exit = value;
@@ -218,7 +213,6 @@ export class SeekTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetTotalRepairTime(seconds)
   {
     this.totalRepairTime = seconds;
@@ -230,7 +224,6 @@ export class SeekTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetupShipRepair()
   {
     this.exit = false;
@@ -252,7 +245,6 @@ export class SeekTarget extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SplitBoundingBox()
   {
     this._boundingBoxes.length = 0;
@@ -325,7 +317,6 @@ export class SeekTarget extends IRoot
    *   (undefined behaviour in C++, a throw here); the matching box is dropped too.
    */
 
-  @meta.adapted
   SortLocators()
   {
     const locators = this.target.GetLocatorsForSet(this.locatorSetName);
@@ -372,8 +363,6 @@ export class SeekTarget extends IRoot
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   GetLocatorBucketIndices()
   {
     return this._locatorBucketIndices.map(bucket => [...bucket]);
@@ -385,7 +374,6 @@ export class SeekTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -398,7 +386,6 @@ export class SeekTarget extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetScratchMemorySize()
   {
     return 1;
@@ -410,7 +397,6 @@ export class SeekTarget extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   InitializeScratch()
   {
     return {
@@ -435,7 +421,6 @@ export class SeekTarget extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
     // Carbon m_arrivalPoints.resize( agents.size() ) (cpp:56): keeps existing points, zero-fills new ones.
@@ -598,7 +583,6 @@ export class SeekTarget extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("SeekTarget");
@@ -616,7 +600,6 @@ export class SeekTarget extends IRoot
    * @param {mat4} parentWorldLocation Places the locators in world space.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     const { Wireframe, Lit } = ITr2DebugRenderer2.Effect;

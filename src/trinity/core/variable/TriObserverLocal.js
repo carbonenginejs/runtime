@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/TriObserverLocal_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITriObserverLocal } from "../../../global/blue/ITriObserverLocal.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { ITr2DebugRenderable } from "#interfaces";
 
 
@@ -57,7 +57,6 @@ export class TriObserverLocal extends ITriObserverLocal
    */
   @be.mapProperty()
   @type.boolean
-  @meta.implemented
   get mute()
   {
     return this.GetMute();
@@ -68,7 +67,6 @@ export class TriObserverLocal extends ITriObserverLocal
    *
    * @implemented
    */
-  @meta.implemented
   set mute(value)
   {
     this.SetMute(value);
@@ -96,7 +94,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @returns {boolean} Whether an observer was updated.
    */
 
-  @meta.adapted
   Update(worldTransform)
   {
     if (!this.observer) return false;
@@ -137,7 +134,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     const renderable = CjsSchema.cast(this.observer, ITr2DebugRenderable);
@@ -155,7 +151,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     const renderable = CjsSchema.cast(this.observer, ITr2DebugRenderable);
@@ -171,7 +166,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @implemented
    */
 
-  @meta.implemented
   GetObserver()
   {
     return this.observer;
@@ -186,7 +180,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @returns {void}
    */
 
-  @meta.adapted
   SetObserver(observer)
   {
     this.observer = observer ?? null;
@@ -201,7 +194,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @returns {void}
    */
 
-  @meta.implemented
   SetPosition(position)
   {
     vec3.copy(this.position, position);
@@ -216,7 +208,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @returns {void}
    */
 
-  @meta.implemented
   SetFront(front)
   {
     vec3.copy(this.front, front);
@@ -228,7 +219,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @implemented
    */
 
-  @meta.implemented
   GetMute()
   {
     return this._mute;
@@ -245,7 +235,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @returns {boolean} Whether the stored state changed.
    */
 
-  @meta.adapted
   SetMute(mute)
   {
     const next = !!mute;
@@ -271,7 +260,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @adapted
    */
 
-  @meta.adapted
   OnModified()
   {
     return true;

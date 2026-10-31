@@ -80,7 +80,7 @@ test("child declarations preserve their own concrete notification and initializa
   {
     assert.equal(Object.hasOwn(Type.prototype, method), true);
     assert.notEqual(Type.prototype[method], Interface.prototype[method]);
-    assert.notEqual(CjsSchema.getMethod(Type, method).impl.status, "abstract");
+    assert.notEqual(CjsSchema.getMethod(Type, method)?.impl?.status, "abstract");
   }
 
   const state = new Tr2StateMachine();

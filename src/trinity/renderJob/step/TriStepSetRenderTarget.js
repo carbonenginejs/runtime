@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepSetRenderTarget.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -26,7 +26,6 @@ export class TriStepSetRenderTarget extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(renderTarget = null)
   {
     this.renderTarget = renderTarget ?? null;
@@ -39,7 +38,6 @@ export class TriStepSetRenderTarget extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (this.renderTarget) renderContext.GetEffectStateManager().SetRenderTarget(0, this.renderTarget);

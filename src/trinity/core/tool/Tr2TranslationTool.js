@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2TranslationTool.h
 // Source: trinity/trinity/Tr2TranslationTool.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -37,7 +37,6 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   Move(_x, _y, dx, dy, viewport, view, projection)
   {
     const vec3_0 = vec3.alloc();
@@ -71,7 +70,6 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   Update(context)
   {
     const mat4_0 = mat4.alloc();
@@ -111,7 +109,6 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   GenLineSets()
   {
     const mat4_0 = mat4.alloc();
@@ -189,7 +186,6 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
    *   visible-object vector.
    */
 
-  @meta.adapted
   GetPrimitivesToRender()
   {
     if (!this.captured)
@@ -206,7 +202,6 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
    * @implemented
    */
 
-  @meta.implemented
   ResetPrimitiveColors()
   {
     for (const primitive of this.primitives)

@@ -5,7 +5,7 @@ import { IBlueEvents } from "../../global/blue/IBlueEvents.js";
 // Source: videoplayer/VideoPlayer.h, videoplayer/VideoPlayer.cpp:104-247
 // Browser adaptation: HTML media owns decoding, presentation and audio clocks.
 // Resource paths and playlist policy remain with VideoPlaylistController.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { State } from "../../resource/video/enums.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../trinity/core/context/Tr2RenderContext.js";
 import { BitmapDimensions } from "#imageio";
@@ -606,26 +606,15 @@ export class VideoPlayer
 
 be.inherit(INotify, IBlueEvents)(VideoPlayer);
 
-CjsSchema.decorateMethod(VideoPlayer, "Create", be.mapMethodAndWrapOptionalArgs("__init__"), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "Update", meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "Pause", be.mapMethodAndWrap("pause"), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "Resume", be.mapMethodAndWrap("resume"), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "IsPaused", meta.adapted);
-CjsSchema.decorateField(VideoPlayer, "is_paused", be.mapPropertyReadOnly(), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "GetMediaTime", meta.adapted);
-CjsSchema.decorateField(VideoPlayer, "media_time", be.mapPropertyReadOnly(), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "GetDuration", meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "GetDownloadedMediaTime", meta.adapted);
-CjsSchema.decorateField(VideoPlayer, "downloaded_media_time", be.mapPropertyReadOnly(), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "GetVideoInfo", be.mapMethodAndWrap("get_video_info"), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "ClearTextures", be.mapMethodAndWrap("clear_textures"), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "OnModified", meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "OnTick", meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "SetBgraTexture", meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "GetBgraTexture", meta.implemented);
-CjsSchema.decorateMethod(VideoPlayer, "Seek", be.mapMethodAndWrap("seek"), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "GetState", meta.adapted);
-CjsSchema.decorateField(VideoPlayer, "state", be.mapPropertyReadOnly(), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "Validate", be.mapMethodAndWrap("validate"), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "Destruct", meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Create", be.mapMethodAndWrapOptionalArgs("__init__"));
+CjsSchema.decorateMethod(VideoPlayer, "Pause", be.mapMethodAndWrap("pause"));
+CjsSchema.decorateMethod(VideoPlayer, "Resume", be.mapMethodAndWrap("resume"));
+CjsSchema.decorateField(VideoPlayer, "is_paused", be.mapPropertyReadOnly());
+CjsSchema.decorateField(VideoPlayer, "media_time", be.mapPropertyReadOnly());
+CjsSchema.decorateField(VideoPlayer, "downloaded_media_time", be.mapPropertyReadOnly());
+CjsSchema.decorateMethod(VideoPlayer, "GetVideoInfo", be.mapMethodAndWrap("get_video_info"));
+CjsSchema.decorateMethod(VideoPlayer, "ClearTextures", be.mapMethodAndWrap("clear_textures"));
+CjsSchema.decorateMethod(VideoPlayer, "Seek", be.mapMethodAndWrap("seek"));
+CjsSchema.decorateField(VideoPlayer, "state", be.mapPropertyReadOnly());
+CjsSchema.decorateMethod(VideoPlayer, "Validate", be.mapMethodAndWrap("validate"));
 CjsSchema.exposure.define("VideoPlayer")(VideoPlayer);

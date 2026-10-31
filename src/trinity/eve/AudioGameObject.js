@@ -12,7 +12,7 @@ import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 
@@ -101,7 +101,6 @@ export class AudioGameObject extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   __init__()
   {
     return this.Initialize();
@@ -113,7 +112,6 @@ export class AudioGameObject extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetAudioEmitter()
   {
     return this.audioEmitter;
@@ -126,7 +124,6 @@ export class AudioGameObject extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetEmitterName(name)
   {
     this.audioEmitter?.SetName(String(name));
@@ -139,7 +136,6 @@ export class AudioGameObject extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   PlayAudioEvent(eventName)
   {
     if (!this.audioEmitter || !eventName) return 0;
@@ -196,7 +192,6 @@ export class AudioGameObject extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetRenderables__Impostors(_renderables, _impostors)
   {
   }
@@ -287,7 +282,6 @@ export class AudioGameObject extends IRoot
    * @returns {vec3} position
    */
 
-  @meta.implemented
   UpdateModelCenterWorldPosition(position, t)
   {
     this.UpdateWorldTransform(t);
@@ -310,7 +304,6 @@ export class AudioGameObject extends IRoot
    * @returns {vec3} position
    */
 
-  @meta.implemented
   GetModelCenterWorldPosition(position)
   {
     const { mat4_0, mat4_1 } = AudioGameObject.scratch;
@@ -329,7 +322,6 @@ export class AudioGameObject extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Audio Speaker");
@@ -354,7 +346,6 @@ export class AudioGameObject extends IRoot
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "Audio Speaker"))
@@ -383,7 +374,6 @@ export class AudioGameObject extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetPerObjectStructs(_vsData, _psData)
   {
   }

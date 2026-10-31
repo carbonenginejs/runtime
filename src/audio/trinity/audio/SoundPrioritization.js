@@ -48,7 +48,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   RegisterGameObject(object)
   {
     if (!object)
@@ -67,7 +66,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   UnregisterGameObject(objectID)
   {
     if (this._listener && this._listener.GetID() === objectID)
@@ -84,7 +82,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   CullAudio(now)
   {
     if (!this._audioCullingEnabled || !this._gameObjects.length || !this._listener)
@@ -131,7 +128,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   ResetCullingSettings()
   {
     this._settings = DefaultSettings();
@@ -142,7 +138,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetAudioCullingEnabled()
   {
     return this._audioCullingEnabled;
@@ -154,8 +149,6 @@ export class SoundPrioritization
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   SetAudioCullingEnabled(enabled)
   {
     this._audioCullingEnabled = !!enabled;
@@ -166,7 +159,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   EnableAudioCulling()
   {
     this._audioCullingEnabled = true;
@@ -179,7 +171,6 @@ export class SoundPrioritization
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   DisableAudioCulling()
   {
     for (const object of this._gameObjects)
@@ -199,7 +190,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxAwakeGameObjects()
   {
     return this._settings.maxAwakeGameObjects;
@@ -210,7 +200,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxAwakeGameObjects(value)
   {
     this._settings.maxAwakeGameObjects = value;
@@ -221,7 +210,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetOneShotWindow()
   {
     return this._settings.oneShotWindow;
@@ -232,7 +220,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetOneShotWindow(value)
   {
     this._settings.oneShotWindow = value;
@@ -243,7 +230,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetWeightMultiplier()
   {
     return this._settings.weightMultiplier;
@@ -254,7 +240,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetWeightMultiplier(value)
   {
     this._settings.weightMultiplier = value;
@@ -265,7 +250,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetPlayingVitalSoundWeight()
   {
     return this._settings.weightMultiplier * this._settings.playingVitalSoundWeight;
@@ -276,7 +260,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetPlayingVitalSoundWeight(value)
   {
     this._settings.playingVitalSoundWeight = value;
@@ -287,7 +270,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetPlaying2DWeight()
   {
     return this._settings.weightMultiplier * this._settings.playing2DWeight;
@@ -298,7 +280,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetPlaying2DWeight(value)
   {
     this._settings.playing2DWeight = value;
@@ -309,7 +290,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetRangeWeight()
   {
     return this._settings.weightMultiplier * this._settings.rangeWeight;
@@ -320,7 +300,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetRangeWeight(value)
   {
     this._settings.rangeWeight = value;
@@ -331,7 +310,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetPlayingEventsWeight()
   {
     return this._settings.weightMultiplier * this._settings.activeSoundsWeight;
@@ -342,7 +320,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetPlayingEventsWeight(value)
   {
     this._settings.activeSoundsWeight = value;
@@ -353,7 +330,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetWaitingOneShotWeight()
   {
     return this._settings.weightMultiplier * this._settings.waitingOneShotWeight;
@@ -364,7 +340,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetWaitingOneShotWeight(value)
   {
     this._settings.waitingOneShotWeight = value;
@@ -375,7 +350,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetVisibleWeight()
   {
     return this._settings.weightMultiplier * this._settings.visibleWeight;
@@ -386,7 +360,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetVisibleWeight(value)
   {
     this._settings.visibleWeight = value;
@@ -397,7 +370,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   GetUsedEmitterWeight()
   {
     return this._settings.weightMultiplier * this._settings.usedEmitterWeight;
@@ -408,7 +380,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   SetUsedEmitterWeight(value)
   {
     this._settings.usedEmitterWeight = value;
@@ -420,7 +391,6 @@ export class SoundPrioritization
    * @adapted Carbon returns a const vector reference; CarbonEngineJS returns a defensive
    *   array.
    */
-  @meta.adapted
   GetPrioritizedAudioObjects()
   {
     return this._gameObjects.slice();
@@ -431,7 +401,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
   ForEachAwakeAudioObject(visitor)
   {
     for (const gameObject of this._gameObjects)
@@ -448,7 +417,6 @@ export class SoundPrioritization
    *
    * @implemented
    */
-  @meta.implemented
 
   static calculateObjectWeight(distanceSq, isMuted, isInRange, isUsed, isVisible, isPlaying2D, isPlayingVital,
     additionalWeight, activeEventCount, waitingOneShotWeight, usedEmitterWeight, rangeWeight,

@@ -11,7 +11,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { IsMatch, blue } from "#blue";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
@@ -112,7 +112,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetResPath()
   {
     return this.resPath;
@@ -124,7 +123,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetResPath(resPath)
   {
     this.resPath = String(resPath ?? "");
@@ -137,7 +135,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   Reload(bypassAutoLoadBlocker = false)
   {
     if (this.loadChildAutomatically || bypassAutoLoadBlocker) this.LoadChild();
@@ -149,7 +146,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetAutoLoadBlocker(shouldBlockAutoLoad)
   {
     this.loadChildAutomatically = !shouldBlockAutoLoad;
@@ -161,7 +157,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.loadChildAutomatically) this.LoadChild();
@@ -174,7 +169,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName = null)
   {
     if (IsMatch(propertyName, "resPath") && this.loadChildAutomatically) this.LoadChild();
@@ -190,7 +184,6 @@ export class EveChildRef extends EveChildTransform
    *   load was started; a failure logs as Carbon's does.
    */
 
-  @meta.adapted
   LoadChild()
   {
     this.UnRegisterComponents();
@@ -226,7 +219,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     if (this.IsInRegistry() && this.child !== null && this.display)
@@ -241,7 +233,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     if (this.IsInRegistry() && this.child !== null)
@@ -256,7 +247,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetEffectChildByName(name)
   {
     const owner = CjsSchema.cast(this.child, IEveEffectChildrenOwner);
@@ -269,7 +259,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddToEffectChildrenList(child)
   {
     CjsSchema.cast(this.child, IEveEffectChildrenOwner)?.AddToEffectChildrenList(child);
@@ -281,7 +270,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RemoveFromEffectChildrenList(child)
   {
     CjsSchema.cast(this.child, IEveEffectChildrenOwner)?.RemoveFromEffectChildrenList(child);
@@ -293,7 +281,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
     this.child?.SetProceduralContainerVariable(name, value);
@@ -305,7 +292,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
     if (!this.display) return;
@@ -318,7 +304,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (this.display && this.child) this.child.GetRenderables(renderables);
@@ -331,7 +316,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(sphere, _query)
   {
     return this.child ? this.child.GetBoundingSphere(sphere, 0) === true : false;
@@ -343,7 +327,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     this.child?.RegisterWithQuadRenderer(quadRenderer);
@@ -355,7 +338,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (this.display && this.child) this.child.AddQuadsToQuadRenderer(frustum, quadRenderer);
@@ -367,7 +349,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (!this.child) return;
@@ -380,7 +361,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     this.UpdateTransform(params?.localToWorldTransform);
@@ -404,7 +384,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     transform.set(this.worldTransform);
@@ -417,7 +396,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
@@ -430,7 +408,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
@@ -443,7 +420,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
@@ -458,7 +434,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
@@ -472,7 +447,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
@@ -486,7 +460,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PlayAllCurveSets()
   {
     const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
@@ -499,7 +472,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     this.child?.SetShaderOption(name, value);
@@ -511,7 +483,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ChangeLOD(lod)
   {
     this.child?.ChangeLOD(lod);
@@ -523,7 +494,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     this.child?.SetControllerVariable(name, value);
@@ -535,7 +505,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleControllerEvent(name)
   {
     this.child?.HandleControllerEvent(name);
@@ -547,7 +516,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetInheritProperties(colorSet)
   {
     const owner = this.child ? CjsSchema.cast(this.child, IEveInheritPropertiesOwner) : null;
@@ -560,7 +528,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartControllers()
   {
     this.child?.StartControllers();
@@ -572,7 +539,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   FindSoundEmitter(name)
   {
     const owner = CjsSchema.cast(this.child, ITr2SoundEmitterOwner);
@@ -585,7 +551,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetOwner(owner)
   {
     if (this.GetOwner() === owner) return;
@@ -599,7 +564,6 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetPartTag(tag)
   {
     const next = Number(tag) >>> 0;

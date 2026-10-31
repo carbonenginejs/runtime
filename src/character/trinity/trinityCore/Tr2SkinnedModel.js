@@ -40,7 +40,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @adapted no arena copy of the matrix is needed; the native helper never reads it.
    */
   @legacyBlue.method
-  @meta.adapted
   GetBatches(batches, batchType, m, data)
   {
     for (const mesh of this.meshes)
@@ -61,7 +60,6 @@ export class Tr2SkinnedModel extends Tr2Model
    *   objectId picking reads (Tr2RenderContext.eveSpacePickingFramework).
    */
   @legacyBlue.method
-  @meta.adapted
   _GetBatchesForArea(areas, mesh, batches, _pm, skinnedData)
   {
     if (!mesh.GetDisplay()) return;
@@ -146,7 +144,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "geometryResPath"))
@@ -169,7 +166,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @returns {boolean} true
    */
 
-  @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
   Initialize()
   {
@@ -201,7 +197,6 @@ export class Tr2SkinnedModel extends Tr2Model
    *
    * @implemented
    */
-  @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
   OnListModified(event)
   {
@@ -218,7 +213,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @implemented
    */
 
-  @meta.implemented
   ReleaseCachedData(_resource = null)
   {
     this._skeletonIx = NO_SKELETON;
@@ -231,7 +225,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @param {TriGeometryRes|null} [_resource] - the notifying resource; the model reads its own geometryRes
    */
 
-  @meta.implemented
   RebuildCachedData(_resource = null)
   {
     this._skeletonIx = NO_SKELETON;
@@ -257,7 +250,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @returns {object|null} the selected payload skeleton, or null when none is selected
    */
 
-  @meta.implemented
   GetSkeleton()
   {
     if (this._skeletonIx === NO_SKELETON)
@@ -278,7 +270,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @param {boolean} forceRebind
    */
 
-  @meta.implemented
   BindToRig(boneList, numBones, forceRebind)
   {
     if (!forceRebind && boneList === this._boneList && this._areAllMeshesBound)
@@ -320,7 +311,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @implemented
    */
   @be.mapMethodAndWrap("ResetAnimationBindings")
-  @meta.implemented
   ResetBindings()
   {
     this._areAllMeshesBound = false;
@@ -332,8 +322,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @implemented
    * @renamed ResetBindings
    */
-  @meta.renamed("ResetBindings")
-  @meta.implemented
   ResetAnimationBindings()
   {
     this.ResetBindings();
@@ -344,7 +332,6 @@ export class Tr2SkinnedModel extends Tr2Model
    *
    * @implemented
    */
-  @meta.implemented
 
   SetGeometryResPath(path)
   {
@@ -356,7 +343,6 @@ export class Tr2SkinnedModel extends Tr2Model
    *
    * @implemented
    */
-  @meta.implemented
 
   GetGeometryResPath()
   {
@@ -368,7 +354,6 @@ export class Tr2SkinnedModel extends Tr2Model
    *
    * @implemented
    */
-  @meta.implemented
 
   SetSkeletonName(name)
   {
@@ -385,7 +370,6 @@ export class Tr2SkinnedModel extends Tr2Model
    * @param {vec3} maxBounds - receives the maximum
    * @returns {boolean} false when the model has no meshes
    */
-  @meta.implemented
 
   GetDynamicBoundingBox(boneTransforms, minBounds, maxBounds)
   {
@@ -415,7 +399,6 @@ export class Tr2SkinnedModel extends Tr2Model
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     if (this.geometryRes) this.geometryRes.RemoveNotifyTarget(this);

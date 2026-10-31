@@ -18,7 +18,7 @@
 // - ONE ELAPSED-TIME QUERY MAY BE ACTIVE AT A TIME, where timestamps nest
 //   freely; `Begin` while another timer is running answers false.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -63,7 +63,6 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(renderContext)
   {
     this._Reset();
@@ -93,7 +92,6 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext The context.
    * @returns {boolean} Whether timing started.
    */
-  @meta.adapted
   Begin(_renderContext)
   {
     if (!this._query || this._state !== READY) return false;
@@ -113,7 +111,6 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    * @adapted
    * @param {object} _renderContext The context.
    */
-  @meta.adapted
   End(_renderContext)
   {
     if (!this._query || this._state !== BEGIN_ISSUED) return;
@@ -131,7 +128,6 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext The context.
    * @returns {number} The time in seconds.
    */
-  @meta.adapted
   GetTime(_renderContext)
   {
     if (!this._query || this._state !== END_ISSUED) return this._lastTime;
@@ -225,9 +221,4 @@ CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Begin");
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "End");
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "GetTime");
 // States against dx11/Tr2GpuTimerALDx11.cpp and .h. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.
-CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "SetName", meta.adapted);
 CjsSchema.meta.define("Tr2GpuTimerALWebgl2")(Tr2GpuTimerALWebgl2);

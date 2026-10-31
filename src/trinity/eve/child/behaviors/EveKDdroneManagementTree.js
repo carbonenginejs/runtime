@@ -3,7 +3,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { PlaneType } from "./enums.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -120,7 +120,6 @@ export class EveKDdroneManagementTree extends IRoot
    * @param {Number} numberOfBehaviors
    */
 
-  @meta.implemented
   CreateTree(agents, numberOfBehaviors)
   {
     if (agents.length === 0)
@@ -154,7 +153,6 @@ export class EveKDdroneManagementTree extends IRoot
    * @param {Number} dt - delta time in seconds
    */
 
-  @meta.implemented
   UpdateTree(dt)
   {
     if (this.timeBetweenUpdate !== -1 && this.updateTimeCounter >= this.timeBetweenUpdate)
@@ -178,7 +176,6 @@ export class EveKDdroneManagementTree extends IRoot
    * @returns {Object|null} the closest DroneAgent record
    */
 
-  @meta.implemented
   FindClosestAgent(pos)
   {
     // cpp:278.
@@ -208,7 +205,6 @@ export class EveKDdroneManagementTree extends IRoot
    * @returns {Array} groupSearchReturnInfoBlock
    * Carbon declaration: EveKDdroneManagementTree::FindDronesInRange (trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h:23).
    */
-  @meta.implemented
   FindDronesInRange(agents, ranges, behaviorGroupBoundingSphereRadius)
   {
     const searchRanges = this._searchRanges;
@@ -555,7 +551,6 @@ export class EveKDdroneManagementTree extends IRoot
    * @param {mat4} parentWorldLocation Only its translation offsets the split planes.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentWorldLocation)
   {
     const debugSquareCorner1 = vec3.set(DEBUG_SQUARE_CORNER1, this.debugSquareSize, this.debugSquareSize, this.debugSquareSize);
@@ -581,7 +576,6 @@ export class EveKDdroneManagementTree extends IRoot
    * @param {vec3} pwt The parent world translation.
    */
 
-  @meta.implemented
   _DrawDebugTree(renderer, tree, debugSquareCorner1, debugSquareCorner2, pwt)
   {
     if (tree === null)
@@ -649,7 +643,6 @@ export class EveKDdroneManagementTree extends IRoot
    * @param {vec3} pwt The parent world translation.
    */
 
-  @meta.implemented
   _DrawSquareInnerLines(renderer, agentPos, P1, P2, C, pt, pwt)
   {
     switch (pt)

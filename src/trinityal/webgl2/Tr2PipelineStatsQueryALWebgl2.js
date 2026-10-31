@@ -8,7 +8,7 @@
 // every other call answers as dx11 does for a query that was never created,
 // and a statistics record has no fields.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -35,7 +35,6 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -83,7 +82,6 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @adapted
    * @returns {{result: number, data: Tr2PipelineStatsDataALWebgl2}} dx11's out argument comes back here.
    */
-  @meta.adapted
   GetStats(_renderContext)
   {
     return { result: ALResult.E_INVALIDARG, data: new Tr2PipelineStatsDataALWebgl2() };
@@ -97,7 +95,6 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {Array} _data A statistics record.
    * @returns {number} Zero.
    */
-  @meta.adapted
   static GetValueCount(_data)
   {
     return 0;
@@ -111,7 +108,6 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} _index The value index.
    * @returns {string} The empty string.
    */
-  @meta.adapted
   static GetLabel(_data, _index)
   {
     return "";
@@ -125,7 +121,6 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} _index The value index.
    * @returns {string} The empty string.
    */
-  @meta.adapted
   static GetDescription(_data, _index)
   {
     return "";
@@ -139,7 +134,6 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} _index The value index.
    * @returns {number} Zero.
    */
-  @meta.adapted
   static GetValue(_data, _index)
   {
     return 0;
@@ -185,15 +179,9 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
 CjsSchema.decorateField(Tr2PipelineStatsQueryALWebgl2, "_name", type.string);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Create");
 // States against dx11/Tr2PipelineStatsQueryALDx11.cpp. WebGL2 has no pipeline-statistics query, so IsValid is always false and Begin/End return E_INVALIDARG, which is dx11's answer for a query that was never created (cpp Begin/End). GetMemoryClass and Describe are dx11's; SetName stores the name without a native label.
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "IsValid", meta.notSupported);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Begin", meta.notSupported);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "End", meta.notSupported);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetStats");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValueCount");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetLabel");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetDescription");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValue");
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "SetName", meta.adapted);
 CjsSchema.meta.define("Tr2PipelineStatsQueryALWebgl2")(Tr2PipelineStatsQueryALWebgl2);

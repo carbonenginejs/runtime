@@ -9,6 +9,7 @@ import { Tr2QuadRenderer, TriFrustum } from "../../npm/dist/trinity/core/index.j
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedEve from "../../npm/dist/trinity/generated/eve/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 function makeEffect(name, hash, events)
@@ -92,7 +93,7 @@ test("EveTacticalOverlay is maintained with scalar Carbon range fields", () =>
   assert.equal(overlay.outsideInterestIntensity, 0.35);
   assert.equal(CjsSchema.getField(eve.EveTacticalOverlay, "activeRange")?.type.kind, "float32");
   assert.equal(CjsSchema.getField(eve.EveTacticalOverlay, "rangeFadeLength")?.type.kind, "float32");
-  assert.equal(CjsSchema.getMethod(eve.EveTacticalOverlay, "UpdateVisibility")?.impl?.status, "adapted");
+  assert.equal(MarkerTag("EveTacticalOverlay", "UpdateVisibility"), "adapted");
 });
 
 

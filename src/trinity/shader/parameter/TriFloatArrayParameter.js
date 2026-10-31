@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { IInitialize } from "#blue";
 import { INotify } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
 
 
@@ -44,7 +44,6 @@ export class TriFloatArrayParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -56,7 +55,6 @@ export class TriFloatArrayParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     for (const row of this.value)
@@ -72,7 +70,6 @@ export class TriFloatArrayParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -85,7 +82,6 @@ export class TriFloatArrayParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_options = {})
   {
     this.RebuildEffectHandles(this.#cachedEffect);
@@ -99,7 +95,6 @@ export class TriFloatArrayParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this.#cachedEffect = effectRes;
@@ -116,7 +111,6 @@ export class TriFloatArrayParameter extends ITriEffectParameter
    * @param size byte budget in the destination, four bytes per float
    * Carbon declaration: TriFloatArrayParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/TriFloatArrayParameter.h:56).
    */
-  @meta.adapted
   CopyValueToEffect(_inputType, out, size = Number.POSITIVE_INFINITY)
   {
     const byteLimit = Number.isFinite(size) ? Math.max(0, size) : Infinity;

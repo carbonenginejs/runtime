@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { num } from "#math/num";
 import { quat } from "#math/quat";
 import { ITriFunction, ITriQuaternionFunction, ITriCurveLength } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { CcpTime } from "#blue";
 
 
@@ -89,7 +89,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.Update(time, this.value);
@@ -105,7 +104,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, this.value);
@@ -122,7 +120,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     if (!this.startCurve || !this.endCurve || this.length <= 0)
@@ -145,7 +142,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   Update__Ticks(time, out)
   {
     this.GetValueAt__Ticks(time, this.value);
@@ -162,7 +158,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt__Ticks(time, out)
   {
     if (!this.startCurve || !this.endCurve || this.length <= 0)
@@ -184,7 +179,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -198,7 +192,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -211,7 +204,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @returns {number} Duration in seconds.
    */
 
-  @meta.implemented
   Length()
   {
     return this.length;

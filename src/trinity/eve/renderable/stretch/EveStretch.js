@@ -12,7 +12,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { INotify, IsMatch, CcpTime } from "#blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EntityComponents.js";
@@ -44,7 +44,6 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
 
   OnModified(names)
   {
@@ -158,7 +157,6 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   UpdateSynchronous(context)
   {
     if (!this.update) return true;
@@ -185,7 +183,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @adapted Carbon splits synchronous and asynchronous work; the browser graph keeps both
    *   phases but executes child calls serially.
    */
-  @meta.adapted
   UpdateAsynchronous(context)
   {
     if (!this.update) return true;
@@ -243,7 +240,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   Update__UpdateContext(updateContext)
   {
     this.UpdateSynchronous(updateContext);
@@ -257,7 +253,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   Update(updateContext)
   {
     return this.Update__UpdateContext(updateContext);
@@ -275,7 +270,6 @@ export class EveStretch extends IEveFiringEffectElement
    *   read the default level and update the curves once a second.
    */
 
-  @meta.adapted
   UpdateCurves(context)
   {
     const time = context.GetTime();
@@ -299,7 +293,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @adapted the child LOD merge is not ported; parentTransform is unused, as in Carbon.
    */
 
-  @meta.adapted
   UpdateVisibility(context, _parentTransform = EveStretch._identity)
   {
     if (!this.display) return;
@@ -369,7 +362,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     return this.GetRenderables__Impostors(out, null);
@@ -382,7 +374,6 @@ export class EveStretch extends IEveFiringEffectElement
    *   the collected objects.
    * @returns {Array} out
    */
-  @meta.adapted
 
   GetRenderables__Impostors(out, impostors)
   {
@@ -402,7 +393,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   StartMoving()
   {
     this.startTime = -1;
@@ -420,7 +410,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Start()
   {
     this.StartMoving();
@@ -434,7 +423,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDisplay(display)
   {
     this.display = !!display;
@@ -448,7 +436,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetSourcePosition(value)
   {
     this._useTransforms = false;
@@ -462,7 +449,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDestinationPosition(value)
   {
     vec3.copy(this._destinationPosition, value);
@@ -477,7 +463,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetSourceTransform(value)
   {
     this._useTransforms = true;
@@ -492,7 +477,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDestinationTransform(value)
   {
     mat4.copy(this._destinationTransform, value);
@@ -506,7 +490,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetIsNegZForward(value)
   {
     this._negativeZ = !!value;
@@ -519,7 +502,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   GetCurveDuration()
   {
     let duration = 0;
@@ -537,7 +519,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
    */
 
-  @meta.implemented
   StartFiring(delay = 0)
   {
     for (const curveSet of this.curveSets)
@@ -573,7 +554,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   StopFiring()
   {
     for (const curveSet of this.curveSets)
@@ -601,7 +581,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetFiringTransform(source, destination)
   {
     if (source?.length === 16) this.SetSourceTransform(source);
@@ -617,7 +596,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   DisplayEndPoints(displaySource, displayDestination)
   {
     this._displaySource = !!displaySource;
@@ -631,7 +609,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetSourceObjectScale(scale)
   {
     this._sourceScale = Number(scale);
@@ -644,7 +621,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   SetDestObjectScale(scale)
   {
     this._destinationScale = Number(scale);
@@ -656,7 +632,6 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @adapted
    */
-  @meta.adapted
   SetIntensity(_intensity)
   {
   }
@@ -672,7 +647,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @returns {Boolean} whether any child contributed a sphere
    */
 
-  @meta.implemented
   GetBoundingSphere(out, query = 0)
   {
     let valid = false;
@@ -698,7 +672,6 @@ export class EveStretch extends IEveFiringEffectElement
    *   light manager.
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     if (!this.display) return;
@@ -715,7 +688,6 @@ export class EveStretch extends IEveFiringEffectElement
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -730,7 +702,6 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   UpdateModelCenterWorldPosition(position, t)
   {
   }
@@ -740,7 +711,6 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   GetModelCenterWorldPosition(position)
   {
   }
@@ -750,7 +720,6 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     return false;
@@ -761,7 +730,6 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     mat4.identity(transform);
@@ -772,7 +740,6 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @implemented
    */
-  @meta.implemented
   GetLODLevel()
   {
     return this.lodLevel;

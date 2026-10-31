@@ -1,7 +1,7 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Include/TriMatrix.h, TriMatrix.cpp, TriMatrix_Blue.cpp
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { IPythonMethods } from "#blue";
 import { ITriMatrix } from "./ITriMatrix.js";
 import { mat4 } from "#math/mat4";
@@ -44,7 +44,6 @@ export class TriMatrix extends IRoot
    *
    * @notSupported
    */
-  @meta.notSupported
   Destroy()
   {
   }
@@ -56,7 +55,6 @@ export class TriMatrix extends IRoot
    * @param {string} name The attribute name.
    * @returns {null} Not handled.
    */
-  @meta.notSupported
   GetAttr(name)
   {
     return null;
@@ -70,7 +68,6 @@ export class TriMatrix extends IRoot
    * @param {*} value The value.
    * @returns {boolean} False: not handled.
    */
-  @meta.notSupported
   SetAttr(name, value)
   {
     return false;
@@ -82,7 +79,6 @@ export class TriMatrix extends IRoot
    * @notSupported
    * @returns {null} Not handled.
    */
-  @meta.notSupported
   Repr()
   {
     return null;
@@ -94,7 +90,6 @@ export class TriMatrix extends IRoot
    * @implemented
    * @returns {mat4} The stored matrix.
    */
-  @meta.implemented
 
   GetMatrix()
   {
@@ -109,7 +104,6 @@ export class TriMatrix extends IRoot
    * @returns {mat4} out
    * Carbon declaration: TriMatrix::CopyMatrix (trinity/trinity/Include/TriMatrix.h:54).
    */
-  @meta.implemented
   CopyMatrix(out)
   {
     return mat4.copy(out, this._matrix);
@@ -122,7 +116,6 @@ export class TriMatrix extends IRoot
    * @param {mat4} m The matrix to copy in.
    * Carbon declaration: TriMatrix::SetMatrix (trinity/trinity/Include/TriMatrix.h:49).
    */
-  @meta.implemented
   SetMatrix(m)
   {
     mat4.copy(this._matrix, m);
@@ -135,7 +128,6 @@ export class TriMatrix extends IRoot
    * @param {...number} elements The elements.
    * Carbon declaration: TriMatrix::SetPivots (trinity/trinity/Include/TriMatrix.h:31).
    */
-  @meta.implemented
   SetPivots(...elements)
   {
     for (let i = 0; i < 16; i++) this._matrix[i] = elements[i];
@@ -148,7 +140,6 @@ export class TriMatrix extends IRoot
    * @returns {number} The determinant.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Determinant()
   {
     return mat4.determinant(this._matrix);
@@ -160,7 +151,6 @@ export class TriMatrix extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Identity()
   {
     mat4.identity(this._matrix);
@@ -173,7 +163,6 @@ export class TriMatrix extends IRoot
    * @returns {number} The determinant of the matrix before inversion.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Inverse()
   {
     const determinant = mat4.determinant(this._matrix);
@@ -191,7 +180,6 @@ export class TriMatrix extends IRoot
    * @param {vec3} up Up direction.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   LookAtRH(eye, at, up)
   {
     mat4.lookAt(this._matrix, eye, at, up);
@@ -204,7 +192,6 @@ export class TriMatrix extends IRoot
    * @param {TriMatrix} other The matrix applied after this one.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Multiply(other)
   {
     mat4.multiply(this._matrix, other.GetMatrix(), this._matrix);
@@ -218,7 +205,6 @@ export class TriMatrix extends IRoot
    * @param {number} angle Angle in radians.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RotationAxis(axis, angle)
   {
     mat4.fromRotation(this._matrix, angle, axis);
@@ -231,7 +217,6 @@ export class TriMatrix extends IRoot
    * @param {quat} rotation The rotation.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RotationQuaternion(rotation)
   {
     mat4.fromQuat(this._matrix, rotation);
@@ -244,7 +229,6 @@ export class TriMatrix extends IRoot
    * @param {number} angle Angle in radians.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RotationX(angle)
   {
     mat4.fromXRotation(this._matrix, angle);
@@ -257,7 +241,6 @@ export class TriMatrix extends IRoot
    * @param {number} angle Angle in radians.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RotationY(angle)
   {
     mat4.fromYRotation(this._matrix, angle);
@@ -272,7 +255,6 @@ export class TriMatrix extends IRoot
    * @param {number} roll Roll in radians.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RotationYawPitchRoll(yaw, pitch, roll)
   {
     mat4.fromQuat(this._matrix, quat.fromYawPitchRollCarbon(TriMatrix._rotation, yaw, pitch, roll));
@@ -285,7 +267,6 @@ export class TriMatrix extends IRoot
    * @param {number} angle Angle in radians.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RotationZ(angle)
   {
     mat4.fromZRotation(this._matrix, angle);
@@ -300,7 +281,6 @@ export class TriMatrix extends IRoot
    * @param {number} sz Z scale.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Scaling(sx, sy, sz)
   {
     mat4.fromScaling(this._matrix, [ sx, sy, sz ]);
@@ -320,7 +300,6 @@ export class TriMatrix extends IRoot
    * @param {vec3} translation Translation.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Transformation(scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation)
   {
     const out = this._matrix, factor = TriMatrix._factor, offset = TriMatrix._offset;
@@ -352,7 +331,6 @@ export class TriMatrix extends IRoot
    * @param {number} z Z translation.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Translation(x, y, z)
   {
     mat4.fromTranslation(this._matrix, [ x, y, z ]);
@@ -364,7 +342,6 @@ export class TriMatrix extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Transpose()
   {
     mat4.transpose(this._matrix, this._matrix);

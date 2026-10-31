@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback_Blue.cpp
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -29,7 +29,6 @@ export class Tr2ActionCallback extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   Start(controller)
   {
     if (this.callbackName)

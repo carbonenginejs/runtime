@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { EveEntity } from "../EveEntity.js";
@@ -145,7 +145,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    */
   @be.mapProperty()
   @type.rootRef("EveChildInstanceContainer")
-  @meta.implemented
   get effect()
   {
     return this.GetEffect();
@@ -156,7 +155,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    *
    * @implemented
    */
-  @meta.implemented
   set effect(value)
   {
     this.SetEffect(value);
@@ -294,7 +292,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   Play()
   {
     this.Stop();
@@ -315,7 +312,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Stop()
   {
     this.isPlaying = false;
@@ -335,7 +331,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this._effect) this._effect.DisableEditMode(true);
@@ -351,7 +346,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "effect"))
@@ -394,7 +388,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   ManageTriggers()
   {
     if (!this.triggerSphereRadiusCurve)
@@ -439,7 +432,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @param {EveChildUpdateParams} params
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (this.trigger)
@@ -507,7 +499,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   UpdateTriggerCurve(updateContext)
   {
     const dt = updateContext.GetDeltaT();
@@ -559,7 +550,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   UpdateTriggerInterval(updateContext)
   {
     const dt = updateContext.GetDeltaT();
@@ -621,7 +611,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @adapted
    */
 
-  @meta.adapted
   GetSmartRandomLocatorIndex()
   {
     let locatorIndex = -1;
@@ -666,7 +655,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @returns {Float32Array} worldTransform
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     if (!this.IsRendering())
@@ -686,7 +674,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
     if (this._effect) this._effect.UpdateVisibility(updateContext, parentTransform, parentLod);
@@ -700,7 +687,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     if (this._currentTriggerIndex === 0)
@@ -719,7 +705,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.IsRendering())
@@ -735,7 +720,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this._effect) this._effect.RegisterWithQuadRenderer(quadRenderer);
@@ -751,7 +735,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @adapted
    */
 
-  @meta.adapted
   ProcessLocalLocators()
   {
     if (!this.localLocators)
@@ -799,7 +782,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @adapted
    */
 
-  @meta.adapted
   ProcessRefLocators(parent)
   {
     if (this.locatorSetName === "")
@@ -854,7 +836,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @adapted
    */
 
-  @meta.adapted
   ProcessRandomSpreadLocators()
   {
     const count = Number(this.numTriggers);
@@ -900,7 +881,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   ProcessLocators(parent = null)
   {
     this._processedTransforms.length = 0;
@@ -938,7 +918,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @adapted
    */
 
-  @meta.adapted
   RecalculateLocatorSizes()
   {
     for (const record of this._processedTransforms)
@@ -957,7 +936,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   DistanceSortLocators()
   {
     // Carbon: it->position - m_triggerSphereOffset * m_triggerSphereScalarMulti
@@ -977,7 +955,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   GetEffect()
   {
     return this._effect;
@@ -991,7 +968,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   SetEffect(effect)
   {
     this.UnRegisterComponents();
@@ -1008,7 +984,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     if (this._effect) this._effect.SetControllerVariable(String(name ?? ""), Number(value));
@@ -1020,7 +995,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     if (this.IsInRegistry() && this._effect)
@@ -1035,7 +1009,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     if (this.IsInRegistry() && this._effect)

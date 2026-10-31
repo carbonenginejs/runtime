@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { BlueList, CjsBlueOS, IInitialize, INotify, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { PixelFormat } from "#consts/render-context";
@@ -119,7 +119,6 @@ export class EveCloudEditableVolume
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.OnVolumeModified();
@@ -132,7 +131,6 @@ export class EveCloudEditableVolume
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_names)
   {
     this.OnVolumeModified();
@@ -147,7 +145,6 @@ export class EveCloudEditableVolume
    *   can block, and returns the current snapshot without waiting for a successor.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Rasterize()
   {
     this.OnVolumeModified();
@@ -170,7 +167,6 @@ export class EveCloudEditableVolume
    * @implemented
    */
 
-  @meta.implemented
   Update(time)
   {
     if (this._currentParams?.status === Status.DataReady)
@@ -188,7 +184,6 @@ export class EveCloudEditableVolume
    * @adapted JavaScript WeakRef stores the native BlueWeakRef owner.
    *   Carbon declaration: EveCloudEditableVolume::OnListModified (trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h:77).
    */
-  @meta.adapted
   OnListModified(event, _key, _key2, value, _list)
   {
     // WeakRef represents BlueWeakRef; list events remain the native contract.
@@ -228,7 +223,6 @@ export class EveCloudEditableVolume
    *   Curve sampling and snapshot allocation remain synchronous, as in Carbon.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   OnVolumeModified()
   {
     if (this._updating) return;
@@ -284,7 +278,6 @@ export class EveCloudEditableVolume
    * @implemented
    */
 
-  @meta.implemented
   GetTexture()
   {
     return this.texture;
@@ -322,7 +315,6 @@ export class EveCloudEditableVolume
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Cloud Balls");
@@ -340,7 +332,6 @@ export class EveCloudEditableVolume
    * @param {mat4} worldTransform
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, worldTransform)
   {
     if (renderer.HasOption(this, "Cloud Balls"))
@@ -382,7 +373,6 @@ export class EveCloudEditableVolume
    * @param {Tr2RenderContext} _renderContext
    */
 
-  @meta.notImplemented
   RenderDebugInfo__RenderContext(_world, _renderContext)
   {
     throw new Error("EveCloudEditableVolume.RenderDebugInfo__RenderContext requires Tr2Renderer::DrawOrientedBox and Tr2Renderer::DrawSphere, which are not ported.");
@@ -394,7 +384,6 @@ export class EveCloudEditableVolume
    * @adapted
    */
 
-  @meta.adapted
   static *threadProc(params)
   {
     yield* EveCloudEditableVolume.rasterizeBalls(params);
@@ -407,7 +396,6 @@ export class EveCloudEditableVolume
    * @adapted
    */
 
-  @meta.adapted
   static *threadProcAnimated(params)
   {
     yield* EveCloudEditableVolume.rasterizeBallsAnimated(params);
@@ -420,7 +408,6 @@ export class EveCloudEditableVolume
    * @adapted
    */
 
-  @meta.adapted
   static *rasterizeBalls(params)
   {
     const pixels = new Float32Array(params.pixels.length); // alloc: native floating-point accumulation
@@ -443,7 +430,6 @@ export class EveCloudEditableVolume
    * @adapted
    */
 
-  @meta.adapted
   static *rasterizeBallsAnimated(params)
   {
     const pixels = new Float32Array(params.pixels.length); // alloc: native reusable frame accumulation
@@ -473,7 +459,6 @@ export class EveCloudEditableVolume
    *   channels round to float32; native floating-point byte identity is not claimed.
    */
 
-  @meta.adapted
   static *rasterizeBall(ball, params, pixels)
   {
     const red = num.gammaToLinearCarbon(ball.selfIllumination[0]);

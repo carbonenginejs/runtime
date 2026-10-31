@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/TriCurveSet.cpp
 // Source: trinity/trinity/Curves/TriCurveSet_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { CjsScriptCallback, IInitialize, ISimTimeRebaseNotify, blue, BlueList, CcpTime } from "#blue";
 import { ITriFunction } from "../../global/blue/ITriFunction.js";
 import { ITriCurveLength } from "../../global/blue/ITriCurveLength.js";
@@ -123,7 +123,6 @@ export class TriCurveSet extends IInitialize
    * @param {number} simTime Simulation time in Blue 100ns ticks.
    * @returns {void}
    */
-  @meta.implemented
   Update__RealTimeSimTime(realTime, simTime)
   {
     this.Update(CcpTime.timeAsDouble(this.useRealTime ? realTime : simTime));
@@ -138,7 +137,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
 
-  @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
     const diff = CcpTime.timeAsDouble(newTime - oldTime);
@@ -162,7 +160,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @legacyBlue.method
-  @meta.implemented
   Update(time)
   {
     if (this.driver)
@@ -206,7 +203,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Apply()
   {
     for (const curve of this.curves)
@@ -227,7 +223,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
 
-  @meta.implemented
   ApplyTime(time)
   {
     this.scaledTime = time;
@@ -241,7 +236,6 @@ export class TriCurveSet extends IInitialize
    * @returns {boolean} True after playback initialization.
    */
 
-  @meta.adapted
   Initialize()
   {
     if (this.playOnLoad)
@@ -265,7 +259,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Play()
   {
     this.PlayFrom(0);
@@ -279,7 +272,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
 
-  @meta.implemented
   PlayTimeRange(name)
   {
     const range = this.ranges.find(item => item.name === name);
@@ -299,7 +291,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   PlayFrom(time)
   {
     this._startTime = -1;
@@ -321,7 +312,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Stop()
   {
     this.isPlaying = false;
@@ -334,7 +324,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StopOnNextFrame()
   {
     this._stopOnNextFrame = true;
@@ -348,7 +337,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StopAfter(seconds)
   {
     this._endTime = -seconds;
@@ -369,7 +357,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StopAfterWithCallback(seconds, callback)
   {
     this.StopAfter(seconds);
@@ -383,7 +370,6 @@ export class TriCurveSet extends IInitialize
    * @returns {number} Authored time multiplier.
    */
 
-  @meta.implemented
   GetTimeScale()
   {
     return this.scale;
@@ -396,7 +382,6 @@ export class TriCurveSet extends IInitialize
    * @returns {number} Current sample time in seconds.
    */
 
-  @meta.implemented
   GetScaledTime()
   {
     return this.scaledTime;
@@ -410,7 +395,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = name;
@@ -423,7 +407,6 @@ export class TriCurveSet extends IInitialize
    * @returns {string} Authored curve-set name.
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -436,7 +419,6 @@ export class TriCurveSet extends IInitialize
    * @returns {number} Number of stored functions.
    */
 
-  @meta.implemented
   GetCurvesCount()
   {
     return this.curves.length;
@@ -450,7 +432,6 @@ export class TriCurveSet extends IInitialize
    * @returns {ITriFunction} Stored function.
    */
 
-  @meta.implemented
   GetCurve(index)
   {
     return this.curves[index];
@@ -464,7 +445,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
 
-  @meta.implemented
   AddCurve(curve)
   {
     this.curves.Append(curve);
@@ -477,7 +457,6 @@ export class TriCurveSet extends IInitialize
    * @returns {number} Number of stored bindings.
    */
 
-  @meta.implemented
   GetBindingsCount()
   {
     return this.bindings.length;
@@ -491,7 +470,6 @@ export class TriCurveSet extends IInitialize
    * @returns {ITr2ValueBinding} Stored binding.
    */
 
-  @meta.implemented
   GetBinding(index)
   {
     return this.bindings[index];
@@ -505,7 +483,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
 
-  @meta.implemented
   AddBinding(binding)
   {
     this.bindings.Append(binding);
@@ -518,7 +495,6 @@ export class TriCurveSet extends IInitialize
    * @returns {number} Greatest reported duration, or zero.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetMaxCurveDuration()
   {
     let maxDuration = 0;
@@ -543,7 +519,6 @@ export class TriCurveSet extends IInitialize
    * @returns {number} End minus start, or zero when absent.
    */
 
-  @meta.implemented
   GetRangeDuration(rangeName)
   {
     const range = this.ranges.find(item => item.name === rangeName);
@@ -557,7 +532,6 @@ export class TriCurveSet extends IInitialize
    * @returns {boolean} Whether playback is active.
    */
 
-  @meta.implemented
   IsPlaying()
   {
     return this.isPlaying;
@@ -577,7 +551,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap("Update")
-  @meta.implemented
   UpdateWithCurrentTime()
   {
     this.Update(blue.os.GetCurrentFrameTime());
@@ -593,7 +566,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   SetTimeRange(timeMin, timeMax, looped = true)
   {
     this._hasTimeRange = true;
@@ -609,7 +581,6 @@ export class TriCurveSet extends IInitialize
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ResetTimeRange()
   {
     this._hasTimeRange = false;
@@ -624,7 +595,6 @@ export class TriCurveSet extends IInitialize
    * @returns {boolean} Whether an interval is active.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasTimeRange()
   {
     return this._hasTimeRange;
@@ -637,7 +607,6 @@ export class TriCurveSet extends IInitialize
    * @returns {Array<number>} New pair of active interval endpoints.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetTimeRange()
   {
     return [this._timeRangeMin, this._timeRangeMax];

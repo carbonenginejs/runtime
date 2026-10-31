@@ -95,7 +95,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.InitializeGeometryResource();
@@ -111,7 +110,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   InitializeGeometryResource()
   {
     this.geometryResource?.RemoveNotifyTarget(this);
@@ -130,7 +128,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   Cleanup()
   {
     this._trailVertexDeclElementCount = 0;
@@ -142,7 +139,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   SetEffect(effect)
   {
     this.effect = effect ?? null;
@@ -154,7 +150,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   SetMeshResPath(path)
   {
     this.geometryResPath = String(path ?? "");
@@ -170,7 +165,6 @@ export class EveTrailsSet
    *   are read directly, as EveSpaceObjectDecal does.
    */
 
-  @meta.adapted
   RebuildCachedData(resource)
   {
     // Carbon's notify target is told only of a successful load.
@@ -193,7 +187,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   ReleaseCachedData(_resource)
   {
     this.Cleanup();
@@ -205,7 +198,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "geometryResPath")) this.InitializeGeometryResource();
@@ -218,7 +210,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   Update(_time)
   {
   }
@@ -229,7 +220,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   Clear()
   {
     this._trailData.length = 0;
@@ -242,7 +232,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   Add(localMatrix, size)
   {
     if (!localMatrix || localMatrix.length !== 16)
@@ -262,7 +251,6 @@ export class EveTrailsSet
    *   rather than returned.
    */
 
-  @meta.adapted
   ReleaseResources(_storage)
   {
     this._instanceBuffer = null;
@@ -275,7 +263,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     if (this._trailVertexDeclElementCount && this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
@@ -294,7 +281,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   InitializeInstanceBuffer()
   {
     this._instanceBuffer = null;
@@ -322,7 +308,6 @@ export class EveTrailsSet
    * @param {object} perObjectData The booster renderable's per-object data.
    */
 
-  @meta.adapted
   GetBatches(accumulator, perObjectData)
   {
     if (!this.display) return;
@@ -364,7 +349,6 @@ export class EveTrailsSet
    * @implemented
    */
 
-  @meta.implemented
   GetFadeSpeed()
   {
     return this.fadeSpeed;
@@ -398,7 +382,6 @@ export class EveTrailsSet
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     this.Cleanup();

@@ -4,7 +4,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; texture-coordinate accessors are maintained here.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2Sprite2dVertexBase } from "./Tr2Sprite2dVertexBase.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
@@ -40,7 +40,6 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @returns {Float32Array} A copy of the coordinate.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetTexCoord(i)
   {
     return vec2.clone(this.texCoord[Tr2Sprite2dVertex.checkIndex(i)]);
@@ -55,7 +54,6 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetTexCoord(i, uv)
   {
     vec2.copy(this.texCoord[Tr2Sprite2dVertex.checkIndex(i)], uv);
@@ -68,7 +66,6 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @param {Float32Array|number[]} c New RGBA colour.
    * @returns {void}
    */
-  @meta.implemented
 
   SetColor(c)
   {
@@ -81,7 +78,6 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @implemented
    * @returns {Float32Array} A copy of the colour.
    */
-  @meta.implemented
 
   GetColor()
   {

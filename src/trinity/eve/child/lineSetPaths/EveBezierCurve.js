@@ -10,7 +10,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
@@ -155,7 +155,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._regeneratePoints = true;
@@ -169,7 +168,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "completeness")) this.completeness = Math.min(2, Math.max(0, this.completeness));
@@ -187,7 +185,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @adapted
    */
 
-  @meta.adapted
   Update(updateContext, _params = null)
   {
     if (this.movementSpeed !== 0)
@@ -210,7 +207,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @param {Float32Array} [parentTransform] - a non-identity matrix is used and cached, so later identity calls reuse the last real parent transform
    */
 
-  @meta.adapted
   GeneratePoints(parentTransform = mat4.create())
   {
     const segmentCount = this._getSegmentCount();
@@ -254,7 +250,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @adapted
    */
 
-  @meta.adapted
   GetPointCount()
   {
     return this._points.length;
@@ -267,7 +262,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @param {Number} [meshSize] - a non-zero value is remembered and reused on later zero-argument calls
    */
 
-  @meta.adapted
   CalculateBoundingSphere(meshSize = 0, _reCalculateChildren = true)
   {
     if (meshSize !== 0)
@@ -295,7 +289,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @returns {Float32Array} out
    */
 
-  @meta.adapted
   GetBoundingSphere(out)
   {
     return sph3.transformMat4(out, this._boundingSphere, this.localTransform);
@@ -309,7 +302,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @adapted
    */
 
-  @meta.adapted
   UpdateVisibility(frustum, _parentLod = null, systemLocation = mat4.create())
   {
     if (!this.display)
@@ -332,7 +324,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @adapted
    */
 
-  @meta.adapted
   AddLinesToSet(lineSet, color, animColor, scrollSpeed = 0)
   {
     if (!this.display || !this.isVisible)
@@ -373,7 +364,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @adapted
    */
 
-  @meta.adapted
   UpdateBuffer(renderContext, cursor, systemLocation, stride)
   {
     if (!this.isVisible || !this.display)
@@ -456,7 +446,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @adapted
    */
 
-  @meta.adapted
   GetDebugOptions(_options)
   {
   }
@@ -473,7 +462,6 @@ export class EveBezierCurve extends IEveLineSetPath
    * @param {mat4} systemLocation
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, systemLocation)
   {
     if (!renderer.HasOption(this, "LineSets"))

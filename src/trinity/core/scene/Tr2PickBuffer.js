@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2PickBuffer.h
 // Source: trinity/trinity/Tr2PickBuffer.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, ALResult } from "#trinityal";
 import { PixelFormat, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
 import { TriDevice } from "../device/TriDevice.js";
@@ -199,18 +199,6 @@ CjsSchema.decorateField(Tr2PickBuffer, "_format", type.uint32);
 CjsSchema.decorateField(Tr2PickBuffer, "_clearColor", type.uint32);
 CjsSchema.decorateField(Tr2PickBuffer, "_pickTarget", type.rawStruct("Tr2TextureAL"));
 CjsSchema.decorateField(Tr2PickBuffer, "_depthBuffer", type.rawStruct("Tr2TextureAL"));
-CjsSchema.decorateMethod(Tr2PickBuffer, "SetSize", meta.implemented);
-CjsSchema.decorateMethod(Tr2PickBuffer, "GetSize", meta.implemented);
-CjsSchema.decorateMethod(Tr2PickBuffer, "GetDescription", meta.adapted);
-CjsSchema.decorateMethod(Tr2PickBuffer, "SetClearColor", meta.implemented);
-CjsSchema.decorateMethod(Tr2PickBuffer, "ReleaseResources", meta.adapted);
-CjsSchema.decorateMethod(Tr2PickBuffer, "PrepareResources", meta.adapted);
-CjsSchema.decorateMethod(Tr2PickBuffer, "OnPrepareResources", meta.adapted);
-CjsSchema.decorateMethod(Tr2PickBuffer, "BeginRendering", meta.adapted);
-CjsSchema.decorateMethod(Tr2PickBuffer, "EndRendering", meta.implemented);
-CjsSchema.decorateMethod(Tr2PickBuffer, "MapForReading", meta.adapted);
-CjsSchema.decorateMethod(Tr2PickBuffer, "UnmapForReading", meta.implemented);
-CjsSchema.decorateMethod(Tr2PickBuffer, "Destruct", meta.adapted);
 CjsSchema.meta.carbon("Tr2PickBuffer")(Tr2PickBuffer);
 
 CjsSchema.decorateMethod(Tr2PickBuffer, "SetSize");

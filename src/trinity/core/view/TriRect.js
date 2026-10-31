@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/TriRect.h
 // Source: trinity/trinity/TriRect.cpp
 // Source: trinity/trinity/TriRect_Blue.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 
 
 /**
@@ -45,7 +45,6 @@ export class TriRect extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(left = 0, top = 0, right = 0, bottom = 0)
   {
     this.left = left;
@@ -63,7 +62,6 @@ export class TriRect extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   SetRect(left, top, right, bottom)
   {
     if (left !== undefined)

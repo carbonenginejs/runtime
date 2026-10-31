@@ -358,7 +358,6 @@ export class EveSpaceScene
    */
   @be.mapProperty()
   @type.rootRef("Tr2ShLightingManager")
-  @meta.implemented
   get shLightingManager()
   {
     return this.GetShLightingManager();
@@ -369,7 +368,6 @@ export class EveSpaceScene
    *
    * @implemented
    */
-  @meta.implemented
   set shLightingManager(value)
   {
     this.SetShLightingManager(value);
@@ -413,7 +411,6 @@ export class EveSpaceScene
    */
   @be.mapPropertyReadOnly()
   @type.list("IEveSpaceObjectChild")
-  @meta.implemented
   get cameraAttachments()
   {
     return this._GetCameraAttachments();
@@ -700,7 +697,6 @@ export class EveSpaceScene
    */
   @be.mapProperty()
   @type.boolean
-  @meta.implemented
   get shadowsInReflections()
   {
     return this.IsShadowsInReflectionsEnabled();
@@ -711,7 +707,6 @@ export class EveSpaceScene
    *
    * @implemented
    */
-  @meta.implemented
   set shadowsInReflections(value)
   {
     this.EnableShadowsInReflections(value);
@@ -726,7 +721,6 @@ export class EveSpaceScene
    */
   @be.mapPropertyReadOnly()
   @type.rootRef("Tr2QuadRenderer")
-  @meta.implemented
   get quadRenderer()
   {
     return this.GetQuadRenderer();
@@ -800,7 +794,6 @@ export class EveSpaceScene
    * @returns {object|null} The Tr2GpuParticleSystem, or null.
    */
 
-  @meta.implemented
   GetGpuParticleSystem()
   {
     return this.updateContext.GetGpuParticleSystem();
@@ -815,7 +808,6 @@ export class EveSpaceScene
    * @param {object|null} ps The Tr2GpuParticleSystem, or null.
    */
 
-  @meta.adapted
   SetGpuParticleSystem(ps)
   {
     this.updateContext.SetGpuParticleSystem(ps);
@@ -931,7 +923,6 @@ export class EveSpaceScene
    * @param {Number} simTime
    */
 
-  @meta.adapted
   Update(realTime, simTime)
   {
     // Carbon cpp:441-444, first thing: fence the rings by the main-thread
@@ -1035,7 +1026,6 @@ export class EveSpaceScene
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   async PickObject(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
     const result = await this.PickObjectAndExtraData(x, y, projection, view, viewport, pickTypes);
@@ -1048,7 +1038,6 @@ export class EveSpaceScene
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   PickAsyncObject(listener, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
     if (!listener) return null;
@@ -1061,7 +1050,6 @@ export class EveSpaceScene
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   async PickObjectAndAreaID(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
     const result = await this.PickObjectAndExtraData(x, y, projection, view, viewport, pickTypes);
@@ -1074,7 +1062,6 @@ export class EveSpaceScene
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   async PickObjectAndExtraData(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
     const listener = new EvePickingContext();
@@ -1095,7 +1082,6 @@ export class EveSpaceScene
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   PickAsyncObjectAndExtraData(listener, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
     if (!listener) return null;
@@ -1124,7 +1110,6 @@ export class EveSpaceScene
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     if (this._destroyed) return;
@@ -1155,7 +1140,6 @@ export class EveSpaceScene
    * @param {number} s TriStorageFlags.
    */
 
-  @meta.implemented
   ReleaseResources(s)
   {
     if (this._staticEnvMapHandle)
@@ -1184,7 +1168,6 @@ export class EveSpaceScene
    * @returns {boolean} False when either cannot be created.
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1212,7 +1195,6 @@ export class EveSpaceScene
    * @adapted
    */
 
-  @meta.adapted
   ClearVariableStore()
   {
     this._envMap1Handle.Clear();
@@ -1227,7 +1209,6 @@ export class EveSpaceScene
    * @implemented
    * @returns {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager|null} The scene's SH lighting manager, or null.
    */
-  @meta.implemented
   GetShLightingManager()
   {
     return this._shLightingManager;
@@ -1242,7 +1223,6 @@ export class EveSpaceScene
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager|null} manager The replacement manager, or null.
    * @returns {void}
    */
-  @meta.implemented
   SetShLightingManager(manager)
   {
     if (this._shLightingManager === manager) return;
@@ -1293,7 +1273,6 @@ export class EveSpaceScene
    *
    * @adapted
    */
-  @meta.adapted
   PerformPicking__ObjectId(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
     renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -1385,7 +1364,6 @@ export class EveSpaceScene
    * @implemented
    * @returns {TriFrustum} The picking frustum.
    */
-  @meta.implemented
   CreatePickingFrustum()
   {
     const frustum = new TriFrustum();
@@ -1405,7 +1383,6 @@ export class EveSpaceScene
    *   whose finally clears the picking accumulator, so a failed pick cannot
    *   leave them queued for the next one.
    */
-  @meta.adapted
   PerformPicking__Pointer(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
     renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -1570,7 +1547,6 @@ export class EveSpaceScene
    * @adapted
    */
 
-  @meta.adapted
   SetupTransformsForPicking(fx, fy, projection, view, viewport, renderContext)
   {
     Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
@@ -1599,7 +1575,6 @@ export class EveSpaceScene
    * @adapted
    */
 
-  @meta.adapted
   GetPickingObjectsToRender(renderContext)
   {
     const visible = [];
@@ -1647,7 +1622,6 @@ export class EveSpaceScene
    *   either matrix cannot be inverted
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   PickInfinity(x, y, projection, view, viewport = null, out)
   {
     // gTriDev->ScreenToProjection reads the device viewport (TriDevice.cpp:1132-1135).
@@ -1777,7 +1751,6 @@ export class EveSpaceScene
    *   enablePostProcessDebugging setting is off.
    */
 
-  @meta.adapted
   UpdatePostProcessAttributes()
   {
     if (!this.display)
@@ -1859,7 +1832,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   GetPostProcess()
   {
     if (!this.display)
@@ -1993,7 +1965,6 @@ export class EveSpaceScene
    * @returns {Number} how many receivers were updated
    * Carbon declaration: EveSpaceScene::UpdateShLighting (trinity/trinity/Eve/EveSpaceScene.h:600).
    */
-  @meta.adapted
   UpdateShLighting(objects = [])
   {
     if (!this._shLightingManager)
@@ -2051,7 +2022,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.implemented
   RunLensflareOcclusionQueries(_depthMap, renderContext)
   {
     for (const lensflare of this.lensflares) lensflare.RunOcclusionQueries(renderContext, this.updateContext);
@@ -2064,7 +2034,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   Render(_renderContext)
   {
   }
@@ -2075,7 +2044,6 @@ export class EveSpaceScene
    * @notImplemented
    */
 
-  @meta.notImplemented
   RenderDebugInfo(_renderContext)
   {
     if (!this.debugRenderer) return;
@@ -2088,7 +2056,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   OnModified(property, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (IsMatch(property, "reflectionProbe") || IsMatch(property, "envMapResPath"))
@@ -2204,7 +2171,6 @@ export class EveSpaceScene
    * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
    * @returns {void}
    */
-  @meta.adapted
   static registerWithVariableStore(shadowResources, gpuResourcePool)
   {
     const store = Tr2VariableStore.globalStore();
@@ -2267,7 +2233,6 @@ export class EveSpaceScene
    * @returns {boolean} True.
    */
 
-  @meta.adapted
   Initialize(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     this._staticEnvMapTextureRes = this.envMapResPath
@@ -2338,7 +2303,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateVariableStore()
   {
     // Ours: every ship samples these through the global store, and nothing
@@ -2422,7 +2386,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.adapted
   Jitter(renderContext)
   {
     mat4.copy(this.projection, Tr2Renderer.GetProjectionTransform());
@@ -2464,7 +2427,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.adapted
   EndRender(renderContext)
   {
     if (!this.display) return;
@@ -2515,7 +2477,6 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @meta.implemented
   UpdateQuadRenderer(frustum, objects, renderContext)
   {
     const quadRenderer = Tr2QuadRenderer.Instance();
@@ -2530,7 +2491,6 @@ export class EveSpaceScene
    *
    * @implemented
    */
-  @meta.implemented
   GetQuadRenderer()
   {
     return Tr2QuadRenderer.Instance();
@@ -2543,7 +2503,6 @@ export class EveSpaceScene
    * @implemented
    * @returns {Array} The camera attachment parent's effect children.
    */
-  @meta.implemented
   _GetCameraAttachments()
   {
     return this.cameraAttachmentParent.GetChildren();
@@ -2569,7 +2528,6 @@ export class EveSpaceScene
    * @returns {void}
    * Carbon declaration: EveSpaceScene::RenderRenderables (trinity/trinity/Eve/EveSpaceScene.h:376).
    */
-  @meta.implemented
   RenderRenderables(renderables, batch, batchType, rm, renderContext, reason = undefined)
   {
     const allocator = renderContext.GetTriPoolAllocator();
@@ -2601,7 +2559,6 @@ export class EveSpaceScene
    * @returns {void}
    * Carbon declaration: EveSpaceScene::RenderBatch (trinity/trinity/Eve/EveSpaceScene.h:372).
    */
-  @meta.implemented
   RenderBatch(batch, rm, renderContext)
   {
     const visualizerEffect = this._visualizerEffects[this.visualizeMethod];
@@ -2641,7 +2598,6 @@ export class EveSpaceScene
    * @returns {boolean} Whether any background distortion batches were drawn.
    */
 
-  @meta.adapted
   RenderBackgroundPass(depthMap, distortionMap, velocityMap, renderContext, renderer)
   {
     let hasBackgroundDistortionBatches = false;
@@ -2735,7 +2691,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateImpostors(renderContext)
   {
     const manager = this.impostorManager;
@@ -2844,7 +2799,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   HasReflectionProbe()
   {
     return !!this.reflectionProbe && this.reflectionProbe.IsValid();
@@ -2855,7 +2809,6 @@ export class EveSpaceScene
    *
    * @implemented
    */
-  @meta.implemented
   EnableShadowsInReflections(enable)
   {
     if (enable)
@@ -2877,7 +2830,6 @@ export class EveSpaceScene
    *
    * @implemented
    */
-  @meta.implemented
   IsShadowsInReflectionsEnabled()
   {
     return this._reflectionShadowMap !== null;
@@ -2904,7 +2856,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.adapted
   RenderReflectionPass(gpuResourcePool, renderContext, renderer)
   {
     if (!this.HasReflectionProbe() || !this.display) return;
@@ -3109,7 +3060,6 @@ export class EveSpaceScene
    * @returns {boolean} Whether any background distortion batches were drawn.
    */
 
-  @meta.adapted
   RenderBackgroundPassObjects(depthMap, distortionMap, renderContext, renderer, reason)
   {
     const hasBackgroundDistortionBatches = false;
@@ -3180,7 +3130,6 @@ export class EveSpaceScene
    * @adapted the output is caller-owned instead of returned by value.
    */
 
-  @meta.adapted
   CreatePlanetViewMatrix(original, out)
   {
     mat4.copy(out, original);
@@ -3197,7 +3146,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   UpdatePlanets(updateContext)
   {
     if (!this.planets.length) return;
@@ -3223,7 +3171,6 @@ export class EveSpaceScene
    * @adapted
    */
 
-  @meta.adapted
   GetAllBatchesFromRenderables(renderables, transparent, includeDistortions, batches, context, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     const pool = context.GetTriPoolAllocator();
@@ -3245,7 +3192,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   PrepareTransparentBatch(transparent, batches, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     transparent.sort((a, b) => a.distance - b.distance);
@@ -3263,7 +3209,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   FinalizeBatches(batches)
   {
     for (const batch of batches.values()) batch.Finalize();
@@ -3275,7 +3220,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   ClearBatches(batches)
   {
     for (const batch of batches.values()) batch.Clear();
@@ -3288,7 +3232,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   RenderOpaqueBatches(batches, context)
   {
     const visualizerEffect = this._visualizerEffects[this.visualizeMethod];
@@ -3320,7 +3263,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   RenderTransparentBatches(batches, context)
   {
     const visualizerEffect = this._visualizerEffects[this.visualizeMethod];
@@ -3353,7 +3295,6 @@ export class EveSpaceScene
    *   this pass's depth. Per-frame constants are refilled for both camera spaces.
    */
 
-  @meta.adapted
   RenderPlanets(context)
   {
     const view = mat4.alloc();
@@ -3459,7 +3400,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.adapted
   RenderDepthPass(depthMap, normalMap, customStencil, renderContext, techniqueName, batchMap)
   {
     if (!this.display) return;
@@ -3591,7 +3531,6 @@ export class EveSpaceScene
    * @implemented
    * @param {Tr2RenderContext} renderContext The shadow pass context.
    */
-  @meta.implemented
   SetupPlanetsAsShadowCaster__RenderContext(renderContext)
   {
     this.SetupPlanetsAsShadowCaster__Planets(this._planetShadowSpheres, 2);
@@ -3608,7 +3547,6 @@ export class EveSpaceScene
    *
    * @adapted
    */
-  @meta.adapted
   SetupPlanetsAsShadowCaster__Planets(planets, maxPlanets)
   {
     const sun = vec3.alloc();
@@ -3661,7 +3599,6 @@ export class EveSpaceScene
    * @returns {boolean} Whether any distortion batch was drawn.
    */
 
-  @meta.implemented
   RenderDistortionBatches(batches, distortionMap, depthMap, renderContext)
   {
     const accumulator = batches.GetAccumulator(TriBatchType.TRIBATCHTYPE_DISTORTION);
@@ -3725,7 +3662,6 @@ export class EveSpaceScene
    *   empty when absent.
    */
 
-  @meta.adapted
   RenderShadows(depthMap, normalMap, gpuResourcePool, renderContext, renderer)
   {
     if (!this.display || !this._enableShadows) return EmptyShadowResources();
@@ -3782,7 +3718,6 @@ export class EveSpaceScene
    * @returns {object} ShadowResources, as RenderShadows.
    */
 
-  @meta.adapted
   SetupCascadedShadows(renderReason, shadowMap, viewFrustum, depthMap, gpuResourcePool, renderContext, renderer)
   {
     if (!this.componentRegistry) return EmptyShadowResources();
@@ -3959,7 +3894,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.adapted
   RenderVolumetricShadowMap(renderContext)
   {
     const shadowCasters = this.componentRegistry.GetComponents(EveComponentType.ShadowCaster);
@@ -3999,7 +3933,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.adapted
   RenderIntoCloudShadowMap(renderContext, cloudShadowInformation, shadowCasters)
   {
     const scratch = shadowPassScratch;
@@ -4119,7 +4052,6 @@ export class EveSpaceScene
    * @returns {boolean} True, as Carbon's.
    */
 
-  @meta.implemented
   PrepareShadowMapForLights(renderContext, shadowMap)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -4159,7 +4091,6 @@ export class EveSpaceScene
    * @returns {void}
    * Carbon declaration: EveSpaceScene::RenderShadowMapForSpotLight (trinity/trinity/Eve/EveSpaceScene.h:660).
    */
-  @meta.adapted
   RenderShadowMapForSpotLight(renderContext, shadowCasters, shadowMapScale, shadowMapOffsetX, shadowMapOffsetY, lightPosition, view, projection, shadowMap)
   {
     const scratch = shadowPassScratch;
@@ -4269,7 +4200,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.implemented
   RenderShadowMapForLight(renderContext, shadowCasters, lightData, shadowMap)
   {
     const scratch = shadowPassScratch;
@@ -4323,7 +4253,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.implemented
   FinishRenderingShadowMapForLights(renderContext)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -4348,7 +4277,6 @@ export class EveSpaceScene
    * @returns {{projection: mat4, view: mat4}} out
    */
 
-  @meta.adapted
   GetLightMatrices(lightData, out)
   {
     // we flip near and far plane for reverse z
@@ -4381,7 +4309,6 @@ export class EveSpaceScene
    *   returned pool handles require explicit release by the caller.
    */
 
-  @meta.adapted
   RenderVolumetrics(depthMap, gpuResourcePool, renderContext)
   {
     if (!this.componentRegistry || !this.volumetricsRenderer || !depthMap.IsValid())
@@ -4422,7 +4349,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.implemented
   PopulateAndApplyPerFrameData(renderContext)
   {
     this.PopulatePerFramePSData(this._perFramePS, renderContext);
@@ -4447,7 +4373,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.implemented
   ApplyPerFrameData(renderContext)
   {
     this._FillAndSetPerFrameConstants(this._perFrameVS, this._perFramePS, renderContext);
@@ -4500,7 +4425,6 @@ export class EveSpaceScene
    * @returns {Object} data
    */
 
-  @meta.adapted
   PopulatePerFrameVSData(data, renderContext)
   {
     const out = data;
@@ -4591,7 +4515,6 @@ export class EveSpaceScene
    * @returns {void}
    */
 
-  @meta.adapted
   BeginRender(_enableDistortion, renderContext)
   {
     if (!this.display) return;
@@ -4630,7 +4553,6 @@ export class EveSpaceScene
    * @returns {Object} data
    */
 
-  @meta.implemented
   PopulatePerFramePSData(data, renderContext)
   {
     return this.PopulatePerFramePSData__ShadowMap(data, this.cascadedShadowMap, renderContext);
@@ -4655,7 +4577,6 @@ export class EveSpaceScene
    * @param {Object} renderContext - the frame's Tr2RenderContext
    * @returns {Object} data
    */
-  @meta.adapted
   PopulatePerFramePSData__ShadowMap(data, shadowMap, renderContext)
   {
     const out = data;
@@ -4852,7 +4773,6 @@ export class EveSpaceScene
    * @param {Array} list The list that changed.
    * Carbon declaration: EveSpaceScene::OnListModified (trinity/trinity/Eve/EveSpaceScene.h:168).
    */
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const entityList = list === this.objects || list === this.backgroundObjects || list === this.planets;
@@ -4909,7 +4829,6 @@ export class EveSpaceScene
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ReregisterEntities()
   {
     if (!this.componentRegistry)
@@ -4947,7 +4866,6 @@ export class EveSpaceScene
    * @implemented
    */
 
-  @meta.implemented
   ClearComponentRegistry()
   {
     this.componentRegistry?.Clear();
@@ -4960,7 +4878,6 @@ export class EveSpaceScene
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetPostProcessDebug()
   {
     return this.postProcessDebug;
@@ -4972,7 +4889,6 @@ export class EveSpaceScene
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UpdateScene(time)
   {
     return this.Update(time, time);

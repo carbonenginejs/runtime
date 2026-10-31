@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet_Blue.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { IsMatch, blue, INotify } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -40,7 +40,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.adapted
   get isExpressionValid()
   {
     return this._runtime.program !== null && this._runtime.program.IsValid();
@@ -55,7 +54,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * @adapted a CSP-safe AST program replaces native parser bytecode.
    */
 
-  @meta.adapted
   Link(controller)
   {
     this._runtime.controller = controller;
@@ -69,7 +67,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    *   Unlink which clears only the controller and evaluator.
    */
 
-  @meta.adapted
   Unlink()
   {
     this._runtime = CjsControllerExpressionProgram.createRuntimeState();
@@ -82,7 +79,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    *   supplied controller and last time; native Start only sets the start time.
    */
 
-  @meta.adapted
   Start(controller = this._runtime.controller)
   {
     if (!controller || !this.curveSet)
@@ -101,7 +97,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * @adapted an omitted controller uses the stored JS link; no link is a no-op.
    */
 
-  @meta.adapted
   Stop(controller = this._runtime.controller)
   {
     if (controller) controller.UnRegisterUpdateable(this);
@@ -113,7 +108,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   RebaseSimTime(diff)
   {
     this._runtime.startTime += diff;
@@ -129,7 +123,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    *   compile during Update; Link or OnModified owns recompilation.
    */
 
-  @meta.adapted
   Update(_realTime, simTime)
   {
     this._runtime.lastTime = simTime;
@@ -158,7 +151,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (this._runtime.controller && IsMatch(propertyName, "value"))
@@ -176,7 +168,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    *   observes the retained evaluator without compiling, as native does.
    */
   @legacyBlue.method
-  @meta.adapted
   IsExpressionValid()
   {
     return this.CompileExpression().IsValid();
@@ -192,7 +183,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * @implemented
    */
   @be.mapMethodAndWrap("IsExpressionValid")
-  @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {
     return this.IsExpressionValid();
@@ -205,7 +195,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    *   Tr2ExpressionTermInfo instances, followed by linked controller records.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetExpressionTermInfo()
   {
     const result = [];
@@ -221,7 +210,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    *   syntax and permits unlinked evaluation, unlike native BlueStdResult errors.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EvaluateExpression(expression)
   {
     const state = {

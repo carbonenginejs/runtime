@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.cpp
 import { IBehavior } from "./IBehavior.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
 
@@ -70,7 +70,6 @@ export class InclusionVolume extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -93,7 +92,6 @@ export class InclusionVolume extends IRoot
    * @returns {Array} debug force pairs when group.collectForces is on
    */
 
-  @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -153,7 +151,6 @@ export class InclusionVolume extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("InclusionVolumes");
@@ -169,7 +166,6 @@ export class InclusionVolume extends IRoot
    * @param {mat4} parentWorldLocation
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     if (renderer.HasOption(this, "InclusionVolumes"))

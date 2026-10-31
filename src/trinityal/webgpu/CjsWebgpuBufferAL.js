@@ -61,7 +61,7 @@ import { Tr2BufferDescriptionAL } from "../Tr2BufferAL/Tr2BufferDescriptionAL.js
 // declared only by DX11, and PRIVATE there (`Tr2BufferALDx11.h:43`) - it is an
 // implementation detail of that backend's upload path, not part of the
 // contract, and neither dx12, metal nor the stub has it.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
@@ -595,19 +595,4 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 // Donor: metal/Tr2BufferALMetal.mm (plain WRITE family, with dx11 as the docs/internal/decisions/trinity-abstraction-layer.md choice records). Create keeps Metal's refusals (zero count, immutable without data, READ with WRITE_OFTEN) and makes a GPUBuffer with a retained shadow copy. MapForWriting/UnmapForWriting/UpdateBuffer work on that shadow and upload the changed range with queue.writeBuffer (the deliberate second family); the map methods return { result, data }, MapForReading answers one frame late, and UnmapForReading frees nothing. The heap-index getters return 0xffffffff (WebGPU has no heap). Describe writes memoryClass and sizeInBytes, and SetName does not store the name.
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "Create", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetDesc", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "MapForWriting", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "UnmapForWriting", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "UpdateBuffer", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "MapForReading", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "MapForReading__OffsetSize", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "UnmapForReading", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "Describe", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "SetName", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetSrvIndexInHeap", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetUavIndexInHeap", meta.adapted);
 CjsSchema.meta.define("CjsWebgpuBufferAL")(CjsWebgpuBufferAL);

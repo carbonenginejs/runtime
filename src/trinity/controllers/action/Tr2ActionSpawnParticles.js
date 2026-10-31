@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles_Blue.cpp
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 
 
@@ -40,7 +40,6 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    *   temporary value; the emitter owns all particle allocation and algorithms.
    */
 
-  @meta.adapted
   Start(_controller)
   {
     if (!this.emitter)

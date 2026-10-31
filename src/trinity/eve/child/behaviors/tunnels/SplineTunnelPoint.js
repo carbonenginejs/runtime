@@ -28,7 +28,6 @@ export class SplineTunnelPoint
    * @param {SplineTunnelPoint} other
    * @returns {boolean}
    */
-  @meta.renamed("operator==")
   Equals(other)
   {
     return this.accelerationMultiplier === other.accelerationMultiplier
@@ -43,7 +42,6 @@ export class SplineTunnelPoint
    * @param {SplineTunnelPoint} other
    * @returns {boolean}
    */
-  @meta.renamed("operator!=")
   NotEquals(other)
   {
     return !this.Equals(other);

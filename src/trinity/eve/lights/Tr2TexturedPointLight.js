@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight.cpp
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight_Blue.cpp
 import { IsMatch, IInitialize, INotify } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue } from "#blue";
 import { color } from "#math/color";
 import { Tr2Light } from "./Tr2Light.js";
@@ -62,7 +62,6 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * @implemented
    */
 
-  @meta.implemented
   SetSaturation(saturation)
   {
     this._saturation = Number(saturation);
@@ -76,7 +75,6 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this._lightData.texturePath)
@@ -94,7 +92,6 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * @param {LightData} lightData
    */
 
-  @meta.implemented
   SetLightData(lightData)
   {
     super.SetLightData(lightData);
@@ -107,7 +104,6 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "texturePath")) this.SetTexturePath(this._lightData.texturePath);
@@ -121,7 +117,6 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * @param {string} path Texture resource path.
    */
 
-  @meta.implemented
   SetTexturePath(path)
   {
     this.texture = null;
@@ -137,7 +132,6 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * @returns {void}
    */
 
-  @meta.implemented
   Update()
   {
     if (!this.texture) return;

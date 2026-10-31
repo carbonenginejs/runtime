@@ -6,7 +6,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 //   maskPath property pair)
 // Hand-maintained from Carbon source, promoted out of generated intake
 // 2026-09-06.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { blue } from "#blue";
 import { PixelFormat } from "#consts/render-context";
 
@@ -40,7 +40,6 @@ export class Tr2Sprite2dPickingMask extends IRoot
    */
   @be.mapProperty()
   @type.wstring
-  @meta.implemented
   get maskPath()
   {
     return this.GetMaskPath();
@@ -51,7 +50,6 @@ export class Tr2Sprite2dPickingMask extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   set maskPath(value)
   {
     this.SetMaskPath(value);
@@ -102,7 +100,6 @@ export class Tr2Sprite2dPickingMask extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMaskPath()
   {
     return this._maskPath;
@@ -118,7 +115,6 @@ export class Tr2Sprite2dPickingMask extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   SetMaskPath(path)
   {
     if (this._maskPath === path) return;
@@ -165,7 +161,6 @@ export class Tr2Sprite2dPickingMask extends IRoot
    * @returns {boolean} Whether the mask passes at the point.
    */
 
-  @meta.implemented
   SampleMask(point, topLeft, width, height)
   {
     const mask = this.mask;

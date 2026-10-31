@@ -61,7 +61,6 @@ export class Tr2EffectLibraryParameters
    *
    * @implemented
    */
-  @meta.implemented
   AddUsedResource(resource)
   {
     this.usedResources.push(resource);
@@ -74,7 +73,6 @@ export class Tr2EffectLibraryParameters
    *
    * @implemented
    */
-  @meta.implemented
   AddReroutable(reroutable)
   {
     this.reroutedParameters.push(reroutable);

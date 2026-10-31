@@ -28,7 +28,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   TransformCoord(...args)
   {
     throw new Error("TriVector.TransformCoord is not implemented in CarbonEngineJS.");
@@ -39,7 +38,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   TransformNormal(...args)
   {
     throw new Error("TriVector.TransformNormal is not implemented in CarbonEngineJS.");
@@ -50,7 +48,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Lerp(...args)
   {
     throw new Error("TriVector.Lerp is not implemented in CarbonEngineJS.");
@@ -61,7 +58,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Maximize(...args)
   {
     throw new Error("TriVector.Maximize is not implemented in CarbonEngineJS.");
@@ -72,7 +68,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Minimize(...args)
   {
     throw new Error("TriVector.Minimize is not implemented in CarbonEngineJS.");
@@ -83,7 +78,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Subtract(...args)
   {
     throw new Error("TriVector.Subtract is not implemented in CarbonEngineJS.");
@@ -94,7 +88,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Project(...args)
   {
     throw new Error("TriVector.Project is not implemented in CarbonEngineJS.");
@@ -105,7 +98,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Unproject(...args)
   {
     throw new Error("TriVector.Unproject is not implemented in CarbonEngineJS.");
@@ -116,7 +108,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   __init__(...args)
   {
     throw new Error("TriVector.__init__ is not implemented in CarbonEngineJS.");
@@ -127,7 +118,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Add(...args)
   {
     throw new Error("TriVector.Add is not implemented in CarbonEngineJS.");
@@ -138,7 +128,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Cross(...args)
   {
     throw new Error("TriVector.Cross is not implemented in CarbonEngineJS.");
@@ -149,7 +138,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Dot(...args)
   {
     throw new Error("TriVector.Dot is not implemented in CarbonEngineJS.");
@@ -160,7 +148,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   DotProduct(...args)
   {
     throw new Error("TriVector.DotProduct is not implemented in CarbonEngineJS.");
@@ -172,7 +159,6 @@ export class TriVector
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   Normalize(...args)
   {
     throw new Error("TriVector.Normalize is not implemented in CarbonEngineJS.");
@@ -184,7 +170,6 @@ export class TriVector
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   Length(...args)
   {
     throw new Error("TriVector.Length is not implemented in CarbonEngineJS.");
@@ -196,7 +181,6 @@ export class TriVector
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   LengthSq(...args)
   {
     throw new Error("TriVector.LengthSq is not implemented in CarbonEngineJS.");
@@ -207,7 +191,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Scale(...args)
   {
     throw new Error("TriVector.Scale is not implemented in CarbonEngineJS.");
@@ -218,7 +201,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SetXYZ(...args)
   {
     throw new Error("TriVector.SetXYZ is not implemented in CarbonEngineJS.");
@@ -229,7 +211,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SetCrossProduct(...args)
   {
     throw new Error("TriVector.SetCrossProduct is not implemented in CarbonEngineJS.");
@@ -240,7 +221,6 @@ export class TriVector
    *
    * @notImplemented
    */
-  @meta.notImplemented
   TransformQuaternion(...args)
   {
     throw new Error("TriVector.TransformQuaternion is not implemented in CarbonEngineJS.");

@@ -34,6 +34,4 @@ export class Tr2DeviceResourceAL extends Tr2BaseDeviceResourceAL
 
 meta.inherit(Tr2BaseDeviceResourceAL)(Tr2DeviceResourceAL);
 // States: Tr2DeviceResourceAL.h:40-48, which forward to the concrete class's IsValid and GetMemoryClass.
-CjsSchema.decorateMethod(Tr2DeviceResourceAL, "IsResourceValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2DeviceResourceAL, "GetResourceMemoryClass", meta.implemented);
 CjsSchema.meta.carbon("Tr2DeviceResourceAL")(Tr2DeviceResourceAL);

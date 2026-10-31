@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.h
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -25,7 +25,6 @@ export class TriStepSetViewport extends TriRenderStep
    *
    * @adapted
    */
-  @meta.adapted
   __init__(viewport = null)
   {
     this.SetViewport(viewport);
@@ -38,7 +37,6 @@ export class TriStepSetViewport extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
-  @meta.adapted
   SetViewport(viewport)
   {
     this.viewport = viewport ?? null;
@@ -51,7 +49,6 @@ export class TriStepSetViewport extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     // Through the effect state manager, as Carbon's step does

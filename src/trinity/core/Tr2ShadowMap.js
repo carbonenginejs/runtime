@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { INotify, IsMatch } from "../../global/blue/INotify.js";
 //   trinity/trinity/Tr2ShadowMap.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -247,7 +247,6 @@ export class Tr2ShadowMap
    *   fail immediately instead of corrupting adjacent native memory.
    */
 
-  @meta.adapted
   Setup(elementSize, elementCount, useDenoiser)
   {
     const nextSize = elementSize >>> 0;
@@ -277,7 +276,6 @@ export class Tr2ShadowMap
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "debugColorSplit"))
@@ -306,7 +304,6 @@ export class Tr2ShadowMap
    * @implemented
    */
 
-  @meta.implemented
   ShouldUseDenoiser(value)
   {
     this._useDenoiser = Boolean(value);
@@ -329,7 +326,6 @@ export class Tr2ShadowMap
    * @implemented
    */
 
-  @meta.implemented
   UpdateSplitValues(nearClip, farClip)
   {
     if (this.shadowSplitMode !== Tr2ShadowMap.ShadowSplitMode.DYNAMIC) return;
@@ -353,7 +349,6 @@ export class Tr2ShadowMap
    *   gl-matrix form and are never pre-transposed.
    */
 
-  @meta.adapted
   static CalculateAABB(
     projection,
     invViewTransform,
@@ -405,7 +400,6 @@ export class Tr2ShadowMap
    *   allocation-free result per split.
    */
 
-  @meta.adapted
   SetupShadowSplit(splitIndex, invViewTransform, lightDirection, zNear, leftDivNear, rightDivNear, topDivNear, bottomDivNear)
   {
     if (!Number.isInteger(splitIndex) || splitIndex < 0 || splitIndex >= this.splitCount)
@@ -495,7 +489,6 @@ export class Tr2ShadowMap
    *   could not supply one - which Carbon notes happens on a lost device.
    */
 
-  @meta.implemented
   PrepareShadowRendering(gpuResourcePool, renderContext)
   {
     // Carbon's GetTempTexture( name, width, height, format, usage ) overload:
@@ -537,7 +530,6 @@ export class Tr2ShadowMap
    * @param {number} splitIndex Which cascade split.
    */
 
-  @meta.implemented
   BeginShadowRendering(renderContext, splitIndex)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -560,7 +552,6 @@ export class Tr2ShadowMap
    * @param {object} renderContext The context to restore.
    */
 
-  @meta.implemented
   EndShadowRendering(renderContext)
   {
     renderContext.SetReadOnlyDepth(false);
@@ -602,7 +593,6 @@ export class Tr2ShadowMap
    * @returns {object|null} The shadow-factor target, or null without a pool.
    */
 
-  @meta.adapted
   DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth, upscaling, renderer)
   {
     let shadowMapResult = gpuResourcePool.GetTempTexture__WidthHeight("shadowMapResult", depthMap.GetWidth(), depthMap.GetHeight(),
@@ -653,7 +643,6 @@ export class Tr2ShadowMap
    * @implemented
    */
 
-  @meta.implemented
   GetShadowSplitCount()
   {
     return this.splitCount;
@@ -665,7 +654,6 @@ export class Tr2ShadowMap
    * @implemented
    */
 
-  @meta.implemented
   GetShadowMapSize()
   {
     return this.size;
@@ -710,7 +698,6 @@ export class Tr2ShadowMap
    * @implemented
    */
 
-  @meta.implemented
   GetShadowEffect()
   {
     return this.cascadeEffect;
@@ -722,7 +709,6 @@ export class Tr2ShadowMap
    * @implemented
    */
 
-  @meta.implemented
   GetDebugSplitValue()
   {
     return this.debugColorSplit;
@@ -734,7 +720,6 @@ export class Tr2ShadowMap
    * @implemented
    */
 
-  @meta.implemented
   GetDebugColors(switchCase)
   {
     switch (switchCase)

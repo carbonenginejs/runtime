@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: audio/src/AudEmitter.h + AudEmitter.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEmitter.json.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { IBlueEventListener, IBluePlacementObserver } from "#blue";
 import { quat } from "#math/quat";
@@ -131,7 +131,6 @@ export class AudEmitter extends AudGameObjResource
    *
    * @implemented
    */
-  @meta.implemented
   _debugColor = GenerateDebugColor(0.4, 0.9);
 
   /**
@@ -139,7 +138,6 @@ export class AudEmitter extends AudGameObjResource
    *
    * @implemented
    */
-  @meta.implemented
   _simulationColor = colorMath.fromARGB(colorMath.create(), 0xff00ff00);
 
   /**
@@ -151,8 +149,6 @@ export class AudEmitter extends AudGameObjResource
    * @param {string} [name] Emitter name; Carbon defaults it to empty.
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.renamed("Py__init__")
-  @meta.implemented
   __init__(name = "")
   {
     this.name = name;
@@ -165,7 +161,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   SendEvent(name, bypassPrefix = false)
   {
     return this.PostEvent(name, bypassPrefix);
@@ -177,7 +172,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   HandleEvent(eventName)
   {
     this.PostEvent(eventName);
@@ -191,7 +185,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap("SetPlacement")
-  @meta.implemented
   SetPosition(front, top, position)
   {
     this._hasReceivedPosition = true;
@@ -204,8 +197,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    * @renamed SetPosition
    */
-  @meta.renamed("SetPosition")
-  @meta.implemented
   SetPlacement(front, top, position)
   {
     return this.SetPosition(front, top, position);
@@ -217,7 +208,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   UpdatePlacement(front, top, position)
   {
     this.SetPosition(front, top, position);
@@ -232,7 +222,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   SetAttenuationScalingFactor(scalingFactor)
   {
     let finalScalingFactor = scalingFactor;
@@ -254,7 +243,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -266,7 +254,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -278,7 +265,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   SetPrefix(prefix)
   {
     this.eventPrefix = String(prefix ?? "");
@@ -290,7 +276,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   SetVisibility(isVisible)
   {
     this.isVisible = !!isVisible;
@@ -303,7 +288,6 @@ export class AudEmitter extends AudGameObjResource
    * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add(AUDIO_ATTENUATION_SPHERE_DEBUG_OPTION);
@@ -318,7 +302,6 @@ export class AudEmitter extends AudGameObjResource
    * @adapted `g_audioManager` is the `AudGameObjResource.manager` seam.
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
-  @meta.adapted
   RenderDebugInfo(renderer)
   {
     const manager = AudGameObjResource.manager;
@@ -348,7 +331,6 @@ export class AudEmitter extends AudGameObjResource
    *   `sqrt( radiusSq ) * scalingFactor`.
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
-  @meta.adapted
   _RenderDebugBoundingSphere(renderer)
   {
     if (!(AudGameObjResource.manager.GetDebugDisplayAllEmitters()
@@ -387,7 +369,6 @@ export class AudEmitter extends AudGameObjResource
    * @adapted the effective front is `GetFront()`, which is Carbon's `m_effectiveOrientation.front`.
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
-  @meta.adapted
   _RenderDebugDirection(renderer)
   {
     if (!renderer.HasOption(this, AUDIO_EMITTER_DIRECTION_DEBUG_OPTION))
@@ -434,7 +415,6 @@ export class AudEmitter extends AudGameObjResource
    * @adapted
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
-  @meta.adapted
   _RenderDebugName(renderer)
   {
     if (!AudGameObjResource.manager.GetDebugDisplayAllEmitters()

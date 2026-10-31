@@ -7,7 +7,7 @@ import { ITriFunction } from "../../global/blue/ITriFunction.js";
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { mat4 } from "#math/mat4";
 import { ITr2BoundingBox } from "#interfaces";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 
 
@@ -226,7 +226,6 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateValue(_time)
   {
     if (!this.object || !this.object.IsBoundingBoxReady() || !this.object.GetWorldBoundingBox(boundsMin, boundsMax))
@@ -279,7 +278,6 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetEmptyProjection()
   {
     this.projectedX = 0;
@@ -300,7 +298,6 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateBracket()
   {
     if (!this.bracket) return;

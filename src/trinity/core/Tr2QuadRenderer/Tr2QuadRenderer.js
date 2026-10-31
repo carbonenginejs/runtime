@@ -6,7 +6,7 @@ import { exposure as be } from "#be";
 // ring instance buffer (UpdateInstanceBuffer), the shared quad vertex and index
 // buffers (RecreateQuadBuffers) and the vertex declarations (OnPrepareResources).
 import { Tr2QuadRendererEffectRecord } from "./Tr2QuadRendererEffectRecord.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -83,7 +83,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   RegisterEffect(key, batchType, instanceSize, quadCount, definition, effect)
   {
     if (this._effects.has(key))
@@ -123,7 +122,6 @@ export class Tr2QuadRenderer
    *   tails) is packed by its producer first.
    */
 
-  @meta.adapted
   AddQuads(effectKey, sprites, count = 1)
   {
     const record = this._effects.get(effectKey);
@@ -151,7 +149,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   MergeBuffers()
   {
     // Add padding to accommodate alignment.
@@ -191,7 +188,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   UpdateInstanceBuffer(renderContext)
   {
     if (this.bufferSize && !this._vertexBuffer.IsValid())
@@ -217,7 +213,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   RecreateQuadBuffers(quadCount)
   {
     if (!quadCount) return;
@@ -253,7 +248,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   BeginRendering(renderContext)
   {
     const quadCount = this.MergeBuffers();
@@ -268,7 +262,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   DoneRendering(renderContext)
   {
     this._vertexBuffer.DoneUsingData(renderContext);
@@ -281,7 +274,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources(storage)
   {
     if (storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)
@@ -298,7 +290,6 @@ export class Tr2QuadRenderer
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
@@ -310,7 +301,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     for (const record of this._effects.values())
@@ -331,7 +321,6 @@ export class Tr2QuadRenderer
    *   accumulator allocates it here.
    */
 
-  @meta.adapted
   GetBatches(batchType, accumulator)
   {
     if (this.vertexBufferOffset === -1 || !this._quadIB?.IsValid())
@@ -361,7 +350,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceBufferSize()
   {
     return this._vertexBuffer.GetBufferSize();
@@ -374,7 +362,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get instanceBufferSize()
   {
     return this.GetInstanceBufferSize();
@@ -386,7 +373,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceDataSize()
   {
     return this.lastInstanceDataSize;
@@ -399,7 +385,6 @@ export class Tr2QuadRenderer
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get instanceDataSize()
   {
     return this.GetInstanceDataSize();

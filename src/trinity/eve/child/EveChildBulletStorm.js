@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -57,7 +57,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   OnModified(names)
   {
     if (IsMatch(names, "multiplier") || IsMatch(names, "sourceObject") || IsMatch(names, "sourceLocatorSet"))
@@ -168,7 +167,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CanChangeState()
   {
     return !this._changingClipSphere;
@@ -180,7 +178,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.PrepareResources();
@@ -192,7 +189,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -204,7 +200,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -233,7 +228,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveChildBulletStorm._VertexDefinition());
@@ -259,7 +253,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Rebuild()
   {
     this.instances.length = 0;
@@ -309,7 +302,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   GetRenderables(renderables)
   {
     if (this.display && this._hasUpdated) renderables.push(this);
@@ -322,7 +314,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
   {
     return true;
@@ -336,7 +327,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -348,7 +338,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartEffect()
   {
     this._clipSphereMultiplier = 1;
@@ -362,7 +351,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StopEffect()
   {
     this._clipSphereMultiplier = -1;
@@ -376,7 +364,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -388,7 +375,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -402,7 +388,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
@@ -434,7 +419,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveChildBulletStormPerObjectData");
@@ -465,7 +449,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params = {})
   {
     if (params.spaceObjectParent) params.spaceObjectParent.GetLocalToWorldTransform(this.worldTransform);

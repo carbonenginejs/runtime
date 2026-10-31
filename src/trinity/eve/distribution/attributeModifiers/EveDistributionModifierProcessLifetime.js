@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierProcessLifetime.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { DistributionEntityLifeTimeEvent } from "./enums.js";
 
@@ -32,7 +32,6 @@ export class EveDistributionModifierProcessLifetime extends IEveDistributionModi
    *
    * @implemented
    */
-  @meta.implemented
   AffectsTransform()
   {
     return false;
@@ -46,7 +45,6 @@ export class EveDistributionModifierProcessLifetime extends IEveDistributionModi
    * @implemented
    */
 
-  @meta.implemented
   ProcessDistributionModifier(placement, _deltaTime, _params)
   {
     return placement.lifeTime > this.lifetimeDuration && this.lifetimeDuration > 0

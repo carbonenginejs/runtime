@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.h
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.cpp
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFinalizer.js";
 
@@ -37,7 +37,6 @@ export class Tr2SyncToAnimation extends IRoot
    * @returns {boolean} Whether the layer is absent or complete.
    */
 
-  @meta.adapted
   CanTransition(controller)
   {
     const owner = controller.GetOwner();

@@ -89,7 +89,6 @@ export class EvePlaneSetItem extends IRoot
    *   box3.
    */
 
-  @meta.adapted
   GetBounds(out)
   {
     // Carbon TransformationMatrix(scaling, rotation, position).
@@ -108,7 +107,6 @@ export class EvePlaneSetItem extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBoneIndex()
   {
     return this.boneIndex;

@@ -53,8 +53,5 @@ export class CjsLoadingObject extends BlueAsyncRes
 export default CjsLoadingObject;
 CjsSchema.meta.define("CjsLoadingObject")(CjsLoadingObject);
 
-CjsSchema.decorateMethod(CjsLoadingObject, "_DoLoad", CjsSchema.meta.adapted);
 
-CjsSchema.decorateMethod(CjsLoadingObject, "_DoPrepare", CjsSchema.meta.adapted);
 
-CjsSchema.decorateMethod(CjsLoadingObject, "_OnShutdown", CjsSchema.meta.adapted);

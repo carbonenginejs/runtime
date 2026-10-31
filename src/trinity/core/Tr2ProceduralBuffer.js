@@ -101,7 +101,6 @@ export class Tr2ProceduralBuffer
    *   returns the allocation, so there is none before a device has run the factory.
    * @returns {object|null} A `Tr2SuballocatedBufferAllocation`, or null.
    */
-  @meta.adapted
   GetSharedResource()
   {
     return this._resource.resource;

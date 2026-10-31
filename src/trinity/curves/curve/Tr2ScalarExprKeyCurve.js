@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp
 import { num } from "#math/num";
 import { BlueList, ITriFunction, IInitialize, ITriCurveLength } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2CurveInterpolation } from "../enums.js";
 import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
 import "../../generated/include/enums.js";
@@ -127,7 +127,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._ReEvaluateKeys();
@@ -140,7 +139,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @implemented
    */
 
-  @meta.implemented
   Length()
   {
     if (!this.keys.length)
@@ -156,7 +154,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @implemented
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.currentValue = this.GetValueAt(time);
@@ -178,7 +175,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    *   native float temporaries. Native key-value-based cycling/reversal is retained.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetValueAt(time)
   {
     if (!this.keys.length)
@@ -238,7 +234,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @adapted retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetKeyTime(index)
   {
     return Number(this.keys[index]?.time ?? 0);
@@ -250,7 +245,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @adapted retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetKeyTime(index, time)
   {
     if (this.keys[index])
@@ -265,7 +259,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @adapted retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetKeyValue(index)
   {
     return Number(this.keys[index]?.value ?? 0);
@@ -277,7 +270,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @adapted retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetKeyValue(index, value)
   {
     if (this.keys[index])
@@ -292,7 +284,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyCount()
   {
     return this.keys.length;
@@ -304,7 +295,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @adapted retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetKeyInterpolation(index)
   {
     return Number(this.keys[index]?.interpolation ?? 0);
@@ -316,7 +306,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @adapted retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetKeyInterpolation(index, interpolation)
   {
     if (this.keys[index])
@@ -331,7 +320,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyLeftTangent(index)
   {
     const key = this.keys[index];
@@ -344,7 +332,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetKeyLeftTangent(index, tangent)
   {
     if (this.keys[index])
@@ -359,7 +346,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyRightTangent(index)
   {
     const key = this.keys[index];
@@ -372,7 +358,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetKeyRightTangent(index, tangent)
   {
     if (this.keys[index])
@@ -411,7 +396,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    *   insertion scan (NaN inserts first); native instance creation can fail.
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   AddKey(time, value, leftTangent = 0, rightTangent = 0, interpolation = this.interpolation)
   {
     let index = 0;
@@ -436,7 +420,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    *   BlueList clear sentinel because the native method receives an unsigned index.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RemoveKey(index)
   {
     if (Number.isInteger(index) && index >= 0) this.keys.Remove(index);
@@ -448,7 +431,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Sort()
   {
     this._ReEvaluateKeys();
@@ -460,7 +442,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    *
    * @implemented
    */
-  @meta.implemented
   _ReEvaluateKeys()
   {
     let previousKey = null;
@@ -504,7 +485,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * @adapted JS Number arithmetic and a scalar return replace native float/out storage;
    *   Hermite uses the existing equivalent scalar helper.
    */
-  @meta.adapted
   _Interpolate(time, lastKey, nextKey)
   {
     let deltaTime = this.Length();

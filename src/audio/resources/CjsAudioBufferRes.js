@@ -172,12 +172,7 @@ export class CjsAudioBufferRes extends BlueAsyncRes
 
 CjsSchema.meta.define("CjsAudioBufferRes")(CjsAudioBufferRes);
 
-CjsSchema.decorateMethod(CjsAudioBufferRes, "GetByteView", CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsAudioBufferRes, "GetBytes", CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsAudioBufferRes, "_DoLoad", CjsSchema.meta.adapted);
 
-CjsSchema.decorateMethod(CjsAudioBufferRes, "_DoPrepare", CjsSchema.meta.adapted);
 
-CjsSchema.decorateMethod(CjsAudioBufferRes, "_OnShutdown", CjsSchema.meta.adapted);

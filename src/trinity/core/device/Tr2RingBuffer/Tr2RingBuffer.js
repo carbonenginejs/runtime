@@ -144,7 +144,6 @@ export class Tr2RingBuffer
    * @returns {Tr2RingBuffer} The arena.
    */
 
-  @meta.adapted
   static GetInstance(key, stride, renderContext)
   {
     if (typeof key !== "string" || !key) failRing("an instance needs a data-type key");
@@ -227,7 +226,6 @@ export class Tr2RingBuffer
    * @returns {void}
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = name;
@@ -242,7 +240,6 @@ export class Tr2RingBuffer
    * @returns {object|null} The buffer, or null until backend creation succeeds.
    */
 
-  @meta.implemented
   GetGpuBuffer()
   {
     return this._buffer;
@@ -262,7 +259,6 @@ export class Tr2RingBuffer
    * @returns {number} The element offset the rows landed at.
    */
 
-  @meta.implemented
   UploadTransforms(data, count)
   {
     if (!ArrayBuffer.isView(data)) failRing("UploadTransforms needs a typed array of rows");
@@ -308,7 +304,6 @@ export class Tr2RingBuffer
    * @returns {void}
    */
 
-  @meta.adapted
   PrepareBuffer(renderContext)
   {
     for (const region of this._dirtyRegions)
@@ -343,7 +338,6 @@ export class Tr2RingBuffer
    * @returns {void}
    */
 
-  @meta.implemented
   SetFrameNumbers(recordingFrame, completedFrame)
   {
     this._frame = recordingFrame;
@@ -379,7 +373,6 @@ export class Tr2RingBuffer
    * @returns {void}
    */
 
-  @meta.adapted
   Resize(size)
   {
     if (!Number.isInteger(size) || size <= 0) failRing("a ring needs a positive size");
@@ -406,7 +399,6 @@ export class Tr2RingBuffer
    * @implemented
    * @returns {boolean} Whether preparation succeeded or was deferred.
    */
-  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed()) return this.OnPrepareResources();
@@ -422,7 +414,6 @@ export class Tr2RingBuffer
    * @returns {void}
    */
 
-  @meta.implemented
   ReleaseResources(_storage)
   {
   }
@@ -440,7 +431,6 @@ export class Tr2RingBuffer
    * @returns {boolean} True, matching Carbon even if allocation fails.
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     const renderContext = this._renderContext ?? Tr2RenderContext_GetMainThreadRenderContext();

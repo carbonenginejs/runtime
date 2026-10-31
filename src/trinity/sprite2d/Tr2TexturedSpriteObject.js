@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.h
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
 import { Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 
@@ -56,7 +56,6 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   Sprite2dTextureChanged(_texture)
   {
@@ -68,7 +67,6 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   SetTexturePrimary(texture)
   {
@@ -85,7 +83,6 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   GetTexturePrimary()
   {
@@ -97,7 +94,6 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   SetTextureSecondary(texture)
   {
@@ -114,7 +110,6 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   GetTextureSecondary()
   {
@@ -126,7 +121,6 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   _ValidateAndSetTextures(renderer)
   {
@@ -151,7 +145,6 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   _SetValidatedTextures(renderer)
   {

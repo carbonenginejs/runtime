@@ -4,7 +4,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -143,7 +143,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.effect)
@@ -165,7 +164,6 @@ export class EveChildQuad extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -176,7 +174,6 @@ export class EveChildQuad extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -188,7 +185,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
@@ -200,7 +196,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.effect)
@@ -223,7 +218,6 @@ export class EveChildQuad extends EveChildTransform
    *   bytes before direct submission to the injected renderer.
    */
 
-  @meta.adapted
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (this.display && this.effect && this._isVisible)
@@ -237,7 +231,6 @@ export class EveChildQuad extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;
@@ -250,7 +243,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     vec4.set(out, 0, 0, 0, Math.SQRT2);
@@ -264,7 +256,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -276,7 +267,6 @@ export class EveChildQuad extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(_batches, _batchType, _perObjectData, _reason)
   {
     return false;
@@ -288,7 +278,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const viewPosition = Tr2Renderer.GetViewPosition();
@@ -305,7 +294,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(_updateContext, _params)
   {
     if (!this.editMode)
@@ -337,7 +325,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext, params)
   {
     const parentTransform = params?.localToWorldTransform ?? EveChildQuad._identity;
@@ -362,7 +349,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
     if (!this._hasUpdated || !this.display)
@@ -395,7 +381,6 @@ export class EveChildQuad extends EveChildTransform
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -406,7 +391,6 @@ export class EveChildQuad extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   ChangeLOD(_lod)
   {
   }
@@ -417,7 +401,6 @@ export class EveChildQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(_accumulator)
   {
     return null;
@@ -434,7 +417,6 @@ export class EveChildQuad extends EveChildTransform
    *   ported yet.
    */
 
-  @meta.adapted
   static GetQuadDefinition()
   {
     return EveChildQuad._quadDefinition;

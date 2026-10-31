@@ -23,7 +23,7 @@
 // layer is imported straight from source by its tests and raw Node cannot parse
 // decorator syntax.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 
 
 /**
@@ -145,13 +145,4 @@ export class Tr2LockGuard
 
 // States: m_originalMemory, m_memory and m_size are Tr2LockGuard.h:7 members; className is the registered name this port adds. The class is adapted
 // because its methods are (the scratch block is a Uint8Array and there is no destructor).
-CjsSchema.decorateField(Tr2LockGuard, "className", meta.cjs, meta.implemented);
-CjsSchema.decorateField(Tr2LockGuard, "_originalMemory", meta.implemented);
-CjsSchema.decorateField(Tr2LockGuard, "_memory", meta.implemented);
-CjsSchema.decorateField(Tr2LockGuard, "_size", meta.implemented);
-CjsSchema.decorateMethod(Tr2LockGuard, "Destruct", meta.adapted);
-CjsSchema.decorateMethod(Tr2LockGuard, "Lock", meta.adapted);
-CjsSchema.decorateMethod(Tr2LockGuard, "Unlock", meta.adapted);
-CjsSchema.decorateMethod(Tr2LockGuard, "GetMemory", meta.implemented);
-CjsSchema.meta.adapted(Tr2LockGuard);
 CjsSchema.meta.carbon("Tr2LockGuard")(Tr2LockGuard);

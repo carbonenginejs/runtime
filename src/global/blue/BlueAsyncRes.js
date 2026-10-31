@@ -2,7 +2,7 @@
 // Source: blue/src/BlueAsyncRes.cpp
 // Source: blue/src/BlueAsyncRes_Blue.cpp
 import { exposure as be } from "#be";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import * as CcpLog from "../logging/ccpLog.js";
 import { blue } from "./blue.js";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
@@ -707,51 +707,19 @@ export class BlueAsyncRes
 // a transform. Field order follows BlueAsyncRes_Blue.cpp.
 CjsSchema.decorateField(BlueAsyncRes, "_path", type.wstring, be.mapAttribute(be.READ, "path"));
 CjsSchema.decorateField(BlueAsyncRes, "_ext", type.wstring, be.mapAttribute(be.READ, "ext"));
-CjsSchema.decorateField(BlueAsyncRes, "isGood", be.mapPropertyReadOnly(), type.boolean, meta.implemented);
-CjsSchema.decorateField(BlueAsyncRes, "isPrepared", be.mapPropertyReadOnly(), type.boolean, meta.implemented);
-CjsSchema.decorateField(BlueAsyncRes, "isLoading", be.mapPropertyReadOnly(), type.boolean, meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "Shutdown", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "ForceSynchronousLoad", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "CancelPendingLoad", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "AddNotifyTarget", meta.adapted);
-CjsSchema.decorateMethod(BlueAsyncRes, "RemoveNotifyTarget", meta.adapted);
-CjsSchema.decorateMethod(BlueAsyncRes, "Reload", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "Initialize", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "GetPath", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "GetExt", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "IsLoading", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "IsPrepared", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "IsGood", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(BlueAsyncRes, "GetFilePath", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "GetQuery", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_InitializeImpl", meta.adapted);
-CjsSchema.decorateMethod(BlueAsyncRes, "_DoLoad", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_DoPrepare", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_DoOpenStream", meta.adapted);
-CjsSchema.decorateMethod(BlueAsyncRes, "_OnShutdown", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_CleanupLoadData", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_staticLoadAsync", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_LoadAsync", meta.adapted);
-CjsSchema.decorateMethod(BlueAsyncRes, "_staticPrepareAsync", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_PrepareAsync", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_staticFailedLoadNotify", meta.adapted);
-CjsSchema.decorateMethod(BlueAsyncRes, "_CloseStream", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_NotifyRebuildCachedData", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_NotifyReleaseCachedData", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_SetPrepared", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_SetGood", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_ParseQuery", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_FindFirstQueryArgumentByName", meta.implemented);
+CjsSchema.decorateField(BlueAsyncRes, "isGood", be.mapPropertyReadOnly(), type.boolean);
+CjsSchema.decorateField(BlueAsyncRes, "isPrepared", be.mapPropertyReadOnly(), type.boolean);
+CjsSchema.decorateField(BlueAsyncRes, "isLoading", be.mapPropertyReadOnly(), type.boolean);
+CjsSchema.decorateMethod(BlueAsyncRes, "Reload", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(BlueAsyncRes, "IsLoading", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(BlueAsyncRes, "IsPrepared", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(BlueAsyncRes, "IsGood", be.mapMethodAndWrap());
 be.inherit(IBlueResource)(BlueAsyncRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(IBlueResource)(BlueAsyncRes);
 // Carbon: BLUE_DEFINE_ABSTRACT( BlueAsyncRes ) (BlueAsyncRes_Blue.cpp:6).
 CjsSchema.exposure.abstract(BlueAsyncRes);
-CjsSchema.decorateField(BlueAsyncRes, "isResource", CjsSchema.meta.implemented);
 be.define("BlueAsyncRes")(BlueAsyncRes);
 
-CjsSchema.decorateMethod(BlueAsyncRes, "KeepAlive", meta.adapted);
 
 
-CjsSchema.decorateMethod(BlueAsyncRes, "markNotifyTargetDestructed", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(BlueAsyncRes, "AssertNoNotifyTargets", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

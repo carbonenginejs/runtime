@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Wod/WodPlaceableRes.h
 // Source: trinity/trinity/Wod/WodPlaceableRes.cpp
 // Source: trinity/trinity/Wod/WodPlaceableRes_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IRoot } from "#blue";
 import { vec3 } from "#math/vec3";
 
@@ -52,7 +52,6 @@ export class WodPlaceableRes
    * @implemented
    */
 
-  @meta.implemented
   GetNearFadeDistance()
   {
     return this.nearFadeDistance;
@@ -64,7 +63,6 @@ export class WodPlaceableRes
    * @implemented
    */
 
-  @meta.implemented
   GetFarFadeDistance()
   {
     return this.farFadeDistance;
@@ -76,7 +74,6 @@ export class WodPlaceableRes
    * @implemented
    */
 
-  @meta.implemented
   GetVisualModel()
   {
     return this.visualModel;
@@ -88,7 +85,6 @@ export class WodPlaceableRes
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSets()
   {
     return this.curveSets;
@@ -100,7 +96,6 @@ export class WodPlaceableRes
    * @implemented
    */
 
-  @meta.implemented
   IsShadowCaster()
   {
     return this.isShadowCaster;
@@ -112,7 +107,6 @@ export class WodPlaceableRes
    *
    * @implemented
    */
-  @meta.implemented
   GetBatches(batches, batchType, matrix, data)
   {
     if (this.visualModel) this.visualModel.GetBatches(batches, batchType, matrix, data);
@@ -124,7 +118,6 @@ export class WodPlaceableRes
    * @implemented
    */
 
-  @meta.implemented
   HasTransparency()
   {
     return this.visualModel ? this.visualModel.HasTransparency() : false;
@@ -138,7 +131,6 @@ export class WodPlaceableRes
    * @implemented
    */
 
-  @meta.implemented
   IsReady()
   {
     if (this._isReady) return true;
@@ -153,7 +145,6 @@ export class WodPlaceableRes
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingBox(min, max)
   {
     this.IsReady();

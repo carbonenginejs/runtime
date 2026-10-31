@@ -4,7 +4,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriProjection.cpp
 // Source: trinity/trinity/TriProjection_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 
 /** SetProjection__RenderContext's viewport adjustment, rebuilt on each call. */
@@ -68,7 +68,6 @@ export class TriProjection extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   PerspectiveFov(fov, aspect, zn, zf)
   {
     this.projectionType = TriProjection.FOV;
@@ -86,7 +85,6 @@ export class TriProjection extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   PerspectiveOffCenter(left, right, bottom, top, zn, zf)
   {
     this.projectionType = TriProjection.OFF_CENTER;
@@ -106,7 +104,6 @@ export class TriProjection extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   PerspectiveOrthographic(width, height, front, back)
   {
     this.projectionType = TriProjection.ORTHO;
@@ -124,7 +121,6 @@ export class TriProjection extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   CustomProjection(value)
   {
     this.projectionType = TriProjection.CUSTOM;
@@ -145,7 +141,6 @@ export class TriProjection extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   SetProjection__RenderContext(renderContext)
   {
     const adjustment = mat4.identity(VIEWPORT_ADJUSTMENT);
@@ -197,7 +192,6 @@ export class TriProjection extends IRoot
    * @returns {void}
    */
 
-  @meta.implemented
   SetProjection()
   {
     switch (this.projectionType)
@@ -223,7 +217,6 @@ export class TriProjection extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetProjectionType()
   {
     return this.projectionType;
@@ -237,7 +230,6 @@ export class TriProjection extends IRoot
    * @returns {mat4} The destination matrix.
    */
 
-  @meta.adapted
   GetMatrixWithoutViewAdjustment(out)
   {
     switch (this.projectionType)
@@ -262,7 +254,6 @@ export class TriProjection extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetTransform(out)
   {
     this.GetMatrixWithoutViewAdjustment(this.transform);

@@ -76,7 +76,6 @@ export class Tr2BindingPoint
    * @implemented
    * @param {Array<[string, object]>} roots Named roots, as a controller's GetBindingPathRoots.
    */
-  @meta.implemented
   Link(roots)
   {
     this.Unlink();
@@ -96,7 +95,6 @@ export class Tr2BindingPoint
    *
    * @implemented
    */
-  @meta.implemented
   Unlink()
   {
     this._entry = null;
@@ -113,7 +111,6 @@ export class Tr2BindingPoint
    * @implemented
    * @returns {boolean} Whether a destination is bound.
    */
-  @meta.implemented
   IsValid()
   {
     return this._entry !== null && this.GetBoundObject() !== null;
@@ -128,7 +125,6 @@ export class Tr2BindingPoint
    *   member's storage address, which INotify implementations match by member.
    * @param {number} value The value; stored as a C++ float first.
    */
-  @meta.adapted
   SetValue(value)
   {
     if (!this.IsValid()) return;
@@ -163,7 +159,6 @@ export class Tr2BindingPoint
    * @adapted returns the value, or null where Carbon returns false.
    * @returns {number|null} The destination value as a float.
    */
-  @meta.adapted
   GetValue()
   {
     if (!this.IsValid()) return null;
@@ -180,7 +175,6 @@ export class Tr2BindingPoint
    * @implemented
    * @returns {object|null} The resolved object, else the authored one.
    */
-  @meta.implemented
   GetBoundObject()
   {
     return this._resolvedObject ?? this.object;
@@ -197,7 +191,6 @@ export class Tr2BindingPoint
    * @param {string} attribute Member name with an optional `.x` swizzle.
    * @returns {boolean} Whether a destination was bound.
    */
-  @meta.implemented
   SetDestination(object, attribute)
   {
     this._entry = null;
@@ -250,7 +243,6 @@ export class Tr2BindingPoint
    * @param {Array<[string, object]>} roots Named roots.
    * @returns {object|null} The object the path names.
    */
-  @meta.implemented
   static ResolvePath(path, roots)
   {
     if (!path) return null;

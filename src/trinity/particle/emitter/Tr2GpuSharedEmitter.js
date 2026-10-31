@@ -8,7 +8,7 @@ import { ccpHashFnv1 } from "#utils/hash";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { IInitialize, INotify, CcpTime } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 /** Carbon `const float MAXIMUM_FRAME_TIME = 1.f / 15.f` (Tr2GpuSharedEmitter.cpp:8): the float clamp on a frame delta. */
@@ -213,7 +213,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this._ReadParameters();
@@ -230,7 +229,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    *   into the packed parameter block Carbon maps them onto directly.
    */
 
-  @meta.adapted
   OnModified()
   {
     this._ReadParameters();
@@ -246,7 +244,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Enable(value)
   {
     this._enabled = !!value;
@@ -260,8 +257,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted
    */
 
-  @meta.cjs
-    @meta.adapted
   IsEnabled()
   {
     return this._enabled;
@@ -273,7 +268,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetDirection(value)
   {
     vec3.copy(this.direction, value || Tr2GpuSharedEmitter._zero3);
@@ -285,7 +279,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetPosition(value)
   {
     vec3.copy(this.position, value || Tr2GpuSharedEmitter._zero3);
@@ -298,7 +291,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted authored schema fields are projected onto the native structs at entry.
    */
 
-  @meta.adapted
   Update(arguments_)
   {
     this._ReadParameters();
@@ -348,7 +340,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
     this._ReadParameters();
@@ -362,7 +353,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   SpawnParticles__StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
     this._ReadParameters();
@@ -413,7 +403,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   _SpawnParticles(emitter, arguments_, positionStart, positionEnd, velocityStart, velocityEnd, carryOverCount, deltaTime)
   {
     vec3.copy(emitter.position, positionEnd);
@@ -442,7 +431,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SpawnOnce(arguments_, velocity, scale = 1, rateModifier = 1)
   {
     if (!arguments_.system || !this._enabled) return;
@@ -480,7 +468,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GenerateID()
   {
     this._id = this.GetID(this._paramsHash);
@@ -494,7 +481,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetID(hash)
   {
     return (hash & ~128) >>> 0;
@@ -506,7 +492,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateHash()
   {
     this._paramsHash = this.GetHash(this._params);
@@ -521,7 +506,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetHash(params)
   {
     const data = HASH_DATA;
@@ -598,7 +582,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * attractorStrength is only forwarded on subclasses that declare it.
    */
 
-  @meta.adapted
   Setup(rate, emitterData, paramsData)
   {
     const emitter = emitterData || {};
@@ -661,7 +644,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetThreadSafeFlag()
   {
   }

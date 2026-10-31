@@ -1,7 +1,6 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.h
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.cpp
-import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
@@ -23,7 +22,6 @@ export class TriStepRemoteSync extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(id = -1)
   {
     this.SetId(id);
@@ -34,7 +32,6 @@ export class TriStepRemoteSync extends TriRenderStep
    *
    * @implemented
    */
-  @meta.implemented
   GetId()
   {
     return this.#id;
@@ -46,7 +43,6 @@ export class TriStepRemoteSync extends TriRenderStep
    *
    * @adapted
    */
-  @meta.adapted
   SetId(id)
   {
     if (!Number.isInteger(id))
@@ -63,7 +59,6 @@ export class TriStepRemoteSync extends TriRenderStep
    *
    * @adapted
    */
-  @meta.adapted
   Execute(_realTime, _simTime, _renderContext)
   {
     // Carbon implements this class only on Windows with named HANDLE events.

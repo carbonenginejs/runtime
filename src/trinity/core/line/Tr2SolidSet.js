@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2SolidSet.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -57,7 +57,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddTriangle(position1, color1, position2, color2, position3, color3)
   {
     const dir13 = vec3.subtract(vec3.create(), position1, position3);
@@ -80,7 +79,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearTriangles()
   {
     this.triangles.length = 0;
@@ -92,7 +90,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SubmitChanges()
   {
     if (this.triangles.length > this.maxCurrentTriangleCount)
@@ -109,7 +106,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    *
    * @adapted
    */
-  @meta.adapted
   SetCurrentColor(color)
   {
     for (const triangle of this.triangles)
@@ -127,7 +123,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this.PrepareResources();
@@ -139,7 +134,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    *
    * @implemented
    */
-  @meta.implemented
   GetCenterOfMass(out)
   {
     vec3.set(out, 0, 0, 0);
@@ -159,7 +153,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -171,7 +164,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -184,7 +176,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     if (this._destroyed) return false;
@@ -240,7 +231,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    * @implemented
    */
 
-  @meta.implemented
   GetBatchesImpl(accumulator, perObjectData, effect, _reason)
   {
     if (!this._vertexBuffer.IsValid()) return;

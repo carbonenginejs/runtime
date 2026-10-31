@@ -13,7 +13,7 @@
 // (`gl.finish`), which returns once every command, the fence included, has
 // completed, and then records the fence as passed.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -51,7 +51,6 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(renderContext)
   {
     this._Reset();
@@ -72,7 +71,6 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   PutFence(renderContext)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -97,7 +95,6 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {{result: number, isReached: boolean}} dx11's out argument comes back here.
    */
-  @meta.adapted
   IsReached(renderContext)
   {
     if (!this.IsValid()) return { result: ALResult.E_INVALIDCALL, isReached: false };
@@ -120,7 +117,6 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Wait(renderContext)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -215,9 +211,4 @@ CjsSchema.decorateMethod(Tr2FenceALWebgl2, "PutFence");
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsReached");
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Wait");
 // States against dx11/Tr2FenceALDx11.cpp:32-105 and .h:26-30. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "SetName", meta.adapted);
 CjsSchema.meta.define("Tr2FenceALWebgl2")(Tr2FenceALWebgl2);

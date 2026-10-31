@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepGenerateMipMaps.h
 // Source: trinity/trinity/RenderJob/TriStepGenerateMipMaps.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -23,7 +23,6 @@ export class TriStepGenerateMipMaps extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(renderTarget = null)
   {
     this.renderTarget = renderTarget ?? null;
@@ -36,7 +35,6 @@ export class TriStepGenerateMipMaps extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (this.renderTarget) this.renderTarget.GetRenderTarget().GenerateMipMaps(renderContext);

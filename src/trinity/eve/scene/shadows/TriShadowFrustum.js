@@ -42,7 +42,6 @@ export class TriShadowFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Boolean}
    */
-  @meta.implemented
   IsVisible(_camera, boundingSphere)
   {
     return this.shadow.IsSphereVisible(boundingSphere);
@@ -55,7 +54,6 @@ export class TriShadowFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Number}
    */
-  @meta.implemented
   GetSizeInShadow(boundingSphere)
   {
     return this.shadow.GetPixelSizeAccross(boundingSphere);
@@ -68,7 +66,6 @@ export class TriShadowFrustum
    * @implemented
    * @returns {Float32Array}
    */
-  @meta.implemented
   GetEyePos()
   {
     return this.shadow.viewPos;
@@ -83,7 +80,6 @@ export class TriShadowFrustum
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult
    */
-  @meta.implemented
   SphereTest(_camera, sphere)
   {
     return this.shadow.SphereTest(sphere);

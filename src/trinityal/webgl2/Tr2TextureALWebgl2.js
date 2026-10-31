@@ -47,7 +47,7 @@
 //   is not a texture, so there is nothing to attach; the swap chain draws to
 //   that framebuffer directly.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { canDecodeBlockSlice, decodeBlockSlice } from "#resource/codecs/bcn";
 import { Tr2ALMemoryType } from "#consts/graphics";
@@ -351,7 +351,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(desc, msaa, gpuUsage, cpuUsage, initialData, renderContext)
   {
     this._Reset();
@@ -445,7 +444,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *   from; an addition to dx11's signature, which views the same resource.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   CreateViews(_texture, desc, _msaa, gpuUsage, _cpuUsage, createSrgb, _renderContext, initialData = null)
   {
     const format = desc.GetFormat();
@@ -869,7 +867,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The primary context.
    * @returns {Tr2ReadbackALWebgl2|null} The readback, or null when refused.
    */
-  @meta.adapted
   CreateReadback(region, renderContext)
   {
     if (!HasFlag(this._cpuUsage, Tr2CpuUsage.READ)) return null;
@@ -916,7 +913,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
    */
-  @meta.adapted
   MapForReading(region, renderContext)
   {
     const fail = result => ({ result, data: null, pitch: 0 });
@@ -974,7 +970,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
    */
-  @meta.adapted
   MapForWriting(region, renderContext)
   {
     const fail = result => ({ result, data: null, pitch: 0 });
@@ -1016,7 +1011,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @adapted
    * @param {object} renderContext The context the map was made against.
    */
-  @meta.adapted
   UnmapForWriting(renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -1052,7 +1046,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to write against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   UpdateSubresource(region, source, pitch, slicePitch, renderContext)
   {
     if (HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) return ALResult.E_INVALIDCALL;
@@ -1121,7 +1114,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to copy against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   CopySubresourceRegion(destSubresource, source, sourceSubresource, renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -1223,7 +1215,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to resolve against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Resolve(destination, renderContext)
   {
     if (this._msaa.samples <= 1)
@@ -1460,28 +1451,12 @@ CjsSchema.decorateField(Tr2TextureALWebgl2, "_cpuUsage", type.int32);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "CreateViews");
 // States against dx11/Tr2TextureALDx11.cpp. OpenShared and GetSharedHandle are notSupported: WebGL has no cross-process shared resource handle (dx11 opens and queries an IDXGIResource), so OpenShared returns E_FAIL and GetSharedHandle returns 0, dx11's own failure answers. Destroy, IsValid, the accessors, UnmapForReading and GenerateMipMaps (the dx11 checks, then generateMipmap for GenerateMips) are dx11's on GL objects. SetName stores the name with no native debug label. Describe is adapted: it writes type, width, height, depth, mips, format and name where dx11 writes size, mipLevels, texType, array, cpuUsage, gpuUsage and msaa too.
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "OpenShared", meta.notSupported);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetDesc", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetMsaaDesc", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetGpuUsage", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetCpuUsage", meta.implemented);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "CreateReadback");
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "MapForReading");
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "UnmapForReading", meta.implemented);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "MapForWriting");
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "UnmapForWriting");
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "UpdateSubresource");
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "CopySubresourceRegion");
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GenerateMipMaps", meta.implemented);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Resolve");
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetSharedHandle", meta.notSupported);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetSrvIndexInHeap", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetUavIndexInHeap", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "SetName", meta.adapted);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Describe", meta.adapted);
 CjsSchema.meta.define("Tr2TextureALWebgl2")(Tr2TextureALWebgl2);
 

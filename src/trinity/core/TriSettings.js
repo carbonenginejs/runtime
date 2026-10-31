@@ -2,7 +2,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/TriSettings.h
 //   trinity/trinity/TriSettings_Blue.cpp
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 
 /**
@@ -39,7 +39,6 @@ export class TriSettings extends IRoot
    * @returns {TriSettings} This registry.
    */
 
-  @meta.adapted
   RegisterSetting(name, ownerOrValue, key, { applies = "always", enum: enumType = null, values = null, carbon = false } = {})
   {
     const owner = key === undefined ? { value: ownerOrValue } : ownerOrValue;
@@ -72,7 +71,6 @@ export class TriSettings extends IRoot
    * @returns {{ valueType: string, owner: object, key: string, applies: string, enum: object|string|null, values: Array|null, carbon: boolean }|null} The entry.
    */
 
-  @meta.implemented
   FindSetting(name)
   {
     return this._settings.get(TriSettings._GetKey(name)) ?? null;
@@ -98,7 +96,6 @@ export class TriSettings extends IRoot
    * @implemented
    */
   @be.mapMethod()
-  @meta.implemented
   GetValue(name)
   {
     const setting = this._Require(name);
@@ -113,7 +110,6 @@ export class TriSettings extends IRoot
    * @implemented
    */
   @be.mapMethod()
-  @meta.implemented
   SetValue(name, value)
   {
     const setting = this._Require(name);
@@ -130,7 +126,6 @@ export class TriSettings extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetReprString()
   {
     let result = "{";
@@ -149,7 +144,6 @@ export class TriSettings extends IRoot
    *   JavaScript has one number type, so numbers format as JavaScript does.
    */
 
-  @meta.adapted
   GetSettingReprString(setting)
   {
     return TriSettings._ReprValue(setting.owner[setting.key]);
@@ -163,7 +157,6 @@ export class TriSettings extends IRoot
    * @returns {string} The settings representation.
    */
   @be.mapMethod()
-  @meta.adapted
   __repr__()
   {
     return this.GetReprString();

@@ -9,7 +9,7 @@ import { color } from "#math/color";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 // RenderDebugInfo scratch (debug drawing is single-threaded).
@@ -70,7 +70,6 @@ export class EveSphereVolume extends IEveVolume
    * @adapted
    */
 
-  @meta.adapted
   GetBoundingSphere()
   {
     return {
@@ -87,7 +86,6 @@ export class EveSphereVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   GetIntensity(position)
   {
     const distanceSq = vec3.squaredDistance(position, this.position);
@@ -113,7 +111,6 @@ export class EveSphereVolume extends IEveVolume
    * @param excludeInnerVolume Keeps every point outside the inner radius.
    */
 
-  @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
     const count = Math.max(0, Math.trunc(howManyToAdd));
@@ -159,7 +156,6 @@ export class EveSphereVolume extends IEveVolume
    * @adapted
    */
 
-  @meta.adapted
   RegisterForChanges(callback)
   {
     const id = this._nextCallbackId++;
@@ -173,7 +169,6 @@ export class EveSphereVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   UnregisterForChanges(callbackId)
   {
     this._callbacks.delete(callbackId);
@@ -186,7 +181,6 @@ export class EveSphereVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "innerRadius") && this.innerRadius > this.radius)
@@ -228,7 +222,6 @@ export class EveSphereVolume extends IEveVolume
    * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentTransform, baseColor = DEFAULT_BASE_COLOR)
   {
     const owner = Tr2DebugObjectReference.create__Object(this);

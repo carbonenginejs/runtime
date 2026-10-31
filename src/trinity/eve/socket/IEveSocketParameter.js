@@ -2,7 +2,6 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/IEveSocketParameter.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { meta } from "#schema";
 
 
 /** Carbon socket-parameter contract with its interface defaults. */
@@ -17,7 +16,6 @@ export class IEveSocketParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return "";
@@ -29,7 +27,6 @@ export class IEveSocketParameter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetName(_name)
   {
   }
@@ -40,7 +37,6 @@ export class IEveSocketParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -52,7 +48,6 @@ export class IEveSocketParameter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   ClearBindings()
   {
   }
@@ -63,7 +58,6 @@ export class IEveSocketParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   BindToExternalParameter(_externalParameter)
   {
     return true;
@@ -75,7 +69,6 @@ export class IEveSocketParameter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Reset()
   {
   }
@@ -86,7 +79,6 @@ export class IEveSocketParameter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetValueToDefault()
   {
   }
@@ -97,7 +89,6 @@ export class IEveSocketParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Used()
   {
     return true;
@@ -109,7 +100,6 @@ export class IEveSocketParameter extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Propagate()
   {
   }

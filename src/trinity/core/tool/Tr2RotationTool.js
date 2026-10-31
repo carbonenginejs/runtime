@@ -40,7 +40,6 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   Move(x, y, dx, dy, viewport, view, projection)
   {
     const vec3_0 = vec3.alloc();
@@ -122,7 +121,6 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   Update(context)
   {
     const mat4_0 = mat4.alloc();
@@ -165,7 +163,6 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    *
    * @adapted
    */
-  @meta.adapted
   GenLineSets()
   {
     const mat4_0 = mat4.alloc();
@@ -231,7 +228,6 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @adapted Carbon declares m_wwLine (trinity/trinity/Tr2RotationTool.h:33) but does not expose it; exposed here for the values interface.
    */
   @meta.mapAttribute(meta.READWRITE)
-  @meta.adapted
   @type.object.ref("Tr2LineSet")
   wwLine = null;
 
@@ -250,7 +246,6 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @returns {Float32Array} The plane normal.
    */
 
-  @meta.implemented
   GetDesiredPlaneNormal(_ray, viewMatrix, out)
   {
     vec3.set(Tr2RotationTool.#view, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
@@ -279,7 +274,6 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @implemented
    */
 
-  @meta.implemented
   GetUnTransformedBaseVectors(outX, outY, outZ)
   {
     vec3.set(outX, 1, 0, 0);
@@ -311,7 +305,6 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @returns {Float32Array} The arcball vector.
    */
 
-  @meta.implemented
   Hemisphere(mouseX, mouseY, viewport, viewMatrix, projectionMatrix, out)
   {
     const viewProj = mat4.multiply(Tr2RotationTool.#viewProj, projectionMatrix, viewMatrix);
@@ -359,7 +352,6 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    *   visible-object vector.
    */
 
-  @meta.adapted
   GetPrimitivesToRender()
   {
     return Array.from(this.primitives);
@@ -371,7 +363,6 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @implemented
    */
 
-  @meta.implemented
   ResetPrimitiveColors()
   {
     for (const primitive of this.primitives)

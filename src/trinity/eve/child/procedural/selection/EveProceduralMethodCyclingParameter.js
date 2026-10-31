@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodCyclingParameter (eve/child/procedural/selection) - generated from schema shapeHash 90bcbbe1.... */
@@ -58,7 +58,6 @@ export class EveProceduralMethodCyclingParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (!this.child)
@@ -76,7 +75,6 @@ export class EveProceduralMethodCyclingParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "child"))
@@ -96,7 +94,6 @@ export class EveProceduralMethodCyclingParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetModified(isModified)
   {
     this._modified = !!isModified;
@@ -108,7 +105,6 @@ export class EveProceduralMethodCyclingParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsModified()
   {
     return this._modified;
@@ -120,7 +116,6 @@ export class EveProceduralMethodCyclingParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -132,7 +127,6 @@ export class EveProceduralMethodCyclingParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetChild()
   {
     return this.child;
@@ -144,7 +138,6 @@ export class EveProceduralMethodCyclingParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDuration()
   {
     return this.playDuration;
@@ -159,7 +152,6 @@ export class EveProceduralMethodCyclingParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Load()
   {
     if (this._hasLoaded && !this.reloadRequired)

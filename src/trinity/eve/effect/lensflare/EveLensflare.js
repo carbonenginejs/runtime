@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/EveLensflare.h
 // Source: trinity/trinity/Eve/EveLensflare.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { BlueList, IInitialize, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2Controller } from "../../../controllers/ITr2Controller/ITr2Controller.js";
@@ -47,7 +47,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     for (const controller of this.controllers)
@@ -63,7 +62,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list !== this.controllers || (event & BLUELISTEVENT.BELIST_LOADING) !== 0) return;
@@ -99,7 +97,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     for (const curveSet of this.curveSets)
@@ -120,7 +117,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Stop();
@@ -132,7 +128,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Update__RealTimeSimTime(time, time);
@@ -144,7 +139,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     let duration = 0;
@@ -161,7 +155,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     let duration = 0;
@@ -330,7 +323,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   Update(realTime, simTime)
   {
     if (!this.update) return;
@@ -377,7 +369,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext)
   {
     this.isVisible = false;
@@ -402,7 +393,6 @@ export class EveLensflare
    * @returns {void}
    */
 
-  @meta.implemented
   RunOcclusionQueries(renderContext, updateContext)
   {
     if (!this.display) return;
@@ -429,7 +419,6 @@ export class EveLensflare
    * @returns {void}
    */
 
-  @meta.implemented
   RunBackgroundOcclusionQueries(renderContext, updateContext)
   {
     if (!this.display) return;
@@ -452,7 +441,6 @@ export class EveLensflare
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     const key = String(name);
@@ -472,7 +460,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   HandleControllerEvent(name)
   {
     const key = String(name);
@@ -485,7 +472,6 @@ export class EveLensflare
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers) controller.Start();
@@ -508,7 +494,6 @@ export class EveLensflare
    * @returns {void}
    */
 
-  @meta.implemented
   PrepareRender(frustum)
   {
     if (!this.display) return;
@@ -554,7 +539,6 @@ export class EveLensflare
    * @returns {Array} `renderables`.
    */
 
-  @meta.implemented
   GetRenderables(_frustum, renderables)
   {
     if (!this.display || !this.isVisible) return renderables;
@@ -570,7 +554,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (this.mesh)
@@ -585,7 +568,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -597,7 +579,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 1;
@@ -614,7 +595,6 @@ export class EveLensflare
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveLensflarePerObjectData");
@@ -640,7 +620,6 @@ export class EveLensflare
    * @adapted
    * @returns {void}
    */
-  @meta.adapted
   Destruct()
   {
     for (const controller of this.controllers) controller.Unlink(UnlinkReason.DELETING);

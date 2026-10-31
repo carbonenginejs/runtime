@@ -16,7 +16,7 @@
 // one, and the two are not interchangeable: a frame number says "everything up
 // to here is done", a fence says "this particular point is done".
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -180,13 +180,4 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
 CjsSchema.decorateField(Tr2FenceALStub, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2FenceALStub, "_hasFence", type.boolean);
 // States against stub/Tr2FenceALStub.cpp:14-76 and .h:25-31; IsReached is adapted: the bool& comes back with the result as { result, isReached }. Destroy also runs the base resource's Destroy, which is the unregistering Carbon's Tr2DeviceResourceAL template does.
-CjsSchema.decorateMethod(Tr2FenceALStub, "Create", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALStub, "PutFence", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALStub, "IsReached", meta.adapted);
-CjsSchema.decorateMethod(Tr2FenceALStub, "Wait", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2FenceALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2FenceALStub")(Tr2FenceALStub);

@@ -46,7 +46,6 @@ export class EveInstancedMeshManagerDataHandle
    * @renamed operator bool
    * @returns {boolean}
    */
-  @meta.renamed("operator bool")
   IsValid()
   {
     return this.index !== EveInstancedMeshManagerDataHandle.invalidIndex;

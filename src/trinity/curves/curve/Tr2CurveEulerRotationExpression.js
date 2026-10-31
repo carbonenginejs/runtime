@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.cpp
 import { fromYawPitchRollCarbon, quat } from "#math/quat";
 import { ITriFunction, ITriQuaternionFunction, ITriScalarFunction, IInitialize, BlueList } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
@@ -43,7 +43,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    */
   @be.mapProperty()
   @type.expression
-  @meta.implemented
   get expressionYaw()
   {
     return this.GetExpressionYaw();
@@ -54,7 +53,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    *
    * @implemented
    */
-  @meta.implemented
   set expressionYaw(expression)
   {
     this.SetExpressionYaw(expression);
@@ -75,7 +73,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    */
   @be.mapProperty()
   @type.expression
-  @meta.implemented
   get expressionPitch()
   {
     return this.GetExpressionPitch();
@@ -86,7 +83,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    *
    * @implemented
    */
-  @meta.implemented
   set expressionPitch(expression)
   {
     this.SetExpressionPitch(expression);
@@ -107,7 +103,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    */
   @be.mapProperty()
   @type.expression
-  @meta.implemented
   get expressionRoll()
   {
     return this.GetExpressionRoll();
@@ -118,7 +113,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    *
    * @implemented
    */
-  @meta.implemented
   set expressionRoll(expression)
   {
     this.SetExpressionRoll(expression);
@@ -215,7 +209,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {boolean} True.
    */
 
-  @meta.adapted
   Initialize()
   {
     for (let index = 0; index < 3; index++)
@@ -238,7 +231,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.GetValue(time, this.currentValue);
@@ -253,7 +245,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.GetValue(time, this.currentValue);
@@ -268,7 +259,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     return this.GetValue(time, out);
@@ -284,7 +274,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {Float32Array} The destination.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     this.Compile();
@@ -301,7 +290,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {Float32Array} Unchanged destination.
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -316,7 +304,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {Float32Array} Unchanged destination.
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -328,7 +315,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @implemented
    */
 
-  @meta.implemented
   GetExpression(index)
   {
     return this["_expression" + ["Yaw", "Pitch", "Roll"][index]];
@@ -344,7 +330,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetExpression(index, expression)
   {
     const field = "_expression" + ["Yaw", "Pitch", "Roll"][index];
@@ -366,7 +351,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @implemented
    */
 
-  @meta.implemented
   GetExpressionYaw()
   {
     return this.GetExpression(0);
@@ -378,7 +362,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @implemented
    */
 
-  @meta.implemented
   GetExpressionPitch()
   {
     return this.GetExpression(1);
@@ -390,7 +373,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @implemented
    */
 
-  @meta.implemented
   GetExpressionRoll()
   {
     return this.GetExpression(2);
@@ -404,7 +386,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetExpressionYaw(expression)
   {
     this.SetExpression(0, expression);
@@ -418,7 +399,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetExpressionPitch(expression)
   {
     this.SetExpression(1, expression);
@@ -432,7 +412,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetExpressionRoll(expression)
   {
     this.SetExpression(2, expression);
@@ -447,7 +426,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {number}
    */
 
-  @meta.implemented
   GetInputValue(index)
   {
     return this.GetInputValue__Time(index, this._currentTime);
@@ -461,7 +439,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {number} time Sample time.
    * @returns {number}
    */
-  @meta.adapted
   GetInputValue__Time(index, time)
   {
     const input = this.inputs[index | 0];
@@ -477,7 +454,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {number} Cached random constant.
    */
 
-  @meta.adapted
   GetRandomConstant()
   {
     return this.randomConstant;
@@ -489,7 +465,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ResetRandomConstant()
   {
     this.randomConstant = carbonRandom.triFloatRandom01();
@@ -503,7 +478,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {Array} Editor term descriptors.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetExpressionTermInfo()
   {
     return CjsControllerExpressionProgram.getCurveTermInfo({
@@ -520,7 +494,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @returns {number} Evaluation result or zero.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EvaluateExpression(expression)
   {
     const program = CjsControllerExpressionProgram.Compile(expression, {

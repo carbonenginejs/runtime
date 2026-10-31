@@ -47,7 +47,6 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    * @implemented
    */
 
-  @meta.implemented
   ClearBindings()
   {
     this.bindings.length = 0;
@@ -63,7 +62,6 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    * @returns {boolean} True when the binding was created and stored.
    */
 
-  @meta.implemented
   BindToExternalParameter(externalParameter)
   {
     if (!externalParameter.IsValid() || externalParameter.GetName() !== this.name) return false;
@@ -89,7 +87,6 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    * @implemented
    */
 
-  @meta.implemented
   Used()
   {
     return this.bindings.length !== 0;
@@ -101,7 +98,6 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    * @implemented
    */
 
-  @meta.implemented
   Propagate()
   {
     for (const binding of this.bindings) binding.CopyValue();

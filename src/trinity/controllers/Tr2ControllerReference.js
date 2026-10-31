@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
 import { IsMatch, blue, INotify, IInitialize, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { ITr2Controller } from "./ITr2Controller/index.js";
 
@@ -52,7 +52,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {boolean} True after requesting any authored load.
    */
 
-  @meta.adapted
   Initialize()
   {
     if (this.path)
@@ -73,7 +72,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {boolean} True after handling the notification.
    */
 
-  @meta.adapted
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "path"))
@@ -94,7 +92,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {void}
    */
 
-  @meta.adapted
   Link(owner)
   {
     if (this._owner !== owner)
@@ -115,7 +112,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {void}
    */
 
-  @meta.adapted
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     this._owner = null;
@@ -131,7 +127,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {boolean} Whether an owner is retained.
    */
 
-  @meta.implemented
   IsLinked()
   {
     return this._owner !== null;
@@ -144,7 +139,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Start()
   {
     this._isActive = true;
@@ -158,7 +152,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Stop()
   {
     this._isActive = false;
@@ -173,7 +166,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {void}
    */
 
-  @meta.implemented
   Update(normalizedUpdateFrequency = 0)
   {
     this.controller?.Update(normalizedUpdateFrequency);
@@ -189,7 +181,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {void}
    */
 
-  @meta.adapted
   SetVariable(name, value)
   {
     if (this.controller) this.controller.SetVariable(name, value);
@@ -204,7 +195,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleEvent(eventName)
   {
     this.controller?.HandleEvent(eventName);
@@ -217,7 +207,6 @@ export class Tr2ControllerReference extends ITr2Controller
    * @returns {object|null} Current owner.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetOwner()
   {
     return this._owner;

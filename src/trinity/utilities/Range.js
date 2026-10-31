@@ -3,7 +3,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Utilities/Range.h
 // Source: trinity/trinity/Utilities/Range.cpp
 // Source: trinity/trinity/Utilities/Range_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -53,7 +53,6 @@ export class Range extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetCenterPoint(value)
   {
     const delta = value - this.centerPoint;
@@ -68,7 +67,6 @@ export class Range extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Setup(rangeCenterPoint, rangeDeltaFromCenter, sliderMin, sliderMax)
   {
     this.centerPoint = rangeCenterPoint;
@@ -84,7 +82,6 @@ export class Range extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetMinRangePoint(value)
   {
     this._minRange = Math.min(value, this.centerPoint);
@@ -100,7 +97,6 @@ export class Range extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetMaxRangePoint(value)
   {
     this._maxRange = Math.max(value, this.centerPoint);
@@ -116,7 +112,6 @@ export class Range extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetCenterPoint()
   {
     return this.centerPoint;
@@ -128,7 +123,6 @@ export class Range extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetMinRangePoint()
   {
     return Math.min(this._minRange, this._sliderRangeMin);
@@ -141,7 +135,6 @@ export class Range extends IRoot
    * @adapted
    */
   @be.mapPropertyReadOnly()
-  @meta.adapted
   get minRangePoint()
   {
     return this.GetMinRangePoint();
@@ -154,7 +147,6 @@ export class Range extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetMaxRangePoint()
   {
     return Math.min(this._maxRange, this._sliderRangeMax);
@@ -167,7 +159,6 @@ export class Range extends IRoot
    * @adapted
    */
   @be.mapPropertyReadOnly()
-  @meta.adapted
   get maxRangePoint()
   {
     return this.GetMaxRangePoint();
@@ -180,7 +171,6 @@ export class Range extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ToggleIsUniform()
   {
     this.isUniform = !this.isUniform;
@@ -197,7 +187,6 @@ export class Range extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetIsUniform(value)
   {
     this.isUniform = value;
@@ -214,7 +203,6 @@ export class Range extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   FixUniformity()
   {
     const minRangeDelta = this.centerPoint - this._minRange;
@@ -231,7 +219,6 @@ export class Range extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetIsUniform()
   {
     return this.isUniform;
@@ -244,7 +231,6 @@ export class Range extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetSliderMin(value)
   {
     this._sliderRangeMin = value;
@@ -257,7 +243,6 @@ export class Range extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetSliderMax(value)
   {
     this._sliderRangeMax = value;
@@ -269,7 +254,6 @@ export class Range extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetSliderMin()
   {
     return this._sliderRangeMin;
@@ -281,7 +265,6 @@ export class Range extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetSliderMax()
   {
     return this._sliderRangeMax;

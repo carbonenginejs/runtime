@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -59,7 +59,6 @@ export class EveCloudVolumeBall extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_names)
   {
     // JavaScript WeakRef replaces BlueWeakRef without keeping the editor alive.

@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerPlane.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 import { quat } from "#math/quat";
 
@@ -63,7 +63,6 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * @adapted
    */
 
-  @meta.adapted
   Reset(placements)
   {
     if (placements.length === 0)
@@ -96,7 +95,6 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * @implemented
    */
 
-  @meta.implemented
   Restart()
   {
     this._currentTrigger = this.reversePlaneAnimation ? this._distSortedIndexes.length - 1 : 0;
@@ -111,7 +109,6 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
     if (this._distSortedIndexes.length === 0
@@ -167,7 +164,6 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    *
    * @adapted
    */
-  @meta.adapted
   SetControllerVariable(_name, _value)
   {
   }

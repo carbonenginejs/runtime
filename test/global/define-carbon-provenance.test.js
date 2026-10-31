@@ -21,7 +21,7 @@ function Shape()
 }
 
 const FIELDS = { position: [ type.float32, meta.persist ], count: [ type.uint32 ] };
-const METHODS = { Apply: [ meta.implemented ] };
+const METHODS = { Apply: [ meta.note("probe") ] };
 
 /**
  * The schema without the keys that name or attribute the class.

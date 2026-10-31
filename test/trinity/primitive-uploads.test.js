@@ -9,6 +9,7 @@ import {Tr2RenderContextALStub,Tr2BufferAL,ALResult} from "../../npm/dist/trinit
 import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
 import {Topology} from "../../npm/dist/global/consts/renderContext/index.js";
 import {Tr2PickType} from "../../npm/dist/global/consts/graphics/tr2PickType.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const red=[1,0,0,1],green=[0,1,0,1],blue=[0,0,1,1];
 function setup(t){
@@ -101,7 +102,7 @@ test("primitive picking methods are exposed on concrete classes without an undec
   for(const Type of [Tr2LineSet,Tr2SolidSet,Tr2GrannyPrimitiveSet]){
     const s=new Type();assert.equal(s.GetID(127),s);
     for(const method of ["GetID","GetPickingBatches"]){
-      assert.equal(typeof s[method],"function");assert.ok(CjsSchema.getMethod(Type,method));
+      assert.equal(typeof s[method],"function");assert.ok(MarkerTag(CjsSchema.getClassName(Type),method));
     }
     assert.equal(s.GetPickingBatches,Tr2PrimitiveSet.prototype.GetPickingBatches);
   }

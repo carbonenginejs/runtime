@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ImpostorManager.cpp
 // Source: trinity/trinity/Tr2ImpostorManager_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -143,7 +143,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.Reset();
@@ -157,7 +156,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   OnModified()
   {
     this.Initialize();
@@ -170,7 +168,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources()
   {
   }
@@ -180,7 +177,6 @@ export class Tr2ImpostorManager
    *
    * @adapted
    */
-  @meta.adapted
   PrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     return !renderContext.IsValid() || this.OnPrepareResources(renderContext);
@@ -192,7 +188,6 @@ export class Tr2ImpostorManager
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const width = (this.itemWidth * this.maxUpdates) >>> 0;
@@ -210,7 +205,6 @@ export class Tr2ImpostorManager
    *
    * @implemented
    */
-  @meta.implemented
   __init__(width = 1024, height = 1024, itemWidth = 16, itemHeight = 16)
   {
     this.Create(width, height, itemWidth, itemHeight);
@@ -222,7 +216,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
-  @meta.implemented
   Create(width = 1024, height = 1024, itemWidth = 16, itemHeight = 16)
   {
     this.width = width >>> 0;
@@ -238,7 +231,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   SetItemSize(width, height)
   {
     width >>>= 0;
@@ -255,7 +247,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   Reset()
   {
     this._objects.clear();
@@ -268,7 +259,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   Add(object, hash)
   {
     if (!this.atlas.IsValid()) return false;
@@ -298,7 +288,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   BeginUpdate()
   {
     this._renderQueue.length = 0;
@@ -317,7 +306,6 @@ export class Tr2ImpostorManager
    * @adapted
    */
 
-  @meta.adapted
   EndUpdate()
   {
     for (const [object, impostor] of this._objects)
@@ -361,7 +349,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   GetRenderQueueLength()
   {
     return this._renderQueue.length;
@@ -373,7 +360,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   static compareImpostors(first, second)
   {
     return first[1].renderPriority > second[1].renderPriority;
@@ -386,7 +372,6 @@ export class Tr2ImpostorManager
    * @adapted
    */
 
-  @meta.adapted
   BeginUpdateAtlas(renderContext)
   {
     if (!this.atlas.IsValid() || !this._renderQueue.length) return;
@@ -414,7 +399,6 @@ export class Tr2ImpostorManager
    * @adapted
    */
 
-  @meta.adapted
   EndUpdateAtlas(renderContext)
   {
     if (!this.atlas.IsValid() || !this._renderQueue.length) return;
@@ -440,7 +424,6 @@ export class Tr2ImpostorManager
    * @adapted
    */
 
-  @meta.adapted
   BeginImpostorUpdate(index, renderContext)
   {
     if (!this.atlas.IsValid() || index < 0 || index >= this._renderQueue.length || !Number.isInteger(index)) return null;
@@ -454,7 +437,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   EndImpostorUpdate()
   {
   }
@@ -465,7 +447,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   GetImpostorCount()
   {
     return this._objects.size;
@@ -477,7 +458,6 @@ export class Tr2ImpostorManager
    * @implemented
    */
 
-  @meta.implemented
   GetItemDepthStencil()
   {
     return this._ds;
@@ -489,7 +469,6 @@ export class Tr2ImpostorManager
    * @notImplemented
    */
 
-  @meta.notImplemented
   Render()
   {
     throw new Error("Tr2ImpostorManager.Render has no native implementation; use Tr2QuadRenderer batches.");

@@ -6,7 +6,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -81,7 +81,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    *   missing centres and negative or invalid radii are skipped.
    */
 
-  @meta.adapted
   RebuildBoundingSphere()
   {
     const sphere = this._boundingSphere;
@@ -128,7 +127,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -139,7 +137,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -150,7 +147,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
@@ -160,7 +156,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;
@@ -172,7 +167,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this._boundingSphere);
@@ -184,7 +178,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -198,7 +191,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    *   where Carbon inverts unconditionally (cpp:100).
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
     this._UpdateTransformFromParent(params);
@@ -265,7 +257,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   GetLocalToWorldTransform(_out = null)
   {
   }
@@ -276,7 +267,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
@@ -288,7 +278,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   IsAlwaysOn()
   {
     return true;
@@ -301,7 +290,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    *   first use because the generated field default stays null.
    */
 
-  @meta.adapted
   Initialize()
   {
     this._EnsureAttributes();
@@ -316,7 +304,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Volumes");
@@ -337,7 +324,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "Volumes"))
@@ -377,7 +363,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -396,7 +381,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     this.GetComponentRegistry().UnRegisterComponent(EveComponentType.PostProcessOwner, this);
@@ -408,7 +392,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetPostProcessAttributes()
   {
     return this._EnsureAttributes();

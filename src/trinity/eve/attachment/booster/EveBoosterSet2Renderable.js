@@ -6,7 +6,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
@@ -152,8 +152,6 @@ export class EveBoosterSet2Renderable
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   SetBoosterSet(boosterSet)
   {
     this._boosterSet = boosterSet ?? null;
@@ -168,7 +166,6 @@ export class EveBoosterSet2Renderable
    * @implemented
    */
 
-  @meta.implemented
   CalculateIntensity(acceleration)
   {
     const boosterSet = this._boosterSet;
@@ -203,7 +200,6 @@ export class EveBoosterSet2Renderable
    * @implemented
    */
 
-  @meta.implemented
   Update(deltaTime, _time, parentMatrix, parentSpeed, parentAcceleration, parentRotation)
   {
     const boosterSet = this._boosterSet;
@@ -240,7 +236,6 @@ export class EveBoosterSet2Renderable
    * @adapted
    */
 
-  @meta.adapted
   UpdateTrails(deltaTime, _time = 0)
   {
     const boosterSet = this._boosterSet;
@@ -294,8 +289,6 @@ export class EveBoosterSet2Renderable
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetTrailSplineData()
   {
     return {
@@ -324,7 +317,6 @@ export class EveBoosterSet2Renderable
    * @implemented
    */
 
-  @meta.implemented
   GetIntensity()
   {
     return this.overallIntensity;
@@ -337,7 +329,6 @@ export class EveBoosterSet2Renderable
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -349,7 +340,6 @@ export class EveBoosterSet2Renderable
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 1;
@@ -364,7 +354,6 @@ export class EveBoosterSet2Renderable
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
@@ -440,7 +429,6 @@ export class EveBoosterSet2Renderable
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const vs = accumulator.Alloc("EveBoosterSetVSData");
@@ -490,7 +478,6 @@ export class EveBoosterSet2Renderable
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext)
   {
     const frustum = updateContext?.GetFrustum();
@@ -543,7 +530,6 @@ export class EveBoosterSet2Renderable
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     if (this.isVisible)
@@ -563,8 +549,6 @@ export class EveBoosterSet2Renderable
    * @adapted Exposes the stored parent transform through an accessor where Carbon reads the
    *   member directly.
    */
-  @meta.cjs
-    @meta.adapted
   GetParentTransform()
   {
     return this._parentTransform;
@@ -583,7 +567,6 @@ export class EveBoosterSet2Renderable
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out)
   {
     const boosterSet = this._boosterSet;

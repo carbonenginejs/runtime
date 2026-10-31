@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/EveStation2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveStation2.cpp
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 
@@ -26,7 +26,6 @@ export class EveStation2 extends EveSpaceObject2
    * @param {EveUpdateContext} updateContext Scene update context.
    * @returns {void}
    */
-  @meta.implemented
 
   PrepareShaderData(updateContext)
   {

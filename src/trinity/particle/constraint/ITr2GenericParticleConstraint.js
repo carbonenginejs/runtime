@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/ITr2GenericParticleConstraint.h
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 
 /** Required particle-constraint contract. */
@@ -49,7 +49,6 @@ export class ITr2GenericParticleConstraint extends IRoot
    * @param {box3} _aabb The particle system's bounds, packed min/max.
    */
 
-  @meta.adapted
   RenderDebugInfo(_renderer, _worldTransform, _aabb)
   {
   }

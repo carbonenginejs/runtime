@@ -76,6 +76,4 @@ for (const method of [ "Update", "GetValueAt" ])
 {
   CjsSchema.decorateMethod(ITriColorFunction, method, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriColorFunction, "Update__Ticks", meta.adapted);
-CjsSchema.decorateMethod(ITriColorFunction, "GetValueAt__Ticks", meta.adapted);
 CjsSchema.exposure.interface("ITriColorFunction")(ITriColorFunction);

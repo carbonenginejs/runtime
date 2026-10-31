@@ -43,7 +43,6 @@ export class Tr2ManipulationTool extends IRoot
   /** Carbon: m_pythonUserData (trinity/trinity/Tr2ManipulationTool.h:59).
    * Adapted: Python values use ordinary JavaScript values; they are not IRoot objects.
    */
-  @meta.adapted
   @type.unknown
   _userData = null;
 
@@ -69,7 +68,6 @@ export class Tr2ManipulationTool extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetMoveCallback(callback)
   {
     this.moveCallback = CjsScriptCallback.from(callback);
@@ -81,7 +79,6 @@ export class Tr2ManipulationTool extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SelectAxis(axisName)
   {
     const vec4_0 = vec4.alloc();
@@ -113,7 +110,6 @@ export class Tr2ManipulationTool extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Init(initialTransform)
   {
     mat4.copy(this.localTransform, initialTransform);
@@ -131,7 +127,6 @@ export class Tr2ManipulationTool extends IRoot
    * @returns {[Float32Array, Float32Array, Float32Array]} The three axes.
    */
 
-  @meta.implemented
   GetBaseVectors(outX, outY, outZ)
   {
     const local = this.localTransform;
@@ -199,7 +194,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   OnMoveCallback(currentTransform, nextTransform)
   {
     if (!this.moveCallback)
@@ -214,7 +208,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetDesiredPlaneNormal(ray, view)
   {
     const [x, y, z] = this.GetBaseVectors(vec3.create(), vec3.create(), vec3.create());
@@ -229,7 +222,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   MovePointOnPlane(x1, y1, x2, y2, point, normal, viewport, view, projection)
   {
     const first = this.ScreenCoordinatesToRay(x1, y1, viewport, view, projection);
@@ -244,7 +236,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   RayToPlaneIntersection(start, direction, point, normal)
   {
     const denominator = vec3.dot(normal, direction);
@@ -258,7 +249,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   RayToSphereIntersection(center, radius, start, ray, out)
   {
     const vec3_0 = vec3.alloc();
@@ -283,7 +273,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   ScreenCoordinatesToRay(x, y, viewport, view, projection)
   {
     const mat4_0 = mat4.alloc();
@@ -323,7 +312,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   PointToScreenCoordinates(point, viewport, view, projection)
   {
     const vec4_0 = vec4.alloc();
@@ -346,7 +334,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   static getTrianglesAroundLine(start, end, radius)
   {
     const vec3_0 = vec3.alloc();
@@ -390,7 +377,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   static getConeTriangles(height, width, subdivisions)
   {
     const result = [], step = Math.PI * 2 / subdivisions, top = [0, height, 0];
@@ -408,7 +394,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   static getBoxTriangles(min, max)
   {
     const a = [max[0], min[1], min[2]], b = [min[0], max[1], min[2]], c = [max[0], max[1], min[2]];
@@ -421,7 +406,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   static getCircleTriangles(radius, subdivisions)
   {
     const points = this.getCirclePoints(radius, subdivisions), result = [];
@@ -434,7 +418,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   static getCirclePoints(radius, subdivisions)
   {
     const result = [], step = Math.PI * 2 / subdivisions;
@@ -453,7 +436,6 @@ export class Tr2ManipulationTool extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     const effects = new Set();

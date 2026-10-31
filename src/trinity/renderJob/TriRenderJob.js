@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/TriRenderJob.h
 // Source: trinity/trinity/RenderJob/TriRenderJob.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
 import { TriRenderJobStatus } from "../generated/renderJob/enums.js";
@@ -63,7 +63,6 @@ export class TriRenderJob extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Steps()
   {
     return this.steps;
@@ -80,7 +79,6 @@ export class TriRenderJob extends IRoot
    * @returns {number} the resulting TriRenderJob.Status
    */
 
-  @meta.adapted
   Run(realTime, simTime, executor = null)
   {
     if (!this.enabled) return TriRenderJob.Status.RJ_DONE;

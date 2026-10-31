@@ -1,4 +1,4 @@
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { blue as blueService } from "./blue.js";
 
 import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/validation";
@@ -1532,30 +1532,18 @@ function defaultNow()
 }
 
 
-CjsSchema.decorateMethod(CjsMotherLode, "Startup", meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "Shutdown", meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "Insert", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "HasKey", meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "Lookup", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "Delete", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "Clear", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "ClearCached", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "SetCacheSize", meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "GetCacheSize", meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "GetStats", meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "GetKeys", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "GetValues", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "GetSize", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "TrimCache", meta.renamed("Housekeeping"), meta.adapted);
-CjsSchema.decorateMethod(CjsMotherLode, "_WeakRefNotify", meta.renamed("WeakRefNotify"), meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "Insert", blue.method);
+CjsSchema.decorateMethod(CjsMotherLode, "Lookup", blue.method);
+CjsSchema.decorateMethod(CjsMotherLode, "Delete", blue.method);
+CjsSchema.decorateMethod(CjsMotherLode, "Clear", blue.method);
+CjsSchema.decorateMethod(CjsMotherLode, "ClearCached", blue.method);
+CjsSchema.decorateMethod(CjsMotherLode, "GetKeys", blue.method);
+CjsSchema.decorateMethod(CjsMotherLode, "GetValues", blue.method);
+CjsSchema.decorateMethod(CjsMotherLode, "GetSize", blue.method);
 CjsSchema.blue.define(CjsMotherLode, {
   className: "CjsMotherLode"
 });
 
-CjsSchema.decorateMethod(CjsMotherLode, "PurgeInactive", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsMotherLode, "_EvictCached", CjsSchema.meta.adapted);
 
-CjsSchema.decorateMethod(CjsMotherLode, "_CleanupRecord", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsMotherLode, "_CleanupRecords", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

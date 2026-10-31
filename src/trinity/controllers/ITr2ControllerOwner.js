@@ -25,7 +25,7 @@
 //   garbage-collected runtime does not have, so the default is `out.Owner =
 //   this` - the same thing once the indirection is gone.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { IRoot } from "../../global/blue/IRoot.js";
 
 
@@ -104,13 +104,6 @@ export class ITr2ControllerOwner extends IRoot
 }
 
 
-const OWNER_METHODS = [
-  "SetControllerVariable", "GetControllerValueByName", "HandleControllerEvent",
-  "StartControllers", "GetBindingRoots", "AddController"
-];
-
-
-for (const name of OWNER_METHODS) CjsSchema.decorateMethod(ITr2ControllerOwner, name, meta.adapted);
 
 CjsSchema.exposure.inherit(IRoot)(ITr2ControllerOwner);
 CjsSchema.exposure.interface("ITr2ControllerOwner")(ITr2ControllerOwner);

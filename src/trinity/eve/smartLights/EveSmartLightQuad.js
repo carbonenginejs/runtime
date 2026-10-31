@@ -6,7 +6,7 @@ import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildQuad } from "../../eve/child/EveChildQuad.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
@@ -129,7 +129,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface through the shared resolveGroupColor helper.
    */
-  @meta.adapted
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -147,7 +146,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface.
    */
-  @meta.adapted
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
@@ -160,7 +158,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface.
    */
-  @meta.adapted
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -180,7 +177,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface.
    */
-  @meta.adapted
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -196,7 +192,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * @adapted The secondary base's list handling lives on this class and receives the Blue
    *   list event, inserted value and owning array explicitly.
    */
-  @meta.adapted
   OnListModified(event, _key, _key2, value, list)
   {
     if (
@@ -216,7 +211,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "softQuad")) this._ApplyEffectPath();
@@ -232,7 +226,6 @@ export class EveSmartLightQuad extends EveChildTransform
    *   through RegisterWithQuadRenderer.
    */
 
-  @meta.adapted
   Initialize()
   {
     if (!this.effect)
@@ -251,7 +244,6 @@ export class EveSmartLightQuad extends EveChildTransform
    *   EveChildQuad's shared vertex definition.
    */
 
-  @meta.adapted
   RegisterWithQuadRenderer(quadRenderer)
   {
     quadRenderer.RegisterEffect(
@@ -275,7 +267,6 @@ export class EveSmartLightQuad extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateSyncronous__Distribution(updateContext, params, _distribution)
   {
@@ -311,7 +302,6 @@ export class EveSmartLightQuad extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateAsyncronous__Distribution(_updateContext, params, _distribution)
   {
@@ -339,7 +329,6 @@ export class EveSmartLightQuad extends EveChildTransform
    *   through the supplied quad renderer.
    */
 
-  @meta.adapted
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
   {
     if (!this.display || !this.effect)

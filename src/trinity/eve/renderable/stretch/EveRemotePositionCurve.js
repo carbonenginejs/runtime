@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveRemotePositionCurve.cpp
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITriVectorFunction, CcpTime } from "#blue";
 
 
@@ -63,7 +63,6 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @param {number} time Seconds.
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.Update(time, this._startPosition);
@@ -79,7 +78,6 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   Update(_time, out)
   {
     return out;
@@ -96,7 +94,6 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3; zeroed when there is no start-position curve.
    * @returns {Float32Array} out
    */
-  @meta.adapted
 
   Update__Ticks(time, out)
   {
@@ -134,7 +131,6 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @implemented
    */
 
-  @meta.implemented
   GetValueAt(_time, out)
   {
     return vec3.copy(out, this.value);
@@ -147,7 +143,6 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @adapted
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -160,7 +155,6 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @adapted
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -173,7 +167,6 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @implemented
    */
 
-  @meta.implemented
   InterpolatedPosition(_time, out)
   {
     return vec3.copy(out, this.value);

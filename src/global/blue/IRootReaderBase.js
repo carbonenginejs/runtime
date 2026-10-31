@@ -374,13 +374,8 @@ export class IRootReaderBase
 }
 
 CjsSchema.meta.carbon("IRootReaderBase")(IRootReaderBase);
-CjsSchema.decorateMethod(IRootReaderBase, "HandleAttribute", meta.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "HandlePropertyIRoot", meta.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadStructureList", meta.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "FindEntry", meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadValue", meta.abstract);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadIRoot", meta.abstract);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootClass", meta.abstract);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadList", meta.abstract);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadBinaryBlock", meta.abstract);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootPtr", meta.renamed("HandlePropertyIRootPtr"), meta.notImplemented);

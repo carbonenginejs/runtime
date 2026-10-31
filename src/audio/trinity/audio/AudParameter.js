@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: audio/src/AudParameter.cpp
 // Source: audio/src/AudParameter_Blue.cpp
 import { IsMatch } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "#blue/INotify";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
@@ -50,7 +50,6 @@ export class AudParameter extends INotify
    * @returns {boolean} Always true when the calls complete.
    */
 
-  @meta.adapted
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "value") && AudGameObjResource.manager !== null

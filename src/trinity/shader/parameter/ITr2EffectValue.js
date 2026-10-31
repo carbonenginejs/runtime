@@ -13,7 +13,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // A COPY IN EACH READER WOULD HAVE WORKED AND THAT IS THE PROBLEM: nothing
 // would have caught the day one of them disagreed.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 
 /**
  * Flags a resource is bound with, stored by a mapped resource in
@@ -44,7 +44,6 @@ export class ITr2EffectValue extends IRoot
    * @param {object} _renderContext Binding context.
    * @returns {void} No operation.
    */
-  @meta.adapted
   CopyValueToEffect(_inputType, _destination, _size, _renderContext)
   {
   }
@@ -59,7 +58,6 @@ export class ITr2EffectValue extends IRoot
    * @param {number} _flags ResourceFlags word.
    * @returns {boolean} False.
    */
-  @meta.implemented
   CopyToResourceSet(_resourceDesc, _stage, _registerIndex, _flags)
   {
     return false;
@@ -74,7 +72,6 @@ export class ITr2EffectValue extends IRoot
    * @param {number} _registerIndex Destination register.
    * @returns {boolean} False.
    */
-  @meta.implemented
   ApplyUav(_resourceDesc, _stage, _registerIndex)
   {
     return false;
@@ -87,7 +84,6 @@ export class ITr2EffectValue extends IRoot
    * @param {object} _usedTextures Bindless texture collection.
    * @returns {void} No operation.
    */
-  @meta.adapted
   AddUsedTexture(_usedTextures)
   {
   }

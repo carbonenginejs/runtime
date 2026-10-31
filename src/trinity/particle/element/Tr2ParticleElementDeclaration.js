@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclaration.json.).
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2ParticleElementDeclarationName } from "./Tr2ParticleElementDeclarationName.js";
 
 /** Tr2ParticleElementDeclaration (particle) - generated from schema shapeHash 272e6639.... */
@@ -29,7 +29,6 @@ export class Tr2ParticleElementDeclaration extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.string
-  @meta.implemented
   get name()
   {
     return this.GetName();
@@ -68,7 +67,6 @@ export class Tr2ParticleElementDeclaration extends IRoot
    * or the custom dimension.
    */
 
-  @meta.implemented
   GetSize()
   {
     if (this.elementType === Tr2ParticleElementDeclarationName.Type.CUSTOM)

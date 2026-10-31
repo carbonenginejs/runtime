@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveVector3.cpp
 import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction, ITriCurveLength } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -72,7 +72,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.currentValue[0] = this.x.Update(time);
@@ -87,7 +86,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {number} Longest scalar component length.
    */
 
-  @meta.implemented
   Length()
   {
     return Math.max(this.x.Length(), this.y.Length(), this.z.Length());
@@ -102,7 +100,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -123,7 +120,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {void}
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
     const useRightTangent = !!leftTangent && !!rightTangent;
@@ -140,7 +136,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetExtrapolation(extrapolation)
   {
     this.x.SetExtrapolation(extrapolation);
@@ -157,7 +152,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, this.currentValue);
@@ -172,7 +166,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     out[0] = this.x.GetValue(time);
@@ -190,7 +183,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -205,7 +197,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -220,7 +211,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;

@@ -5,7 +5,7 @@
 // (`Tr2TextureALDx11.h:26-52`); it is its own file here because a file holds
 // one class, as `webgpu/Tr2ReadbackALWebgpu.js` and `stub/Tr2ReadbackALStub.js` do.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -92,7 +92,6 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext The primary context.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
    */
-  @meta.adapted
   Map(_renderContext)
   {
     if (!this._stagingBuffer) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
@@ -118,7 +117,6 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
    * @adapted the pack buffer is deleted here, where dx11 releases its staging
    *   texture's reference; JavaScript has no destructor to do it.
    */
-  @meta.adapted
   Destroy()
   {
     if (this._stagingBuffer) this._gl.deleteBuffer(this._stagingBuffer);
@@ -158,10 +156,6 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
 }
 
 // States against dx11/Tr2TextureALDx11.cpp:343-396 (Tr2ReadbackAL): IsReady compares the rendered frame number with the recorded one, Describe is empty, the memory class is AL_MEMORY_MANAGED, and validity is the staging resource's existence.
-CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "IsReady", meta.implemented);
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Map");
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Destroy");
-CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "IsValid", meta.implemented);
 CjsSchema.meta.define("Tr2ReadbackALWebgl2")(Tr2ReadbackALWebgl2);

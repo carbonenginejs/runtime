@@ -1284,7 +1284,6 @@ export class Tr2RenderContext
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
    * @returns {number} Number of submitted batches.
    */
-  @meta.adapted
   RenderBatchesForPicking__ObjectId(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
     Tr2RingBuffer.prepareInstances(this);
@@ -1325,7 +1324,6 @@ export class Tr2RenderContext
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
    * @returns {number} Number of submitted batches.
    */
-  @meta.adapted
   RenderBatchesForPicking__Pointer(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
     Tr2RingBuffer.prepareInstances(this);
@@ -1571,7 +1569,6 @@ export class Tr2RenderContext
    * @returns {void}
    */
 
-  @meta.implemented
   static DestroyMainThreadRenderContext()
   {
     if (s_mainThreadRenderContext) s_mainThreadRenderContext.Destruct();

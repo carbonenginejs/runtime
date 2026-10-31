@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: audio/src/AudioCurveSetDriver.h
 // Source: audio/src/AudioCurveSetDriver.cpp
 // Source: audio/src/AudioCurveSetDriver_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ICurveSetDriver } from "#blue/ICurveSetDriver";
 import { IInitialize } from "#blue/IInitialize";
 import { AudGameObjResource } from "./AudGameObjResource.js";
@@ -40,7 +40,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    */
   @be.mapProperty()
   @type.wstring
-  @meta.implemented
   get audioParameterName()
   {
     return this.GetAudioParameterName();
@@ -50,7 +49,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @implemented
    * @param {string} name Global audio parameter name.
    */
-  @meta.implemented
   set audioParameterName(name)
   {
     this.SetAudioParameterName(name);
@@ -68,7 +66,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isValid()
   {
     return this.IsValid();
@@ -98,7 +95,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @returns {number} Fallback sample or cached audio parameter value.
    */
 
-  @meta.adapted
   GetCurveSetTime(time)
   {
     const manager = AudGameObjResource.manager;
@@ -120,7 +116,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @returns {boolean} Whether audio is enabled and the named parameter exists.
    */
 
-  @meta.implemented
   IsValid()
   {
     const manager = AudGameObjResource.manager;
@@ -132,7 +127,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @returns {string} The stored global audio parameter name.
    */
 
-  @meta.implemented
   GetAudioParameterName()
   {
     return this._audioParameterName;
@@ -149,7 +143,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @returns {boolean} Always true; a silent uncomposed driver remains usable.
    */
 
-  @meta.adapted
   Initialize()
   {
     if (this._registeredManager !== null && this._registeredParameterName !== this._audioParameterName)
@@ -179,7 +172,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @returns {void}
    */
 
-  @meta.adapted
   SetAudioParameterName(name)
   {
     if (this._registeredManager !== null)

@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { EveChildPartData, EveChildPartDataPartData } from "./child/EveChildPartData/index.js";
 import { EveChildInstancedMeshes } from "./child/EveChildInstancedMeshes/index.js";
 import { EveStation2 } from "./spaceObject/EveStation2.js";
@@ -39,7 +39,6 @@ export class EveModularObjectModifier extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Create(object, sof, objectLoader = null)
   {
     if (this._object && EveModularObjectModifier._pendingEdits.has(this._object))
@@ -67,7 +66,6 @@ export class EveModularObjectModifier extends IRoot
    *   and composed graphs cannot be overwritten by concurrent edit sessions.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async AddHull(hullName, factionName, raceName, position, rotation, scale)
   {
     // Preserve the call's transform while preceding edits or resources await.
@@ -82,7 +80,6 @@ export class EveModularObjectModifier extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   async _AddHull(hullName, factionName, raceName, position, rotation, scale)
   {
     this._AssertReady();
@@ -131,7 +128,6 @@ export class EveModularObjectModifier extends IRoot
    * @adapted promise-capable browser acquisition shares the owner's edit order.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async AddChild(resourcePath, position, rotation, scale)
   {
     // Preserve the call's transform while preceding edits or resources await.
@@ -146,7 +142,6 @@ export class EveModularObjectModifier extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   async _AddChild(resourcePath, position, rotation, scale)
   {
     this._AssertReady();
@@ -203,7 +198,6 @@ export class EveModularObjectModifier extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Remove(partId)
   {
     const part = this._GetPart(partId);
@@ -231,7 +225,6 @@ export class EveModularObjectModifier extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetTransform(partId, position, rotation, scale)
   {
     const part = this._GetPart(partId);
@@ -288,7 +281,6 @@ export class EveModularObjectModifier extends IRoot
    *   Carbon's destructor would set.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ApplyBounds()
   {
     this._AssertReady();
@@ -335,7 +327,6 @@ export class EveModularObjectModifier extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetPosition(partId, out)
   {
     return vec3.copy(out, this._GetPart(partId).position);
@@ -347,7 +338,6 @@ export class EveModularObjectModifier extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetRotation(partId, out)
   {
     return quat.copy(out, this._GetPart(partId).rotation);
@@ -359,7 +349,6 @@ export class EveModularObjectModifier extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetScale(partId, out)
   {
     return vec3.copy(out, this._GetPart(partId).scale);

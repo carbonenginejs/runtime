@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
 
@@ -39,7 +39,6 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    */
   @be.mapPropertyReadOnly()
   @type.float32
-  @meta.implemented
   get finalScalingFactor()
   {
     return this.GetScalingFactor();
@@ -53,7 +52,6 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * @param {ITr2ActionController} controller Controller supplying the multiplier.
    */
 
-  @meta.implemented
   Link(controller)
   {
     this._controller = controller;
@@ -65,7 +63,6 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   Unlink()
   {
     this._controller = null;
@@ -80,7 +77,6 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * @param {ITr2ActionController} controller The invoking controller.
    */
 
-  @meta.implemented
   Start(controller)
   {
     const owner = CjsSchema.cast(controller.GetOwner(), ITr2SoundEmitterOwner);
@@ -96,7 +92,6 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * @param {ITr2ActionController} controller The invoking controller.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StartWithController(controller)
   {
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));
@@ -110,7 +105,6 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * @returns {number} The attenuation scaling factor.
    */
 
-  @meta.adapted
   GetScalingFactor()
   {
     let value = 0;

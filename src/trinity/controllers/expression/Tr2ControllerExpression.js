@@ -67,7 +67,6 @@ export class Tr2ControllerExpression
    * @param {object} [functions] Extra JavaScript parser functions.
    * @returns {string} Empty on success, otherwise the compile error.
    */
-  @meta.adapted
   SetExpr(expression, source, functions)
   {
     this.Clear();
@@ -97,7 +96,6 @@ export class Tr2ControllerExpression
    * @param {object|null} [extra=null] Additional evaluator context.
    * @returns {Array<boolean|number>} Success and numeric result.
    */
-  @meta.adapted
   Eval(extra = null)
   {
     if (!this.program || !this.controller)
@@ -129,7 +127,6 @@ export class Tr2ControllerExpression
    *   leaves that cached mask unchanged. This existing evaluator gap is held.
    * @returns {void}
    */
-  @meta.adapted
   Clear()
   {
     this.program = null;
@@ -145,7 +142,6 @@ export class Tr2ControllerExpression
    * @implemented
    * @returns {boolean} Whether a valid program is retained.
    */
-  @meta.implemented
   IsExpressionValid()
   {
     return !!this.program?.IsValid();
@@ -157,7 +153,6 @@ export class Tr2ControllerExpression
    * @adapted
    * @returns {bigint} Cached variable bit mask.
    */
-  @meta.adapted
   GetVariableMask()
   {
     return this.variableMask;
@@ -170,7 +165,6 @@ export class Tr2ControllerExpression
    * @param {Array} out] Output metadata list.
    * @returns {Array} The supplied list.
    */
-  @meta.adapted
   GetExpressionTermInfo(out)
   {
     CjsControllerExpressionProgram.addControllerTermInfo(out);

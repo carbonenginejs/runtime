@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -48,7 +48,6 @@ export class EveChildModifierSRT extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {
     const local = mat4.fromRotationTranslationScale(

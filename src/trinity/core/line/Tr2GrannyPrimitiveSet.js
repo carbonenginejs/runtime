@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet.cpp
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue, IInitialize, IsMatch } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage, Topology } from "#consts/render-context";
 import { decodeTangentFrame } from "#math/tangent";
@@ -78,7 +78,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.SetGrannyResource();
@@ -92,7 +91,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @implemented
    */
 
-  @meta.implemented
   OnModified(names)
   {
     if (IsMatch(names, "grannyResPath")) this.SetGrannyResource();
@@ -108,7 +106,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    *   succeeds, as native does.
    */
 
-  @meta.adapted
   SetGrannyResource()
   {
     this.#DetachResource();
@@ -139,7 +136,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @implemented
    */
 
-  @meta.implemented
   ReleaseCachedData(resource)
   {
     if (resource === this.grannyRes) this.CleanUp();
@@ -151,7 +147,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @implemented
    */
 
-  @meta.implemented
   RebuildCachedData(resource)
   {
     if (this._destroyed || resource !== this.grannyRes || !resource || !resource.IsGood()) return;
@@ -166,7 +161,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   CleanUp()
   {
     this._points = new Float32Array(0); // alloc: discard the prior retained vertex payload.
@@ -182,7 +176,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @implemented
    */
 
-  @meta.implemented
   CreatePrimitive()
   {
     if (!this.grannyRes) return;
@@ -196,7 +189,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   CreatePrimitiveFromCMF()
   {
     this.#CreateDecodedPrimitive(false);
@@ -210,7 +202,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   CreatePrimitiveFromGranny()
   {
     this.#CreateDecodedPrimitive(true);
@@ -271,7 +262,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @implemented
    */
 
-  @meta.implemented
   SetCurrentColor(color)
   {
     for (let offset = 6; offset < this._points.length; offset += 10) this._points.set(color, offset);
@@ -283,7 +273,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -295,7 +284,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -310,7 +298,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     const declaration = Tr2GrannyPrimitiveSet.#declaration;
@@ -363,7 +350,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @param {number} reason Render pass reason.
    */
 
-  @meta.adapted
   GetBatchesImpl(accumulator, perObjectData, effect, reason)
   {
     const resource = this.grannyRes;
@@ -391,7 +377,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   GetDescription()
   {
     return "<Tr2GrannyPrimitiveSet>";
@@ -472,4 +457,3 @@ function ReadNormal(out, offset, vertex, index, count, granny)
 }
 
 
-CjsSchema.decorateMethod(Tr2GrannyPrimitiveSet, "Destruct", CjsSchema.meta.adapted);

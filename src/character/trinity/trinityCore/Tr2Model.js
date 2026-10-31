@@ -3,7 +3,7 @@ import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Tr2Model.h
 // Source: trinity/trinity/Tr2Model.cpp
 // Source: trinity/trinity/Tr2Model_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../trinity/core/context/Tr2RenderContext.js";
@@ -38,7 +38,6 @@ export class Tr2Model extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetNumOfMeshes()
   {
     return this.meshes.length;
@@ -50,7 +49,6 @@ export class Tr2Model extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMesh(index)
   {
     return this.meshes[index];
@@ -62,7 +60,6 @@ export class Tr2Model extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMeshes()
   {
     return this.meshes;
@@ -74,7 +71,6 @@ export class Tr2Model extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   AddMesh(mesh)
   {
     this.meshes.push(mesh);
@@ -86,7 +82,6 @@ export class Tr2Model extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasTransparency()
   {
     return this.meshes.some(mesh => mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length !== 0);
@@ -98,7 +93,6 @@ export class Tr2Model extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsLoading()
   {
     return this.meshes.some(mesh => mesh.IsLoading());
@@ -110,7 +104,6 @@ export class Tr2Model extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingBox(min, max)
   {
     if (this.IsLoading() || !this.meshes.length) return false;
@@ -136,7 +129,6 @@ export class Tr2Model extends IRoot
    *   result becomes an exception when no mesh supplies bounds.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetBoundingBoxInLocalSpace()
   {
     const min = vec3.fromValues(Infinity, Infinity, Infinity); // alloc: returned bound pair
@@ -161,7 +153,6 @@ export class Tr2Model extends IRoot
    *   allocation is unnecessary.
    *   Carbon declaration: Tr2Model::GetBatches (trinity/trinity/Tr2Model.h:26).
    */
-  @meta.adapted
   GetBatches(batches, batchType, matrix, data)
   {
     if (batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT)
@@ -203,7 +194,6 @@ export class Tr2Model extends IRoot
    *   realizes the selected LOD here before applying the native allocation gate.
    *   Carbon declaration: Tr2Model::GetBatchesFromMesh (trinity/trinity/Tr2Model.h:63).
    */
-  @meta.adapted
   GetBatchesFromMesh(mesh, batchType, batches, matrix, data)
   {
     if (!mesh.GetDisplay()) return;

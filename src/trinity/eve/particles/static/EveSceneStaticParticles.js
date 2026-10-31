@@ -6,7 +6,7 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { Tr2RuntimeInstanceData } from "../../../core/mesh/Tr2RuntimeInstanceData.js";
 import { mat4 } from "#math/mat4";
@@ -107,7 +107,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -124,7 +123,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Update(updateContext)
   {
     if (Tr2Renderer.IsLowQuality() || this.clusters.length === 0 || !this.mesh)
@@ -160,7 +158,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext)
   {
     this.visible = false;
@@ -190,7 +187,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsVisible(updateContext)
   {
     vec4.set(SPHERE_SCRATCH, this.center[0], this.center[1], this.center[2], this.boundingSphere[3]);
@@ -205,7 +201,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(_frustum, out)
   {
     if (this.visible)
@@ -223,7 +218,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     this.mesh.GetBatches(batches, this.mesh.GetAreas(batchType), perObjectData, this.estimatedSize);
@@ -236,7 +230,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetShadowBatches(_batches, _perObjectData, _shadowPixelSize)
   {
     return false;
@@ -251,7 +244,6 @@ export class EveSceneStaticParticles extends IRoot
    *   SetAndTranspose writes the stored layout.
    */
 
-  @meta.adapted
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveSceneStaticParticlesPerObjectData");
@@ -270,7 +262,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -282,7 +273,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -295,7 +285,6 @@ export class EveSceneStaticParticles extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Bounding Sphere");
@@ -309,7 +298,6 @@ export class EveSceneStaticParticles extends IRoot
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "Bounding Sphere"))
@@ -332,7 +320,6 @@ export class EveSceneStaticParticles extends IRoot
    *   with a Float64Array position.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddCluster(position, radius, color1, color2, randomSeed)
   {
     this.clusters.push({
@@ -353,7 +340,6 @@ export class EveSceneStaticParticles extends IRoot
    *   Boolean return and empty-cluster cleanup still differ from native.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Rebuild()
   {
     const instanceData = this._GetInstanceDataObject();
@@ -460,7 +446,6 @@ export class EveSceneStaticParticles extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearClusters()
   {
     this.clusters.length = 0;
@@ -478,7 +463,6 @@ export class EveSceneStaticParticles extends IRoot
    * @private
    * @returns {Tr2RuntimeInstanceData|null} The accepted instance-data receiver.
    */
-  @meta.adapted
 
   _GetInstanceDataObject()
   {

@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSnake.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Triggers a timed chain of nearby free placements, walking forward from each previously reached destination. */
@@ -63,7 +63,6 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    * @adapted
    */
 
-  @meta.adapted
   Reset(placements)
   {
     if (placements.length === 0)
@@ -86,7 +85,6 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    * @implemented
    */
 
-  @meta.implemented
   Restart()
   {
     this.destinationsReached = -1;
@@ -103,7 +101,6 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
     if (this.destinationsReached >= this.totalDestinations && this.totalDestinations !== -1)
@@ -151,7 +148,6 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    *
    * @adapted
    */
-  @meta.adapted
   SetControllerVariable(_name, _value)
   {
   }

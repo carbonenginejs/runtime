@@ -45,7 +45,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetSpatialAudioGeometryEnabled()
   {
     return this._spatialAudioGeometryEnabled;
@@ -56,7 +55,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetSpatialAudioGeometryEnabled(value)
   {
     this._spatialAudioGeometryEnabled = Boolean(value);
@@ -67,7 +65,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetMovementThreshold()
   {
     return this._movementThreshold;
@@ -78,7 +75,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetMovementThreshold(value)
   {
     this._movementThreshold = Math.fround(value);
@@ -89,7 +85,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetNumberOfPrimaryRays()
   {
     return this._numberOfPrimaryRays;
@@ -100,7 +95,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetNumberOfPrimaryRays(value)
   {
     this._numberOfPrimaryRays = Number(value) | 0;
@@ -111,7 +105,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxReflectionOrder()
   {
     return this._maxReflectionOrder;
@@ -122,7 +115,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxReflectionOrder(value)
   {
     this._maxReflectionOrder = Number(value) | 0;
@@ -133,7 +125,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxDiffractionOrder()
   {
     return this._maxDiffractionOrder;
@@ -144,7 +135,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxDiffractionOrder(value)
   {
     this._maxDiffractionOrder = Number(value) | 0;
@@ -155,7 +145,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxEmitterRoomAuxSends()
   {
     return this._maxEmitterRoomAuxSends;
@@ -166,7 +155,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
     this._maxEmitterRoomAuxSends = Number(value) | 0;
@@ -177,7 +165,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetDiffractionOnReflectionsOrder()
   {
     return this._diffractionOnReflectionsOrder;
@@ -188,7 +175,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
     this._diffractionOnReflectionsOrder = Number(value) | 0;
@@ -199,7 +185,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxPathLength()
   {
     return this._maxPathLength;
@@ -210,7 +195,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetMaxPathLength(value)
   {
     this._maxPathLength = Math.fround(value);
@@ -221,7 +205,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetCPULimitPercentage()
   {
     return this._cpuLimitPercentage;
@@ -232,7 +215,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetCPULimitPercentage(value)
   {
     this._cpuLimitPercentage = Math.fround(value);
@@ -243,7 +225,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetLoadBalancingSpread()
   {
     return this._loadBalancingSpread;
@@ -254,7 +235,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetLoadBalancingSpread(value)
   {
     this._loadBalancingSpread = Number(value) | 0;
@@ -265,7 +245,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetEnableDiffractionAndTransmission()
   {
     return this._enableDiffractionAndTransmission;
@@ -276,7 +255,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetEnableDiffractionAndTransmission(value)
   {
     this._enableDiffractionAndTransmission = Boolean(value);
@@ -287,7 +265,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetCalcEmitterVirtualPosition()
   {
     return this._calcEmitterVirtualPosition;
@@ -298,7 +275,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetCalcEmitterVirtualPosition(value)
   {
     this._calcEmitterVirtualPosition = Boolean(value);
@@ -309,7 +285,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetTransmissionLoss()
   {
     return this._transmissionLoss;
@@ -320,7 +295,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetTransmissionLoss(value)
   {
     this._transmissionLoss = Math.max(0, Math.min(1, Math.fround(value)));
@@ -331,7 +305,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetEnableDiffraction()
   {
     return this._enableDiffraction;
@@ -342,7 +315,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetEnableDiffraction(value)
   {
     this._enableDiffraction = Boolean(value);
@@ -353,7 +325,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   GetEnableDiffractionOnBoundaryEdges()
   {
     return this._enableDiffractionOnBoundaryEdges;
@@ -364,7 +335,6 @@ export class SpatialAudioSettings
    *
    * @implemented
    */
-  @meta.implemented
   SetEnableDiffractionOnBoundaryEdges(value)
   {
     this._enableDiffractionOnBoundaryEdges = Boolean(value);
@@ -376,7 +346,6 @@ export class SpatialAudioSettings
    * @adapted AkSpatialAudioInitSettings is represented by a caller-owned plain JavaScript
    *   object.
    */
-  @meta.adapted
   PopulateInitSettings(out)
   {
     out.fMovementThreshold = this._movementThreshold;

@@ -1,7 +1,6 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/IEveSpaceObjectAttachment.h
-import { meta } from "#schema";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { EveEntity } from "../EveEntity.js";
 
@@ -18,7 +17,6 @@ export class IEveSpaceObjectAttachment extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _bones, _boneCount)
   {
     return false;
@@ -30,7 +28,6 @@ export class IEveSpaceObjectAttachment extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(_batches, _batchType, _perObjectData, _reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
   }
@@ -41,7 +38,6 @@ export class IEveSpaceObjectAttachment extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -52,7 +48,6 @@ export class IEveSpaceObjectAttachment extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   AddToQuadRenderer(_quadRenderer, _parentTransform, _activation, _boosterGain, _bones, _boneCount)
   {
   }
@@ -63,7 +58,6 @@ export class IEveSpaceObjectAttachment extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetDebugOptions(_options)
   {
   }
@@ -74,7 +68,6 @@ export class IEveSpaceObjectAttachment extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   RenderDebugInfo(_renderer, _parentTransform, _bones, _boneCount)
   {
   }
@@ -85,7 +78,6 @@ export class IEveSpaceObjectAttachment extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   SetShaderOption(_name, _value)
   {
   }
@@ -96,7 +88,6 @@ export class IEveSpaceObjectAttachment extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   UpdateLights(_parentTransform, _bones, _boneCount, _parentStrength, _boosterGain)
   {
   }

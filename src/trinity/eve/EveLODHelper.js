@@ -21,7 +21,6 @@ export class EveLODHelper
    *
    * @implemented
    */
-  @meta.implemented
   static ShouldUpdate(lod, timeSinceUpdate)
   {
     switch (lod)
@@ -45,7 +44,6 @@ export class EveLODHelper
    * @param {Number} lod1
    * @returns {Number}
    */
-  @meta.implemented
   static MergeLOD(lod0, lod1)
   {
     if (lod0 === Tr2Lod.TR2_LOD_UNSPECIFIED || lod1 === Tr2Lod.TR2_LOD_UNSPECIFIED)
@@ -68,7 +66,6 @@ export class EveLODHelper
    * @param {EveUpdateContext} updateContext
    * @returns {Number}
    */
-  @meta.implemented
   static MergeLOD__SphereUpdateContext(lod0, sphere, updateContext)
   {
     const frustum = updateContext.GetFrustum();

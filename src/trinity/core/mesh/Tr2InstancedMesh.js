@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
 import { box3 } from "#math/box3";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { TriGeometryRes } from "#trinity/resources";
 import { TriDevice } from "../device/TriDevice.js";
@@ -68,7 +68,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
   @be.mapAttribute(be.PERSISTONLY, "instanceGeometryResource")
-  @meta.implemented
   @type.object.ref("ITr2InstanceData")
   _instanceGeometryResource = null;
 
@@ -109,7 +108,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed() && !this.OnPrepareResources()) return false;
@@ -122,7 +120,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (!this.deferGeometryLoad && this.instanceGeometryResPath)
@@ -138,7 +135,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceMeshResPath()
   {
     return this.instanceGeometryResPath;
@@ -150,7 +146,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @adapted
    */
 
-  @meta.adapted
   SetInstanceMeshResPath(path)
   {
     this.instanceGeometryResPath = String(path ?? "");
@@ -163,7 +158,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceMeshIndex()
   {
     return this.instanceMeshIndex;
@@ -176,7 +170,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceGeometryResource()
   {
     return this._loadedGeometryResource ?? this._instanceGeometryResource;
@@ -188,7 +181,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   SetInstanceGeometryRes(resource)
   {
     if (this._instanceGeometryResource === resource) return;
@@ -204,14 +196,12 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get instanceGeometryResource()
   {
     return this.GetInstanceGeometryResource();
   }
 
   /** @implemented */
-  @meta.implemented
   set instanceGeometryResource(value)
   {
     this.SetInstanceGeometryRes(value);
@@ -223,7 +213,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources()
   {
     this._vertexDeclaration = Tr2EffectStateManager.Unknown;
@@ -236,7 +225,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     this.CreateVertexDeclaration();
@@ -249,7 +237,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   RebuildCachedData(resource)
   {
     this.CreateVertexDeclaration();
@@ -263,7 +250,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "instanceGeometryResPath"))
@@ -302,7 +288,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @returns {boolean} Whether a batch was committed.
    * Carbon declaration: Tr2InstancedMesh::GetBatches (trinity/trinity/Tr2InstancedMesh.h:85).
    */
-  @meta.adapted
   GetBatches(batches, areas, data, screenSize = Infinity, reverseAreas = false)
   {
     if (!this.display) return false;
@@ -360,7 +345,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @adapted
    */
 
-  @meta.adapted
   CreateVertexDeclaration()
   {
     this._vertexDeclaration = Tr2EffectStateManager.Unknown;
@@ -396,7 +380,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   GetVertexDeclaration()
   {
     return this._vertexDeclaration;
@@ -409,7 +392,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @adapted
    */
 
-  @meta.adapted
   SetBoundingBox(minBounds, maxBounds)
   {
     vec3.copy(this.minBounds, minBounds ?? Tr2InstancedMesh._zero);
@@ -423,7 +405,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @adapted
    */
 
-  @meta.adapted
   SetDynamicBounds(maxInstanceSize)
   {
     this.boundsMethod = Tr2InstancedMesh.BoundsMethod.DYNAMIC;
@@ -437,7 +418,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @adapted
    */
 
-  @meta.adapted
   SetDynamicScaledBounds(maxScale)
   {
     this.boundsMethod = Tr2InstancedMesh.BoundsMethod.DYNAMIC_SCALED;
@@ -453,7 +433,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @adapted
    */
 
-  @meta.adapted
   GetBounds()
   {
     if (this.boundsMethod === Tr2InstancedMesh.BoundsMethod.STATIC)
@@ -506,7 +485,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  @meta.implemented
   GetAreaBounds(_areaIndex, _boneTransforms)
   {
     return this.GetBounds();
@@ -518,7 +496,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @adapted
    */
 
-  @meta.adapted
   GetInstanceBounds()
   {
     // Carbon: geometryResource && geometryResource->GetBoundingBox( m_meshIndex, ... ) (Tr2InstancedMesh.cpp:350).
@@ -543,7 +520,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @adapted
    */
 
-  @meta.adapted
   GetInstanceBoundsClosestToPoint(point)
   {
     let instanceSize = this.maxInstanceSize;
@@ -580,7 +556,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Instance Mesh Bounds");
@@ -613,7 +588,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @param {number} [_morphTargetsCount]
    */
 
-  @meta.adapted
   RenderDebugInfo(worldTransform, renderer, _boneTransforms = null, _meshBindingIndices = null, _boneCount = 0, _morphTargets = null, _morphTargetsCount = 0)
   {
     if (renderer.HasOption(this, "Instance Mesh Bounds"))

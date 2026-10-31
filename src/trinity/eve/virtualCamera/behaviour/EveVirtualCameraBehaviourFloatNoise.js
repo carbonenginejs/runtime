@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random } from "#math/random";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { INotify, blue } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
@@ -62,7 +62,6 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -78,7 +77,6 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * @adapted the existing Perlin implementation and allocated instance phase replace native noise and pointer-derived phase.
    */
 
-  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime)
   {
     let offset = this.magnitude * TriPerlinCurve.PerlinNoise1D(

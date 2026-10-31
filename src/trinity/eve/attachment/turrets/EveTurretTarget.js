@@ -4,7 +4,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.h
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.cpp
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 import { blue, CcpTime } from "#blue";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
@@ -75,7 +75,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetTargetable()
   {
     return this._targetable;
@@ -90,7 +89,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetTargetable(object)
   {
     if (!object)
@@ -119,7 +117,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLocator()
   {
     return this.locator;
@@ -133,7 +130,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetFadeOnLocatorChange(fade)
   {
     this._fadeOnLocatorChange = !!fade;
@@ -151,7 +147,6 @@ export class EveTurretTarget extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   StartFireAtLocator(locator, delay, length, source = EveTurretTarget._zero)
   {
     this.locator = Number(locator) | 0;
@@ -195,7 +190,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   StopFireAtLocator()
   {
     this.locator = -1;
@@ -223,7 +217,6 @@ export class EveTurretTarget extends IRoot
    * @adapted Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
 
-  @meta.adapted
   GetImpactPosition(source, out)
   {
     if (!this._targetable) return out;
@@ -260,7 +253,6 @@ export class EveTurretTarget extends IRoot
    * @adapted Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
 
-  @meta.adapted
   Update(deltaTime, source = EveTurretTarget._zero)
   {
     const dt = Number(deltaTime) || 0;
@@ -314,7 +306,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetTrackingPosition(out)
   {
     return copyOrReturn(this.GetShotMissed() ? this._positionMiss : this.position, out);
@@ -328,7 +319,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetTargetPosition(out)
   {
     return copyOrReturn(this.GetShotMissed() ? this._positionMiss : this.targetPosition, out);
@@ -342,7 +332,6 @@ export class EveTurretTarget extends IRoot
    * @adapted Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
 
-  @meta.adapted
   FindClosestLocator(source, out)
   {
     if (!this._targetable) return -1;
@@ -359,7 +348,6 @@ export class EveTurretTarget extends IRoot
    * @adapted Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
 
-  @meta.adapted
   FindRandomValidLocator(source, out)
   {
     if (!this._targetable) return -1;
@@ -379,7 +367,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetBehaviour(laserMiss, projectileMiss, impactSize, impactBehaviour)
   {
     this._laserMissBehaviour = !!laserMiss;
@@ -394,7 +381,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetImpactBehaviour(impactSize, impactBehaviour)
   {
     this._impactSize = Number(impactSize);
@@ -408,7 +394,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   PopShotMissed()
   {
     this._lastShotMissed = this._missQueue.length ? this._missQueue.shift() : false;
@@ -422,7 +407,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetShotMissed()
   {
     return this._lastShotMissed;
@@ -436,7 +420,6 @@ export class EveTurretTarget extends IRoot
    * The shot time is TimeAsDouble( BeOS->GetActualTime() ), read here as Carbon reads it (EveTurretTarget.cpp:404-414).
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetShotMissed(missed)
   {
     this._missQueue.push(!!missed);
@@ -450,7 +433,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetLastShotTime()
   {
     return this._lastShotTime;
@@ -462,7 +444,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   MissQueueSize()
   {
     return this._missQueue.length;
@@ -474,7 +455,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetShotTimeVariance()
   {
     return EVE_TURRET_RANDOM_DELAY_MAX;
@@ -487,7 +467,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRadius()
   {
     // Carbon EveTurretTarget.cpp:438-445.
@@ -501,7 +480,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetImpactConfiguration()
   {
     // Carbon EveTurretTarget.cpp:451-458.
@@ -515,7 +493,6 @@ export class EveTurretTarget extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ShowDestObject()
   {
     return !(this._projectileMissBehaviour && this.GetShotMissed());

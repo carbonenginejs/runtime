@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPopRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepPopRenderTarget.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -25,7 +25,6 @@ export class TriStepPopRenderTarget extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(slot = 0)
   {
     this.slot = Number(slot) >>> 0;
@@ -38,7 +37,6 @@ export class TriStepPopRenderTarget extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.GetEffectStateManager().PopRenderTarget(this.slot);

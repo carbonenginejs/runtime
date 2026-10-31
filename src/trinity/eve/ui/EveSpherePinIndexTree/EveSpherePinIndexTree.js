@@ -105,7 +105,6 @@ export class EveSpherePinIndexTree
    *
    * @adapted
    */
-  @meta.adapted
   Initialize()
   {
     this.initialized = 0;
@@ -166,7 +165,6 @@ export class EveSpherePinIndexTree
    *
    * @implemented
    */
-  @meta.implemented
   IsInitialized()
   {
     return this.initialized;
@@ -177,7 +175,6 @@ export class EveSpherePinIndexTree
    *
    * @implemented
    */
-  @meta.implemented
   MarkFaces(node, minTheta, maxTheta, minPhi, maxPhi)
   {
     let count = 0;
@@ -207,7 +204,6 @@ export class EveSpherePinIndexTree
    *
    * @adapted
    */
-  @meta.adapted
   GetIndices(point, radius, output)
   {
     if (!this.initialized) return 0;

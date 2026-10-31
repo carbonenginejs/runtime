@@ -51,7 +51,6 @@ export class Tr2SkinnedObjectLod
    *
    * @implemented
    */
-  @meta.implemented
   OnModified(value)
   {
     if (IsMatch(value, "highDetailModel")
@@ -68,7 +67,6 @@ export class Tr2SkinnedObjectLod
    *
    * @implemented
    */
-  @meta.implemented
   PopulateLods()
   {
     this._allowLodSelection = !!(
@@ -84,7 +82,6 @@ export class Tr2SkinnedObjectLod
    *
    * @implemented
    */
-  @meta.implemented
   SetLOD(_frustum, estimatedPixelDiameter)
   {
     if (!this._allowLodSelection)
@@ -160,7 +157,6 @@ export class Tr2SkinnedObjectLod
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The model.
    * @returns {void}
    */
-  @meta.adapted
   SetHighDetailModel(model)
   {
     if (!this.highDetailProxy)
@@ -187,7 +183,6 @@ export class Tr2SkinnedObjectLod
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The model.
    * @returns {void}
    */
-  @meta.adapted
   SetMediumDetailModel(model)
   {
     if (!this.mediumDetailProxy)
@@ -214,7 +209,6 @@ export class Tr2SkinnedObjectLod
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The model.
    * @returns {void}
    */
-  @meta.adapted
   SetLowDetailModel(model)
   {
     if (!this.lowDetailProxy)
@@ -245,7 +239,6 @@ export class Tr2SkinnedObjectLod
    * @returns {boolean} Always false, as the maintained native implementation
    *   returns, despite the older header comment describing a possible true result.
    */
-  @meta.implemented
   UnloadLodIfNeeded(time, deltaTime)
   {
     if (!this._allowLodSelection || CcpTime.timeAsFloat(deltaTime) > g_unloadLODMaxFrametime)
@@ -278,7 +271,6 @@ export class Tr2SkinnedObjectLod
    *
    * @implemented
    */
-  @meta.implemented
   SetCurrentLod(lod)
   {
     this._currentLod = lod;
@@ -289,7 +281,6 @@ export class Tr2SkinnedObjectLod
    *
    * @implemented
    */
-  @meta.implemented
   GetCurrentLod()
   {
     return this._currentLod;
@@ -300,7 +291,6 @@ export class Tr2SkinnedObjectLod
    *
    * @implemented
    */
-  @meta.implemented
   HaveLodSetup()
   {
     return this._allowLodSelection;
@@ -311,7 +301,6 @@ export class Tr2SkinnedObjectLod
    *
    * @implemented
    */
-  @meta.implemented
   IsCastingShadow()
   {
     return !this._allowLodSelection || this._currentLod === 0;
@@ -323,7 +312,6 @@ export class Tr2SkinnedObjectLod
    *
    * @implemented
    */
-  @meta.implemented
   IsSimulatingCloth(maxClothLod)
   {
     return !this._allowLodSelection || this._currentLod <= maxClothLod;
@@ -338,7 +326,6 @@ export class Tr2SkinnedObjectLod
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The changed model.
    * @returns {void}
    */
-  @meta.adapted
   OnModelChanged(model)
   {
     if (!model)

@@ -5,7 +5,7 @@ import { ITr2Scene } from "../../../trinity/core/ITr2Scene.js";
 // Source: trinity/trinity/Wod/WodBakingScene.cpp
 // Source: trinity/trinity/Wod/WodBakingScene_Blue.cpp
 // CarbonEngineJS maintained source.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
 
 /** Visualizer methods of m_visualizeMethod: Carbon's VisualizeMethod (Tr2InteriorVisualization.h:9), shared with the interior scene. */
@@ -93,7 +93,6 @@ export class WodBakingScene extends IRoot
    * @notImplemented
    */
 
-  @meta.notImplemented
   Render()
   {
     throw new Error("WodBakingScene.Render is engine-owned and not implemented in CarbonEngineJS.");
@@ -108,7 +107,6 @@ export class WodBakingScene extends IRoot
    * @notImplemented
    */
 
-  @meta.notImplemented
   RenderDebugInfo()
   {
     throw new Error("WodBakingScene.RenderDebugInfo is engine-owned and not implemented in CarbonEngineJS.");
@@ -123,7 +121,6 @@ export class WodBakingScene extends IRoot
    * @notImplemented
    */
 
-  @meta.notImplemented
   Update()
   {
     throw new Error("WodBakingScene.Update is engine-owned and not implemented in CarbonEngineJS.");

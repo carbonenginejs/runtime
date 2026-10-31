@@ -14,7 +14,7 @@ import { IInitialize } from "../../global/blue/IInitialize.js";
 // with TriDevice and whose PrepareResources gates OnPrepareResources. There is
 // no JS base, so both halves are on the class, and JavaScript has no
 // destructor, so Release() stands in for ~Tr2DataTextureManager.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Succeeded } from "../../trinityal/ALResult.js";
@@ -114,7 +114,6 @@ export class Tr2DataTextureManager
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -130,7 +129,6 @@ export class Tr2DataTextureManager
    *
    * @adapted
    */
-  @meta.adapted
   PrepareResources()
   {
     return this.OnPrepareResources();
@@ -146,7 +144,6 @@ export class Tr2DataTextureManager
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -181,7 +178,6 @@ export class Tr2DataTextureManager
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources(_storage)
   {
     this._dataTexture.SetTexture(null);
@@ -193,7 +189,6 @@ export class Tr2DataTextureManager
    * @implemented
    */
 
-  @meta.implemented
   SetVariables()
   {
     Tr2VariableStore.globalStore().RegisterVariableInternal(IMPACT_SHIELD_DATA_MAP, TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._dataTexture);
@@ -208,7 +203,6 @@ export class Tr2DataTextureManager
    * @implemented
    */
 
-  @meta.implemented
   Update(_updateContext)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -275,7 +269,6 @@ export class Tr2DataTextureManager
    * @param {Number} priority - higher packs first
    */
 
-  @meta.adapted
   RequestBlockData(header, blockLength, data, priority)
   {
     if (priority <= 0) return -1;
@@ -301,7 +294,6 @@ export class Tr2DataTextureManager
    * @implemented
    */
 
-  @meta.implemented
   GetTextureOffset(blockID)
   {
     return this._dataTextureOffsets.get(Number(blockID) | 0) ?? -1;

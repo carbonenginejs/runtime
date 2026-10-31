@@ -7,7 +7,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { random } from "#math/random";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2ScalarFader } from "../../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
@@ -132,7 +132,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -144,7 +143,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetSeed(seed)
   {
     this.seed = Number(seed) >>> 0;
@@ -156,7 +154,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetDamageLocatorCount(count)
   {
     this.damageLocatorCount = Number(count) >>> 0;
@@ -171,7 +168,6 @@ export class EveDamageOverlay extends IRoot
    * @param {Array<boolean>} enabled Per-locator flags.
    */
 
-  @meta.adapted
   SetEnabledDamageLocators(enabled)
   {
     this._disabledDamageLocators.length = 0;
@@ -356,7 +352,6 @@ export class EveDamageOverlay extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetLastDamageState(out)
   {
     return vec3.copy(out, this._lastDamageState);
@@ -389,7 +384,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   AllocateImpactIndex()
   {
     return this._impactIndexSource
@@ -403,7 +397,6 @@ export class EveDamageOverlay extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, ownerInfo, minTexelRows, hasExternalActivity)
   {
     if (this.armorImpactGoalCount < this._armorImpacts.size)
@@ -465,7 +458,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     this.UpdateBlockData(updateContext.GetDataTextureManager(), this.HasGeneralActivity());
@@ -477,7 +469,6 @@ export class EveDamageOverlay extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateBlockData(dataTextureManager, hasActivity)
   {
     if (!hasActivity)
@@ -519,7 +510,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetActivationStrength(updateContext)
   {
     if (EveDamageOverlay.impactEffectEnabled && this.hullDamageFactor > 0 && this.hullDamageFlickerCurve)
@@ -536,7 +526,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ToggleEffect(name, on, duration)
   {
     let fader = null;
@@ -554,7 +543,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetDamageState(shield, armor, hull, createArmorImpacts = false)
   {
     if (shield > 0.05) this.configuration = ImpactConfiguration.IMPACT_SHIELD;
@@ -606,7 +594,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Clear()
   {
     this._armorImpacts.clear();
@@ -618,7 +605,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CreateImpact(damageLocatorIndex, size, spawnEffects = false)
   {
     for (const [ index, impact ] of this._armorImpacts)
@@ -644,7 +630,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasImpact(impactIndex)
   {
     return this._armorImpacts.has(Number(impactIndex) | 0);
@@ -656,7 +641,6 @@ export class EveDamageOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetArmorDamageShader(batchType)
   {
     if (!this.display || batchType !== TriBatchType.TRIBATCHTYPE_DECAL ||

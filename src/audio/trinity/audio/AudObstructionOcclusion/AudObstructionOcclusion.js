@@ -53,7 +53,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   Update(backend)
   {
     if (!this._audioManager
@@ -117,7 +116,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   SetObstructionOcclusion(emitterID, obstruction, occlusion)
   {
     if (!this._enabled
@@ -156,7 +154,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
     // Carbon: m_audioManager != nullptr && m_audioManager->GetSpatialAudioGeometryEnabled() (cpp:127).
@@ -174,7 +171,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   GetEmitterOcclusion(emitterID)
   {
     return this._emitters.get(emitterID)?.occlusion.currentValue ?? 0;
@@ -185,7 +181,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   RemoveEmitter(emitterID)
   {
     this._emitters.delete(emitterID);
@@ -196,7 +191,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   Reset()
   {
     this._emitters.clear();
@@ -209,7 +203,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   ClearAll()
   {
     for (const state of this._emitters.values())
@@ -224,7 +217,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   IsEnabled()
   {
     return this._enabled;
@@ -235,7 +227,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   SetEnabled(value)
   {
     const enabled = Boolean(value);
@@ -256,7 +247,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   GetFadeRate()
   {
     return this._fadeRate;
@@ -267,7 +257,6 @@ export class AudObstructionOcclusion
    *
    * @adapted
    */
-  @meta.adapted
   SetFadeRate(value)
   {
     this._fadeRate = Math.max(0, Number(value));
@@ -279,8 +268,6 @@ export class AudObstructionOcclusion
    * @adapted
    * @renamed SendToWwise
    */
-  @meta.renamed("SendToWwise")
-  @meta.adapted
   _SendToBackend(backend, emitterID, state)
   {
     if (!backend)

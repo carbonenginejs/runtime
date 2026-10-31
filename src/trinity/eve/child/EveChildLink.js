@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLink.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { mat4 } from "#math/mat4";
@@ -71,7 +71,6 @@ export class EveChildLink extends EveChildMesh
    *   targeting runs here.
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, params)
   {
     // Carbon first calls EveChildMesh::UpdateSyncronous (EveChildLink.cpp:42);
@@ -106,7 +105,6 @@ export class EveChildLink extends EveChildMesh
    *   yet; the vs/ps records are the backend-neutral value classes.
    */
 
-  @meta.adapted
   UpdateAsyncronous(_updateContext, params)
   {
     // Update the special link curves with last frame's strength, then copy
@@ -200,7 +198,6 @@ export class EveChildLink extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
     if (!this.display)
@@ -222,7 +219,6 @@ export class EveChildLink extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     const halfDistance = this.currentDistance / 2;
@@ -243,7 +239,6 @@ export class EveChildLink extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   IsCastingShadow__ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
   {
     return false;
@@ -257,7 +252,6 @@ export class EveChildLink extends EveChildMesh
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);

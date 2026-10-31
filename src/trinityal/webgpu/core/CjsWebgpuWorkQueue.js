@@ -49,7 +49,7 @@
 // Carbon's stub. `MTLENCODERTYPE_BLIT` therefore has no counterpart here and
 // transfers are recorded against the command encoder itself.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 
 
@@ -1200,29 +1200,4 @@ function LoadOp(action)
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
 // Donor: metal/MetalWorkQueue.h and MetalWorkQueue.mm. All 25 stamped methods are adapted: the encoder state machine (pending render-pass hint, pending clear, current encoder type, dirty state, per-draw state emission) is Metal's, run over a WebGPU GPUCommandEncoder with the frame's events recorded and drained, where Metal drives MTLCommandBuffer encoders directly. Notable differences: the render-pass hint takes a colour array and depth, ClearAttachment/SetRenderAttachments hold WebGPU attachment descriptors, a texture-to-buffer copy refuses waitForData (readback is awaited through its readback object), ClearBuffer uses clearBuffer rather than a compute kernel, and the dispatches and indirect draws use the WebGPU pass methods.
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "BeginFrame", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "EndFrame", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "RenderPassHint", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "EndRenderPassHint", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "ClearAttachment", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "_FlushOutstandingOperations", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "EndCurrentRenderPass", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "SetCurrentEncoder", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "GenerateMipMaps", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "CopyTextureToTexture", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "CopyTextureToMTLBuffer", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "ClearBuffer", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "_EmitComputeEncoderState", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "SetRenderAttachments", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawIndexedPrimitives", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "SetViewport", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "_EmitRenderEncoderState", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawPrimitives", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "GetRenderEncoder", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "_ReleaseEncoder", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DispatchThreadgroups", meta.adapted, meta.renamed("Dispatch"));
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DispatchThreadgroupsIndirect", meta.adapted, meta.renamed("Dispatch"));
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawPrimitivesIndirect", meta.adapted, meta.renamed("DrawPrimitives"));
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawIndexedPrimitivesIndirect", meta.adapted, meta.renamed("DrawIndexedPrimitives"));
-CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "SetDepthAttachment", meta.adapted, meta.renamed("SetDepthStencilAttachment"));
 CjsSchema.meta.define(CjsWebgpuWorkQueue, { className: "CjsWebgpuWorkQueue" });

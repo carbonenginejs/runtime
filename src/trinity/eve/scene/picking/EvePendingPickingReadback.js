@@ -59,7 +59,6 @@ export class EvePendingPickingReadback
    *
    * @adapted
    */
-  @meta.adapted
   RetainObject(object)
   {
     this.blueObjects.push(object);
@@ -71,7 +70,6 @@ export class EvePendingPickingReadback
    *
    * @adapted
    */
-  @meta.adapted
   DecodeResult(data)
   {
     if (!data || data.byteLength < 16) return [null, 0, 0];
@@ -88,7 +86,6 @@ export class EvePendingPickingReadback
    *
    * @adapted
    */
-  @meta.adapted
   MapMain(_synchronize, context)
   {
     this.readback.Destruct();
@@ -100,7 +97,6 @@ export class EvePendingPickingReadback
    *
    * @adapted
    */
-  @meta.adapted
   MapDebug(_synchronize, context)
   {
     this.debugReadback.Destruct();
@@ -115,7 +111,6 @@ export class EvePendingPickingReadback
    *
    * @adapted return the shared JS result tuple; buffers are browser snapshots.
    */
-  @meta.adapted
   DecodeResult__ObjectId(main, debug, immediate, instancedMeshManager)
   {
     let object = null, area = 0;
@@ -159,7 +154,6 @@ export class EvePendingPickingReadback
    *
    * @adapted
    */
-  @meta.adapted
   Unmap(_context)
   {
     this.readback.Destruct();
@@ -175,7 +169,6 @@ export class EvePendingPickingReadback
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     this.Unmap();

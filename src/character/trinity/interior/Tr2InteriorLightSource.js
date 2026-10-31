@@ -4,7 +4,7 @@ import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IInitialize, INotify, IsMatch } from "#blue";
 import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 import { color } from "#math/color";
@@ -137,7 +137,6 @@ export class Tr2InteriorLightSource extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   IsSpotLight()
   {
     return this.coneAlphaOuter < 89;
@@ -150,7 +149,6 @@ export class Tr2InteriorLightSource extends IRoot
    * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Lights");
@@ -164,7 +162,6 @@ export class Tr2InteriorLightSource extends IRoot
    * @implemented
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (!renderer.HasOption(this, "Lights"))
@@ -193,7 +190,6 @@ export class Tr2InteriorLightSource extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._RebuildWorldBoundingBox();
@@ -210,7 +206,6 @@ export class Tr2InteriorLightSource extends IRoot
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "position") || IsMatch(value, "radius")
@@ -235,7 +230,6 @@ export class Tr2InteriorLightSource extends IRoot
    * @returns {object} lightData
    */
 
-  @meta.implemented
   PopulateLightData(lightData)
   {
     const f32 = Math.fround;
@@ -286,7 +280,6 @@ export class Tr2InteriorLightSource extends IRoot
    * @param {number} time Seconds.
    */
 
-  @meta.implemented
   Update(time)
   {
     for (let i = 0; i < this.curveSets.length; i++)
@@ -306,7 +299,6 @@ export class Tr2InteriorLightSource extends IRoot
    * @returns {boolean}
    */
 
-  @meta.implemented
   IsInFrustum(frustum, outObjectToWorld = null)
   {
     if (!this.primaryLighting) return false;

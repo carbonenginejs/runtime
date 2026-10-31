@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveScalar.cpp
 import { ITriScalarFunction, ITriCurveLength, ITriFunction } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { num } from "#math/num";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalarKey } from "../key/Tr2CurveScalarKey.js";
@@ -34,7 +34,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} nextValue Curve parameter.
    * @returns {number} The curve result.
    */
-  @meta.adapted
   static getAutoTangent(prevTime, prevValue, time, value, nextTime, nextValue)
   {
     let left = 0;
@@ -65,7 +64,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} nextValue Curve parameter.
    * @returns {number} The curve result.
    */
-  @meta.adapted
   static getAutoClampedTangent(prevTime, prevValue, _time, value, nextTime, nextValue)
   {
     if (value < prevValue && value < nextValue || value > prevValue && value > nextValue)
@@ -93,7 +91,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {Tr2CurveScalarKey} k1 Segment end key.
    * @returns {number} The curve result.
    */
-  @meta.adapted
   static getSegmentValue(time, k0, k1)
   {
     switch (k0.interpolation)
@@ -127,7 +124,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {Tr2CurveScalarKey} k1 Segment end key.
    * @returns {number} The curve result.
    */
-  @meta.adapted
   static getSegmentTangent(time, k0, k1)
   {
     switch (k0.interpolation)
@@ -277,7 +273,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.currentValue = this.GetValue(time);
@@ -291,7 +286,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {number} The curve result.
    */
 
-  @meta.implemented
   Update(time)
   {
     this.currentValue = this.GetValue(time);
@@ -305,7 +299,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @meta.implemented
   GetValueAt(time)
   {
     return this.GetValue(time);
@@ -319,7 +312,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
 
-  @meta.implemented
   ScaleTime(scale)
   {
     this.timeScale = scale;
@@ -332,7 +324,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {number} The curve result.
    */
 
-  @meta.implemented
   Length()
   {
     return this.keys.length ? this.keys[this.keys.length - 1].time : 0;
@@ -345,7 +336,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {string} The curve result.
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -359,7 +349,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = name;
@@ -373,7 +362,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {number} The curve result.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.implemented
   GetValue(time)
   {
     const count = this.keys.length;
@@ -417,7 +405,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {number} The curve result.
    */
   @be.mapMethodAndWrap("GetTangentAt")
-  @meta.implemented
   GetTangent(time)
   {
     const count = this.keys.length;
@@ -460,7 +447,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @meta.implemented
   GetTangentAt(time)
   {
     return this.GetTangent(time);
@@ -473,7 +459,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {number} The curve result.
    */
 
-  @meta.implemented
   GetCurrentValue()
   {
     return this.currentValue;
@@ -486,7 +471,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {number} The curve result.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetTimeOffset()
   {
     return this.timeOffset;
@@ -500,7 +484,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetTimeOffset(timeOffset)
   {
     this.timeOffset = timeOffset;
@@ -513,7 +496,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {number} The curve result.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetTimeScale()
   {
     return this.timeScale;
@@ -527,7 +509,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetTimeScale(timeScale)
   {
     this.timeScale = timeScale;
@@ -540,7 +521,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {boolean} Whether the curve has no keys.
    */
 
-  @meta.implemented
   IsEmpty()
   {
     return this.keys.length === 0;
@@ -553,7 +533,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   OnKeysChanged()
   {
     this.keys.sort((a, b) => a.time - b.time);
@@ -609,7 +588,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent = 0, rightTangent = 0, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
     const key = new Tr2CurveScalarKey();
@@ -632,7 +610,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetExtrapolation(extrapolation)
   {
     this.extrapolationAfter = this.extrapolationBefore = extrapolation;
@@ -645,7 +622,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {Tr2CurveScalarKey[]} The curve result.
    */
 
-  @meta.implemented
   GetKeys()
   {
     return this.keys;
@@ -659,7 +635,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetDefinition(definition)
   {
     this.extrapolationBefore = definition.extrapolationBefore;
@@ -688,7 +663,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} The curve result.
    */
 
-  @meta.adapted
   GetDefinition()
   {
     return {
@@ -707,7 +681,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
 
-  @meta.adapted
   Rasterize(destination)
   {
     for (let i = 0; i < destination.width; i++)
@@ -737,7 +710,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {number} The curve result.
    */
 
-  @meta.adapted
   GetLocalTime(time)
   {
     if (!this.keys.length)
@@ -826,7 +798,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @returns {void}
    */
 
-  @meta.adapted
   static Rasterize(destination, definition)
   {
     this.rasterize(destination, definition);

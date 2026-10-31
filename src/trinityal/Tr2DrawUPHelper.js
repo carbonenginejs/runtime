@@ -30,7 +30,7 @@
 
 import { ALResult, Failed } from "./ALResult.js";
 import { Tr2BufferDescriptionAL } from "./stub/Tr2BufferALStub.js";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Topology, Tr2CpuUsage, Tr2GpuUsage } from "../global/consts/renderContext/index.js";
 
 
@@ -366,9 +366,4 @@ CjsSchema.decorateField(Tr2DrawUPHelper, "_indexUP32", type.array({ kind: "rawSt
 // States, all adapted against Tr2DrawUPHelper.cpp:28-150 (the file header says why): the device parameter is gone, the two indexed
 // overloads are one that reads the index width, Destroy destroys the ring buffers Carbon releases by assignment, and the fill helpers
 // recreate a buffer through the context.
-CjsSchema.decorateMethod(Tr2DrawUPHelper, "Destroy", meta.adapted);
-CjsSchema.decorateMethod(Tr2DrawUPHelper, "DrawPrimitiveUP", meta.adapted);
-CjsSchema.decorateMethod(Tr2DrawUPHelper, "DrawIndexedPrimitiveUP", meta.adapted);
-CjsSchema.decorateMethod(Tr2DrawUPHelper, "_FillVertices", meta.adapted, meta.renamed("FillUPVertexBuffer"));
-CjsSchema.decorateMethod(Tr2DrawUPHelper, "_FillIndices", meta.adapted, meta.renamed("FillUPIndexBuffer"));
 CjsSchema.meta.carbon("Tr2DrawUPHelper")(Tr2DrawUPHelper);

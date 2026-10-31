@@ -11,7 +11,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // can carry these node types. Bool/Int/Float broadcast the scalar to all four
 // components; Vector2 zero-pads z and w; Vector3 zero-pads w (0, not 1);
 // Color passes through unchanged.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** Stores a named vector parameter and supports assignment and composition; the typed subclasses flatten to a shader vec4 through `GetValue()`.
@@ -51,7 +51,6 @@ export class EveSOFDataParameter extends IRoot
    * @implemented
    * @returns {Float32Array} Independent vector, matching native return-by-value.
    */
-  @meta.implemented
 
   GetValue()
   {

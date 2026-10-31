@@ -15,6 +15,8 @@ import { CjsBlueClasses } from "../../src/global/blue/CjsBlueClasses.js";
 const samples = JSON.parse(fs.readFileSync(new URL("./fixtures/decorator-sample-shapes.json", import.meta.url)));
 const flags = { read: 1, write: 2, readwrite: 3, notify: 4, hidden: 8, persist: 16, rpersist: 32, persistOnly: 24 };
 const spaces = { meta, blue, type };
+/** Markers that became JSDoc tags (decorator-upgrade.md § 00, 2026-10-30). */
+const STATUS_TAGS = new Set([ "implemented", "adapted", "notImplemented", "notSupported", "renamed", "cjs" ]);
 const contracts = new Map();
 const registeredEnums = new Set();
 const fn = function () {};
@@ -72,6 +74,8 @@ function sampleClass(sample, modern)
         {
             if (modern && (stack.includes(d) || chooser === d)) continue;
             const [ns,key] = d.name.split(".");
+            // The fixture predates marker tags: the status-only markers are JSDoc tags now, with no decorator to apply.
+            if (ns === "meta" && STATUS_TAGS.has(key)) continue;
             if (ns === "type" && ["enum","flags"].includes(key) || d.name === "blue.chooser")
             {
                 const enumName = d.args[0];
@@ -190,26 +194,21 @@ test("property variants enforce their native contract and readonly ignores an ex
     assert.equal(CjsSchema.getSchema(Persisted).properties[0].exposure.flags, 19);
 });
 
-test("method macro variants preserve status and alias; cjs is independent; notUsed throws", () =>
+test("method macro variants preserve their alias; notUsed throws", () =>
 {
     class Sample { Call() {} Skip() {} Own() {} }
     const kinds = { mapMethod:"MAP_METHOD", mapMethodAndWrap:"MAP_METHOD_AND_WRAP", mapMethodAndWrapOptionalArgs:"MAP_METHOD_AND_WRAP_OPTIONAL_ARGS", mapMethodAsMethod:"MAP_METHOD_AS_METHOD" };
     for (const [key,macro] of Object.entries(kinds))
     {
         class Variant { Call() {} }
-        CjsSchema.decorateMethod(Variant, "Call", exposure[key]("alias"), meta.implemented);
+        CjsSchema.decorateMethod(Variant, "Call", exposure[key]("alias"));
         exposure.define(`Target${key}`)(Variant);
         assert.deepEqual(CjsSchema.getMethod(Variant,"Call").exposure, {macro,name:"alias"});
-        assert.equal(CjsSchema.getMethod(Variant,"Call").impl.status,"implemented");
         assert.deepEqual(Object.keys(new CjsBlueClasses().GetTypeInfo(new Variant())[3]), ["alias"]);
     }
     CjsSchema.decorateMethod(Sample,"Skip",meta.notUsed);
-    CjsSchema.decorateMethod(Sample,"Own",meta.cjs,meta.adapted);
-    meta.implemented(Sample);
     meta.carbon(["NativeOne","NativeTwo"])(Sample);
     assert.deepEqual(CjsSchema.getSchema(Sample).carbon,["NativeOne","NativeTwo"]);
-    assert.equal(CjsSchema.getSchema(Sample).impl.status,"implemented");
-    assert.equal(CjsSchema.getMethod(Sample,"Own").carbon.cjs,true);
     assert.throws(() => new Sample().Skip(), /Skip/);
 });
 
@@ -219,20 +218,17 @@ test("Babel Stage-3 declarations record before instances exist, including class 
     const targetUrl = new URL("../../src/global/schema/be.js",import.meta.url).href;
     const source = `import {meta,type,CjsSchema} from ${JSON.stringify(schemaUrl)};
         import {exposure as target} from ${JSON.stringify(targetUrl)};
-        @meta.implemented
         @target.define("TargetStage3")
         export class Sample {
           @target.mapAttributeWithChooser(target.READWRITE | target.PERSIST, null)
-          @meta.implemented
           @type.float32
           value = 0;
-          @target.mapMethodAndWrap("call") @meta.implemented Call() {}
+          @target.mapMethodAndWrap("call") Call() {}
           @meta.notUsed Skip() {}
           @target.abstract Abstract(value) {}
         }`;
     const code = transformSync(source,{configFile:false,babelrc:false,plugins:[[decoratorsPlugin,{version:"2023-11"}]]}).code;
     const {Sample}=await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
-    assert.equal(CjsSchema.getSchema(Sample).impl.status,"implemented");
     assert.equal(CjsSchema.getSchema(Sample).members[0].exposure.chooser,null);
     assert.equal(CjsSchema.getMethod(Sample,"Call").exposure.name,"call");
     assert.throws(() => new Sample().Skip(),/Skip/);
@@ -242,7 +238,7 @@ test("Babel Stage-3 declarations record before instances exist, including class 
 test("both target inheritance namespaces retain composition and native method metadata", () =>
 {
     class Base { Call() { return 7; } }
-    CjsSchema.decorateMethod(Base, "Call", meta.implemented);
+    CjsSchema.decorateMethod(Base, "Call", meta.note("probe"));
     meta.carbon("TargetNativeBase")(Base);
     class Exposed {}
     class Native {}
@@ -253,7 +249,7 @@ test("both target inheritance namespaces retain composition and native method me
     for (const Constructor of [Exposed, Native])
     {
         assert.equal(new Constructor().Call(), 7);
-        assert.equal(CjsSchema.getMethod(Constructor, "Call").impl.status, "implemented");
+        assert.equal(CjsSchema.getMethod(Constructor, "Call").impl.note, "probe");
     }
 });
 
@@ -372,13 +368,12 @@ test("class donor comments leave registration, rows and factory policy unchanged
 {
     /** Carbon: NativeDonor (native/Donor.h:1) */
     class Sample { Run() {} }
-    CjsSchema.decorateMethod(Sample, "Run", exposure.mapMethod(), meta.implemented);
+    CjsSchema.decorateMethod(Sample, "Run", exposure.mapMethod());
     exposure.define("CommentDonorExplicit")(Sample);
     const schema = CjsSchema.getSchema(Sample);
     assert.equal(CjsSchema.getConstructor("CommentDonorExplicit"), Sample);
     assert.equal(CjsSchema.getConstructor("NativeDonor"), null);
     for (const key of ["carbon", "donors", "modelledOn"]) assert.equal(Object.hasOwn(schema, key), false);
-    assert.equal(CjsSchema.getMethod(Sample, "Run").impl.status, "implemented");
     assert.deepEqual([...mappedInterfaces(Sample)], [IRoot, Sample]);
     assert.equal(getClassRegistration("CommentDonorExplicit").createFn().constructor, Sample);
 });
@@ -396,7 +391,7 @@ test("Stage-3 donor comments coexist with exposure without registering donor ide
         @exposure.define("CommentDonorStage3")
         export class Sample {
             @exposure.mapAttribute(exposure.READWRITE) @type.float32 value = 2;
-            @exposure.mapMethod() @meta.implemented Run() { return this.value; }
+            @exposure.mapMethod() Run() { return this.value; }
         }`;
     const code = transformSync(source, { configFile: false, babelrc: false,
         plugins: [[decoratorsPlugin, { version: "2023-11" }]] }).code;
@@ -408,7 +403,6 @@ test("Stage-3 donor comments coexist with exposure without registering donor ide
     const schema = CjsSchema.getSchema(Sample);
     for (const key of ["carbon", "donors", "modelledOn"]) assert.equal(Object.hasOwn(schema, key), false);
     assert.equal(schema.members[0].name, "value");
-    assert.equal(CjsSchema.getMethod(Sample, "Run").impl.status, "implemented");
     assert.deepEqual([...mappedInterfaces(Sample)], [IRoot, Sample]);
     assert.equal(new Sample().Run(), 2);
 });
@@ -421,8 +415,8 @@ test("a function exposed under two names keeps the second MAP_METHOD line as an 
         import { exposure } from ${JSON.stringify(targetUrl)};
         @exposure.define("TwoNamesStage3")
         export class Sample {
-            @exposure.mapMethodAndWrap("Wrong") @exposure.mapMethodAndWrap() @meta.implemented Right() {}
-            @exposure.mapMethod() @exposure.mapMethod() @meta.implemented Once() {}
+            @exposure.mapMethodAndWrap("Wrong") @exposure.mapMethodAndWrap() Right() {}
+            @exposure.mapMethod() @exposure.mapMethod() Once() {}
         }`;
     const code = transformSync(source, { configFile: false, babelrc: false,
         plugins: [[decoratorsPlugin, { version: "2023-11" }]] }).code;

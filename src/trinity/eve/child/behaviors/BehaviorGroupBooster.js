@@ -5,7 +5,7 @@ import { IsMatch, INotify, blue, CcpTime } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
@@ -267,7 +267,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   InitializeEffects()
   {
     if (this.boosterEffect === null)
@@ -294,7 +293,6 @@ export class BehaviorGroupBooster extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   _InitializeHaloFlare()
   {
     this._haloFlareHash = this.haloFlareEffect.GetHashValue();
@@ -308,7 +306,6 @@ export class BehaviorGroupBooster extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   _InitializeAmbientFlare()
   {
     this._ambientFlareHash = this.ambientFlareEffect.GetHashValue();
@@ -322,7 +319,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDisplay()
   {
     return this.display;
@@ -334,7 +330,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLightSize()
   {
     if (this.display)
@@ -350,7 +345,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetOffset()
   {
     return this.boosterOffset;
@@ -362,7 +356,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetAtlasIndex0()
   {
     return this.atlasIndex0;
@@ -374,7 +367,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetAtlasIndex1()
   {
     return this.atlasIndex1;
@@ -386,7 +378,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetEffect()
   {
     return this.boosterEffect;
@@ -398,7 +389,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RebuildFlareBuffer(count)
   {
     this.flareCount = Math.max(0, Number(count) | 0);
@@ -412,7 +402,6 @@ export class BehaviorGroupBooster extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetupQuads()
   {
     if (!this.ambientFlareEffect && !this.haloFlareEffect) return;
@@ -446,7 +435,6 @@ export class BehaviorGroupBooster extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   AdjustFlareLists()
   {
     if ((!this.ambientFlareEffect && !this.haloFlareEffect) || !this.flareCount) return;
@@ -481,7 +469,6 @@ export class BehaviorGroupBooster extends IRoot
    *   takes Carbon's branch and the batch rebuilds once, before the clears.
    */
 
-  @meta.adapted
   OnModified(value)
   {
     let clearHalo = false, clearAmbient = false, setup = false;
@@ -527,7 +514,6 @@ export class BehaviorGroupBooster extends IRoot
    * @param {Float32Array} _parentTransform - unused (as Carbon)
    */
 
-  @meta.adapted
   AddLight(lightManager, position, radiusModifier, agentIndex, _parentTransform)
   {
     vec4.copy(LIGHT_COLOR, this.lightColor);
@@ -549,7 +535,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.ambientFlareEffect !== null) this._InitializeAmbientFlare();
@@ -572,7 +557,6 @@ export class BehaviorGroupBooster extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   AddFlare(agentTransform, lod, intensity, agentIndex, shipBoundingSphereRadius, groupScale)
   {
     if (!this.flareCount) return;
@@ -633,7 +617,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetVertexDeclaration()
   {
     return this._vertexDeclarationHandle;
@@ -645,7 +628,6 @@ export class BehaviorGroupBooster extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetBatch(instanceBuffer, startInstance, instanceDataStride, count)
   {
     const batch = new Tr2RenderBatch();
@@ -671,7 +653,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   CreateBuffer()
   {
     if (Tr2Renderer.GetShaderModel() >= TR2SHADERMODEL.TR2SM_3_0_HI) this._vertexBuffer = MakeBoosterBoxBuffer();
@@ -685,7 +666,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.ambientFlareEffect !== null)
@@ -718,7 +698,6 @@ export class BehaviorGroupBooster extends IRoot
    *   time, which accumulates the same bytes.
    */
 
-  @meta.adapted
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (!this.display) return;
@@ -746,7 +725,6 @@ export class BehaviorGroupBooster extends IRoot
    * @param {mat4} agentTransform The agent's world transform.
    */
 
-  @meta.implemented
   RenderBoosterDebug(renderer, owner, agentTransform)
   {
     // Carbon (row-vector): boosterTransform * agentTransform, boosterTransform = TranslationMatrix( m_boosterOffset ).
@@ -773,7 +751,6 @@ export class BehaviorGroupBooster extends IRoot
    * @param {mat4} agentTransform The light's world transform.
    */
 
-  @meta.implemented
   RenderLightDebug(renderer, owner, agentTransform)
   {
     const c = color.copy(DEBUG_COLOR, this.lightColor);
@@ -789,7 +766,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    * @param {Tr2Effect} effect The effect to configure.
    */
-  @meta.implemented
   _SetupBoosterEffect(effect)
   {
     effect.AddParameterFloat("NoiseSpeed0", 6);
@@ -822,7 +798,6 @@ export class BehaviorGroupBooster extends IRoot
    * @param {string} lodOption The BOOSTER_LOD option value.
    * @returns {Tr2Effect} The new effect.
    */
-  @meta.implemented
   _CreateBoosterEffect(lodOption)
   {
     const effect = new Tr2Effect();
@@ -845,7 +820,6 @@ export class BehaviorGroupBooster extends IRoot
    * @implemented
    * @returns {Tr2Effect} The new effect.
    */
-  @meta.implemented
   _CreateFlareEffect()
   {
     const effect = new Tr2Effect();

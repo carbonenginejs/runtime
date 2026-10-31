@@ -41,7 +41,6 @@ import { Tr2ShaderMaterial } from "../shader/Tr2ShaderMaterial.js";
  * @adapted
  */
 @meta.define("Tr2InteriorStatic")
-@meta.adapted
 @meta.inherit(IInitialize, ITr2Renderable, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2Renderable)
@@ -95,7 +94,6 @@ export class Tr2InteriorStatic extends IRoot
    *   instead.
    * @returns {boolean} true.
    */
-  @meta.adapted
   Initialize()
   {
     for (const mesh of this.detailMeshes)
@@ -121,7 +119,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {vec3} max Receives the maximum corner.
    * @returns {boolean} Whether the bounds are known.
    */
-  @meta.adapted
   GetLocalBoundingBox(min, max)
   {
     if (!this.detailMeshes.length) return false;
@@ -147,7 +144,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {vec3} max Receives the maximum corner.
    * @returns {boolean} Whether the bounds are known.
    */
-  @meta.implemented
   GetWorldBoundingBox(min, max)
   {
     if (!this.GetLocalBoundingBox(min, max)) return false;
@@ -180,7 +176,6 @@ export class Tr2InteriorStatic extends IRoot
    * @implemented
    * @returns {boolean} Whether a bounds query can be answered.
    */
-  @meta.implemented
   IsBoundingBoxReady()
   {
     const { vec3_0, vec3_1 } = Tr2InteriorStatic.scratch;
@@ -196,7 +191,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {mat4} objectToWorld Receives the piece's transform.
    * @returns {boolean} Whether the piece is visible.
    */
-  @meta.implemented
   IsInFrustum(frustum, objectToWorld)
   {
     const { vec3_0, vec3_1 } = Tr2InteriorStatic.scratch;
@@ -215,7 +209,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {object|null} _apexScene The physics scene; unused.
    * @returns {boolean} Whether the piece is ready to draw.
    */
-  @meta.adapted
   AddToScene(_apexScene)
   {
     return this.IsBoundingBoxReady();
@@ -226,7 +219,6 @@ export class Tr2InteriorStatic extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   RemoveFromScene()
   {
   }
@@ -236,7 +228,6 @@ export class Tr2InteriorStatic extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   PrePhysicsUpdate(_time)
   {
   }
@@ -247,7 +238,6 @@ export class Tr2InteriorStatic extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   PostPhysicsUpdate(_time, _apexScene)
   {
   }
@@ -257,7 +247,6 @@ export class Tr2InteriorStatic extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetLOD(_frustum)
   {
   }
@@ -268,7 +257,6 @@ export class Tr2InteriorStatic extends IRoot
    * @implemented
    * @returns {boolean} Whether a transparent pass has work.
    */
-  @meta.implemented
   HasTransparentBatches()
   {
     return this.detailMeshes.some(mesh => mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length > 0);
@@ -281,7 +269,6 @@ export class Tr2InteriorStatic extends IRoot
    * @notImplemented
    * @returns {number} Never returns.
    */
-  @meta.notImplemented
   GetSortValue()
   {
     throw new Error("Tr2InteriorStatic.GetSortValue is not implemented.");
@@ -295,7 +282,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {object} accumulator The batch accumulator that leases the data.
    * @returns {Tr2PerObjectDataStandard} The leased data.
    */
-  @meta.adapted
   GetPerObjectData(accumulator)
   {
     return this._GetPerObjectDataWithLightSet(accumulator, null, this.transform);
@@ -311,7 +297,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {mat4} objectToWorldMatrix The piece's transform.
    * @returns {Tr2PerObjectDataStandard} The leased data.
    */
-  @meta.implemented
   GetPerObjectDataWithPerInstanceLighting(accumulator, lightSet, objectToWorldMatrix)
   {
     return this._GetPerObjectDataWithLightSet(accumulator, lightSet, objectToWorldMatrix);
@@ -328,7 +313,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {mat4} objectToWorldMatrix The piece's transform.
    * @returns {Tr2PerObjectDataStandard} The leased data.
    */
-  @meta.implemented
   _GetPerObjectDataWithLightSet(accumulator, lightSet, objectToWorldMatrix)
   {
     const data = Tr2PerObjectDataStandard.alloc(accumulator, "Tr2PerObjectVSData", "Tr2InteriorPerObjectPSData");
@@ -359,7 +343,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {number} [_reason] The render reason; unused, as in Carbon.
    * @returns {void}
    */
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     const areaTypes = batchType === TriBatchType.TRIBATCHTYPE_OPAQUE
@@ -403,7 +386,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {object} mesh The Tr2Mesh whose areas are being drawn.
    * @returns {number} The unsigned depth key.
    */
-  @meta.adapted
   _TransparentDepth(mesh)
   {
     const { vec3_0, vec3_1, vec3_3 } = Tr2InteriorStatic.scratch;
@@ -425,7 +407,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {number} _areaId The picked area; unused.
    * @returns {Tr2InteriorStatic} This piece.
    */
-  @meta.implemented
   GetID(_areaId)
   {
     return this;
@@ -441,7 +422,6 @@ export class Tr2InteriorStatic extends IRoot
    * @param {object} perObjectData This piece's per-object data.
    * @returns {void}
    */
-  @meta.implemented
   GetPickingBatches(batches, pickTypes, perObjectData)
   {
     if ((pickTypes & Tr2PickType.PICK_TYPE_PICKING) !== 0)

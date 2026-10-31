@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderLineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { CjsScriptCallback } from "#blue";
 
@@ -70,7 +70,6 @@ export class TriStepRenderLineGraph extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(graphs = [], legendScale = undefined, scale = undefined, autoScale = undefined)
   {
     this.lineGraphs.push(...graphs);
@@ -88,7 +87,6 @@ export class TriStepRenderLineGraph extends TriRenderStep
    * @notImplemented
    */
 
-  @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {
     if (this.autoScale)

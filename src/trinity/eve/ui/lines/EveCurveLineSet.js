@@ -6,7 +6,7 @@ import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2CurveLineSet } from "../../../core/line/Tr2CurveLineSet.js";
 import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
@@ -46,7 +46,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(_updateContext)
   {
   }
@@ -57,7 +56,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
@@ -68,7 +66,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   Update__UpdateContext(updateContext)
   {
 
@@ -80,7 +77,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   Update(updateContext)
   {
     return this.Update__UpdateContext(updateContext);
@@ -93,7 +89,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    */
 
   @blue.contextual(["camera"])
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
     this.isVisible = false;
@@ -120,7 +115,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     return this.GetRenderables__Impostors(renderables, null);
@@ -131,7 +125,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables__Impostors(renderables, _impostors)
   {
@@ -148,7 +141,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this.boundingSphere);
@@ -162,7 +154,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = Tr2PerObjectDataStandard.alloc(accumulator, "EvePerObjectVSData", "EvePerObjectPSData");
@@ -179,7 +170,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetLODLevel()
   {
     return Tr2Lod.TR2_LOD_HIGH;
@@ -191,7 +181,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
@@ -202,7 +191,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetModelCenterWorldPosition(_position)
   {
   }
@@ -213,7 +201,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(_minBounds, _maxBounds)
   {
     return false;
@@ -225,7 +212,6 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.identity(out);

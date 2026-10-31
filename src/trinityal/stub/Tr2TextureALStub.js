@@ -33,7 +33,7 @@
 // texture contributes nothing to a device inventory. That is transcribed, not
 // overlooked - a backend that reports real names is a real backend.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -723,28 +723,4 @@ CjsSchema.decorateField(Tr2TextureALStub, "_gpuUsage", type.int32);
 CjsSchema.decorateField(Tr2TextureALStub, "_cpuUsage", type.int32);
 CjsSchema.decorateField(Tr2TextureALStub, "_data", type.uint8Array);
 // States against stub/Tr2TextureALStub.cpp:45-345 (Tr2ReadbackAL 11-44). Create is adapted: it keeps the caller's description and MSAA objects where Carbon copies them by value. MapForReading and MapForWriting are adapted: the pointer and pitch out-parameters come back with the result as { result, data, pitch }. Every validation and return code is Carbon's, in Carbon's order.
-CjsSchema.decorateMethod(Tr2TextureALStub, "Create", meta.adapted);
-CjsSchema.decorateMethod(Tr2TextureALStub, "OpenShared", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GetDesc", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GetMsaaDesc", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GetGpuUsage", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GetCpuUsage", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "MapForReading", meta.adapted);
-CjsSchema.decorateMethod(Tr2TextureALStub, "CreateReadback", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "UnmapForReading", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "MapForWriting", meta.adapted);
-CjsSchema.decorateMethod(Tr2TextureALStub, "UnmapForWriting", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "UpdateSubresource", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "CopySubresourceRegion", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GenerateMipMaps", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "Resolve", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GetSharedHandle", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GetSrvIndexInHeap", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GetUavIndexInHeap", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "GetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2TextureALStub")(Tr2TextureALStub);

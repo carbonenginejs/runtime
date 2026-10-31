@@ -7,7 +7,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Carbon's swap chain HOLDS its AL object (`m_swapChain`) and forwards to it:
 // `Present` is `m_swapChain.Present(...)`, and `GetWidth`/`GetHeight` ask the
 // AL rather than reporting stored numbers. This class does the same.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Succeeded } from "../../../trinityal/ALResult.js";
 import { Tr2SwapChainAL } from "../../../trinityal/Tr2SwapChainAL/index.js";
 
@@ -53,7 +53,6 @@ export class Tr2SwapChain extends IRoot
    * @returns {boolean} Whether the chain came up.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   CreateForWindow(windowHandle, renderContext)
   {
     this.#windowHandle = windowHandle;
@@ -69,7 +68,6 @@ export class Tr2SwapChain extends IRoot
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Whether the chain came up.
    */
-  @meta.implemented
   PrepareResources(renderContext)
   {
     return this.OnPrepareResources(renderContext);
@@ -84,7 +82,6 @@ export class Tr2SwapChain extends IRoot
    * @returns {boolean} Whether the AL chain came up.
    */
 
-  @meta.adapted
   OnPrepareResources(renderContext)
   {
     if (!Succeeded(this.#swapChain.Create(this.#windowHandle, renderContext))) return false;
@@ -105,7 +102,6 @@ export class Tr2SwapChain extends IRoot
    * @returns {boolean} Carbon's `SUCCEEDED( m_swapChain.Present(...) )`.
    */
 
-  @meta.implemented
   Present(renderContext)
   {
     return Succeeded(this.#swapChain.Present(renderContext.GetRenderContextAL()));
@@ -118,7 +114,6 @@ export class Tr2SwapChain extends IRoot
    * @returns {number} Width in pixels.
    */
 
-  @meta.implemented
   GetWidth()
   {
     return this.#swapChain.GetWidth();
@@ -131,7 +126,6 @@ export class Tr2SwapChain extends IRoot
    * @returns {number} Height in pixels.
    */
 
-  @meta.implemented
   GetHeight()
   {
     return this.#swapChain.GetHeight();
@@ -144,7 +138,6 @@ export class Tr2SwapChain extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get width()
   {
     return this.GetWidth();
@@ -157,7 +150,6 @@ export class Tr2SwapChain extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get height()
   {
     return this.GetHeight();
@@ -173,7 +165,6 @@ export class Tr2SwapChain extends IRoot
    *   belongs to video memory, so there is nothing to select between.
    */
 
-  @meta.implemented
   ReleaseResources(_storage)
   {
     this.#swapChain.Destroy();

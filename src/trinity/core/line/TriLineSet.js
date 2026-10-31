@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriLineSet.h
 // Source: trinity/trinity/TriLineSet.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { Topology } from "#consts/render-context";
@@ -51,7 +51,6 @@ export class TriLineSet extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   AddDefaultColor(from, to)
   {
     this.Add(from, this.defaultColor, to, this.defaultColor);
@@ -63,7 +62,6 @@ export class TriLineSet extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Add(from, colorFrom, to, colorTo)
   {
     if (this.vertices.length + 2 > MAX_VERTICES) return;
@@ -78,7 +76,6 @@ export class TriLineSet extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   AddTransformed(transform, from, colorFrom, to, colorTo)
   {
     const { vec3_0, vec3_1 } = TriLineSet.scratch;
@@ -91,7 +88,6 @@ export class TriLineSet extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddSphere(center, radius, segments, color = 0xffffffff)
   {
     if (segments < 4) segments = 4;
@@ -135,7 +131,6 @@ export class TriLineSet extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   AddCylinder(start, end, radius, segments, color = 0xffffffff)
   {
     // vec3_0 is from, vec3_1 is to, vec3_2 is from2, vec3_3 is to2.
@@ -167,7 +162,6 @@ export class TriLineSet extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   AddCone(start, end, radius, segments, color = 0xffffffff)
   {
     // vec3_0 is from, vec3_1 is to, vec3_2 is from2, vec3_3 is to2.
@@ -199,7 +193,6 @@ export class TriLineSet extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddBox(min, max, color = 0xffffffff)
   {
     // vec3_0 is minA, vec3_1 is minB, vec3_2 is minC, vec3_3 is maxA, vec3_4 is maxB, vec3_5 is maxC.
@@ -213,7 +206,6 @@ export class TriLineSet extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   AddOrientedBox__MinMax(transform, min, max, color)
   {
     // vec3_0 is minA, vec3_1 is minB, vec3_2 is minC, vec3_3 is maxA, vec3_4 is maxB, vec3_5 is maxC.
@@ -227,7 +219,6 @@ export class TriLineSet extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   AddOrientedBox(boxMatrix, color)
   {
     // vec3_0 is minA, vec3_1 is minB, vec3_2 is minC, vec3_3 is maxA, vec3_4 is maxB, vec3_5 is maxC, vec3_6 is min, vec3_7 is max.
@@ -249,7 +240,6 @@ export class TriLineSet extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Clear()
   {
     this.vertices.length = 0;
@@ -261,7 +251,6 @@ export class TriLineSet extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetCurrentColor(color)
   {
     const value = TriLineSet._SwizzleColor(color);
@@ -274,7 +263,6 @@ export class TriLineSet extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetDefaultColor(color)
   {
     this.defaultColor = color >>> 0;
@@ -287,7 +275,6 @@ export class TriLineSet extends IRoot
    * @implemented
    * @param {Tr2RenderContext} renderContext The render context.
    */
-  @meta.implemented
   Render(renderContext)
   {
     if (!this.vertices.length) return;
@@ -302,7 +289,6 @@ export class TriLineSet extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SubmitGeometry(renderContext)
   {
     const numLines = this.vertices.length / 2;
@@ -316,7 +302,6 @@ export class TriLineSet extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddLines(lines)
   {
     for (const [ from, to ] of lines) this.AddDefaultColor(from, to);
@@ -329,8 +314,6 @@ export class TriLineSet extends IRoot
    * @renamed Render
    */
   @be.mapMethodAndWrap("Render")
-  @meta.renamed("Render")
-  @meta.implemented
   RenderFromScript()
   {
     this.Render(Tr2RenderContext_GetMainThreadRenderContext());

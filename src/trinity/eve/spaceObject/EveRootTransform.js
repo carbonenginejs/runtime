@@ -6,7 +6,7 @@ import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { EveTransform } from "./EveTransform.js";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
@@ -71,7 +71,6 @@ export class EveRootTransform extends EveTransform
    * @adapted Curve outputs use CarbonEngineJS's time-first, output-second convention.
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext = null)
   {
     const time = updateContext.GetTime();
@@ -107,7 +106,6 @@ export class EveRootTransform extends EveTransform
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(_updateContext)
   {
   }
@@ -118,7 +116,6 @@ export class EveRootTransform extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   Update__UpdateContext(updateContext)
   {
     this.UpdateSyncronous(updateContext);
@@ -131,7 +128,6 @@ export class EveRootTransform extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateViewDependentData(frustum, _parentTransform)
   {
     return super.UpdateViewDependentData(frustum, this._lastUpdateMatrix);
@@ -143,7 +139,6 @@ export class EveRootTransform extends EveTransform
    * @adapted
    */
 
-  @meta.adapted
   GetDamageLocatorCount()
   {
     return 0;
@@ -156,7 +151,6 @@ export class EveRootTransform extends EveTransform
    *   flag.
    */
 
-  @meta.adapted
   GetDamageLocatorPosition(_index, _inWorldSpace, out)
   {
     vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
@@ -170,7 +164,6 @@ export class EveRootTransform extends EveTransform
    *   flag.
    */
 
-  @meta.adapted
   GetDamageLocatorDirection(_index, _inWorldSpace, out)
   {
     vec3.set(out, 0, 1, 0);
@@ -183,7 +176,6 @@ export class EveRootTransform extends EveTransform
    * @adapted CarbonEngineJS uses an out-last signature for output parameters.
    */
 
-  @meta.adapted
   GetImpactPosition(locator, _posPrev, posNow, epsilon, out)
   {
     this.GetDamageLocatorPosition(locator, true, out);
@@ -196,7 +188,6 @@ export class EveRootTransform extends EveTransform
    * @adapted
    */
 
-  @meta.adapted
   HasImpactConfigurationShield()
   {
     return false;
@@ -208,7 +199,6 @@ export class EveRootTransform extends EveTransform
    * @adapted
    */
 
-  @meta.adapted
   GetClosestDamageLocatorIndex(_position)
   {
     return 0;
@@ -220,7 +210,6 @@ export class EveRootTransform extends EveTransform
    * @adapted
    */
 
-  @meta.adapted
   GetGoodDamageLocatorIndex(_position)
   {
     return 0;
@@ -232,7 +221,6 @@ export class EveRootTransform extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRadius()
   {
     return this.boundingSphereRadius;
@@ -244,7 +232,6 @@ export class EveRootTransform extends EveTransform
    * @adapted
    */
 
-  @meta.adapted
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
   {
     return -1;
@@ -256,7 +243,6 @@ export class EveRootTransform extends EveTransform
    * @adapted
    */
 
-  @meta.adapted
   UpdateImpact(_out, _direction, _impactIndex)
   {
     return false;
@@ -268,7 +254,6 @@ export class EveRootTransform extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   GetMissPosition(hit, source, out)
   {
     this.GetDamageLocatorPosition(-1, true, out);
@@ -294,7 +279,6 @@ export class EveRootTransform extends EveTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetBoundingSphereRadius()
   {
     return this.boundingSphereRadius;

@@ -1,6 +1,5 @@
 import { exposure as be } from "#be";
 // Source: audio/src/AudListener.h + AudListener.cpp
-import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { LISTENER_GAME_OBJ_ID } from "./SoundPrioritization.js";
@@ -50,8 +49,6 @@ export class AudListener extends AudGameObjResource
    * @param {ArrayLike<number>} position Listener position.
    * @returns {number} The placement result.
    */
-  @meta.renamed("SetPlacementFromParent")
-  @meta.implemented
   SetPosition(front, top, position)
   {
     return this.SetPlacementFromParent(front, top, position);
@@ -71,7 +68,6 @@ export class AudListener extends AudGameObjResource
    * @returns {number} AK_Success (1).
    */
   @be.mapMethodAndWrap("SetPosition")
-  @meta.adapted
   SetPlacementFromParent(front, top, positionValue)
   {
     AudGameObjResource.Orthonormalize(

@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ExpressionTermInfo.h
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue } from "#blue";
 
 
@@ -53,7 +53,6 @@ export class Tr2ExpressionTermInfo extends IRoot
    * @returns {string[]} Argument names in factory order.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetArguments()
   {
     return this._arguments.slice();
@@ -68,7 +67,6 @@ export class Tr2ExpressionTermInfo extends IRoot
    * @param {string} description Help text.
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  @meta.implemented
 
 
   static variable(category, name, description)
@@ -86,7 +84,6 @@ export class Tr2ExpressionTermInfo extends IRoot
    * @param {...string} argumentsAndDescription Argument names followed by help text.
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  @meta.adapted
 
 
   static function(category, name, ...argumentsAndDescription)
@@ -106,7 +103,6 @@ export class Tr2ExpressionTermInfo extends IRoot
    * @param {string} description Help text.
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  @meta.implemented
 
 
   static stringFunction(category, name, argument, description)

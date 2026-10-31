@@ -7,7 +7,7 @@ import { exposure as be } from "#be";
 // Carbon holds its AL texture by value. Create/Destroy mutate that value;
 // owners broadcast its native event after each change.
 import { Tr2Event } from "./Tr2Event.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2TextureProvider } from "./ITr2TextureProvider.js";
 import { Tr2TextureAL } from "../../trinityal/Tr2TextureAL/index.js";
 
@@ -42,7 +42,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get width()
   {
     return this.GetWidth();
@@ -56,7 +55,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get height()
   {
     return this.GetHeight();
@@ -70,7 +68,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get depth()
   {
     return this.GetDepth();
@@ -84,7 +81,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get type()
   {
     return this.GetType();
@@ -98,7 +94,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get mipCount()
   {
     return this.GetMipCount();
@@ -112,7 +107,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get format()
   {
     return this.GetFormat();
@@ -126,7 +120,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get arraySize()
   {
     return this.GetArraySize();
@@ -140,7 +133,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    */
   @be.mapPropertyReadOnly()
   @type.string
-  @meta.implemented
   get name()
   {
     return this.GetName();
@@ -152,7 +144,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   GetTexture()
   {
     return this.texture;
@@ -164,7 +155,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   OnTextureChange()
   {
     return this.onTextureChange;
@@ -189,7 +179,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   GetWidth()
   {
     return this.texture ? this.texture.GetDesc().GetWidth() : 0;
@@ -201,7 +190,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   GetHeight()
   {
     return this.texture ? this.texture.GetDesc().GetHeight() : 0;
@@ -213,7 +201,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   GetDepth()
   {
     return this.texture ? this.texture.GetDesc().GetDepth() : 0;
@@ -225,7 +212,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   GetType()
   {
     return this.texture ? this.texture.GetDesc().GetType() : 0;
@@ -237,7 +223,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   GetMipCount()
   {
     return this.texture ? this.texture.GetDesc().GetMipCount() : 0;
@@ -249,7 +234,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   GetArraySize()
   {
     return this.texture ? this.texture.GetDesc().GetArraySize() : 0;
@@ -261,7 +245,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   GetFormat()
   {
     return this.texture ? this.texture.GetDesc().GetFormat() : 0;
@@ -273,7 +256,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.texture ? this.texture.GetName() ?? "" : "";
@@ -285,7 +267,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   Save(..._args)
   {
     throw new Error("Tr2TextureReference.Save is not implemented in CarbonEngineJS.");

@@ -4,7 +4,7 @@ import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#consts/graphics/trinityEnums";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { BlueList, IListNotify, IInitialize, INotify, IsMatch } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { DepthStencilFormat, ExFlag, Tr2GpuUsage, Tr2CpuUsage, TextureType, PixelFormat, ShaderType } from "#consts/render-context";
@@ -299,7 +299,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    */
   @be.mapProperty()
   @type.boolean
-  @meta.implemented
   get lightmapDirty()
   {
     return this.IsLightmapDirty();
@@ -310,7 +309,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   set lightmapDirty(value)
   {
     this.MarkLightmapDirty(value);
@@ -401,7 +399,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     for (const effect of [this.effect, this.reflectionEffect])
@@ -419,7 +416,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext();
@@ -446,7 +442,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted explicitly releases the owned depth surface; cube buffers survive.
    */
 
-  @meta.adapted
   ReleaseResources(storage = 0)
   {
     this._declaration = Tr2EffectStateManager.Unknown;
@@ -467,7 +462,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     this.ReleaseResources();
@@ -487,7 +481,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted AL options express the native Create overload.
    */
 
-  @meta.adapted
   CreateEmptyLightMap(context = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const texture = this._emptyLightMap.GetTexture();
@@ -504,7 +497,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list !== this.lights) return;
@@ -524,7 +516,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   ClearVariableStore()
   {
     if (this.depthShadowMapHandle) this.depthShadowMapHandle.Clear();
@@ -537,7 +528,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Bounding Box");
@@ -553,7 +543,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "Bounding Box"))
@@ -588,7 +577,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   OnModified(names)
   {
     if (IsMatch(names, "reflectionMode") || IsMatch(names, "display") || IsMatch(names, "reflectionEffect"))
@@ -621,7 +609,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -652,7 +639,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, _params)
   {
     if (this.effect)
@@ -726,7 +712,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     // Carbon TransformationMatrix(m_scaling, m_rotation, m_translation)
@@ -787,7 +772,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     out[0] = this.boundingSphere.center[0];
@@ -805,7 +789,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -822,7 +805,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   IsVisible(updateContext)
   {
     const frustum = updateContext.GetFrustum();
@@ -847,7 +829,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   HasValidTransform()
   {
     const det = mat4.determinant(this.worldTransform);
@@ -860,7 +841,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   IsLightmapDirty()
   {
     return this._lightmapDirty;
@@ -874,7 +854,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   MarkLightmapDirty(dirty)
   {
     this._lightmapDirty = !!dirty;
@@ -893,7 +872,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetLights(lightManager)
   {
     if (!this.display)
@@ -919,7 +897,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return FLOAT32_MAX;
@@ -934,7 +911,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue__Frustum(frustum)
   {
     const viewPos = frustum.viewPos;
@@ -958,7 +934,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   GetVolumetricBatches(frustum, batches)
   {
     if (this.currentQuality < this.minVisibleQuality)
@@ -1012,7 +987,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   UpdateVolumetricLightmap(renderContext)
   {
     if (this.currentQuality < this.minVisibleQuality || !this.hasUpdated)
@@ -1084,7 +1058,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   SetSceneInformation(sceneInformation)
   {
     let lightmapSizeScale;
@@ -1148,7 +1121,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    *   dropped otherwise; NULL_DECLARATION maps to declaration 0.
    */
 
-  @meta.adapted
   GetVolumetricShadowBatches(batches)
   {
     if (!this.display || !this.effect || !this.castShadows)
@@ -1185,7 +1157,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetVolumetricShadowInfo(shadowInfo, sunDir)
   {
     return this.SetupShadowFrustum(shadowInfo, sunDir);
@@ -1208,7 +1179,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   SetupShadowFrustum(shadowInfo, sunDir)
   {
     vec3.set(SUN_SCRATCH, -sunDir[0], -sunDir[1], -sunDir[2]);
@@ -1260,7 +1230,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    *   the surface. The caller restores the three pushed states after rendering.
    */
 
-  @meta.adapted
   PrepareCloudShadowMap(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (!this.receiveShadows) return false;
@@ -1291,7 +1260,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   SetCloudShadowMapHandle()
   {
     if (this.shadowMapDS.IsValid())
@@ -1313,7 +1281,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, _perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (this.currentQuality < this.minVisibleQuality)
@@ -1348,7 +1315,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -1361,7 +1327,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     return this.GetPerObjectData__ScreenSize(accumulator, 1);
@@ -1374,7 +1339,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData__ScreenSize(accumulator, screenSize)
   {
     const record = EveChildCloud2PerObjectData.alloc(accumulator);
@@ -1390,7 +1354,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    *   Noise offsets use CRT rand; zero noise size retains the existing zero guard.
    */
 
-  @meta.adapted
   PopulatePerObjectData(data, screenSize = 1)
   {
     const w = this.worldTransform;

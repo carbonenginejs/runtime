@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { IsMatch, INotify } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 
 
@@ -49,7 +49,6 @@ export class Tr2StateMachineTransition extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.adapted
   get isConditionValid()
   {
     return this.IsConditionValid();
@@ -77,7 +76,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   Link(state)
   {
     this.Unlink();
@@ -95,7 +93,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   Unlink()
   {
     this._source = null;
@@ -117,7 +114,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {boolean} True after the notification is handled.
    */
 
-  @meta.adapted
   OnModified(propertyName)
   {
     if (!this._source) return true;
@@ -163,7 +159,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {boolean} Whether the current linked condition activates.
    */
 
-  @meta.adapted
   CanActivate(variableDirtyMask = 0)
   {
     if (!this._source)
@@ -195,7 +190,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {Tr2StateMachineState|null} Cached destination, or null when unresolved.
    */
 
-  @meta.adapted
   GetDestination()
   {
     return this._destination;
@@ -208,7 +202,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
   @be.mapMethodAndWrap("GetState")
-  @meta.adapted
   GetSource()
   {
     return this._source;
@@ -220,7 +213,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @adapted native Blue exposes GetSource under this wrapper name.
    * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
-  @meta.adapted
   GetState()
   {
     return this.GetSource();
@@ -236,7 +228,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {bigint} Relevant variable bits, or zero when evaluation cannot be skipped.
    */
 
-  @meta.adapted
   GetVariableMask()
   {
     const program = this.Compile();
@@ -273,7 +264,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {boolean} Whether the authored condition compiles successfully.
    */
 
-  @meta.adapted
   IsConditionValid()
   {
     return this.Compile().IsValid();
@@ -287,7 +277,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {boolean} Current condition validity.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   IsExpressionValid(_attributeName)
   {
     return this.IsConditionValid();
@@ -301,7 +290,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {number} Evaluated number, or the retained zero result for invalid compilation.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EvaluateExpression(expression)
   {
     // Carbon reports "controller needs to be running when evaluating expressions" without a source (cpp:130-133).
@@ -329,7 +317,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {Array<object>} New collection of supported functions and linked variables.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetExpressionTermInfo()
   {
     const result = [];
@@ -399,7 +386,6 @@ export class Tr2StateMachineTransition extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   _UpdateDestination()
   {
     this._destination = this._source.GetStateMachine().GetStateByName(this.name);

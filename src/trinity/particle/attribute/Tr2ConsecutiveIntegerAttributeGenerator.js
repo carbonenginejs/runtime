@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ConsecutiveIntegerAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { vec4 } from "#math/vec4";
 import { bindParticleElement } from "../element/particleElementBinding.js";
@@ -58,7 +58,6 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    */
   @be.mapPropertyReadOnly()
   @type.string
-  @meta.implemented
   get name()
   {
     return this.GetName();
@@ -73,7 +72,6 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get dimension()
   {
     return this.GetDimension();
@@ -85,7 +83,6 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    * @implemented
    */
 
-  @meta.implemented
   Bind(particleSystem, boundElements)
   {
     this.#element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
@@ -101,7 +98,6 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    * @adapted
    */
 
-  @meta.adapted
   Generate(position, velocity, index)
   {
     if (!this.valid)
@@ -125,7 +121,6 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    * @implemented
    */
 
-  @meta.implemented
   GetDimension()
   {
     return this.valid ? this.#element.dimension : 0;
@@ -137,7 +132,6 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM

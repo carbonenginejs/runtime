@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ForceSphereVolume.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { vec3 } from "#math/vec3";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
@@ -51,7 +51,6 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   Update(_dt)
   {
   }
@@ -63,7 +62,6 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   GetForce(position, velocity, dt, mass, out)
   {
     vec3.set(out, 0, 0, 0);
@@ -94,7 +92,6 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * @param {box3} aabb The particle system's bounds, packed min/max.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, worldTransform, aabb)
   {
     renderer.DrawSphere__TransformCenterRadius(

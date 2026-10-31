@@ -18,7 +18,7 @@
 // WebGL2 also allows one active query per target, where D3D11 nests them; a
 // `Begin` while another occlusion query is active is refused.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -75,7 +75,6 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Begin(renderContext)
   {
     if (!this._query) return ALResult.E_INVALIDARG;
@@ -97,7 +96,6 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   End(renderContext)
   {
     if (!this._query) return ALResult.E_INVALIDARG;
@@ -122,7 +120,6 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} [_waitMode] A `WaitMode`; WebGL2 cannot wait.
    * @returns {{result: number, count: number}} dx11's out argument comes back here.
    */
-  @meta.adapted
   GetPixelCount(renderContext, _waitMode = Tr2OcclusionQueryALWebgl2.WaitMode.WAIT)
   {
     if (!this._query) return { result: ALResult.E_INVALIDARG, count: 0 };
@@ -206,13 +203,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
 
 CjsSchema.decorateField(Tr2OcclusionQueryALWebgl2, "_name", type.string);
 // States against dx11/Tr2OcclusionQueryALDx11.cpp (Create, Destroy, IsValid, Describe, SetName) and .h (GetMemoryClass). Create makes a GL query where dx11 makes a D3D11_QUERY_OCCLUSION. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Create", meta.implemented);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Begin");
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "End");
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetPixelCount");
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "SetName", meta.adapted);
 CjsSchema.meta.define("Tr2OcclusionQueryALWebgl2")(Tr2OcclusionQueryALWebgl2);

@@ -2,7 +2,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RenderNodeSprite2dScene.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 
 /** A render-graph node that draws a sprite scene into a destination texture, over an optional background node. */
@@ -43,7 +43,6 @@ export class Tr2RenderNodeSprite2dScene extends IRoot
    *   returns false without asserting and lets the caller decide.
    */
 
-  @meta.adapted
   Validate(destinationDimensions, outputs, realTime, simTime)
   {
     if (!destinationDimensions.length) return false;

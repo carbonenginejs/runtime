@@ -14,7 +14,7 @@ import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { TriGeometryRes } from "../../resources/geometry/TriGeometryRes.js";
 import { TriGrannyRes } from "../../resources/geometry/granny/TriGrannyRes.js";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
@@ -269,7 +269,6 @@ export class Tr2GrannyAnimation extends IRoot
    *   Explicit SetGrannyResource attachments survive a pathless Initialize; borrowed
    *   geometry remains authoritative until detached, as in Carbon.
    */
-  @meta.adapted
 
   Initialize()
   {
@@ -288,8 +287,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @adapted
    * @param {TriGrannyRes|null} resource Clip resource to subscribe to, or null to detach.
    */
-  @meta.cjs
-    @meta.adapted
   SetGrannyResource(resource)
   {
     if (this._sharedGeometry && this.grannyRes) this.grannyRes.RemoveNotifyTarget(this);
@@ -311,7 +308,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetSharedGeometryRes(resource)
   {
     // Carbon cpp:283-286: rebinding the same geometry (or null to null) is a
@@ -341,7 +337,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @param {object} resource Resource that released its payload.
    */
 
-  @meta.adapted
   ReleaseCachedData(resource)
   {
     if (resource === this.grannyRes) this._runtimeModel = null;
@@ -358,7 +353,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasMeshBinding()
   {
     return this._useMeshBinding;
@@ -370,7 +364,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetUseMeshBinding(enable)
   {
     this._useMeshBinding = !!enable;
@@ -382,8 +375,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   HasSharedGeometryRes()
   {
     return this._sharedGeometry;
@@ -398,7 +389,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {object|null} The TriGeometryRes.
    */
 
-  @meta.adapted
   GetSharedGeometryRes()
   {
     return this._sharedGeometry ? this.grannyRes : null;
@@ -418,7 +408,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {object|null} The gr2 read.
    */
 
-  @meta.adapted
   GetFileInfo()
   {
     if (!this.grannyRes) return null;
@@ -438,7 +427,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {boolean} True when animating a CMF file.
    */
 
-  @meta.adapted
   IsUsingCMF()
   {
     return this._sharedGeometry ? this.grannyRes.IsUsingCMF() : false;
@@ -452,7 +440,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {object|null} The CMF payload.
    */
 
-  @meta.adapted
   GetCMFData()
   {
     return this._sharedGeometry ? this.grannyRes.GetCMFData() : null;
@@ -471,7 +458,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
 
   RebuildCachedData(resource)
   {
@@ -606,7 +592,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {boolean} Whether binding information is available.
    */
 
-  @meta.adapted
   InitializeBoundingInfo()
   {
     const cmf = this.IsUsingCMF();
@@ -673,7 +658,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {boolean} False without changing outputs when no binding exists.
    */
 
-  @meta.adapted
   GetDynamicBounds(boundingSphere, aabbMin, aabbMax)
   {
     if (!this._boneBounds.length && !this.InitializeBoundingInfo()) return false;
@@ -729,7 +713,6 @@ export class Tr2GrannyAnimation extends IRoot
    *   bone nothing animates keeps its last value - an aimed bone keeps its aim
    *   after DisableAimBone.
    */
-  @meta.adapted
   Update(dt = 0)
   {
     if (!this._initialized || !this.animationEnabled)
@@ -813,7 +796,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPoseModifier()
   {
     return this._poseModifier;
@@ -826,7 +808,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetPoseModifier(poseModifier)
   {
     this._poseModifier = poseModifier ?? null;
@@ -869,7 +850,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   PlayAnimationEx(animName, loopCount, delay, speed, clearWhenDone = true)
   {
     return this.PlayAnimation(animName, true, loopCount, delay, speed, clearWhenDone);
@@ -885,7 +865,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddAnimationLayer(layerName, layerWeight = 1)
   {
     const name = String(layerName ?? "");
@@ -917,7 +896,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @param {string} name Bone name.
    * @returns {number} The bone index, or -1.
    */
-  @meta.adapted
 
   FindBoneByName(name)
   {
@@ -942,7 +920,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @param {string} trackMask Bone mask name.
    * @returns {void}
    */
-  @meta.adapted
 
   AddAnimationLayerWithTrackMask(layerName, trackMask)
   {
@@ -1000,7 +977,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddAnimationLayerAllBones(layerName)
   {
     const layer = this._getLayer(layerName);
@@ -1014,7 +990,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddAnimationLayerBone(layerName, boneName)
   {
     const layer = this._getLayer(layerName);
@@ -1029,7 +1004,6 @@ export class Tr2GrannyAnimation extends IRoot
    *   when available.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddSecondaryResPath(resPath)
   {
     const path = String(resPath ?? "");
@@ -1047,8 +1021,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   SetSecondaryGrannyResource(resPath, resource)
   {
     const path = String(resPath ?? "");
@@ -1067,7 +1039,6 @@ export class Tr2GrannyAnimation extends IRoot
    *   applied after sampling and before pose modifiers and bone offsets.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AimBone(boneName, targetX, targetY, targetZ, axisX, axisY, axisZ)
   {
     this._aimingBone = true;
@@ -1088,7 +1059,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   _UpdateAimingBone(skeleton)
   {
     if (!this._aimingBone || !this._runtimeModel)
@@ -1130,7 +1100,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ChainAnimation(animName)
   {
     return this.PlayAnimation(animName, false, 1, 0, 1, true);
@@ -1142,7 +1111,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ChainAnimationEx(animName, loopCount, delay, speed)
   {
     return this.PlayAnimation(animName, false, loopCount, delay, speed, true);
@@ -1154,7 +1122,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearAnimations()
   {
     this._baseLayer.ClearAnimations();
@@ -1170,7 +1137,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StopAnimations(delay = 0)
   {
     this._baseLayer.StopAnimations(delay);
@@ -1186,7 +1152,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {?Tr2GrannyAnimationLayer}
    */
 
-  @meta.implemented
   GetAnimationLayer(name = null)
   {
     if (name === null || name === undefined)
@@ -1202,7 +1167,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearAnimationLayers()
   {
     this._layers.clear();
@@ -1214,7 +1178,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   DisableAimBone()
   {
     this._aimingBone = false;
@@ -1226,7 +1189,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   EndAnimation()
   {
     this._baseLayer.EndAnimation();
@@ -1238,7 +1200,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetAdditiveBlendMode()
   {
     return this._additiveMode;
@@ -1250,7 +1211,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetLayerWeight(layerName)
   {
     return this._getLayer(layerName)?.weight ?? 0;
@@ -1262,7 +1222,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetSecondaryAnimationName(resPath, index)
   {
     const source = this._getSource(this._secondaryResources.get(String(resPath ?? "")));
@@ -1274,7 +1233,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   PlayAnimation(animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {
     return this._playLayer("", animName, replace, loopCount, delay, speed, clearWhenDone);
@@ -1285,7 +1243,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   @be.mapMethodAndWrap("PlayAnimation")
   PlayAnimationOnce(animName)
   {
@@ -1297,7 +1254,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   PlayLayerAnimation(layerName, animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {
     return this._playLayer(layerName, animName, replace, loopCount, delay, speed, clearWhenDone);
@@ -1308,7 +1264,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   @be.mapMethodAndWrap("PlayLayerAnimation")
   PlayLayerAnimationByName(...args)
   {
@@ -1321,7 +1276,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RemoveAnimationLayerBone(layerName, boneName)
   {
     const layer = this._getLayer(layerName);
@@ -1335,7 +1289,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetAnimationNames()
   {
     const names = [];
@@ -1361,7 +1314,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetAdditiveBlendMode(additive)
   {
     this._additiveMode = !!additive;
@@ -1373,7 +1325,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetLayerControlParam(layerName, controlParam)
   {
     const layer = this._getLayer(layerName);
@@ -1392,7 +1343,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetLayerControlParamSkewRate(layerName, skewRate)
   {
     const layer = this._getLayer(layerName);
@@ -1410,7 +1360,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetLayerWeight(layerName, layerWeight)
   {
     const layer = this._getLayer(layerName);
@@ -1428,7 +1377,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   TogglePauseAnimations(pause)
   {
     this._paused = !!pause;
@@ -1439,7 +1387,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   IsInitialized()
   {
@@ -1462,7 +1409,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
 
   GetMeshBoneMatrixList()
   {
@@ -1520,7 +1466,6 @@ export class Tr2GrannyAnimation extends IRoot
    *   binding-to-bone indices, as the palette builders fill it.
    * @returns {number[]} The bound bone indices.
    */
-  @meta.adapted
 
   GetSkeletonBoneIndices()
   {
@@ -1532,7 +1477,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetMeshBoneCount()
   {
@@ -1544,7 +1488,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
 
   GetBoneWorldTransform(boneName, out)
   {
@@ -1563,8 +1506,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetBoneTransform(index, out)
   {
     const bone = this._runtimeModel?.bones[Number(index)];
@@ -1582,8 +1523,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetBoneMatrix(bone)
   {
     if (typeof bone === "number")
@@ -1598,7 +1537,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetAnimationTransforms()
   {
@@ -1610,7 +1548,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetAnimationBoneList()
   {
@@ -1622,7 +1559,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetMorphAnimations()
   {
@@ -1635,8 +1571,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetAimBoneState()
   {
     return {
@@ -1807,7 +1741,6 @@ export class Tr2GrannyAnimation extends IRoot
    * @param {string} name The animation name.
    * @returns {number} Its duration in seconds, or 0.
    */
-  @meta.adapted
 
   FindAnimationDurationByName(name)
   {
@@ -2329,7 +2262,6 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     if (this._sharedGeometry && this.grannyRes) this.grannyRes.RemoveNotifyTarget(this);
@@ -2340,4 +2272,3 @@ export class Tr2GrannyAnimation extends IRoot
   }
 }
 
-CjsSchema.decorateMethod(Tr2GrannyAnimation, "_getSource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

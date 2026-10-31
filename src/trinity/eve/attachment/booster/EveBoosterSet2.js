@@ -380,7 +380,6 @@ export class EveBoosterSet2 extends EveEntity
    *   the max size. Every renderable instance is bound back to this set.
    */
 
-  @meta.adapted
   Initialize()
   {
     if (this._singleBoosters.length) EveBoosterSet2._DeriveFromBoosters(this);
@@ -400,7 +399,6 @@ export class EveBoosterSet2 extends EveEntity
    *   the shared buffer here is per render context (TriGeometryResAllocations).
    */
 
-  @meta.adapted
   ReleaseResources(_storage)
   {
     if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
@@ -415,7 +413,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveBoosterSet2._BoosterInstancedVertex());
@@ -443,7 +440,6 @@ export class EveBoosterSet2 extends EveEntity
    *   filling m_instanceBuffer in place.
    */
 
-  @meta.adapted
   RebuildInstanceData(renderContext)
   {
     if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
@@ -498,7 +494,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (this.glows)
@@ -531,7 +526,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetCount(count)
   {
     const requested = Math.trunc(Number(count));
@@ -561,7 +555,6 @@ export class EveBoosterSet2 extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   Update(
     deltaTime,
     time,
@@ -599,7 +592,6 @@ export class EveBoosterSet2 extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   UpdateTrails(deltaTime, time)
   {
     // cpp:729: trails advance only while the setting is on.
@@ -624,7 +616,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   Clear()
   {
     this._singleBoosters.length = 0;
@@ -646,7 +637,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   Add(
     localMatrix,
     functionality,
@@ -730,7 +720,6 @@ export class EveBoosterSet2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   SetData(
     glowScale,
     glowColor,
@@ -761,7 +750,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetLightData(offset, flickerAmplitude, flickerFrequency, radius, color, warpRadius, warpColor)
   {
     this.lightOffset = Number(offset);
@@ -780,7 +768,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetEffect(effect, effectFar)
   {
     this.effect = effect ?? null;
@@ -794,7 +781,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetGlow(glow)
   {
     this.glows = glow ?? null;
@@ -807,7 +793,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetTrail(trail)
   {
     this.trails = trail ?? null;
@@ -821,7 +806,6 @@ export class EveBoosterSet2 extends EveEntity
    * @returns {number}
    */
 
-  @meta.implemented
   GetBoosterIntensity()
   {
     let intensity = 0;
@@ -841,7 +825,6 @@ export class EveBoosterSet2 extends EveEntity
    * @param {number} index Renderable instance index.
    * @returns {number}
    */
-  @meta.implemented
   GetBoosterIntensity__Index(index)
   {
     const renderable = this.instances[index >>> 0];
@@ -863,7 +846,6 @@ export class EveBoosterSet2 extends EveEntity
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     for (const renderable of this.instances)
@@ -909,7 +891,6 @@ export class EveBoosterSet2 extends EveEntity
    *   output array.
    */
 
-  @meta.adapted
   GetBoundingSphere(out)
   {
     sph3.empty(out);
@@ -932,8 +913,6 @@ export class EveBoosterSet2 extends EveEntity
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetBoosterData()
   {
     return this._singleBoosters.map(booster => ({
@@ -957,7 +936,6 @@ export class EveBoosterSet2 extends EveEntity
    * @returns {boolean} whether a glow is on screen
    */
 
-  @meta.adapted
   UpdateVisibility(updateContext)
   {
     this._glowsVisible = false;
@@ -988,7 +966,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    * @param {Tr2QuadRenderer} quadRenderer
    */
-  @meta.implemented
 
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -1007,7 +984,6 @@ export class EveBoosterSet2 extends EveEntity
    * @param {Tr2QuadRenderer} quadRenderer
    * @param {mat4} _world - the parent's world transform
    */
-  @meta.implemented
 
   AddToQuadRenderer(quadRenderer, _world)
   {
@@ -1033,7 +1009,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     if (!this.display || !this.effect)
@@ -1054,7 +1029,6 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1083,7 +1057,6 @@ export class EveBoosterSet2 extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     if (this.lightRadius <= 0 && this.lightWarpRadius <= 0)

@@ -5,7 +5,7 @@ import { random as carbonRandom } from "#math/random";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { ProcessLifetime } from "./lifecycle/ProcessLifetime.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -97,7 +97,6 @@ export class SpawnDrones extends IRoot
    * @param {Object} group - owning BehaviorGroup
    */
 
-  @meta.adapted
   UpdateGrid(group)
   {
     // for behaviors to work we always have to add one decoy drone; delete it
@@ -177,7 +176,6 @@ export class SpawnDrones extends IRoot
    * @returns {Array} empty (as Carbon)
    */
 
-  @meta.adapted
   CalculateBehavior(_agents, _scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -234,7 +232,6 @@ export class SpawnDrones extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   gridToggleReset()
   {
     this.regenerateDrones = true;

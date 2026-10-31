@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
 
 
@@ -40,7 +40,6 @@ export class EveChildModifierBooster extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   ApplyTransform(transform, boneCount, bones, out)
   {
     const { alignMat, d, scaleVec, transVec, scalingTransform, translationTransform } = this.constructor.scratch;

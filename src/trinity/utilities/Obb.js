@@ -46,7 +46,6 @@ export class Obb
    *   transformMat4 divides by w, while native Transform takes xyz directly; affine inputs
    *   have w=1.
    */
-  @meta.adapted
   CreateClippedWorldBoundingObb(localMin, localMax, localToWorld, frustum = null)
   {
     vec3.add(this.center, localMax, localMin);
@@ -128,7 +127,6 @@ export class Obb
    * @adapted Carbon asserts the 0..7 range; JavaScript reports the same contract with
    *   RangeError.
    */
-  @meta.adapted
   GetPoint(index)
   {
     if (!Number.isInteger(index) || index < 0 || index > 7)
@@ -146,7 +144,6 @@ export class Obb
    *   returns zero xyz for w=0. Number/Float32Array precision also follows the existing JS
    *   math path.
    */
-  @meta.adapted
   ComputeAABB(min, max, transform)
   {
     const point = vec3.create();

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.h
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderJob } from "./TriRenderJob.js";
 
@@ -44,7 +44,6 @@ export class Tr2RenderJobs extends IRoot
    * @param {object} [executor] performs the work the jobs describe; defaults to the shared Tr2RenderContext
    */
 
-  @meta.adapted
   Run(realTime, simTime, executor = null)
   {
     const context = executor ?? Tr2RenderContext_GetMainThreadRenderContext();
@@ -95,7 +94,6 @@ export class Tr2RenderJobs extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   RunUpdate(realTime, simTime, executor = null)
   {
     const context = executor ?? Tr2RenderContext_GetMainThreadRenderContext();

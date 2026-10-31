@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.h
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 import { color } from "#math/color";
 import { vec2 } from "#math/vec2";
@@ -120,7 +120,6 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
    *
    * @implemented
    */
-  @meta.implemented
 
   _SetRegularRenderState(renderer)
   {
@@ -136,7 +135,6 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
    *
    * @implemented
    */
-  @meta.implemented
 
   _SetGlowRenderState(renderer)
   {
@@ -159,7 +157,6 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
    *
    * @implemented
    */
-  @meta.implemented
 
   _SetShadowRenderState(renderer)
   {
@@ -182,7 +179,6 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
    *
    * @implemented
    */
-  @meta.implemented
 
   _SetOutlineRenderState(renderer)
   {
@@ -202,7 +198,6 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
    *
    * @implemented
    */
-  @meta.implemented
 
   GetColor()
   {
@@ -214,7 +209,6 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
    *
    * @implemented
    */
-  @meta.implemented
 
   SetColor(value)
   {

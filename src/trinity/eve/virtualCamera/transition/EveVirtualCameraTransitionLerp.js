@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase.js";
 
@@ -42,7 +42,6 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * @implemented
    */
 
-  @meta.implemented
   IsComplete()
   {
     return this._localTime > this.tansitionTime;
@@ -56,7 +55,6 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * @implemented
    */
 
-  @meta.implemented
   Play()
   {
     this._localTime = 0;
@@ -76,7 +74,6 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * @adapted
    */
 
-  @meta.adapted
   Update(deltaTime)
   {
     this._localTime += deltaTime;
@@ -104,7 +101,6 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * @implemented
    */
 
-  @meta.implemented
   GetTransitionTime()
   {
     return this.tansitionTime;
@@ -117,7 +113,6 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * @implemented
    */
 
-  @meta.implemented
   SetTransitionTime(value)
   {
     this.tansitionTime = value;

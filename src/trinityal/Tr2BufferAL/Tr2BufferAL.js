@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2BufferAL.h
 // Source: trinity/trinityal/src/Tr2BufferAL.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -26,7 +26,6 @@ export class Tr2BufferAL
    *
    * @adapted
    */
-  @meta.adapted
   Create(description, initialData, renderContext)
   {
     description = Object.assign(new Tr2BufferDescriptionAL(), description);
@@ -41,7 +40,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   IsValid()
   {
     return this._buffer !== null && this._buffer.implementation.IsValid();
@@ -52,7 +50,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._buffer ? this._buffer.implementation.GetMemoryClass() : Tr2ALMemoryType.AL_MEMORY_MANAGED;
@@ -63,7 +60,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   GetDesc()
   {
     return this._buffer ? this._buffer.implementation.GetDesc() : emptyDescription;
@@ -74,7 +70,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   GetSize()
   {
     return this.GetDesc().count * this.GetDesc().stride;
@@ -86,7 +81,6 @@ export class Tr2BufferAL
    * @adapted
    * @renamed operator==
    */
-  @meta.adapted
   Equals(other)
   {
     return this._buffer === other._buffer;
@@ -97,7 +91,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   MapForReading(renderContext)
   {
     return this._buffer ? this._buffer.implementation.MapForReading(renderContext) : { result: ALResult.E_INVALIDCALL, data: null };
@@ -108,7 +101,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   MapForReading__OffsetSize(renderContext, offset, size)
   {
     return this._buffer ? this._buffer.implementation.MapForReading__OffsetSize(renderContext, offset, size) : { result: ALResult.E_INVALIDCALL, data: null };
@@ -119,7 +111,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   UnmapForReading(renderContext)
   {
     return this._buffer ? this._buffer.implementation.UnmapForReading(renderContext) : undefined;
@@ -130,7 +121,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   MapForWriting(renderContext)
   {
     return this._buffer ? this._buffer.implementation.MapForWriting(renderContext) : { result: ALResult.E_INVALIDCALL, data: null };
@@ -141,7 +131,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   UnmapForWriting(renderContext)
   {
     return this._buffer ? this._buffer.implementation.UnmapForWriting(renderContext) : undefined;
@@ -152,7 +141,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   UpdateBuffer(offset, size, data, renderContext)
   {
     return this._buffer ? this._buffer.implementation.UpdateBuffer(offset, size, data, renderContext) : ALResult.E_INVALIDCALL;
@@ -163,7 +151,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   GetSrvIndexInHeap()
   {
     return this._buffer ? this._buffer.implementation.GetSrvIndexInHeap() : 0xffffffff;
@@ -174,7 +161,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   GetUavIndexInHeap()
   {
     return this._buffer ? this._buffer.implementation.GetUavIndexInHeap() : 0xffffffff;
@@ -185,7 +171,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -198,7 +183,6 @@ export class Tr2BufferAL
    *
    * @implemented
    */
-  @meta.implemented
   TrinityALImpl_GetObject()
   {
     return this._buffer ? this._buffer.implementation : null;
@@ -216,6 +200,5 @@ export class Tr2BufferAL
 
 
 CjsSchema.decorateField(Tr2BufferAL, "_buffer", type.unknown);
-CjsSchema.decorateMethod(Tr2BufferAL, "Equals", meta.renamed("operator=="));
 CjsSchema.decorateMethod(Tr2BufferAL, "MapForReading__OffsetSize");
 CjsSchema.meta.carbon("Tr2BufferAL")(Tr2BufferAL);

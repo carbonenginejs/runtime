@@ -3,7 +3,7 @@ import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/UI/EveUiObject.h
 // Source: trinity/trinity/Eve/UI/EveUiObject.cpp
 // Source: trinity/trinity/Eve/UI/EveUiObject_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2Lod } from "#consts/trinity";
@@ -47,7 +47,6 @@ export class EveUiObject extends EveSpaceObject2
    * @returns {boolean} False when the base had already built the transform for this time.
    */
 
-  @meta.adapted
   UpdateWorldTransform(time)
   {
     const updated = super.UpdateWorldTransform(time);
@@ -85,7 +84,6 @@ export class EveUiObject extends EveSpaceObject2
    * @returns {boolean} isVisible, always true.
    */
 
-  @meta.adapted
   UpdateVisibility(updateContext, parentTransform)
   {
     super.UpdateVisibility(updateContext, parentTransform);
@@ -105,7 +103,6 @@ export class EveUiObject extends EveSpaceObject2
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetVisibilityForArea(areaName, enable)
   {
     const mesh = this.GetMesh();
@@ -133,7 +130,6 @@ export class EveUiObject extends EveSpaceObject2
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetNameForPickingAreaID(areaID)
   {
     const mesh = this.GetMesh();

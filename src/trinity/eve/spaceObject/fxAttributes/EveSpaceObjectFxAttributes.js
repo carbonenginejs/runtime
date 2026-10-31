@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -142,7 +142,6 @@ export class EveSpaceObjectFxAttributes extends IEveFxAttribute
    *   parameters are typed-array copy-outs.
    */
 
-  @meta.adapted
   UpdateAsyncronous(_updateContext, params)
   {
     const parent = params?.spaceObjectParent;

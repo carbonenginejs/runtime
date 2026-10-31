@@ -14,7 +14,7 @@
 // with `E_FAIL`, as Metal's `Create` does when the device cannot sample
 // counters (`Tr2GpuTimerALMetal.mm:27-32`, `:48-51`), and the value stays on
 // the null implementation.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -85,7 +85,6 @@ export class Tr2GpuTimerAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(renderContext)
   {
     this.Destroy();
@@ -106,7 +105,6 @@ export class Tr2GpuTimerAL
    * @param {object} renderContext The context recording.
    * @returns {boolean} Whether the timer started.
    */
-  @meta.implemented
   Begin(renderContext)
   {
     return this._gpuTimer.implementation.Begin(renderContext);
@@ -118,7 +116,6 @@ export class Tr2GpuTimerAL
    * @implemented
    * @param {object} renderContext The context recording.
    */
-  @meta.implemented
   End(renderContext)
   {
     this._gpuTimer.implementation.End(renderContext);
@@ -131,7 +128,6 @@ export class Tr2GpuTimerAL
    * @param {object} renderContext The context whose results are read.
    * @returns {number} The backend's measurement; -1 without a timer.
    */
-  @meta.implemented
   GetTime(renderContext)
   {
     return this._gpuTimer.implementation.GetTime(renderContext);
@@ -143,7 +139,6 @@ export class Tr2GpuTimerAL
    * @implemented
    * @returns {boolean} True once created.
    */
-  @meta.implemented
   IsValid()
   {
     return this._gpuTimer.implementation.IsValid();
@@ -157,7 +152,6 @@ export class Tr2GpuTimerAL
    * @param {Tr2GpuTimerAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @meta.adapted
   Equals(other)
   {
     return this._gpuTimer === other._gpuTimer;
@@ -169,7 +163,6 @@ export class Tr2GpuTimerAL
    * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._gpuTimer.implementation.GetMemoryClass();
@@ -183,7 +176,6 @@ export class Tr2GpuTimerAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -208,5 +200,4 @@ export class Tr2GpuTimerAL
 }
 
 CjsSchema.decorateField(Tr2GpuTimerAL, "_gpuTimer", type.unknown);
-CjsSchema.decorateMethod(Tr2GpuTimerAL, "Equals", meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2GpuTimerAL")(Tr2GpuTimerAL);

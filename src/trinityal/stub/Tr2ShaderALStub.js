@@ -27,7 +27,7 @@
 //   empty one; its real backends keep it. Dropping caller data is a shortcut
 //   that is harmless only while nothing reads it, and the register map will.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -199,14 +199,4 @@ CjsSchema.decorateField(Tr2ShaderALStub, "_type", type.int32);
 CjsSchema.decorateField(Tr2ShaderALStub, "_bytecode", type.uint8Array);
 CjsSchema.decorateField(Tr2ShaderALStub, "_signature", type.rawStruct("Tr2ShaderSignatureAL"));
 // States against stub/Tr2ShaderALStub.cpp:14-70 and .h:32-40. Create is adapted: it keeps the signature, which Carbon's stub ignores. GetBytecode is adapted: the Tr2ShaderBytecodeAL& comes back with the result as { result, bytecode }.
-CjsSchema.decorateMethod(Tr2ShaderALStub, "Create", meta.adapted);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "GetType", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "GetBytecode", meta.adapted);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "GetSignature", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "SetNullShaderType", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2ShaderALStub")(Tr2ShaderALStub);

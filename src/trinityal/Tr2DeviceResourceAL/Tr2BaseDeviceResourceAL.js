@@ -98,7 +98,6 @@ export class Tr2BaseDeviceResourceAL
    *   instead of repeating it on each backend class.
    * @param {object} _description Accumulator, keyed by name.
    */
-  @meta.adapted
   Describe(_description)
   {
   }
@@ -112,7 +111,6 @@ export class Tr2BaseDeviceResourceAL
    * @adapted JavaScript has no deterministic destructor; the existing registry unregisters
    *   at explicit Destroy. Recreating that object does not re-register it.
    */
-  @meta.adapted
   Destroy()
   {
     if (!this._registered) return;
@@ -206,6 +204,5 @@ export function DestroyDeviceResources(memoryTypes)
 
 CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Destroy");
 CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Describe");
-CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "EnumerateResources", meta.adapted);
 CjsSchema.decorateField(Tr2BaseDeviceResourceAL, "_registered", type.boolean);
 CjsSchema.meta.carbon("Tr2BaseDeviceResourceAL")(Tr2BaseDeviceResourceAL);

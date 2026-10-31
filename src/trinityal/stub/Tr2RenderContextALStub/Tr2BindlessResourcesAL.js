@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.h
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 //   Declared top-level beside the render context, as every backend declares it.
 
 
@@ -75,10 +75,5 @@ export class Tr2BindlessResourcesAL
   }
 }
 
-CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add", meta.adapted);
-CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__TextureAL", meta.implemented);
-CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__BufferAL", meta.implemented);
-CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__BindlessResourcesAL", meta.implemented);
 // State: Clear is Tr2RenderContextStub.h:44-45, empty.
-CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Clear", meta.implemented);
 CjsSchema.meta.carbon("Tr2BindlessResourcesAL")(Tr2BindlessResourcesAL);

@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { quat } from "#math/quat";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
@@ -89,7 +89,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this._regenerate = true;
@@ -102,7 +101,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(_event = 0, _key = 0, _key2 = 0, _value = null, _list = null)
   {
     this._regenerate = true;
@@ -114,7 +112,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   Update(updateContext, params)
   {
     let updateBounds = false;
@@ -145,7 +142,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   GeneratePoints(parentTransform = EveLineChildContainer._identity)
   {
     if (!mat4.exactEquals(parentTransform, EveLineChildContainer._identity))
@@ -173,7 +169,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @adapted
    */
 
-  @meta.adapted
   UpdateBuffer(renderContext, cursor, systemLocation, stride)
   {
     if (!this.isVisible || !this.display)
@@ -198,7 +193,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   GetPointCount()
   {
     let count = 0;
@@ -216,7 +210,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   CalculateBoundingSphere(meshSize = 0, reCalculateChildren = true)
   {
     meshSize = Number(meshSize);
@@ -273,7 +266,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out)
   {
     return sph3.transformMat4(out, this._boundingSphere, this.localTransform);
@@ -285,7 +277,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(frustum, parentLod, systemLocation)
   {
     if (!this.display)
@@ -313,7 +304,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @implemented
    */
 
-  @meta.implemented
   AddLinesToSet(lineSet, color, animationColor, scrollSpeed)
   {
     if (!this.display || !this.isVisible)
@@ -332,7 +322,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @adapted
    */
 
-  @meta.adapted
   GetDebugOptions(_options)
   {
   }
@@ -348,7 +337,6 @@ export class EveLineChildContainer extends IEveLineSetPath
    * @param {mat4} parentWorldLocation
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentWorldLocation)
   {
     if (!renderer.HasOption(this, "LineSets"))

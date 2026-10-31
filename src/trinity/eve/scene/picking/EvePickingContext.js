@@ -3,7 +3,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EvePicking.h
 // Source: trinity/trinity/Eve/EvePicking.cpp
 // Source: trinity/trinity/Eve/EvePicking_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /**
  * Holds the outstanding picking readbacks and the most recent pick result -
@@ -38,7 +38,6 @@ export class EvePickingContext extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateResult(x, y, object, extraData1, extraData2)
   {
     this.lastPickedX = Number(x) >>> 0;
@@ -55,7 +54,6 @@ export class EvePickingContext extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetObject()
   {
     return this.lastPickedObject;
@@ -67,7 +65,6 @@ export class EvePickingContext extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetExtraData1()
   {
     return this.lastPickedExtraData1;
@@ -79,7 +76,6 @@ export class EvePickingContext extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetExtraData2()
   {
     return this.lastPickedExtraData2;
@@ -94,7 +90,6 @@ export class EvePickingContext extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     for (const request of this.readbacks) request.Destruct();

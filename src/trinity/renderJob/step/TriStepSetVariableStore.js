@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetVariableStore.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { TriVariable } from "../../core/variable/TriVariable.js";
@@ -33,7 +33,6 @@ export class TriStepSetVariableStore extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(name = undefined, value = undefined)
   {
     if (name !== undefined) this.SetName(name);
@@ -45,7 +44,6 @@ export class TriStepSetVariableStore extends TriRenderStep
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.variableName = String(name ?? "");
@@ -56,7 +54,6 @@ export class TriStepSetVariableStore extends TriRenderStep
    *
    * @adapted
    */
-  @meta.adapted
   GetValue()
   {
     if (ArrayBuffer.isView(this.value)) return this.value.slice();
@@ -70,7 +67,6 @@ export class TriStepSetVariableStore extends TriRenderStep
    *
    * @adapted
    */
-  @meta.adapted
   SetValue(value)
   {
     this.value = ArrayBuffer.isView(value) || Array.isArray(value) ? value.slice() : value;
@@ -82,7 +78,6 @@ export class TriStepSetVariableStore extends TriRenderStep
    *
    * @adapted
    */
-  @meta.adapted
   Execute(_realTime, _simTime, _renderContext)
   {
     if (this.variableName && this.value !== null)

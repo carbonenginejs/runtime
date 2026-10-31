@@ -210,7 +210,6 @@ export class EveChildContainer extends EveChildTransform
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {ITr2GrannyAnimationOwner|null}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.persist
   @type.object.ref("ITr2GrannyAnimationOwner")
@@ -223,7 +222,6 @@ export class EveChildContainer extends EveChildTransform
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {number}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.persist
   @type.int32
@@ -265,7 +263,6 @@ export class EveChildContainer extends EveChildTransform
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isRendering()
   {
     return this.IsRendering();
@@ -280,7 +277,6 @@ export class EveChildContainer extends EveChildTransform
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isUpdating()
   {
     return this.IsUpdating();
@@ -293,7 +289,6 @@ export class EveChildContainer extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this.RegisterChildren(this.objects);
@@ -315,7 +310,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display") || IsMatch(value, "displayFilter"))
@@ -337,7 +331,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
@@ -349,7 +342,6 @@ export class EveChildContainer extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -360,7 +352,6 @@ export class EveChildContainer extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -373,7 +364,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetOrigin(origin)
   {
     this.origin = Number(origin) | 0;
@@ -385,7 +375,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetAlwaysOn(alwaysOn)
   {
     this.alwaysOn = !!alwaysOn;
@@ -397,7 +386,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   IsAlwaysOn()
   {
     return this.alwaysOn;
@@ -411,7 +399,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetDisplayQualityModifier(filter)
   {
     this.displayFilter = Number(filter) | 0;
@@ -424,7 +411,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetMute(mute)
   {
     const next = !!mute;
@@ -442,7 +428,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   MuteChildren()
   {
     for (const child of this.objects)
@@ -462,7 +447,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddTransformModifier(modifier)
   {
     this.transformModifiers.push(modifier);
@@ -475,7 +459,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddObserver(observer)
   {
     this.observers.push(observer);
@@ -488,7 +471,6 @@ export class EveChildContainer extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   AddController(controller)
   {
     // The link and the variable replay are the INSERTED arm (cpp:119-128).
@@ -503,7 +485,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     const key = String(name ?? "");
@@ -526,7 +507,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleControllerEvent(name)
   {
     const eventName = String(name ?? "");
@@ -546,7 +526,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers)
@@ -566,7 +545,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
     for (const child of this.objects)
@@ -582,7 +560,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetEffectChildByName(name)
   {
     const target = String(name ?? "");
@@ -609,7 +586,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -717,7 +693,6 @@ export class EveChildContainer extends EveChildTransform
    *   through the shared child service rather than the list driving it.
    */
 
-  @meta.adapted
   AddToEffectChildrenList(child)
   {
     addChild(this, "objects", child, { listNotify: this });
@@ -731,7 +706,6 @@ export class EveChildContainer extends EveChildTransform
    *   through the shared child service rather than the list driving it.
    */
 
-  @meta.adapted
   RemoveFromEffectChildrenList(child)
   {
     return removeChild(this, "objects", child, { listNotify: this });
@@ -744,7 +718,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     for (const child of this.objects)
@@ -765,7 +738,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetAnimationOwner(animationOwner)
   {
     this.animationOwner = animationOwner ?? null;
@@ -779,7 +751,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetIsPlacementRoot(isPlacementRoot)
   {
     this.isPlacementRoot = !!isPlacementRoot;
@@ -792,7 +763,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddAttachment(attachment)
   {
     // Registering the attachment as an entity is the hook (cpp:180-210).
@@ -806,7 +776,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ClearAttachments()
   {
     this.attachments.length = 0;
@@ -819,7 +788,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Empty()
   {
     return this.objects.length === 0 &&
@@ -842,7 +810,6 @@ export class EveChildContainer extends EveChildTransform
    * @param {EveChildUpdateParams} params
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (!this.IsUpdating())
@@ -885,7 +852,6 @@ export class EveChildContainer extends EveChildTransform
    * @returns {Float32Array} worldTransform
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
     // Carbon cpp:516: re-arm the once-per-frame palette upload, before the gate.
@@ -1006,7 +972,6 @@ export class EveChildContainer extends EveChildTransform
    * @returns {Boolean} whether the fan-out ran
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
     if (!this.display)
@@ -1045,7 +1010,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     if (!this.display || !this._hasUpdated)
@@ -1079,7 +1043,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     if (!this.IsUpdating())
@@ -1114,7 +1077,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const child of this.objects)
@@ -1135,7 +1097,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display || !this._hasUpdated)
@@ -1168,7 +1129,6 @@ export class EveChildContainer extends EveChildTransform
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -1180,7 +1140,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ChangeLOD(lod)
   {
     for (const child of this.objects)
@@ -1198,7 +1157,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetLights(lightManager)
   {
     if (!this.display || !this._hasUpdated)
@@ -1232,7 +1190,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (!this.display || reason !== Tr2RenderReason.TR2RENDERREASON_NORMAL || this._activationStrength === 0)
@@ -1255,7 +1212,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -1267,7 +1223,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -1284,7 +1239,6 @@ export class EveChildContainer extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   GetPerObjectData(_accumulator = null)
   {
     if (this.animationOwner)
@@ -1314,7 +1268,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   HasRenderables()
   {
     return this.attachments.length > 0;
@@ -1328,7 +1281,6 @@ export class EveChildContainer extends EveChildTransform
    * @returns {boolean} Whether the container renders at the current shader model.
    */
 
-  @meta.implemented
   IsRendering()
   {
     const settings = Tr2Renderer.GetShaderModel();
@@ -1365,7 +1317,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   IsUpdating()
   {
     return (this.display || !this.updateOnDisplay) &&
@@ -1380,7 +1331,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1414,7 +1364,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1441,7 +1390,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     if (!this.IsUpdating())
@@ -1480,7 +1428,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     if (!this.IsUpdating())
@@ -1511,7 +1458,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     const target = String(name ?? "");
@@ -1537,7 +1483,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PlayAllCurveSets()
   {
     for (const child of this.objects)
@@ -1557,7 +1502,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   StopAllCurveSets()
   {
     for (const child of this.objects)
@@ -1578,7 +1522,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     if (!this.IsUpdating())
@@ -1611,7 +1554,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     if (!this.IsUpdating())
@@ -1646,7 +1588,6 @@ export class EveChildContainer extends EveChildTransform
    * @adapted The bool + float& out-param pair collapses to value-or-null in JS.
    */
 
-  @meta.adapted
   GetControllerValueByName(name)
   {
     const key = String(name ?? "");
@@ -1669,7 +1610,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetWorldVelocity(out)
   {
     return vec3.copy(out, this._worldVelocity);
@@ -1681,7 +1621,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetOwnerMaxSpeed()
   {
     return this._ownerMaxSpeed;
@@ -1693,7 +1632,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetOwner(owner)
   {
     if (this.GetOwner() === owner) return;
@@ -1707,7 +1645,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetPartTag(tag)
   {
     const next = Number(tag) >>> 0;
@@ -1722,7 +1659,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   CollectOwnedLocatorSets(parentTransform, out)
   {
     const childToObject = mat4.create();
@@ -1736,7 +1672,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   CollectOwnedGeometry(type, parentTransform, out, areaPool)
   {
     const childToObject = mat4.create();
@@ -1752,7 +1687,6 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (!this.inheritProperties)
@@ -1780,7 +1714,6 @@ export class EveChildContainer extends EveChildTransform
    * @returns {ITr2AudEmitter|null} The first matching emitter, or null.
    */
 
-  @meta.implemented
   FindSoundEmitter(name)
   {
     const target = String(name ?? "");

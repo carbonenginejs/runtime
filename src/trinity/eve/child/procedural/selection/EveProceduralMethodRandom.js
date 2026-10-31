@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 import { IsMatch, INotify, IListNotify } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { EveProceduralMethodRandomParameter } from "./EveProceduralMethodRandomParameter.js";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
@@ -74,7 +74,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.GenerateParameterMapping();
@@ -88,7 +87,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "seed_temp"))
@@ -106,7 +104,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list === this.parameters && (event & BELIST_LOADING) === 0)
@@ -122,7 +119,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   GenerateParameterMapping()
   {
     this._parameterMapping.length = 0;
@@ -143,7 +139,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @adapted
    */
 
-  @meta.adapted
   SelectARandomParameter()
   {
     if (this._parameterMapping.length === 0 || this.totalWeight <= 0)
@@ -177,7 +172,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   IsSelectedChildModified()
   {
     return this._selectedChildModified;
@@ -192,7 +186,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetSelectedChild()
   {
     if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
@@ -223,7 +216,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
     let regenerateParameterMap = false;
@@ -248,7 +240,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetDebugVolumes()
   {
     return this.debugVolumes;
@@ -262,7 +253,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   SetProceduralMethodVariable(name, value)
   {
     if (String(name ?? "") === this.seedName)
@@ -283,7 +273,6 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetProceduralMethodVariable()
   {
     if (this.seedName === "")

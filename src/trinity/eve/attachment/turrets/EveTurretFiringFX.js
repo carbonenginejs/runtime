@@ -5,7 +5,7 @@ import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX_Blue.cpp
 import { IsMatch, CjsBlueClasses } from "#blue";
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveTurretFiringFXPerMuzzleData } from "./EveTurretFiringFXPerMuzzleData.js";
 import { mat4 } from "#math/mat4";
@@ -340,7 +340,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._ensureMuzzleData();
@@ -362,7 +361,6 @@ export class EveTurretFiringFX extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   CleanUp()
   {
     this.StopFiring();
@@ -381,7 +379,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "firingDurationOverride"))
@@ -404,7 +401,6 @@ export class EveTurretFiringFX extends EveEntity
    * @param {Array|null} list Changed list.
    */
 
-  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (!this.isFiring || list !== this.stretch || (event & BLUELISTEVENT.BELIST_LOADING)) return;
@@ -423,7 +419,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetMuzzleBoneID(muzzleID, boneID)
   {
     this._ensureMuzzleData();
@@ -437,7 +432,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetMuzzleTransform(muzzleID, transform)
   {
     this._ensureMuzzleData();
@@ -464,7 +458,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetEndPosition(value)
   {
     vec3.copy(this.endPosition, value);
@@ -479,7 +472,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetScaleByRadius(radius)
   {
     if (!this.scaleEffectTarget) return;
@@ -508,7 +500,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   PrepareFiringEffectMoveObjects()
   {
     for (const stretch of this.stretch)
@@ -532,7 +523,6 @@ export class EveTurretFiringFX extends EveEntity
    * @param {number} [muzzleCount] Number of consecutive muzzles in the group.
    */
 
-  @meta.implemented
   PrepareFiring(delay, muzzleID = EveTurretFiringFX.INVALID_INDEX, muzzleCount = EveTurretFiringFX.INVALID_INDEX)
   {
     this._ensureMuzzleData();
@@ -559,7 +549,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetCurveDuration()
   {
     let duration = 0;
@@ -579,7 +568,6 @@ export class EveTurretFiringFX extends EveEntity
    * @returns {boolean} False when the effect is not firing or no muzzle has started, in which case out is left untouched.
    */
 
-  @meta.implemented
   GetStartPosition(out)
   {
     if (!this.isFiring) return false;
@@ -606,7 +594,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetFiringDuration()
   {
     return this.firingDurationOverride >= 0 ? this.firingDurationOverride : this.firingDuration;
@@ -619,7 +606,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetFiringPeakTime()
   {
     return this.firingPeakTime;
@@ -632,7 +618,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetFiringBoneName()
   {
     return this.boneName;
@@ -646,7 +631,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   StartMuzzleEffect(muzzleID)
   {
     this._ensureMuzzleData();
@@ -668,7 +652,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   StopFiring()
   {
     if (!this.isFiring) return;
@@ -692,7 +675,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   ReadyToFire()
   {
     this._ensureMuzzleData();
@@ -709,7 +691,6 @@ export class EveTurretFiringFX extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsynchronous(context)
   {
     this._ensureMuzzleData();
@@ -762,7 +743,6 @@ export class EveTurretFiringFX extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   UpdateSynchronous(context)
   {
     this._ensureMuzzleData();
@@ -795,7 +775,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(context)
   {
     if (!(this.display && this.isFiring)) return;
@@ -835,7 +814,6 @@ export class EveTurretFiringFX extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetRenderables(out)
   {
     if (!(this.display && this.isFiring)) return out;
@@ -855,7 +833,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const stretch of this.stretch) stretch.RegisterWithQuadRenderer(quadRenderer);
@@ -867,7 +844,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display || !this.isFiring) return;
@@ -890,7 +866,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetPerMuzzleEffectCount()
   {
     return this.stretch.length;
@@ -903,7 +878,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetPerMuzzleBoneID(muzzleID)
   {
     this._ensureMuzzleData();
@@ -918,7 +892,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   IsLooping()
   {
     return this.isLoopFiring;
@@ -931,7 +904,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetDisplayDestObject(display)
   {
     this._displayDestObject = !!display;
@@ -943,7 +915,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetDisplayDestObject()
   {
     return this._displayDestObject;
@@ -956,7 +927,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetDisplaySourceObject(display)
   {
     this._displaySourceObject = !!display;
@@ -968,7 +938,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetDisplaySourceObject()
   {
     return this._displaySourceObject;
@@ -980,7 +949,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const stretch of this.stretch)
@@ -998,7 +966,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   HandleControllerEvent(name)
   {
     for (const stretch of this.stretch)
@@ -1016,7 +983,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   StartControllers()
   {
     for (const stretch of this.stretch)
@@ -1037,7 +1003,6 @@ export class EveTurretFiringFX extends EveEntity
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     for (const stretch of this.stretch)
@@ -1069,7 +1034,6 @@ export class EveTurretFiringFX extends EveEntity
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     for (const stretch of this.stretch)
@@ -1099,7 +1063,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1119,7 +1082,6 @@ export class EveTurretFiringFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1141,7 +1103,6 @@ export class EveTurretFiringFX extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   SetImpactConfiguration(configuration)
   {
     if (configuration !== this._impactConfiguration)

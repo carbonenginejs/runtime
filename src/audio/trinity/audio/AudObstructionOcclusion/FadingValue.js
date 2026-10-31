@@ -22,7 +22,6 @@ export class FadingValue
    *
    * @adapted
    */
-  @meta.adapted
   SetTarget(target)
   {
     this.targetValue = ClampUnit(target);
@@ -33,7 +32,6 @@ export class FadingValue
    *
    * @adapted
    */
-  @meta.adapted
   Advance(deltaSeconds, fadeRate)
   {
     if (this.currentValue === this.targetValue)
@@ -65,7 +63,6 @@ export class FadingValue
    *
    * @adapted
    */
-  @meta.adapted
   SnapToTarget()
   {
     this.currentValue = this.targetValue;

@@ -45,8 +45,6 @@ export class EveInstancedMeshManagerKeyHasher
    * @param {EveInstancedMeshManagerMeshKey} k The key.
    * @returns {string} The key's identity in m_meshInstances.
    */
-  @meta.renamed("operator()")
-  @meta.adapted
   static hash(k)
   {
     return `${identityOf(k.geometry)}|${k.materialHash}|${k.combinedVertexDeclaration}|${k.batchType}|${k.meshIndex}|${k.areaIndex}|${k.areaCount}|${k.areaReversed ? 1 : 0}|${k.isDynamic ? 1 : 0}`;

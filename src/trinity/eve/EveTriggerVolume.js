@@ -12,7 +12,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { color as colorMath } from "#math/color";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 const WORLD_CENTER_SCRATCH = vec3.create();
@@ -127,7 +127,6 @@ export class EveTriggerVolume extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetCallback(callback)
   {
     this._callback = typeof callback === "function" ? callback : null;
@@ -149,7 +148,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   _InvokeCallback(entered)
   {
     const callback = this._callback;
@@ -174,7 +172,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   _UpdateWorldTransform(time)
   {
     if (this.translationCurve) this.translationCurve.Update__Ticks(time, CURVE_TRANSLATION_SCRATCH);
@@ -192,7 +189,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   _RebuildBoundingSphere()
   {
     this._boundingSphereInitialized = false;
@@ -241,7 +237,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   static _GetMaxIntensity(volumes, position)
   {
     let intensity = 0;
@@ -260,7 +255,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   _UpdateTriggerState(time)
   {
     this.intensity = 0;
@@ -304,7 +298,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   UpdateSyncronous(updateContext = null)
   {
     const time = updateContext.GetTime();
@@ -318,7 +311,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   UpdateAsyncronous(_updateContext = null)
   {
   }
@@ -328,7 +320,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   UpdateVisibility(_updateContext = null, _parentTransform = null)
   {
   }
@@ -338,7 +329,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetRenderables__Impostors(_renderables, _impostors)
   {
   }
@@ -349,7 +339,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetBoundingSphere(sphere, _query = 0)
   {
     vec3.transformMat4(WORLD_CENTER_SCRATCH, this._boundingSphereCenter, this._worldTransform);
@@ -364,7 +353,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   UpdateModelCenterWorldPosition(position, time = 0)
   {
     this._UpdateWorldTransform(time);
@@ -376,7 +364,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetModelCenterWorldPosition(position)
   {
     return vec3.transformMat4(position, this._boundingSphereCenter, this._worldTransform);
@@ -388,7 +375,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     const radius = Math.max(this._boundingSphereRadius, 1);
@@ -408,7 +394,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     return mat4.copy(transform, this._worldTransform);
@@ -419,7 +404,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetWorldPosition(out)
   {
     return vec3.set(out,
@@ -431,7 +415,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetWorldRotation(out)
   {
     mat4.getRotation(out, this._worldTransform);
@@ -443,7 +426,6 @@ export class EveTriggerVolume extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   Initialize()
   {
     this._UpdateWorldTransform(0);
@@ -457,7 +439,6 @@ export class EveTriggerVolume extends IRoot
    * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Trigger Volumes");
@@ -484,7 +465,6 @@ export class EveTriggerVolume extends IRoot
    * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "Trigger Volumes"))
@@ -534,8 +514,6 @@ export class EveTriggerVolume extends IRoot
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   IsInside()
   {
     return this.isInside;

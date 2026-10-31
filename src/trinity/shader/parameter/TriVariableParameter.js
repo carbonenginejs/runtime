@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { IsMatch, IInitialize } from "#blue";
 import { INotify } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { FNV1_INITIAL, hashFnv1String } from "#utils/hash";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
@@ -56,7 +56,6 @@ export class TriVariableParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -68,7 +67,6 @@ export class TriVariableParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     return hashFnv1String(this.name, startingHash);
@@ -81,7 +79,6 @@ export class TriVariableParameter extends ITriEffectParameter
    * @param variableStore store to bind against; null keeps the store supplied by an earlier call
    */
 
-  @meta.adapted
   Initialize(variableStore = null)
   {
     this.variableStore = variableStore ?? this.variableStore;
@@ -106,7 +103,6 @@ export class TriVariableParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "name"))
@@ -128,7 +124,6 @@ export class TriVariableParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this.cachedEffect = effectRes;
@@ -154,7 +149,6 @@ export class TriVariableParameter extends ITriEffectParameter
    *
    * @adapted
    */
-  @meta.adapted
   CopyValueToEffect(inputType, dest, size, renderContext)
   {
     if (this.variable)
@@ -181,7 +175,6 @@ export class TriVariableParameter extends ITriEffectParameter
    * @returns {boolean} Whether the slot took the binding.
    * Carbon declaration: TriVariableParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/TriVariableParameter.h:39).
    */
-  @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     return this.variable ? this.variable.CopyToResourceSet(resourceDesc, stage, registerIndex, flags, renderContext) : false;
@@ -198,7 +191,6 @@ export class TriVariableParameter extends ITriEffectParameter
    * @returns {boolean} Whether the slot took the binding.
    * Carbon declaration: TriVariableParameter::ApplyUav (trinity/trinity/Shader/Parameter/TriVariableParameter.h:44).
    */
-  @meta.adapted
   ApplyUav(resourceDesc, stage, registerIndex)
   {
     return this.variable
@@ -213,7 +205,6 @@ export class TriVariableParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   GetVariableType()
   {
     return this.variable ? this.variable.GetType() : "invalid";
@@ -226,7 +217,6 @@ export class TriVariableParameter extends ITriEffectParameter
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get variableType()
   {
     return this.GetVariableType();

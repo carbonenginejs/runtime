@@ -11,7 +11,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2ConstantBufferAL.cpp:6`): we ship every backend at
 // once, so the context that knows its backend is the factory
 // (`CreateConstantBuffer(size, usage, initialData, true)`).
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -87,7 +87,6 @@ export class Tr2ConstantBufferAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Create__Size(size, renderContext)
   {
     return this.Create(size, Tr2ConstantUsageAL.REUSABLE, null, renderContext);
@@ -112,7 +111,6 @@ export class Tr2ConstantBufferAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(size, usage, initialData, renderContext)
   {
     this.Destroy();
@@ -134,7 +132,6 @@ export class Tr2ConstantBufferAL
    * @param {object} renderContext The context to lock against.
    * @returns {{result: number, data: Uint8Array|null}} The locked memory.
    */
-  @meta.adapted
   Lock(renderContext)
   {
     return this._buffer.implementation.Lock(renderContext);
@@ -147,7 +144,6 @@ export class Tr2ConstantBufferAL
    * @param {object} renderContext The context the lock was made against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Unlock(renderContext)
   {
     return this._buffer.implementation.Unlock(renderContext);
@@ -159,7 +155,6 @@ export class Tr2ConstantBufferAL
    * @implemented
    * @returns {boolean} True once created.
    */
-  @meta.implemented
   IsValid()
   {
     return this._buffer.implementation.IsValid();
@@ -171,7 +166,6 @@ export class Tr2ConstantBufferAL
    * @implemented
    * @returns {number} Bytes; zero when uncreated.
    */
-  @meta.implemented
   GetSize()
   {
     return this._buffer.implementation.GetSize();
@@ -183,7 +177,6 @@ export class Tr2ConstantBufferAL
    * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._buffer.implementation.GetMemoryClass();
@@ -197,7 +190,6 @@ export class Tr2ConstantBufferAL
    * @param {Tr2ConstantBufferAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @meta.adapted
   Equals(other)
   {
     return this._buffer === other._buffer;
@@ -211,7 +203,6 @@ export class Tr2ConstantBufferAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -227,7 +218,6 @@ export class Tr2ConstantBufferAL
    * @implemented
    * @returns {object} The implementation.
    */
-  @meta.implemented
   TrinityALImpl_GetObject()
   {
     return this._buffer.implementation;
@@ -249,5 +239,4 @@ export class Tr2ConstantBufferAL
 }
 
 CjsSchema.decorateField(Tr2ConstantBufferAL, "_buffer", type.unknown);
-CjsSchema.decorateMethod(Tr2ConstantBufferAL, "Equals", meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2ConstantBufferAL")(Tr2ConstantBufferAL);

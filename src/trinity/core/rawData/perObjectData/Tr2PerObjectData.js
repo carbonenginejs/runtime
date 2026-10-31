@@ -45,7 +45,6 @@ export class Tr2PerObjectData
    *
    * @implemented
    */
-  @meta.implemented
   SetUserData(value)
   {
     this.userData = value >>> 0;
@@ -56,7 +55,6 @@ export class Tr2PerObjectData
    *
    * @implemented
    */
-  @meta.implemented
   GetUserData()
   {
     return this.userData;
@@ -67,7 +65,6 @@ export class Tr2PerObjectData
    *
    * @adapted
    */
-  @meta.adapted
   SetPickingPointer(pickingPointer)
   {
     if (typeof pickingPointer !== "bigint") throw new TypeError("Picking pointers require a BigInt.");
@@ -79,7 +76,6 @@ export class Tr2PerObjectData
    *
    * @adapted
    */
-  @meta.adapted
   GetPickingPointer()
   {
     return this.pickingPointer;
@@ -120,7 +116,6 @@ export class Tr2PerObjectData
    * @implemented
    * @returns {number} How many payloads were uploaded; none, at this level.
    */
-  @meta.implemented
   SetPerObjectDataToDevice()
   {
     return 0;
@@ -137,7 +132,6 @@ export class Tr2PerObjectData
    *
    * @notImplemented
    */
-  @meta.notImplemented
   ApplyConstantBuffers()
   {
     throw new Error("Tr2PerObjectData.ApplyConstantBuffers: indirect draw is unported.");

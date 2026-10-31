@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodRandomParameter (eve/child/procedural/selection) - generated from schema shapeHash 8b32e583.... */
@@ -44,7 +44,6 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (!this.child)
@@ -63,7 +62,6 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "weighting"))
@@ -89,7 +87,6 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -101,7 +98,6 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -113,7 +109,6 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetModified(isModified)
   {
     this._modified = !!isModified;
@@ -125,7 +120,6 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsModified()
   {
     return this._modified;
@@ -137,7 +131,6 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetWeighting()
   {
     return this.weighting;
@@ -149,7 +142,6 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetChild()
   {
     return this.child;
@@ -162,7 +154,6 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Load()
   {
     this.child?.Reload(true);

@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2PipelineStatsQueryALStub.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../../ALResult.js";
@@ -177,17 +177,4 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 // States against stub/Tr2PipelineStatsQueryALStub.cpp:9-70 and .h:35-38. GetStats is adapted: the Tr2PipelineStatsDataAL& comes back with the result as { result, data }. GetValueCount, GetLabel, GetDescription and GetValue are adapted: they read the data array (empty from the stub), where Carbon's stub returns 0 and empty strings without looking.
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Create", meta.implemented);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Begin", meta.implemented);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "End", meta.implemented);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetStats", meta.adapted);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetValueCount", meta.adapted);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetLabel", meta.adapted);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetDescription", meta.adapted);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetValue", meta.adapted);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2PipelineStatsQueryALStub")(Tr2PipelineStatsQueryALStub);

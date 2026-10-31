@@ -66,7 +66,6 @@ export class EveInstancedMeshManagerMeshKey
    * @param {EveInstancedMeshManagerMeshKey} other
    * @returns {boolean}
    */
-  @meta.renamed("operator==")
   Equals(other)
   {
     return this.geometry === other.geometry &&

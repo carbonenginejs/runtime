@@ -9,7 +9,7 @@ import { IsMatch, INotify, IInitialize, blue, CjsBlueClasses } from "#blue";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
 
 
@@ -114,7 +114,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._locator = this.GetLocator();
@@ -130,7 +129,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   OnModified(propertyName = null)
   {
     if (IsMatch(propertyName, "object") || IsMatch(propertyName, "offsetLocatorName"))
@@ -146,7 +144,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @implemented
    */
 
-  @meta.implemented
   GetTime()
   {
     return this.time;
@@ -158,7 +155,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @implemented
    */
 
-  @meta.implemented
   GetInterpolationType()
   {
     return this.interpolation;
@@ -171,7 +167,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @adapted
    */
 
-  @meta.adapted
   GetLeftTangent(out)
   {
     return vec3.copy(out, this.rotatedLeftTangent);
@@ -184,7 +179,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @adapted
    */
 
-  @meta.adapted
   GetRightTangent(out)
   {
     return vec3.copy(out, this.rotatedRightTangent);
@@ -198,7 +192,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @adapted
    */
 
-  @meta.adapted
   GetValue(out)
   {
     if (!this.object)
@@ -245,7 +238,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @adapted
    */
 
-  @meta.adapted
   GetLocator()
   {
     const object = this.object;
@@ -274,7 +266,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @param {Float32Array} out Destination matrix.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   _GetLocatorRotation(out)
   {
     if (this._locator)
@@ -294,7 +285,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @param {Float32Array} out Destination matrix.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   _GetModelRotation(out)
   {
     if (this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)

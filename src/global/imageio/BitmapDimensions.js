@@ -22,7 +22,7 @@
 // are the `create__` static factories, each built as Carbon's initializer list
 // builds it.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import {
   PixelFormat,
   TextureType,
@@ -424,23 +424,6 @@ export class BitmapDimensions
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
-CjsSchema.decorateMethod(BitmapDimensions, "GetWidth", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetHeight", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetDepth", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetFormat", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetType", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetArraySize", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipCount", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetTrueMipCount", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "IsCompressed", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "HasMipmap", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipWidth", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipHeight", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipDepth", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipPitch", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipSize", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipNumRows", meta.implemented);
-CjsSchema.decorateMethod(BitmapDimensions, "Destroy", meta.implemented);
 CjsSchema.blue.define(BitmapDimensions, {
   className: "BitmapDimensions",
   aliases: [ "Tr2BitmapDimensions" ]

@@ -4,7 +4,7 @@ import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/StretchAudio.json.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { IStretchAudio } from "../trinityAudioApi/IStretchAudio.js";
 import { AudEmitter } from "./AudEmitter.js";
@@ -75,7 +75,6 @@ export class StretchAudio extends IStretchAudio
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (!this.sourceEmitter)
@@ -102,7 +101,6 @@ export class StretchAudio extends IStretchAudio
    * @implemented
    */
 
-  @meta.implemented
   Start()
   {
     this.sourceEmitter?.SendEvent(this.outburstEvent);
@@ -123,7 +121,6 @@ export class StretchAudio extends IStretchAudio
    * @implemented
    */
 
-  @meta.implemented
   Stop()
   {
     this.sourceEmitter?.StopAll();
@@ -137,7 +134,6 @@ export class StretchAudio extends IStretchAudio
    * @implemented
    */
 
-  @meta.implemented
   Update(sourcePosition, destPosition)
   {
     if (!AudGameObjResource.manager?.enabled)
@@ -209,7 +205,6 @@ export class StretchAudio extends IStretchAudio
    * @implemented
    */
 
-  @meta.implemented
   ProjectListenerOntoSegment(sourcePosition, destPosition)
   {
     if (!this._listener)
@@ -243,7 +238,6 @@ export class StretchAudio extends IStretchAudio
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetShotMissed(missed)
   {
     this._shotMissed = !!missed;
@@ -255,7 +249,6 @@ export class StretchAudio extends IStretchAudio
    * @implemented
    */
 
-  @meta.implemented
   FindEmitterByName(name)
   {
     for (const emitter of [this.sourceEmitter, this.destinationEmitter, this.stretchEmitter])
@@ -277,7 +270,6 @@ export class StretchAudio extends IStretchAudio
    * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
-  @meta.implemented
   GetDebugOptions(options)
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
@@ -295,7 +287,6 @@ export class StretchAudio extends IStretchAudio
    * @implemented
    * @param {object} renderer The ITr2DebugRenderer2 to draw with.
    */
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])

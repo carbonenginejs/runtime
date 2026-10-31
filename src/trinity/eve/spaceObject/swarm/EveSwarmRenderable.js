@@ -5,7 +5,7 @@ import { ITr2Pickable } from "../../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { mat4 } from "#math/mat4";
@@ -66,7 +66,6 @@ export class EveSwarmRenderable extends EveEntity
    * @param {EveSwarm|null} owner - the owning swarm; also this renderable's pick ID
    * @param {Tr2MeshBase|null} mesh - the shared fighter mesh
    */
-  @meta.implemented
 
   InitializeRenderable(owner, mesh)
   {
@@ -81,7 +80,6 @@ export class EveSwarmRenderable extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
 
   SetWorldTransform(transform)
   {
@@ -98,7 +96,6 @@ export class EveSwarmRenderable extends EveEntity
    * @implemented
    * @returns {Float32Array} the live logical transform, not a copy
    */
-  @meta.implemented
 
   GetWorldTransform()
   {
@@ -110,7 +107,6 @@ export class EveSwarmRenderable extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
 
   SetBoosterIntensity(intensity)
   {
@@ -127,7 +123,6 @@ export class EveSwarmRenderable extends EveEntity
    * @param {RawData} vsData - the owner EveSpaceObjectVSData record
    * @param {RawData} psData - the owner EveSpaceObjectPSData record
    */
-  @meta.implemented
 
   SetShaderData(vsData, psData)
   {
@@ -160,7 +155,6 @@ export class EveSwarmRenderable extends EveEntity
    * @implemented
    * @param {EveSpaceObjectDecal[]} decals - the owner's authored decals
    */
-  @meta.implemented
 
   InitDecals(decals)
   {
@@ -179,7 +173,6 @@ export class EveSwarmRenderable extends EveEntity
    * @param {ITr2Renderable[]} renderables - the frame's renderable list
    * @param {number} screensize - the owner's mesh screen size
    */
-  @meta.implemented
 
   PushDecals(renderables, screensize)
   {
@@ -202,7 +195,6 @@ export class EveSwarmRenderable extends EveEntity
    * @param {IEveSpaceObject2ParentData} pd - the owner's parent data; its transform is overwritten
    * @param {Tr2GrannyAnimation|null} animationUpdater - the owner's animation
    */
-  @meta.implemented
 
   UpdateDecalVisibility(updateContext, pd, animationUpdater)
   {
@@ -229,7 +221,6 @@ export class EveSwarmRenderable extends EveEntity
    * @param {number} pickTypes - Tr2PickType bits
    * @param {Tr2PerObjectData} perObjectData - this fighter's per-object data
    */
-  @meta.implemented
 
   GetPickingBatches(batches, pickTypes, perObjectData)
   {
@@ -254,7 +245,6 @@ export class EveSwarmRenderable extends EveEntity
    * @implemented
    * @returns {Object} the owner, or null before InitializeRenderable
    */
-  @meta.implemented
 
   GetID()
   {
@@ -268,7 +258,6 @@ export class EveSwarmRenderable extends EveEntity
    * @param {String} name - option name
    * @param {String|Number} value - option value
    */
-  @meta.adapted
 
   SetShaderOption(name, value)
   {
@@ -287,7 +276,6 @@ export class EveSwarmRenderable extends EveEntity
    *   GetSortedBatchesFromMeshAreaVector. Returns whether a batch was committed.
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (!this.mesh)
@@ -350,7 +338,6 @@ export class EveSwarmRenderable extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return this.mesh !== null
@@ -363,7 +350,6 @@ export class EveSwarmRenderable extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const viewPosition = Tr2Renderer.GetViewPosition();
@@ -380,7 +366,6 @@ export class EveSwarmRenderable extends EveEntity
    *
    * @adapted Carbon's RegisterComponent<IEveShadowCaster> template becomes the registry's explicit component type.
    */
-  @meta.adapted
 
   RegisterComponents()
   {
@@ -404,7 +389,6 @@ export class EveSwarmRenderable extends EveEntity
    *
    * @adapted Carbon's float& out-param becomes the optional trailing length-1 array; which paths write it is kept.
    */
-  @meta.adapted
 
   IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
@@ -454,7 +438,6 @@ export class EveSwarmRenderable extends EveEntity
    * @adapted the geometry IsGood and GetMeshLod steps (cpp:276-286) run inside Tr2MeshBase.GetBatches rather than
    *   here, as for EveChildMesh. Returns whether any batch was committed; Carbon returns void.
    */
-  @meta.adapted
 
   GetShadowBatches(batches, perObjectData, shadowPixelSize)
   {
@@ -472,7 +455,6 @@ export class EveSwarmRenderable extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
 
   GetPerObjectData(_accumulator = null)
   {
@@ -488,7 +470,6 @@ export class EveSwarmRenderable extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
 
   GetShadowPerObjectData(accumulator = null)
   {

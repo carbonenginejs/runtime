@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPresentSwapChain.h
 // Source: trinity/trinity/RenderJob/TriStepPresentSwapChain.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -25,7 +25,6 @@ export class TriStepPresentSwapChain extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(swapChain = null)
   {
     this.swapChain = swapChain ?? null;
@@ -41,7 +40,6 @@ export class TriStepPresentSwapChain extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (this.swapChain) this.swapChain.Present(renderContext);

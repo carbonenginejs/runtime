@@ -9,7 +9,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { num } from "#math/num";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
@@ -107,7 +107,6 @@ export class EveTacticalOverlay
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._SetVariableStore(this.anchorEffect);
@@ -122,7 +121,6 @@ export class EveTacticalOverlay
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "anchorEffect")) this._SetVariableStore(this.anchorEffect);
@@ -138,7 +136,6 @@ export class EveTacticalOverlay
    *   time-first, out-last JavaScript contract.
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext)
   {
     if (this.translationCurve)
@@ -160,7 +157,6 @@ export class EveTacticalOverlay
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(_updateContext)
   {
   }
@@ -172,7 +168,6 @@ export class EveTacticalOverlay
    *   number buffers consumed by Tr2QuadRenderer.
    */
 
-  @meta.adapted
   UpdateVisibility(updateContext, _parentTransform)
   {
     this._anchorBuffer.length = 0;
@@ -329,7 +324,6 @@ export class EveTacticalOverlay
    *
    * @adapted
    */
-  @meta.adapted
 
   GetRenderables__Impostors(_renderables, _impostors)
   {
@@ -341,7 +335,6 @@ export class EveTacticalOverlay
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(_sphere, _query)
   {
     return false;
@@ -353,7 +346,6 @@ export class EveTacticalOverlay
    * @implemented
    */
 
-  @meta.implemented
   UpdateModelCenterWorldPosition(out, _time)
   {
     vec3.set(out, 0, 0, 0);
@@ -365,7 +357,6 @@ export class EveTacticalOverlay
    * @implemented
    */
 
-  @meta.implemented
   GetModelCenterWorldPosition(out)
   {
     vec3.set(out, 0, 0, 0);
@@ -377,7 +368,6 @@ export class EveTacticalOverlay
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
     return false;
@@ -389,7 +379,6 @@ export class EveTacticalOverlay
    * @implemented
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     mat4.identity(out);
@@ -402,7 +391,6 @@ export class EveTacticalOverlay
    *   combines it with a stable WeakMap identity.
    */
 
-  @meta.adapted
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.connectorEffect)
@@ -449,7 +437,6 @@ export class EveTacticalOverlay
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (!this._connectorEffectKey || !this._anchorEffectKey || !this._velocityEffectKey) return;

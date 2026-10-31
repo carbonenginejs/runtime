@@ -3,7 +3,7 @@ import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.h
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler_Blue.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { BlueList, blue, CjsBlueClasses } from "#blue";
 import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -65,7 +65,6 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @returns {void}
    */
 
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.actions)
   {
     if (list !== this.actions)
@@ -98,7 +97,6 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @returns {void}
    */
 
-  @meta.implemented
   Link(controller)
   {
     this.Unlink();
@@ -120,7 +118,6 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @returns {void}
    */
 
-  @meta.implemented
   Unlink()
   {
     if (!this._controller)
@@ -140,7 +137,6 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @returns {string} Name compared with incoming controller event names.
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -158,7 +154,6 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @returns {void}
    */
 
-  @meta.implemented
   Execute(controller)
   {
     for (const action of this.actions)

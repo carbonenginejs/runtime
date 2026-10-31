@@ -550,7 +550,7 @@ function assertCarbonMethod(ctor, methodName, status)
   const schema = CjsSchema.getSchema(ctor);
   assertEquals(Boolean(schema.blue || schema.carbon), true, `${ctor.name} must declare its Carbon origin`);
   assertEquals(method?.carbon?.cjs, undefined, `${ctor.name}.${methodName} must remain a native method`);
-  assertEquals(method?.impl?.status, status, `${ctor.name}.${methodName} should have impl status ${status}`);
+  assertEquals(MarkerTag(CjsSchema.getClassName(ctor), methodName), status, `${ctor.name}.${methodName} should be tagged @${status}`);
 }
 test("expression curves expose Carbon term metadata and current-time inputs", () =>
 {

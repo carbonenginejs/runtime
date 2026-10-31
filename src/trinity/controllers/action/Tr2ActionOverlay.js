@@ -5,7 +5,7 @@ import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { blue, CjsBlueClasses } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -92,7 +92,6 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    *   owner is rebound once it settles.
    */
 
-  @meta.adapted
   Start(controller)
   {
     const controllerOwner = controller.GetOwner();
@@ -117,7 +116,6 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * @adapted also discards a load still in flight.
    */
 
-  @meta.adapted
   Stop(controller)
   {
     this._loadRequest++;
@@ -142,7 +140,6 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * @returns {Promise<void>|null} The pending load, or null when none started.
    */
 
-  @meta.adapted
   LoadOverlay(owner)
   {
     this._overlay = null;

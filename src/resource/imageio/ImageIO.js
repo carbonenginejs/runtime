@@ -2,7 +2,7 @@
 // Source: imageio/Tr2ImageHandler.cpp
 // A namespace of free functions becomes a class of statics, camelCase.
 import { ImageIOResult } from "#imageio";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 
 const Code = ImageIOResult.Code;
 
@@ -170,11 +170,4 @@ export class ImageIO
 
 // Apply the same @meta.adapted metadata without decorator syntax, retaining
 // direct source imports for resource modules and their consumers.
-meta.adapted(ImageIO, "registerImageHandler");
-meta.implemented(ImageIO, "getExtension");
-meta.adapted(ImageIO, "getImageHandler");
-meta.adapted(ImageIO, "readImage");
-meta.adapted(ImageIO, "readImageAsync");
-meta.adapted(ImageIO, "isSaveSupported");
-meta.adapted(ImageIO, "saveImage");
 CjsSchema.meta.define("ImageIO")(ImageIO);

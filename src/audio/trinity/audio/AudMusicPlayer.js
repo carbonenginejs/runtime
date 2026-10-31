@@ -1,7 +1,6 @@
 // Source: audio/src/AudMusicPlayer.h + AudMusicPlayer.cpp
 // Hand-owned since 2026-07-19 (behavior port); the generator skips this file.
 import { exposure as be } from "#be";
-import { meta } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
 
 export const MUSIC_GAME_OBJ_ID = 3;
@@ -37,7 +36,6 @@ export class AudMusicPlayer extends AudEmitter
    * @implemented
    */
 
-  @meta.implemented
   HasUsableWorldPosition()
   {
     return false;

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierTransformOffset.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -55,7 +55,6 @@ export class EveDistributionModifierTransformOffset extends IEveDistributionModi
    * @implemented
    */
 
-  @meta.implemented
   AffectsTransform()
   {
     return true;
@@ -68,7 +67,6 @@ export class EveDistributionModifierTransformOffset extends IEveDistributionModi
    * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
    */
 
-  @meta.adapted
   ProcessDistributionModifier(placement, _deltaTime, _params)
   {
     // Carbon (row-vector): initialRotation * additionalRotation - initial first.

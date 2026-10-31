@@ -113,7 +113,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * @adapted Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base through
    *   its shared resolver.
    */
-  @meta.adapted
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -130,7 +129,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * @adapted Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
-  @meta.adapted
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
@@ -141,7 +139,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * @adapted Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
-  @meta.adapted
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -159,7 +156,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * @adapted Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
-  @meta.adapted
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -174,7 +170,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * @adapted Receives the Blue list event, inserted value and owning array explicitly; only
    *   an inserted modifier inherits the current colour set.
    */
-  @meta.adapted
   OnListModified(event, _key, _key2, value, list)
   {
     if (
@@ -196,7 +191,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -208,7 +202,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
@@ -293,7 +286,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(_updateContext, _params)
   {
   }
@@ -304,7 +296,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateAsyncronous__Distribution(updateContext, params, _distribution)
   {
@@ -317,7 +308,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
     return super.UpdateVisibility(updateContext, parentTransform, parentLod);
@@ -329,7 +319,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     return super.GetRenderables(renderables);
@@ -341,7 +330,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * @implemented
    */
 
-  @meta.implemented
   GetNumberOfEntities()
   {
     return this._lastEntityCount;
@@ -354,7 +342,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *   the derived distribution path's explicit deferred-work latch.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RefreshStaticGeometry()
   {
     super.RefreshStaticGeometry();
@@ -369,7 +356,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *   instead of Carbon's native GetMeshData pointer.
    */
 
-  @meta.adapted
   SetMeshColorParameter(meshColor)
   {
     if (!this.shaderParamColorName || !this.display || vec4.exactEquals(this._lastAreaColor, meshColor))

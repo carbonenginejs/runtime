@@ -319,20 +319,19 @@ test("an installed member keeps what the interface declared about it", () =>
   // impl.abstract on its consumer writes "Carbon leaves this unimplemented"
   // onto methods Carbon implements - a false entry in the divergence ledger,
   // and across the controller tower that would have been ~43 classes at once.
-  class IThing { Noopy() {} Pure() {} Reasoned() {} Undeclared() {} }
+  // Only the statuses a decorator still records travel (abstract, notUsed, noop); the others are JSDoc tags on the
+  // interface's source (decorator-upgrade.md § 00). A member with no recorded status is abstract only when its body
+  // is the generated thrower.
+  class IThing { Noopy() {} Pure() {} Undeclared() {} }
   CjsSchema.decorateMethod(IThing, "Noopy", CjsSchema.meta.noop);
   CjsSchema.decorateMethod(IThing, "Pure", CjsSchema.meta.abstract);
-  CjsSchema.decorateMethod(IThing, "Reasoned", CjsSchema.meta.adapted);
 
   class Impl {}
   CjsSchema.blue.inherit(IThing)(Impl, { kind: "class" });
 
   assert.equal(CjsSchema.getMethod(Impl, "Noopy").impl.status, "noop");
   assert.equal(CjsSchema.getMethod(Impl, "Pure").impl.status, "abstract");
-  assert.equal(CjsSchema.getMethod(Impl, "Reasoned").impl.status, "adapted");
-
-  // Only the fallback, for a member the interface said nothing about.
-  assert.equal(CjsSchema.getMethod(Impl, "Undeclared").impl.status, "abstract");
+  assert.equal(CjsSchema.getMethod(Impl, "Undeclared")?.impl?.status, undefined, "an empty body Carbon implements is not abstract");
 });
 
 
@@ -349,5 +348,5 @@ test("a declaration on an ANCESTOR of the named base is carried too", () =>
   CjsSchema.blue.inherit(ILeaf)(Impl, { kind: "class" });
 
   assert.equal(CjsSchema.getMethod(Impl, "FromRoot").impl.status, "noop");
-  assert.equal(CjsSchema.getMethod(Impl, "Own").impl.status, "abstract");
+  assert.equal(CjsSchema.getMethod(Impl, "Own")?.impl?.status, undefined, "a real body is not abstract");
 });

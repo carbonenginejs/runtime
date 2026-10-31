@@ -9,7 +9,7 @@
 // records: WebGPU orders a later `writeBuffer` after every earlier submit, so
 // a region whose frame has been submitted can be rewritten safely. That is
 // what `Tr2DynamicRingBuffer` asks a fence.
-import { CjsSchema, type, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -166,13 +166,4 @@ CjsSchema.decorateField(CjsWebgpuFenceAL, "_name", type.string);
 CjsSchema.decorateField(CjsWebgpuFenceAL, "_isValid", type.boolean);
 CjsSchema.decorateField(CjsWebgpuFenceAL, "_hasBeenPut", type.boolean);
 // Donor: metal/Tr2FenceALMetal.mm (frame-number fence; Wait is E_FAIL there too). IsReached is adapted: the bool& comes back with the result as { result, isReached }. Describe is adapted: it also returns the description.
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Create", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "PutFence", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "IsReached", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Wait", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Describe", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "SetName", meta.implemented);
 CjsSchema.meta.define("CjsWebgpuFenceAL")(CjsWebgpuFenceAL);

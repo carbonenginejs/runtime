@@ -6,7 +6,7 @@ import { IsMatch, CcpTime } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/EveCamera.cpp
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { fromYawPitchRollCarbon, quat } from "#math/quat";
 import { mat4 } from "#math/mat4";
@@ -405,7 +405,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   static CalculateProjectionMatrix(
     out,
     aspectRatio,
@@ -446,7 +445,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   static CalculateFovFromProjection(transform)
   {
     const aspectRatio = transform[0] ? transform[5] / transform[0] : 0;
@@ -462,7 +460,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   static ModifyClipPlanes(original, nearClip, farClip, out)
   {
     const aspectRatio = original[0] ? original[5] / original[0] : 0;
@@ -486,7 +483,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   static AddCenterOffset(original, xOffset, yOffset, nearClip, farClip, out)
   {
     const aspectRatio = original[0] ? original[5] / original[0] : 0;
@@ -509,7 +505,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetViewMatrix()
   {
     return this.viewMatrix;
@@ -522,7 +517,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProjection()
   {
     return this.projectionMatrix;
@@ -535,7 +529,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPosition()
   {
     return this.pos;
@@ -547,7 +540,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Dolly(factor)
   {
     this.translationFromParent += factor;
@@ -559,7 +551,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   OrbitParent(horizontal, vertical)
   {
     const oldYaw = this._yawSpeed;
@@ -595,7 +586,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RotateOnOrbit(horizontal, vertical)
   {
     const oldYaw = this._yawIntSpeed;
@@ -640,7 +630,6 @@ export class EveCamera extends IRoot
    * @throws {RangeError} When the selected key is negative.
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   Zoom(key = -1)
   {
     const curve = CjsSchema.cast(this.zoomCurve, Tr2CurveScalar);
@@ -686,7 +675,6 @@ export class EveCamera extends IRoot
    *   native distance floor.
    */
 
-  @meta.adapted
   Update(time, aspectRatio = 1, realTime = time)
   {
     if (!this.update)
@@ -984,7 +972,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "rotationAroundParent"))
@@ -1012,7 +999,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ResetStartTime()
   {
     this._startTime = 0;
@@ -1024,7 +1010,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetOrbit(yaw, pitch)
   {
     this.yaw = yaw;
@@ -1041,7 +1026,6 @@ export class EveCamera extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetRotationOnOrbit(yaw, pitch)
   {
     this._yawInt = yaw;

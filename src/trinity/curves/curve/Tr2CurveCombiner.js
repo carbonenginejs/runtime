@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveCombiner.cpp
 import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction, ITriCurveLength, BlueList, blue, CjsBlueClasses } from "#blue";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 
 
 /**
@@ -58,7 +58,6 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     const sum = vec3.alloc();
@@ -96,7 +95,6 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   Update__Ticks(time, out)
   {
     const sum = vec3.alloc();
@@ -134,7 +132,6 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @returns {number} Duration in seconds.
    */
 
-  @meta.adapted
   Length()
   {
     let maxLength = 0;
@@ -157,7 +154,6 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -173,7 +169,6 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.UpdateValue(time);
@@ -190,7 +185,6 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
   @legacyBlue.method
-  @meta.adapted
   GetValueAt(time, out)
   {
     vec3.zero(out);
@@ -211,7 +205,6 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @returns {Float32Array} The unchanged destination.
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -226,7 +219,6 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @returns {Float32Array} The unchanged destination.
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -241,7 +233,6 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @returns {Float32Array|Float64Array} The unchanged destination.
    */
 
-  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;

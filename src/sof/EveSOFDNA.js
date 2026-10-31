@@ -3,7 +3,7 @@ import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 import { EveSOFDataHull } from "./hull/EveSOFDataHull.js";
@@ -107,7 +107,6 @@ export class EveSOFDNA extends IRoot
    * @param {EveSOFDataMgr} dataMgr
    */
 
-  @meta.implemented
   Setup(dnaString, dataMgr)
   {
     this._setupFromString(String(dnaString ?? ""), dataMgr);
@@ -125,7 +124,6 @@ export class EveSOFDNA extends IRoot
    * @param {EveSOFDNA|null} parent
    * @param {EveSOFDataMgr} dataMgr
    */
-  @meta.implemented
   Setup__Descriptor(layoutName, descriptor, parent, dataMgr)
   {
     this._setupFromDescriptor(String(layoutName ?? ""), descriptor, parent, dataMgr);
@@ -137,7 +135,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsValid()
   {
     return this.hullDatas.length > 0 && this.factionData !== null && this.raceData !== null;
@@ -155,7 +152,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ValidateContent()
   {
     if (!this.IsValid() || this._parseError) return false;
@@ -211,7 +207,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDnaString()
   {
     return this.dna;
@@ -223,7 +218,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMultiHullCount()
   {
     return this.hullDatas.length;
@@ -235,7 +229,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullNames()
   {
     return this.hullNames;
@@ -248,7 +241,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBuildClass()
   {
     const args = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_CLASS);
@@ -267,7 +259,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullGeometryResPath()
   {
     if (this.hullDatas.length === 0) return "";
@@ -292,7 +283,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullMeshAreas(batchType, hullIndex = 0)
   {
     const hull = this.hullDatas[hullIndex];
@@ -315,7 +305,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullDecalSets(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.hullDecalSets ?? [];
@@ -328,7 +317,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullLightSets(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.hullLightSets ?? [];
@@ -341,7 +329,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullSpriteSets(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.spriteSets ?? [];
@@ -354,7 +341,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullSpotlightSets(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.spotlightSets ?? [];
@@ -367,7 +353,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetFactionSpotlightSetData(groupIndex)
   {
     if (Number(groupIndex) === -1) return null;
@@ -381,7 +366,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullPlaneSets(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.planeSets ?? [];
@@ -394,7 +378,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetFactionPlaneSetData(groupIndex)
   {
     if (Number(groupIndex) === -1) return null;
@@ -408,7 +391,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullSpriteLineSets(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.spriteLineSets ?? [];
@@ -421,7 +403,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullHazeSets(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.hazeSets ?? [];
@@ -434,7 +415,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullBanners(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.banners ?? [];
@@ -447,7 +427,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullBannerSets(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.bannerSets ?? [];
@@ -459,7 +438,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullChildren()
   {
     return this.hullDatas[0]?.children ?? [];
@@ -471,7 +449,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullChildSets()
   {
     return this.hullDatas[0]?.childSets ?? [];
@@ -483,7 +460,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullInstancedMeshes()
   {
     return this.hullDatas[0]?.instancedMeshes ?? [];
@@ -495,7 +471,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullAnimations()
   {
     return this.hullDatas[0]?.animations ?? [];
@@ -508,7 +483,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullSoundEmitters()
   {
     return this.hullDatas[0]?.soundEmitters ?? [];
@@ -521,7 +495,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullControllers()
   {
     return this.hullDatas[0]?.controllers ?? [];
@@ -533,7 +506,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetModelRotationCurvePath()
   {
     return this.hullDatas[0]?.modelRotationCurvePath || null;
@@ -545,7 +517,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetModelTranslationCurvePath()
   {
     return this.hullDatas[0]?.modelTranslationCurvePath || null;
@@ -557,7 +528,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetFactionChildData(groupIndex)
   {
     const index = Number(groupIndex);
@@ -571,7 +541,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetGenericBannerShaderData()
   {
     return this.genericData?.bannerShader ?? null;
@@ -583,7 +552,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDecalMinScreenSize(usage)
   {
     return this.genericData?.decalMinScreenSize?.[Number(usage)];
@@ -596,7 +564,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHighestMeshAreaIndex(batchType, hullIndex = 0)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_OPAQUE) return 0;
@@ -615,7 +582,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullTurretLocators(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.locatorTurrets ?? [];
@@ -627,7 +593,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullLocatorSetNames(hullIndex = 0)
   {
     const locatorSets = this.hullDatas[hullIndex]?.locatorSets;
@@ -641,7 +606,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullLocators(setName, hullIndex = 0)
   {
     const locatorSets = this.hullDatas[hullIndex]?.locatorSets;
@@ -655,7 +619,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPlacementLocators(hullIndex, locatorSetName)
   {
     return this.GetHullLocators(locatorSetName, hullIndex);
@@ -667,7 +630,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLayoutCount()
   {
     return this.layoutData.length;
@@ -679,7 +641,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLayoutData(index)
   {
     return this.layoutData[Number(index)] ?? null;
@@ -692,7 +653,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLocatorCount(setName)
   {
     let count = 0;
@@ -710,7 +670,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullNextSubsystemOffset(hullIndex = 0)
   {
     return this.GetHullLocators("next_subsystem", hullIndex)?.[0]?.position ?? null;
@@ -723,7 +682,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullAudioPosition(hullIndex = 0)
   {
     if (hullIndex + 1 !== this.hullDatas.length) return null;
@@ -737,7 +695,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetAreaShaderLocationResPath()
   {
     return this.genericData?.areaShaderLocation ?? "";
@@ -750,7 +707,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDecalShaderLocationResPath()
   {
     return this.genericData?.decalShaderLocation ?? "";
@@ -762,7 +718,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDecalShader()
   {
     return 0;
@@ -774,7 +729,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsHullUsingDecalSets()
   {
     return this.hullDatas[0]?.isUsingDecalSets === true;
@@ -787,7 +741,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetShaderPrefix(isAnimated)
   {
     return isAnimated ? this.genericData?.shaderPrefixAnimated ?? "" : this.genericData?.shaderPrefix ?? "";
@@ -800,7 +753,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetCompleteShaderPath(path)
   {
     // Carbon's StringInsertStubAfter inserts after the LAST slash, including
@@ -817,7 +769,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetGenericAreaShaderData(shaderName)
   {
     return this.genericData?.areaShaderData?.get(String(shaderName)) ?? null;
@@ -830,7 +781,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetGenericDecalShaderData(shaderName)
   {
     return this.genericData?.decalShaderData?.get(String(shaderName)) ?? null;
@@ -842,7 +792,6 @@ export class EveSOFDNA extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetHullTextureWithMeshIndex(textureName, meshIndex, hullIndex = 0, resourceExists = null, cache = null)
   {
     const hull = this.hullDatas[hullIndex];
@@ -859,7 +808,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetGenericDamageData()
   {
     return this.genericData?.damage ?? null;
@@ -871,7 +819,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetGenericHullDamageData()
   {
     return this.genericData?.hullDamage ?? null;
@@ -883,7 +830,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetGenericSwarmProperties()
   {
     return this.genericData?.swarmBehavior ?? null;
@@ -895,7 +841,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRaceDamageData()
   {
     return this.raceData?.damage ?? null;
@@ -907,7 +852,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRaceBoosterData()
   {
     return this.raceData?.boosters ?? null;
@@ -919,7 +863,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullBoosterData(hullIndex = 0)
   {
     return this.hullDatas[hullIndex]?.boosters ?? null;
@@ -932,7 +875,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullBoosterCount()
   {
     return this.hullDatas.reduce(
@@ -948,7 +890,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetImpactEffectType()
   {
     return Number(this.hullDatas[0]?.impactEffectType ?? EveSOFDataHull.ImpactEffectType.IMPACTEFFECT_NONE);
@@ -961,7 +902,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetImpactShieldShader()
   {
     const damage = this.GetGenericDamageData();
@@ -980,7 +920,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ModifyTextureResPath(resourcePath, resourceExists = null, cache = null)
   {
     let insert = this.factionData?.resPathInsert || null;
@@ -1007,7 +946,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetColorSet()
   {
     return this.factionData?.colorData?.colors ?? [];
@@ -1020,7 +958,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLogo(index)
   {
     return this.factionData?.logoSetData?.logos?.[Number(index)] ?? null;
@@ -1033,7 +970,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasLogoSet(index)
   {
     return (this.GetLogo(index)?.textures?.size ?? 0) > 0;
@@ -1046,7 +982,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsInVisibilityData(hash)
   {
     return this.factionData?.visibilityData?.has(Number(hash) >>> 0) === true;
@@ -1058,7 +993,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMeshAreaParameter(areaType, parameterName, hullParameters = null, blockedMaterials = 0)
   {
     let info;
@@ -1134,7 +1068,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetFactionTurretParameters(parameterName)
   {
     const info = new EveSOFUtilsParameterName(
@@ -1162,7 +1095,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPatternLayerCount()
   {
     if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_PATTERN) && !this.patternData) return 0;
@@ -1184,7 +1116,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetFactionalPatternApplicationData()
   {
     const pattern = this.dataMgr.GetPatternData(this.factionData?.defaultPatternName ?? "");
@@ -1198,7 +1129,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullPatternApplicationData()
   {
     if (!this.patternData) return null;
@@ -1215,7 +1145,6 @@ export class EveSOFDNA extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetPatternApplicationData()
   {
     if (!this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_PATTERN))
@@ -1235,7 +1164,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPatternProjectionData(application, layer)
   {
     if (!application || !Number.isInteger(layer) || layer < 0) return null;
@@ -1250,7 +1178,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPatternLayerData(application, layer)
   {
     if (!application || !Number.isInteger(layer) || layer < 0) return null;
@@ -1265,7 +1192,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMaterialTargets(layerData)
   {
     return layerData?.materialTargets?.slice() ?? null;
@@ -1278,7 +1204,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsPatternLayerApplicableToArea(layerData, areaType)
   {
     return layerData?.applicableAreas?.get(Number(areaType)) === true;
@@ -1291,7 +1216,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetReflectionMode()
   {
     const category = this.hullDatas[0]?.category ?? "";
@@ -1315,7 +1239,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullBoundingSphere()
   {
     let result = null;
@@ -1350,7 +1273,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullShapeEllipsoid()
   {
     const hull = this.hullDatas[0];
@@ -1368,7 +1290,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetParentBoundingSphere()
   {
     return EveSOFDNA._CopySphere(this.parentBoundingSphere);
@@ -1380,7 +1301,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetParentHullShapeEllipsoid()
   {
     return this.parentHullShapeEllipsoid;
@@ -1393,7 +1313,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetParentBoundingSphere(boundingSphere)
   {
     this.parentBoundingSphere = EveSOFDNA._CopySphere(boundingSphere);
@@ -1406,7 +1325,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetParentShapeEllipsoidInfo(ellipsoid)
   {
     this.parentHullShapeEllipsoid = EveSOFDNA._CopyEllipsoid(ellipsoid);
@@ -1441,7 +1359,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsHullAnimated()
   {
     return this.isSkinned;
@@ -1454,7 +1371,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   DisableAnimation()
   {
     this.isSkinned = false;
@@ -1467,7 +1383,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   DynamicBoundingSphereEnabled()
   {
     return this.hullDatas.length > 1 || this.hullDatas[0]?.enableDynamicBoundingSphere === true;
@@ -1479,7 +1394,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   CastShadow()
   {
     // EveSOFDataHull defaults m_castShadow to true (EveSOFData.cpp:347), and a
@@ -1494,7 +1408,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasDnaCommand(command)
   {
     const name = commandName(command);
@@ -1508,7 +1421,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDnaCommandArgs(command)
   {
     const name = commandName(command);
@@ -1522,7 +1434,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UsingSof6()
   {
     return this.hullDatas.length > 0 && this.hullDatas[0].sof6 === true;
@@ -1534,7 +1445,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetFactionName()
   {
     return this.factionName;
@@ -1546,7 +1456,6 @@ export class EveSOFDNA extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRaceName()
   {
     return this.raceName;

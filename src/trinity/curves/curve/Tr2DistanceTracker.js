@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2DistanceTracker_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { blue, ITriFunction, INotify, CcpTime } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 
 
 /**
@@ -122,7 +122,6 @@ export class Tr2DistanceTracker extends ITriFunction
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateValue(time)
   {
     if (this.sourceObject)
@@ -161,7 +160,6 @@ export class Tr2DistanceTracker extends ITriFunction
    * @returns {boolean} True after updating the stored value.
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this.UpdateValue(CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()));

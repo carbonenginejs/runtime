@@ -6,7 +6,7 @@ import { copyArrayLike } from "#utils";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { exposure as be } from "#be";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 
 
 /**
@@ -58,7 +58,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateValue(_time)
   {
   }
@@ -72,7 +71,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     if (out === undefined)
@@ -92,7 +90,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
 
-  @meta.adapted
   GetValueAt(time, out)
   {
     if (out === undefined)
@@ -113,7 +110,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @meta.adapted
   Update__Ticks(time, out)
   {
     return this.Update(CcpTime.timeAsDouble(time), out);
@@ -127,7 +123,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @meta.adapted
   GetValueAt__Ticks(time, out)
   {
     return this.GetValueAt(CcpTime.timeAsDouble(time), out);
@@ -141,7 +136,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @returns {void}
    */
 
-  @meta.adapted
   ScaleTime(_scale)
   {
   }
@@ -155,7 +149,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.implemented
   GetValueDotAt(_time, out)
   {
     return Tr2CurveConstant._setDerivative(out);
@@ -170,7 +163,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
     return Tr2CurveConstant._setDerivative(out);
@@ -185,7 +177,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return vec3.copy(out, this.value);

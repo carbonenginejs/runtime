@@ -3,7 +3,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 // Source: trinity/trinity/Eve/EveComponentRegistry.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { EveComponentCollection } from "./EveComponentCollection.js";
 import { EveComponentRequiredMethods, EveComponentType } from "../../EntityComponents.js";
 import { ITr2FroxelFogSettings } from "../../child/ITr2FroxelFogSettings.js";
@@ -35,7 +35,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Clear()
   {
     for (const collection of this.#componentCollections)
@@ -66,7 +65,6 @@ export class EveComponentRegistry extends IRoot
    * @param {string} componentName The component type's registered name.
    */
 
-  @meta.adapted
   Clear__Component(componentName)
   {
     const collection = this.GetComponentCollection(componentName);
@@ -88,7 +86,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ReRegister(entity)
   {
     entity.UnRegister(this);
@@ -102,7 +99,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Register(entity)
   {
     if (entity.indexInRegistry !== -1)
@@ -123,7 +119,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UnRegister(entity)
   {
     const index = entity.indexInRegistry;
@@ -151,7 +146,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterAllComponents(entity)
   {
     for (const collection of this.#componentCollections)
@@ -167,7 +161,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetComponentCollection(componentName)
   {
     return this.#componentCollections.find(collection => collection.name === componentName) ?? null;
@@ -189,7 +182,6 @@ export class EveComponentRegistry extends IRoot
    *   has no C++ template specialization.
    */
 
-  @meta.adapted
   RegisterComponent(componentName, entity)
   {
     if (componentName === EveComponentType.ReflectionRenderable)
@@ -254,7 +246,6 @@ export class EveComponentRegistry extends IRoot
    *   has no C++ template specialization.
    */
 
-  @meta.adapted
   UnRegisterComponent(componentName, entity)
   {
     const collection = this.GetComponentCollection(componentName);
@@ -269,7 +260,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   AddCollection(componentName)
   {
     if (this.#componentCollections.length >= 32)
@@ -291,7 +281,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   AddToCollection(collection, entity)
   {
     if (entity.GetComponentIndex(collection.GetBit()) !== undefined)
@@ -311,7 +300,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RemoveFromCollection(collection, entity)
   {
     const bit = collection.GetBit();
@@ -337,7 +325,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetComponents(componentName)
   {
     return this.GetComponentCollection(componentName)?.collection ?? [];
@@ -350,7 +337,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ComponentCount(componentName)
   {
     return this.GetComponentCollection(componentName)?.Size() ?? 0;
@@ -366,7 +352,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ProcessComponents(componentName, processor)
   {
     const collection = this.GetComponentCollection(componentName);
@@ -384,7 +369,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ProcessComponentsUntil(componentName, processor)
   {
     const collection = this.GetComponentCollection(componentName);
@@ -402,7 +386,6 @@ export class EveComponentRegistry extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RemoveCollectionFromEntityState(collection, entity)
   {
     entity.RemoveComponentState(collection.GetBit());
@@ -414,7 +397,6 @@ export class EveComponentRegistry extends IRoot
    * @adapted Returns Carbon's vector of name/count pairs as JavaScript tuple arrays.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetComponentInfo()
   {
     return this.#componentCollections.map(collection => [collection.name, collection.Size()]);

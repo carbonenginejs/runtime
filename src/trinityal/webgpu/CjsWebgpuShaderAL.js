@@ -29,7 +29,7 @@
 // something real: a program whose state was entirely private has no own
 // enumerable keys, canonicalised to an empty object, and would have collided
 // with every other program in the pipeline cache.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -461,14 +461,4 @@ export class CjsWebgpuShaderAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 // Donor: metal/Tr2ShaderALMetal.mm. Create compiles the WGSL into a GPUShaderModule and refuses a signature that is not this backend's, as Metal refuses its own samplers; the empty-bytecode answer E_OUTOFMEMORY is Metal's/stub's. GetBytecode returns the encoded WGSL source where Metal returns { result, bytecode } and E_INVALIDCALL when empty. Describe writes memoryClass only and SetName does not store the name.
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "Create", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetType", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetBytecode", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetSignature", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "SetNullShaderType", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "Describe", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuShaderAL, "SetName", meta.adapted);
 CjsSchema.meta.define("CjsWebgpuShaderAL")(CjsWebgpuShaderAL);

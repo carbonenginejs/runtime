@@ -22,7 +22,6 @@ export class ITr2StateMachineStateFinalizer extends IRoot
    * @param {object} _controller The owning controller.
    */
 
-  @meta.adapted
   Link(_controller)
   {
   }
@@ -33,7 +32,6 @@ export class ITr2StateMachineStateFinalizer extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Unlink()
   {
   }

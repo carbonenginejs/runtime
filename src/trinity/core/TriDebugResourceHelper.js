@@ -45,7 +45,6 @@ export class TriDebugResourceHelper
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -56,7 +55,6 @@ export class TriDebugResourceHelper
    *
    * @implemented
    */
-  @meta.implemented
   OnPrepareResources()
   {
     const position = new Tr2VertexDefinition();
@@ -76,7 +74,6 @@ export class TriDebugResourceHelper
    *
    * @implemented
    */
-  @meta.implemented
   ReleaseResources(_storage)
   {
     this._vertexPosDecl = 0;
@@ -89,7 +86,6 @@ export class TriDebugResourceHelper
    * @adapted returned rather than written to an output string, as the other resource descriptions are.
    * @returns {string} "TriDebugResourceHelper".
    */
-  @meta.adapted
   GetDescription()
   {
     return "TriDebugResourceHelper";
@@ -100,7 +96,6 @@ export class TriDebugResourceHelper
    *
    * @implemented
    */
-  @meta.implemented
   GetEffect()
   {
     if (!this._effect)
@@ -116,7 +111,6 @@ export class TriDebugResourceHelper
    *
    * @implemented
    */
-  @meta.implemented
   GetLineEffect()
   {
     if (!this._lineEffect)
@@ -132,7 +126,6 @@ export class TriDebugResourceHelper
    *
    * @implemented
    */
-  @meta.implemented
   GetVertexPosDecl()
   {
     return this._vertexPosDecl;
@@ -143,7 +136,6 @@ export class TriDebugResourceHelper
    *
    * @implemented
    */
-  @meta.implemented
   GetVertexPosColorDecl()
   {
     return this._vertexPosColorDecl;

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2VirtualAllocator.h
 // Source: trinity/trinity/Tr2VirtualAllocator.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** Allocates aligned virtual byte ranges, reclaiming frees and expanding by reserved blocks. */
 export class Tr2VirtualAllocator
@@ -180,11 +180,4 @@ CjsSchema.decorateField(Tr2VirtualAllocator, "_blockSize", type.uint64);
 CjsSchema.decorateField(Tr2VirtualAllocator, "_maxSize", type.uint64);
 CjsSchema.decorateField(Tr2VirtualAllocator, "_currentSize", type.uint64);
 CjsSchema.decorateField(Tr2VirtualAllocator, "_allocatedMemory", type.uint64);
-CjsSchema.decorateMethod(Tr2VirtualAllocator, "Expand", meta.implemented);
-CjsSchema.decorateMethod(Tr2VirtualAllocator, "Allocate", meta.adapted);
-CjsSchema.decorateMethod(Tr2VirtualAllocator, "Free", meta.adapted);
-CjsSchema.decorateMethod(Tr2VirtualAllocator, "GetBlockSize", meta.implemented);
-CjsSchema.decorateMethod(Tr2VirtualAllocator, "GetMaxSize", meta.implemented);
-CjsSchema.decorateMethod(Tr2VirtualAllocator, "GetCurrentSize", meta.implemented);
-CjsSchema.decorateMethod(Tr2VirtualAllocator, "GetAllocatedMemory", meta.implemented);
 CjsSchema.meta.carbon("Tr2VirtualAllocator")(Tr2VirtualAllocator);

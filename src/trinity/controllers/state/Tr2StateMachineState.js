@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineState_Blue.cpp
 import { IsMatch, BlueList, IListNotify, INotify, blue, CjsBlueClasses } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2ControllerAction } from "../action/ITr2ControllerAction.js";
@@ -91,7 +91,6 @@ export class Tr2StateMachineState
    * @returns {boolean} True after the notification is handled.
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "finalizer") && this.finalizer && this._stateMachine)
@@ -114,7 +113,6 @@ export class Tr2StateMachineState
    * @returns {void}
    */
 
-  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list === this.actions)
@@ -139,7 +137,6 @@ export class Tr2StateMachineState
    * @returns {void}
    */
 
-  @meta.adapted
   Link(stateMachine)
   {
     this.Unlink();
@@ -167,7 +164,6 @@ export class Tr2StateMachineState
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateVariableMask()
   {
     this._transitionVariableMask = 0n;
@@ -198,7 +194,6 @@ export class Tr2StateMachineState
    * @returns {void}
    */
 
-  @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     if (!this._stateMachine)
@@ -235,7 +230,6 @@ export class Tr2StateMachineState
    * @returns {void}
    */
 
-  @meta.adapted
   Start()
   {
     if (this._isActive)
@@ -267,7 +261,6 @@ export class Tr2StateMachineState
    * @returns {void}
    */
 
-  @meta.adapted
   Stop()
   {
     if (!this._isActive || this._isFinalizing)
@@ -301,7 +294,6 @@ export class Tr2StateMachineState
    * @returns {Tr2StateMachineState|null} Next state, or null while remaining here.
    */
 
-  @meta.adapted
   Update(dirtyVariables = 0n)
   {
     if (!this._isActive)
@@ -361,7 +353,6 @@ export class Tr2StateMachineState
    * @returns {void}
    */
 
-  @meta.implemented
   RebaseSimTime(diff)
   {
     for (const action of this.actions)
@@ -379,7 +370,6 @@ export class Tr2StateMachineState
    * @implemented
    * @returns {Tr2StateMachine|null} Owning machine, or null while unlinked.
    */
-  @meta.implemented
   GetStateMachine()
   {
     return this._stateMachine;
@@ -395,7 +385,6 @@ export class Tr2StateMachineState
    * @returns {Tr2StateMachine|null} Owning machine, or null while unlinked.
    */
   @be.mapMethodAndWrap("GetStateMachine")
-  @meta.implemented
   GetStateMachinePtr()
   {
     return this.GetStateMachine();
@@ -408,7 +397,6 @@ export class Tr2StateMachineState
    * @returns {string} Authored state name.
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -442,7 +430,6 @@ export class Tr2StateMachineState
    * @returns {Tr2StateMachineState|null} First active destination, or null.
    */
 
-  @meta.adapted
   _GetNextState()
   {
     for (const transition of this.transitions)

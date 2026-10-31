@@ -161,7 +161,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     if (!this.mesh || !this.distribution)
@@ -180,7 +179,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    */
 
   @legacyBlue.contextual(["camera"])
-  @meta.adapted
   IsVisible(updateContext)
   {
     if (this.GetNumberOfEntities() === 0 || this._boundingSphere[3] === 0)
@@ -202,7 +200,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * @adapted The float& sizeInShadow output is an optional one-element array; all culling
    *   and >5-pixel policy are ported.
    */
-  @meta.adapted
   IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || !this.castShadow)
@@ -260,7 +257,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
     this._placementVisible = this.IsVisible(updateContext);
@@ -282,7 +278,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    *   logical transform production and refresh policy remain Trinity-owned.
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, params)
   {
     super.UpdateSyncronous(updateContext, params);
@@ -337,7 +332,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     super.UpdateAsyncronous(updateContext, params);
@@ -354,7 +348,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    *   canonical transform layout and bytes.
    */
 
-  @meta.adapted
   ConfigureInstanceData()
   {
     if (!CjsSchema.cast(this.mesh, Tr2InstancedMesh))
@@ -372,7 +365,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   GetNumberOfEntities()
   {
     return this.distribution ? Number(this.distribution.GetNumberOfPlacements()) >>> 0 : 0;
@@ -384,7 +376,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RefreshStaticGeometry()
   {
     this._refreshStaticGeometry = true;
@@ -400,7 +391,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    *   packing to Tr2RuntimeInstanceData. The camera is the renderer's (cpp:243).
    */
 
-  @meta.adapted
   UpdateGeometryResource(placements, size)
   {
     this._totalObjectCount = Number(size) >>> 0;
@@ -533,7 +523,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    *   TriGeometryRes's maintained geometry facade.
    */
 
-  @meta.adapted
   UpdateBoundingSphere(placements, distribution)
   {
     if (!this.mesh || !distribution)
@@ -588,7 +577,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    *   own physical instance-buffer realization.
    */
 
-  @meta.adapted
   UpdateInstanceData(instances)
   {
     if (!CjsSchema.cast(this.mesh, Tr2InstancedMesh))

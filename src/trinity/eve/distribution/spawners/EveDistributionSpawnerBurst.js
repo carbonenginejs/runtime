@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerBurst.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns a configured fraction of the free distribution placements in one delayed burst. */
@@ -37,7 +37,6 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
    * @implemented
    */
 
-  @meta.implemented
   Reset(_placements)
   {
     this.Restart();
@@ -50,7 +49,6 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
    * @implemented
    */
 
-  @meta.implemented
   Restart()
   {
     this._localTimer = 0;
@@ -64,7 +62,6 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
     if (this._localTimer === -1)
@@ -90,7 +87,6 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
    *
    * @implemented
    */
-  @meta.implemented
   SetControllerVariable(_name, _value)
   {
   }

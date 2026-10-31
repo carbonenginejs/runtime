@@ -1,5 +1,5 @@
 // Source: blueexposure/include/BlueListUtil.h:172-347,459-476,506-781
-import { CjsSchema, meta, blue as legacyBlue } from "#schema";
+import { CjsSchema, blue as legacyBlue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { blue } from "./blue.js";
 import { CjsBlueClasses } from "./CjsBlueClasses.js";
@@ -396,8 +396,8 @@ Object.defineProperty(BlueList, Symbol.species, { value: Array });
 legacyBlue.inherit(IList, ICopierCustomAssignment)(BlueList, { kind: "class" });
 CjsSchema.exposure.mapInterface(IList)(BlueList);
 CjsSchema.exposure.mapInterface(ICopierCustomAssignment)(BlueList);
-for (const name of [ "GetSize", "Clear", "Replace" ]) CjsSchema.decorateMethod(BlueList, name, legacyBlue.method, meta.implemented);
+for (const name of [ "GetSize", "Clear", "Replace" ]) CjsSchema.decorateMethod(BlueList, name, legacyBlue.method);
 for (const name of [ "GetInfo", "Insert", "Append", "Remove", "GetAt", "FindKey", "Swap", "Move", "Sort", "SetNotify", "GetAllItems", "AssignFrom", "AssignTo" ])
 {
-  CjsSchema.decorateMethod(BlueList, name, legacyBlue.method, meta.adapted);
+  CjsSchema.decorateMethod(BlueList, name, legacyBlue.method);
 }

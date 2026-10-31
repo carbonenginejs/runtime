@@ -132,7 +132,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   Clear()
   {
     this.sprites.length = 0;
@@ -154,7 +153,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    *   Normal2Warp - so ours applies bone 0 like any other.
    */
 
-  @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
@@ -187,7 +185,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @returns {EveSpriteSetItem}
    */
 
-  @meta.adapted
   Add(newItem)
   {
     this.sprites.push(newItem);
@@ -202,7 +199,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @adapted
    * @returns {EveSpriteSetItem}
    */
-  @meta.adapted
   Add__Scale(pos, scale, color, warpColor)
   {
     return this._AddItem(pos, 0, 0, scale, scale, 0, color, warpColor);
@@ -216,7 +212,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @adapted
    * @returns {EveSpriteSetItem}
    */
-  @meta.adapted
   Add__Blink(pos, blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor)
   {
     return this._AddItem(pos, blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor);
@@ -245,7 +240,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetSprites()
   {
     return this.sprites;
@@ -257,7 +251,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -269,7 +262,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -281,7 +273,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetEffect()
   {
     return this.effect;
@@ -293,7 +284,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetEffect(effect)
   {
     this.effect = effect ?? null;
@@ -306,7 +296,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetSkinned(skinned)
   {
     this.skinned = !!skinned;
@@ -319,7 +308,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Rebuild()
   {
     this._rebuildRevision++;
@@ -385,7 +373,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (!this.effect) return;
@@ -416,7 +403,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @param {number} [boneCount] Bones available.
    */
 
-  @meta.implemented
   AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain = 0, bones = null, boneCount = 0)
   {
     if (!this.display || this._spriteData.length === 0) return;
@@ -466,7 +452,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   AddBoosterGlowToQuadRenderer(quadRenderer, world, boosterGain, warpIntensity)
   {
     if (!this.display || this._spriteData.length === 0) return;
@@ -528,7 +513,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
     return GetItemSetAabb(
@@ -549,7 +533,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = this.GetAabb(EveSpriteSet._aabbScratch, bones, boneCount);
@@ -569,7 +552,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this.Rebuild();
@@ -583,7 +565,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EveSpriteLight.FromSOF(light));
@@ -596,7 +577,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -618,7 +598,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @adapted Profile-index packing is by-reference per lightConversion.js.
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     const features = EveSpriteSet._features;
@@ -648,7 +627,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Sprite Sets");
@@ -676,7 +654,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @param {number} boneCount
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
     if (renderer.HasOption(this, "Sprite Sets"))

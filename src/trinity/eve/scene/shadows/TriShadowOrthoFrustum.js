@@ -58,7 +58,6 @@ export class TriShadowOrthoFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Boolean}
    */
-  @meta.implemented
   IsVisible(camera, boundingSphere)
   {
     const sphereIsVisible = this.shadow.IsSphereVisibleIgnoreFarPlane(boundingSphere, boundingSphere[3]);
@@ -90,7 +89,6 @@ export class TriShadowOrthoFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Number}
    */
-  @meta.implemented
   GetSizeInShadow(boundingSphere)
   {
     return this.shadow.GetPixelSize(boundingSphere, this.shadowMapSize);
@@ -102,7 +100,6 @@ export class TriShadowOrthoFrustum
    * @implemented
    * @returns {Float32Array}
    */
-  @meta.implemented
   GetEyePos()
   {
     return this.shadow.GetEyePos();
@@ -118,7 +115,6 @@ export class TriShadowOrthoFrustum
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult
    */
-  @meta.adapted
   SphereTest(camera, sphere)
   {
     let orthoResult = this.shadow.SphereTestIgnoreFarPlane(sphere);

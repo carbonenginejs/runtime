@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Shader/Tr2ShaderBuffer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { PER_OBJECT_PS, PER_OBJECT_VS } from "../core/Tr2Renderer.js";
 import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
@@ -32,7 +32,6 @@ export class Tr2ShaderBuffer extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetData(data, size = data?.byteLength ?? data?.length ?? 0)
   {
     const byteSize = Math.max(0, Number(size) || 0);
@@ -64,7 +63,6 @@ export class Tr2ShaderBuffer extends IRoot
    * @param {Tr2RenderContext} renderContext The context receiving the data.
    * @returns {boolean} Whether the upload and binding succeeded.
    */
-  @meta.implemented
 
   ApplyBuffer(renderContext)
   {

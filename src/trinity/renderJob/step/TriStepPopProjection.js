@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPopProjection.h
 // Source: trinity/trinity/RenderJob/TriStepPopProjection.cpp
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -24,7 +24,6 @@ export class TriStepPopProjection extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, _renderContext)
   {
     // TriStepPopProjection.cpp:9.

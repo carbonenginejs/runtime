@@ -3,7 +3,7 @@ import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.h
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { CcpTime } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -101,7 +101,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -112,7 +111,6 @@ export class EveTacticalTrails
    *
    * @implemented
    */
-  @meta.implemented
 
   OnPrepareResources()
   {
@@ -140,7 +138,6 @@ export class EveTacticalTrails
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RegisterObject(object)
   {
     if (!object)
@@ -163,7 +160,6 @@ export class EveTacticalTrails
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UnregisterObject(object)
   {
     const found = this.trackedObjects.find(entry => entry.ball !== null && entry.ball.deref() === object);
@@ -180,7 +176,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     const now = updateContext.GetTime();
@@ -251,7 +246,6 @@ export class EveTacticalTrails
    * @implemented
    * @param {number} now Scene time in Blue ticks.
    */
-  @meta.implemented
 
   UpdateGraphicsState(now)
   {
@@ -326,7 +320,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
@@ -337,7 +330,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform)
   {
   }
@@ -347,7 +339,6 @@ export class EveTacticalTrails
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables__Impostors(out, _impostors = null)
   {
@@ -361,7 +352,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
   {
     return false;
@@ -373,7 +363,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   UpdateModelCenterWorldPosition(position, _time)
   {
     vec3.set(position, 0, 0, 0);
@@ -385,7 +374,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   GetModelCenterWorldPosition(position)
   {
     vec3.set(position, 0, 0, 0);
@@ -397,7 +385,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
     return false;
@@ -409,7 +396,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     mat4.identity(transform);
@@ -422,7 +408,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT) return;
@@ -443,7 +428,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -455,7 +439,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -467,7 +450,6 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(_accumulator)
   {
     return null;

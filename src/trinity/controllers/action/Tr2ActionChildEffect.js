@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { blue, CjsBlueClasses } from "#blue";
-import { meta, CjsSchema, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -102,7 +102,6 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    *   through its callback; this action neither duplicates them nor claims parity.
    */
 
-  @meta.adapted
   Link(controller)
   {
     const owner = controller.GetOwner();
@@ -116,7 +115,6 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * @adapted the load is asynchronous (see _loadChild).
    */
 
-  @meta.adapted
   Start(controller)
   {
     const resolved = this._ResolveOwner(controller);
@@ -191,8 +189,6 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * @adapted the JS resource manager resolves asynchronously, so this runs
    *   when the file arrives, and a Stop or newer load before then discards it.
    */
-  @meta.cjs
-    @meta.adapted
   _loadChild(owner, controllerOwner, rebind)
   {
     const path = this.path;
@@ -238,7 +234,6 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    *   resources of a child this action loaded.
    */
 
-  @meta.adapted
   Stop(controller)
   {
     // A load still in flight belongs to this run; drop it.

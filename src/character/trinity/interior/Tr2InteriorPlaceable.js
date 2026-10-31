@@ -7,7 +7,7 @@ import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.h
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable_Blue.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { blue, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { WodPlaceableRes } from "../wod/WodPlaceableRes.js";
@@ -102,7 +102,6 @@ export class Tr2InteriorPlaceable extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     // Adapted: the installed resource manager loads objects asynchronously.
@@ -117,7 +116,6 @@ export class Tr2InteriorPlaceable extends IRoot
    *   branch retains precedence when a single notification contains both names.
    */
 
-  @meta.adapted
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "placeableResPath"))
@@ -149,7 +147,6 @@ export class Tr2InteriorPlaceable extends IRoot
    * @returns {Promise<WodPlaceableRes|null>} The current accepted resource.
    */
 
-  @meta.adapted
   async LoadPlaceableRes()
   {
     const path = this.placeableResPath;
@@ -185,7 +182,6 @@ export class Tr2InteriorPlaceable extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPlaceableResPath()
   {
     return this.placeableResPath;
@@ -197,7 +193,6 @@ export class Tr2InteriorPlaceable extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetPlaceableResPath(path)
   {
     this.placeableResPath = path;
@@ -211,7 +206,6 @@ export class Tr2InteriorPlaceable extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return this.placeableRes ? this.placeableRes.HasTransparency() : false;
@@ -227,7 +221,6 @@ export class Tr2InteriorPlaceable extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     ++this._loadRequest;
@@ -240,7 +233,6 @@ export class Tr2InteriorPlaceable extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   GetBoundingBoxInLocalSpace(...args)
   {
     throw new Error("Tr2InteriorPlaceable.GetBoundingBoxInLocalSpace is not implemented in CarbonEngineJS.");
@@ -252,7 +244,6 @@ export class Tr2InteriorPlaceable extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   GetBoundingBoxInWorldSpace(...args)
   {
     throw new Error("Tr2InteriorPlaceable.GetBoundingBoxInWorldSpace is not implemented in CarbonEngineJS.");
@@ -264,7 +255,6 @@ export class Tr2InteriorPlaceable extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   BoundingBoxOverride(...args)
   {
     throw new Error("Tr2InteriorPlaceable.BoundingBoxOverride is not implemented in CarbonEngineJS.");
@@ -276,7 +266,6 @@ export class Tr2InteriorPlaceable extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   BoundingBoxReset(...args)
   {
     throw new Error("Tr2InteriorPlaceable.BoundingBoxReset is not implemented in CarbonEngineJS.");

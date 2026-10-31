@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
 import { Quality } from "../generated/postProcess/enums.js";
 
@@ -108,7 +108,6 @@ export class Tr2PostProcess2 extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMipLodBias()
   {
     return Tr2PostProcess2.IsEffectActive(this.taa) ? -1 : 0;
@@ -122,7 +121,6 @@ export class Tr2PostProcess2 extends IRoot
    * @returns {Array} the same container, left untouched when the quality setting is below LOW
    */
 
-  @meta.implemented
   GetAvilableSortedLuts(container, qualitySetting = Tr2PostProcess2.HIGH)
   {
     if (qualitySetting < Tr2PostProcess2.LOW) return container;
@@ -143,7 +141,6 @@ export class Tr2PostProcess2 extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   AddLut(effect)
   {
     this.luts.push(effect ?? null);
@@ -155,7 +152,6 @@ export class Tr2PostProcess2 extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ClearLuts()
   {
     this.luts.length = 0;

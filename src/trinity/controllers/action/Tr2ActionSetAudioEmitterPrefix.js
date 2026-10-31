@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
 
@@ -33,7 +33,6 @@ export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
    * @param {ITr2ActionController} controller The invoking controller.
    */
 
-  @meta.implemented
   Start(controller)
   {
     const owner = CjsSchema.cast(controller.GetOwner(), ITr2SoundEmitterOwner);
@@ -49,7 +48,6 @@ export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
    * @param {ITr2ActionController} controller The invoking controller.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StartWithController(controller)
   {
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));

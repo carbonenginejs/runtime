@@ -3,7 +3,7 @@ import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectR
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -226,7 +226,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     if (this._ownedLineSet && this.lineSet !== this._ownedLineSet)
@@ -246,7 +245,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnModified(name)
   {
     if (IsMatch(name, "additiveBatches")) this.lineSet.SetAdditiveFlag(this.additiveBatches);
@@ -260,7 +258,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GenerateManagedPoints()
   {
     for (const line of this.lines) line.GeneratePoints(this.worldTransform);
@@ -273,7 +270,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   InitializeLineSet()
   {
     if (!this.lineSet || !this.lines.length) return;
@@ -294,7 +290,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   UpdateBoundingSphere(reCalculateChildren = true)
   {
     let objectSizeBonus = 0;
@@ -317,7 +312,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   UpdateVisibility(updateContext, _parentTransform, parentLod)
   {
     if (!this.display) return;
@@ -340,7 +334,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (!this.IsUpdating() || !this._hasUpdated) return;
@@ -360,7 +353,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   GetBoundingSphere(out, _query = 0)
   {
     sph3.transformMat4(out, this._boundingSphere, this.worldTransform);
@@ -373,7 +365,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     this.CreateSpriteVertexDeclaration();
@@ -398,7 +389,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(_updateContext, params)
   {
     const { mat4_0, mat4_1 } = EveChildLineSet.scratch;
@@ -427,7 +417,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   UpdateBuffer(renderContext)
   {
     this._totalObjectCount = 0;
@@ -464,7 +453,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   CreateSpriteVertexDeclaration()
   {
     if (this.mesh)
@@ -506,7 +494,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (!this.display || this._cachedSVD === Tr2EffectStateManager.Unknown || this._vertexDeclarationHandle === Tr2EffectStateManager.Unknown || !this._vertexBuffer.IsValid()) return;
@@ -535,7 +522,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   GetPerObjectData(_accumulator)
   {
     const data = new EveChildLineSetPerObjectData();
@@ -550,7 +536,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return !!(this.display && this.mesh && this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length);
@@ -562,7 +547,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     return !Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
@@ -576,7 +560,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources()
   {
     this._cachedSVD = this._vertexDeclarationHandle = Tr2EffectStateManager.Unknown;
@@ -588,7 +571,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     mat4.copy(out, this.worldTransform);
@@ -600,7 +582,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   IsAlwaysOn()
   {
     return this.alwaysOn;
@@ -620,7 +601,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   IsUpdating()
   {
     return this.display && this._isVisible;
@@ -632,7 +612,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetMesh()
   {
     return this.mesh;
@@ -644,7 +623,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetOwnerMaxSpeed()
   {
     return this._ownerMaxSpeed;
@@ -656,7 +634,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetWorldVelocity(out)
   {
     vec3.copy(out, this._worldVelocity);
@@ -668,7 +645,6 @@ export class EveChildLineSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -680,7 +656,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   SetShaderOption(_name, _value)
   {
   }
@@ -691,7 +666,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   ChangeLOD(_lod)
   {
   }
@@ -703,7 +677,6 @@ export class EveChildLineSet extends EveChildTransform
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("LineSets");
@@ -719,7 +692,6 @@ export class EveChildLineSet extends EveChildTransform
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (!this.display)
@@ -752,7 +724,6 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetVertexElementAddedThroughCode()
   {
     return [[5, 8], [5, 9], [5, 10]];

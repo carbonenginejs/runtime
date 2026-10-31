@@ -175,7 +175,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   Setup(effect)
   {
     this.effect = effect ?? null;
@@ -187,7 +186,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.PrepareResources();
@@ -202,7 +200,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Rebuild()
   {
     this._rebuildRevision++;
@@ -219,7 +216,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    *   the shared buffer here is per render context (TriGeometryResAllocations).
    */
 
-  @meta.adapted
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -236,7 +232,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     this._cachedTransforms = [];
@@ -302,7 +297,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this._vertexBuffer.IsValid() || reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION) return;
@@ -332,7 +326,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   CreateBoundingBox()
   {
     CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, true, this.hazes);
@@ -346,7 +339,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = GetItemSetAabb(
@@ -372,7 +364,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   AddHazeItem(item)
   {
     this.hazes.push(item);
@@ -385,7 +376,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Haze Sets");
@@ -411,7 +401,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @param {number} boneCount
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
     if (renderer.HasOption(this, "Haze Sets"))
@@ -498,7 +487,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     if (this.effect)
@@ -514,7 +502,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EveHazeSetLight.FromSOF(light));
@@ -527,7 +514,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -550,7 +536,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    *   Normal2Warp - so ours applies bone 0 like any other.
    */
 
-  @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, boosterGain = 0)
   {
     for (const light of this.lights)
@@ -584,7 +569,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @adapted Profile-index packing is by-reference per lightConversion.js conventions.
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     const features = EveHazeSet._features;

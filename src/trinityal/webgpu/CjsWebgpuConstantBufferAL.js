@@ -18,7 +18,7 @@
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on
 // `CjsWebgpuShaderAL`: Carbon's impl class carries public state.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Tr2ConstantUsageAL } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -156,7 +156,6 @@ export class CjsWebgpuConstantBufferAL
    * @param {object} renderContext The render context to bind on.
    * @returns {number} `S_OK`.
    */
-  @meta.adapted
   SetConstants(shaderType, constantIndex, renderContext)
   {
     if (this.IsValid())
@@ -251,14 +250,5 @@ export class CjsWebgpuConstantBufferAL
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(CjsWebgpuConstantBufferAL, "_size", type.uint32);
 // Donor: metal/Tr2ConstantBufferALMetal.mm. Create keeps a 256-aligned shadow copy and an id, and copies at most the shadow's length of initialData. Lock returns { result, data } and E_FAIL (Metal E_INVALIDCALL). Unlock does not check validity. Describe writes memoryClass and size, not type, size and name. SetName does not store the name.
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Create", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Lock", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Unlock", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetConstants");
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetSize", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Describe", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetName", meta.adapted);
 CjsSchema.meta.define("CjsWebgpuConstantBufferAL")(CjsWebgpuConstantBufferAL);

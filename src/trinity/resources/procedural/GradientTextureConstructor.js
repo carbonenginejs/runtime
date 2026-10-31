@@ -45,4 +45,3 @@ export function RegisterGradientTexture(resourceManager)
   return resourceManager;
 }
 
-CjsSchema.decorateMethod(GradientTextureConstructor, "GetResource", CjsSchema.meta.adapted);

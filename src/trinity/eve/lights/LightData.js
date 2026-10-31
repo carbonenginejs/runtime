@@ -124,7 +124,6 @@ export class LightData
    * @param {LightData} other
    * @returns {LightData} this
    */
-  @meta.renamed("operator=")
   Copy(other)
   {
     vec3.copy(this.position, other.position);
@@ -176,7 +175,6 @@ export class LightData
    * @param {object} out A light record (CreateLightRecord) to write.
    * @returns {object} out
    */
-  @meta.adapted
   AsPerPointLightData(transform, features, shadowQuality, out)
   {
     // cpp:42-47.
@@ -236,7 +234,6 @@ export class LightData
    * @param {object} out A light record (CreateLightRecord) to write.
    * @returns {object} out
    */
-  @meta.adapted
   AsPerSpotLightData(transform, features, shadowQuality, out)
   {
     this.AsPerPointLightData(transform, features, shadowQuality, out);

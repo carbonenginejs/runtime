@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/TriSequencer.cpp
 import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction, BlueList } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
 import "#consts/graphics/trinityEnums";
 
@@ -83,7 +83,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     const out = vec3.alloc();
@@ -107,7 +106,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, out);
@@ -127,7 +125,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out, false);
@@ -143,7 +140,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   Update__Ticks(time, out)
   {
     this.GetValueAt__Ticks(time, out);
@@ -160,7 +156,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt__Ticks(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out, true);
@@ -180,7 +175,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   GetValueAtMult(time, out, ticks)
   {
     vec3.set(out, 1, 1, 1);
@@ -204,7 +198,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   GetValueAtAdd(time, out, ticks)
   {
     vec3.zero(out);
@@ -231,7 +224,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   GetValueAtAverage(time, out, ticks)
   {
     vec3.zero(out);
@@ -254,7 +246,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueDotAt(time, out)
   {
     vec3.zero(out);
@@ -275,7 +266,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueDoubleDotAt(time, out)
   {
     vec3.zero(out);
@@ -295,7 +285,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueDotAt__Ticks(time, out)
   {
     vec3.zero(out);
@@ -315,7 +304,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueDoubleDotAt__Ticks(time, out)
   {
     vec3.zero(out);
@@ -337,7 +325,6 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;

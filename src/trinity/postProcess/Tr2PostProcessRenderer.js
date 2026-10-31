@@ -222,7 +222,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPostProcessingQuality()
   {
     return this.quality;
@@ -234,7 +233,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetPostProcessingQuality(quality)
   {
     this.quality = quality;
@@ -263,7 +261,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    * Carbon declaration: Tr2PostProcessRenderer::Execute (trinity/trinity/PostProcess/Tr2PostProcessRenderer.h:124).
    */
-  @meta.adapted
   Execute(destination, sourceBuffer, depthMap, velocity, opaqueColor, scene, upscalingContext, gpuResourcePool, renderContext, renderer)
   {
     if (!sourceBuffer?.IsValid())
@@ -473,7 +470,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    */
 
-  @meta.implemented
   SetupExposureConversion(enable, middleValue)
   {
     if (enable) this.dynamicExposureToTextureShader.SetParameter("ExposureMiddleValue", middleValue);
@@ -491,7 +487,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {GpuResourceHandle} The sharpened texture, or `input`.
    */
 
-  @meta.implemented
   RenderSharpening(enable, input, gpuResourcePool, renderContext)
   {
     if (!enable) return input;
@@ -541,7 +536,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    * Carbon declaration: Tr2PostProcessRenderer::RenderTonemapping (trinity/trinity/PostProcess/Tr2PostProcessRenderer.h:228).
    */
-  @meta.adapted
   RenderTonemapping(dest, postprocess, renderContext, renderer)
   {
     const effect = this.tonemappingEffect;
@@ -588,7 +582,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   RenderGenericEffect(dest, src, renderContext, genericEffect, renderer)
   {
     const effect = genericEffect.GetEffect();
@@ -613,7 +606,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   RenderFilmGrain(dest, renderContext, filmGrain, renderer)
   {
     const shader = this._grainShader;
@@ -636,7 +628,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   RenderSignalLoss(dest, renderContext, signalLoss, renderer)
   {
     this.signalLossEffect.SetParameter("NoiseStrength", signalLoss.strength);
@@ -651,7 +642,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    */
 
-  @meta.implemented
   RenderDynamicExposureDebug(_gpuResourcePool, _renderContext, dynamicExposure, _histogramBuffer)
   {
     if (dynamicExposure && dynamicExposure.debug)
@@ -671,7 +661,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {GpuResourceHandle} The buffer.
    */
 
-  @meta.implemented
   GetExposureBuffer(gpuResourcePool)
   {
     return gpuResourcePool.GetPersistentBuffer(
@@ -694,7 +683,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {GpuResourceHandle} The texture.
    */
 
-  @meta.implemented
   GetBlackTexture(gpuResourcePool)
   {
     return gpuResourcePool.GetPersistentTexture__WidthHeight("Black", 4, 4, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM,
@@ -719,7 +707,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {GpuResourceHandle} The blurred texture.
    */
 
-  @meta.adapted
   Blur(src, gpuResourcePool, renderContext, blurContext, renderer)
   {
     const hash = blurContext.Hash();
@@ -811,7 +798,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {GpuResourceHandle} The bloom texture, owned by the caller.
    */
 
-  @meta.adapted
   RenderBloom(dest, gpuResourcePool, renderContext, bloom, dynamicExposure, renderer)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -994,7 +980,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   RenderGodRays(dest, depth, gpuResourcePool, renderContext, godrays, renderer)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -1048,7 +1033,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {GpuResourceHandle} The down-sampled depth; the caller frees it.
    */
 
-  @meta.adapted
   DownSampleDepth(depth, gpuResourcePool, renderContext, renderer)
   {
     const effect = this._downsampleDepthEffect;
@@ -1086,7 +1070,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {GpuResourceHandle} The merged histogram, owned by the caller.
    */
 
-  @meta.adapted
   RenderDynamicExposure(source, gpuResourcePool, renderContext, dynamicExposure)
   {
     const tilesX = Math.floor(source.GetWidth() / HISTOGRAM_TILE_SIZE_X) + 1;
@@ -1167,7 +1150,6 @@ export class Tr2PostProcessRenderer extends IRoot
    *
    * @notImplemented
    */
-  @meta.notImplemented
   RenderUpscaling()
   {
     throw new Error("Tr2PostProcessRenderer.RenderUpscaling is not ported yet.");
@@ -1187,7 +1169,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   RenderFog(dest, source, gpuResourcePool, renderContext, fog, renderer)
   {
     renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
@@ -1269,7 +1250,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   RenderTaa(dest, velocity, opaqueColor, gpuResourcePool, renderContext, taa, dynamicExposure, renderer)
   {
     renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
@@ -1372,7 +1352,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   RenderDepthOfField(dest, gpuResourcePool, renderContext, depthOfField, temporal, upscalingAmount, renderer)
   {
     renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_FULLSCREEN);

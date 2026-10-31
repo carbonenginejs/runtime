@@ -649,31 +649,17 @@ export class CjsBlueClasses extends IBlueClasses
 
 
 CjsSchema.exposure.mapInterface(IBlueClasses)(CjsBlueClasses);
-CjsSchema.decorateMethod(CjsBlueClasses, "_RegisterSingleClass", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "RegisterClasses", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "RegisterClasses__Vector", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueClasses, "UnregisterClasses", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueClasses, "UnregisterClasses__Vector", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetClassRegistration", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "FindClsid", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "FindClsid__Module", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "CreateInstance", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "CreateInstanceFromName", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "QueryThisInterface", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "CopyTo", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueClasses, "CopyTo__Callbacks", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "CloneTo", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetRtti", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetClassTypes", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "LiveCount", blue.method, meta.notSupported);
-CjsSchema.decorateMethod(CjsBlueClasses, "LockCount", blue.method, meta.notSupported);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetWrapperList", blue.method, meta.notSupported);
+CjsSchema.decorateMethod(CjsBlueClasses, "CreateInstance", blue.method);
+CjsSchema.decorateMethod(CjsBlueClasses, "GetClassTypes", blue.method);
+CjsSchema.decorateMethod(CjsBlueClasses, "LiveCount", blue.method);
+CjsSchema.decorateMethod(CjsBlueClasses, "LockCount", blue.method);
+CjsSchema.decorateMethod(CjsBlueClasses, "GetWrapperList", blue.method);
 CjsSchema.decorateMethod(CjsBlueClasses, "LiveList", be.mapMethod(), meta.notUsed);
 CjsSchema.decorateMethod(CjsBlueClasses, "ProcessAllPendingDeletes", blue.method, meta.noop);
-CjsSchema.decorateMethod(CjsBlueClasses, "Copy", blue.method, meta.implemented);
-CjsSchema.decorateMethod(CjsBlueClasses, "Find", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetTypeInfo", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetPersistedClassesReport", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueClasses, "Copy", blue.method);
+CjsSchema.decorateMethod(CjsBlueClasses, "Find", blue.method);
+CjsSchema.decorateMethod(CjsBlueClasses, "GetTypeInfo", blue.method);
+CjsSchema.decorateMethod(CjsBlueClasses, "GetPersistedClassesReport", blue.method);
 CjsSchema.blue.define(CjsBlueClasses, {
   className: "CjsBlueClasses",
   unused: [

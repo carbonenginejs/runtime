@@ -14,7 +14,7 @@
 //
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { getCarbonTypeDefinition, inferCarbonTypeFromCpp } from "../schema/types/carbonTypes.js";
 import { ownMappedInterfaces } from "../compose/interface.js";
 import { CjsBluePaths } from "./CjsBluePaths.js";
@@ -545,15 +545,15 @@ CjsSchema.meta.define(CjsBlue, {
   fields: {},
   methods: {
     Fetch: [],
-    EnumerateChildren: [ meta.adapted ],
-    EnumerateChildren__Filter: [ meta.adapted ],
-    enumerateChildren: [ meta.adapted ],
-    enumerateChildren__Filter: [ meta.adapted ],
-    FindRoute: [ meta.adapted ],
-    FindFirstRoute: [ meta.adapted ],
-    FindAllReferences: [ meta.adapted ],
-    FindInterface: [ meta.implemented ],
-    FindReference: [ meta.implemented ],
-    _EnumerateRoutes: [ meta.adapted ]
+    EnumerateChildren: [],
+    EnumerateChildren__Filter: [],
+    enumerateChildren: [],
+    enumerateChildren__Filter: [],
+    FindRoute: [],
+    FindFirstRoute: [],
+    FindAllReferences: [],
+    FindInterface: [],
+    FindReference: [],
+    _EnumerateRoutes: []
   }
 });

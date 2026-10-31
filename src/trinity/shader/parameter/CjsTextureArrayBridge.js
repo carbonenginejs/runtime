@@ -119,4 +119,3 @@ export class CjsTextureArrayBridge
 
 CjsSchema.meta.define("CjsTextureArrayBridge")(CjsTextureArrayBridge);
 
-CjsSchema.decorateMethod(CjsTextureArrayBridge, "GetResource", CjsSchema.meta.implemented);

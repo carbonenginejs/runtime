@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -78,7 +78,6 @@ export class EveSOFDataHullBanner extends IRoot
    */
   @be.mapProperty()
   @type.vec3
-  @meta.implemented
   get scaling()
   {
     return this.GetScaling();
@@ -89,7 +88,6 @@ export class EveSOFDataHullBanner extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   set scaling(value)
   {
     this.SetScaling(value);
@@ -115,7 +113,6 @@ export class EveSOFDataHullBanner extends IRoot
    */
   @be.mapProperty()
   @type.float32
-  @meta.implemented
   get angleX()
   {
     return this.GetAngleX();
@@ -126,7 +123,6 @@ export class EveSOFDataHullBanner extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   set angleX(value)
   {
     this.SetAngleX(value);
@@ -152,7 +148,6 @@ export class EveSOFDataHullBanner extends IRoot
    */
   @be.mapProperty()
   @type.float32
-  @meta.implemented
   get angleY()
   {
     return this.GetAngleY();
@@ -163,7 +158,6 @@ export class EveSOFDataHullBanner extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   set angleY(value)
   {
     this.SetAngleY(value);

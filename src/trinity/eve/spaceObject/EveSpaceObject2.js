@@ -530,7 +530,6 @@ export class EveSpaceObject2 extends EveEntity
    * @type {Float32Array}
    */
   @meta.mapAttribute(meta.READ)
-  @meta.adapted
   @type.vec4
   spaceObjectShipData = vec4.create();
 
@@ -650,7 +649,6 @@ export class EveSpaceObject2 extends EveEntity
    * @type {Float32Array}
    */
   @meta.mapAttribute(meta.READ)
-  @meta.adapted
   @type.vec3
   worldVelocity = vec3.create();
 
@@ -670,7 +668,6 @@ export class EveSpaceObject2 extends EveEntity
    */
   @be.mapProperty()
   @type.rootRef("ITr2AudGeometry")
-  @meta.implemented
   get audioGeometry()
   {
     return this._GetAudioGeometry();
@@ -681,7 +678,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   set audioGeometry(value)
   {
     this._SetAudioGeometry(value);
@@ -959,7 +955,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   Initialize()
   {
     // Carbon cpp:259-264.
@@ -999,7 +994,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetMesh()
   {
     return this.mesh;
@@ -1011,7 +1005,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   SetMesh(mesh)
   {
     this.mesh = mesh ?? null;
@@ -1030,7 +1023,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   PrepareForAnimation()
   {
     const geometryRes = this.mesh.GetGeometryResource();
@@ -1047,7 +1039,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetOverlayEffects()
   {
     return this.overlayEffects;
@@ -1059,7 +1050,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   AddOverlayEffect(overlayEffect)
   {
     addChild(this, "overlayEffects", overlayEffect, { listNotify: this });
@@ -1070,7 +1060,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   RemoveOverlayEffect(overlayEffect)
   {
     removeChild(this, "overlayEffects", overlayEffect, { listNotify: this });
@@ -1082,7 +1071,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetOverlayEffectByName(name)
   {
     if (name == null) return null;
@@ -1094,7 +1082,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   IsAnimated()
   {
     return this.isAnimated;
@@ -1105,7 +1092,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   SetIsAnimated(isAnimated)
   {
     this.isAnimated = !!isAnimated;
@@ -1117,7 +1103,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   AddController(controller)
   {
     // The link and the variable replay are the INSERTED arm's (cpp:297-311).
@@ -1132,7 +1117,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   AddObserver(observer)
   {
     this.observers.push(observer);
@@ -1146,7 +1130,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (!this.inheritProperties)
@@ -1177,7 +1160,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetEffectChildByName(name)
   {
     const target = String(name ?? "");
@@ -1208,7 +1190,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   OnListModified(event, key = 0, key2 = 0, value = null, list = null)
   {
     const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -1331,7 +1312,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   AddToEffectChildrenList(child)
   {
     // The ownership, the inherited properties and the variable replay are the
@@ -1346,7 +1326,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   AddLight(light)
   {
     // The inherited properties and the LightOwner registration on the FIRST
@@ -1360,7 +1339,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   ClearLights()
   {
     // UNLOADSTART, which is what drops the LightOwner component registration
@@ -1374,7 +1352,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   RemoveFromEffectChildrenList(child)
   {
     // The unregister and the cleared ownership are the REMOVED arm's
@@ -1390,7 +1367,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   SetModelRotationCurve(curve)
   {
     this.modelRotationCurve = curve ?? null;
@@ -1401,7 +1377,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetModelRotationCurve()
   {
     return this.modelRotationCurve;
@@ -1413,7 +1388,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   SetModelTranslationCurve(curve)
   {
     this.modelTranslationCurve = curve ?? null;
@@ -1424,7 +1398,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetModelTranslationCurve()
   {
     return this.modelTranslationCurve;
@@ -1437,7 +1410,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {number} time Frame time; repeating the previous call's time is a no-op.
    * @returns {boolean} False when the transform had already been built for this time.
    */
-  @meta.adapted
   UpdateWorldTransform(time)
   {
     if (this._lastUpdateTransformTime === time)
@@ -1515,7 +1487,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   UpdateWorldBounds()
   {
     const updater = this.animationUpdater;
@@ -1545,7 +1516,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   PrepareShaderData(updateContext = null)
   {
     this.UpdateWorldBounds();
@@ -1591,7 +1561,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Object} manager - Tr2ShLightingManager
    * @param {Object} [updateContext] - frame context, for the detail thresholds
    */
-  @meta.implemented
   UpdateShLighting(manager, updateContext = null)
   {
     const coefficients = this._psData.Get("shLightingCoefficients");
@@ -1630,7 +1599,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
    */
-  @meta.adapted
   RegisterSecondaryLightSource(manager)
   {
     return manager.RegisterSecondaryLightSource(this._GetWorldTranslation(), () => this.secondaryLightingSphereRadius, this.albedoColor, EveSpaceObject2._noEmissiveColor);
@@ -1643,7 +1611,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager removed it.
    */
-  @meta.adapted
   UnregisterSecondaryLightSource(manager)
   {
     return manager.UnregisterSecondaryLightSource(this._GetWorldTranslation());
@@ -1672,7 +1639,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   ClearShLighting()
   {
     this._psData.Get("shLightingCoefficients").fill(0);
@@ -1689,7 +1655,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @param {Object} out - caller-owned record, refreshed in place
    */
-  @meta.implemented
   GetParentData(out)
   {
     mat4.copy(out.transform, this.worldTransform);
@@ -1715,7 +1680,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @returns {{vs: RawData, ps: RawData}} independent copies, not live records
    */
-  @meta.implemented
   GetPerObjectStructs(vsData = RawData.create("EveSpaceObjectVSData"), psData = RawData.create("EveSpaceObjectPSData"))
   {
     vsData.CopyFrom(this._vsData);
@@ -1732,7 +1696,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    * @returns {boolean} False when the update flag is off; the world transform is refreshed either way.
    */
-  @meta.adapted
   UpdateSyncronous(updateContext = null)
   {
     const time = updateContext.GetTime();
@@ -1800,7 +1763,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    * @returns {number} The controller update frequency in 0..1, which is also handed to the effect children; 0 when the hull is not visible or the update flag is off.
    */
-  @meta.adapted
   UpdateAsyncronous(updateContext = null)
   {
     // Carbon cpp:633: re-arm the once-per-frame palette upload.
@@ -1925,7 +1887,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted raytracing mesh updates are not ported.
    */
-  @meta.adapted
   UpdateVisibility(updateContext = null, _parentTransform = EveSpaceObject2._identityTransform)
   {
     this.isVisible = false;
@@ -2057,7 +2018,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @param {object} quadRenderer The scene's Tr2QuadRenderer.
    */
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const child of this.effectChildren) child?.RegisterWithQuadRenderer(quadRenderer);
@@ -2074,7 +2034,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {object} frustum The frame's frustum.
    * @param {object} quadRenderer The scene's Tr2QuadRenderer.
    */
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.isVisible || !this.display || this._impostorMode) return;
@@ -2104,7 +2063,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Tr2ImpostorManager|null} impostors The scene's impostor manager, if any.
    * @returns {ITr2Renderable[]} out
    */
-  @meta.adapted
   GetRenderables__Impostors(out, impostors)
   {
     this._impostorMode = this._impostorMode && impostors !== null;
@@ -2136,7 +2094,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {TriFrustum} _frustum The capture frustum (unused, as in Carbon).
    * @param {Map<number, object>} batches Accumulators by TriBatchType.
    */
-  @meta.implemented
   GetImpostorBatches(_frustum, batches)
   {
     const renderables = [];
@@ -2153,7 +2110,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetRenderPriority(oldHash, newHash)
   {
     const dotView = vec3.dot(oldHash.viewDir, newHash.viewDir);
@@ -2166,7 +2122,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetImpostorBoundingSphere(sphere)
   {
     return this.GetBoundingSphere(sphere);
@@ -2177,7 +2132,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetLastImpostorBoundingSphere(sphere)
   {
     this.GetImpostorBoundingSphere(sphere);
@@ -2200,7 +2154,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
-  @meta.implemented
   PushRenderables(out)
   {
     if (this.mesh && this._isMeshVisible && this.mesh.IsLoading() !== true)
@@ -2223,7 +2176,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
-  @meta.implemented
   PushChildrenAndDecalRenderables(out)
   {
     if (this.DisplayChildren())
@@ -2258,7 +2210,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, reason)
   {
     if (!this.mesh)
@@ -2372,7 +2323,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   RebuildCachedData()
   {
     this.ReleaseCachedData();
@@ -2395,7 +2345,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   ReleaseCachedData()
   {
     for (const blocks of this._overlayMeshAreaBlocks)
@@ -2428,7 +2377,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Number} pickTypes - a Tr2PickType mask
    * @param {Object} perObjectData - this hull's per-object record
    */
-  @meta.implemented
   GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
     if (pickTypes & Tr2PickType.PICK_TYPE_PICKING)
@@ -2476,7 +2424,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Number} [_areaID] - the picked area, unused by this class
    * @returns {EveSpaceObject2} this
    */
-  @meta.implemented
   GetID(_areaID = 0)
   {
     return this;
@@ -2492,7 +2439,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted LOD draw args are left as a geometry source descriptor and primitive-count
    *   gating is not ported yet; Carbon bakes both here.
    */
-  @meta.adapted
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
     if (!this.mesh || this.mesh.display === false) return false;
@@ -2538,7 +2484,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   GetBatchesFromOverlayVector(batches, perObjectData, batchType, mesh)
   {
     const impactEffect = this.impactOverlay?.GetArmorDamageShader(batchType) ?? null;
@@ -2572,7 +2517,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted Portable mesh area access replaces Carbon's native mesh-area vectors.
    */
-  @meta.adapted
   HasTransparentBatches()
   {
     if (!this.mesh) return false;
@@ -2591,7 +2535,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetSortValue()
   {
     const viewPosition = Tr2Renderer.GetViewPosition();
@@ -2615,7 +2558,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   GetPerObjectData(_accumulator = null)
   {
     if (this.animationUpdater.IsInitialized())
@@ -2642,7 +2584,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetShadowPerObjectData(accumulator = null)
   {
     return this.GetPerObjectData(accumulator);
@@ -2660,7 +2601,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetLights(lightManager)
   {
     if (!this.display)
@@ -2688,7 +2628,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted The optional length-one array replaces Carbon's float& sizeInShadow
    *   out-parameter.
    */
-  @meta.adapted
   IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || this._boundingSphereWorldRadius <= 0)
@@ -2731,7 +2670,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -2773,7 +2711,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -2797,7 +2734,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @returns {ITr2AudGeometry|null} The audio geometry interface.
    */
-  @meta.implemented
   _GetAudioGeometry()
   {
     return this._audioGeometry;
@@ -2813,7 +2749,6 @@ export class EveSpaceObject2 extends EveEntity
    *   unported, as in RegisterComponents and UnRegisterComponents.
    * @param {ITr2AudGeometry|null} audioGeometry The replacement, or null.
    */
-  @meta.adapted
   _SetAudioGeometry(audioGeometry)
   {
     this._audioGeometry = audioGeometry ?? null;
@@ -2825,7 +2760,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   DisplayChildren()
   {
     return true;
@@ -2838,7 +2772,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @meta.adapted
   GetObserverTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -2852,7 +2785,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {mat4} out
    * @returns {mat4} out
    */
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -2867,7 +2799,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {vec3} position - receives the world-space model centre
    * @param {number} t - the time to update to, in Blue ticks
    */
-  @meta.implemented
   UpdateModelCenterWorldPosition(position, t)
   {
     this.UpdateWorldTransform(t);
@@ -2890,7 +2821,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetModelCenterWorldPosition(out)
   {
     vec3.transformMat4(out, this.boundingSphereCenter, this.worldTransform);
@@ -2903,7 +2833,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Float32Array} out Caller-owned position.
    * @returns {Float32Array} out
    */
-  @meta.implemented
   GetWorldPosition(out)
   {
     return vec3.copy(out, this.worldPosition);
@@ -2916,7 +2845,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetWorldRotation()
   {
     return this.worldRotation;
@@ -2928,7 +2856,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   FindSoundEmitter(name)
   {
     const target = String(name ?? "");
@@ -2958,7 +2885,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   SetMute(mute)
   {
     this.mute = !!mute;
@@ -2979,7 +2905,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   PlayAnimationEx(animName, loopCount, start, speed, clearWhenDone = true)
   {
     this._PlayAnimation(animName, true, loopCount, start, speed, clearWhenDone);
@@ -2994,7 +2919,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   CalculateSkinnedBoundingBoxFromTransform(transform)
   {
     const min = vec3.fromValues(Infinity, Infinity, Infinity);
@@ -3027,7 +2951,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   CalculateSkinnedBoundingSphere(out)
   {
     if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource()?.IsUsingCMF())
@@ -3043,7 +2966,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   InvalidateMergedLocators(reason = "structure")
   {
     this._mergedLocatorSetsDirty = true;
@@ -3060,7 +2982,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   EnsureChildLocatorMerged()
   {
     if (!this._mergedLocatorSetsDirty) return;
@@ -3285,7 +3206,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   UpdateDamageLocatorFilter()
   {
     if (this._damageFilterState === 0) return;
@@ -3334,7 +3254,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RunDamageLocatorFilter()
   {
     this._damageLocatorFilterRequested = true;
@@ -3347,7 +3266,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearImpactDamage()
   {
     if (this.impactOverlay) this.impactOverlay.Clear();
@@ -3365,7 +3283,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearAnimations()
   {
     this.animationUpdater?.ClearAnimations();
@@ -3377,7 +3294,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CreateImpactFromPosition(position, direction, lifeTime, size)
   {
     const closestDamageLocator = this.GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName);
@@ -3390,7 +3306,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   CreateImpact(damageLocatorIndex, direction, lifeTime, size)
   {
     if (this.impactOverlay)
@@ -3426,7 +3341,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @param {number} locator Damage locator index.
    */
-  @meta.implemented
   SetLastDamageLocatorHit(locator)
   {
     const index = locator >>> 0;
@@ -3439,7 +3353,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   EndAnimation()
   {
     this.animationUpdater?.EndAnimation();
@@ -3452,7 +3365,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   FreezeHighDetailMesh()
   {
     this._allowLodSelection = false;
@@ -3468,7 +3380,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetDamageLocatorCount()
   {
     return this.GetLocatorCount(EveSpaceObject2._damageLocatorSetName);
@@ -3480,7 +3391,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @returns {number} The last hit damage locator, or -1.
    */
-  @meta.implemented
   GetLastDamageLocatorHit()
   {
     return this.lastDamageLocatorHit;
@@ -3493,7 +3403,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   ResetClipSphereCenter()
   {
     vec3.negate(this.clipSphereCenter, this.GetBoundingSphereCenter(this.clipSphereCenter));
@@ -3507,7 +3416,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {vec3} center
    * @returns {void}
    */
-  @meta.implemented
   ResetClipSphereCenterToPos(center)
   {
     vec3.copy(this.clipSphereCenter, center);
@@ -3519,7 +3427,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetLocatorCount(locatorSetName)
   {
     return this.GetLocatorsForSet(locatorSetName)?.length ?? 0;
@@ -3531,7 +3438,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetLocatorsForSet(locatorSetName)
   {
     const target = String(locatorSetName ?? "");
@@ -3551,7 +3457,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   MergeToLocatorSet(locatorSet)
   {
     const locators = locatorSet.GetLocators();
@@ -3572,7 +3477,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   AddLocatorSet(name, locators)
   {
     const locatorSet = new EveLocatorSets();
@@ -3587,7 +3491,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   ClearLocatorSets()
   {
     this.locatorSets.length = 0;
@@ -3602,7 +3505,6 @@ export class EveSpaceObject2 extends EveEntity
    */
   @be.mapMethodAndWrap("GetGoodLocatorIndex")
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetCloseLocatorIndex(position, locatorSetName)
   {
     const locators = this.GetLocatorsForSet(locatorSetName);
@@ -3639,7 +3541,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @legacyBlue.method
-  @meta.adapted
   GetGoodLocatorIndex(position, locatorSetName)
   {
     return this.GetCloseLocatorIndex(position, locatorSetName);
@@ -3653,7 +3554,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetDamageLocatorDirection(index, inWorldSpaceOrOut, out)
   {
     const targetableCall = typeof inWorldSpaceOrOut === "boolean";
@@ -3677,7 +3577,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted CarbonEngineJS keeps output parameters last and returns a validity flag for
    *   targetable callers.
    */
-  @meta.adapted
   GetDamageLocatorPosition(index, inWorldSpace, out)
   {
     const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
@@ -3699,7 +3598,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetDamageLocatorBindPosition(index, out)
   {
     const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
@@ -3717,7 +3615,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetClosestDamageLocatorIndex(position)
   {
     return this.GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName);
@@ -3730,7 +3627,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   GetGoodDamageLocatorIndex(position)
   {
     const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
@@ -3787,7 +3683,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetRadius()
   {
     return this.GetBoundingSphereRadius();
@@ -3798,7 +3693,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetMissPosition(hit, source, out)
   {
     if (this.boundingSphereRadius > 0)
@@ -3828,7 +3722,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetImpactConfiguration()
   {
     return this.impactOverlay
@@ -3841,7 +3734,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   SetImpactOverlay(overlay)
   {
     this.impactOverlay = overlay;
@@ -3852,7 +3744,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetImpactOverlay()
   {
     return this.impactOverlay;
@@ -3863,7 +3754,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   HasImpactConfigurationShield()
   {
     return !!this.impactOverlay?.HasShieldEllipsoid()
@@ -3876,7 +3766,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted CarbonEngineJS uses an out-last signature; the ellipsoid intersection is
    *   otherwise source-faithful CPU math.
    */
-  @meta.adapted
   GetImpactPosition(locator, posPrev, posNow, epsilon, out)
   {
     if (!this.HasImpactConfigurationShield())
@@ -3908,7 +3797,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   UpdateImpact(out, direction, impactIndex)
   {
     if (!this.impactOverlay) return false;
@@ -3930,7 +3818,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetDamageLocator(index, out)
   {
     const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
@@ -3950,7 +3837,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetTransformedDamageLocator(index, out)
   {
     const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
@@ -3970,7 +3856,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   IsImpostor()
   {
     return this._impostorMode;
@@ -3984,7 +3869,6 @@ export class EveSpaceObject2 extends EveEntity
    * @returns {vec3} a new vector
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetLocatorPositionFromSet(index, inWorldSpace, locatorSetName)
   {
     const out = vec3.create(); // alloc: returned by value to the Blue caller
@@ -4004,7 +3888,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {string} locatorSetName
    * @returns {boolean} whether the locator exists
    */
-  @meta.implemented
   GetLocatorPosition(out, index, inWorldSpace, locatorSetName)
   {
     const locators = index < 0 ? null : this.GetLocatorsForSet(locatorSetName);
@@ -4038,7 +3921,6 @@ export class EveSpaceObject2 extends EveEntity
    * @returns {vec3} a new vector
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetLocatorRotationFromSet(index, inWorldSpace, locatorSetName)
   {
     const out = vec3.create(); // alloc: returned by value to the Blue caller
@@ -4057,7 +3939,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {string} locatorSetName
    * @returns {boolean} whether the locator exists
    */
-  @meta.implemented
   GetLocatorDirection(out, index, inWorldSpace, locatorSetName)
   {
     const locators = index < 0 ? null : this.GetLocatorsForSet(locatorSetName);
@@ -4094,7 +3975,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     for (const curveSet of this.curveSets)
@@ -4109,7 +3989,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     for (const curveSet of this.curveSets)
@@ -4133,7 +4012,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   StopCurveSet(name)
   {
     for (const curveSet of this.curveSets)
@@ -4148,7 +4026,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     let duration = 0;
@@ -4165,7 +4042,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     let duration = 0;
@@ -4184,7 +4060,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleControllerEvent(name)
   {
     const eventName = String(name ?? "");
@@ -4209,7 +4084,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   PlayAnimation(animName)
   {
     this._PlayAnimation(animName, true, 1, 0, 1, true);
@@ -4221,7 +4095,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ChainAnimation(animName)
   {
     this._PlayAnimation(animName, false, 1, 0, 1, true);
@@ -4234,7 +4107,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ChainAnimationEx(animName, loopCount, start, speed)
   {
     this._PlayAnimation(animName, false, loopCount, start, speed, true);
@@ -4261,7 +4133,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RebuildBoundingSphereInformation()
   {
     const mesh = this.mesh;
@@ -4288,7 +4159,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted Carbon's CcpMath::Sphere is represented by core-math sph3; object-shaped
    *   center/radius input is accepted at adapter boundaries.
    */
-  @meta.adapted
   SetBoundingSphereInformation(sphere)
   {
     if (sphere?.center)
@@ -4310,7 +4180,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetControllerVariables()
   {
     return Object.fromEntries(this._controllerVariables);
@@ -4323,7 +4192,6 @@ export class EveSpaceObject2 extends EveEntity
    *   index zero.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetLastUsedMeshLod()
   {
     const geometryResource = this.mesh?.GetGeometryResource();
@@ -4341,7 +4209,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {string|null} [prefix]
    * @returns {number}
    */
-  @meta.adapted
   CountLocatorsByPrefix(prefix)
   {
     if (prefix == null || prefix === "") return this.locators.length;
@@ -4363,7 +4230,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {{index: number}} indexOut
    * @returns {boolean}
    */
-  @meta.adapted
   FindLocatorTransformByName(name, indexOut)
   {
     for (let index = 0; index < this.locators.length; index++)
@@ -4387,7 +4253,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {{index: number}} indexOut
    * @returns {boolean}
    */
-  @meta.adapted
   FindLocatorJointByName(name, indexOut)
   {
     if (!this.animationUpdater) return false;
@@ -4407,7 +4272,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {{index: number}} indexOut
    * @returns {number} A member of EveSpaceObject2.LocatorType.
    */
-  @meta.adapted
   DetermineLocatorType(name, indexOut)
   {
     if (this.FindLocatorJointByName(name, indexOut)) return EveSpaceObject2.LocatorType.ELT_JOINT;
@@ -4435,7 +4299,6 @@ export class EveSpaceObject2 extends EveEntity
    * @returns {mat4|null}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetLocatorTransform(nameOrType, indexOrOut, out)
   {
     if (typeof nameOrType === "number")
@@ -4486,7 +4349,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetLocalBoundingBox(minBounds, maxBounds)
   {
     const min = vec3.create();
@@ -4523,7 +4385,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   GetWorldBoundingBox(minBounds, maxBounds)
   {
     box3.fromBounds(EveSpaceObject2._localBox, this._localAabbMin, this._localAabbMax);
@@ -4540,7 +4401,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   IsBoundingBoxReady()
   {
     if (!this.mesh) return false;
@@ -4554,7 +4414,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetBoundingSphere(out, query = 0)
   {
     if (this.boundingSphereRadius <= 0 && this._dynamicBoundingSphere[3] <= 0) return false;
@@ -4584,7 +4443,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   EstimatePixelDiameter(frustum)
   {
     if (!this.mesh)
@@ -4611,7 +4469,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetWorldVelocity(velocity)
   {
     vec3.copy(velocity, this.worldVelocity);
@@ -4623,7 +4480,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   IsPickable()
   {
     return this.isPickable;
@@ -4634,7 +4490,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   IsVisible(updateContext)
   {
     const frustum = updateContext.GetFrustum();
@@ -4648,7 +4503,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   IsInFrustum()
   {
     return this._isInFrustum;
@@ -4661,7 +4515,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetBoundingSphereCenter(out)
   {
     if (this._dynamicBoundingSphere[3] !== -1)
@@ -4678,7 +4531,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetBoundingSphereRadius()
   {
     if (this._dynamicBoundingSphere[3] !== -1)
@@ -4694,7 +4546,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetAnimationController()
   {
     return this.animationUpdater;
@@ -4706,7 +4557,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @param {object} attachment The attachment.
    */
-  @meta.implemented
   AddAttachment(attachment)
   {
     addChild(this, "attachments", attachment, { listNotify: this });
@@ -4717,7 +4567,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   ClearAttachments()
   {
     clearChildren(this, "attachments", { listNotify: this });
@@ -4730,7 +4579,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    * @param {object} newDecal The decal.
    */
-  @meta.implemented
   AddDecal(newDecal)
   {
     if (!this._allowLodSelection) newDecal.SetHighDetailDecalState(true);
@@ -4744,7 +4592,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetBoneCount()
   {
     const updater = this.animationUpdater;
@@ -4777,7 +4624,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetImpactDamageState(shield, armor, hull, doCreateArmorImpacts = true)
   {
     if (this.impactOverlay)
@@ -4802,7 +4648,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetImpactAnimation(name, enable, duration)
   {
     if (!this.impactOverlay) return;
@@ -4850,7 +4695,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   CollectPartDamageOverlays(out)
   {
     this.EnsureChildLocatorMerged();
@@ -4873,7 +4717,6 @@ export class EveSpaceObject2 extends EveEntity
    * @param {string|null} [propertyName] The changed member's exposed name.
    * @returns {boolean} Always true.
    */
-  @meta.implemented
   OnModified(propertyName = null)
   {
     if (IsMatch(propertyName, "dirtLevel")) this.SetControllerVariable("DirtLevel", this.dirtLevel);
@@ -4903,7 +4746,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   SetShaderOption(name, value)
   {
     this.mesh?.SetShaderOption(name, value);
@@ -4921,7 +4763,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     const key = String(name ?? "");
@@ -4948,7 +4789,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
     for (const child of this.effectChildren)
@@ -4964,7 +4804,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers)
@@ -4992,7 +4831,6 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted
    */
   @be.mapMethod()
-  @meta.adapted
   TransformLocators(locators = [])
   {
     const result = [];
@@ -5023,7 +4861,6 @@ export class EveSpaceObject2 extends EveEntity
    * @implemented
    */
   @be.mapMethod()
-  @meta.implemented
   GetTransformedLocatorsFromSet(locatorSetName)
   {
     const result = [];
@@ -5107,7 +4944,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex = -1)
   {
     if (mergedDamageIndex >= 0)
@@ -5201,7 +5037,6 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetShapeEllipsoid(outCenter, outRadii)
   {
     if (this.shapeEllipsoidRadius[0] > 0)

@@ -11,7 +11,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 // RenderDebugInfo scratch (debug drawing is single-threaded).
@@ -122,7 +122,6 @@ export class EveBoxVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.Setup();
@@ -137,7 +136,6 @@ export class EveBoxVolume extends IEveVolume
    * @returns {{center: vec3, radius: number}}
    */
 
-  @meta.implemented
   GetBoundingSphere()
   {
     return {
@@ -170,7 +168,6 @@ export class EveBoxVolume extends IEveVolume
    * @returns {number} The intensity.
    */
 
-  @meta.implemented
   GetIntensity(position)
   {
     const axisAlignedPosition = vec3.transformMat4(AXIS_ALIGNED_POSITION, position, this._inverseBoxTransform);
@@ -214,7 +211,6 @@ export class EveBoxVolume extends IEveVolume
    * @param excludeInnerVolume Drops the inner box from the choice, keeping every point in the shell.
    */
 
-  @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
     if (this.scaling[0] === 0 || this.scaling[1] === 0 || this.scaling[2] === 0)
@@ -302,7 +298,6 @@ export class EveBoxVolume extends IEveVolume
    * @adapted
    */
 
-  @meta.adapted
   RegisterForChanges(callback)
   {
     const id = this._nextCallbackId++;
@@ -316,7 +311,6 @@ export class EveBoxVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   UnregisterForChanges(callbackId)
   {
     this._callbacks.delete(callbackId);
@@ -329,7 +323,6 @@ export class EveBoxVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (["position", "scaling", "rotation", "innerScaling"].some(name => IsMatch(propertyName, name))) this.Setup();
@@ -358,7 +351,6 @@ export class EveBoxVolume extends IEveVolume
    * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentTransform, baseColor = DEFAULT_BASE_COLOR)
   {
     const owner = Tr2DebugObjectReference.create__Object(this);
@@ -401,7 +393,6 @@ export class EveBoxVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   Setup()
   {
     // XMVectorMax( m_scaling, 0 ) and XMVectorMin( XMVectorMax( m_innerScaling, 0 ), m_scaling )

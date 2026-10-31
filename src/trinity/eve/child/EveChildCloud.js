@@ -9,7 +9,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -161,7 +161,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this._vertexBuffer.Destroy();
@@ -177,7 +176,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "preTesselationLevel"))
@@ -197,7 +195,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources()
   {
     this._declaration = Tr2EffectStateManager.Unknown;
@@ -226,7 +223,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    *   Native quirks retained: LODs stop ABOVE 16, and uint16 indices wrap.
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     const dimension = this.preTesselationLevel;
@@ -293,7 +289,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (!this.isVisible || !this.hasUpdated || !this._indexBuffers.length ||
@@ -307,7 +302,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const { vec3_0 } = EveChildCloud.scratch;
@@ -323,7 +317,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT || !this.effect ||
@@ -347,7 +340,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    *   replacing the donor's uninitialized points[0] read when every point is clipped.
    */
 
-  @meta.adapted
   GetPerObjectData(accumulator)
   {
     const record = EveChildCloudPerObjectData.alloc(accumulator);
@@ -400,7 +392,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Bounding Box");
@@ -419,7 +410,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "Bounding Box"))
@@ -446,7 +436,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (this.volume)
@@ -470,7 +459,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
     updateBoundingSphere(this);
@@ -482,7 +470,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
     const frustum = updateContext.GetFrustum();
@@ -499,7 +486,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this.boundingSphere);
@@ -512,7 +498,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -524,7 +509,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -537,7 +521,6 @@ export class EveChildCloud extends EveSpaceObjectChild
    *   repeated candidates cannot change extrema. The all-points-clipped native
    *   bug reads uninitialized points[0]; use an explicit zero-area rectangle.
    */
-  @meta.adapted
   static getProjectedCubeBounds(out, worldView, projection, scratch)
   {
     const { vec4_0 } = scratch;

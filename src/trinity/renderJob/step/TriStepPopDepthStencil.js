@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPopDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepPopDepthStencil.cpp
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -19,7 +19,6 @@ export class TriStepPopDepthStencil extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.GetEffectStateManager().PopDepthStencilBuffer();

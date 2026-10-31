@@ -479,6 +479,4 @@ function ValidateConfiguration(configuration)
   }
 }
 
-CjsSchema.decorateMethod(CjsLibrary, "_ApplyConfiguration", CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsLibrary, "Initialize", CjsSchema.meta.implemented);

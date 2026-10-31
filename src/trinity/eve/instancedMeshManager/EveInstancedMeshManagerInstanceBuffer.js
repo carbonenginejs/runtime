@@ -66,7 +66,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    * @param {number} count Bytes wanted.
    * @returns {EveInstancedMeshManagerInstanceBufferAllocation}
    */
-  @meta.adapted
   Allocate(count)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -127,7 +126,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    * @param {number} count Bytes wanted (Carbon's header names it minSize).
    * @returns {number|null} The byte offset, or null when nothing fits.
    */
-  @meta.adapted
   GetUnusedRegion(count)
   {
     if (!this._buffer || !this._buffer.IsValid())
@@ -174,7 +172,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    *
    * @implemented
    */
-  @meta.implemented
   DoneCopying()
   {
     if (this._mappedData !== null)
@@ -201,7 +198,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    *   is null here and has nothing to destroy.
    * @param {number} renderedFrame The last frame the device has finished.
    */
-  @meta.adapted
   TrimRegions(renderedFrame)
   {
     let used = 0;
@@ -231,7 +227,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    * @implemented
    * @returns {number}
    */
-  @meta.implemented
   GetSize()
   {
     return this._buffer ? (this._buffer.GetDesc().count * this._buffer.GetDesc().stride) >>> 0 : 0;

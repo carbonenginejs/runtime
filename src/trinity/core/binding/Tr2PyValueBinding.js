@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2PyValueBinding.h
 // Source: trinity/trinity/Tr2PyValueBinding.cpp
 // Source: trinity/trinity/Tr2PyValueBinding_Blue.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { INotify } from "#blue/INotify";
 import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
 
@@ -53,7 +53,6 @@ export class Tr2PyValueBinding extends INotify
    * @returns {void}
    */
 
-  @meta.implemented
   Initialize()
   {
     this.isValid = (
@@ -72,7 +71,6 @@ export class Tr2PyValueBinding extends INotify
    * @returns {boolean} True after revalidation.
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this.Initialize();
@@ -87,7 +85,6 @@ export class Tr2PyValueBinding extends INotify
    * @returns {void}
    */
 
-  @meta.adapted
   CopyValue()
   {
     if (

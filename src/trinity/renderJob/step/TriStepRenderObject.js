@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderObject.h
 //   trinity/trinity/RenderJob/TriStepRenderObject.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { TriRenderBatchMap } from "../../core/batch/TriRenderBatchMap.js";
 import { TriRenderStep } from "./TriRenderStep.js";
@@ -79,7 +79,6 @@ export class TriStepRenderObject extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(renderable = null)
   {
     this.renderable = renderable;
@@ -102,7 +101,6 @@ export class TriStepRenderObject extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (!this.renderable) return TriRenderStep.Result.RS_OK;

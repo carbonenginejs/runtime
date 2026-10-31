@@ -45,7 +45,6 @@ export class TriVariable extends ITr2EffectValue
    * @returns {string} Variable result.
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -58,7 +57,6 @@ export class TriVariable extends ITr2EffectValue
    * @returns {number} Variable result.
    * Carbon declaration: TriVariable::GetType (trinity/trinity/TriVariable.h:188).
    */
-  @meta.implemented
   GetType()
   {
     return this.contentType;
@@ -79,7 +77,6 @@ export class TriVariable extends ITr2EffectValue
    * @returns {boolean} Variable result.
    */
 
-  @meta.adapted
   SetValue(value)
   {
     const length = TriVariable._componentCounts[this.contentType];
@@ -111,7 +108,6 @@ export class TriVariable extends ITr2EffectValue
    * @returns {*} Variable result.
    */
 
-  @meta.adapted
   GetValue(out = undefined)
   {
     const value = this.value;
@@ -135,7 +131,6 @@ export class TriVariable extends ITr2EffectValue
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   Invalidate()
   {
     this.value = null;
@@ -151,7 +146,6 @@ export class TriVariable extends ITr2EffectValue
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   Clear()
   {
     const value = this.value;
@@ -181,7 +175,8 @@ export class TriVariable extends ITr2EffectValue
    * a skipped one. That is Carbon's, and it matters: leaving the register
    * untouched would let a draw read whatever the previous one bound there.
    *
-   * @adapted
+   * @adapted Retains the existing JavaScript provider representation and optional texture realization context, with direct resource-set calls.
+   *   Carbon declaration: TriVariable::CopyToResourceSet (trinity/trinity/TriVariable.h:248).
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -191,10 +186,7 @@ export class TriVariable extends ITr2EffectValue
    *   first bind (Carbon creates it in DoPrepare), so a provider that has
    *   resolved but not yet realized is realized through the context.
    * @returns {boolean} Whether the slot took the binding.
-   * Adapted: Retains the existing JavaScript provider representation and optional texture realization context, with direct resource-set calls.
-   * Carbon declaration: TriVariable::CopyToResourceSet (trinity/trinity/TriVariable.h:248).
    */
-  @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     if (this.contentType === TriVariableContentType.TRIVARIABLE_TEXTURE_RES)
@@ -220,15 +212,13 @@ export class TriVariable extends ITr2EffectValue
    * Carbon `TriVariable::ApplyUav` (`TriVariable.cpp:69+`). Same switch, no
    * colour space — a UAV is written rather than sampled.
    *
-   * @adapted
+   * @adapted Retains the existing JavaScript provider representation when selecting a texture or GPU buffer.
+   *   Carbon declaration: TriVariable::ApplyUav (trinity/trinity/TriVariable.h:253).
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
-   * Adapted: Retains the existing JavaScript provider representation when selecting a texture or GPU buffer.
-   * Carbon declaration: TriVariable::ApplyUav (trinity/trinity/TriVariable.h:253).
    */
-  @meta.adapted
   ApplyUav(resourceDesc, stage, registerIndex)
   {
     if (this.contentType === TriVariableContentType.TRIVARIABLE_TEXTURE_RES)
@@ -290,7 +280,6 @@ export class TriVariable extends ITr2EffectValue
    * @returns {string}
    */
 
-  @meta.implemented
   GetTypeName()
   {
     return TriVariable.getTypeName(this.contentType);
@@ -304,7 +293,6 @@ export class TriVariable extends ITr2EffectValue
    * @returns {number}
    */
 
-  @meta.implemented
   GetTypeSize()
   {
     return TriVariable.getTypeSize(this.contentType);
@@ -317,7 +305,6 @@ export class TriVariable extends ITr2EffectValue
    * @returns {number} Byte size for this variable's registered type.
    */
 
-  @meta.implemented
   GetValueSize()
   {
     return this.GetTypeSize();
@@ -393,15 +380,13 @@ export class TriVariable extends ITr2EffectValue
    * the variable has to be able to answer. It used to live only on a parallel
    * store's own variable class, which is why binding could not use Carbon's.
    *
-   * @adapted
+   * @adapted Copies JavaScript scalar/array storage into a bounded constant destination, transposing matrices for shaders and returning whether data was written.
+   *   Carbon declaration: TriVariable::CopyValueToEffect (trinity/trinity/TriVariable.h:257).
    * @param {*} _inputType Accepted and ignored, matching the parameter shape.
    * @param {ArrayLike} destination Constant destination.
    * @param {number} [size] Byte budget in the destination.
    * @returns {boolean} Whether anything was written.
-   * Adapted: Copies JavaScript scalar/array storage into a bounded constant destination, transposing matrices for shaders and returning whether data was written.
-   * Carbon declaration: TriVariable::CopyValueToEffect (trinity/trinity/TriVariable.h:257).
    */
-  @meta.adapted
   CopyValueToEffect(_inputType, destination, size = Number.POSITIVE_INFINITY)
   {
     if (!destination || typeof destination.length !== "number") return false;
@@ -446,7 +431,6 @@ export class TriVariable extends ITr2EffectValue
    * @param {number} contentType Native content-type value.
    * @returns {string} Variable result.
    */
-  @meta.adapted
 
 
   static getTypeName(contentType)
@@ -465,7 +449,6 @@ export class TriVariable extends ITr2EffectValue
    * @param {number} contentType Native content-type value.
    * @returns {number} Variable result.
    */
-  @meta.adapted
 
 
   static getTypeSize(contentType)
@@ -518,4 +501,3 @@ export class TriVariable extends ITr2EffectValue
 
 // Native nonexposed table has only concrete/IRoot identity; ITr2EffectValue is nominal only.
 
-CjsSchema.decorateMethod(TriVariable, "_Texture", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

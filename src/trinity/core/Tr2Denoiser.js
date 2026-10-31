@@ -27,7 +27,7 @@ import { INotify } from "../../global/blue/INotify.js";
 // the constructor only names them. Until a resource manager resolves those
 // paths the passes run and draw nothing, which is the same state every other
 // effect-driven path in this runtime is in.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
@@ -159,7 +159,6 @@ export class Tr2Denoiser extends IRoot
    * @returns {object|null} The result handle, or null.
    */
 
-  @meta.adapted
   Apply(source, depth, normals, projection, upscaling, gpuResourcePool, renderContext, renderer)
   {
     return this.Apply__Index(source, depth, normals, projection, 0, upscaling, gpuResourcePool, renderContext, renderer);
@@ -174,7 +173,6 @@ export class Tr2Denoiser extends IRoot
    * @param {number} index Array slice of the result to render into.
    * @returns {object|null} The result handle, or null.
    */
-  @meta.adapted
   Apply__Index(source, depth, normals, projection, index, upscaling, gpuResourcePool, renderContext, renderer)
   {
     // Carbon tests the HANDLE, not the texture behind it (`cpp:61`).
@@ -296,7 +294,6 @@ export class Tr2Denoiser extends IRoot
    * @returns {void}
    */
 
-  @meta.implemented
   SetRadius(value)
   {
     this.radius = value >>> 0;
@@ -311,7 +308,6 @@ export class Tr2Denoiser extends IRoot
    * @returns {boolean} True, as Carbon's does.
    */
 
-  @meta.implemented
   OnModified()
   {
     this.#parametersDirty = true;

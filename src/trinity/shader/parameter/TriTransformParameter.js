@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/TriTransformParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -67,7 +67,6 @@ export class TriTransformParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   RebuildEffectHandles(_effectRes)
   {
   }
@@ -78,7 +77,6 @@ export class TriTransformParameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -91,7 +89,6 @@ export class TriTransformParameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     startingHash = hashFnv1Floats([this.transformBase], startingHash);
@@ -119,7 +116,6 @@ export class TriTransformParameter extends ITriEffectParameter
    *
    * @adapted
    */
-  @meta.adapted
   CopyValueToEffect(_inputType, dest, size = 64, context = null)
   {
     const transform = mat4.create();

@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTransform.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTransform_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable point transforms are maintained here.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2Sprite2dContainerBase } from "./Tr2Sprite2dContainerBase.js";
 import { vec2 } from "#math/vec2";
 import { mat4 } from "#math/mat4";
@@ -74,7 +74,6 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * @implemented
    */
 
-  @meta.implemented
   GatherSprites(renderer)
   {
     if (!this.display) return;
@@ -103,7 +102,6 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * @implemented
    */
 
-  @meta.implemented
   PickPoint(x, y, renderer)
   {
     if (!this.display || this.pickState === Tr2SpriteObjectPickState.TR2_SPS_OFF) return null;
@@ -152,7 +150,6 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    *   this preserves its scale-axis rotation, scale, final rotation and translation order.
    * @returns {Float32Array} Owned 4x4 local transform.
    */
-  @meta.adapted
 
   _GetTransformationMatrix()
   {
@@ -187,7 +184,6 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * @returns {Float32Array} Newly allocated transformed point.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   TransformPoint(x, y)
   {
     const scalingCenterX = Math.floor(this.scalingCenter[0] * this.displayWidth + 0.5);

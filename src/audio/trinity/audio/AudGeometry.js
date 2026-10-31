@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: audio/src/AudGeometry.h + AudGeometry.cpp
 // Hand-owned browser/backend adaptation. Verify against audio/AudGeometry.json.
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { ITr2AudGeometry } from "../trinityAudioApi/ITr2AudGeometry.js";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
@@ -106,7 +106,6 @@ export class AudGeometry extends ITr2AudGeometry
    * @adapted
    */
 
-  @meta.adapted
   static ClearAllGeometry()
   {
     const backend = AudGameObjResource.backend;
@@ -129,7 +128,6 @@ export class AudGeometry extends ITr2AudGeometry
    *   backend methods using plain browser-safe parameter objects.
    *   Carbon declaration: AudGeometry::SetGeometry (audio/src/AudGeometry.h:48).
    */
-  @meta.adapted
   SetGeometry(geometrySetId, instanceId, geometryData, worldTransform)
   {
     const manager = AudGameObjResource.manager;
@@ -172,7 +170,6 @@ export class AudGeometry extends ITr2AudGeometry
    *   plain parameter object.
    *   Carbon declaration: AudGeometry::SetGeometryTransform (audio/src/AudGeometry.h:62).
    */
-  @meta.adapted
   SetGeometryTransform(geometrySetId, instanceId, worldTransform)
   {
     const manager = AudGameObjResource.manager;
@@ -197,7 +194,6 @@ export class AudGeometry extends ITr2AudGeometry
    *   retaining Carbon's set reference counts.
    *   Carbon declaration: AudGeometry::RemoveGeometry (audio/src/AudGeometry.h:75).
    */
-  @meta.adapted
   RemoveGeometry(geometrySetId, instanceId)
   {
     const set = geometrySets.get(geometrySetId);

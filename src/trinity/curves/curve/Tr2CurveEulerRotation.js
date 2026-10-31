@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation_Blue.cpp
 import { fromYawPitchRollCarbon, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, ITriCurveLength } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -57,7 +57,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     const yaw = this.yaw.Update(time),
@@ -76,7 +75,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The same output buffer.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, this.currentValue);
@@ -92,7 +90,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     return fromYawPitchRollCarbon(out, this.yaw.GetValue(time), this.pitch.GetValue(time), this.roll.GetValue(time));
@@ -107,7 +104,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -122,7 +118,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -135,7 +130,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {number} Duration in seconds.
    */
 
-  @meta.implemented
   Length()
   {
     return Math.max(this.yaw.Length(), this.pitch.Length(), this.roll.Length());
@@ -150,7 +144,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The same output buffer.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -171,7 +164,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {void}
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
     const useRightTangent = !!leftTangent && !!rightTangent;
@@ -188,7 +180,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetExtrapolation(extrapolation)
   {
     this.yaw.SetExtrapolation(extrapolation);

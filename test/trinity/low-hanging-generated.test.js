@@ -714,7 +714,7 @@ test("procedural selectors return their live debug-volume collections", () =>
     assert.equal(volumes, selector.debugVolumes);
     volumes.push({ name: "debug-volume" });
     assert.equal(selector.debugVolumes.length, 1);
-    assert.equal(CjsSchema.getMethod(selector.constructor, "GetDebugVolumes")?.impl?.status, "implemented");
+    assert.equal(MarkerTag(CjsSchema.getClassName(selector.constructor), "GetDebugVolumes"), "implemented");
   }
 });
 

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: audio/src/AudPosition.h + AudPosition.cpp
 // Hand-owned behavior port. Verify against audio/AudPosition.json.
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { IBluePlacementObserver } from "#blue/IBluePlacementObserver";
 import { vec3 } from "#math/vec3";
 
@@ -33,7 +33,6 @@ export class AudPosition extends IBluePlacementObserver
    * @returns {void}
    */
 
-  @meta.adapted
   UpdatePlacement(front, top, position)
   {
     vec3.copy(this.value.front, front);
@@ -50,7 +49,6 @@ export class AudPosition extends IBluePlacementObserver
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   OnModified()
   {
     return true;

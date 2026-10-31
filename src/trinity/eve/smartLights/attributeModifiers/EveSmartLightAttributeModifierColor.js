@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierColor.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { color } from "#math/color";
@@ -70,7 +70,6 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * @implemented
    */
 
-  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -101,7 +100,6 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    *   colour-set model through one direct two-representation boundary.
    */
 
-  @meta.adapted
   GetGroupColor()
   {
     return resolveFactionColor(
@@ -119,7 +117,6 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
@@ -134,7 +131,6 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * @implemented
    */
 
-  @meta.implemented
   ProcessAttributeModifier(attribute, placement, _entityPosition, _entityDirection, modifierStrength)
   {
     const activationStrength = this.GetActivationStrength(placement) * modifierStrength;

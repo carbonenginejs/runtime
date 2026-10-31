@@ -4,7 +4,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Locator } from "./Locator.js";
 
@@ -82,7 +82,6 @@ export class EveLocatorSets extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Translate(offset)
   {
     if (EveLocatorSets._lengthSq(offset) === 0)
@@ -102,7 +101,6 @@ export class EveLocatorSets extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Append(locators)
   {
     for (const locator of locators)
@@ -118,7 +116,6 @@ export class EveLocatorSets extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasName(name)
   {
     return this.name === String(name);
@@ -130,7 +127,6 @@ export class EveLocatorSets extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLocators()
   {
     return this.locators;
@@ -142,7 +138,6 @@ export class EveLocatorSets extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -154,7 +149,6 @@ export class EveLocatorSets extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name);
@@ -167,7 +161,6 @@ export class EveLocatorSets extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Set(name, locators)
   {
     this.SetName(name);

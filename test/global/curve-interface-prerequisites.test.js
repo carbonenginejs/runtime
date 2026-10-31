@@ -124,7 +124,8 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     {
       assert.equal(CjsSchema.getMethod(Composed, method).impl.status, "abstract");
     }
-    if (hasReset) assert.equal(CjsSchema.getMethod(Composed, "Reset").impl.status, "adapted");
+    // Reset's state is the interface's JSDoc tag; a composed consumer carries no status for it.
+    if (hasReset) assert.equal(MarkerTag(name, "Reset"), "adapted");
   });
 
   test(`${name} keeps concrete operations and raw arguments separate from explicit query exposure`, () =>

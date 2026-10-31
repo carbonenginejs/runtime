@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepClear.cpp
 // Source: trinity/trinity/RenderJob/TriStepClear_Blue.cpp
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -54,7 +54,6 @@ export class TriStepClear extends TriRenderStep
    * @adapted
    */
   @be.mapMethod()
-  @meta.adapted
   __init__(color, depth, stencil)
   {
     this.isColorCleared = arguments.length >= 1 && color != null;
@@ -73,7 +72,6 @@ export class TriStepClear extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.Clear({

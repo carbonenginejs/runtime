@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
@@ -66,7 +66,6 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -84,7 +83,6 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * @adapted gl-matrix writes the output vector; existing noise and allocated phase replace native noise and pointer-derived phase.
    */
 
-  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out)
   {
     const offset = vec3.clone(this.magnitude);

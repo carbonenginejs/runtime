@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.cpp
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
 import { IsMatch, INotify, IBlueResource } from "#blue";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
@@ -45,7 +45,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    *
    * @adapted
    */
-  @meta.adapted
   __init__(name = "", texture = null, uavMipLevel = 0)
   {
     this.Create(name, texture, uavMipLevel);
@@ -58,7 +57,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
-  @meta.implemented
   Create(name, texture, uavMipLevel = 0)
   {
     const nextName = String(name);
@@ -81,7 +79,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -93,7 +90,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     return hashFnv1Identity(this.texture, startingHash);
@@ -106,7 +102,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "texture")) this.#invalidateResourceSets();
@@ -120,7 +115,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @adapted
    */
 
-  @meta.adapted
   RebuildEffectHandles(_effectRes)
   {
 
@@ -147,7 +141,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @returns {boolean} Whether the slot took the binding.
    * Carbon declaration: Tr2RuntimeTextureParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h:19).
    */
-  @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
@@ -192,7 +185,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @returns {boolean} Whether the slot took the binding.
    * Carbon declaration: Tr2RuntimeTextureParameter::ApplyUav (trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h:24).
    */
-  @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
     const texture = this.texture ? this.texture.GetTexture() : null;
@@ -209,7 +201,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   SetTextureProvider(texture)
   {
     if (this.texture === texture)
@@ -228,7 +219,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   GetTextureProvider()
   {
     return this.texture;
@@ -241,7 +231,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   SetUavMipLevel(mipLevel)
   {
     this.uavMipLevel = mipLevel >>> 0;
@@ -254,7 +243,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   OnAddedToMaterial(material)
   {
     if (!this.#materials.includes(material))
@@ -279,8 +267,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   KeepAlive()
   {
     const resource = CjsSchema.cast(this.texture, IBlueResource);
@@ -293,7 +279,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * @implemented
    */
 
-  @meta.implemented
   OnRemovedFromMaterial(material)
   {
     const index = this.#materials.indexOf(material);
@@ -315,4 +300,3 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
 
 // Exact identities from Tr2RuntimeTextureParameter_Blue.cpp; no exposure chain.
 
-CjsSchema.decorateMethod(Tr2RuntimeTextureParameter, "_Texture", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

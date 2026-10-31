@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget.cpp
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { ALResult, Failed, Tr2TextureSubresource } from "#trinityal";
@@ -70,7 +70,6 @@ export class TriStepCopyRenderTarget extends TriRenderStep
    * @implemented
    */
   @be.mapMethod()
-  @meta.implemented
   __init__(destination = null, source = null, destinationViewport = null, sourceViewport = null)
   {
     if (destination)
@@ -98,7 +97,6 @@ export class TriStepCopyRenderTarget extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     const destinationRT = this.Destination;

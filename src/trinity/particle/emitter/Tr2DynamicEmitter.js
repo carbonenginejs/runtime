@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2DynamicEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IsMatch, IInitialize, INotify, CcpTime } from "#blue";
 import { hasUnboundParticleElements } from "../element/particleElementBinding.js";
 import { ITr2GenericEmitterUpdateArguments, ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
@@ -71,7 +71,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get emittedParticles()
   {
     return this.GetEmittedParticleCount();
@@ -84,7 +83,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    *   rather than native declaration pointers.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Rebind()
   {
     this.#emittedParticles = 0;
@@ -117,7 +115,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UpdateSimulation(dt)
   {
     return this.SpawnParticles(new ITr2GenericEmitterUpdateArguments(), null, null, Math.max(0, Number(dt) || 0));
@@ -131,7 +128,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @implemented
    */
 
-  @meta.implemented
   Update(updateArguments)
   {
     if (!this.isValid || !this.particleSystem)
@@ -154,7 +150,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.particleSystem)
@@ -175,7 +170,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "particleSystem"))
@@ -196,7 +190,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    *   only for Carbon contract parity.
    */
 
-  @meta.adapted
   SetThreadSafeFlag()
   {
     this.#isThreadSafe = true;
@@ -215,7 +208,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @returns {number} Particles spawned.
    */
 
-  @meta.implemented
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
     if (!this.isValid || !this.particleSystem)
@@ -268,7 +260,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @implemented
    */
 
-  @meta.implemented
   SpawnParticles__StartEnd(arguments_, _positionStart, positionEnd, _velocityStart, velocityEnd, deltaTime)
   {
     return this.SpawnParticles(arguments_, positionEnd, velocityEnd, deltaTime);
@@ -282,7 +273,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @returns {boolean}
    */
 
-  @meta.implemented
   IsValid()
   {
     return this.isValid;
@@ -294,7 +284,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @implemented
    */
 
-  @meta.implemented
   GetEmittedParticleCount()
   {
     return this.#emittedParticles;
@@ -306,7 +295,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @implemented
    */
 
-  @meta.implemented
   ResetEmittedParticleCount()
   {
     this.#emittedParticles = 0;

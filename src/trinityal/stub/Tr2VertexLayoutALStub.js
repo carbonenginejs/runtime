@@ -18,7 +18,7 @@
 // stands rather than quietly reordered - a caller that ignores the result gets
 // Carbon's behaviour, not a different one.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -135,10 +135,4 @@ export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 // States against stub/Tr2VertexLayoutALStub.cpp:11-38 and .h:20-32. Create is adapted: it keeps a copy of the definition's items, not a Tr2VertexDefinition copy.
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Create", meta.adapted);
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2VertexLayoutALStub")(Tr2VertexLayoutALStub);

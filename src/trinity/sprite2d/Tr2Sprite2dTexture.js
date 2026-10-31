@@ -7,7 +7,7 @@ import { ITr2Sprite2dTexture } from "./ITr2Sprite2dTexture.js";
 // Imported for the listener set's JSDoc type and so the interface is in the build graph.
 import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 import { ITr2AtlasTextureNotifyTarget } from "../core/ITr2AtlasTextureNotifyTarget.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
@@ -93,7 +93,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @returns {void}
    */
 
-  @meta.implemented
   RegisterForChangeNotification(target)
   {
     this._changeListeners.add(target);
@@ -108,7 +107,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @returns {void}
    */
 
-  @meta.implemented
   UnregisterForChangeNotification(target)
   {
     this._changeListeners.delete(target);
@@ -120,7 +118,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_name)
   {
     this._SetDirty();
@@ -133,7 +130,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   AtlasTextureChanged(_texture)
   {
     this._SetDirty();
@@ -146,7 +142,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
   _SetDirty()
   {
@@ -183,7 +178,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this._resPath) this.SetResPath(this._resPath);
@@ -196,7 +190,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetResPath()
   {
     return this._resPath;
@@ -209,7 +202,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @notImplemented
    */
 
-  @meta.notImplemented
   SetResPath(_path)
   {
     throw new Error("Tr2Sprite2dTexture.SetResPath requires the unported atlas resource acquisition path.");
@@ -221,7 +213,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetAtlasTexture()
   {
     return this._atlasTexture;
@@ -233,7 +224,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   SetAtlasTexture(texture)
   {
     if (this._atlasTexture) this._atlasTexture.UnregisterForChangeNotification(this);
@@ -249,7 +239,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   Apply(renderer, index)
   {
     renderer.SetTexture(index, this._atlasTexture, this._settings);
@@ -264,7 +253,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   CheckTextureWindow()
   {
     if (this._srcX === 0 && this._srcY === 0 && this._srcWidth === 0 && this._srcHeight === 0)
@@ -289,7 +277,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetTransform()
   {
     if (!this.useTransform) return null;
@@ -314,7 +301,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetTextureRepeatMode()
   {
     return (this._settings & (Tr2Sprite2dTextureSettings.S2D_TS_REPEAT_MIRROR | Tr2Sprite2dTextureSettings.S2D_TS_REPEAT_CLAMP)) >> 1;
@@ -327,7 +313,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   SetTextureRepeatMode(value)
   {
     const rest = this._settings & ~(Tr2Sprite2dTextureSettings.S2D_TS_REPEAT_MIRROR | Tr2Sprite2dTextureSettings.S2D_TS_REPEAT_CLAMP);
@@ -341,7 +326,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetSrcX()
   {
     return this._srcX;
@@ -353,7 +337,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   SetSrcX(value)
   {
     this._srcX = value;
@@ -367,7 +350,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetSrcY()
   {
     return this._srcY;
@@ -379,7 +361,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   SetSrcY(value)
   {
     this._srcY = value;
@@ -393,7 +374,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetSrcWidth()
   {
     return this._srcWidth;
@@ -405,7 +385,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   SetSrcWidth(value)
   {
     this._srcWidth = value;
@@ -419,7 +398,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetSrcHeight()
   {
     return this._srcHeight;
@@ -431,7 +409,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   SetSrcHeight(value)
   {
     this._srcHeight = value;
@@ -445,7 +422,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetWidth()
   {
     return this._atlasTexture ? this._atlasTexture.GetWidth() : 0;
@@ -457,7 +433,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetHeight()
   {
     return this._atlasTexture ? this._atlasTexture.GetHeight() : 0;
@@ -469,7 +444,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   IsLoading()
   {
     return this._atlasTexture ? this._atlasTexture.IsLoading() : false;
@@ -481,7 +455,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   IsGood()
   {
     return this._atlasTexture ? this._atlasTexture.IsGood() : false;
@@ -493,7 +466,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetTileX()
   {
     return (this._settings & Tr2Sprite2dTextureSettings.S2D_TS_TILE_X) !== 0;
@@ -505,7 +477,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   SetTileX(value)
   {
     if (value) this._settings |= Tr2Sprite2dTextureSettings.S2D_TS_TILE_X;
@@ -519,7 +490,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   GetTileY()
   {
     return (this._settings & Tr2Sprite2dTextureSettings.S2D_TS_TILE_Y) !== 0;
@@ -531,7 +501,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @implemented
    */
 
-  @meta.implemented
   SetTileY(value)
   {
     if (value) this._settings |= Tr2Sprite2dTextureSettings.S2D_TS_TILE_Y;

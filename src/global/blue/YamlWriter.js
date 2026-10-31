@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: blue/src/YamlWriter.h
 // Source: blue/src/YamlWriter.cpp
 import { Alias, Document, Pair, Scalar, YAMLMap, YAMLSeq, isSeq } from "yaml";
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { IRootWriter } from "./IRootWriter.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
 import * as CcpLog from "../logging/ccpLog.js";
@@ -588,38 +588,8 @@ export class YamlWriter extends IRootWriter
 }
 
 // Explicit registration keeps the public Blue source importable without a decorator transform.
-meta.adapted(YamlWriter, "_writeToStreamStatic");
-CjsSchema.decorateMethod(YamlWriter, "WriteObjectToStream", meta.adapted, be.mapMethodAndWrap());
-CjsSchema.decorateMethod(YamlWriter, "WriteObjectToString", meta.adapted, be.mapMethodAndWrap());
-CjsSchema.decorateMethod(YamlWriter, "WriteNestedValue", meta.adapted, meta.cjs);
-CjsSchema.decorateMethod(YamlWriter, "_WriteMemberName", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteInt8", meta.implemented);
-CjsSchema.decorateMethod(YamlWriter, "_WriteInt16", meta.implemented);
-CjsSchema.decorateMethod(YamlWriter, "_WriteInt32", meta.implemented);
-CjsSchema.decorateMethod(YamlWriter, "_WriteUInt32", meta.implemented);
-CjsSchema.decorateMethod(YamlWriter, "_WriteInt64", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteUInt64", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteFloat", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteDouble", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteChar", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteWChar", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteBinaryBlock", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteVectorBegin", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteVectorEnd", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteFloatArray", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteFloatMatrix", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteFloatSequence", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteIRoot__Reference", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteIRoot__Pointer", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteStructureList", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_Cleanup", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_AddEvent", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_AddScalarEvent", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_AddMappingStartEvent", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_AddMappingEndEvent", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_AddAliasEvent", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_WriteToStream", meta.adapted);
-CjsSchema.decorateMethod(YamlWriter, "_ReportError", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "WriteObjectToStream", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(YamlWriter, "WriteObjectToString", be.mapMethodAndWrap());
 be.define("YamlWriter")(YamlWriter);
 be.inherit(IRootWriter)(YamlWriter);
 

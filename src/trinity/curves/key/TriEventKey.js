@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/TriEventKey.h
 // Source: trinity/trinity/Curves/TriEventKey.cpp
 // Source: trinity/trinity/Curves/TriEventKey_Blue.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 
 
 /**
@@ -35,7 +35,6 @@ export class TriEventKey extends IRoot
   /** Carbon: m_callable (trinity/trinity/Curves/TriEventKey.h:22).
    * Adapted: Python values use ordinary JavaScript callables; they are not IRoot objects.
    */
-  @meta.adapted
   @type.unknown
   callable = null;
 
@@ -48,7 +47,6 @@ export class TriEventKey extends IRoot
   /** Carbon: m_callableArgs (trinity/trinity/Curves/TriEventKey.h:23).
    * Adapted: Python values use ordinary JavaScript argument arrays; they are not IRoot objects.
    */
-  @meta.adapted
   @type.array("unknown")
   callableArgs = null;
 }

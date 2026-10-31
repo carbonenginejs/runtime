@@ -18,7 +18,6 @@ import { meta, type } from "#schema";
  * @adapted
  */
 @meta.define("Tr2ShaderManager")
-@meta.adapted
 export class Tr2ShaderManager extends IRoot
 {
 

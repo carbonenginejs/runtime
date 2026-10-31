@@ -8,7 +8,7 @@ import { quat } from "#math/quat";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { IsMatch, INotify, IInitialize } from "#blue";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 
 
@@ -147,7 +147,6 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @returns {boolean} True after calculating the camera box.
    */
 
-  @meta.implemented
   Initialize()
   {
     this.CalculateBoxPosition();
@@ -162,7 +161,6 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   OnModified(propertyName = null)
   {
     if (IsMatch(propertyName, "fovMultiplication"))
@@ -189,7 +187,6 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @returns {void}
    */
 
-  @meta.adapted
   CalculateBoxPosition()
   {
     let inverseView = Tr2Renderer.GetInverseViewTransform();
@@ -243,7 +240,6 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @returns {Float32Array} The destination vector.
    */
 
-  @meta.adapted
   GetValue(out)
   {
     this.CalculateBoxPosition();
@@ -257,7 +253,6 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @returns {number} Authored key time.
    */
 
-  @meta.implemented
   GetTime()
   {
     return this.time;
@@ -270,7 +265,6 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @returns {number} Native follow-key interpolation enum value.
    */
 
-  @meta.implemented
   GetInterpolationType()
   {
     return this.interpolation;
@@ -284,7 +278,6 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @returns {Float32Array} The destination vector.
    */
 
-  @meta.adapted
   GetLeftTangent(out)
   {
     return vec3.copy(out, this.rotatedLeftTangent);
@@ -298,7 +291,6 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @returns {Float32Array} The destination vector.
    */
 
-  @meta.adapted
   GetRightTangent(out)
   {
     return vec3.copy(out, this.rotatedRightTangent);

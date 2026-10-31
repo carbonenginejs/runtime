@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/Tr2HalHelperStructures.h
-import { CjsSchema, type, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 // Source: trinity/trinityal/Tr2HalHelperStructures.cpp
 //
 // ONE FOLDER PER DONOR HEADER. Carbon declares six types in this header, and a
@@ -50,5 +50,4 @@ export class Tr2MsaaDesc
 CjsSchema.decorateField(Tr2MsaaDesc, "samples", type.uint32);
 CjsSchema.decorateField(Tr2MsaaDesc, "quality", type.uint32);
 // State: Equals is Tr2HalHelperStructures.h:289-292 (samples clamp to one, quality compares exactly).
-CjsSchema.decorateMethod(Tr2MsaaDesc, "Equals", meta.implemented, meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2MsaaDesc")(Tr2MsaaDesc);

@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2PostProcess.h
 // Source: trinity/trinity/Tr2PostProcess.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -25,7 +25,6 @@ export class Tr2PostProcess extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;

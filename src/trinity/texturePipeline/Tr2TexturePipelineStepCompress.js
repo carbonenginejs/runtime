@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepCompress.json; maintained by the runtime resource layer.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { compressBitmapAsync } from "#resource/codecs/bcn";
 import { createDdsBitmap } from "../../resource/formats/dds/ddsBitmap.js";
 import { PixelFormat as P } from "#consts/render-context";
@@ -100,6 +100,4 @@ CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "format", be.mapAttribut
 CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "b", be.mapAttribute(be.READWRITE | be.PERSIST), type.float32);
 CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "g", be.mapAttribute(be.READWRITE | be.PERSIST), type.float32);
 CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "r", be.mapAttribute(be.READWRITE | be.PERSIST), type.float32);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepCompress, "GetResourceDependencies", meta.implemented);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepCompress, "Execute", meta.adapted);
 CjsSchema.exposure.define("Tr2TexturePipelineStepCompress")(Tr2TexturePipelineStepCompress);

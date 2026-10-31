@@ -7,7 +7,7 @@ import { ITr2SoundEmitterOwner } from "../../ITr2SoundEmitterOwner.js";
 import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 // Hand-maintained after promotion from generated schema intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
 import { IEveEffectChildrenOwner } from "../../child/IEveEffectChildrenOwner.js";
 import { EveEffectRoot2 } from "../EveEffectRoot2.js";
@@ -44,7 +44,6 @@ export class EvePlanet extends EveEffectRoot2
    * @returns {boolean} Whether the manager registered it.
    */
 
-  @meta.adapted
   RegisterSecondaryLightSource(manager)
   {
     return manager.RegisterSecondaryLightSource(this._GetWorldTranslation(), () => this.radius, this.albedoColor, this.emissiveColor);
@@ -100,7 +99,6 @@ export class EvePlanet extends EveEffectRoot2
    * @implemented
    */
 
-  @meta.implemented
   SetRenderScale(value)
   {
     this._renderScale = value;
@@ -112,7 +110,6 @@ export class EvePlanet extends EveEffectRoot2
    * @implemented
    */
 
-  @meta.implemented
   GetWorldBoundingBox(min, max)
   {
     if (this.radius <= 0) return false;
@@ -133,7 +130,6 @@ export class EvePlanet extends EveEffectRoot2
    * @implemented
    */
 
-  @meta.implemented
   IsBoundingBoxReady()
   {
     return this.radius > 0;
@@ -151,7 +147,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateZOnlyVisibility(updateContext)
   {
@@ -169,7 +164,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateEffectChildren(updateContext, worldTransform, renderScale)
   {
@@ -196,7 +190,6 @@ export class EvePlanet extends EveEffectRoot2
    * @adapted curve outputs are out-last and the explicit context carries renderer
    *   state to curve sets; JavaScript runs the native work sequentially.
    */
-  @meta.adapted
 
   UpdatePlanetSyncronous(updateContext, renderScale)
   {
@@ -224,7 +217,6 @@ export class EvePlanet extends EveEffectRoot2
    * @adapted gl-matrix reverses the operands, including the translation scale;
    *   the caller owns the output matrix instead of receiving a C++ value.
    */
-  @meta.adapted
 
   _CalculatePlanetScaleTransform(worldTransform, renderScale, out)
   {
@@ -242,7 +234,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdatePlanetVisibility(updateContext, renderScale)
   {
@@ -267,7 +258,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   _EstimatePixelDiameterPos(center, tanFOV, scale)
   {
@@ -279,7 +269,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   _EstimatePixelDiameterDist(distance, tanFOV, scale)
   {
@@ -295,7 +284,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables(renderables)
   {
@@ -312,7 +300,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   GetZOnlyRenderables(renderables)
   {
@@ -328,7 +315,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   GetEstimatedPixelDiameter()
   {
@@ -340,7 +326,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   GetTranslationCurve()
   {
@@ -352,7 +337,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateLOD()
   {
@@ -365,7 +349,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   _SetLod(lod)
   {
@@ -379,7 +362,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @adapted
    */
-  @meta.adapted
 
   GetWorldRotation(out) // alloc: optional output is a caller-owned return value.
   {
@@ -392,7 +374,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRadius()
   {
@@ -404,7 +385,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   GetDamageLocatorCount()
   {
@@ -416,7 +396,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @adapted
    */
-  @meta.adapted
 
   GetDamageLocatorPosition(_index, inWorldSpace, out)
   {
@@ -430,7 +409,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @adapted
    */
-  @meta.adapted
 
   GetMissPosition(_hit, _source, out) // alloc: optional output is a caller-owned return value.
   {
@@ -442,7 +420,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
   {
@@ -454,7 +431,6 @@ export class EvePlanet extends EveEffectRoot2
    *
    * @implemented
    */
-  @meta.implemented
 
   GetImpactPosition(_locator, _posPrev, _posNow, _epsilon, _out)
   {

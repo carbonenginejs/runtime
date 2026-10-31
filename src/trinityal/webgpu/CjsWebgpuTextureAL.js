@@ -19,7 +19,7 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 // `viewFormats` at creation, so it is.
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on `CjsWebgpuShaderAL`.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, CopyRegion, Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "#trinityal";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag, IsWritable } from "#consts/render-context";
@@ -154,7 +154,6 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * @param {object} renderContext The render context, Trinity's or the AL.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(desc, msaa, gpuUsage, cpuUsage, initialData, renderContext)
   {
     this._Reset();
@@ -367,8 +366,6 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   _Upload(initialData, mipCount, type, convert = null)
   {
     const desc = this._desc;
@@ -656,7 +653,6 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    *
    * @adapted
    */
-  @meta.adapted
   CreateReadback(region, renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -693,7 +689,6 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    *
    * @adapted
    */
-  @meta.adapted
   async MapForReading(region, renderContext)
   {
     const readback = this.CreateReadback(region, renderContext);
@@ -809,7 +804,6 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * @param {number} slicePitch Bytes per slice.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   UpdateSubresource(region, source, pitch, slicePitch, _renderContext)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -1088,29 +1082,9 @@ CjsSchema.decorateField(CjsWebgpuTextureAL, "_desc", type.rawStruct("Tr2BitmapDi
 CjsSchema.decorateField(CjsWebgpuTextureAL, "_msaa", type.rawStruct("Tr2MsaaDesc"));
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Create");
 // Donor: metal/Tr2TextureALMetal.mm. OpenShared is E_FAIL as in Metal. CopySubresourceRegion and GenerateMipMaps keep Metal's checks and loops over the work queue. IsValid is adapted (also tracks the video generation). UnmapForReading, MapForWriting (out shape, a single staging array) and UnmapForWriting (uploads through UpdateSubresource) are adapted. SetName stores the name and sets the GPUTexture label.
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "IsValid", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "OpenShared", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetDesc", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMsaaDesc", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetGpuUsage", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetCpuUsage", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "CreateReadback");
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "MapForReading");
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UnmapForReading", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "MapForWriting", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UnmapForWriting", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UpdateSubresource");
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "CopySubresourceRegion", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GenerateMipMaps", meta.implemented);
 // Donor: metal/Tr2TextureALMetal.mm (Resolve 1100-1140, GetSharedHandle, heap indices, Describe, memory class). Resolve copies the single-sample case as Metal does and returns E_FAIL for MSAA, which WebGPU resolves through a render-pass resolve target (adapted). GetSharedHandle is notSupported: WebGPU has no shared handle. The heap-index getters return 0xffffffff (WebGPU has no heap). GetMemoryClass is AL_MEMORY_VIDEO where Metal says MANAGED. Describe writes memoryClass only.
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Resolve", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetSharedHandle", meta.notSupported);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetSrvIndexInHeap", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetUavIndexInHeap", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMemoryClass", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Describe", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "SetName", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetName", meta.implemented);
 
 CjsSchema.meta.define("CjsWebgpuTextureAL")(CjsWebgpuTextureAL);

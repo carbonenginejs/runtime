@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleFluidDragForce_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -26,7 +26,6 @@ export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   GetForce(_position, velocity, dt, mass, out)
   {
     const f = Math.fround;
@@ -53,7 +52,6 @@ export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   Update(_dt)
   {
   }

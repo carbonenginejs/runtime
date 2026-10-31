@@ -100,7 +100,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Create(width, height, mipCount, format)
   {
     return super.Create(width, height, mipCount, format);
@@ -112,7 +111,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CreateCube(width, mipCount, format)
   {
     return super.CreateCube(width, mipCount, format);
@@ -124,7 +122,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CreateVolume(width, height, depth, mipCount, format)
   {
     return super.CreateVolume(width, height, depth, mipCount, format);
@@ -136,7 +133,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   PopulateMargin(...args)
   {
     throw new Error("Tr2HostBitmap.PopulateMargin is not implemented in CarbonEngineJS.");
@@ -148,7 +144,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    */
   @be.mapMethod()
-  @meta.notImplemented
   SaveAsync(...args)
   {
     throw new Error("Tr2HostBitmap.SaveAsync is not implemented in CarbonEngineJS.");
@@ -160,7 +155,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   WaitForSave(...args)
   {
     throw new Error("Tr2HostBitmap.WaitForSave is not implemented in CarbonEngineJS.");
@@ -178,7 +172,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @returns {number} `ALResult.S_OK` when the label changed, otherwise `ALResult.E_FAIL`.
    */
   @be.mapMethodAndWrap("ChangeFormat")
-  @meta.implemented
   ChangeFormatFromScript(format)
   {
     return this.ChangeFormat(format) ? ALResult.S_OK : ALResult.E_FAIL;
@@ -199,7 +192,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @returns {Promise<boolean>} Whether the complete bitmap was published.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   async Compress(compressionFormat, qualityLevel, output, options = {})
   {
     if (!output || !this.IsValid() || this.GetType() !== TextureType.TEX_TYPE_2D) return false;
@@ -237,7 +229,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @throws {TypeError} "Expected a filepath string" when `file` is not a string.
    */
   @be.mapMethodAsMethod("CreateFromFile")
-  @meta.adapted
   async _PyCreateFromFile(file)
   {
     if (typeof file !== "string") throw new TypeError("Expected a filepath string");
@@ -278,7 +269,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @param {string} file Res path or file path of an image the registered handlers read.
    * @returns {Promise<boolean>} Whether the image was read into this bitmap.
    */
-  @meta.adapted
   async CreateFromFile(file)
   {
     this.Destroy();
@@ -331,7 +321,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @throws {Error} When a tuple in the sequence is not written (NULL without an exception in C++).
    */
   @be.mapMethodAsMethod("SetPixel")
-  @meta.adapted
   _PySetPixel(...args)
   {
     if (args.length !== 1)
@@ -374,7 +363,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @param {number} data The 4-byte pixel value.
    * @returns {boolean} Whether the pixel was written.
    */
-  @meta.adapted
   SetPixel(x, y, data)
   {
     if (!isFourByteUncompressed(this)) return false;
@@ -407,7 +395,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @param {number} y Row.
    * @returns {number|null} The pixel value, or null.
    */
-  @meta.adapted
   GetPixel__Data(x, y)
   {
     if (!isFourByteUncompressed(this)) return null;
@@ -431,7 +418,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @returns {boolean} Whether the pixel was written.
    * @throws {TypeError} When the tuple is not three int32 values (a pending Python exception in C++).
    */
-  @meta.adapted
   _SetPixelPy(tuple)
   {
     const [ x, y, value ] = parseIntTuple(tuple, 3);
@@ -450,7 +436,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @returns {number|null} The pixel as a signed 32-bit integer, or null (None).
    * @throws {TypeError} When the tuple is not two int32 values (a pending Python exception in C++).
    */
-  @meta.adapted
   _GetPixelPy(tuple)
   {
     const [ x, y ] = parseIntTuple(tuple, 2);
@@ -473,7 +458,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @throws {TypeError} "Expected sequence of tuples" when the single argument is not a sequence.
    */
   @be.mapMethodAsMethod("GetPixel")
-  @meta.adapted
   _PyGetPixel(...args)
   {
     if (args.length !== 1) return this._GetPixelPy(args);
@@ -504,7 +488,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @returns {null} None.
    * @throws {TypeError} When `pixels` is omitted or an entry is not three integers.
    */
-  @meta.adapted
   _PySetPixels(background, pixels, _discard)
   {
     if (!this.IsValid() || GetBytesPerPixel(this._format) !== 4 || this._type !== TextureType.TEX_TYPE_2D || this.GetTrueMipCount() !== 1) return null;
@@ -550,7 +533,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @returns {number} The number of matching pixels; 0 for a bitmap that is not valid, uncompressed and four bytes per pixel.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CountPixelsOfValue(channels, value)
   {
     if (!isFourByteUncompressed(this)) return 0;
@@ -584,7 +566,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @returns {boolean} False for a bitmap that is not valid, uncompressed and four bytes per pixel.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   IsMonochrome()
   {
     if (!isFourByteUncompressed(this)) return false;
@@ -612,7 +593,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   CreateFromHeightData(...args)
   {
     throw new Error("Tr2HostBitmap.CreateFromHeightData is not implemented in CarbonEngineJS.");
@@ -624,7 +604,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Crop(left, top, right, bottom)
   {
     return super.Crop(left, top, right, bottom);
@@ -636,7 +615,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Downsample2x2()
   {
     return super.Downsample2x2();
@@ -648,7 +626,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   IsSaveSucceeded(...args)
   {
     throw new Error("Tr2HostBitmap.IsSaveSucceeded is not implemented in CarbonEngineJS.");
@@ -660,7 +637,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    */
   @be.mapMethod()
-  @meta.notImplemented
   __init__(...args)
   {
     throw new Error("Tr2HostBitmap.__init__ is not implemented in CarbonEngineJS.");
@@ -672,7 +648,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   IsSaveCompleted(...args)
   {
     throw new Error("Tr2HostBitmap.IsSaveCompleted is not implemented in CarbonEngineJS.");
@@ -684,7 +659,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   IsSaving(...args)
   {
     throw new Error("Tr2HostBitmap.IsSaving is not implemented in CarbonEngineJS.");
@@ -696,7 +670,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   IsValid()
   {
     return super.IsValid();
@@ -708,7 +681,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   IsCompressed()
   {
     return super.IsCompressed();
@@ -731,7 +703,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @returns {boolean|Array} `false` when the bitmap is not valid, otherwise `[view, width, height, pitch]`.
    */
   @be.mapMethod("GetRawData")
-  @meta.adapted
   _PyGetRawData()
   {
     if (!this.IsValid()) return false;
@@ -755,7 +726,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @throws {RangeError} When the level is outside the mip chain.
    */
   @be.mapMethod("GetMipRawData")
-  @meta.adapted
   _PyGetMipRawData(mipLevel)
   {
     if (!this.IsValid()) return false;
@@ -783,7 +753,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @throws {Error} "invalid bitmap", "mip level out of range" or "buffer too small".
    */
   @be.mapMethod("SetMipRawData")
-  @meta.adapted
   _PySetMipRawData(mipLevel, buffer)
   {
     if (!this.IsValid()) throw new Error("invalid bitmap");
@@ -820,7 +789,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    */
   @be.mapMethod()
-  @meta.notImplemented
   Save(...args)
   {
     throw new Error("Tr2HostBitmap.Save is not implemented in CarbonEngineJS.");
@@ -835,7 +803,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    * @returns {boolean} Always true.
    */
-  @meta.implemented
   _DoPrepareAsyncSave()
   {
     return true;
@@ -851,7 +818,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    * @throws {Error} Always.
    */
-  @meta.notImplemented
   _DoExecuteAsyncSave()
   {
     throw new Error("Tr2HostBitmap.DoExecuteAsyncSave is not implemented in CarbonEngineJS.");
@@ -866,7 +832,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   _DoCleanupAsyncSave()
   {
   }
@@ -884,7 +849,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @returns {Promise<boolean>} Whether the copy succeeded.
    */
   @be.mapMethodAndWrap("CopyFromRenderTarget")
-  @meta.adapted
   async _CopyFromRenderTargetPython(rt)
   {
     if (!rt) return false;
@@ -905,7 +869,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @param {Tr2RenderContext} renderContext The render context the readback is issued on.
    * @returns {Promise<boolean>} Whether the copy succeeded.
    */
-  @meta.adapted
   async CopyFromRenderTarget(rtAL, renderContext)
   {
     return this._type === TextureType.TEX_TYPE_2D ? this._SharedCopyFaceFromRenderTarget(0, rtAL, null, 0, 0, renderContext) : false;
@@ -928,7 +891,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @param {Tr2RenderContext} renderContext The render context the readback is issued on.
    * @returns {Promise<boolean>} Whether the copy succeeded.
    */
-  @meta.adapted
   async CopyFromRenderTarget__SrcRect(rtAL, srcRect, offsetX, offsetY, renderContext)
   {
     return this._type === TextureType.TEX_TYPE_2D ? this._SharedCopyFaceFromRenderTarget(0, rtAL, srcRect, offsetX, offsetY, renderContext) : false;
@@ -945,7 +907,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @throws {Error} Always.
    */
   @be.mapMethodAndWrap("CopyFromRenderTargetRegion")
-  @meta.notImplemented
   _CopyFromRenderTargetRegionPython(...args)
   {
     throw new Error("Tr2HostBitmap.CopyFromRenderTargetRegionPython is not implemented in CarbonEngineJS.");
@@ -962,7 +923,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @throws {Error} Always.
    */
   @be.mapMethodAndWrap("CopyFaceFromRenderTarget")
-  @meta.notImplemented
   _CopyFaceFromRenderTargetPython(...args)
   {
     throw new Error("Tr2HostBitmap.CopyFaceFromRenderTargetPython is not implemented in CarbonEngineJS.");
@@ -980,7 +940,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @param {Tr2RenderContext} renderContext The render context the readback is issued on.
    * @returns {Promise<boolean>} Whether the copy succeeded.
    */
-  @meta.adapted
   async CopyFaceFromRenderTarget(face, rtAL, renderContext)
   {
     return this._type === TextureType.TEX_TYPE_CUBE ? this._SharedCopyFaceFromRenderTarget(face, rtAL, null, 0, 0, renderContext) : false;
@@ -1007,7 +966,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @param {Tr2RenderContext} renderContext The render context the readbacks are issued on.
    * @returns {Promise<boolean>} Whether the copy succeeded.
    */
-  @meta.adapted
   async _SharedCopyFaceFromRenderTarget(face, rtAL, srcRect, offsetX, offsetY, renderContext)
   {
     const { match, alphaConvert } = this._CheckForMatch(rtAL.GetDesc(), srcRect === null, "CopyFromRenderTarget");
@@ -1099,7 +1057,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    * @throws {Error} Always.
    */
-  @meta.notImplemented
   CopyFromTexture(...args)
   {
     throw new Error("Tr2HostBitmap.CopyFromTexture is not implemented in CarbonEngineJS.");
@@ -1116,7 +1073,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @throws {Error} Always.
    */
   @be.mapMethodAndWrap("CopyFromTextureRes")
-  @meta.notImplemented
   _CopyFromTextureResPython(...args)
   {
     throw new Error("Tr2HostBitmap.CopyFromTextureResPython is not implemented in CarbonEngineJS.");
@@ -1131,7 +1087,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @notImplemented
    * @throws {Error} Always.
    */
-  @meta.notImplemented
   CopyFromTextureRes(...args)
   {
     throw new Error("Tr2HostBitmap.CopyFromTextureRes is not implemented in CarbonEngineJS.");
@@ -1143,7 +1098,6 @@ export class Tr2HostBitmap extends HostBitmap
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ConvertToVolume()
   {
     return super.ConvertToVolume();

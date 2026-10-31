@@ -63,7 +63,6 @@ export class Tr2MaterialBoundsAdjustment
    *
    * @adapted
    */
-  @meta.adapted
   AdjustBounds(box, out)
   {
     box3.copy(out, box);

@@ -71,7 +71,6 @@ export class Tr2MeshArea extends IRoot
    */
 
   @meta.mapAttribute(meta.PERSIST)
-  @meta.adapted
   @type.boolean
   generateDepthArea = false;
 
@@ -82,7 +81,6 @@ export class Tr2MeshArea extends IRoot
    */
 
   @meta.mapAttribute(meta.PERSIST)
-  @meta.adapted
   @type.boolean
   alphaCutout = false;
 
@@ -93,7 +91,6 @@ export class Tr2MeshArea extends IRoot
    */
 
   @meta.mapAttribute(meta.PERSIST)
-  @meta.adapted
   @type.int32
   minLod = -1;
 
@@ -109,7 +106,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetIndex()
   {
     return this.index;
@@ -122,7 +118,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetIndex(value)
   {
     this.index = Number(value) | 0;
@@ -134,7 +129,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetCount()
   {
     return this.count;
@@ -147,7 +141,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetCount(value)
   {
     this.count = Number(value) | 0;
@@ -159,7 +152,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetDisplay()
   {
     return this.display;
@@ -171,7 +163,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetDisplay(value)
   {
     this.display = !!value;
@@ -183,7 +174,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetReversed()
   {
     return this.reversed;
@@ -195,7 +185,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   IsReversed()
   {
     return this.reversed;
@@ -207,7 +196,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetReversed(value)
   {
     this.reversed = !!value;
@@ -219,7 +207,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetUseSHLighting()
   {
     return this.useSHLighting;
@@ -230,7 +217,6 @@ export class Tr2MeshArea extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   SetUseSHLighting(value)
   {
     this.useSHLighting = !!value;
@@ -243,7 +229,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetMaterialInterface()
   {
     return this.effect;
@@ -255,7 +240,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetMaterial(value)
   {
     this.effect = value ?? null;
@@ -268,7 +252,6 @@ export class Tr2MeshArea extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -280,7 +263,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetName(value)
   {
     this.name = String(value ?? "");
@@ -293,7 +275,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   IsCastingShadows()
   {
     return this.castsShadows;
@@ -305,7 +286,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetCastsShadows(value)
   {
     this.castsShadows = !!value;
@@ -317,7 +297,6 @@ export class Tr2MeshArea extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsAlphaCutout()
   {
     return this.alphaCutout;
@@ -329,7 +308,6 @@ export class Tr2MeshArea extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetAlphaCutout(value)
   {
     this.alphaCutout = !!value;
@@ -341,7 +319,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetGenerateDepthArea()
   {
     return this.generateDepthArea;
@@ -353,7 +330,6 @@ export class Tr2MeshArea extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetGenerateDepthArea(value)
   {
     this.generateDepthArea = !!value;
@@ -366,7 +342,6 @@ export class Tr2MeshArea extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMinLod()
   {
     return this.minLod;
@@ -378,7 +353,6 @@ export class Tr2MeshArea extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetMinLod(lod)
   {
     this.minLod = Number(lod) | 0;
@@ -390,7 +364,6 @@ export class Tr2MeshArea extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetJointCount()
   {
     return this.#jointCount;
@@ -403,7 +376,6 @@ export class Tr2MeshArea extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetJointCount(value)
   {
     this.#jointCount = Number(value) >>> 0;
@@ -416,7 +388,6 @@ export class Tr2MeshArea extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetJointMappingAnimRig()
   {
     return this.#jointMappingAnimRig;
@@ -429,7 +400,6 @@ export class Tr2MeshArea extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetJointMappingAnimRig(value)
   {
     this.#jointMappingAnimRig = value ?? null;
@@ -441,7 +411,6 @@ export class Tr2MeshArea extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   CopyFrom(other)
   {
     this.name = other.name;
@@ -469,7 +438,6 @@ export class Tr2MeshArea extends IRoot
    *   observable difference, and it is recorded rather than worked around.
    */
 
-  @meta.adapted
   AddOwnerMesh(mesh)
   {
     if (mesh) this.#ownerMeshes.push(mesh);
@@ -483,7 +451,6 @@ export class Tr2MeshArea extends IRoot
    *   way.
    */
 
-  @meta.adapted
   RemoveOwnerMesh(mesh)
   {
     const index = this.#ownerMeshes.indexOf(mesh);

@@ -335,7 +335,6 @@ export class Tr2FactionLight extends Tr2Light
    *
    * @implemented
    */
-  @meta.implemented
 
   SetInheritProperties(colorSet)
   {
@@ -351,7 +350,6 @@ export class Tr2FactionLight extends Tr2Light
    *
    * @implemented
    */
-  @meta.implemented
 
   SetLightColorFromFactionColor()
   {
@@ -391,7 +389,6 @@ export class Tr2FactionLight extends Tr2Light
    *
    * @implemented
    */
-  @meta.implemented
 
   GetSelectedColor()
   {
@@ -404,7 +401,6 @@ export class Tr2FactionLight extends Tr2Light
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "isSpotlight"))
@@ -434,7 +430,6 @@ export class Tr2FactionLight extends Tr2Light
    * @param {number} [boneCount] Number of bones in `bones`.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, worldMatrix, bones = null, boneCount = 0)
   {
     if (this.isSpotlight)

@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 
 
@@ -41,7 +41,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    */
   @be.mapProperty()
   @type.rootRef("IEveFiringEffectElement")
-  @meta.implemented
   get element()
   {
     return this.GetElement();
@@ -52,7 +51,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   set element(value)
   {
     this.SetElement(value);
@@ -67,7 +65,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    */
   @be.mapProperty()
   @type.boolean
-  @meta.implemented
   get active()
   {
     return this.GetActive();
@@ -78,7 +75,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   set active(value)
   {
     this.SetActive(value);
@@ -126,7 +122,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @adapted The browser runtime drives the nominal firing-element contract synchronously
    *   instead of Carbon task dispatch.
    */
-  @meta.adapted
   UpdateSynchronous(context)
   {
     if (!this._element) return true;
@@ -155,7 +150,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @adapted The element is updated in the synchronous phase; this asynchronous entry point
    *   only reports success.
    */
-  @meta.adapted
   UpdateAsynchronous(context)
   {
     void context;
@@ -179,7 +173,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @adapted Visibility is graph-owned; the renderer consumes the collected element later.
    */
 
-  @meta.adapted
   UpdateVisibility(context, transform)
   {
     if (this.display && this._element) this._element.UpdateVisibility(context, transform);
@@ -191,7 +184,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @adapted Renderable collection is backend-neutral and does not build the batch yet.
    * @returns {Array} out
    */
-  @meta.adapted
 
   GetRenderables__Impostors(out, _impostors)
   {
@@ -207,7 +199,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   StartFiring()
   {
     if (this._element)
@@ -225,7 +216,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   StopFiring()
   {
     if (this._element)
@@ -242,7 +232,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetActive(active)
   {
     if (!!active === this._active) return;
@@ -256,7 +245,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetActive()
   {
     return this._active;
@@ -270,7 +258,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetElement(element)
   {
     const registry = this.GetComponentRegistry();
@@ -285,7 +272,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetElement()
   {
     return this._element;
@@ -300,8 +286,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   SetFiringTransform(source, destination)
   {
     if (source?.length === 16)
@@ -325,8 +309,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   SetDestObjectScale(scale)
   {
     this.destinationScale = Number(scale);
@@ -339,8 +321,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   DisplayEndPoints(displaySource, displayDestination)
   {
     this.displaySource = !!displaySource;
@@ -354,8 +334,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   SetDisplay(display)
   {
     this.display = !!display;
@@ -368,8 +346,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   GetCurveDuration()
   {
     return this._element ? Number(this._element.GetCurveDuration()) : 0;
@@ -383,7 +359,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     this._element?.Register(this.GetComponentRegistry());
@@ -396,7 +371,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     this._element?.UnRegister(this.GetComponentRegistry());
@@ -407,7 +381,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
     return false;
@@ -418,7 +391,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   UpdateModelCenterWorldPosition(position, t)
   {
   }
@@ -428,7 +400,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetModelCenterWorldPosition(position)
   {
   }
@@ -438,7 +409,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     return false;
@@ -449,7 +419,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     mat4.identity(transform);

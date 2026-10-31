@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Audio/Tr2AudioStretchAuto.h
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchAuto.json.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2Audio } from "../trinityAudioApi/ITr2Audio.js";
 import { Tr2AudioStretchBase } from "./Tr2AudioStretchBase.js";
 
@@ -37,7 +37,6 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
    * @implemented
    */
 
-  @meta.implemented
   TriggerOutburstEvent()
   {
     return this.sourceEmitter?.SendEvent(this.outburstEvent) ?? 0;
@@ -49,7 +48,6 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
    * @implemented
    */
 
-  @meta.implemented
   TriggerImpactEvent()
   {
     return this.destinationEmitter?.SendEvent(this.impactEvent) ?? 0;
@@ -61,7 +59,6 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
    * @implemented
    */
 
-  @meta.implemented
   TriggerStretchEvent()
   {
     return this.stretchEmitter?.SendEvent(this.stretchEvent) ?? 0;

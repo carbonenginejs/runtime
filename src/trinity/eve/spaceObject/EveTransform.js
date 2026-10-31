@@ -17,7 +17,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { color } from "#math/color";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { EveBasicPerObjectData } from "../../core/rawData/perObjectData/EveBasicPerObjectData.js";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
@@ -197,7 +197,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (!this.mesh)
@@ -217,7 +216,6 @@ export class EveTransform extends Tr2Transform
    * @returns {mat4} The node's live worldTransform, valid until the next update.
   */
 
-  @meta.implemented
   UpdateViewDependentData(frustum, parentTransform = EveTransform._identity)
   {
     super.UpdateViewDependentData(frustum, parentTransform);
@@ -234,7 +232,6 @@ export class EveTransform extends Tr2Transform
    * @param {EveUpdateContext} context
    */
 
-  @meta.implemented
   Update__UpdateContext(context)
   {
     this.UpdateSyncronous(context);
@@ -252,7 +249,6 @@ export class EveTransform extends Tr2Transform
    * @param {number|EveUpdateContext} timeOrContext
    */
 
-  @meta.implemented
   Update(timeOrContext)
   {
     if (isNumber(timeOrContext))
@@ -269,7 +265,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(_context)
   {
   }
@@ -289,7 +284,6 @@ export class EveTransform extends Tr2Transform
    *   each, rather than stack-constructed structures (cpp:145, 153).
    */
 
-  @meta.adapted
   UpdateAsyncronous(context)
   {
     if (this.hideOnLowQuality && Tr2Renderer.IsLowQuality()) return;
@@ -339,7 +333,6 @@ export class EveTransform extends Tr2Transform
    * @returns {boolean} Whether this node itself is visible.
    */
 
-  @meta.implemented
   UpdateVisibility(context, parentTransform = EveTransform._identity)
   {
     this.lodLevel = Tr2Lod.TR2_LOD_LOW;
@@ -383,7 +376,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     return this.GetRenderables__Impostors(out, null);
@@ -396,7 +388,6 @@ export class EveTransform extends Tr2Transform
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables__Impostors(out, _impostors)
   {
@@ -416,15 +407,12 @@ export class EveTransform extends Tr2Transform
   /**
    * Allocates an EveBasicPerObjectData record from the accumulator and fills it with the world, previous-world and inverse-world matrices, patching the first all-zero basis of a singular world matrix with a 0.1 diagonal before inverting, as Carbon does.
    *
-   * @adapted
+   * @adapted Trinity allocates the catalogued record and encodes its matrix
+   *   fields into the canonical stored layout; the engine owns GPU allocation,
+   *   upload, and binding.
    * @returns {object} The allocated record, owned by the accumulator.
-   *
-   * Adapted: Trinity allocates the catalogued record and encodes its matrix
-   * fields into the canonical stored layout; the engine owns GPU allocation,
-   * upload, and binding.
    */
 
-  @meta.adapted
   GetPerObjectData(accumulator)
   {
     const record = EveBasicPerObjectData.alloc(accumulator);
@@ -470,7 +458,6 @@ export class EveTransform extends Tr2Transform
    * @param {Object} perObjectData - this transform's per-object record
    */
 
-  @meta.implemented
   GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
     if (pickTypes & Tr2PickType.PICK_TYPE_PICKING)
@@ -501,7 +488,6 @@ export class EveTransform extends Tr2Transform
    * @returns {EveTransform} this
    */
 
-  @meta.implemented
   GetID(_areaID = 0)
   {
     return this;
@@ -513,7 +499,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     if (!vec3.equals(this.overrideBoundsMin, this.overrideBoundsMax))
@@ -531,7 +516,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   GetWorldBoundingBox(min, max)
   {
     if (!this.GetLocalBoundingBox(min, max)) return false;
@@ -549,7 +533,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   IsBoundingBoxReady()
   {
     return this.GetLocalBoundingBox(EveTransform._boundsMin, EveTransform._boundsMax);
@@ -563,7 +546,6 @@ export class EveTransform extends Tr2Transform
    * @returns {boolean} Whether a sphere was written.
    */
 
-  @meta.implemented
   GetBoundingSphere(out, query = 0)
   {
     let valid = false;
@@ -602,7 +584,6 @@ export class EveTransform extends Tr2Transform
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   GetWorldPosition(out)
   {
     return vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
@@ -615,7 +596,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   GetWorldRotation(out)
   {
     return out ? quat.copy(out, this.rotation) : this.rotation;
@@ -629,7 +609,6 @@ export class EveTransform extends Tr2Transform
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Bounding Box");
@@ -670,7 +649,6 @@ export class EveTransform extends Tr2Transform
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     // is this one here enabled?
@@ -766,7 +744,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   GetLODLevel()
   {
     return this.lodLevel;
@@ -778,7 +755,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   SetDisplay(value)
   {
     this.display = !!value;
@@ -790,7 +766,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSets()
   {
     for (const curveSet of this.curveSets) curveSet.Play();
@@ -803,7 +778,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     for (const curveSet of this.curveSets)
@@ -827,7 +801,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Stop();
@@ -840,7 +813,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     let duration = 0;
@@ -855,7 +827,6 @@ export class EveTransform extends Tr2Transform
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     let duration = 0;
@@ -870,7 +841,6 @@ export class EveTransform extends Tr2Transform
    *
    * @adapted
    */
-  @meta.adapted
   UpdateModelCenterWorldPosition(position, t)
   {
     const context = new EveUpdateContext();
@@ -886,7 +856,6 @@ export class EveTransform extends Tr2Transform
    *
    * @implemented
    */
-  @meta.implemented
   GetModelCenterWorldPosition(position)
   {
     mat4.getTranslation(position, this.worldTransform);
@@ -897,7 +866,6 @@ export class EveTransform extends Tr2Transform
    *
    * @implemented
    */
-  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     mat4.copy(transform, this.worldTransform);

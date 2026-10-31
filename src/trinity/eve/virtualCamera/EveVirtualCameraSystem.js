@@ -3,7 +3,7 @@ import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRendera
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { assertFiniteNumber } from "#utils/validation";
 import { EveVirtualCamera } from "./EveVirtualCamera.js";
 import { EveVirtualCameraTransitionCut } from "./transition/EveVirtualCameraTransitionCut.js";
@@ -58,7 +58,6 @@ export class EveVirtualCameraSystem
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -71,7 +70,6 @@ export class EveVirtualCameraSystem
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetCurrentCamera()
   {
     return this.transition ? this.transition.GetCamera() : this.GetMainCamera();
@@ -84,7 +82,6 @@ export class EveVirtualCameraSystem
    * @implemented
    */
 
-  @meta.implemented
   AddCamera(camera)
   {
     if (camera === this.externalCamera || this.cameras.includes(camera))
@@ -102,7 +99,6 @@ export class EveVirtualCameraSystem
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetMainCamera()
   {
     return this.mainCamera;
@@ -116,7 +112,6 @@ export class EveVirtualCameraSystem
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetCameraByName(name)
   {
     if (name === this.externalCamera.GetName())
@@ -133,7 +128,6 @@ export class EveVirtualCameraSystem
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CutToCamera(camera)
   {
     if (camera && camera !== this.GetMainCamera())
@@ -149,7 +143,6 @@ export class EveVirtualCameraSystem
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   LerpToCamera(camera, transitionTime = 1)
   {
     if (camera && camera !== this.GetMainCamera())
@@ -167,7 +160,6 @@ export class EveVirtualCameraSystem
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   IsExternallyControlled()
   {
     return this.GetCurrentCamera() === this.externalCamera;
@@ -176,15 +168,13 @@ export class EveVirtualCameraSystem
   /**
    * Advances every registered camera, the external camera and any running transition, clearing the transition once it completes.
    *
-   * @adapted
+   * @adapted simulation time remains JavaScript seconds. Reject nonfinite or non-number
+   *   timestamps before mutation: native Be::Time cannot carry NaN or infinity.
    * @param {Number} simTime Absolute simulation time; the delta is derived from the previous call, and the first call produces a zero delta
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp:133-160
-   * Adapted: simulation time remains JavaScript seconds. Reject nonfinite or non-number
-   * timestamps before mutation: native Be::Time cannot carry NaN or infinity.
    * @throws {TypeError} If simTime is not a finite number.
    */
 
-  @meta.adapted
   Update(simTime)
   {
     const time = assertFiniteNumber(simTime, "EveVirtualCameraSystem.Update simTime");
@@ -217,7 +207,6 @@ export class EveVirtualCameraSystem
    * @param {EveVirtualCamera} camera
    */
 
-  @meta.implemented
   SetMainCamera(camera)
   {
     this.transition = null;
@@ -234,7 +223,6 @@ export class EveVirtualCameraSystem
    * @param {EveVirtualCamera} camera
    * @param {EveVirtualCameraTransitionBase} transition
    */
-  @meta.implemented
 
   SetMainCamera__Transition(camera, transition)
   {

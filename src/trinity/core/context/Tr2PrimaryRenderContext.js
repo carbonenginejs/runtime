@@ -2,7 +2,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RenderContext.h
 // Hand-maintained from Carbon source; the back buffer is backend-private state.
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 /** Tr2PrimaryRenderContext (trinityCore) - generated from schema shapeHash 92b87061.... */
 @be.define("Tr2PrimaryRenderContext")
@@ -15,7 +15,6 @@ export class Tr2PrimaryRenderContext extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   GetDefaultBackBuffer(...args)
   {
     throw new Error("Tr2PrimaryRenderContext.GetDefaultBackBuffer is not implemented in CarbonEngineJS.");
@@ -27,7 +26,6 @@ export class Tr2PrimaryRenderContext extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   GetBackBufferFormat(...args)
   {
     throw new Error("Tr2PrimaryRenderContext.GetBackBufferFormat is not implemented in CarbonEngineJS.");

@@ -11,6 +11,7 @@ import * as core from "../../npm/dist/trinity/core/index.js";
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedCore from "../../npm/dist/trinity/generated/trinityCore/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 function assertArrayNear(actual, expected, message, epsilon = 1e-5)
@@ -119,7 +120,7 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
   ]);
   for (const [ method, status ] of carbonMethods)
   {
-    assert.equal(CjsSchema.getMethod(core.Tr2VolumetricsRenderer, method)?.impl?.status, status, method);
+    assert.equal(MarkerTag("Tr2VolumetricsRenderer", method), status, method);
   }
   assert.equal(trinity.PriorityBlend.accumulate, core.PriorityBlend.accumulate);
 });

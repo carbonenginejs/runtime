@@ -4,7 +4,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 //   trinity/trinity/TriView.cpp
 //   trinity/trinity/TriView_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /** The camera view matrix, together with the look-at helper that builds it. */
@@ -25,7 +25,6 @@ export class TriView extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetTransform(value)
   {
     mat4.copy(this.transform, value);
@@ -39,7 +38,6 @@ export class TriView extends IRoot
    *   Carbon's const Matrix reference.
    */
 
-  @meta.adapted
   GetTransform(out)
   {
     return mat4.copy(out, this.transform);
@@ -51,7 +49,6 @@ export class TriView extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetLookAtPosition(eye, at, up)
   {
     mat4.lookAt(this.transform, eye, at, up);

@@ -1,7 +1,7 @@
 import { blue as blueService } from "#blue/blue";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { BlueAsyncRes, ICacheable } from "#blue";
 import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../../../resource/resourceBoundary.js";
 
@@ -286,12 +286,6 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
 }
 
 
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "_DoLoad", meta.adapted);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetCharacterInfo", meta.adapted);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetGStateAnimFileRefPaths", meta.adapted);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsFullyLoaded", meta.adapted);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsMemoryUsageKnown", meta.implemented);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetMemoryUsage", meta.adapted);
 CjsSchema.exposure.mapICacheableMethods()(Tr2GrannyStateRes);
 CjsSchema.exposure.define("Tr2GrannyStateRes")(Tr2GrannyStateRes);
 be.inherit(ICacheable)(Tr2GrannyStateRes, { kind: "class" });
@@ -299,12 +293,7 @@ CjsSchema.exposure.mapInterface(ICacheable)(Tr2GrannyStateRes);
 // Carbon: Tr2GrannyStateRes::ExposeToBlue (trinity/trinity/Resources/Tr2GrannyStateRes_Blue.cpp:30).
 CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2GrannyStateRes);
 
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "_OnShutdown", meta.adapted);
 
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "_DoPrepare", meta.adapted);
 
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetStateMachine", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetAnimationSlots", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetAnimationSets", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

@@ -33,7 +33,6 @@ export class Tr2ParticleElementData
    * @implemented
    * @returns {Tr2ParticleElementData} The invalid descriptor.
    */
-  @meta.implemented
   static Invalid()
   {
     const none = new Tr2ParticleElementData();

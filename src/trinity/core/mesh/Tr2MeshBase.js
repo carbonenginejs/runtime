@@ -6,7 +6,7 @@ import { Tr2MeshArea } from "./Tr2MeshArea.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { BlueList, IListNotify } from "#blue";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { TriGeometryRes } from "#trinity/resources/geometry";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/TriRenderBatch/index.js";
@@ -153,7 +153,6 @@ export class Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   GetDisplay()
   {
     return this.display;
@@ -165,7 +164,6 @@ export class Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   GetMeshIndex()
   {
     return this.meshIndex;
@@ -180,7 +178,6 @@ export class Tr2MeshBase
    * @param {string|null} name
    * @returns {number} the index, or 0xffffffff when absent
    */
-  @meta.implemented
   FindJoint(boneList, numBones, name)
   {
     if (boneList && name)
@@ -210,7 +207,6 @@ export class Tr2MeshBase
    * @param {boolean} [forceRebind]
    * @returns {boolean} false while the geometry is not prepared
    */
-  @meta.adapted
   BindToRig(boneList, numBones, renderRig, forceRebind = false)
   {
     forceRebind ||= this._forcedRebind;
@@ -300,7 +296,6 @@ export class Tr2MeshBase
    * @returns {{ min: vec3, max: vec3 }|null}
    */
 
-  @meta.adapted
   GetBounds(boneTransforms = null, meshBindingIndices = null, boneCount = 0, morphTargets = null, morphTargetsCount = 0)
   {
     const geometry = this.GetGeometryResource();
@@ -403,7 +398,6 @@ export class Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingBox(min, max)
   {
     const bounds = this.GetBounds();
@@ -436,7 +430,6 @@ export class Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   GetAreas(areaType)
   {
     if (!Number.isInteger(areaType)) return null;
@@ -454,7 +447,6 @@ export class Tr2MeshBase
    *
    * @implemented
    */
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     // Which list, not merely whether it is one: a mesh has other array fields,
@@ -496,7 +488,6 @@ export class Tr2MeshBase
    *
    * @implemented
    */
-  @meta.implemented
   AddArea(areaType, area)
   {
     const property = Number.isInteger(areaType) ? Tr2MeshBase._areaProperties[areaType] : null;
@@ -510,7 +501,6 @@ export class Tr2MeshBase
    *
    * @implemented
    */
-  @meta.implemented
   RemoveArea(areaType, area)
   {
     const property = Number.isInteger(areaType) ? Tr2MeshBase._areaProperties[areaType] : null;
@@ -526,7 +516,6 @@ export class Tr2MeshBase
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Mesh Bounds");
@@ -550,7 +539,6 @@ export class Tr2MeshBase
    * @param {number} [morphTargetsCount]
    */
 
-  @meta.adapted
   RenderDebugInfo(worldTransform, renderer, boneTransforms = null, meshBindingIndices = null, boneCount = 0, morphTargets = null, morphTargetsCount = 0)
   {
     if (renderer.HasOption(this, "Mesh Bounds"))
@@ -578,7 +566,6 @@ export class Tr2MeshBase
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetAllAreas()
   {
     return Tr2MeshBase._areaProperties.flatMap(property => this[property]);
@@ -597,7 +584,6 @@ export class Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   UseWithScreenSize(screenSize, worldRadius)
   {
     const geometry = this.GetGeometryResource();
@@ -632,7 +618,6 @@ export class Tr2MeshBase
    * @adapted returns whether any material was updated; Carbon returns void.
    */
 
-  @meta.adapted
   SetShaderOption(name, value)
   {
     let updated = false;
@@ -654,7 +639,6 @@ export class Tr2MeshBase
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetMaterialBoundsAdjustment()
   {
     return {
@@ -671,7 +655,6 @@ export class Tr2MeshBase
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetMaterialBoundsAdjustment(value)
   {
     const source = value || {};
@@ -687,7 +670,6 @@ export class Tr2MeshBase
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetGeometryResPath()
   {
     return "";
@@ -708,7 +690,6 @@ export class Tr2MeshBase
    * @adapted Emits descriptor batches; resolving geometry buffers and final draw args at dispatch is not ported yet.
    *   Carbon declaration: Tr2MeshBase::GetBatches (trinity/trinity/Tr2MeshBase.h:33).
    */
-  @meta.adapted
   GetBatches(accumulator, areas, perObjectData, screenSize = Infinity, reverseWinding = false)
   {
     if (this.display === false) return false;
@@ -747,7 +728,6 @@ export class Tr2MeshBase
    * @adapted Emits a geometry source descriptor; creating the Tr2BufferAL allocations Carbon makes here is not ported
    *   yet.
    */
-  @meta.adapted
   CreateGeometryBatch(geometry, area, perObjectData, reverseWinding = false, lod = null)
   {
     if (!area || area.GetDisplay() === false) return null;
@@ -825,7 +805,6 @@ export class Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   CollectAreaBlocks(collector, areaType)
   {
     const areas = this.GetAreas(areaType);
@@ -852,7 +831,6 @@ export class Tr2MeshBase
    * @adapted Material grouping uses reference identity in place of Carbon's effect hash values.
    */
 
-  @meta.adapted
   CollectAreaBlocksWithSharedMaterials(collectors, areaType)
   {
     const areas = this.GetAreas(areaType);

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { FilterType } from "../../generated/renderJob/enums.js";
 import { blue } from "#blue";
@@ -55,7 +55,6 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(input = null, output = null, eventFilter = undefined, filter = undefined)
   {
     this.SetInputResults(input);
@@ -70,7 +69,6 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   SetEventFilter(eventFilter)
   {
     this.eventFilter = Number(eventFilter) >>> 0;
@@ -82,7 +80,6 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   SetFilterType(filterType)
   {
     this.filterType = Number(filterType) | 0;
@@ -94,7 +91,6 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   SetInputResults(results)
   {
     this.inputResults = results ?? null;
@@ -106,7 +102,6 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   SetOutputResults(results)
   {
     this.outputResults = results ?? null;
@@ -118,7 +113,6 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
    * @adapted
    */
 
-  @meta.adapted
   Execute()
   {
     if (this.inputResults && this.outputResults)

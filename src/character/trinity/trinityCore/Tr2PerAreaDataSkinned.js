@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2PerObjectData.h:152-190
 // Source: trinity/trinity/Tr2PerObjectData.cpp:147-214
-import { blue, meta } from "#schema";
+import { blue } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2PerObjectData } from "../../../trinity/core/rawData/perObjectData/Tr2PerObjectData.js";
@@ -27,7 +27,6 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
    * @implemented
    */
   @blue.method
-  @meta.implemented
   SetJointCount(n)
   {
     this._jointCount = Math.min(n, TR2_MAX_BONES_PER_MESHAREA);
@@ -39,7 +38,6 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
    * @adapted
    */
   @blue.method
-  @meta.adapted
   SetJointTransform(ix, data)
   {
     if (ix < 0 || ix >= TR2_MAX_BONES_PER_MESHAREA) throw new RangeError("Skinned joint index exceeds the per-area palette.");
@@ -53,7 +51,6 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
    * @implemented
    */
   @blue.method
-  @meta.implemented
   SetPerObjectData(perObjectData)
   {
     this._perObjectDataPtr = perObjectData;
@@ -65,7 +62,6 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
    * @implemented
    */
   @blue.method
-  @meta.implemented
   GetJointCount()
   {
     return this._jointCount;
@@ -77,7 +73,6 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
    * @implemented
    */
   @blue.method
-  @meta.implemented
   GetMatrices()
   {
     return this._jointTransforms;
@@ -90,7 +85,6 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
    *   Unused joints and the reserved register remain untouched, as in Carbon.
    */
   @blue.method
-  @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
     let uploaded = 0;
@@ -122,7 +116,6 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
    * @notImplemented
    */
   @blue.method
-  @meta.notImplemented
   ApplyConstantBuffers(_writer, _renderContext)
   {
     throw new Error("Tr2PerAreaDataSkinned.ApplyConstantBuffers: indirect draw is unported.");

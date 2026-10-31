@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepResolve.h
 // Source: trinity/trinity/RenderJob/TriStepResolve.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { Failed } from "#trinityal";
@@ -34,7 +34,6 @@ export class TriStepResolve extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(destination = null, source = null)
   {
     this.destination = destination ?? null;
@@ -49,7 +48,6 @@ export class TriStepResolve extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (!this.source || !this.destination

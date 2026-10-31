@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.h
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderingMode } from "#consts/graphics";
@@ -49,7 +49,6 @@ export class TriStepSetStdRndStates extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(state)
   {
     if (arguments.length && state !== undefined) this.SetState(state);
@@ -73,7 +72,6 @@ export class TriStepSetStdRndStates extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.ApplyStandardStates(this.renderingMode);

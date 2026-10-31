@@ -20,7 +20,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { IsMatch } from "#blue";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
@@ -179,7 +179,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted The schema scanner omits MAPFLOATARRAYSIZE; Carbon exposes the three persisted
    *   center components separately from radius.
    */
-  @meta.adapted
   @blue.readwrite
   @blue.persist
   @type.vec3
@@ -225,7 +224,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted Blue root locking is represented by the hydrated JavaScript object identity.
    */
 
-  @meta.adapted
   Initialize()
   {
     for (const child of this.effectChildren) child.SetOwner(this);
@@ -246,7 +244,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted A JavaScript array has no notify slot, so the owner drives the notification
    *   through the shared child service rather than the list driving it.
    */
-  @meta.adapted
   AddController(controller)
   {
     addChild(this, "controllers", controller, { listNotify: this });
@@ -260,7 +257,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted A JavaScript array has no notify slot, so the owner drives the notification
    *   through the shared child service rather than the list driving it.
    */
-  @meta.adapted
   RemoveController(controller)
   {
     return removeChild(this, "controllers", controller, { listNotify: this });
@@ -273,7 +269,6 @@ export class EveEffectRoot2 extends EveEntity
    *   source graph contract.
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext = null)
   {
     const time = updateContext.GetTime();
@@ -300,7 +295,6 @@ export class EveEffectRoot2 extends EveEntity
    *   instead of Carbon task groups.
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext = null)
   {
     let frequency = 0;
@@ -336,7 +330,6 @@ export class EveEffectRoot2 extends EveEntity
    *   than renderer globals.
    */
 
-  @meta.adapted
   UpdateVisibility(updateContext = null, parentTransform = EveEffectRoot2._identity)
   {
     if (!this.display) return false;
@@ -371,7 +364,6 @@ export class EveEffectRoot2 extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables__Impostors(out, _impostors)
   {
@@ -391,7 +383,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateControllers(updateFrequency)
   {
     for (const controller of this.controllers) controller.Update(updateFrequency);
@@ -403,7 +394,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out)
   {
     vec4.set(
@@ -422,7 +412,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetBoundingSphereRadius()
   {
     return this.boundingSphereRadius;
@@ -436,7 +425,6 @@ export class EveEffectRoot2 extends EveEntity
    * @param {number} time Scene time in Blue 100ns ticks.
    */
 
-  @meta.adapted
   UpdateWorldTransform(time)
   {
     if (this.translationCurve) this.translationCurve.Update__Ticks(time, EveEffectRoot2._translation);
@@ -472,7 +460,6 @@ export class EveEffectRoot2 extends EveEntity
    * @returns {vec3} position
    */
 
-  @meta.implemented
   UpdateModelCenterWorldPosition(position, t)
   {
     this.UpdateWorldTransform(t);
@@ -489,7 +476,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted out defaults to a new vector and is returned.
    */
 
-  @meta.adapted
   GetModelCenterWorldPosition(out)
   {
     return vec3.transformMat4(out, this.boundingSphereCenter, this._lastUpdateMatrix);
@@ -501,7 +487,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     if (this.boundingSphereRadius <= 0) return false;
@@ -527,7 +512,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted CarbonEngineJS returns the caller-owned output matrix.
    */
 
-  @meta.adapted
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this._lastUpdateMatrix);
@@ -539,7 +523,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetWorldBoundingBox(min, max)
   {
     if (!this.GetLocalBoundingBox(min, max)) return false;
@@ -557,7 +540,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   IsBoundingBoxReady()
   {
     return this.boundingSphereRadius > 0;
@@ -573,7 +555,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted Copies the stored world transform into the caller's output matrix where Carbon
    *   accesses its protected member directly.
    */
-  @meta.adapted
   GetWorldTransform(out)
   {
     return mat4.copy(out, this._worldTransform);
@@ -585,7 +566,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted The quad renderer is an injected engine-owned capability.
    */
 
-  @meta.adapted
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const child of this.effectChildren) child.RegisterWithQuadRenderer(quadRenderer);
@@ -597,7 +577,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted The quad renderer is an injected engine-owned capability.
    */
 
-  @meta.adapted
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display) return;
@@ -611,7 +590,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -637,7 +615,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -668,7 +645,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -754,7 +730,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted The light manager is an injected engine-owned capability.
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     if (!this.display) return;
@@ -773,7 +748,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   AddLight(light)
   {
     this.lights.push(light);
@@ -786,7 +760,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   ClearLights()
   {
     this.lights.length = 0;
@@ -802,7 +775,6 @@ export class EveEffectRoot2 extends EveEntity
    * @returns {{vs: RawData, ps: RawData}}
    */
 
-  @meta.implemented
   GetPerObjectStructs(vsData = RawData.create("EveSpaceObjectVSData"), psData = RawData.create("EveSpaceObjectPSData"))
   {
     vsData.Zero();
@@ -826,7 +798,6 @@ export class EveEffectRoot2 extends EveEntity
    * @returns {boolean} Whether the manager registered it.
    */
 
-  @meta.adapted
   RegisterSecondaryLightSource(manager)
   {
     return manager.RegisterSecondaryLightSource(
@@ -846,7 +817,6 @@ export class EveEffectRoot2 extends EveEntity
    * @returns {boolean} Whether the manager removed it.
    */
 
-  @meta.adapted
   UnregisterSecondaryLightSource(manager)
   {
     return manager.UnregisterSecondaryLightSource(this._GetWorldTranslation());
@@ -871,7 +841,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Start()
   {
     for (const curveSet of this.curveSets) curveSet.Play();
@@ -888,7 +857,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Stop()
   {
     for (const curveSet of this.curveSets) curveSet.Stop();
@@ -905,7 +873,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetDamageLocatorCount()
   {
     return 0;
@@ -918,7 +885,6 @@ export class EveEffectRoot2 extends EveEntity
    *   flag.
    */
 
-  @meta.adapted
   GetDamageLocatorPosition(_index, _inWorldSpace, out)
   {
     vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
@@ -932,7 +898,6 @@ export class EveEffectRoot2 extends EveEntity
    *   flag.
    */
 
-  @meta.adapted
   GetDamageLocatorDirection(_index, _inWorldSpace, out)
   {
     vec3.set(out, 0, 1, 0);
@@ -945,7 +910,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted CarbonEngineJS uses an out-last signature for output parameters.
    */
 
-  @meta.adapted
   GetImpactPosition(locator, _posPrev, posNow, epsilon, out)
   {
     this.GetDamageLocatorPosition(locator, true, out);
@@ -958,7 +922,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   HasImpactConfigurationShield()
   {
     return false;
@@ -970,7 +933,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetClosestDamageLocatorIndex(_position)
   {
     return 0;
@@ -982,7 +944,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   GetGoodDamageLocatorIndex(_position)
   {
     return 0;
@@ -994,7 +955,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetRadius()
   {
     return this.boundingSphereRadius;
@@ -1006,7 +966,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
   {
     return -1;
@@ -1018,7 +977,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   UpdateImpact(_out, _direction, _impactIndex)
   {
     return false;
@@ -1030,7 +988,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted CarbonEngineJS returns the caller-owned output vector.
    */
 
-  @meta.adapted
   GetWorldPosition(out)
   {
     return vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
@@ -1042,7 +999,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted CarbonEngineJS returns the caller-owned output quaternion.
    */
 
-  @meta.adapted
   GetWorldRotation(out)
   {
     mat4.getRotation(EveEffectRoot2._worldRotation, this._worldTransform);
@@ -1057,7 +1013,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetMissPosition(hit, source, out)
   {
     this.GetDamageLocatorPosition(-1, true, out);
@@ -1083,7 +1038,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetChildren()
   {
     return this.effectChildren;
@@ -1095,7 +1049,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetTransform(transform)
   {
     mat4.getScaling(this.scaling, transform);
@@ -1109,7 +1062,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     const target = String(name ?? "");
@@ -1136,7 +1088,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     const target = String(name ?? "");
@@ -1157,7 +1108,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     const target = String(name ?? "");
@@ -1178,7 +1128,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     const target = String(name ?? "");
@@ -1204,7 +1153,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     const target = String(name ?? "");
@@ -1233,7 +1181,6 @@ export class EveEffectRoot2 extends EveEntity
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Bounding Sphere");
@@ -1260,7 +1207,6 @@ export class EveEffectRoot2 extends EveEntity
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "Bounding Sphere"))
@@ -1300,7 +1246,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     const key = String(name ?? "");
@@ -1316,7 +1261,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleControllerEvent(name)
   {
     const eventName = String(name ?? "");
@@ -1330,7 +1274,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers) controller.Start();
@@ -1343,7 +1286,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetEffectChildByName(name)
   {
     const target = String(name ?? "");
@@ -1361,7 +1303,6 @@ export class EveEffectRoot2 extends EveEntity
    *   is explicit.
    */
 
-  @meta.adapted
   AddToEffectChildrenList(child)
   {
     this.effectChildren.push(child);
@@ -1377,7 +1318,6 @@ export class EveEffectRoot2 extends EveEntity
    *   is explicit.
    */
 
-  @meta.adapted
   RemoveFromEffectChildrenList(child)
   {
     const index = this.effectChildren.indexOf(child);
@@ -1392,7 +1332,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     for (const child of this.effectChildren) child.SetShaderOption(name, value);
@@ -1404,7 +1343,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   FindSoundEmitter(name)
   {
     const target = String(name ?? "");
@@ -1433,7 +1371,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   AddObserver(observer)
   {
     this.observers.push(observer);
@@ -1452,7 +1389,6 @@ export class EveEffectRoot2 extends EveEntity
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display"))
@@ -1472,7 +1408,6 @@ export class EveEffectRoot2 extends EveEntity
    * @adapted The explicit setter replaces Carbon's Blue field-notify callback.
    */
 
-  @meta.adapted
   SetMute(isMute)
   {
     this.mute = !!isMute;
@@ -1486,7 +1421,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   FreezeHighDetailMesh()
   {
     this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
@@ -1500,7 +1434,6 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
     for (const child of this.effectChildren) child.SetProceduralContainerVariable(name, value);

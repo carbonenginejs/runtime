@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2GrannyTransformTrack.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -47,7 +47,6 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
    * @implemented
    */
 
-  @meta.implemented
   TracksReady()
   {
     return this.#positionCurve !== null && this.#orientationCurve !== null && this.#scaleCurve !== null;
@@ -59,7 +58,6 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
    * @implemented
    */
 
-  @meta.implemented
   ResetTracks()
   {
     this.#positionCurve = null;
@@ -73,7 +71,6 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
    * @adapted
    */
 
-  @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
     const track = CjsGrannyCurves.findTransformTrack(group, this.name);
@@ -104,7 +101,6 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
    * @adapted
    */
 
-  @meta.adapted
   UpdateValueImpl(time)
   {
     if (!this.#positionCurve || !this.#orientationCurve || !this.#scaleCurve)

@@ -8,7 +8,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /**
  * One authored haze volume: its bone attachment, placement, colour and the
@@ -62,7 +62,6 @@ export class EveHazeSetItem extends IRoot
    *   box3.
    */
 
-  @meta.adapted
   GetBounds(out)
   {
     // Carbon (row-vector): TransformationMatrix(scaling, rotation, position).
@@ -81,7 +80,6 @@ export class EveHazeSetItem extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBoneIndex()
   {
     return this.boneIndex;

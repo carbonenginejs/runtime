@@ -78,7 +78,6 @@ export class Tr2EffectPassParameters
    *
    * @implemented
    */
-  @meta.implemented
   AddUsedResource(resource)
   {
     this.usedResources.push(resource);
@@ -91,7 +90,6 @@ export class Tr2EffectPassParameters
    *
    * @implemented
    */
-  @meta.implemented
   AddReroutable(reroutable)
   {
     this.reroutedParameters.push(reroutable);
@@ -104,7 +102,6 @@ export class Tr2EffectPassParameters
    * @param type stage index into stageInput
    * @param size mirror size in bytes, rounded up to 16 by the stage
    */
-  @meta.adapted
   AllocateConstantMirror(type, size)
   {
     this.#stage(type).AllocateConstants(size);
@@ -116,7 +113,6 @@ export class Tr2EffectPassParameters
    * @adapted
    * @param type stage index into stageInput
    */
-  @meta.adapted
   GetSharedConstantBuffer(type, contents, size)
   {
     this.#stage(type).GetSharedConstantBuffer(contents, size);

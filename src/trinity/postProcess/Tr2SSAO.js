@@ -4,7 +4,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2SSAO.h
 // Source: trinity/trinity/Tr2SSAO.cpp
 // Source: trinity/trinity/Tr2SSAO_Blue.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, ShaderType, Tr2GpuUsage } from "#consts/render-context";
 import { Failed, Tr2BitmapDimensions, Tr2ConstantBufferAL } from "#trinityal";
@@ -148,7 +148,6 @@ export class Tr2SSAO extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Enable(enable)
   {
     this.enabled = Boolean(enable);
@@ -160,7 +159,6 @@ export class Tr2SSAO extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetQuality(quality, downsampled)
   {
     this.quality = quality;
@@ -206,7 +204,6 @@ export class Tr2SSAO extends IRoot
    * @throws {Error} When CORTAO is off: the CACAO path is not ported.
    */
 
-  @meta.adapted
   Filter(depthBuffer, normalBuffer, gpuResourcePool, renderContext, temporal)
   {
     if (!this.enabled) return new GpuResourceHandle();
@@ -255,7 +252,6 @@ export class Tr2SSAO extends IRoot
    * @returns {GpuResourceHandle} The SSAO texture, or an empty handle.
    */
 
-  @meta.adapted
   ComputeCORTAO(depthBuffer, normalBuffer, gpuResourcePool, renderContext, temporal)
   {
     const width = depthBuffer.GetWidth();
@@ -467,7 +463,6 @@ export class Tr2SSAO extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   _Hash(n)
   {
     const value = n >>> 0;

@@ -5,7 +5,7 @@ import { random as carbonRandom } from "#math/random";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue } from "#blue";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
@@ -130,7 +130,6 @@ export class BackAndForth extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -142,7 +141,6 @@ export class BackAndForth extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBehaviorName()
   {
     return "BackAndForth";
@@ -155,7 +153,6 @@ export class BackAndForth extends IRoot
    *   value means 'has scratch'.
    */
 
-  @meta.adapted
   GetScratchMemorySize()
   {
     return 1;
@@ -167,7 +164,6 @@ export class BackAndForth extends IRoot
    * @adapted Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
    */
 
-  @meta.adapted
   InitializeScratch()
   {
     return {
@@ -198,7 +194,6 @@ export class BackAndForth extends IRoot
    * Random draws delegate to the matching generator in global/math/random.js.
    */
 
-  @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -352,7 +347,6 @@ export class BackAndForth extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Locators");
@@ -371,7 +365,6 @@ export class BackAndForth extends IRoot
    * @param {mat4} parentWorldLocation Places the locators in world space.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     const { Wireframe, Lit } = ITr2DebugRenderer2.Effect;
@@ -519,7 +512,6 @@ export class BackAndForth extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddLocatorSet()
   {
     const seek = new EveLocatorSets();
@@ -535,7 +527,6 @@ export class BackAndForth extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetParent(parent)
   {
     this.parent = parent ?? null;
@@ -566,7 +557,6 @@ export class BackAndForth extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetParentLocatorPosition(locatorIndex, outPosition, outDirection)
   {
     this._ReadOwnerLocator(this.parent, locatorIndex, outPosition, outDirection);
@@ -578,7 +568,6 @@ export class BackAndForth extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetTargetLocatorPosition(locatorIndex, outPosition, outDirection)
   {
     this._ReadOwnerLocator(this.target, locatorIndex, outPosition, outDirection);

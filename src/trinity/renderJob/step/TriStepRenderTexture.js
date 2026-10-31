@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
 import { Tr2DepthStencil } from "../../core/device/Tr2DepthStencil.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 
@@ -55,7 +55,6 @@ export class TriStepRenderTexture extends TriRenderStep
    * @adapted
    */
   @be.mapMethod()
-  @meta.adapted
   __init__(source = null)
   {
     this.texture = null;
@@ -103,7 +102,6 @@ export class TriStepRenderTexture extends TriRenderStep
    * @adapted
    */
 
-  @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {
     const source = this.renderTarget ?? this.depthStencil ?? this.texture;

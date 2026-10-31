@@ -7,7 +7,7 @@ import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IBehavior } from "../IBehavior.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { SplineTunnelGroup } from "../tunnels/SplineTunnelGroup.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -120,7 +120,6 @@ export class ProcessLifetime extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._intialSpawn = this.firstSpawnAtRandomPlaces;
@@ -137,7 +136,6 @@ export class ProcessLifetime extends IRoot
    *   time.
    */
 
-  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list !== this.splineTunnels) return;
@@ -167,7 +165,6 @@ export class ProcessLifetime extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this.UpdateTunnelRegistry();
@@ -180,7 +177,6 @@ export class ProcessLifetime extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -192,7 +188,6 @@ export class ProcessLifetime extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBehaviorName()
   {
     return "ProcessLifetime";
@@ -204,7 +199,6 @@ export class ProcessLifetime extends IRoot
    * @adapted Carbon returns a byte size; scratch here is one record per agent, so any non-zero value means it has one.
    */
 
-  @meta.adapted
   GetScratchMemorySize()
   {
     return 1;
@@ -216,7 +210,6 @@ export class ProcessLifetime extends IRoot
    * @adapted Carbon initializes caller-provided raw memory; here the fresh record is returned.
    */
 
-  @meta.adapted
   InitializeScratch()
   {
     return new ProcessLifetimeData();
@@ -228,7 +221,6 @@ export class ProcessLifetime extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateState(state)
   {
     this.exit = !!state;
@@ -254,7 +246,6 @@ export class ProcessLifetime extends IRoot
    * per-agent loop allocation-free.
    */
 
-  @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
     if (!this._TunnelGroupsMatchSnapshot())
@@ -397,7 +388,6 @@ export class ProcessLifetime extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateTunnelRegistry()
   {
     this._privateTunnels.length = 0;
@@ -418,7 +408,6 @@ export class ProcessLifetime extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("SplineTunnels");
@@ -434,7 +423,6 @@ export class ProcessLifetime extends IRoot
    * @param {mat4} parentWorldLocation
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     if (renderer.HasOption(this, "SplineTunnels"))
@@ -453,7 +441,6 @@ export class ProcessLifetime extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetEntrancePoints()
   {
     const entrancePoints = [];

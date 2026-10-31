@@ -18,7 +18,7 @@ import { IInitialize } from "../../global/blue/IInitialize.js";
 // `EmitterGpu` (112 bytes, the emit constant buffer's array element),
 // `EmitterParamsGpu` (128 bytes, the `Emitters` structured-buffer stride) and
 // the update constants (160 bytes).
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { RenderingMode, TriStorageFlags } from "#consts/graphics";
@@ -351,7 +351,6 @@ export class Tr2GpuParticleSystem
    * @implemented
    */
 
-  @meta.implemented
   InitializeBuffers()
   {
     this._particleData = new Tr2GpuStructuredBuffer();
@@ -370,7 +369,6 @@ export class Tr2GpuParticleSystem
    * @implemented
    */
 
-  @meta.implemented
   RegisterVariables()
   {
     const store = this._variableStore;
@@ -391,7 +389,6 @@ export class Tr2GpuParticleSystem
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   Initialize()
   {
     for (const slot of EFFECT_SLOTS) this.SetVariableStore(this[slot]);
@@ -412,7 +409,6 @@ export class Tr2GpuParticleSystem
    * @param {number} maxParticles The capacity.
    */
 
-  @meta.implemented
   SetMaxParticles(maxParticles)
   {
     this.maxParticles = maxParticles >>> 0;
@@ -428,7 +424,6 @@ export class Tr2GpuParticleSystem
    * @param {number} storage The TriStorage mask being released.
    */
 
-  @meta.implemented
   ReleaseResources(storage)
   {
     // m_xCB = Tr2ConstantBufferAL() (cpp:182-192).
@@ -446,7 +441,6 @@ export class Tr2GpuParticleSystem
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -502,7 +496,6 @@ export class Tr2GpuParticleSystem
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     for (const slot of EFFECT_SLOTS)
@@ -520,7 +513,6 @@ export class Tr2GpuParticleSystem
    * @param {object|null} effect A Tr2Effect.
    */
 
-  @meta.implemented
   SetVariableStore(effect)
   {
     if (!effect) return;
@@ -535,7 +527,6 @@ export class Tr2GpuParticleSystem
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Clear()
   {
     this._clearRequested = true;
@@ -552,7 +543,6 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    */
 
-  @meta.implemented
   Update(time, originShift, renderContext)
   {
     if (!CheckEffect(this.emit) || !CheckEffect(this.update) || !CheckEffect(this.clear) || !CheckEffect(this.setDrawParameters))
@@ -616,7 +606,6 @@ export class Tr2GpuParticleSystem
    * @param {object} _renderContext The Tr2RenderContext.
    */
 
-  @meta.notImplemented
   UpdateLiveCount(_renderContext)
   {
     if (!this.updateVisibleCount) return;
@@ -632,7 +621,6 @@ export class Tr2GpuParticleSystem
    * @returns {boolean} Whether the clear kernel ran.
    */
 
-  @meta.implemented
   DoClear(renderContext)
   {
     this._liveTime = 0;
@@ -655,7 +643,6 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    */
 
-  @meta.implemented
   RunSimulation(dt, originShift, renderContext)
   {
     const { vec4_0 } = Tr2GpuParticleSystem.scratch;
@@ -698,7 +685,6 @@ export class Tr2GpuParticleSystem
    * @param {number} dt The frame time.
    */
 
-  @meta.adapted
   ExpireEmitterParams(dt)
   {
     for (const [ id, entry ] of this._emitterParamsIndex)
@@ -723,7 +709,6 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    */
 
-  @meta.implemented
   UpdateEmitterParams(renderContext)
   {
     let maxLiveTime = 0;
@@ -779,7 +764,6 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    */
 
-  @meta.implemented
   UpdateGpuEmitterParams(renderContext)
   {
     const buffer = this._emitterParamsBuffer;
@@ -804,7 +788,6 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    */
 
-  @meta.implemented
   EmitParticles(renderContext)
   {
     const data = this._emitData;
@@ -832,7 +815,6 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    */
 
-  @meta.implemented
   Sort(renderContext)
   {
     if (!CheckEffect(this.setSortParameters) || !CheckEffect(this.sort) || !CheckEffect(this.sortStep) || !CheckEffect(this.sortInner))
@@ -871,7 +853,6 @@ export class Tr2GpuParticleSystem
    * @returns {boolean} Whether this was the last level.
    */
 
-  @meta.implemented
   SortIncremental(presorted, renderContext)
   {
     const maxSize = this.maxParticles;
@@ -918,7 +899,6 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    */
 
-  @meta.implemented
   Render(renderContext)
   {
     if (!this.render || !this.display || this._liveTime <= 0) return;
@@ -936,7 +916,6 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    */
 
-  @meta.implemented
   SubmitGeometry(renderContext)
   {
     if (!this._drawParameters.IsValid()) return;
@@ -959,7 +938,6 @@ export class Tr2GpuParticleSystem
    * @param {object} params A Tr2GpuSharedEmitter params record.
    */
 
-  @meta.adapted
   Emit(emitter, id, hash, params)
   {
     if (!this.enableEmit) return;
@@ -999,7 +977,6 @@ export class Tr2GpuParticleSystem
    * @notImplemented
    */
 
-  @meta.notImplemented
   GetEmitTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetEmitTime is not implemented: Tr2ProfileTimer is not ported.");
@@ -1012,7 +989,6 @@ export class Tr2GpuParticleSystem
    * @notImplemented
    */
   @be.mapPropertyReadOnly()
-  @meta.notImplemented
   get emitTime()
   {
     return this.GetEmitTime();
@@ -1024,7 +1000,6 @@ export class Tr2GpuParticleSystem
    * @notImplemented
    */
 
-  @meta.notImplemented
   GetUpdateTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetUpdateTime is not implemented: Tr2ProfileTimer is not ported.");
@@ -1037,7 +1012,6 @@ export class Tr2GpuParticleSystem
    * @notImplemented
    */
   @be.mapPropertyReadOnly()
-  @meta.notImplemented
   get updateTime()
   {
     return this.GetUpdateTime();
@@ -1049,7 +1023,6 @@ export class Tr2GpuParticleSystem
    * @notImplemented
    */
 
-  @meta.notImplemented
   GetSortTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetSortTime is not implemented: Tr2ProfileTimer is not ported.");
@@ -1062,7 +1035,6 @@ export class Tr2GpuParticleSystem
    * @notImplemented
    */
   @be.mapPropertyReadOnly()
-  @meta.notImplemented
   get sortTime()
   {
     return this.GetSortTime();
@@ -1074,7 +1046,6 @@ export class Tr2GpuParticleSystem
    * @notImplemented
    */
 
-  @meta.notImplemented
   GetRenderTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetRenderTime is not implemented: Tr2ProfileTimer is not ported.");
@@ -1087,7 +1058,6 @@ export class Tr2GpuParticleSystem
    * @notImplemented
    */
   @be.mapPropertyReadOnly()
-  @meta.notImplemented
   get renderTime()
   {
     return this.GetRenderTime();
@@ -1101,7 +1071,6 @@ export class Tr2GpuParticleSystem
    * @returns {boolean} Whether any particle may be alive.
    */
 
-  @meta.implemented
   HasParticles()
   {
     return this._liveTime > 0;

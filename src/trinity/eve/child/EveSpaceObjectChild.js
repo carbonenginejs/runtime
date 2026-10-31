@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 
@@ -212,7 +212,6 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetOwner()
   {
     return this._owner;
@@ -231,7 +230,6 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetParent()
   {
     return this._parent;
@@ -268,7 +266,6 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPartDamageOverlay(_partTag)
   {
     return null;
@@ -280,7 +277,6 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   CreatePartDamageOverlay(_partTag)
   {
   }
@@ -292,7 +288,6 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPartArmorDamageShaderEffect(_partTag)
   {
     return null;
@@ -305,7 +300,6 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * @implemented
    */
 
-  @meta.implemented
   GetPartDamageLocatorAnimatedLocal(_partTag, _index, _position, _direction)
   {
     return false;

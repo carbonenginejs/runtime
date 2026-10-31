@@ -4,7 +4,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/EveSprite2dBracket.cpp
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -38,7 +38,6 @@ export class EveSprite2dBracket extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetTranslation(out)
   {
     return vec2.copy(out, this.translation);
@@ -50,7 +49,6 @@ export class EveSprite2dBracket extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetTranslation(value)
   {
     vec2.copy(this.translation, value);
@@ -62,7 +60,6 @@ export class EveSprite2dBracket extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetIcon()
   {
     return this.icon;
@@ -74,7 +71,6 @@ export class EveSprite2dBracket extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetColor()
   {
     return this.color;
@@ -86,7 +82,6 @@ export class EveSprite2dBracket extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetDisplay(display)
   {
     this.display = Boolean(display);
@@ -98,7 +93,6 @@ export class EveSprite2dBracket extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsDisplay()
   {
     return this.display;

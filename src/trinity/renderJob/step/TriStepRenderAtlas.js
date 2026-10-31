@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderAtlas.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
@@ -65,7 +65,6 @@ export class TriStepRenderAtlas extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(atlas = null, focus = null)
   {
     this.SetAtlas(atlas);
@@ -78,7 +77,6 @@ export class TriStepRenderAtlas extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   SetAtlas(atlas)
   {
     this.atlas = atlas;
@@ -90,7 +88,6 @@ export class TriStepRenderAtlas extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   SetFocus(texture)
   {
     this.focus = texture;
@@ -103,7 +100,6 @@ export class TriStepRenderAtlas extends TriRenderStep
    * @notImplemented
    */
 
-  @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {
     if (this.atlas) throw new Error("TriStepRenderAtlas.Execute is not ported yet; it needs Tr2TextureAtlas GetFreeAreas/GetUsedAreas/GetMargin.");

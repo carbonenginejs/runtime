@@ -6,7 +6,7 @@ import { exposure as be } from "#be";
 import { mat4 } from "#math/mat4";
 import { isArrayLike } from "#utils/is";
 import { ITriFunction, ITriCurveLength, IInitialize } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2MatrixKey } from "../key/Tr2MatrixKey.js";
 
 
@@ -160,7 +160,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -171,7 +170,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    *
    * @implemented
    */
-  @meta.implemented
   SetName(value)
   {
     this.name = value;
@@ -182,7 +180,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    *
    * @adapted native Initialize only sorts; the existing JS adapter also samples zero.
    */
-  @meta.adapted
   Initialize()
   {
     this.Sort();
@@ -195,7 +192,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    *
    * @adapted retains the JS last-key fallback when authored length is zero.
    */
-  @meta.adapted
   Length()
   {
     const keys = this.keys;
@@ -208,7 +204,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    *
    * @adapted
    */
-  @meta.adapted
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
@@ -220,7 +215,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @adapted the matrix is written into out rather than returned by value.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetValueAt(time, out)
   {
     // Native Tr2CurveBase gates precede bone interpolation; its key segments
@@ -237,7 +231,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    *
    * @adapted the matrix is written into out rather than returned by value.
    */
-  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -249,7 +242,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Sort()
   {
     const keys = this.keys;
@@ -276,7 +268,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @adapted retains the JS direct key insertion and endpoint rollover helper.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddKey(time, value = null)
   {
     const keyValue = value ?? Tr2BoneMatrixCurve._identityMatrix;
@@ -311,7 +302,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @param {Float32Array} value Key matrix; copied into the new key.
    * @returns {void}
    */
-  @meta.adapted
   _AddKey_(time, value)
   {
     const key = new Tr2MatrixKey();
@@ -327,7 +317,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyCount()
   {
     return this.keys.length;
@@ -339,7 +328,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyTime(index)
   {
     return Number(this.keys[index]?.time ?? this.length);
@@ -351,7 +339,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetKeyTime(index, time)
   {
     if (this.keys[index])
@@ -364,7 +351,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @adapted returns a detached matrix rather than the native const reference.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetKeyValue(index)
   {
     return mat4.clone(this.keys[index]?.value ?? this.endValue);
@@ -374,7 +360,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @adapted validates and copies caller matrices into existing key storage.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetKeyValue(index, value)
   {
     if (this.keys[index])
@@ -393,7 +378,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyInterpolation(index)
   {
     const key = this.keys[index];
@@ -408,7 +392,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetKeyInterpolation(index, interpolation)
   {
     const key = this.keys[index];
@@ -424,7 +407,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RemoveKey(index)
   {
     if (Number.isInteger(index) && index >= 0 && index < this.keys.length)
@@ -441,7 +423,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @implemented
    */
 
-  @meta.implemented
   SetBone(bone)
   {
     this._bone = bone;
@@ -454,7 +435,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @implemented
    */
 
-  @meta.implemented
   GetBone()
   {
     return this._bone;
@@ -498,7 +478,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @param {mat4} out
    * @returns {mat4} out
    */
-  @meta.implemented
   Interpolate(out)
   {
     const skinnedObject = this.skinnedObject;

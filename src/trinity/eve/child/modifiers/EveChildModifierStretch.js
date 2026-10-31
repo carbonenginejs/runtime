@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue } from "#blue";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
@@ -46,7 +46,6 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {
     const { sourceRotation, sourceTranslation, sourceScale, end, diff, arcMat, arcQuat, scale, mid, srcRotMat } =
@@ -78,7 +77,6 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * @implemented
    */
 
-  @meta.implemented
   SetDest(dest)
   {
     this.dest = dest ?? null;
@@ -91,7 +89,6 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * @implemented
    */
 
-  @meta.implemented
   SetDestPosition(destPosition)
   {
     vec3.copy(this._destPosition, destPosition);

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderDebug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriLineSet } from "../../core/line/TriLineSet.js";
 import { vec3 } from "#math/vec3";
@@ -33,7 +33,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Clear()
   {
     this.lineSet.Clear();
@@ -47,7 +46,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   DrawBox(min, max, color = 0xffffffff)
   {
     this.lineSet.AddBox(min, max, color);
@@ -59,7 +57,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   DrawCapsule(start, end, radius, segments, color = 0xffffffff)
   {
     this.lineSet.AddCylinder(start, end, radius, segments, color);
@@ -73,7 +70,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   DrawCone(start, end, radius, segments, color = 0xffffffff)
   {
     this.lineSet.AddCone(start, end, radius, segments, color);
@@ -85,7 +81,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   DrawCylinder(start, end, radius, segments, color = 0xffffffff)
   {
     this.lineSet.AddCylinder(start, end, radius, segments, color);
@@ -97,7 +92,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   DrawLine(from, fromColor, to, toColor)
   {
     this.lineSet.Add(from, fromColor, to, toColor);
@@ -109,7 +103,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   DrawSphere(center, radius, segments, color = 0xffffffff)
   {
     this.lineSet.AddSphere(center, radius, segments, color);
@@ -121,7 +114,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Print3D(position, color, message)
   {
     this.text3d.push({ position: vec3.clone(position), color: Number(color) >>> 0, message: String(message) });
@@ -133,7 +125,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Print2D(x, y, color, message)
   {
     this.text2d.push({ x: Number(x) | 0, y: Number(y) | 0, width: 1024, height: 512, format: 0, color: Number(color) >>> 0, message: String(message) });
@@ -145,7 +136,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Print2Df(x, y, width, height, format, color, message)
   {
     this.text2d.push({ x: Number(x) | 0, y: Number(y) | 0, width: Number(width) | 0, height: Number(height) | 0, format: Number(format) >>> 0, color: Number(color) >>> 0, message: String(message) });
@@ -159,7 +149,6 @@ export class TriStepRenderDebug extends TriRenderStep
    * @notImplemented
    */
 
-  @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {
     throw new Error("TriStepRenderDebug.Execute is not ported yet; it needs the debug resource helper and fonts.");

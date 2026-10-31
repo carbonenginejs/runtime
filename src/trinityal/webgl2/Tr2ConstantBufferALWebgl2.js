@@ -18,7 +18,7 @@
 // context set the constants as plain uniform arrays for a shader emitted with
 // the `array` profile, which has no blocks.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -61,7 +61,6 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(size, usage, initialData, renderContext)
   {
     this._Reset();
@@ -109,7 +108,6 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext The context to lock against.
    * @returns {{result: number, data: Uint8Array|null}} The locked memory.
    */
-  @meta.adapted
   Lock(_renderContext)
   {
     if (this._usage === Tr2ConstantUsageAL.ONE_SHOT)
@@ -131,7 +129,6 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext The context the lock was made against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Unlock(_renderContext)
   {
     if (this._usage === Tr2ConstantUsageAL.ONE_SHOT)
@@ -274,12 +271,5 @@ CjsSchema.decorateField(Tr2ConstantBufferALWebgl2, "_usage", type.int32);
 CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Lock");
 CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Unlock");
-CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "IsValid", meta.implemented);
 // States against dx11/Tr2ConstantBufferALDx11.cpp. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.
-CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetUsage", meta.implemented);
-CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetSize", meta.implemented);
-CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "SetName", meta.adapted);
 CjsSchema.meta.define("Tr2ConstantBufferALWebgl2")(Tr2ConstantBufferALWebgl2);

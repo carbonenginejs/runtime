@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
@@ -42,7 +42,6 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
 
-  @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
     this._requestRegeneration = false;
@@ -74,7 +73,6 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * @implemented
    */
 
-  @meta.implemented
   IsRequestingRegeneration()
   {
     return this._requestRegeneration;
@@ -88,7 +86,6 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(_updateContext, params, _owner)
   {
     const parent = params.spaceObjectParent;
@@ -120,7 +117,6 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "locatorSetName")) this._regenerated = false;
@@ -135,7 +131,6 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    *   structure-list notifier ownership.
    */
 
-  @meta.adapted
   OnStructureListModified(_event, _item, _index, _list)
   {
     this._regenerated = false;

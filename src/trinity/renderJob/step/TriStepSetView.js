@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetView.h
 // Source: trinity/trinity/RenderJob/TriStepSetView.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriRenderStep } from "./TriRenderStep.js";
@@ -32,7 +32,6 @@ export class TriStepSetView extends TriRenderStep
    *
    * @adapted
    */
-  @meta.adapted
   __init__(view = null, camera = null)
   {
     this.SetViewCameraParent(view, camera);
@@ -45,7 +44,6 @@ export class TriStepSetView extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
-  @meta.adapted
   SetViewCameraParent(view, camera)
   {
     this.view = view ?? null;
@@ -61,7 +59,6 @@ export class TriStepSetView extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(realTime, simTime, renderContext)
   {
     if (this.view)

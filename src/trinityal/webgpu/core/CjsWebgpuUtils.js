@@ -10,7 +10,7 @@
 // Only the pixel format table is ported so far. Metal's other translations
 // (vertex format, texture type, cull mode, blend, compare, stencil, colour
 // write) belong here as they are needed.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { PixelFormat } from "#consts/render-context";
 import { num } from "#math/num";
 
@@ -242,6 +242,4 @@ export class CjsWebgpuUtils
 // Declared as a call, as the other AL classes are: the layer is imported
 // straight from source by its tests.
 // Donor: metal/MetalUtils.mm SetupPixelFormatConversionTable. The table maps Carbon pixel formats to GPUTextureFormat strings where Metal maps to MTLPixelFormat; the supported set differs (WebGPU has no 3-channel or typeless formats, and D24S8 is not emulated), and the lookup returns null for a format outside the table.
-CjsSchema.decorateMethod(CjsWebgpuUtils, "SetupPixelFormatConversionTable", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuUtils, "GetGPUTextureFormat", meta.adapted, meta.renamed("GetMTLPixelFormat"));
 CjsSchema.meta.define(CjsWebgpuUtils, { className: "CjsWebgpuUtils" });

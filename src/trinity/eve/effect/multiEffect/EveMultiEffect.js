@@ -6,7 +6,7 @@ import { exposure as be } from "#be";
 import { IInitialize, IListNotify } from "#blue";
 import { ITr2DynamicBindingOwner } from "../../ITr2DynamicBindingOwner.js";
 import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { EveMultiEffectParameter } from "./EveMultiEffectParameter.js";
 import { Tr2DynamicBinding } from "../../../core/binding/Tr2DynamicBinding.js";
 import { ITr2Controller } from "../../../controllers/ITr2Controller/ITr2Controller.js";
@@ -73,7 +73,6 @@ export class EveMultiEffect extends IRoot
    * @adapted Carbon's unordered_map is a prototype-free object, and a curve set is its own raw root.
    */
 
-  @meta.adapted
   GetParameterMap()
   {
     const out = Object.create(null);
@@ -96,7 +95,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   Rebind(onlyUpdateBindings = false)
   {
     for (const binding of this.bindings)
@@ -117,7 +115,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     for (const parameter of this.parameters) parameter.SetOwner(this);
@@ -134,7 +131,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -169,7 +165,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleControllerEvent(name)
   {
     for (const controller of this.controllers) controller.HandleEvent(name);
@@ -181,7 +176,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const controller of this.controllers) controller.SetVariable(name, value);
@@ -193,7 +187,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetParameter(parameterName, object)
   {
     for (const parameter of this.parameters)
@@ -214,7 +207,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers) controller.Start();
@@ -226,7 +218,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetParameterByName(parameterName)
   {
     return this.parameters.find(parameter => parameter.GetName() === parameterName) ?? null;
@@ -235,14 +226,11 @@ export class EveMultiEffect extends IRoot
   /**
    * Fills out with Owner followed by each parameter slot's bound object, so a slot named Owner overrides the effect itself.
    *
-   * @adapted
+   * @adapted Carbon's unordered_map is a JavaScript object or Map, filled Owner first so a slot named Owner wins.
    * @param {Object|Map} out - caller-owned map, mutated in place
    * @returns {Object|Map} out
-   *
-   * Adapted: Carbon's unordered_map is a JavaScript object or Map, filled Owner first so a slot named Owner wins.
    */
 
-  @meta.adapted
   GetBindingRoots(out)
   {
     EveMultiEffect._SetMapValue(out, "Owner", this);
@@ -260,7 +248,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     for (const curveSet of this.curveSets)
@@ -281,7 +268,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     for (const curveSet of this.curveSets)
@@ -298,7 +284,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     for (const curveSet of this.curveSets)
@@ -314,7 +299,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     let duration = 0;
@@ -335,7 +319,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     let duration = 0;
@@ -356,7 +339,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     const time = updateContext.GetTime();
@@ -372,7 +354,6 @@ export class EveMultiEffect extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(_updateContext)
   {
   }
@@ -383,7 +364,6 @@ export class EveMultiEffect extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform)
   {
   }
@@ -394,7 +374,6 @@ export class EveMultiEffect extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
 
   GetRenderables__Impostors(_renderables, _impostors)
   {
@@ -406,7 +385,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
   {
     return false;
@@ -419,7 +397,6 @@ export class EveMultiEffect extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetPerObjectStructs(_vsData, _psData)
   {
   }
@@ -431,7 +408,6 @@ export class EveMultiEffect extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
@@ -443,7 +419,6 @@ export class EveMultiEffect extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetModelCenterWorldPosition(_position)
   {
   }
@@ -454,7 +429,6 @@ export class EveMultiEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
     return false;
@@ -467,7 +441,6 @@ export class EveMultiEffect extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetLocalToWorldTransform(_transform)
   {
   }
@@ -479,7 +452,6 @@ export class EveMultiEffect extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -491,7 +463,6 @@ export class EveMultiEffect extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }

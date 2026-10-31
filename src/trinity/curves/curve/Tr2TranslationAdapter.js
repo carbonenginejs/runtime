@@ -6,7 +6,7 @@ import { random as carbonRandom } from "#math/random";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { ITriVectorFunction } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { CcpTime } from "#blue";
 
 
@@ -94,7 +94,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     if (this.curve)
@@ -113,7 +112,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     if (this.curve)
@@ -138,7 +136,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   GetValueAt(time, out)
   {
     if (this.curve)
@@ -158,7 +155,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   GetValueDotAt(time, out)
   {
     if (!this.curve)
@@ -181,7 +177,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueDotAt__Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
@@ -206,7 +201,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return vec3.zero(out);
@@ -222,7 +216,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {Float32Array|Float64Array} The destination.
    */
 
-  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return vec3.copy(out, this.currentValue);
@@ -237,7 +230,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {void}
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   RandomizeStart(range = 60)
   {
     const radius = range || 60;
@@ -253,7 +245,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ScaleTime(scale)
   {
     this._timeScale = scale;
@@ -266,7 +257,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ResetStart()
   {
     this._start = 0;
@@ -280,7 +270,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @returns {number} Scaled time in seconds.
    */
 
-  @meta.implemented
   GetLocalTime(time)
   {
     return time / this._timeScale;
@@ -294,7 +283,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} Local time in seconds.
    */
-  @meta.adapted
   GetLocalTime__Ticks(time)
   {
     return CcpTime.timeAsDouble(time - this._start + this._offset) / this._timeScale;
@@ -309,7 +297,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   Update__Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
@@ -334,7 +321,6 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt__Ticks(time, out)
   {
     if (this._start === 0) this._start = time;

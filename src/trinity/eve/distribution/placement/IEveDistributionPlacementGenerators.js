@@ -1,7 +1,6 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/IEveDistributionPlacementGenerators.h
-import { meta } from "#schema";
 
 
 /** Required distribution placement-generator contract. */
@@ -32,7 +31,6 @@ export class IEveDistributionPlacementGenerators extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(_updateContext)
   {
   }

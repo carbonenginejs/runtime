@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleDragForce_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /** Linear particle drag: a force proportional to velocity and opposing it. */
@@ -23,7 +23,6 @@ export class Tr2ParticleDragForce extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   GetForce(_position, velocity, _dt, _mass, out)
   {
     return vec3.scale(out, velocity, -this.drag);
@@ -36,7 +35,6 @@ export class Tr2ParticleDragForce extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   Update(_dt)
   {
   }

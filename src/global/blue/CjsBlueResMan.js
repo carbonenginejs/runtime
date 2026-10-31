@@ -1334,18 +1334,16 @@ export class CjsBlueResMan
    * derived data before loading. Await Ready(resource) for completion. Failure
    * remains prepared but not good until another explicit reload.
    *
-   * @adapted
+   * @adapted JavaScript constructors represent interface identities; the result is
+   *   the resource or null rather than a boolean and an output pointer.
+   *   Only a Res class registered for the extension (plus `ex`) is served; for
+   *   anything else - an object file, plain data - it logs "No factory found for
+   *   extension" and returns null, as Carbon's does (BlueResMan.cpp:266-273).
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Factory suffix, source provenance and explicit reload settings.
    * @param {string} [options.ex=""] Carbon factory suffix, appended to the source extension.
    * @param {Function} [options.iid=IBlueResource] Carbon interface identity, checked after factory selection.
    * Carbon: BlueResMan::GetResourceW/GetResourceHelper (blue/src/BlueResMan.cpp:143-290).
-   * Adapted: JavaScript constructors represent interface identities; the result is
-   * the resource or null rather than a boolean and an output pointer.
-   * Only a Res class registered for the extension (plus `ex`) is served; for
-   * anything else - an object file, plain data - it logs "No factory found for
-   * extension" and returns null, as Carbon's does (BlueResMan.cpp:266-273).
-   *
    * @returns {BlueAsyncRes|null} Cached or newly initialized handle, or null for an unsupported factory/interface.
    * @throws {TypeError} If the path, identity settings, or resource constructor are invalid.
    * @throws {Error} If MotherLode is inactive or displaced-resource cleanup fails.
@@ -4367,34 +4365,20 @@ function createExtensionTargetError(resource, message, cause = null)
 CjsSchema.meta.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
 CjsSchema.exposure.mapInterface(IBlueResMan)(CjsBlueResMan);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceW", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "WaitUrgent", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "SaveObject", blue.method, meta.implemented);
-CjsSchema.decorateMethod(CjsBlueResMan, "SaveObjectW", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", blue.method);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceW", blue.method);
+CjsSchema.decorateMethod(CjsBlueResMan, "WaitUrgent", blue.method);
+CjsSchema.decorateMethod(CjsBlueResMan, "SaveObject", blue.method);
+CjsSchema.decorateMethod(CjsBlueResMan, "SaveObjectW", blue.method);
 for (const method of [ "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
 {
   CjsSchema.decorateMethod(CjsBlueResMan, method, blue.method, meta.noop);
 }
-CjsSchema.decorateMethod(CjsBlueResMan, "AddToQueue", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "CancelFromQueue", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetNextIdForQueue", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueResMan, "PumpMainThreadQueue", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueResMan, "PauseQueue", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueResMan, "ResumeQueue", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingLoads", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingPrepares", meta.implemented);
-CjsSchema.decorateMethod(CjsBlueResMan, "SetLoadingThreadCount", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "SetUrgentResourceLoads", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "IsUrgentResourceLoads", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "Update", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "Wait", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "RegisterResourceConstructor", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "UnregisterResourceConstructor", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject__WChars", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "OnTick", meta.implemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "SetUrgentResourceLoads", blue.method);
+CjsSchema.decorateMethod(CjsBlueResMan, "Wait", blue.method);
+CjsSchema.decorateMethod(CjsBlueResMan, "RegisterResourceConstructor", blue.method);
+CjsSchema.decorateMethod(CjsBlueResMan, "UnregisterResourceConstructor", blue.method);
+CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject", blue.method);
 CjsSchema.exposure.define("CjsBlueResMan")(CjsBlueResMan);
 
 
@@ -4459,95 +4443,48 @@ function createObjectFromBuilder(builder)
 }
 
 
-CjsSchema.decorateMethod(CjsBlueResMan, "Register", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "RegisterExtension", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_GetResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_LoadObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_RefusePlainObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_IsObjectBuilderResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
-CjsSchema.decorateMethod(CjsBlueResMan, "_LogResourceEvent", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "ReloadObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "FetchResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "ReloadResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "Fetch", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "ReadResourceObjectPayload", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_HydrateExtensionObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_BuildObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_CreateDynamicResource", CjsSchema.meta.adapted);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "Lookup", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "Delete", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_CountWatched", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "Clear", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "CreateResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceVariant", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_GetResourceRecord", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_GetResourceRequest", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_GetResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_IsResourceLoadCurrent", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_AssertResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_StartResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_CancelResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_RecordResourceFailure", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_FinishResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_FailResourceLoad", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "Ready", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceStatus", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "GetResourcePayload", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "HasResourcePayload", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "ReleaseResourcePayload", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "KeepPayloadAlive", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "LockResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "UnlockResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "GetReloadAttempts", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "ResetReloadAttempts", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_KeepResourceAlive", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_MarkResourcePurged", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_CleanupResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "_LoadObjectData", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceFormat", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsBlueResMan, "GetFormat", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

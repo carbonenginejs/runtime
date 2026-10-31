@@ -101,7 +101,6 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * @param {object} renderContext The context to upload and bind against.
    * @returns {number} How many payloads were uploaded.
    */
-  @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
     return Tr2PerObjectData.setPerObjectDataToDevice(this, buffers, constantTypeMask, renderContext);
@@ -120,7 +119,6 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    *
    * @notImplemented
    */
-  @meta.notImplemented
   ApplyConstantBuffers()
   {
     throw new Error("Tr2PerObjectDataStandard.ApplyConstantBuffers: indirect draw is unported.");

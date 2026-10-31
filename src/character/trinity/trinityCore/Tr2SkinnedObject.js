@@ -6,7 +6,7 @@ import { TriDebugFont } from "../../../trinity/core/TriDebugTextRenderer.js";
 import { color } from "#math/color";
 import { ITr2SkinnedObject } from "./ITr2SkinnedObject.js";
 // Source: trinity/trinity/Tr2SkinnedObject.h
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IsMatch, IListNotify, INotify } from "#blue";
 import { IWorldPosition } from "../../../trinity/core/IWorldPosition.js";
 import { mat4 } from "#math/mat4";
@@ -40,7 +40,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(_event, _key, _key2, _value, _theList) {}
 
   /**
@@ -49,7 +48,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue() { return 0; }
 
   /**
@@ -58,7 +56,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(_accumulator) { return null; }
 
   /**
@@ -67,7 +64,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
   @blue.method
-  @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (this.visualModel && perObjectData && this.DoDisplay())
@@ -82,7 +78,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
   @blue.method
-  @meta.implemented
   DoDisplay()
   {
     return this.display;
@@ -96,7 +91,6 @@ export class Tr2SkinnedObject extends IRoot
    * @param {Set<string>} options The caller-owned option set the options are added to.
    * @returns {void}
    */
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Names");
@@ -124,7 +118,6 @@ export class Tr2SkinnedObject extends IRoot
    * @param {ITr2DebugRenderer2} renderer The debug renderer drawing this frame; it decides which options are on.
    * @returns {void}
    */
-  @meta.adapted
   RenderDebugInfo(renderer)
   {
     if (!this.DoDisplay()) return;
@@ -156,7 +149,6 @@ export class Tr2SkinnedObject extends IRoot
    *   queue, so this returns the native empty-queue value, the current transform.
    */
   @blue.method
-  @meta.adapted
   GetSkinningTransform()
   {
     return this.transform;
@@ -168,7 +160,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
   @blue.method
-  @meta.implemented
   UpdatePerObjectData()
   {
   }
@@ -188,7 +179,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
   @blue.method
-  @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     if (this.useExplicitBounds)
@@ -216,7 +206,6 @@ export class Tr2SkinnedObject extends IRoot
    * @param {TriFrustum|null} cameraFrustum Frustum to clip against, or null.
    * @returns {Obb|null} The box, or null without local bounds.
    */
-  @meta.adapted
   GetClippedWorldBoundingObb(localToWorld, cameraFrustum)
   {
     const { vec3_0, vec3_1 } = Tr2SkinnedObject.boundsScratch;
@@ -235,7 +224,6 @@ export class Tr2SkinnedObject extends IRoot
    * @notImplemented
    */
 
-  @meta.notImplemented
   GetWorldPosition(_out) { throw new Error("Tr2SkinnedObject.GetWorldPosition requires the TriMatrix conversion port."); }
 
   /**
@@ -244,7 +232,6 @@ export class Tr2SkinnedObject extends IRoot
    * @notImplemented
    */
 
-  @meta.notImplemented
   GetWorldRotation() { throw new Error("Tr2SkinnedObject.GetWorldRotation requires the TriMatrix conversion port."); }
 
   lod = new Tr2SkinnedObjectLod();
@@ -308,7 +295,6 @@ export class Tr2SkinnedObject extends IRoot
    * @param {mat4} out
    * @returns {mat4} out
    */
-  @meta.implemented
 
   GetTransform(out)
   {
@@ -450,7 +436,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "visualModel"))
@@ -467,7 +452,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetCurrentLod()
   {
     return this.lod.GetCurrentLod();
@@ -480,7 +464,6 @@ export class Tr2SkinnedObject extends IRoot
    *   already supplied proxy.
    */
 
-  @meta.adapted
   SetHighDetailModel(model)
   {
     this.lod.SetHighDetailModel(model);
@@ -493,7 +476,6 @@ export class Tr2SkinnedObject extends IRoot
    *   already supplied proxy.
    */
 
-  @meta.adapted
   SetMediumDetailModel(model)
   {
     this.lod.SetMediumDetailModel(model);
@@ -506,7 +488,6 @@ export class Tr2SkinnedObject extends IRoot
    *   already supplied proxy.
    */
 
-  @meta.adapted
   SetLowDetailModel(model)
   {
     this.lod.SetLowDetailModel(model);
@@ -518,7 +499,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(_out)
   {
     return false;
@@ -530,7 +510,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetWorldBoundingBox(_min, _max)
   {
     return false;
@@ -543,7 +522,6 @@ export class Tr2SkinnedObject extends IRoot
    *   posed immediately through this class's CPU UpdateBones implementation.
    */
 
-  @meta.adapted
   SetLOD(frustum)
   {
     if (!frustum)
@@ -578,7 +556,6 @@ export class Tr2SkinnedObject extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   GetBoundingBoxInLocalSpace(...args)
   {
     throw new Error("Tr2SkinnedObject.GetBoundingBoxInLocalSpace is not implemented in CarbonEngineJS.");
@@ -590,7 +567,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ResetAnimationBindings()
   {
     if (this.visualModel)
@@ -605,7 +581,6 @@ export class Tr2SkinnedObject extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetSkeletonTag()
   {
     return this._skeletonTag;
@@ -620,7 +595,6 @@ export class Tr2SkinnedObject extends IRoot
    *   and follows current animation transforms (cpp:134,263-268).
    */
 
-  @meta.adapted
   UpdateBones(_time = 0, _apexScene = null)
   {
     this._hasDynamicBounds = false;
@@ -697,7 +671,6 @@ export class Tr2SkinnedObject extends IRoot
    *   delayed skinning queue.
    */
 
-  @meta.adapted
   GetSkinningMatrices()
   {
     return this._rigBinding.GetPalette();
@@ -710,7 +683,6 @@ export class Tr2SkinnedObject extends IRoot
    *   JavaScript has no output-count reference.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetBoneIndex(boneName)
   {
     const bones = this.animationUpdater?.GetAnimationBoneList();
@@ -732,7 +704,6 @@ export class Tr2SkinnedObject extends IRoot
    *   caller-provided vector output.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetBonePosition(joint, out)
   {
     const transform = this.GetBoneTransform(joint);
@@ -752,7 +723,6 @@ export class Tr2SkinnedObject extends IRoot
    *   rather than a native pointer.
    */
 
-  @meta.adapted
   GetBoneTransform(joint)
   {
     const index = Number(joint);
@@ -776,7 +746,6 @@ export class Tr2SkinnedObject extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   PrintAllBones(...args)
   {
     throw new Error("Tr2SkinnedObject.PrintAllBones is not implemented in CarbonEngineJS.");

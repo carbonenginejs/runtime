@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/stub/Tr2TextureALStub.h
 // Source: trinity/trinityal/stub/Tr2TextureALStub.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "../ALResult.js";
@@ -91,10 +91,4 @@ CjsSchema.decorateMethod(Tr2ReadbackALStub, "Destroy");
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "Describe");
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "GetMemoryClass");
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsValid");
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsReady", meta.implemented);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "Map", meta.adapted);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "Destroy", meta.adapted);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.meta.define("Tr2ReadbackALStub")(Tr2ReadbackALStub);

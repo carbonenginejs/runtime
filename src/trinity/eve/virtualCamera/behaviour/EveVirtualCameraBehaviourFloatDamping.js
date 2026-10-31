@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourFloatBase.js";
 
@@ -41,7 +41,6 @@ export class EveVirtualCameraBehaviourFloatDamping extends EveVirtualCameraBehav
    * @implemented
    */
 
-  @meta.implemented
   Update(_camera, current, _deltaTime, localElapsedTime)
   {
     if (localElapsedTime <= 0)

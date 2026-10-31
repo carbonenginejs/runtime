@@ -109,7 +109,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Rebuild()
   {
     this._rebuildRevision++;
@@ -127,7 +126,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   ReallocateResources()
   {
     if (this.effect) this.effectHash = Number(this.effect.GetHashValue()) >>> 0;
@@ -173,7 +171,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     quadRenderer.RegisterEffect(this.effectHash, TriBatchType.TRIBATCHTYPE_ADDITIVE, EveSpriteSet.poolVertexSize, 1, EveSpriteSet.getDefinition(), this.effect);
@@ -187,7 +184,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain, bones, boneCount)
   {
     if (!this.display || !this._spriteData.length) return;
@@ -234,7 +230,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this.Rebuild();
@@ -248,7 +243,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
     return GetItemSetAabb(
@@ -268,7 +262,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = this.GetAabb(EveSpriteLineSet._aabbScratch, bones, boneCount);
@@ -287,7 +280,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   Setup(effect, isSkinned)
   {
     this.effect = effect ?? null;
@@ -301,7 +293,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   Add(item)
   {
     this.spriteLines.push(item);
@@ -313,7 +304,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     if (this.effect)
@@ -329,7 +319,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Sprite Line Sets");
@@ -355,7 +344,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @param {number} boneCount
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
     if (renderer.HasOption(this, "Sprite Line Sets"))
@@ -461,7 +449,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EveSpriteLight.FromSOF(light));
@@ -474,7 +461,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -497,7 +483,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    *   Normal2Warp - so ours applies bone 0 like any other.
    */
 
-  @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
@@ -530,7 +515,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @adapted Profile-index packing is by-reference per lightConversion.js.
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     const features = EveSpriteLineSet._features;

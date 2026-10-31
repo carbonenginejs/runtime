@@ -6,7 +6,7 @@ import { DestroyGlobalGpuResourcePool, Tr2GpuResourcePool } from "../Tr2GpuResou
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, type, blue as legacyBlue } from "#schema";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import {
   convertProjectionCoordToWorldPickRay,
@@ -265,7 +265,6 @@ export class TriDevice extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   _minimumModelLOD = 0;
 
   /**
@@ -276,7 +275,6 @@ export class TriDevice extends IRoot
    * @implemented
    * @returns {number} The minimum model LOD.
    */
-  @meta.implemented
   GetMinimumModelLOD()
   {
     return this._minimumModelLOD;
@@ -296,7 +294,6 @@ export class TriDevice extends IRoot
    * @param {number} minimumModelLOD The first N model LODs to skip.
    * @returns {void}
    */
-  @meta.adapted
   SetMinimumModelLOD(minimumModelLOD)
   {
     if (this._minimumModelLOD === minimumModelLOD) return;
@@ -321,14 +318,12 @@ export class TriDevice extends IRoot
    */
   @be.mapProperty()
   @type.int32
-  @meta.implemented
   get minimumModelLOD()
   {
     return this.GetMinimumModelLOD();
   }
 
   /** @implemented */
-  @meta.implemented
   set minimumModelLOD(value)
   {
     this.SetMinimumModelLOD(value);
@@ -340,7 +335,6 @@ export class TriDevice extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   AspectRatio()
   {
     const viewport = this.viewport;
@@ -358,7 +352,6 @@ export class TriDevice extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   ScreenToProjection(x, y, viewport = this.viewport, out)
   {
     const vx = x - (viewport?.x ?? 0);
@@ -380,7 +373,6 @@ export class TriDevice extends IRoot
    * @adapted
    */
   @be.mapMethodAsMethod()
-  @meta.adapted
   GetPickRayFromViewport(x, y, viewport, view, projection)
   {
     const projected = screenToProjection(x, y, viewport);
@@ -397,7 +389,6 @@ export class TriDevice extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetAnimationTime()
   {
     return this.animationTime;
@@ -409,7 +400,6 @@ export class TriDevice extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetAnimationTimeElapsed(startTime)
   {
     let elapsed = this.animationTime - startTime;
@@ -450,7 +440,6 @@ export class TriDevice extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetCurrentFrameCounter()
   {
     return this.frameCounter;
@@ -482,7 +471,6 @@ export class TriDevice extends IRoot
    * @returns {TriDevice} This device.
    * Carbon declaration: TriDevice::OnTick (trinity/trinity/TriDevice.h:156).
    */
-  @meta.adapted
   OnTick(realTime = 0, simTime = 0, _cookie = null)
   {
     this.frameCounter++;
@@ -531,7 +519,6 @@ export class TriDevice extends IRoot
    *   class that was never loaded created no statics.
    * @returns {TriDevice} This device.
    */
-  @meta.adapted
   InvalidateAndUnregisterForTicks()
   {
     blue.os.UnregisterForTicks(this, TriDevice.TICK_COOKIE);
@@ -604,7 +591,6 @@ export class TriDevice extends IRoot
    * @adapted
    * @returns {object[]} Registered resources at the time of this call.
    */
-  @meta.adapted
   static GetResourcesRegistered()
   {
     return Array.from(TriDevice.#resourcesRegistered);
@@ -618,7 +604,6 @@ export class TriDevice extends IRoot
    * @returns {void}
    */
   @be.mapMethodAsMethod()
-  @meta.implemented
   static RegisterResource(resource)
   {
     // Carbon takes a Tr2DeviceResource* (TriDevice.h:135), whose ReleaseResources
@@ -634,7 +619,6 @@ export class TriDevice extends IRoot
    * @param {object} resource The registered resource.
    * @returns {void}
    */
-  @meta.implemented
   static UnregisterResource(resource)
   {
     TriDevice.#resourcesRegistered.delete(resource);
@@ -652,7 +636,6 @@ export class TriDevice extends IRoot
    * @returns {boolean} Whether the ambient context has a live backend.
    */
   @be.mapMethodAndWrap("DoesD3DDeviceExist")
-  @meta.implemented
   DeviceExists()
   {
     return Tr2RenderContext_GetMainThreadRenderContext().IsValid();
@@ -671,7 +654,6 @@ export class TriDevice extends IRoot
    * @returns {boolean} Whether the ambient context has a live backend.
    */
   @legacyBlue.method
-  @meta.implemented
   DoesD3DDeviceExist()
   {
     return this.DeviceExists();
@@ -684,7 +666,6 @@ export class TriDevice extends IRoot
    * @implemented
    * @returns {TriDevice} This device.
    */
-  @meta.implemented
   DestroyRenderContext()
   {
     if (this.DeviceExists())
@@ -715,7 +696,6 @@ export class TriDevice extends IRoot
    * @param {number} [storage] A `TriStorage` mask.
    * @returns {TriDevice} This device.
    */
-  @meta.adapted
   ReleaseDeviceResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
     for (const resource of [ ...TriDevice.#resourcesRegistered ])
@@ -741,7 +721,6 @@ export class TriDevice extends IRoot
    *   counterpart: there is no Python here and no second resource registry to rebuild.
    * @returns {TriDevice} This device.
    */
-  @meta.adapted
   PrepareDeviceResources()
   {
     for (const resource of [ ...TriDevice.#resourcesRegistered ])
@@ -766,7 +745,6 @@ export class TriDevice extends IRoot
    * @param {object} presentParameters A `Tr2PresentParametersAL`.
    * @returns {boolean} Whether the parameters were accepted.
    */
-  @meta.adapted
   SetPresentParameters(adapter, presentParameters)
   {
     if (!this.#hwnd && presentParameters.software) return true;
@@ -791,7 +769,6 @@ export class TriDevice extends IRoot
    * @implemented
    * @returns {boolean} Carbon's mDeviceLost.
    */
-  @meta.implemented
   IsDeviceLost()
   {
     return this.#deviceLost;
@@ -814,7 +791,6 @@ export class TriDevice extends IRoot
    * @returns {boolean} Whether a device now exists.
    * Carbon declaration: TriDevice::ChangeDevice (trinity/trinity/TriDevice.h:98).
    */
-  @meta.adapted
   ChangeDevice(adapter, hWnd, pp)
   {
     let resetOnly = true;
@@ -871,7 +847,6 @@ export class TriDevice extends IRoot
    * @param {object|null} [pp] Present parameters, or null for the current ones.
    * @returns {boolean} Whether the reset succeeded.
    */
-  @meta.adapted
   ResetDevice(adapter = this.adapter, pp = null)
   {
     this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);
@@ -911,7 +886,6 @@ export class TriDevice extends IRoot
    *   not.
    * @returns {boolean} False when there is no device to describe.
    */
-  @meta.adapted
   InitD3DDevice()
   {
     if (!this.DeviceExists()) return false;
@@ -949,7 +923,6 @@ export class TriDevice extends IRoot
    * @returns {boolean} Whether a device now exists.
    * Carbon declaration: TriDevice::CreateSimpleDevice (trinity/trinity/TriDevice.h:116).
    */
-  @meta.adapted
   CreateSimpleDevice(
     hwnd,
     width,
@@ -1035,7 +1008,6 @@ export class TriDevice extends IRoot
    * @param {object|null} presentParameters A `Tr2PresentParametersAL`, or null.
    * @returns {boolean} True, as Carbon's does unconditionally.
    */
-  @meta.implemented
   SetPresentation(adapter, presentParameters)
   {
     if (presentParameters)
@@ -1090,7 +1062,6 @@ export class TriDevice extends IRoot
    * @param {*} [context] Passed back to it.
    * @returns {TriDevice} This device.
    */
-  @meta.adapted
   AddPostUpdateCallback(callback, context = null)
   {
     if (typeof callback === "function") this.#postUpdateCallbacks.push({ callback, context });
@@ -1116,7 +1087,6 @@ export class TriDevice extends IRoot
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
-  @meta.adapted
   Update(realTime, simTime)
   {
     for (const curveSet of [ ...this.curveSets ])
@@ -1158,7 +1128,6 @@ export class TriDevice extends IRoot
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
-  @meta.adapted
   HandleRenderTick(realTime, simTime)
   {
     // TriDevice12.cpp:308-315: a lost device is replaced before anything else.
@@ -1206,7 +1175,6 @@ export class TriDevice extends IRoot
    * @param {number} newTime The simulation time after it.
    * @returns {TriDevice} This device.
    */
-  @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
     this.simTime += newTime - oldTime;
@@ -1219,7 +1187,6 @@ export class TriDevice extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.notImplemented
   CreateUpscalingContext(...args)
   {
     throw new Error("TriDevice.CreateUpscalingContext is not implemented in CarbonEngineJS.");
@@ -1231,7 +1198,6 @@ export class TriDevice extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   DeleteUpscalingContext(...args)
   {
     throw new Error("TriDevice.DeleteUpscalingContext is not implemented in CarbonEngineJS.");
@@ -1243,7 +1209,6 @@ export class TriDevice extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   GetRenderResolution(...args)
   {
     throw new Error("TriDevice.GetRenderResolution is not implemented in CarbonEngineJS.");
@@ -1255,7 +1220,6 @@ export class TriDevice extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   RefreshDeviceResources(...args)
   {
     throw new Error("TriDevice.RefreshDeviceResources is not implemented in CarbonEngineJS.");
@@ -1283,7 +1247,6 @@ export class TriDevice extends IRoot
    * @returns {boolean} True, as Carbon's does.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Render()
   {
     this.Throttle();
@@ -1323,7 +1286,6 @@ export class TriDevice extends IRoot
    * @notSupported
    * @returns {void}
    */
-  @meta.notSupported
   Throttle()
   {
   }
@@ -1336,7 +1298,6 @@ export class TriDevice extends IRoot
    * @returns {TriDevice} This device.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetRenderJobs(renderJobs)
   {
     this.#renderJobs = renderJobs ?? null;
@@ -1365,7 +1326,6 @@ export class TriDevice extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   GetRenderingPlatformID(...args)
   {
     throw new Error("TriDevice.GetRenderingPlatformID is not implemented in CarbonEngineJS.");
@@ -1377,7 +1337,6 @@ export class TriDevice extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   SupportsRenderTargetFormat(...args)
   {
     throw new Error("TriDevice.SupportsRenderTargetFormat is not implemented in CarbonEngineJS.");
@@ -1394,7 +1353,6 @@ export class TriDevice extends IRoot
    * @returns {boolean} False.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   IsVariableRefreshRateSupported()
   {
     return false;
@@ -1406,7 +1364,6 @@ export class TriDevice extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   SupportsRaytracing(...args)
   {
     throw new Error("TriDevice.SupportsRaytracing is not implemented in CarbonEngineJS.");
@@ -1418,7 +1375,6 @@ export class TriDevice extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   SetUpscaling(...args)
   {
     throw new Error("TriDevice.SetUpscaling is not implemented in CarbonEngineJS.");
@@ -1430,7 +1386,6 @@ export class TriDevice extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   GetRenderContext(...args)
   {
     throw new Error("TriDevice.GetRenderContext is not implemented in CarbonEngineJS.");
@@ -1449,7 +1404,6 @@ export class TriDevice extends IRoot
    * @returns {TriDevice} This device.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UpdateAvailableUpscalingTechniques()
   {
     this.supportedUpscalingTechniques = [];

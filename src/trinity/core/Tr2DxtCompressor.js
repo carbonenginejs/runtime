@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2DxtCompressor.h:76-98; cpp:832-1066.
 // Operator-approved facade: Carbon declares these as free functions; the
 // shared implementation lives in the BC codec so other runtimes can use it.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, COMPRESS_SQUISH_QUALITY_DEFAULT } from "#consts/trinity";
 import { GetBlockByteSize } from "#consts/render-context";
 import { compressSurface, compressSurfaceAsync, compressionPixelFormat } from "#resource/codecs/bcn";
@@ -89,8 +89,6 @@ function copySurface(source, destination, width, height, format, pitch)
     for (let row = 0; row < rows; row++) destination.set(source.subarray(row * pitch, row * pitch + rowBytes), row * pitch);
 }
 
-meta.adapted(Tr2DxtCompressor, "Tr2DxtCompressSurface");
-meta.adapted(Tr2DxtCompressor, "Tr2DxtCompressSurfaceAsync");
 CjsSchema.meta.define("Tr2DxtCompressor")(Tr2DxtCompressor);
 
 /** Original Carbon free-function door, forwarded to the approved facade. */

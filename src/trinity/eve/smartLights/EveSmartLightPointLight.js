@@ -5,7 +5,7 @@ import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { IsMatch, blue } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
@@ -196,7 +196,6 @@ export class EveSmartLightPointLight extends EveEntity
    *
    * @adapted
    */
-  @meta.adapted
   @legacyBlue.method
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
@@ -208,7 +207,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @adapted
    */
   @legacyBlue.method
-  @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
@@ -219,7 +217,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @adapted
    */
   @legacyBlue.method
-  @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;
@@ -231,7 +228,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @adapted
    */
   @legacyBlue.method
-  @meta.adapted
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
@@ -242,7 +238,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @adapted
    */
   @legacyBlue.method
-  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -253,7 +248,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface through the shared resolveGroupColor helper.
    */
-  @meta.adapted
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -271,7 +265,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface.
    */
-  @meta.adapted
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
@@ -284,7 +277,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface.
    */
-  @meta.adapted
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -304,7 +296,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    *   base-group surface.
    */
-  @meta.adapted
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -320,7 +311,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @adapted The secondary base's list handling lives on this class and receives the Blue
    *   list event, inserted value and owning array explicitly.
    */
-  @meta.adapted
   OnListModified(event, _key, _key2, value, list)
   {
     if (
@@ -340,7 +330,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._ResolveLightProfile();
@@ -371,7 +360,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "lightProfilePath")) this._ResolveLightProfile();
@@ -384,7 +372,6 @@ export class EveSmartLightPointLight extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
 
   UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
@@ -407,7 +394,6 @@ export class EveSmartLightPointLight extends EveEntity
    *   Lights/ITr2LightOwner.h:18).
    */
 
-  @meta.adapted
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -431,7 +417,6 @@ export class EveSmartLightPointLight extends EveEntity
    *   renderer backend; Trinity submits the typed CPU record per placement.
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     if (!this.display || !this._distribution)
@@ -545,7 +530,6 @@ export class EveSmartLightPointLight extends EveEntity
    * @param {number} size Number of placements to draw.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, placements, size)
   {
     if (!renderer.HasOption(this, "smartLightSets") || !this.display)

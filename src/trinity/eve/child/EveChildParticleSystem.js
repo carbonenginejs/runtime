@@ -9,7 +9,7 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#consts/graphics/trinityEnums";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { quat } from "#math/quat";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
@@ -283,7 +283,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.staticTransform)
@@ -300,7 +299,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value)
   {
     if (IsMatch(value, "reflectionMode") || IsMatch(value, "display"))
@@ -315,7 +313,6 @@ export class EveChildParticleSystem extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -326,7 +323,6 @@ export class EveChildParticleSystem extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -338,7 +334,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
@@ -352,7 +347,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
     const frustum = updateContext.GetFrustum();
@@ -382,7 +376,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   IsVisible(updateContext)
   {
     const frustum = updateContext.GetFrustum();
@@ -397,7 +390,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @adapted returns the caller-owned array for JS chaining; Carbon returns void.
    */
 
-  @meta.adapted
   GetRenderables(renderables)
   {
     if (!this._isVisible)
@@ -418,7 +410,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     if (this._boundingSphere[3] === -1)
@@ -435,7 +426,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     if (this.display && this.mesh)
@@ -453,7 +443,6 @@ export class EveChildParticleSystem extends EveChildTransform
    *   method exposes no result.
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (!this.display || !this.mesh)
@@ -482,7 +471,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const viewPosition = Tr2Renderer.GetViewPosition();
@@ -501,7 +489,6 @@ export class EveChildParticleSystem extends EveChildTransform
    *   layout).
    */
 
-  @meta.adapted
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveBasicPerObjectData");
@@ -522,7 +509,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -540,7 +526,6 @@ export class EveChildParticleSystem extends EveChildTransform
    *   (Tr2DynamicEmitter.cpp:119; Tr2ParticleSystem.cpp:527).
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
     mat4.copy(this._worldTransformLast, this.worldTransform);
@@ -633,7 +618,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -646,7 +630,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ChangeLOD(lod)
   {
     if (!this.useDynamicLod)
@@ -678,7 +661,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     if (this.mesh)
@@ -701,7 +683,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (this.display && this.mesh)
@@ -720,7 +701,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddTransformModifier(modifier)
   {
     this.transformModifiers.push(modifier);
@@ -734,7 +714,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();

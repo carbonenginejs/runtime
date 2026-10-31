@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
@@ -34,7 +34,6 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   ApplyTransform(transform, boneCount, bones, out)
   {
     // Carbon checks only the index (cpp:15-18); an in-range index reads the
@@ -70,7 +69,6 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    * @implemented
    */
 
-  @meta.implemented
   SetBoneIndex(index)
   {
     this.boneIndex = Number(index) | 0;

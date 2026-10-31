@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 //   trinity/trinity/Tr2VisibilityResults.cpp
 //   trinity/trinity/Tr2VisibilityResults_Blue.cpp
 
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 /**
  * Collects the visibility events a visibility executor emits, for the interior
@@ -23,7 +23,6 @@ export class Tr2VisibilityResults extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   AddVisibilityEvent(event)
   {
     this.#events.push(event);
@@ -35,7 +34,6 @@ export class Tr2VisibilityResults extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetEvents()
   {
     return this.#events.slice();
@@ -47,7 +45,6 @@ export class Tr2VisibilityResults extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Clear()
   {
     this.#events.length = 0;
@@ -59,7 +56,6 @@ export class Tr2VisibilityResults extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetNumVisibilityEvents()
   {
     return this.#events.length;

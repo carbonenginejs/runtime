@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:129
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:547-607
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { ALResult, Failed } from "../ALResult.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 
@@ -44,7 +44,6 @@ export class Tr2ResourceSetAL
    *
    * @adapted
    */
-  @meta.adapted
   Create__Pipeline(_description, _pipeline, _renderContext)
   {
     this.Destroy();
@@ -59,7 +58,6 @@ export class Tr2ResourceSetAL
    * @adapted Context allocation replaces the compile-time platform include. Shared ownership
    *   is explicitly released.
    */
-  @meta.adapted
   Create__Program(description, program, renderContext)
   {
     this.Destroy();
@@ -107,7 +105,6 @@ export class Tr2ResourceSetAL
    * @adapted JavaScript has no scope destructor. Existing effect teardown resets this handle
    *   explicitly; shared copies retain the backend until their final explicit reset.
    */
-  @meta.adapted
   Destroy()
   {
     const owned = this._resourceSet;
@@ -120,7 +117,4 @@ CjsSchema.decorateField(Tr2ResourceSetAL, "_resourceSet", type.unknown);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Program");
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Pipeline");
 // States: the wrapper forwards to its implementation as Tr2ResourceSetAL.cpp:584-605 does (SetName refuses an invalid set and a null name).
-CjsSchema.decorateMethod(Tr2ResourceSetAL, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2ResourceSetAL, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2ResourceSetAL, "SetName", meta.implemented);
 CjsSchema.meta.carbon("Tr2ResourceSetAL")(Tr2ResourceSetAL);

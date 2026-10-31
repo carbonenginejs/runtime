@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioSwitch.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioSwitch.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioSwitch_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
 
@@ -47,7 +47,6 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   Start(controller)
   {
     const owner = CjsSchema.cast(controller.GetOwner(), ITr2SoundEmitterOwner);
@@ -62,7 +61,6 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
    * @adapted TypeError represents the native null-controller Python error.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StartWithController(controller)
   {
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));

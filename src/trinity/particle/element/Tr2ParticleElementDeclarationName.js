@@ -50,7 +50,6 @@ export class Tr2ParticleElementDeclarationName
    *
    * @renamed operator==
    */
-  @meta.renamed("operator==")
   Equals(other)
   {
     if (this.type !== other.type)
@@ -65,7 +64,6 @@ export class Tr2ParticleElementDeclarationName
    *
    * @renamed operator<
    */
-  @meta.renamed("operator<")
   Compare(other)
   {
     if (this.type < other.type)

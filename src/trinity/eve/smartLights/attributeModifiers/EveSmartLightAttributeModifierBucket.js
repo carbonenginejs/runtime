@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierBucket.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
@@ -42,7 +42,6 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * @implemented
    */
 
-  @meta.implemented
   SetActive(isActive)
   {
     this._isChangingActivation = isActive !== this.active;
@@ -61,7 +60,6 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * @implemented
    */
 
-  @meta.implemented
   ResetPlayTime(active)
   {
     this.ResetChildren(active);
@@ -73,7 +71,6 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * @implemented
    */
 
-  @meta.implemented
   SetInheritProperties(colorSet)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -89,7 +86,6 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
@@ -108,7 +104,6 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * @implemented
    */
 
-  @meta.implemented
   ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, modifierStrength)
   {
     const activationStrength = this.GetActivationStrength(placement) * modifierStrength;
@@ -128,7 +123,6 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * @implemented
    */
 
-  @meta.implemented
   ResetChildren(parentActive = true)
   {
     const isActive = parentActive && this.active;

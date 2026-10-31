@@ -89,7 +89,6 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
@@ -104,7 +103,6 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -120,7 +118,6 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, this.currentValue);
@@ -136,7 +133,6 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     if (!this.curve)
@@ -159,7 +155,6 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @returns {Float32Array} The unchanged destination.
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -174,7 +169,6 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @returns {Float32Array} The unchanged destination.
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -189,7 +183,6 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @returns {Float32Array|Float64Array} The unchanged destination.
    */
 
-  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;
@@ -205,7 +198,6 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   LerpToFirstKey(out, time)
   {
     if (!this.curve)

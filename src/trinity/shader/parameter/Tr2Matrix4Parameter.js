@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { mat4 } from "#math/mat4";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
 
 
@@ -47,7 +47,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -59,7 +58,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     return hashFnv1String(this.name, hashFnv1Floats(this.value, startingHash));
@@ -72,7 +70,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @param {Float32Array} out Receives the 16 components.
    */
 
-  @meta.implemented
   GetValue(out)
   {
     if (this.#reroutedValue)
@@ -96,7 +93,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   SetValue(value)
   {
     for (let i = 0; i < 16; i++)
@@ -118,7 +114,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   IsRerouted()
   {
     return this.#reroutedValue !== null;
@@ -131,7 +126,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @param size destination capacity in bytes, not components
    */
 
-  @meta.adapted
   SetDestination(dest, size = 64)
   {
     if (size >= 64)
@@ -161,7 +155,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   GetDestination()
   {
     return {
@@ -177,7 +170,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   RegisterBinding(binding)
   {
     // Carbon push_back (Tr2Matrix4Parameter.cpp:105).
@@ -190,7 +182,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   UnregisterBinding(binding)
   {
     // Carbon erases the first match (Tr2Matrix4Parameter.cpp:114).
@@ -209,7 +200,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     if (!effectRes && this.#reroutedValue)
@@ -228,7 +218,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    *
    * @implemented
    */
-  @meta.implemented
   Initialize()
   {
     if (this.#reroutedValue)
@@ -249,7 +238,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    *
    * @adapted
    */
-  @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
     this.GetValue(out);

@@ -34,7 +34,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * @implemented
    * @param {number} type A TriBatchType value.
    */
-  @meta.implemented
   AddBatchType(type)
   {
     this.flags = (this.flags | (1 << (type >>> 0))) >>> 0;
@@ -46,7 +45,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * @implemented
    * @param {boolean} castsShadow
    */
-  @meta.implemented
   SetCastsShadow(castsShadow)
   {
     if (castsShadow)
@@ -65,7 +63,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * @implemented
    * @returns {boolean}
    */
-  @meta.implemented
   GetCastsShadow()
   {
     return (this.flags & EveInstancedMeshManagerInstanceFlags.castsShadow) !== 0;
@@ -77,7 +74,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * @implemented
    * @param {boolean} renderInReflections
    */
-  @meta.implemented
   SetRenderInReflections(renderInReflections)
   {
     if (renderInReflections)
@@ -99,7 +95,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * @param {EveInstancedMeshManagerInstanceFlags} filter
    * @returns {boolean}
    */
-  @meta.implemented
   MatchesFilter(filter)
   {
     const renderPassFlags = (EveInstancedMeshManagerInstanceFlags.castsShadow | EveInstancedMeshManagerInstanceFlags.renderInReflection) >>> 0;
@@ -116,7 +111,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * @param {EveInstancedMeshManagerInstanceFlags} other
    * @returns {boolean}
    */
-  @meta.renamed("operator==")
   Equals(other)
   {
     return this.flags === other.flags;
@@ -129,7 +123,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * @param {EveInstancedMeshManagerInstanceFlags} other
    * @returns {boolean}
    */
-  @meta.renamed("operator!=")
   NotEquals(other)
   {
     return this.flags !== other.flags;

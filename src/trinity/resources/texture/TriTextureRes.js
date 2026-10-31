@@ -83,8 +83,6 @@ export class TriTextureRes extends BlueAsyncRes
    * @cjs
    * @adapted
    */
-  @meta.cjs
-  @meta.adapted
   static async _decodeImageBitmap(Format, bytes, context)
   {
     if (!BeCallbackMan.HasCallbackModule(DECODE_BITMAP_CALLBACK)) return Format.readBitmapAsync(bytes, { source: context.path });
@@ -114,8 +112,6 @@ export class TriTextureRes extends BlueAsyncRes
    * @param {object} [compression] Optional backend compression policy.
    * @returns {Promise<HostBitmap>} Completed CPU bitmap.
    */
-  @meta.cjs
-  @meta.adapted
   static async readImageResource(bytes, context, compression = {})
   {
     // Snapshot before decoding: LOAD changes affect later loads, never this one.
@@ -174,8 +170,6 @@ export class TriTextureRes extends BlueAsyncRes
    * @cjs
    * @implemented
    */
-  @meta.cjs
-  @meta.implemented
   static _isDecodedImage(Format)
   {
     return Format !== null && IMAGE_DECODE_FORMATS.get(Format.id) === Format;
@@ -189,8 +183,6 @@ export class TriTextureRes extends BlueAsyncRes
    * @cjs
    * @adapted
    */
-  @meta.cjs
-  @meta.adapted
   static async _compressLoadedBitmap(bitmap, request, path, signal)
   {
     const packet = { description: {
@@ -1058,47 +1050,23 @@ CjsSchema.decorateField(TriTextureRes, "width", type.uint32, be.mapAttribute(be.
 CjsSchema.decorateField(TriTextureRes, "cutoutX", type.float32, be.mapAttribute(be.READWRITE));
 CjsSchema.decorateField(TriTextureRes, "cutoutY", type.float32, be.mapAttribute(be.READWRITE));
 CjsSchema.decorateField(TriTextureRes, "loadedBitmap", type.unknown, meta.read);
-CjsSchema.decorateMethod(TriTextureRes, "_DoLoad", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "Initialize", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "GetMipCount", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "GetMsaaType", meta.implemented);
-CjsSchema.decorateMethod(TriTextureRes, "GetMsaaQuality", meta.implemented);
-CjsSchema.decorateMethod(TriTextureRes, "HadLodRequests", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "GetSrvIndexInHeap", meta.notSupported);
-CjsSchema.decorateMethod(TriTextureRes, "GetTexture", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "SetTexture", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "OnTextureChange", meta.implemented);
 
-CjsSchema.decorateMethod(TriTextureRes, "SaveAsync", be.mapMethod(), meta.notSupported);
-CjsSchema.decorateMethod(TriTextureRes, "Save", be.mapMethod(), meta.notSupported);
-CjsSchema.decorateMethod(TriTextureRes, "IsSaving", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "IsSaveCompleted", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "IsSaveSucceeded", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "WaitForSave", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "CreateEmptyTexture", be.mapMethodAndWrap(), meta.notSupported);
-CjsSchema.decorateMethod(TriTextureRes, "SetTextureFromRT", be.mapMethodAndWrap("SetFromRenderTarget"), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "_DestroyOwnTexture", meta.notImplemented);
-CjsSchema.decorateMethod(TriTextureRes, "_OnWrappedRenderTargetChanged", meta.implemented);
-CjsSchema.decorateMethod(TriTextureRes, "CreateAndCopyFromRenderTarget", be.mapMethodAndWrap(), meta.notSupported);
-CjsSchema.decorateMethod(TriTextureRes, "CreateFromHostBitmap", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "IsMemoryUsageKnown", meta.implemented);
-CjsSchema.decorateMethod(TriTextureRes, "GetMemoryUsage", meta.implemented);
+CjsSchema.decorateMethod(TriTextureRes, "SaveAsync", be.mapMethod());
+CjsSchema.decorateMethod(TriTextureRes, "Save", be.mapMethod());
+CjsSchema.decorateMethod(TriTextureRes, "IsSaving", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "IsSaveCompleted", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "IsSaveSucceeded", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "WaitForSave", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "CreateEmptyTexture", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "SetTextureFromRT", be.mapMethodAndWrap("SetFromRenderTarget"));
+CjsSchema.decorateMethod(TriTextureRes, "CreateAndCopyFromRenderTarget", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "CreateFromHostBitmap", be.mapMethodAndWrap());
 CjsSchema.exposure.mapICacheableMethods()(TriTextureRes);
-CjsSchema.decorateMethod(TriTextureRes, "EstimateMemoryUse", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "LoadPipeline", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(TriTextureRes, "GetWidth", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "GetHeight", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "GetMipLevelCount", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "CreateFromTexture", be.mapMethodAndWrap(), meta.notSupported);
-CjsSchema.decorateMethod(TriTextureRes, "HasALObject", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "GetPipeline", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "GetOriginalMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "GetAverageColor", meta.implemented);
-CjsSchema.decorateMethod(TriTextureRes, "SetAverageColor", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "UpdateSubresource", meta.notSupported);
-CjsSchema.decorateMethod(TriTextureRes, "PrepareResources", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "ReleaseResources", meta.adapted);
+CjsSchema.decorateMethod(TriTextureRes, "CreateFromTexture", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "HasALObject", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "GetPipeline", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "GetOriginalMemoryUsage", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriTextureRes, "PrepareResources", be.mapMethodAndWrap());
 be.define("TriTextureRes")(TriTextureRes);
 be.inherit(ICacheable)(TriTextureRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriTextureRes);
@@ -1107,11 +1075,7 @@ CjsSchema.blue.chainTo(BlueAsyncRes)(TriTextureRes);
 // Carbon maps these in TriTextureRes_Blue.cpp:227-229 although BlueAsyncRes (BlueAsyncRes) declares them.
 be.mapMethodAndWrap([ "IsPrepared", "IsLoading", "IsGood" ])(TriTextureRes);
 
-CjsSchema.decorateMethod(TriTextureRes, "_DoPrepare", meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "_OnShutdown", meta.adapted);
 
 be.inherit(Tr2DeviceResource)(TriTextureRes, { kind: "class" });
 
-CjsSchema.decorateMethod(TriTextureRes, "_RasterizeProceduralTexture", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(TriTextureRes, "SetCutout", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

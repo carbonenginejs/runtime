@@ -10,7 +10,7 @@ import { exposure as be } from "#be";
 // Carbon's overloads are one method each (skill rule 11); the variant names
 // match ITr2DebugRenderer2.
 import { ITr2DebugRenderer2, ITr2DebugRenderable, Tr2DebugColor } from "#interfaces";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { color as colorMath } from "#math/color";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -291,7 +291,6 @@ export class Tr2DebugRenderer
    * @returns {boolean}
    */
 
-  @meta.implemented
   HasOption(owner, option)
   {
     const found = this._options.get(owner);
@@ -311,7 +310,6 @@ export class Tr2DebugRenderer
    * @returns {boolean}
    */
 
-  @meta.implemented
   IsSelected__Root(owner)
   {
     return this._IsSelected(owner, 0);
@@ -325,7 +323,6 @@ export class Tr2DebugRenderer
    * @returns {boolean}
    */
 
-  @meta.implemented
   IsSelected__Reference(owner)
   {
     return this._IsSelected(owner.object, owner.area);
@@ -354,7 +351,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawLine(owner, from, to, color)
   {
     const offsets = this._objectLineOffsets;
@@ -381,7 +377,6 @@ export class Tr2DebugRenderer
    * @param {vec3} normal3
    * @param {Tr2DebugColor} color
    */
-  @meta.implemented
   DrawTriangle__VertexNormals(owner, vertex1, normal1, vertex2, normal2, vertex3, normal3, color)
   {
     const offsets = this._objectTriangleOffsets;
@@ -407,7 +402,6 @@ export class Tr2DebugRenderer
    * @param {vec3} normal
    * @param {Tr2DebugColor} color
    */
-  @meta.implemented
   DrawTriangle__FaceNormal(owner, vertex1, vertex2, vertex3, normal, color)
   {
     this.DrawTriangle__VertexNormals(owner, vertex1, normal, vertex2, normal, vertex3, normal, color);
@@ -424,7 +418,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawBox__MinMax(owner, min, max, effect, color)
   {
     this.DrawBox__Transform(owner, IDENTITY, min, max, effect, color);
@@ -444,7 +437,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawBox__Transform(owner, transform, min, max, effect, color)
   {
     const corner = (x, y, z) => vec3.transformMat4(vec3.create(), vec3.set(BOX_CORNER, x, y, z), transform);
@@ -521,7 +513,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawSphere__Sphere(owner, sphere, segments, effect, color)
   {
     this.DrawSphere__TransformCenterRadius(owner, IDENTITY, vec3.fromValues(sphere[0], sphere[1], sphere[2]), sphere[3], segments, effect, color);
@@ -539,7 +530,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawSphere__CenterRadius(owner, center, radius, segments, effect, color)
   {
     this.DrawSphere__TransformCenterRadius(owner, IDENTITY, center, radius, segments, effect, color);
@@ -556,7 +546,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawSphere__Transform(owner, transform, segments, effect, color)
   {
     this.DrawSphere__TransformCenterRadius(owner, transform, ZERO, 1, segments, effect, color);
@@ -574,7 +563,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawSphere__TransformRadius(owner, transform, radius, segments, effect, color)
   {
     this.DrawSphere__TransformCenterRadius(owner, transform, ZERO, radius, segments, effect, color);
@@ -596,7 +584,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawSphere__TransformCenterRadius(owner, transform, center, radius, segments, effect, color)
   {
     if (segments < 4)
@@ -660,7 +647,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawCylinder__TransformHeight(owner, transform, radius, height, segments, effect, color)
   {
     const vertices = [ [ -height / 2, 0 ], [ -height / 2, radius ], [ height / 2, radius ], [ height / 2, 0 ] ];
@@ -681,7 +667,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawCylinder__Caps(owner, cap0, cap1, radius, segments, effect, color)
   {
     this.DrawCylinder__TransformCaps(owner, IDENTITY, cap0, cap1, radius, segments, effect, color);
@@ -701,7 +686,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawCylinder__TransformCaps(owner, transform, cap0, cap1, radius, segments, effect, color)
   {
     // Carbon (row-vector): LineTransform( cap0, cap1 ) * transform.
@@ -722,7 +706,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawCone__TransformRadius(owner, transform, radius, height, segments, effect, color)
   {
     const vertices = [ [ -height / 2, 0 ], [ -height / 2, radius ], [ height / 2, 0 ] ];
@@ -744,7 +727,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawCone__BaseFocal(owner, base, focal, radius, segments, effect, color)
   {
     const transform = LineTransform(mat4.create(), base, focal);
@@ -767,7 +749,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawCone__TransformAngle(owner, transform, height, angle, segments, coneSegments, effect, color)
   {
     coneSegments = Math.max(coneSegments, 3);
@@ -808,7 +789,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawCapsule__TransformHeight(owner, transform, radius, height, segments, effect, color)
   {
     if (segments < 3)
@@ -856,7 +836,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawCapsule__Caps(owner, cap0, cap1, radius, segments, effect, color)
   {
     const transform = LineTransform(mat4.create(), cap0, cap1);
@@ -879,7 +858,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawArrow(owner, start, end, radius, pointerLength, segments, effect, color)
   {
     const transform = LineTransform(mat4.create(), start, end);
@@ -937,7 +915,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawDoubleArrow(owner, start, end, radius, pointerLength, segments, effect, color)
   {
     const transform = LineTransform(mat4.create(), start, end);
@@ -1007,7 +984,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawSphereArrow(owner, center, direction, radius, segments, effect, color)
   {
     if (segments < 3)
@@ -1072,7 +1048,6 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    */
 
-  @meta.implemented
   DrawAxis(owner, transform, effect)
   {
     const origin = vec3.fromValues(transform[12], transform[13], transform[14]);
@@ -1100,7 +1075,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawExtrusionShape(owner, transform, vertices, normals, vertexCount, segments, effect, color)
   {
     if (segments < 3)
@@ -1168,7 +1142,6 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugColor} color
    */
 
-  @meta.implemented
   DrawAudioSpeaker(owner, transform, size, segments, effect, color)
   {
     if (segments < 3)
@@ -1230,7 +1203,6 @@ export class Tr2DebugRenderer
    * @implemented
    */
 
-  @meta.implemented
   BeginRender()
   {
     this._lines.length = 0;
@@ -1248,7 +1220,6 @@ export class Tr2DebugRenderer
    * @param {Tr2RenderContext} renderContext
    */
 
-  @meta.implemented
   EndRender(renderContext)
   {
     GetDebugTextRenderer().Render(renderContext);
@@ -1320,7 +1291,6 @@ export class Tr2DebugRenderer
    * @param {...*} args Format arguments.
    */
 
-  @meta.implemented
   DrawText(font, pos, color, msg, ...args)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1349,7 +1319,6 @@ export class Tr2DebugRenderer
    * @notImplemented
    */
 
-  @meta.notImplemented
   Pick(_readback, _renderContext)
   {
     throw new Error("Tr2DebugRenderer.Pick is not implemented: Carbon encodes object pointers, which JavaScript does not have.");
@@ -1363,7 +1332,6 @@ export class Tr2DebugRenderer
    * @param {Array<[object, number]>} objects
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetSelectedObjects(objects)
   {
     this._selectedObjects.clear();
@@ -1391,7 +1359,6 @@ export class Tr2DebugRenderer
    * @param {string[]} options
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetOptions(owner, options)
   {
     if (options.length === 0)
@@ -1413,7 +1380,6 @@ export class Tr2DebugRenderer
    * @returns {Float32Array|null} A copy of the colour, or null when none is set.
    */
   @be.mapMethod()
-  @meta.implemented
   GetColorForOption(option)
   {
     const found = this._optionColors.get(option);
@@ -1428,7 +1394,6 @@ export class Tr2DebugRenderer
    * @param {Float32Array} color
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetColorForOption(option, color)
   {
     this._optionColors.set(option, vec4.clone(color));
@@ -1442,7 +1407,6 @@ export class Tr2DebugRenderer
    * @returns {string[]}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetOptions(owner)
   {
     const found = this._options.get(owner);
@@ -1456,7 +1420,6 @@ export class Tr2DebugRenderer
    * @param {string[]} options
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetDefaultOptions(options)
   {
     this._defaultOptions = new Set(options);
@@ -1469,7 +1432,6 @@ export class Tr2DebugRenderer
    * @returns {string[]}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetDefaultOptions()
   {
     return Array.from(this._defaultOptions);

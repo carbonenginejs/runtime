@@ -24,7 +24,7 @@
 // answers a subset of this. That is a reason to keep the interface, not to skip
 // it: the shape of the question is what the consumer already asks.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { PixelFormat } from "../../global/consts/renderContext/index.js";
 import { ALResult } from "../ALResult.js";
 
@@ -229,15 +229,4 @@ export class Tr2VideoAdapterInfoStub
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 // States against stub/Tr2VideoAdapterInfoALStub.cpp:8-117; every value is Carbon's (one adapter, 800x600 desktop mode, one 1920x1200 mode, 16384 texture width). The seven methods with out-parameters are adapted: they come back with the result as { result, ... }.
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterCount", meta.adapted);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterInfo", meta.adapted);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterMonitor", meta.adapted);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterDisplayMode", meta.adapted);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterModeCount", meta.adapted);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterMode", meta.adapted);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterMaxTextureWidth", meta.adapted);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "SupportsBackBufferFormat", meta.implemented);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "SupportsRenderTargetFormat", meta.implemented);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "AreAdaptersDifferent", meta.implemented);
-CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "RefreshData", meta.implemented);
 CjsSchema.meta.define("Tr2VideoAdapterInfoStub")(Tr2VideoAdapterInfoStub);

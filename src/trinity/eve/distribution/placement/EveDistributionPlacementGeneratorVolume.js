@@ -5,7 +5,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
@@ -69,7 +69,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    */
   @be.mapProperty()
   @type.rootRef("IEveVolume")
-  @meta.implemented
   get volume()
   {
     return this.GetVolume();
@@ -80,7 +79,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    *
    * @implemented
    */
-  @meta.implemented
   set volume(value)
   {
     this.SetVolume(value);
@@ -94,7 +92,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
 
-  @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
     if (!this._volume)
@@ -131,7 +128,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @implemented
    */
 
-  @meta.implemented
   GetVolume()
   {
     return this._volume;
@@ -144,7 +140,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @implemented
    */
 
-  @meta.implemented
   SetVolume(volume)
   {
     this.RemoveVolumeCallbacks();
@@ -160,7 +155,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @implemented
    */
 
-  @meta.implemented
   AddVolumeCallbacks()
   {
     this._subscribedVolume = this._volume;
@@ -178,7 +172,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @implemented
    */
 
-  @meta.implemented
   RemoveVolumeCallbacks()
   {
     if (this._subscribedVolume && this._volumeCallbackID !== 0)
@@ -193,7 +186,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @implemented
    */
 
-  @meta.implemented
   RequestRegeneration()
   {
     this._isRequestingRegeneration = true;
@@ -206,7 +198,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @implemented
    */
 
-  @meta.implemented
   IsRequestingRegeneration()
   {
     return this._isRequestingRegeneration;
@@ -218,7 +209,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.AddVolumeCallbacks();
@@ -231,7 +221,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this.RequestRegeneration();

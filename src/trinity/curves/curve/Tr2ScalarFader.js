@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.h
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.cpp
 import { num } from "#math/num";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 const TRI_PI = Math.PI;
@@ -56,7 +56,6 @@ export class Tr2ScalarFader extends IRoot
    * @returns {void}
    */
 
-  @meta.implemented
   Update(updateContext)
   {
     if (this.fading !== 0)
@@ -92,7 +91,6 @@ export class Tr2ScalarFader extends IRoot
    * @returns {void}
    */
 
-  @meta.implemented
   StartFade(isFadeIn, fadeLength)
   {
     this.kickInLength = fadeLength;
@@ -110,7 +108,6 @@ export class Tr2ScalarFader extends IRoot
    * @returns {boolean}
    */
 
-  @meta.implemented
   IsZero()
   {
     return this.value === 0 && this.fading === 0;
@@ -123,7 +120,6 @@ export class Tr2ScalarFader extends IRoot
    * @returns {number}
    */
 
-  @meta.implemented
   GetFaderValue()
   {
     return this.value;
@@ -136,7 +132,6 @@ export class Tr2ScalarFader extends IRoot
    * @returns {boolean}
    */
 
-  @meta.implemented
   IsKickInZero()
   {
     return this.fadeTime <= 0;
@@ -149,7 +144,6 @@ export class Tr2ScalarFader extends IRoot
    * @returns {number}
    */
 
-  @meta.implemented
   GetKickInValue()
   {
     if (this.fadeTime < 0)

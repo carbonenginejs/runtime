@@ -83,7 +83,7 @@ import { Tr2PipelineStatsQueryAL } from "../Tr2PipelineStatsQueryAL/index.js";
 //   hatches. Ours are `GetWebgpu` and `GetWorkQueue` - Carbon names these per
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { isTyped } from "#utils/is";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
@@ -1070,7 +1070,6 @@ export class CjsWebgpuRenderContextAL
    *
    * @adapted
    */
-  @meta.adapted
   ReleaseLater(release)
   {
     if (this._commandEncoder) this._pendingResourceReleases.push(release);
@@ -1423,7 +1422,6 @@ export class CjsWebgpuRenderContextAL
    * @param {object} [options] `{ color, depth, stencil, clearColor, clearDepth, clearStencil, slot }`.
    * @returns {number} An `ALResult`: whether the clear was declared.
    */
-  @meta.adapted
   Clear(options = {})
   {
     const flagged = "clearColor" in options || "clearDepth" in options || "clearStencil" in options;
@@ -1656,7 +1654,6 @@ export class CjsWebgpuRenderContextAL
    * @param {Tr2VertexLayoutAL} vertexLayout The vertex layout.
    * @returns {number} `S_OK`.
    */
-  @meta.adapted
   SetVertexLayout(vertexLayout)
   {
     const layout = vertexLayout.IsValid() ? vertexLayout._layout.implementation : null;
@@ -1739,7 +1736,6 @@ export class CjsWebgpuRenderContextAL
    * @param {Tr2ShaderProgramAL} value The shader program.
    * @returns {number} `S_OK`.
    */
-  @meta.adapted
   SetShaderProgram(value)
   {
     const shaderProgram = value.IsValid() ? value.TrinityALImpl_GetObject() : null;
@@ -2427,7 +2423,6 @@ export class CjsWebgpuRenderContextAL
    * @param {number} size Bytes to upload.
    * @returns {{page: number, offset: number, size: number}|null} The region.
    */
-  @meta.adapted
   UploadConstants__DataSize(data, size)
   {
     if (!this._webgpu) return null;
@@ -2450,7 +2445,6 @@ export class CjsWebgpuRenderContextAL
    * @param {Tr2ConstantBufferAL} buffer The constant buffer.
    * @returns {{page: number, offset: number, size: number}|null} The region.
    */
-  @meta.adapted
   UploadConstants__Buffer(buffer)
   {
     if (!this._webgpu) return null;
@@ -2879,7 +2873,6 @@ export class CjsWebgpuRenderContextAL
    * @param {object} resourceSet A `Tr2ResourceSetAL`.
    * @returns {number} `S_OK`.
    */
-  @meta.adapted
   SetResourceSet(resourceSet)
   {
     const next = resourceSet ? new Tr2ResourceSetAL({ copy: resourceSet }) : null;
@@ -2914,7 +2907,6 @@ export class CjsWebgpuRenderContextAL
    * @param {number} [_maxRegisterCount] Carbon's optional bound.
    * @returns {number} An `ALResult`: whether the AL accepted it.
    */
-  @meta.adapted
   SetConstants(buffer, constantType, registerIndex, _maxRegisterCount = 0)
   {
     if (registerIndex < 0 || registerIndex >= CONSTANT_BUFFER_REGISTERS) return ALResult.E_INVALIDARG;
@@ -3822,83 +3814,12 @@ export class CjsWebgpuRenderContextAL
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(CjsWebgpuRenderContextAL, "_isValid", type.boolean);
 // Donor: metal/Tr2RenderContextMetal.mm and Tr2PrimaryRenderContextMetal.mm, with stub/Tr2RenderContextStub.cpp where Metal does platform work WebGPU has no counterpart for (bindless resources, acceleration structures, upscaling, GPU state markers: the stub answers are the ones used). Implemented: Metal's (or the stub's) bodies, including the render-target and depth-stencil stacks and the frame numbers. NotSupported: DispatchRays (WebGPU has no ray tracing). Adapted: everything that drives the WebGPU command encoder or the raster pipeline state, which the trinity-abstraction-layer decision records as the one sanctioned gap (SetRenderStates, SetRenderState, SetTopology, SetStreamSource, SetIndices__Stride, the draws, which also record no CCP_STATS counters), device loss and recreation (CreateDevice, IsValid), the canvas back buffer (SetPresentParameters, GetDefaultBackBuffer, GetBackBufferFormat, Present), BeginScene/EndScene (command encoder creation and submit, the bind-group sweep), the out-parameter getters, and the markers (WebGPU has debug markers where Metal's AddGpuMarker is empty).
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetCaps", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetRecordingFrameNumber", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetRenderedFrameNumber", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "CreateDevice", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "IsValid", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "BeginScene", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "ReleaseLater");
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "EndScene", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "RenderPassHint", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "EndRenderPassHint", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetRenderTarget", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "PushRenderTarget", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "PopRenderTarget", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetStackSizeRT", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetDepthStencil", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "PushDepthStencil", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "PopDepthStencil", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetStackSizeDS", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetRenderTargetSize", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetViewport", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetViewport", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "Clear");
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "RunComputeShader", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "RunComputeShaderIndirect", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "ClearUav", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "Present", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetTopology", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetVertexLayout");
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetStreamSource", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetIndices", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetIndices__Stride", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetShaderProgram");
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetRenderStates", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetRenderState", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "UploadConstants__DataSize");
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "UploadConstants__Buffer");
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetResourceSet");
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetConstants");
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "AddGpuMarker", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "PushGpuMarker", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "PopGpuMarker", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "MarkFrameEvent", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "Destroy", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "ResetRenderTargets", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetAsPrimary", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetPresentParamaters", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "ReleaseDeviceResources", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetDefaultBackBuffer", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetBackBufferFormat", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetPresentParameters", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SupportsBindlessTextures", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetTotalVideoMemory", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetReadOnlyDepth", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetReadOnlyDepth", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "CopySubBuffer", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawInstancedIndirect", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawIndexedInstancedIndirect", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "UseResources", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "UseAccelerationStructure", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DispatchRays", meta.notSupported);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetGpuStateMarker", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetGpuPageFaultResource", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "EnableUpscaling", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetUpscalingContext", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "CreateUpscalingContext", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DeleteUpscalingContext", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetUpscalingInfo", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetSupportedUpscalingTechniques", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetUpscalingSetup", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetPrimaryRenderContext", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetPrimaryRenderContext", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "GetPrimaryRenderContextPointer", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawIndexedInstanced", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawInstanced", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawIndexedPrimitive", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawPrimitive", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawPrimitiveUP", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawIndexedPrimitiveUP", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "ComputeVertexCount", meta.implemented);
 CjsSchema.meta.define("CjsWebgpuRenderContextAL")(CjsWebgpuRenderContextAL);

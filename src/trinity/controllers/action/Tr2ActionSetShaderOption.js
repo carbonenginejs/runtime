@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -39,7 +39,6 @@ export class Tr2ActionSetShaderOption extends ITr2ControllerAction
    *   IShaderConfigurer contract is ported; this is not a native BlueCast check.
    */
 
-  @meta.adapted
   Start(controller)
   {
     const owner = ITr2ControllerAction.getOwner(controller);

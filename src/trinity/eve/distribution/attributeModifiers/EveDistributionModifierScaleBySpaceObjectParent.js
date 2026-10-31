@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierScaleBySpaceObjectParent.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
@@ -36,7 +36,6 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
    * @implemented
    */
 
-  @meta.implemented
   AffectsTransform()
   {
     return this.scaleFactor !== 0;
@@ -49,7 +48,6 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
    * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
    */
 
-  @meta.adapted
   ProcessDistributionModifier(placement, _deltaTime, params)
   {
     if (!params.spaceObjectParent)

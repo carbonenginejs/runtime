@@ -6,7 +6,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 import { vec3 } from "#math/vec3";
 import { box3 } from "#math/box3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /**
  * One authored sprite: its bone attachment, position, blink timing, scale range,
@@ -78,7 +78,6 @@ export class EveSpriteSetItem extends IRoot
    *   out-parameter convention.
    */
 
-  @meta.adapted
   GetBounds(out)
   {
     return box3.fromPositionRadius(out, this.position, this.maxScale);
@@ -90,7 +89,6 @@ export class EveSpriteSetItem extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBoneIndex()
   {
     return this.boneIndex;

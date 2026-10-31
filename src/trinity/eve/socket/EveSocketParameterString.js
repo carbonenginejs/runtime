@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2ExternalParameter } from "../../core/binding/Tr2ExternalParameter.js";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
@@ -59,7 +59,6 @@ export class EveSocketParameterString extends IEveSocketParameter
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     if (!this.valueExposure)
@@ -80,7 +79,6 @@ export class EveSocketParameterString extends IEveSocketParameter
    * @implemented
    */
 
-  @meta.implemented
   ClearBindings()
   {
     this.externalParameters.length = 0;
@@ -93,7 +91,6 @@ export class EveSocketParameterString extends IEveSocketParameter
    * @returns {boolean} True when the external parameter was valid, name-matched and stored.
    */
 
-  @meta.adapted
   BindToExternalParameter(externalParameter)
   {
     this.Initialize();
@@ -130,7 +127,6 @@ export class EveSocketParameterString extends IEveSocketParameter
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetValueToDefault()
   {
     if (this.defaults.length) this.value = this.defaults[0];
@@ -142,7 +138,6 @@ export class EveSocketParameterString extends IEveSocketParameter
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Used()
   {
     return this.externalParameters.length !== 0;
@@ -155,7 +150,6 @@ export class EveSocketParameterString extends IEveSocketParameter
    * @adapted
    */
 
-  @meta.adapted
   Propagate()
   {
     this.Initialize();

@@ -6,7 +6,7 @@ import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { IsMatch, blue } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveChildMesh } from "./EveChildMesh.js";
@@ -161,7 +161,6 @@ export class EveChildTurret extends EveChildMesh
    */
   @be.mapProperty()
   @type.rootRef("EveTurretFiringFX")
-  @meta.implemented
   get firingEffect()
   {
     return this.GetFiringEffect();
@@ -172,7 +171,6 @@ export class EveChildTurret extends EveChildMesh
    *
    * @implemented
    */
-  @meta.implemented
   set firingEffect(value)
   {
     this.SetFiringEffect(value);
@@ -186,7 +184,6 @@ export class EveChildTurret extends EveChildMesh
    */
   @be.mapProperty()
   @type.rootRef("ITriTargetable")
-  @meta.implemented
   get targetObject()
   {
     return this.GetTargetObject();
@@ -197,7 +194,6 @@ export class EveChildTurret extends EveChildMesh
    *
    * @implemented
    */
-  @meta.implemented
   set targetObject(value)
   {
     this.SetTargetObject(value);
@@ -298,8 +294,6 @@ export class EveChildTurret extends EveChildMesh
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   GetTarget()
   {
     return this._target;
@@ -313,8 +307,6 @@ export class EveChildTurret extends EveChildMesh
    * @adapted Carbon's by-value embed becomes an accessor; the flat Blue schema is preserved
    *   on this class.
    */
-  @meta.cjs
-    @meta.adapted
   GetAiming()
   {
     const aiming = this._aiming;
@@ -341,7 +333,6 @@ export class EveChildTurret extends EveChildMesh
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this._target.SetImpactBehaviour(this.impactSize, this.impactBehaviour);
@@ -361,7 +352,6 @@ export class EveChildTurret extends EveChildMesh
    *   where Carbon's LoadObject is synchronous.
    */
 
-  @meta.adapted
   OnModified(value = null)
   {
     if (IsMatch(value, "impactSize") || IsMatch(value, "impactBehaviour"))
@@ -384,8 +374,6 @@ export class EveChildTurret extends EveChildMesh
    *   installs null, as the native typed load does; the prior effect remains
    *   registered until its replacement arrives.
    */
-  @meta.cjs
-    @meta.adapted
   async _LoadFiringEffectFromPath()
   {
     const request = ++this._firingEffectRequest;
@@ -410,7 +398,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     super.RegisterComponents();
@@ -427,7 +414,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     super.UnRegisterComponents();
@@ -447,7 +433,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     const deltaT = updateContext.GetDeltaT();
@@ -503,7 +488,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     const deltaT = updateContext.GetDeltaT();
@@ -582,7 +566,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
     const result = super.UpdateVisibility(updateContext, parentTransform, parentLod);
@@ -599,7 +582,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     super.GetRenderables(renderables);
@@ -622,7 +604,6 @@ export class EveChildTurret extends EveChildMesh
    * @param {Tr2QuadRenderer} quadRenderer The quad renderer.
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     super.RegisterWithQuadRenderer(quadRenderer);
@@ -646,7 +627,6 @@ export class EveChildTurret extends EveChildMesh
    * @param {Tr2QuadRenderer} quadRenderer The quad renderer.
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     super.AddQuadsToQuadRenderer(frustum, quadRenderer);
@@ -664,7 +644,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   UpdateCachedGeometryData()
   {
     const geometryRes = this.GetGeometryRes();
@@ -685,7 +664,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   BuildCachedGeometryData(geometryRes)
   {
     if (geometryRes.GetSkeletonCount())
@@ -710,7 +688,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   ReleaseCachedGeometryData()
   {
     this._cachedGeometryRes = null;
@@ -726,7 +703,6 @@ export class EveChildTurret extends EveChildMesh
    * @adapted defer this state transition while JS loads the firing effect.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnterStateDeactive()
   {
     if (this._pendingFiringEffectCalls)
@@ -766,7 +742,6 @@ export class EveChildTurret extends EveChildMesh
    * @adapted defer this state transition while JS loads the firing effect.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnterStateIdle()
   {
     if (this._pendingFiringEffectCalls)
@@ -811,7 +786,6 @@ export class EveChildTurret extends EveChildMesh
    * @adapted defer this state transition while JS loads the firing effect.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnterStateTargeting()
   {
     if (this._pendingFiringEffectCalls)
@@ -857,7 +831,6 @@ export class EveChildTurret extends EveChildMesh
    * @adapted defer this state transition while JS loads the firing effect.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EnterStateFiring()
   {
     if (this._pendingFiringEffectCalls)
@@ -903,7 +876,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   SetupFiringState()
   {
     const State = EveChildTurret.State;
@@ -961,7 +933,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   EnterStateReloading()
   {
     const State = EveChildTurret.State;
@@ -993,7 +964,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ForceStateDeactive()
   {
     this.trackingInfluence = 0;
@@ -1010,7 +980,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   ForceIdleAnimation()
   {
     const State = EveChildTurret.State;
@@ -1041,7 +1010,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ForceStateTargeting()
   {
     this.trackingInfluence = this.maxTrackingTime;
@@ -1057,7 +1025,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetFiringBoneWorldTransform(muzzle, out)
   {
     if (!this.mesh || !this._firingEffect)
@@ -1078,7 +1045,6 @@ export class EveChildTurret extends EveChildMesh
    *   (cpp:694-697) is not reproduced; the count is clamped as Carbon clamps it.
    */
 
-  @meta.adapted
   InitializeFiringEffect()
   {
     this._firingEffectMuzzlePosSet = false;
@@ -1111,7 +1077,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   InitializeAnimation()
   {
     if (!this.animationUpdater)
@@ -1139,7 +1104,6 @@ export class EveChildTurret extends EveChildMesh
    *
    * @adapted
    */
-  @meta.adapted
   CleanUp(context = { currentTime: 0, deltaTime: 0 })
   {
     ++this._firingEffectRequest;
@@ -1162,7 +1126,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   ModifyPose(_skeleton, pose)
   {
     if (this.trackingInfluence === 0) return;
@@ -1196,7 +1159,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   GetTurretBoneTransform(boneID, out)
   {
     mat4.copy(out, this.worldTransform);
@@ -1217,7 +1179,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   GetGeometryRes()
   {
     return this.mesh ? this.mesh.GetGeometryResource() : null;
@@ -1231,7 +1192,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   PlayAnimation(animName, animNameIdle, delay = 0)
   {
     const updater = this.animationUpdater;
@@ -1264,7 +1224,6 @@ export class EveChildTurret extends EveChildMesh
    * @returns {string} The fire animation name.
    */
 
-  @meta.implemented
   _GetFireAnimationName()
   {
     let name = "Fire";
@@ -1282,7 +1241,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   GetFiringEffect()
   {
     return this._firingEffect;
@@ -1296,7 +1254,6 @@ export class EveChildTurret extends EveChildMesh
    * @adapted
    */
 
-  @meta.adapted
   SetFiringEffect(firingEffect)
   {
     ++this._firingEffectRequest;
@@ -1319,7 +1276,6 @@ export class EveChildTurret extends EveChildMesh
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetControllerVariable(name, value)
   {
     if (this._pendingFiringEffectCalls)
@@ -1363,7 +1319,6 @@ export class EveChildTurret extends EveChildMesh
    * @adapted defer forwarding until an asynchronous JS resource load finishes.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StartControllers()
   {
     if (this._pendingFiringEffectCalls)
@@ -1382,7 +1337,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   SetTargetObject(target)
   {
     if (!target)
@@ -1414,7 +1368,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   GetTargetObject()
   {
     return this._target.GetTargetable();
@@ -1426,7 +1379,6 @@ export class EveChildTurret extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   SetTargetScale()
   {
     if (this._firingEffect)

@@ -83,7 +83,6 @@ export class EveChildTransform extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   ComputeLocalTransform(out)
   {
     if (this.staticTransform || !this.useSRT)
@@ -99,7 +98,6 @@ export class EveChildTransform extends EveSpaceObjectChild
    *
    * @implemented
    */
-  @meta.implemented
   RebuildLocalTransform()
   {
     if (this.useSRT)
@@ -116,7 +114,6 @@ export class EveChildTransform extends EveSpaceObjectChild
    * @param {Number} [_lowestLodVisible] - accepted for Carbon signature parity, unused here
    * @returns {Float32Array} the child's live local transform
    */
-  @meta.adapted
   Setup(scale = null, rotation = null, translation = null, _lowestLodVisible = null)
   {
     if (!this.useSRT)
@@ -144,7 +141,6 @@ export class EveChildTransform extends EveSpaceObjectChild
    *
    * @adapted
    */
-  @meta.adapted
   SetupWithStaticRotation(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     this.useStaticRotation = true;
@@ -158,7 +154,6 @@ export class EveChildTransform extends EveSpaceObjectChild
    *
    * @adapted
    */
-  @meta.adapted
   SetupWithStaticTransform(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     this.staticTransform = true;
@@ -177,7 +172,6 @@ export class EveChildTransform extends EveSpaceObjectChild
    * @param {Float32Array} parentTransform - borrowed, read only
    * @returns {Float32Array} the child's live world transform
    */
-  @meta.adapted
   UpdateTransform(parentTransform)
   {
     if (this.staticTransform || !this.useSRT)

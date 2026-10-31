@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveOccluder.h
 // Source: trinity/trinity/Eve/EveOccluder.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
@@ -63,7 +63,6 @@ export class EveOccluder extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   RunQuery(renderContext, updateContext, transform, bufferOffset, fogWeight)
   {
     if (!this.display) return;

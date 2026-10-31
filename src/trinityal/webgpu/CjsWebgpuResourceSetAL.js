@@ -23,7 +23,7 @@ import { Tr2ResourceSetDescriptionAL } from "../Tr2ResourceSetAL/Tr2ResourceSetD
 // views (`Tr2ResourceSetALDx12.cpp:145-146`). A WebGPU bind group with a hole
 // is a validation error, so the same substitution happens here.
 //
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -91,7 +91,6 @@ export class CjsWebgpuResourceSetAL
    * @param {object} renderContext The WebGPU render context AL.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(description, shaderProgram, renderContext)
   {
     this.Destroy();
@@ -142,8 +141,6 @@ export class CjsWebgpuResourceSetAL
    * @adapted Resolves dense native records to WebGPU views and buffers; a pending resource
    *   or empty slot uses the context dummy, following Metal.
    */
-  @meta.cjs
-    @meta.adapted
   _Resolve(description, binding, renderContext, storage)
   {
     if (binding.sampler)
@@ -324,9 +321,4 @@ export class CjsWebgpuResourceSetAL
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Create");
 // Donor: metal/Tr2ResourceSetALMetal.mm (IsValid, Destroy clears the bound resources and validity, memory class AL_MEMORY_MANAGED). Describe writes memoryClass only and SetName does not store the name.
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Describe", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "SetName", meta.adapted);
 CjsSchema.meta.define("CjsWebgpuResourceSetAL")(CjsWebgpuResourceSetAL);

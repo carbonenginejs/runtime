@@ -4,7 +4,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 
@@ -85,7 +85,6 @@ export class EveChildModifierCameraOrientedRotationConstrained extends IEveChild
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   ApplyTransform(transform, boneCount, bones, out)
   {
     const { rotation, translation, scale, p, rotMatrix, result } = this.constructor.scratch;

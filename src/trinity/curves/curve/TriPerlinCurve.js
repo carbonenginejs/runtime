@@ -101,7 +101,6 @@ export class TriPerlinCurve extends ITriScalarFunction
    * @implemented
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.Update(time);
@@ -114,7 +113,6 @@ export class TriPerlinCurve extends ITriScalarFunction
    * @implemented
    */
 
-  @meta.implemented
   Update(time)
   {
     if (this._lastUpdated !== time)
@@ -134,7 +132,6 @@ export class TriPerlinCurve extends ITriScalarFunction
    *   with its first-call origin. Existing
    *   noise arithmetic retains JS precision rather than native float rounding.
    */
-  @meta.adapted
   GetValueAt(time)
   {
     let position = Number(time);
@@ -159,7 +156,6 @@ export class TriPerlinCurve extends ITriScalarFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The cached value.
    */
-  @meta.adapted
   Update__Ticks(time)
   {
     const seconds = CcpTime.timeAsDouble(time);
@@ -179,7 +175,6 @@ export class TriPerlinCurve extends ITriScalarFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The sampled value.
    */
-  @meta.adapted
   GetValueAt__Ticks(time)
   {
     if (this._start === 0) this._start = CcpTime.timeAsDouble(time);
@@ -192,7 +187,6 @@ export class TriPerlinCurve extends ITriScalarFunction
    *
    * @implemented
    */
-  @meta.implemented
   ScaleTime(scale)
   {
     this.scale = scale;
@@ -216,8 +210,6 @@ export class TriPerlinCurve extends ITriScalarFunction
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   static _nextStartOffset()
   {
     return carbonRandom.triRandInt(10000000000 | 0);

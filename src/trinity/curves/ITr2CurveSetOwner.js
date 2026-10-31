@@ -83,8 +83,4 @@ for (const name of [ "PlayCurveSet", "StopCurveSet", "GetCurveSetDuration", "Get
 {
   CjsSchema.decorateMethod(ITr2CurveSetOwner, name, meta.abstract);
 }
-for (const name of [ "UpdateCurveSet", "PlayAllCurveSets", "StopAllCurveSets" ])
-{
-  CjsSchema.decorateMethod(ITr2CurveSetOwner, name, meta.adapted);
-}
 CjsSchema.exposure.interface("ITr2CurveSetOwner")(ITr2CurveSetOwner);

@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleSpring_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 // RenderDebugInfo scratch (debug drawing is single-threaded).
@@ -37,7 +37,6 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out)
   {
     vec3.subtract(out, position, this.position);
@@ -51,7 +50,6 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   Update(_dt)
   {
   }
@@ -66,7 +64,6 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
    * @param {box3} _aabb The particle system's bounds, packed min/max.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, worldTransform, _aabb)
   {
     const center = vec3.transformMat4(DEBUG_CENTER, this.position, worldTransform);

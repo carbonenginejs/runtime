@@ -5,7 +5,7 @@ import { color } from "#math/color";
 import { num } from "#math/num";
 import { vec4 } from "#math/vec4";
 import { ITriFunction, ITriColorFunction, ITriCurveLength } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 
 
 /**
@@ -114,7 +114,6 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
@@ -131,7 +130,6 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {Float32Array} out Destination colour; may be `input`.
    * @returns {void}
    */
-  @meta.implemented
   _InvertLinearColor(input, out)
   {
     out[0] = this._InvertLinearValue(input[0]);
@@ -148,7 +146,6 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {number} x sRGB channel value.
    * @returns {number} Linear channel value.
    */
-  @meta.implemented
   _InvertLinearValue(x)
   {
     return num.linearFromSRGB(x);
@@ -164,7 +161,6 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, this.currentValue);
@@ -180,7 +176,6 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     void time;
@@ -209,7 +204,6 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @returns {number} Duration in seconds.
    */
 
-  @meta.implemented
   Length()
   {
     return 0;
@@ -224,7 +218,6 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @returns {Float32Array} The destination.
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);

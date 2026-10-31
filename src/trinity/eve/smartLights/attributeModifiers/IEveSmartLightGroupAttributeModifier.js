@@ -1,6 +1,5 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/IEveSmartLightGroupAttributeModifier.h
-import { meta } from "#schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 
 
@@ -31,7 +30,6 @@ export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttri
    * @adapted
    */
 
-  @meta.adapted
   SetControllerVariable(_name, _value)
   {
   }
@@ -42,7 +40,6 @@ export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttri
    * @adapted
    */
 
-  @meta.adapted
   SetInheritProperties(_colorSet)
   {
   }

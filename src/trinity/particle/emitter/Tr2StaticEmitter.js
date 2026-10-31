@@ -6,7 +6,7 @@ import { blue, IsMatch, INotify } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 import { Tr2ParticleElementDeclarationName } from "../element/Tr2ParticleElementDeclarationName.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -83,7 +83,6 @@ export class Tr2StaticEmitter extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Spawn()
   {
     this.hasSpawnedParticles = false;
@@ -108,7 +107,6 @@ export class Tr2StaticEmitter extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap("ForceSpawn")
-  @meta.adapted
   DoSpawn()
   {
     const system = this.particleSystem;
@@ -159,7 +157,6 @@ export class Tr2StaticEmitter extends IRoot
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.geometryResourcePath) this.geometryResource = Tr2StaticEmitter.GetGeometry(this.geometryResourcePath);
@@ -179,7 +176,6 @@ export class Tr2StaticEmitter extends IRoot
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   OnModified(propertyName = null)
   {
     if (IsMatch(propertyName, "geometryResourcePath"))
@@ -201,7 +197,6 @@ export class Tr2StaticEmitter extends IRoot
    *   only for Carbon contract parity.
    */
 
-  @meta.adapted
   SetThreadSafeFlag()
   {
     this.#isThreadSafe = true;
@@ -214,7 +209,6 @@ export class Tr2StaticEmitter extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
   }
@@ -224,7 +218,6 @@ export class Tr2StaticEmitter extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
   }
@@ -236,7 +229,6 @@ export class Tr2StaticEmitter extends IRoot
    * @returns {void}
    */
 
-  @meta.implemented
   Update(_updateArguments)
   {
     if (!this.hasSpawnedParticles) this.DoSpawn();

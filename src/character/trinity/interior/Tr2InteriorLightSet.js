@@ -15,7 +15,6 @@ export class Tr2InteriorLightSet
    *
    * @implemented
    */
-  @meta.implemented
   AddLight(lightSource, _viewPosition)
   {
     this._lightInstances.push({
@@ -30,7 +29,6 @@ export class Tr2InteriorLightSet
    *
    * @implemented
    */
-  @meta.implemented
   Clear()
   {
     this._lightInstances.length = 0;
@@ -41,7 +39,6 @@ export class Tr2InteriorLightSet
    *
    * @implemented
    */
-  @meta.implemented
   GetNumOfActiveLights()
   {
     return this._lightInstances.length;
@@ -56,7 +53,6 @@ export class Tr2InteriorLightSet
    *   The first four viewProjection matrices are already packed: copy raw.
    */
   @blue.method
-  @meta.adapted
   PopulateLightData(perObjectPSData)
   {
     perObjectPSData.Set("lightCount", this.GetNumOfActiveLights());

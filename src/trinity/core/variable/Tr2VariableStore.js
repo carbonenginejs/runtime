@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2VariableStore.h
 // Source: trinity/trinity/Tr2VariableStore.cpp
 // Source: trinity/trinity/Tr2VariableStore_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/Tr2TextureAL.js";
 import { Tr2TextureReference } from "../Tr2TextureReference.js";
 import { TriVariable } from "./TriVariable.js";
@@ -43,7 +43,6 @@ export class Tr2VariableStore
    */
   @be.mapProperty()
   @type.rootRef("Tr2VariableStore")
-  @meta.implemented
   get parentStore()
   {
     return this.GetParentVariableStore();
@@ -56,7 +55,6 @@ export class Tr2VariableStore
    * @param {Tr2VariableStore|null} value New parent store.
    * @returns {void}
    */
-  @meta.implemented
   set parentStore(value)
   {
     this.SetParentVariableStore(value);
@@ -82,7 +80,6 @@ export class Tr2VariableStore
    * @returns {Tr2VariableStore|null} Current parent.
    */
 
-  @meta.implemented
   GetParentVariableStore()
   {
     return this.parentVariableStore;
@@ -98,7 +95,6 @@ export class Tr2VariableStore
    * @returns {void}
    */
 
-  @meta.adapted
   SetParentVariableStore(variableStore)
   {
     if (this === Tr2VariableStore.globalStore())
@@ -127,7 +123,6 @@ export class Tr2VariableStore
    * @param {*} value Value to store.
    * @returns {TriVariable|null} Registered variable, or null on a type conflict.
    */
-  @meta.adapted
 
   RegisterVariableInternal(name, contentType, value)
   {
@@ -149,7 +144,6 @@ export class Tr2VariableStore
    * @param {Tr2TextureAL} texture Texture to publish.
    * @returns {TriVariable|null} Registered variable, or null on a type conflict.
    */
-  @meta.adapted
 
   RegisterVariable__TextureAL(name, texture)
   {
@@ -177,7 +171,6 @@ export class Tr2VariableStore
    * @throws {TypeError} Always.
    */
   @be.mapMethod()
-  @meta.notSupported
   RegisterVariable()
   {
     throw new TypeError("Tr2VariableStore.RegisterVariable cannot infer a type in JavaScript; call RegisterVariableInternal(name, type, value).");
@@ -191,7 +184,6 @@ export class Tr2VariableStore
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UnregisterVariable(name)
   {
     let store = this;
@@ -215,7 +207,6 @@ export class Tr2VariableStore
    * @returns {boolean} Whether an entry was removed.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UnregisterLocalVariable(name)
   {
     const key = String(name ?? "");
@@ -237,7 +228,6 @@ export class Tr2VariableStore
    * @returns {TriVariable|null} First matching local or ancestor variable.
    */
   @be.mapMethod()
-  @meta.implemented
   FindVariable(name)
   {
     let store = this;
@@ -262,7 +252,6 @@ export class Tr2VariableStore
    * @returns {TriVariable|null} Existing local variable.
    */
   @be.mapMethod()
-  @meta.adapted
   FindLocalVariable(name)
   {
     return this._variables.get(String(name ?? "")) ?? null;
@@ -277,7 +266,6 @@ export class Tr2VariableStore
    * @returns {TriVariable} Matching variable or a new local reservation.
    */
   @be.mapMethod()
-  @meta.implemented
   GetVariable(name)
   {
     const found = this.FindVariable(name);
@@ -298,7 +286,6 @@ export class Tr2VariableStore
    * @returns {TriVariable} Existing or reserved local variable.
    */
   @be.mapMethod()
-  @meta.adapted
   GetLocalVariable(name)
   {
     return this.FindLocalVariable(name) ?? this._CreateReserved(name);
@@ -312,7 +299,6 @@ export class Tr2VariableStore
    * @returns {string[]} Local names in insertion order.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetLocalNames()
   {
     return [...this._variables.values()].map(variable => variable.GetName());
@@ -333,7 +319,6 @@ export class Tr2VariableStore
    * @param {number} contentType Native TriVariableContentType.
    * @returns {TriVariable|null} Reused or created variable, or type conflict.
    */
-  @meta.adapted
 
   RegisterVariableType(name, contentType)
   {
@@ -429,7 +414,6 @@ export class Tr2VariableStore
    *   without the protected-constructor overload.
    * @returns {Tr2VariableStore} Process-global store.
    */
-  @meta.adapted
   static globalStore()
   {
     if (!Tr2VariableStore._global)

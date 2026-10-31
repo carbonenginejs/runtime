@@ -10,7 +10,7 @@ import { Tr2TextureSubresource, Failed } from "#trinityal";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { Tr2Sprite2dD3DVertex } from "../sprite2d/Tr2Sprite2dD3DVertex.js";
 import { Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 
 /** Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text. */
 @be.define("Tr2FontMeasurer")
@@ -153,7 +153,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
 
   SetFont(value)
   {
@@ -168,7 +167,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFont()
   {
@@ -180,7 +178,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   SetFontSize(value)
   {
@@ -195,7 +192,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFontSize()
   {
@@ -207,7 +203,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   _GetColor()
   {
@@ -219,7 +214,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   _SetColor(value)
   {
@@ -276,7 +270,6 @@ export class Tr2FontMeasurer extends IRoot
    * @returns {number} Number of characters added.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddText(text)
   {
     // Carbon's font manager exists from InitializeTrinity on (trinity.cpp:290).
@@ -372,8 +365,6 @@ export class Tr2FontMeasurer extends IRoot
    * @param {number} glyphIndex Glyph index.
    * @returns {import("./Tr2SBitWrapper.js").Tr2SBitWrapper|null} The sbit, or null.
    */
-  @meta.cjs
-    @meta.implemented
   _LookupSBit(face, size, glyphIndex)
   {
     try
@@ -393,7 +384,6 @@ export class Tr2FontMeasurer extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CommitText(shiftX, shiftY)
   {
     for (const segment of this._renderData)
@@ -413,7 +403,6 @@ export class Tr2FontMeasurer extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   CancelLastText()
   {
     const segment = this._renderData.pop();
@@ -426,7 +415,6 @@ export class Tr2FontMeasurer extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasCommittedText()
   {
     return this._committedRenderData.length !== 0;
@@ -438,7 +426,6 @@ export class Tr2FontMeasurer extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasUncommittedText()
   {
     return this._renderData.length !== 0;
@@ -450,7 +437,6 @@ export class Tr2FontMeasurer extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Reset()
   {
     this.ClearSprites();
@@ -466,7 +452,6 @@ export class Tr2FontMeasurer extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetIndexAtPos(x)
   {
     if (x < 0) return 0;
@@ -488,7 +473,6 @@ export class Tr2FontMeasurer extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetWidthAtIndex(index)
   {
     let current = 0, width = 0;
@@ -508,7 +492,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetVertexCount()
   {
@@ -523,7 +506,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   RegisterForChangeNotification(target)
   {
@@ -535,7 +517,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   UnregisterForChangeNotification(target)
   {
@@ -547,7 +528,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   _NotifyListenersOfChange()
   {
@@ -559,7 +539,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @adapted writable byte views replace raw pointers; only grayscale browser sbits exist.
    */
-  @meta.adapted
 
   _DrawToBuffer(width, height, buffer, pitch)
   {
@@ -599,7 +578,6 @@ export class Tr2FontMeasurer extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   DrawToHostBitmap(bitmap)
   {
     if (!bitmap || !bitmap.IsValid() || GetBytesPerPixel(bitmap.GetFormat()) !== 4) return;
@@ -612,7 +590,6 @@ export class Tr2FontMeasurer extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   DrawToTexture(resource)
   {
     if (!resource) return;
@@ -631,7 +608,6 @@ export class Tr2FontMeasurer extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   DrawToAtlasTexture(texture)
   {
     if (!texture) return;
@@ -661,7 +637,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFadeLeftStart()
   {
@@ -673,7 +648,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   SetFadeLeftStart(value)
   {
@@ -701,7 +675,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFadeLeftEnd()
   {
@@ -713,7 +686,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   SetFadeLeftEnd(value)
   {
@@ -741,7 +713,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFadeRightStart()
   {
@@ -753,7 +724,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   SetFadeRightStart(value)
   {
@@ -781,7 +751,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFadeRightEnd()
   {
@@ -793,7 +762,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   SetFadeRightEnd(value)
   {
@@ -821,7 +789,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFadeTopStart()
   {
@@ -833,7 +800,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   SetFadeTopStart(value)
   {
@@ -861,7 +827,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFadeTopEnd()
   {
@@ -873,7 +838,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   SetFadeTopEnd(value)
   {
@@ -901,7 +865,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFadeBottomStart()
   {
@@ -913,7 +876,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   SetFadeBottomStart(value)
   {
@@ -941,7 +903,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetFadeBottomEnd()
   {
@@ -953,7 +914,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   SetFadeBottomEnd(value)
   {
@@ -966,7 +926,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   _CalcAlphaForHorizontal(x)
   {
@@ -983,7 +942,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   _CalcAlphaForVertical(y)
   {
@@ -1003,7 +961,6 @@ export class Tr2FontMeasurer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   ClearSprites()
   {
@@ -1021,7 +978,6 @@ export class Tr2FontMeasurer extends IRoot
    * @adapted arrays replace native pointer ranges; uninitialized unused attributes
    *   remain zero. Atlas identity still determines draw-call boundaries.
    */
-  @meta.adapted
 
   PrepareSprites(renderer, translation, color, sfx, blendMode, target, glowBrightness, dropShadow, shadowOffset, shadowColor, shadowSfx)
   {
@@ -1126,7 +1082,6 @@ export class Tr2FontMeasurer extends IRoot
    * @param {object} renderer The Tr2Sprite2dScene.
    * @returns {void}
    */
-  @meta.adapted
 
   SubmitSprites(renderer)
   {
@@ -1158,7 +1113,6 @@ export class Tr2FontMeasurer extends IRoot
    * @param {number} vertexOffset Subtracted from each index.
    * @returns {number[]} The batch's indices.
    */
-  @meta.adapted
 
   _AdjustIndicesIfNeeded(startSprite, indexCount, vertexOffset)
   {

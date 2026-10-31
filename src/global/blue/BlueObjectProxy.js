@@ -17,7 +17,7 @@
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.
 import { exposure as be } from "#be";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, type, blue as legacyBlue } from "#schema";
 import { blue } from "./blue.js";
 import { IBlueObjectProxy } from "./IBlueObjectProxy.js";
 import { IUnloadable } from "./IUnloadable.js";
@@ -319,18 +319,8 @@ CjsSchema.decorateField(BlueObjectProxy, "builder", be.mapAttribute(be.READWRITE
 CjsSchema.decorateField(BlueObjectProxy, "objectMarker", be.mapAttribute(be.READWRITE), type.uint32);
 CjsSchema.decorateField(BlueObjectProxy, "temporary", legacyBlue.property(), type.boolean);
 CjsSchema.decorateField(BlueObjectProxy, "isResident", legacyBlue.property(), type.boolean);
-CjsSchema.decorateMethod(BlueObjectProxy, "SetBuilder", meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "GetObject", meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "ClearObject", meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "Update", meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "IsResident", meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "SetTemporary", meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "IsTemporary", meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "OnSelected", meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "SetObject", meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "Freeze", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "SetObjectFromBuilder", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(BlueObjectProxy, "_OnObjectInvalidated", meta.renamed("OnObjectInvalidated"), meta.implemented);
+CjsSchema.decorateMethod(BlueObjectProxy, "Freeze", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(BlueObjectProxy, "SetObjectFromBuilder", be.mapMethodAndWrap());
 CjsSchema.blue.define(BlueObjectProxy, {
   className: "BlueObjectProxy",
   members: [ { name: "object", key: "_object", type: { kind: "rootRef", className: "IRoot" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true } } ]

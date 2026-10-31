@@ -66,7 +66,6 @@ export class Tr2DynamicRingBuffer
    * @param {object} renderContext The recording context.
    * @returns {{result: number, offset: number}} The result and the data's offset.
    */
-  @meta.adapted
   PutData(data, size, alignment, renderContext)
   {
     this._lastPutSucceeded = false;
@@ -110,7 +109,6 @@ export class Tr2DynamicRingBuffer
    * @implemented
    * @param {object} renderContext The recording context.
    */
-  @meta.implemented
   DoneUsingData(renderContext)
   {
     if (!this._lastPutSucceeded) return;
@@ -129,7 +127,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   IsRegionUsedByGpu(region, renderContext)
   {
     if (!region.fence) return false;
@@ -144,7 +141,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   TrimUnusedRegions(renderContext)
   {
     let used = 0;
@@ -161,7 +157,6 @@ export class Tr2DynamicRingBuffer
    * @param {number} minSize Bytes needed.
    * @returns {number|null} The region's offset, or null when none fits.
    */
-  @meta.adapted
   GetUnusedRegion(minSize)
   {
     const totalSize = this._bufferSize;
@@ -187,7 +182,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   ReleaseResources(_storage)
   {
     this._buffer?.Destroy();
@@ -202,7 +196,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
@@ -213,7 +206,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   OnPrepareResources()
   {
     if (!this._bufferSize) return true;
@@ -228,7 +220,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   AllocateFence()
   {
     if (this._availableFences.length) return this._availableFences.pop();
@@ -243,7 +234,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   DeallocateFence(fence)
   {
     if (fence) this._availableFences.push(fence);
@@ -256,7 +246,6 @@ export class Tr2DynamicRingBuffer
    * @param {number} begin First region to remove.
    * @param {number} end One past the last.
    */
-  @meta.adapted
   RemoveRegions(begin, end)
   {
     for (let index = begin; index < end; index++) this.DeallocateFence(this._regions[index].fence);
@@ -269,7 +258,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   SetSizeIncrement(sizeIncrement)
   {
     this._sizeIncrement = sizeIncrement >>> 0;
@@ -280,7 +268,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   GetBufferSize()
   {
     return this._bufferSize;
@@ -291,7 +278,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this._name = String(name ?? "");
@@ -303,7 +289,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   IsValid()
   {
     return Boolean(this._buffer?.IsValid());
@@ -314,7 +299,6 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   GetBuffer()
   {
     return this._buffer;
@@ -337,7 +321,6 @@ export class Tr2DynamicRingBuffer
    * @implemented
    * @returns {number} An `ALResult`.
    */
-  @meta.implemented
   UpdateBuffer(data, offset, size, renderContext)
   {
     const { result, data: mapped } = this._buffer.MapForWriting(renderContext);

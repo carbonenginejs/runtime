@@ -70,7 +70,6 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
    * @implemented
    * @returns {boolean} Always true.
    */
-  @meta.implemented
   IsCacheable()
   {
     return true;
@@ -110,7 +109,6 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
    * @param {string} query `<role>/<source path>`.
    * @returns {Tr2TexturePipeline|null} The recipe.
    */
-  @meta.implemented
   static buildRecipe(query)
   {
     const slash = String(query).indexOf("/");
@@ -146,7 +144,6 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
    * @param {string} sourcePath The Incarna texture's resource path.
    * @returns {string} The texture path.
    */
-  @meta.implemented
   static texturePath(role, sourcePath)
   {
     return `${IncarnaTexturePrefix}${role}/${sourcePath}`;
@@ -168,4 +165,3 @@ export function RegisterIncarnaTextures(resourceManager)
 
 export default CjsIncarnaTextureConstructor;
 
-CjsSchema.decorateMethod(CjsIncarnaTextureConstructor, "GetResource", CjsSchema.meta.implemented);

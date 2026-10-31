@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 // DirectXMath XM_2PI as the float Carbon multiplies by.
@@ -49,7 +49,6 @@ export class Tr2ParticleVortexForce extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out)
   {
     const f = Math.fround;
@@ -78,7 +77,6 @@ export class Tr2ParticleVortexForce extends ITr2ParticleForce
    * @adapted
    */
 
-  @meta.adapted
   Update(_dt)
   {
   }
@@ -95,7 +93,6 @@ export class Tr2ParticleVortexForce extends ITr2ParticleForce
    * @param {box3} _aabb The particle system's bounds, packed min/max.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, worldTransform, _aabb)
   {
     const f = Math.fround;

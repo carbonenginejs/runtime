@@ -10,7 +10,7 @@ import { mat4 } from "#math/mat4";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EntityComponents.js";
 import { Priority } from "../../generated/postProcess/enums.js";
@@ -90,7 +90,6 @@ export class EveChildLightingOverride extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -110,7 +109,6 @@ export class EveChildLightingOverride extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     this.GetComponentRegistry().UnRegisterComponent(EveComponentType.EveLightingOverride, this);
@@ -124,7 +122,6 @@ export class EveChildLightingOverride extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetOverrides()
   {
     return {
@@ -145,7 +142,6 @@ export class EveChildLightingOverride extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -156,7 +152,6 @@ export class EveChildLightingOverride extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -170,7 +165,6 @@ export class EveChildLightingOverride extends EveChildTransform
    * @returns {Boolean} always true
    */
 
-  @meta.adapted
   GetBoundingSphere(out)
   {
     vec4.set(out, this._boundingSphere.center[0], this._boundingSphere.center[1], this._boundingSphere.center[2], this._boundingSphere.radius);
@@ -182,7 +176,6 @@ export class EveChildLightingOverride extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -198,7 +191,6 @@ export class EveChildLightingOverride extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params = {})
   {
     this.UpdateTransform(params.localToWorldTransform ?? mat4.create());
@@ -275,7 +267,6 @@ export class EveChildLightingOverride extends EveChildTransform
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Volumes");
@@ -291,7 +282,6 @@ export class EveChildLightingOverride extends EveChildTransform
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (renderer.HasOption(this, "Volumes"))
@@ -321,7 +311,6 @@ export class EveChildLightingOverride extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
@@ -331,7 +320,6 @@ export class EveChildLightingOverride extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetRenderables(_renderables)
   {
   }
@@ -341,7 +329,6 @@ export class EveChildLightingOverride extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   ChangeLOD(_lod)
   {
   }

@@ -7,7 +7,7 @@ import { IInitialize } from "../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2ScalarFader } from "../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../generated/include/enums.js";
 import { Tr2Lod } from "./EveLODHelper.js";
@@ -58,7 +58,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get seed()
   {
     return this.GetSeed();
@@ -72,7 +71,6 @@ export class EveImpactOverlay extends IRoot
   @be.mapPropertyReadOnly()
   @type.int32
   @type.enum("trinity.ITriTargetable.ImpactConfiguration")
-  @meta.implemented
   get configuration()
   {
     return this.GetImpactConfiguration();
@@ -85,7 +83,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.implemented
   get impactDataNextIdx()
   {
     return this.GetImpactDataNextIdx();
@@ -98,7 +95,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.uint64
-  @meta.implemented
   get armorImpactGoalCount()
   {
     return this.GetArmorImpactGoalCount();
@@ -111,7 +107,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.float32
-  @meta.implemented
   get armorImpactParentSize()
   {
     return this.GetArmorImpactParentSize();
@@ -124,7 +119,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapProperty()
   @type.boolean
-  @meta.implemented
   get debugForceSpawnDebris()
   {
     return this.GetDebugForceSpawnDebris();
@@ -143,7 +137,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.float32
-  @meta.implemented
   get renderPriority()
   {
     return this.GetRenderPriority();
@@ -156,7 +149,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.implemented
   get dataTextureBlockID()
   {
     return this.GetDataTextureBlockID();
@@ -169,7 +161,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapPropertyPersisted()
   @type.rootRef("Tr2Effect")
-  @meta.implemented
   get armorDamageShader()
   {
     return this.GetArmorDamageShaderEffect();
@@ -188,7 +179,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapProperty()
   @type.rootRef("Tr2ScalarFader")
-  @meta.implemented
   get armorRepairing()
   {
     return this.GetArmorRepairing();
@@ -207,7 +197,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapProperty()
   @type.rootRef("Tr2ScalarFader")
-  @meta.implemented
   get armorHardening()
   {
     return this.GetArmorHardening();
@@ -226,7 +215,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapProperty()
   @type.rootRef("Tr2ScalarFader")
-  @meta.implemented
   get hullRepairing()
   {
     return this.GetHullRepairing();
@@ -245,7 +233,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapPropertyPersisted()
   @type.rootRef("TriPerlinCurve")
-  @meta.implemented
   get hullDamageFlickerCurve()
   {
     return this.GetHullDamageFlickerCurve();
@@ -264,7 +251,6 @@ export class EveImpactOverlay extends IRoot
    */
   @be.mapProperty()
   @type.float32
-  @meta.implemented
   get hullDamageFactor()
   {
     return this.GetHullDamageFactor();
@@ -339,7 +325,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -352,7 +337,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Set(hullDamageFlickerCurve, armorDamageEmitter, hullImpactEmitter, armorDamageShader, shieldImpactMesh, shieldIsEllipsoid)
   {
     this.shieldIsEllipsoid = shieldIsEllipsoid;
@@ -370,7 +354,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetSeed(seed)
   {
     this.damageOverlay.SetSeed(seed);
@@ -384,7 +367,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetDamageLocatorCount(count)
   {
     this.damageOverlay.SetDamageLocatorCount(count);
@@ -396,7 +378,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetArmorImpactLifeTime()
   {
     return this.damageOverlay.GetArmorImpactLifeTime();
@@ -410,7 +391,6 @@ export class EveImpactOverlay extends IRoot
    * @returns {Array} out
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetLastDamageState(out)
   {
     return this.damageOverlay.GetLastDamageState(out);
@@ -423,7 +403,6 @@ export class EveImpactOverlay extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetDataTextureOffset()
   {
     return this.damageOverlay.GetDataTextureOffset();
@@ -435,7 +414,6 @@ export class EveImpactOverlay extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetImpactConfiguration()
   {
     return this.damageOverlay.GetImpactConfiguration();
@@ -448,7 +426,6 @@ export class EveImpactOverlay extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   HasShieldEllipsoid()
   {
     return this.shieldIsEllipsoid;
@@ -464,7 +441,6 @@ export class EveImpactOverlay extends IRoot
    * @param {number} duration Seconds.
    */
 
-  @meta.implemented
   ToggleEffect(name, on, duration)
   {
     if (name === "shieldboost")
@@ -487,7 +463,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDamageOverlay()
   {
     return this.damageOverlay;
@@ -499,7 +474,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetImpactDataNextIdx()
   {
     return this.damageOverlay.GetImpactDataNextIdx();
@@ -511,7 +485,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetSeed()
   {
     return this.damageOverlay.GetSeed();
@@ -523,7 +496,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetArmorImpactGoalCount()
   {
     return this.damageOverlay.GetArmorImpactGoalCount();
@@ -535,7 +507,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetArmorImpactParentSize()
   {
     return this.damageOverlay.GetArmorImpactParentSize();
@@ -547,7 +518,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDebugForceSpawnDebris()
   {
     return this.damageOverlay.GetDebugForceSpawnDebris();
@@ -559,7 +529,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetDebugForceSpawnDebris(value)
   {
     this.damageOverlay.SetDebugForceSpawnDebris(value);
@@ -571,7 +540,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRenderPriority()
   {
     return this.damageOverlay.GetRenderPriority();
@@ -583,7 +551,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetDataTextureBlockID()
   {
     return this.damageOverlay.GetDataTextureBlockID();
@@ -595,7 +562,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullDamageFactor()
   {
     return this.damageOverlay.GetHullDamageFactor();
@@ -607,7 +573,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetHullDamageFactor(value)
   {
     this.damageOverlay.SetHullDamageFactor(value);
@@ -619,7 +584,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetArmorDamageShaderEffect()
   {
     return this.damageOverlay.GetArmorDamageShaderEffect();
@@ -631,7 +595,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetArmorDamageShaderEffect(value)
   {
     this.damageOverlay.SetArmorDamageShaderEffect(value);
@@ -643,7 +606,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullDamageFlickerCurve()
   {
     return this.damageOverlay.GetHullDamageFlickerCurve();
@@ -655,7 +617,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetHullDamageFlickerCurve(value)
   {
     this.damageOverlay.SetHullDamageFlickerCurve(value);
@@ -667,7 +628,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetArmorRepairing()
   {
     return this.damageOverlay.GetArmorRepairing();
@@ -679,7 +639,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetArmorRepairing(value)
   {
     this.damageOverlay.SetArmorRepairing(value);
@@ -691,7 +650,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetArmorHardening()
   {
     return this.damageOverlay.GetArmorHardening();
@@ -703,7 +661,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetArmorHardening(value)
   {
     this.damageOverlay.SetArmorHardening(value);
@@ -715,7 +672,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHullRepairing()
   {
     return this.damageOverlay.GetHullRepairing();
@@ -727,7 +683,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetHullRepairing(value)
   {
     this.damageOverlay.SetHullRepairing(value);
@@ -740,7 +695,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetDamageState(shield, armor, hull, doCreateArmorImpacts)
   {
     this.shieldImpactColorFade = Math.max(0, Math.min(1, (1 - shield) ** 2));
@@ -753,7 +707,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Clear()
   {
     this._shieldImpacts.clear();
@@ -766,7 +719,6 @@ export class EveImpactOverlay extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   CreateImpact(damageLocatorIndex, direction, lifeTime, size, intensity = 1, lod = Tr2Lod.TR2_LOD_HIGH, parent = null)
   {
     if (!EveDamageOverlay.impactEffectEnabled) return -1;
@@ -889,7 +841,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateImpact(out, direction, impactIndex)
   {
     if (impactIndex === -1) return false;
@@ -936,7 +887,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetActivationStrength(updateContext)
   {
     return this.damageOverlay.GetActivationStrength(updateContext);
@@ -948,7 +898,6 @@ export class EveImpactOverlay extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, parent)
   {
     // Carbon EveImpactOverlay.cpp:96-110: debris spawns BEFORE the activity
@@ -971,7 +920,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SpawnImpactDebris(updateContext, parent)
   {
     if (!EveDamageOverlay.impactEffectEnabled) return;
@@ -1027,7 +975,6 @@ export class EveImpactOverlay extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, parent)
   {
     const delta = updateContext.GetDeltaT();
@@ -1098,7 +1045,6 @@ export class EveImpactOverlay extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, screenSize)
   {
     if (!this.display || !this.mesh ||
@@ -1115,7 +1061,6 @@ export class EveImpactOverlay extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetArmorDamageShader(batchType)
   {
     return this.damageOverlay.GetArmorDamageShader(batchType);

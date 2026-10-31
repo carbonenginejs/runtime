@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.cpp
 import { IBehavior } from "./IBehavior.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { perlin1DCarbon } from "#math/noise";
 import { ProcessPriority } from "./enums.js";
@@ -78,7 +78,6 @@ export class Wander extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -100,7 +99,6 @@ export class Wander extends IRoot
    * @returns {Array} debug force pairs when group.collectForces is on
    */
 
-  @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)

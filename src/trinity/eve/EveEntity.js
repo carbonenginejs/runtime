@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveEntity.h
 //   trinity/trinity/Eve/EveEntity.cpp
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 /**
  * Base for Eve objects that publish themselves to a scene's component registry,
@@ -35,7 +35,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsInRegistry()
   {
     return this.registry !== null;
@@ -50,7 +49,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Register(registry)
   {
     if (this.registry === registry)
@@ -76,7 +74,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UnRegister(registry)
   {
     if (!registry || this.registry !== registry)
@@ -95,7 +92,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ReRegister()
   {
     this.registry?.ReRegister(this);
@@ -108,7 +104,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetComponentRegistry()
   {
     return this.registry;
@@ -121,7 +116,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetComponentIndex(componentBit)
   {
     return this._componentIndexLookup.get(componentBit);
@@ -134,7 +128,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetComponentState(componentBit, index)
   {
     this._componentIndexLookup.set(componentBit, index);
@@ -147,7 +140,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RemoveComponentState(componentBit)
   {
     this._componentIndexLookup.delete(componentBit);
@@ -159,8 +151,6 @@ export class EveEntity extends IRoot
    * @cjs
    * @implemented
    */
-  @meta.cjs
-    @meta.implemented
   ClearComponentState()
   {
     this._componentIndexLookup.clear();
@@ -173,7 +163,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
   }
@@ -186,7 +175,6 @@ export class EveEntity extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
   }

@@ -1214,32 +1214,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
 }
 
 CjsSchema.exposure.mapInterface(IBlueCallbackMan)(BlueCallbackMan);
-CjsSchema.decorateMethod(BlueCallbackMan, "Add", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "Add__Name", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "Cancel", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "Run", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "Stop", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "Pause", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "Resume", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "IsPaused", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "Throttle", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "Unthrottle", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "Update", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "IsEmpty", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "GetNextId", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "GetSize", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "GetTimeInQueueMax", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "GetTimeInQueueAverage", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "ResetQueueStats", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "SetPriority", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "SetThreadCount", meta.implemented);
-CjsSchema.decorateMethod(BlueCallbackMan, "SetName", meta.adapted);
 be.define("BlueCallbackMan")(BlueCallbackMan);
 
-CjsSchema.decorateMethod(BlueCallbackMan, "_AddHelper", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "_UpdateThread", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "_RemoveFromQueue", meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "_ExtractFromQueue", meta.adapted);
 
 /**
  * `BeCallbackMan` (ResourceLoading.cpp:24, :81-91) - the global background

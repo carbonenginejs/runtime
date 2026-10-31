@@ -3,7 +3,7 @@
 // to distinguish it from the separate legacy cloud's anonymous class.
 import { Tr2RenderUtils } from "../../Tr2RenderUtils.js";
 import { PER_OBJECT_VS, PER_OBJECT_PS } from "../../Tr2Renderer.js";
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
 
 /** Cloud2's shared constant block, bound at the native vertex and pixel registers.
@@ -33,7 +33,6 @@ export class EveChildCloud2PerObjectData extends Tr2PerObjectData
   /**
    * @adapted RawData replaces the native struct; native stage masks and buffers are retained.
    */
-  @meta.adapted
   SetPerObjectDataToDevice(buffers, mask, context)
   {
     const family = Tr2PerObjectData.VertexFamilyMask;
@@ -51,7 +50,6 @@ export class EveChildCloud2PerObjectData extends Tr2PerObjectData
    *
    * @notImplemented
    */
-  @meta.notImplemented
   ApplyConstantBuffers()
   {
     throw new Error("EveChildCloud2PerObjectData.ApplyConstantBuffers requires Tr2IndirectDrawBufferWriter.");

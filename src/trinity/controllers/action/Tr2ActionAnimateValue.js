@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue_Blue.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { IsMatch, blue } from "#blue";
 import { INotify } from "#blue/INotify";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
@@ -71,7 +71,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isBindingValid()
   {
     return this.IsBindingValid();
@@ -84,7 +83,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isExpressionValid()
   {
     return !!this._runtime.program?.IsValid();
@@ -101,7 +99,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   instead of native bytecode and embedded binding-point storage.
    */
 
-  @meta.adapted
   Link(controller)
   {
     this._runtime.controller = controller;
@@ -119,7 +116,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   clears the evaluator/controller while retaining the two time fields.
    */
 
-  @meta.adapted
   Unlink()
   {
     this._bindingPoint?.Unlink();
@@ -135,7 +131,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   registering; those existing non-update adapter differences remain deferred.
    */
 
-  @meta.adapted
   Start(controller = this._runtime.controller)
   {
     if (!controller)
@@ -164,7 +159,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   native requires a controller reference and directly unregisters the action.
    */
 
-  @meta.adapted
   Stop(controller = this._runtime.controller)
   {
     controller?.UnRegisterUpdateable(this);
@@ -176,7 +170,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   RebaseSimTime(diff)
   {
     this._runtime.startTime += diff;
@@ -191,7 +184,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   never recompile unnotified source edits (native cpp:90-104).
    */
 
-  @meta.adapted
   Update(_realTime, simTime)
   {
     this._runtime.lastTime = simTime;
@@ -227,7 +219,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   recompiles through CjsControllerExpressionProgram with a Curve function.
    */
 
-  @meta.adapted
   OnModified(propertyName)
   {
     if (!this._runtime.controller) return true;
@@ -249,7 +240,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   IsBindingValid()
   {
     return !!this._bindingPoint?.IsValid();
@@ -262,7 +252,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   evaluator without compiling. Queries can therefore adopt unnotified edits.
    */
   @legacyBlue.method
-  @meta.adapted
   IsExpressionValid()
   {
     return this.CompileExpression().IsValid();
@@ -278,7 +267,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * @implemented
    */
   @be.mapMethodAndWrap("IsExpressionValid")
-  @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {
     return this.IsExpressionValid();
@@ -291,7 +279,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   native calls ITriScalarFunction.GetValueAt directly, returning zero if null.
    */
 
-  @meta.adapted
   GetCurveValue(time)
   {
     return CjsControllerExpressionProgram.getCurveValue(this.curve, time);
@@ -303,7 +290,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetDestination()
   {
     return this.GetBindingPoint().GetBoundObject();
@@ -316,7 +302,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   linked controller supplies its required GetExpressionTermInfo operation.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetExpressionTermInfo()
   {
     const result = [];
@@ -335,7 +320,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    *   float32 evaluation parity remain outside this class-removal batch.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EvaluateExpression(expression)
   {
     const state = {
@@ -391,7 +375,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   LinkDestination(controller = this._runtime.controller)
   {
     this.GetBindingPoint().Link(controller.GetBindingPathRoots());
@@ -404,7 +387,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   HasDelayedBinding()
   {
     return this.delayBinding && !!this.path;

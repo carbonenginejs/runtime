@@ -108,7 +108,6 @@ export class EveDistanceField extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetupStaticDistanceField(dimensions, position, distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
   {
     this._isDynamic = false;
@@ -129,7 +128,6 @@ export class EveDistanceField extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   @meta.invalidates("#dirty")
   SetupDynamicDistanceField(distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
   {
@@ -151,7 +149,6 @@ export class EveDistanceField extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Update(updateContext)
   {
     // posRef: the camera view's translation, or the origin without one (cpp:112-116).
@@ -228,7 +225,6 @@ export class EveDistanceField extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   @meta.invalidates("#updateDistanceCurve")
   OnModified(propertyName)
   {
@@ -247,7 +243,6 @@ export class EveDistanceField extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   @meta.invalidates("#dirty")
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = this.objects)
   {
@@ -276,7 +271,6 @@ export class EveDistanceField extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("DistanceField");
@@ -297,7 +291,6 @@ export class EveDistanceField extends IRoot
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (!renderer.HasOption(this, "DistanceField"))

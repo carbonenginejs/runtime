@@ -78,7 +78,6 @@ export class Tr2TextureLodManager extends IRoot
    * @implemented
    */
   @meta.setting("textureLodGpuBudget")
-  @meta.implemented
   static textureLodGpuBudget = 300 * 1024 * 1024;
 
   /**
@@ -88,7 +87,6 @@ export class Tr2TextureLodManager extends IRoot
    * @implemented
    */
   @meta.setting("textureLodCpuBudget")
-  @meta.implemented
   static textureLodCpuBudget = 200 * 1024 * 1024;
 
   /**
@@ -98,7 +96,6 @@ export class Tr2TextureLodManager extends IRoot
    * @implemented
    */
   @meta.setting("textureLodChanges")
-  @meta.implemented
   static textureLodChanges = 4;
 
   /**
@@ -108,7 +105,6 @@ export class Tr2TextureLodManager extends IRoot
    * @implemented
    */
   @meta.setting("textureLoadRequests")
-  @meta.implemented
   static textureLoadRequests = 2;
 
   /**
@@ -116,7 +112,6 @@ export class Tr2TextureLodManager extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   static _instance = null;
 
   /**
@@ -375,7 +370,6 @@ export class Tr2TextureLodManager extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get useLowResVtaFiles()
   {
     return this.GetUseLowResVtaFilesSetting();
@@ -386,7 +380,6 @@ export class Tr2TextureLodManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   set useLowResVtaFiles(value)
   {
     this.SetUseLowResVtaFilesSetting(value);
@@ -447,20 +440,6 @@ CjsSchema.decorateField(Tr2TextureLodManager, "gpuMemorySize", type.uint32);
 CjsSchema.decorateField(Tr2TextureLodManager, "cpuMemorySize", type.uint32);
 CjsSchema.decorateField(Tr2TextureLodManager, "currentStats", type.rawStruct("Stats"));
 CjsSchema.decorateField(Tr2TextureLodManager, "lowDetailVtaFiles", type.boolean);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "RegisterTexture", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "UnregisterTexture", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "GetManagedTextures", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "CanUploadToGpu", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "NeedToTrimGpuTexture", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "NeedToTrimCpuTexture", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "GetStats", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "SetUseLowResVtaFilesSetting", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "GetUseLowResVtaFilesSetting", meta.implemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "GpuTextureCreated", meta.adapted);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "GpuTextureDestroyed", meta.adapted);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "CpuTextureCreated", meta.adapted);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "CpuTextureDestroyed", meta.adapted);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "OnTick", meta.notImplemented);
-CjsSchema.decorateMethod(Tr2TextureLodManager, "Instance", meta.adapted);
+CjsSchema.decorateMethod(Tr2TextureLodManager, "GetManagedTextures", be.mapMethodAndWrap());
 CjsSchema.exposure.abstract(Tr2TextureLodManager);
 be.define("Tr2TextureLodManager")(Tr2TextureLodManager);

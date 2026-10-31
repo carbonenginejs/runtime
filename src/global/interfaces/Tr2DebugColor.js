@@ -1,5 +1,5 @@
 // Source: blue/include/ITr2DebugRenderer2.h:37-94
-import { CjsSchema, meta } from "../schema/index.js";
+import { CjsSchema } from "../schema/index.js";
 import { color as colorMath } from "../math/color.js";
 
 // Scratch for GetAutoSelectedColor's Color temporary (debug drawing is single-threaded).
@@ -122,5 +122,4 @@ export class Tr2DebugColor
 
 // Declared as a call, not a decorator: global/interfaces is imported straight
 // from source by tests, and raw Node cannot parse decorator syntax.
-CjsSchema.decorateMethod(Tr2DebugColor, "GetAutoSelectedColor", meta.implemented);
 CjsSchema.meta.carbon("Tr2DebugColor")(Tr2DebugColor);

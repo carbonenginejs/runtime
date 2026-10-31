@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2PrimitiveScene.h
 // Source: trinity/trinity/Tr2PrimitiveScene.cpp
 // Source: trinity/trinity/Tr2PrimitiveScene_Blue.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { ITr2Scene } from "../ITr2Scene.js";
 import { ITr2PickableScene } from "./ITr2PickableScene.js";
@@ -67,8 +67,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    * @renamed PickObjectOnly
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
-  @meta.renamed("PickObjectOnly")
   async PickObject(x, y, projection, view, viewport, _flags = 0)
   {
     const result = { components: 1, object: null };
@@ -82,7 +80,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    * @adapted
    */
   @be.mapMethod()
-  @meta.adapted
   async PickPointAndObject(x, y, projection, view, viewport)
   {
     const result = { components: 5, object: null };
@@ -95,7 +92,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   Render(context)
   {
     if (this.textLabels.length) throw new Error("Tr2PrimitiveText rendering is not ported.");
@@ -130,7 +126,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   Update(_realTime, _simTime)
   {
   }
@@ -140,7 +135,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   RenderDebugInfo(_context)
   {
   }
@@ -150,7 +144,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   OnPrepareResources()
   {
     return true;
@@ -161,7 +154,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   PrepareResources()
   {
     return this.OnPrepareResources();
@@ -172,7 +164,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   GetDescription()
   {
     return "Tr2PrimitiveScene";
@@ -183,7 +174,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   ReleaseResources()
   {
     // m_vertexConstants = Tr2ConstantBufferAL() (Tr2PrimitiveScene.cpp:139).
@@ -199,7 +189,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     this.ReleaseResources();
@@ -218,7 +207,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   SetupTransformsForPicking(fx, fy, projection, view, viewport)
   {
     Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
@@ -251,7 +239,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   SetupPerFrameData(context)
   {
     const mat4_0 = mat4.alloc();
@@ -279,7 +266,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   SetPerFrameDataForPicking(context)
   {
     this.SetupPerFrameData(context);
@@ -290,7 +276,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   GetPickingObjectsToRender(_direction, context = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const objects = [];
@@ -312,7 +297,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   GetOpaquePickingBatchAccumulator()
   {
     return this._opaqueBatches;
@@ -322,7 +306,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   GetPickingBatchAccumulator()
   {
     return this._pickingBatches;
@@ -332,7 +315,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   RenderPickingAreasForComponents(_pass)
   {
     return true;
@@ -342,7 +324,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  @meta.implemented
   GetPickBuffer()
   {
     return this._pickBuffer;
@@ -353,7 +334,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   GetRequiredPasses(requested)
   {
     const passes = [];
@@ -372,7 +352,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   DecodeBufferPixel(data, pass, results)
   {
     const pixel = new DataView(data.buffer, data.byteOffset, 16);
@@ -388,7 +367,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @adapted
    */
-  @meta.adapted
   RenderPicking(_opaque, picking, pass, context)
   {
     const esm = context.GetEffectStateManager(), inverted = esm.IsDepthTestInverted();

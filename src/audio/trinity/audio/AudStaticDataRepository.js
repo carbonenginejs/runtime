@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 
 // Wwise AK_INVALID_UNIQUE_ID - the C++ GetEventID default.
@@ -43,7 +43,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Initialize(audioMetadata)
   {
     if (!audioMetadata || typeof audioMetadata !== "object")
@@ -91,7 +90,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {boolean} Whether initialization completed.
    */
 
-  @meta.implemented
   IsInitialized()
   {
     return this._initialized;
@@ -107,7 +105,6 @@ export class AudStaticDataRepository extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   _GetData(map, name)
   {
     return map.get(String(name)) ?? null;
@@ -120,7 +117,6 @@ export class AudStaticDataRepository extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   _GetAttribute(map, name, attribute, defaultValue)
   {
     const data = this._GetData(map, name);
@@ -135,7 +131,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {number} Event ID or zero.
    */
 
-  @meta.implemented
   GetEventID(eventName)
   {
     return this._GetAttribute(this._events, eventName, "eventID", INVALID_UNIQUE_ID);
@@ -150,7 +145,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {number} Squared attenuation radius.
    */
 
-  @meta.adapted
   GetEventRadiusSq(eventName)
   {
     const eventData = this._GetData(this._events, eventName);
@@ -169,7 +163,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {boolean} Whether the event loops.
    */
 
-  @meta.implemented
   EventIsLoop(eventName)
   {
     return this._GetAttribute(this._events, eventName, "isLoop", false);
@@ -183,7 +176,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {boolean} Whether the event is 2D.
    */
 
-  @meta.implemented
   EventIs2D(eventName)
   {
     return this._GetAttribute(this._events, eventName, "is2D", false);
@@ -197,7 +189,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {boolean} Whether the event is vital.
    */
 
-  @meta.implemented
   EventIsVital(eventName)
   {
     return this._GetAttribute(this._events, eventName, "isVital", false);
@@ -212,7 +203,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {boolean} Whether the second event stops the first; false if the first is unknown.
    */
 
-  @meta.implemented
   EventIsStopped(eventPotentiallyStopped, eventPotentiallyStopping)
   {
     const eventData = this._GetData(this._events, eventPotentiallyStopped);
@@ -227,7 +217,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {boolean} Whether the source is essential.
    */
 
-  @meta.implemented
   SourceIsEssential(sourceID)
   {
     return this._GetAttribute(this._sources, sourceID, "isEssential", false);
@@ -241,7 +230,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {boolean} Whether the bank is essential.
    */
 
-  @meta.implemented
   SoundBankIsEssential(soundBankName)
   {
     return this._GetAttribute(this._soundBanks, soundBankName, "isEssentialSoundBank", false);
@@ -256,7 +244,6 @@ export class AudStaticDataRepository extends IRoot
    * @returns {ReadonlyArray<string>} Required sound-bank names.
    */
 
-  @meta.implemented
   SoundBanksRequiredForEvent(eventName)
   {
     return this._GetAttribute(this._events, eventName, "soundbanks", []);

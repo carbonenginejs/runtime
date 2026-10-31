@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
@@ -72,7 +72,6 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -91,7 +90,6 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * @adapted gl-matrix writes the output vector. Carbon retains the normalized zero direction; glMatrix arithmetic parity remains pending.
    */
 
-  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out)
   {
     const duration = camera.GetAnimationTimelineLength();

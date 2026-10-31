@@ -7,7 +7,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
 import { CornerType, Tr2Sprite2dTextureSettings, Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dLineTraceVertex } from "./Tr2Sprite2dLineTraceVertex.js";
 import { Tr2Sprite2dVertexBase } from "./Tr2Sprite2dVertexBase.js";
@@ -67,7 +67,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    * Carbon declaration: Tr2Sprite2dLineTrace::OnListModified (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h:49).
    */
-  @meta.implemented
   OnListModified(event, _key, _key2, _value, _theList)
   {
     switch (event)
@@ -170,7 +169,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {Tr2Sprite2dScene} renderer Gathering scene.
    * @returns {void}
    */
-  @meta.adapted
   GatherSprites(renderer)
   {
     if (!this.display || this.vertices.length === 0 || this.end <= this.start || this.spriteEffect === Tr2SpriteObjectEffect.TR2_SFX_NONE)
@@ -313,7 +311,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {Tr2Sprite2dScene} renderer Picking scene.
    * @returns {Tr2Sprite2dLineTrace|null} This trace when hit.
    */
-  @meta.implemented
   PickPoint(x, y, renderer)
   {
     if (!this.display) return null;
@@ -353,7 +350,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @implemented
    * @returns {number} Total length.
    */
-  @meta.implemented
   _CalcLength()
   {
     if (this.vertices.length < 2) return 0;
@@ -384,7 +380,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @implemented
    * @returns {number} Estimated vertex count.
    */
-  @meta.implemented
   _GetEstimatedVertexCount()
   {
     let vertsNeeded = (this.vertices.length * 4 + 2) >>> 0;
@@ -416,7 +411,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    * Carbon declaration: Tr2Sprite2dLineTrace::AddSegment (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h:66).
    */
-  @meta.adapted
   _AddSegment(renderer, from, fromColor, capAngleFrom, to, toColor, capAngleTo)
   {
     // Direction and length (cpp:297-299).
@@ -593,7 +587,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    * Carbon declaration: Tr2Sprite2dLineTrace::AddRoundJoint (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h:75).
    */
-  @meta.adapted
   _AddRoundJoint(renderer, capAngleTo, v2, v3, normal, color, isAA, pixelWidthInTexels, halfWidth)
   {
     // Fan base on the inner side of the turn (cpp:538-555).
@@ -689,7 +682,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    * Carbon declaration: Tr2Sprite2dLineTrace::AddMiterJoint (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h:87).
    */
-  @meta.adapted
   _AddMiterJoint(renderer, capAngleTo, v2, v3, normal, color, isAA, pixelWidthInTexels, halfWidth)
   {
     // Base and top points on either side of the turn (cpp:648-666).
@@ -762,7 +754,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number} sign Turn side, 1 or -1.
    * @returns {number[]} Miter point.
    */
-  @meta.implemented
   _GetMiterPoint(halfWidth, basePoint, startAngle, endAngle, sign)
   {
     const k = halfWidth * 2 * sign;
@@ -780,7 +771,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number} angle Angle in radians.
    * @returns {number} Wrapped angle.
    */
-  @meta.implemented
   _ClampAngle(angle)
   {
     if (angle < -Math.PI) return angle + 2 * Math.PI;
@@ -794,7 +784,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   _ClearVertices()
   {
     this._renderVertices.length = 0;
@@ -825,7 +814,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @be.mapMethod()
-  @meta.adapted
   AppendVertices(positions, positionTransform, colors, names)
   {
     if (positions === undefined || positionTransform === undefined || colors === undefined)
@@ -899,7 +887,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @be.mapMethod()
-  @meta.adapted
   SetVertices(positions, positionTransform, colors, names)
   {
     if (positions === undefined) throw new TypeError("SetVertices requires positions");
@@ -983,7 +970,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number} [offset] First destination slot; Carbon passes a pointer such as `&transform._21`.
    * @returns {boolean} Whether `value` was such a tuple.
    */
-  @meta.adapted
   static toFloatTuple(value, length, destination, offset = 0)
   {
     if (!(Array.isArray(value) || ArrayBuffer.isView(value)) || value.length !== length) return false;
@@ -1017,8 +1003,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {Array<number[]>|null} value Three 3-item rows, or null.
    * @returns {Float32Array} `transform`.
    */
-  @meta.cjs
-    @meta.adapted
   static readPositionTransform(transform, value)
   {
     mat4.identity(transform);
@@ -1049,8 +1033,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {Float32Array} transform Matrix from readPositionTransform.
    * @returns {Float32Array} `out`.
    */
-  @meta.cjs
-    @meta.implemented
   static transformPosition(out, position, transform)
   {
     return vec2.transformMat4(out, position, transform);
@@ -1063,7 +1045,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number[]} v Vector.
    * @returns {number} Euclidean length.
    */
-  @meta.implemented
   static length(v)
   {
     return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
@@ -1076,7 +1057,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number[]} v Vector.
    * @returns {number[]} New normalised vector.
    */
-  @meta.implemented
   static normalize(v)
   {
     let length = Tr2Sprite2dLineTrace.length(v);

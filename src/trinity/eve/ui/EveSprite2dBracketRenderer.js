@@ -6,7 +6,7 @@ import { vec4 } from "#math/vec4";
 // Source: trinity/trinity/EveSprite2dBracketRenderer.cpp
 // Source: trinity/trinity/EveSprite2dBracketRenderer_Blue.cpp
 // Derives from Carbon's Tr2SpriteObject to inherit its Sprite2D contract.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2BufferAL, Tr2BufferDescriptionAL, Failed } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -70,7 +70,6 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
    * @implemented
    */
 
-  @meta.implemented
   GetVertexCount()
   {
     return 0;
@@ -88,7 +87,6 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
    * @adapted
    */
 
-  @meta.adapted
   GatherSprites(renderer)
   {
     if (!this.display || !this.brackets.length) return;
@@ -199,7 +197,6 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   ReleaseResources(_storage)
   {
@@ -213,7 +210,6 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
    *
    * @implemented
    */
-  @meta.implemented
 
   OnPrepareResources()
   {
@@ -226,7 +222,6 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
    * @implemented
    */
 
-  @meta.implemented
   PickPoint(_x, _y, _renderer)
   {
     return null;

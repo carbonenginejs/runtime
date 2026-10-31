@@ -105,11 +105,8 @@ export class IEveShadowCaster extends IRoot
 }
 
 
-CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow", meta.adapted);
 CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow__ShadowFrustum", meta.abstract);
-CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow__PositionRadius", meta.implemented);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowBatches", meta.abstract);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowPerObjectData", meta.abstract);
-for (const name of [ "PushRtGeometry", "MarkRtDirty", "IsShadowCastingDirty" ]) CjsSchema.decorateMethod(IEveShadowCaster, name, meta.implemented);
 CjsSchema.exposure.inherit(IRoot)(IEveShadowCaster);
 CjsSchema.exposure.interface("IEveShadowCaster")(IEveShadowCaster);

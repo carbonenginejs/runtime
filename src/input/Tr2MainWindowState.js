@@ -4,7 +4,7 @@ import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2MainWindow.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
 import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
-import { CjsSchema, type, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 import "#consts/renderContext/presentation";
 import "#consts/renderContext/window";
 
@@ -171,7 +171,6 @@ function presentIntervalName(value)
 be.inherit(IRoot)(Tr2MainWindowState);
 
 CjsSchema.decorateMethod(Tr2MainWindowState, "ToString", be.mapMethodAndWrap("__str__"));
-CjsSchema.decorateMethod(Tr2MainWindowState, "__str__", meta.renamed("ToString"));
 CjsSchema.decorateField(Tr2MainWindowState, "windowMode", type.int32, type.enum("trinity.Tr2WindowMode"), be.mapAttribute(be.READWRITE | be.PERSIST));
 CjsSchema.decorateField(Tr2MainWindowState, "adapter", type.uint32, be.mapAttribute(be.READWRITE | be.PERSIST));
 CjsSchema.decorateField(Tr2MainWindowState, "width", type.uint32, be.mapAttribute(be.READWRITE | be.PERSIST));

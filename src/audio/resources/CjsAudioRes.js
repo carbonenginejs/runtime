@@ -377,16 +377,9 @@ export class CjsAudioRes extends BlueAsyncRes
 
 CjsSchema.meta.define("CjsAudioRes")(CjsAudioRes);
 
-CjsSchema.decorateMethod(CjsAudioRes, "SetBackingResource", CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsAudioRes, "KeepPayloadAlive", CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsAudioRes, "Lock", CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsAudioRes, "Unlock", CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(CjsAudioRes, "_DoOpenStream", CjsSchema.meta.adapted);
 
-CjsSchema.decorateMethod(CjsAudioRes, "_DoLoad", CjsSchema.meta.adapted);
 
-CjsSchema.decorateMethod(CjsAudioRes, "_DoPrepare", CjsSchema.meta.adapted);

@@ -1,7 +1,6 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/IEveDistributionSpawner.h
-import { meta } from "#schema";
 
 
 /** Distribution spawner contract with Carbon's optional no-op hooks. */
@@ -16,7 +15,6 @@ export class IEveDistributionSpawner extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Reset()
   {
   }
@@ -27,7 +25,6 @@ export class IEveDistributionSpawner extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Restart()
   {
   }
@@ -38,7 +35,6 @@ export class IEveDistributionSpawner extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(_updateContext)
   {
   }
@@ -49,7 +45,6 @@ export class IEveDistributionSpawner extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetControllerVariable(_name, _value)
   {
   }

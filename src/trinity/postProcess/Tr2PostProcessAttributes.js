@@ -6,7 +6,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2PPBloomEffect } from "./effect/Tr2PPBloomEffect.js";
 import { Tr2PPColorCorrectionEffect } from "./effect/Tr2PPColorCorrectionEffect.js";
 import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
@@ -973,7 +973,6 @@ export class Tr2PostProcessAttributes extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Reset()
   {
     this.intensity = 0;
@@ -1008,7 +1007,6 @@ export class Tr2PostProcessAttributes extends IRoot
    * @param {number} intensity this volume's weight within its band
    */
 
-  @meta.adapted
   FromPostProcess(postProcess, priority, intensity)
   {
     this.Reset();
@@ -1376,7 +1374,6 @@ export class Tr2PostProcessAttributes extends IRoot
    * @param {boolean} [maxWeight] pick-one rather than sum; defaults to whether the attribute is in MaxWeightAttributes, which covers paths, enums and booleans that cannot be interpolated
    * @returns {*} a freshly cloned value, never an alias of a source
    */
-  @meta.adapted
   static Accumulate(name, sources, maxWeight = Tr2PostProcessAttributes.MaxWeightAttributes.has(name), observer = null)
   {
     let remainingWeight = 1;
@@ -1434,7 +1431,6 @@ export class Tr2PostProcessAttributes extends IRoot
    * @adapted
    * @returns {Array<{value: string, weight: number}>} the kept paths, weights renormalized to sum to 1
    */
-  @meta.adapted
   static AccumulateLuts(sources, observer = null)
   {
     let remainingWeight = 1;
@@ -1497,7 +1493,6 @@ export class Tr2PostProcessAttributes extends IRoot
    * @returns {object} the same post-process instance that was passed in
    */
 
-  @meta.adapted
   static MergeInto(postProcess, sources, debugObserver = null)
   {
     const values = new Map();

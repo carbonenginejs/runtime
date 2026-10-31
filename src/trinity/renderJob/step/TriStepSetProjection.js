@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.h
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -22,7 +22,6 @@ export class TriStepSetProjection extends TriRenderStep
    *
    * @adapted
    */
-  @meta.adapted
   __init__(projection = null)
   {
     this.SetProjection(projection);
@@ -35,7 +34,6 @@ export class TriStepSetProjection extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
-  @meta.adapted
   SetProjection(projection)
   {
     this.projection = projection ?? null;
@@ -48,7 +46,6 @@ export class TriStepSetProjection extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (this.projection)

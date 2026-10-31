@@ -20,6 +20,7 @@ import { ITr2StateMachineStateFinalizer } from "../../npm/dist/trinity/controlle
 import { Tr2StateMachine } from "../../npm/dist/trinity/controllers/state/Tr2StateMachine.js";
 import { Tr2StateMachineState } from "../../npm/dist/trinity/controllers/state/Tr2StateMachineState.js";
 import { Tr2StateMachineTransition } from "../../npm/dist/trinity/controllers/state/Tr2StateMachineTransition.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const {
   BELIST_INSERTED, BELIST_REMOVED, BELIST_UNLOADSTART, BELIST_LOADFINISHED,
@@ -814,8 +815,7 @@ test("DictReader retains explicit Transition notifications with real linked reco
 
 test("model-free State labels native GetNextState and retained custom helpers", () =>
 {
-  const method = CjsSchema.getMethod(Tr2StateMachineState, "_GetNextState");
-  assert.equal(method.impl.status, "adapted");
+  assert.equal(MarkerTag("Tr2StateMachineState", "_GetNextState"), "adapted");
   const convenience = CjsSchema.getMethod(Tr2StateMachineState, "CanTransition");
   assert.equal(convenience?.carbon, undefined);
   assert.equal(convenience?.carbon?.method, undefined);

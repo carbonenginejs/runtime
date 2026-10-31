@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierNoise.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue, CcpTime } from "#blue";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
@@ -39,7 +39,6 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
@@ -54,7 +53,6 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
    * @implemented
    */
 
-  @meta.implemented
   ProcessAttributeModifier(attribute, placement, _entityPosition, _entityDirection, modifierStrength)
   {
     const activationStrength = this.GetActivationStrength(placement) * modifierStrength;

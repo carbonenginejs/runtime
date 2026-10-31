@@ -80,7 +80,6 @@ export class EveSpaceObjectDecal
    * @param {number} _s TriStorageFlags.
    */
 
-  @meta.adapted
   ReleaseResources(_s)
   {
   }
@@ -93,7 +92,6 @@ export class EveSpaceObjectDecal
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     if (this._decalGeometry && !this._decalGeometry.indexBuffer.IsValid())
@@ -232,7 +230,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     const result = this._UpdateDecalMatrix();
@@ -248,7 +245,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   @meta.invalidates("#decalGeometry")
   OnModified(propertyName)
   {
@@ -269,7 +265,6 @@ export class EveSpaceObjectDecal
    * @param {EveSpaceObjectDecal} source
    */
 
-  @meta.implemented
   CopyFrom(source)
   {
     this.display = source.display;
@@ -291,7 +286,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   GetPosition(out)
   {
     return vec3.copy(out, this.position);
@@ -305,7 +299,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   SetPosition(value)
   {
     vec3.copy(this.position, value);
@@ -318,7 +311,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   GetRotation(out)
   {
     return quat.copy(out, this.rotation);
@@ -332,7 +324,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   SetRotation(value)
   {
     quat.copy(this.rotation, value);
@@ -345,7 +336,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   GetScaling(out)
   {
     return vec3.copy(out, this.scaling);
@@ -358,8 +348,6 @@ export class EveSpaceObjectDecal
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetDecalMatrix(out)
   {
     return mat4.copy(out, this._decalMatrix);
@@ -372,8 +360,6 @@ export class EveSpaceObjectDecal
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   GetInverseDecalMatrix(out)
   {
     return mat4.copy(out, this._inverseDecalMatrix);
@@ -387,7 +373,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   SetScaling(value)
   {
     vec3.copy(this.scaling, value);
@@ -400,7 +385,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   GetBoneIndex()
   {
     return this.parentBoneIndex;
@@ -413,7 +397,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   SetBoneIndex(index)
   {
     this.parentBoneIndex = Number(index) | 0;
@@ -427,7 +410,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   SetIndices(indices)
   {
     this.staticIndexBuffers = Array.from(indices || [], lod => Array.from(lod || [], value => Number(value) >>> 0));
@@ -441,7 +423,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetStaticIndexBuffers()
   {
     return this.staticIndexBuffers.map(lod => lod.slice());
@@ -454,7 +435,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   HasStaticIndexBuffers()
   {
     return this.staticIndexBuffers.some(lod => lod.length > 0);
@@ -466,7 +446,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetDecalPrimitiveCounts()
   {
     return this.staticIndexBuffers.map(lod => Math.trunc(lod.length / 3));
@@ -479,7 +458,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   SetMinScreenSize(value)
   {
     this.minScreenSize = Number(value) || 0;
@@ -492,7 +470,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   SetEffect(effect)
   {
     this.decalEffect = effect ?? null;
@@ -506,7 +483,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   SetShaderOption(name, value)
   {
     if (!this.decalEffect?.SetOption) return false;
@@ -521,7 +497,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   SetBatchType(value)
   {
     this.batchType = Number(value) | 0;
@@ -535,7 +510,6 @@ export class EveSpaceObjectDecal
    * @adapted
    */
 
-  @meta.adapted
   SetPriority(value)
   {
     this._priority = Number(value) >>> 0;
@@ -551,7 +525,6 @@ export class EveSpaceObjectDecal
    *   the native method returns void.
    */
 
-  @meta.adapted
   SetBoneMatrix(boneMatrices, boneMatrixCount)
   {
     if (this.parentBoneIndex >= boneMatrixCount || this.parentBoneIndex === -1)
@@ -577,7 +550,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentData)
   {
     this._isVisible = 0;
@@ -672,8 +644,6 @@ export class EveSpaceObjectDecal
    * @adapted Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an
    *   accessor.
    */
-  @meta.cjs
-    @meta.adapted
   GetVisibility()
   {
     return this._isVisible;
@@ -685,7 +655,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -697,7 +666,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 1;
@@ -710,7 +678,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   GetID(_areaId)
   {
     return this;
@@ -731,7 +698,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const record = EveDecalPerObjectData.alloc(accumulator);
@@ -804,7 +770,6 @@ export class EveSpaceObjectDecal
    * @returns {boolean} Whether the decal was added.
    */
 
-  @meta.adapted
   GetRenderables(out, _meshCache = null, geometryResource = null, screenSize = Infinity)
   {
     if (this._isVisible <= 0 || !geometryResource) return false;
@@ -858,7 +823,6 @@ export class EveSpaceObjectDecal
    * @param {number} [instanceScreenSize] The instanced mesh's screen size.
    */
 
-  @meta.implemented
   GetInstancedRenderables(out, meshCache, instancedMesh, instanceScreenSize = Number.MAX_VALUE)
   {
     this.GetRenderables(out, meshCache, instancedMesh.GetGeometryResource(), instanceScreenSize);
@@ -924,7 +888,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   SetHighDetailDecalState(isFrozen)
   {
     this._isGeometryFrozen = !!isFrozen;
@@ -950,7 +913,6 @@ export class EveSpaceObjectDecal
    * @returns {void}
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== this.batchType) return;
@@ -1011,7 +973,6 @@ export class EveSpaceObjectDecal
    * @implemented
    */
 
-  @meta.implemented
   GetPickingBatches(batches, pickTypes, perObjectData)
   {
     if ((pickTypes & Tr2PickType.PICK_TYPE_ATTACHMENTS) === 0) return;

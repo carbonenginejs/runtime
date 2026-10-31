@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: audio/src/AudUIPlayer.h + AudUIPlayer.cpp
 // Hand-owned since 2026-07-23 (behavior port); the generator skips this file.
 // Verify against audio/AudUIPlayer.json.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
 import { CjsScriptCallback } from "#blue";
 
@@ -55,7 +55,6 @@ export class AudUIPlayer extends AudEmitter
    * @implemented
    */
 
-  @meta.implemented
   HasUsableWorldPosition()
   {
     return false;
@@ -71,7 +70,6 @@ export class AudUIPlayer extends AudEmitter
    * @returns {number} Elapsed milliseconds, or -1.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetEventPlayPosition(playingID)
   {
     if (!this.constructor.manager?.enabled)
@@ -88,7 +86,6 @@ export class AudUIPlayer extends AudEmitter
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   PostDialogueEvent(eventName)
   {
     return this.constructor.manager?.enabled ? this.PostEvent(eventName, false, 0) : 0;
@@ -112,7 +109,6 @@ export class AudUIPlayer extends AudEmitter
    * @returns {number} Playing identifier, or zero when not posted.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SendEventWithCallback(name)
   {
     if (!this.constructor.manager?.enabled || !this.eventSenderCallback)
@@ -142,7 +138,6 @@ export class AudUIPlayer extends AudEmitter
    * @returns {void}
    */
 
-  @meta.adapted
   EventFinishedCallback(playingID)
   {
     const callbackEvent = this._callbackEvents.get(playingID) ?? null;

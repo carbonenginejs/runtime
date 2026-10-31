@@ -6,7 +6,7 @@ import { ccpHashFnv1 } from "#utils";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr_Blue.cpp
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { BeObjectMetadata } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -80,7 +80,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   LoadData(filePath)
   {
     if (!this._resourceLoader) return false;
@@ -125,7 +124,6 @@ export class EveSOFDataMgr extends IRoot
    *   Callers get the same prepared records as before.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetData(data)
   {
     if (!data) return false;
@@ -149,7 +147,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasHullData(name)
   {
     return this._hullData.has(String(name));
@@ -163,7 +160,6 @@ export class EveSOFDataMgr extends IRoot
    *   (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.adapted
   GetHullData(name)
   {
     return getProjection(this._hullData.get(String(name)));
@@ -175,7 +171,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasFactionData(name)
   {
     return this._factionData.has(String(name));
@@ -189,7 +184,6 @@ export class EveSOFDataMgr extends IRoot
    *   (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.adapted
   GetFactionData(name)
   {
     return getProjection(this._factionData.get(String(name)));
@@ -201,7 +195,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasRaceData(name)
   {
     return this._raceData.has(String(name));
@@ -215,7 +208,6 @@ export class EveSOFDataMgr extends IRoot
    *   (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.adapted
   GetRaceData(name)
   {
     return getProjection(this._raceData.get(String(name)));
@@ -227,7 +219,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasMaterialData(name)
   {
     return this._materialData.has(String(name));
@@ -241,7 +232,6 @@ export class EveSOFDataMgr extends IRoot
    *   (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.adapted
   GetMaterialData(name)
   {
     return getProjection(this._materialData.get(String(name)));
@@ -253,7 +243,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasPatternData(name)
   {
     return this._patternData.has(String(name));
@@ -267,7 +256,6 @@ export class EveSOFDataMgr extends IRoot
    *   (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.adapted
   GetPatternData(name)
   {
     return getProjection(this._patternData.get(String(name)));
@@ -279,7 +267,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasLayoutData(name)
   {
     return this._layoutData.has(String(name));
@@ -292,7 +279,6 @@ export class EveSOFDataMgr extends IRoot
    *   (see `SetData`); Carbon prepared it at load.
    */
 
-  @meta.adapted
   GetLayoutData(name)
   {
     return getProjection(this._layoutData.get(String(name)));
@@ -307,7 +293,6 @@ export class EveSOFDataMgr extends IRoot
    * @param {string[]} names
    * @returns {object[]}
    */
-  @meta.implemented
   GetLayoutData__Vector(names)
   {
     const result = [];
@@ -326,7 +311,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetGenericData()
   {
     return this._genericData;
@@ -436,7 +420,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UpdateHull(name, value)
   {
     return updateNamed(this._hullData, name, value, projectHull);
@@ -483,7 +466,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UpdateFaction(name, value)
   {
     return updateNamed(this._factionData, name, value, projectFaction);
@@ -496,7 +478,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UpdateRace(name, value)
   {
     return updateNamed(this._raceData, name, value, projectRace);
@@ -509,7 +490,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UpdateMaterial(name, value)
   {
     return updateNamed(this._materialData, name, value, projectMaterial);
@@ -522,7 +502,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UpdatePattern(name, value)
   {
     if (!value) return false;
@@ -536,7 +515,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UpdateLayout(name, value)
   {
     if (!value) return false;
@@ -550,7 +528,6 @@ export class EveSOFDataMgr extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   UpdateGeneric(value)
   {
     if (!value) return false;

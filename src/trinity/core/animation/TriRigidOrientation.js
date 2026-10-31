@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/TriRigidOrientation.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITriFunction, ITriQuaternionFunction, CcpTime } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -91,7 +91,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Sort()
   {
     this.states.sort((a, b) => a.time - b.time);
@@ -140,7 +139,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    *
    * @adapted
    */
-  @meta.adapted
   Seek(time)
   {
     const count = this.states.length;
@@ -176,7 +174,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    *
    * @adapted
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     if (!this.states.length || time < 0 || time < this.states[0].time)
@@ -210,7 +207,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    *
    * @adapted
    */
-  @meta.adapted
   GetValueDotAt(time, out)
   {
     if (!this.states.length || time < 0 || time < this.states[0].time)
@@ -237,7 +233,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @implemented
    */
 
-  @meta.implemented
   Update(time, out)
   {
     this.GetValueAt(time, this.value);
@@ -253,7 +248,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateValue(time)
   {
     this.Update(time, this.value);
@@ -267,7 +261,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {Float32Array} out Caller-owned quaternion.
    * @returns {Float32Array} out
    */
-  @meta.adapted
 
   GetValueAt__Ticks(time, out)
   {
@@ -282,7 +275,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {Float32Array} out Caller-owned quaternion.
    * @returns {Float32Array} out
    */
-  @meta.adapted
 
   Update__Ticks(time, out)
   {
@@ -299,7 +291,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {Float32Array} out Caller-owned vector.
    * @returns {Float32Array} out
    */
-  @meta.adapted
 
   GetValueDotAt__Ticks(time, out)
   {

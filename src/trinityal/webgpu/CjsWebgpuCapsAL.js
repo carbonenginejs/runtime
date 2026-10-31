@@ -11,7 +11,7 @@
 // `SupportsFloat16`, which is an optional feature and is therefore asked of the
 // device when there is one.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 
 /**
  * The platform capability constants, WebGPU's answers.
@@ -182,10 +182,4 @@ export class CjsWebgpuCapsAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 // Donor: metal/Tr2CapsALMetal.mm (dx11 and stub agree where cited). SupportsFloat16 is adapted: it asks the device for shader-f16 where Metal answers true. SupportsStandaloneSwapChain is adapted: false (the page owns the canvas) where every Carbon backend answers true. SupportsRaytracing is false, as dx11 and the stub; Metal's answer is device-dependent.
-CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsFloat16", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsGpuBuffer", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsStandaloneSwapChain", meta.adapted);
-CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsVertexShaderTextures", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsVariableRefreshRate", meta.implemented);
-CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsRaytracing", meta.implemented);
 CjsSchema.meta.define("CjsWebgpuCapsAL")(CjsWebgpuCapsAL);

@@ -59,7 +59,7 @@ import { Tr2PipelineStatsQueryALWebgl2 } from "./Tr2PipelineStatsQueryALWebgl2.j
 // indirect draws and compute refuse; the coverage-discard mode is kept but no
 // shader reads it yet.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { CompareFunc, CullMode, FillMode, HasFlag, PixelFormat, RenderState, ShaderType, Topology, Tr2CpuUsage, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { float32FromBits } from "#utils/bytes";
 import { ALResult, Failed } from "../ALResult.js";
@@ -393,7 +393,6 @@ export class Tr2RenderContextALWebgl2
    * @param {object} [presentParameters] `{ mode: { width, height } }`.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   CreateDevice(presentParameters = null)
   {
     const gl = this._gl;
@@ -811,7 +810,6 @@ export class Tr2RenderContextALWebgl2
    * @param {object} presentParameters `{ mode: { width, height } }`.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   SetPresentParameters(presentParameters)
   {
     if (!presentParameters || !presentParameters.mode) return ALResult.E_INVALIDARG;
@@ -902,7 +900,6 @@ export class Tr2RenderContextALWebgl2
    * @adapted
    * @returns {number} An `ALResult`: whether the frame was shown.
    */
-  @meta.adapted
   Present()
   {
     if (!this.IsValid()) return ALResult.E_FAIL;
@@ -1210,7 +1207,6 @@ export class Tr2RenderContextALWebgl2
    * @adapted
    * @param {boolean} enable Whether depth is read-only.
    */
-  @meta.adapted
   SetReadOnlyDepth(enable)
   {
     if (this._readOnlyDepth === Boolean(enable)) return;
@@ -1230,7 +1226,6 @@ export class Tr2RenderContextALWebgl2
    * @adapted
    * @param {number} changedSlot The slot that changed, or `MAX_RENDER_TARGET` for depth.
    */
-  @meta.adapted
   _SetRtDsToDevice(changedSlot)
   {
     const gl = this._gl;
@@ -1375,7 +1370,6 @@ export class Tr2RenderContextALWebgl2
    * @param {object} [options] `{ color, depth, stencil, clearColor, clearDepth, clearStencil, slot }`.
    * @returns {number} `S_OK`.
    */
-  @meta.adapted
   Clear(options = {})
   {
     if (!this._isValid) return ALResult.E_FAIL;
@@ -1478,7 +1472,6 @@ export class Tr2RenderContextALWebgl2
    * @param {Tr2VertexLayoutAL} layout The vertex layout.
    * @returns {number} `S_OK`.
    */
-  @meta.adapted
   SetVertexLayout(layout)
   {
     this._vertexLayout = layout.IsValid() ? layout._layout.implementation : null;
@@ -1538,7 +1531,6 @@ export class Tr2RenderContextALWebgl2
    * @param {Tr2ShaderProgramAL} shaderProgram The shader program.
    * @returns {number} `S_OK`.
    */
-  @meta.adapted
   SetShaderProgram(shaderProgram)
   {
     this._shaderProgram = shaderProgram.IsValid() ? shaderProgram.TrinityALImpl_GetObject() : null;
@@ -1580,7 +1572,6 @@ export class Tr2RenderContextALWebgl2
    * @param {number} registerIndex The constant-buffer register.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   SetConstants(buffer, constantType, registerIndex, _unusedArgument = 0)
   {
     if (constantType < 0 || constantType >= ShaderType.SHADER_TYPE_COUNT || registerIndex >= CB_SLOT_COUNT) return ALResult.E_INVALIDARG;
@@ -1805,7 +1796,6 @@ export class Tr2RenderContextALWebgl2
    * @param {object} [overrides] `{ invertedDepthTest, invertedCullMode, wireframe }`.
    * @returns {number} An `ALResult` value; `S_OK` for no setup, as dx11 answers a null list.
    */
-  @meta.adapted
   SetRenderStates(setup, overrides = null)
   {
     if (!setup) return ALResult.S_OK;
@@ -1949,7 +1939,6 @@ export class Tr2RenderContextALWebgl2
    * @adapted
    * @returns {boolean} False when a factor has no WebGL2 equivalent.
    */
-  @meta.adapted
   ApplyBlendState()
   {
     if (!this._dirty.blend) return true;
@@ -1989,7 +1978,6 @@ export class Tr2RenderContextALWebgl2
    * @adapted
    * @returns {boolean} True.
    */
-  @meta.adapted
   ApplyDepthStencilState()
   {
     if (!this._dirty.depthStencil) return true;
@@ -2032,7 +2020,6 @@ export class Tr2RenderContextALWebgl2
    * @returns {boolean} False for a fill mode other than solid, which WebGL2
    *   cannot rasterize.
    */
-  @meta.adapted
   ApplyRasterizerState()
   {
     if (!this._dirty.rasterizer) return true;
@@ -2080,7 +2067,6 @@ export class Tr2RenderContextALWebgl2
    *
    * @adapted
    */
-  @meta.adapted
   ApplyReadOnlyDepth()
   {
     if (this._readOnlyDepth === this._isDepthReadOnly) return;
@@ -2098,7 +2084,6 @@ export class Tr2RenderContextALWebgl2
    * @adapted
    * @returns {boolean} Whether the draw can proceed.
    */
-  @meta.adapted
   ApplyShadowRenderStates()
   {
     if (!this._isValid) return false;
@@ -2270,7 +2255,6 @@ export class Tr2RenderContextALWebgl2
    * @adapted
    * @returns {number} `E_FAIL`.
    */
-  @meta.adapted
   DrawIndexedInstancedIndirect(_params, _offset)
   {
     return ALResult.E_FAIL;
@@ -2282,7 +2266,6 @@ export class Tr2RenderContextALWebgl2
    * @adapted
    * @returns {number} `E_FAIL`.
    */
-  @meta.adapted
   DrawInstancedIndirect(_params, _offset)
   {
     return ALResult.E_FAIL;
@@ -2651,88 +2634,21 @@ CjsSchema.decorateField(Tr2RenderContextALWebgl2, "_readOnlyDepth", type.boolean
 CjsSchema.decorateField(Tr2RenderContextALWebgl2, "_srgbWrite", type.boolean);
 CjsSchema.decorateField(Tr2RenderContextALWebgl2, "_isDepthReadOnly", type.boolean);
 // States against dx11/Tr2RenderContextDx11.cpp and Tr2PrimaryRenderContextDx11.cpp (stub/Tr2RenderContextStub.cpp:325 for GetTotalVideoMemory, dx12/Tr2RenderContextDx12.h:159 for DestroyMainThreadRenderContext, metal/Tr2RenderContextMetal.h:230 for GetPresentParamaters, which only metal declares). Implemented: the dx11 checks, return codes and bookkeeping on the GL context. Adapted: IsValid (also fails on a lost GL context), BeginScene, GetBackBufferFormat (UNKNOWN before the back buffer exists), SetRenderTarget (slot first, as every AL port here), the out-parameter getters, and the calls whose binding the GL context defers to the draw (SetStreamSource, SetIndices__Stride, SetResourceSet), SetRenderStatesImpl (an array, not a pair pointer and count), the draw calls (no CCP_STATS counters), RenderPassHint and EndRenderPassHint (metal-only; GL has no render-pass object), EnableUpscaling (accepts any technique), ReleaseDeviceResources (dx11 does nothing) and Destroy. NotSupported: WebGL2 has no compute shaders or UAVs (ClearUav, RunComputeShader, RunComputeShaderIndirect) and no NVIDIA Aftermath (GetGpuStateMarker, GetGpuPageFaultResource, AddGpuMarker).
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetPrimaryRenderContext", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetPrimaryRenderContext", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetPrimaryRenderContextPointer", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "CreateDevice");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "IsValid", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetCaps", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetPresentParameters");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetPresentParamaters", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetDefaultBackBuffer", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetBackBufferFormat", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "IsBackBuffer", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "Present");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetRecordingFrameNumber", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetRenderedFrameNumber", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "BeginScene", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "EndScene", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetRenderTarget", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "PushRenderTarget", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "PopRenderTarget", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetStackSizeRT", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetDepthStencil", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "PushDepthStencil", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "PopDepthStencil", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetStackSizeDS", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetRenderTargetSize", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetReadOnlyDepth", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetReadOnlyDepth");
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "_SetRtDsToDevice");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetViewport", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetViewport", meta.adapted);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "Clear");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ClearUav", meta.notSupported);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetTopology", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ComputeVertexCount", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetVertexLayout");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetStreamSource", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetIndices", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetIndices__Stride", meta.adapted);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetShaderProgram");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetResourceSet", meta.adapted);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetConstants");
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetRenderStates");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetRenderState", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetRenderStatesImpl", meta.adapted);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ApplyBlendState");
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ApplyDepthStencilState");
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ApplyRasterizerState");
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ApplyReadOnlyDepth");
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ApplyShadowRenderStates");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ResetCapturePlayback", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DrawIndexedInstanced", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DrawInstanced", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DrawIndexedPrimitive", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DrawPrimitive", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DrawIndexedPrimitiveUP", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DrawPrimitiveUP", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DrawIndexedInstancedIndirect");
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DrawInstancedIndirect");
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "RunComputeShader", meta.notSupported);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "RunComputeShaderIndirect", meta.notSupported);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "CopySubBuffer", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DestroyMainThreadRenderContext", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "RenderPassHint", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "EndRenderPassHint", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "AddGpuMarker", meta.notSupported);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "PushGpuMarker", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "PopGpuMarker", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SupportsBindlessTextures", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetTotalVideoMemory", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "UseResources", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "UseAccelerationStructure", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DispatchRays", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetGpuStateMarker", meta.notSupported);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetGpuPageFaultResource", meta.notSupported);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "MarkFrameEvent", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "EnableUpscaling", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetUpscalingContext", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "CreateUpscalingContext", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "DeleteUpscalingContext", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetUpscalingInfo", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetSupportedUpscalingTechniques", meta.implemented);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetUpscalingSetup", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ReleaseDeviceResources", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "Destroy", meta.adapted);
 CjsSchema.meta.define("Tr2RenderContextALWebgl2")(Tr2RenderContextALWebgl2);

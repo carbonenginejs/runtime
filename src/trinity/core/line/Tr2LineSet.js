@@ -4,7 +4,7 @@ import { ITr2Pickable } from "../ITr2Pickable.js";
 // Source: trinity/trinity/Tr2LineSet.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -80,7 +80,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddLine(position1, color1, position2, color2)
   {
     this.lines.push({
@@ -98,7 +97,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddPickingTriangle(position1, position2, position3)
   {
     this.triangles.push({
@@ -114,7 +112,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearLines()
   {
     this.lines.length = 0;
@@ -127,7 +124,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearPickingTriangles()
   {
     this.triangles.length = 0;
@@ -139,7 +135,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SubmitChanges()
   {
     if (this.lines.length > this.maxCurrentLineCount)
@@ -158,7 +153,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    *
    * @adapted
    */
-  @meta.adapted
 
   SetCurrentColor(color)
   {
@@ -176,7 +170,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this.maxCurrentLineCount = this.maxCurrentTriangleCount = 100;
@@ -189,7 +182,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -201,7 +193,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -216,7 +207,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     if (this._destroyed) return false;
@@ -297,7 +287,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @implemented
    */
 
-  @meta.implemented
   GetBatchesImpl(accumulator, perObjectData, effect, reason)
   {
     if (!this._vertexBuffer.IsValid()) return;

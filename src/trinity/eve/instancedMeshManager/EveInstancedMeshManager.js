@@ -326,7 +326,6 @@ export class EveInstancedMeshManager
    *   counterpart and are omitted.
    * @param {EveComponentRegistry} registry The scene's component registry.
    */
-  @meta.adapted
   CollectMeshes(registry)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -382,7 +381,6 @@ export class EveInstancedMeshManager
    * @param {RawData} data The provider's EveSpacePerObjectData record, read in place each frame.
    * @returns {EveInstancedMeshManagerDataHandle} The PerObjectDataHandle.
    */
-  @meta.adapted
   AddPerObjectData(data)
   {
     const handle = new EveInstancedMeshManagerDataHandle();
@@ -407,7 +405,6 @@ export class EveInstancedMeshManager
    * @implemented
    * @param {EveInstancedMeshManagerDataHandle} handle A valid PerObjectDataHandle.
    */
-  @meta.implemented
   RemovePerObjectData(handle)
   {
     const oldPerObjectDataIndex = this._perObjectData[this._perObjectData.length - 1][1].index;
@@ -449,7 +446,6 @@ export class EveInstancedMeshManager
    * @param {number} count The number of spheres.
    * @returns {EveInstancedMeshManagerDataHandle} The BoundingSphereHandle.
    */
-  @meta.adapted
   AddBoundingSphereGroup(bounds, flags, boundingSpheres, count)
   {
     const handle = new EveInstancedMeshManagerDataHandle();
@@ -478,7 +474,6 @@ export class EveInstancedMeshManager
    * @implemented
    * @param {EveInstancedMeshManagerDataHandle} handle The BoundingSphereHandle.
    */
-  @meta.implemented
   RemoveBoundingSphereGroup(handle)
   {
     if (handle.IsValid())
@@ -519,7 +514,6 @@ export class EveInstancedMeshManager
    * @param {{center: vec3, radius: number}} bounds The group's enclosing sphere, copied.
    * @param {EveInstancedMeshManagerInstanceFlags} flags The group's flags, copied.
    */
-  @meta.implemented
   SetSphereGroupBounds(handle, bounds, flags)
   {
     const group = this._sphereGroups[handle.index];
@@ -539,7 +533,6 @@ export class EveInstancedMeshManager
    * @notSupported
    * @throws {TypeError} Always.
    */
-  @meta.notSupported
   AddMeshGroup()
   {
     throw new TypeError("EveInstancedMeshManager.AddMeshGroup cannot tell its overloads apart in JavaScript; call AddMeshGroup__DynamicPerInstanceData or AddMeshGroup__StaticPerInstanceData.");
@@ -573,7 +566,6 @@ export class EveInstancedMeshManager
    * @param {number} pickingOwnerIndex
    * @returns {EveInstancedMeshManagerDataHandle} The MeshGroupHandle.
    */
-  @meta.adapted
   AddMeshGroup__DynamicPerInstanceData(geometry, combinedVertexDeclaration, batchType, meshIndex, areaIndex, areaCount, material, materialHash, perObjectDataHandle, sphereHandle, perInstanceData, count, pickingOwner, pickingOwnerIndex)
   {
     const handle = new EveInstancedMeshManagerDataHandle();
@@ -653,7 +645,6 @@ export class EveInstancedMeshManager
    * @param {number} pickingOwnerIndex
    * @returns {EveInstancedMeshManagerDataHandle} The MeshGroupHandle.
    */
-  @meta.adapted
   AddMeshGroup__StaticPerInstanceData(geometry, combinedVertexDeclaration, batchType, meshIndex, areaIndex, areaCount, areaReversed, material, materialHash, perObjectDataHandle, sphereHandle, perInstanceData, count, pickingOwner, pickingOwnerIndex)
   {
     const handle = new EveInstancedMeshManagerDataHandle();
@@ -720,7 +711,6 @@ export class EveInstancedMeshManager
    * @implemented
    * @param {EveInstancedMeshManagerDataHandle} handle The MeshGroupHandle.
    */
-  @meta.implemented
   RemoveMeshGroup(handle)
   {
     if (handle.IsValid())
@@ -759,7 +749,6 @@ export class EveInstancedMeshManager
    * @param {boolean} isDynamic Which buffer and element layout.
    * @returns {EveInstancedMeshManagerInstanceBufferAllocation}
    */
-  @meta.implemented
   _AllocateInstanceData(count, isDynamic)
   {
     if (isDynamic)
@@ -783,7 +772,6 @@ export class EveInstancedMeshManager
    * @param {number} [reason] A Tr2RenderReason value; Carbon's default is TR2RENDERREASON_NORMAL.
    * @returns {number} The number of batches committed.
    */
-  @meta.implemented
   GetBatches(cameraFrustum, invLodFactor, batches, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     const filter = new EveInstancedMeshManagerInstanceFlags();
@@ -813,7 +801,6 @@ export class EveInstancedMeshManager
    * @param {number} [reason] A Tr2RenderReason value; Carbon's default is TR2RENDERREASON_NORMAL.
    * @returns {number} The number of batches committed.
    */
-  @meta.implemented
   GetShadowBatches(cameraFrustum, shadowFrustum, invLodFactor, batches, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     const filter = new EveInstancedMeshManagerInstanceFlags();
@@ -843,7 +830,6 @@ export class EveInstancedMeshManager
    * @param {number} invLodFactor
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches `[batchType, accumulator]` pairs, Carbon's vector.
    */
-  @meta.implemented
   GetPickingBatches(readback, viewFrustum, pickingFrustum, invLodFactor, batches)
   {
     const filter = new EveInstancedMeshManagerInstanceFlags();
@@ -865,7 +851,6 @@ export class EveInstancedMeshManager
    *   densities passes an empty list, as Tr2MeshBase does, which the material
    *   reads as "no LOD data".
    */
-  @meta.adapted
   ReportUsedScreenSizes()
   {
     for (const [ mesh, meshInfo ] of this._meshInstances.values())
@@ -897,7 +882,6 @@ export class EveInstancedMeshManager
    * @param {number} invLodFactor
    * @param {EveInstancedMeshManagerInstanceFlags} filter
    */
-  @meta.implemented
   _PerformFrustumCulling(cameraFrustum, invLodFactor, filter)
   {
     for (const group of this._sphereGroups)
@@ -950,7 +934,6 @@ export class EveInstancedMeshManager
    * @param {number} invLodFactor
    * @param {EveInstancedMeshManagerInstanceFlags} filter
    */
-  @meta.implemented
   _PerformFrustumCulling__PickingFrustum(cameraFrustum, pickingFrustum, invLodFactor, filter)
   {
     for (const group of this._sphereGroups)
@@ -1005,7 +988,6 @@ export class EveInstancedMeshManager
    * @param {number} invLodFactor
    * @param {EveInstancedMeshManagerInstanceFlags} filter
    */
-  @meta.implemented
   _PerformFrustumCulling__ShadowFrustum(cameraFrustum, shadowFrustum, invLodFactor, filter)
   {
     const packed = PACKED_SPHERE_SCRATCH;
@@ -1065,7 +1047,6 @@ export class EveInstancedMeshManager
    * @notSupported
    * @throws {TypeError} Always.
    */
-  @meta.notSupported
   _BinVisibleInstances()
   {
     throw new TypeError("EveInstancedMeshManager._BinVisibleInstances cannot tell its overloads apart in JavaScript; call _BinVisibleInstances__Batches, _BinVisibleInstances__MeshInfo or _BinVisibleInstances__Group.");
@@ -1080,7 +1061,6 @@ export class EveInstancedMeshManager
    * @param {EveInstancedMeshManagerMeshData} meshInfo
    * @returns {[number, number]} The binned instance count and the largest screen size seen.
    */
-  @meta.adapted
   _BinVisibleInstances__MeshInfo(mesh, meshInfo)
   {
     for (const lodIndices of meshInfo.lodIndices)
@@ -1113,7 +1093,6 @@ export class EveInstancedMeshManager
    * @param {EveInstancedMeshManagerMeshGroup} group
    * @returns {[number, number]} The binned instance count and the largest screen size seen.
    */
-  @meta.adapted
   _BinVisibleInstances__Group(mesh, meshInfo, group)
   {
     let totalCount = 0;
@@ -1147,7 +1126,6 @@ export class EveInstancedMeshManager
    * @implemented
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches
    */
-  @meta.implemented
   _BinVisibleInstances__Batches(batches)
   {
     for (const [ mesh, meshInfo ] of this._meshInstances.values())
@@ -1178,7 +1156,6 @@ export class EveInstancedMeshManager
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches
    * @returns {number} The number of batches committed.
    */
-  @meta.adapted
   _GetBatches(batches)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1278,7 +1255,6 @@ export class EveInstancedMeshManager
    * @param {EvePendingPickingReadback} readback
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches
    */
-  @meta.adapted
   _GetPickingBatches(readback, batches)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1364,7 +1340,6 @@ export class EveInstancedMeshManager
    * @param {number} lod A lodIndices slot.
    * @param {EveInstancedMeshManagerInstanceBufferAllocation} allocation Advanced in place.
    */
-  @meta.adapted
   _UploadLodData(mesh, meshInfo, lod, allocation)
   {
     if (allocation.data === null)
@@ -1429,7 +1404,6 @@ export class EveInstancedMeshManager
    * @param {number} screenSize
    * @returns {number} The LOD index.
    */
-  @meta.implemented
   static _GetMeshLod(meshInfo, screenSize)
   {
     const lodCount = meshInfo.screenSizeThresholds.length;

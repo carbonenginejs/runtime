@@ -13,7 +13,6 @@ export class Tr2Event
    *
    * @adapted
    */
-  @meta.adapted
   RegisterListener(owner, method)
   {
     if (this.inBroadcast) throw new Error("Trying to register a listener while broadcasting an event");
@@ -25,7 +24,6 @@ export class Tr2Event
    *
    * @adapted
    */
-  @meta.adapted
   UnregisterListener(owner, method)
   {
     if (this.inBroadcast) throw new Error("Trying to unregister a listener while broadcasting an event");
@@ -40,7 +38,6 @@ export class Tr2Event
    *
    * @adapted
    */
-  @meta.adapted
   Broadcast(...args)
   {
     this.inBroadcast = true;
@@ -57,7 +54,6 @@ export class Tr2Event
    *
    * @adapted
    */
-  @meta.adapted
   static methodWrapper(owner, method, ...args)
   {
     return method.apply(owner, args);
@@ -68,7 +64,6 @@ export class Tr2Event
    *
    * @adapted
    */
-  @meta.adapted
   static constMethodWrapper(owner, method, ...args)
   {
     return method.apply(owner, args);
@@ -79,7 +74,6 @@ export class Tr2Event
    *
    * @adapted
    */
-  @meta.adapted
   Register(owner, callback)
   {
     if (this.listeners.some(entry => entry.owner.deref() === owner && entry.callback === callback))
@@ -92,7 +86,6 @@ export class Tr2Event
    *
    * @implemented
    */
-  @meta.implemented
   Unregister(owner, callback)
   {
     const index = this.listeners.findIndex(entry => entry.owner.deref() === owner && entry.callback === callback);

@@ -22,6 +22,7 @@ import {
   EveUpdateContext,
   Tr2Renderer
 } from "../../npm/dist/trinity/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 const EPSILON = 1e-4;
@@ -320,7 +321,7 @@ test("camera-dependent modifiers are Carbon methods with no contextual marker", 
     const method = CjsSchema.getMethod(Modifier, "ApplyTransform");
     assert.equal(method.carbon.method, true, `${Modifier.name} carbon.method`);
     assert.notEqual(method.carbon.contextual, true, `${Modifier.name} contextual`);
-    assert.equal(method.impl.status, "implemented", `${Modifier.name} status`);
+    assert.equal(MarkerTag(CjsSchema.getClassName(Modifier), "ApplyTransform"), "implemented", `${Modifier.name} status`);
   }
 });
 

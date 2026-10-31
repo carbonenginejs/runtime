@@ -11,7 +11,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 // RenderDebugInfo scratch (debug drawing is single-threaded).
@@ -109,7 +109,6 @@ export class EveEllipsoidVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.Setup();
@@ -124,7 +123,6 @@ export class EveEllipsoidVolume extends IEveVolume
    * @returns {{center: vec3, radius: number}}
    */
 
-  @meta.implemented
   GetBoundingSphere()
   {
     return {
@@ -154,7 +152,6 @@ export class EveEllipsoidVolume extends IEveVolume
    * @returns {number} The intensity.
    */
 
-  @meta.implemented
   GetIntensity(position)
   {
     const f = Math.fround;
@@ -195,7 +192,6 @@ export class EveEllipsoidVolume extends IEveVolume
    * @param excludeInnerVolume Keeps every point in the shell between the inner and outer shapes.
    */
 
-  @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
     const count = Math.max(0, Math.trunc(howManyToAdd));
@@ -250,7 +246,6 @@ export class EveEllipsoidVolume extends IEveVolume
    * @adapted
    */
 
-  @meta.adapted
   RegisterForChanges(callback)
   {
     const id = this._nextCallbackId++;
@@ -264,7 +259,6 @@ export class EveEllipsoidVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   UnregisterForChanges(callbackId)
   {
     this._callbacks.delete(callbackId);
@@ -277,7 +271,6 @@ export class EveEllipsoidVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   OnModified()
   {
     this.Setup();
@@ -303,7 +296,6 @@ export class EveEllipsoidVolume extends IEveVolume
    * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentTransform, baseColor = DEFAULT_BASE_COLOR)
   {
     color.copy(DEBUG_BASE_COLOR, baseColor);
@@ -347,7 +339,6 @@ export class EveEllipsoidVolume extends IEveVolume
    * @implemented
    */
 
-  @meta.implemented
   Setup()
   {
     // XMVectorMax( 0, m_shape ) and XMVectorMax( 0, XMVectorMin( m_innerShape, m_shape ) ) are

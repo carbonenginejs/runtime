@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { EveProceduralMethodCyclingParameter } from "./EveProceduralMethodCyclingParameter.js";
 import { blue, CcpTime } from "#blue";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
@@ -64,7 +64,6 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   restart()
   {
     const count = this.parameters.length;
@@ -99,7 +98,6 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     return true;
@@ -112,7 +110,6 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list === this.parameters && (event & BELIST_LOADING) === 0)
@@ -128,7 +125,6 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   IsSelectedChildModified()
   {
     return this._selectedChildModified;
@@ -143,7 +139,6 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetSelectedChild()
   {
     if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
@@ -175,7 +170,6 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
     if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
@@ -202,7 +196,6 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetDebugVolumes()
   {
     return this.debugVolumes;

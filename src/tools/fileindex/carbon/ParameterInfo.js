@@ -7,7 +7,7 @@
 // (VersionedParameter::IsParameterExpectedInDocumentVersion,
 // ResourceInfo.h:37-40). Ported as the same table, so a version gate is data,
 // not a condition written out by hand at each field.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { ParameterContext } from "./ParameterContext.js";
 import { VersionInternal } from "./VersionInternal.js";
 
@@ -181,7 +181,4 @@ const PARAMETERS = new Map([
 CjsSchema.decorateField(ParameterInfo, "id", type.int32, type.enum(Parameter));
 CjsSchema.decorateField(ParameterInfo, "tag", type.string);
 CjsSchema.decorateField(ParameterInfo, "isOptional", type.boolean);
-meta.adapted(ParameterInfo, "getParameterInfo");
-meta.adapted(ParameterInfo, "isParameterExpected");
-meta.adapted(ParameterInfo, "isParameterRequired");
 CjsSchema.meta.carbon("ParameterInfo")(ParameterInfo);

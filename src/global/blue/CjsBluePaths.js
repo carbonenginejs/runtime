@@ -35,7 +35,7 @@
 // service asks for a form both sides share, or one a cheap bridge turns into
 // an accepted one: bytes to text and back, a stream to bytes or text. No
 // shared or bridgeable form is an error, never a guess.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { normalizeResPath } from "#utils/path";
 import { BlueFileUtil } from "./BlueFileUtil.js";
 import { IBluePaths } from "./IBluePaths.js";
@@ -440,16 +440,11 @@ export class CjsBluePaths extends IBluePaths
 }
 
 CjsSchema.exposure.mapInterface(IBluePaths)(CjsBluePaths);
-CjsSchema.decorateMethod(CjsBluePaths, "RegisterFileSystem", meta.adapted);
-CjsSchema.decorateMethod(CjsBluePaths, "UnregisterFileSystem", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBluePaths, "IsFileSystemRegistered", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBluePaths, "GetDirectoryContents", meta.implemented);
-CjsSchema.decorateMethod(CjsBluePaths, "Filter", meta.cjs, meta.implemented);
-CjsSchema.decorateMethod(CjsBluePaths, "IsDirectory", blue.method, meta.implemented);
-CjsSchema.decorateMethod(CjsBluePaths, "FileExists", blue.method, meta.implemented);
-CjsSchema.decorateMethod(CjsBluePaths, "FileExistsLocally", blue.method, meta.implemented);
-CjsSchema.decorateMethod(CjsBluePaths, "FileNeedsDownload", meta.implemented);
-CjsSchema.decorateMethod(CjsBluePaths, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"), meta.adapted);
+CjsSchema.decorateMethod(CjsBluePaths, "UnregisterFileSystem", blue.method);
+CjsSchema.decorateMethod(CjsBluePaths, "IsFileSystemRegistered", blue.method);
+CjsSchema.decorateMethod(CjsBluePaths, "IsDirectory", blue.method);
+CjsSchema.decorateMethod(CjsBluePaths, "FileExists", blue.method);
+CjsSchema.decorateMethod(CjsBluePaths, "FileExistsLocally", blue.method);
 CjsSchema.blue.define(CjsBluePaths, {
   className: "CjsBluePaths",
   members: [ { name: "cacheFileExistance", key: "_cacheFileExistance", type: { kind: "boolean" }, edit: { read: true, write: true }, carbon: { member: true } } ]

@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -74,7 +74,6 @@ export class Inertia extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -87,7 +86,6 @@ export class Inertia extends IRoot
    *   agent, so any non-zero value means 'has scratch'.
    */
 
-  @meta.adapted
   GetScratchMemorySize()
   {
     return 1;
@@ -100,7 +98,6 @@ export class Inertia extends IRoot
    *   record instead.
    */
 
-  @meta.adapted
   InitializeScratch()
   {
     return {
@@ -126,7 +123,6 @@ export class Inertia extends IRoot
    * @returns {Array} debug forces when group.collectForces is on
    */
 
-  @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -200,7 +196,6 @@ export class Inertia extends IRoot
    * @param {mat4} _parentWorldLocation
    */
 
-  @meta.implemented
   RenderDebugInfo(_renderer, _agents, _parentWorldLocation)
   {
   }

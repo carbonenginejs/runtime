@@ -35,7 +35,6 @@ export class BlurContext
    *
    * @implemented
    */
-  @meta.implemented
   Hash()
   {
     return this.finalize * 1000 + this.process * 100 + this.type * 10 + this.channel;

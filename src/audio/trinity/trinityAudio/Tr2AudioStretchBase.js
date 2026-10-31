@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Audio/Tr2AudioStretchBase.h
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchBase.json.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2Audio } from "../trinityAudioApi/ITr2Audio.js";
@@ -53,7 +53,6 @@ export class Tr2AudioStretchBase
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (!this.sourceEmitter)
@@ -83,7 +82,6 @@ export class Tr2AudioStretchBase
    *   Tr2AudioStretchBase.cpp:38-62.
    */
 
-  @meta.adapted
   Update(sourcePosition, destPosition)
   {
     StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this._front, this._top);
@@ -106,7 +104,6 @@ export class Tr2AudioStretchBase
    * @returns {ITr2AudEmitter|null} Matching emitter, or null.
    */
 
-  @meta.implemented
   FindEmitterByName(name)
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
@@ -125,7 +122,6 @@ export class Tr2AudioStretchBase
    * @implemented
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
@@ -141,7 +137,6 @@ export class Tr2AudioStretchBase
    * @implemented
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])

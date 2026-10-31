@@ -222,12 +222,12 @@ test("Tr2TexturePipeline exposes its FromScript members under Carbon's names (Tr
   const dependencies = CjsSchema.getMethod(Tr2TexturePipeline, "GetResourceDependenciesFromScript");
   assert.equal(dependencies.exposure.macro, "MAP_METHOD_AND_WRAP");
   assert.equal(dependencies.exposure.name, "GetResourceDependencies");
-  assert.equal(dependencies.impl.status, "adapted");
+  assert.equal(MarkerTag("Tr2TexturePipeline", dependencies.name), "adapted");
 
   const execute = CjsSchema.getMethod(Tr2TexturePipeline, "ExecuteFromScript");
   assert.equal(execute.exposure.macro, "MAP_METHOD_AND_WRAP_OPTIONAL_ARGS");
   assert.equal(execute.exposure.name, "Execute");
-  assert.equal(execute.impl.status, "adapted");
+  assert.equal(MarkerTag("Tr2TexturePipeline", execute.name), "adapted");
   // It reads files, so it is asynchronous; no file system is installed here, so the first
   // dependency (res:/a.png, sorted before res:/z.png) cannot be opened.
   const executing = pipeline.ExecuteFromScript(0, 0);

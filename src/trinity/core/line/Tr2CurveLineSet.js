@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Tr2CurveLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2Pickable } from "../ITr2Pickable.js";
 import { INotify, IsMatch } from "#blue";
 import { color } from "#math/color";
@@ -183,7 +183,6 @@ export class Tr2CurveLineSet
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -195,7 +194,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -208,7 +206,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
@@ -235,7 +232,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   OnModified(name)
   {
     if (IsMatch(name, "lineWidthFactor")) this.FillVertexBuffer();
@@ -248,7 +244,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetNumOfLines()
   {
     let count = 0;
@@ -328,7 +323,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   AddCurvedLineCrt(position1, color1, position2, color2, middle, width, segments = 20)
   {
     return this.#addLineData(this.#createLine(
@@ -349,7 +343,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddCurvedLineSph(position1, color1, position2, color2, center, middle, width)
   {
     return this.AddCurvedLineCrt(
@@ -368,7 +361,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddSpheredLineCrt(position1, color1, position2, color2, center, width)
   {
     return this.#addLineData(this.#createLine(
@@ -389,7 +381,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddSpheredLineSph(position1, color1, position2, color2, center, width)
   {
     return this.AddSpheredLineCrt(
@@ -408,7 +399,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddStraightLine(position1, color1, position2, color2, width)
   {
     return this.#addLineData(this.#createLine(
@@ -429,7 +419,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ChangeLineIntermediateSph(id, intermediatePosition, center)
   {
     this.ChangeLineIntermediateCrt(id, sphericalToCartesian(intermediatePosition, center));
@@ -441,7 +430,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ChangeLineIntermediateCrt(id, intermediatePosition)
   {
     if (this.#isValidLineID(id))
@@ -456,7 +444,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ChangeLinePositionSph(id, position1, position2, center)
   {
     this.ChangeLinePositionCrt(id, sphericalToCartesian(position1, center), sphericalToCartesian(position2, center));
@@ -468,7 +455,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ChangeLinePositionCrt(id, position1, position2)
   {
     if (this.#isValidLineID(id))
@@ -484,7 +470,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ChangeLineAnimation(id, color, speed, scale)
   {
     if (this.#isValidLineID(id))
@@ -501,7 +486,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ChangeLineMultiColor(id, color, border)
   {
     if (this.#isValidLineID(id))
@@ -517,7 +501,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ChangeLineSegmentation(id, numOfSegments)
   {
     if (this.#isValidLineID(id) && this.lines[id].type !== Tr2CurveLineSet.LineType.LINETYPE_STRAIGHT)
@@ -532,7 +515,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ChangeLineColor(id, color1, color2)
   {
     if (this.#isValidLineID(id))
@@ -548,7 +530,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ChangeLineWidth(id, width)
   {
     if (this.#isValidLineID(id))
@@ -563,7 +544,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearLines()
   {
     this.lines.length = 0;
@@ -576,7 +556,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RemoveLine(id)
   {
     if (this.#isValidLineID(id))
@@ -592,7 +571,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SubmitChanges()
   {
     this.FillVertexBuffer();
@@ -609,7 +587,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
 
-  @meta.adapted
   FillVertexBuffer()
   {
     this.currentSubmittedLineCount = 0;
@@ -740,7 +717,6 @@ export class Tr2CurveLineSet
    *
    * @adapted
    */
-  @meta.adapted
   WriteLineVerticesToBuffer(pos1, col1, length1, pos2, col2, length2, posPrev, posNext, lineID, buffer, offset = 0)
   {
     const line = this.lines[lineID], width = this.lineWidthFactor * line.width;
@@ -777,7 +753,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
 
-  @meta.adapted
   WriteParticleVerticesToBuffer(pos1, col1, length1, pos2, col2, length2, lineID, buffer, offset = 0)
   {
     const line = this.lines[lineID], width = this.lineWidthFactor * line.width;
@@ -811,7 +786,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -823,7 +797,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
     if (!this.display) return;
@@ -846,7 +819,6 @@ export class Tr2CurveLineSet
    * @adapted
    */
 
-  @meta.adapted
   GetBatchImpl(accumulator, perObjectData, effect)
   {
     if (!effect || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
@@ -872,7 +844,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   SetLineEffect(effect)
   {
     this.lineEffect = effect;
@@ -884,7 +855,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   SetPickEffect(effect)
   {
     this.pickEffect = effect;
@@ -896,7 +866,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const { vec3_11 } = Tr2CurveLineSet.scratch;
@@ -917,7 +886,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(_accumulator)
   {
     return null;
@@ -929,7 +897,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetID(_areaId)
   {
     return this;
@@ -941,7 +908,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
     if (pickTypes & Tr2PickType.PICK_TYPE_PICKING)
@@ -965,7 +931,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   SetAdditiveFlag(value)
   {
     this.additive = !!value;
@@ -977,7 +942,6 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  @meta.implemented
   SetDynamicFlag(value)
   {
     this.dynamic = !!value;

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ElementBlendConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
@@ -52,7 +52,6 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
    * @implemented
    */
 
-  @meta.implemented
   Bind(particleSystem)
   {
     this.#element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
@@ -68,7 +67,6 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
    * @implemented
    */
 
-  @meta.implemented
   ApplyConstraint(_arguments, buffers, strides, count, _dt)
   {
     if (!this.isValid || !this.#element)

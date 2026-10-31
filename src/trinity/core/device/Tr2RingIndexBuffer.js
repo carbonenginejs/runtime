@@ -21,7 +21,6 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   Create(numberOfIndices, indexSize)
   {
     this.ReleaseResources();
@@ -36,7 +35,6 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  @meta.implemented
   CreateBuffer(size)
   {
     this._buffer?.Destroy();

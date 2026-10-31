@@ -19,7 +19,7 @@
 //   The stub is not a memory model: the map path is what carries data. A caller
 //   that needs the write to land must map for writing.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -322,19 +322,4 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
 CjsSchema.decorateField(Tr2BufferALStub, "_desc", type.rawStruct("Tr2BufferDescriptionAL"));
 CjsSchema.decorateField(Tr2BufferALStub, "_buffer", type.uint8Array);
 // States against stub/Tr2BufferALStub.cpp:22-171 and .h:21-24. The three Map methods are adapted: the pointer out-parameter comes back with the result as { result, data }, and the ranged read returns the sub-range where Carbon returns the start of the whole buffer.
-CjsSchema.decorateMethod(Tr2BufferALStub, "Create", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "GetDesc", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "MapForReading", meta.adapted);
-CjsSchema.decorateMethod(Tr2BufferALStub, "MapForReading__OffsetSize", meta.adapted);
-CjsSchema.decorateMethod(Tr2BufferALStub, "UnmapForReading", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "MapForWriting", meta.adapted);
-CjsSchema.decorateMethod(Tr2BufferALStub, "UnmapForWriting", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "UpdateBuffer", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "GetSrvIndexInHeap", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "GetUavIndexInHeap", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2BufferALStub")(Tr2BufferALStub);

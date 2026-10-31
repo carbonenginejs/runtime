@@ -15,7 +15,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { IInitialize } from "#blue/IInitialize";
 import { IListNotify } from "#blue/IListNotify";
 import { INotify } from "#blue/INotify";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { BlueList } from "#blue/BlueList";
 import { AudParameter } from "./AudParameter.js";
 import { quat } from "#math/quat";
@@ -256,7 +256,6 @@ export class AudGameObjResource
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   Initialize()
   {
     this.RegisterWwiseObject();
@@ -279,7 +278,6 @@ export class AudGameObjResource
    * @param {string} prefix Event prefix.
    * @param {ArrayLike<number>} position World position.
    */
-  @meta.adapted
 
   Initialize__WithParameters(name, prefix, position)
   {
@@ -295,7 +293,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   PostEvent(eventName, bypassPrefix = false, additionalFlags = 0)
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -381,7 +378,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   StopEvent(eventName, fadeOutDuration = 1000)
   {
     const fullEventName = PrepareEvent(this.eventPrefix, eventName, false);
@@ -403,7 +399,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StopSound(playingID, fadeOutDuration = 1000)
   {
     if (AudGameObjResource.manager?.enabled)
@@ -419,7 +414,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   BreakSound(playingID, fadeOutDuration = 1000)
   {
     if (AudGameObjResource.manager?.enabled)
@@ -435,7 +429,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SeekOnEventPercent(playingID, percentToSeek)
   {
     if (!AudGameObjResource.manager?.enabled || !this._playingEvents.has(playingID))
@@ -451,7 +444,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SeekOnEventMs(playingID, msToSeek)
   {
     if (!AudGameObjResource.manager?.enabled || !this._playingEvents.has(playingID))
@@ -467,7 +459,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StopAll()
   {
     if (AudGameObjResource.manager?.enabled)
@@ -485,7 +476,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   ExecuteActionOnPlayingID(playingID, action, fadeOutDuration = 1000)
   {
     if (!AudGameObjResource.manager?.enabled || !this._playingEvents.has(playingID))
@@ -504,7 +494,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   MarkPlayingIDStoppedByRequest(playingID)
   {
     const playing = this._playingEvents.get(playingID);
@@ -522,7 +511,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   EventFinishedCallback(playingID)
   {
     this._pendingStoppedPlayingIDs.delete(playingID);
@@ -536,7 +524,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetRTPC(rtpcName, rtpcValue)
   {
     this._rtpcValues.set(String(rtpcName), Number(rtpcValue));
@@ -562,7 +549,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetSwitch(switchGroup, switchState)
   {
     this._switchValues.set(String(switchGroup), String(switchState));
@@ -588,7 +574,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Wake()
   {
     if (!AudGameObjResource.manager?.enabled || this.forceCullingState || this._muted || !this._hasReceivedPosition)
@@ -635,7 +620,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Cull()
   {
     if (!AudGameObjResource.manager?.enabled || this.forceCullingState)
@@ -671,7 +655,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   IsCulled()
   {
     return this._culled;
@@ -683,7 +666,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ForceCullingStateChange()
   {
     this.forceCullingState = false;
@@ -704,7 +686,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ReleaseForcedCullingState()
   {
     this.forceCullingState = false;
@@ -716,7 +697,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Mute()
   {
     if (this._muted)
@@ -739,7 +719,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Unmute()
   {
     if (!this._muted)
@@ -760,7 +739,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   IsMuted()
   {
     return this._muted;
@@ -773,7 +751,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   static Orthonormalize(outFront, outTop, front, top, normalizedTop, cross)
   {
     vec3.normalize(outFront, front);
@@ -790,7 +767,6 @@ export class AudGameObjResource
    *   headless graph stores the position.
    */
 
-  @meta.adapted
   SetPlacementFromParent(front, top, positionValue)
   {
     vec3.copy(this._parentFront, front);
@@ -806,7 +782,6 @@ export class AudGameObjResource
    *   owns the effective orientation buffers.
    */
 
-  @meta.adapted
   ApplyEffectivePlacement(front, top, positionValue)
   {
     AudGameObjResource.Orthonormalize(
@@ -849,7 +824,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   HasAuthoredRotation()
   {
     return this.rotation[0] !== 0
@@ -865,7 +839,6 @@ export class AudGameObjResource
    *   owned buffers to avoid placement-path allocations.
    */
 
-  @meta.adapted
   GetEffectiveOrientation()
   {
     if (!this.HasAuthoredRotation() || quat.squaredLength(this.rotation) <= 0)
@@ -887,7 +860,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   RefreshPlacementFromRotation()
   {
     const orientation = this.GetEffectiveOrientation();
@@ -900,7 +872,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetAttenuationScalingFactor(value)
   {
     if (AudGameObjResource.manager?.enabled && this._gameObjRegistered)
@@ -921,7 +892,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   SetEventName(eventName)
   {
     const changed = this.eventName !== eventName;
@@ -938,7 +908,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   GetEventName()
   {
     return this.eventName;
@@ -951,7 +920,6 @@ export class AudGameObjResource
    *   executes an installed authored program or falls back to the equivalent metadata stop.
    */
 
-  @meta.adapted
   ApplyEventStopRelationships(stoppingEventName)
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -1001,7 +969,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   RegisterWwiseObject()
   {
     if (AudGameObjResource.manager?.enabled && !this._gameObjRegistered)
@@ -1017,7 +984,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   UnregisterWwiseObject()
   {
     if (AudGameObjResource.manager && AudGameObjResource.manager.GetStateValue() !== 0 && this._gameObjRegistered)
@@ -1033,7 +999,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   UpdateMaxAttenuationRadiusForEvent(eventName)
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -1055,7 +1020,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   GetMaxAttenuationRadius()
   {
     return this._maxAttenuationRadiusSq * this.scalingFactor;
@@ -1068,7 +1032,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get maxAttenuationRadius()
   {
     return this.GetMaxAttenuationRadius();
@@ -1083,7 +1046,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   UpdateEventSoundPrioritizationAttributes()
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -1121,7 +1083,6 @@ export class AudGameObjResource
    *   radius as unknown/unbounded so optional metadata cannot make an event inaudible.
    */
 
-  @meta.adapted
   CalculateCullingWeight(now = NowMs())
   {
     const prioritization = AudGameObjResource.manager?.soundPrioritization;
@@ -1166,7 +1127,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   GetCullingWeight()
   {
     return this.cumulativeWeight;
@@ -1178,7 +1138,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   GetID()
   {
     return this.ID;
@@ -1190,7 +1149,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   GetPosition()
   {
     return this.position;
@@ -1202,7 +1160,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   GetFront()
   {
     return this._effectiveFront;
@@ -1214,7 +1171,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   GetTop()
   {
     return this._effectiveTop;
@@ -1226,7 +1182,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   SetDistanceSqFromListener(distanceSq)
   {
     this.distanceFromListener = distanceSq;
@@ -1238,7 +1193,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetPlayingEvents()
   {
     return new Map(this._playingEvents);
@@ -1250,7 +1204,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetSwitches()
   {
     return this._switchValues;
@@ -1287,7 +1240,6 @@ export class AudGameObjResource
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasUsableWorldPosition()
   {
     return IsUsableWorldPosition(this.position);
@@ -1299,7 +1251,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "rotation"))
@@ -1321,7 +1272,6 @@ export class AudGameObjResource
    *   SetGameObjectID seam.
    */
 
-  @meta.adapted
   OnListModified(event, _key, _key2, value, list = this.parameters)
   {
     if (!(event & BLUELISTEVENT.BELIST_LOADING) && list === this.parameters
@@ -1340,7 +1290,6 @@ export class AudGameObjResource
    * @implemented
    */
 
-  @meta.implemented
   PrepareEvent(event, bypassPrefix = false)
   {
     return PrepareEvent(this.eventPrefix, event, bypassPrefix);

@@ -5,7 +5,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Formation } from "./Formation.js";
 import { SplineTunnelGroup } from "./tunnels/SplineTunnelGroup.js";
 import { mat4 } from "#math/mat4";
@@ -114,7 +114,6 @@ export class FollowASpline extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -126,7 +125,6 @@ export class FollowASpline extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this.UpdateTunnelRegistry();
@@ -143,7 +141,6 @@ export class FollowASpline extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key, _key2, value, theList)
   {
     if (theList !== this.splineTunnels) return;
@@ -166,7 +163,6 @@ export class FollowASpline extends IRoot
    *   value means 'has scratch'.
    */
 
-  @meta.adapted
   GetScratchMemorySize()
   {
     return 1;
@@ -178,7 +174,6 @@ export class FollowASpline extends IRoot
    * @adapted Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
    */
 
-  @meta.adapted
   InitializeScratch()
   {
     return {
@@ -192,7 +187,8 @@ export class FollowASpline extends IRoot
    * their tunnel points, and replays cached pull forces on skip frames
    * (Carbon CalculateBehavior, cpp:201-293).
    *
-   * @adapted
+   * @adapted Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop
+   *   allocation-free.
    * @param {Array} agents - DroneAgent records
    * @param {Array} scratchData - per-agent FollowASplineData records
    * @param {Number} _deltaTime
@@ -200,12 +196,8 @@ export class FollowASpline extends IRoot
    * @param {Object} system - owning EveChildBehaviorSystem
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
-   *
-   * Adapted: Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop
-   * allocation-free.
    */
 
-  @meta.adapted
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -336,7 +328,6 @@ export class FollowASpline extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap("remapTunnels")
-  @meta.implemented
   UpdateTunnelRegistry()
   {
     this.privateTunnels.length = 0;
@@ -352,7 +343,6 @@ export class FollowASpline extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   remapTunnels()
   {
     this.UpdateTunnelRegistry();
@@ -593,7 +583,6 @@ export class FollowASpline extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("SplineTunnels");
@@ -611,7 +600,6 @@ export class FollowASpline extends IRoot
    * @param {mat4} parentWorldLocation Places the target points in world space.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     if (renderer.HasOption(this, "SplineTunnels"))

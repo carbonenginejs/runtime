@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -70,7 +70,6 @@ export class EveChildSpherePin extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     super.UpdateAsyncronous(updateContext, params);
@@ -90,7 +89,6 @@ export class EveChildSpherePin extends EveChildMesh
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveChildSpherePinPerObjectData");

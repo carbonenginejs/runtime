@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPopViewport.h
 // Source: trinity/trinity/RenderJob/TriStepPopViewport.cpp
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -23,7 +23,6 @@ export class TriStepPopViewport extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     // The manager owns the viewport save stack (`TriStepPopViewport.cpp:9`).

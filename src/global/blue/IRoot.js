@@ -61,7 +61,7 @@ const { meta, blue } = CjsSchema;
 
 for (const name of ["ClassType", "QueryInterface", "GetRootObject"])
 {
-  CjsSchema.decorateMethod(IRoot, name, blue.method, meta.adapted);
+  CjsSchema.decorateMethod(IRoot, name, blue.method);
 }
 CjsSchema.blue.define(IRoot, { className: "IRoot", fields: {} });
 blue.interface()(IRoot);

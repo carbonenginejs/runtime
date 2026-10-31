@@ -3,6 +3,7 @@ import test from "node:test";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
 import { type } from "../../src/global/schema/index.js";
 import { blue } from "../../src/global/blue/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 class Effect
 {
@@ -107,7 +108,7 @@ test("counts and wrappers JavaScript does not keep are refused; pending deletes 
   for (const name of [ "LiveCount", "LockCount", "GetWrapperList", "LiveList" ])
   {
     assert.throws(() => blue.classes[name](), Error, name);
-    assert.equal(CjsSchema.getMethod(blue.classes.constructor, name).impl.status, name === "LiveList" ? "notUsed" : "notSupported");
+    assert.equal(MarkerTag("CjsBlueClasses", name), name === "LiveList" ? "notUsed" : "notSupported");
   }
   assert.equal(blue.classes.ProcessAllPendingDeletes(), undefined);
   assert.equal(CjsSchema.getMethod(blue.classes.constructor, "ProcessAllPendingDeletes").impl.status, "noop");

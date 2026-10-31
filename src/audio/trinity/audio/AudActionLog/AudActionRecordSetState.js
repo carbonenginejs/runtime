@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 // Source: audio/src/AudActionLog.h + AudActionLog.cpp
 // Hand-owned behavior port. Verify against audio/AudActionLogCB.json and the
 // AudActionRecord*.json schema documents.
@@ -39,5 +39,4 @@ export class AudActionRecordSetState extends AudActionRecord
 
 }
 
-CjsSchema.decorateMethod(AudActionRecordSetState, "ToPyObject", meta.adapted);
 CjsSchema.meta.carbon("AudActionRecordSetState")(AudActionRecordSetState);

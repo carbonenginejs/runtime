@@ -637,7 +637,7 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
     const row = CjsSchema.getMethod(TriGeometryRes, member);
     assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP", member);
     assert.equal(row.exposure.name, exposed, member);
-    assert.equal(row.impl.status, "adapted", member);
+    assert.equal(MarkerTag("TriGeometryRes", member), "adapted", member);
   }
   assert.deepEqual(
     geometry.GetIntersectionPointNormalBoneFromScript([ 0.25, 0.25, 1 ], [ 0, 0, -1 ]),

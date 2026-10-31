@@ -72,7 +72,6 @@ export class Tr2OcclusionBuffer
    * @adapted
    * @returns {number|null} The slot base, or null when none could be made.
    */
-  @meta.adapted
   AllocateOffset()
   {
     if (!this.free.length) this.ResizeBuffer();
@@ -93,7 +92,6 @@ export class Tr2OcclusionBuffer
    * @param {Tr2RenderContext} renderContext The context to dispatch on.
    * @returns {void}
    */
-  @meta.implemented
   ProcessBuffer(renderContext)
   {
     let success = true;
@@ -121,7 +119,6 @@ export class Tr2OcclusionBuffer
    * @param {number|null} offset A slot base from AllocateOffset.
    * @returns {void}
    */
-  @meta.adapted
   DestroyOffset(offset)
   {
     if (offset !== null && offset !== undefined) this.free.push(offset);
@@ -132,7 +129,6 @@ export class Tr2OcclusionBuffer
    *
    * @implemented
    */
-  @meta.implemented
   OnPrepareResources()
   {
     return true;
@@ -145,7 +141,6 @@ export class Tr2OcclusionBuffer
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
   ReleaseResources()
   {
     this.clear.length = 0;
@@ -166,7 +161,6 @@ export class Tr2OcclusionBuffer
    *   the context composes (renderContextAL.js) where Carbon's context IS the AL.
    * @returns {void}
    */
-  @meta.adapted
   ResizeBuffer()
   {
     const oldSize = this.size;
@@ -214,7 +208,6 @@ export class Tr2OcclusionBuffer
    *
    * @implemented
    */
-  @meta.implemented
   static getInstance()
   {
     Tr2OcclusionBuffer._instance ??= new Tr2OcclusionBuffer();
@@ -230,7 +223,6 @@ export class Tr2OcclusionBuffer
    * @param {number} index The occluder index, 0-3.
    * @returns {number} The element index.
    */
-  @meta.implemented
   static getOccluderOffset(offset, index)
   {
     return offset !== null && offset !== undefined ? offset + 5 + index * 2 : 0;

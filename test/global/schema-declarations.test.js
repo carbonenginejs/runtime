@@ -46,7 +46,9 @@ test("the public decorator surface has one namespace per vocabulary and preserve
     for (const name of ["define", "hideInherited"])
         assert.equal(Object.hasOwn(type, name), false, "class declaration is flat: " + name);
     // The target class-origin vocabulary coexists with the legacy Blue stamps.
-    for (const name of ["carbon", "interface", "inherit", "cjs", "notUsed"]) assert.equal(typeof meta[name], "function");
+    for (const name of ["carbon", "interface", "inherit", "notUsed"]) assert.equal(typeof meta[name], "function");
+    // Status-only markers are JSDoc tags (decorator-upgrade.md § 00, 2026-10-30).
+    for (const name of ["implemented", "adapted", "notImplemented", "notSupported", "renamed", "cjs"]) assert.equal(Object.hasOwn(meta, name), false, "tag, not decorator: " + name);
     assert.equal(Object.hasOwn(meta, "ours"), false);
     // Amendment 2026-10-17: the stored-member declaration is `attribute` (MAP_ATTRIBUTE).
     assert.equal(typeof meta.mapAttribute, "function");
@@ -71,7 +73,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
         set boosters(value) {}
     }
     applyStage3(metadata, "_boosters", "field", [ be.mapAttribute(be.PERSISTONLY, "boosters"), type.rootRef("Booster") ]);
-    applyStage3(metadata, "boosters", "getter", [ type.rootRef("Booster"), blue.property(), meta.implemented ]);
+    applyStage3(metadata, "boosters", "getter", [ type.rootRef("Booster"), blue.property(), meta.note("probe") ]);
     meta.define({ className: "DeclarationDecorated" })(Decorated, { kind: "class", metadata });
 
     class Explicit
@@ -83,7 +85,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
         className: "DeclarationExplicit",
         members: [ { name: "boosters", key: "_boosters", type: { kind: "rootRef", className: "Booster" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true }, exposure: { macro: "MAP_ATTRIBUTE", flags: 24 } } ],
         properties: {
-            boosters: [ type.rootRef("Booster"), blue.property(), meta.implemented ]
+            boosters: [ type.rootRef("Booster"), blue.property(), meta.note("probe") ]
         }
     });
     const decorated = CjsSchema.getSchema(Decorated);
@@ -131,16 +133,16 @@ test("imperative metadata and explicit fields infer accessors without evaluating
         set value(value) {}
     }
     const before = Object.getOwnPropertyDescriptor(Accessors.prototype, "value");
-    CjsSchema.decorateField(Accessors, "value", meta.implemented, type.float32);
+    CjsSchema.decorateField(Accessors, "value", meta.note("probe"), type.float32);
     CjsSchema.define(Accessors, { className: "DeclarationAccessors", fields: { value: blue.property() } });
     assert.equal(reads, 0);
     assert.deepEqual(Object.getOwnPropertyDescriptor(Accessors.prototype, "value"), before);
-    assert.equal(CjsSchema.getSchema(Accessors).properties[0].impl.status, "implemented");
+    assert.equal(CjsSchema.getSchema(Accessors).properties[0].impl.note, "probe");
     assert.equal(CjsSchema.getSchema(Accessors).members.length, 0);
 
     const metadata = {};
     class AutoAccessor {}
-    applyStage3(metadata, "value", "accessor", [ meta.implemented ]);
+    applyStage3(metadata, "value", "accessor", [ meta.note("probe") ]);
     meta.define({ className: "DeclarationAutoAccessor" })(AutoAccessor, { kind: "class", metadata });
     assert.equal(CjsSchema.getSchema(AutoAccessor).properties[0].role, "property");
 });

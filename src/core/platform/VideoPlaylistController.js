@@ -2,7 +2,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: videoplayer/python/videoplayer/playlistresource.py:24-165,231-254
 // One host-defined playlist owns one texture, player and colour sampler.
 import { IBlueDynamicResourceConstructor } from "#blue";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { TriTextureRes } from "../../trinity/resources/texture/TriTextureRes.js";
 import { State } from "../../resource/video/enums.js";
 import { ColorPrefix } from "../../trinity/resources/procedural/solidColorTexture.js";
@@ -199,8 +199,6 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
   }
 }
 
-CjsSchema.decorateMethod(VideoPlaylistController, "GetResource", meta.adapted);
-CjsSchema.decorateMethod(VideoPlaylistController, "Destruct", meta.adapted);
 CjsSchema.meta.define("VideoPlaylistController")(VideoPlaylistController);
 
 /**

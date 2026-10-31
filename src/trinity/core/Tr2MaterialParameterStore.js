@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2MaterialParameterStore.h
 // Source: trinity/trinity/Tr2MaterialParameterStore.cpp
 // Source: trinity/trinity/Tr2MaterialParameterStore_Blue.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IsMatch, blue, IInitialize, INotify, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 
@@ -63,7 +63,6 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @returns {boolean} True after starting or clearing the parent request.
    */
 
-  @meta.adapted
   Initialize()
   {
     this._LoadParentResource();
@@ -78,7 +77,6 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @returns {boolean} True after handling the notification.
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "parentPath")) this._LoadParentResource();
@@ -93,7 +91,6 @@ export class Tr2MaterialParameterStore extends IInitialize
    *   the parent empty and are logged. No resource-manager lifecycle is added.
    * @returns {Promise<Tr2MaterialParameterStore|null>} Accepted current parent.
    */
-  @meta.adapted
 
   async _LoadParentResource()
   {
@@ -134,7 +131,6 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @returns {object|null} First entry, including a local null shadow, or null.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   FindParameter(name)
   {
     let currentStore = this;

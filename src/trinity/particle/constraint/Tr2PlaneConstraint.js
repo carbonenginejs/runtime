@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 import { IsMatch, BlueList, IListNotify, INotify } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
@@ -121,7 +121,6 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.#normalizePlane();
@@ -138,7 +137,6 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "plane"))
@@ -154,7 +152,6 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    *
    * @implemented
    */
-  @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
     if (!(event & BLUELISTEVENT.BELIST_LOADING)
@@ -172,7 +169,6 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    * @adapted
    */
 
-  @meta.adapted
   Bind(particleSystem)
   {
     this.isValid = false;
@@ -204,7 +200,6 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    * @adapted
    */
 
-  @meta.adapted
   ApplyConstraint(arguments_, _buffers, _strides, count, _dt)
   {
     if (!this.isValid)
@@ -276,7 +271,6 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    * @param {box3} aabb The particle system's bounds, packed min/max.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, worldTransform, aabb)
   {
     if (!this.isValid)

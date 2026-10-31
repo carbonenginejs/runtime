@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { mat4 } from "#math/mat4";
 // Source: trinity/trinity/Tr2ConstantBufferFormats.h
 //   trinity/trinity/Tr2ConstantBufferFormats.cpp:40-66
@@ -47,7 +47,6 @@ export class Tr2ConstantBufferFormats
    * @param {RawData} data Native per-frame vertex block to fill.
    * @returns {void}
    */
-  @meta.adapted
   static tr2PopulatePerFrameVSDataTransformations(data)
   {
     const { mat4_0 } = Tr2ConstantBufferFormats.scratch;

@@ -24,7 +24,7 @@ test("a method mapped above a subclass lands in the subclass's own table, not th
 {
     const { Base, Sub, Other } = await load(`
       @meta.carbon("InhBase")
-      export class Base { @meta.implemented Rebuild() { return 1; } @meta.implemented Other() { return 2; } }
+      export class Base { @meta.note("probe") Rebuild() { return 1; } @meta.note("probe") Other() { return 2; } }
       @be.mapMethodAndWrap("Rebuild")
       @be.define("InhSub")
       export class Sub extends Base {}
@@ -33,7 +33,7 @@ test("a method mapped above a subclass lands in the subclass's own table, not th
     const row = CjsSchema.getMethod(Sub, "Rebuild");
     assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP");
     assert.equal(row.carbon.method, true);
-    assert.equal(row.impl.status, "implemented", "the inherited state is kept");
+    assert.equal(row.impl.note, "probe", "the inherited impl metadata is kept");
     assert.equal(CjsSchema.getMethod(Base, "Rebuild").exposure, undefined);
     assert.equal(CjsSchema.getMethod(Other, "Rebuild").exposure, undefined);
     assert.equal(new Sub().Rebuild(), 1, "no override is written");

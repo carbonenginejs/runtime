@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -69,7 +69,6 @@ export class EveCustomMask extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Setup(position, scaling, rotation, isMirrored, clampU, clampV, sourceMaterialID, targets)
   {
     vec3.copy(this.position, position || EveCustomMask._zero);
@@ -91,7 +90,6 @@ export class EveCustomMask extends IRoot
    * @returns {Array} out
    */
 
-  @meta.adapted
   GetDebugDrawMatrix(out, objectRadius = 0)
   {
     const radius = Number(objectRadius) || 0;
@@ -107,7 +105,6 @@ export class EveCustomMask extends IRoot
    * @returns {Boolean} false for an out-of-range slot, a missing struct, or a placement that cannot be inverted
    */
 
-  @meta.adapted
   FillPerObjectData(index, vsData, psData)
   {
     if (!EveCustomMask._isValidSlot(index) || !vsData || !psData)
@@ -145,7 +142,6 @@ export class EveCustomMask extends IRoot
    * @returns {Boolean} false for an out-of-range slot or a missing struct
    */
 
-  @meta.adapted
   static ZeroPerObjectData(index, vsData, psData)
   {
     if (!EveCustomMask._isValidSlot(index) || !vsData || !psData)

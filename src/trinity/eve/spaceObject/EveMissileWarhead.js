@@ -10,7 +10,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { EveTransform } from "./EveTransform.js";
 import { blue, CjsBlueClasses } from "#blue";
@@ -104,7 +104,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.spriteSet) this.spriteSet.RegisterWithQuadRenderer(quadRenderer);
@@ -116,7 +115,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (!this.startDataValid || this._state === EveMissileWarhead.State.STATE_DEAD) return;
@@ -131,7 +129,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   PrepareLaunch()
   {
     this._currentEjectVelocity = this.startEjectVelocity;
@@ -166,7 +163,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Launch(startTransform)
   {
     mat4.getRotation(this._startOrientation, startTransform);
@@ -185,7 +181,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateEndTransform(endTransform, switchLocators)
   {
     vec3.set(this._endOffset, endTransform[12], endTransform[13], endTransform[14]);
@@ -203,7 +198,6 @@ export class EveMissileWarhead extends EveTransform
    * @returns {number} The state-change event the missile must act on, or EVT_NONE.
    */
 
-  @meta.implemented
   UpdateState(deltaTime, estimatedTotalAliveTime, target)
   {
     this._bombFlightpath = !target;
@@ -268,7 +262,6 @@ export class EveMissileWarhead extends EveTransform
    * @returns {number} EVT_EXPLODE when the warhead detonated this frame, otherwise EVT_NONE.
    */
 
-  @meta.adapted
   CheckImpact(deltaTime, estimatedTotalAliveTime, target)
   {
     if (this._state !== EveMissileWarhead.State.STATE_TRACKING_FINAL || this.id < 0) return EveMissileWarhead.StateChangeEvent.EVT_NONE;
@@ -309,7 +302,6 @@ export class EveMissileWarhead extends EveTransform
    * @adapted Carbon's pointer-derived Perlin phase is replaced with a stable per-instance 12-bit sequence.
    */
 
-  @meta.adapted
   Update__UpdateContext(context)
   {
     const position = this._flyingTime * this.pathOffsetNoiseSpeed + this._noisePhase;
@@ -332,7 +324,6 @@ export class EveMissileWarhead extends EveTransform
    * @adapted Flight produces only the offset transform; visibility publishes world placement. Per-object data uses fresh CPU records instead of persistent native buffer invalidation.
    */
 
-  @meta.adapted
   UpdateWarhead(deltaTime, estimatedTotalAliveTime, currentBallVelocity, currentInheritedVelocity, inverseBallRotation, missileTransform, originShift = EveMissileWarhead._zero)
   {
     const dt = Number(deltaTime) || 0;
@@ -391,7 +382,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   EnableParticleEmitting(enable)
   {
     for (const child of this.children)
@@ -421,7 +411,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(context, parentTransform)
   {
     this._isVisible = false;
@@ -455,7 +444,6 @@ export class EveMissileWarhead extends EveTransform
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables__Impostors(out, _impostors)
   {
@@ -471,7 +459,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out)
   {
     vec4.set(EveMissileWarhead._localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
@@ -486,7 +473,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   GetLocalBoundingSphere(out)
   {
     vec4.set(EveMissileWarhead._localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
@@ -501,7 +487,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   GetCurrentOffsetTransform()
   {
     return this._currentOffsetTransform;
@@ -514,7 +499,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   GetTargetLocator()
   {
     return this.targetLocatorID;
@@ -526,7 +510,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   SetTargetLocator(locator)
   {
     this.targetLocatorID = Number(locator) | 0;
@@ -538,7 +521,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   GetState()
   {
     return this._state;
@@ -551,7 +533,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   GetWarheadID()
   {
     return this.id;
@@ -565,7 +546,6 @@ export class EveMissileWarhead extends EveTransform
    * @adapted A fresh CPU record encodes the world and missile size fields instead of invalidating persistent native per-object buffers.
    */
 
-  @meta.adapted
   GetPerObjectData(accumulator)
   {
     const record = EveMissileWarheadPerObjectData.alloc(accumulator);
@@ -584,7 +564,6 @@ export class EveMissileWarhead extends EveTransform
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectDataSize(shaderType)
   {
     return shaderType === ShaderType.PIXEL_SHADER ? 0 : 64 + 16;
@@ -602,7 +581,6 @@ export class EveMissileWarhead extends EveTransform
    * @param {DataView} data Caller-owned staging view, little-endian.
    */
 
-  @meta.implemented
   UpdatePerObjectBuffer(shaderType, _size, data)
   {
     if (shaderType === ShaderType.PIXEL_SHADER) return;

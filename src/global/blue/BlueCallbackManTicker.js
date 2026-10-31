@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { CjsBlueOS } from "./CjsBlueOS.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 
@@ -63,5 +63,4 @@ export class BlueCallbackManTicker extends IBlueEvents
   }
 }
 
-CjsSchema.decorateMethod(BlueCallbackManTicker, "OnTick", meta.adapted);
 CjsSchema.meta.define("BlueCallbackManTicker")(BlueCallbackManTicker);

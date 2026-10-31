@@ -26,7 +26,7 @@
 // Formats: the three-component byte, short and half types have no DXGI format,
 // and dx11 asserts on them; WebGL2 can read them, so they map here.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -108,7 +108,6 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(definition, renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -152,7 +151,6 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   SetLayout(vertexShader, renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -267,9 +265,4 @@ CjsSchema.decorateField(Tr2VertexLayoutALWebgl2, "_name", type.string);
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "SetLayout");
 // States against dx11/Tr2VertexLayoutALDx11.cpp and .h:22-26. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.
-CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "SetName", meta.adapted);
 CjsSchema.meta.define("Tr2VertexLayoutALWebgl2")(Tr2VertexLayoutALWebgl2);

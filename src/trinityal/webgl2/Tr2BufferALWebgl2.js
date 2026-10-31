@@ -41,7 +41,7 @@
 // `COPY_READ_BUFFER`, which the render context never draws from; only the
 // first bind, which fixes the buffer's type, uses the real target.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -157,7 +157,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(desc, initialData, renderContext)
   {
     this._Reset();
@@ -336,7 +335,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
-  @meta.adapted
   MapForReading(renderContext)
   {
     return this._MapForReading(renderContext, false, 0, 0);
@@ -352,7 +350,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} size Bytes in the range.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
-  @meta.adapted
   MapForReading__OffsetSize(renderContext, offset, size)
   {
     return this._MapForReading(renderContext, true, offset, size);
@@ -409,7 +406,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext The context the read is made against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   CreateStagingBuffer(size, _renderContext)
   {
     if (this._staging && this._staging.length >= size) return ALResult.S_OK;
@@ -445,7 +441,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
-  @meta.adapted
   MapForWriting(renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -470,7 +465,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @adapted
    * @param {object} renderContext The context the map was made against.
    */
-  @meta.adapted
   UnmapForWriting(renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -680,21 +674,10 @@ CjsSchema.decorateField(Tr2BufferALWebgl2, "_writeLockMemory", type.uint8Array);
 CjsSchema.decorateField(Tr2BufferALWebgl2, "_staging", type.uint8Array);
 CjsSchema.decorateField(Tr2BufferALWebgl2, "_desc", type.rawStruct("Tr2BufferDescriptionAL"));
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "Create");
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetDesc", meta.implemented);
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "MapForReading");
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "MapForReading__OffsetSize");
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "CreateStagingBuffer");
 // States against dx11/Tr2BufferALDx11.cpp (the checks and branches of UpdateBuffer and UnmapForReading are dx11's, with bufferSubData and a dropped staging copy standing for UpdateSubresource and Unmap). GetGpuResource returns the GL buffer where dx11 returns the ID3D11Buffer. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "UnmapForReading", meta.implemented);
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "MapForWriting");
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "UnmapForWriting");
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "UpdateBuffer", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetSrvIndexInHeap", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetUavIndexInHeap", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "SetName", meta.adapted);
-CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetGpuResource", meta.implemented);
 CjsSchema.meta.define("Tr2BufferALWebgl2")(Tr2BufferALWebgl2);

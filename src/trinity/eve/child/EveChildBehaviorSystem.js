@@ -8,7 +8,7 @@ import { EveEntity } from "../EveEntity.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { BehaviorGroup } from "./behaviors/BehaviorGroup.js";
 import { SplineTunnelGroup } from "./behaviors/tunnels/SplineTunnelGroup.js";
@@ -163,7 +163,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   ReleaseResources()
   {
   }
@@ -173,7 +172,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -185,7 +183,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   OnPrepareResources()
   {
     this._shipInstanceBuffer.Destroy();
@@ -200,7 +197,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -245,7 +241,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.staticTransform)
@@ -264,7 +259,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display"))
@@ -283,7 +277,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PassInVertexesToBehaviorGroups()
   {
     for (const group of this.behaviorGroups)
@@ -301,7 +294,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PassInTunnelFunctionsToBehaviorGroups()
   {
     for (const group of this.splineTunnels)
@@ -321,7 +313,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @param {Object} params - EveChildUpdateParams
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     // might be a better way to get these initialized but IInitialize doesn't
@@ -358,7 +349,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @param {Object} params - EveChildUpdateParams (localToWorldTransform)
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
     // Carbon chooses the immediate child parent first. Only a direct hull
@@ -420,7 +410,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, _parentTransform = null, _parentLod = null)
   {
     if (!this.display)
@@ -441,7 +430,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (!this.display || !this._hasUpdated)
@@ -470,7 +458,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetBoundingSphere(_sphere = null, _query = 0)
   {
     return true;
@@ -482,7 +469,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   GetLocalToWorldTransform(_transform = null)
   {
   }
@@ -492,7 +478,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   ChangeLOD(_lod)
   {
   }
@@ -503,7 +488,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
@@ -517,7 +501,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *   inherits GetComponentRegistry. Without a registry nothing registers.
    */
 
-  @meta.adapted
   RegisterComponents()
   {
     if (!this.display)
@@ -542,7 +525,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @adapted as RegisterComponents, the registry comes from the inherited EveEntity base.
    */
 
-  @meta.adapted
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -562,7 +544,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const group of this.behaviorGroups)
@@ -577,7 +558,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display)
@@ -597,7 +577,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetWorldTransform()
   {
     return this.worldTransform;
@@ -611,7 +590,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   ChangeBufferInstanceCount()
   {
     let count = 0;
@@ -636,7 +614,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("SplineTunnels");
@@ -656,7 +633,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     for (const group of this.behaviorGroups)
@@ -679,7 +655,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetTunnels()
   {
     return this._tunnels;
@@ -691,7 +666,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetSplineTunnels()
   {
     return this.splineTunnels;
@@ -706,7 +680,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *   reassigned IDs stay visible to their groups.
    */
 
-  @meta.adapted
   UpdateTunnelRegistry()
   {
     this._tunnels.length = 0;
@@ -739,7 +712,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @notImplemented
    * @returns {boolean}
    */
-  @meta.notImplemented
   IsInstanceDataReady()
   {
     throw new Error("EveChildBehaviorSystem.IsInstanceDataReady is declared by Carbon (EveChildBehaviorSystem.h:95) but has no Carbon body.");
@@ -751,7 +723,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceBufferCount()
   {
     return 1;
@@ -771,7 +742,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @param {number} _bufferIndex The instance buffer.
    * @returns {number}
    */
-  @meta.notImplemented
   GetInstanceBufferVertexDeclaration(_bufferIndex)
   {
     throw new Error("EveChildBehaviorSystem.GetInstanceBufferVertexDeclaration is declared by Carbon (EveChildBehaviorSystem.h:97) but has no Carbon body.");
@@ -783,7 +753,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceBufferVertexCount(_bufferIndex = 0)
   {
     let size = 0;
@@ -800,7 +769,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetInstanceBufferBoundingBox(_bufferIndex, _minBounds, _maxBounds)
   {
     return false;
@@ -812,7 +780,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     for (const group of this.behaviorGroups)
@@ -835,7 +802,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -847,7 +813,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason = 0)
   {
     if (!this.display || !this._shipInstanceBuffer.IsValid() || !this._boosterInstanceBuffer.IsValid()) return;
@@ -867,7 +832,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *   before binding; a deferred geometry descriptor would overwrite instancing.
    */
 
-  @meta.adapted
   GetGroupBatches(batches, batchType, perObjectData, mesh, group)
   {
     if (!group.display || !mesh) return;
@@ -907,7 +871,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetGroupBoosterBatches(batches, batchType, perObjectData, group)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
@@ -926,7 +889,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(_accumulator = null)
   {
     return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
@@ -938,7 +900,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @adapted returns Carbon's numeric Tr2VertexDefinition usage/index pairs rather than a renderer declaration.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetVertexElementAddedThroughCode()
   {
     return [[5, 8], [5, 9], [5, 10], [5, 11], [5, 12], [5, 13]];
@@ -965,7 +926,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   UpdateBuffer(renderContext)
   {
     this._startInstanceValues.length = 0;

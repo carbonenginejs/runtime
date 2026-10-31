@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "#blue/INotify";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { DestinationType, PlayAction, StopAction } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
@@ -134,7 +134,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isBindingValid()
   {
     return this.destinationType === DestinationType.OWNER || this._resolvedDestination !== null;
@@ -151,7 +150,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    *   instead of Carbon's embedded Tr2BindingPoint.
    */
 
-  @meta.adapted
   Link(controller)
   {
     this._controller = controller;
@@ -167,7 +165,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   Unlink()
   {
     this._resolvedDestination = null;
@@ -184,7 +181,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    *   resolution and optional linked-controller invocation.
    */
 
-  @meta.adapted
   Start(controller = this._controller)
   {
     const destination = this.GetDestination(controller);
@@ -224,7 +220,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    *   returned animation layer supplies its required ClearAnimations/EndAnimation.
    */
 
-  @meta.adapted
   Stop(controller = this._controller)
   {
     if (this.stopAction === StopAction.NONE)
@@ -275,7 +270,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (this._controller && !this.HasDelayedBinding()
@@ -294,7 +288,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    *   binding. OWNER also retains this adapter's resolution rather than unlinking.
    */
 
-  @meta.adapted
   LinkDestination(controller = this._controller)
   {
     this._resolvedDestination = this.ResolveDestination(controller);
@@ -310,7 +303,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    *   GetDestination only observes its linked controller or cached child.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetDestination(controller = this._controller)
   {
     if (this.destinationType === DestinationType.OWNER)
@@ -330,7 +322,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   HasDelayedBinding()
   {
     return this.delayBinding && this.path.length !== 0;
@@ -344,7 +335,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    *   above observes only the cached destination and never triggers binding.
    */
 
-  @meta.adapted
   IsBindingValid()
   {
     if (this.destinationType === DestinationType.OWNER)

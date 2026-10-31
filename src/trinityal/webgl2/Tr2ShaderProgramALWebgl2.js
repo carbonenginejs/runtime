@@ -29,7 +29,7 @@
 // A compute stage runs as a fragment pass (see `Tr2ShaderALWebgl2`), so a
 // compute-only program is linked with a full-screen vertex stage of its own.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -144,7 +144,6 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to link against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(shaders, count, renderContext)
   {
     this._Reset();
@@ -435,12 +434,5 @@ CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_log", type.string);
 CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 // States against dx11/Tr2ShaderProgramALDx11.cpp (Destroy, IsValid, GetRegisterMap, Describe, SetName; memory class AL_MEMORY_MANAGED). CreateCommandSignatures is dx12-only (dx12/Tr2ShaderProgramALDx12.cpp:357): WebGL2 has no indirect command signatures, so it returns E_FAIL.
-CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "GetRegisterMap", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Create");
-CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Describe", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "CreateCommandSignatures", meta.notSupported);
 CjsSchema.meta.define("Tr2ShaderProgramALWebgl2")(Tr2ShaderProgramALWebgl2);

@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue_Blue.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "#blue/INotify";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { CjsControllerExpressionEvaluateError } from "../expression/CjsControllerExpressionEvaluateError.js";
@@ -65,7 +65,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isExpressionValid()
   {
     return this.IsExpressionValid();
@@ -78,7 +77,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isBindingValid()
   {
     return this.IsBindingValid();
@@ -100,7 +98,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    *   relink or unlink.
    */
 
-  @meta.adapted
   Link(controller)
   {
     this._controller = controller;
@@ -117,7 +114,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   Unlink()
   {
     this._bindingPoint?.Unlink();
@@ -138,7 +134,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    *   requires an invocation controller reference.
    */
 
-  @meta.adapted
   Start(controller = this._controller)
   {
     if (!controller)
@@ -167,7 +162,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (!this._controller) return true;
@@ -189,7 +183,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   IsBindingValid()
   {
     return !!this._bindingPoint?.IsValid();
@@ -200,7 +193,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    *
    * @implemented
    */
-  @meta.implemented
   IsExpressionValid()
   {
     return !!this._expression.program?.IsValid();
@@ -214,7 +206,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @implemented
    */
   @be.mapMethodAndWrap("IsExpressionValid")
-  @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {
     return this.IsExpressionValid();
@@ -226,7 +217,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetDestination()
   {
     return this.GetBindingPoint().GetBoundObject();
@@ -239,7 +229,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    *   a linked controller supplies its required GetExpressionTermInfo operation.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetExpressionTermInfo()
   {
     const result = [];
@@ -260,7 +249,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @throws {CjsControllerExpressionEvaluateError} If unlinked or evaluation fails.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EvaluateExpression(expression)
   {
     if (!this._controller)
@@ -366,7 +354,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   LinkDestination(controller = this._controller)
   {
     this.GetBindingPoint().Link(controller.GetBindingPathRoots());
@@ -379,7 +366,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   HasDelayedBinding()
   {
     return this.delayBinding && !!this.path;

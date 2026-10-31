@@ -3,7 +3,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2PresentParameters.h
 // Source: trinity/trinity/UI/Tr2PresentParameters.cpp
 // Source: trinity/trinity/UI/Tr2PresentParameters_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { PresentInterval, SwapEffect } from "#consts/render-context";
 import { Tr2PresentParametersAL } from "../../trinityal/Tr2PresentParametersAL.js";
 
@@ -27,7 +27,6 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
    */
   @be.mapAttribute(be.READWRITE)
   @type.uint32
-  @meta.adapted
   get backBufferWidth()
   {
     return this.mode.width;
@@ -38,7 +37,6 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
    *
    * @adapted
    */
-  @meta.adapted
   set backBufferWidth(value)
   {
     this.mode.width = value;
@@ -54,7 +52,6 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
    */
   @be.mapAttribute(be.READWRITE)
   @type.uint32
-  @meta.adapted
   get backBufferHeight()
   {
     return this.mode.height;
@@ -65,7 +62,6 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
    *
    * @adapted
    */
-  @meta.adapted
   set backBufferHeight(value)
   {
     this.mode.height = value;

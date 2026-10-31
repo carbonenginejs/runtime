@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPushRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepPushRenderTarget.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -26,7 +26,6 @@ export class TriStepPushRenderTarget extends TriRenderStep
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(renderTarget = null, slot = 0)
   {
     this.renderTarget = renderTarget ?? null;
@@ -40,7 +39,6 @@ export class TriStepPushRenderTarget extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     // CARBON BRANCHES BETWEEN TWO OVERLOADS HERE (`cpp:13-24`), and the

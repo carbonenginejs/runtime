@@ -6,7 +6,7 @@ import { BlueList, IListNotify } from "#blue";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dTriangle } from "./Tr2Sprite2dTriangle.js";
 import { Tr2Sprite2dVertex } from "./Tr2Sprite2dVertex.js";
@@ -46,7 +46,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @returns {void}
    * Carbon declaration: Tr2Sprite2dPolygon::OnListModified (trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.h:70).
    */
-  @meta.implemented
   OnListModified(_event, _key, _key2, _value, _theList)
   {
     this.SetDirty();
@@ -100,7 +99,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Tr2Sprite2dScene} renderer Gathering scene.
    * @returns {void}
    */
-  @meta.adapted
   GatherSprites(renderer)
   {
     if (this.isDirty && this.display && this.triangles.length !== 0)
@@ -207,7 +205,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Tr2Sprite2dScene} renderer Picking scene.
    * @returns {Tr2Sprite2dPolygon|null} This polygon when hit.
    */
-  @meta.implemented
   PickPoint(x, y, renderer)
   {
     if (!this.display || this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON) return null;
@@ -237,7 +234,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @implemented
    * @returns {Float32Array} A copy of the polygon colour.
    */
-  @meta.implemented
   GetColor()
   {
     return vec4.clone(this.color); // alloc: native value return belongs to the caller
@@ -252,7 +248,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Float32Array|number[]} val New RGBA colour.
    * @returns {void}
    */
-  @meta.implemented
   SetColor(val)
   {
     vec4.copy(this.color, val);
@@ -268,7 +263,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @be.mapMethod()
-  @meta.adapted
   AppendTriangles(triangles)
   {
     const message = "triangles parameter must be a sequence of 3-tuples";
@@ -311,7 +305,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @be.mapMethod()
-  @meta.adapted
   AppendVertices(positions, positionTransform, colors, texCoords0, texCoords1)
   {
     if (positions === undefined || positionTransform === undefined || colors === undefined)
@@ -398,7 +391,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @be.mapMethod()
-  @meta.adapted
   SetVertices(positions, positionTransform, colors, texCoords0, texCoords1)
   {
     if (positions === undefined) throw new TypeError("SetVertices requires positions");
@@ -493,7 +485,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @implemented
    * @returns {number} Vertex count.
    */
-  @meta.implemented
   GetVertexCount()
   {
     return this.display ? this.vertices.length : 0;
@@ -511,7 +502,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {number} [offset] First destination slot; Carbon passes a pointer such as `&transform._21`.
    * @returns {boolean} Whether `value` was such a tuple.
    */
-  @meta.adapted
   static toFloatTuple(value, length, destination, offset = 0)
   {
     if (!(Array.isArray(value) || ArrayBuffer.isView(value)) || value.length !== length) return false;
@@ -547,8 +537,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Array<number[]>|null} value Three 3-item rows, or null.
    * @returns {Float32Array} `transform`.
    */
-  @meta.cjs
-    @meta.adapted
   static readPositionTransform(transform, value)
   {
     mat4.identity(transform);
@@ -588,8 +576,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Float32Array} transform Matrix from readPositionTransform.
    * @returns {Float32Array} `out`.
    */
-  @meta.cjs
-    @meta.implemented
   static transformPosition(out, position, transform)
   {
     return vec3.transformMat4(out, [position[0], position[1], 0], transform);

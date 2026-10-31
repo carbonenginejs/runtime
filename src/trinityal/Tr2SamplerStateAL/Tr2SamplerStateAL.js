@@ -15,7 +15,7 @@
 // Ours is the render context's `CreateSamplerState(description, true)`, for the
 // reason the context allocates every AL implementation: it is the one place the
 // backend is known.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -72,7 +72,6 @@ export class Tr2SamplerStateAL
    * @param {object} renderContext The context whose factory answers.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(description, renderContext)
   {
     const { result, implementation } = RenderContextALOf(renderContext).CreateSamplerState(description, true);
@@ -88,7 +87,6 @@ export class Tr2SamplerStateAL
    * @implemented
    * @returns {number} The index, or Carbon's "no index".
    */
-  @meta.implemented
   GetIndexInHeap()
   {
     return this._sampler.GetIndexInHeap();
@@ -100,7 +98,6 @@ export class Tr2SamplerStateAL
    * @implemented
    * @returns {boolean} True once created.
    */
-  @meta.implemented
   IsValid()
   {
     return this._sampler.IsValid();
@@ -112,7 +109,6 @@ export class Tr2SamplerStateAL
    * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._sampler.GetMemoryClass();
@@ -126,7 +122,6 @@ export class Tr2SamplerStateAL
    * @param {Tr2SamplerStateAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @meta.adapted
   Equals(other)
   {
     return this._sampler === other._sampler;
@@ -139,7 +134,6 @@ export class Tr2SamplerStateAL
    * @implemented
    * @returns {object} The implementation.
    */
-  @meta.implemented
   TrinityALImpl_GetObject()
   {
     return this._sampler;
@@ -153,7 +147,6 @@ export class Tr2SamplerStateAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -175,5 +168,4 @@ export class Tr2SamplerStateAL
 }
 
 CjsSchema.decorateField(Tr2SamplerStateAL, "_sampler", type.unknown);
-CjsSchema.decorateMethod(Tr2SamplerStateAL, "Equals", meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2SamplerStateAL")(Tr2SamplerStateAL);

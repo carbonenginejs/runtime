@@ -254,7 +254,7 @@ test("ChangeFormatFromScript answers an ALResult and carries the ChangeFormat ro
   const row = CjsSchema.getMethod(Tr2HostBitmap, "ChangeFormatFromScript");
   assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP");
   assert.equal(row.exposure.name, "ChangeFormat");
-  assert.equal(row.impl.status, "implemented");
+  assert.equal(MarkerTag("Tr2HostBitmap", "ChangeFormatFromScript"), "implemented");
 });
 
 test("the script raw-data accessors hand out views of the bytes (Blue.cpp:70-154)", () =>

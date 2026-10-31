@@ -11,7 +11,7 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { IsMatch } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
@@ -76,7 +76,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.RegisterChildren(this.objects);
@@ -96,7 +95,6 @@ export class EveChildPlug extends EveChildTransform
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display"))
@@ -118,7 +116,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -186,7 +183,6 @@ export class EveChildPlug extends EveChildTransform
    *   through the shared child service rather than the list driving it.
    */
 
-  @meta.adapted
   AddToEffectChildrenList(child)
   {
     addChild(this, "objects", child, { listNotify: this });
@@ -200,7 +196,6 @@ export class EveChildPlug extends EveChildTransform
    *   through the shared child service rather than the list driving it.
    */
 
-  @meta.adapted
   RemoveFromEffectChildrenList(child)
   {
     return removeChild(this, "objects", child, { listNotify: this });
@@ -212,7 +207,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetOwner(owner)
   {
     if (this.GetOwner() === owner) return;
@@ -226,7 +220,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetPartTag(tag)
   {
     const next = Number(tag) >>> 0;
@@ -241,7 +234,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleControllerEvent(name)
   {
     for (const controller of this.controllers) controller?.HandleEvent(name);
@@ -253,7 +245,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     const key = String(name);
@@ -269,7 +260,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers) controller?.Start();
@@ -281,7 +271,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PlayAllCurveSets()
   {
     for (const object of this.objects)
@@ -297,7 +286,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   StopAllCurveSets()
   {
     for (const object of this.objects)
@@ -313,7 +301,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     for (const object of this.objects)
@@ -329,7 +316,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     for (const object of this.objects)
@@ -345,7 +331,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     for (const object of this.objects)
@@ -361,7 +346,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     let duration = 0;
@@ -379,7 +363,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     let duration = 0;
@@ -398,7 +381,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -418,7 +400,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -437,7 +418,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetEffectChildByName(name)
   {
     for (const child of this.objects)
@@ -454,7 +434,6 @@ export class EveChildPlug extends EveChildTransform
    * @param {string} name
    * @param {string} value
    */
-  @meta.implemented
   SetShaderOption(name, value)
   {
     for (const child of this.objects)
@@ -470,7 +449,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    * @param {Set<string>} options
    */
-  @meta.implemented
   GetDebugOptions(options)
   {
     for (const child of this.objects)
@@ -490,7 +468,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (!this.display)
@@ -513,7 +490,6 @@ export class EveChildPlug extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   FindSoundEmitter(name)
   {
     for (const child of this.objects)

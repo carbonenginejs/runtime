@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { blue, ICopier } from "#blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { EveChildContainer } from "./EveChildContainer.js";
@@ -187,7 +187,6 @@ export class EveChildExplosion extends EveChildContainer
    * @param {Iterable<mat4>} transforms Local explosion transforms.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetLocalExplosionTransforms(transforms)
   {
     this._localExplosionTransforms = Array.from(transforms, transform => mat4.clone(transform));
@@ -200,7 +199,6 @@ export class EveChildExplosion extends EveChildContainer
    * @param {vec3} offset Offset in local coordinates.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetGlobalExplosionOffset(offset)
   {
     vec3.copy(this._globalExplosionOffset, offset);
@@ -215,7 +213,6 @@ export class EveChildExplosion extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     super.RegisterComponents();
@@ -228,7 +225,6 @@ export class EveChildExplosion extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     if (this.generatedGlobalExplosions)
@@ -246,7 +242,6 @@ export class EveChildExplosion extends EveChildContainer
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Play()
   {
     this.Stop();
@@ -275,7 +270,6 @@ export class EveChildExplosion extends EveChildContainer
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Stop()
   {
     if (this.IsInRegistry())
@@ -305,7 +299,6 @@ export class EveChildExplosion extends EveChildContainer
    * @param {object} params Child update params from the owner.
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (this.isPlaying)
@@ -414,7 +407,6 @@ export class EveChildExplosion extends EveChildContainer
    * @param {Tr2QuadRenderer} quadRenderer Quad renderer.
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const localExplosion of this.localExplosions) localExplosion.RegisterWithQuadRenderer(quadRenderer);
@@ -433,7 +425,6 @@ export class EveChildExplosion extends EveChildContainer
    * @param {number} localExplosionCount Number of local explosions.
    */
 
-  @meta.adapted
   CalculateExplosionTimes(localExplosionCount)
   {
     this._localExplosionTimes.length = 0;
@@ -470,7 +461,6 @@ export class EveChildExplosion extends EveChildContainer
    * @implemented
    */
 
-  @meta.implemented
   FindSharedObjects()
   {
     this._sharedObjects.clear();
@@ -510,7 +500,6 @@ export class EveChildExplosion extends EveChildContainer
    * @returns {{result: number, dest?: object}} Copier override result.
    */
 
-  @meta.adapted
   CopyElement(source)
   {
     return this._sharedObjects.has(source)
@@ -559,7 +548,6 @@ export class EveChildExplosion extends EveChildContainer
    * @param {mat4} transform Local explosion transform in this child's local frame.
    */
 
-  @meta.adapted
   SpawnLocalExplosion(transform)
   {
     if (!this.localExplosion && !this.localExplosions.length)

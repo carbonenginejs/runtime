@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2MouseCursor.h
 // Source: trinity/trinity/UI/Tr2MouseCursor.cpp
@@ -207,9 +207,7 @@ export default Tr2MouseCursor;
 
 be.inherit(IRoot)(Tr2MouseCursor);
 
-CjsSchema.decorateMethod(Tr2MouseCursor, "__init__", meta.renamed("py__init__"), meta.adapted);
-CjsSchema.decorateMethod(Tr2MouseCursor, "Create", be.mapMethodAndWrapOptionalArgs(), meta.adapted);
-CjsSchema.decorateMethod(Tr2MouseCursor, "IsValid", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateField(Tr2MouseCursor, "isValid", be.mapPropertyReadOnly(), meta.adapted);
-CjsSchema.decorateMethod(Tr2MouseCursor, "Apply", meta.adapted);
+CjsSchema.decorateMethod(Tr2MouseCursor, "Create", be.mapMethodAndWrapOptionalArgs());
+CjsSchema.decorateMethod(Tr2MouseCursor, "IsValid", be.mapMethodAndWrap());
+CjsSchema.decorateField(Tr2MouseCursor, "isValid", be.mapPropertyReadOnly());
 CjsSchema.exposure.define("Tr2MouseCursor")(Tr2MouseCursor);

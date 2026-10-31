@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2BoundingLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { IsMatch } from "#blue";
 import { Tr2LineSet } from "./Tr2LineSet.js";
 import { vec3 } from "#math/vec3";
@@ -17,7 +17,6 @@ export class Tr2BoundingLineSet extends Tr2LineSet
    *
    * @implemented
    */
-  @meta.implemented
   OnModified(names)
   {
     if (IsMatch(names, "minBounds") || IsMatch(names, "maxBounds"))
@@ -46,7 +45,6 @@ export class Tr2BoundingLineSet extends Tr2LineSet
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UpdateBounds(min, max)
   {
     vec3.copy(this.minBounds, min);
@@ -64,7 +62,6 @@ export class Tr2BoundingLineSet extends Tr2LineSet
    * @implemented
    */
 
-  @meta.implemented
   _AddBox(min, max, color)
   {
     const minA = vec3.fromValues(max[0], min[1], min[2]);
@@ -85,7 +82,6 @@ export class Tr2BoundingLineSet extends Tr2LineSet
    * @implemented
    */
 
-  @meta.implemented
   _AddPickingBox(min, max)
   {
     const minA = vec3.fromValues(max[0], min[1], min[2]);

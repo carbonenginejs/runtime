@@ -36,7 +36,6 @@ const libraryLoads = new WeakMap();
  * @adapted
  */
 @meta.define("Tr2ShaderMaterial")
-@meta.adapted
 export class Tr2ShaderMaterial extends IRoot
 {
 
@@ -75,7 +74,6 @@ export class Tr2ShaderMaterial extends IRoot
    *   read without initializing, skip cleanly instead of failing mid-render.
    * @returns {boolean} false.
    */
-  @meta.adapted
   IsGood()
   {
     return false;
@@ -97,7 +95,6 @@ export class Tr2ShaderMaterial extends IRoot
    * @implemented
    * @returns {Tr2Effect} The effect, its path still unset.
    */
-  @meta.implemented
   CreateEffect()
   {
     const effect = new Tr2Effect();
@@ -128,7 +125,6 @@ export class Tr2ShaderMaterial extends IRoot
    * @param {Tr2Effect} effect The effect from `CreateEffect`.
    * @returns {Promise<void>} Settles once the path is set or the failure logged.
    */
-  @meta.adapted
   async _ResolveEffectPath(effect)
   {
     const name = this.highLevelShaderName;
@@ -166,7 +162,6 @@ export class Tr2ShaderMaterial extends IRoot
    * @param {string} shaderPath A Tr2HighLevelShader's `shaderPath`.
    * @returns {string} The compiled container's path.
    */
-  @meta.implemented
   static compiledEffectPath(shaderPath)
   {
     const file = String(shaderPath).split("/").pop().replace(/\.fx$/iu, "").toLowerCase();
@@ -185,7 +180,6 @@ export class Tr2ShaderMaterial extends IRoot
    * @returns {Promise<Tr2ShaderManager>} The library.
    * @throws {TypeError} When the file is not a Tr2ShaderManager.
    */
-  @meta.implemented
   static loadShaderLibrary(resourceManager)
   {
     let load = libraryLoads.get(resourceManager);

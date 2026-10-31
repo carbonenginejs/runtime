@@ -12,7 +12,7 @@
 // backend at once, so the context that knows its backend is the factory
 // (`CreateSwapChain(windowHandle, true)`). A backend whose caps report no
 // standalone swap chain refuses there.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -78,7 +78,6 @@ export class Tr2SwapChainAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(windowHandle, renderContext)
   {
     this.Destroy();
@@ -97,7 +96,6 @@ export class Tr2SwapChainAL
    * @param {object} renderContext The context presenting the frame.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   Present(renderContext)
   {
     return this._swapChain.implementation.Present(renderContext);
@@ -109,7 +107,6 @@ export class Tr2SwapChainAL
    * @implemented
    * @returns {boolean} True once created.
    */
-  @meta.implemented
   IsValid()
   {
     return this._swapChain.implementation.IsValid();
@@ -122,7 +119,6 @@ export class Tr2SwapChainAL
    * @implemented
    * @returns {Tr2TextureAL} The back buffer; a default, invalid one when uncreated.
    */
-  @meta.implemented
   GetBackBuffer()
   {
     return this._swapChain.implementation.GetBackBuffer();
@@ -134,7 +130,6 @@ export class Tr2SwapChainAL
    * @implemented
    * @returns {number} Width in pixels.
    */
-  @meta.implemented
   GetWidth()
   {
     return this._swapChain.implementation.GetWidth();
@@ -146,7 +141,6 @@ export class Tr2SwapChainAL
    * @implemented
    * @returns {number} Height in pixels.
    */
-  @meta.implemented
   GetHeight()
   {
     return this._swapChain.implementation.GetHeight();
@@ -160,7 +154,6 @@ export class Tr2SwapChainAL
    * @param {Tr2SwapChainAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @meta.adapted
   Equals(other)
   {
     return this._swapChain === other._swapChain;
@@ -172,7 +165,6 @@ export class Tr2SwapChainAL
    * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._swapChain.implementation.GetMemoryClass();
@@ -186,7 +178,6 @@ export class Tr2SwapChainAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -211,5 +202,4 @@ export class Tr2SwapChainAL
 }
 
 CjsSchema.decorateField(Tr2SwapChainAL, "_swapChain", type.unknown);
-CjsSchema.decorateMethod(Tr2SwapChainAL, "Equals", meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2SwapChainAL")(Tr2SwapChainAL);

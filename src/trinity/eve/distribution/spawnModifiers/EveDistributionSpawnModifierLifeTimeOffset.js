@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierLifeTimeOffset.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
@@ -57,7 +57,6 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this._timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
@@ -73,7 +72,6 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
    * @adapted
    */
 
-  @meta.adapted
   ProcessSpawnModifier(placement, numPlacements)
   {
     if (this.normalizeOffsets)

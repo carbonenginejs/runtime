@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2GrannyVectorTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyVectorTrack.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -28,7 +28,6 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
    * @implemented
    */
 
-  @meta.implemented
   TracksReady()
   {
     return this.#valueCurve !== null;
@@ -40,7 +39,6 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
    * @implemented
    */
 
-  @meta.implemented
   ResetTracks()
   {
     this.#valueCurve = null;
@@ -52,7 +50,6 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
    * @adapted
    */
 
-  @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
     const track = CjsGrannyCurves.findVectorTrack(group, this.name);
@@ -78,7 +75,6 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
    * @adapted
    */
 
-  @meta.adapted
   UpdateValueImpl(time)
   {
     if (!this.#valueCurve)

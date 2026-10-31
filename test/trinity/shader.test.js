@@ -29,6 +29,7 @@ import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { TriTextureRes } from "../../npm/dist/resource/index.js";
 import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -875,7 +876,7 @@ function assertCarbonMethod(ctor, methodName, status)
   const schema = CjsSchema.getSchema(ctor);
   assertEquals(Boolean(schema.blue || schema.carbon), true, `${ctor.name} must declare its Carbon origin`);
   assertEquals(method?.carbon?.cjs, undefined, `${ctor.name}.${methodName} must remain a native method`);
-  assertEquals(method?.impl?.status, status, `${ctor.name}.${methodName} should be marked ${status}`);
+  assertEquals(MarkerTag(CjsSchema.getClassName(ctor), methodName), status, `${ctor.name}.${methodName} should be marked ${status}`);
 }
 
 test("effect named-map setters accept unique-name maps with class-claimed inference", () =>

@@ -6,7 +6,7 @@ import { vec3 } from "#math/vec3";
 import { BlueList, ITriFunction, ITriVectorFunction, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 
 
@@ -99,7 +99,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * @adapted the existing JS vector output buffer replaces native value assignment.
    */
 
-  @meta.adapted
   UpdateValue(time)
   {
     this.GetValue(time, this.currentValue);
@@ -114,7 +113,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * @adapted JS time-first/output-last arguments, output returned.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.UpdateValue(time);
@@ -129,7 +127,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * @adapted JS time-first/output-last arguments, output returned.
    */
 
-  @meta.adapted
   GetValueAt(time, out)
   {
     return this.GetValue(time, out);
@@ -141,7 +138,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * @adapted
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -153,7 +149,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * @adapted
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -167,7 +162,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * @adapted
    */
 
-  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;
@@ -180,7 +174,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    *   caller-owned vectors instead of native overloads/value returns.
    */
 
-  @meta.adapted
   GetValue(time, out)
   {
     let currentKey = null;
@@ -221,7 +214,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list !== this.keys) return;
@@ -243,7 +235,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    *   returns/float temporaries; direct key contract calls remain required.
    */
 
-  @meta.adapted
   GetSegmentValue(out, time, k0, k1)
   {
     switch (k0.GetInterpolationType())

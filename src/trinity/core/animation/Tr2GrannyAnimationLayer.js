@@ -82,7 +82,6 @@ export class Tr2GrannyAnimationLayer
    *   JS queue. A request whose animation has no positive duration contributes 0.
    * @returns {number} Remaining seconds; Infinity when a player never ends.
    */
-  @meta.adapted
   GetAnimationRemainingTime()
   {
     let maxRemaining = 0;
@@ -154,7 +153,6 @@ export class Tr2GrannyAnimationLayer
    * @adapted Carbon's players are the JS queue, chained ones included, so
    *   nothing is dropped; this port has no separate pre-sequencer queue.
    */
-  @meta.adapted
   EndAnimation()
   {
     for (const request of this.queue)
@@ -190,7 +188,6 @@ export class Tr2GrannyAnimationLayer
    * @adapted the single active request carries the pinned stop as `stopAt`
    *   in its own elapsed seconds, with the pending queue dropped.
    */
-  @meta.adapted
   StopAnimations(delay = 0)
   {
     const request = this.queue[0];
@@ -210,7 +207,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @implemented
    */
-  @meta.implemented
   ClearAnimations()
   {
     this.queue.length = 0;
@@ -221,7 +217,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @implemented
    */
-  @meta.implemented
   GetLayerWeight()
   {
     return this.weight;
@@ -232,7 +227,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @implemented
    */
-  @meta.implemented
   SetLayerWeight(layerWeight)
   {
     this.weight = Number(layerWeight) || 0;
@@ -243,7 +237,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @implemented
    */
-  @meta.implemented
   SetControlParam(controlParam)
   {
     this.controlParamTarget = Number(controlParam) || 0;
@@ -255,7 +248,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @implemented
    */
-  @meta.implemented
   SetControlParamSkewRate(skewRate)
   {
     this.controlParamSkewRate = Number(skewRate) || 0;
@@ -270,7 +262,6 @@ export class Tr2GrannyAnimationLayer
    * @param {string} name Bone name.
    * @returns {void}
    */
-  @meta.implemented
   AddBone(grannyAnimation, name)
   {
     this.bones.push(name);
@@ -288,7 +279,6 @@ export class Tr2GrannyAnimationLayer
    * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
    * @returns {void}
    */
-  @meta.implemented
   AddAllBones(grannyAnimation)
   {
     for (const name of grannyAnimation.GetAnimationBoneList())
@@ -307,7 +297,6 @@ export class Tr2GrannyAnimationLayer
    * @param {string} name Bone name.
    * @returns {void}
    */
-  @meta.implemented
   RemoveBone(grannyAnimation, name)
   {
     for (let index = this.bones.length - 1; index >= 0; index--)
@@ -325,7 +314,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
   PlayAnimation(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.PlayAnimation is not implemented in CarbonEngineJS; use Tr2GrannyAnimation.PlayLayerAnimation.");
@@ -336,7 +324,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
   QueueAnimation(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.QueueAnimation is not implemented in CarbonEngineJS.");
@@ -347,7 +334,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
   GetAnimationChainCompleteTime(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.GetAnimationChainCompleteTime is not implemented in CarbonEngineJS.");
@@ -366,7 +352,6 @@ export class Tr2GrannyAnimationLayer
    * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
    * @returns {void}
    */
-  @meta.adapted
   InitializeAnimationLayer(grannyAnimation)
   {
     const boneCount = grannyAnimation.GetAnimationBoneList().length;
@@ -391,7 +376,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
   ConsumeAnimationQueue(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.ConsumeAnimationQueue is not implemented in CarbonEngineJS.");
@@ -402,7 +386,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Cleanup(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.Cleanup is not implemented in CarbonEngineJS.");
@@ -413,7 +396,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SampleAnimation(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.SampleAnimation is not implemented in CarbonEngineJS.");
@@ -433,7 +415,6 @@ export class Tr2GrannyAnimationLayer
    * @param {string} name Track mask name.
    * @returns {void}
    */
-  @meta.adapted
   ExtractTrackMask(grannyAnimation, name)
   {
     this.trackMaskName = name;
@@ -447,7 +428,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
   TogglePauseAnimation(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.TogglePauseAnimation is not implemented in CarbonEngineJS.");
@@ -458,7 +438,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _GetLayerAnimationTime()
   {
@@ -470,7 +449,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _FreeCompletedControls()
   {
@@ -482,7 +460,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _IsUsingCMF()
   {
@@ -494,7 +471,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _UpdateControlParam()
   {
@@ -506,7 +482,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _RegisterTextTracks()
   {
@@ -518,7 +493,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _RegisterMorphTracks()
   {
@@ -530,7 +504,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _ClearTextTracks()
   {
@@ -542,7 +515,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _ClearMorphTracks()
   {
@@ -554,7 +526,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _SampleTextTracks()
   {
@@ -566,7 +537,6 @@ export class Tr2GrannyAnimationLayer
    *
    * @notImplemented
    */
-  @meta.notImplemented
 
   _SampleMorphTracks()
   {

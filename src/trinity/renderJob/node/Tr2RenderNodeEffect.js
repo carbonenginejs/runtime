@@ -2,7 +2,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RenderNodeEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { RenderingMode } from "#consts/graphics";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import "#consts/graphics/trinityEnums";
@@ -50,7 +50,6 @@ export class Tr2RenderNodeEffect extends IRoot
    *   records.
    */
 
-  @meta.adapted
   Validate(destinationDimensions, outputs, realTime, simTime)
   {
     if (!destinationDimensions.length || outputs.length)
@@ -93,7 +92,6 @@ export class Tr2RenderNodeEffect extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   AddSource(name, source, outputName = "")
   {
     if (!source) return false;

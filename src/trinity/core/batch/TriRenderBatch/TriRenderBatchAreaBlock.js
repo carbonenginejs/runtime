@@ -1,4 +1,4 @@
-import { CjsSchema, type, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 // Source: trinity/trinity/TriRenderBatch.h
 //   trinity/TriRenderBatch.cpp
 //
@@ -79,5 +79,4 @@ export class TriRenderBatchAreaBlock
 CjsSchema.decorateField(TriRenderBatchAreaBlock, "startIndex", type.uint32);
 CjsSchema.decorateField(TriRenderBatchAreaBlock, "count", type.uint32);
 // State: Optimize is TriRenderBatch.cpp:18-60 (merge into sorted unique runs), adapted only in that it also returns the vector.
-CjsSchema.decorateMethod(TriRenderBatchAreaBlock, "Optimize", meta.adapted);
 CjsSchema.meta.carbon("TriRenderBatchAreaBlock")(TriRenderBatchAreaBlock);

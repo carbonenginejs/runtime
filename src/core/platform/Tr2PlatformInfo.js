@@ -102,8 +102,6 @@ export class Tr2PlatformInfo
      * @adapted
      * @type {string|null}
      */
-    @meta.cjs
-    @meta.adapted
     _platformName = null;
 
     /**
@@ -114,8 +112,6 @@ export class Tr2PlatformInfo
      * @adapted
      * @type {number}
      */
-    @meta.cjs
-    @meta.adapted
     _platformID = 0;
 
     /**
@@ -126,8 +122,6 @@ export class Tr2PlatformInfo
      * @adapted
      * @type {boolean}
      */
-    @meta.cjs
-    @meta.adapted
     _isLowPerformance = false;
 
     /**
@@ -243,7 +237,6 @@ export class Tr2PlatformInfo
      *   returns the name of the backend that was probed, or null when there is none (see the head of this file).
      * @returns {string|null} The platform name.
      */
-    @meta.adapted
     GetPlatformName()
     {
         return this._platformName;
@@ -260,7 +253,6 @@ export class Tr2PlatformInfo
      *   this answers 0 unless the host supplies one.
      * @returns {number} The platform id.
      */
-    @meta.adapted
     GetPlatformID()
     {
         return this._platformID;
@@ -276,7 +268,6 @@ export class Tr2PlatformInfo
      *   returns what the probe measured (a WebGPU fallback adapter), false for WebGL.
      * @returns {boolean} Whether the platform is low-end.
      */
-    @meta.adapted
     IsLowPerformance()
     {
         return this._isLowPerformance;
@@ -290,7 +281,6 @@ export class Tr2PlatformInfo
      * @type {string|null}
      */
     @be.mapPropertyReadOnly()
-    @meta.implemented
     get platformName()
     {
         return this.GetPlatformName();
@@ -304,7 +294,6 @@ export class Tr2PlatformInfo
      * @type {number}
      */
     @be.mapPropertyReadOnly()
-    @meta.implemented
     get platformID()
     {
         return this.GetPlatformID();
@@ -318,7 +307,6 @@ export class Tr2PlatformInfo
      * @type {boolean}
      */
     @be.mapPropertyReadOnly()
-    @meta.implemented
     get isLowPerformance()
     {
         return this.IsLowPerformance();
@@ -330,7 +318,6 @@ export class Tr2PlatformInfo
      * @adapted
      */
     @be.mapMethodAndWrap()
-    @meta.adapted
     GetStaticCap(capability)
     {
         const name = typeof capability === "string"

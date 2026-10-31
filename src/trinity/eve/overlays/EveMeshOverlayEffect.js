@@ -8,7 +8,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { TriBatchType } from "#consts/graphics";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -83,7 +83,6 @@ export class EveMeshOverlayEffect extends IRoot
    *   for unsupported or hidden batches.
    */
 
-  @meta.adapted
   GetEffects(batchType)
   {
     if (!this.display) return null;
@@ -106,7 +105,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetType(batchType)
   {
     return batchType === TriBatchType.TRIBATCHTYPE_OPAQUE
@@ -121,7 +119,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentArea()
   {
     return this.transparentEffects.length > 0;
@@ -133,7 +130,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     for (const effects of this._effectLists())
@@ -149,7 +145,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @adapted Blue root locking is represented by the hydrated JavaScript object identity.
    */
 
-  @meta.adapted
   Initialize()
   {
     for (const controller of this.controllers)
@@ -168,7 +163,6 @@ export class EveMeshOverlayEffect extends IRoot
    *   the equivalent event explicitly.
    */
 
-  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.controllers)
   {
     if (list !== this.controllers || (event & BLUELISTEVENT.BELIST_LOADING) !== 0) return;
@@ -193,7 +187,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const controller of this.controllers) controller?.SetVariable(name, value);
@@ -205,7 +198,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HandleControllerEvent(name)
   {
     for (const controller of this.controllers) controller?.HandleEvent(name);
@@ -217,7 +209,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers) controller?.Start();
@@ -231,7 +222,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     const curveSet = this._matchingCurveSet(name);
@@ -251,7 +241,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     this._matchingCurveSet(name)?.Stop();
@@ -264,7 +253,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     // Carbon cpp:240-254: max( 0, duration ) when the name matches.
@@ -279,7 +267,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     // Carbon cpp:256-271.
@@ -295,7 +282,6 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Update(realTime, simTime)
   {
     if (!this.update || !this.curveSet) return;

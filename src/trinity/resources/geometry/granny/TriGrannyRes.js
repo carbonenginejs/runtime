@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/TriGrannyRes.h
 // Source: trinity/trinity/Resources/TriGrannyRes.cpp
 // Source: trinity/trinity/Resources/TriGrannyRes_Blue.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { BlueAsyncRes, ICacheable, blue as blueService } from "#blue";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { CjsGr2Format } from "../../../../resource/formats/gr2/CjsGr2Format.js";
@@ -1200,66 +1200,39 @@ export class TriGrannyRes extends BlueAsyncRes
 }
 
 
-CjsSchema.decorateField(TriGrannyRes, "_useCMF", meta.implemented);
-CjsSchema.decorateMethod(TriGrannyRes, "IsMemoryUsageKnown", meta.implemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMemoryUsage", meta.implemented);
 CjsSchema.exposure.mapICacheableMethods()(TriGrannyRes);
-CjsSchema.decorateMethod(TriGrannyRes, "Load", be.mapMethodAndWrap("LoadForTools"), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "IsUsingCMF", meta.implemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetGrannyFile", meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetGrannySkeleton", meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetGrannyMesh", meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetGrannyVertexType", meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetVertexSize", meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetVertexComponentOffset", meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "ValidateFileInfo", meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "_ValidateAnimationIx", meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "_ValidateMeshIndex", meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetModelCount", meta.adapted);
-CjsSchema.decorateField(TriGrannyRes, "modelCount", be.mapPropertyReadOnly(), type.int32, meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetModelName", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMeshCount", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateField(TriGrannyRes, "meshCount", be.mapPropertyReadOnly(), type.int32, meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMeshAreaCount", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMeshName", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMeshBoneBindings", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMeshVertexElements", be.mapMethodAndWrap(), meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMeshTriangleCount", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMeshMorphCount", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMeshMorphName", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetAllMeshMorphNamesNoDigits", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetAnimationCount", meta.adapted);
-CjsSchema.decorateField(TriGrannyRes, "animationCount", be.mapPropertyReadOnly(), type.int32, meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetAnimationName", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetAnimationDuration", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetTrackGroupCount", be.mapMethodAndWrap(), meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetTrackGroupName", be.mapMethodAndWrap(), meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetVectorTrackCount", be.mapMethodAndWrap(), meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetVectorTrackName", be.mapMethodAndWrap(), meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetEventTrackCount", be.mapMethodAndWrap(), meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetEventTrackName", be.mapMethodAndWrap(), meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "RayIntersection", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "_FindAreaIndex", meta.cjs, meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "CreateGeometryRes", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "BakeBlendshape__NameToWeight", meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "BakeBlendshape__Weights", meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "_BakeBlendshape__DeltaOnly", meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "BakeBlendshapeFromScript", be.mapMethodAndWrap("BakeBlendshape"), meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "GetCMFData", meta.notSupported);
-CjsSchema.decorateMethod(TriGrannyRes, "GetCMFViewData", meta.notSupported);
-CjsSchema.decorateMethod(TriGrannyRes, "GetCMFContents", meta.notSupported);
-CjsSchema.decorateMethod(TriGrannyRes, "_DoPrepare", meta.implemented);
-CjsSchema.decorateMethod(TriGrannyRes, "_GetValidMesh", meta.cjs, meta.adapted);
+CjsSchema.decorateMethod(TriGrannyRes, "Load", be.mapMethodAndWrap("LoadForTools"));
+CjsSchema.decorateField(TriGrannyRes, "modelCount", be.mapPropertyReadOnly(), type.int32);
+CjsSchema.decorateMethod(TriGrannyRes, "GetModelName", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetMeshCount", be.mapMethodAndWrap());
+CjsSchema.decorateField(TriGrannyRes, "meshCount", be.mapPropertyReadOnly(), type.int32);
+CjsSchema.decorateMethod(TriGrannyRes, "GetMeshAreaCount", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetMeshName", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetMeshBoneBindings", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetMeshVertexElements", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetMeshTriangleCount", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetMeshMorphCount", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetMeshMorphName", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetAllMeshMorphNamesNoDigits", be.mapMethodAndWrap());
+CjsSchema.decorateField(TriGrannyRes, "animationCount", be.mapPropertyReadOnly(), type.int32);
+CjsSchema.decorateMethod(TriGrannyRes, "GetAnimationName", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetAnimationDuration", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetTrackGroupCount", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetTrackGroupName", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetVectorTrackCount", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetVectorTrackName", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetEventTrackCount", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "GetEventTrackName", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "RayIntersection", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "CreateGeometryRes", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGrannyRes, "BakeBlendshapeFromScript", be.mapMethodAndWrap("BakeBlendshape"));
 CjsSchema.exposure.define("TriGrannyRes")(TriGrannyRes);
 be.inherit(ICacheable)(TriGrannyRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriGrannyRes);
 // Carbon: TriGrannyRes::ExposeToBlue (trinity/trinity/Resources/TriGrannyRes_Blue.cpp:173).
 CjsSchema.blue.chainTo(BlueAsyncRes)(TriGrannyRes);
 
-CjsSchema.decorateMethod(TriGrannyRes, "_DoLoad", meta.adapted);
-
-CjsSchema.decorateMethod(TriGrannyRes, "_OnShutdown", meta.adapted);
 
 
 
-CjsSchema.decorateMethod(TriGrannyRes, "_DoOpenStream", meta.adapted, meta.implemented);
+

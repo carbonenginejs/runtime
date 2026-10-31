@@ -1,5 +1,5 @@
 import { blue as blueService } from "#blue/blue";
-import { CjsSchema, blue as legacyBlue, meta } from "#schema";
+import { CjsSchema, blue as legacyBlue } from "#schema";
 import { blue } from "#blue";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { vec4 } from "#math/vec4";
@@ -285,4 +285,3 @@ CjsSchema.meta.define(TnyOutlineHelper, {
   methods: Object.fromEntries(["Validate", "Execute", "Destruct", "_LoadEffects", "_Modes", "_EnsureMask", "_Composite"].map(name => [name, []]))
 });
 
-CjsSchema.decorateMethod(TnyOutlineHelper, "_LoadEffects", CjsSchema.meta.cjs, CjsSchema.meta.implemented);

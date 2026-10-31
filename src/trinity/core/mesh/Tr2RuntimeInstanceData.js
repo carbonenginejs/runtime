@@ -75,7 +75,6 @@ export class Tr2RuntimeInstanceData
 
 
   /** @cjs */
-  @meta.cjs
   @meta.mapAttribute(meta.NOTIFY | meta.PERSIST)
   @type.array("unknown")
   rows = [];
@@ -84,7 +83,6 @@ export class Tr2RuntimeInstanceData
    * @adapted Carbon declares m_explicitBoundingBox (trinity/trinity/Tr2RuntimeInstanceData.h:109) but does not expose it; exposed here for the values interface.
    */
   @meta.mapAttribute(meta.PERSIST)
-  @meta.adapted
   @type.boolean
   explicitBoundingBox = false;
 
@@ -100,7 +98,6 @@ export class Tr2RuntimeInstanceData
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec3}
    */
-  @meta.adapted
   @blue.read
   @blue.persist
   @type.vec3
@@ -113,7 +110,6 @@ export class Tr2RuntimeInstanceData
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec3}
    */
-  @meta.adapted
   @blue.read
   @blue.persist
   @type.vec3
@@ -161,7 +157,6 @@ export class Tr2RuntimeInstanceData
    *
    * @adapted
    */
-  @meta.adapted
   ReleaseResources()
   {
     this.#freeAllocation();
@@ -173,7 +168,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -184,7 +178,6 @@ export class Tr2RuntimeInstanceData
    *
    * @adapted
    */
-  @meta.adapted
   OnPrepareResources()
   {
     if (this.#data && this.#stride && this.count && (!this.#allocation || !this.#allocation.IsValid()))
@@ -235,7 +228,6 @@ export class Tr2RuntimeInstanceData
    *
    * @adapted
    */
-  @meta.adapted
   Initialize()
   {
     this.#rebuildCpuData();
@@ -266,7 +258,6 @@ export class Tr2RuntimeInstanceData
    * @adapted
    */
   @be.mapMethod()
-  @meta.adapted
   @meta.invalidates("#dirty")
   SetElementLayout(layout)
   {
@@ -281,7 +272,6 @@ export class Tr2RuntimeInstanceData
    * @adapted
    */
   @be.mapMethod()
-  @meta.adapted
   @meta.invalidates("#dirty")
   SetData(rows)
   {
@@ -295,7 +285,6 @@ export class Tr2RuntimeInstanceData
    * @implemented
    */
   @be.mapMethod()
-  @meta.implemented
   GetItem(index)
   {
     this.#assertItemIndex(index);
@@ -309,7 +298,6 @@ export class Tr2RuntimeInstanceData
    * @adapted
    */
   @be.mapMethod()
-  @meta.adapted
   @meta.invalidates("#dirty")
   SetItem(index, row)
   {
@@ -326,7 +314,6 @@ export class Tr2RuntimeInstanceData
    * @implemented
    */
   @be.mapMethod()
-  @meta.implemented
   GetItemElement(index, elementIndex)
   {
     this.#assertItemIndex(index);
@@ -341,7 +328,6 @@ export class Tr2RuntimeInstanceData
    * @adapted
    */
   @be.mapMethod()
-  @meta.adapted
   @meta.invalidates("#dirty")
   SetItemElement(index, elementIndex, value)
   {
@@ -364,7 +350,6 @@ export class Tr2RuntimeInstanceData
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UpdateData()
   {
     if (!this.#dirty)
@@ -394,7 +379,6 @@ export class Tr2RuntimeInstanceData
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UpdateBoundingBox()
   {
     if (this.explicitBoundingBox)
@@ -434,7 +418,6 @@ export class Tr2RuntimeInstanceData
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetBoundingBox(bounds, maxBounds)
   {
     const min = maxBounds === undefined ? bounds?.min ?? bounds?.minBounds : bounds;
@@ -456,7 +439,6 @@ export class Tr2RuntimeInstanceData
    * @param {vec3} [maxBounds] Caller-owned destination for the maximum.
    * @returns {boolean|{min: vec3, max: vec3}} True when written into the out vectors, otherwise a new { min, max } pair.
    */
-  @meta.implemented
   GetBoundingBox(minBounds, maxBounds)
   {
     if (minBounds && maxBounds)
@@ -477,7 +459,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {
     return this.GetBoundingBox();
@@ -488,7 +469,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   GetCount()
   {
     return this.count;
@@ -499,7 +479,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   GetStride()
   {
     return this.#stride;
@@ -511,7 +490,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   GetLayout()
   {
     return this.#layout;
@@ -523,7 +501,6 @@ export class Tr2RuntimeInstanceData
    *
    * @adapted
    */
-  @meta.adapted
   GetData()
   {
     return this.#data ? new Uint8Array(this.#data) : null;
@@ -534,7 +511,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   IsInstanceDataReady()
   {
     return this.#vertexDeclaration !== Tr2EffectStateManager.Unknown &&
@@ -546,7 +522,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
     this.#instanceData.buffer = this.#allocation ? this.#allocation.GetBuffer() : null;
@@ -561,7 +536,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
     return this.#vertexDeclaration;
@@ -572,7 +546,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   GetGpuBuffer(_bufferIndex = 0)
   {
     return this.#allocation ? this.#allocation.GetBuffer() : null;
@@ -584,7 +557,6 @@ export class Tr2RuntimeInstanceData
    *
    * @adapted
    */
-  @meta.adapted
   @meta.invalidates("#dirty")
   DestroyData()
   {
@@ -604,7 +576,6 @@ export class Tr2RuntimeInstanceData
    *   declaration without GPU buffers.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Spawn()
   {
     const particleSystem = this.particleSystem;
@@ -668,7 +639,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   Update(_arguments)
   {
   }
@@ -679,7 +649,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
   }
@@ -689,7 +658,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
   }
@@ -700,7 +668,6 @@ export class Tr2RuntimeInstanceData
    *
    * @implemented
    */
-  @meta.implemented
   SetThreadSafeFlag()
   {
   }
@@ -711,7 +678,6 @@ export class Tr2RuntimeInstanceData
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   SaveToCMF(...args)
   {
     throw new Error("Tr2RuntimeInstanceData.SaveToCMF is not implemented in CarbonEngineJS.");
@@ -723,7 +689,6 @@ export class Tr2RuntimeInstanceData
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   SaveToGranny(...args)
   {
     throw new Error("Tr2RuntimeInstanceData.SaveToGranny is not implemented in CarbonEngineJS.");

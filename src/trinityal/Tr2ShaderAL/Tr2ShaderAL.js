@@ -17,7 +17,7 @@
 // Tr2ShaderSignatureAL, declared in the same header, are plain records here
 // (a typed array and the shader compiler's signature object); they are not
 // ported as classes by this file.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ShaderType } from "#consts/render-context";
 import { ALResult, Failed } from "../ALResult.js";
@@ -102,7 +102,6 @@ export class Tr2ShaderAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(shaderType, bytecode, signature, shaderPath, renderContext)
   {
     this.Destroy();
@@ -120,7 +119,6 @@ export class Tr2ShaderAL
    * @implemented
    * @returns {boolean} True once created.
    */
-  @meta.implemented
   IsValid()
   {
     return this._shader.implementation.IsValid();
@@ -132,7 +130,6 @@ export class Tr2ShaderAL
    * @implemented
    * @returns {number} A `ShaderType`; `INVALID_SHADER` when uncreated.
    */
-  @meta.implemented
   GetType()
   {
     return this._shader.implementation.GetType();
@@ -145,7 +142,6 @@ export class Tr2ShaderAL
    *   `bytecode`.
    * @returns {{result: number, bytecode: ArrayBufferView|null}} The bytecode.
    */
-  @meta.adapted
   GetBytecode()
   {
     return this._shader.implementation.GetBytecode();
@@ -157,7 +153,6 @@ export class Tr2ShaderAL
    * @implemented
    * @returns {object|null} The signature.
    */
-  @meta.implemented
   GetSignature()
   {
     return this._shader.implementation.GetSignature();
@@ -171,7 +166,6 @@ export class Tr2ShaderAL
    * @param {Tr2ShaderAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @meta.adapted
   Equals(other)
   {
     return this._shader === other._shader;
@@ -185,7 +179,6 @@ export class Tr2ShaderAL
    * @param {Tr2ShaderAL} other The value to compare.
    * @returns {boolean} Whether the two hold different implementations.
    */
-  @meta.adapted
   NotEquals(other)
   {
     return this._shader !== other._shader;
@@ -199,7 +192,6 @@ export class Tr2ShaderAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -214,7 +206,6 @@ export class Tr2ShaderAL
    * @implemented
    * @returns {object} The implementation.
    */
-  @meta.implemented
   TrinityALImpl_GetObject()
   {
     return this._shader.implementation;
@@ -237,6 +228,4 @@ export class Tr2ShaderAL
 }
 
 CjsSchema.decorateField(Tr2ShaderAL, "_shader", type.unknown);
-CjsSchema.decorateMethod(Tr2ShaderAL, "Equals", meta.renamed("operator=="));
-CjsSchema.decorateMethod(Tr2ShaderAL, "NotEquals", meta.renamed("operator!="));
 CjsSchema.meta.carbon("Tr2ShaderAL")(Tr2ShaderAL);

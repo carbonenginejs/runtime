@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2LightProfileRes.h
 import { exposure as be } from "#be";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { BlueAsyncRes, ICacheable, blue as blueService } from "#blue";
 import { assertResourcePayloadObject } from "../../resource/resourceBoundary.js";
 import { HostBitmap, LoadParameters } from "#imageio";
@@ -470,21 +470,12 @@ export class Tr2LightProfileRes extends BlueAsyncRes
 }
 
 
-CjsSchema.decorateMethod(Tr2LightProfileRes, "GetTextureIndex", meta.adapted);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "IsMemoryUsageKnown", meta.implemented);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "GetMemoryUsage", meta.adapted);
 CjsSchema.exposure.mapICacheableMethods()(Tr2LightProfileRes);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "_DoPrepare", meta.adapted);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "_ParseIes", meta.adapted);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "_ParseIes__ContentsBitmap", meta.adapted);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "BakeLightProfile", meta.adapted);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "GetThumbnail", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(Tr2LightProfileRes, "GetThumbnail", be.mapMethodAndWrap());
 CjsSchema.exposure.define("Tr2LightProfileRes")(Tr2LightProfileRes);
 be.inherit(ICacheable)(Tr2LightProfileRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2LightProfileRes);
 // Carbon: Tr2LightProfileRes::ExposeToBlue (trinity/trinity/Resources/Tr2LightProfileRes_Blue.cpp:44).
 CjsSchema.blue.chainTo(BlueAsyncRes)(Tr2LightProfileRes);
 
-CjsSchema.decorateMethod(Tr2LightProfileRes, "_DoLoad", meta.adapted);
 
-CjsSchema.decorateMethod(Tr2LightProfileRes, "_OnShutdown", meta.adapted);

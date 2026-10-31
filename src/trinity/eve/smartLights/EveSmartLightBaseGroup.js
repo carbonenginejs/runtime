@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IEveSmartLightGroup } from "./IEveSmartLightGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { resolveFactionColor } from "../resolveFactionColor.js";
@@ -74,7 +74,6 @@ export class EveSmartLightBaseGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
@@ -84,7 +83,6 @@ export class EveSmartLightBaseGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   UpdateSyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
@@ -94,7 +92,6 @@ export class EveSmartLightBaseGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
@@ -104,7 +101,6 @@ export class EveSmartLightBaseGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;
@@ -115,7 +111,6 @@ export class EveSmartLightBaseGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
@@ -125,7 +120,6 @@ export class EveSmartLightBaseGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -148,7 +142,6 @@ export class EveSmartLightBaseGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -167,7 +160,6 @@ export class EveSmartLightBaseGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -187,7 +179,6 @@ export class EveSmartLightBaseGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
@@ -199,7 +190,6 @@ export class EveSmartLightBaseGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -215,7 +205,6 @@ export class EveSmartLightBaseGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
     if (

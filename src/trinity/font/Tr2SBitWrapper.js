@@ -4,7 +4,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Font/Tr2SBit.cpp
 // Source: trinity/trinity/Font/Tr2Sbit_Blue.cpp
 // Maintained browser-font adapter; native interfaces retain their Carbon names.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /**
  * Carbon's `RGBA::BlendOverAlpha` (Tr2FontMeasurer.cpp:1427-1442), for the
@@ -76,7 +76,6 @@ export class Tr2SBitWrapper extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.implemented
   get xOffset()
   {
     return this.GetXOffset();
@@ -89,7 +88,6 @@ export class Tr2SBitWrapper extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.implemented
   get yOffset()
   {
     return this.GetYOffset();
@@ -102,7 +100,6 @@ export class Tr2SBitWrapper extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.implemented
   get width()
   {
     return this.GetWidth();
@@ -115,7 +112,6 @@ export class Tr2SBitWrapper extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.implemented
   get height()
   {
     return this.GetHeight();
@@ -128,7 +124,6 @@ export class Tr2SBitWrapper extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.implemented
   get xadvance()
   {
     return this.GetXAdvance();
@@ -141,7 +136,6 @@ export class Tr2SBitWrapper extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.implemented
   get yadvance()
   {
     return this.GetYAdvance();
@@ -152,7 +146,6 @@ export class Tr2SBitWrapper extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetWidth()
   {
     return this.sbit.width;
@@ -163,7 +156,6 @@ export class Tr2SBitWrapper extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetHeight()
   {
     return this.sbit.height;
@@ -174,7 +166,6 @@ export class Tr2SBitWrapper extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetXOffset()
   {
     return this.sbit.left;
@@ -185,7 +176,6 @@ export class Tr2SBitWrapper extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetYOffset()
   {
     return this.sbit.top;
@@ -196,7 +186,6 @@ export class Tr2SBitWrapper extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetXAdvance()
   {
     return this.sbit.xadvance;
@@ -207,7 +196,6 @@ export class Tr2SBitWrapper extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetYAdvance()
   {
     return this.sbit.yadvance;
@@ -219,7 +207,6 @@ export class Tr2SBitWrapper extends IRoot
    * @adapted typed byte views replace the Python writable-buffer interface.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ToBuffer(buffer, width, height, pitch, x, y, color)
   {
     const bytes = new Uint8Array(buffer.buffer ?? buffer, buffer.byteOffset ?? 0, buffer.byteLength); // alloc: byte view of caller-owned bitmap storage; does not copy pixels
@@ -245,7 +232,6 @@ export class Tr2SBitWrapper extends IRoot
    * @param {number} col Packed colour, as Carbon's `RGBA::col`.
    * @returns {void}
    */
-  @meta.adapted
   static sBit_To_RGBABuffer(bytes, dWidth, dHeight, dPitch, sbit, left, top, col)
   {
     left += sbit.left;
@@ -281,7 +267,6 @@ export class Tr2SBitWrapper extends IRoot
    * @param {number} col Packed colour, as Carbon's `RGBA::col`.
    * @returns {void}
    */
-  @meta.adapted
   static underline_To_RGBABuffer(bytes, dWidth, dHeight, dPitch, left, top, width, thickness, col)
   {
     top = dHeight - top;
@@ -322,7 +307,6 @@ export class Tr2SBitWrapper extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ToBufferWithUnderline(buffer, width, height, pitch, x, y, color, extraSpace)
   {
     this.ToBuffer(buffer, width, height, pitch, x, y, color);

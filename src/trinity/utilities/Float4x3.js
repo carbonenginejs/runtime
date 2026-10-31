@@ -43,7 +43,6 @@ export class Float4x3
    *
    * @adapted
    */
-  @meta.adapted
   static fromMat4(matrix, out)
   {
     return mat4.getAffineCarbon(out, matrix);
@@ -56,7 +55,6 @@ export class Float4x3
    *
    * @adapted
    */
-  @meta.adapted
   static toMat4(elements, out)
   {
     return mat4.fromAffineCarbon(out, elements);

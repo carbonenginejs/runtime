@@ -8,7 +8,7 @@ import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { IsMatch, CcpTime } from "#blue";
 import { EveShip2 } from "../EveShip2.js";
 import { EveSpaceObject2 } from "../EveSpaceObject2.js";
@@ -266,7 +266,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     super.RegisterComponents();
@@ -288,7 +287,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     super.UnRegisterComponents();
@@ -311,7 +309,6 @@ export class EveSwarm extends EveShip2
    * @returns {mat4} out
    */
 
-  @meta.adapted
   GetObserverTransform(out)
   {
     mat4.copy(out, this.worldTransform);
@@ -330,7 +327,6 @@ export class EveSwarm extends EveShip2
    * @returns {mat4} the live transform, not a copy
    */
 
-  @meta.implemented
   GetTurretTransform(swarmID)
   {
     if (swarmID >= this.renderables.length)
@@ -346,7 +342,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   RebuildCachedData(asyncRes)
   {
     super.RebuildCachedData(asyncRes);
@@ -362,7 +357,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     if (this.swarmingEnabled)
@@ -381,7 +375,6 @@ export class EveSwarm extends EveShip2
    * @returns {boolean} the base's result
    */
 
-  @meta.implemented
   UpdateWorldTransform(time)
   {
     // vec3_26 is velocityLast.
@@ -401,7 +394,6 @@ export class EveSwarm extends EveShip2
    * @param {SwarmVehicle} vehicle
    * @param {number} timeDiff - seconds
    */
-  @meta.adapted
 
   UpdateOrientation(vehicle, timeDiff)
   {
@@ -430,7 +422,6 @@ export class EveSwarm extends EveShip2
    * @adapted EveMobile's reusable parent-data record is refilled per set instead of a fresh zeroed stack record.
    */
 
-  @meta.adapted
   UpdateTurretsAsyncronous(updateContext)
   {
     const parent = this._turretParentData;
@@ -456,7 +447,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext)
   {
     if (!this.swarmingEnabled || this.count === 0)
@@ -512,7 +502,6 @@ export class EveSwarm extends EveShip2
    * @param {EveUpdateContext} _updateContext
    */
 
-  @meta.implemented
   UpdateBoosters(_updateContext)
   {
   }
@@ -529,7 +518,6 @@ export class EveSwarm extends EveShip2
    * @adapted
    * @param {number} t - Blue ticks
    */
-  @meta.adapted
 
   UpdateSwarm(t)
   {
@@ -698,7 +686,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const attachment of this.attachments)
@@ -719,7 +706,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this._isInFrustum || !this.display)
@@ -746,7 +732,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
-  @meta.implemented
 
   PushRenderables(out)
   {
@@ -766,7 +751,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
     const visible = super.UpdateVisibility(updateContext, parentTransform);
@@ -789,7 +773,6 @@ export class EveSwarm extends EveShip2
    * @returns {number} the estimate
    */
 
-  @meta.implemented
   EstimatePixelDiameter(frustum)
   {
     const { vec4_0 } = EveSwarm.scratch;
@@ -808,7 +791,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   UpdateWorldBounds()
   {
     const { vec4_0 } = EveSwarm.scratch;
@@ -830,7 +812,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
     // vec4_1 is the ship's own sphere.
@@ -849,7 +830,6 @@ export class EveSwarm extends EveShip2
    * @param {vec3} position - receives the world-space centre
    * @param {number} t - Blue ticks
    */
-  @meta.implemented
 
   UpdateModelCenterWorldPosition(position, t)
   {
@@ -871,7 +851,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   GetModelCenterWorldPosition(out)
   {
     if (this.swarmingEnabled)
@@ -896,7 +875,6 @@ export class EveSwarm extends EveShip2
    * @returns {boolean} true
    */
 
-  @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     if (this.mesh && this.mesh.GetBoundingBox(min, max))
@@ -939,7 +917,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     super.Initialize();
@@ -956,7 +933,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName = null)
   {
     super.OnModified(propertyName);
@@ -974,7 +950,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddSwarmer()
   {
     const componentRegistry = this.GetComponentRegistry();
@@ -1018,7 +993,6 @@ export class EveSwarm extends EveShip2
    * @returns {vec3} the removed vehicle's position
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RemoveSwarmer()
   {
     if (this.vehicles.length === 0)
@@ -1065,7 +1039,6 @@ export class EveSwarm extends EveShip2
    * @param {number} count
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetCount(count)
   {
     while (this.count !== count)
@@ -1090,7 +1063,6 @@ export class EveSwarm extends EveShip2
    * @param {boolean} enable
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   EnableSwarming(enable)
   {
     if (this.swarmingEnabled === enable)
@@ -1116,7 +1088,6 @@ export class EveSwarm extends EveShip2
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   PickFiringOrigin()
   {
     this.firingIndex = carbonRandom.triRandInt(this.count);
@@ -1128,7 +1099,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    * @param {boolean} enable
    */
-  @meta.implemented
 
   EnableSwarmForceDebug(enable)
   {
@@ -1154,7 +1124,6 @@ export class EveSwarm extends EveShip2
    * @implemented
    */
 
-  @meta.implemented
   GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex = -1)
   {
     super.GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex);
@@ -1183,7 +1152,6 @@ export class EveSwarm extends EveShip2
    * @returns {boolean} whether a locator was found
    */
 
-  @meta.adapted
   GetDamageLocatorPosition(index, inWorldSpace, out)
   {
     if (!this.count)
@@ -1233,7 +1201,6 @@ export class EveSwarm extends EveShip2
    * @adapted the force is written to out, which is returned.
    * @returns {vec3} out
    */
-  @meta.adapted
 
   CalculateForces(i0, swarmers, followPosition, centerOfMass, alignment, formationDirection, formationSide, timeSeconds, out)
   {
@@ -1308,7 +1275,6 @@ export class EveSwarm extends EveShip2
    * @adapted written to out, which is returned.
    * @returns {vec3} out
    */
-  @meta.adapted
 
   Calculate_Cohesion(p0, p1, out)
   {
@@ -1324,7 +1290,6 @@ export class EveSwarm extends EveShip2
    * @adapted
    * @returns {vec3} out
    */
-  @meta.adapted
 
   Calculate_Separation(p0, p1, out)
   {
@@ -1352,7 +1317,6 @@ export class EveSwarm extends EveShip2
    * @adapted
    * @returns {vec3} out
    */
-  @meta.adapted
 
   Calculate_Wander(s, wanderDistance, radius, fluctuation, t, out)
   {

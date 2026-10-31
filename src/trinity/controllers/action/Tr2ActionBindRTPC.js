@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC_Blue.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { IsMatch, blue, INotify } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -66,7 +66,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.adapted
   get isExpressionValid()
   {
     return this._runtime.program !== null && this._runtime.program.IsValid();
@@ -84,7 +83,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * @adapted a CSP-safe AST program replaces native parser bytecode.
    */
 
-  @meta.adapted
   Link(controller)
   {
     this._runtime.controller = controller;
@@ -98,7 +96,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    *   only its controller and evaluator. The emitter remains retained in both.
    */
 
-  @meta.adapted
   Unlink()
   {
     this._runtime = CjsControllerExpressionProgram.createRuntimeState();
@@ -112,7 +109,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    *   Native registers first and retains an old target if lookup finds none.
    */
 
-  @meta.adapted
   Start(controller = this._runtime.controller)
   {
     if (!controller)
@@ -132,7 +128,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * @adapted JavaScript TypeError represents native Python null-argument errors.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StartWithController(controller)
   {
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));
@@ -144,7 +139,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * @adapted the omitted-controller JS convenience uses the current link, if any.
    */
 
-  @meta.adapted
   Stop(controller = this._runtime.controller)
   {
     if (controller) controller.UnRegisterUpdateable(this);
@@ -156,7 +150,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * @adapted JavaScript TypeError represents native Python null-argument errors.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StopWithController(controller)
   {
     this.Stop(ITr2ControllerAction.requireController(controller, "StopWithController"));
@@ -170,7 +163,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    *   Required target errors remain visible outside the evaluator failure boundary.
    */
 
-  @meta.adapted
   Update(_realTime, simTime)
   {
     this._runtime.lastTime = simTime;
@@ -198,7 +190,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (this._runtime.controller && IsMatch(propertyName, "value"))
@@ -216,7 +207,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    *   observes the retained program without compiling.
    */
   @legacyBlue.method
-  @meta.adapted
   IsExpressionValid()
   {
     return this.CompileExpression().IsValid();
@@ -231,7 +221,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * @implemented
    */
   @be.mapMethodAndWrap("IsExpressionValid")
-  @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {
     return this.IsExpressionValid();
@@ -244,7 +233,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   GetCurveValue(time)
   {
     return this.curve ? this.curve.GetValueAt(time) : 0;
@@ -256,7 +244,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * @adapted shared AST term records replace native Tr2ExpressionTermInfo objects.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetExpressionTermInfo()
   {
     const result = [];
@@ -274,7 +261,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    *   rather than native BlueStdResult error returns.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EvaluateExpression(expression)
   {
     const state = {

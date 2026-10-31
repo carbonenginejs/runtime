@@ -118,15 +118,6 @@ export class IBehavior extends IRoot
 CjsSchema.decorateMethod(IBehavior, "CalculateBehavior", meta.abstract);
 
 // States: the defaults are IBehavior.h:29-73 (CalculateBehavior is pure virtual and stays abstract above).
-CjsSchema.decorateMethod(IBehavior, "GetScratchMemorySize", meta.implemented);
-CjsSchema.decorateMethod(IBehavior, "InitializeScratch", meta.implemented);
-CjsSchema.decorateMethod(IBehavior, "GetProcessPriority", meta.implemented);
-CjsSchema.decorateMethod(IBehavior, "GetBehaviorName", meta.implemented);
-CjsSchema.decorateMethod(IBehavior, "Reset", meta.implemented);
-CjsSchema.decorateMethod(IBehavior, "GetDebugOptions", meta.implemented);
-CjsSchema.decorateMethod(IBehavior, "RenderDebugInfo", meta.implemented);
-CjsSchema.decorateMethod(IBehavior, "GetBehaviorSearchRadius", meta.implemented);
-CjsSchema.decorateMethod(IBehavior, "UpdateState", meta.implemented);
 
 CjsSchema.exposure.inherit(IRoot)(IBehavior);
 CjsSchema.exposure.interface("IBehavior")(IBehavior);

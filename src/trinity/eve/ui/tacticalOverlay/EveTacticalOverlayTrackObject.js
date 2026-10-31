@@ -4,7 +4,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /**
  * One object tracked by the tactical overlay, sampling a translation curve for
@@ -52,7 +52,6 @@ export class EveTacticalOverlayTrackObject extends IRoot
    *   time-first, out-last calling convention.
    */
 
-  @meta.adapted
   UpdatePosition(updateContext)
   {
     if (!this.translationCurve) return;
@@ -68,7 +67,6 @@ export class EveTacticalOverlayTrackObject extends IRoot
    *   out-parameter convention.
    */
 
-  @meta.adapted
   GetVelocity(out)
   {
     return vec3.copy(out, this._velocity);
@@ -81,7 +79,6 @@ export class EveTacticalOverlayTrackObject extends IRoot
    *   out-parameter convention.
    */
 
-  @meta.adapted
   GetPosition(out)
   {
     return vec3.copy(out, this.position);
@@ -93,7 +90,6 @@ export class EveTacticalOverlayTrackObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRadius()
   {
     return this.radius;
@@ -106,7 +102,6 @@ export class EveTacticalOverlayTrackObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsAggressive()
   {
     return this.isAggressive;
@@ -118,7 +113,6 @@ export class EveTacticalOverlayTrackObject extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ShowVelocity()
   {
     return this.showVelocity;

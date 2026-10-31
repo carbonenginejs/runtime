@@ -3,7 +3,6 @@ import { exposure as be } from "#be";
 // Hand-owned behavior port. Verify against audio/AudActionLogCB.json and the
 // AudActionRecord*.json schema documents.
 
-import { meta } from "#schema";
 import { blue, CjsScriptCallback } from "#blue";
 import { IAudActionLog } from "./IAudActionLog.js";
 import { AudActionRecordPostEvent } from "./AudActionRecordPostEvent.js";
@@ -38,7 +37,6 @@ export class AudActionLogCB extends IAudActionLog
    * @throws {TypeError} If the callback cannot be invoked.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RegisterCallback(callback)
   {
     this._callback = CjsScriptCallback.from(callback);
@@ -57,7 +55,6 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    */
 
-  @meta.adapted
   LogPostEvent(emitterID, playID, eventID, name)
   {
     this._queue.push(new AudActionRecordPostEvent(blue.os.GetActualTime(), emitterID, playID, eventID, name));
@@ -75,7 +72,6 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    */
 
-  @meta.adapted
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
     this._queue.push(new AudActionRecordExecuteActionOnPlayingID(blue.os.GetActualTime(), emitterID, playID, action));
@@ -93,7 +89,6 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    */
 
-  @meta.adapted
   LogSetSwitch(emitterID, group, state)
   {
     this._queue.push(new AudActionRecordSetSwitch(blue.os.GetActualTime(), emitterID, group, state));
@@ -110,7 +105,6 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    */
 
-  @meta.adapted
   LogSetState(group, state)
   {
     this._queue.push(new AudActionRecordSetState(blue.os.GetActualTime(), group, state));
@@ -129,7 +123,6 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    */
 
-  @meta.adapted
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
     this._queue.push(new AudActionRecordSetRTPC(blue.os.GetActualTime(), emitterID, name, value, playID));
@@ -146,7 +139,6 @@ export class AudActionLogCB extends IAudActionLog
    * @throws {*} Propagates callback exceptions without removing the current record.
    */
 
-  @meta.adapted
   Flush()
   {
     while (this._callback && this._queue.length)

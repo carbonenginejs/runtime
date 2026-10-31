@@ -62,7 +62,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   UpdateRtMesh(geometry, meshIndex, screenSize)
   {
     if (this.geometry !== geometry || this.meshIndex !== meshIndex)
@@ -88,7 +87,6 @@ export class Tr2RaytracingMesh
    *
    * @adapted
    */
-  @meta.adapted
   SetBoneTransforms(count, transforms, offset)
   {
     // Adapted: a typed-array view supplies the native pointer's packed bytes.
@@ -112,7 +110,6 @@ export class Tr2RaytracingMesh
    *
    * @adapted
    */
-  @meta.adapted
   SetMorphAnimations(count, morphTargets, offset)
   {
     const size = count * 8;
@@ -132,7 +129,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   IsGood()
   {
     return !!(this.geometry && this.geometry.IsGood() && this.GetCurrentLodData());
@@ -143,7 +139,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   IsGoodForArea(area)
   {
     if (!this.geometry || !this.geometry.IsGood()) return false;
@@ -156,7 +151,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   GetAndResetDirtyFlag()
   {
     const dirty = this.isDirty;
@@ -169,7 +163,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   MarkDirty()
   {
     this.isDirty = true;
@@ -180,7 +173,6 @@ export class Tr2RaytracingMesh
    *
    * @adapted
    */
-  @meta.adapted
   GetCurrentLodData()
   {
     return this.geometry.GetMeshLod__LodIndex(this.meshIndex, this.lodIndex);
@@ -191,7 +183,6 @@ export class Tr2RaytracingMesh
    *
    * @adapted
    */
-  @meta.adapted
   GetHighestLodData()
   {
     return this.geometry.GetMeshLod__LodIndex(this.meshIndex, 0);
@@ -202,7 +193,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   GetTransformOffset()
   {
     return this.boneOffset;
@@ -213,7 +203,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   GetSkinnedVertexBuffer()
   {
     return this.skinnedVertices;
@@ -224,7 +213,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   SetSkinnedVertices(buffer, offset)
   {
     this.skinnedVertices = buffer;
@@ -236,7 +224,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   GetSkinnedVertexOffset()
   {
     return this.skinnedVertexOffset;
@@ -247,7 +234,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   GetVertexBuffer()
   {
     return this.GetCurrentLodData().vertexAllocation.GetBuffer();
@@ -258,7 +244,6 @@ export class Tr2RaytracingMesh
    *
    * @implemented
    */
-  @meta.implemented
   GetIndexBuffer()
   {
     return this.GetCurrentLodData().indexAllocation.GetBuffer();

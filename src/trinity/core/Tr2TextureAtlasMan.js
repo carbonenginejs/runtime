@@ -6,7 +6,7 @@ import { exposure as be } from "#be";
 // Hand-maintained port. Carbon guards `m_atlases` with a mutex because
 // `FindAtlas` may run on a loading thread; JavaScript runs this single-threaded,
 // so the mutex has nothing to guard and is not ported.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2TextureAtlas } from "./Tr2TextureAtlas.js";
 
 /** Holds texture atlases and finds one for a given pixel format. */
@@ -26,7 +26,6 @@ export class Tr2TextureAtlasMan extends IRoot
    * @param {number} fmt A `PixelFormat` value.
    * @returns {Tr2TextureAtlas|null} The atlas, or null.
    */
-  @meta.implemented
   FindAtlas(fmt)
   {
     for (const atlas of this.atlases)
@@ -57,7 +56,6 @@ export class Tr2TextureAtlasMan extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddAtlas(fmt, width, height)
   {
     const atlas = new Tr2TextureAtlas();
@@ -78,7 +76,6 @@ export class Tr2TextureAtlasMan extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RemoveAtlas(fmt)
   {
     for (let ix = 0; ix < this.atlases.length; ++ix)
@@ -102,7 +99,6 @@ export class Tr2TextureAtlasMan extends IRoot
    * @param {number} height Atlas height.
    * @returns {void}
    */
-  @meta.implemented
   _AddAtlasWrap(fmt, width, height)
   {
     this.AddAtlas(fmt, width, height);
@@ -117,7 +113,6 @@ export class Tr2TextureAtlasMan extends IRoot
    * @param {number} fmt A `PixelFormat` value.
    * @returns {void}
    */
-  @meta.implemented
   _RemoveAtlasWrap(fmt)
   {
     this.RemoveAtlas(fmt);

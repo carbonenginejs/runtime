@@ -10,7 +10,7 @@ import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { IsMatch } from "#blue";
 import { quat } from "#math/quat";
 import { IEveInheritPropertiesOwner } from "../../IEveInheritPropertiesOwner.js";
@@ -104,7 +104,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -119,7 +118,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display"))
@@ -136,7 +134,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(_event = 0, _key = 0, _key2 = 0, _value = null, _list = null)
   {
   }
@@ -146,7 +143,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -157,7 +153,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -174,7 +169,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ConfigureSelectedObject()
   {
     const child = this.selectionMethod.GetSelectedChild();
@@ -212,7 +206,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @param {Tr2QuadRenderer} quadRenderer
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.selectedObject !== null)
@@ -230,7 +223,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @param {Tr2QuadRenderer} quadRenderer
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display)
@@ -252,7 +244,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @param {IEveSpaceObject2|null} owner
    */
 
-  @meta.implemented
   SetOwner(owner)
   {
     if (this.GetOwner() !== owner)
@@ -273,7 +264,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @param {number} tag
    */
 
-  @meta.implemented
   SetPartTag(tag)
   {
     if (this.GetPartTag() !== tag)
@@ -292,7 +282,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetMethodVariableName()
   {
     return this.selectionMethod ? this.selectionMethod.GetProceduralMethodVariable() : "methodUnassigned";
@@ -304,7 +293,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HandleControllerEvent(name)
   {
     this.selectedObject?.HandleControllerEvent(name);
@@ -316,7 +304,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     this.selectedObject?.SetControllerVariable(name, value);
@@ -328,7 +315,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
     const key = String(name);
@@ -343,7 +329,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   StartControllers()
   {
     this.selectedObject?.StartControllers();
@@ -360,7 +345,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @param {EveChildUpdateParams} params
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     const newParams = EveChildProceduralContainer._DeriveChildParams(params);
@@ -390,7 +374,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @returns {Float32Array} worldTransform
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     const parentTransform = params?.localToWorldTransform;
@@ -422,7 +405,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
     if (!this.display)
@@ -439,7 +421,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     if (this.display && this.selectedObject)
@@ -459,7 +440,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     const childSphere = vec4.create();
@@ -479,7 +459,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -491,7 +470,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   ChangeLOD(lod)
   {
     if (this.selectedObject) this.selectedObject.ChangeLOD(lod);
@@ -503,7 +481,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
@@ -516,7 +493,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   StopCurveSet(name)
   {
     const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
@@ -529,7 +505,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
@@ -542,7 +517,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
@@ -555,7 +529,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
@@ -568,7 +541,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   PlayAllCurveSets()
   {
     const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
@@ -581,7 +553,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   StopAllCurveSets()
   {
     const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
@@ -594,7 +565,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
@@ -607,7 +577,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   FindSoundEmitter(name)
   {
     const owner = CjsSchema.cast(this.selectedObject, ITr2SoundEmitterOwner);
@@ -621,7 +590,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddTransformModifier(modifier)
   {
     this.transformModifiers.push(modifier);
@@ -633,7 +601,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     if (this.selectedObject) this.selectedObject.SetShaderOption(name, value);
@@ -646,7 +613,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (CjsSchema.cast(this.selectedObject, IEveInheritPropertiesOwner)) this.selectedObject.SetInheritProperties(colorSet);
@@ -659,7 +625,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -676,7 +641,6 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();

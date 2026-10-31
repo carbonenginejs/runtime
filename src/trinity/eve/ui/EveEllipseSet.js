@@ -185,7 +185,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.adapted
   ReleaseResources(_s)
   {
     this._vertexBuffer.Destroy();
@@ -230,7 +229,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {boolean} Whether the declaration handle is valid.
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     if (this._vertexDeclHandle !== Tr2EffectStateManager.Unknown)
@@ -260,7 +258,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {boolean} True after insertion.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddEllipse(center, semiMajor, semiMinor, planeNormal, rotationDegrees)
   {
     const ellipse = new EveEllipseDefinition();
@@ -288,7 +285,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   __init__()
   {
     if (!this.effect && EveEllipseSet.ellipseRibbonEffectPath !== "")
@@ -314,7 +310,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ClearEllipses()
   {
     for (const ellipse of this.ellipses)
@@ -334,7 +329,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this._MarkGeometryDirty();
@@ -354,7 +348,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.adapted
   @meta.invalidates("#geometryDirty")
   OnListModified(event, _key, _key2, value, list)
   {
@@ -397,7 +390,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, _params)
   {
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
@@ -417,7 +409,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext, params)
   {
     this.UpdateTransform(params.localToWorldTransform);
@@ -435,7 +426,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, parentLod)
   {
     this._isVisible = false;
@@ -459,7 +449,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (this._isVisible && this._indexCount > 0)
@@ -481,7 +470,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   GetBoundingSphere(sphere, _query = BoundingSphereQuery.EVE_BOUNDS_NORMAL)
   {
     const world = this.worldTransform;
@@ -503,7 +491,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {mat4} transform
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     return mat4.copy(transform, this.worldTransform);
@@ -521,7 +508,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.implemented
   Setup(scale, rotation, translation, lowestLodVisible)
   {
     // call base class's setup
@@ -540,7 +526,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {EveEllipseSet} this
    */
 
-  @meta.implemented
   GetID(_areaId)
   {
     return this;
@@ -560,7 +545,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (!this.display || !perObjectData)
@@ -604,7 +588,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.implemented
   GetPickingBatches(batches, pickTypes, perObjectData)
   {
     if (!this.enablePicking)
@@ -625,7 +608,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {boolean}
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return this.display;
@@ -639,7 +621,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {number}
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const { vec3_0 } = EveEllipseSet.scratch;
@@ -664,7 +645,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {Tr2PerObjectDataStandard}
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = Tr2PerObjectDataStandard.alloc(accumulator, "EvePerObjectVSData", "EvePerObjectPSData");
@@ -691,7 +671,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.adapted
   _CommitRibbonBatch(accumulator, perObjectData, effect)
   {
     const f = Math.fround;
@@ -728,7 +707,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.implemented
   _MarkGeometryDirty()
   {
     this._geometryDirty = true;
@@ -744,7 +722,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.implemented
   _RefreshGeometryIfNeeded(updateContext)
   {
     if (!this.display)
@@ -777,7 +754,6 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {void}
    */
 
-  @meta.adapted
   _RebuildGeometry(_updateContext)
   {
     const f = Math.fround;
@@ -950,7 +926,6 @@ export class EveEllipseSet extends EveChildTransform
    * @param {vec3} n Receives the unit normal.
    * @returns {void}
    */
-  @meta.implemented
   static buildOrbitPlaneBasisPython(planeNormal, basisU, basisV, n)
   {
     vec3.normalizeCarbon(n, planeNormal);
@@ -985,7 +960,6 @@ export class EveEllipseSet extends EveChildTransform
    * @param {vec3} outV Receives the semi-minor axis direction.
    * @returns {void}
    */
-  @meta.implemented
   static buildOrbitEllipseAxes(spec, outU, outV)
   {
     const { vec3_2, vec3_3, vec3_4 } = EveEllipseSet.scratch;

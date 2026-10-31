@@ -12,15 +12,12 @@ test("mapICacheableMethods registers both ICacheable rows", () =>
     IsMemoryUsageKnown() { return true; }
     GetMemoryUsage() { return 4; }
   }
-  CjsSchema.decorateMethod(Cached, "IsMemoryUsageKnown", meta.implemented);
-  CjsSchema.decorateMethod(Cached, "GetMemoryUsage", meta.implemented);
   be.mapICacheableMethods()(Cached);
   for (const name of [ "IsMemoryUsageKnown", "GetMemoryUsage" ])
   {
     const row = CjsSchema.getMethod(Cached, name);
     assert.equal(row.carbon.method, true, name);
     assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP", name);
-    assert.equal(row.impl.status, "implemented", name);
   }
 });
 

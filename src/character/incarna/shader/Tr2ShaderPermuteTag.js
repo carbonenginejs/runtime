@@ -17,7 +17,6 @@ import { meta, type } from "#schema";
  * @adapted
  */
 @meta.define("Tr2ShaderPermuteTag")
-@meta.adapted
 export class Tr2ShaderPermuteTag extends IRoot
 {
 

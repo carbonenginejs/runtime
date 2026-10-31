@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify, IInitialize } from "#blue";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -41,7 +41,6 @@ export class Tr2GpuBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   Initialize()
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -53,7 +52,6 @@ export class Tr2GpuBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   OnModified(_names)
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -97,7 +95,6 @@ export class Tr2GpuBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.#name = String(name ?? "");
@@ -128,7 +125,6 @@ export class Tr2GpuBuffer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @meta.adapted
   Create(count, format, creationFlags, renderContext)
   {
     this.count = count;
@@ -146,7 +142,6 @@ export class Tr2GpuBuffer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @meta.adapted
   CreateBuffer(renderContext)
   {
     if (this.#buffer) this.#buffer.Destroy();
@@ -181,7 +176,6 @@ export class Tr2GpuBuffer extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     if (this.#buffer) this.#buffer.Destroy();
@@ -197,7 +191,6 @@ export class Tr2GpuBuffer extends IRoot
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
-  @meta.implemented
   GetGpuBuffer(_index = 0)
   {
     return this.#buffer;
@@ -208,7 +201,6 @@ export class Tr2GpuBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   IsValid()
   {
     return this.#buffer !== null;
@@ -221,7 +213,6 @@ export class Tr2GpuBuffer extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get isValid()
   {
     return this.IsValid();
@@ -232,7 +223,6 @@ export class Tr2GpuBuffer extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetCount()
   {
     return this.#buffer ? this.#buffer.GetDesc().count : 0;
@@ -244,7 +234,6 @@ export class Tr2GpuBuffer extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.notImplemented
   __init__(...args)
   {
     throw new Error("Tr2GpuBuffer.__init__ is not implemented in CarbonEngineJS.");
@@ -256,7 +245,6 @@ export class Tr2GpuBuffer extends IRoot
    * @notImplemented
    */
   @be.mapMethod()
-  @meta.notImplemented
   DebugGetData(...args)
   {
     throw new Error("Tr2GpuBuffer.DebugGetData is not implemented in CarbonEngineJS.");

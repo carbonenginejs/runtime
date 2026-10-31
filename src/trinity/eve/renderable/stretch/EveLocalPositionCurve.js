@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, type, blue as legacyBlue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { ITriTargetable } from "../../../core/ITriTargetable.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
@@ -82,7 +82,6 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @implemented
    */
   @legacyBlue.method
-  @meta.implemented
   __init__(behavior = EveLocalPositionCurve.LocalPositionBehavior.POS_NONE)
   {
     this.SetBehavior(behavior);
@@ -95,7 +94,6 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
-  @meta.implemented
   SetBehavior(behavior)
   {
     this.behavior = Number(behavior) | 0;
@@ -111,7 +109,6 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   Update(_time, out)
   {
     return out;
@@ -126,7 +123,6 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.adapted
 
   Update__Ticks(time, out)
   {
@@ -163,7 +159,6 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   GetValueAt(_time, out)
   {
     return vec3.copy(out, this.value);
@@ -178,7 +173,6 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.adapted
 
   GetValueAt__Ticks(time, out)
   {
@@ -199,7 +193,6 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    *   Update would be more active than the donor.
    */
 
-  @meta.adapted
   UpdateValue(_time)
   {
   }
@@ -211,7 +204,6 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @implemented
    */
 
-  @meta.implemented
   GetValueDotAt(_time, out)
   {
     return out;
@@ -224,7 +216,6 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @implemented
    */
 
-  @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -233,14 +224,11 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   /**
    * Widens the last computed value into a double-precision three-element buffer for the camera-relative path; it does not re-evaluate the behaviour.
    *
-   * @adapted
+   * @adapted Carbon's Vector3d is any three-element numeric output buffer here.
    * @param {Float64Array} out - caller-owned
    * @returns {Float64Array} out
-   *
-   * Adapted: Carbon's Vector3d is any three-element numeric output buffer here.
    */
 
-  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     out[0] = this.value[0];

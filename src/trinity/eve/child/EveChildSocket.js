@@ -13,7 +13,7 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { IsMatch, blue } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { EveChildPlug } from "./EveChildPlug.js";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, type, blue as legacyBlue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
@@ -112,7 +112,6 @@ export class EveChildSocket extends EveChildTransform
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   HandleControllerEvent(name)
   {
     if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.HandleControllerEvent(name));
@@ -127,7 +126,6 @@ export class EveChildSocket extends EveChildTransform
    * @adapted
    */
   @be.mapMethodAndWrap("Rebind")
-  @meta.adapted
   BindParameters()
   {
     if (!this.plug) return false;
@@ -156,7 +154,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
   @legacyBlue.method
-  @meta.implemented
   Rebind()
   {
     this.BindParameters();
@@ -168,7 +165,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   Propogate()
   {
     if (this.plug) for (const parameter of this.parameters) parameter.Propagate();
@@ -181,7 +177,6 @@ export class EveChildSocket extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     const operation = this.LoadChild();
@@ -204,7 +199,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetPlugResPath()
   {
     return this.resPath;
@@ -217,7 +211,6 @@ export class EveChildSocket extends EveChildTransform
    *   unlike Initialize, this setter does not bind or propagate parameters.
    */
 
-  @meta.adapted
   SetPlugResPath(path)
   {
     if (this.resPath === path) return;
@@ -239,7 +232,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Reload()
   {
     this.Initialize();
@@ -251,7 +243,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName = null)
   {
     if (IsMatch(propertyName, "resPath")) this.Initialize();
@@ -267,7 +258,6 @@ export class EveChildSocket extends EveChildTransform
    *   resolves to the native success boolean; failure logs and leaves no plug.
    */
 
-  @meta.adapted
   async LoadChild()
   {
     const request = ++this._loadRequest;
@@ -307,7 +297,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetOwner(owner)
   {
     if (this.GetOwner() === owner) return;
@@ -321,7 +310,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetPartTag(tag)
   {
     const next = Number(tag) >>> 0;
@@ -337,7 +325,6 @@ export class EveChildSocket extends EveChildTransform
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetControllerVariable(name, value)
   {
     if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.SetControllerVariable(name, value));
@@ -351,7 +338,6 @@ export class EveChildSocket extends EveChildTransform
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StartControllers()
   {
     if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.StartControllers());
@@ -365,7 +351,6 @@ export class EveChildSocket extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   PlayAllCurveSets()
   {
     if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.PlayAllCurveSets());
@@ -378,7 +363,6 @@ export class EveChildSocket extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   StopAllCurveSets()
   {
     if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.StopAllCurveSets());
@@ -391,7 +375,6 @@ export class EveChildSocket extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   PlayCurveSet(name, rangeName = "")
   {
     if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.PlayCurveSet(name, rangeName));
@@ -404,7 +387,6 @@ export class EveChildSocket extends EveChildTransform
    * @adapted
    */
 
-  @meta.adapted
   StopCurveSet(name)
   {
     if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.StopCurveSet(name));
@@ -417,7 +399,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateCurveSet(name, time)
   {
     if (this.plug) this.plug.UpdateCurveSet(name, time);
@@ -429,7 +410,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSetDuration(name)
   {
     return this.plug ? this.plug.GetCurveSetDuration(name) : 0;
@@ -441,7 +421,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     return this.plug ? this.plug.GetRangeDuration(name, rangeName) : 0;
@@ -454,7 +433,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     if (this.IsInRegistry() && this.plug !== null && this.display)
@@ -470,7 +448,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     if (this.IsInRegistry() && this.plug)
@@ -486,7 +463,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetEffectChildByName(name)
   {
     if (this.plug) return this.plug.GetEffectChildByName(name);
@@ -499,7 +475,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddToEffectChildrenList(_child)
   {
   }
@@ -510,7 +485,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RemoveFromEffectChildrenList(_child)
   {
   }
@@ -521,7 +495,6 @@ export class EveChildSocket extends EveChildTransform
    * @param {string} name
    * @param {string} value
    */
-  @meta.implemented
   SetShaderOption(name, value)
   {
     if (this.plug)
@@ -536,7 +509,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    * @param {Set<string>} options
    */
-  @meta.implemented
   GetDebugOptions(options)
   {
     if (!this.plug)
@@ -557,7 +529,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (!this.display || !this.plug)
@@ -577,7 +548,6 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   FindSoundEmitter(name)
   {
     if (this.plug)

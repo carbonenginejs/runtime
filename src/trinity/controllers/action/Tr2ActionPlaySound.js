@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -49,7 +49,6 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    *   remain silent rather than emitting the native diagnostic.
    */
 
-  @meta.adapted
   Start(controller)
   {
     const owner = Tr2ActionPlaySound._resolveOwner(ITr2ControllerAction.getOwner(controller), this.target);
@@ -69,7 +68,6 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    *   (Tr2ActionPlaySound.cpp:52-61); narrowing this entry point is deferred.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   StartWithController(controller)
   {
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));

@@ -7,7 +7,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 
@@ -41,7 +41,6 @@ export class EveVirtualCameraBehaviourVector3Base extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -54,7 +53,6 @@ export class EveVirtualCameraBehaviourVector3Base extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name);
@@ -67,7 +65,6 @@ export class EveVirtualCameraBehaviourVector3Base extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "name")) this.SetName(this.name);
@@ -80,7 +77,6 @@ export class EveVirtualCameraBehaviourVector3Base extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsActive()
   {
     return this.active;

@@ -12,6 +12,7 @@ import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedEve from "../../npm/dist/trinity/generated/eve/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 // The bracket reads the Tr2Renderer statics, as Carbon's does; the viewport
@@ -72,7 +73,7 @@ test("EveProjectBracket is maintained with corrected Carbon defaults", () =>
   assert.equal(bracket.integerCoordinates, true);
   assert.equal(bracket.dock, false);
   assert.equal(CjsSchema.getField(eve.EveProjectBracket, "maxDispRange")?.type.kind, "float32");
-  assert.equal(CjsSchema.getMethod(eve.EveProjectBracket, "UpdateValue")?.impl?.status, "adapted");
+  assert.equal(MarkerTag("EveProjectBracket", "UpdateValue"), "adapted");
 });
 
 

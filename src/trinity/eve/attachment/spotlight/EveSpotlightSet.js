@@ -162,7 +162,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Rebuild()
   {
     this._rebuildRevision++;
@@ -207,7 +206,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.coneEffect) this._coneEffectHash = Number(this.coneEffect.GetHashValue()) >>> 0;
@@ -222,7 +220,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     this.RegisterQuadRendererCone(quadRenderer);
@@ -238,7 +235,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   AddToQuadRenderer(quadRenderer, world, activation, boosterGain, bones, boneCount)
   {
     if (!this.display || !this._glowBuffer.length) return;
@@ -299,7 +295,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetConeEffect()
   {
     return this.coneEffect;
@@ -311,7 +306,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetConeEffect(effect)
   {
     this.coneEffect = effect ?? null;
@@ -324,7 +318,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetGlowEffect()
   {
     return this.glowEffect;
@@ -336,7 +329,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetGlowEffect(effect)
   {
     this.glowEffect = effect ?? null;
@@ -352,7 +344,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterQuadRendererCone(quadRenderer)
   {
     quadRenderer.RegisterEffect(
@@ -372,7 +363,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterQuadRendererGlow(quadRenderer)
   {
     quadRenderer.RegisterEffect(
@@ -404,7 +394,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
     return GetItemSetAabb(
@@ -424,7 +413,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = this.GetAabb(EveSpotlightSet._aabbScratch, bones, boneCount);
@@ -444,7 +432,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetSkinned(skinned)
   {
     this.skinned = !!skinned;
@@ -456,7 +443,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -468,7 +454,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -480,7 +465,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetSpotlightItems()
   {
     return this.spotlightItems;
@@ -493,7 +477,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   AddSpotlightItem(item)
   {
     this.spotlightItems.push(item);
@@ -506,7 +489,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     if (this.coneEffect)
@@ -530,7 +512,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Spotlight Sets");
@@ -559,7 +540,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @param {number} boneCount
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
     if (renderer.HasOption(this, "Spotlight Sets"))
@@ -656,7 +636,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EveSpotlightLight.FromSOF(light));
@@ -669,7 +648,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -692,7 +670,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    *   Normal2Warp - so ours applies bone 0 like any other.
    */
 
-  @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, boosterGain = 0)
   {
     for (const light of this.lights)
@@ -728,7 +705,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @adapted Profile-index packing is by-reference per lightConversion.js conventions.
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     const features = EveSpotlightSet._features;

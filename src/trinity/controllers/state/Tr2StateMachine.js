@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachine.h
 // Source: trinity/trinity/Controllers/Tr2StateMachine.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { IsMatch, blue, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -91,7 +91,6 @@ export class Tr2StateMachine
    * @returns {void}
    */
 
-  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.states)
   {
     if (list !== this.states)
@@ -131,7 +130,6 @@ export class Tr2StateMachine
    * @returns {boolean} True after the notification is handled.
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "startState") && this.startState && this._controller) this.startState.Link(this);
@@ -147,7 +145,6 @@ export class Tr2StateMachine
    * @returns {void}
    */
 
-  @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
     const diff = newTime - oldTime;
@@ -167,7 +164,6 @@ export class Tr2StateMachine
    * @returns {void}
    */
 
-  @meta.implemented
   Link(controller)
   {
     this.Unlink();
@@ -186,7 +182,6 @@ export class Tr2StateMachine
    * @returns {void}
    */
 
-  @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     if (!this._controller)
@@ -211,7 +206,6 @@ export class Tr2StateMachine
    * @returns {void}
    */
 
-  @meta.adapted
   Start()
   {
     if (this.currentState || !this._controller)
@@ -237,7 +231,6 @@ export class Tr2StateMachine
    * @returns {void}
    */
 
-  @meta.implemented
   Stop()
   {
     if (this.currentState)
@@ -257,7 +250,6 @@ export class Tr2StateMachine
    * @returns {void}
    */
 
-  @meta.adapted
   Update(dirtyVariables = 0n)
   {
     if (this.currentState)
@@ -273,7 +265,6 @@ export class Tr2StateMachine
    * @returns {Tr2Controller|null} Linked controller, or null while unlinked.
    */
 
-  @meta.implemented
   GetController()
   {
     return this._controller;
@@ -306,7 +297,6 @@ export class Tr2StateMachine
    * @returns {Tr2StateMachineState|null} Matching state, or null when absent.
    */
 
-  @meta.implemented
   GetStateByName(name)
   {
     return this.states.find(state => state.GetName() === name) ?? null;
@@ -320,7 +310,6 @@ export class Tr2StateMachine
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
 
-  @meta.implemented
   GetMachineRunTime()
   {
     return this._machineStartTime ? CcpTime.timeAsFloat(blue.os.GetCurrentFrameTime() - this._machineStartTime) : 0;
@@ -333,7 +322,6 @@ export class Tr2StateMachine
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
 
-  @meta.implemented
   GetStateRunTime()
   {
     return this._stateStartTime ? CcpTime.timeAsFloat(blue.os.GetCurrentFrameTime() - this._stateStartTime) : 0;
@@ -359,7 +347,6 @@ export class Tr2StateMachine
    * @returns {void}
    */
 
-  @meta.adapted
   _FollowTransitions(dirtyVariables)
   {
     let next = this.currentState?.Update(dirtyVariables) ?? null;

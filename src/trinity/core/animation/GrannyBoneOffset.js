@@ -6,7 +6,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IInitialize } from "#blue/IInitialize";
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 
 /**
@@ -27,7 +27,6 @@ export class GrannyBoneOffset extends IInitialize
    *
    * @implemented
    */
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -38,7 +37,6 @@ export class GrannyBoneOffset extends IInitialize
    *
    * @implemented
    */
-  @meta.implemented
   HaveTransforms()
   {
     return this._transforms.size !== 0;
@@ -50,7 +48,6 @@ export class GrannyBoneOffset extends IInitialize
    *
    * @implemented
    */
-  @meta.implemented
   NeedRebind(numBones)
   {
     return this.HaveTransforms() && this._riggedTransforms.length !== numBones;
@@ -62,7 +59,6 @@ export class GrannyBoneOffset extends IInitialize
    *
    * @implemented
    */
-  @meta.implemented
   ClearRigBindings()
   {
     this._riggedTransforms.length = 0;
@@ -74,7 +70,6 @@ export class GrannyBoneOffset extends IInitialize
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearTransforms()
   {
     this._transforms.clear();
@@ -90,7 +85,6 @@ export class GrannyBoneOffset extends IInitialize
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetRotation(bone, r, i, j, k)
   {
     if (!bone) return;
@@ -107,7 +101,6 @@ export class GrannyBoneOffset extends IInitialize
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetOffset(bone, x, y, z)
   {
     if (!bone) return;
@@ -128,7 +121,6 @@ export class GrannyBoneOffset extends IInitialize
    *
    * @adapted
    */
-  @meta.adapted
   BindToRig(bones, numBones = bones?.length ?? 0)
   {
     if (!bones || !numBones) return;
@@ -145,7 +137,6 @@ export class GrannyBoneOffset extends IInitialize
    *
    * @adapted
    */
-  @meta.adapted
   Apply(out, joint, boneMatrix, parentMatrix)
   {
     const offset = this._riggedTransforms[joint];
@@ -170,7 +161,6 @@ export class GrannyBoneOffset extends IInitialize
    *
    * @adapted
    */
-  @meta.adapted
   ApplyToLocal(joint, rotation, position)
   {
     const offset = this._riggedTransforms[joint];

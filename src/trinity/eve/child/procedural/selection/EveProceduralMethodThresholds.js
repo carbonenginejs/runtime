@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { IsMatch, INotify, IListNotify } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 import { EveProceduralMethodThresholdParameter } from "./EveProceduralMethodThresholdParameter.js";
 
@@ -64,7 +64,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.SortParameters();
@@ -78,7 +77,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "seed_temp"))
@@ -96,7 +94,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list === this.parameters && (event & BELIST_LOADING) === 0)
@@ -114,7 +111,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   SelectParameter()
   {
     const currentChild = this.selectedChild;
@@ -142,7 +138,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   SortParameters()
   {
     if (this.parameters.length < 2)
@@ -160,7 +155,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   IsSelectedChildModified()
   {
     return this._selectedChildModified;
@@ -175,7 +169,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetSelectedChild()
   {
     if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
@@ -206,7 +199,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
     let reselect = false;
@@ -231,7 +223,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   GetDebugVolumes()
   {
     return this.debugVolumes;
@@ -245,7 +236,6 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * @implemented
    */
 
-  @meta.implemented
   SetProceduralMethodVariable(name, value)
   {
     if (String(name ?? "") === this.thresholdAttribute)

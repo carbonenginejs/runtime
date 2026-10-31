@@ -13,7 +13,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2ShaderProgramAL.cpp:5`): we ship every
 // backend at once, so the context that knows its backend is the factory
 // (`CreateShaderProgram(shaders, count, true)`).
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -80,7 +80,6 @@ export class Tr2ShaderProgramAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(shaders, count, renderContext)
   {
     this.Destroy();
@@ -103,7 +102,6 @@ export class Tr2ShaderProgramAL
    * @param {object} _renderContext The primary context.
    * @returns {number} `E_FAIL`.
    */
-  @meta.implemented
   CreateCommandSignatures(_bufferLayout, _renderContext)
   {
     return ALResult.E_FAIL;
@@ -115,7 +113,6 @@ export class Tr2ShaderProgramAL
    * @implemented
    * @returns {boolean} True once created.
    */
-  @meta.implemented
   IsValid()
   {
     return this._program.implementation.IsValid();
@@ -127,7 +124,6 @@ export class Tr2ShaderProgramAL
    * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @meta.implemented
   GetMemoryClass()
   {
     return this._program.implementation.GetMemoryClass();
@@ -141,7 +137,6 @@ export class Tr2ShaderProgramAL
    * @param {Tr2ShaderProgramAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @meta.adapted
   Equals(other)
   {
     return this._program === other._program;
@@ -153,7 +148,6 @@ export class Tr2ShaderProgramAL
    * @implemented
    * @returns {Tr2RegisterMapAL} The map; empty when uncreated.
    */
-  @meta.implemented
   GetRegisterMap()
   {
     return this._program.implementation.GetRegisterMap();
@@ -167,7 +161,6 @@ export class Tr2ShaderProgramAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -182,7 +175,6 @@ export class Tr2ShaderProgramAL
    * @implemented
    * @returns {object} The implementation.
    */
-  @meta.implemented
   TrinityALImpl_GetObject()
   {
     return this._program.implementation;
@@ -205,5 +197,4 @@ export class Tr2ShaderProgramAL
 }
 
 CjsSchema.decorateField(Tr2ShaderProgramAL, "_program", type.unknown);
-CjsSchema.decorateMethod(Tr2ShaderProgramAL, "Equals", meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2ShaderProgramAL")(Tr2ShaderProgramAL);

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriViewport.h
 // Source: trinity/trinity/TriViewport_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -59,7 +59,6 @@ export class TriViewport extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   __init__(x = 0, y = 0, width = 1, height = 1, minZ = 0, maxZ = 1)
   {
     this.x = x;
@@ -76,7 +75,6 @@ export class TriViewport extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetAspectRatio()
   {
     return this.width / this.height;

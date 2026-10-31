@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { EveProceduralMethodAttributeMapParameter } from "./EveProceduralMethodAttributeMapParameter.js";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
@@ -54,7 +54,6 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * @implemented
    */
 
-  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "seed_temp"))
@@ -74,7 +73,6 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * @implemented
    */
 
-  @meta.implemented
   SelectParameter()
   {
     const currentChild = this.selectedChild;
@@ -101,7 +99,6 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * @implemented
    */
 
-  @meta.implemented
   IsSelectedChildModified()
   {
     return this._selectedChildModified;
@@ -116,7 +113,6 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * @implemented
    */
 
-  @meta.implemented
   GetSelectedChild()
   {
     if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
@@ -147,7 +143,6 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
     let reselect = false;
@@ -171,7 +166,6 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * @implemented
    */
 
-  @meta.implemented
   GetDebugVolumes()
   {
     return this.debugVolumes;

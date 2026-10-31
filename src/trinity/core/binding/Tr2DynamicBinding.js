@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2DynamicBinding.h
 // Source: trinity/trinity/Tr2DynamicBinding.cpp
 // Source: trinity/trinity/Tr2DynamicBinding_Blue.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { IList } from "#blue/IList";
 import { INotify } from "#blue/INotify";
 import { ISimTimeRebaseNotify } from "#blue/ISimTimeRebaseNotify";
@@ -66,7 +66,6 @@ export class Tr2DynamicBinding extends INotify
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isDestinationValid()
   {
     return this.IsDestinationValid();
@@ -122,7 +121,6 @@ export class Tr2DynamicBinding extends INotify
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isSourceValid()
   {
     return this.IsSourceValid();
@@ -182,7 +180,6 @@ export class Tr2DynamicBinding extends INotify
    *   open teardown ruling (operator, with TriDevice's registry and plan Q4).
    * @returns {void}
    */
-  @meta.adapted
   Destruct()
   {
     if (this._rebaseOS)
@@ -209,7 +206,6 @@ export class Tr2DynamicBinding extends INotify
    * @returns {boolean} Binding result.
    */
 
-  @meta.adapted
   Link()
   {
     this.Unlink();
@@ -253,7 +249,6 @@ export class Tr2DynamicBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   Unlink()
   {
     this.binding?.SetDestinationObject(null);
@@ -274,7 +269,6 @@ export class Tr2DynamicBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   SetOwner(owner)
   {
     this._owner = owner ?? null;
@@ -289,7 +283,6 @@ export class Tr2DynamicBinding extends INotify
    * @returns {boolean} Binding result.
    */
 
-  @meta.adapted
   Update(time)
   {
     if (this.binding && this._bindingTime <= time)
@@ -309,7 +302,6 @@ export class Tr2DynamicBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
     this._bindingTime += newTime - oldTime;
@@ -323,7 +315,6 @@ export class Tr2DynamicBinding extends INotify
    * @returns {boolean} Binding result.
    */
 
-  @meta.implemented
   IsDestinationValid()
   {
     this._isDestinationValid = !!this.destination;
@@ -338,7 +329,6 @@ export class Tr2DynamicBinding extends INotify
    * @returns {boolean} Binding result.
    */
 
-  @meta.implemented
   IsSourceValid()
   {
     this._isSourceValid = !!this.source;
@@ -353,7 +343,6 @@ export class Tr2DynamicBinding extends INotify
    * @returns {boolean} Binding result.
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (this._owner) this.Link();

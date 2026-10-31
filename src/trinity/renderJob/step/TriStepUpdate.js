@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepUpdate.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that ticks one updateable object with the frame times. */
@@ -22,7 +22,6 @@ export class TriStepUpdate extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(object = null)
   {
     this.object = object;
@@ -39,7 +38,6 @@ export class TriStepUpdate extends TriRenderStep
    * @returns {number} Native render-step success result.
    */
 
-  @meta.implemented
   Execute(realTime, simTime, _renderContext)
   {
     this.object?.Update(realTime, simTime);

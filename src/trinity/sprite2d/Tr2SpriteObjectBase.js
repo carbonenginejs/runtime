@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable sprite state is maintained here.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { blue, INotify } from "#blue";
@@ -57,7 +57,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {boolean} Whether the sprite is displayed.
    */
 
-  @meta.implemented
   GetDisplay()
   {
     return this._display;
@@ -72,7 +71,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {void}
    */
 
-  @meta.adapted
   SetDisplay(value)
   {
     const next = Boolean(value);
@@ -90,7 +88,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {number} Display x.
    */
 
-  @meta.implemented
   GetDisplayX()
   {
     return this.displayX;
@@ -105,7 +102,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {void}
    */
 
-  @meta.adapted
   SetDisplayX(value)
   {
     this._SetDisplayValue("displayX", value);
@@ -118,7 +114,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {number} Display y.
    */
 
-  @meta.implemented
   GetDisplayY()
   {
     return this.displayY;
@@ -133,7 +128,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {void}
    */
 
-  @meta.adapted
   SetDisplayY(value)
   {
     this._SetDisplayValue("displayY", value);
@@ -146,7 +140,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {number} Display width.
    */
 
-  @meta.implemented
   GetDisplayWidth()
   {
     return this.displayWidth;
@@ -161,7 +154,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {void}
    */
 
-  @meta.adapted
   SetDisplayWidth(value)
   {
     this._SetDisplayValue("displayWidth", value);
@@ -174,7 +166,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {number} Display height.
    */
 
-  @meta.implemented
   GetDisplayHeight()
   {
     return this.displayHeight;
@@ -189,7 +180,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {void}
    */
 
-  @meta.adapted
   SetDisplayHeight(value)
   {
     this._SetDisplayValue("displayHeight", value);
@@ -203,7 +193,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {void}
    */
 
-  @meta.implemented
   SetParent(parent)
   {
     this._parent = parent;
@@ -217,7 +206,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetDirty()
   {
     this.isDirty = true;
@@ -235,7 +223,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {void}
    */
 
-  @meta.adapted
   SetChildDirty(_child)
   {
   }
@@ -247,7 +234,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {boolean} Always false for the base object.
    */
 
-  @meta.implemented
   IsAuxMouseover()
   {
     return false;
@@ -261,7 +247,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   OnModified(_value)
   {
     this.SetDirty();

@@ -71,7 +71,6 @@ export class TriDebugTextRenderer
    * @param {string} msg printf format.
    * @param {...*} args
    */
-  @meta.implemented
   Printf(font, rect, format, color, msg, ...args)
   {
     this.Vprintf(font, rect, format, color, msg, args);
@@ -89,7 +88,6 @@ export class TriDebugTextRenderer
    * @param {string} msg printf format.
    * @param {...*} args
    */
-  @meta.implemented
   PrintfImmediate(renderContext, font, rect, format, color, msg, ...args)
   {
     this.VprintfImmediate(renderContext, font, rect, format, color, msg, args);
@@ -107,7 +105,6 @@ export class TriDebugTextRenderer
    * @param {string} msg
    * @param {Array<*>} args
    */
-  @meta.implemented
   Vprintf(font, rect, format, color, msg, args)
   {
     this._entries.push({
@@ -132,7 +129,6 @@ export class TriDebugTextRenderer
    * @param {string} msg
    * @param {Array<*>} args
    */
-  @meta.implemented
   VprintfImmediate(renderContext, font, rect, format, color, msg, args)
   {
     this._DrawText(renderContext, font, FormatTruncated(msg, args), rect, format, color);
@@ -144,7 +140,6 @@ export class TriDebugTextRenderer
    * @implemented
    * @param {Tr2RenderContext} renderContext
    */
-  @meta.implemented
   Render(renderContext)
   {
     for (const entry of this._entries)
@@ -158,7 +153,6 @@ export class TriDebugTextRenderer
    *
    * @implemented
    */
-  @meta.implemented
   Clear()
   {
     this._entries.length = 0;
@@ -171,7 +165,6 @@ export class TriDebugTextRenderer
    * @implemented
    * @returns {boolean} True, always.
    */
-  @meta.implemented
   OnPrepareResources()
   {
     return true;
@@ -185,7 +178,6 @@ export class TriDebugTextRenderer
    *   resource descriptions are (TriDebugResourceHelper.GetDescription).
    * @returns {string} "<TriDebugFont>".
    */
-  @meta.adapted
   GetDescription()
   {
     return "<TriDebugFont>";
@@ -197,7 +189,6 @@ export class TriDebugTextRenderer
    * @implemented
    * @param {number} _s TriStorage flags.
    */
-  @meta.implemented
   ReleaseResources(_s)
   {
     this._texture = new Tr2TextureAL();

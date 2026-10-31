@@ -10,6 +10,7 @@ import { CjsBlueResMan, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resour
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import "../support/frameLoop.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 ImageIO.registerImageHandler(CjsVtaFormat);
 blue.resMan.RegisterFormat(CjsVtaFormat);
@@ -334,7 +335,7 @@ test("SetTextureFromRT wraps a render target as a live view (TriTextureRes.cpp:8
   const row = CjsSchema.getMethod(TriTextureRes, "SetTextureFromRT");
   assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP");
   assert.equal(row.exposure.name, "SetFromRenderTarget");
-  assert.equal(row.impl.status, "adapted");
+  assert.equal(MarkerTag("TriTextureRes", "SetTextureFromRT"), "adapted");
 });
 
 let previousManager;

@@ -109,7 +109,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Number}
    */
-  @meta.implemented
   GetTime()
   {
     return this.currentTime;
@@ -122,7 +121,6 @@ export class EveUpdateContext
    * @implemented
    * @param {Number} time Frame timestamp in 100ns ticks.
    */
-  @meta.implemented
   SetTime(time)
   {
     this.lastTime = this.currentTime;
@@ -137,7 +135,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Number}
    */
-  @meta.implemented
   GetDeltaT()
   {
     return this.lastTime !== 0 ? CcpTime.timeAsFloat(this.currentTime - this.lastTime) : 0;
@@ -155,7 +152,6 @@ export class EveUpdateContext
    * @adapted
    * @param {Object|null} ballpark
    */
-  @meta.adapted
   UpdateOrigin(ballpark)
   {
     this.ballpark = ballpark ?? null;
@@ -190,7 +186,6 @@ export class EveUpdateContext
    * @adapted
    * @returns {Float64Array}
    */
-  @meta.adapted
   GetOrigin()
   {
     // Carbon returns Vector3d by value (h:107-114): a copy, ruling 16.
@@ -204,7 +199,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Float32Array}
    */
-  @meta.implemented
   GetOriginShift()
   {
     // Carbon returns Vector3 by value (h:103-106): a copy, ruling 16.
@@ -217,7 +211,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Object|null}
    */
-  @meta.implemented
   GetDataTextureManager()
   {
     return this.dataTextureManager;
@@ -229,7 +222,6 @@ export class EveUpdateContext
    * @implemented
    * @param {Object|null} manager
    */
-  @meta.implemented
   SetDataTextureManager(manager)
   {
     this.dataTextureManager = manager ?? null;
@@ -241,7 +233,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Object|null}
    */
-  @meta.implemented
   GetGpuParticleSystem()
   {
     return this.gpuParticleSystem;
@@ -255,7 +246,6 @@ export class EveUpdateContext
    * @adapted
    * @param {Object|null} ps
    */
-  @meta.adapted
   SetGpuParticleSystem(ps)
   {
     this.gpuParticleSystem = ps ?? null;
@@ -267,7 +257,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Object|null}
    */
-  @meta.implemented
   GetBallpark()
   {
     return this.ballpark;
@@ -279,7 +268,6 @@ export class EveUpdateContext
    * @implemented
    * @param {Object|null} taskGroup
    */
-  @meta.implemented
   SetTaskGroup(taskGroup)
   {
     this.taskGroup = taskGroup ?? null;
@@ -291,7 +279,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Object|null}
    */
-  @meta.implemented
   GetTaskGroup()
   {
     return this.taskGroup;
@@ -303,7 +290,6 @@ export class EveUpdateContext
    * @implemented
    * @param {Number} visibilityThreshold
    */
-  @meta.implemented
   SetVisibilityThreshold(visibilityThreshold)
   {
     this.visibilityThreshold = visibilityThreshold;
@@ -315,7 +301,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Number}
    */
-  @meta.implemented
   GetVisibilityThreshold()
   {
     return this.visibilityThreshold;
@@ -327,7 +312,6 @@ export class EveUpdateContext
    * @implemented
    * @param {Number} highDetailThreshold
    */
-  @meta.implemented
   SetHighDetailThreshold(highDetailThreshold)
   {
     this.highDetailThreshold = highDetailThreshold;
@@ -339,7 +323,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Number}
    */
-  @meta.implemented
   GetHighDetailThreshold()
   {
     return this.highDetailThreshold;
@@ -351,7 +334,6 @@ export class EveUpdateContext
    * @implemented
    * @param {Number} mediumDetailThreshold
    */
-  @meta.implemented
   SetMediumDetailThreshold(mediumDetailThreshold)
   {
     this.mediumDetailThreshold = mediumDetailThreshold;
@@ -363,7 +345,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Number}
    */
-  @meta.implemented
   GetMediumDetailThreshold()
   {
     return this.mediumDetailThreshold;
@@ -375,7 +356,6 @@ export class EveUpdateContext
    * @implemented
    * @param {Number} lowDetailThreshold
    */
-  @meta.implemented
   SetLowDetailThreshold(lowDetailThreshold)
   {
     this.lowDetailThreshold = lowDetailThreshold;
@@ -387,7 +367,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Number}
    */
-  @meta.implemented
   GetLowDetailThreshold()
   {
     return this.lowDetailThreshold;
@@ -400,7 +379,6 @@ export class EveUpdateContext
    * @implemented
    * @param {Number} lodFactor
    */
-  @meta.implemented
   SetLodFactor(lodFactor)
   {
     this.lodFactor = lodFactor;
@@ -413,7 +391,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Number}
    */
-  @meta.implemented
   GetLodFactor()
   {
     return this.lodFactor;
@@ -425,7 +402,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {Number}
    */
-  @meta.implemented
   GetInvLodFactor()
   {
     return this.invLodFactor;
@@ -438,7 +414,6 @@ export class EveUpdateContext
    * @implemented
    * @param {TriFrustum} frustum
    */
-  @meta.implemented
   SetFrustum(frustum)
   {
     this.frustum.Copy(frustum);
@@ -450,7 +425,6 @@ export class EveUpdateContext
    * @implemented
    * @returns {TriFrustum}
    */
-  @meta.implemented
   GetFrustum()
   {
     return this.frustum;

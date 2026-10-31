@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
@@ -39,7 +39,6 @@ export class TriStepRenderEffect extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(effect = null, shaderBuffer = null)
   {
     this.effect = effect;
@@ -62,7 +61,6 @@ export class TriStepRenderEffect extends TriRenderStep
    * @adapted
    */
 
-  @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {
     if (!this.effect) return TriRenderStep.Result.RS_OK;

@@ -6,7 +6,7 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
 
 
@@ -153,7 +153,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -165,7 +164,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     return hashFnv1String(this.name, hashFnv1Floats(this.value, startingHash));
@@ -186,7 +184,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    *   that, so this copies rather than exposing internal state.
    */
 
-  @meta.adapted
   GetValue(out)
   {
     this.#RefreshFromReroute();
@@ -217,7 +214,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   SetValue(value)
   {
     for (let i = 0; i < 3; i++)
@@ -242,7 +238,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   IsRerouted()
   {
     return !this.isSrgb && this.#reroutedValue !== null;
@@ -255,7 +250,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @param size destination capacity in bytes, not components
    */
 
-  @meta.adapted
   SetDestination(dest, size = 12)
   {
     if (size >= 12 && !this.isSrgb)
@@ -286,7 +280,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   GetDestination()
   {
     return {
@@ -302,7 +295,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   RegisterBinding(binding)
   {
     // Carbon push_back (Tr2Vector3Parameter.cpp:189).
@@ -315,7 +307,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   UnregisterBinding(binding)
   {
     // Carbon erases the first match (Tr2Vector3Parameter.cpp:204).
@@ -334,7 +325,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @adapted
    */
 
-  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this.isSrgb = false;
@@ -362,7 +352,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (this.#reroutedValue)
@@ -384,7 +373,6 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    *
    * @adapted
    */
-  @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
     if (this.#reroutedValue)

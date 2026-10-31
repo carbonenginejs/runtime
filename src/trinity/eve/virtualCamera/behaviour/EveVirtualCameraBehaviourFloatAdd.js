@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType } from "../../../curves/enums.js";
@@ -48,7 +48,6 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -63,7 +62,6 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
    * @implemented
    */
 
-  @meta.implemented
   Update(camera, _current, _deltaTime, localElapsedTime)
   {
     if (!this.scaleCurve)

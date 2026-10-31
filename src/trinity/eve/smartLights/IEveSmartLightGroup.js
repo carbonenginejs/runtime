@@ -1,7 +1,6 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/IEveSmartLightGroup.h
-import { meta } from "#schema";
 
 /**
  * Contract for a group of smart lights driven by a distribution of placements
@@ -18,7 +17,6 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   SetColor(_color) {}
 
   /**
@@ -26,7 +24,6 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer) {}
 
   /**
@@ -34,7 +31,6 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   GetRenderables(_renderables) {}
 
   /**
@@ -43,7 +39,6 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   UpdateSyncronous__Distribution(_updateContext, _params, _distribution) {}
 
   /**
@@ -51,7 +46,6 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution) {}
 
   /**
@@ -59,7 +53,6 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   SetControllerVariable(_name, _value) {}
 
   /**
@@ -67,7 +60,6 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   SetInheritProperties(_colorSet) {}
 
   /**
@@ -75,7 +67,6 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod) {}
 
   /**
@@ -83,7 +74,6 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer) {}
 
   /**
@@ -91,6 +81,5 @@ export class IEveSmartLightGroup extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   RenderDebugInfo(_renderer, _placements, _size) {}
 }

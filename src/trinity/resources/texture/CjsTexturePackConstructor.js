@@ -166,4 +166,3 @@ export function RegisterTexturePack(resourceManager)
 
 CjsSchema.meta.define("CjsTexturePackConstructor")(CjsTexturePackConstructor);
 
-CjsSchema.decorateMethod(CjsTexturePackConstructor, "GetResource", CjsSchema.meta.implemented);

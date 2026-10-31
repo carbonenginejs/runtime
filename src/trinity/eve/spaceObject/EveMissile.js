@@ -8,7 +8,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { CjsScriptCallback } from "#blue/CjsScriptCallback";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -52,7 +52,6 @@ export class EveMissile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const warhead of this.warheads) warhead.RegisterWithQuadRenderer(quadRenderer);
@@ -64,7 +63,6 @@ export class EveMissile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     for (const warhead of this.warheads) warhead.AddQuadsToQuadRenderer(frustum, quadRenderer);
@@ -77,7 +75,6 @@ export class EveMissile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     super.Initialize();
@@ -93,7 +90,6 @@ export class EveMissile extends EveSpaceObject2
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Start(shipVelocity, estimatedFlyingTime)
   {
     vec3.copy(this._inheritedVelocity, shipVelocity);
@@ -114,7 +110,6 @@ export class EveMissile extends EveSpaceObject2
    * @adapted Target and curve output parameters are out-last; the optional script callback uses the existing JavaScript callback adapter at invocation.
    */
 
-  @meta.adapted
   UpdateSyncronous(context)
   {
     super.UpdateSyncronous(context);
@@ -187,7 +182,6 @@ export class EveMissile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(context, parentTransform = EveMissile._identity)
   {
     super.UpdateVisibility(context, parentTransform);
@@ -206,7 +200,6 @@ export class EveMissile extends EveSpaceObject2
    * @adapted returns the caller's output array; the existing collectors do not
    *   represent Carbon's impostor-manager argument.
    */
-  @meta.adapted
 
   GetRenderables__Impostors(out, _impostors)
   {
@@ -222,7 +215,6 @@ export class EveMissile extends EveSpaceObject2
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out)
   {
     vec4.set(EveMissile._localSphere, this.boundingSphereCenter[0], this.boundingSphereCenter[1], this.boundingSphereCenter[2], this.boundingSphereRadius);
@@ -237,7 +229,6 @@ export class EveMissile extends EveSpaceObject2
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RebuildMissileBoundingSphere()
   {
     vec4.set(EveMissile._mergedSphere, 0, 0, 0, 0);
@@ -258,7 +249,6 @@ export class EveMissile extends EveSpaceObject2
    * @adapted The missile owns no renderable; its warheads publish their own backend-neutral records.
    */
 
-  @meta.adapted
   GetPerObjectData()
   {
     return null;

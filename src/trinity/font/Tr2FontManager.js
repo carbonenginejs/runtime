@@ -47,7 +47,7 @@ import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { PixelFormat } from "#consts/render-context";
 import { TriStorageFlags } from "#consts/graphics";
 import { blue, IBlueEvents } from "#blue";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 
 /**
  * Carbon's `TR2_FONT_FALLBACK` (Tr2FontManager.h:23, value at
@@ -93,7 +93,6 @@ export class Tr2FontManager extends IRoot
    */
   @be.mapAttribute(be.READWRITE)
   @type.uint64
-  @meta.adapted
   glyphCacheBudget = 524288;
 
   /**
@@ -105,7 +104,6 @@ export class Tr2FontManager extends IRoot
    */
   @be.mapAttribute(be.READWRITE)
   @type.int32
-  @meta.adapted
   loadFlag = 0;
 
   /**
@@ -116,7 +114,6 @@ export class Tr2FontManager extends IRoot
    */
   @be.mapAttribute(be.READ)
   @type.uint64
-  @meta.adapted
   totalGlyphsCachedSize = 0;
 
   /**
@@ -127,7 +124,6 @@ export class Tr2FontManager extends IRoot
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
 
   static initialize()
@@ -146,7 +142,6 @@ export class Tr2FontManager extends IRoot
    *   JS has no destructor and the browser owns the font engine.
    * @returns {void}
    */
-  @meta.adapted
 
 
   static shutdown()
@@ -234,7 +229,6 @@ export class Tr2FontManager extends IRoot
    * @param {string} font Font name: a res path or a CSS family.
    * @returns {number} The face ID.
    */
-  @meta.adapted
 
   GetFaceID(font)
   {
@@ -330,7 +324,6 @@ export class Tr2FontManager extends IRoot
    * @param {number} faceID Face ID.
    * @returns {string|null} The family, or null.
    */
-  @meta.adapted
 
   LookupFace(faceID)
   {
@@ -342,7 +335,6 @@ export class Tr2FontManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   GetLoadFlag()
   {
@@ -398,7 +390,6 @@ export class Tr2FontManager extends IRoot
    * @param {number} charCode Unicode code point.
    * @returns {number} Glyph index, or -1.
    */
-  @meta.adapted
   @legacyBlue.method
   LookupGlyphIndex(faceID, charCode)
   {
@@ -428,7 +419,6 @@ export class Tr2FontManager extends IRoot
    * @param {number} charCode Unicode code point.
    * @returns {[number, number]} The face ID and glyph index that were used.
    */
-  @meta.implemented
   @be.mapMethodAndWrap("LookupGlyphIndex")
   LookupFaceIDAndGlyphIndex(faceName, charCode)
   {
@@ -469,7 +459,6 @@ export class Tr2FontManager extends IRoot
    * @param {number} height Pixel height.
    * @returns {{ascender: number, descender: number, height: number}} 26.6 metrics.
    */
-  @meta.adapted
   @legacyBlue.method
   LookupMetrics(faceID, width, height)
   {
@@ -498,7 +487,6 @@ export class Tr2FontManager extends IRoot
    * @param {number} height Pixel height.
    * @returns {[number, number]} Ascender and descender in pixels.
    */
-  @meta.adapted
   @be.mapMethodAndWrap("LookupMetrics")
   LookupMetricsFromScript(faceID, width, height)
   {
@@ -524,7 +512,6 @@ export class Tr2FontManager extends IRoot
    * @param {number} rightIndex Right glyph index (a code point for a CSS face).
    * @returns {number} Kerning in pixels.
    */
-  @meta.adapted
   @be.mapMethodAndWrap()
   LookupKerningXP(faceID, leftIndex, rightIndex)
   {
@@ -555,7 +542,6 @@ export class Tr2FontManager extends IRoot
    * @param {number} charCode2 Right glyph index.
    * @returns {number} The doubly shifted kerning.
    */
-  @meta.implemented
   _PyLookupKerningXP(faceID, charCode1, charCode2)
   {
     const kerning = g_fontManager.LookupKerningXP(faceID, charCode1, charCode2) | 0;
@@ -595,7 +581,6 @@ export class Tr2FontManager extends IRoot
    * @throws {RangeError} "FTC_SBitCache_Lookup failed" for an unusable face or glyph.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   LookupSBit(faceID, width, height, glyphIndex)
   {
     const size = height || width;
@@ -778,7 +763,6 @@ export class Tr2FontManager extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   ClearCachedGlyphs()
   {
     this._glyphs.clear();
@@ -806,7 +790,6 @@ export class Tr2FontManager extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   TrimGlyphCache(cacheSize)
   {
     if (cacheSize >= this.totalGlyphsCachedSize) return;
@@ -842,7 +825,6 @@ export class Tr2FontManager extends IRoot
    * @param {*} _cookie Registration cookie, unused.
    * @returns {void}
    */
-  @meta.implemented
 
   OnTick(_realTime, _simTime, _cookie)
   {
@@ -863,7 +845,6 @@ export class Tr2FontManager extends IRoot
    * @returns {void}
    */
   @be.mapMethod()
-  @meta.adapted
   ClearBuffer(buffer, width, height, pitch, color = 0)
   {
     const bytes = new Uint8Array(buffer.buffer ?? buffer, buffer.byteOffset ?? 0, buffer.byteLength); // alloc: byte view of caller-owned bitmap storage; does not copy pixels
@@ -901,7 +882,6 @@ export class Tr2FontManager extends IRoot
    * @param {object} sbit The sbit record.
    * @returns {object|null} The glyph's atlas texture, or null.
    */
-  @meta.adapted
 
   GetAtlasTextureForSbit(sbit)
   {
@@ -946,7 +926,6 @@ export class Tr2FontManager extends IRoot
    *   the collector reclaims it.
    * @returns {number} Glyphs in use.
    */
-  @meta.adapted
 
   GetNumGlyphsInUse()
   {
@@ -962,7 +941,6 @@ export class Tr2FontManager extends IRoot
    * @adapted the CPU sbit cache's entries (see TrimGlyphCache).
    * @returns {number} Glyphs cached.
    */
-  @meta.adapted
 
   GetNumGlyphsCached()
   {
@@ -976,7 +954,6 @@ export class Tr2FontManager extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.adapted
   get numGlyphsInUse()
   {
     return this.GetNumGlyphsInUse();
@@ -989,7 +966,6 @@ export class Tr2FontManager extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.int32
-  @meta.adapted
   get numGlyphsCached()
   {
     return this.GetNumGlyphsCached();
@@ -1004,7 +980,6 @@ export class Tr2FontManager extends IRoot
    * @param {number} storage `TriStorageFlags` bits.
    * @returns {void}
    */
-  @meta.adapted
 
   ReleaseResources(storage)
   {
@@ -1025,7 +1000,6 @@ export class Tr2FontManager extends IRoot
    * @notImplemented
    * @throws {Error} Always.
    */
-  @meta.notImplemented
 
 
   static faceRequester(_faceID, _library, _requestData, _face)
@@ -1043,7 +1017,6 @@ export class Tr2FontManager extends IRoot
    * @notImplemented
    * @throws {Error} Always.
    */
-  @meta.notImplemented
 
   _LoadFromDisk(_faceID)
   {
@@ -1059,7 +1032,6 @@ export class Tr2FontManager extends IRoot
    * @notImplemented
    * @throws {Error} Always.
    */
-  @meta.notImplemented
 
   GetManager()
   {
@@ -1074,7 +1046,6 @@ export class Tr2FontManager extends IRoot
    * @notImplemented
    * @throws {Error} Always.
    */
-  @meta.notImplemented
 
   GetCmCache()
   {
@@ -1090,7 +1061,6 @@ export class Tr2FontManager extends IRoot
    * @notImplemented
    * @throws {Error} Always.
    */
-  @meta.notImplemented
 
   GetSbitCache()
   {
@@ -1102,7 +1072,6 @@ export class Tr2FontManager extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
 
   _OnPrepareResources()
   {
@@ -1120,7 +1089,6 @@ export class Tr2FontManager extends IRoot
    * @notImplemented
    * @throws {Error} Always.
    */
-  @meta.notImplemented
 
   WeakRefNotify(_object)
   {

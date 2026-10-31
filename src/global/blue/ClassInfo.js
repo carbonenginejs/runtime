@@ -1,6 +1,6 @@
 // Source: blueexposure/include/BlueTypes.h:378-400 (Be::ClassInfo)
 // Source: blueexposure/include/BlueExposureMacrosPython.h:20-67 (ExposeToBlue, EXPOSURE_BEGIN_IMP, EXPOSURE_END_IMPL)
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { getCarbonTypeDefinition } from "../schema/types/carbonTypes.js";
 import { ownMappedInterfaces, exposureChainTo } from "../compose/interface.js";
 import { VarEntry } from "./VarEntry.js";
@@ -31,42 +31,89 @@ const s_classInfo = new WeakMap();
  * (decorator-upgrade.md § 5 step 2).
  *
  * Carbon: Be::ClassInfo (blueexposure/include/BlueTypes.h:378-400)
+ *
+ * @adapted built once from the class's decorator metadata, which stands in for Carbon's exposure macros; `parentClassInfo` follows the registered JS superclass (see `exposeToBlue`).
  */
 export class ClassInfo
 {
 
+  /**
+   * Ours: the registered name, which minification cannot change.
+   *
+   * @cjs
+   * @implemented
+   */
   static className = "ClassInfo";
 
-  /** `mClassId`: the registered class name (a class id is its name, see CjsBlueClasses). */
+  /**
+   * `mClassId`: the registered class name (a class id is its name, see CjsBlueClasses).
+   *
+   * @implemented
+   */
   classId = "";
 
-  /** `mIID`: the class's own interface id, its registered name. */
+  /**
+   * `mIID`: the class's own interface id, its registered name.
+   *
+   * @implemented
+   */
   iid = "";
 
-  /** `mDescription`: Carbon's doc string. Ours live in JSDoc. */
+  /**
+   * `mDescription`: Carbon's doc string. Ours live in JSDoc.
+   *
+   * @implemented
+   */
   description = "";
 
-  /** `mInterfaceTable`: the class's own `MAP_INTERFACE` entries, in order. */
+  /**
+   * `mInterfaceTable`: the class's own `MAP_INTERFACE` entries, in order.
+   *
+   * @implemented
+   */
   interfaceTable = [];
 
-  /** `mMemberTable`: the class's own rows. */
+  /**
+   * `mMemberTable`: the class's own rows.
+   *
+   * @implemented
+   */
   memberTable = [];
 
-  /** `mPyMethodTable`: `{ name, key, blue }` for every exposed method, the class's and its parents'. */
+  /**
+   * `mPyMethodTable`: `{ name, key, blue }` for every exposed method, the class's and its parents'.
+   *
+   * @implemented
+   */
   pyMethodTable = [];
 
-  /** `mParentClassInfo`: the parent's class info, or null. */
+  /**
+   * `mParentClassInfo`: the parent's class info, or null.
+   *
+   * @implemented
+   */
   parentClassInfo = null;
 
-  /** `mRtti`: built by `BlueClasses.GetRtti` on first request. */
+  /**
+   * `mRtti`: built by `BlueClasses.GetRtti` on first request.
+   *
+   * @implemented
+   */
   rtti = null;
 
-  /** Ours: whether the class is Carbon's exposure (`be.define`) rather than ours (`meta.define`). */
+  /**
+   * Ours: whether the class is Carbon's exposure (`be.define`) rather than ours (`meta.define`).
+   *
+   * @cjs
+   * @implemented
+   */
   blue = false;
 
   /**
    * Ours: the keys of parent rows this class hides (`hideInherited`), which its RTTI leaves out. Carbon has no way to
    * hide an inherited member; our classes declare it where a subclass drops a base's member.
+   * @cjs
+   * @implemented
    */
   hiddenInherited = new Set();
 
@@ -231,8 +278,3 @@ export class ClassInfo
 
 }
 
-CjsSchema.decorateMethod(ClassInfo, "exposeToBlue", meta.adapted);
-CjsSchema.decorateMethod(ClassInfo, "_ParentClass", meta.cjs, meta.implemented);
-CjsSchema.decorateMethod(ClassInfo, "_VarEntryOf", meta.cjs, meta.implemented);
-CjsSchema.decorateMethod(ClassInfo, "_FindDescriptor", meta.cjs, meta.implemented);
-CjsSchema.meta.carbon("ClassInfo")(ClassInfo);

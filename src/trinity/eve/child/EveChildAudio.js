@@ -9,7 +9,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { ITr2DebugRenderable } from "#interfaces";
 
@@ -67,7 +67,6 @@ export class EveChildAudio extends EveChildTransform
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   __init__()
   {
     return this.Initialize();
@@ -79,7 +78,6 @@ export class EveChildAudio extends EveChildTransform
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   SetEmitterName(name)
   {
     this.audioEmitter?.SetName(String(name));
@@ -90,7 +88,6 @@ export class EveChildAudio extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -102,7 +99,6 @@ export class EveChildAudio extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -157,7 +153,6 @@ export class EveChildAudio extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
   }
@@ -167,7 +162,6 @@ export class EveChildAudio extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
@@ -177,7 +171,6 @@ export class EveChildAudio extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetRenderables(_renderables)
   {
   }
@@ -188,7 +181,6 @@ export class EveChildAudio extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetBoundingSphere(_out, _query = 0)
   {
     return false;
@@ -211,7 +203,6 @@ export class EveChildAudio extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   Setup(_scale, _rotation, _translation, _lowestLodVisible)
   {
   }
@@ -221,7 +212,6 @@ export class EveChildAudio extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   ChangeLOD(_lod)
   {
   }
@@ -234,7 +224,6 @@ export class EveChildAudio extends EveChildTransform
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     const tmp = CjsSchema.cast(this.audioEmitter, ITr2DebugRenderable);
@@ -252,7 +241,6 @@ export class EveChildAudio extends EveChildTransform
    * @param {ITr2DebugRenderer2} renderer
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     const tmp = CjsSchema.cast(this.audioEmitter, ITr2DebugRenderable);

@@ -1,6 +1,6 @@
 // Source: blue/include/ITr2DebugRenderer2.h:97-124
 // Source: trinity/trinity/Tr2DebugRenderer.cpp:72-110
-import { CjsSchema, meta } from "../schema/index.js";
+import { CjsSchema } from "../schema/index.js";
 
 /**
  * Names what a debug primitive belongs to: an object, and an area within it
@@ -92,7 +92,4 @@ export class Tr2DebugObjectReference
 
 // Declared as a call, not a decorator: global/interfaces is imported straight
 // from source by tests, and raw Node cannot parse decorator syntax.
-CjsSchema.decorateMethod(Tr2DebugObjectReference, "IsValid", meta.renamed("operator bool"));
-CjsSchema.decorateMethod(Tr2DebugObjectReference, "Equals", meta.renamed("operator=="));
-CjsSchema.decorateMethod(Tr2DebugObjectReference, "NotEquals", meta.renamed("operator!="));
 CjsSchema.meta.carbon("Tr2DebugObjectReference")(Tr2DebugObjectReference);

@@ -60,7 +60,6 @@ export class Tr2GrannyTrack extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this.SetGrannyResource();
@@ -75,7 +74,6 @@ export class Tr2GrannyTrack extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "grannyResPath")) this.SetGrannyResource();
@@ -94,7 +92,6 @@ export class Tr2GrannyTrack extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetGrannyResource()
   {
     this.ResetTracks();
@@ -113,7 +110,6 @@ export class Tr2GrannyTrack extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   UpdateValue(time)
   {
     if (!this.TracksReady())
@@ -134,7 +130,6 @@ export class Tr2GrannyTrack extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Length()
   {
     return Number(this.duration) || 0;
@@ -146,7 +141,6 @@ export class Tr2GrannyTrack extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetCurves()
   {
     if (!this.name || !this.group)

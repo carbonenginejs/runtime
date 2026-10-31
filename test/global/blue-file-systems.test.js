@@ -97,7 +97,7 @@ test("BlueResFileSystemLocal exposes the W members under Carbon's names (BlueRes
     const row = CjsSchema.getMethod(BlueResFileSystemLocal, member);
     assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP", member);
     assert.equal(row.exposure.name, name, member);
-    assert.equal(row.impl.status, "notSupported", member);
+    assert.equal(MarkerTag("BlueResFileSystemLocal", member), "notSupported", member);
     assert.equal(MarkerTag("BlueResFileSystemLocal", name), "notSupported", name);
   }
 

@@ -8,7 +8,7 @@ import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 // Hand-maintained after promotion from generated schema intake.
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { EveMobile } from "./EveMobile.js";
 import { EveEntity } from "../EveEntity.js";
 import { TriFloat } from "../../core/variable/TriFloat.js";
@@ -40,7 +40,6 @@ export class EveShip2 extends EveMobile
    */
   @be.mapProperty()
   @type.rootRef("EveBoosterSet2")
-  @meta.implemented
   get boosters()
   {
     return this.GetBoosters();
@@ -51,7 +50,6 @@ export class EveShip2 extends EveMobile
    *
    * @implemented
    */
-  @meta.implemented
   set boosters(boosters)
   {
     this.SetBoosters(boosters);
@@ -84,7 +82,6 @@ export class EveShip2 extends EveMobile
    */
   @be.mapProperty()
   @type.rootRef("IRoot")
-  @meta.implemented
   get audioSpeedParameter()
   {
     return this._GetAudioParameter();
@@ -95,7 +92,6 @@ export class EveShip2 extends EveMobile
    *
    * @implemented
    */
-  @meta.implemented
   set audioSpeedParameter(value)
   {
     this._SetAudioParameter(value);
@@ -112,7 +108,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     if (!this.update)
@@ -149,7 +144,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext)
   {
     if (!this.update)
@@ -166,7 +160,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   UpdateBoosters(updateContext)
   {
     if (!this.boosters)
@@ -192,7 +185,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
     super.UpdateVisibility(updateContext, parentTransform);
@@ -211,7 +203,6 @@ export class EveShip2 extends EveMobile
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables__Impostors(out, _impostors)
   {
@@ -233,7 +224,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     super.RegisterWithQuadRenderer(quadRenderer);
@@ -249,7 +239,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display)
@@ -269,7 +258,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   GetBoosters()
   {
     return this._boosters;
@@ -285,7 +273,6 @@ export class EveShip2 extends EveMobile
    * @adapted
    */
 
-  @meta.adapted
   SetBoosters(boosters)
   {
     const registry = this.GetComponentRegistry();
@@ -309,7 +296,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     super.RegisterComponents();
@@ -327,7 +313,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     super.UnRegisterComponents();
@@ -344,7 +329,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   DisplayBoosters()
   {
     return !!this.boosters && this.DisplayChildren();
@@ -359,7 +343,6 @@ export class EveShip2 extends EveMobile
    * @returns {IEveSpaceObject2ParentData} out
    */
 
-  @meta.implemented
   GetParentData(out)
   {
     const data = super.GetParentData(out);
@@ -374,7 +357,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   GetKillCounterValue()
   {
     return this.displayKillCounterValue;
@@ -387,7 +369,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    * @returns {number}
    */
-  @meta.implemented
 
   GetBoosterIntensity()
   {
@@ -402,7 +383,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   GetMaxSpeed()
   {
     return this.maxSpeed;
@@ -416,7 +396,6 @@ export class EveShip2 extends EveMobile
    *   audio layer owns the emitter side.
    */
 
-  @meta.adapted
   UpdateShipSpeedForAudio()
   {
     if (this.maxSpeed === 0 || !this.boosters)
@@ -440,7 +419,6 @@ export class EveShip2 extends EveMobile
    *   for that cached member pointer.
    * @param {object|null} aud The audio parameter, or null to unbind.
    */
-  @meta.adapted
   _SetAudioParameter(aud)
   {
     this._audioSpeedParameter = aud ?? null;
@@ -452,7 +430,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    * @returns {object|null} The bound audio parameter.
    */
-  @meta.implemented
   _GetAudioParameter()
   {
     return this._audioSpeedParameter;
@@ -465,7 +442,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   RebuildCachedData(asyncRes)
   {
     super.RebuildCachedData(asyncRes);
@@ -479,7 +455,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RebuildBoosterSet()
   {
     if (!this.boosters) return;
@@ -504,7 +479,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     super.Initialize();
@@ -520,7 +494,6 @@ export class EveShip2 extends EveMobile
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator = null)
   {
     this.spaceObjectShipData[0] = this.boosters ? this.boosters.GetBoosterIntensity() : 0;

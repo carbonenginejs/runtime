@@ -4,7 +4,7 @@ import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Hand-maintained after promotion from generated schema intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";
 import { mat4 } from "#math/mat4";
@@ -129,7 +129,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.maxCurrentLineCount = 100;
@@ -142,7 +141,6 @@ export class EveLineSet
    *
    * @adapted
    */
-  @meta.adapted
 
   ReleaseResources(_storage)
   {
@@ -169,7 +167,6 @@ export class EveLineSet
    *
    * @adapted the AL description replaces the native stride/count overload.
    */
-  @meta.adapted
 
   OnPrepareResources()
   {
@@ -199,7 +196,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     const { vec3_0, quat_0 } = EveLineSet.scratch;
@@ -219,7 +215,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
@@ -230,7 +225,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   Update__UpdateContext(updateContext)
   {
     this.UpdateSyncronous(updateContext);
@@ -242,7 +236,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   Update(updateContext)
   {
     return this.Update__UpdateContext(updateContext);
@@ -254,7 +247,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   UpdateViewDependentData(_frustum, _parentTransform)
   {
   }
@@ -265,7 +257,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform)
   {
   }
@@ -275,7 +266,6 @@ export class EveLineSet
    *
    * @implemented
    */
-  @meta.implemented
 
   GetRenderables__Impostors(out, _impostors = null)
   {
@@ -290,7 +280,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(out)
   {
     return this.GetRenderables__Impostors(out, null);
@@ -302,7 +291,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this.boundingSphere);
@@ -315,7 +303,6 @@ export class EveLineSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddLine(position1, color1, position2, color2)
   {
     this.lines.push({
@@ -333,7 +320,6 @@ export class EveLineSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ChangeLineColor(id, color1, color2)
   {
     if (id < this.lines.length)
@@ -350,7 +336,6 @@ export class EveLineSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ChangeLine(id, position1, color1, position2, color2)
   {
     if (id < this.lines.length)
@@ -369,7 +354,6 @@ export class EveLineSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ChangeLinePosition(id, position1, position2)
   {
     if (id < this.lines.length)
@@ -386,7 +370,6 @@ export class EveLineSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ClearLines()
   {
     this.lines.length = 0;
@@ -398,7 +381,6 @@ export class EveLineSet
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RemoveLine(id)
   {
     if (id < this.lines.length) this.lines.splice(id, 1);
@@ -412,7 +394,6 @@ export class EveLineSet
    *   the buffer grows to the line count.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SubmitChanges()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -447,7 +428,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -460,7 +440,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
     // Only rendered as transparent or additive.
@@ -486,7 +465,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const viewPosition = Tr2Renderer.GetViewPosition();
@@ -511,7 +489,6 @@ export class EveLineSet
    * @implemented
    */
 
-  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = Tr2PerObjectDataStandard.alloc(accumulator, "EvePerObjectVSData", "EvePerObjectPSData");
@@ -560,7 +537,6 @@ export class EveLineSet
    *
    * @implemented
    */
-  @meta.implemented
   UpdateModelCenterWorldPosition(position, t)
   {
   }
@@ -570,7 +546,6 @@ export class EveLineSet
    *
    * @implemented
    */
-  @meta.implemented
   GetModelCenterWorldPosition(position)
   {
   }
@@ -580,7 +555,6 @@ export class EveLineSet
    *
    * @implemented
    */
-  @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     return false;
@@ -591,7 +565,6 @@ export class EveLineSet
    *
    * @implemented
    */
-  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     mat4.identity(transform);
@@ -602,7 +575,6 @@ export class EveLineSet
    *
    * @implemented
    */
-  @meta.implemented
   GetLODLevel()
   {
     return Tr2Lod.TR2_LOD_HIGH;

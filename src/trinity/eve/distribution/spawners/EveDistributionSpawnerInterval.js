@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerInterval.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns distribution entities at configurable, optionally randomized intervals for a bounded or unlimited repeat count. */
@@ -51,7 +51,6 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * @implemented
    */
 
-  @meta.implemented
   Reset(_placements)
   {
     this.Restart();
@@ -65,7 +64,6 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * @adapted
    */
 
-  @meta.adapted
   Restart()
   {
     this._localTimer = this.useRandomStartOffset ? carbonRandom.triRand() * this.delayBetweenRepeats : 0;
@@ -81,7 +79,6 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * @adapted
    */
 
-  @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
     if (this.numberOfRepeats !== 0 && this._numTriggered >= this.numberOfRepeats)
@@ -104,7 +101,6 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    *
    * @implemented
    */
-  @meta.implemented
   SetControllerVariable(_name, _value)
   {
   }

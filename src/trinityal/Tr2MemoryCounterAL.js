@@ -22,7 +22,7 @@
 // layer is imported straight from source by its tests and raw Node cannot parse
 // decorator syntax.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { isNumber } from "#utils/is";
 import { Tr2MsaaDesc } from "./Tr2HalHelperStructures/Tr2MsaaDesc.js";
 
@@ -327,23 +327,4 @@ export class Tr2MemoryCounterAL
 
 // States: MemoryType and m_memoryType/m_size are Tr2MemoryCounterAL.h:7; the four gpuMemory*Est counters are Tr2MemoryCounterAL.cpp:6-9's file-scope
 // statistics, moved onto the class (adapted); className is the registered name this port adds. The class is adapted because its methods are.
-CjsSchema.decorateField(Tr2MemoryCounterAL, "className", meta.cjs, meta.implemented);
-CjsSchema.decorateField(Tr2MemoryCounterAL, "MemoryType", meta.implemented);
-CjsSchema.decorateField(Tr2MemoryCounterAL, "gpuMemoryTotalEst", meta.adapted);
-CjsSchema.decorateField(Tr2MemoryCounterAL, "gpuMemoryBufferEst", meta.adapted);
-CjsSchema.decorateField(Tr2MemoryCounterAL, "gpuMemoryTextureEst", meta.adapted);
-CjsSchema.decorateField(Tr2MemoryCounterAL, "gpuMemoryOtherEst", meta.adapted);
-CjsSchema.decorateField(Tr2MemoryCounterAL, "_memoryType", meta.implemented);
-CjsSchema.decorateField(Tr2MemoryCounterAL, "_size", meta.implemented);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "create__Move", meta.adapted);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Destruct", meta.adapted);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Assign__Move", meta.adapted);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Set", meta.adapted);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Set__Size", meta.implemented);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Set__Bitmap", meta.implemented);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Grow", meta.implemented);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Shrink", meta.adapted);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Reset", meta.implemented);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "_UpdateCounters", meta.adapted);
-CjsSchema.meta.adapted(Tr2MemoryCounterAL);
 CjsSchema.meta.carbon("Tr2MemoryCounterAL")(Tr2MemoryCounterAL);

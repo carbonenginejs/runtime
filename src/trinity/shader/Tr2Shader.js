@@ -2,7 +2,7 @@ import { CjsCarbonEffectFormat } from "../../resource/formats/carbonEffect/index
 import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2EffectDescription } from "../../resource/shader/reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
@@ -438,18 +438,4 @@ CjsSchema.exposure.inherit(IRoot)(Tr2Shader);
 CjsSchema.decorateField(Tr2Shader, "sortValue", type.uint32);
 CjsSchema.decorateField(Tr2Shader, "effect", type.rawStruct("Tr2EffectDescription"));
 CjsSchema.decorateField(Tr2Shader, "hasVertexBufferAccessInRtShadow", type.boolean);
-CjsSchema.decorateMethod(Tr2Shader, "ApplyAllStateForPass", meta.adapted);
-CjsSchema.decorateMethod(Tr2Shader, "ApplyRenderStates", meta.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "ApplyShaderOverride", meta.notImplemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetTechniqueIndex", meta.adapted);
-CjsSchema.decorateMethod(Tr2Shader, "GetPassCount", meta.adapted);
-CjsSchema.decorateMethod(Tr2Shader, "GetConstant", meta.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetResource", meta.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetParameterAnnotations", meta.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetSortValue", meta.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetEffectDescription", meta.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetEffect", meta.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetShaderTypeMask", meta.adapted);
-CjsSchema.decorateMethod(Tr2Shader, "ProcessEffect", meta.adapted);
-CjsSchema.decorateMethod(Tr2Shader, "HasVertexBufferAccessInRtShadow", meta.implemented);
 CjsSchema.exposure.define("Tr2Shader")(Tr2Shader);

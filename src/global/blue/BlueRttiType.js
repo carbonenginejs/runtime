@@ -1,6 +1,5 @@
 // Source: blueexposure/BlueClasses.cpp:72-231 (BlueRttiType)
 // Source: blueexposure/include/IBlueRtti.h:14-35 (BlueRttiValue, IBlueRtti)
-import { CjsSchema, meta } from "#schema";
 
 /**
  * A class's run-time type information: every exposed member and method under
@@ -17,16 +16,32 @@ import { CjsSchema, meta } from "#schema";
  * (`RegisterThunker`) are not added: nothing registers one here.
  *
  * Carbon: BlueRttiType (blueexposure/BlueClasses.cpp:72-231)
+ *
+ * @adapted no member offsets are kept, and parent rows a class hides with `hideInherited` are left out (see `Init`).
  */
 export class BlueRttiType
 {
 
+  /**
+   * Ours: the registered name, which minification cannot change.
+   *
+   * @cjs
+   * @implemented
+   */
   static className = "BlueRttiType";
 
-  /** `mVarMap`: members and properties by name. */
+  /**
+   * `mVarMap`: members and properties by name.
+   *
+   * @implemented
+   */
   varMap = new Map();
 
-  /** `mFullMap`: members, properties and methods by name. */
+  /**
+   * `mFullMap`: members, properties and methods by name.
+   *
+   * @implemented
+   */
   fullMap = new Map();
 
   /**
@@ -118,8 +133,3 @@ export class BlueRttiType
 
 }
 
-CjsSchema.decorateMethod(BlueRttiType, "Init", meta.adapted);
-CjsSchema.decorateMethod(BlueRttiType, "GetMethodsAsList", meta.adapted);
-CjsSchema.decorateMethod(BlueRttiType, "FindAttribute", meta.implemented);
-CjsSchema.decorateMethod(BlueRttiType, "FindMethod", meta.implemented);
-CjsSchema.meta.carbon("BlueRttiType")(BlueRttiType);

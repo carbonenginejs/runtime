@@ -7,7 +7,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 import { TriBatchType } from "#consts/graphics";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
@@ -88,7 +88,6 @@ export class Tr2Transform extends IRoot
    * @param {number} time Blue 100ns ticks.
    */
 
-  @meta.implemented
   Update__Time(time)
   {
     if (!this.update)
@@ -110,7 +109,6 @@ export class Tr2Transform extends IRoot
    * @param {number} time Blue 100ns ticks.
    */
 
-  @meta.implemented
   Update(time)
   {
     return this.Update__Time(time);
@@ -128,7 +126,6 @@ export class Tr2Transform extends IRoot
    * @returns {mat4} The world transform.
    */
 
-  @meta.implemented
   UpdateViewDependentData(_frustum, parentTransform = Tr2Transform.#identity)
   {
     const scratch = Tr2Transform.#scratch;
@@ -199,7 +196,6 @@ export class Tr2Transform extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetScaling(value)
   {
     vec3.copy(this.scaling, value);
@@ -211,7 +207,6 @@ export class Tr2Transform extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetRotation(value)
   {
     quat.copy(this.rotation, value);
@@ -223,7 +218,6 @@ export class Tr2Transform extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetTranslation(value)
   {
     vec3.copy(this.translation, value);
@@ -234,7 +228,6 @@ export class Tr2Transform extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   IsVisible(_updateContext)
   {
     return true;
@@ -259,7 +252,6 @@ export class Tr2Transform extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   HasTransparentBatches()
   {
     return !!(
@@ -276,7 +268,6 @@ export class Tr2Transform extends IRoot
    *   method exposes no result.
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (this.display && this.mesh)
@@ -296,7 +287,6 @@ export class Tr2Transform extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetSortValue()
   {
     const viewPosition = Tr2Renderer.GetViewPosition();
@@ -312,7 +302,6 @@ export class Tr2Transform extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMesh()
   {
     return this.mesh;

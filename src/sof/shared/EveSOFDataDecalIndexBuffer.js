@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:101-111
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ICustomPersist } from "#blue";
 
 /**
@@ -29,7 +29,6 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddIndex(index)
   {
     const source = this.indexBuffer;
@@ -46,7 +45,6 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @returns {number[]} Copied indices.
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetIndices()
   {
     return Array.from(this.indexBuffer, value => Number(value) >>> 0);
@@ -68,7 +66,6 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @returns {Uint32Array} The backing storage, reused or new.
    */
 
-  @meta.adapted
   AllocateReadBuffer(_memberName, byteSize)
   {
     const length = Math.floor(byteSize / 4);
@@ -87,7 +84,6 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @returns {{buffer: Uint32Array, byteSize: number}} Storage and byte count.
    */
 
-  @meta.adapted
   GetWriteBufferAndSize(_propertyName)
   {
     const buffer = this.indexBuffer;
@@ -102,7 +98,6 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @returns {void}
    */
 
-  @meta.adapted
   ReleaseWriteBuffer()
   {
   }
@@ -121,7 +116,6 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @returns {void}
    */
 
-  @meta.adapted
   SetBufferAndSize(_propertyName, _buffer, byteSize)
   {
     const length = Math.floor(byteSize / 4);

@@ -7,7 +7,7 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /**
  * One authored spotlight: its bone attachment, placement matrix, the separate
@@ -66,7 +66,6 @@ export class EveSpotlightSetItem extends IRoot
    *   box3.
    */
 
-  @meta.adapted
   GetBounds(out)
   {
     return box3.transformMat4(out, EveSpotlightSetItem._bounds, this.transform);
@@ -78,7 +77,6 @@ export class EveSpotlightSetItem extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBoneIndex()
   {
     return this.boneIndex;

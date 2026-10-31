@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepClearUav.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec4 } from "#math/vec4";
 
@@ -60,7 +60,6 @@ export class TriStepClearUav extends TriRenderStep
    * @adapted
    */
   @be.mapMethod()
-  @meta.adapted
   __init__(buffer = null, values = null)
   {
     this.buffer = buffer;
@@ -87,7 +86,6 @@ export class TriStepClearUav extends TriRenderStep
    * @adapted
    */
 
-  @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {
     if (this.buffer)

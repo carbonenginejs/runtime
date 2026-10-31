@@ -12,7 +12,7 @@
 // fill a plain object whose keys are the wire tags, in place of a yaml-cpp
 // node and emitter. Every scalar in it is the source text, as `as<std::string>()`
 // reads it; see ResourceGroupImpl.ImportFromYamlString.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { DocumentParameter } from "./DocumentParameter.js";
 import { Location } from "./Location.js";
 import { Parameter } from "./ParameterInfo.js";
@@ -684,43 +684,4 @@ export class ResourceInfo
     }
 }
 
-CjsSchema.decorateMethod(ResourceInfo, "typeId", meta.implemented);
-CjsSchema.decorateMethod(ResourceInfo, "GetRelativePath", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "GetType", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "GetChecksum", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "GetPrefix", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "GetBinaryOperation", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "GetCompressedSize", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "GetUncompressedSize", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "GetLocation", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "SetRelativePath", meta.implemented);
-CjsSchema.decorateMethod(ResourceInfo, "SetCompressedSize", meta.implemented);
-CjsSchema.decorateMethod(ResourceInfo, "SetUncompressedSize", meta.implemented);
-CjsSchema.decorateMethod(ResourceInfo, "SetDataChecksum", meta.implemented);
-CjsSchema.decorateMethod(ResourceInfo, "UpdateLocation", meta.implemented);
-CjsSchema.decorateMethod(ResourceInfo, "Equals", meta.renamed("operator=="), meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "LessThan", meta.renamed("operator<"), meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "SetParametersFromResource", meta.implemented);
-CjsSchema.decorateMethod(ResourceInfo, "ExportToCsv", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "ImportFromYaml", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "ExportToYaml", meta.adapted);
-CjsSchema.decorateMethod(ResourceInfo, "GetDataStream", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "GetData", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "PutDataStream", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "PutData", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "SetParametersFromData", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "SetParametersFromSourceStream", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "GetDataLocalRelative", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "GetDataLocalCdn", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "GetDataRemoteCdn", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "GetDataStreamLocalRelative", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "GetDataStreamLocalCdn", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "GetDataStreamRemoteCdn", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "PutDataLocalRelative", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "PutDataLocalCdn", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "PutDataStreamLocalRelative", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "PutDataStreamLocalCdn", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "PutDataStreamRemoteCdn", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "PutDataRemoteCdn", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceInfo, "GetDestinationPath", meta.notImplemented);
 CjsSchema.meta.carbon("ResourceInfo")(ResourceInfo);

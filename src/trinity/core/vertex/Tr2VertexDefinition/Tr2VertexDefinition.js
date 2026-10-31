@@ -1,4 +1,4 @@
-import { CjsSchema, type, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 // Source: trinity/trinityal/Tr2VertexDefinition.h:14-207 (the definition and its items)
 //   trinity/trinityal/Tr2VertexDefinition.cpp:25-42 (item and definition equality)
 //
@@ -309,14 +309,4 @@ CjsSchema.decorateField(Tr2VertexDefinition, "items", type.array(Tr2VertexDefini
 CjsSchema.decorateField(Tr2VertexDefinition, "nextOffset", type.array("uint32"));
 // States: empty is Tr2VertexDefinition.h:145-148. Add, Find and Find__UsageIndex are adapted against Tr2VertexDefinition.cpp:64-94: usage
 // accepts a name as well as the code, and Add advances the offset ledger for any stream where Carbon skips streams past OFFSET_COUNT.
-CjsSchema.decorateMethod(Tr2VertexDefinition, "empty", meta.implemented);
-CjsSchema.decorateMethod(Tr2VertexDefinition, "Add", meta.adapted);
-CjsSchema.decorateMethod(Tr2VertexDefinition, "Find", meta.adapted);
-CjsSchema.decorateMethod(Tr2VertexDefinition, "Find__UsageIndex", meta.adapted);
-CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInMembers", meta.adapted);
-meta.renamed("GetDataTypeSizeInMembers")(Tr2VertexDefinition, "getDataTypeSizeInMembers");
-CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInBytes", meta.adapted);
-meta.renamed("GetDataTypeSizeInBytes")(Tr2VertexDefinition, "getDataTypeSizeInBytes");
-CjsSchema.decorateMethod(Tr2VertexDefinition, "isSameDefinition", meta.adapted);
-meta.renamed("operator==")(Tr2VertexDefinition, "isSameDefinition");
 CjsSchema.meta.carbon("Tr2VertexDefinition")(Tr2VertexDefinition);

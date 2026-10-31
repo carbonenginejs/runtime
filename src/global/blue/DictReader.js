@@ -41,7 +41,7 @@ import { exposure as be } from "#be";
 // Each public operation owns fresh anchors. After references resolve, mapped
 // IInitialize runs once on its factory results, dependencies first. Existing
 // roots, embedded storage and supplied live objects remain borrowed.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { normalizeCarbonValue } from "../schema/types/index.js";
 import { IRoot } from "./IRoot.js";
@@ -1647,18 +1647,4 @@ function IsPlainObject(value)
 CjsSchema.exposure.inherit(IRoot)(DictReader);
 
 CjsSchema.exposure.define("DictReader")(DictReader);
-CjsSchema.decorateMethod(DictReader, "CreateObject", be.mapMethod(), meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadList", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadStructureList", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadIRootPtr", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "_ReadIList", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "_CreateObjectInternal", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "_ReleaseUnassigned", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadMembers", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadMetadata", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadValue", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadIRoot", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadIRootClass", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "_CleanupAfterCreate", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "_ThrowError", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadBinaryBlock", meta.implemented);
+CjsSchema.decorateMethod(DictReader, "CreateObject", be.mapMethod());

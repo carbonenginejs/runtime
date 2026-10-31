@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ShLightingManager.h
 // Source: trinity/trinity/Tr2ShLightingManager.cpp
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { blue, EnumRegistrationType } from "#blue";
 
@@ -162,7 +162,6 @@ export class Tr2ShLightingManager extends IRoot
    * @returns {Boolean} true once registered
    * Carbon declaration: Tr2ShLightingManager::RegisterSecondaryLightSource (trinity/trinity/Tr2ShLightingManager.h:40).
    */
-  @meta.implemented
   RegisterSecondaryLightSource(position, radius, albedo, emissive)
   {
     this.#sources.push({ position, radius, albedo, emissive });
@@ -179,7 +178,6 @@ export class Tr2ShLightingManager extends IRoot
    * @returns {Boolean} false when no source holds that vector
    */
 
-  @meta.implemented
   UnregisterSecondaryLightSource(position)
   {
     const index = this.#sources.findIndex((source) => source.position === position);
@@ -202,7 +200,6 @@ export class Tr2ShLightingManager extends IRoot
    * @returns {Boolean} true
    */
 
-  @meta.implemented
   UpdateWithDirectionalLight(direction, color)
   {
     vec3.copy(this.#sunColor, color);
@@ -222,7 +219,6 @@ export class Tr2ShLightingManager extends IRoot
    * @returns {Number} the processed source count
    */
 
-  @meta.implemented
   UpdateSourceData()
   {
     this.#sourceData.length = 0;
@@ -283,7 +279,6 @@ export class Tr2ShLightingManager extends IRoot
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   GetLighting(position, intensity, cutoffRadius, out)
   {
     const order = this.quality === Tr2ShLightingManager.Quality.L2 ? 3 : 2;
@@ -305,7 +300,6 @@ export class Tr2ShLightingManager extends IRoot
    * @returns {Float32Array} out
    */
 
-  @meta.adapted
   _CalculateSecondaryLighting(position, intensity, cutoffRadius, out, order)
   {
     const count = order * order;

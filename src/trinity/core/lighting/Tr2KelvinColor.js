@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2KelvinColor.h
 // Source: trinity/trinity/Tr2KelvinColor.cpp
 // Source: trinity/trinity/Tr2KelvinColor_Blue.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -67,7 +67,6 @@ export class Tr2KelvinColor extends IInitialize
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     return true;
@@ -154,7 +153,6 @@ export class Tr2KelvinColor extends IInitialize
    *
    * @implemented
    */
-  @meta.implemented
   GetTemperature()
   {
     return this.temperature;
@@ -165,7 +163,6 @@ export class Tr2KelvinColor extends IInitialize
    *
    * @implemented
    */
-  @meta.implemented
   GetTint()
   {
     return this.tint;
@@ -176,7 +173,6 @@ export class Tr2KelvinColor extends IInitialize
    *
    * @implemented
    */
-  @meta.implemented
   GetWhiteBalance()
   {
     return this.whiteBalance;
@@ -191,7 +187,6 @@ export class Tr2KelvinColor extends IInitialize
    * @param {vec4} out Receives the colour.
    * @returns {vec4} out
    */
-  @meta.adapted
   AsRGB(out)
   {
     const rgb = Tr2KelvinColor.triColorFromKelvin(this.temperature, this.tint, this.whiteBalance, Tr2KelvinColor._rgbScratch);

@@ -398,9 +398,6 @@ CjsSchema.exposure.inherit(IRoot)(IRootWriter);
 
 CjsSchema.exposure.abstract(IRootWriter);
 be.define("IRootWriter")(IRootWriter);
-CjsSchema.decorateMethod(IRootWriter, "WriteMembers", meta.adapted);
-CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);
-CjsSchema.decorateMethod(IRootWriter, "WriteList", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteBinaryBlock", meta.abstract);
 CjsSchema.decorateMethod(IRootWriter, "WriteMemberName", meta.abstract);
 CjsSchema.decorateMethod(IRootWriter, "WriteIRoot", meta.abstract);

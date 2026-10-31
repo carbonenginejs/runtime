@@ -5,7 +5,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2RotationAdapter.cpp
 import { quat } from "#math/quat";
 import { ITriQuaternionFunction } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { CcpTime } from "#blue";
 
 
@@ -72,7 +72,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     if (this.curve)
@@ -91,7 +90,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     if (this.curve)
@@ -115,7 +113,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   GetValueAt(time, out)
   {
     if (this.curve)
@@ -135,7 +132,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return quat.identity(out);
@@ -151,7 +147,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return quat.identity(out);
@@ -166,7 +161,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @returns {void}
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   RandomizeStart(range = 60)
   {
     const radius = range || 60;
@@ -182,7 +176,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ScaleTime(scale)
   {
     this._timeScale = scale;
@@ -195,7 +188,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ResetStart()
   {
     this._start = 0;
@@ -209,7 +201,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @returns {number} Scaled time in seconds.
    */
 
-  @meta.implemented
   GetLocalTime(time)
   {
     return time / this._timeScale;
@@ -223,7 +214,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} Local time in seconds.
    */
-  @meta.adapted
   GetLocalTime__Ticks(time)
   {
     return CcpTime.timeAsDouble(time - this._start + this._offset) / this._timeScale;
@@ -238,7 +228,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   Update__Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
@@ -262,7 +251,6 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt__Ticks(time, out)
   {
     if (this._start === 0) this._start = time;

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2Mesh.h
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { BlueAsyncRes, IsMatch, blue, IInitialize, INotify } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
@@ -72,7 +72,6 @@ export class Tr2Mesh extends Tr2MeshBase
    *   Low-detail fallback precedes the native fence; the primary request follows.
    */
 
-  @meta.adapted
   IsLoading()
   {
     return !this._loadFenceReached;
@@ -84,7 +83,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     if (!this.deferGeometryLoad)
@@ -102,7 +100,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @adapted
    */
 
-  @meta.adapted
   InitializeGeometryResource()
   {
     this._loadFenceGeneration += 1;
@@ -168,7 +165,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "geometryResPath"))
@@ -193,7 +189,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   SetMeshResPath(path)
   {
     this.geometryResPath = String(path ?? "");
@@ -209,7 +204,6 @@ export class Tr2Mesh extends Tr2MeshBase
    *
    * @implemented
    */
-  @meta.implemented
   SetGeometryRes(resource)
   {
     const next = resource ?? null;
@@ -235,7 +229,6 @@ export class Tr2Mesh extends Tr2MeshBase
    *   Carbon's CacheBounds call has nothing to refresh.
    */
 
-  @meta.adapted
   RebuildCachedData(resource)
   {
     // Two ifs, not an else: a low-detail resource finishing rebuilds the
@@ -257,7 +250,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   SetLowResGeometryRes(resource)
   {
     const next = resource ?? null;
@@ -276,7 +268,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   ReleaseCachedData(_resource)
   {
   }
@@ -289,7 +280,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
   @be.mapMethodAndWrap("SetGeometryRes")
-  @meta.implemented
   PySetGeometryRes(resource)
   {
     this.SetMeshResPath("");
@@ -306,7 +296,6 @@ export class Tr2Mesh extends Tr2MeshBase
    *   re-registered, or it would call back every frame.
    */
 
-  @meta.adapted
   GetGeometryResource()
   {
     const geometry = this.geometry;
@@ -320,7 +309,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   GetMeshResPath()
   {
     return this.geometryResPath;
@@ -332,7 +320,6 @@ export class Tr2Mesh extends Tr2MeshBase
    *
    * @implemented
    */
-  @meta.implemented
   GetGeometryResPath()
   {
     const resource = this.GetGeometryResource();
@@ -346,7 +333,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetAreasCount()
   {
     return 14;
@@ -357,7 +343,6 @@ export class Tr2Mesh extends Tr2MeshBase
    *
    * @adapted
    */
-  @meta.adapted
   InitializeMorphTargets()
   {
     if (!this.GetGeometryResource())
@@ -417,7 +402,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @returns {string[]} the live list
    */
 
-  @meta.adapted
   GetMorphTargetNames()
   {
     const lod = this._GetMorphLod();
@@ -431,7 +415,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @param {number} index
    * @returns {boolean}
    */
-  @meta.implemented
   IsBakedMorph(index)
   {
     const lod = this._GetMorphLod();
@@ -444,7 +427,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   SetMorphTargetWeight(name, value)
   {
     const key = String(name ?? "");
@@ -472,7 +454,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    */
 
-  @meta.implemented
   GetMorphTargetWeight(name)
   {
     return this._morphAnimations.get(String(name ?? ""))?.weight ?? 0;
@@ -487,7 +468,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @param {boolean} isBaked
    */
 
-  @meta.implemented
   SetBakedMorphTarget(name, isBaked)
   {
     const lod = this._GetMorphLod();
@@ -511,7 +491,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @returns {boolean}
    */
 
-  @meta.implemented
   GetBakedMorphTarget(name)
   {
     const lod = this._GetMorphLod();
@@ -530,7 +509,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * @implemented
    * @returns {boolean[]|null} the live list, or null without geometry or LOD
    */
-  @meta.implemented
   GetAllBakedMorphTargetStates()
   {
     const lod = this._GetMorphLod();
@@ -549,7 +527,6 @@ export class Tr2Mesh extends Tr2MeshBase
    *
    * @adapted
    */
-  @meta.adapted
   GetMorphAnimations()
   {
     return new Map([ ...this._morphAnimations ].map(([ name, value ]) => [ name, { ...value } ]));
@@ -563,7 +540,6 @@ export class Tr2Mesh extends Tr2MeshBase
    *
    * @adapted
    */
-  @meta.adapted
   Destruct()
   {
     this._loadFenceGeneration += 1;

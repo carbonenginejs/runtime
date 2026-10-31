@@ -6,7 +6,7 @@ import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { blue } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
 import { vec3 } from "#math/vec3";
@@ -33,7 +33,6 @@ export class PlayFX extends EveEntity
    *
    * @implemented
    */
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list !== this.generatedFiringEffects || (event & BLUELISTEVENT.BELIST_LOADING) || !this.IsInRegistry()) return;
@@ -109,7 +108,6 @@ export class PlayFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -121,7 +119,6 @@ export class PlayFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetBehaviorName()
   {
     return "PlayFX";
@@ -134,7 +131,6 @@ export class PlayFX extends EveEntity
    *   agent, so any non-zero value means 'has scratch'.
    */
 
-  @meta.adapted
   GetScratchMemorySize()
   {
     return 1;
@@ -147,7 +143,6 @@ export class PlayFX extends EveEntity
    *   record instead.
    */
 
-  @meta.adapted
   InitializeScratch()
   {
     return {
@@ -163,7 +158,6 @@ export class PlayFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateState(state)
   {
     this._stop = !!state;
@@ -186,7 +180,6 @@ export class PlayFX extends EveEntity
    * @returns {Array} empty (as Carbon)
    */
 
-  @meta.adapted
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
     if (this.behaviorWeight <= 0 || !this.enabled)
@@ -294,7 +287,6 @@ export class PlayFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, parentTransform)
   {
     for (const fx of this.generatedFiringEffects)
@@ -310,7 +302,6 @@ export class PlayFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     for (const fx of this.generatedFiringEffects)
@@ -325,7 +316,6 @@ export class PlayFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     for (const fx of this.generatedFiringEffects)
@@ -341,7 +331,6 @@ export class PlayFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -361,7 +350,6 @@ export class PlayFX extends EveEntity
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -382,7 +370,6 @@ export class PlayFX extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -394,7 +381,6 @@ export class PlayFX extends EveEntity
    * @adapted
    */
 
-  @meta.adapted
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }

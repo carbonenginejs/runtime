@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -63,7 +63,6 @@ export class EveCameraFxAttributes extends IEveFxAttribute
    *   localToWorldTransform reads as the identity.
    */
 
-  @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
     const objectPosition = OBJECT_POSITION;

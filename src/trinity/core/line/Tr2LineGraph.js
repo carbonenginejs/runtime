@@ -2,7 +2,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2LineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** A rolling sample history with named markers and running statistics, drawn as a line graph. */
@@ -35,7 +35,6 @@ export class Tr2LineGraph extends IRoot
    * @implemented
    * @returns {string} The graph's name.
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -50,7 +49,6 @@ export class Tr2LineGraph extends IRoot
    * @param {vec4} out Receives the colour.
    * @returns {vec4} out
    */
-  @meta.adapted
   GetColor(out)
   {
     return vec4.copy(out, this.color);
@@ -63,7 +61,6 @@ export class Tr2LineGraph extends IRoot
    * @param {vec4} val The colour to copy in.
    * @returns {void}
    */
-  @meta.implemented
   SetColor(val)
   {
     vec4.copy(this.color, val);
@@ -82,7 +79,6 @@ export class Tr2LineGraph extends IRoot
    * @notImplemented
    * @returns {boolean} Never returns.
    */
-  @meta.notImplemented
   _OnPrepareResources()
   {
     throw new Error("Tr2LineGraph.OnPrepareResources requires the unported line-graph vertex buffer, vertex declaration and effect path.");
@@ -98,7 +94,6 @@ export class Tr2LineGraph extends IRoot
    * @param {number} _storage A TriStorage value.
    * @returns {void}
    */
-  @meta.notImplemented
   ReleaseResources(_storage)
   {
     throw new Error("Tr2LineGraph.ReleaseResources requires the unported line-graph vertex buffer and declaration.");
@@ -116,7 +111,6 @@ export class Tr2LineGraph extends IRoot
    * @param {object} _renderContext The Tr2RenderContext.
    * @returns {void}
    */
-  @meta.notImplemented
   Render(_scale, _renderContext)
   {
     throw new Error("Tr2LineGraph.Render requires the unported line-graph device path and Tr2Renderer.PrintfImmediate.");
@@ -128,7 +122,6 @@ export class Tr2LineGraph extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddMarker(name)
   {
     const last = this.#markers.at(-1);
@@ -150,7 +143,6 @@ export class Tr2LineGraph extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetStatsHistory()
   {
     return this.#data.slice(this.#currentIndex).concat(this.#data.slice(0, this.#currentIndex));
@@ -162,7 +154,6 @@ export class Tr2LineGraph extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetSize(size)
   {
     const length = Math.max(0, Math.trunc(Number(size)) || 0);
@@ -182,7 +173,6 @@ export class Tr2LineGraph extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   Add(value)
   {
     if (!this.#data.length) return false;
@@ -201,7 +191,6 @@ export class Tr2LineGraph extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetSize()
   {
     return this.#data.length;
@@ -212,7 +201,6 @@ export class Tr2LineGraph extends IRoot
    *
    * @implemented
    */
-  @meta.implemented
   GetMaxValue()
   {
     let maximum = 0;

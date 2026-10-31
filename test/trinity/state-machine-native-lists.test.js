@@ -15,6 +15,7 @@ import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.
 import { Tr2StateMachine } from "../../npm/dist/trinity/controllers/state/Tr2StateMachine.js";
 import { Tr2StateMachineState } from "../../npm/dist/trinity/controllers/state/Tr2StateMachineState.js";
 import { Tr2ActionPlayCurveSet } from "../../npm/dist/trinity/controllers/action/Tr2ActionPlayCurveSet.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const {
   BELIST_INSERTED, BELIST_REMOVED, BELIST_UNLOADSTART, BELIST_LOADFINISHED,
@@ -522,8 +523,7 @@ test("state lookup requires GetName while retained accessors remain custom conve
   assert.equal(machine.GetState(99), null);
   assert.equal(machine.GetCurrentState(), null);
   assert.equal(machine.GetStateTime(), machine.GetStateRunTime());
-  const transitions = CjsSchema.getMethod(Tr2StateMachine, "_FollowTransitions");
-  assert.equal(transitions.impl.status, "adapted");
+  assert.equal(MarkerTag("Tr2StateMachine", "_FollowTransitions"), "adapted");
   for (const name of ["GetCurrentState", "GetState", "GetStateTime"])
   {
     const method = CjsSchema.getMethod(Tr2StateMachine, name);

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2VectorFunctionModifier.h
 // Source: trinity/trinity/Tr2VectorFunctionModifier.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITriVectorFunction } from "#blue";
 import { vec3 } from "#math/vec3";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -62,7 +62,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.implemented
   GetOffsetPosition(out = OFFSET_SCRATCH)
   {
     vec3.copy(out, this.offsetPosition);
@@ -87,7 +86,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @returns {Float32Array} The position buffer.
    */
 
-  @meta.implemented
   GetTransformedPosition(inOut)
   {
     const offset = this.GetOffsetPosition();
@@ -106,7 +104,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.implemented
   Update(_time, inOut)
   {
     return inOut;
@@ -122,7 +119,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.implemented
   GetValueAt(_time, inOut)
   {
     return inOut;
@@ -138,7 +134,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.implemented
   GetValueDotAt(_time, inOut)
   {
     return inOut;
@@ -154,7 +149,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.implemented
   GetValueDoubleDotAt(_time, inOut)
   {
     return inOut;
@@ -169,7 +163,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination position.
    * @returns {Float32Array} The destination.
    */
-  @meta.implemented
   Update__Ticks(time, inOut)
   {
     if (this.clientBall)
@@ -189,7 +182,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination position.
    * @returns {Float32Array} The destination.
    */
-  @meta.implemented
   GetValueAt__Ticks(time, inOut)
   {
     if (this.clientBall)
@@ -208,7 +200,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination velocity.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueDotAt__Ticks(time, inOut)
   {
     if (this.clientBall)
@@ -228,7 +219,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination acceleration.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueDoubleDotAt__Ticks(time, inOut)
   {
     if (this.clientBall)
@@ -249,7 +239,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @returns {Float32Array|Float64Array} The destination.
    */
 
-  @meta.adapted
   InterpolatedPosition(time, out)
   {
     if (this.clientBall)
@@ -267,7 +256,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateValue(_time)
   {
   }

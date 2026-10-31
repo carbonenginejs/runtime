@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.h
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { Type } from "../enums.js";
@@ -84,7 +84,6 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {boolean} Always true.
    */
 
-  @meta.implemented
   Initialize()
   {
     this.value = this.defaultValue;
@@ -102,7 +101,6 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {boolean} Always true after both operations succeed.
    */
 
-  @meta.implemented
   OnModified(_propertyName)
   {
     this._writeDestination();
@@ -117,7 +115,6 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {string} Name used by the controller to expose this expression slot.
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -130,7 +127,6 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {number} Current value, without reading the destination back.
    */
 
-  @meta.implemented
   GetValue()
   {
     return this.value;
@@ -147,7 +143,6 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {void}
    */
 
-  @meta.implemented
   SetValue(value)
   {
     this.value = value;
@@ -167,7 +162,6 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {void}
    */
 
-  @meta.adapted
   SetDestinationBuffer(buffer, index = 0)
   {
     this._destination = buffer;
@@ -188,7 +182,6 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @throws {RangeError|TypeError} If mask cannot be converted to BigInt.
    */
 
-  @meta.adapted
   SetDirtyMask(maskDestination, mask)
   {
     for (const value of [mask, maskDestination?.value ?? 0n])

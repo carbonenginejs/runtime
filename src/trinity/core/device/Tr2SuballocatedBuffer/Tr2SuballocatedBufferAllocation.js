@@ -18,7 +18,7 @@
 //
 // Free is explicit at the owning resource's release because JavaScript has no
 // deterministic Allocation destructor. MapForReading remains unported.
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */
@@ -124,17 +124,10 @@ export class Tr2SuballocatedBufferAllocation
   }
 }
 
-CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "IsValid", meta.implemented);
 
 CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_offset", type.uint32);
 CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_size", type.uint32);
 CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_stride", type.uint32);
 // States: Tr2SuballocatedBuffer.cpp:192-231. GetBuffer, GetStartIndex and Update are adapted: the buffer is held on the allocation rather than read through
 // m_parent, a zero stride yields index 0 where Carbon divides, and Update folds the two overloads into one with the bounds assert dropped.
-CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetBuffer", meta.adapted);
-CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetOffset", meta.implemented);
-CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetSize", meta.implemented);
-CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetStride", meta.implemented);
-CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetStartIndex", meta.adapted);
-CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "Update", meta.adapted);
 CjsSchema.meta.define(Tr2SuballocatedBufferAllocation, { className: "Tr2SuballocatedBufferAllocation", carbon: "Tr2SuballocatedBuffer::Allocation" });

@@ -24,6 +24,6 @@ test("Tr2Mesh maps its inherited area query without exposing it on Tr2MeshBase",
   // Carbon: Tr2Mesh_Blue.cpp:83-89; the Python wrapper returns the live native list.
   const row = CjsSchema.getMethod(Tr2Mesh, "GetAreas");
   assert.equal(row.exposure.macro, "MAP_METHOD");
-  assert.equal(CjsSchema.getMethod(Tr2MeshBase, "GetAreas").exposure, undefined);
+  assert.equal(CjsSchema.getMethod(Tr2MeshBase, "GetAreas")?.exposure, undefined);
   assert.equal(Object.hasOwn(Tr2Mesh.prototype, "GetAreas"), false);
 });

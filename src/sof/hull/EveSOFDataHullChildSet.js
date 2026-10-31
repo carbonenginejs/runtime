@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /** Groups child-resource placements under a named visibility identity. */
 @be.define("EveSOFDataHullChildSet")
@@ -31,7 +31,6 @@ export class EveSOFDataHullChildSet extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.string
-  @meta.implemented
   get name()
   {
     return this.GetName();

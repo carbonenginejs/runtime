@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:23
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:27-144
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { ShaderType } from "#consts/render-context";
 
 export const MAX_RESOURCES_IN_STAGE = 32;
@@ -62,7 +62,6 @@ export class Tr2RegisterMapAL
    * @adapted JavaScript spells the C++ equality operator as a method.
    * @renamed operator==
    */
-  @meta.adapted
   equals(other)
   {
     for (const [ count, slots ] of [ [ "srvCount", "srvs" ], [ "uavCount", "uavs" ], [ "samplerCount", "samplers" ] ])
@@ -87,5 +86,4 @@ CjsSchema.decorateField(Tr2RegisterMapAL, "samplerCount", type.uint32);
 CjsSchema.decorateField(Tr2RegisterMapAL, "srvs", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
 CjsSchema.decorateField(Tr2RegisterMapAL, "uavs", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
 CjsSchema.decorateField(Tr2RegisterMapAL, "samplers", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
-CjsSchema.decorateMethod(Tr2RegisterMapAL, "equals", meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2RegisterMapAL")(Tr2RegisterMapAL);

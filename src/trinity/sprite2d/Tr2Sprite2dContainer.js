@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp
 // Hand-maintained Sprite2D traversal, picking and cache policy.
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { Tr2Sprite2dContainerBase } from "./Tr2Sprite2dContainerBase.js";
 
 /** Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching. */
@@ -70,7 +70,6 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
    *   Destruct, derived first and then the base, as C++ orders them.
    * @returns {void}
    */
-  @meta.adapted
   Destruct()
   {
     this._cachedDisplayList?.Destruct();
@@ -84,7 +83,6 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
    *
    * @implemented
    */
-  @meta.implemented
 
   GatherSprites(renderer)
   {
@@ -151,7 +149,6 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
    *
    * @implemented
    */
-  @meta.implemented
 
   _GatherSpritesHelper(renderer)
   {
@@ -188,7 +185,6 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
    *
    * @implemented
    */
-  @meta.implemented
 
   PickPoint(x, y, renderer)
   {

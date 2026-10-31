@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable child ownership is maintained here.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { BlueList, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
@@ -40,7 +40,6 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
    * @returns {void}
    */
 
-  @meta.implemented
   SetChildDirty(_child)
   {
     this.isDirty = true;
@@ -64,7 +63,6 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
    *   call this one, as a C++ derived destructor runs its base destructor.
    * @returns {void}
    */
-  @meta.adapted
   Destruct()
   {
     for (const item of this.background)
@@ -84,7 +82,6 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
    *
    * @implemented
    */
-  @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
     switch (event)

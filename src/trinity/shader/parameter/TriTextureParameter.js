@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, type, blue as legacyBlue } from "#schema";
 import { ICopierCustomAssignment } from "#blue";
 import { INotify } from "#blue";
 import { IInitialize } from "#blue";
@@ -109,7 +109,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @implemented
    */
 
-  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -121,7 +120,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @adapted
    */
 
-  @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
     if (this.resourcePath)
@@ -139,7 +137,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @param {string} name The parameter name.
    */
 
-  @meta.implemented
   SetParameterName(name)
   {
     this.name = String(name);
@@ -153,7 +150,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetResourcePath()
   {
     const resource = CjsSchema.cast(this.GetResource(), IBlueResource);
@@ -169,7 +165,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @param {string} resourcePath The authored texture path.
    */
 
-  @meta.implemented
   SetResourcePath(resourcePath)
   {
     const path = String(resourcePath);
@@ -186,7 +181,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetResource(resource)
   {
     if (this.resource !== resource)
@@ -207,7 +201,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    *
    * @implemented
    */
-  @meta.implemented
   AssignTo(other, _copier)
   {
     if (!this.resourcePath && this.resource) other.SetResource(this.resource);
@@ -225,7 +218,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @adapted
    */
 
-  @meta.adapted
   GetResource()
   {
     if (this._lowResResource)
@@ -257,7 +249,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @returns {boolean} Whether the slot took the binding.
    * Carbon declaration: TriTextureParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/TriTextureParameter.h:42).
    */
-  @meta.implemented
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
@@ -339,7 +330,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @returns {boolean} Whether the slot took the binding.
    * Carbon declaration: TriTextureParameter::ApplyUav (trinity/trinity/Shader/Parameter/TriTextureParameter.h:47).
    */
-  @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
     // Carbon binds m_cachedTexture, the provider's texture (cpp:189-195).
@@ -353,7 +343,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @implemented
    */
 
-  @meta.implemented
   SupportsDirtyNotification()
   {
     return true;
@@ -366,7 +355,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @param uvDensityScale five scales: the world-position scale first, then the four UV-set scales
    */
 
-  @meta.adapted
   EnableTextureLoding(uvDensityScale)
   {
     this._textureLodEnabled = true;
@@ -383,7 +371,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @implemented
    */
 
-  @meta.implemented
   DisableTextureLoding()
   {
     this._textureLodEnabled = false;
@@ -396,7 +383,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @returns {number} the requested LOD, 0 when LOD is disabled or no density applies
    */
 
-  @meta.adapted
   UsedWithScreenSize(screenSize, worldRadius, uvDensities = [])
   {
     if (!this._textureLodEnabled)
@@ -445,7 +431,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_propertyName)
   {
     this._StopListening(this.resource);
@@ -466,7 +451,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._StopListening(this.resource);
@@ -517,7 +501,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    *   and so does this.
    */
 
-  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this._cachedEffect = effectRes;
@@ -563,7 +546,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @implemented
    */
 
-  @meta.implemented
   OnAddedToMaterial(material)
   {
     if (!this._materials.includes(material))
@@ -579,7 +561,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @implemented
    */
 
-  @meta.implemented
   OnRemovedFromMaterial(material)
   {
     const index = this._materials.indexOf(material);
@@ -602,8 +583,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @cjs
    * @adapted
    */
-  @meta.cjs
-    @meta.adapted
   KeepAlive()
   {
     const resource = CjsSchema.cast(this.resource, IBlueResource);
@@ -619,7 +598,6 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * @adapted
    */
 
-  @meta.adapted
   OnTextureChanged()
   {
     for (const material of this._materials)

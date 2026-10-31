@@ -5,7 +5,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js";
 // Source: trinity/trinity/Particle/Tr2SphereConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -25,7 +25,6 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    *
    * @implemented
    */
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (!(event & BLUELISTEVENT.BELIST_LOADING) && (event & BLUELISTEVENT.BELIST_EVENTMASK) === BLUELISTEVENT.BELIST_INSERTED && list === this.onCollisionEmitters && value)
@@ -132,7 +131,6 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     for (const emitter of this.onCollisionEmitters)
@@ -148,7 +146,6 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * @adapted
    */
 
-  @meta.adapted
   Bind(particleSystem)
   {
     this.isValid = false;
@@ -185,7 +182,6 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * @adapted Runs single-threaded against CPU element views, using the shared particle RNG.
    */
 
-  @meta.adapted
   ApplyConstraint(arguments_, _buffers, _strides, count, dt)
   {
     if (!this.isValid)
@@ -281,7 +277,6 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * @param {box3} _aabb The particle system's bounds, packed min/max.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, worldTransform, _aabb)
   {
     if (!this.isValid)

@@ -24,7 +24,7 @@
 // pass (its `computeFragment` recipe); geometry, hull and domain stages have
 // no WebGL2 counterpart and are refused.
 
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -102,7 +102,6 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @meta.adapted
   Create(type, bytecode, signature, shaderPath, renderContext)
   {
     this.ReleaseShader();
@@ -305,13 +304,4 @@ CjsSchema.decorateField(Tr2ShaderALWebgl2, "_bytecode", type.uint8Array);
 CjsSchema.decorateField(Tr2ShaderALWebgl2, "_type", type.int32);
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Create");
 // States against dx11/Tr2ShaderALDx11.cpp. ReleaseShader/IsValid/GetType/GetSignature are dx11's with GL shader objects. Destroy is adapted: it also clears the bytecode, signature and stage block, which dx11 keeps. GetBytecode is adapted: the Tr2ShaderBytecodeAL& comes back with the result as { result, bytecode }. Describe is adapted: it writes type and name but not dx11's shader and size keys. SetName stores the name with no native debug label.
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "ReleaseShader", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Destroy", meta.adapted);
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetType", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetBytecode", meta.adapted);
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetSignature", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Describe", meta.adapted);
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "SetName", meta.adapted);
 CjsSchema.meta.define("Tr2ShaderALWebgl2")(Tr2ShaderALWebgl2);

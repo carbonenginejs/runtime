@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "#blue";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
@@ -63,7 +63,6 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.value = this.defaultValue;
@@ -80,7 +79,6 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "value") || IsMatch(propertyName, "invertReceivedValue")) this._ApplyValue();
@@ -96,7 +94,6 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     if (this.variableName === name)

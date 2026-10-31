@@ -7,7 +7,7 @@ import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRendera
 import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
@@ -63,7 +63,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -74,7 +73,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -85,7 +83,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   Setup(_scale = null, _rotation = null, _translation = null, _lowestLodVisible = null)
   {
   }
@@ -95,7 +92,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    *
    * @adapted
    */
-  @meta.adapted
   ChangeLOD(_lod)
   {
   }
@@ -105,7 +101,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    *
    * @implemented
    */
-  @meta.implemented
   GetBoundingSphere(_sphere = null, _query = 0)
   {
     return false;
@@ -118,7 +113,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     this.UpdateTransform(params.localToWorldTransform);
@@ -140,7 +134,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     if (this.distribution)
@@ -160,7 +153,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
     if (this.distribution && this.display)
@@ -179,7 +171,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "display") || IsMatch(propertyName, "distribution")) this.ReRegister();
@@ -196,7 +187,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
     const maskedEvent = Number(event) & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -245,7 +235,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -268,7 +257,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -290,7 +278,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   GetRenderables(renderables)
   {
     if (this.distribution && this.display)
@@ -311,7 +298,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @returns {mat4} out
    */
 
-  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
@@ -323,7 +309,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetControllerVariable(name, value)
   {
     if (this.distribution)
@@ -343,7 +328,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (this.display && this.distribution)
@@ -363,7 +347,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @adapted The caller supplies a JavaScript Set for native debug-option strings.
    */
 
-  @meta.adapted
   GetDebugOptions(options)
   {
     options.add("smartLightSets");
@@ -376,7 +359,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (this.display && this.distribution)
@@ -396,7 +378,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const group of this.lightGroups)
@@ -412,7 +393,6 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @implemented
    */
 
-  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (!this._inheritProperties)

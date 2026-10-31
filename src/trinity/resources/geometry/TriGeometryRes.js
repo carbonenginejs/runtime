@@ -7,7 +7,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { box3 } from "#math/box3";
 import { triangleNormalTo } from "#math/mesh";
 import { ray3 } from "#math/ray3";
@@ -1838,49 +1838,25 @@ export class TriGeometryRes extends BlueAsyncRes
 CjsSchema.decorateField(TriGeometryRes, "forceLod", type.boolean, be.mapAttribute(be.READWRITE));
 CjsSchema.decorateField(TriGeometryRes, "forcedLodIndex", type.int32, be.mapAttribute(be.READWRITE));
 CjsSchema.decorateField(TriGeometryRes, "name", type.string, be.mapAttribute(be.READWRITE));
-CjsSchema.decorateMethod(TriGeometryRes, "ReadCMFFile", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetGrannyInfo", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMeshData", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetCMFData", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "IsUsingCMF", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "ReadGrannyFile", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMeshCount", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetAnimationCount", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetSkeletonCount", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetSkeletonData", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMeshAreaCount", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetLodIndexForScreenSize", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMeshLod__ScreenSize", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMeshLod__LodIndex", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMeshName", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMeshAreaName", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetAreaBoundingBox", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetAreaBoundingBoxFromScript", be.mapMethodAndWrap("GetAreaBoundingBox"), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingBox", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingBoxFromScript", be.mapMethodAndWrap("GetBoundingBox"), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingSphere", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingSphereFromScript", be.mapMethodAndWrap("GetBoundingSphere"), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "CalculateBoundingBoxFromTransform", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "RecalculateBoundingSphere", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "Reload", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetIntersectionPointNormalBoneFromScript", be.mapMethodAndWrap("GetIntersectionPointNormalBone"), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetAreaIntersectionPointNormalBoneFromScript", be.mapMethodAndWrap("GetAreaIntersectionPointNormalBone"), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "PrepareRayCaster", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "ResetRayCaster", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "IsRayCasterReady", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "HasRayCasterPreparationFailed", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "DestroyRayCaster", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "ReleaseResources", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "IsMemoryUsageKnown", meta.implemented);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMemoryUsage", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshCount", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshAreaCount", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshName", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshAreaName", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "GetAreaBoundingBoxFromScript", be.mapMethodAndWrap("GetAreaBoundingBox"));
+CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingBoxFromScript", be.mapMethodAndWrap("GetBoundingBox"));
+CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingSphereFromScript", be.mapMethodAndWrap("GetBoundingSphere"));
+CjsSchema.decorateMethod(TriGeometryRes, "CalculateBoundingBoxFromTransform", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "RecalculateBoundingSphere", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "Reload", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "GetIntersectionPointNormalBoneFromScript", be.mapMethodAndWrap("GetIntersectionPointNormalBone"));
+CjsSchema.decorateMethod(TriGeometryRes, "GetAreaIntersectionPointNormalBoneFromScript", be.mapMethodAndWrap("GetAreaIntersectionPointNormalBone"));
+CjsSchema.decorateMethod(TriGeometryRes, "PrepareRayCaster", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "ResetRayCaster", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "IsRayCasterReady", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "HasRayCasterPreparationFailed", be.mapMethodAndWrap());
 CjsSchema.exposure.mapICacheableMethods()(TriGeometryRes);
-CjsSchema.decorateMethod(TriGeometryRes, "GetIntersectionPoints", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMeshVertexElements", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "IsInstanceDataReady", meta.implemented);
-CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceData", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceBufferVertexDeclaration", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceBufferBoundingBox", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "SaveMesh", be.mapMethodAndWrap(), meta.notSupported);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshVertexElements", be.mapMethodAndWrap());
+CjsSchema.decorateMethod(TriGeometryRes, "SaveMesh", be.mapMethodAndWrap());
 be.define("TriGeometryRes")(TriGeometryRes);
 // Carbon: BLUE_CLASS( TriGeometryRes ) : BlueAsyncRes, ICacheable, Tr2DeviceResource, ITr2InstanceData
 // (TriGeometryRes.h:261-265); MAP_INTERFACE rows from TriGeometryRes_Blue.cpp:40-43.
@@ -1891,25 +1867,14 @@ CjsSchema.exposure.mapInterface(ITr2InstanceData)(TriGeometryRes);
 // Carbon: TriGeometryRes::ExposeToBlue (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:175).
 CjsSchema.blue.chainTo(BlueAsyncRes)(TriGeometryRes);
 
-CjsSchema.decorateMethod(TriGeometryRes, "packLodGeometry", meta.cjs, meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "packLodIndices", meta.cjs, meta.adapted);
 
-CjsSchema.decorateMethod(TriGeometryRes, "_DoLoad", meta.adapted);
 
-CjsSchema.decorateMethod(TriGeometryRes, "_DoPrepare", meta.adapted);
 
-CjsSchema.decorateMethod(TriGeometryRes, "_OnShutdown", meta.adapted);
 
-CjsSchema.decorateMethod(TriGeometryRes, "SetupMeshes", meta.adapted);
 
-CjsSchema.decorateMethod(TriGeometryRes, "SetupSkeletons", meta.adapted);
 
-CjsSchema.decorateMethod(TriGeometryRes, "PrepareFromGrannyRes", meta.adapted);
 
 be.inherit(Tr2DeviceResource)(TriGeometryRes, { kind: "class" });
 
-CjsSchema.decorateMethod(TriGeometryRes, "_ForgetGrannyFile", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(TriGeometryRes, "RequireIntersectionMeshes", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
-CjsSchema.decorateMethod(TriGeometryRes, "_DoOpenStream", CjsSchema.meta.adapted);

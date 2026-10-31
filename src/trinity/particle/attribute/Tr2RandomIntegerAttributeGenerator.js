@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2RandomIntegerAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { vec4 } from "#math/vec4";
 import { bindParticleElement } from "../element/particleElementBinding.js";
@@ -57,7 +57,6 @@ export class Tr2RandomIntegerAttributeGenerator extends ITr2AttributeGenerator
    */
   @be.mapPropertyReadOnly()
   @type.string
-  @meta.implemented
   get name()
   {
     return this.GetName();
@@ -72,7 +71,6 @@ export class Tr2RandomIntegerAttributeGenerator extends ITr2AttributeGenerator
    */
   @be.mapPropertyReadOnly()
   @type.uint32
-  @meta.implemented
   get dimension()
   {
     return this.GetDimension();
@@ -84,7 +82,6 @@ export class Tr2RandomIntegerAttributeGenerator extends ITr2AttributeGenerator
    * @implemented
    */
 
-  @meta.implemented
   Bind(particleSystem, boundElements)
   {
     this.#element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
@@ -100,7 +97,6 @@ export class Tr2RandomIntegerAttributeGenerator extends ITr2AttributeGenerator
    * @adapted
    */
 
-  @meta.adapted
   Generate(position, velocity, index)
   {
     if (!this.valid)
@@ -124,7 +120,6 @@ export class Tr2RandomIntegerAttributeGenerator extends ITr2AttributeGenerator
    * @implemented
    */
 
-  @meta.implemented
   GetDimension()
   {
     return this.valid ? this.#element.dimension : 0;
@@ -136,7 +131,6 @@ export class Tr2RandomIntegerAttributeGenerator extends ITr2AttributeGenerator
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM

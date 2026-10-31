@@ -5,7 +5,7 @@ import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue } from "#blue";
 import { BitmapDimensions } from "#imageio";
 import { GetBytesPerPixel, PixelFormat, PixelFormatFromCanonical, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
@@ -70,7 +70,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {boolean} True; asynchronous failures are reported by the load task.
    */
 
-  @meta.adapted
   Initialize()
   {
     this.ReadData();
@@ -84,7 +83,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {boolean} True.
    */
 
-  @meta.implemented
   OnModified()
   {
     this.ReadData();
@@ -102,7 +100,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {Promise<boolean>} Whether the initial frame decoded successfully.
    */
 
-  @meta.adapted
   ReadData()
   {
     this._clear();
@@ -124,7 +121,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {object} Request record.
    */
 
-  @meta.adapted
   MakeRequest()
   {
     this._asyncState.bitmapsReady = false;
@@ -141,7 +137,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   AdvanceTime(dt)
   {
     const state = this._asyncState;
@@ -229,7 +224,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   UpdateGrids()
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext();
@@ -253,7 +247,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RestartAnimation()
   {
     if (!this._asyncState)
@@ -289,7 +282,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {string[]} Channel names.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetChannelNames()
   {
     return this._asyncState ? this._grids.map(grid => grid.name) : Array.from(this._channels.keys());
@@ -303,7 +295,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {object|null} Texture handle.
    */
 
-  @meta.adapted
   GetTexture(channel)
   {
     if (this._asyncState)
@@ -319,7 +310,6 @@ export class Tr2TextureAnimation extends IRoot
    * @returns {boolean} Whether the owner should advance only when rendered.
    */
 
-  @meta.implemented
   UpdateOnlyWhenRendered()
   {
     return this.updateOnlyWhenRendered;
@@ -406,7 +396,6 @@ export class Tr2TextureAnimation extends IRoot
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Completion of the first decode.
    */
-  @meta.adapted
 
 
   static async readFile(request)
@@ -424,7 +413,6 @@ export class Tr2TextureAnimation extends IRoot
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
-  @meta.adapted
 
 
   static async decodeFirstFrame(request)
@@ -440,7 +428,6 @@ export class Tr2TextureAnimation extends IRoot
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
-  @meta.adapted
 
 
   static async decodeNextFrame(request)
@@ -466,7 +453,6 @@ export class Tr2TextureAnimation extends IRoot
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
-  @meta.adapted
 
 
   static async restartAndDecodeFrame(request)

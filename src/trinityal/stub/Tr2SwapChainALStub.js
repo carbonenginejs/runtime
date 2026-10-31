@@ -13,7 +13,7 @@
 // from the present parameters. Transcribed as it stands, because inventing a
 // size would make a headless test agree with a number nothing chose.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -185,13 +185,4 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 // States against stub/Tr2SwapChainALStub.cpp:11-58 and .h:22-32: a 4x4 B8G8R8X8 render-target back buffer (STUB_BACK_BUFFER_SIZE).
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "Create", meta.implemented);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "Present", meta.implemented);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetWidth", meta.implemented);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetHeight", meta.implemented);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2SwapChainALStub")(Tr2SwapChainALStub);

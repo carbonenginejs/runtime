@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierTranslateWithCamera.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierTranslateWithCamera_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
@@ -33,7 +33,6 @@ export class EveChildModifierTranslateWithCamera extends IEveChildTransformModif
    * @returns {Float32Array} out
    */
 
-  @meta.implemented
   ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {
     mat4.copy(out, transform);

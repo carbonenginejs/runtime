@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomScale.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
@@ -56,7 +56,6 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
    * @adapted
    */
 
-  @meta.adapted
   Initialize()
   {
     this._timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
@@ -71,7 +70,6 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
    * @adapted
    */
 
-  @meta.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {
     const seed = CjsDistributionRandom.getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);

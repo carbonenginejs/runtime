@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 //   parameters through one macro beside their base.
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:20-38
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:85-102
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
@@ -29,7 +29,6 @@ export class EveSOFDataParameterColor extends EveSOFDataParameter
    *
    * @implemented
    */
-  @meta.implemented
 
   GetValue()
   {

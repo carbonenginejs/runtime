@@ -1206,4 +1206,3 @@ function ValidateKindNames(kind, records, names)
         throw new TypeError(`Character ${kind} source names must be nonempty and unique.`);
 }
 
-CjsSchema.decorateMethod(CjsCharacterLibrary, "InspectResourceForData", CjsSchema.meta.implemented);

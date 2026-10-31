@@ -72,7 +72,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -85,7 +84,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -98,7 +96,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -111,7 +108,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -124,7 +120,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -137,7 +132,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -150,7 +144,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -163,7 +156,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -176,7 +168,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -189,7 +180,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -202,7 +192,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -215,7 +204,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -228,7 +216,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -241,7 +228,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -254,7 +240,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -267,7 +252,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -280,7 +264,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -293,7 +276,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -306,7 +288,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -319,7 +300,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -332,7 +312,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -345,7 +324,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -358,7 +336,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -371,7 +348,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -384,7 +360,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -397,7 +372,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -410,7 +384,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -423,7 +396,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -436,7 +408,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -449,7 +420,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -462,7 +432,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -475,7 +444,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -488,7 +456,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -501,7 +468,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -514,7 +480,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -527,7 +492,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -540,7 +504,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -553,7 +516,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -566,7 +528,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -579,7 +540,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -592,7 +552,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -605,7 +564,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -618,7 +576,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -631,7 +588,6 @@ export class EveChildInheritProperties extends IRoot
    * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec4}
    */
-  @meta.adapted
   @be.mapAttribute(be.READ)
   @meta.mapAttribute(meta.PERSIST)
   @type.color
@@ -647,7 +603,6 @@ export class EveChildInheritProperties extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetProperties(colorSet)
   {
     if (!colorSet) return;
@@ -665,7 +620,6 @@ export class EveChildInheritProperties extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProperties()
   {
     return this._properties;

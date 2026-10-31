@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.cpp
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -30,7 +30,6 @@ export class EveLocator2 extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -43,7 +42,6 @@ export class EveLocator2 extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name);
@@ -56,7 +54,6 @@ export class EveLocator2 extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetTransform()
   {
     return this.transform;
@@ -68,7 +65,6 @@ export class EveLocator2 extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetTransform(value)
   {
     mat4.copy(this.transform, value);

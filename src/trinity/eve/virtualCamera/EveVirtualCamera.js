@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 const SCRUB_INCREMENT_DT = 1 / 60;
@@ -117,7 +117,6 @@ export class EveVirtualCamera extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.vec3
-  @meta.implemented
   get forward()
   {
     return this.GetViewDirection(vec3.create());
@@ -131,7 +130,6 @@ export class EveVirtualCamera extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.vec3
-  @meta.implemented
   get right()
   {
     return this.GetRightDirection(vec3.create());
@@ -145,7 +143,6 @@ export class EveVirtualCamera extends IRoot
    */
   @be.mapPropertyReadOnly()
   @type.vec3
-  @meta.implemented
   get up()
   {
     return this.GetUpDirection(vec3.create());
@@ -158,7 +155,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetViewMatrix(out)
   {
     return mat4.lookAtD3D(out, this.position, this.pointOfInterest, this.GetUpDirection(vec3.create()));
@@ -175,7 +171,6 @@ export class EveVirtualCamera extends IRoot
    * @returns {mat4}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetProjectionMatrix(aspectRatio, frontClip, backClip, out)
   {
     return mat4.perspectiveZO(out, this.fov, aspectRatio, frontClip, backClip);
@@ -188,7 +183,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetViewDirection(out)
   {
     return vec3.normalize(out, vec3.subtract(out, this.pointOfInterest, this.position));
@@ -201,7 +195,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetForwardDirection(out)
   {
     return this.GetViewDirection(out);
@@ -215,7 +208,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetUpDirection(out)
   {
     const view = this.GetForwardDirection(vec3.create());
@@ -231,7 +223,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetRightDirection(out)
   {
     return vec3.normalize(out, vec3.cross(out, this.GetForwardDirection(vec3.create()), this.GetUpDirection(vec3.create())));
@@ -247,7 +238,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   Update(deltaTime)
   {
     const dt = this.running ? deltaTime : 0;
@@ -286,7 +276,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Play()
   {
     this.running = true;
@@ -299,7 +288,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Pause()
   {
     this.running = false;
@@ -311,7 +299,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   Stop()
   {
     this.Reset();
@@ -324,7 +311,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Reset()
   {
     this.localElapsedTime = 0;
@@ -337,7 +323,6 @@ export class EveVirtualCamera extends IRoot
    * @param {Number} time Target local elapsed time in seconds; may be negative
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UpdateToLocalTime(time)
   {
     const diff = time - this.localElapsedTime;
@@ -369,7 +354,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   CopyTransform(source)
   {
     this.fov = source.fov;
@@ -385,7 +369,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   UpdateExternal(position, pointOfInterest, fov, roll)
   {
     vec3.copy(this.position, position);
@@ -400,7 +383,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this.name;
@@ -412,7 +394,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this.name = String(name);
@@ -425,7 +406,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetAnimationTimelineLength()
   {
     return this.animationTimelineLength;
@@ -438,7 +418,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetAnimationTimelineLength(value)
   {
     this.animationTimelineLength = value;
@@ -450,7 +429,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetFov()
   {
     return this.fov;
@@ -463,7 +441,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetFov(value)
   {
     this.fov = value;
@@ -475,7 +452,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetRoll()
   {
     return this.roll;
@@ -488,7 +464,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetRoll(value)
   {
     this.roll = value;
@@ -500,7 +475,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetPosition(out)
   {
     return vec3.copy(out, this.position);
@@ -513,7 +487,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetPosition(value)
   {
     vec3.copy(this.position, value);
@@ -525,7 +498,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetPointOfInterest(out)
   {
     return vec3.copy(out, this.pointOfInterest);
@@ -538,7 +510,6 @@ export class EveVirtualCamera extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   SetPointOfInterest(value)
   {
     vec3.copy(this.pointOfInterest, value);
@@ -551,7 +522,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   AddPositionBehaviour(behaviour)
   {
     this.positionBehaviours.push(behaviour);
@@ -564,7 +534,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   AddPointOfInterestBehaviour(behaviour)
   {
     this.pointOfInterestBehaviours.push(behaviour);
@@ -577,7 +546,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   AddFOVBehaviour(behaviour)
   {
     this.fovBehaviours.push(behaviour);
@@ -590,7 +558,6 @@ export class EveVirtualCamera extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   AddRollBehaviour(behaviour)
   {
     this.rollBehaviours.push(behaviour);

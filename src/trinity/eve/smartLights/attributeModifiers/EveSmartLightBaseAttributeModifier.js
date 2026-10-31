@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "#blue";
 import { LifeTimeFormulas } from "./enums.js";
 
@@ -118,7 +118,6 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this._isChangingActivation = this.active && !this.startsActive;
@@ -134,7 +133,6 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "active"))
@@ -156,7 +154,6 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   ResetPlayTime(active)
   {
     if (active !== this.active)
@@ -180,7 +177,6 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   MapActivationValue()
   {
     const scaleValue = this.active ? this._activationValuePreMapped : 1 - this._activationValuePreMapped;
@@ -196,7 +192,6 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   UpdateActivationStrength(parentActivationMultiplier, deltaTime)
   {
     if (this._isChangingActivation)
@@ -257,7 +252,6 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetActivationStrength(placement)
   {
     let activationMultiplier = 1;
@@ -292,7 +286,6 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   ResetChildren(_parentActive)
   {
   }

@@ -192,7 +192,3 @@ export class ITriRenderBatchAccumulator
 
 // States: SetUserData, SetRenderingMode and GetRenderingMode are TriRenderBatch.h:273-287. Allocate is adapted: Carbon pool-allocates from the
 // allocator (h:241-251); the garbage collector owns lifetime here, so it constructs the object. The rest are pure virtuals (h:254-270).
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Allocate", meta.adapted);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "SetUserData", meta.implemented);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "SetRenderingMode", meta.implemented);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetRenderingMode", meta.implemented);

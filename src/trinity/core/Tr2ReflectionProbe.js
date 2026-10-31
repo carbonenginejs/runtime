@@ -19,7 +19,7 @@ import { INotify } from "../../global/blue/INotify.js";
 // THE RENDER CONTEXT. Carbon reaches the main-thread context through
 // USE_MAIN_THREAD_RENDER_CONTEXT(); ours is Tr2RenderContext_GetMainThreadRenderContext(),
 // the default here, with an optional trailing context.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
@@ -179,7 +179,6 @@ export class Tr2ReflectionProbe
    * @returns {boolean} True when prepared.
    */
 
-  @meta.implemented
   IsValid(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     return this.OnPrepareResources(renderContext);
@@ -191,7 +190,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   HasData()
   {
     return this._hasData && this.reflectionTexture.IsValid();
@@ -203,7 +201,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   GetReflection()
   {
     return this.reflectionTexture;
@@ -215,7 +212,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   SetBackLightColor(color)
   {
     vec4.copy(this.backlightColor, color);
@@ -227,7 +223,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   SetBackLightContrast(contrast)
   {
     this.backlightContrast = contrast;
@@ -239,7 +234,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources(_storage)
   {
     this._initialized = false;
@@ -255,7 +249,6 @@ export class Tr2ReflectionProbe
    * @returns {boolean} Whether the resources are ready.
    */
 
-  @meta.adapted
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const al = renderContext.GetRenderContextAL();
@@ -275,7 +268,6 @@ export class Tr2ReflectionProbe
    * @returns {boolean} Whether every target was created.
    */
 
-  @meta.implemented
   DoPrepareResources(rtFormat, renderContext)
   {
     const size = this.reflectionSize;
@@ -359,7 +351,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_value)
   {
     this.DestroyRenderTargets();
@@ -372,7 +363,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   DestroyRenderTargets()
   {
     for (let face = 0; face < 6; face += 1)
@@ -399,7 +389,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   Filter(renderContext)
   {
     if (!this.IsValid(renderContext)) return;
@@ -433,7 +422,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   RunFilter(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     this.DestroyRenderTargets();
@@ -447,7 +435,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   IsHollyWoodModeOn()
   {
     return this.hollywoodMode;
@@ -459,7 +446,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   ReadyForDynamicObjectReflections()
   {
     return this._onePassDone;
@@ -471,7 +457,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   GetStartFace()
   {
     return this.renderFrequency === Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ALL_SIDES_PER_FRAME || !this._onePassDone
@@ -485,7 +470,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   GetEndFace()
   {
     return this.renderFrequency === Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ALL_SIDES_PER_FRAME || !this._onePassDone
@@ -503,7 +487,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   InitRenderPass(renderContext)
   {
     if (!this.lockPosition) vec3.copy(this.position, Tr2Renderer.GetViewPosition());
@@ -551,7 +534,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   StartRenderFace(face, renderContext)
   {
     renderContext.RenderPassHint(
@@ -577,7 +559,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   EndRenderPass(renderContext)
   {
     const cube = this.unfilteredTexture.GetRenderTarget();
@@ -613,7 +594,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   GetFrustum(_face, renderContext)
   {
     const frustum = new TriFrustum();
@@ -628,7 +608,6 @@ export class Tr2ReflectionProbe
    * @implemented
    */
 
-  @meta.implemented
   GetDepthBuffer(face)
   {
     return this._stencilMaps[face];

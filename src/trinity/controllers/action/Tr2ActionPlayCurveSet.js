@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet_Blue.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { blue, CcpTime } from "#blue";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
@@ -59,7 +59,6 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   Start(controller)
   {
     this._duration = 0;
@@ -84,7 +83,6 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   Stop(controller)
   {
     controller.UnRegisterUpdateable(this);
@@ -101,7 +99,6 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   RebaseSimTime(diff)
   {
     this._startTime += diff;
@@ -117,7 +114,6 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   CanTransition()
   {
     if (!this.syncToRange || this._duration <= 0)
@@ -141,7 +137,6 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   Update(_realTime, _simTime)
   {
     this._prevTime = blue.os.GetCurrentFrameTime();

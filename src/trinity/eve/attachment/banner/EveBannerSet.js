@@ -148,7 +148,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   ReleaseResources(_storage)
   {
   }
@@ -167,7 +166,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    *   dropped rather than returned.
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   Rebuild()
   {
     this._rebuildRevision++;
@@ -234,7 +232,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   OnPrepareResources()
   {
     const definition = new Tr2VertexDefinition();
@@ -263,7 +260,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE && batchType !== TriBatchType.TRIBATCHTYPE_PICKING) return;
@@ -291,7 +287,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   CreateBannerGeometry(vertices, indices, item)
   {
     const flatX = item.angleX <= 0;
@@ -308,7 +303,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   CreateFlatBannerGeometry(vertices, indices, item)
   {
     const start = vertices.length;
@@ -329,7 +323,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   CreateVerticalCurvedBannerGeometry(vertices, indices, item)
   {
     const start = vertices.length;
@@ -372,7 +365,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   CreateHorizontalCurvedBannerGeometry(vertices, indices, item)
   {
     const start = vertices.length;
@@ -416,7 +408,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   CreateCurvedBannerGeometry(vertices, indices, item)
   {
     const start = vertices.length;
@@ -484,7 +475,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
     return GetItemSetAabb(out, this._staticBounds, this._boneBounds, bones, boneCount);
@@ -497,8 +487,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @adapted Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it
    *   through an accessor.
    */
-  @meta.cjs
-    @meta.adapted
   GetMaxBannerRadius()
   {
     return this._maxBannerRadius;
@@ -511,8 +499,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @adapted Carbon reads the m_isVisible member directly; JavaScript exposes it through an
    *   accessor.
    */
-  @meta.cjs
-    @meta.adapted
   GetVisibility()
   {
     return this._isVisible;
@@ -535,7 +521,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = this.GetAabb(EveBannerSet._aabbScratch, bones, boneCount);
@@ -598,7 +583,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Banner Sets");
@@ -628,7 +612,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @param {number} boneCount
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
     if (renderer.HasOption(this, "Banner Sets"))
@@ -728,7 +711,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetReference(index)
   {
     return this.banners[index].reference;
@@ -743,7 +725,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   static GetBannerAspectRatio(banner)
   {
     const flatX = banner.angleX <= 0;
@@ -796,7 +777,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    *   the declaration is prepared here, after the first Rebuild.
    */
 
-  @meta.adapted
   Initialize()
   {
     this.Rebuild();
@@ -811,7 +791,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   AddBanner(banner)
   {
     const copy = EveBannerSet._copyBanner(banner);
@@ -826,7 +805,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   OnStructureListModified()
   {
     this.Rebuild();
@@ -859,7 +837,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetEffect(effect)
   {
     this.effect = effect ?? null;
@@ -871,7 +848,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetKey(key)
   {
     this.key = Number(key) | 0;
@@ -883,7 +859,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   GetPickingID()
   {
     return (101 + this.key) >>> 0;
@@ -896,7 +871,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   SetShaderOption(name, value)
   {
     if (this.effect)
@@ -912,7 +886,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   SetPrimaryTextureParameter(parameter)
   {
     this.primaryTextureParameter = parameter ?? null;
@@ -925,7 +898,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @adapted
    */
 
-  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EveBannerLight.FromSOF(light));
@@ -939,7 +911,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -962,7 +933,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    *   Normal2Warp - so ours applies bone 0 like any other.
    */
 
-  @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
@@ -996,7 +966,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @returns {vec4} The destination colour.
    */
 
-  @meta.adapted
   GetAverageColor(out)
   {
     const parameter = this.primaryTextureParameter;
@@ -1033,7 +1002,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    *   reference; average colour is read through the texture resource contract.
    */
 
-  @meta.adapted
   GetLights(lightManager)
   {
     if (!this.display || this.lights.length === 0)

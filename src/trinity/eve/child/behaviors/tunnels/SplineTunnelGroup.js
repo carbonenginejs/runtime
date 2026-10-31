@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { INotify } from "../../../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
@@ -88,7 +88,6 @@ export class SplineTunnelGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetTunnelGroupType()
   {
     return this.tunnelGroupType;
@@ -104,7 +103,6 @@ export class SplineTunnelGroup extends IRoot
    * @param {Number} color - debug color (retained for parity; debug rendering is omitted)
    */
 
-  @meta.implemented
   SetSystemTunnelFunctionReferenceAndColor(callback, color = 0xffffff00)
   {
     this._changeSystemTunnelRegistry = callback;
@@ -121,8 +119,6 @@ export class SplineTunnelGroup extends IRoot
    * @renamed CreateSplineTunnels
    */
   @be.mapMethodAndWrap()
-  @meta.renamed("CreateSplineTunnels")
-  @meta.adapted
   createSplineTunnels()
   {
     if (this._creatingTunnels)
@@ -178,7 +174,6 @@ export class SplineTunnelGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = null)
   {
     if (list !== this.curveSets) return;
@@ -196,7 +191,6 @@ export class SplineTunnelGroup extends IRoot
    *   notify to trigger the first CreateSplineTunnels.
    */
 
-  @meta.adapted
   GetTunnels()
   {
     if (this.tunnels.length === 0 && this.curveSets.length !== 0 && !this._creatingTunnels)
@@ -212,7 +206,6 @@ export class SplineTunnelGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetCurveSets()
   {
     return this.curveSets;
@@ -224,7 +217,6 @@ export class SplineTunnelGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetNumBreakPoints(value)
   {
     this.breakPoints = Number(value) | 0;
@@ -236,7 +228,6 @@ export class SplineTunnelGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetNumBreakPoints()
   {
     return Math.max(this.breakPoints, 0);
@@ -248,7 +239,6 @@ export class SplineTunnelGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Initialize()
   {
     this.createSplineTunnels();
@@ -262,7 +252,6 @@ export class SplineTunnelGroup extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this.createSplineTunnels();
@@ -276,7 +265,6 @@ export class SplineTunnelGroup extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("SplineTunnels");
@@ -293,7 +281,6 @@ export class SplineTunnelGroup extends IRoot
    * @param {mat4} parentWorldLocation Places the tunnel geometry in world space.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, parentWorldLocation)
   {
     const { Wireframe } = ITr2DebugRenderer2.Effect;

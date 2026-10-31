@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -113,7 +113,6 @@ export class Formation extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -125,7 +124,6 @@ export class Formation extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBehaviorName()
   {
     return "Formation";
@@ -138,7 +136,6 @@ export class Formation extends IRoot
    *   agent, so any non-zero value means 'has scratch'.
    */
 
-  @meta.adapted
   GetScratchMemorySize()
   {
     return 1;
@@ -151,7 +148,6 @@ export class Formation extends IRoot
    *   record instead.
    */
 
-  @meta.adapted
   InitializeScratch()
   {
     return {
@@ -165,7 +161,6 @@ export class Formation extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   InFormation()
   {
     return this.inFormation;
@@ -177,7 +172,6 @@ export class Formation extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   Reset()
   {
     this._BreakFormation();
@@ -199,7 +193,6 @@ export class Formation extends IRoot
    * @returns {Array} empty (as Carbon)
    */
 
-  @meta.implemented
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -468,7 +461,6 @@ export class Formation extends IRoot
    *
    * @adapted
    */
-  @meta.adapted
   _CalculateFormationInertia(acceleration, deltaTime)
   {
     vec3.normalize(ACCEL_NORMALIZED, acceleration);
@@ -546,7 +538,6 @@ export class Formation extends IRoot
    * @param {Set<string>} options The caller-owned option set.
    */
 
-  @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Formation");
@@ -563,7 +554,6 @@ export class Formation extends IRoot
    * @param {mat4} parentWorldLocation Places the formation in world space.
    */
 
-  @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     const { Wireframe } = ITr2DebugRenderer2.Effect;

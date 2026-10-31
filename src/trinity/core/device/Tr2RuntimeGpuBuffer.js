@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.cpp
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/index.js";
 // Hand-maintained from Carbon source; the AL buffer is backend-private state.
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /**
@@ -27,7 +27,6 @@ export class Tr2RuntimeGpuBuffer extends IRoot
    * @returns {object|null} The AL buffer.
    */
 
-  @meta.implemented
   GetGpuBuffer(_index = 0)
   {
     return this._buffer;
@@ -41,7 +40,6 @@ export class Tr2RuntimeGpuBuffer extends IRoot
    * @returns {void}
    */
 
-  @meta.adapted
   SetGpuBuffer(buffer)
   {
     const next = buffer ? new Tr2BufferAL({ copy: buffer }) : null;

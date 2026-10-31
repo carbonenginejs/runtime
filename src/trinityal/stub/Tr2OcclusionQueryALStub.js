@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2OcclusionQueryALStub.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -164,13 +164,4 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
 CjsSchema.decorateField(Tr2OcclusionQueryALStub, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2OcclusionQueryALStub, "_isRunning", type.boolean);
 // States against stub/Tr2OcclusionQueryALStub.cpp:14-72 and .h:25-28; GetPixelCount is adapted: the uint32& count comes back with the result as { result, count }. Destroy also runs the base resource's Destroy.
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Create", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "IsValid", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Destroy", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Begin", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "End", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetPixelCount", meta.adapted);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetMemoryClass", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "SetName", meta.implemented);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Describe", meta.implemented);
 CjsSchema.meta.define("Tr2OcclusionQueryALStub")(Tr2OcclusionQueryALStub);

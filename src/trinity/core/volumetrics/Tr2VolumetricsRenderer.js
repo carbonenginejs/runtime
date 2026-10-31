@@ -4,7 +4,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
 // Source: trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
@@ -254,7 +254,6 @@ export class Tr2VolumetricsRenderer
    *   FROXEL_ACCUMULATE macro passes a member pointer.
    */
 
-  @meta.adapted
   UpdateFogSettings(registry, updateContext)
   {
     const settings = Array.from(registry.GetComponents(FROXEL_FOG_COMPONENT), component =>
@@ -303,7 +302,6 @@ export class Tr2VolumetricsRenderer
    * @implemented
    */
 
-  @meta.implemented
   HasFog()
   {
     return this.thickness > 0;
@@ -318,7 +316,6 @@ export class Tr2VolumetricsRenderer
    * @returns {RawData} out
    */
 
-  @meta.adapted
   PopulatePerFrameData(out)
   {
     FOG_COLOR_SCRATCH[0] = this.fogColor[0];
@@ -344,7 +341,6 @@ export class Tr2VolumetricsRenderer
    * @implemented
    * @param {boolean} isReflectionProbe Whether a reflection probe is rendering.
    */
-  @meta.implemented
 
   SetIsReflectionProbe(isReflectionProbe)
   {
@@ -357,7 +353,6 @@ export class Tr2VolumetricsRenderer
    * @implemented
    */
 
-  @meta.implemented
   SetQuality(quality)
   {
     this.quality = quality;
@@ -393,7 +388,6 @@ export class Tr2VolumetricsRenderer
    *   copies the two vec4 records.
    */
 
-  @meta.adapted
   SetPlanets(planets)
   {
     if (!planets || planets.length !== 2)
@@ -410,7 +404,6 @@ export class Tr2VolumetricsRenderer
    * @implemented
    */
 
-  @meta.implemented
   SetSunAngle(angle)
   {
     this._sunAngle = angle;
@@ -425,7 +418,6 @@ export class Tr2VolumetricsRenderer
    *   throw, so finally also restores native target stacks and borrowed bindings.
    *   Carbon declaration: Tr2VolumetricsRenderer::RenderVolumetrics (trinity/trinity/Tr2VolumetricsRenderer.h:68).
    */
-  @meta.adapted
   RenderVolumetrics(registry, frustum, sceneDepth, froxelFog, sunDirection,
     depthSlices, raytracingEnabled, gpuResourcePool, renderContext)
   {
@@ -550,7 +542,6 @@ export class Tr2VolumetricsRenderer
    *
    * @adapted
    */
-  @meta.adapted
 
 
   static getEmptyVolumetricTexture(gpuResourcePool)
@@ -569,7 +560,6 @@ export class Tr2VolumetricsRenderer
    * @implemented
    * @returns {object} The froxel texture, or the empty fog texture.
    */
-  @meta.implemented
   RenderFog(renderContext, gpuResourcePool, width, height, cascadedShadowMap, raytracingGeometry, shadowQuality,
     sunDirection, sunColor, origin, originShift, view, projection, viewLast, projectionLast)
   {
@@ -589,7 +579,6 @@ export class Tr2VolumetricsRenderer
    * @returns {object} The froxel texture, or the empty fog texture.
    * Carbon declaration: Tr2VolumetricsRenderer::RenderFogIntoReflectionMap (trinity/trinity/Tr2VolumetricsRenderer.h:99).
    */
-  @meta.implemented
   RenderFogIntoReflectionMap(renderContext, gpuResourcePool, width, height, sunDirection, sunColor, origin, view, projection)
   {
     const fog = this._RenderFog_Resources(this._fogReflectionResources, renderContext, gpuResourcePool, width, height,
@@ -604,7 +593,6 @@ export class Tr2VolumetricsRenderer
    *
    * @implemented
    */
-  @meta.implemented
 
 
   static getEmptyFogTexture(gpuResourcePool)
@@ -640,8 +628,6 @@ export class Tr2VolumetricsRenderer
    * @param {Tr2VolumetricsRendererFogViewDependentResources} resources The view's froxel effects and temporal state.
    * @returns {GpuResourceHandle|null} The froxel texture; null where Carbon returns an empty texture.
    */
-  @meta.adapted
-  @meta.renamed("RenderFog")
   _RenderFog_Resources(resources, renderContext, gpuResourcePool, originalWidth, originalHeight, cascadedShadowMap,
     raytracingGeometry, shadowQuality, sunDirection, sunColor, origin, originShift, view, projection, viewLast,
     projectionLast)
@@ -811,7 +797,6 @@ export class Tr2VolumetricsRenderer
    * @param {object} renderContext The frame's Tr2RenderContext.
    */
 
-  @meta.implemented
   UpdateFogEnvironmentMap(renderContext)
   {
     const froxelsEnabled = this.thickness > 0;
@@ -899,7 +884,6 @@ export class Tr2VolumetricsRenderer
    * @param {Tr2ShadowMap|null} cascadedShadowMap The scene's cascades, or null for no shadows.
    * Carbon declaration: Tr2VolumetricsRenderer::UpdatePerObjectData (trinity/trinity/Tr2VolumetricsRenderer.h:287).
    */
-  @meta.adapted
 
   _UpdatePerObjectData(data, view, projection, viewLast, projectionLast, origin, originShift, sunDirection, sunColor,
     width, height, depth, jitter, cascadedShadowMap)
@@ -1109,7 +1093,6 @@ export class Tr2VolumetricsRenderer
    * @implemented
    */
 
-  @meta.implemented
   UpdateVariableStore()
   {
     Tr2VariableStore.globalStore().RegisterVariableInternal("EveSceneMieEnvironmentMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.mieEnvironmentMap);
@@ -1121,7 +1104,6 @@ export class Tr2VolumetricsRenderer
    * @adapted finally restores native stacks when a JavaScript shader draw throws.
    *   Carbon declaration: Tr2VolumetricsRenderer::RenderShadows (trinity/trinity/Tr2VolumetricsRenderer.h:120).
    */
-  @meta.adapted
   RenderShadows(registry, shadowMap, renderContext)
   {
     if (!shadowMap.IsValid() || !this.castShadows) return;

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierCameraDependency.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { vec3 } from "#math/vec3";
@@ -128,7 +128,6 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * @implemented
    */
 
-  @meta.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
@@ -141,7 +140,6 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * @implemented
    */
 
-  @meta.implemented
   ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, modifierStrength)
   {
     const activationValue = this._GetActivationValue(entityPosition, entityDirection);
@@ -164,7 +162,6 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * @implemented
    */
 
-  @meta.implemented
   _GetActivationValue(objectPosition, entityDirection)
   {
     const camPos = Tr2Renderer.GetViewPosition();
@@ -209,7 +206,6 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * @implemented
    */
 
-  @meta.implemented
   _GetLookAtAmplitude(vec2obj)
   {
     if (!this.useCameraLookAt)

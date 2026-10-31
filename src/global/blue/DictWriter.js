@@ -23,7 +23,7 @@
 //   written at every reference, reads back as independent copies, and a cycle
 //   never ends. A flat copy of a large shared graph can be gigabytes (the
 //   mdeha01 hangar passed 12 GB).
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { IRootWriter } from "./IRootWriter.js";
 import { getDictionaryDeclarations } from "./dictionaryDeclarations.js";
 import * as CcpLog from "../logging/ccpLog.js";
@@ -291,9 +291,3 @@ function EstimateJsonBytes(value)
 }
 
 CjsSchema.meta.define(DictWriter, { className: "DictWriter" });
-CjsSchema.decorateMethod(DictWriter, "WriteIRoot", meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteBinaryBlock", meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteMemberName", meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteVectorBegin", meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteVectorEnd", meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "_Cleanup", meta.adapted);

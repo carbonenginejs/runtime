@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderSceneDebug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that draws a scene through its debug representation rather than its normal path. */
@@ -22,7 +22,6 @@ export class TriStepRenderSceneDebug extends TriRenderStep
    * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.implemented
   __init__(scene = null)
   {
     this.scene = scene;
@@ -34,7 +33,6 @@ export class TriStepRenderSceneDebug extends TriRenderStep
    * @implemented
    */
 
-  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     this.scene?.RenderDebugInfo(renderContext);

@@ -32,7 +32,6 @@ export class TriColor
    *
    * @notImplemented
    */
-  @meta.notImplemented
   __init__(...args)
   {
     throw new Error("TriColor.__init__ is not implemented in CarbonEngineJS.");
@@ -43,7 +42,6 @@ export class TriColor
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SetRGB(...args)
   {
     throw new Error("TriColor.SetRGB is not implemented in CarbonEngineJS.");
@@ -54,7 +52,6 @@ export class TriColor
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SetHSV(...args)
   {
     throw new Error("TriColor.SetHSV is not implemented in CarbonEngineJS.");
@@ -65,7 +62,6 @@ export class TriColor
    *
    * @notImplemented
    */
-  @meta.notImplemented
   SetVector(...args)
   {
     throw new Error("TriColor.SetVector is not implemented in CarbonEngineJS.");
@@ -76,7 +72,6 @@ export class TriColor
    *
    * @notImplemented
    */
-  @meta.notImplemented
   FromInt(...args)
   {
     throw new Error("TriColor.FromInt is not implemented in CarbonEngineJS.");
@@ -87,7 +82,6 @@ export class TriColor
    *
    * @notImplemented
    */
-  @meta.notImplemented
   AsInt(...args)
   {
     throw new Error("TriColor.AsInt is not implemented in CarbonEngineJS.");
@@ -98,7 +92,6 @@ export class TriColor
    *
    * @notImplemented
    */
-  @meta.notImplemented
   GetHSV(...args)
   {
     throw new Error("TriColor.GetHSV is not implemented in CarbonEngineJS.");
@@ -109,7 +102,6 @@ export class TriColor
    *
    * @notImplemented
    */
-  @meta.notImplemented
   Scale(...args)
   {
     throw new Error("TriColor.Scale is not implemented in CarbonEngineJS.");

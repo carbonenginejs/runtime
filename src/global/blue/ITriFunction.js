@@ -35,5 +35,4 @@ export class ITriFunction extends IRoot
 }
 
 CjsSchema.decorateMethod(ITriFunction, "UpdateValue", meta.abstract);
-CjsSchema.decorateMethod(ITriFunction, "Reset", meta.adapted);
 CjsSchema.exposure.interface("ITriFunction")(ITriFunction);

@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable_Blue.cpp
 import { IsMatch, INotify } from "#blue";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -80,7 +80,6 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get destinationIsValid()
   {
     return this.IsDestinationValid();
@@ -97,7 +96,6 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    *   those nominal owner declarations are incomplete in the current domain.
    */
 
-  @meta.adapted
   Link(controller)
   {
     this._controller = controller;
@@ -110,7 +108,6 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   Unlink()
   {
     this.destination = null;
@@ -127,7 +124,6 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    *   no-argument/refresh convenience remains outside this model-base removal.
    */
 
-  @meta.adapted
   Start(controller = this._controller)
   {
     if (!controller)
@@ -157,7 +153,6 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "destinationOwner")) this._LinkToDestinationOwner();
@@ -170,7 +165,6 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * @implemented
    */
 
-  @meta.implemented
   IsDestinationValid()
   {
     return !!this.destination;
@@ -183,7 +177,6 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * @adapted
    */
 
-  @meta.adapted
   IsVariableValid()
   {
     return !!this.variable;
@@ -196,7 +189,6 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * @adapted
    */
 
-  @meta.adapted
   _LinkToDestinationOwner()
   {
     this.destination = null;

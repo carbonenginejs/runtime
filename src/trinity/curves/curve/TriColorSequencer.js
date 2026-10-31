@@ -5,7 +5,7 @@ import { vec4 } from "#math/vec4";
 import { ITriFunction, ITriColorFunction, BlueList, ITriCurveLength } from "#blue";
 import { ITriDuration } from "../ITriDuration.js";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
 import "#consts/graphics/trinityEnums";
 
@@ -88,7 +88,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @returns {void}
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     const out = vec4.alloc();
@@ -112,7 +111,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, out);
@@ -130,7 +128,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY)
@@ -151,7 +148,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   _GetValueAtMult(time, out)
   {
     vec4.set(out, 1, 1, 1, 1);
@@ -175,7 +171,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   _GetValueAtAdd(time, out)
   {
     vec4.set(out, 1, 1, 1, 1);
@@ -196,7 +191,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   Update__Ticks(time, out)
   {
     this.GetValueAt__Ticks(time, out);
@@ -212,7 +206,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   GetValueAt__Ticks(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY)
@@ -232,7 +225,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   _GetValueAtMult__Ticks(time, out)
   {
     vec4.set(out, 1, 1, 1, 1);
@@ -254,7 +246,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
   _GetValueAtAdd__Ticks(time, out)
   {
     vec4.set(out, 0, 0, 0, 0);
@@ -275,7 +266,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @returns {number} Greatest child duration.
    */
 
-  @meta.adapted
   Length()
   {
     let maxDuration = 0;

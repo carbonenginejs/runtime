@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/TriValueBinding.h
 // Source: trinity/trinity/TriValueBinding.cpp
 // Source: trinity/trinity/TriValueBinding_Blue.cpp
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { INotify } from "#blue/INotify";
 import { ITriReroutable } from "../ITriReroutable.js";
 import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
@@ -33,7 +33,6 @@ export class TriValueBinding extends INotify
    */
   @be.mapPropertyReadOnly()
   @type.boolean
-  @meta.implemented
   get isValid()
   {
     return this.IsValid();
@@ -69,7 +68,6 @@ export class TriValueBinding extends INotify
    */
   @be.mapProperty()
   @type.rootRef("IRoot")
-  @meta.implemented
   get sourceObject()
   {
     return this.GetCurrentSourceObject();
@@ -82,7 +80,6 @@ export class TriValueBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {void} No return value.
    */
-  @meta.implemented
   set sourceObject(value)
   {
     this.SetSourceObject(value);
@@ -116,7 +113,6 @@ export class TriValueBinding extends INotify
    */
   @be.mapProperty()
   @type.rootRef("IRoot")
-  @meta.implemented
   get destinationObject()
   {
     return this.GetCurrentDestinationObject();
@@ -129,7 +125,6 @@ export class TriValueBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {void} No return value.
    */
-  @meta.implemented
   set destinationObject(value)
   {
     this.SetDestinationObject(value);
@@ -207,7 +202,6 @@ export class TriValueBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   Initialize()
   {
     this._GetReroutableDestination()?.UnregisterBinding(this);
@@ -280,7 +274,6 @@ export class TriValueBinding extends INotify
    * @returns {boolean} Binding result.
    */
 
-  @meta.adapted
   CopyValue()
   {
     if (!this.isEnabled) return false;
@@ -323,7 +316,6 @@ export class TriValueBinding extends INotify
    * @returns {boolean} Binding result.
    */
 
-  @meta.implemented
   OnModified(_value = null)
   {
     this.Initialize();
@@ -337,7 +329,6 @@ export class TriValueBinding extends INotify
    * @returns {string} Binding result.
    */
 
-  @meta.implemented
   GetDestinationAttributeName()
   {
     return this.destinationAttribute;
@@ -353,7 +344,6 @@ export class TriValueBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   SetSource(sourceAttribute, sourceObject)
   {
     this._GetReroutableDestination()?.UnregisterBinding(this);
@@ -376,7 +366,6 @@ export class TriValueBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   SetDestination(destinationAttribute, destinationObject)
   {
     this._GetReroutableDestination()?.UnregisterBinding(this);
@@ -397,7 +386,6 @@ export class TriValueBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   SetScale(scale)
   {
     this.scale = Number(scale);
@@ -418,7 +406,6 @@ export class TriValueBinding extends INotify
    * @returns {boolean} Binding result.
    */
 
-  @meta.adapted
   CreateWeakBinding(source, sourceAttribute, destination, destinationAttribute, scale = 1, offset = [0, 0, 0, 0])
   {
     this._GetReroutableDestination()?.UnregisterBinding(this);
@@ -451,7 +438,6 @@ export class TriValueBinding extends INotify
    * @returns {boolean} Binding result.
    */
 
-  @meta.implemented
   IsValid()
   {
     return this._isValid;
@@ -465,7 +451,6 @@ export class TriValueBinding extends INotify
    * @returns {object|null} Binding result.
    */
 
-  @meta.implemented
   GetCurrentSourceObject()
   {
     return this.isWeak ? this._sourceObjectWeak?.deref?.() ?? null : this._sourceObject;
@@ -479,7 +464,6 @@ export class TriValueBinding extends INotify
    * @returns {object|null} Binding result.
    */
 
-  @meta.implemented
   GetCurrentDestinationObject()
   {
     return this.isWeak ? this._destinationObjectWeak?.deref?.() ?? null : this._destinationObject;
@@ -492,7 +476,6 @@ export class TriValueBinding extends INotify
    * @returns {object|null} Binding result.
    */
 
-  @meta.implemented
   GetSourceObject()
   {
     return this.GetCurrentSourceObject();
@@ -507,7 +490,6 @@ export class TriValueBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   SetSourceObject(sourceObject)
   {
     if (this.isWeak)
@@ -530,7 +512,6 @@ export class TriValueBinding extends INotify
    * @returns {object|null} Binding result.
    */
 
-  @meta.implemented
   GetDestinationObject()
   {
     return this.GetCurrentDestinationObject();
@@ -545,7 +526,6 @@ export class TriValueBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   SetDestinationObject(destinationObject)
   {
     this._GetReroutableDestination()?.UnregisterBinding(this);
@@ -572,7 +552,6 @@ export class TriValueBinding extends INotify
    * @returns {void} No return value.
    */
 
-  @meta.adapted
   RerouteDestination(destination)
   {
     this._reroutedDestination = destination ?? null;

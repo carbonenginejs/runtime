@@ -23,7 +23,7 @@ import { ITr2TextureProvider } from "../ITr2TextureProvider.js";
 // THE RENDER CONTEXT IS A PARAMETER. Carbon reaches the main-thread context
 // through USE_MAIN_THREAD_RENDER_CONTEXT(), a global we deliberately do not
 // have; the same reason Tr2Blitter takes one.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2Event } from "../Tr2Event.js";
 import { ConvertDepthStencilFormat, DepthStencilFormat, ExFlag, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
@@ -43,7 +43,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapAttribute(be.PERSISTONLY, "name")
-  @meta.implemented
   @type.string
   _name = "";
 
@@ -89,7 +88,6 @@ export class Tr2DepthStencil extends IRoot
    * @returns {boolean} Whether the surface was created.
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.adapted
   Create(width, height, format, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, renderContext = null)
   {
     let gpuUsage = Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE;
@@ -129,7 +127,6 @@ export class Tr2DepthStencil extends IRoot
    * @returns {object|null} The `Tr2TextureAL`, or null when it is not readable.
    */
 
-  @meta.implemented
   GetTexture()
   {
     return this.IsValid() && this.IsReadable() ? this.#depthStencil : null;
@@ -151,7 +148,6 @@ export class Tr2DepthStencil extends IRoot
    *   has none, so the raw surface is reached by name.
    * @returns {object|null} The `Tr2TextureAL`, or null before Create.
    */
-  @meta.adapted
   GetDepthStencil()
   {
     return this.#depthStencil;
@@ -166,7 +162,6 @@ export class Tr2DepthStencil extends IRoot
    * @returns {Tr2Event} m_onTextureChange.
    */
 
-  @meta.implemented
   OnTextureChange()
   {
     return this._onTextureChange;
@@ -178,7 +173,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsValid()
   {
     return Boolean(this.#depthStencil?.IsValid());
@@ -190,7 +184,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   IsReadable()
   {
     if (!this.#depthStencil) return false;
@@ -207,7 +200,6 @@ export class Tr2DepthStencil extends IRoot
    * @returns {void}
    */
 
-  @meta.implemented
   Destroy()
   {
     if (this.#depthStencil) this.#depthStencil.Destroy();
@@ -224,7 +216,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetWidth()
   {
     return this.#depthStencil?.GetWidth() ?? 0;
@@ -236,7 +227,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetHeight()
   {
     return this.#depthStencil?.GetHeight() ?? 0;
@@ -248,7 +238,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMsaaSamples()
   {
     return this.#msaa?.samples ?? 0;
@@ -260,7 +249,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMsaaQuality()
   {
     return this.#msaa?.quality ?? 0;
@@ -272,7 +260,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetMipCount()
   {
     return 1;
@@ -284,7 +271,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetFormat()
   {
     return this.format;
@@ -296,7 +282,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   SetName(name)
   {
     this._name = name ?? "";
@@ -309,7 +294,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetName()
   {
     return this._name;
@@ -322,14 +306,12 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapProperty()
-  @meta.implemented
   get name()
   {
     return this.GetName();
   }
 
   /** @implemented */
-  @meta.implemented
   set name(value)
   {
     this.SetName(value);
@@ -342,7 +324,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get width()
   {
     return this.GetWidth();
@@ -355,7 +336,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get height()
   {
     return this.GetHeight();
@@ -368,7 +348,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get multiSampleType()
   {
     return this.GetMsaaSamples();
@@ -381,7 +360,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get multiSampleQuality()
   {
     return this.GetMsaaQuality();
@@ -394,7 +372,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get mipCount()
   {
     return this.GetMipCount();
@@ -407,7 +384,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get isValid()
   {
     return this.IsValid();
@@ -420,7 +396,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapPropertyReadOnly()
-  @meta.implemented
   get isReadable()
   {
     return this.IsReadable();
@@ -432,7 +407,6 @@ export class Tr2DepthStencil extends IRoot
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   HasALObject(_type, _object)
   {
     return false;
@@ -444,7 +418,6 @@ export class Tr2DepthStencil extends IRoot
    * @notImplemented
    */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
   sharedHandle(...args)
   {
     throw new Error("Tr2DepthStencil.sharedHandle is not implemented in CarbonEngineJS.");

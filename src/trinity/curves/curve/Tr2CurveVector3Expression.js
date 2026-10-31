@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression.cpp
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression_Blue.cpp
 import { ITriColorFunction, ITriVectorFunction, ITriFunction, IInitialize } from "#blue";
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
@@ -45,7 +45,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    */
   @be.mapProperty()
   @type.expression
-  @meta.implemented
   get expressionX()
   {
     return this.GetExpressionX();
@@ -55,7 +54,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @implemented
    * @param {string} value Source compiled immediately by the native setter.
    */
-  @meta.implemented
   set expressionX(value)
   {
     this.SetExpressionX(value);
@@ -73,7 +71,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    */
   @be.mapProperty()
   @type.expression
-  @meta.implemented
   get expressionY()
   {
     return this.GetExpressionY();
@@ -83,7 +80,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @implemented
    * @param {string} value Source compiled immediately by the native setter.
    */
-  @meta.implemented
   set expressionY(value)
   {
     this.SetExpressionY(value);
@@ -101,7 +97,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    */
   @be.mapProperty()
   @type.expression
-  @meta.implemented
   get expressionZ()
   {
     return this.GetExpressionZ();
@@ -111,7 +106,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @implemented
    * @param {string} value Source compiled immediately by the native setter.
    */
-  @meta.implemented
   set expressionZ(value)
   {
     this.SetExpressionZ(value);
@@ -174,7 +168,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @returns {boolean} True.
    */
 
-  @meta.adapted
   Initialize()
   {
     for (let index = 0; index < 3; index++)
@@ -195,7 +188,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @implemented
    */
 
-  @meta.implemented
   UpdateValue(time)
   {
     this.GetValue(time, this.currentValue);
@@ -207,7 +199,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @adapted
    */
 
-  @meta.adapted
   Update(time, out)
   {
     this._sample(time, this.currentValue);
@@ -224,7 +215,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    *
    * @adapted
    */
-  @meta.adapted
   GetValueAt(time, out)
   {
     return this._sample(time, out);
@@ -236,7 +226,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @adapted
    */
   @be.mapMethodAndWrap("GetValueAt")
-  @meta.adapted
   GetValue(time, out)
   {
     this.Compile();
@@ -253,7 +242,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @adapted
    */
 
-  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -265,7 +253,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @adapted
    */
 
-  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -280,7 +267,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} out
    */
-  @meta.adapted
   GetValueDotAt__Ticks(_time, out)
   {
     return out;
@@ -294,7 +280,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} out
    */
-  @meta.adapted
   GetValueDoubleDotAt__Ticks(_time, out)
   {
     return out;
@@ -306,7 +291,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @adapted
    */
 
-  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;
@@ -320,7 +304,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @returns {string} Stored source text.
    */
 
-  @meta.implemented
   GetExpression(index)
   {
     return this["_expression" + "XYZ"[index]];
@@ -336,7 +319,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetExpression(index, expression)
   {
     if (expression === "")
@@ -357,7 +339,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @implemented
    */
 
-  @meta.implemented
   GetExpressionX()
   {
     return this.GetExpression(0);
@@ -369,7 +350,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @implemented
    */
 
-  @meta.implemented
   GetExpressionY()
   {
     return this.GetExpression(1);
@@ -381,7 +361,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @implemented
    */
 
-  @meta.implemented
   GetExpressionZ()
   {
     return this.GetExpression(2);
@@ -395,7 +374,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetExpressionX(expression)
   {
     this.SetExpression(0, expression);
@@ -409,7 +387,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetExpressionY(expression)
   {
     this.SetExpression(1, expression);
@@ -423,7 +400,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @returns {void}
    */
 
-  @meta.adapted
   SetExpressionZ(expression)
   {
     this.SetExpression(2, expression);
@@ -438,7 +414,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @returns {number}
    */
 
-  @meta.implemented
   GetInputValue(index)
   {
     return this.GetInputValue__Time(index, this._currentTime);
@@ -452,7 +427,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {number} time Sample time.
    * @returns {number}
    */
-  @meta.implemented
   GetInputValue__Time(index, time)
   {
     index |= 0;
@@ -471,7 +445,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @implemented
    */
 
-  @meta.implemented
   GetRandomConstant()
   {
     return this.randomConstant;
@@ -483,7 +456,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @implemented
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   ResetRandomConstant()
   {
     this.randomConstant = carbonRandom.triFloatRandom01();
@@ -495,7 +467,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetExpressionTermInfo()
   {
     return CjsControllerExpressionProgram.getCurveTermInfo();
@@ -508,7 +479,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @adapted
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   EvaluateExpression(expression)
   {
     const program = CjsControllerExpressionProgram.Compile(expression, {

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/TriEventCurve.h
 // Source: trinity/trinity/Curves/TriEventCurve.cpp
 import { ITriFunction, IInitialize, ITriCurveLength, BlueList } from "#blue";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { TriEventKey } from "../key/TriEventKey.js";
 import "#consts/graphics/trinityEnums";
@@ -170,7 +170,6 @@ export class TriEventCurve extends ITriFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.adapted
   UpdateValue(time)
   {
     if (this.length === 0)
@@ -211,7 +210,6 @@ export class TriEventCurve extends ITriFunction
    * @adapted
    * @returns {boolean} True.
    */
-  @meta.adapted
   Initialize()
   {
     this.Sort();
@@ -224,7 +222,6 @@ export class TriEventCurve extends ITriFunction
    * @implemented
    * @returns {number} Duration in seconds.
    */
-  @meta.implemented
   Length()
   {
     return this.length;
@@ -237,7 +234,6 @@ export class TriEventCurve extends ITriFunction
    * @adapted
    * @returns {void}
    */
-  @meta.adapted
   Sort()
   {
     this.keys.Sort((_context, a, b) => a.time < b.time, null);
@@ -254,7 +250,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   AddKey(time, eventName)
   {
     const key = new TriEventKey();
@@ -276,7 +271,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   AddCallableKey(time, callable, args)
   {
     const key = new TriEventKey();
@@ -294,7 +288,6 @@ export class TriEventCurve extends ITriFunction
    * @param {TriEventKey|object} key Key or compatible record.
    * @returns {void}
    */
-  @meta.adapted
   InsertKey(key)
   {
     this.keys.Insert(-1, TriEventCurve._ensureEventKey(key));
@@ -310,7 +303,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   RemoveKey(index)
   {
     if (index >= 0 && index < this.keys.length)
@@ -327,7 +319,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {number}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyCount()
   {
     return this.keys.length;
@@ -341,7 +332,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {number}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyTime(index)
   {
     return this.keys[index]?.time ?? 0;
@@ -355,7 +345,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {string}
    */
   @be.mapMethodAndWrap()
-  @meta.implemented
   GetKeyValue(index)
   {
     return this.keys[index]?.value ?? "";
@@ -371,7 +360,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetKeyTime(index, time)
   {
     if (this.keys[index])
@@ -391,7 +379,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {void}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   SetKeyValue(index, value)
   {
     if (this.keys[index])
@@ -408,7 +395,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {Function|null}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetCallableKeyValue(index)
   {
     return this.keys[index]?.callable ?? null;
@@ -422,7 +408,6 @@ export class TriEventCurve extends ITriFunction
    * @returns {*}
    */
   @be.mapMethodAndWrap()
-  @meta.adapted
   GetCallableKeyArgs(index)
   {
     return this.keys[index]?.callableArgs ?? null;

@@ -6,7 +6,7 @@ import { quat } from "#math/quat";
 import { box3 } from "#math/box3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -106,7 +106,6 @@ export class EveSpriteLineSetItem extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetBounds(out)
   {
     if (this.isCircle)
@@ -127,7 +126,6 @@ export class EveSpriteLineSetItem extends IRoot
    * @implemented
    */
 
-  @meta.implemented
   GetBoneIndex()
   {
     return this.boneIndex;
@@ -141,7 +139,6 @@ export class EveSpriteLineSetItem extends IRoot
    * @adapted
    */
 
-  @meta.adapted
   GetPositions()
   {
     const positions = [];

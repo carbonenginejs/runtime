@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLayer.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLayer_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta, type } from "#schema";
+import { type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { CCP_LOGERR } from "../../global/logging/ccpLog.js";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -133,7 +133,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @param {ITr2SpriteObject} _child The child that changed.
    * @returns {void}
    */
-  @meta.implemented
 
   SetChildDirty(_child)
   {
@@ -154,7 +153,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @param {Tr2Sprite2dScene} renderer Scene gathering this layer.
    * @returns {void}
    */
-  @meta.implemented
 
   GatherSprites(renderer)
   {
@@ -195,7 +193,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @implemented
    * @returns {boolean} False only when `OnPrepareResources` fails.
    */
-  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
@@ -214,7 +211,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @implemented
    * @returns {boolean} Whether the render target exists.
    */
-  @meta.implemented
 
   _OnPrepareResources()
   {
@@ -242,7 +238,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @param {number} [_storage] Carbon's TriStorage; unused, as in Carbon.
    * @returns {void}
    */
-  @meta.implemented
 
   ReleaseResources(_storage)
   {
@@ -256,7 +251,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @implemented
    * @returns {void}
    */
-  @meta.implemented
 
   _AllocateRenderTarget()
   {
@@ -277,7 +271,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    *   is not ported.
    * @returns {void}
    */
-  @meta.adapted
 
   _FreeRenderTarget()
   {
@@ -292,7 +285,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @implemented
    * @returns {number} 0.
    */
-  @meta.implemented
 
   GetVertexCount()
   {
@@ -307,7 +299,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @param {ITr2Sprite2dTexture|null} t New secondary texture.
    * @returns {void}
    */
-  @meta.implemented
 
   _SetTextureSecondary(t)
   {
@@ -326,7 +317,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @implemented
    * @returns {ITr2Sprite2dTexture|null} The secondary texture.
    */
-  @meta.implemented
 
   _GetTextureSecondary()
   {
@@ -341,7 +331,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @param {ITr2Sprite2dTexture} _p The texture that changed.
    * @returns {void}
    */
-  @meta.implemented
 
   Sprite2dTextureChanged(_p)
   {
