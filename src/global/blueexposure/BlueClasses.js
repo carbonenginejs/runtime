@@ -384,14 +384,16 @@ export class BlueClasses extends IBlueClasses
    * `GetWrapperList` (BlueClasses_Blue.cpp:210-217): every Blue object wrapped
    * for Python.
    *
-   * @notSupported there are no Python wrappers. The per-object wrapper Carbon
-   *   keeps (BlueWrapper, BluePyWrap.cpp) is not ported.
+   * @notImplemented the wrapper it lists is not built yet. Carbon's is the
+   *   Python wrapper (BlueWrapper, BluePyWrap.cpp); ours will be the Blue
+   *   wrapper of docs internal/decisions/blue-wrapper.md, likely our own
+   *   system, and this lists those wrappers once it exists.
    * @returns {never}
    * @throws {Error} Always.
    */
   GetWrapperList()
   {
-    throw new Error("GetWrapperList: no Python wrappers exist in JavaScript.");
+    throw new Error("GetWrapperList: the Blue wrapper is not built yet.");
   }
 
   /**

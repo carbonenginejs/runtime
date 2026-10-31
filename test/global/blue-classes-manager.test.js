@@ -103,12 +103,13 @@ test("GetPersistedClassesReport lists persisted members per class, sorted (BlueC
   assert.ok(report.indexOf("BlueClassesManagerEffect:\n") < at, "classes are sorted by name");
 });
 
-test("counts and wrappers JavaScript does not keep are refused; pending deletes are a no-op", () =>
+test("counts JavaScript does not keep and the unbuilt wrapper list are refused; pending deletes are a no-op", () =>
 {
+  const expected = { LiveCount: "notSupported", LockCount: "notSupported", GetWrapperList: "notImplemented", LiveList: "notUsed" };
   for (const name of [ "LiveCount", "LockCount", "GetWrapperList", "LiveList" ])
   {
     assert.throws(() => blue.classes[name](), Error, name);
-    assert.equal(MarkerTag("BlueClasses", name), name === "LiveList" ? "notUsed" : "notSupported");
+    assert.equal(MarkerTag("BlueClasses", name), expected[name]);
   }
   assert.equal(blue.classes.ProcessAllPendingDeletes(), undefined);
   assert.equal(CjsSchema.getMethod(blue.classes.constructor, "ProcessAllPendingDeletes").impl.status, "noop");
