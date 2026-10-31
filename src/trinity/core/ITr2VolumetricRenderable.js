@@ -9,7 +9,7 @@ import { exposure as be } from "#be";
 // The nested SceneInformation (h:26-36) and ShadowInfo (h:38-43) structs are
 // not ported as classes here: callers pass plain records carrying their
 // fields (EveChildCloud2.SetSceneInformation, EveSpaceScene).
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 import { blue } from "#schema";
 
 

@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/ITriReroutable.h:8-16
 //
 // A value whose storage can be MOVED somewhere else, and which tells its

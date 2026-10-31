@@ -8,7 +8,7 @@ import { INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../../trinityal/ALResult.js";

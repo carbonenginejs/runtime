@@ -2,8 +2,8 @@ import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 import { IsMatch } from "#blue";
-import { INotify } from "../../../global/blue/INotify.js";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { INotify } from "../../../global/blueexposure/INotify.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";

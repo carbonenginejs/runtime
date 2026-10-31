@@ -4,7 +4,7 @@ import test from "node:test";
 import { blue, CjsBlueClasses } from "../../src/global/blue/index.js";
 import { CjsSchema, type } from "../../src/global/schema/index.js";
 import * as CcpLog from "../../src/global/logging/ccpLog.js";
-import * as classRegistry from "../../src/global/blue/classes/registry.js";
+import * as classRegistry from "../../src/global/blueexposure/classes/registry.js";
 
 const { ClassRegistrarNullFactory, getClassRegistrationRevision } = classRegistry;
 

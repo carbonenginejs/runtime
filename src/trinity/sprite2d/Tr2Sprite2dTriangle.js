@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dTriangle.json.).
 import { type, blue } from "#schema";

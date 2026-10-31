@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { type, blue } from "#schema";

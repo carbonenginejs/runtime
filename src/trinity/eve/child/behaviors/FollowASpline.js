@@ -1,7 +1,7 @@
-import { IRoot } from "../../../../global/blue/IRoot.js";
+import { IRoot } from "../../../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
-import { INotify } from "../../../../global/blue/INotify.js";
+import { INotify } from "../../../../global/blueexposure/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";

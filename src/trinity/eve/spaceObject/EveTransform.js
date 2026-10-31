@@ -26,7 +26,7 @@ import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "#consts/graphics/tr2PickType
 import { ITr2BoundingBox, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { TriDebugFont } from "../../core/TriDebugTextRenderer.js";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
-import { IInitialize } from "#blue/IInitialize";
+import { IInitialize } from "#blueexposure/IInitialize";
 import { CcpTime } from "../../../global/blue/CcpTime.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";

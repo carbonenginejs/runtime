@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 import { CjsSchema } from "#schema";
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 import { optionalString, snapshotWebIdl } from "./browserHelpers.js";
 
 /**

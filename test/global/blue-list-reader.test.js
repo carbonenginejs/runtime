@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, blue } from "../../src/global/schema/index.js";
-import { BlueList } from "../../src/global/blue/BlueList.js";
-import { IList } from "../../src/global/blue/IList.js";
-import { IListNotify } from "../../src/global/blue/IListNotify.js";
+import { BlueList } from "../../src/global/blueexposure/BlueList.js";
+import { IList } from "../../src/global/blueexposure/IList.js";
+import { IListNotify } from "../../src/global/blueexposure/IListNotify.js";
 import { DictReader, CreateAnchorTable } from "../../src/global/blue/DictReader.js";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
 import { ReadValues } from "../../src/global/blue/values.js";

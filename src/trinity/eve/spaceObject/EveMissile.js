@@ -2,14 +2,14 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.cpp
 
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { type } from "#schema";
-import { CjsScriptCallback } from "#blue/CjsScriptCallback";
+import { CjsScriptCallback } from "#blueexposure/CjsScriptCallback";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { EveLODHelper } from "../EveLODHelper.js";

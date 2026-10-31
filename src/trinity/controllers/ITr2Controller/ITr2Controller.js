@@ -29,7 +29,7 @@
 // object root, which a garbage-collected runtime has no use for.
 
 import { CjsSchema, meta } from "#schema";
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 import { UnlinkReason } from "../enums.js";
 
 export const ITR2_CONTROLLER = Symbol.for("carbonenginejs.interface.ITr2Controller");

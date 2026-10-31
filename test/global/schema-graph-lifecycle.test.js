@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import "../../src/global/blue/values.js";
-import { IInitialize } from "../../src/global/blue/IInitialize.js";
+import { IInitialize } from "../../src/global/blueexposure/IInitialize.js";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
 import { type } from "../../src/global/schema/index.js";
 import { blue } from "../../src/global/blue/index.js";

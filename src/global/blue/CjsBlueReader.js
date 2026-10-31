@@ -1,6 +1,6 @@
 import { CjsSchema } from "#schema/CjsSchema";
 import { DictReader } from "./DictReader.js";
-import { ICustomPersist } from "./ICustomPersist.js";
+import { ICustomPersist } from "../blueexposure/ICustomPersist.js";
 import { readDictionaryValue } from "./dictionaryDeclarations.js";
 import { resolveHydrationAdapter } from "#schema/hydration";
 import {

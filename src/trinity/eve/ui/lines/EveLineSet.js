@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/UI/EveLineSet.h
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
 // Hand-maintained after promotion from generated schema intake.
 import { type, blue } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";

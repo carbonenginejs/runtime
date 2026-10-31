@@ -1,10 +1,10 @@
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 // Source: audio/src/AudEventCurve.h + AudEventCurve.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEventCurve.json.
 import { type, blue } from "#schema";
-import { IInitialize } from "#blue/IInitialize";
+import { IInitialize } from "#blueexposure/IInitialize";
 import { ITriFunction } from "#blue/ITriFunction";
 import { ITriCurveLength } from "#blue/ITriCurveLength";
 import { TRIEXTRAPOLATION } from "#consts/graphics";

@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/IBlueResFileSystem.h
 //
 // One place res files can come from. Carbon's paths service holds a list of

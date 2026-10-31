@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 import { ITr2Interior } from "./ITr2Interior.js";
 import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
 import { ITr2Pickable } from "../../../trinity/core/ITr2Pickable.js";

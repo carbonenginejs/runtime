@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/IBlueOS.h
 //
 // The OS as its consumers see it, reached through its own extern beside

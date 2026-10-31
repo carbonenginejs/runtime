@@ -1,7 +1,7 @@
 // Our graph grammar; no Carbon reader/writer or values-transport implementation is reused.
 import { CjsSchema } from "../../../../schema/CjsSchema.js";
 // These leaves hold canonical schema registrations and schema-installed interface declarations.
-import { getClassRegistration } from "../../../classes/registry.js";
+import { getClassRegistration } from "../../../../blueexposure/classes/registry.js";
 import { mappedInterfaces } from "../../../../compose/interface.js";
 // Object metadata lives in Blue's table, not on the object (BlueObjectMetadata.cpp:8).
 import { BeObjectMetadata } from "../../../BlueObjectMetadata.js";

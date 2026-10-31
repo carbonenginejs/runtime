@@ -18,7 +18,7 @@ import { composeValuesDecorator, createValuesTransport, isExportableField, isTra
 import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
 import { CjsUnusedMethodError } from "../utils/errors/CjsUnusedMethodError.js";
-import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../blue/classes/registry.js";
+import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../blueexposure/classes/registry.js";
 
 
 // Compose stays below Blue; supply the existing registration lookup for lazy IRoot entries.

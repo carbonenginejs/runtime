@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/IBlueResource.h:11-31
 //
 // The contract of a resource Blue loads: an identity (path and extension) and the

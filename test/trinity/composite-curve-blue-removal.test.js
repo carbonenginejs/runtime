@@ -1,4 +1,4 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";

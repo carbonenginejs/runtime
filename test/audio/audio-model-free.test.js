@@ -1,4 +1,4 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { AudGeometry, AudPosition, AudStaticDataRepository, ITr2AudGeometry } from "../../npm/dist/audio/index.js";

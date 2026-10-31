@@ -1,5 +1,5 @@
 import { meta, type } from "#schema";
-import { IsMatch } from "#blue/INotify";
+import { IsMatch } from "#blueexposure/INotify";
 
 /**
  * Application-owned foundation selection; prepared records retain resource provenance.

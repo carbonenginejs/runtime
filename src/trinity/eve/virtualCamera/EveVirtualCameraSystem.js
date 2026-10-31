@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp
 import { type, blue } from "#schema";

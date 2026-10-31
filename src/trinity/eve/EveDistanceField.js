@@ -1,11 +1,11 @@
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/EveDistanceField.h
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { IsMatch } from "#blue";
-import { INotify } from "../../global/blue/INotify.js";
-import { IListNotify } from "../../global/blue/IListNotify.js";
+import { INotify } from "../../global/blueexposure/INotify.js";
+import { IListNotify } from "../../global/blueexposure/IListNotify.js";
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
 import { color } from "#math/color";

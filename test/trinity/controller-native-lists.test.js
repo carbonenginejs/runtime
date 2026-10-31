@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
+import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";

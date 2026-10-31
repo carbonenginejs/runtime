@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/IBlueObjectProxy.h:10-27
 //
 // A holder for one object that can be built on demand and dropped again after

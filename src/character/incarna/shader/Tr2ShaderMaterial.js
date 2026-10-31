@@ -1,7 +1,7 @@
 // Incarna: reconstructed from Black records; no Carbon donor. See ../README.md.
 import { exposure as be } from "#be";
 import { blue } from "#blue";
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 import { CjsSchema, meta, type } from "#schema";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { Tr2Effect } from "../../../trinity/shader/Tr2Effect.js";

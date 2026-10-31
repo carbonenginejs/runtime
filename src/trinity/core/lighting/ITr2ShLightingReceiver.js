@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Tr2ShLightingManager.h:117-122
 //
 // A receiver of SH lighting from Tr2ShLightingManager. EveSpaceObject2

@@ -1,12 +1,12 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue, ITriQuaternionFunction, ITriFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
-import { CjsBlue } from "../../npm/dist/global/blue/index.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
+import { CjsBlue, CjsBlueClasses } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2CurveEulerRotation } from "../../npm/dist/trinity/curves/curve/Tr2CurveEulerRotation.js";
 import { Tr2CurveRandomAxisRotation } from "../../npm/dist/trinity/curves/curve/Tr2CurveRandomAxisRotation.js";
@@ -152,7 +152,7 @@ test("Euler graph creation, cloning and traversal retain real scalar component o
   assert.notEqual(copy.yaw.keys, curve.yaw.keys);
   assert.equal(copy.yaw.GetValue(2), curve.yaw.GetValue(2));
   const children = [];
-  CjsBlue.enumerateChildren(curve, child => children.push(child));
+  CjsBlueClasses.enumerateChildren__OnChild(curve, child => children.push(child));
   assert.deepEqual(children, [curve.yaw, curve.pitch, curve.roll]);
   for (const value of [curve, new Tr2CurveRandomAxisRotation()])
   {

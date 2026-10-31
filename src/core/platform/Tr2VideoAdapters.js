@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 import { CjsSchema } from "#schema";
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 import { Tr2DisplayMode } from "./Tr2DisplayMode.js";
 import { Tr2PlatformInfo } from "./Tr2PlatformInfo.js";
 import { Tr2VideoAdapter } from "./Tr2VideoAdapter.js";

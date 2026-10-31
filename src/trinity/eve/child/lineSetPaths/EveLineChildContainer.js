@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveLineChildContainer.h
-import { IListNotify } from "../../../../global/blue/IListNotify.js";
-import { INotify } from "../../../../global/blue/INotify.js";
+import { IListNotify } from "../../../../global/blueexposure/IListNotify.js";
+import { INotify } from "../../../../global/blueexposure/INotify.js";
 // Promoted from generated intake so its required IEveLineSetPath behavior remains explicit.
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";

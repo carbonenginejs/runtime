@@ -31,7 +31,7 @@ import { CjsSchema, meta } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
 import { mappedInterfaces } from "../compose/interface.js";
-import { ICustomPersist } from "./ICustomPersist.js";
+import { ICustomPersist } from "../blueexposure/ICustomPersist.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { InvalidAttributeException } from "./InvalidAttributeException.js";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";

@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2PyValueBinding.cpp
 // Source: trinity/trinity/Tr2PyValueBinding_Blue.cpp
 import { type } from "#schema";
-import { INotify } from "#blue/INotify";
+import { INotify } from "#blueexposure/INotify";
 import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
 
 /** Copies named JavaScript attributes through the portable Python-value adapter. */

@@ -1,4 +1,4 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { blue, INotify, IListNotify, BlueList } from "../../npm/dist/global/blue/index.js";

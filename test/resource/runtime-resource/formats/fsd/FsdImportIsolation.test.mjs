@@ -9,7 +9,7 @@ const FSD_ROOT = path.join(PACKAGE_ROOT, "npm", "dist", "resource", "formats", "
 // Table headers reuse Carbon's existing type vocabulary and its pure helpers.
 // FsdObject inherits Carbon's IRoot; admit its query/logging leaves, not Blue services or bootstrap.
 const SHARED_FORMAT_MODULES = new Set([
-    "global/blue/IRoot.js",
+    "global/blueexposure/IRoot.js",
     "global/compose/interface.js",
     "global/consts/ccpLog.js",
     "global/logging/CcpLogChannel_t.js",

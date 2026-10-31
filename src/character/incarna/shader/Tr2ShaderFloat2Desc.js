@@ -1,6 +1,6 @@
 // Incarna: reconstructed from Black records; no Carbon donor. See ../README.md.
 import { exposure as be } from "#be";
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 import { vec2 } from "#math/vec2";
 import { meta, type } from "#schema";
 

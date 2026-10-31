@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 // Carbon also registers this as the "PostProcessOwner" component type
 // (ITr2PostProcessOwner.h:15, REGISTER_COMPONENT_TYPE); the component
 // registry is a separate mechanism and is not declared here.
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 import { blue } from "#schema";
 
 

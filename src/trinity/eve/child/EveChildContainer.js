@@ -3,14 +3,14 @@ import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2Pe
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
-import { INotify } from "../../../global/blue/INotify.js";
-import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { INotify } from "../../../global/blueexposure/INotify.js";
+import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
-import { IInitialize } from "#blue/IInitialize";
+import { IInitialize } from "#blueexposure/IInitialize";
 import { BLUELISTEVENT } from "#consts/blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { mat4 } from "#math/mat4";

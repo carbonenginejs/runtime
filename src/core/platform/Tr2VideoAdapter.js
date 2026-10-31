@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 import { CjsSchema, blue } from "#schema";
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 import { optionalString, snapshotFeatures, snapshotWebIdl } from "./browserHelpers.js";
 import { Tr2VideoDriver } from "./Tr2VideoDriver.js";
 

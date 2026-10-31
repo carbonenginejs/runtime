@@ -2,14 +2,14 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.cpp
 
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { vec3 } from "#math/vec3";
 import { type } from "#schema";
 import { blue, CjsBlueClasses } from "#blue";
-import { IListNotify } from "#blue/IListNotify";
+import { IListNotify } from "#blueexposure/IListNotify";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";

@@ -1,10 +1,10 @@
-import { IRoot } from "../../../../global/blue/IRoot.js";
+import { IRoot } from "../../../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
 import { CjsSchema, type, blue } from "#schema";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";

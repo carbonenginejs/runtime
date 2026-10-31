@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/ITriCurveLength.h:8-13
 import { CjsSchema, meta } from "#schema";
 

@@ -1,11 +1,11 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
-import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
+import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { Tr2ActionCallback } from "../../npm/dist/trinity/controllers/action/Tr2ActionCallback.js";

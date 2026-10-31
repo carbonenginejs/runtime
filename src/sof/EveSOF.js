@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../global/blue/IRoot.js";
+import { IRoot } from "../global/blueexposure/IRoot.js";
 import { random as carbonRandom } from "#math/random";
 import * as CcpLog from "../global/logging/ccpLog.js";
 import { normalizeResourcePath } from "#utils/path";

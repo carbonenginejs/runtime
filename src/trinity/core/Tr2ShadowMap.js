@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ShadowMap.h
 import { Tr2Renderer } from "./Tr2Renderer.js";
-import { INotify, IsMatch } from "../../global/blue/INotify.js";
+import { INotify, IsMatch } from "../../global/blueexposure/INotify.js";
 //   trinity/trinity/Tr2ShadowMap.cpp
 import { type } from "#schema";
 import { mat4 } from "#math/mat4";

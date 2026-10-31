@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: audio/src/Components/StretchAudio.h + StretchAudio.cpp
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/StretchAudio.json.
 import { CjsSchema, type, blue } from "#schema";

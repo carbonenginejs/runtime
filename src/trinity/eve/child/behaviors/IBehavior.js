@@ -1,4 +1,4 @@
-import { IRoot } from "../../../../global/blue/IRoot.js";
+import { IRoot } from "../../../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/IBehavior.h:7-79
 import { CjsSchema, meta } from "#schema";
 import { ProcessPriority } from "./enums.js";

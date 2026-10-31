@@ -1,11 +1,11 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue, ITriFunction, ITriScalarFunction, ITriColorFunction, ITriVectorFunction, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2CurveScalarExpression as Scalar } from "../../npm/dist/trinity/curves/curve/Tr2CurveScalarExpression.js";
 import { Tr2CurveVector3Expression as Vector } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector3Expression.js";

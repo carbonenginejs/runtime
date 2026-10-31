@@ -4,7 +4,7 @@ import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectR
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume_Blue.cpp
 import { type } from "#schema";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";

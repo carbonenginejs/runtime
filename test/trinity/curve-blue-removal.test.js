@@ -1,12 +1,12 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue } from "../../npm/dist/global/blue/blue.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
-import { CjsBlue } from "../../npm/dist/global/blue/index.js";
+import { CjsBlue, CjsBlueClasses } from "../../npm/dist/global/blue/index.js";
 import { Tr2CurveConstant } from "../../npm/dist/trinity/curves/curve/Tr2CurveConstant.js";
 import { Tr2CurveScalar } from "../../npm/dist/trinity/curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveQuaternion } from "../../npm/dist/trinity/curves/curve/Tr2CurveQuaternion.js";
@@ -45,7 +45,7 @@ test("five curve classes construct through Blue without model state or convenien
         assert.equal(GetResources(value,out),out);
         assert.deepEqual(out,[]);
         const children=[];
-        CjsBlue.enumerateChildren(value,child=>children.push(child));
+        CjsBlueClasses.enumerateChildren__OnChild(value,child=>children.push(child));
         assert.deepEqual(children,[]);
     }
 });

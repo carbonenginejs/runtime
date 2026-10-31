@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 import { CjsSchema } from "#schema";
-import { IRoot } from "../global/blue/IRoot.js";
+import { IRoot } from "../global/blueexposure/IRoot.js";
 import { IBlueEvents } from "../global/blue/IBlueEvents.js";
 // Source: trinity/trinity/UI/Tr2MainWindow.h
 // Source: trinity/trinity/UI/Tr2MainWindow.cpp

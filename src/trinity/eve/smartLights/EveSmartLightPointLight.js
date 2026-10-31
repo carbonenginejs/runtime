@@ -1,8 +1,8 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
-import { IListNotify } from "../../../global/blue/IListNotify.js";
-import { INotify } from "../../../global/blue/INotify.js";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
+import { INotify } from "../../../global/blueexposure/INotify.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { type, blue as legacyBlue } from "#schema";

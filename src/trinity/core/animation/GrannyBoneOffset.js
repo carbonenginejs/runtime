@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { IInitialize } from "#blue/IInitialize";
+import { IInitialize } from "#blueexposure/IInitialize";
 import { blue } from "#schema";
 
 

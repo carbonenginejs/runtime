@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
-import { IRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
-import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
-import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
-import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
-import { INotify } from "../../npm/dist/global/blue/INotify.js";
+import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
+import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
+import { IListNotify } from "../../npm/dist/global/blueexposure/IListNotify.js";
+import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";

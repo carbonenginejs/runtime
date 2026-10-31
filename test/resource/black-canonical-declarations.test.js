@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
 import { carbonInterfaceDecorator } from "../../src/global/compose/interface.js";
-import { IInitialize } from "../../src/global/blue/IInitialize.js";
-import { INotify } from "../../src/global/blue/INotify.js";
+import { IInitialize } from "../../src/global/blueexposure/IInitialize.js";
+import { INotify } from "../../src/global/blueexposure/INotify.js";
 import { CjsBlackReader } from "../../src/global/blue/formats/black/core/CjsBlackReader.js";
 import { CjsBlackSchemaRegistry } from "../../src/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 

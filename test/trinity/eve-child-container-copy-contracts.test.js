@@ -1,9 +1,9 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
-import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blue/INotify.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
+import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";

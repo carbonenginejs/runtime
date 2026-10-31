@@ -1,11 +1,11 @@
-import { IRoot as ExposureRoot } from "../../src/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../src/global/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { ICustomPersist, blue } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
-import { ICustomPersist as DirectPersist } from "../../src/global/blue/ICustomPersist.js";
+import { ICustomPersist as DirectPersist } from "../../src/global/blueexposure/ICustomPersist.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
 import { MarkerTag } from "../support/markerTags.js";
 

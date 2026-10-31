@@ -31,7 +31,7 @@ test("Blue composition owns the resource manager and the holder keeps inert shar
     assert.equal(CjsSchema.getClassName(Class), name);
     assert.equal(CjsSchema.getConstructor(name), Class);
     assert.equal(Object.hasOwn(CjsSchema.getSchema(Class), "carbon"), false);
-    const source = readFileSync(new URL(`../../src/global/blue/${name}.js`, import.meta.url), "utf8");
+    const source = readFileSync(new URL(`../../src/global/${name === "CjsBlueClasses" ? "blueexposure" : "blue"}/${name}.js`, import.meta.url), "utf8");
     const declared = classDonorComments(source).find(c => c.name === name);
     assert.deepEqual(declared.entries.map(e => [e.kind, e.name]), [["Carbon", donor]]);
   }
@@ -199,7 +199,7 @@ for (const entry of ["CjsBlueResMan", "CjsLoadingObject", "BlueAsyncRes", "CjsMo
 {
   test(`native ESM accepts resource entry order: ${entry}`, () =>
   {
-    const first = new URL(`../../src/global/blue/${entry}.js`, import.meta.url).href;
+    const first = new URL(`../../src/global/${entry === "CjsBlueClasses" ? "blueexposure" : "blue"}/${entry}.js`, import.meta.url).href;
     const holder = new URL("../../src/global/blue/index.js", import.meta.url).href;
     const program = `import ${JSON.stringify(first)};
 import { blue } from ${JSON.stringify(holder)};

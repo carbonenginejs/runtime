@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/IBlueEventListener.h:7-10
 // Source: blue/src/IBlueEventListener_Blue.cpp:6
 import { CjsSchema, meta } from "#schema";

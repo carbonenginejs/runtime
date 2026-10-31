@@ -1,8 +1,8 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveChildSmartLightSet.h
 import { IsMatch } from "#blue";
-import { IListNotify } from "../../../global/blue/IListNotify.js";
-import { INotify } from "../../../global/blue/INotify.js";
+import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
+import { INotify } from "../../../global/blueexposure/INotify.js";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";

@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 // Source: trinityaudioapi/include/ITr2Audio.h
 
 /** Positions an asset's audio and locates its named emitters. */

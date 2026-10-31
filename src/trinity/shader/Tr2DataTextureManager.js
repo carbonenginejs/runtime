@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IInitialize } from "../../global/blue/IInitialize.js";
+import { IInitialize } from "../../global/blueexposure/IInitialize.js";
 // Source: trinity/trinity/Shader/Utils/Tr2DataTextureManager.h
 // Source: trinity/trinity/Shader/Utils/Tr2DataTextureManager.cpp
 // Source: trinity/trinity/Shader/Utils/Tr2DataTextureManager_Blue.cpp

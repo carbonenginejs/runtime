@@ -1,4 +1,4 @@
-import { IRoot } from "../blue/IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/ITr2DebugRenderer2.h:13-14,189-194
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch_Blue.cpp:8
 import { CjsSchema, meta } from "#schema";

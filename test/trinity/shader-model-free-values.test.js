@@ -1,4 +1,4 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 // Texture parameters ask be.resMan for their texture as Carbon asks BeResMan,

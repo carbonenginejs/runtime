@@ -4,8 +4,8 @@ import { exposure as be } from "#be";
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
-import { INotify } from "../../../global/blue/INotify.js";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { INotify } from "../../../global/blueexposure/INotify.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.

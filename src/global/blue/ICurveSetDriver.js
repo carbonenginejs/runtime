@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/ICurveSetDriver.h:6-8
 import { CjsSchema, meta } from "#schema";
 

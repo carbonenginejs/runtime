@@ -1,8 +1,8 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
@@ -108,7 +108,7 @@ test("Sync retains exact exposure and composition in a fresh process", () =>
       import assert from "node:assert/strict";
       import { meta, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
-      import { IRoot } from ${JSON.stringify(moduleURL("global/blue/IRoot.js"))};
+      import { IRoot } from ${JSON.stringify(moduleURL("global/blueexposure/IRoot.js"))};
       import { ITr2StateMachineStateFinalizer } from ${JSON.stringify(moduleURL("trinity/controllers/state/ITr2StateMachineStateFinalizer.js"))};
       const { Tr2SyncToAnimation } = await import(${JSON.stringify(moduleURL("trinity/controllers/Tr2SyncToAnimation.js"))});
       assert.deepEqual([...mappedInterfaces(Tr2SyncToAnimation)], [IRoot, Tr2SyncToAnimation, ITr2StateMachineStateFinalizer]);

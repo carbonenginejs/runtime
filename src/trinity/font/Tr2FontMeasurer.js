@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Font/Tr2FontMeasurer.h
 // Source: trinity/trinity/Font/Tr2FontMeasurer.cpp
 // Browser-font adaptation: fallback families and underline metrics are browser-specific.

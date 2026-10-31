@@ -6,8 +6,8 @@ import { random as carbonRandom } from "#math/random";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { EveEntity } from "../EveEntity.js";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { INotify } from "../../../global/blueexposure/INotify.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 //
 // The attachment-side booster family (EveBoosterSet2 + renderable + trails)

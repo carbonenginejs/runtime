@@ -1,5 +1,5 @@
 import { CjsCarbonEffectFormat } from "../../resource/formats/carbonEffect/index.js";
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
 import { CjsSchema, type } from "#schema";

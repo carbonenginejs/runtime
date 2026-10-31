@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 // Source: trinity/trinity/Include/ITr2Interior.h
 import { CjsSchema, meta } from "#schema";
 

@@ -13,7 +13,7 @@
 // Not a decision about JavaScript's ability: a WeakRef would express it. With
 // no caller there is nothing to port. One residual difference: CjsMotherLode's
 // registration keeps the registry's constructing default createFn
-// (src/global/blue/classes/registry.js), so CreateInstance would return a
+// (src/global/blueexposure/classes/registry.js), so CreateInstance would return a
 // fresh instance where Carbon returns the live one. Nothing calls it.
 // No runtime registration or export.
 

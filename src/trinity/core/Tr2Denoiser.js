@@ -1,8 +1,8 @@
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2Denoiser.h
 import { Tr2Renderer } from "./Tr2Renderer.js";
-import { INotify } from "../../global/blue/INotify.js";
+import { INotify } from "../../global/blueexposure/INotify.js";
 //   trinity/trinity/Tr2Denoiser.cpp
 //
 // A separable spatial denoiser, run over a noisy single-channel buffer - in

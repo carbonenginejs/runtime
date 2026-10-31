@@ -1,10 +1,10 @@
 import { BlueAsyncRes } from "#blue";
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2AnimationUpdater } from "./ITr2AnimationUpdater.js";
 // Source: trinity/trinity/Tr2GrannyAnimation.h
 // Source: trinity/trinity/Tr2GrannyAnimation.cpp
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 //
 // Hand-maintained (promoted from src/trinity/generated/trinityCore; the generator skips
 // it while this file exists). Promoted to give GetMeshBoneMatrixList Carbon's

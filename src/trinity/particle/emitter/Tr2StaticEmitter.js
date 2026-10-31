@@ -1,9 +1,9 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp
 import { blue, IsMatch, INotify } from "#blue";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { type } from "#schema";

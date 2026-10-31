@@ -1,4 +1,4 @@
-import { IRoot } from "../blue/IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/ITr2DebugRenderer2.h:127-187
 import { CjsSchema, meta } from "#schema";
 

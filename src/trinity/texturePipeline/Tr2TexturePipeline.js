@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 import { blue as blueService } from "#blue";
 import "#blue/values";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.h

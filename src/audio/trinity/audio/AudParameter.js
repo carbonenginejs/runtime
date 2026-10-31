@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: audio/src/AudParameter_Blue.cpp
 import { IsMatch } from "#blue";
 import { type, blue } from "#schema";
-import { INotify } from "#blue/INotify";
+import { INotify } from "#blueexposure/INotify";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** Binds a real-time parameter value to its owning audio game object. */

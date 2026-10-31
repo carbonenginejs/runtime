@@ -5,7 +5,7 @@
 // reads a dictionary, through IRootReaderBase). Our stream readers are the
 // formats (CjsBlackFormat, the yaml format), which do not implement it yet.
 import { CjsSchema, meta } from "#schema";
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 
 /** `IRootReader` - reads an object tree from a stream, per blue/src/IRootReader.h:15-25. */
 export class IRootReader extends IRoot

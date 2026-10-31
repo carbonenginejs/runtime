@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { IWorldPosition } from "../../npm/dist/trinity/core/IWorldPosition.js";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
-import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
+import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2BoundingBox } from "../../npm/dist/global/interfaces/ITr2BoundingBox.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";

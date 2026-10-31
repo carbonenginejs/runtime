@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: audio/src/AudioCurveSetDriver_Blue.cpp
 import { type, blue } from "#schema";
 import { ICurveSetDriver } from "#blue/ICurveSetDriver";
-import { IInitialize } from "#blue/IInitialize";
+import { IInitialize } from "#blueexposure/IInitialize";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /**

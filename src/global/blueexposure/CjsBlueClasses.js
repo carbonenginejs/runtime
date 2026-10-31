@@ -984,6 +984,8 @@ export class CjsBlueClasses extends IBlueClasses
    *
    * @param {object[]} stack EnumerateRoutes' stack at an arrival.
    * @returns {Array<Array<*>>} Steps from the start object.
+   * @cjs
+   * @implemented
    */
   static _routeOf(stack)
   {
@@ -1006,6 +1008,8 @@ export class CjsBlueClasses extends IBlueClasses
    * @param {*} value Owner.
    * @param {string|number} key Storage key or index.
    * @returns {*} The stored value, or undefined.
+   * @cjs
+   * @implemented
    */
   static _readStorage(value, key)
   {
@@ -1023,6 +1027,8 @@ export class CjsBlueClasses extends IBlueClasses
    *
    * @param {*} type Declared type, item type or value type.
    * @returns {object|*} The descriptor.
+   * @cjs
+   * @implemented
    */
   static _describeType(type)
   {
@@ -1052,6 +1058,8 @@ export class CjsBlueClasses extends IBlueClasses
    * @param {number|string|null} [index=null] Index or key in the enclosing collection.
    * @param {object|null} [collection=null] The enclosing collection.
    * @returns {void}
+   * @cjs
+   * @implemented
    */
   static _enumerateValue(value, declaration, visit, kind = "attribute", index = null, collection = null)
   {

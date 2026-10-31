@@ -15,11 +15,11 @@
 // into Carbon's persisted-only traversal and default comparison.
 import { exposure as be } from "#be";
 import { CjsSchema, meta } from "#schema";
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { exportCarbonValue } from "../schema/types/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "./dictionaryDeclarations.js";
-import { ICustomPersist } from "./ICustomPersist.js";
+import { ICustomPersist } from "../blueexposure/ICustomPersist.js";
 import { isWritableField } from "../compose/values.js";
 import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";

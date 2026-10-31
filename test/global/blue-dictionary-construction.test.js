@@ -3,10 +3,10 @@ import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
 import { meta, type } from "../../npm/dist/global/schema/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blue/INotify.js";
+import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
 import { BeObjectMetadata } from "../../npm/dist/global/blue/BlueObjectMetadata.js";
-import { registerClass, unregisterClass } from "../../npm/dist/global/blue/classes/registry.js";
+import { registerClass, unregisterClass } from "../../npm/dist/global/blueexposure/classes/registry.js";
 
 let sequence = 0;
 const name = () => `DeclaredConstruction${++sequence}`;

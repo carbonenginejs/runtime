@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/IBlueResMan.h
 //
 // The resource manager as its CONSUMERS see it. Carbon publishes this

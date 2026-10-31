@@ -11,7 +11,7 @@ import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.j
 import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { EveShip2, EveTurretSet, EveUpdateContext, EveComponentRegistry, Tr2Controller, TriDevice, EveChildMesh, Tr2Mesh, Tr2MeshArea } from "../../npm/dist/trinity/index.js";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import "../../npm/dist/audio/index.js";
 import { StubResMan } from "../support/stubResMan.js";

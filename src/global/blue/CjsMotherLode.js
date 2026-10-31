@@ -10,7 +10,7 @@ import { normalizeResourcePath } from "#utils/path";
 import { CjsBlueOS } from "./CjsBlueOS.js";
 import { ICacheable } from "./ICacheable.js";
 import { IBlueResource } from "./IBlueResource.js";
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 
 /** mMaxMemUsage's initial value (MotherLode.cpp:44). */
 const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;

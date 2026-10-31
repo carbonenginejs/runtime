@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/IBluePaths.h
 //
 // Paths as its CONSUMERS see it, and a separate service from the resource

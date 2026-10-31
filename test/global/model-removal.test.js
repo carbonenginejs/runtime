@@ -1,4 +1,4 @@
-import "../../npm/dist/global/blue/IRoot.js";
+import "../../npm/dist/global/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import test from "node:test";

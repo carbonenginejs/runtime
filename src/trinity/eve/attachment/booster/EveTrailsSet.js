@@ -2,7 +2,7 @@ import { BlueAsyncRes } from "#blue";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { mat4 } from "#math/mat4";
 import { IsMatch, blue } from "#blue";

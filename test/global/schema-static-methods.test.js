@@ -27,7 +27,7 @@ test("decorateMethod records a static method as a method, with its metadata and 
 
 test("a decorated static method records the same row as the imperative call", async () =>
 {
-    const beUrl = new URL("../../src/global/schema/be.js", import.meta.url).href;
+    const beUrl = new URL("../../src/global/blueexposure/be.js", import.meta.url).href;
     const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
     const header = `import { exposure as be } from ${JSON.stringify(beUrl)}; import { meta } from ${JSON.stringify(schemaUrl)};\n`;
     const code = transformSync(header + `

@@ -32,7 +32,7 @@
 //   (`global/utils/resFile.js`), so a host that verifies supplies one.
 import { exposure as be } from "#be";
 import { CjsSchema, type } from "#schema";
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 import { normalizeResPath } from "#utils/path";
 import { BlueResFileSystemForm } from "./IBlueResFileSystem.js";
 

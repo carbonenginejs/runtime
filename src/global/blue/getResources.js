@@ -1,4 +1,4 @@
-import { CjsBlueClasses } from "./CjsBlueClasses.js";
+import { CjsBlueClasses } from "../blueexposure/CjsBlueClasses.js";
 
 /**
  * Collects the unique resources reachable from an object, including a

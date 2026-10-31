@@ -1,6 +1,6 @@
-import { IList } from "./IList.js";
+import { IList } from "../blueexposure/IList.js";
 import { blue } from "./blue.js";
-import { CjsBlueClasses } from "./CjsBlueClasses.js";
+import { CjsBlueClasses } from "../blueexposure/CjsBlueClasses.js";
 import { CjsSchema } from "../schema/index.js";
 import { DictReader, CreateAnchorTable } from "./DictReader.js";
 import { ensureRuntimeState } from "../compose/runtimeState.js";

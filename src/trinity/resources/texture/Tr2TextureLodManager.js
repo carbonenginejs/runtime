@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 import { IBlueEvents } from "#blue/IBlueEvents";
 import "#blue/values";
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.h

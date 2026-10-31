@@ -1,8 +1,8 @@
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
-import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type } from "#schema";
 import { IEveDistributionMethod } from "./IEveDistributionMethod.js";

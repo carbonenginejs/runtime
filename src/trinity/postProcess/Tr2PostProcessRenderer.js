@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.cpp
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp

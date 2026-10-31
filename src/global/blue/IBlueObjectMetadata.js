@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/IBlueObjectMetadata.h
 //
 // Data about an object that is not one of its members: per object, string keys

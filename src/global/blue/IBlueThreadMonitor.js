@@ -7,7 +7,7 @@
 // JavaScript has no destructors, so a caller restores the returned previous
 // status itself, in a `finally` or when its asynchronous work settles.
 import { CjsSchema, meta } from "#schema";
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 
 /** `IBlueThreadMonitor` - per-thread status, per blue/include/IBlueThreadMonitor.h. */
 export class IBlueThreadMonitor extends IRoot

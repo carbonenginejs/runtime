@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h
 // Schema: format-carbon resources/Tr2TexturePackChannel.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";

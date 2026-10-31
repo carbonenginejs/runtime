@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchBase.json.
 import { CjsSchema, type, blue } from "#schema";
-import { IInitialize } from "#blue/IInitialize";
+import { IInitialize } from "#blueexposure/IInitialize";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2Audio } from "../trinityAudioApi/ITr2Audio.js";
 import { AudEmitter } from "../audio/AudEmitter.js";

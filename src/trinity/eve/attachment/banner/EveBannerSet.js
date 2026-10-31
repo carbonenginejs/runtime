@@ -4,7 +4,7 @@ import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp
 import { EveEntity } from "../../EveEntity.js";
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";

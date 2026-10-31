@@ -4,7 +4,7 @@ import CjsRedFormat, * as entry from "../../../../../npm/dist/global/blue/format
 import { CjsFormat } from "../../../../../npm/dist/resource/format/CjsFormat.js";
 import { CjsSchema } from "../../../../../npm/dist/global/schema/index.js";
 import { YamlReader } from "../../../../../npm/dist/global/blue/YamlReader.js";
-import { IInitialize } from "../../../../../npm/dist/global/blue/IInitialize.js";
+import { IInitialize } from "../../../../../npm/dist/global/blueexposure/IInitialize.js";
 import { BeObjectMetadata } from "../../../../../npm/dist/global/blue/BlueObjectMetadata.js";
 import "../../../../../npm/dist/global/blue/values.js";
 

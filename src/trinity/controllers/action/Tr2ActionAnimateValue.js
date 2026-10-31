@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue_Blue.cpp
 import { type, blue as legacyBlue } from "#schema";
 import { IsMatch, blue } from "#blue";
-import { INotify } from "#blue/INotify";
+import { INotify } from "#blueexposure/INotify";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";

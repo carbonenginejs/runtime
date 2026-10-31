@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
 // Source: trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp

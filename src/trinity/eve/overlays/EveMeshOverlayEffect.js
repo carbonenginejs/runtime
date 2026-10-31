@@ -1,11 +1,11 @@
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
-import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect_Blue.cpp
-import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { TriBatchType } from "#consts/graphics";
 import { type, blue } from "#schema";

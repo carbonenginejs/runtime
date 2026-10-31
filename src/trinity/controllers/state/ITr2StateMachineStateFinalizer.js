@@ -8,7 +8,7 @@
 // hedged: the hedge was emulating the empty bodies one call site at a time.
 
 import { CjsSchema, meta } from "#schema";
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 
 
 /** Contract for an object that holds a state machine in its current state. */

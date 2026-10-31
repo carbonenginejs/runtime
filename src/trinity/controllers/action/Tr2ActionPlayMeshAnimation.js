@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp
 import { IsMatch } from "#blue";
-import { INotify } from "#blue/INotify";
+import { INotify } from "#blueexposure/INotify";
 import { type, blue } from "#schema";
 import { DestinationType, PlayAction, StopAction } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";

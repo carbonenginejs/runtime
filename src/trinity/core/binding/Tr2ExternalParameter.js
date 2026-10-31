@@ -3,8 +3,8 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ExternalParameter.cpp
 // Source: trinity/trinity/Tr2ExternalParameter_Blue.cpp
 import { CjsSchema, type, blue } from "#schema";
-import { IInitialize } from "#blue/IInitialize";
-import { INotify } from "#blue/INotify";
+import { IInitialize } from "#blueexposure/IInitialize";
+import { INotify } from "#blueexposure/INotify";
 import { TriValueBinding } from "./TriValueBinding.js";
 
 /**

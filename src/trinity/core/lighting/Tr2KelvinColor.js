@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2KelvinColor.cpp
 // Source: trinity/trinity/Tr2KelvinColor_Blue.cpp
 import { CjsSchema, type } from "#schema";
-import { IInitialize } from "#blue/IInitialize";
+import { IInitialize } from "#blueexposure/IInitialize";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2StandardIlluminant } from "../../generated/trinityCore/enums.js";

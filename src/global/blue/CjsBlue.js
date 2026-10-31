@@ -15,8 +15,8 @@
 import { CjsSchema } from "#schema";
 import { CjsBluePaths } from "./CjsBluePaths.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
-import { CjsBlueClasses } from "./CjsBlueClasses.js";
-import { BeClasses } from "./classes/registry.js";
+import { CjsBlueClasses } from "../blueexposure/CjsBlueClasses.js";
+import { BeClasses } from "../blueexposure/classes/registry.js";
 import { blueEnums } from "./enums/CjsBlueEnumRegistry.js";
 import { CjsWwiseSoundEngineStub } from "../audio/CjsWwiseSoundEngineStub.js";
 

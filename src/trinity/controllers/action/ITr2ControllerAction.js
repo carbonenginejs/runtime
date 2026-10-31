@@ -14,7 +14,7 @@
 // contract yet). They are unrelated to the instance surface.
 
 import { CjsSchema } from "#schema";
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 
 
 

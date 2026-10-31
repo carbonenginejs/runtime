@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 import { ITr2TextureProvider } from "../ITr2TextureProvider.js";
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Tr2TextureArray.h
 //   trinity/trinity/Tr2TextureArray.cpp
 

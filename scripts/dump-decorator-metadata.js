@@ -18,7 +18,7 @@ if (!out)
 
 const modules = await ImportAllDistModules();
 const { CjsSchema } = await ImportDist("global/schema/CjsSchema.js");
-const { getClassRegistrations } = await ImportDist("global/blue/classes/registry.js");
+const { getClassRegistrations } = await ImportDist("global/blueexposure/classes/registry.js");
 
 /** A class's registered name, or null. */
 function nameOf(fn)

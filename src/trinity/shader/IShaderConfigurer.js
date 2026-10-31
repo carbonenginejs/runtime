@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Shader/IShaderConfigurer.h:5-9
 import { CjsSchema, meta } from "#schema";
 

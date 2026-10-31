@@ -1,5 +1,5 @@
 import { meta } from "#schema";
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 // Source: trinity/trinity/ITr2SkinnedObject.h:7-13
 import { CjsSchema, blue } from "#schema";
 

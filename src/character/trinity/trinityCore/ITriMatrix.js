@@ -1,4 +1,4 @@
-import { IRoot } from "#blue/IRoot";
+import { IRoot } from "#blueexposure/IRoot";
 // Source: trinity/trinity/Include/ITriMatrix.h:6-24
 import { CjsSchema, meta } from "#schema";
 

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GStateParameter.h
 import { type } from "#schema";
-import { IInitialize } from "#blue/IInitialize";
+import { IInitialize } from "#blueexposure/IInitialize";
 
 /** Named, node-scoped scalar value for a character GState animation. */
 @be.define("Tr2GStateParameter")

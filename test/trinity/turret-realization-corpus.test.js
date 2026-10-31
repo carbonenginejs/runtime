@@ -24,7 +24,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import "../../npm/dist/audio/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2Controller, TriObserverLocal, IEveSpaceObject2ParentData } from "../../npm/dist/trinity/index.js";
 

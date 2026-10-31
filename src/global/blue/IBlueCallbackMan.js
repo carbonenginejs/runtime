@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/IBlueCallbackMan.h
 //
 // A queue of callbacks run on the callback manager's own threads, or one at a

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Copier } from "../../npm/dist/global/blue/Copier.js";
-import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blue/INotify.js";
+import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
+import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsSchema, type, blue } from "../../npm/dist/global/schema/index.js";
 import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";

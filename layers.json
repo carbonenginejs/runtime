@@ -50,7 +50,8 @@
         "core",
         "global/logging",
         "global/audio",
-        "trinityal"
+        "trinityal",
+        "global/blueexposure"
       ]
     },
     "global/index.js": {
@@ -62,7 +63,8 @@
         "global/blue",
         "global/schema",
         "global/model",
-        "global/logging"
+        "global/logging",
+        "global/blueexposure"
       ]
     },
     "resource/index.js": {
@@ -160,7 +162,7 @@
     "global/schema": {
       "mayImport": [
         "global/blue/enums",
-        "global/blue/classes",
+        "global/blueexposure/classes",
         "global/compose",
         "global/utils",
         "global/math",
@@ -179,7 +181,8 @@
         "global/math",
         "global/consts",
         "global/schema",
-        "global/blue"
+        "global/blue",
+        "global/blueexposure"
       ],
       "why": [
         "CjsModel.get/set delegate to Blue's values engine (DictReader,",
@@ -191,22 +194,38 @@
       "mayImport": [
         "global/schema",
         "global/math",
-        "global/blue"
+        "global/blue",
+        "global/blueexposure"
       ],
       "why": [
         "Interface roots use schema implementation metadata so required",
         "methods carry @impl.abstract as well as their throwing body.",
         "Tr2DebugColor, declared in the same Carbon header as ITr2DebugRenderer2,",
         "converts Carbon Colors to packed words through global/math/color.",
-        "Carbon interfaces derive from IRoot (BLUE_INTERFACE( X ) : IRoot), so they import global/blue/IRoot."
+        "Carbon interfaces derive from IRoot (BLUE_INTERFACE( X ) : IRoot), so they import global/blueexposure/IRoot."
       ]
     },
-    "global/blue/classes": {
+    "global/blueexposure/classes": {
       "mayImport": [
         "global/logging"
       ],
       "why": [
-        "Complete class-registration storage shared by Blue and schema; logging depends only on constants and its plain channel record. This leaf never imports either facade or a domain."
+        "Complete class-registration storage shared by blueexposure and schema, and Carbon's global BeClasses; logging depends only on constants and its plain channel record. This leaf never imports either facade or a domain."
+      ]
+    },
+    "global/blueexposure": {
+      "mayImport": [
+        "global/consts",
+        "global/blueexposure/classes",
+        "global/compose",
+        "global/schema",
+        "global/utils",
+        "global/logging"
+      ],
+      "why": [
+        "Carbon's blueexposure layer (decorator-upgrade.md § 000): IRoot, BlueClasses, the exposure decorators (be),",
+        "Copier, BlueList, BlueScriptCallback and the interfaces Carbon declares there. Carbon's blueexposure links",
+        "only CcpCore and Python and blue links it, never the reverse, so this imports nothing from global/blue."
       ]
     },
     "global/blue/enums": {
@@ -219,12 +238,13 @@
       "mayImport": [
         "global/consts",
         "global/blue/enums",
-        "global/blue/classes",
+        "global/blueexposure/classes",
         "global/compose",
         "global/schema",
         "global/utils",
         "global/logging",
-        "global/audio"
+        "global/audio",
+        "global/blueexposure"
       ],
       "why": [
         "Ports of Carbon's blueexposure layer - facilities Blue provides to every",

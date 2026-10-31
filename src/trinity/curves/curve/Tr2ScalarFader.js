@@ -1,4 +1,4 @@
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.h
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.cpp

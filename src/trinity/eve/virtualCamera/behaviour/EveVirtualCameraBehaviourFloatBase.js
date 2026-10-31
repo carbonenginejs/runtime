@@ -1,9 +1,9 @@
-import { IRoot } from "../../../../global/blue/IRoot.js";
+import { IRoot } from "../../../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { IsMatch } from "#blue";
-import { INotify } from "../../../../global/blue/INotify.js";
+import { INotify } from "../../../../global/blueexposure/INotify.js";
 import { type } from "#schema";
 
 

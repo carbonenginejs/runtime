@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../global/blue/IRoot.js";
+import { IRoot } from "../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/RenderJob/TriRenderJob.h
 // Source: trinity/trinity/RenderJob/TriRenderJob.cpp
 import { type } from "#schema";

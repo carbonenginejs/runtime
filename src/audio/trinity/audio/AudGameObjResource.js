@@ -12,11 +12,11 @@ import { CjsWwiseSoundEngineStub } from "../../../global/audio/CjsWwiseSoundEngi
 // state, bank statuses, prioritization) and `backend` (Wwise-shaped calls)
 // via the statics at the bottom.
 import { BLUELISTEVENT } from "#consts/blue";
-import { IInitialize } from "#blue/IInitialize";
-import { IListNotify } from "#blue/IListNotify";
-import { INotify } from "#blue/INotify";
+import { IInitialize } from "#blueexposure/IInitialize";
+import { IListNotify } from "#blueexposure/IListNotify";
+import { INotify } from "#blueexposure/INotify";
 import { type, blue as legacyBlue } from "#schema";
-import { BlueList } from "#blue/BlueList";
+import { BlueList } from "#blueexposure/BlueList";
 import { AudParameter } from "./AudParameter.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";

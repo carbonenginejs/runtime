@@ -2,8 +2,8 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
 import { EveEntity } from "../../EveEntity.js";
-import { INotify } from "../../../../global/blue/INotify.js";
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { INotify } from "../../../../global/blueexposure/INotify.js";
+import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp

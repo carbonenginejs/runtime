@@ -1,4 +1,4 @@
-import { IRoot } from "../../../global/blue/IRoot.js";
+import { IRoot } from "../../../global/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h:141-171
 //   trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp:394-441

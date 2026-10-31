@@ -1,4 +1,4 @@
-import { IRoot } from "./IRoot.js";
+import { IRoot } from "../blueexposure/IRoot.js";
 // Source: blue/include/ICacheable.h:8-18
 //
 // An object that can say how much memory it holds. MotherLode asks for it when

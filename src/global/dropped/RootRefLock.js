@@ -9,7 +9,7 @@
 // InstIncrement/LockIncrement (:110-131) feed BeClasses->UpdateObjectCount.
 // A JavaScript object is freed when unreachable, so there is no count to keep
 // and nothing to destroy. IRoot's own JSDoc records that native reference
-// counting and deletion are not implemented (src/global/blue/IRoot.js); the
+// counting and deletion are not implemented (src/global/blueexposure/IRoot.js); the
 // resource cache's Lock/Unlock is a separate protocol, not this one.
 // IBlueClasses.UpdateObjectCount stays an inert interface method.
 // No runtime registration or export.

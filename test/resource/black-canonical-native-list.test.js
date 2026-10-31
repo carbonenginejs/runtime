@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
-import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
-import { IList } from "../../npm/dist/global/blue/IList.js";
-import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
-import { INotify } from "../../npm/dist/global/blue/INotify.js";
+import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
+import { IList } from "../../npm/dist/global/blueexposure/IList.js";
+import { IListNotify } from "../../npm/dist/global/blueexposure/IListNotify.js";
+import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
 
