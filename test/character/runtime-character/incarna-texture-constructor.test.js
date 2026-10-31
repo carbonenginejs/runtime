@@ -4,6 +4,7 @@ import test from "node:test";
 import { CjsBlueResMan } from "../../../npm/dist/resource/index.js";
 import { CjsIncarnaTextureConstructor, IncarnaTexturePrefix, RegisterIncarnaTextures } from "../../../npm/dist/character/index.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
+import "../../support/frameLoop.js";
 
 /**
  * `dynamic:/incarna/<role>/<source>` is one quad shader input made from one

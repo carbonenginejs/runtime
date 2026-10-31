@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { BlueAsyncRes, CjsBlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
+import "../../support/frameLoop.js";
 
 /** One process-wide manager, restored after every test. */
 function managerFor(t)

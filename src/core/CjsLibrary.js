@@ -397,7 +397,7 @@ function ValidateConfiguration(configuration)
   const plain = value => value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
   const options = new Set(["motherLode", "cacheSize", "cacheCleanup", "autoPurgePolicy", "source", "mainThreadLoader",
     "workerLoader", "useWorkerLoading", "maxConcurrentLoads", "maxPrepareTime", "maxAllowedInPrepareQueue",
-    "autoPumpMainThreadQueue", "queueScheduler", "urgentResourceLoads"]);
+    "urgentResourceLoads"]);
   if (!plain(configuration)) throw new TypeError("Configuration must contain named sections.");
   for (const [section, entries] of Object.entries(configuration))
   {
@@ -460,8 +460,7 @@ function ValidateConfiguration(configuration)
         valid = options.has(key) && value !== undefined;
         if (["cacheSize", "maxConcurrentLoads", "maxPrepareTime", "maxAllowedInPrepareQueue"].includes(key))
           valid = typeof value === "number" && Number.isFinite(value) && value >= 0 && (key !== "maxConcurrentLoads" || value > 0);
-        if (["useWorkerLoading", "autoPumpMainThreadQueue", "urgentResourceLoads"].includes(key)) valid = typeof value === "boolean";
-        if (key === "queueScheduler") valid = value === null || typeof value === "function";
+        if (["useWorkerLoading", "urgentResourceLoads"].includes(key)) valid = typeof value === "boolean";
       }
       if (!valid) throw new TypeError(`Invalid configuration entry: ${section}.${key}`);
     }

@@ -11,6 +11,7 @@ import { RealizeTexture } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers
 import { CreateLodAllocations, SharedGeometryBuffer, ReleaseSharedGeometryBuffer } from "../../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
 import { Tr2BufferDescriptionAL, Tr2ResourceSetAL, Tr2ResourceSetDescriptionAL, Tr2RegisterMapAL } from "../../../npm/dist/trinityal/index.js";
 import { Tr2GpuUsage, Tr2CpuUsage, ShaderType } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { HoldFrameLoop } from "../../support/frameLoop.js";
 
 // The real resource manager, texture/geometry owners and WebGPU AL run against
 // this counting GPUDevice. No browser, adapter or physical GPU is involved.
@@ -59,8 +60,10 @@ function dds()
   return bytes;
 }
 
-test("switching ships lets the idle owner's GPU objects expire while the current ship survives", async () =>
+test("switching ships lets the idle owner's GPU objects expire while the current ship survives", async t =>
 {
+  // Update and its purge run on this test's clock; loads are pumped with Wait.
+  HoldFrameLoop(t);
   let now = 0;
   const { al, render, live, destroyed } = context();
   // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
@@ -71,7 +74,9 @@ test("switching ships lets the idle owner's GPU objects expire while the current
   const initial = counts();
   async function ship(name)
   {
-    const texture = await manager.FetchResource(`res:/${name}.dds`);
+    const fetched = manager.FetchResource(`res:/${name}.dds`);
+    await manager.Wait();
+    const texture = await fetched;
     RealizeTexture(texture, al);
     const description = new Tr2ResourceSetDescriptionAL({ registerMap: new Tr2RegisterMapAL({
       stage: ShaderType.PIXEL_SHADER, signature: { registers: [ { registerType: 32, registerIndex: 0 } ] }

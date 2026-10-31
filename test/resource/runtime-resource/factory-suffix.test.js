@@ -5,6 +5,7 @@ import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { TriTextureRes, Tr2ImageRes } from "../../../npm/dist/trinity/resources/texture/index.js";
 import { Tr2LightProfileRes } from "../../../npm/dist/resource/index.js";
 import { DefaultConfiguration } from "../../../npm/dist/core/configuration.js";
+import "../../support/frameLoop.js";
 
 function profileBytes(width = 1024)
 {

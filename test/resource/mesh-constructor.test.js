@@ -5,6 +5,7 @@ import { CjsBlueResMan, CjsMeshConstructor, MeshPrefix, RegisterMeshConstructor,
 import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/CjsGr2Format.js";
 import { configureResourceManager } from "../support/configuredResMan.js";
+import "../support/frameLoop.js";
 
 /**
  * `dynamic:/mesh/<meshIndex>/<source>` holds one mesh of a `.gr2` or `.cmf`

@@ -336,12 +336,6 @@ export class CjsBlueResMan
   /** `m_mainThreadMaxTime` (BlueResMan.cpp:78): the longest prepare loop of one `Update`, in seconds. */
   mainThreadMaxTime = 0;
 
-  /** Whether the main-thread queue schedules its own pumps. */
-  autoPumpMainThreadQueue = true;
-
-  /** Schedules a main-thread pump callback. */
-  queueScheduler = defaultQueueScheduler;
-
   /** `m_urgentResourceLoads( false )` (BlueResMan.h:128, BlueResMan.cpp:73). */
   urgentResourceLoads = false;
 
@@ -383,9 +377,6 @@ export class CjsBlueResMan
   /** Whether a background-queue pump is already scheduled. */
   _backgroundPumpScheduled = false;
 
-  /** Whether a main-thread-queue pump is already scheduled. */
-  _mainThreadPumpScheduled = false;
-
   /**
    * `m_threadQueues[BRMQ_COUNT]` (BlueResMan.h:132): the callback managers,
    * indexed by `BlueResManQueue` and used as `m_threadQueues[BRMQ_MAIN]` and
@@ -395,12 +386,13 @@ export class CjsBlueResMan
    * (BlueResMan.cpp:110), whose threads block on a quick local read. Ours is
    * resMan's own manager in `Update` mode, whose async slots wait on the
    * network, so loads in flight have their own count (`SetLoadingThreadCount`).
-   * Neither runs its own threads: resMan pumps both, and each one's slot-free
-   * callback, which `Resume` also calls, stands in for Carbon's semaphore.
+   * Neither runs its own threads. The main queue runs only in `Update`, each
+   * frame, as Carbon's (BlueResMan.cpp:439-464). The background queue refills
+   * as soon as a slot frees: its slot-free callback, which `Resume` also
+   * calls, stands in for its threads' semaphore.
    */
   _threadQueues = createThreadQueues(
     this.maxConcurrentLoads,
-    () => this.ScheduleMainThreadQueue(),
     () => this.ScheduleBackgroundQueue()
   );
 
@@ -493,18 +485,6 @@ export class CjsBlueResMan
       {
         assertNonNegativeInteger(value, "CjsBlueResMan maxAllowedInPrepareQueue");
         this.maxAllowedInPrepareQueue = value;
-      },
-      autoPumpMainThreadQueue: value =>
-      {
-        this.autoPumpMainThreadQueue = Boolean(value);
-      },
-      queueScheduler: value =>
-      {
-        if (value !== null && typeof value !== "function")
-        {
-          throw new TypeError("CjsBlueResMan queueScheduler must be a function or null.");
-        }
-        this.queueScheduler = value || defaultQueueScheduler;
       },
       urgentResourceLoads: this.SetUrgentResourceLoads
     }, this);
@@ -621,8 +601,9 @@ export class CjsBlueResMan
    * settles. Carbon writes the id through its output pointer; it is the return
    * value here (ruled 2026-10-17).
    *
-   * Adapted: Carbon's threads wake on the queue's semaphore; here the queue is
-   * scheduled for a pump (`ScheduleMainThreadQueue`, `ScheduleBackgroundQueue`).
+   * Adapted: Carbon's background threads wake on their semaphore; here a
+   * background entry schedules a pump (`ScheduleBackgroundQueue`). A main
+   * entry waits for `Update`, as Carbon's does.
    *
    * @param {number} queue `BlueResManQueue`.
    * @param {Function} callback Called with the context.
@@ -634,8 +615,7 @@ export class CjsBlueResMan
     const id = { value: 0 };
     this._threadQueues[queue].Add(callback, context, flags, id);
 
-    if (queue === BlueResManQueue.BRMQ_MAIN) this.ScheduleMainThreadQueue();
-    else this.ScheduleBackgroundQueue();
+    if (queue === BlueResManQueue.BRMQ_BACKGROUND) this.ScheduleBackgroundQueue();
     return id.value;
   }
 
@@ -663,8 +643,8 @@ export class CjsBlueResMan
    * The prepare loop of `BlueResMan::Update` (BlueResMan.cpp:446-464): unthrottle
    * the background queue, run one main-queue entry, and repeat while under the
    * time slice or while more than `maxAllowedInPrepareQueue` are waiting.
-   * `Update` reads its count and time for Carbon's statistics; the scheduled
-   * auto-pump and `Wait` run it too.
+   * `Update` reads its count and time for Carbon's statistics; `Wait` runs
+   * it too. Nothing else runs prepare work.
    *
    * @param {object} [options={}] `maxTime` (seconds, default `maxPrepareTime`) and a `now` clock in milliseconds.
    * @returns {{processed: number, elapsed: number}} Entries run, and milliseconds spent.
@@ -690,9 +670,6 @@ export class CjsBlueResMan
     }
     while (elapsed < timeSlice || main.GetSize() > this.maxAllowedInPrepareQueue);
 
-    // The slice ran out with entries still waiting and none running: nothing
-    // frees a slot to call back, so the next pump is scheduled here.
-    if (main.GetActiveCount() === 0 && main.GetSize() > 0) this.ScheduleMainThreadQueue();
     return { processed, elapsed };
   }
 
@@ -718,8 +695,9 @@ export class CjsBlueResMan
   }
 
   /**
-   * `ResumeQueue` (BlueResMan.cpp:391-399) - forwards to the queue's `Resume`,
-   * whose last call schedules the queue again through its slot-free callback.
+   * `ResumeQueue` (BlueResMan.cpp:391-399) - forwards to the queue's `Resume`.
+   * A resumed background queue refills through its slot-free callback; the main
+   * queue runs at the next `Update`.
    */
   ResumeQueue(queue) {
     this._threadQueues[queue].Resume();
@@ -1057,30 +1035,6 @@ export class CjsBlueResMan
       this._backgroundPumpScheduled = false;
       this.PumpBackgroundQueue();
     });
-    return this;
-  }
-
-  /**
-   * Schedules a run of the prepare loop through `queueScheduler`, when
-   * `autoPumpMainThreadQueue` is on, entries are waiting and the queue is not
-   * paused.
-   *
-   * Ours: Carbon's main queue runs only from `Update` each frame; the
-   * auto-pump is our option for hosts that want prepares between frames.
-   */
-  ScheduleMainThreadQueue() {
-    const main = this._threadQueues[BlueResManQueue.BRMQ_MAIN];
-    if (!this.autoPumpMainThreadQueue || this._mainThreadPumpScheduled || main.IsPaused() || main.GetSize() === main.GetActiveCount()) return this;
-    this._mainThreadPumpScheduled = true;
-    try {
-      this.queueScheduler(() => {
-        this._mainThreadPumpScheduled = false;
-        this._RunMainThreadQueue();
-      });
-    } catch (error) {
-      this._mainThreadPumpScheduled = false;
-      throw error;
-    }
     return this;
   }
 
@@ -4008,11 +3962,6 @@ function defaultAutoPurgeNow()
   return CjsBlueOS.Monotonic();
 }
 
-function defaultQueueScheduler(callback)
-{
-  return setTimeout(callback, 0);
-}
-
 function defaultQueueYield()
 {
   return new Promise(resolve => setTimeout(resolve, 0));
@@ -4044,17 +3993,15 @@ function createLoadObjectCache(cacheSize, now)
  * load in flight.
  *
  * @param {number} loadingThreadCount Background slots.
- * @param {Function} onMainSlotFree Called when a main slot frees or the queue resumes.
  * @param {Function} onBackgroundSlotFree Called when a background slot frees or the queue resumes.
  * @returns {BlueCallbackMan[]} The managers.
  */
-function createThreadQueues(loadingThreadCount, onMainSlotFree, onBackgroundSlotFree)
+function createThreadQueues(loadingThreadCount, onBackgroundSlotFree)
 {
   const queues = [];
 
   const main = new BlueCallbackMan();
   main.SetName("resMan main");
-  main.SetSlotFreeCallback(onMainSlotFree);
   queues[BlueResManQueue.BRMQ_MAIN] = main;
 
   const background = new BlueCallbackMan();

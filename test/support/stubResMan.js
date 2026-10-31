@@ -48,7 +48,7 @@ export class StubResMan extends CjsBlueResMan
 {
   constructor(resolve = null)
   {
-    super({ autoPumpMainThreadQueue: false });
+    super();
     this.PauseQueue(0);
     this.PauseQueue(1);
     this.resolve = resolve;

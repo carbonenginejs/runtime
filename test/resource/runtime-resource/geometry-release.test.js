@@ -7,6 +7,7 @@ import { blue, CjsBlueResMan, CjsLoadingObject } from "../../../npm/dist/global/
 import { TriGeometryRes } from "../../../npm/dist/trinity/resources/geometry/index.js";
 import { CjsCmfFormat } from "../../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { configureResourceManager } from "../../support/configuredResMan.js";
+import "../../support/frameLoop.js";
 
 // One triangle is enough: the raycaster only has to build, not hit anything.
 function loadedGeometry()

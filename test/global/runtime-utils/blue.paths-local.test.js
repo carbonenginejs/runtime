@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { blue } from "../../../npm/dist/global/blue/index.js";
 import { localFileSystem } from "../../support/localFileSystem.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
+import "../../support/frameLoop.js";
 
 // Carbon's FileExistsLocally asks whether a file's bytes are on this machine
 // (BluePaths.cpp:170-206). Loading a resource does not answer it: the

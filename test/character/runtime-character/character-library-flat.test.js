@@ -6,6 +6,7 @@ import {
 } from "../../../npm/dist/character/index.js";
 import { CjsBluePaths, CjsBlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
+import "../../support/frameLoop.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/topmiddle/shirtcf01";
 const CAMERA = "res:/graphics/character/global/paperdolllibrary/cameras/test.yaml";

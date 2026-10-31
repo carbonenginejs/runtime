@@ -170,7 +170,6 @@ test("CjsBlueResMan loads through the worker when its source offers a worker req
     }
   };
   const resMan = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
     source,
     workerLoader: new CjsResManWorkerLoader({ worker })
   });
@@ -361,7 +360,6 @@ test("CjsBlueResMan sends worker-safe reads off the main queue and publishes on 
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
   }
   const resMan = new CjsBlueResMan({
-    autoPumpMainThreadQueue: false,
     source: { Read() { return new Uint8Array([ 8 ]); } },
     workerLoader,
     useWorkerLoading: true

@@ -5,6 +5,7 @@ import test from "node:test";
 import { CjsFormatStore, Tr2GrannyStateRes, TriGrannyRes } from "../../../npm/dist/resource/index.js";
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
 import { configureResourceManager } from "../../support/configuredResMan.js";
+import "../../support/frameLoop.js";
 
 // The reader and the resource were never tested together, which is how a guard
 // demanding fields no reader emits survived. This asserts the join directly.

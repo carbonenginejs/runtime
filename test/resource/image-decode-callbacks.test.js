@@ -9,6 +9,7 @@ import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
 import { IMAGE_DECODE_CALLBACK_MODULES, DECODE_BITMAP_CALLBACK } from "../../npm/dist/resource/imageio/imageDecodeCallbacks.js";
 import { HostBitmap, LoadParameters, Metadata } from "../../npm/dist/global/imageio/index.js";
+import "../support/frameLoop.js";
 
 
 // Carbon decodes a texture on resMan's background queue, which is BeCallbackMan

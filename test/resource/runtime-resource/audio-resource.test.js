@@ -3,6 +3,7 @@ import test from "node:test";
 import {CjsAudioBufferRes, CjsAudioRes} from "../../../npm/dist/audio/resources/index.js";
 import {CjsAudioBufferRes as RootBuffer, CjsAudioRes as RootAudio} from "../../../npm/dist/audio/index.js";
 import {blue, CjsBlueResMan} from "../../../npm/dist/global/blue/index.js";
+import "../../support/frameLoop.js";
 
 /** Load a physical owner through the same configured route a host supplies. */
 async function backingFor(t, bytes)

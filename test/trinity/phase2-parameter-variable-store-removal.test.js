@@ -9,6 +9,7 @@ import { TriVariableParameter } from "../../npm/dist/trinity/shader/parameter/Tr
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { Tr2MaterialArea } from "../../npm/dist/trinity/shader/Tr2MaterialArea.js";
 import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
+import "../support/frameLoop.js";
 
 const settle = () => new Promise(resolve => setImmediate(resolve));
 

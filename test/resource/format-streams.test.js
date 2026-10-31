@@ -12,6 +12,7 @@ import { CjsOggFormat } from "../../src/resource/formats/ogg/CjsOggFormat.js";
 import { CjsWavFormat } from "../../src/resource/formats/wav/CjsWavFormat.js";
 import { TestDataRes } from "../support/testDataRes.js";
 import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
+import "../support/frameLoop.js";
 
 const { STREAM_AUDIO, STREAM_VIDEO, STREAM_AUDIO_VIDEO } = StreamType;
 

@@ -9,6 +9,7 @@ import { buildVta } from "../support/vtaFixture.js";
 import { CjsBlueResMan, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
+import "../support/frameLoop.js";
 
 ImageIO.registerImageHandler(CjsVtaFormat);
 blue.resMan.RegisterFormat(CjsVtaFormat);

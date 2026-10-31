@@ -4,6 +4,7 @@ import { test } from "node:test";
 
 import { CjsBlueResMan } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
+import "../../support/frameLoop.js";
 
 // A browser backend has no shipped containers of its own. The orchestrator
 // commits the source tree, target and translator once; the loader passes the

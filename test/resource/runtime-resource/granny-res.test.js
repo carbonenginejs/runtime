@@ -9,6 +9,7 @@ import { BlueResFileSystemForm, CjsBluePaths, IBlueResFileSystem, CjsBlueResMan,
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import "../../support/frameLoop.js";
 
 // Our own generated GR2, made for the racing demo: not a client asset, and the
 // only GR2 we have generated that loads correctly (operator, 2026-10-25).

@@ -10,6 +10,7 @@ import {
   getMotherLodeKey
 } from "../../../npm/dist/resource/index.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
+import { HoldFrameLoop } from "../../support/frameLoop.js";
 
 // Carbon's LoadObject caches a builder and creates a new object per call
 // (BlueResMan.cpp:653-795). These pin that for routes that hydrate a Target.
@@ -299,7 +300,7 @@ test("LoadObject refuses a load that yields plain data, and names the plain read
 // Builds from a registered object builder are MAIN-queue tasks: FIFO, each
 // whole, drained within the prepare loop's time slice (Carbon's one-build-at-a-time
 // BlackReader wait, BlackReader.cpp:233-262; ccpwgl findings 0277-0279).
-test("object builds drain FIFO within the prepare budget, never split, re-entrant last", async () =>
+test("object builds drain FIFO within the prepare budget, never split, re-entrant last", async t =>
 {
   let clock = 0;
   let built = 0;
@@ -314,7 +315,8 @@ test("object builds drain FIFO within the prepare budget, never split, re-entran
   }));
   const path = "res:/data/budget.obj";
   await resMan.LoadObject(path);
-  resMan.autoPumpMainThreadQueue = false;
+  // From here this test pumps Update itself, on its own clock.
+  HoldFrameLoop(t);
 
   const order = [];
   const requests = [];

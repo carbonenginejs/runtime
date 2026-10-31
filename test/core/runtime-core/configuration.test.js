@@ -12,6 +12,7 @@ import { TriGrannyRes } from "../../../npm/dist/trinity/resources/geometry/grann
 import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/Tr2EffectRes.js";
 import { GetEffectPathDefaults, SetEffectPathDefaults } from "../../../npm/dist/global/utils/effectPath.js";
+import "../../support/frameLoop.js";
 
 /** Isolated real Blue owners; no host loop, fetch or device is started. */
 function services()

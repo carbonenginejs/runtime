@@ -9,6 +9,7 @@ import {
 import CjsPickleFormat, {
   CjsPickleFormat as NamedCjsPickleFormat
 } from "../../../../../src/resource/formats/pickle/index.js";
+import "../../../../support/frameLoop.js";
 
 test("package subpath exports one public pickle format class", async () =>
 {

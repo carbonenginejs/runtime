@@ -15,6 +15,7 @@ import { mat4 } from "../../../npm/dist/global/math/mat4.js";
 import { StubResMan } from "../../support/stubResMan.js";
 import { localFileSystem } from "../../support/localFileSystem.js";
 import { Tr2Renderer } from "../../../npm/dist/trinity/core/Tr2Renderer.js";
+import "../../support/frameLoop.js";
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 

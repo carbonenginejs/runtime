@@ -11,6 +11,7 @@ import { Tr2BaseDeviceResourceAL, Tr2TextureAL, ALResult, Tr2BitmapDimensions, T
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
+import "../../support/frameLoop.js";
 
 // Carbon creates a texture with one Tr2SubresourceData per (mip, layer),
 // indexed mip + layer * mipCount (Tr2ImageIOHelpers.cpp:104-128), and Metal

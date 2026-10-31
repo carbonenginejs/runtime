@@ -4,6 +4,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import {
   blue, BlueAsyncRes, CjsBlueResMan, BlueResManQueue, IBlueAsyncResNotifyTarget, IBlueCallbackMan, IBlueResMan, IBluePaths, IBlueResource
 } from "../../npm/dist/global/blue/index.js";
+import "../support/frameLoop.js";
 
 /** Records queued callbacks so a test can run them as the queue would. */
 class QueueResMan extends CjsBlueResMan

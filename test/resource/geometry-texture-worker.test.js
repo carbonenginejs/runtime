@@ -15,6 +15,7 @@ import { RegisterTextureArray, TriTextureRes, Tr2ImageRes } from "../../npm/dist
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import "../support/frameLoop.js";
 
 function workerLoader(t)
 {

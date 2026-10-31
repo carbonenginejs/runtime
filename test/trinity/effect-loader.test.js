@@ -10,6 +10,7 @@ import { Tr2Effect } from "../../npm/dist/trinity/shader/index.js";
 import { SetEffectPathDefaults } from "../../npm/dist/global/utils/effectPath.js";
 import { CjsCarbonEffectWriter } from "../../npm/dist/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { buildSyntheticDescription } from "../resource/runtime-resource/format/carbonEffectSynthetic.js";
+import "../support/frameLoop.js";
 
 test("CjsLibrary loads an effect and retains its permutation reader", async () =>
 {

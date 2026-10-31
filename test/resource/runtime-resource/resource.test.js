@@ -16,6 +16,7 @@ import { Tr2EffectRes, Tr2MaterialRes } from "../../../npm/dist/trinity/shader/i
 import { LoadData } from "../../support/loadData.js";
 import { RegisterDataLoader, TestDataRes } from "../../support/testDataRes.js";
 import {blue} from "../../../npm/dist/global/blue/index.js";
+import "../../support/frameLoop.js";
 
 /** A concrete family test double that owns its reader result. */
 class TestValueResource extends BlueAsyncRes

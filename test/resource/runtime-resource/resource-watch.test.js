@@ -13,6 +13,7 @@ import { CjsBlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/global/blue
 import { Tr2Effect, TriTextureParameter } from "../../../npm/dist/trinity/index.js";
 import { TriTextureRes } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
+import { HoldFrameLoop } from "../../support/frameLoop.js";
 
 
 /** Fixture completion uses the native flags and manager operation settlement. */
@@ -156,8 +157,10 @@ test("the watch renews a purged resource and waits for its same-handle reload", 
 });
 
 
-test("a resource left EMPTY is failed after the stall limit, and the watch completes", async () =>
+test("a resource left EMPTY is failed after the stall limit, and the watch completes", async t =>
 {
+  // UpdateWatched runs on this test's clock; the frame loop's Update would not.
+  HoldFrameLoop(t);
   const resMan = new CjsBlueResMan();
   blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
