@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import { vec4 } from "#math/vec4";
 
 // Discovery: src/character/discovery/prs.yaml
 // Additional discovery: scenes_prs.yaml
@@ -42,10 +43,26 @@ export class CjsCharacterRecipeModifier
     @type.path(".color")
     colorvariation = "";
 
-    /** Optional three four-component tuples. */
+    /** Colour area 1's specular colour (the recipe's `specularcolors[0]`); neutral grey when it has none. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list({ kind: "list", itemType: "float64" })
-    specularcolors = [];
+    @type.color
+    specularColor1 = vec4.fromValues(.5, .5, .5, 1);
+
+    /** Colour area 2's specular colour (the recipe's `specularcolors[1]`); neutral grey when it has none. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.color
+    specularColor2 = vec4.fromValues(.5, .5, .5, 1);
+
+    /** Colour area 3's specular colour (the recipe's `specularcolors[2]`); neutral grey when it has none. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.color
+    specularColor3 = vec4.fromValues(.5, .5, .5, 1);
+
+    /**
+     * The files' list form, translated by the reader: each listed key holds one tuple per named field, copied
+     * into that field in order.
+     */
+    static sourceLists = { specularcolors: [ "specularColor1", "specularColor2", "specularColor3" ] };
 
     /** Authored variation name. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

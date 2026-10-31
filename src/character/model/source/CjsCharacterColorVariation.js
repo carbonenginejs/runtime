@@ -1,20 +1,32 @@
 import { meta, type } from "#schema";
+import { vec4 } from "#math/vec4";
 
 // Discovery: src/character/discovery/color.yaml
 // Resource pattern: res:/graphics/character/*
 
 /**
- * A colour variation with plain numeric tuples. Optional specularColors absence belongs to the reader/writer, not a fabricated authored value.
- * Storage defaults initialize empty records; they are not inferred authored defaults.
+ * A colour variation: three colours, three specular colours and an optional pattern. Each colour is its own
+ * field, as Carbon exposes `EveSOFDataFactionColorSet` colour by colour; the file's `colors` and
+ * `specularColors` lists are translated by the reader (`sourceLists`).
  */
 @meta.define("CjsCharacterColorVariation")
 export class CjsCharacterColorVariation
 {
 
-    /** Three authored four-component tuples, without float32 rounding. */
+    /** Colour area 1's RGBA colour (the file's `colors[0]`). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list({ kind: "list", itemType: "float64" })
-    colors = [];
+    @type.color
+    color1 = vec4.create();
+
+    /** Colour area 2's RGBA colour (the file's `colors[1]`). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.color
+    color2 = vec4.create();
+
+    /** Colour area 3's RGBA colour (the file's `colors[2]`). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.color
+    color3 = vec4.create();
 
     /** Authored pattern name, retained as written. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
@@ -29,12 +41,35 @@ export class CjsCharacterColorVariation
     @type.list("unknown")
     patternColors = [];
 
-    /** Optional three four-component tuples. The reader/writer preserves whether the member was authored. */
+    /** Colour area 1's specular colour (the file's `specularColors[0]`); neutral grey when the file has none. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list({ kind: "list", itemType: "float64" })
-    specularColors = [];
+    @type.color
+    specularColor1 = vec4.fromValues(.5, .5, .5, 1);
 
-    /** The specular colour of a palette that tints nothing: mid grey, opaque. */
+    /** Colour area 2's specular colour (the file's `specularColors[1]`); neutral grey when the file has none. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.color
+    specularColor2 = vec4.fromValues(.5, .5, .5, 1);
+
+    /** Colour area 3's specular colour (the file's `specularColors[2]`); neutral grey when the file has none. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.color
+    specularColor3 = vec4.fromValues(.5, .5, .5, 1);
+
+    /**
+     * The files' list form, translated by the reader: each listed key holds one tuple per named field, copied
+     * into that field in order.
+     */
+    static sourceLists = {
+        colors: [ "color1", "color2", "color3" ],
+        specularColors: [ "specularColor1", "specularColor2", "specularColor3" ]
+    };
+
+    /**
+     * The specular colour of a palette that tints nothing: mid grey, opaque. 229 of build 3662168's 2,555
+     * palettes state no specular colours, and their records hold this (2026-11-01, colour reshape): before it, a
+     * palette without them could not be read with its specular colours.
+     */
     static neutralSpecular = [ .5, .5, .5, 1 ];
 
     /** The shipped pattern textures; a palette's `pattern` names one (`caldari_C` is `caldari_c_z.dds`). */

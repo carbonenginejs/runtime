@@ -17,7 +17,7 @@ function fixture(t)
 {
     const text = new Map([
         [ROOT + "/metadata.yaml", "!!python/object:paperDoll.AvatarPartMetaData\ndependantModifiers: [utilityshapes/test###0.25]\noccludesModifiers: null\n"],
-        [ROOT + "/default.color", "colors: [!!python/tuple [0.1,0.2,0.3,1]]\npattern: ''\npatternColors: []\n"],
+        [ROOT + "/default.color", "colors: [!!python/tuple [0.1,0.2,0.3,1], !!python/tuple [0.4,0.5,0.6,1], !!python/tuple [0.7,0.8,0.9,1]]\npattern: ''\npatternColors: []\n"],
         [ROOT + "/types/shirt.type", "!!python/tuple [topmiddle/shirtcf01, '', default]\n"],
         [ROOT + "/diffuse.png", "opaque"],
         [ROOT + "/mesh.red", "opaque"],

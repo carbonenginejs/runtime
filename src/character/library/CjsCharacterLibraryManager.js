@@ -256,7 +256,7 @@ export class CjsCharacterLibraryManager
      *   then have.
      * @returns {Promise<?{ colors: Float32Array[], specularColors: ?Float32Array[], pattern: ?object }>} The
      *   colours, and the pattern of a patterned palette that is allowed; null for a skipped pattern.
-     * @throws {Error} For a malformed palette, or one the options refuse.
+     * @throws {Error} For a malformed pattern, or a palette the options refuse.
      */
     async FetchPalette(path, { pattern = "allow", neutralSpecular = false, specular = false } = {})
     {
@@ -264,11 +264,13 @@ export class CjsCharacterLibraryManager
         const value = await this.GetColorVariation(path);
         if (value.pattern && pattern === "skip") return null;
         if (value.pattern && pattern === "reject") throw new Error("Palette needs pattern composition: " + path);
-        if (neutralSpecular && value.specularColors.some(color => color.some((channel, i) => channel !== CjsCharacterColorVariation.neutralSpecular[i])))
+        const specularColors = [ value.specularColor1, value.specularColor2, value.specularColor3 ];
+        if (neutralSpecular && specularColors.some(color => color.some((channel, i) => channel !== CjsCharacterColorVariation.neutralSpecular[i])))
             throw new Error("Palette needs specular tint composition: " + path);
+        // Copies: the record's own colours are never handed out.
         return {
-            colors: CjsCharacterColorVariation.colorTriple(value.colors, path),
-            specularColors: specular ? CjsCharacterColorVariation.colorTriple(value.specularColors, path) : null,
+            colors: [ Float32Array.from(value.color1), Float32Array.from(value.color2), Float32Array.from(value.color3) ],
+            specularColors: specular ? specularColors.map(color => Float32Array.from(color)) : null,
             pattern: value.pattern ? CjsCharacterColorVariation.patternOf(value, path) : null
         };
     }

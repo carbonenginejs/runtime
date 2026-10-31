@@ -9,7 +9,10 @@ import "../../support/frameLoop.js";
 // Expected values recorded from Graphene's readPaletteFile (palettes.js at graphene b6649d7) over
 // build 3662168: one real palette per outcome across all twelve option sets, the first in path
 // order. Over all 2,555 character palettes of that build, FetchPalette answered the same as
-// readPaletteFile for every option set, error messages included (30,660 comparisons).
+// readPaletteFile for every option set, error messages included (30,660 comparisons). One change
+// since, by the colour reshape (2026-11-01): a palette that states no specular colours holds neutral
+// grey ones, so `specular: true` answers them where readPaletteFile threw "Malformed palette"; those
+// cases were re-recorded (1,374 of the 30,660 over the build; the rest still answer the same).
 const expected = JSON.parse(readFileSync(new URL("./fixtures/character-library-palettes.json", import.meta.url), "utf8"));
 
 /** Installs Blue paths and a resMan over the fixture's palette texts for one test. */
@@ -63,4 +66,18 @@ test("the shared library starts lazily over Blue's installed services and loads 
     await library.FetchPalette(path);
     await library.FetchPalette(path);
     assert.deepEqual(reads, [ path ]);
+});
+
+test("a palette's colours are the record's own fields, and FetchPalette hands out copies", async t =>
+{
+    InstallPalettes(t);
+    const library = new CjsCharacterLibraryManager();
+    const [ path ] = expected.palettes.map(palette => palette.path);
+    const palette = await library.FetchPalette(path, { specular: true });
+    const record = await library.GetColorVariation(path);
+    assert.deepEqual(Array.from(record.color1), Array.from(palette.colors[0]));
+    assert.notEqual(palette.colors[0], record.color1);
+    assert.notEqual(record.color1, record.color2);
+    palette.colors[0][0] = 9;
+    assert.notEqual(record.color1[0], 9);
 });

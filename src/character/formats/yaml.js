@@ -79,5 +79,36 @@ export function normalizeCharacterYamlValues(Constructor, values)
         }
         result[key] = normalized;
     }
+    if (Object.hasOwn(Constructor, "sourceLists")) TranslateSourceLists(Constructor, values, result);
     return result;
+}
+
+/**
+ * Copies each tuple of a file's list into the named field its class declares (`sourceLists`: the file's key,
+ * then one field per tuple), and drops the list. A null list leaves the fields at their defaults; an RGB tuple
+ * gains alpha 1. Any other list shape throws.
+ * @param {Function} Constructor The record class.
+ * @param {object} values The file's values.
+ * @param {object} result The values to set, edited in place.
+ * @returns {void}
+ */
+function TranslateSourceLists(Constructor, values, result)
+{
+    const className = CjsSchema.getClassName(Constructor);
+    for (const [ key, names ] of Object.entries(Constructor.sourceLists))
+    {
+        if (!Object.hasOwn(values, key)) continue;
+        const list = values[key];
+        delete result[key];
+        if (list === null) continue;
+        if (!Array.isArray(list) || list.length !== names.length)
+            throw new TypeError(`${className}.${key} must list ${names.length} tuple(s)`);
+        for (let i = 0; i < names.length; i++)
+        {
+            const tuple = list[i];
+            if (!Array.isArray(tuple) || (tuple.length !== 3 && tuple.length !== 4) || !tuple.every(Number.isFinite))
+                throw new TypeError(`${className}.${key}[${i}] must be an RGB or RGBA tuple`);
+            result[names[i]] = tuple.length === 3 ? [ tuple[0], tuple[1], tuple[2], 1 ] : tuple;
+        }
+    }
 }
