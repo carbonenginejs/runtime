@@ -36,6 +36,9 @@ import {
 /** @type {WeakMap<object, CjsResourceReadContext>} */
 const READ_CONTEXTS = new WeakMap();
 
+/** `s_ch = CCP_LOG_DEFINE_CHANNEL( "ResMan" )` (BlueResMan.cpp:31): resMan's log channel. */
+const s_ch = CcpLog.CCP_LOG_DEFINE_CHANNEL("ResMan", "blue");
+
 /** BLUEQIOPT::BEQI_SILENT (BlueTypes.h); avoids the BlueClasses service import cycle. */
 const BEQI_SILENT = 1;
 
@@ -1373,6 +1376,7 @@ export class CjsBlueResMan
     }
     const resource = this.CreateResource(Constructor, key, ex, options, route);
     this.motherLode.Insert(cacheKey, resource);
+    this._LogResourceEvent(resource, "requested", "Requested %s", path);
     const operation = this._GetResourceLoad(resource);
     if (operation && !operation.locked)
     {
@@ -1512,6 +1516,7 @@ export class CjsBlueResMan
     const resource = this.CreateResource(Constructor, key, ex, options, route);
     this._objectLoads.add(resource);
     this.loadObjectCache.Insert(cacheKey, resource);
+    this._LogResourceEvent(resource, "requested", "Requested %s for LoadObject", path);
     const operation = this._GetResourceLoad(resource);
     if (operation && !operation.locked)
     {
@@ -2820,6 +2825,8 @@ export class CjsBlueResMan
     {
       record.error = new Error("Resource preparation failed: " + resource.GetPath());
     }
+    if (resource._isGood) this._LogResourceEvent(resource, "prepared", "Prepared %s", resource.GetPath());
+    else this._LogResourceEvent(resource, "failed", "Failed %s: %s", resource.GetPath(), record.error.message);
     if (!operation) return;
     if (resource._isGood) operation.resolve(resource.isResource ? resource : record.payload);
     else operation.reject(record.error);
@@ -2938,6 +2945,31 @@ export class CjsBlueResMan
   }
 
   /**
+   * Logs one step of a resource's load on resMan's channel, with the
+   * resource's MotherLode key (path plus `ex`) as the saga, so a log view can
+   * fold one resource's story into one row: requested, read, decoded,
+   * prepared, failed, purged, reloaded.
+   *
+   * Ours: Carbon logs only its own lines (`No factory found for extension` and
+   * the rest), which stay as they are. These are additional, at
+   * `LOGTYPE_INFO`, Carbon's lowest severity, and cost one check when no echo
+   * listens.
+   *
+   * @param {BlueAsyncRes} resource The resource or loading object.
+   * @param {string} event The step.
+   * @param {string} format Printf format.
+   * @param {...*} args Format arguments.
+   * @returns {void}
+   */
+  _LogResourceEvent(resource, event, format, ...args)
+  {
+    if (!CcpLog.IsLogging(CcpLog.LogType.LOGTYPE_INFO)) return;
+    const path = resource.GetPath();
+    const data = { subtitle: "resMan", saga: getMotherLodeKey(path, resource.GetExt()), label: path, event };
+    CcpLog.LogFuncChannel(s_ch, CcpLog.LogType.LOGTYPE_INFO, data, format, ...args);
+  }
+
+  /**
    * The cache a handle belongs to: `loadObjectCache` for an object load,
    * `motherLode` for a resource.
    *
@@ -3032,6 +3064,7 @@ export class CjsBlueResMan
    */
   _MarkResourcePurged(resource)
   {
+    this._LogResourceEvent(resource, "purged", "Purged %s", resource.GetPath());
     this._CancelResourceLoad(resource);
     const record = this._GetResourceRecord(resource);
     record.purged = true;
@@ -4265,6 +4298,7 @@ CjsSchema.decorateMethod(CjsBlueResMan, "_LoadObject", CjsSchema.meta.cjs, CjsSc
 CjsSchema.decorateMethod(CjsBlueResMan, "_RefusePlainObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
 CjsSchema.decorateMethod(CjsBlueResMan, "_IsObjectBuilderResource", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "_LogResourceEvent", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 
 CjsSchema.decorateMethod(CjsBlueResMan, "ReloadObject", CjsSchema.meta.cjs, CjsSchema.meta.implemented);
 

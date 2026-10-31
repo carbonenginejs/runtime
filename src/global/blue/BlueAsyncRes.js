@@ -186,6 +186,7 @@ export class BlueAsyncRes
    */
   Reload()
   {
+    blue.resMan._LogResourceEvent(this, "reloaded", "Reloading %s", this.GetPath());
     // Carbon opens the file afresh. Browser source/format caches must not join
     // the cancelled read or return its retained bytes for this explicit reload.
     blue.resMan.InvalidateReadCache(this.GetFilePath(), blue.resMan._GetResourceRequest(this));
@@ -348,6 +349,7 @@ export class BlueAsyncRes
     attempt.request = read.options;
     const data = await blue.resMan.ReadResource(this.GetFilePath(), read.options);
     blue.resMan._AssertResourceLoad(this, attempt);
+    blue.resMan._LogResourceEvent(this, "read", "Read %s (%d bytes)", this.GetPath(), data?.byteLength ?? 0);
     this._dataStream = data === null ? null : { form: "bytes", data };
     return this._dataStream !== null;
   }
@@ -410,6 +412,7 @@ export class BlueAsyncRes
     this._notify = result !== BlueAsyncRes.LoadingResult.LR_SUCCESS_DONTNOTIFY;
     if (!this._loadSucceeded) blue.resMan._RecordResourceFailure(this, failure || new Error(
       "Failed to load resource: " + this.GetPath()));
+    else blue.resMan._LogResourceEvent(this, "decoded", "Decoded %s", this.GetPath());
     const flags = this._isUrgent ? IBlueCallbackMan.BCBF_URGENT : 0;
     this._prepareCbId = blue.resMan.AddToQueue(BlueResManQueue.BRMQ_MAIN,
       this._loadSucceeded ? BlueAsyncRes._staticPrepareAsync : BlueAsyncRes._staticFailedLoadNotify,
