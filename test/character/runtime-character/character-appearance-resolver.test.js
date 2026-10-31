@@ -70,7 +70,7 @@ test("resolves exact paper-doll selections and unique atomic part candidates", (
     assert.ok(plan.colorSelections[0] instanceof CjsCharacterAppearanceColorSelection);
     assert.equal(plan.colorSelections[0].colorKey, "makeup/eyes");
     assert.equal(plan.colorSelections[0].colorNameA, "darkbrown_abc");
-    assert.equal(plan.colorSelections[0].colorNameBC, null);
+    assert.equal(plan.colorSelections[0].colorNameBC, "");
     assert.equal(plan.colorSelections[0].origin.jsonPointer, "/colorSelections/0");
     assert.equal(plan.parts.length, 1);
     assert.equal(plan.layers.length, 1);
@@ -82,7 +82,7 @@ test("resolves exact paper-doll selections and unique atomic part candidates", (
     assert.equal(plan.parts[0].geometryPath, "res:/character/top.gr2");
     assert.equal(plan.parts[0].requestedLod, null);
     assert.equal(plan.parts[0].resolvedLod, null);
-    assert.equal(plan.parts[0].modelFamily, null);
+    assert.equal(plan.parts[0].modelFamily, "");
     assert.strictEqual(plan.layers[0].owner, plan.selections[0]);
     assert.strictEqual(plan.layers[0].contributor, plan.parts[0]);
     assert.deepEqual(plan.textures, []);

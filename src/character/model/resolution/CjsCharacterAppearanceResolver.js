@@ -227,11 +227,11 @@ export class CjsCharacterAppearanceResolver
      * path outside `utilityshapes/` are unresolved.
      * @param {string} authoredValue The entry as authored.
      * @param {number|null} [relationWeight=null] A typed relation's weight; it wins over the suffix.
-     * @param {string|null} [relationPath=null] A typed relation's modifier path; it wins over the authored path.
+     * @param {string} [relationPath=""] A typed relation's modifier path; when not empty it wins over the authored path.
      * @returns {{modifierPath: string, targetName: string, weight: number, explicitWeight: boolean}|null}
      *   The lower-case normalized path, the morph target (the path's last segment, as authored), and its weight; null when unresolved.
      */
-    static decodeUtilityShape(authoredValue, relationWeight = null, relationPath = null)
+    static decodeUtilityShape(authoredValue, relationWeight = null, relationPath = "")
     {
         const authored = String(authoredValue);
         const weighted = authored.match(/^(utilityshapes\/.+?)###([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)$/iu);
@@ -252,7 +252,7 @@ export class CjsCharacterAppearanceResolver
             return null;
         }
 
-        const modifierPath = NormalizeUtilityPath(relationPath ?? base);
+        const modifierPath = NormalizeUtilityPath(relationPath || base);
         if (!modifierPath) return null;
         if (weight === null || weight === undefined) weight = 1;
         if (!Number.isFinite(weight)) return null;
@@ -269,13 +269,13 @@ export class CjsCharacterAppearanceResolver
      * Decodes one authored `occludesModifiers` entry as a utility-shape
      * occlusion. An entry carrying `#` is unresolved.
      * @param {string} authoredValue The entry as authored.
-     * @param {string|null} [relationPath=null] A typed relation's modifier path; it wins over the authored path.
+     * @param {string} [relationPath=""] A typed relation's modifier path; when not empty it wins over the authored path.
      * @returns {{modifierPath: string}|null} The lower-case normalized path; null when unresolved or not a utility shape.
      */
-    static decodeUtilityOcclusion(authoredValue, relationPath = null)
+    static decodeUtilityOcclusion(authoredValue, relationPath = "")
     {
         if (String(authoredValue).includes("#")) return null;
-        const modifierPath = NormalizeUtilityPath(relationPath ?? authoredValue);
+        const modifierPath = NormalizeUtilityPath(relationPath || authoredValue);
         return modifierPath ? { modifierPath } : null;
     }
 
