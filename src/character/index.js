@@ -29,4 +29,3 @@ export { CjsCharacterRig } from "./library/CjsCharacterRig.js";
 export { CjsCharacterGState } from "./library/CjsCharacterGState.js";
 export { CjsCharacterModifier } from "./library/CjsCharacterModifier.js";
 export { CjsCharacterPart } from "./library/CjsCharacterPart.js";
-export { CjsCharacterLibraryWriter } from "./library/CjsCharacterLibraryWriter.js";

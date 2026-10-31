@@ -52,42 +52,6 @@ export class CjsCharacterLibraryConfiguration
         staticResources: { className: "CjsCharacterNamedValue", pathOnly: true }
     };
 
-    /** Original text layouts established by discovery shape files, after envelope removal. */
-    static layouts = {
-        avatarPartMetaData: { root: "map", tag: "python/object:paperDoll.AvatarPartMetaData" },
-        colorVariations: { root: "map", tuples: ["colors.*", "specularColors.*", "patternColors.0", "patternColors.1", "patternColors.2", "patternColors.3", "patternColors.4", "patternColors.5"] },
-        baseColors: { root: "sequence", tuples: [""] },
-        types: { root: "sequence", tuples: [""] },
-        projectedDecals: { root: "map", tag: "python/object:paperDoll.ProjectedDecal", unicode: ["label", "maskPath", "texturePath"] },
-        recipes: { root: "sequence", tuples: ["*.specularcolors.*"], unicode: ["*.pattern", "*.decaldata.label", "*.decaldata.maskPath", "*.decaldata.texturePath"], tags: { "*.decaldata": "python/object:eve.client.script.paperDoll.projectedDecals.ProjectedDecal" } },
-        cameras: { root: "map", tuples: ["point_of_interest", "position", "viewport_size"] },
-        cameraSequences: { root: "sequence", tuples: ["0", "1", "5"] },
-        positions: { root: "map", tuples: ["rotation", "translation"] },
-        poses: { root: "map", tuples: ["*.orientation", "*.rotation"] },
-        lights: { root: "map" },
-        backgrounds: { root: "map", tuples: ["offset"], unicode: ["path"] },
-        posts: { root: "map", tuples: ["lut_influence"] },
-        scalarPosts: { root: "map", unicode: ["lut_path"] },
-        characters: { root: "map", tuples: ["rotation", "translation"] },
-        scenes: { root: "map", unicode: ["characters.*.animation_path", "characters.*.curveset.*", "characters.*.position_path"] },
-        curveSetMetadata: { root: "map" },
-        curveCacheLists: { root: "sequence" },
-        materialSets: { root: "map", tuples: ["Materials.*.Attributes.ambientColor.*", "Materials.*.Attributes.color.*", "Materials.*.Attributes.incandescence.*", "Materials.*.Attributes.transparency.*"] },
-        animationInfo: { root: "map" },
-        movementStates: { root: "sequence" },
-        animationData: { root: "map" },
-        animationOffsets: { root: "map", tuples: ["*"] },
-        bindPoses: { root: "map", tuples: ["*.orientation", "*.rotation"] },
-        postBaseNames: { root: "scalar" },
-        blendShapes: { root: "map" },
-        faceMappings: { root: "map" },
-        faceTweakSettings: { root: "map" },
-        modifierNames: { root: "scalar" },
-        sculptingLimits: { root: "map" },
-        fieldSets: { root: "map", tuples: ["Fields.*.Tris.*.*", "Fields.*.Tris.*.*.1"], numericMaps: ["Fields.*.Triangles", "Fields.*.VertData", "Fields.*.VertPositions"] }
-    };
-
-
     /** Explicit path rules; camera/post content variants are identified after reading. */
     static rows = [
         [ "res:/graphics/character/global/facesetup/animationdata.yaml", "animationData" ],
