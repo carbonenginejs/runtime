@@ -77,6 +77,11 @@ async function WithResManSource(Read, run)
     }
 }
 
+test("the character module fills Blue's one character library", () =>
+{
+    assert.ok(blue.characterLibrary instanceof CjsCharacterLibraryManager);
+});
+
 test("resource builder fetches every caller-supplied cFSD document into a hydrated library", async () =>
 {
     const readers = CreateTestCharacterReaders();

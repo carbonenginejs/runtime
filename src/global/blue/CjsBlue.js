@@ -50,6 +50,15 @@ export class CjsBlue
   /** Installed SOF service; absent until the composition root supplies it. */
   sof = null;
 
+  /**
+   * Ours: the one character library, a `CjsCharacterLibraryManager`, shared by
+   * every character as the SOF's data is by every ship. The character module
+   * fills it when it loads; this layer never imports it. Moves to the runtime
+   * root with `sof` once that exists (non-carbon-extensions.md § *The shared
+   * character library*).
+   */
+  characterLibrary = null;
+
   /** Silent, dependency-light default; an installed playback engine replaces it. */
   audio = new CjsWwiseSoundEngineStub();
 

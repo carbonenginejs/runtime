@@ -2,6 +2,7 @@ import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfigura
 import { CjsCharacterPart } from "./CjsCharacterPart.js";
 import { CjsCharacterModifier } from "./CjsCharacterModifier.js";
 import { CjsSchema } from "#schema";
+import { blue } from "#blue";
 
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
@@ -1063,3 +1064,6 @@ function PrepareLibrary(value)
 export default CjsCharacterLibraryManager;
 
 CjsSchema.meta.define("CjsCharacterLibraryManager")(CjsCharacterLibraryManager);
+
+// The one character library (Blue's characterLibrary slot), filled when the character module loads.
+blue.characterLibrary = new CjsCharacterLibraryManager();
