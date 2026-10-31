@@ -4,6 +4,7 @@ import { test, beforeEach, afterEach } from "node:test";
 import { CjsBlueResMan, CjsMeshConstructor, MeshPrefix, RegisterMeshConstructor, TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/CjsGr2Format.js";
+import { configureResourceManager } from "../support/configuredResMan.js";
 
 /**
  * `dynamic:/mesh/<meshIndex>/<source>` holds one mesh of a `.gr2` or `.cmf`
@@ -29,10 +30,10 @@ function sharedRoot()
   };
 }
 
-function managerServing(files)
+/** A manager configured as the application's (CjsLibrary's gr2 route), reading these files. */
+async function managerServing(files)
 {
-  const resMan = new CjsBlueResMan();
-  blue.resMan = resMan;
+  const resMan = await configureResourceManager(new CjsBlueResMan());
   resMan.Register({ source: { Read: path => path in files ? Promise.resolve(files[path]) : Promise.reject(new Error(`no ${path}`)) } });
   RegisterMeshConstructor(resMan);
   return resMan;
@@ -56,7 +57,7 @@ for (const [ label, path, bytes ] of [
 {
   test(`a ${label} source gives the indexed mesh alone, with bounds`, async () =>
   {
-    const resMan = managerServing({ [path]: bytes() });
+    const resMan = await managerServing({ [path]: bytes() });
     const geometry = resMan.GetResource(`dynamic:/mesh/1/${path}`);
     await resMan.Ready(geometry);
 
@@ -72,7 +73,7 @@ for (const [ label, path, bytes ] of [
 
 test("a malformed path, a missing source and an absent mesh fail the resource", async () =>
 {
-  const resMan = managerServing({ "res:/x/walkway.gr2": CjsGr2Format.writeShared(sharedRoot()) });
+  const resMan = await managerServing({ "res:/x/walkway.gr2": CjsGr2Format.writeShared(sharedRoot()) });
   const malformed = resMan.GetResource("dynamic:/mesh/res:/x/walkway.gr2");
   await assert.rejects(resMan.Ready(malformed), error => error.code === "CJS_GEOMETRY_DYNAMIC_PATH_INVALID");
   assert.equal(malformed.IsPrepared(), true);

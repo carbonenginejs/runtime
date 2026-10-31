@@ -5,6 +5,8 @@ import { TriStorageFlags } from "../../../npm/dist/global/consts/graphics/index.
 import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
 import { blue, CjsBlueResMan, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../../npm/dist/trinity/resources/geometry/index.js";
+import { CjsCmfFormat } from "../../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
+import { configureResourceManager } from "../../support/configuredResMan.js";
 
 // One triangle is enough: the raycaster only has to build, not hit anything.
 function loadedGeometry()
@@ -94,8 +96,17 @@ test("device-released geometry waits for the native explicit Reload", async () =
 {
   const geometry = loadedGeometry();
   let reads = 0;
-  blue.resMan.SetSource({Read() { reads++; return {meshes: []}; }});
-  blue.resMan.RegisterObjectLoader("cmf", value => value);
+  // CMF is unrouted by default (configuration.js:27-29); an application routes it
+  // through CjsLibrary's configuration, as here.
+  await configureResourceManager(blue.resMan, { formats: {
+    cmf: { Format: CjsCmfFormat, routes: [ { extension: "cmf", Res: TriGeometryRes } ] }
+  } });
+  const bytes = CjsCmfFormat.writeShared({ meshes: [ {
+    name: "mesh", minBounds: [ 0, 0, 0 ], maxBounds: [ 1, 1, 0 ],
+    vertex: { position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ] },
+    indices: [ { name: "area", bytesPerIndex: 2, faces: [ 0, 1, 2 ] } ]
+  } ] });
+  blue.resMan.SetSource({Read() { reads++; return bytes; }});
   geometry.ReleaseResources();
   assert.equal(geometry.IsGood(), false);
   assert.equal(reads, 0, "device release does not masquerade as policy purge");

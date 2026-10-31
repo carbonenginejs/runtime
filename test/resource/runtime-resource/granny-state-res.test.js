@@ -4,6 +4,7 @@ import test from "node:test";
 
 import { CjsFormatStore, Tr2GrannyStateRes, TriGrannyRes } from "../../../npm/dist/resource/index.js";
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
+import { configureResourceManager } from "../../support/configuredResMan.js";
 
 // The reader and the resource were never tested together, which is how a guard
 // demanding fields no reader emits survived. This asserts the join directly.
@@ -173,16 +174,16 @@ test("a GSF read as geometry succeeds and yields nothing, which is why content m
 
 test("an empty Granny container fails while animation-only and geometry files load", async t =>
 {
-  let data = CjsGr2Format.read(gsfRaw());
+  // The application's gr2raw route (CjsLibrary's configuration) reads real bytes.
   const manager = managerFor(t, null);
+  await configureResourceManager(manager);
+  let data = CjsGr2Format.writeShared({meshes: [], models: [], animations: []});
   manager.SetSource({Read: () => data});
-  manager.RegisterObjectLoader("gr2raw", value => value);
-  manager.RegisterExtension("gr2raw", TriGrannyRes);
   await assert.rejects(manager.FetchResource("res:/empty.gr2", {ex: "raw"}), {code: "CJS_RESOURCE_PAYLOAD_INVALID"});
-  data = {meshes: [], models: [], animations: [{name: "idle"}]};
+  data = CjsGr2Format.writeShared({meshes: [], models: [], animations: [{name: "idle"}]});
   const clip = await manager.FetchResource("res:/clip.gr2", {ex: "raw"});
   assert.equal(clip.GetGrannyFile().animations.length, 1);
-  data = {meshes: [{name: "hull"}]};
+  data = CjsGr2Format.writeShared({meshes: [{name: "hull"}]});
   assert.ok(await manager.FetchResource("res:/mesh.gr2", {ex: "raw"}));
 });
 
