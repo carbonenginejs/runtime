@@ -4,7 +4,7 @@ import { ITr2VisualizationModeRenderer } from "../../../trinity/core/ITr2Visuali
 import { ITr2Updateable } from "../../../trinity/core/ITr2Updateable.js";
 import { ITr2MultiPassScene } from "../../../trinity/core/ITr2MultiPassScene.js";
 import { ITr2Scene } from "../../../trinity/core/ITr2Scene.js";
-import { BlueList, CjsBlueClasses, IListNotify } from "#blue";
+import { BlueList, BlueClasses, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
 import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
@@ -348,7 +348,7 @@ export class Tr2InteriorScene extends ITr2PickableScene
       CcpLog.CCP_LOGERR("Attempt to add NULL dynamic to interior scene!");
       return;
     }
-    if (typeof dynamic !== "object" || blue.classes.QueryThisInterface(dynamic, ITr2InteriorDynamic, dynamic.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
+    if (typeof dynamic !== "object" || blue.classes.QueryThisInterface(dynamic, ITr2InteriorDynamic, dynamic.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
       throw new TypeError("Tr2InteriorScene.AddDynamic requires ITr2InteriorDynamic.");
 
     if (this.dynamics.FindKey(dynamic) === -1)
@@ -378,7 +378,7 @@ export class Tr2InteriorScene extends ITr2PickableScene
       CcpLog.CCP_LOGERR("Attempt to add NULL light source to interior scene!");
       return;
     }
-    if (typeof lightSource !== "object" || blue.classes.QueryThisInterface(lightSource, ITr2InteriorLight, lightSource.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
+    if (typeof lightSource !== "object" || blue.classes.QueryThisInterface(lightSource, ITr2InteriorLight, lightSource.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
       throw new TypeError("Tr2InteriorScene.AddLightSource requires ITr2InteriorLight.");
     if (this.lights.FindKey(lightSource) === -1) this.lights.Insert(-1, lightSource);
     this.SetupShadowMaps();

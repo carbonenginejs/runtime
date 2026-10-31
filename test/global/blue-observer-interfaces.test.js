@@ -189,10 +189,10 @@ test("Blue observer contracts import without domain evaluation or operational st
       assert.equal(CjsSchema.getConstructor("IBluePlacementObserver"), shared.IBluePlacementObserver);
       assert.equal(CjsSchema.getConstructor("IBlueMultiPlacementObserver"), shared.IBlueMultiPlacementObserver);
       assert.equal(CjsSchema.getConstructor("PositionDescription"), null);
-      assert.equal(shared.be.os.GetInfo().pumpTicksTotal, 0);
-      assert.equal(shared.be.resMan.GetPendingLoads(), 0);
-      assert.equal(shared.be.resMan.GetPendingPrepares(), 0);
-      assert.equal(shared.be.resMan.workerLoader.worker, null);
+      assert.equal(shared.blue.os.GetInfo().pumpTicksTotal, 0);
+      assert.equal(shared.blue.resMan.GetPendingLoads(), 0);
+      assert.equal(shared.blue.resMan.GetPendingPrepares(), 0);
+      assert.equal(shared.blue.resMan.workerLoader.worker, null);
     `
   ], {
     cwd: fileURLToPath(new URL("../../", import.meta.url)),

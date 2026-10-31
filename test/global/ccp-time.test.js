@@ -59,7 +59,7 @@ test("TimeAsDouble truncates a UTC stamp to milliseconds", () =>
 // it is not rediscovered later as a bug in this function.
 test("a present-day UTC tick count is already quantised before TimeAsDouble sees it", () =>
 {
-  // Absolute FILETIME, as Carbon holds it; be.os itself counts from the
+  // Absolute FILETIME, as Carbon holds it; blue.os itself counts from the
   // runtime epoch precisely to avoid this (CcpTime BLUE_EPOCH_UNIX_MS).
   const now = Number(CcpTime.timeToFileTime(blue.os.GetActualTime()));
 

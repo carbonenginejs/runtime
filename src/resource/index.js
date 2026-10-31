@@ -25,12 +25,12 @@ export {
 
   CjsFormatRoute,
   CjsFormatStore,
-  CjsMotherLode,
+  MotherLode,
   getMotherLodeKey,
   CjsResManMainThreadLoader,
   CjsResManWorkerLoader,
   BlueResManQueue,
-  CjsBlueResMan
+  BlueResMan
 } from "#blue";
 
 export { destroyAdapterValue } from "../trinity/core/device/Tr2DeviceResource.js";

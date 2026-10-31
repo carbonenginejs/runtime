@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 
 import { test, beforeEach, afterEach } from "node:test";
 
-import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
+import { MotherLode } from "../../../npm/dist/global/blue/MotherLode.js";
 
-import { CjsBlueResMan } from "../../../npm/dist/global/blue/CjsBlueResMan.js";
+import { BlueResMan } from "../../../npm/dist/global/blue/BlueResMan.js";
 
 import { blue, BlueResManQueue } from "../../../npm/dist/global/blue/index.js";
 
@@ -18,7 +18,7 @@ const { BRMQ_MAIN, BRMQ_BACKGROUND } = BlueResManQueue;
 
 test("AddToQueue returns ids; a cancelled entry never runs (BlueResMan.cpp:332-357)", async () => {
   assert.equal(RootBlueResManQueue, BlueResManQueue);
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const calls = [];
   const nextId = resMan.GetNextIdForQueue(BRMQ_MAIN);
@@ -41,7 +41,7 @@ test("AddToQueue returns ids; a cancelled entry never runs (BlueResMan.cpp:332-3
 });
 
 test("SetLoadingThreadCount caps loads in flight; a freed slot starts the next without a tick", async () => {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   resMan.SetLoadingThreadCount(2);
   const releases = [];
@@ -73,7 +73,7 @@ test("SetLoadingThreadCount caps loads in flight; a freed slot starts the next w
 test("native loading reads on BACKGROUND and prepares once on MAIN", async () =>
 {
   const calls = [], bytes = new Uint8Array([1, 2, 3]);
-  const resMan = new CjsBlueResMan({ maxConcurrentLoads: 1,
+  const resMan = new BlueResMan({ maxConcurrentLoads: 1,
     source: {Read(path) { calls.push(["load", path]); return bytes; }} });
   blue.resMan = resMan;
   RegisterDataLoader(resMan, "bin", (value, context) => { calls.push([context.stage, context.path]); return {bytes: value}; });
@@ -101,7 +101,7 @@ test("suffix-selected resources share source bytes while retaining their native 
     static outputs = {raw: {output: "raw"}, json: {output: "json"}};
     static read(value, options) { return {emit: options.emit, value}; }
   }
-  const resMan = new CjsBlueResMan({ maxConcurrentLoads: 2,
+  const resMan = new BlueResMan({ maxConcurrentLoads: 2,
     source: {Read() { reads++; return new Uint8Array([7]); }} });
   blue.resMan = resMan;
   resMan.RegisterExtension("binraw", TestDataRes, {Format: TestFormat, defaults: {emit: "raw"}});
@@ -120,7 +120,7 @@ test("suffix-selected resources share source bytes while retaining their native 
 test("Wait also waits for work queued after the call (BlueResMan.cpp:971-977)", async () => {
   let releaseRead;
   let releaseLaterTask;
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     maxConcurrentLoads: 2,
     source: { Read() { return new Uint8Array([ 5 ]); } }
   });
@@ -150,7 +150,7 @@ test("Wait also waits for work queued after the call (BlueResMan.cpp:971-977)", 
 });
 
 test("Wait counts a cancelled entry and a rejected one as done", async () => {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const failing = resMan.AddToQueue(BRMQ_MAIN, () => Promise.reject(new Error("expected wait failure")));
   const cancelled = resMan.AddToQueue(BRMQ_MAIN, () => assert.fail("a cancelled entry must not run"));
@@ -163,7 +163,7 @@ test("Wait counts a cancelled entry and a rejected one as done", async () => {
 });
 
 test("Wait resolves after a captured resource lineage fails", async () => {
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
   blue.resMan = resMan;
@@ -181,7 +181,7 @@ test("Wait resolves after a captured resource lineage fails", async () => {
 });
 
 test("Clear cancellation settles an already captured resource lineage", async () => {
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
   blue.resMan = resMan;
@@ -204,7 +204,7 @@ test("Clear cancellation settles an already captured resource lineage", async ()
 });
 
 test("Wait pump false relies on an external queue driver", async () => {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   let ran = false;
   resMan.AddToQueue(BRMQ_MAIN, () => { ran = true; });
@@ -223,7 +223,7 @@ test("Wait pump false relies on an external queue driver", async () => {
 });
 
 test("Wait does not resume a paused queue", async () => {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   let ran = false;
   resMan.AddToQueue(BRMQ_MAIN, () => { ran = true; });
@@ -246,7 +246,7 @@ test("Wait does not resume a paused queue", async () => {
 
 test("Wait waits for every background entry under its concurrency", async () => {
   const releases = [];
-  const resMan = new CjsBlueResMan({ maxConcurrentLoads: 2 });
+  const resMan = new BlueResMan({ maxConcurrentLoads: 2 });
   blue.resMan = resMan;
   resMan.AddToQueue(BRMQ_BACKGROUND, () => new Promise(resolve => releases.push(resolve)));
   resMan.AddToQueue(BRMQ_BACKGROUND, () => new Promise(resolve => releases.push(resolve)));
@@ -267,7 +267,7 @@ test("Wait waits for every background entry under its concurrency", async () => 
 test("Clear during an active source read prevents late loading, preparation, and failure publication", async () => {
   let releaseSource;
   let loaderCalls = 0;
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: {
       Read()
       {
@@ -307,7 +307,7 @@ test("Clear during an active source read prevents late loading, preparation, and
 test("Delete during an active native reader cancels its late completion", async () => {
   let releaseRead;
   let rebuilds = 0;
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: { Read() { return new Uint8Array([ 7 ]); } }
   });
   blue.resMan = resMan;
@@ -358,7 +358,7 @@ async function WaitUntil(predicate) {
 
 test("resources created in urgent mode load and prepare ahead of regular ones (BlueAsyncRes.cpp:108-111, 217-226)", async () => {
   const loads = [];
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     maxConcurrentLoads: 1,
     source: {
       Read(path) {
@@ -400,7 +400,7 @@ test("resources created in urgent mode load and prepare ahead of regular ones (B
 });
 
 test("a background queue drains on its own: a finished task starts the next without a tick", async () => {
-  const resMan = new CjsBlueResMan({ maxConcurrentLoads: 1 });
+  const resMan = new BlueResMan({ maxConcurrentLoads: 1 });
   blue.resMan = resMan;
   const order = [];
   resMan.AddToQueue(BRMQ_BACKGROUND, async () => { await null; order.push("first"); });
@@ -410,7 +410,7 @@ test("a background queue drains on its own: a finished task starts the next with
 });
 
 test("a reload reads the urgent mode again, and WaitUrgent waits for it (BlueAsyncRes.cpp:363-367, 220)", async () => {
-  const resMan = new CjsBlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
+  const resMan = new BlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
   blue.resMan = resMan;
   RegisterDataLoader(resMan, "bin", value => ({ bytes: value }));
   const first = LoadData(resMan, "res:/urgent/reloaded.bin");
@@ -437,7 +437,7 @@ test("a reload reads the urgent mode again, and WaitUrgent waits for it (BlueAsy
 });
 
 test("urgent mode keeps the per-tick prepare budget (BlueResMan.cpp:446-465)", () => {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const ran = [];
   for (const name of [ "a", "b", "c" ]) resMan.AddToQueue(BRMQ_MAIN, () => { ran.push(name); });
@@ -449,7 +449,7 @@ test("urgent mode keeps the per-tick prepare budget (BlueResMan.cpp:446-465)", (
 });
 
 test("Update fills Carbon's statistics members (BlueResMan.cpp:466-500)", () => {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   for (const name of [ "a", "b", "c" ]) resMan.AddToQueue(BRMQ_MAIN, () => name);
   let clock = 0;
@@ -477,9 +477,9 @@ test("Update fills Carbon's statistics members (BlueResMan.cpp:466-500)", () => 
 });
 
 test("Update keeps preparing past its slice while more than maxAllowedInPrepareQueue wait (BlueResMan.cpp:463)", () => {
-  const resMan = new CjsBlueResMan({ maxAllowedInPrepareQueue: 1 });
+  const resMan = new BlueResMan({ maxAllowedInPrepareQueue: 1 });
   blue.resMan = resMan;
-  assert.equal(new CjsBlueResMan().maxAllowedInPrepareQueue, 256, "Carbon's default (BlueResMan.cpp:84)");
+  assert.equal(new BlueResMan().maxAllowedInPrepareQueue, 256, "Carbon's default (BlueResMan.cpp:84)");
   assert.throws(() => resMan.Register({ maxAllowedInPrepareQueue: -1 }), TypeError);
   const ran = [];
   for (const name of [ "a", "b", "c" ]) resMan.AddToQueue(BRMQ_MAIN, () => { ran.push(name); });
@@ -493,7 +493,7 @@ test("Update keeps preparing past its slice while more than maxAllowedInPrepareQ
 });
 
 test("SetLoadingThreadCount clamps to one and sets the background queue's thread count (BlueResMan.cpp:520-528)", () => {
-  const resMan = new CjsBlueResMan({ maxConcurrentLoads: 3 });
+  const resMan = new BlueResMan({ maxConcurrentLoads: 3 });
   assert.equal(resMan._threadQueues[BRMQ_BACKGROUND]._threadCount, 3, "maxConcurrentLoads configures it");
   resMan.SetLoadingThreadCount(0);
   assert.equal(resMan._threadQueues[BRMQ_BACKGROUND]._threadCount, 1);

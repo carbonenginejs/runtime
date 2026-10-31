@@ -8,7 +8,7 @@ import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable_Blue.cpp
 import { type, blue as legacyBlue } from "#schema";
-import { blue, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
+import { blue, IInitialize, INotify, IsMatch, BlueClasses } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { WodPlaceableRes } from "../wod/WodPlaceableRes.js";
 import { mat4 } from "#math/mat4";
@@ -167,7 +167,7 @@ export class Tr2InteriorPlaceable extends IRoot
       return null;
     }
     if (request !== this._loadRequest || path !== this.placeableResPath) return null;
-    if (!object || blue.classes.QueryThisInterface(object, WodPlaceableRes, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
+    if (!object || blue.classes.QueryThisInterface(object, WodPlaceableRes, object.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not a WodPlaceableRes.`);
       return null;

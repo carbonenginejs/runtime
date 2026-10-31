@@ -17,7 +17,7 @@ const TICKS_PER_MILLISECOND = 10000;
  *
  * Carbon: BlueOS (blue/src/BlueOS.h:41)
  */
-export class CjsBlueOS extends IBlueOS
+export class BlueOS extends IBlueOS
 {
   /**
    * The wallclock at construction, in Blue ticks on the runtime epoch
@@ -64,7 +64,7 @@ export class CjsBlueOS extends IBlueOS
   {
     super();
     const wallclock = Date.now();
-    this._originMs = CjsBlueOS.Monotonic();
+    this._originMs = BlueOS.Monotonic();
     this._startTime = Math.round((wallclock - CcpTime.BLUE_EPOCH_UNIX_MS) * TICKS_PER_MILLISECOND);
     this._realTime = this._startTime;
     this._simTime = this._realTime;
@@ -106,7 +106,7 @@ export class CjsBlueOS extends IBlueOS
    */
   GetActualTime()
   {
-    const elapsedMs = CjsBlueOS.Monotonic() - this._originMs;
+    const elapsedMs = BlueOS.Monotonic() - this._originMs;
     return this._startTime + Math.round(elapsedMs * TICKS_PER_MILLISECOND);
   }
 
@@ -156,7 +156,7 @@ export class CjsBlueOS extends IBlueOS
    *   Callback exceptions are caught so delivery continues. The retained failure
    *   is rethrown only if truthy; falsy thrown values may be swallowed. The method
    *   returns this service instead of Carbon's void return.
-   * @returns {CjsBlueOS} This service when no truthy failure remains.
+   * @returns {BlueOS} This service when no truthy failure remains.
    * @throws {*} The retained callback failure, when truthy.
    */
   PumpOS()
@@ -228,7 +228,7 @@ export class CjsBlueOS extends IBlueOS
    *   typed pointer and returns void; this method returns the service.
    * @param {object} cb An object implementing IBlueEvents.
    * @param {*} [cookie=null] Value passed back on each tick.
-   * @returns {CjsBlueOS} This service.
+   * @returns {BlueOS} This service.
    * @throws {TypeError} If cb does not declare IBlueEvents.
    */
   RegisterForTicks(cb, cookie = null)
@@ -236,7 +236,7 @@ export class CjsBlueOS extends IBlueOS
     // Enforce the declared IBlueEvents interface before registration.
     if (!CjsSchema.cast(cb, IBlueEvents))
     {
-      throw new TypeError("CjsBlueOS.RegisterForTicks expects an IBlueEvents.");
+      throw new TypeError("BlueOS.RegisterForTicks expects an IBlueEvents.");
     }
     if (!this._tickers.some(entry => entry.cb === cb && entry.cookie === cookie))
     {
@@ -251,7 +251,7 @@ export class CjsBlueOS extends IBlueOS
    * @adapted Returns this service instead of Carbon's void return.
    * @param {object} cb The registered IBlueEvents object.
    * @param {*} [cookie=null] The cookie supplied at registration.
-   * @returns {CjsBlueOS} This service.
+   * @returns {BlueOS} This service.
    */
   UnregisterForTicks(cb, cookie = null)
   {
@@ -281,14 +281,14 @@ export class CjsBlueOS extends IBlueOS
    *   accepts a typed pointer and returns void; this method returns the service.
    *   The listener is retained, but this service does not perform clock rebasing.
    * @param {object} cb An object implementing ISimTimeRebaseNotify.
-   * @returns {CjsBlueOS} This service.
+   * @returns {BlueOS} This service.
    * @throws {TypeError} If cb does not declare ISimTimeRebaseNotify.
    */
   RegisterForSimTimeRebase(cb)
   {
     if (!CjsSchema.cast(cb, ISimTimeRebaseNotify))
     {
-      throw new TypeError("CjsBlueOS.RegisterForSimTimeRebase expects an ISimTimeRebaseNotify.");
+      throw new TypeError("BlueOS.RegisterForSimTimeRebase expects an ISimTimeRebaseNotify.");
     }
     if (!this._rebaseListeners.includes(cb)) this._rebaseListeners.push(cb);
     return this;
@@ -299,7 +299,7 @@ export class CjsBlueOS extends IBlueOS
    *
    * @adapted Returns this service instead of Carbon's void return.
    * @param {object} cb The registered ISimTimeRebaseNotify object.
-   * @returns {CjsBlueOS} This service.
+   * @returns {BlueOS} This service.
    */
   UnregisterForSimTimeRebase(cb)
   {
@@ -322,10 +322,10 @@ export class CjsBlueOS extends IBlueOS
   }
 }
 
-CjsSchema.exposure.mapInterface(IBlueOS)(CjsBlueOS);
-CjsSchema.meta.inherit(BeInfo)(CjsBlueOS);
-CjsSchema.decorateField(CjsBlueOS, "frameClock", blue.readwrite);
-CjsSchema.decorateMethod(CjsBlueOS, "PumpOS", blue.method);
-CjsSchema.blue.define(CjsBlueOS, {
-  className: "CjsBlueOS"
+CjsSchema.exposure.mapInterface(IBlueOS)(BlueOS);
+CjsSchema.meta.inherit(BeInfo)(BlueOS);
+CjsSchema.decorateField(BlueOS, "frameClock", blue.readwrite);
+CjsSchema.decorateMethod(BlueOS, "PumpOS", blue.method);
+CjsSchema.blue.define(BlueOS, {
+  className: "BlueOS"
 });

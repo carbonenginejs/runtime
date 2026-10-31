@@ -171,7 +171,7 @@ export class CjsCharacterObjectBuilder
             return new CjsCharacterObjectBuilder(bytes, kind, path);
         };
         for (const extension of CjsCharacterObjectBuilder.getExtensions()) resMan.RegisterObjectBuilder(extension, create);
-        // LoadObject consults a bare object builder only without an ex (CjsBlueResMan LoadObject), so the .yaml + ex
+        // LoadObject consults a bare object builder only without an ex (BlueResMan LoadObject), so the .yaml + ex
         // route is an explicit object route over the builder just registered. Its builder answers the object, so
         // the route's Identify is never reached; it keeps the values as they are.
         resMan.RegisterExtension("yaml" + CjsCharacterObjectBuilder.ex, CjsLoadingObject, { Identify: () => true });

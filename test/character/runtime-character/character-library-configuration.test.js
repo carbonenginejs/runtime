@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterLibraryConfiguration } from "../../../npm/dist/character/index.js";
-import { CjsBluePaths, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
+import { BluePaths, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
 
 test("every character matcher accepts its scope and rejects an adjacent extension", () =>
 {
@@ -11,7 +11,7 @@ test("every character matcher accepts its scope and rejects an adjacent extensio
         const negative = positive + ".unrelated";
         const cache = new RemoteFileCache();
         cache.AddFileIndex([positive, negative].map((path, index) => `${path},synthetic/${index},checksum,1`).join("\n"));
-        const paths = new CjsBluePaths();
+        const paths = new BluePaths();
         paths.RegisterFileSystem(new BlueResFileSystemRemote(cache));
         // RemoteFileCache exposes compiled Black files under their .red alias.
         const expected = positive.endsWith(".black") ? [] : [positive];

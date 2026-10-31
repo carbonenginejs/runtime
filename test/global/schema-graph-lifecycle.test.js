@@ -6,7 +6,7 @@ import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
 import { type } from "../../src/global/schema/index.js";
 import { blue } from "../../src/global/blue/index.js";
 
-// Preorder over be.EnumerateChildren, once per object.
+// Preorder over blue.EnumerateChildren, once per object.
 function preorder(root)
 {
     const visited = [], seen = new Set();

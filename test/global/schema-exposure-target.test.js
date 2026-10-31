@@ -8,7 +8,7 @@ import { unregisterClass, getClassRegistration, getClassRegistrationRevision } f
 import { exposure } from "#be";
 import { CjsSchema, meta, blue, type } from "../../src/global/schema/index.js";
 import { hasOwnInterfaceTable, mappedInterfaces, ownMappedInterfaces } from "../../src/global/compose/interface.js";
-import { CjsBlueClasses } from "../../src/global/blueexposure/CjsBlueClasses.js";
+import { BlueClasses } from "../../src/global/blueexposure/BlueClasses.js";
 
 // All explicit member/decorator rows of the five preparation samples. Bodies
 // are inert: this test proves declaration parity, not engine behaviour.
@@ -156,8 +156,8 @@ test("exposed definitions add self and IRoot; native and own interfaces do not c
     assert.equal(hasOwnInterfaceTable(OwnInterface), false);
     assert.equal(CjsSchema.getSchema(NativeInterface).blue, true);
     assert.equal(CjsSchema.getSchema(OwnInterface).blue, undefined);
-    assert.equal(new CjsBlueClasses().CreateInstance("TargetInterface"), null);
-    assert.equal(new CjsBlueClasses().CreateInstance("OwnInterface"), null);
+    assert.equal(new BlueClasses().CreateInstance("TargetInterface"), null);
+    assert.equal(new BlueClasses().CreateInstance("OwnInterface"), null);
     assert.equal(CjsSchema.getSchema(NativeInterface).interface, true);
 });
 
@@ -173,7 +173,7 @@ test("complete attributes do not inherit parent flags, and ENUM comes only from 
     const own = CjsSchema.getSchema(Child).members.find(m => m.declaringClass === Child);
     assert.deepEqual(own.edit, {read:true});
     assert.equal(CjsSchema.getSchema(Parent).members[0].edit.persist, true);
-    const registry = new CjsBlueClasses();
+    const registry = new BlueClasses();
     assert.equal(registry.GetTypeInfo(new Child())[2].value.editflags, exposure.READ);
 });
 
@@ -204,7 +204,7 @@ test("method macro variants preserve their alias; notUsed throws", () =>
         CjsSchema.decorateMethod(Variant, "Call", exposure[key]("alias"));
         exposure.define(`Target${key}`)(Variant);
         assert.deepEqual(CjsSchema.getMethod(Variant,"Call").exposure, {macro,name:"alias"});
-        assert.deepEqual(Object.keys(new CjsBlueClasses().GetTypeInfo(new Variant())[3]), ["alias"]);
+        assert.deepEqual(Object.keys(new BlueClasses().GetTypeInfo(new Variant())[3]), ["alias"]);
     }
     CjsSchema.decorateMethod(Sample,"Skip",meta.notUsed);
     meta.carbon(["NativeOne","NativeTwo"])(Sample);
@@ -280,7 +280,7 @@ test("own complete attributes keep explicit flags and aliases without Carbon ori
     // Ours: the row says so, records no Carbon macro, and is not part of the Carbon-style type info (TypeInfo.cpp:118-148).
     assert.equal(member.exposure.origin, "ours");
     assert.equal(member.exposure.macro, undefined);
-    assert.equal(new CjsBlueClasses().GetTypeInfo(new Child())[2].alias, undefined);
+    assert.equal(new BlueClasses().GetTypeInfo(new Child())[2].alias, undefined);
     assert.equal(CjsSchema.getSchema(Parent).members[0].exposure.flags, 19);
     for (const invalid of [-1, 1.5, NaN, Infinity, 0x100000000]) assert.throws(() => meta.mapAttribute(invalid), /flags/);
     assert.throws(() => meta.mapAttribute(meta.READ, ""), /non-empty/);
@@ -314,7 +314,7 @@ test("object ownership aliases preserve complete legacy class information and Bl
         meta.define(`Goal3Old${oldName}${suffix}`)(Old);
         meta.define(`Goal3New${oldName}${suffix}`)(New);
         assert.deepEqual(comparable(CjsSchema.getSchema(New).members),comparable(CjsSchema.getSchema(Old).members));
-        assert.deepEqual(new CjsBlueClasses().GetTypeInfo(new New())[2],new CjsBlueClasses().GetTypeInfo(new Old())[2]);
+        assert.deepEqual(new BlueClasses().GetTypeInfo(new New())[2],new BlueClasses().GetTypeInfo(new Old())[2]);
         assert.equal(CjsSchema.getSchema(New).members[0].lifecycle,undefined);
     }
 });

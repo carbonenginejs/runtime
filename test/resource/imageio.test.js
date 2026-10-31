@@ -14,7 +14,7 @@ import { buildVta } from "../support/vtaFixture.js";
 import { ImageIO, HostBitmap, LoadParameters, ImageIOResult, Metadata } from "../../npm/dist/resource/imageio/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
-import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan } from "../../npm/dist/global/blue/index.js";
 import { MarkerTag } from "../support/markerTags.js";
 
 // The composing application registers formats once with each table that maps an
@@ -291,7 +291,7 @@ test("ImageIO serves only formats registered with it, says so when none is, and 
   class LateImage extends CjsPsdFormat { static extensions = [ ".late" ]; }
   const previous = blue.resMan;
   t.after(() => { blue.resMan = previous; });
-  blue.resMan = new CjsBlueResMan();
+  blue.resMan = new BlueResMan();
   const parameters = new LoadParameters("x/picture.LATE");
   const bytes = CjsPsdFormat.write(imagePayload);
   const bitmap = new HostBitmap();
@@ -316,7 +316,7 @@ test("ImageIO serves only formats registered with it, says so when none is, and 
   assert.equal(ImageIO._imageHandlers.length, before);
 
   // Replacing the active ResMan changes nothing for ImageIO.
-  blue.resMan = new CjsBlueResMan();
+  blue.resMan = new BlueResMan();
   assert.equal(ImageIO.getImageHandler("late"), LateImage);
 });
 

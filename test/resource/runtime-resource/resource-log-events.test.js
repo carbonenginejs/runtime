@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { blue, CjsBlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan } from "../../../npm/dist/global/blue/index.js";
 import { getMotherLodeKey } from "../../../npm/dist/resource/index.js";
 import * as CcpLog from "../../../npm/dist/global/logging/ccpLog.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
@@ -26,7 +26,7 @@ function recordResourceLines(t)
 function manager(t, loader)
 {
   const previous = blue.resMan;
-  const resMan = new CjsBlueResMan({ source: { Read: () => new Uint8Array([ 1, 2, 3 ]) } });
+  const resMan = new BlueResMan({ source: { Read: () => new Uint8Array([ 1, 2, 3 ]) } });
   blue.resMan = resMan;
   t.after(() => { try { resMan.Clear(); } finally { blue.resMan = previous; } });
   RegisterDataLoader(resMan, "bin", loader);

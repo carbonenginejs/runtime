@@ -121,5 +121,3 @@ export function installBlueServices(services = {}, running = true)
   finally { installingServices = false; }
 }
 
-// Scratch migration compatibility for deferred old-Carbon consumers.
-export { blue as be };

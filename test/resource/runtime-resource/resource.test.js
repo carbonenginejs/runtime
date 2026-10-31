@@ -11,7 +11,7 @@ import { ICacheable } from "../../../npm/dist/global/blue/index.js";
 import * as runtimeResource from "../../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../../npm/dist/global/blue/formats/black/index.js";
 import { CjsRedFormat } from "../../../npm/dist/global/blue/formats/red/index.js";
-import { CjsEventEmitter, Tr2ImageRes, TriGeometryRes, TriTextureRes, CjsMotherLode, CjsLoadingObject, CjsBlueResMan, BlueAsyncRes, CjsResourceProbe, ResourceHandlerMode, Tr2GrannyStateRes, Tr2LightProfileRes, TriGrannyRes, getMotherLodeKey } from "../../../npm/dist/resource/index.js";
+import { CjsEventEmitter, Tr2ImageRes, TriGeometryRes, TriTextureRes, MotherLode, CjsLoadingObject, BlueResMan, BlueAsyncRes, CjsResourceProbe, ResourceHandlerMode, Tr2GrannyStateRes, Tr2LightProfileRes, TriGrannyRes, getMotherLodeKey } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes, Tr2MaterialRes } from "../../../npm/dist/trinity/shader/index.js";
 import { LoadData } from "../../support/loadData.js";
 import { RegisterDataLoader, TestDataRes } from "../../support/testDataRes.js";
@@ -173,7 +173,7 @@ test("resource path helpers normalize Carbon-style paths", () => {
   assert.equal(getResourceExtension("res:/texture/ship.dds?variant=1"), "dds");
 });
 
-test("CjsBlueResMan registers immutable extension handlers through every short form", async () =>
+test("BlueResMan registers immutable extension handlers through every short form", async () =>
 {
   class TestRouteResource extends TestValueResource {}
   class TestRouteFormat
@@ -183,7 +183,7 @@ test("CjsBlueResMan registers immutable extension handlers through every short f
   }
 
   const source = { Read() { return new Uint8Array([ 7 ]); } };
-  const resMan = new CjsBlueResMan({ source });
+  const resMan = new BlueResMan({ source });
   blue.resMan = resMan;
 
   assert.equal(BlueAsyncRes.isResource, true);
@@ -213,7 +213,7 @@ test("CjsBlueResMan registers immutable extension handlers through every short f
   );
 });
 
-test("CjsBlueResMan ordered extension formats probe once and use only a final fallback", async () =>
+test("BlueResMan ordered extension formats probe once and use only a final fallback", async () =>
 {
   const calls = [];
   class TestRejectingFormat
@@ -234,7 +234,7 @@ test("CjsBlueResMan ordered extension formats probe once and use only a final fa
   }
 
   const source = { Read() { return new Uint8Array([ 1 ]); } };
-  const resMan = new CjsBlueResMan({ source });
+  const resMan = new BlueResMan({ source });
   blue.resMan = resMan;
   resMan.RegisterExtension("ordered", TestDataRes, [
     TestRejectingFormat,
@@ -245,7 +245,7 @@ test("CjsBlueResMan ordered extension formats probe once and use only a final fa
   assert.deepEqual(calls, [ "probe:reject", "probe:accept", "read:accept" ]);
 
   calls.length = 0;
-  const legacy = new CjsBlueResMan()
+  const legacy = new BlueResMan()
     .RegisterFormat(TestRejectingFormat)
     .RegisterFormat(TestAcceptedFormat);
   blue.resMan = legacy;
@@ -264,7 +264,7 @@ test("CjsBlueResMan ordered extension formats probe once and use only a final fa
   );
 });
 
-test("CjsBlueResMan uses Black-first content routing for both red and black suffixes", async () =>
+test("BlueResMan uses Black-first content routing for both red and black suffixes", async () =>
 {
   class RedRouteRoot { name = ""; }
   CjsSchema.define(RedRouteRoot, { className: "RedRouteRoot", fields: {
@@ -272,7 +272,7 @@ test("CjsBlueResMan uses Black-first content routing for both red and black suff
   } });
   const encoded = new TextEncoder().encode("type: RedRouteRoot\nname: yaml-content\n");
   const source = { Read() { return encoded; } };
-  const resMan = new CjsBlueResMan({ source });
+  const resMan = new BlueResMan({ source });
   blue.resMan = resMan;
   resMan.RegisterExtension("red", TestDataRes, [ CjsBlackFormat, CjsRedFormat ]);
   resMan.RegisterExtension("black", TestDataRes, [ CjsBlackFormat, CjsRedFormat ]);
@@ -284,7 +284,7 @@ test("CjsBlueResMan uses Black-first content routing for both red and black suff
   assert.deepEqual(fromBlack, fromRed);
 });
 
-test("CjsBlueResMan never falls through after an ordered format is selected", async () =>
+test("BlueResMan never falls through after an ordered format is selected", async () =>
 {
   let fallbackReads = 0;
   class TestSelectedFormat
@@ -301,7 +301,7 @@ test("CjsBlueResMan never falls through after an ordered format is selected", as
     }
   }
 
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
   blue.resMan = resMan;
@@ -317,7 +317,7 @@ test("CjsBlueResMan never falls through after an ordered format is selected", as
   assert.equal(fallbackReads, 0);
 });
 
-test("CjsBlueResMan Register accepts composed extension route objects", async () =>
+test("BlueResMan Register accepts composed extension route objects", async () =>
 {
   class TestValueFormat
   {
@@ -338,7 +338,7 @@ test("CjsBlueResMan Register accepts composed extension route objects", async ()
     }
   }
 
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: { Read() { return new Uint8Array([ 4 ]); } },
     extensions: {
       shape: {
@@ -377,7 +377,7 @@ test("CjsBlueResMan Register accepts composed extension route objects", async ()
   );
 });
 
-test("CjsBlueResMan exposes normalized resource paths to sources, formats and targets", async () =>
+test("BlueResMan exposes normalized resource paths to sources, formats and targets", async () =>
 {
   let formatContext = null;
   let identifyContext = null;
@@ -403,7 +403,7 @@ test("CjsBlueResMan exposes normalized resource paths to sources, formats and ta
       return new Uint8Array([ 1 ]);
     }
   };
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source,
     extensions: {
       yaml: {
@@ -715,7 +715,7 @@ test("device resource families hold and destroy opaque backend adapters", () => 
   assert.equal(resource.HasAdapterResource("webgpu"), false);
 });
 
-test("CjsBlueResMan reads source through a registered loader and marks the resource prepared", async () => {
+test("BlueResMan reads source through a registered loader and marks the resource prepared", async () => {
   let loaderContext = null;
   const records = new Map([
     [ "res:/data/example.json", "{\"name\":\"example\"}" ]
@@ -726,7 +726,7 @@ test("CjsBlueResMan reads source through a registered loader and marks the resou
       return records.get(normalizeResourcePath(path));
     }
   };
-  const resMan = new CjsBlueResMan({ source });
+  const resMan = new BlueResMan({ source });
   blue.resMan = resMan;
 
   RegisterDataLoader(resMan, "json", (value, context) => {
@@ -779,7 +779,7 @@ test("registered formats and resource readiness share one object operation", asy
     }
   }
 
-  const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestFormat);
+  const resMan = new BlueResMan({ source }).RegisterFormat(TestFormat);
   resMan.RegisterExtension("one", TestDataRes);
   blue.resMan = resMan;
   const resource = resMan.GetResource("res:/data/shared.one", { emit: "raw" });
@@ -827,7 +827,7 @@ test("source revision scopes shared source and parsed format operations", async 
   }
 
   const path = "res:/data/value.revisioncache";
-  const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestRevisionCacheFormat);
+  const resMan = new BlueResMan({ source }).RegisterFormat(TestRevisionCacheFormat);
   blue.resMan = resMan;
   const revisionOneA = await readDecodedData(resMan, path, {    emit: "raw",
     sourceRevision: 1,
@@ -870,7 +870,7 @@ test("format caches isolate source objects and registration descriptors", async 
   }
 
   const path = "res:/data/value.descriptorcache";
-  const resMan = new CjsBlueResMan({ source: sourceA })
+  const resMan = new BlueResMan({ source: sourceA })
     .RegisterFormat(TestDescriptorCacheFormat, { multiplier: 1 });
   blue.resMan = resMan;
   const fromA = await readDecodedData(resMan, path, {    source: sourceA,    emit: "raw",
@@ -934,7 +934,7 @@ test("format cache identity distinguishes same-named class constructors", async 
   }
 
   const path = "res:/data/classes.classidentity";
-  const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestClassIdentityFormat);
+  const resMan = new BlueResMan({ source }).RegisterFormat(TestClassIdentityFormat);
   blue.resMan = resMan;
   const first = await readDecodedData(resMan, path, {    emit: "raw",
     classes: { Root: ClassA },
@@ -975,7 +975,7 @@ test("non-canonical format options bypass retained format sharing", async () =>
 
   const path = "res:/data/options.noncanonical";
   const formatOptions = { timestamp: new Date(0) };
-  const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestNonCanonicalCacheFormat);
+  const resMan = new BlueResMan({ source }).RegisterFormat(TestNonCanonicalCacheFormat);
   blue.resMan = resMan;
   const first = await readDecodedData(resMan, path, {    emit: "raw",
     formatOptions,
@@ -1016,7 +1016,7 @@ test("registered format defaults are deeply snapshotted", async () =>
   }
 
   const path = "res:/data/defaults.defaultsnapshot";
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: { Read() { return new Uint8Array([ 4 ]); } }
   }).RegisterFormat(TestDefaultSnapshotFormat, defaults);
   resMan.RegisterExtension("defaultsnapshot", TestDataRes);
@@ -1044,7 +1044,7 @@ test("joined cache retention upgrades and cache false bypasses source sharing", 
       return new Uint8Array([ sourceReads ]);
     }
   };
-  const resMan = new CjsBlueResMan({ source });
+  const resMan = new BlueResMan({ source });
   blue.resMan = resMan;
   const path = "res:/data/source-cache.bin";
   const first = resMan.ReadResource(path, { sourceRevision: 4 });
@@ -1079,7 +1079,7 @@ test("late invalidated source settlement cannot displace a newer retained record
       return new Promise(resolve => resolvers.push(resolve));
     }
   };
-  const resMan = new CjsBlueResMan({ source });
+  const resMan = new BlueResMan({ source });
   blue.resMan = resMan;
   const path = "res:/data/late-cache.bin";
   const oldOperation = resMan.ReadResource(path, { sourceRevision: "same", cacheSource: true });
@@ -1120,7 +1120,7 @@ test("late invalidated format settlement cannot displace a newer retained record
     sourceRevision: "same",
     cacheFormat: true
   };
-  const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestLateFormatCache);
+  const resMan = new BlueResMan({ source }).RegisterFormat(TestLateFormatCache);
   blue.resMan = resMan;
   const resource = new BlueAsyncRes();
   resource._path = path;
@@ -1146,7 +1146,7 @@ test("Delete preserves retained reads while Clear resets every read ledger", asy
 {
   let sourceReads = 0;
   const source = { Read() { sourceReads += 1; return new Uint8Array([ sourceReads ]); } };
-  const resMan = new CjsBlueResMan({ source });
+  const resMan = new BlueResMan({ source });
   blue.resMan = resMan;
   RegisterDataLoader(resMan, "bin", value => value);
   const path = "res:/data/delete-cache.bin";
@@ -1247,7 +1247,7 @@ test("GetMeshVertexElements reads the element list the readers actually emit", (
 test("GetResource requests the resource; Ready() waits on that request (Carbon's Initialize queues the load)", async () =>
 {
   let reads = 0;
-  const resMan = new CjsBlueResMan({ source: { Read() { reads += 1; return "{\"loaded\":true}"; } } });
+  const resMan = new BlueResMan({ source: { Read() { reads += 1; return "{\"loaded\":true}"; } } });
   blue.resMan = resMan;
   RegisterDataLoader(resMan, "json", value => JSON.parse(value));
 
@@ -1265,11 +1265,11 @@ test("GetResource requests the resource; Ready() waits on that request (Carbon's
 
 test("a resource that cannot be fetched fails on the resource, not in GetResource", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   RegisterDataLoader(resMan, "json", JSON.parse);
   const resource = resMan.GetResource("res:/data/unreachable.json");
-  // The load fails on the resource once the read through be.paths answers.
+  // The load fails on the resource once the read through blue.paths answers.
   await resMan.Wait();
 
   assert.equal(resource.IsPrepared() && !resource.IsGood(), true);
@@ -1278,7 +1278,7 @@ test("a resource that cannot be fetched fails on the resource, not in GetResourc
 
 test("an invalid GetResource call throws; only resource failures are recorded", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
 
   assert.throws(() => resMan.GetResource(42), TypeError);

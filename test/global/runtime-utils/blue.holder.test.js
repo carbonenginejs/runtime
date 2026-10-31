@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { blue, BlueResManQueue, CjsBluePaths, CjsBlueResMan, IBlueEvents, IBlueOS, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResManQueue, BluePaths, BlueResMan, IBlueEvents, IBlueOS, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
 import * as blueExports from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -9,11 +9,11 @@ import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 test("the slots are filled before anything can read them", () =>
 {
   // The holder's body runs before any importer's, so there is never a null to
-  // capture, which is what lets a consumer write be.resMan.GetResource(...)
+  // capture, which is what lets a consumer write blue.resMan.GetResource(...)
   // without a guard. The manager is real by default, as Carbon's is.
-  assert.equal(blue.resMan instanceof CjsBlueResMan, true);
+  assert.equal(blue.resMan instanceof BlueResMan, true);
   assert.ok(CjsSchema.cast(blue.resMan, IBlueResMan), "it is Carbon's IBlueResMan");
-  assert.equal(blue.paths instanceof CjsBluePaths, true);
+  assert.equal(blue.paths instanceof BluePaths, true);
   assert.equal(blue.paths instanceof IBluePaths, true);
 });
 
@@ -283,7 +283,7 @@ test("an uncomposed paths service answers rather than refusing", () =>
 
   // What it genuinely cannot do without a file system is still refused.
   assert.throws(() => blue.paths.ResolvePathW("res:/model/ship.gr2"),
-    /^Error: CjsBluePaths does not implement IBluePaths\.ResolvePathW\(path\)\.$/u);
+    /^Error: BluePaths does not implement IBluePaths\.ResolvePathW\(path\)\.$/u);
 });
 
 test("an implementation is installed into the holder, never captured from it", () =>
@@ -325,7 +325,7 @@ test("the queue enum keeps Carbon's members and values", () =>
 
 test("both interfaces publish the verb list Carbon publishes", () =>
 {
-  // The point of the split: CjsBlueResMan has 68 public methods, and these are the
+  // The point of the split: BlueResMan has 68 public methods, and these are the
   // ones a consumer is entitled to. Adding to this list means Carbon added to
   // IBlueResMan.
   const names = Interface => Object.getOwnPropertyNames(Interface.prototype)

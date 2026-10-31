@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { blue, CjsBlueClasses } from "#blue";
+import { blue, BlueClasses } from "#blue";
 import { CjsSchema, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -19,7 +19,7 @@ function CastTo(value, className)
   const registration = blue.classes.GetClassRegistration(className);
   if (!registration) throw new Error(`Tr2ActionChildEffect: class ${className} is not registered with Blue`);
   if (!value || typeof value !== "object") return null;
-  return blue.classes.QueryThisInterface(value, registration.type, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+  return blue.classes.QueryThisInterface(value, registration.type, value.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT);
 }
 
 
@@ -273,7 +273,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * mesh, which detaches its shared instance provider. Resources still reached
    * from the owner survive, as do canonical geometry and texture resources.
    * Reachability is the walk of Carbon's Find functions (Find.cpp:352-396):
-   * an explicit stack, each object once, children from be.EnumerateChildren.
+   * an explicit stack, each object once, children from blue.EnumerateChildren.
    */
   _ReleaseChildDeviceResources(child, owner)
   {

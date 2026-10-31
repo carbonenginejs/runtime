@@ -7,7 +7,7 @@ import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/valida
 // Source: blue/src/MotherLode.h
 // Source: blue/src/MotherLode.cpp
 import { normalizeResourcePath } from "#utils/path";
-import { CjsBlueOS } from "./CjsBlueOS.js";
+import { BlueOS } from "./BlueOS.js";
 import { ICacheable } from "./ICacheable.js";
 import { IBlueResource } from "./IBlueResource.js";
 import { IRoot } from "../blueexposure/IRoot.js";
@@ -16,13 +16,13 @@ import { IRoot } from "../blueexposure/IRoot.js";
 const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
 
 /**
- * `CjsBlueClasses.BLUEQIOPT.BEQI_SILENT`, written out because importing
- * CjsBlueClasses reaches CjsBlue, which builds the resMan that owns this registry.
+ * `BlueClasses.BLUEQIOPT.BEQI_SILENT`, written out because importing
+ * BlueClasses reaches CjsBlue, which builds the resMan that owns this registry.
  */
 const BEQI_SILENT = 0x1;
 
 /**
- * Construction options for {@link CjsMotherLode}.
+ * Construction options for {@link MotherLode}.
  *
  * @typedef {object} CjsMotherLodeOptions
  * @property {() => number} [now] Returns a non-negative timestamp for activity diagnostics.
@@ -50,7 +50,7 @@ const BEQI_SILENT = 0x1;
  */
 
 /**
- * Explicit inactivity-sweep policy for {@link CjsMotherLode#PurgeInactive}.
+ * Explicit inactivity-sweep policy for {@link MotherLode#PurgeInactive}.
  * At least one identity or payload limit must be supplied for work to occur.
  * When both frame and time limits exist, reaching either limit is sufficient.
  *
@@ -98,7 +98,7 @@ const BEQI_SILENT = 0x1;
  */
 
 /**
- * Activity-update options accepted by {@link CjsMotherLode#KeepAlive}.
+ * Activity-update options accepted by {@link MotherLode#KeepAlive}.
  *
  * @typedef {object} CjsMotherLodeActivityOptions
  * @property {number} [frame] Explicit non-negative activity frame; otherwise the counter advances.
@@ -106,7 +106,7 @@ const BEQI_SILENT = 0x1;
  */
 
 /**
- * Result returned by {@link CjsMotherLode#Insert}.
+ * Result returned by {@link MotherLode#Insert}.
  *
  * @typedef {object} CjsMotherLodeInsertResult
  * @property {string} key Canonical resolved identity key.
@@ -117,7 +117,7 @@ const BEQI_SILENT = 0x1;
  */
 
 /**
- * Diagnostic snapshot returned by {@link CjsMotherLode#GetStats}.
+ * Diagnostic snapshot returned by {@link MotherLode#GetStats}.
  *
  * @typedef {object} CjsMotherLodeStats
  * @property {number} count Compatibility identity count.
@@ -147,7 +147,7 @@ const BEQI_SILENT = 0x1;
  *
  * Carbon: MotherLode (blue/src/MotherLode.h:50)
  */
-export class CjsMotherLode
+export class MotherLode
 {
 
   _active = false;
@@ -167,13 +167,13 @@ export class CjsMotherLode
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-      throw new TypeError("CjsMotherLode options must be an object.");
+      throw new TypeError("MotherLode options must be an object.");
     }
     if (options.now !== undefined)
     {
       if (typeof options.now !== "function")
       {
-        throw new TypeError("CjsMotherLode now must be a function.");
+        throw new TypeError("MotherLode now must be a function.");
       }
       this._now = options.now;
     }
@@ -189,7 +189,7 @@ export class CjsMotherLode
    * Repeated calls are idempotent.
    *
    * @adapted
-   * @returns {CjsMotherLode} This registry.
+   * @returns {MotherLode} This registry.
    */
   Startup()
   {
@@ -204,7 +204,7 @@ export class CjsMotherLode
    *
    * @adapted
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy applied to every entry.
-   * @returns {CjsMotherLode} This inactive registry.
+   * @returns {MotherLode} This inactive registry.
    * @throws {AggregateError} If cleanup fails for one or more entries; registration is still stopped.
    */
   Shutdown(options = {})
@@ -372,7 +372,7 @@ export class CjsMotherLode
    *
    * @adapted
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for removed resources.
-   * @returns {CjsMotherLode} This empty registry.
+   * @returns {MotherLode} This empty registry.
    * @throws {AggregateError} If cleanup fails for one or more removed resources.
    */
   Clear(options = {})
@@ -500,7 +500,7 @@ export class CjsMotherLode
   /**
    * Explicitly renew both canonical identity activity and the attached CPU
    * payload lease. The resource-facing `KeepPayloadAlive()` method delegates
-   * here when CjsBlueResMan owns the handle. No payload is read or created.
+   * here when BlueResMan owns the handle. No payload is read or created.
    *
    * @param {string} key Canonical resolved key, or normalized source path with a variant.
    * @param {string|CjsMotherLodeActivityOptions} [variantOrOptions] Compatibility variant or activity values.
@@ -680,7 +680,7 @@ export class CjsMotherLode
     const result = createPurgeResult(policy.frame, policy.time, purgedKeys, payloadKeys, cachedKeys, locked);
     if (errors.length)
     {
-      const error = new AggregateError(errors, "CjsMotherLode inactivity purge failed.");
+      const error = new AggregateError(errors, "MotherLode inactivity purge failed.");
       error.code = "CJS_MOTHERLODE_PURGE_FAILED";
       error.result = result;
       throw error;
@@ -784,7 +784,7 @@ export class CjsMotherLode
     );
     if (errors.length)
     {
-      const error = new AggregateError(errors, "CjsMotherLode cache trim failed.");
+      const error = new AggregateError(errors, "MotherLode cache trim failed.");
       error.code = "CJS_MOTHERLODE_CACHE_TRIM_FAILED";
       error.result = result;
       throw error;
@@ -893,13 +893,13 @@ export class CjsMotherLode
    * @adapted
    * @param {number} bytes Non-negative safe-integer byte budget.
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for entries displaced by the smaller budget.
-   * @returns {CjsMotherLode} This registry.
+   * @returns {MotherLode} This registry.
    * @throws {TypeError} If `bytes` or cleanup options are invalid.
    * @throws {AggregateError} If enforcing the new budget cannot clean one or more cached entries.
    */
   SetCacheSize(bytes, options = {})
   {
-    assertNonNegativeInteger(bytes, "CjsMotherLode cache size");
+    assertNonNegativeInteger(bytes, "MotherLode cache size");
     const policy = normalizeOptions(options, "set cache size");
     this._cacheSize = bytes;
     this.TrimCache(policy);
@@ -1123,14 +1123,14 @@ export class CjsMotherLode
   _TouchRecord(record, options)
   {
     const frame = options.frame === undefined ? this._activityFrame + 1 : options.frame;
-    assertNonNegativeInteger(frame, "CjsMotherLode activity frame");
+    assertNonNegativeInteger(frame, "MotherLode activity frame");
     this._activityFrame = Math.max(this._activityFrame, frame);
     record.lastUsedFrame = frame;
 
     const time = options.time === undefined ? this._now() : options.time;
     if (typeof time !== "number" || !Number.isFinite(time) || time < 0)
     {
-      throw new TypeError("CjsMotherLode activity time must be a non-negative finite number.");
+      throw new TypeError("MotherLode activity time must be a non-negative finite number.");
     }
     record.lastUsedTime = time;
     return record;
@@ -1182,13 +1182,13 @@ export class CjsMotherLode
         errors.push(motherLodeCleanupError(operation, record.key, record.resource, cause));
       }
     }
-    if (errors.length) throw new AggregateError(errors, "CjsMotherLode " + operation + " cleanup failed.");
+    if (errors.length) throw new AggregateError(errors, "MotherLode " + operation + " cleanup failed.");
   }
 
 }
 
 /**
- * Build the canonical normalized identity shared by CjsBlueResMan and MotherLode.
+ * Build the canonical normalized identity shared by BlueResMan and MotherLode.
  * The source path and promised-output variant are separated with an internal null byte;
  * variants therefore may not contain that delimiter.
  *
@@ -1211,7 +1211,7 @@ export function getMotherLodeKey(path, variant = "")
   const normalizedVariant = String(variant);
   if (normalizedVariant.includes("\u0000"))
   {
-    throw new TypeError("CjsMotherLode variant may not contain a null character.");
+    throw new TypeError("MotherLode variant may not contain a null character.");
   }
   return `${normalizedPath}\u0000${normalizedVariant}`;
 }
@@ -1255,7 +1255,7 @@ function normalizeResolvedKey(key)
 {
   if (typeof key !== "string" || !key)
   {
-    throw new TypeError("CjsMotherLode requires a canonical string key.");
+    throw new TypeError("MotherLode requires a canonical string key.");
   }
   const separator = key.indexOf("\u0000");
   return separator === -1
@@ -1266,7 +1266,7 @@ function normalizeResolvedKey(key)
 function normalizePath(path)
 {
   const normalizedPath = normalizeResourcePath(path);
-  if (!normalizedPath) throw new TypeError("CjsMotherLode requires a resource path.");
+  if (!normalizedPath) throw new TypeError("MotherLode requires a resource path.");
   return normalizedPath;
 }
 
@@ -1305,7 +1305,7 @@ function normalizeOptions(options, operation)
   if (options === null || options === undefined) return {};
   if (!options || typeof options !== "object" || Array.isArray(options))
   {
-    throw new TypeError(`CjsMotherLode ${operation} options must be an object.`);
+    throw new TypeError(`MotherLode ${operation} options must be an object.`);
   }
   return options;
 }
@@ -1322,23 +1322,23 @@ function normalizePurgeOptions(options, activityFrame, now)
 {
   const policy = normalizeOptions(options, "purge");
   const frame = policy.frame === undefined ? activityFrame + 1 : policy.frame;
-  assertNonNegativeInteger(frame, "CjsMotherLode purge frame");
+  assertNonNegativeInteger(frame, "MotherLode purge frame");
 
   const time = policy.time === undefined ? now() : policy.time;
-  assertNonNegativeNumber(time, "CjsMotherLode purge time");
+  assertNonNegativeNumber(time, "MotherLode purge time");
 
   for (const name of [ "maxIdleFrames", "payloadMaxIdleFrames" ])
   {
     if (policy[name] !== undefined)
     {
-      assertNonNegativeInteger(policy[name], `CjsMotherLode ${name}`);
+      assertNonNegativeInteger(policy[name], `MotherLode ${name}`);
     }
   }
   for (const name of [ "maxIdleMilliseconds", "payloadMaxIdleMilliseconds" ])
   {
     if (policy[name] !== undefined)
     {
-      assertNonNegativeNumber(policy[name], `CjsMotherLode ${name}`);
+      assertNonNegativeNumber(policy[name], `MotherLode ${name}`);
     }
   }
 
@@ -1410,7 +1410,7 @@ function assertResource(resource)
 {
   if ((typeof resource !== "object" && typeof resource !== "function") || resource === null)
   {
-    throw new TypeError("CjsMotherLode requires a resource object.");
+    throw new TypeError("MotherLode requires a resource object.");
   }
 }
 
@@ -1504,14 +1504,14 @@ function createCacheTrimResult(
 
 function motherLodeInactiveError()
 {
-  const error = new Error("CjsMotherLode is shut down. Call Startup() before inserting resources.");
+  const error = new Error("MotherLode is shut down. Call Startup() before inserting resources.");
   error.code = "CJS_MOTHERLODE_INACTIVE";
   return error;
 }
 
 function motherLodeCleanupError(operation, key, resource, cause)
 {
-  const error = new Error(`CjsMotherLode ${operation} cleanup failed for ${key}.`, { cause });
+  const error = new Error(`MotherLode ${operation} cleanup failed for ${key}.`, { cause });
   error.code = "CJS_MOTHERLODE_CLEANUP_FAILED";
   error.operation = operation;
   error.key = key;
@@ -1528,20 +1528,20 @@ function getKeyPath(key)
 /** Purge timers are ours (MotherLode.cpp has none); they read blue's host milliseconds. */
 function defaultNow()
 {
-  return CjsBlueOS.Monotonic();
+  return BlueOS.Monotonic();
 }
 
 
-CjsSchema.decorateMethod(CjsMotherLode, "Insert", blue.method);
-CjsSchema.decorateMethod(CjsMotherLode, "Lookup", blue.method);
-CjsSchema.decorateMethod(CjsMotherLode, "Delete", blue.method);
-CjsSchema.decorateMethod(CjsMotherLode, "Clear", blue.method);
-CjsSchema.decorateMethod(CjsMotherLode, "ClearCached", blue.method);
-CjsSchema.decorateMethod(CjsMotherLode, "GetKeys", blue.method);
-CjsSchema.decorateMethod(CjsMotherLode, "GetValues", blue.method);
-CjsSchema.decorateMethod(CjsMotherLode, "GetSize", blue.method);
-CjsSchema.blue.define(CjsMotherLode, {
-  className: "CjsMotherLode"
+CjsSchema.decorateMethod(MotherLode, "Insert", blue.method);
+CjsSchema.decorateMethod(MotherLode, "Lookup", blue.method);
+CjsSchema.decorateMethod(MotherLode, "Delete", blue.method);
+CjsSchema.decorateMethod(MotherLode, "Clear", blue.method);
+CjsSchema.decorateMethod(MotherLode, "ClearCached", blue.method);
+CjsSchema.decorateMethod(MotherLode, "GetKeys", blue.method);
+CjsSchema.decorateMethod(MotherLode, "GetValues", blue.method);
+CjsSchema.decorateMethod(MotherLode, "GetSize", blue.method);
+CjsSchema.blue.define(MotherLode, {
+  className: "MotherLode"
 });
 
 

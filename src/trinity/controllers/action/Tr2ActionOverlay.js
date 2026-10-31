@@ -4,7 +4,7 @@ import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { blue, CjsBlueClasses } from "#blue";
+import { blue, BlueClasses } from "#blue";
 import { type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -20,7 +20,7 @@ function CastTo(value, className)
   const registration = blue.classes.GetClassRegistration(className);
   if (!registration) throw new Error(`Tr2ActionOverlay: class ${className} is not registered with Blue`);
   if (!value || typeof value !== "object") return null;
-  return blue.classes.QueryThisInterface(value, registration.type, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+  return blue.classes.QueryThisInterface(value, registration.type, value.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT);
 }
 
 

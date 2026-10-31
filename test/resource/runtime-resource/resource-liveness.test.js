@@ -1,7 +1,7 @@
 // Renewal stands in for Carbon's reference-counted MotherLode lifetime.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BlueAsyncRes, CjsBlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
+import { BlueAsyncRes, BlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
 import "../../support/frameLoop.js";
 
@@ -9,7 +9,7 @@ import "../../support/frameLoop.js";
 function managerFor(t)
 {
   const previous = blue.resMan;
-  const manager = new CjsBlueResMan({ source: { Read: () => "{}" } });
+  const manager = new BlueResMan({ source: { Read: () => "{}" } });
   blue.resMan = manager;
   RegisterDataLoader(manager, "json", value => JSON.parse(value));
   t.after(() => { try { manager.Clear(); } finally { blue.resMan = previous; } });

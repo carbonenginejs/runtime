@@ -7,7 +7,7 @@ import { IBlueEvents } from "../global/blue/IBlueEvents.js";
 // Source: trinity/trinity/UI/Tr2MainWindow_Windows.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
 import { Tr2ImeState_MacOS, Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
-import { CjsScriptCallback } from "#blue";
+import { BlueScriptCallback } from "#blue";
 import { GetUIScancode, UIScancode } from "./UIScancode.js";
 import { Tr2MainWindowState } from "./Tr2MainWindowState.js";
 import { Tr2MouseCursor } from "./Tr2MouseCursor.js";
@@ -22,12 +22,12 @@ const CALLBACK_FIELDS = Object.freeze([
 // default-constructed BlueScriptCallback, which reports IsValid() false and
 // returns CALL_ERROR rather than failing when invoked, so nothing here has to
 // test for absence before calling.
-const EMPTY_CALLBACK = new CjsScriptCallback();
+const EMPTY_CALLBACK = new BlueScriptCallback();
 
 /**
  * Browser adaptation of CarbonEngine's main-window state and input boundary.
  *
- * Callback fields accept a function, a CjsScriptCallback, or an object with
+ * Callback fields accept a function, a BlueScriptCallback, or an object with
  * `Call` and `CallVoid`; each assignment is normalized once. Notifications
  * dispatch through `CallVoid`; the return-bearing close callback dispatches
  * through `Call`. A `beforeunload` whose close callback returns literal
@@ -652,7 +652,7 @@ export class Tr2MainWindow
     /** Normalizes one external callback assignment at its boundary. */
     #setCallback(field, value)
     {
-        const callback = CjsScriptCallback.from(value);
+        const callback = BlueScriptCallback.from(value);
         this.#callbackValues.set(field, value ?? null);
         this.#callbacks.set(field, callback ?? EMPTY_CALLBACK);
     }

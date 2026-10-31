@@ -4,7 +4,7 @@ import {createHash} from "node:crypto";
 import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import test from "node:test";
-import {CjsBlueResMan, CjsMotherLode} from "../../npm/dist/global/blue/index.js";
+import {BlueResMan, MotherLode} from "../../npm/dist/global/blue/index.js";
 
 import {Tr2Mesh, Tr2MeshArea, Tr2RenderContext} from "../../npm/dist/trinity/index.js";
 
@@ -19,7 +19,7 @@ test("real cf2_t2a survives payload expiry and retained handles reload after rel
   assert.equal(createHash("sha256").update(bytes).digest("hex"), "89fda62f09cdf0299ed347362460283d4645b66788b5292a276f450935d1897a");
   let time = 0, reads = 0;
   const path = "res:/dx9/model/ship/caldari/frigate/cf2/cf2_t2a.gr2";
-  const manager = new CjsBlueResMan({motherLode: new CjsMotherLode({now: () => time}), source: {
+  const manager = new BlueResMan({motherLode: new MotherLode({now: () => time}), source: {
     Read(request){assert.equal(request, path); reads++; return bytes;}
   }});
   await configureResourceManager(manager);

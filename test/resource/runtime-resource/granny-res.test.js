@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { TriGrannyRes, Tr2GrannyIntersectionResult } from "../../../npm/dist/resource/index.js";
-import { BlueResFileSystemForm, CjsBluePaths, IBlueResFileSystem, CjsBlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
+import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem, BlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -38,9 +38,9 @@ function memoryFileSystem(files)
 
 function withFiles(t, files)
 {
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   paths.RegisterFileSystem(memoryFileSystem(files));
-  const resMan = new CjsBlueResMan({ source: { async Read(path) { const stream = await paths.GetStreamFromPath(path, {accept: ["bytes"]}); return stream?.data; } } });
+  const resMan = new BlueResMan({ source: { async Read(path) { const stream = await paths.GetStreamFromPath(path, {accept: ["bytes"]}); return stream?.data; } } });
   resMan.RegisterExtension("gr2raw", TriGrannyRes, { instance: new CjsGr2Format() });
   const previous = installBlueServices({ paths, resMan }, false);
   t.after(() => installBlueServices(previous, previous.running));
@@ -315,7 +315,7 @@ test("a superseded direct tools load cannot finish or close its successor", asyn
 {
   const previous = blue.resMan;
   const pending = [];
-  const manager = new CjsBlueResMan({ source: { Read() { return new Promise(resolve => pending.push(resolve)); } } });
+  const manager = new BlueResMan({ source: { Read() { return new Promise(resolve => pending.push(resolve)); } } });
   blue.resMan = manager;
   class DelayedGrannyFormat extends CjsGr2Format
   {

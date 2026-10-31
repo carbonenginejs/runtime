@@ -2,13 +2,13 @@
 // every subsystem uses both:
 //
 //   - blueexposure (blueexposure/): the class-exposure and object-model layer.
-//     CjsBlueClasses / IBlueClasses, Copier / ICopier /
+//     BlueClasses / IBlueClasses, Copier / ICopier /
 //     ICopierCustomAssignment, BlueList, ICustomPersist, IInitialize, IList,
 //     IListNotify and INotify.
 //   - blue (blue/): the runtime services. The OS and clock interfaces
-//     (IBlueOS, CjsBlueOS, BeInfo, IBlueEvents, ICatchupTicks, IVariableTicker,
+//     (IBlueOS, BlueOS, BeInfo, IBlueEvents, ICatchupTicks, IVariableTicker,
 //     ISimTimeRebaseNotify), paths, the resource manager and file systems
-//     (IBlueResMan, CjsBlueResMan, CjsMotherLode, ICacheable, IBlueResFileSystem,
+//     (IBlueResMan, BlueResMan, MotherLode, ICacheable, IBlueResFileSystem,
 //     BlueResFileSystemRemote, BlueResFileSystemLocal, CjsBlueResFileSystemFetch,
 //     CjsBlueResFileSystemCallback,
 //     BlueFileUtil, RemoteFileCache), object metadata, placement
@@ -19,7 +19,7 @@
 //     YamlWriter).
 //
 // CcpTime and CcpDateTime port core/include/CcpTime.h. Files with no Carbon
-// header of the same name (CjsScriptCallback,
+// header of the same name (BlueScriptCallback,
 // CjsFormatStore, CjsLoadingObject, the lowercase helper modules) state their
 // donor, or that they have none, in their own headers.
 //
@@ -38,7 +38,7 @@
  * their decoded family data. Only a policy purge permits implicit revival.
  */
 
-export * from "../blueexposure/CjsScriptCallback.js";
+export * from "../blueexposure/BlueScriptCallback.js";
 export * from "./IBlueDynamicResourceConstructor.js";
 export * from "./BeInfo.js";
 export * from "./IBlueEvents.js";
@@ -50,7 +50,7 @@ export * from "./IVariableTicker.js";
 export * from "./ICatchupTicks.js";
 export * from "./ISimTimeRebaseNotify.js";
 export * from "./IBlueOS.js";
-export * from "./CjsBlueOS.js";
+export * from "./BlueOS.js";
 export * from "./CcpDateTime.js";
 export * from "./CcpTime.js";
 export * from "./IBlueResMan.js";
@@ -85,7 +85,7 @@ export * from "./BlueResFileSystemLocal.js";
 export * from "./CjsBlueResFileSystemFetch.js";
 export * from "./CjsBlueResFileSystemCallback.js";
 export * from "./BlueFileUtil.js";
-export * from "./CjsBluePaths.js";
+export * from "./BluePaths.js";
 export * from "./IBlueCallbackMan.js";
 export * from "./BlueCallbackMan.js";
 export * from "./BlueCallbackManTicker.js";
@@ -101,13 +101,13 @@ export * from "../consts/resourceHandlerMode.js";
 export * from "./CjsFormatStore.js";
 
 export * from "./CjsLoadingObject.js";
-export * from "./CjsMotherLode.js";
+export * from "./MotherLode.js";
 export * from "./worker/CjsResManMainThreadLoader.js";
 export * from "./worker/CjsResManWorkerLoader.js";
-export * from "./CjsBlueResMan.js";
+export * from "./BlueResMan.js";
 export * from "./IBluePaths.js";
 export * from "../blueexposure/IBlueClasses.js";
-export * from "../blueexposure/CjsBlueClasses.js";
+export * from "../blueexposure/BlueClasses.js";
 export { ClassInfo } from "../blueexposure/ClassInfo.js";
 export { VarEntry } from "../blueexposure/VarEntry.js";
 export { BlueRttiType } from "../blueexposure/BlueRttiType.js";
@@ -116,7 +116,7 @@ export * from "../blueexposure/ICopierCustomAssignment.js";
 export * from "../blueexposure/ICustomPersist.js";
 export * from "../blueexposure/Copier.js";
 export { CjsBlue } from "./CjsBlue.js";
-export { blue, be } from "./blue.js";
+export { blue } from "./blue.js";
 export { CjsBlueEnumRegistry, EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
 // The values engine: Blue's dictionary reader and a writer modelled on YamlWriter.
 export * from "./IBlueObjectMetadata.js";
@@ -141,5 +141,5 @@ import "./values.js";
 // no manager or resource implementation, so resources and MotherLode can use
 // its live references without an import cycle or deferred constructor lookup.
 import { blue } from "./blue.js";
-import { CjsBlueResMan } from "./CjsBlueResMan.js";
-blue.resMan = new CjsBlueResMan();
+import { BlueResMan } from "./BlueResMan.js";
+blue.resMan = new BlueResMan();

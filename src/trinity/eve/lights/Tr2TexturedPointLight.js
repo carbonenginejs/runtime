@@ -70,7 +70,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   /**
    * Carbon Initialize (cpp:16-23): fetch the texture when a path is
    * authored, then the point-light base. The reach is the process-wide
-   * manager read at call time, which is what BeResMan is (be.resMan).
+   * manager read at call time, which is what BeResMan is (blue.resMan).
    *
    * @implemented
    */

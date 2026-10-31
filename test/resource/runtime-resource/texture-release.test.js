@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";
-import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
-import { blue, CjsBlueResMan, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
+import { MotherLode } from "../../../npm/dist/global/blue/MotherLode.js";
+import { blue, BlueResMan, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { TriStorageFlags, Tr2ALMemoryType } from "../../../npm/dist/global/consts/graphics/index.js";
@@ -56,7 +56,7 @@ test("ReleaseResources honours the storage mask and retains Carbon's loaded bitm
 test("each full texture cache eviction destroys its AL and releases its bitmap before reload", () =>
 {
   // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
-  const motherLode = new CjsMotherLode({ now: () => 0, cacheSize: 0 });
+  const motherLode = new MotherLode({ now: () => 0, cacheSize: 0 });
   const loaded = loadedTexture();
   const resource = loaded.resource;
   let destroys = 0;
@@ -89,7 +89,7 @@ test("each full texture cache eviction destroys its AL and releases its bitmap b
 
 test("payload-only expiry preserves texture identity, AL, bitmap and payload statistics", () =>
 {
-  const motherLode = new CjsMotherLode({ now: () => 0 });
+  const motherLode = new MotherLode({ now: () => 0 });
   const { resource, bitmap, texture, destroyed } = loadedTexture();
   const ordinary = plainResource("res:/synthetic/ordinary.bin", {bytes: [1]});
   motherLode.Insert(resource.GetPath(), resource, { time: 0 });
@@ -115,7 +115,7 @@ test("full purge releases a bitmap even when no texture has been realized", () =
 });
 
 let previous;
-beforeEach(() => { previous = blue.resMan; blue.resMan = new CjsBlueResMan(); });
+beforeEach(() => { previous = blue.resMan; blue.resMan = new BlueResMan(); });
 afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previous; } });
 
 /** Plain-data fixture for MotherLode's separate data lease. */

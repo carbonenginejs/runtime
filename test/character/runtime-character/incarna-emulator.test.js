@@ -2,7 +2,7 @@ import { prepareResourceFixture, resourceIdentityFixture } from "../../support/r
 import assert from "node:assert/strict";
 import test, { beforeEach, afterEach } from "node:test";
 import { blue } from "../../../npm/dist/global/blue/index.js";
-import { CjsBlueResMan, TriGeometryRes } from "../../../npm/dist/resource/index.js";
+import { BlueResMan, TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { CjsCmfFormat } from "../../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { CjsIncarnaEmulator, Tr2InteriorStatic } from "../../../npm/dist/character/index.js";
 import { EveSOFDataMgr } from "../../../npm/dist/sof/index.js";
@@ -103,7 +103,7 @@ function dataManager()
 function emulate()
 {
   const dataMgr = dataManager();
-  const emulator = new CjsIncarnaEmulator(dataMgr, new CjsBlueResMan());
+  const emulator = new CjsIncarnaEmulator(dataMgr, new BlueResMan());
   const object = piece();
   const dna = emulator.AddAssembly("incarna_test", [
     { object, transform: mat4.create() },
@@ -161,7 +161,7 @@ test("the root is a station drawing the first piece, and the layout places every
 test("a first piece that does not sit at the origin places the others relative to it", () =>
 {
   const dataMgr = dataManager();
-  const emulator = new CjsIncarnaEmulator(dataMgr, new CjsBlueResMan());
+  const emulator = new CjsIncarnaEmulator(dataMgr, new BlueResMan());
   const object = piece();
   emulator.AddAssembly("incarna_test", [
     { object, transform: mat4.fromTranslation(mat4.create(), [ 2, 0, 0 ]) },
@@ -175,7 +175,7 @@ test("a piece whose geometry has not loaded is refused", () =>
 {
   const object = piece();
   object.detailMeshes[0].SetGeometryRes(null);
-  const emulator = new CjsIncarnaEmulator(dataManager(), new CjsBlueResMan());
+  const emulator = new CjsIncarnaEmulator(dataManager(), new BlueResMan());
   assert.throws(() => emulator.AddAssembly("incarna_test", [ { object, transform: mat4.create() } ], "caldaribase", "caldari"), /must be loaded/);
 });
 
@@ -198,7 +198,7 @@ test("a transparent area becomes a glass area, without the detail maps", () =>
 
 test("generic data without the packed quad shader is refused", () =>
 {
-  const emulator = new CjsIncarnaEmulator(new EveSOFDataMgr(), new CjsBlueResMan());
+  const emulator = new CjsIncarnaEmulator(new EveSOFDataMgr(), new BlueResMan());
   assert.throws(() => emulator.AddAssembly("incarna_test", [ { object: piece(), transform: mat4.create() } ], "caldaribase", "caldari"), /has no quad\/quaddetailv5\.fx/);
 });
 
@@ -210,7 +210,7 @@ test("an area shows its glow mask only when its material has a glow colour that 
   assert.equal(glowMap(hull.transparentAreas[0]), "dynamic:/color/0,0,0,1", "a transparent material has no glow colour");
 
   const dataMgr = dataManager();
-  new CjsIncarnaEmulator(dataMgr, new CjsBlueResMan()).AddAssembly("incarna_test", [ { object: piece([ 0, 0, 0, 1 ]), transform: mat4.create() } ], "caldaribase", "caldari");
+  new CjsIncarnaEmulator(dataMgr, new BlueResMan()).AddAssembly("incarna_test", [ { object: piece([ 0, 0, 0, 1 ]), transform: mat4.create() } ], "caldaribase", "caldari");
   assert.equal(glowMap(dataMgr.GetHullData("incarna_test").opaqueAreas[0]), "dynamic:/color/0,0,0,1");
 });
 
@@ -219,7 +219,7 @@ test("an assembly's lights become one light set of point lights on its root", ()
   assert.deepEqual(emulate().dataMgr.GetHullData("incarna_test").hullLightSets, []);
 
   const dataMgr = dataManager();
-  new CjsIncarnaEmulator(dataMgr, new CjsBlueResMan()).AddAssembly("incarna_test", [ { object: piece(), transform: mat4.create() } ], "caldaribase", "caldari", [
+  new CjsIncarnaEmulator(dataMgr, new BlueResMan()).AddAssembly("incarna_test", [ { object: piece(), transform: mat4.create() } ], "caldaribase", "caldari", [
     { position: [ 1, 2, 3 ], radius: 0.4, innerRadius: 0.2, brightness: 4, lightColor: 20 },
     { position: [ 1, 2, -3 ], radius: 0.4, innerRadius: 0.2, brightness: 4, lightColor: 20 }
   ]);
@@ -238,7 +238,7 @@ function glowResources()
   const data = new Uint8Array(32);
   for (let row = 0; row < 4; row++) data[row * 8 + 7] = 255;
   const requests = [];
-  blue.resMan = Object.assign(new CjsBlueResMan(), {
+  blue.resMan = Object.assign(new BlueResMan(), {
     requests,
     Ready: async () => null,
     RegisterResourceConstructor() {},

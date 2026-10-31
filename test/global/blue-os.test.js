@@ -4,7 +4,7 @@ import test from "node:test";
 // Everything comes from the built package, and deliberately from ONE copy of
 // it: `blue` is a holder, so a test reaching it through two module instances
 // would register a device on one holder and pump the other.
-import { BeInfo, blue, CjsBlueOS, IBlueEvents, IBlueOS, ISimTimeRebaseNotify } from "../../npm/dist/global/blue/index.js";
+import { BeInfo, blue, BlueOS, IBlueEvents, IBlueOS, ISimTimeRebaseNotify } from "../../npm/dist/global/blue/index.js";
 import { gTriDev, Tr2Renderer, TriDevice } from "../../npm/dist/trinity/index.js";
 
 
@@ -20,9 +20,9 @@ class TestTicker extends IBlueEvents
 
 test("blue.os starts filled and answers its clock before anything composes it", () =>
 {
-  // The same argument as CjsBluePaths: an unconfigured clock can answer
+  // The same argument as BluePaths: an unconfigured clock can answer
   // truthfully, where an unconfigured resource manager cannot.
-  assert.ok(blue.os instanceof CjsBlueOS);
+  assert.ok(blue.os instanceof BlueOS);
 
   const first = blue.os.GetActualTime();
   // Blue ticks since the runtime epoch, 2026-01-01 UTC (CcpTime
@@ -37,13 +37,13 @@ test("blue.os starts filled and answers its clock before anything composes it", 
 
 test("the frame clock is cached and moves only when the pump runs", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   const frame = os.GetCurrentFrameTime();
 
   // Busy-wait rather than sleep: the point is that real time passes while the
   // FRAME time does not.
-  const until = CjsBlueOS.Monotonic() + 2;
-  while (CjsBlueOS.Monotonic() < until) { /* spin */ }
+  const until = BlueOS.Monotonic() + 2;
+  while (BlueOS.Monotonic() < until) { /* spin */ }
 
   assert.ok(os.GetActualTime() > frame, "the wallclock moved");
   assert.equal(os.GetCurrentFrameTime(), frame, "the frame clock did not");
@@ -55,7 +55,7 @@ test("the frame clock is cached and moves only when the pump runs", () =>
 
 test("the pump drives a registrant and stops when it unregisters", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   const seen = [];
   const ticker = new TestTicker((realTime, simTime, cookie) => seen.push([ realTime, simTime, cookie ]));
 
@@ -80,7 +80,7 @@ test("the pump drives a registrant and stops when it unregisters", () =>
 
 test("the cookie is part of the registration, as it is in Carbon's signature", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   let ticks = 0;
   const ticker = new TestTicker(() => ticks++);
 
@@ -94,7 +94,7 @@ test("the cookie is part of the registration, as it is in Carbon's signature", (
 
 test("a registrant that throws does not rob the others of their tick", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   let reached = false;
 
   os.RegisterForTicks(new TestTicker(() => { throw new Error("first"); }), null);
@@ -107,7 +107,7 @@ test("a registrant that throws does not rob the others of their tick", () =>
 
 test("a registrant may unregister from inside its own tick", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   let ticks = 0;
   const ticker = new TestTicker(() =>
   {
@@ -125,7 +125,7 @@ test("a registrant may unregister from inside its own tick", () =>
 
 test("registering something without an OnTick is refused at the door", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   assert.throws(() => os.RegisterForTicks({}), /IBlueEvents/u);
 
   // The point of the identity check: owning the method is not being the
@@ -137,7 +137,7 @@ test("registering something without an OnTick is refused at the door", () =>
 
 test("the half that is not ported refuses rather than answering wrongly", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
 
   // Inherited from IBlueOS, where compose.abstract installed the refusal.
   assert.throws(() => os.SetError(-1), /IBlueOS\.SetError/u);
@@ -150,7 +150,7 @@ test("the half that is not ported refuses rather than answering wrongly", () =>
 
 test("GetInfo hands back a snapshot with the clocks and the pump count filled", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   os.PumpOS();
   os.PumpOS();
 

@@ -37,7 +37,7 @@ import { composeStubResMan } from "../support/stubResMan.js";
 const context = Tr2RenderContext_GetMainThreadRenderContext();
 context.GetRenderContextAL().CreateDevice();
 
-// Effects created here take res paths, which acquire through be.resMan.
+// Effects created here take res paths, which acquire through blue.resMan.
 composeStubResMan();
 
 /** One shared-buffer range, so a release can be seen returning it. */

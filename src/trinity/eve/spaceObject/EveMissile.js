@@ -9,7 +9,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { type } from "#schema";
-import { CjsScriptCallback } from "#blueexposure/CjsScriptCallback";
+import { BlueScriptCallback } from "#blueexposure/BlueScriptCallback";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { EveLODHelper } from "../EveLODHelper.js";
@@ -167,7 +167,7 @@ export class EveMissile extends EveSpaceObject2
       const impactEvent = warhead.CheckImpact(deltaTime, this._estimatedTotalAliveTime, this.target);
       if (impactEvent === EveMissileWarhead.StateChangeEvent.EVT_EXPLODE && this.explosionCallback)
       {
-        CjsScriptCallback.from(this.explosionCallback).CallVoid(warhead.GetWarheadID());
+        BlueScriptCallback.from(this.explosionCallback).CallVoid(warhead.GetWarheadID());
       }
     }
     this.RebuildMissileBoundingSphere();

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { IRoot, CjsBlueClasses, ClassInfo } from "../../src/global/blue/index.js";
+import { IRoot, BlueClasses, ClassInfo } from "../../src/global/blue/index.js";
 import { CjsSchema, blue } from "../../src/global/schema/index.js";
 
 class RootTestObject extends IRoot
@@ -17,7 +17,7 @@ class RootTestChild extends RootTestObject {}
 blue.interface()(RootTestChild);
 blue.chainTo(RootTestObject)(RootTestChild);
 
-const classes = new CjsBlueClasses();
+const classes = new BlueClasses();
 
 test("IRoot exposes root identity and shared concrete class metadata", () =>
 {

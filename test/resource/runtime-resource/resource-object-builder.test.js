@@ -4,8 +4,8 @@ import { test, beforeEach, afterEach } from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import {
   CjsLoadingObject,
-  CjsMotherLode,
-  CjsBlueResMan,
+  MotherLode,
+  BlueResMan,
   BlueAsyncRes,
   getMotherLodeKey
 } from "../../../npm/dist/resource/index.js";
@@ -44,7 +44,7 @@ class TestGraph
 function graphManager()
 {
   const counter = { reads: 0 };
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: { Read() { counter.reads += 1; return new Uint8Array([ counter.reads ]); } }
   });
   blue.resMan = resMan;
@@ -158,7 +158,7 @@ test("values that cannot be copied fail the load by name", async () =>
   {
     static read() { return { callback() {} }; }
   }
-  const resMan = new CjsBlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
+  const resMan = new BlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
   blue.resMan = resMan;
   resMan.RegisterExtension("fn", CjsLoadingObject, {
     Format: TestFunctionFormat,
@@ -178,7 +178,7 @@ test("values that cannot be copied fail the load by name", async () =>
 function builderManager()
 {
   const counter = { reads: 0, builders: 0, objects: 0 };
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: { Read() { counter.reads += 1; return new Uint8Array([ counter.reads ]); } }
   });
   blue.resMan = resMan;
@@ -262,7 +262,7 @@ test("GetResource has no factory for an object file, as Carbon's (BlueResMan.cpp
 test("LoadObject refuses a load that yields plain data, and names the plain read", async () =>
 {
   const refused = /yields plain data, not an object; read it with ReadResource/u;
-  const resMan = new CjsBlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
+  const resMan = new BlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
   blue.resMan = resMan;
   // A format-only object route (no Target or Identify) is refused at registration.
   assert.throws(
@@ -304,7 +304,7 @@ test("object builds drain FIFO within the prepare budget, never split, re-entran
 {
   let clock = 0;
   let built = 0;
-  const resMan = new CjsBlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
+  const resMan = new BlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
   blue.resMan = resMan;
   resMan.RegisterObjectBuilder("obj", () => ({
     CreateObject()
@@ -356,8 +356,8 @@ test("an idle sweep releases a builder's cached bytes, and the next load reads a
 {
   let time = 0;
   const counter = { reads: 0, builders: 0 };
-  const resMan = new CjsBlueResMan({
-    motherLode: new CjsMotherLode({ now: () => time }),
+  const resMan = new BlueResMan({
+    motherLode: new MotherLode({ now: () => time }),
     source: { Read() { counter.reads += 1; return new Uint8Array([ counter.reads ]); } }
   });
   blue.resMan = resMan;
@@ -387,7 +387,7 @@ test("an idle sweep releases a builder's cached bytes, and the next load reads a
 test("explicit extension selects a cached builder for extensionless object names", async () =>
 {
   let reads = 0, parses = 0;
-  const resMan = new CjsBlueResMan({ source: { Read(path) { if (path === "res:/extensionless") reads++; return new Uint8Array([7]); } } });
+  const resMan = new BlueResMan({ source: { Read(path) { if (path === "res:/extensionless") reads++; return new Uint8Array([7]); } } });
   blue.resMan = resMan;
   resMan.RegisterObjectBuilder("example", bytes =>
   {

@@ -242,7 +242,7 @@ export class CjsControllerExpressionProgram
    * runtime state's start and last Blue frame times (ticks) with TimeAsFloat,
    * as Carbon's actions do (`Tr2ActionAnimateValue.cpp:97`), and delegating to
    * the controller's own GetExpressionContext when it has one. Like Carbon's,
-   * the context carries no clock (the time functions read be.os).
+   * the context carries no clock (the time functions read blue.os).
    */
   static makeActionContext(controller, owner, state, extra = {})
   {

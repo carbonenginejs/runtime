@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { type } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { IsMatch, blue, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
+import { IsMatch, blue, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, BlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
 
@@ -97,7 +97,7 @@ export class Tr2StateMachine
     {
       return;
     }
-    const state = value ? blue.classes.QueryThisInterface(value, Tr2StateMachineState, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const state = value ? blue.classes.QueryThisInterface(value, Tr2StateMachineState, value.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:

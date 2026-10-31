@@ -121,7 +121,7 @@ export class Tr2Mesh extends Tr2MeshBase
     // <base>_lowdetail<ext> sibling is, take the low-detail one to render with
     // now and request the authored one behind it. The same question, to the
     // same service Carbon asks - BePaths->FileExistsLocally is
-    // be.paths.FileExistsLocally.
+    // blue.paths.FileExistsLocally.
     let lowRes = null;
     if (!blue.paths.FileExistsLocally(this.geometryResPath))
     {

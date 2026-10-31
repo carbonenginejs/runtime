@@ -167,11 +167,11 @@ test("ICustomPersist import registers without domain evaluation or operational s
       const shared = await import("@carbonenginejs/runtime/blue");
       const { CjsSchema } = await import("@carbonenginejs/runtime/schema");
       assert.equal(CjsSchema.getConstructor("ICustomPersist"), shared.ICustomPersist);
-      assert.equal(shared.be.classes.GetClassRegistration("ICustomPersist").type, shared.ICustomPersist);
-      assert.equal(shared.be.os.GetInfo().pumpTicksTotal, 0);
-      assert.equal(shared.be.resMan.GetPendingLoads(), 0);
-      assert.equal(shared.be.resMan.GetPendingPrepares(), 0);
-      assert.equal(shared.be.resMan.workerLoader.worker, null);
+      assert.equal(shared.blue.classes.GetClassRegistration("ICustomPersist").type, shared.ICustomPersist);
+      assert.equal(shared.blue.os.GetInfo().pumpTicksTotal, 0);
+      assert.equal(shared.blue.resMan.GetPendingLoads(), 0);
+      assert.equal(shared.blue.resMan.GetPendingPrepares(), 0);
+      assert.equal(shared.blue.resMan.workerLoader.worker, null);
     `
   ], {
     cwd: fileURLToPath(new URL("../../", import.meta.url)),

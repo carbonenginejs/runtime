@@ -10,12 +10,12 @@ import { CjsSchema, blue } from "../schema/index.js";
  * A stored script callback that can be invoked later.
  *
  * A JavaScript function is wrapped once at the boundary through
- * {@link CjsScriptCallback.from}; runtime hot paths then call `Call` or
+ * {@link BlueScriptCallback.from}; runtime hot paths then call `Call` or
  * `CallVoid` directly.
  *
  * Carbon: BlueScriptCallback (blueexposure/include/BlueScriptCallback.h:54)
  */
-export class CjsScriptCallback
+export class BlueScriptCallback
 {
 
     /** Carbon's `m_callback` (BlueScriptValue): the stored callable, or null. */
@@ -26,15 +26,15 @@ export class CjsScriptCallback
      *
      * Carbon's default constructor leaves the callback null, which is the
      * invalid state `IsValid` reports; constructing with no argument does the
-     * same here. Given a CjsScriptCallback this is Carbon's copy constructor:
+     * same here. Given a BlueScriptCallback this is Carbon's copy constructor:
      * the new callback holds the same callable, and destroying either leaves
      * the other valid. Prefer `from` at any boundary, which validates first.
      *
-     * @param {Function|CjsScriptCallback|null} [callback]
+     * @param {Function|BlueScriptCallback|null} [callback]
      */
     constructor(callback = null)
     {
-        this._callback = callback instanceof CjsScriptCallback ? callback._callback : callback ?? null;
+        this._callback = callback instanceof BlueScriptCallback ? callback._callback : callback ?? null;
     }
 
     /**
@@ -42,19 +42,19 @@ export class CjsScriptCallback
      *
      * Custom: Carbon's BlueExtractArgumentImpl accepts a Python callable or None
      * (blueexposure/BlueScriptCallback.cpp:322-340). The JavaScript callable is
-     * a function; an existing CjsScriptCallback passes through, and null or
+     * a function; an existing BlueScriptCallback passes through, and null or
      * undefined return null instead of clearing a native output object.
      *
-     * @param {CjsScriptCallback|Function|null|undefined} value - Callback boundary value.
-     * @returns {CjsScriptCallback|null} A script callback or null.
+     * @param {BlueScriptCallback|Function|null|undefined} value - Callback boundary value.
+     * @returns {BlueScriptCallback|null} A script callback or null.
      * @throws {TypeError} Anything else, as Carbon's extraction fails.
      */
     static from(value)
     {
         if (value === null || value === undefined) return null;
-        if (value instanceof CjsScriptCallback) return value;
-        if (typeof value === "function") return new CjsScriptCallback(value);
-        throw new TypeError("A script callback must be a function or a CjsScriptCallback.");
+        if (value instanceof BlueScriptCallback) return value;
+        if (typeof value === "function") return new BlueScriptCallback(value);
+        throw new TypeError("A script callback must be a function or a BlueScriptCallback.");
     }
 
     /**
@@ -125,4 +125,4 @@ export class CjsScriptCallback
 // declaration is the only thing tying it back to BlueScriptCallback. Without it
 // a deliberately renamed port is indistinguishable from an invention, which is
 // exactly how this class read before 2026-09-13.
-CjsSchema.blue.define(CjsScriptCallback, { className: "CjsScriptCallback" });
+CjsSchema.blue.define(BlueScriptCallback, { className: "BlueScriptCallback" });

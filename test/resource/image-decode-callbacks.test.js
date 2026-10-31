@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test, { after } from "node:test";
 import { Worker } from "node:worker_threads";
 import { BeCallbackMan } from "../../npm/dist/global/blue/BlueCallbackMan.js";
-import { CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { BlueResMan } from "../../npm/dist/global/blue/index.js";
 import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
@@ -47,7 +47,7 @@ test("a PNG texture decodes as BeCallbackMan's image.decodeBitmap job on a worke
   t.after(() => { CcpLog.UnregisterLogEcho(echo); BeCallbackMan.constructor.CALLBACKMAN_DEBUGGING = false; });
   BeCallbackMan.constructor.CALLBACKMAN_DEBUGGING = true;
 
-  const manager = new CjsBlueResMan({ source: { Read: () => png } });
+  const manager = new BlueResMan({ source: { Read: () => png } });
   await configureResourceManager(manager);
   const image = await manager.FetchResource("res:/worker.png", { ex: "raw" });
 

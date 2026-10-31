@@ -7,7 +7,7 @@ import { random as carbonRandom } from "#math/random";
 import { IBehavior } from "./IBehavior.js";
 import { type } from "#schema";
 import { blue } from "#blue";
-import { CjsScriptCallback } from "#blueexposure/CjsScriptCallback";
+import { BlueScriptCallback } from "#blueexposure/BlueScriptCallback";
 import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -529,7 +529,7 @@ export class SeekTarget extends IRoot
 
         if (!this._droneArrived && this.onFirstDroneArrivedCallback)
         {
-          CjsScriptCallback.from(this.onFirstDroneArrivedCallback).CallVoid();
+          BlueScriptCallback.from(this.onFirstDroneArrivedCallback).CallVoid();
           this._droneArrived = true;
           this._doneRepairing = false;
           if (this.repair) this._startTimer = true;

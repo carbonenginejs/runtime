@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 // Source: audio/src/AudGameObjResource.h + AudGameObjResource.cpp
-import { blue, CjsBlueOS, IsMatch } from "#blue";
+import { blue, BlueOS, IsMatch } from "#blue";
 import { CjsWwiseSoundEngineStub } from "../../../global/audio/CjsWwiseSoundEngineStub.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudGameObjResource.json.
@@ -62,7 +62,7 @@ function GenerateEntityID()
 /** std::chrono::steady_clock::now() (AudGameObjResource.cpp:199), as blue's host milliseconds. */
 function NowMs()
 {
-  return CjsBlueOS.Monotonic();
+  return BlueOS.Monotonic();
 }
 
 /**

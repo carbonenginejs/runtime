@@ -2,7 +2,7 @@ import { getRegisteredClassName } from "../../../npm/dist/global/compose/classNa
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";
 
-// be.resMan has no source until something configures it, so a test that
+// blue.resMan has no source until something configures it, so a test that
 // builds an object with a res path composes one. It answers null, which is
 // what these tests already asserted - previously by accident, because
 // nothing in src ever filled the old static slot.
@@ -2306,7 +2306,7 @@ test("runtime-SOF async boundary introduces no engine or format-layer imports", 
   const allowed = new Set(["#blue/formats/black"]);
   const forbidden = /(?:^#(?:resource|trinity|audio|engine)(?:\/|$))|(?:^|[/@_-])(?:engine|runtime-(?:engine|trinity|resource|audio)|webgl|webgpu|shader-format|format-shader|dxbc|hlsl)(?:$|[/_-])/iu;
   assert.deepEqual(specifiers.filter(specifier => forbidden.test(specifier) && !allowed.has(specifier)), []);
-  assert.doesNotMatch(importDeclarations.join("\n"), /\b(?:CjsLibrary|CjsBlueResMan)\b/u);
+  assert.doesNotMatch(importDeclarations.join("\n"), /\b(?:CjsLibrary|BlueResMan)\b/u);
 });
 
 test("a child resolver returning a carbon.document is refused", async () => {

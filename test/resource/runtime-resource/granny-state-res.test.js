@@ -1,4 +1,4 @@
-import { blue, CjsBlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan } from "../../../npm/dist/global/blue/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -192,7 +192,7 @@ test("an empty Granny container fails while animation-only and geometry files lo
 function managerFor(t, data)
 {
   const previous = blue.resMan;
-  const manager = new CjsBlueResMan({source: {Read: () => data}});
+  const manager = new BlueResMan({source: {Read: () => data}});
   blue.resMan = manager;
   t.after(() => { try { manager.Clear(); } finally { blue.resMan = previous; } });
   return manager;

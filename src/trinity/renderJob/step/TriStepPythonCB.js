@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
-import { CjsScriptCallback } from "#blue";
+import { BlueScriptCallback } from "#blue";
 
 /** A render step that invokes a host-supplied callback at its point in the job order. */
 @be.define("TriStepPythonCB")
@@ -28,7 +28,7 @@ export class TriStepPythonCB extends TriRenderStep
 
   /**
    * Carbon method SetCallback (MAP_METHOD_AND_WRAP): stores the script
-   * callback, wrapping a function at the boundary (CjsScriptCallback.from).
+   * callback, wrapping a function at the boundary (BlueScriptCallback.from).
    *
    * @adapted
    */
@@ -36,7 +36,7 @@ export class TriStepPythonCB extends TriRenderStep
   @be.mapMethodAndWrap()
   SetCallback(callback)
   {
-    this.callback = CjsScriptCallback.from(callback);
+    this.callback = BlueScriptCallback.from(callback);
   }
 
   /**

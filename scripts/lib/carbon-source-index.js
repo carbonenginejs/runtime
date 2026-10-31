@@ -121,7 +121,7 @@ export async function sourceIndex(packageRoot, carbonRoot)
         }
         // A class may declare the donor it ports under a different name. That
         // declaration is the author's, and it is the only thing tying a
-        // deliberately renamed port back to its donor - CjsScriptCallback to
+        // deliberately renamed port back to its donor - BlueScriptCallback to
         // BlueScriptCallback, or every Tr2*ALStub to the one Tr2*AL name Carbon
         // gives all backends. Without it a renamed port reads here as a missing one.
         for (const donor of declaredDonors(source))

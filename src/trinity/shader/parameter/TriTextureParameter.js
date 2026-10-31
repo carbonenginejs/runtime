@@ -463,7 +463,7 @@ export class TriTextureParameter extends ITriEffectTextureParameter
       const request = path => blue.resMan.GetResource(path);
 
       // Carbon cpp:214-228, asking the same service: BePaths->FileExistsLocally
-      // is be.paths.FileExistsLocally, which in a browser means "already
+      // is blue.paths.FileExistsLocally, which in a browser means "already
       // fetched".
       if (!blue.paths.FileExistsLocally(this.resourcePath))
       {

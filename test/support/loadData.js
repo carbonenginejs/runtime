@@ -10,7 +10,7 @@
  * The extension must be routed to `TestDataRes` (or another Res class with a
  * `value`).
  *
- * @param {object} resMan A CjsBlueResMan.
+ * @param {object} resMan A BlueResMan.
  * @param {string} path Resource path.
  * @param {object} [options] Identity and loader options.
  * @returns {Promise<*>} The resource's value once ready.
@@ -26,7 +26,7 @@ export async function LoadData(resMan, path, options = {})
  * Reads a path's plain decoded data: the source bytes through `ReadResource`,
  * then the extension's format (`ResolveFormatDescriptor`, `ReadFormat`).
  *
- * @param {object} resMan A CjsBlueResMan.
+ * @param {object} resMan A BlueResMan.
  * @param {string} path Resource path.
  * @param {object} [options] Source and format options.
  * @returns {Promise<*>} The decoded value.

@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { IsMatch, INotify, IInitialize, blue, CjsBlueClasses } from "#blue";
+import { IsMatch, INotify, IInitialize, blue, BlueClasses } from "#blue";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
@@ -245,7 +245,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
     {
       return null;
     }
-    if (blue.classes.QueryThisInterface(object, EveSpaceObject2, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+    if (blue.classes.QueryThisInterface(object, EveSpaceObject2, object.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
     {
       const locators = object.GetLocatorsForSet(this.offsetLocatorName);
       if (locators && locators.length > 0)
@@ -287,7 +287,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    */
   _GetModelRotation(out)
   {
-    if (this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+    if (this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
     {
       quat.normalize(this._rotation, this.object.GetWorldRotation(this._rotation));
       return mat4.fromQuat(out, this._rotation);
@@ -303,7 +303,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    */
   GetWorldPosition(out)
   {
-    return this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null
+    return this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null
       ? this.object.GetWorldPosition(out) : null;
   }
 

@@ -1,7 +1,7 @@
 import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
-// Texture parameters ask be.resMan for their texture as Carbon asks BeResMan,
+// Texture parameters ask blue.resMan for their texture as Carbon asks BeResMan,
 // which always answers with the typed resource; the stub does the same. Import
 // declarations are hoisted, so this runs after every import in the file.
 composeStubResMan();

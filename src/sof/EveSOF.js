@@ -356,7 +356,7 @@ export class EveSOF extends IRoot
 
   /**
    * Per-builder paths service for texture resPathInsert existence queries when no explicit
-   * resolver is installed; null selects be.paths. Custom: native uses global BePaths, while
+   * resolver is installed; null selects blue.paths. Custom: native uses global BePaths, while
    * tools-core can serve multiple builds with separate paths services.
    * @type {{FileExists: Function}|null}
    */
@@ -456,7 +456,7 @@ export class EveSOF extends IRoot
    *   factory's data manager); `false`/`null` removes it.
    * - `paths`: the paths service (an IBluePaths: `FileExists(path)`) that
    *   texture `resPathInsert` existence asks, or null for the global
-   *   `be.paths`, which is Carbon's BePaths.
+   *   `blue.paths`, which is Carbon's BePaths.
    * - `resFileIndex`: TEMPORARY host adapter, overriding `paths`: an array
    *   of file names (case-insensitive), a predicate, a Set or Map (exact
    *   `has`), or null. It exists for tools-core, whose published runtime
@@ -573,7 +573,7 @@ export class EveSOF extends IRoot
     }
     if (Object.prototype.hasOwnProperty.call(options, "paths"))
     {
-      // An IBluePaths, as be.paths is, or null.
+      // An IBluePaths, as blue.paths is, or null.
       this._paths = options.paths ?? null;
       this._existingFilesCache.clear();
     }

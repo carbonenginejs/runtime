@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
-import { CjsScriptCallback } from "#blue";
+import { BlueScriptCallback } from "#blue";
 
 /** The interactive manipulator base: axis selection, drag handling and the callback a move reports through. */
 @be.define("Tr2ManipulationTool")
@@ -20,7 +20,7 @@ export class Tr2ManipulationTool extends IRoot
   @type.string
   selectedAxis = "";
 
-  /** Carbon's move callback (BlueScriptCallback): a CjsScriptCallback, or null. */
+  /** Carbon's move callback (BlueScriptCallback): a BlueScriptCallback, or null. */
   @type.rawStruct("BlueScriptCallback")
   moveCallback = null;
 
@@ -70,7 +70,7 @@ export class Tr2ManipulationTool extends IRoot
   @be.mapMethodAndWrap()
   SetMoveCallback(callback)
   {
-    this.moveCallback = CjsScriptCallback.from(callback);
+    this.moveCallback = BlueScriptCallback.from(callback);
   }
 
   /**

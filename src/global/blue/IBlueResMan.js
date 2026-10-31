@@ -6,7 +6,7 @@ import { IRoot } from "../blueexposure/IRoot.js";
 // implementation, `BlueResMan`, is never visible outside blue. Trinity takes
 // this one header through `StdAfx.h:54` and calls it at 94 sites.
 //
-// That split is the point. `CjsBlueResMan` has 68 public methods - configuration,
+// That split is the point. `BlueResMan` has 68 public methods - configuration,
 // queue driving, diagnostics and internals alongside the verbs a caller
 // actually uses - and publishing all of it to everybody is why nothing can
 // tell which methods are the interface. Twenty-one are.

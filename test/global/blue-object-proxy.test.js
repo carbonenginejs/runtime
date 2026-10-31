@@ -170,7 +170,7 @@ test("SetObject, ClearObject, SetObjectFromBuilder, OnSelected and temporary fol
 test("Tr2SkinnedObjectLod creates real proxies for its models (Tr2SkinnedObjectLOD.cpp:151-200)", { skip: lodSkip }, t =>
 {
   const { Tr2SkinnedModel, Tr2SkinnedObjectLod } = dist.character;
-  realClock(t, 1000, dist.blue.be.os);
+  realClock(t, 1000, dist.blue.blue.os);
   const lod = new Tr2SkinnedObjectLod();
   const high = new Tr2SkinnedModel(), medium = new Tr2SkinnedModel(), low = new Tr2SkinnedModel();
   lod.SetHighDetailModel(high);
@@ -194,7 +194,7 @@ test("Tr2SkinnedObjectLod creates real proxies for its models (Tr2SkinnedObjectL
 test("Tr2SkinnedObjectLod unloads unselected proxies after ten real seconds and rebuilds them", { skip: lodSkip }, t =>
 {
   const { Tr2SkinnedObjectLod } = dist.character;
-  const clock = realClock(t, 1000, dist.blue.be.os);
+  const clock = realClock(t, 1000, dist.blue.blue.os);
   const lod = new Tr2SkinnedObjectLod();
   const builder = new RecordingBuilder();
   for (const name of [ "highDetailProxy", "mediumDetailProxy", "lowDetailProxy" ])

@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Tr2LightProfileRes } from "../../../npm/dist/resource/index.js";
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
-import { BlueResFileSystemForm, CjsBluePaths, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
+import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { num } from "../../../npm/dist/global/math/num.js";
@@ -46,7 +46,7 @@ function memoryFileSystem(files)
 
 function withFiles(t, files)
 {
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   paths.RegisterFileSystem(memoryFileSystem(files));
   const previous = installBlueServices({ paths }, false);
   t.after(() => installBlueServices(previous, previous.running));

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync,existsSync} from 'node:fs';
 import {CjsSchema} from '../../npm/dist/global/schema/index.js';
-import {be,IInitialize,INotify,NotifyModified} from '../../npm/dist/global/blue/index.js';
+import {blue,IInitialize,INotify,NotifyModified} from '../../npm/dist/global/blue/index.js';
 import {finalizeReaderObject} from '../../npm/dist/global/schema/hydration.js';
 import {Tr2GrannyPrimitiveSet,Tr2PrimitiveSet,Tr2LineSet,Tr2SolidSet,TriDevice,Tr2EffectStateManager,
   Tr2RenderContext_GetMainThreadRenderContext,RawData} from '../../npm/dist/trinity/index.js';
@@ -23,18 +23,18 @@ function mesh(name='ordinary',x=0) {
 }
 function geometry(meshes=[mesh()],ready=true){const r=new TriGeometryRes();r.ReadCMFFile({meshes});if(ready)prepareResourceFixture(r);return r;}
 function setup(t,resolve=null){
- const context=Tr2RenderContext_GetMainThreadRenderContext(),previous=context.GetRenderContextAL(),manager=be.resMan;
+ const context=Tr2RenderContext_GetMainThreadRenderContext(),previous=context.GetRenderContextAL(),manager=blue.resMan;
  const before=new Set(TriDevice.GetResourcesRegistered());
  const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();
- be.resMan=new StubResMan(resolve);
+ blue.resMan=new StubResMan(resolve);
  const maps=[],indices=[],draws=[],map=Tr2BufferAL.prototype.MapForWriting,create=al.CreateBuffer.bind(al),draw=al.DrawIndexedInstanced.bind(al);
  t.mock.method(Tr2BufferAL.prototype,'MapForWriting',function(...args){const r=map.apply(this,args);if(this.GetDesc().stride===40&&r.data)maps.push(r.data);return r;});
  al.CreateBuffer=(description,data,...args)=>{if(description.stride===4&&data)indices.push(new Uint32Array(data.buffer,data.byteOffset,data.byteLength/4).slice());return create(description,data,...args);};
  al.DrawIndexedInstanced=(...args)=>{draws.push(args);return draw(...args);};
  const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
  const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
- t.after(()=>{for(const r of TriDevice.GetResourcesRegistered())if(!before.has(r)&&r.constructor===Tr2GrannyPrimitiveSet)r.Destruct();be.resMan=manager;context.SetRenderContextAL(previous);});
- return {context,al,maps,indices,draws,effect,manager:be.resMan};
+ t.after(()=>{for(const r of TriDevice.GetResourcesRegistered())if(!before.has(r)&&r.constructor===Tr2GrannyPrimitiveSet)r.Destruct();blue.resMan=manager;context.SetRenderContextAL(previous);});
+ return {context,al,maps,indices,draws,effect,manager:blue.resMan};
 }
 function make(path='res:/primitive.gr2'){const p=new Tr2GrannyPrimitiveSet();p.grannyResPath=path;finalizeReaderObject(p);return p;}
 function batches(p,type=OPAQUE,data=null){const out=[];p.GetBatches({Commit:b=>out.push(b)},type,data);return out;}
@@ -155,7 +155,7 @@ test('active draws renew the manager lease and recover a purged handle before th
  const r=geometry(),{effect}=setup(t,()=>r),p=make();p.effect=effect;
  let renewals=0,reloads=0;
  r._path="res:/primitive.gr2";
- const manager=be.resMan,renew=manager._KeepResourceAlive;
+ const manager=blue.resMan,renew=manager._KeepResourceAlive;
  t.mock.method(manager,"_KeepResourceAlive",function(resource,options){renewals++;return renew.call(this,resource,options);});
  t.mock.method(r,"Reload",()=>{reloads++;pendingResourceFixture(r);return true;});
  assert.equal(batches(p).length,1);assert.equal(renewals,1);

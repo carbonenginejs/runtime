@@ -3,7 +3,7 @@ import { createDdsBitmap } from "../../npm/dist/resource/formats/dds/ddsBitmap.j
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Worker } from "node:worker_threads";
-import { BlueResManQueue, CjsBlueResMan, CjsResManWorkerLoader } from "../../npm/dist/global/blue/index.js";
+import { BlueResManQueue, BlueResMan, CjsResManWorkerLoader } from "../../npm/dist/global/blue/index.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
@@ -58,7 +58,7 @@ test("GR2 worker decode feeds the native load hook without fetching existing byt
   const { loader, messages } = workerLoader(t);
   const bytes = grannyBytes();
   const expected = CjsGr2Format.read(bytes, { emit: "json", rebuildMissingBounds: true });
-  const manager = new CjsBlueResMan({ workerLoader: loader });
+  const manager = new BlueResMan({ workerLoader: loader });
   await configureResourceManager(manager);
   let reads = 0;
   manager.SetSource({ Read() { reads++; throw new Error("existing bytes must not fetch"); } });
@@ -89,7 +89,7 @@ test("registered GR2 route fetches and decodes once for concurrent consumers", a
   const {loader,messages} = workerLoader(t);
   let reads = 0;
   const bytes = grannyBytes();
-  const manager = new CjsBlueResMan({ workerLoader: loader, source: {Read(){reads++;return bytes;}} });
+  const manager = new BlueResMan({ workerLoader: loader, source: {Read(){reads++;return bytes;}} });
   await configureResourceManager(manager);
   const [first,second] = await Promise.all([manager.FetchResource("res:/same.gr2"),manager.FetchResource("res:/same.gr2")]);
   assert.equal(first,second);
@@ -126,7 +126,7 @@ test("DDS worker preserves native BC cube and short-file output and resource bit
 test("DDS texture and image routes execute in the worker", async t =>
 {
   const {loader,messages} = workerLoader(t);
-  const manager = new CjsBlueResMan({workerLoader:loader,source:{Read:()=>ddsBytes()}});
+  const manager = new BlueResMan({workerLoader:loader,source:{Read:()=>ddsBytes()}});
   await configureResourceManager(manager);
   const texture = await manager.FetchResource("res:/test.dds");
   const image = await manager.FetchResource("res:/test.dds", {ex:"raw"});
@@ -141,7 +141,7 @@ test("detail arrays and named texture parameters fetch and decode each cached DD
   for (const order of [ "parameters-first", "array-first", "concurrent" ])
   {
     const reads = new Map();
-    const manager = new CjsBlueResMan({ workerLoader: loader, source: {
+    const manager = new BlueResMan({ workerLoader: loader, source: {
       Read(path) { reads.set(path, (reads.get(path) || 0) + 1); return ddsBytes(); }
     } });
     await configureResourceManager(manager);
@@ -171,7 +171,7 @@ test("DDS loader honors the selected source and explicit shared decode policy", 
   const { loader, messages } = workerLoader(t);
   let reads = 0;
   const source = { Read() { reads++; return ddsBytes(); } };
-  const manager = new CjsBlueResMan({ workerLoader: loader });
+  const manager = new BlueResMan({ workerLoader: loader });
   await configureResourceManager(manager);
   const options = { source, cacheSource: true, cacheFormat: true };
   const [ texture, image ] = await Promise.all([
@@ -206,7 +206,7 @@ test("worker failure, disabled loading and unsupported outputs retain the existi
 test("deleting a resource rejects its late worker result without occupying the main queue", async t =>
 {
   const {loader,adapter} = workerLoader(t);
-  const manager = new CjsBlueResMan({workerLoader:loader,source:{Read:()=>grannyBytes()}});
+  const manager = new BlueResMan({workerLoader:loader,source:{Read:()=>grannyBytes()}});
   await configureResourceManager(manager);
   let received;
   const arrival = new Promise(resolve => {received=resolve;});
@@ -256,7 +256,7 @@ test("DDS volume header flag survives worker decoding and texture resource mater
   view.setUint32(24, 3, true);
   for (let i = 0; i < 24; i++) bytes[128 + i] = i + 1;
   const { loader, messages } = workerLoader(t);
-  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
+  const manager = new BlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
   await configureResourceManager(manager);
   const texture = await manager.FetchResource("res:/volume.dds");
   const bitmap = texture.GetBitmap();
@@ -275,7 +275,7 @@ test("PNG textures never go to the resource worker, and match the main-thread Im
   const rgba = Uint8Array.from({ length: 5 * 3 * 4 }, (_, i) => (i * 37 + 11) & 255);
   const png = await CjsPngFormat.writeAsync({ width: 5, height: 3, data: rgba });
   const { loader, messages } = workerLoader(t);
-  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => png } });
+  const manager = new BlueResMan({ workerLoader: loader, source: { Read: () => png } });
   await configureResourceManager(manager);
   const image = await manager.FetchResource("res:/test.png", { ex: "raw" });
   assert.ok(!messages.some(message => message.operation === "format.read"), "the resource worker decodes no PNG");
@@ -291,7 +291,7 @@ test("a PNG decodes on this thread when no worker is available", async () =>
 {
   ImageIO.registerImageHandler(CjsPngFormat);
   const png = await CjsPngFormat.writeAsync({ width: 2, height: 2, data: new Uint8Array(16).fill(200) });
-  const manager = new CjsBlueResMan({ source: { Read: () => png } });
+  const manager = new BlueResMan({ source: { Read: () => png } });
   await configureResourceManager(manager);
   const image = await manager.FetchResource("res:/plain.png", { ex: "raw" });
   assert.equal(image.GetBitmap().GetWidth(), 2);
@@ -302,7 +302,7 @@ test("direct Granny Load uses library registration, both queues and the worker",
   const { loader, messages } = workerLoader(t);
   const bytes = grannyBytes();
   let reads = 0;
-  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read() { reads++; return bytes; } } });
+  const manager = new BlueResMan({ workerLoader: loader, source: { Read() { reads++; return bytes; } } });
   await configureResourceManager(manager);
   assert.equal(manager.GetFormatDescriptors("gr2").length, 0, "no bare-format registration masks the extension/ex reader");
   manager.PauseQueue(BlueResManQueue.BRMQ_BACKGROUND);
@@ -340,7 +340,7 @@ test("direct Granny Load uses library registration, both queues and the worker",
 test("direct geometry Initialize resolves the configured reader without CreateResource", async t =>
 {
   const { loader, messages } = workerLoader(t);
-  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: grannyBytes } });
+  const manager = new BlueResMan({ workerLoader: loader, source: { Read: grannyBytes } });
   await configureResourceManager(manager);
   const geometry = new TriGeometryRes();
   geometry.Initialize("res:/direct-geometry.gr2", "");
@@ -355,7 +355,7 @@ test("direct geometry Initialize resolves the configured reader without CreateRe
 test("direct unregistered file loads fail before I/O and cannot use the bare format registry", async t =>
 {
   let reads = 0;
-  const manager = new CjsBlueResMan({ source: { Read() { reads++; return grannyBytes(); } } });
+  const manager = new BlueResMan({ source: { Read() { reads++; return grannyBytes(); } } });
   await configureResourceManager(manager);
   manager.RegisterFormat(CjsGr2Format, { emit: "json" });
   const raw = new TriGrannyRes();
@@ -390,7 +390,7 @@ test("registered GR2 instances finish worker and in-place data once with Blue on
     for (const workers of [false, true])
     {
       const before = messages.length;
-      const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
+      const manager = new BlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
       await configureResourceManager(manager, {
         formatOptions: { buildClasses },
         formats: { gr2: { Format: CjsGr2Format, options: { classes: { Mesh }, rebuildMissingBounds: true },
@@ -425,7 +425,7 @@ test("GR2 registrations keep distinct options and cached results for the same so
   const { loader, messages } = workerLoader(t);
   const bytes = grannyBytes();
   let reads = 0;
-  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read() { reads++; return bytes; } } });
+  const manager = new BlueResMan({ workerLoader: loader, source: { Read() { reads++; return bytes; } } });
   await configureResourceManager(manager, {
     formats: { gr2raw: { Format: CjsGr2Format, options: { rebuildMissingNormals: true },
       routes: [{ extension: "gr2", ex: "raw", Res: TriGrannyRes }] } }
@@ -445,7 +445,7 @@ test("GR2 callback options stay in place and preserve their per-mesh behavior", 
 {
   const { loader, messages } = workerLoader(t);
   let calls = 0;
-  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: grannyBytes } });
+  const manager = new BlueResMan({ workerLoader: loader, source: { Read: grannyBytes } });
   await configureResourceManager(manager, {
     formats: { gr2: { Format: CjsGr2Format,
       options: { rebuildMissingNormals: () => { calls++; return true; } },
@@ -460,7 +460,7 @@ test("GR2 callback options stay in place and preserve their per-mesh behavior", 
 
 test("captured geometry routes preserve explicit extensions and different ex profiles", async t =>
 {
-  const manager = new CjsBlueResMan({ source: { Read: grannyBytes } });
+  const manager = new BlueResMan({ source: { Read: grannyBytes } });
   await configureResourceManager(manager, {
     formats: { geometryNormals: { Format: CjsGr2Format, options: { rebuildMissingNormals: true },
       routes: [{ extension: "gr2", ex: "normals", Res: TriGeometryRes }] } }
@@ -492,7 +492,7 @@ test("dynamic single-mesh GR2 reads use the configured native-data worker", asyn
 {
   const { loader, messages } = workerLoader(t);
   const bytes = grannyBytes();
-  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
+  const manager = new BlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
   await configureResourceManager(manager);
   const resource = await manager.FetchResource("dynamic:/mesh/0/res:/single.gr2");
   assert.equal(resource.GetMeshCount(), 1);

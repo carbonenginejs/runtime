@@ -3,7 +3,7 @@ import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.h
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.cpp
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX_Blue.cpp
-import { IsMatch, CjsBlueClasses } from "#blue";
+import { IsMatch, BlueClasses } from "#blue";
 
 import { CjsSchema, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
@@ -404,7 +404,7 @@ export class EveTurretFiringFX extends EveEntity
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (!this.isFiring || list !== this.stretch || (event & BLUELISTEVENT.BELIST_LOADING)) return;
-    if (!value || blue.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
+    if (!value || blue.classes.QueryThisInterface(value, EveEntity, value.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
     const registry = this.GetComponentRegistry();
     if (!registry) return;
     const operation = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -486,7 +486,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       const emitter = this.destinationObserver.GetObserver();
       const contract = CjsSchema.getConstructor("ITr2AudEmitter");
-      if (emitter && contract && blue.classes.QueryThisInterface(emitter, contract, emitter.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (emitter && contract && blue.classes.QueryThisInterface(emitter, contract, emitter.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         emitter.SetAttenuationScalingFactor(radius);
       }
@@ -953,7 +953,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         stretch.SetControllerVariable(name, value);
       }
@@ -970,7 +970,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         stretch.HandleControllerEvent(name);
       }
@@ -987,7 +987,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         stretch.StartControllers();
       }
@@ -1070,7 +1070,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        if (element && blue.classes.QueryThisInterface(element, EveEntity, element.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.Register(registry);
+        if (element && blue.classes.QueryThisInterface(element, EveEntity, element.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.Register(registry);
       }
     }
   }
@@ -1089,7 +1089,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        if (element && blue.classes.QueryThisInterface(element, EveEntity, element.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.UnRegister(registry);
+        if (element && blue.classes.QueryThisInterface(element, EveEntity, element.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.UnRegister(registry);
       }
     }
   }

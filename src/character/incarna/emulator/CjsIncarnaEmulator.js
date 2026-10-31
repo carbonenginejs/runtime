@@ -117,7 +117,7 @@ export class CjsIncarnaEmulator
 
   /**
    * @param {object} dataMgr The EveSOFDataMgr whose factory builds the result.
-   * @param {object} resourceManager The `CjsBlueResMan` that serves the areas' textures; `dynamic:/incarna` is registered on it.
+   * @param {object} resourceManager The `BlueResMan` that serves the areas' textures; `dynamic:/incarna` is registered on it.
    */
   constructor(dataMgr, resourceManager)
   {
@@ -196,7 +196,7 @@ export class CjsIncarnaEmulator
    * within one cell of the plane, which is put on it once.
    *
    * @implemented
-   * @param {object} resourceManager The `CjsBlueResMan` that serves the areas' textures, as the constructor takes it; `dynamic:/incarna` is registered on it.
+   * @param {object} resourceManager The `BlueResMan` that serves the areas' textures, as the constructor takes it; `dynamic:/incarna` is registered on it.
    * @param {Array<{object: object, transform: ArrayLike<number>}>} pieces As `AddAssembly` takes them, their geometry loaded.
    * @param {object} [options]
    * @param {number} [options.threshold=0.25] The glow, 0 to 1, a texel needs to count.
@@ -240,7 +240,7 @@ export class CjsIncarnaEmulator
    * One overlay map's glow mask, as the areas draw it.
    *
    * @implemented
-   * @param {object} resourceManager The `CjsBlueResMan` serving `dynamic:/incarna`.
+   * @param {object} resourceManager The `BlueResMan` serving `dynamic:/incarna`.
    * @param {string} source The overlay map's resource path.
    * @returns {Promise<{data: Uint8Array, width: number, height: number, max: number}|null>} The mask's top level and its brightest texel; null when it did not load.
    */

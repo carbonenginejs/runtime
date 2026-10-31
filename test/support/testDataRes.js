@@ -43,7 +43,7 @@ export class TestDataRes extends BlueAsyncRes
  * Registers an object loader for an extension and routes the extension to
  * `TestDataRes`, so `GetResource` serves the loader's value as a resource.
  *
- * @param {object} resMan A CjsBlueResMan.
+ * @param {object} resMan A BlueResMan.
  * @param {string} extension Input extension.
  * @param {Function} loader Object loader, `(bytes, context) => value`.
  * @returns {object} The manager.

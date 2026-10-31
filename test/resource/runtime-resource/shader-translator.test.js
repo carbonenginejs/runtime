@@ -2,7 +2,7 @@ import { configureResourceManager } from "../../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsBlueResMan } from "../../../npm/dist/resource/index.js";
+import { BlueResMan } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
 import "../../support/frameLoop.js";
 
@@ -26,7 +26,7 @@ Tr2EffectRes.CommitBackend({ source: "dx11", target: "webgpu", translator });
 async function Load(path)
 {
   calls.length = 0;
-  const resourceManager = await configureResourceManager(new CjsBlueResMan({ source: { Read: () => SHIPPED } }));
+  const resourceManager = await configureResourceManager(new BlueResMan({ source: { Read: () => SHIPPED } }));
   const resource = resourceManager.GetResource(path);
   // The synthetic bytes are not a container; the load fails after the
   // translation decision, which is what these tests observe.
@@ -36,7 +36,7 @@ async function Load(path)
 
 test("the loader passes shipped bytes through and takes no translation options", async () =>
 {
-  const resourceManager = await configureResourceManager(new CjsBlueResMan());
+  const resourceManager = await configureResourceManager(new BlueResMan());
   const loader = resourceManager.GetObjectLoader("sm_hi");
 
   assert.equal(loader(SHIPPED, {}), SHIPPED);

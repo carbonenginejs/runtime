@@ -5,7 +5,7 @@
 // news a T, queries riid into ppv and drops the construction lock. JavaScript
 // needs no template per class to construct one: a registration without its own
 // createFn gets `() => new type()` (src/global/blueexposure/classes/registry.js), and
-// CjsBlueClasses.CreateInstance returns that instance with no interface id to
+// BlueClasses.CreateInstance returns that instance with no interface id to
 // query and no lock to release.
 // No runtime registration or export.
 

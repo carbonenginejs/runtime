@@ -2,7 +2,7 @@ import { prepareResourceFixture, resourceIdentityFixture } from "../../support/r
 import { configureResourceManager } from "../../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsBlueResMan, CjsMotherLode, TriGeometryRes } from "../../../npm/dist/resource/index.js";
+import { BlueResMan, MotherLode, TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { Tr2RenderContext } from "../../../npm/dist/trinity/core/index.js";
@@ -67,7 +67,7 @@ test("switching ships lets the idle owner's GPU objects expire while the current
   let now = 0;
   const { al, render, live, destroyed } = context();
   // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
-  const manager = new CjsBlueResMan({ motherLode: new CjsMotherLode({ now: () => now, cacheSize: 0 }), source: { Read: () => dds() } });
+  const manager = new BlueResMan({ motherLode: new MotherLode({ now: () => now, cacheSize: 0 }), source: { Read: () => dds() } });
   await configureResourceManager(manager);
   manager.SetAutoPurgePolicy({ intervalMilliseconds: 1, maxIdleMilliseconds: 10, now: () => now });
   const counts = () => [ live.textures.size, live.buffers.size ];

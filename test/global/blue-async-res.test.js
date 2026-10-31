@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import {
-  blue, BlueAsyncRes, CjsBlueResMan, BlueResManQueue, IBlueAsyncResNotifyTarget, IBlueCallbackMan, IBlueResMan, IBluePaths, IBlueResource
+  blue, BlueAsyncRes, BlueResMan, BlueResManQueue, IBlueAsyncResNotifyTarget, IBlueCallbackMan, IBlueResMan, IBluePaths, IBlueResource
 } from "../../npm/dist/global/blue/index.js";
 import "../support/frameLoop.js";
 
 /** Records queued callbacks so a test can run them as the queue would. */
-class QueueResMan extends CjsBlueResMan
+class QueueResMan extends BlueResMan
 {
   queued = [];
   cancelled = [];
@@ -144,7 +144,7 @@ test("a successful load opens the file without its query, prepares and notifies"
 test("a data stream loads through the global manager without a new memory budget", async t =>
 {
   const { paths } = setup(t);
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const bytes = new Uint8Array([ 1, 2, 3 ]);
   paths.files.set("res:/budget.bin", { form: "bytes", data: bytes });
@@ -159,7 +159,7 @@ test("a data stream loads through the global manager without a new memory budget
   assert.equal(res._reservedMemory, 0);
   assert.deepEqual(target.calls, [ [ "rebuild", res ] ]);
   for (const method of [ "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
-    assert.equal(CjsSchema.getMethod(CjsBlueResMan, method).impl.status, "noop");
+    assert.equal(CjsSchema.getMethod(BlueResMan, method).impl.status, "noop");
 });
 
 test("prepare is budgeted on the logical main queue; DONTNOTIFY skips the targets", async t =>

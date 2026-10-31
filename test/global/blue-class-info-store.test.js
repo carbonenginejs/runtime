@@ -9,9 +9,9 @@ import { ImportAllDistModules, ImportDist } from "../support/allDistClasses.js";
 await ImportAllDistModules();
 const { CjsSchema } = await ImportDist("global/schema/CjsSchema.js");
 const { getClassRegistrations } = await ImportDist("global/blueexposure/classes/registry.js");
-const { ClassInfo, CjsBlueClasses } = await ImportDist("global/blue/index.js");
+const { ClassInfo, BlueClasses } = await ImportDist("global/blue/index.js");
 
-const classes = new CjsBlueClasses();
+const classes = new BlueClasses();
 const registrations = getClassRegistrations();
 
 /** Be::HIDDEN (BlueTypes.h:292). */
@@ -72,7 +72,7 @@ test("the Blue view is PyGetTypeInfo's members and methods", () =>
   for (const { name, type } of registrations)
   {
     const ci = ClassInfo.exposeToBlue(type);
-    const [ , , members, methods ] = CjsBlueClasses._typeInfo(type, 0);
+    const [ , , members, methods ] = BlueClasses._typeInfo(type, 0);
     const blueRows = new Map();
     const rowCount = new Map();
     for (let level = ci; level; level = level.parentClassInfo)

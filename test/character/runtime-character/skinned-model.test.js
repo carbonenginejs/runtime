@@ -1,6 +1,6 @@
 import { prepareResourceFixture } from "../../support/resourceFixtures.js";
 // Tr2SkinnedModel and the mesh rig binding it drives, on real classes: Tr2Mesh over a payload TriGeometryRes acquired
-// through be.resMan (Tr2SkinnedModel.cpp, Tr2MeshBase.cpp:120-282).
+// through blue.resMan (Tr2SkinnedModel.cpp, Tr2MeshBase.cpp:120-282).
 import assert from "node:assert/strict";
 import test from "node:test";
 import { blue } from "../../../npm/dist/global/blue/index.js";

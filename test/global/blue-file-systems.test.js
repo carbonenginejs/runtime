@@ -8,7 +8,7 @@ import {
   BlueResFileSystemForm,
   BlueResFileSystemLocal,
   BluePathsBeforeOrAfter,
-  CjsBluePaths,
+  BluePaths,
   CjsBlueResFileSystemCallback,
   CjsBlueResFileSystemFetch,
   IBlueResFileSystem
@@ -68,7 +68,7 @@ test("BlueFileUtil ports GetResProtocol and the red/black substitutions", () =>
 
 test("BePaths refuses a file system that does not declare its protocols and forms", () =>
 {
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   const plain = { FileExists: () => false, IsDirectory: () => false, GetDirectoryContents() {}, GetStreamFromPath: async () => null, ResolvePathW: () => null };
   assert.throws(() => paths.RegisterFileSystem(plain), /static protocols/u);
   assert.throws(() => paths.RegisterFileSystem(new BlueResFileSystemLocal()), /static protocols/u, "the local stub declares no protocols");
@@ -118,7 +118,7 @@ test("BlueResFileSystemLocal exposes the W members under Carbon's names (BlueRes
 
 test("BePaths asks only the file systems that serve the path's protocol, in list order", async () =>
 {
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   const cdn = memoryFileSystem([ "res" ], [ BYTES ], new Map([ [ "res:/b.dds", encode("cdn") ] ]));
   const first = memoryFileSystem([ "res" ], [ BYTES ], new Map([ [ "res:/a.dds", encode("first") ] ]));
   const other = memoryFileSystem([ "cache" ], [ BYTES ], new Map());
@@ -141,7 +141,7 @@ test("BePaths asks only the file systems that serve the path's protocol, in list
 
 test("BePaths matches the caller's forms to the file system's, bridging only the cheap gaps", async () =>
 {
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   const bytesOnly = memoryFileSystem([ "res" ], [ BYTES ], new Map([ [ "res:/a.json", encode("{\"x\":1}") ] ]));
   paths.RegisterFileSystem(bytesOnly);
 
@@ -164,7 +164,7 @@ test("BePaths matches the caller's forms to the file system's, bridging only the
 
 test("BePaths refuses an answer in a form it did not ask for", async () =>
 {
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   const liar = memoryFileSystem([ "res" ], [ BYTES ], new Map([ [ "res:/a", encode("a") ] ]));
   liar.GetStreamFromPath = async () => ({ form: TEXT, data: "a" });
   paths.RegisterFileSystem(liar);
@@ -272,7 +272,7 @@ test("the fetch file system ends on the caller's abort, a timeout, or a stalled 
 test("BePaths reads through the fetch file system end to end", async () =>
 {
   const { fetch, calls } = scriptedFetch(() => new Response("bytes"));
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   paths.RegisterFileSystem(new CjsBlueResFileSystemFetch({ fetch, paths: { res: "https://h/res/" } }));
   assert.deepEqual(await paths.GetStreamFromPath("res:/a.bin"), { form: BYTES, data: encode("bytes") });
   assert.deepEqual(await paths.GetStreamFromPath("https://cdn/x.bin", { accept: [ TEXT ] }), { form: TEXT, data: "bytes" });
@@ -287,7 +287,7 @@ test("the callback file system serves res: through a page's function", async () 
     seen.push([ path, signal ]);
     return path === "res:/a.bin" ? encode("a") : null;
   });
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   paths.RegisterFileSystem(fileSystem);
   assert.deepEqual(await paths.GetStreamFromPath("res:/a.bin", { accept: [ TEXT ] }), { form: TEXT, data: "a" });
   assert.equal(await paths.GetStreamFromPath("res:/b.bin"), null);

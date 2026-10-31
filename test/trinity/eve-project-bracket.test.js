@@ -6,7 +6,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec2 } from "../../npm/dist/global/math/vec2.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, CjsScriptCallback } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueScriptCallback } from "../../npm/dist/global/blue/index.js";
 import { gTriDev, TriDevice, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext, TriViewport } from "../../npm/dist/trinity/core/index.js";
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedEve from "../../npm/dist/trinity/generated/eve/index.js";
@@ -268,23 +268,23 @@ test("EveProjectBracket docks front and rear positions with Carbon's cylindrical
 });
 
 
-test("EveProjectBracket callbacks take a CjsScriptCallback or a function; other objects fail", () =>
+test("EveProjectBracket callbacks take a BlueScriptCallback or a function; other objects fail", () =>
 {
   const bracket = new eve.EveProjectBracket();
   const calls = [];
-  bracket.displayChangeCallback = new CjsScriptCallback((owner, state) => calls.push([ "display", owner, state ]));
-  bracket.bracketUpdateCallback = new CjsScriptCallback(owner => calls.push([ "update", owner ]));
+  bracket.displayChangeCallback = new BlueScriptCallback((owner, state) => calls.push([ "display", owner, state ]));
+  bracket.bracketUpdateCallback = new BlueScriptCallback(owner => calls.push([ "update", owner ]));
   vec3.set(bracket.trackPosition, 0, 0, -1);
   makeContext();
   bracket.UpdateValue(0);
   assert.deepEqual(calls.map(([ name ]) => name), [ "display", "update" ]);
   assert.ok(calls.every(([, owner ]) => owner === bracket));
 
-  // No duck callback objects (callback convention ruling): CjsScriptCallback.from refuses them.
+  // No duck callback objects (callback convention ruling): BlueScriptCallback.from refuses them.
   bracket.bracketUpdateCallback = { CallVoid() {} };
-  assert.throws(() => bracket.UpdateValue(0), /function or a CjsScriptCallback/u);
+  assert.throws(() => bracket.UpdateValue(0), /function or a BlueScriptCallback/u);
   bracket.bracketUpdateCallback = {};
-  assert.throws(() => bracket.UpdateValue(0), /function or a CjsScriptCallback/u);
+  assert.throws(() => bracket.UpdateValue(0), /function or a BlueScriptCallback/u);
   bracket.bracketUpdateCallback = null;
   bracket.bracketIcon = { SetTranslation() {} };
   bracket.bracket = { ...makeSprite(), SetDisplayX: undefined };

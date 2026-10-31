@@ -1,7 +1,7 @@
 // The readiness watch: resolve once every resource an object reaches has
 // finished, so the object can be shown whole instead of built in pieces.
 //
-// Ours (CjsBlueResMan.Watch JSDoc): the operator's ccpwgl Tw2MotherLode.Watch,
+// Ours (BlueResMan.Watch JSDoc): the operator's ccpwgl Tw2MotherLode.Watch,
 // not Carbon's Tr2LoadPrepareFence. Also pins the two error paths agreed with
 // it: a resource left EMPTY is failed rather than waited on forever, and a
 // failed load is prepared but bad; late cancelled attempts are covered separately.
@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 
 import "../../../npm/dist/index.js";
-import { CjsBlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/global/blue/index.js";
+import { BlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/global/blue/index.js";
 import { Tr2Effect, TriTextureParameter } from "../../../npm/dist/trinity/index.js";
 import { TriTextureRes } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
@@ -67,7 +67,7 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
 
 test("a watch resolves after two updates with nothing pending", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
   const outcome = track(resMan.Watch(effect));
@@ -92,7 +92,7 @@ test("a watch resolves after two updates with nothing pending", async () =>
 
 test("a resource added by a finishing parent is still counted", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
   prepared(effectRes);
@@ -112,7 +112,7 @@ test("a resource added by a finishing parent is still counted", async () =>
 
 test("a failed resource does not hold the watch, and is reported", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
   const outcome = track(resMan.Watch(effect));
@@ -133,7 +133,7 @@ test("the watch renews a purged resource and waits for its same-handle reload", 
     _DoLoad() { return BlueAsyncRes.LoadingResult.LR_SUCCESS; }
     _DoPrepare() { return true; }
   }
-  const resMan = new CjsBlueResMan({ source: {Read() { reads++; return new Promise(resolve => { release = resolve; }); }} });
+  const resMan = new BlueResMan({ source: {Read() { reads++; return new Promise(resolve => { release = resolve; }); }} });
   blue.resMan = resMan;
   resMan.RegisterObjectLoader("watch", data => data);
   resMan.RegisterExtension("watch", WatchedResource);
@@ -161,7 +161,7 @@ test("a resource left EMPTY is failed after the stall limit, and the watch compl
 {
   // UpdateWatched runs on this test's clock; the frame loop's Update would not.
   HoldFrameLoop(t);
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
   prepared(effectRes);
@@ -188,7 +188,7 @@ test("a resource left EMPTY is failed after the stall limit, and the watch compl
 
 test("a watch times out naming what was still pending", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const { effect } = watchedEffect();
   const outcome = track(resMan.Watch(effect, { timeoutMilliseconds: 50 }));
@@ -202,7 +202,7 @@ test("a watch times out naming what was still pending", async () =>
 
 test("Unwatch rejects the watch and stops counting it", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const { effect } = watchedEffect();
   const outcome = track(resMan.Watch(effect));
@@ -216,7 +216,7 @@ test("Unwatch rejects the watch and stops counting it", async () =>
 
 test("the manager's Update advances watches", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   blue.resMan = resMan;
   const { effect, effectRes, texture } = watchedEffect();
   prepared(effectRes);

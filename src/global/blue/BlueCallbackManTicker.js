@@ -1,5 +1,5 @@
 import { CjsSchema } from "#schema";
-import { CjsBlueOS } from "./CjsBlueOS.js";
+import { BlueOS } from "./BlueOS.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 
 // Ours: drives a `BlueCallbackMan` started with `Start` from Blue's pump while
@@ -52,12 +52,12 @@ export class BlueCallbackManTicker extends IBlueEvents
   {
     if (this._manager.IsRunningOwnThreads()) return;
 
-    const started = CjsBlueOS.Monotonic();
+    const started = BlueOS.Monotonic();
     let timeInUpdate = 0;
     do
     {
       if (!this._manager.Update()) break;
-      timeInUpdate = (CjsBlueOS.Monotonic() - started) / 1000;
+      timeInUpdate = (BlueOS.Monotonic() - started) / 1000;
     }
     while (timeInUpdate < this.mainThreadTimeSlice);
   }

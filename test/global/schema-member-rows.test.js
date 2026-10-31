@@ -4,7 +4,7 @@ import { transformSync } from "@babel/core";
 import decoratorsPlugin from "@babel/plugin-proposal-decorators";
 import { exposure as be } from "#be";
 import { CjsSchema, type } from "../../src/global/schema/index.js";
-import { CjsBlueClasses } from "../../src/global/blueexposure/CjsBlueClasses.js";
+import { BlueClasses } from "../../src/global/blueexposure/BlueClasses.js";
 import { isWritableField } from "../../src/global/compose/values.js";
 
 // decorator-upgrade.md § 00 "One member under two Carbon names": each be.map* row on a member registers its own exposed name over the
@@ -57,7 +57,7 @@ test("the READ name refuses a script write and the persisted name reads from a f
 test("type information lists both names, each with its own flags", async () =>
 {
     const { RowsTwoNames } = await load(TWO_NAMES);
-    const info = CjsBlueClasses._typeInfo(RowsTwoNames, 0);
+    const info = BlueClasses._typeInfo(RowsTwoNames, 0);
     const members = info.find(section => section && typeof section === "object" && "value" in section && "currentValue" in section);
     assert.ok(members, "both names are in the type information");
 });

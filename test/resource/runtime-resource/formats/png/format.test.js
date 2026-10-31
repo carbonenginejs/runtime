@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { deflateSync } from "node:zlib";
 import test from "node:test";
-import { CjsBlueResMan } from "../../../../../src/global/blue/CjsBlueResMan.js";
+import { BlueResMan } from "../../../../../src/global/blue/BlueResMan.js";
 import CjsPngFormat, { CjsPngFormat as NamedCjsPngFormat } from "../../../../../src/resource/formats/png/index.js";
 import { ReadData } from "../../../../support/loadData.js";
 
@@ -139,7 +139,7 @@ test("resource-manager raw PNG inspection reads its shared source once", async (
         pngChunk("pHYs", physical)
     ]);
     let reads = 0;
-    const resMan = new CjsBlueResMan({
+    const resMan = new BlueResMan({
         source: {
             Read()
             {

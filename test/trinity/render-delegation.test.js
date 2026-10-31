@@ -1,7 +1,7 @@
 import { prepareResourceFixture, resourceIdentityFixture } from "../support/resourceFixtures.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
-// be.resMan throws until something composes a manager, so a test that
+// blue.resMan throws until something composes a manager, so a test that
 // builds an object with a res path composes one. It answers null, which is
 // what these tests already asserted - previously by accident, because
 // nothing in src ever filled the old static slot.

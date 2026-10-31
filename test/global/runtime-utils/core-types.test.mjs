@@ -2,7 +2,7 @@ import "../../../src/global/blue/values.js";
 import { Copier } from "../../../src/global/blueexposure/Copier.js";
 import { blue } from "../../../src/global/blue/index.js";
 
-// Preorder over be.EnumerateChildren, once per object.
+// Preorder over blue.EnumerateChildren, once per object.
 function preorder(root)
 {
     const visited = [], seen = new Set();

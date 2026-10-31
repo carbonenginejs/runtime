@@ -258,7 +258,7 @@ export class Tr2HostBitmap extends HostBitmap
    *
    * Forced divergences: the result is a Promise, because a JavaScript file read and the PNG and
    * VTA decoders are asynchronous where Carbon's yield and its decoders block. The file is read
-   * with `blue.paths.GetStreamFromPath` (bytes form), because `CjsBluePaths` does not provide
+   * with `blue.paths.GetStreamFromPath` (bytes form), because `BluePaths` does not provide
    * `GetFileContentsWithYield`; a file no file system has, a path with no protocol and a
    * protocol no file system serves are all Carbon's "Error opening file". The image is decoded by
    * `ImageIO.readImageAsync` with the handlers the host registered. Carbon's

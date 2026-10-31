@@ -823,7 +823,7 @@ export class CjsCharacterLibrary
      * @implemented
      * @param {string} resourcePath Texture path or extension-neutral identity.
      * @param {object} [options={}] Inspection services and catalog attribution.
-     * @param {CjsBlueResMan} [options.resMan=this._resourceManager] Configured byte/format reader.
+     * @param {BlueResMan} [options.resMan=this._resourceManager] Configured byte/format reader.
      * @param {*} [options.source=this] Attribution for the discovered catalog record.
      * @returns {Promise<object>} Existing or discovered metadata record.
      */

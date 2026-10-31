@@ -2,7 +2,7 @@ import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/ICopier.h
 //
 // The copier as its CALLERS see it. `Copier` is the one implementation;
-// `be.classes.CopyTo`/`CloneTo` are how most callers reach it. The hook a
+// `blue.classes.CopyTo`/`CloneTo` are how most callers reach it. The hook a
 // class implements for state outside its members is ICopierCustomAssignment.
 import { CjsSchema, meta } from "#schema";
 

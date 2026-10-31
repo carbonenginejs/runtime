@@ -1,7 +1,7 @@
 import { blue } from "../../npm/dist/global/blue/index.js";
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
-import { CjsBlueResMan, CjsMeshConstructor, MeshPrefix, RegisterMeshConstructor, TriGeometryRes } from "../../npm/dist/resource/index.js";
+import { BlueResMan, CjsMeshConstructor, MeshPrefix, RegisterMeshConstructor, TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/CjsGr2Format.js";
 import { configureResourceManager } from "../support/configuredResMan.js";
@@ -34,7 +34,7 @@ function sharedRoot()
 /** A manager configured as the application's (CjsLibrary's gr2 route), reading these files. */
 async function managerServing(files)
 {
-  const resMan = await configureResourceManager(new CjsBlueResMan());
+  const resMan = await configureResourceManager(new BlueResMan());
   resMan.Register({ source: { Read: path => path in files ? Promise.resolve(files[path]) : Promise.reject(new Error(`no ${path}`)) } });
   RegisterMeshConstructor(resMan);
   return resMan;

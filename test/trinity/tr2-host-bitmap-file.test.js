@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { Tr2HostBitmap } from "../../npm/dist/trinity/core/Tr2HostBitmap.js";
 import { CjsBmpFormat } from "../../npm/dist/resource/formats/bmp/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
-import { BlueResFileSystemForm, CjsBluePaths, IBlueResFileSystem } from "../../npm/dist/global/blue/index.js";
+import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem } from "../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../npm/dist/global/blue/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -64,7 +64,7 @@ function memoryFileSystem(files)
 /** Installs a paths service over `files` for the test and restores the previous services after it. */
 function withFiles(t, files)
 {
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   paths.RegisterFileSystem(memoryFileSystem(files));
   const previous = installBlueServices({ paths }, false);
   ImageIO.registerImageHandler(CjsBmpFormat);

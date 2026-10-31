@@ -4,7 +4,7 @@ import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler_Blue.cpp
 import { type } from "#schema";
-import { BlueList, blue, CjsBlueClasses } from "#blue";
+import { BlueList, blue, BlueClasses } from "#blue";
 import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IListNotify } from "#blueexposure/IListNotify";
@@ -71,7 +71,7 @@ export class Tr2ControllerEventHandler extends IListNotify
     {
       return;
     }
-    const action = value ? blue.classes.QueryThisInterface(value, ITr2ControllerAction, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const action = value ? blue.classes.QueryThisInterface(value, ITr2ControllerAction, value.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:

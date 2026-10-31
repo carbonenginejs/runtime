@@ -3,7 +3,7 @@ import { meta, blue } from "#schema";
 // Headless behavior port. The host supplies blockage; this class performs no
 // ray casting and leaves the audible obstruction/occlusion law to the backend.
 
-import { CjsBlueOS } from "#blue";
+import { BlueOS } from "#blue";
 import { LISTENER_GAME_OBJ_ID } from "../SoundPrioritization.js";
 import { AudObstructionOcclusionEmitterState } from "./AudObstructionOcclusionEmitterState.js";
 import { FadingValue } from "./FadingValue.js";
@@ -13,7 +13,7 @@ const DEFAULT_FADE_RATE = 1;
 /** std::chrono::steady_clock::now() (AudObstructionOcclusion.cpp:32), as blue's host seconds. */
 function NowSeconds()
 {
-  return CjsBlueOS.Monotonic() / 1000;
+  return BlueOS.Monotonic() / 1000;
 }
 
 

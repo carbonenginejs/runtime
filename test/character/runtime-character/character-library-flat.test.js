@@ -4,7 +4,7 @@ import {
     CjsCharacterLibrary, CjsCharacterLibraryBuilder, CjsCharacterLibraryManager,
     CjsCharacterObjectBuilder, CjsCharacterCamera, CjsCharacterColorVariation
 } from "../../../npm/dist/character/index.js";
-import { CjsBluePaths, CjsBlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
+import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import "../../support/frameLoop.js";
 
@@ -28,10 +28,10 @@ function fixture(t)
     ]);
     const cache = new RemoteFileCache();
     cache.AddFileIndex([...text.keys()].map((path, index) => `${path.replace(/\.red$/u, ".black")},synthetic/${index},checksum,1`).join("\n"));
-    const paths = new CjsBluePaths();
+    const paths = new BluePaths();
     paths.RegisterFileSystem(new BlueResFileSystemRemote(cache));
     const reads = [];
-    const resMan = new CjsBlueResMan({ source: { Read(path)
+    const resMan = new BlueResMan({ source: { Read(path)
     {
         reads.push(path);
         return new TextEncoder().encode(text.get(path));

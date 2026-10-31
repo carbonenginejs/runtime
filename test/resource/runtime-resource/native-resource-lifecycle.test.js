@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue, BlueAsyncRes, CjsBlueResMan, CjsMotherLode } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueAsyncRes, BlueResMan, MotherLode } from "../../../npm/dist/global/blue/index.js";
 import "../../support/frameLoop.js";
 
 /** A concrete test resource whose owned value comes through the native load hook. */
@@ -20,7 +20,7 @@ class ValueResource extends BlueAsyncRes
 function managerFor(t, read, options = {})
 {
   const previous = blue.resMan;
-  const manager = new CjsBlueResMan({ source: { Read: read }, ...options });
+  const manager = new BlueResMan({ source: { Read: read }, ...options });
   blue.resMan = manager;
   manager.RegisterObjectLoader("val", bytes => bytes[0]);
   manager.RegisterExtension("val", ValueResource);
@@ -239,7 +239,7 @@ test("automatic identity purge follows the configured cadence", async t =>
 {
   let time = 0;
   const manager = managerFor(t, () => new Uint8Array([1]), {
-    motherLode: new CjsMotherLode({ now: () => time, cacheSize: 0 })
+    motherLode: new MotherLode({ now: () => time, cacheSize: 0 })
   });
   manager.RegisterObjectLoader("plain", () => 1);
   manager.RegisterExtension("plain", ValueResource);

@@ -5,7 +5,7 @@ import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.
 import { Tr2TimelineController } from "../../npm/dist/trinity/controllers/timeline/Tr2TimelineController.js";
 import { Tr2ActionSetExternalControllerVariable } from "../../npm/dist/trinity/controllers/action/Tr2ActionSetExternalControllerVariable.js";
 import { TriCurveSet } from "../../npm/dist/trinity/curves/TriCurveSet.js";
-import { CjsScriptCallback } from "../../npm/dist/global/blue/index.js";
+import { BlueScriptCallback } from "../../npm/dist/global/blue/index.js";
 
 for (const Constructor of [Tr2Controller, Tr2TimelineController])
 {
@@ -62,7 +62,7 @@ test("callback count is computed and read-only", () =>
 
 for (const wrapped of [false, true])
 {
-  test(`curve-set stop cleans up a throwing ${wrapped ? "CjsScriptCallback" : "function"} and completes playback`, t =>
+  test(`curve-set stop cleans up a throwing ${wrapped ? "BlueScriptCallback" : "function"} and completes playback`, t =>
   {
     const reports = [];
     const sink = (...args) => reports.push(args);
@@ -79,7 +79,7 @@ for (const wrapped of [false, true])
       calls++;
       throw false;
     };
-    const argument = wrapped ? new CjsScriptCallback(callback) : callback;
+    const argument = wrapped ? new BlueScriptCallback(callback) : callback;
     const value = new TriCurveSet();
     value.PlayFrom(0);
     value.StopAfterWithCallback(1, argument);
@@ -120,7 +120,7 @@ test("curve stop releases a replacement callback installed during invocation", (
   assert.equal(value.IsPlaying(), false);
 });
 
-test("curve-set callback slot is always a CjsScriptCallback, so Destroy is always valid", () =>
+test("curve-set callback slot is always a BlueScriptCallback, so Destroy is always valid", () =>
 {
   const value = new TriCurveSet();
   assert.equal(value._callback.IsValid(), false);

@@ -155,7 +155,7 @@ class CjsFormatRoute
  * composed application rather than a list baked into the loader.
  *
  * WHAT THE STORE DOES NOT OWN: which resource class a file becomes. That is
- * `CjsBlueResMan.RegisterExtension`'s Handler, and duplicating it here would make
+ * `BlueResMan.RegisterExtension`'s Handler, and duplicating it here would make
  * two registries disagree about one question. The store answers how bytes are
  * read; the manager answers what they become.
  *

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
+import { BlueResMan } from "../../npm/dist/global/blue/BlueResMan.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { EveSOFData, EveSOFDataGeneric, EveSOFDataHullDecalSetItem } from "../../npm/dist/sof/index.js";
@@ -182,7 +182,7 @@ test("resource target hydration builds a model-free emitter from the real Crisis
 {
   const values = structuredClone(host.particleEmitters[0]);
   values.particleSystem = structuredClone(host.mesh.instanceGeometryResource);
-  const manager = new CjsBlueResMan();
+  const manager = new BlueResMan();
   const a = manager._HydrateTarget(null, Tr2DynamicEmitter, values, {});
   const b = manager._HydrateTarget(null, Tr2DynamicEmitter, values, {});
   assert.equal(a.isValid, true);

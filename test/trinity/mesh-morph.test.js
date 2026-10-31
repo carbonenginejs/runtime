@@ -149,12 +149,12 @@ test("morph preparation rejects invalid values, duplicate names, and unsupported
 
 test("a mesh res path loads its geometry through the resource manager", async () =>
 {
-  const { be } = await import("../../npm/dist/global/blue/index.js");
+  const { blue } = await import("../../npm/dist/global/blue/index.js");
   const { composeStubResMan } = await import("../support/stubResMan.js");
-  const previous = be.resMan;
+  const previous = blue.resMan;
   const requested = [];
   const geometry = CreateGeometry([ "Smile" ]);
-  // The slot names the contract, not CjsBlueResMan, so the spy IS the manager.
+  // The slot names the contract, not BlueResMan, so the spy IS the manager.
   composeStubResMan((path, options) => { requested.push([ path, options?.ex ]); return geometry; });
   try
   {
@@ -179,7 +179,7 @@ test("a mesh res path loads its geometry through the resource manager", async ()
   }
   finally
   {
-    be.resMan = previous;
+    blue.resMan = previous;
   }
 });
 
@@ -190,9 +190,9 @@ test("a mesh res path loads its geometry through the resource manager", async ()
 
 test("a missing mesh falls back to its _lowdetail sibling when the index has one", async () =>
 {
-  const { be } = await import("../../npm/dist/global/blue/index.js");
+  const { blue } = await import("../../npm/dist/global/blue/index.js");
   const { composeStubResMan } = await import("../support/stubResMan.js");
-  const previousManager = be.resMan;
+  const previousManager = blue.resMan;
   const requested = [];
   // The authored mesh is still LOADING - it keeps the mesh as a notify target
   // instead of calling back at once - so the stand-in has something to stand
@@ -208,7 +208,7 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
   };
 
   composeStubResMan(answer);
-  be.paths.SetLocalFileSystem(localFileSystem([ "res:/hull_lowdetail.gr2" ]));
+  blue.paths.SetLocalFileSystem(localFileSystem([ "res:/hull_lowdetail.gr2" ]));
   try
   {
     const mesh = new Tr2Mesh();
@@ -229,21 +229,21 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
     // Negative control: when the authored file IS here, no
     // sibling is looked for at all.
     requested.length = 0;
-    be.paths.SetLocalFileSystem(localFileSystem([ "res:/present.gr2", "res:/present_lowdetail.gr2" ]));
+    blue.paths.SetLocalFileSystem(localFileSystem([ "res:/present.gr2", "res:/present_lowdetail.gr2" ]));
     new Tr2Mesh().SetMeshResPath("res:/present.gr2");
     assert.deepEqual(requested, [ "res:/present.gr2" ]);
 
     // Second control: with no local file system installed nothing is presumed
     // to exist, so the authored path is requested alone.
     requested.length = 0;
-    be.paths.SetLocalFileSystem(null);
+    blue.paths.SetLocalFileSystem(null);
     new Tr2Mesh().SetMeshResPath("res:/hull.gr2");
     assert.deepEqual(requested, [ "res:/hull.gr2" ]);
   }
   finally
   {
-    be.paths.SetLocalFileSystem(null);
-    be.resMan = previousManager;
+    blue.paths.SetLocalFileSystem(null);
+    blue.resMan = previousManager;
   }
 });
 

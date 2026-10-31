@@ -111,12 +111,12 @@ export function getClassRegistrationRevision()
 
 /**
  * The process's class registry, Carbon's global `IBlueClasses* BeClasses`,
- * set by `CjsBlueClasses.Initialize()`. It lives in this leaf, beside the
+ * set by `BlueClasses.Initialize()`. It lives in this leaf, beside the
  * registrations it serves, so `IRoot` and the other blueexposure classes
  * reach it without importing the class that extends them.
  *
  * Carbon: BeClasses (blueexposure/BlueClasses.cpp:28)
- * @type {import("../CjsBlueClasses.js").CjsBlueClasses|null}
+ * @type {import("../BlueClasses.js").BlueClasses|null}
  */
 export let BeClasses = null;
 
@@ -126,7 +126,7 @@ export let BeClasses = null;
  * @cjs An ES module's own bindings can only be assigned inside that module,
  *   and Carbon writes the global directly in `BlueClasses::Initialize`
  *   (BlueClasses.cpp:257-260), so Initialize assigns through this.
- * @param {import("../CjsBlueClasses.js").CjsBlueClasses} instance The registry.
+ * @param {import("../BlueClasses.js").BlueClasses} instance The registry.
  * @returns {void}
  */
 export function setBeClasses(instance)

@@ -6,7 +6,7 @@ import { blue, ITriQuaternionFunction, ITriFunction, ITriCurveLength, IInitializ
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { CjsBlue, CjsBlueClasses } from "../../npm/dist/global/blue/index.js";
+import { CjsBlue, BlueClasses } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2CurveEulerRotation } from "../../npm/dist/trinity/curves/curve/Tr2CurveEulerRotation.js";
 import { Tr2CurveRandomAxisRotation } from "../../npm/dist/trinity/curves/curve/Tr2CurveRandomAxisRotation.js";
@@ -152,7 +152,7 @@ test("Euler graph creation, cloning and traversal retain real scalar component o
   assert.notEqual(copy.yaw.keys, curve.yaw.keys);
   assert.equal(copy.yaw.GetValue(2), curve.yaw.GetValue(2));
   const children = [];
-  CjsBlueClasses.enumerateChildren__OnChild(curve, child => children.push(child));
+  BlueClasses.enumerateChildren__OnChild(curve, child => children.push(child));
   assert.deepEqual(children, [curve.yaw, curve.pitch, curve.roll]);
   for (const value of [curve, new Tr2CurveRandomAxisRotation()])
   {

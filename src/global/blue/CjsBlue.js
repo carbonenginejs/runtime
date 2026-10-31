@@ -5,7 +5,7 @@
 // Carbon registers blueexposure's Find functions (Find.h) on the `blue`
 // module; here they are instance methods of the `blue` holder (operator
 // ruling, 2026-10-11) that forward to their bodies, the camelCase statics on
-// CjsBlueClasses (Weka, 2026-11-01: free functions become statics, and
+// BlueClasses (Weka, 2026-11-01: free functions become statics, and
 // blueexposure's BlueClasses is their home). Modules the holder itself imports
 // call the statics: importing the `blue` instance from them would be an
 // import cycle.
@@ -13,9 +13,9 @@
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.
 import { CjsSchema } from "#schema";
-import { CjsBluePaths } from "./CjsBluePaths.js";
-import { CjsBlueOS } from "./CjsBlueOS.js";
-import { CjsBlueClasses } from "../blueexposure/CjsBlueClasses.js";
+import { BluePaths } from "./BluePaths.js";
+import { BlueOS } from "./BlueOS.js";
+import { BlueClasses } from "../blueexposure/BlueClasses.js";
 import { BeClasses } from "../blueexposure/classes/registry.js";
 import { blueEnums } from "./enums/CjsBlueEnumRegistry.js";
 import { CjsWwiseSoundEngineStub } from "../audio/CjsWwiseSoundEngineStub.js";
@@ -36,13 +36,13 @@ export class CjsBlue
   resMan = null;
 
   /** Path service with no filesystem or remote cache installed initially. */
-  paths = new CjsBluePaths();
+  paths = new BluePaths();
 
   /** Host-pumped clock; construction does not register any tick recipient. */
-  os = new CjsBlueOS();
+  os = new BlueOS();
 
-  /** Carbon's `BeClasses` (BlueClasses.cpp:28): blueexposure's registry, made by `CjsBlueClasses.Initialize()`. */
-  classes = CjsBlueClasses.Initialize() ? BeClasses : null;
+  /** Carbon's `BeClasses` (BlueClasses.cpp:28): blueexposure's registry, made by `BlueClasses.Initialize()`. */
+  classes = BlueClasses.Initialize() ? BeClasses : null;
 
   /** Installed SOF service; absent until the composition root supplies it. */
   sof = null;
@@ -96,12 +96,12 @@ export class CjsBlue
    */
   EnumerateChildren(obj, onChild)
   {
-    CjsBlueClasses.enumerateChildren__OnChild(obj, onChild);
+    BlueClasses.enumerateChildren__OnChild(obj, onChild);
   }
 
   /**
    * `EnumerateChildren(obj, onAttribute, onListItem, onDictItem, filter)`:
-   * see `CjsBlueClasses.enumerateChildren__Filter`.
+   * see `BlueClasses.enumerateChildren__Filter`.
    *
    * @adapted
    * @param {object|null} obj Object whose immediate children are enumerated.
@@ -113,12 +113,12 @@ export class CjsBlue
    */
   EnumerateChildren__Filter(obj, onAttribute, onListItem, onDictItem, filter)
   {
-    CjsBlueClasses.enumerateChildren__Filter(obj, onAttribute, onListItem, onDictItem, filter);
+    BlueClasses.enumerateChildren__Filter(obj, onAttribute, onListItem, onDictItem, filter);
   }
 
   /**
    * `FindRoute`: every route from one object to another. Carbon's `blue` module exposes Find.h's functions
-   * (blue/src/blue.cpp:333-395); the body is `CjsBlueClasses.findRoute`.
+   * (blue/src/blue.cpp:333-395); the body is `BlueClasses.findRoute`.
    *
    * @implemented
    * @param {object} from Start of the routes.
@@ -127,12 +127,12 @@ export class CjsBlue
    */
   FindRoute(from, to)
   {
-    return CjsBlueClasses.findRoute(from, to);
+    return BlueClasses.findRoute(from, to);
   }
 
   /**
    * `FindFirstRoute`: the first route from one object to another. Carbon's `blue` module exposes Find.h's functions
-   * (blue/src/blue.cpp:333-395); the body is `CjsBlueClasses.findFirstRoute`.
+   * (blue/src/blue.cpp:333-395); the body is `BlueClasses.findFirstRoute`.
    *
    * @implemented
    * @param {object} from Start of the route.
@@ -141,12 +141,12 @@ export class CjsBlue
    */
   FindFirstRoute(from, to)
   {
-    return CjsBlueClasses.findFirstRoute(from, to);
+    return BlueClasses.findFirstRoute(from, to);
   }
 
   /**
    * `FindAllReferences`: every object in a tree, with the references that reach it. Carbon's `blue` module exposes Find.h's functions
-   * (blue/src/blue.cpp:333-395); the body is `CjsBlueClasses.findAllReferences`.
+   * (blue/src/blue.cpp:333-395); the body is `BlueClasses.findAllReferences`.
    *
    * @implemented
    * @param {IRoot} root Root of the tree.
@@ -154,12 +154,12 @@ export class CjsBlue
    */
   FindAllReferences(root)
   {
-    return CjsBlueClasses.findAllReferences(root);
+    return BlueClasses.findAllReferences(root);
   }
 
   /**
    * `FindInterface`: every object in a hierarchy that maps an interface. Carbon's `blue` module exposes Find.h's functions
-   * (blue/src/blue.cpp:333-395); the body is `CjsBlueClasses.findInterface`.
+   * (blue/src/blue.cpp:333-395); the body is `BlueClasses.findInterface`.
    *
    * @implemented
    * @param {object|null} obj Root object.
@@ -168,12 +168,12 @@ export class CjsBlue
    */
   FindInterface(obj, iidName)
   {
-    return CjsBlueClasses.findInterface(obj, iidName);
+    return BlueClasses.findInterface(obj, iidName);
   }
 
   /**
    * `FindReference`: whether one object is reachable from another. Carbon's `blue` module exposes Find.h's functions
-   * (blue/src/blue.cpp:333-395); the body is `CjsBlueClasses.findReference`.
+   * (blue/src/blue.cpp:333-395); the body is `BlueClasses.findReference`.
    *
    * @implemented
    * @param {object|null} from Source object.
@@ -182,7 +182,7 @@ export class CjsBlue
    */
   FindReference(from, to)
   {
-    return CjsBlueClasses.findReference(from, to);
+    return BlueClasses.findReference(from, to);
   }
 }
 

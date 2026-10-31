@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsLibrary, DefaultConfiguration } from "../../../npm/dist/core/index.js";
-import { blue, CjsBlueResMan, CjsBluePaths, CjsBlueOS, CjsBlueResFileSystemCallback, IBlueDynamicResourceConstructor } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan, BluePaths, BlueOS, CjsBlueResFileSystemCallback, IBlueDynamicResourceConstructor } from "../../../npm/dist/global/blue/index.js";
 import { ImageIO } from "../../../npm/dist/resource/imageio/ImageIO.js";
 import { CjsPngFormat } from "../../../npm/dist/resource/formats/png/CjsPngFormat.js";
 import { CjsVtaFormat } from "../../../npm/dist/resource/formats/vta/CjsVtaFormat.js";
@@ -17,7 +17,7 @@ import "../../support/frameLoop.js";
 /** Isolated real Blue owners; no host loop, fetch or device is started. */
 function services()
 {
-  return { resMan: new CjsBlueResMan(), paths: new CjsBluePaths(), os: new CjsBlueOS(), sof: null };
+  return { resMan: new BlueResMan(), paths: new BluePaths(), os: new BlueOS(), sof: null };
 }
 
 test("LOAD policy remains requested until a fresh resource startup", async t =>

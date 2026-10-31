@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  CjsBlueOS,
+  BlueOS,
   IBlueEvents,
   CcpTime
 } from "../../npm/dist/global/blue/index.js";
@@ -26,7 +26,7 @@ test("the epoch is 2026-01-01T00:00:00Z", () =>
 
 test("blue.os time is ticks since the epoch, an exact Number", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   const expected = (Date.now() - CcpTime.BLUE_EPOCH_UNIX_MS) * 10000;
   const actual = os.GetActualTime();
   assert.ok(Number.isSafeInteger(actual));
@@ -36,7 +36,7 @@ test("blue.os time is ticks since the epoch, an exact Number", () =>
 
 test("the pump sets the frame's real and sim time, and OnTick receives them", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   const seen = [];
   os.RegisterForTicks(new TestTicker((realTime, simTime) => seen.push([ realTime, simTime ])));
   os.PumpOS();
@@ -52,7 +52,7 @@ test("the pump sets the frame's real and sim time, and OnTick receives them", ()
 
 test("runtime-epoch times read as stopwatch time and keep full precision", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   const time = os.GetActualTime();
   assert.equal(CcpTime.timeIsUTC(time), false);
   assert.equal(CcpTime.timeAsDouble(time + 1) - CcpTime.timeAsDouble(time) > 0, true, "one tick is still visible");
@@ -71,7 +71,7 @@ test("TimeToFileTime / TimeFromFileTime convert exactly at the UTC boundary", ()
 
 test("an installed frameClock sets the frame's real and sim time (BlueOS.cpp:512, 552, 1109)", () =>
 {
-  const os = new CjsBlueOS();
+  const os = new BlueOS();
   assert.equal(os.frameClock, null);
   os.frameClock = { Sample: () => [ 4242, 0 ] };
   os.PumpOS();

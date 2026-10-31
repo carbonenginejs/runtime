@@ -51,14 +51,14 @@ test("noise modifier samples Blue's frame time in seconds while processing, not 
   // EveSmartLightAttributeModifierNoise.cpp:26 reads TimeAsDouble( BeOS->GetCurrentFrameTime() )
   // inside ProcessAttributeModifier; UpdateSyncronous only advances activation (cpp:14-17).
   const { EveSmartLightAttributeModifierNoise } = await import("../../npm/dist/trinity/index.js");
-  const { be, CcpTime } = await import("../../npm/dist/global/blue/index.js");
+  const { blue, CcpTime } = await import("../../npm/dist/global/blue/index.js");
   const { noise } = await import("../../npm/dist/global/math/noise.js");
   const modifier = new EveSmartLightAttributeModifierNoise();
   modifier.noiseAmplitude = 1;
   modifier.noiseFrequency = 3;
   t.mock.method(modifier, "GetActivationStrength", () => 1);
   let frameTime = 12_345_678;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => frameTime);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => frameTime);
   const expected = time =>
   {
     const value = noise.perlin1DCarbon(CcpTime.timeAsDouble(time) * 3, 2, 2, 1);

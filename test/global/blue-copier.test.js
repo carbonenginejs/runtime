@@ -4,7 +4,7 @@ import test from "node:test";
 import { blue, Copier, ICopier, ICopierCustomAssignment, IInitialize, INotify } from "../../src/global/blue/index.js";
 import { CjsSchema, CJS_CLASS_NAME, type } from "../../src/global/schema/index.js";
 
-// Blue's Copier (blueexposure/Copier.cpp), reached through be.classes.CopyTo
+// Blue's Copier (blueexposure/Copier.cpp), reached through blue.classes.CopyTo
 // as BlueClasses.cpp:498-516 does.
 
 

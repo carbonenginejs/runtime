@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
-import { BlueResFileSystemRemote, CjsBluePaths, RemoteFileCache } from "../../npm/dist/global/blue/index.js";
+import { BlueResFileSystemRemote, BluePaths, RemoteFileCache } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { normalizeResPath } from "../../npm/dist/global/utils/index.js";
 import { localFileSystem } from "../support/localFileSystem.js";
@@ -181,7 +181,7 @@ test("the remote file system substitutes black for red", async () =>
 test("paths separates listed from here, and neither is the resource manager's", () =>
 {
   const { cache, store } = createCache();
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   const local = localFileSystem([ "res:/local/only.dds" ]);
   paths.SetLocalFileSystem(local);
   paths.SetRemoteFileCache(cache);
@@ -202,7 +202,7 @@ test("paths separates listed from here, and neither is the resource manager's", 
   assert.equal(paths.IsDirectory("res:/model"), true);
   assert.deepEqual([ ...paths.GetDirectoryContents("res:/model") ], [ "ship" ]);
 
-  const empty = new CjsBluePaths();
+  const empty = new BluePaths();
   assert.equal(empty.FileExists("res:/model/ship/hull.gr2"), false, "nothing installed, nothing exists");
   assert.equal(empty.FileExistsLocally("res:/model/ship/hull.gr2"), false);
 });

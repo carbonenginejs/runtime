@@ -3,7 +3,7 @@ import { CjsSchema } from "#schema";
 // CarbonEngineJS original (no Carbon counterpart). Normalizes the optional
 // host-owned frame context while keeping browser audio scheduling on the
 // AudioContext clock.
-import { CjsBlueOS } from "#blue";
+import { BlueOS } from "#blue";
 
 /** Static factory and timing readers for the host-owned audio frame context. */
 export class CjsAudioUpdateContext
@@ -154,7 +154,7 @@ export class CjsAudioUpdateContext
     /** Reads the monotonic Blue clock in seconds. */
     static _defaultNowSeconds()
     {
-        return CjsBlueOS.Monotonic() / 1000;
+        return BlueOS.Monotonic() / 1000;
     }
 }
 

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
-import { blue, CjsBluePaths, CjsBlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
+import { blue, BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import "../../support/frameLoop.js";
 
@@ -19,9 +19,9 @@ function Library(t)
     const paths = Object.keys(expected.texts);
     const cache = new RemoteFileCache();
     cache.AddFileIndex(paths.map((path, index) => `${path},synthetic/${index},checksum,1`).join("\n"));
-    const bluePaths = new CjsBluePaths();
+    const bluePaths = new BluePaths();
     bluePaths.RegisterFileSystem(new BlueResFileSystemRemote(cache));
-    const resMan = new CjsBlueResMan({ source: { Read: path => new TextEncoder().encode(expected.texts[path]) } });
+    const resMan = new BlueResMan({ source: { Read: path => new TextEncoder().encode(expected.texts[path]) } });
     const previous = installBlueServices({ paths: bluePaths, resMan }, false);
     t.after(() =>
     {

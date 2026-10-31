@@ -34,7 +34,7 @@ test("the core subpaths are import-inert and share package identities", () =>
 
             const blue = await import("@carbonenginejs/runtime/blue");
             const audio = await import("@carbonenginejs/runtime/audio");
-            for (const name of ["CjsBlue", "CjsBlueResMan", "CjsBlueClasses"])
+            for (const name of ["CjsBlue", "BlueResMan", "BlueClasses"])
             {
                 if (root[name] !== blue[name] || typeof root[name] !== "function")
                     throw new Error("Blue identity mismatch: " + name);

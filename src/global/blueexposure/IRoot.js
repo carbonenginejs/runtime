@@ -36,7 +36,7 @@ export class IRoot
    *
    * @adapted the object or null is the return value in place of Carbon's
    *   out-pointer and bool, and the class itself stands for `ClassType_()`, as
-   *   `CjsBlueClasses.QueryThisInterface` takes it.
+   *   `BlueClasses.QueryThisInterface` takes it.
    * @param {Function} riid Requested interface identity.
    * @param {number} [options=0] `BLUEQIOPT` flags; `BEQI_SILENT` suppresses the miss log.
    * @returns {object|null} The object, or null.

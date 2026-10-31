@@ -9,7 +9,7 @@
 // PyObject* type, value and traceback, and lets the caller choose between
 // MuteException and ReportException before the destructor reports it.
 //
-// JavaScript carries callback failures as thrown values. CjsScriptCallback returns
+// JavaScript carries callback failures as thrown values. BlueScriptCallback returns
 // the callback's value and documents exception propagation on Call and CallVoid.
 // Controller and curve-set delivery sites catch/report failures to reproduce
 // native report-and-continue behavior without changing that general call contract.

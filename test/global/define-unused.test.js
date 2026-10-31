@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema, meta, blue } from "../../src/global/schema/index.js";
 import { CjsUnusedMethodError, CJS_UNUSED_METHOD, CjsError } from "../../src/global/utils/errors/index.js";
-import { CjsBlueClasses } from "../../src/global/blueexposure/CjsBlueClasses.js";
+import { BlueClasses } from "../../src/global/blueexposure/BlueClasses.js";
 
 test("define({ unused }) installs throwers raising CjsUnusedMethodError", () =>
 {
@@ -33,9 +33,9 @@ test("a name cannot be both unused and declared or defined", () =>
   }
 });
 
-test("the CjsBlueClasses stubs are unused, not notImplemented", () =>
+test("the BlueClasses stubs are unused, not notImplemented", () =>
 {
-  const classes = new CjsBlueClasses();
+  const classes = new BlueClasses();
   for (const name of [ "FindVariable", "UpdateObjectCount", "ProcessPendingDeletes",
     "SetPendingDeletesEnabled", "IsPendingDeletesEnabled", "RegisterThunker", "GetRtti" ])
   {

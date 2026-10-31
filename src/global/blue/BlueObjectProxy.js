@@ -12,7 +12,7 @@
 // THE CLOCK IS REAL TIME. Update receives simulation time and ignores it
 // (BlueObjectProxy.cpp:79, "it's sim time and we're operating in real time
 // here"); both the stamp and the comparison read `BeOS->GetInfo()->mRealTime`,
-// which here is `be.os.GetInfo().realTime` in Blue ticks.
+// which here is `blue.os.GetInfo().realTime` in Blue ticks.
 //
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.

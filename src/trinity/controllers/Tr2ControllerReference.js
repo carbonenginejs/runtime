@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.h
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
-import { IsMatch, blue, INotify, IInitialize, CjsBlueClasses } from "#blue";
+import { IsMatch, blue, INotify, IInitialize, BlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { type } from "#schema";
 import { UnlinkReason } from "./enums.js";
@@ -48,7 +48,7 @@ export class Tr2ControllerReference extends ITr2Controller
   /**
    * Resolves a nonempty resource path, preserving an assigned controller otherwise.
    *
-   * @adapted BeResMan is be.resMan; its LoadObject completes asynchronously.
+   * @adapted BeResMan is blue.resMan; its LoadObject completes asynchronously.
    * @returns {boolean} True after requesting any authored load.
    */
 
@@ -249,7 +249,7 @@ export class Tr2ControllerReference extends ITr2Controller
     }
     if (request !== this._loadRequest || path !== this.path) return null;
     // Native LoadObject<ITr2Controller> requires the exposed interface identity.
-    const controller = object ? blue.classes.QueryThisInterface(object, ITr2Controller, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const controller = object ? blue.classes.QueryThisInterface(object, ITr2Controller, object.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (!controller)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not an ITr2Controller.`);

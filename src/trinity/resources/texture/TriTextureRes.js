@@ -383,7 +383,7 @@ export class TriTextureRes extends BlueAsyncRes
    *
    * @adapted
    * @param {Tr2TexturePipeline} pipeline Recipe supplied by a dynamic constructor.
-   * @param {CjsBlueResMan} resourceManager Global manager used by existing callers.
+   * @param {BlueResMan} resourceManager Global manager used by existing callers.
    * @param {string} [ex="raw"] Input image factory suffix.
    * @returns {Promise<boolean>} Whether execution produced a bitmap.
    */

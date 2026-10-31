@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { perlin1DCarbon } from "../../npm/dist/global/math/noise.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
@@ -257,7 +257,7 @@ test("booster batches and flare quads retain the existing AL and quad contracts"
 
 test("booster flare noise reads Blue frame ticks as seconds once", t =>
 {
-  t.mock.method(be.os, "GetCurrentFrameTime", () => 123456789);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => 123456789);
   const booster = new BehaviorGroupBooster();
   booster.ambientFlareEffect = FixtureEffect({});
   booster.ambientFlareBrightness = 2;

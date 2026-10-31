@@ -6,7 +6,7 @@ import { ITriFunction } from "../../../global/blue/ITriFunction.js";
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { type } from "#schema";
-import { blue, CjsScriptCallback } from "#blue";
+import { blue, BlueScriptCallback } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { Vec3TransformByViewport } from "../../core/view/TriViewport.js";
@@ -61,12 +61,12 @@ export class EveProjectBracket extends IRoot
    * position through the renderer's view, projection and viewport.
    *
    * Carbon ignores the curve-set time and samples the OS frame clock,
-   * BeOS->GetCurrentFrameTime(); so does this, through be.os.
+   * BeOS->GetCurrentFrameTime(); so does this, through blue.os.
    *
    * The view, projection and viewport are the Tr2Renderer statics (cpp:85,
    * 95). Adapted: the callback member is wrapped as a
-   * CjsScriptCallback at the call, which takes exactly a function or a
-   * CjsScriptCallback; Carbon's optional global debug-text side effect is not
+   * BlueScriptCallback at the call, which takes exactly a function or a
+   * BlueScriptCallback; Carbon's optional global debug-text side effect is not
    * ported yet (Waiting: g_debugRenderer).
    *
    * @adapted
@@ -201,7 +201,7 @@ export class EveProjectBracket extends IRoot
     this.projectedPosition[1] = y;
     if (this.bracketUpdateCallback)
     {
-      CjsScriptCallback.from(this.bracketUpdateCallback).CallVoid(this);
+      BlueScriptCallback.from(this.bracketUpdateCallback).CallVoid(this);
     }
     if (this.bracketIcon)
     {
@@ -212,8 +212,8 @@ export class EveProjectBracket extends IRoot
   /**
    * Applies one visibility transition to both owned bracket representations.
    *
-   * @adapted the callback member is wrapped as a CjsScriptCallback at the
-   *   call, which takes exactly a function or a CjsScriptCallback.
+   * @adapted the callback member is wrapped as a BlueScriptCallback at the
+   *   call, which takes exactly a function or a BlueScriptCallback.
    */
 
   SetBracketDisplayState(state)
@@ -226,7 +226,7 @@ export class EveProjectBracket extends IRoot
     if (this.bracketIcon) this.bracketIcon.SetDisplay(next);
     if (this.displayChangeCallback)
     {
-      CjsScriptCallback.from(this.displayChangeCallback).CallVoid(this, next);
+      BlueScriptCallback.from(this.displayChangeCallback).CallVoid(this, next);
     }
   }
 

@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsScriptCallback } from "@carbonenginejs/runtime/blue";
+import { BlueScriptCallback } from "@carbonenginejs/runtime/blue";
 
 test("an unset script callback is invalid and safe to invoke", () =>
 {
     // Carbon's default-constructed BlueScriptCallback holds no callable and
     // returns CALL_ERROR rather than failing (BlueScriptCallback.cpp:282-287),
     // so a caller never has to test for absence first.
-    const callback = new CjsScriptCallback();
+    const callback = new BlueScriptCallback();
 
     assert.equal(callback.IsValid(), false);
     assert.equal(callback.Call(1, 2), undefined);
@@ -16,7 +16,7 @@ test("an unset script callback is invalid and safe to invoke", () =>
 
 test("Destroy releases the callback and leaves it invalid", () =>
 {
-    const callback = CjsScriptCallback.from(() => "result");
+    const callback = BlueScriptCallback.from(() => "result");
 
     assert.equal(callback.IsValid(), true);
     assert.equal(callback.Call(), "result");
@@ -30,28 +30,28 @@ test("Destroy releases the callback and leaves it invalid", () =>
 test("script callbacks adapt external values once to one nominal identity", () =>
 {
     const calls = [];
-    const fromFunction = CjsScriptCallback.from((...args) =>
+    const fromFunction = BlueScriptCallback.from((...args) =>
     {
         calls.push(args);
         return "function-result";
     });
 
-    assert.ok(fromFunction instanceof CjsScriptCallback);
+    assert.ok(fromFunction instanceof BlueScriptCallback);
     assert.equal(fromFunction.Call(1), "function-result");
     assert.equal(fromFunction.CallVoid(2), undefined);
 
     // Carbon's copy constructor: the copy holds the same callable, and
     // destroying it leaves the original valid.
-    const copied = new CjsScriptCallback(fromFunction);
+    const copied = new BlueScriptCallback(fromFunction);
 
     assert.equal(copied.Call(3), "function-result");
     copied.Destroy();
     assert.equal(fromFunction.IsValid(), true);
-    assert.equal(CjsScriptCallback.from(fromFunction), fromFunction);
-    assert.equal(CjsScriptCallback.from(null), null);
+    assert.equal(BlueScriptCallback.from(fromFunction), fromFunction);
+    assert.equal(BlueScriptCallback.from(null), null);
     // Carbon's script callback holds one kind of callable; a callback-shaped
     // object is not one.
-    assert.throws(() => CjsScriptCallback.from({ Call() {}, CallVoid() {} }), /function or a CjsScriptCallback/u);
+    assert.throws(() => BlueScriptCallback.from({ Call() {}, CallVoid() {} }), /function or a BlueScriptCallback/u);
     assert.deepEqual(calls, [
         [ 1 ],
         [ 2 ],

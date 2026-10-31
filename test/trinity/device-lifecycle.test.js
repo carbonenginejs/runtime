@@ -17,7 +17,7 @@ import { MarkerTag } from "../support/markerTags.js";
 /**
  * A device on the ambient context with a live stub backend, torn down after.
  *
- * The ambient context and `be.os` are both process-wide, so anything that
+ * The ambient context and `blue.os` are both process-wide, so anything that
  * creates a device has to put them back or the next test inherits a registered
  * device and a frame counter that already moved.
  */

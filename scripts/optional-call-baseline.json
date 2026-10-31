@@ -2,7 +2,7 @@
   "typeofMethod": {
     "src/audio/CjsAudioMan.js": 7,
     "src/audio/library-builder/CjsAudioLibraryBuilder.js": 2,
-    "src/global/blue/CjsBlueResMan.js": 2,
+    "src/global/blue/BlueResMan.js": 2,
     "src/global/blue/DictReader.js": 2,
     "src/global/blue/DictWriter.js": 1,
     "src/global/blue/values.js": 2,

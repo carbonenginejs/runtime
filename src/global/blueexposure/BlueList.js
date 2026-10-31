@@ -1,7 +1,7 @@
 // Source: blueexposure/include/BlueListUtil.h:172-347,459-476,506-781
 import { CjsSchema, blue as legacyBlue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
-import { CjsBlueClasses } from "./CjsBlueClasses.js";
+import { BlueClasses } from "./BlueClasses.js";
 import { BeClasses } from "./classes/registry.js";
 import { IList } from "./IList.js";
 import { IListNotify } from "./IListNotify.js";
@@ -349,7 +349,7 @@ export class BlueList extends Array
 /** Native QI admission, represented by the exact constructor identity in the exposure table. */
 function AcceptsItem(list, value)
 {
-  return value !== null && typeof value === "object" && BeClasses.QueryThisInterface(value, list._itemType, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
+  return value !== null && typeof value === "object" && BeClasses.QueryThisInterface(value, list._itemType, value.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
 }
 
 /**

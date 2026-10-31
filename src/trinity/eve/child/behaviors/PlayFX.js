@@ -387,7 +387,7 @@ export class PlayFX extends EveEntity
 
   /**
    * Grows or shrinks the firing-effect list (PlayFX.cpp:262-300). Carbon uses
-   * BeClasses->CloneTo, represented by be.classes.CloneTo, rather than a
+   * BeClasses->CloneTo, represented by blue.classes.CloneTo, rather than a
    * method on the authored effect. A failed clone leaves the count unchanged.
    * Adapted: CloneTo returns the copy or null instead of bool plus an out pointer.
    */

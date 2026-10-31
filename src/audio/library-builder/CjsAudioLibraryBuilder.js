@@ -3,7 +3,7 @@ import { CjsSchema } from "#schema";
 import { throwIfAborted } from "#utils/errors";
 
 // Browser-safe audio-library construction. The high-level resource seam reads
-// through be.resMan by default and accepts an injected byte source for
+// through blue.resMan by default and accepts an injected byte source for
 // local/tool callers.
 import { audioMetadataFromSoundbanksInfo } from "../audioMetadata.js";
 import { validateAudioLibraryDocument } from "../library/audioLibraryDocument.js";
@@ -105,10 +105,10 @@ export class CjsAudioLibraryBuilder
     }
 
     /**
-     * Builds a hydrated library from raw resources through be.resMan by
+     * Builds a hydrated library from raw resources through blue.resMan by
      * default or one caller-supplied byte source.
      *
-     * `source.read(path, context)` replaces be.resMan. Each input has a path
+     * `source.read(path, context)` replaces blue.resMan. Each input has a path
      * override and a value option that skips its read:
      * - audio metadata FSD: read only when the caller supplies
      *   `audioMetadataReader`, a cFSD dataset reader such as a

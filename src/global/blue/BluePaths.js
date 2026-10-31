@@ -70,7 +70,7 @@ export const BluePathsBeforeOrAfter = Object.freeze({ BEFORE: 0, AFTER: 1 });
  *
  * Carbon: BluePaths (blue/src/BluePaths.h:13)
  */
-export class CjsBluePaths extends IBluePaths
+export class BluePaths extends IBluePaths
 {
   /** @type {import("./IBlueResFileSystem.js").IBlueResFileSystem|null} */
   _localFileSystem = null;
@@ -94,7 +94,7 @@ export class CjsBluePaths extends IBluePaths
    * no disk, so the host supplies what "this machine" means.
    *
    * @param {import("./IBlueResFileSystem.js").IBlueResFileSystem|null} fileSystem Local file system.
-   * @returns {CjsBluePaths} This service.
+   * @returns {BluePaths} This service.
    */
   SetLocalFileSystem(fileSystem)
   {
@@ -125,7 +125,7 @@ export class CjsBluePaths extends IBluePaths
    * `RegisterFileSystem(new BlueResFileSystemRemote(cache), AFTER)`.
    *
    * @param {import("./RemoteFileCache.js").RemoteFileCache|null} remoteFileCache Remote file cache.
-   * @returns {CjsBluePaths} This service.
+   * @returns {BluePaths} This service.
    */
   SetRemoteFileCache(remoteFileCache)
   {
@@ -148,7 +148,7 @@ export class CjsBluePaths extends IBluePaths
    *   creates it, so a host can pass a file system bound to one build's cache.
    * @param {import("./IBlueResFileSystem.js").IBlueResFileSystem} fileSystem File system.
    * @param {number} [beforeOrAfter=BluePathsBeforeOrAfter.AFTER] `BluePathsBeforeOrAfter`.
-   * @returns {CjsBluePaths} This service.
+   * @returns {BluePaths} This service.
    */
   RegisterFileSystem(fileSystem, beforeOrAfter = BluePathsBeforeOrAfter.AFTER)
   {
@@ -439,14 +439,14 @@ export class CjsBluePaths extends IBluePaths
   }
 }
 
-CjsSchema.exposure.mapInterface(IBluePaths)(CjsBluePaths);
-CjsSchema.decorateMethod(CjsBluePaths, "UnregisterFileSystem", blue.method);
-CjsSchema.decorateMethod(CjsBluePaths, "IsFileSystemRegistered", blue.method);
-CjsSchema.decorateMethod(CjsBluePaths, "IsDirectory", blue.method);
-CjsSchema.decorateMethod(CjsBluePaths, "FileExists", blue.method);
-CjsSchema.decorateMethod(CjsBluePaths, "FileExistsLocally", blue.method);
-CjsSchema.blue.define(CjsBluePaths, {
-  className: "CjsBluePaths",
+CjsSchema.exposure.mapInterface(IBluePaths)(BluePaths);
+CjsSchema.decorateMethod(BluePaths, "UnregisterFileSystem", blue.method);
+CjsSchema.decorateMethod(BluePaths, "IsFileSystemRegistered", blue.method);
+CjsSchema.decorateMethod(BluePaths, "IsDirectory", blue.method);
+CjsSchema.decorateMethod(BluePaths, "FileExists", blue.method);
+CjsSchema.decorateMethod(BluePaths, "FileExistsLocally", blue.method);
+CjsSchema.blue.define(BluePaths, {
+  className: "BluePaths",
   members: [ { name: "cacheFileExistance", key: "_cacheFileExistance", type: { kind: "boolean" }, edit: { read: true, write: true }, carbon: { member: true } } ]
 });
 

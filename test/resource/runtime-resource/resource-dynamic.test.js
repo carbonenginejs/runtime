@@ -6,7 +6,7 @@ import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { normalizeResourcePath } from "#utils/path";
 import { num } from "../../../npm/dist/global/math/num.js";
 import {
-  CjsBlueResMan,
+  BlueResMan,
   ParseColor,
   RasterizeSolidColor,
   RegisterSolidColorTexture,
@@ -17,7 +17,7 @@ import {
 function countingManager()
 {
   const counter = { reads: 0 };
-  const resMan = new CjsBlueResMan({
+  const resMan = new BlueResMan({
     source: { Read() { counter.reads += 1; return new Uint8Array(0); } }
   });
   blue.resMan = resMan;

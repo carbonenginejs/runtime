@@ -1,7 +1,7 @@
 import { configureResourceManager } from "../../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsBlueResMan } from "../../../npm/dist/resource/index.js";
+import { BlueResMan } from "../../../npm/dist/resource/index.js";
 import { CjsIncarnaTextureConstructor, IncarnaTexturePrefix, RegisterIncarnaTextures } from "../../../npm/dist/character/index.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import "../../support/frameLoop.js";
@@ -39,7 +39,7 @@ const SOURCE = "res:/x/walkway_os.dds";
 async function manager()
 {
   const files = { [SOURCE]: legacyDds([ 30, 20, 10, 40 ]) };
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
   await configureResourceManager(resMan);
   RegisterIncarnaTextures(resMan);
@@ -106,7 +106,7 @@ function mippedDds()
 
 test("a source with mips keeps its chain, which a mip step would have refused", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   resMan.Register({ source: { Read: () => Promise.resolve(mippedDds()) } });
   await configureResourceManager(resMan);
   RegisterIncarnaTextures(resMan);

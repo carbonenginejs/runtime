@@ -108,7 +108,7 @@ test("counts and wrappers JavaScript does not keep are refused; pending deletes 
   for (const name of [ "LiveCount", "LockCount", "GetWrapperList", "LiveList" ])
   {
     assert.throws(() => blue.classes[name](), Error, name);
-    assert.equal(MarkerTag("CjsBlueClasses", name), name === "LiveList" ? "notUsed" : "notSupported");
+    assert.equal(MarkerTag("BlueClasses", name), name === "LiveList" ? "notUsed" : "notSupported");
   }
   assert.equal(blue.classes.ProcessAllPendingDeletes(), undefined);
   assert.equal(CjsSchema.getMethod(blue.classes.constructor, "ProcessAllPendingDeletes").impl.status, "noop");

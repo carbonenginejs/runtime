@@ -46,7 +46,7 @@ export class ClassInfo
   static className = "ClassInfo";
 
   /**
-   * `mClassId`: the registered class name (a class id is its name, see CjsBlueClasses).
+   * `mClassId`: the registered class name (a class id is its name, see BlueClasses).
    *
    * @implemented
    */
@@ -172,7 +172,7 @@ export class ClassInfo
     }
 
     // mPyMethodTable holds the class's methods and its parents' along the exposure chain, the walk PyGetTypeInfo makes
-    // (CjsBlueClasses._typeInfo). Only a method with an exposure record (a `map*` row) is in it.
+    // (BlueClasses._typeInfo). Only a method with an exposure record (a `map*` row) is in it.
     const methodNames = new Set();
     for (let type = Constructor; type; type = exposureChainTo(type))
     {
@@ -215,7 +215,7 @@ export class ClassInfo
    * One member or property row as a `VarEntry`. The flags are the row's own
    * when it carries an exposure record; an older declaration without one has
    * its editor bits derived from its edit flags, `type.flags` and enum, as
-   * PyGetTypeInfo reports them (CjsBlueClasses._typeInfo). Ours: Carbon's
+   * PyGetTypeInfo reports them (BlueClasses._typeInfo). Ours: Carbon's
    * macros write each `VarEntry` directly.
    *
    * @cjs

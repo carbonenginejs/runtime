@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { ITr2Scene, ITr2MultiPassScene, ITr2VisualizationModeRenderer, Tr2RenderContext, Tr2RenderTarget, Tr2LineGraph } from "../../npm/dist/trinity/core/index.js";
 import { TriRenderStep, TriStepRenderScene, TriStepRenderPass, TriStepSetVisualizationMode, TriStepRenderTexture, TriStepRenderLineGraph } from "../../npm/dist/trinity/renderJob/index.js";
-import { CjsScriptCallback } from "../../npm/dist/global/blueexposure/CjsScriptCallback.js";
+import { BlueScriptCallback } from "../../npm/dist/global/blueexposure/BlueScriptCallback.js";
 import { StubContext, StubTarget } from "../support/stubContext.js";
 
 for (const [Step, Receiver, property, method] of [
@@ -92,7 +92,7 @@ function graphStep()
 test("line-graph scaling requires a present Blue callback's CallVoid", () =>
 {
   const step = graphStep();
-  step.scaleChangeCallback = new CjsScriptCallback(() => {});
+  step.scaleChangeCallback = new BlueScriptCallback(() => {});
   step.scaleChangeCallback.CallVoid = undefined;
   assert.throws(() => step.Execute(0, 0, new Tr2RenderContext()), /CallVoid/);
 });
@@ -100,7 +100,7 @@ test("line-graph scaling requires a present Blue callback's CallVoid", () =>
 test("line-graph scaling preserves function, Blue and absent callbacks before its drawing refusal", () =>
 {
   let called = 0;
-  for (const callback of [() => called++, new CjsScriptCallback(() => called++), null])
+  for (const callback of [() => called++, new BlueScriptCallback(() => called++), null])
   {
     const step = graphStep();
     step.scaleChangeCallback = callback;

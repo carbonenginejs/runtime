@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveCombiner.h
 // Source: trinity/trinity/Curves/Tr2CurveCombiner.cpp
 import { vec3 } from "#math/vec3";
-import { ITriFunction, ITriVectorFunction, ITriCurveLength, BlueList, blue, CjsBlueClasses } from "#blue";
+import { ITriFunction, ITriVectorFunction, ITriCurveLength, BlueList, blue, BlueClasses } from "#blue";
 import { type, blue as legacyBlue } from "#schema";
 
 
@@ -137,7 +137,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
     let maxLength = 0;
     for (const curve of this.curves)
     {
-      if (blue.classes.QueryThisInterface(curve, ITriCurveLength, curve.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (blue.classes.QueryThisInterface(curve, ITriCurveLength, curve.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         maxLength = Math.max(curve.Length(), maxLength);
       }

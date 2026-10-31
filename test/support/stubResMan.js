@@ -1,5 +1,5 @@
 import { CjsAudioRes } from "../../npm/dist/audio/resources/index.js";
-import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan } from "../../npm/dist/global/blue/index.js";
 import { getResourceExtension, normalizeResourcePath } from "../../npm/dist/global/utils/path.js";
 import { Tr2ImageRes, Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriGrannyRes, TriTextureRes } from "../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
@@ -26,7 +26,7 @@ const RESOURCE_BY_EXTENSION = new Map([
   [ "wav", CjsAudioRes ]
 ]);
 
-// WHY THIS EXISTS. `be.resMan` used to be `CjsBlueResMan.GetGlobal()`, a static
+// WHY THIS EXISTS. `blue.resMan` used to be `BlueResMan.GetGlobal()`, a static
 // slot nothing in `src` ever filled - so every consumer received null and
 // skipped its acquisition in silence. A test that built a mesh with a res path
 // and asserted the geometry was null was asserting that the port was broken.
@@ -44,7 +44,7 @@ const RESOURCE_BY_EXTENSION = new Map([
 // answer with something else.
 
 /** A composed manager that answers, for a test with no real resource pipeline. */
-export class StubResMan extends CjsBlueResMan
+export class StubResMan extends BlueResMan
 {
   constructor(resolve = null)
   {
@@ -89,7 +89,7 @@ export class StubResMan extends CjsBlueResMan
   }
 
   /**
-   * What this manager already holds with its data, as `CjsBlueResMan.Lookup`
+   * What this manager already holds with its data, as `BlueResMan.Lookup`
    * answers. A stub loads nothing, so it holds nothing.
    */
   Lookup()

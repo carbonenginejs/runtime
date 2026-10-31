@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { classDonorComments } from "../../scripts/lib/carbon-donor-comments.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue, CjsBlue, CjsBlueOS, CjsBlueResMan, CjsBlueClasses, CjsBluePaths } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlue, BlueOS, BlueResMan, BlueClasses, BluePaths } from "../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../npm/dist/global/blue/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsLibrary } from "../../npm/dist/core/CjsLibrary.js";
@@ -14,10 +14,10 @@ test("Blue composition owns the resource manager and the holder keeps inert shar
 {
   const value = new CjsBlue();
   assert.equal(value.resMan, null);
-  assert.equal(blue.resMan.constructor, CjsBlueResMan);
-  assert.equal(value.classes.constructor, CjsBlueClasses);
-  assert.equal(value.paths.constructor, CjsBluePaths);
-  assert.equal(value.os.constructor, CjsBlueOS);
+  assert.equal(blue.resMan.constructor, BlueResMan);
+  assert.equal(value.classes.constructor, BlueClasses);
+  assert.equal(value.paths.constructor, BluePaths);
+  assert.equal(value.os.constructor, BlueOS);
   assert.equal(value.enums, blue.enums);
   assert.equal(value.sof, null);
   assert.equal(value.audio.constructor, CjsWwiseSoundEngineStub);
@@ -26,12 +26,12 @@ test("Blue composition owns the resource manager and the holder keeps inert shar
   assert.equal(value.os.GetInfo().pumpTicksTotal, 0);
   assert.equal(blue.resMan.workerLoader.worker, null);
   assert.equal(blue.resMan.GetPendingLoads(), 0);
-  for (const [Class, name, donor] of [[CjsBlueResMan, "CjsBlueResMan", "BlueResMan"], [CjsBlueClasses, "CjsBlueClasses", "BlueClasses"]])
+  for (const [Class, name, donor] of [[BlueResMan, "BlueResMan", "BlueResMan"], [BlueClasses, "BlueClasses", "BlueClasses"]])
   {
     assert.equal(CjsSchema.getClassName(Class), name);
     assert.equal(CjsSchema.getConstructor(name), Class);
     assert.equal(Object.hasOwn(CjsSchema.getSchema(Class), "carbon"), false);
-    const source = readFileSync(new URL(`../../src/global/${name === "CjsBlueClasses" ? "blueexposure" : "blue"}/${name}.js`, import.meta.url), "utf8");
+    const source = readFileSync(new URL(`../../src/global/${name === "BlueClasses" ? "blueexposure" : "blue"}/${name}.js`, import.meta.url), "utf8");
     const declared = classDonorComments(source).find(c => c.name === name);
     assert.deepEqual(declared.entries.map(e => [e.kind, e.name]), [["Carbon", donor]]);
   }
@@ -102,7 +102,7 @@ test("CjsLibrary initializes once, rejects a second root and restores borrowed p
   const library = new CjsLibrary(), second = new CjsLibrary();
   t.after(() => library.Shutdown());
   t.after(() => second.Shutdown());
-  const os = new CjsBlueOS(), audio = new CjsWwiseSoundEngineStub();
+  const os = new BlueOS(), audio = new CjsWwiseSoundEngineStub();
   const result = {}, sof = {Fetch: () => result};
   t.mock.method(audio, "Init", () => assert.fail("borrowed audio remains unstarted"));
   const first = library.Initialize({os, sof, audio});
@@ -139,7 +139,7 @@ test("CjsLibrary supplies the one character library unless given one, and restor
 
 test("failed initial tick registration leaves no publication or active-root claim and can retry", async t =>
 {
-  const library = new CjsLibrary(), os = new CjsBlueOS();
+  const library = new CjsLibrary(), os = new BlueOS();
   t.after(() => library.Shutdown());
   const previous = {os: blue.os, sof: blue.sof, audio: blue.audio};
   const originalRegister = os.RegisterForTicks;
@@ -178,7 +178,7 @@ test("provider hook reentry shares startup and preserves the active-root claim",
   const library = new CjsLibrary(), second = new CjsLibrary();
   t.after(() => library.Shutdown());
   t.after(() => second.Shutdown());
-  const os = new CjsBlueOS(), sof = {Fetch() {}};
+  const os = new BlueOS(), sof = {Fetch() {}};
   const register = os.RegisterForTicks;
   let nested = null;
   t.mock.method(os, "RegisterForTicks", function(...args)
@@ -195,11 +195,11 @@ test("provider hook reentry shares startup and preserves the active-root claim",
   await second.Shutdown();
 });
 
-for (const entry of ["CjsBlueResMan", "CjsLoadingObject", "BlueAsyncRes", "CjsMotherLode", "CjsBlueClasses", "getResources", "blue"])
+for (const entry of ["BlueResMan", "CjsLoadingObject", "BlueAsyncRes", "MotherLode", "BlueClasses", "getResources", "blue"])
 {
   test(`native ESM accepts resource entry order: ${entry}`, () =>
   {
-    const first = new URL(`../../src/global/${entry === "CjsBlueClasses" ? "blueexposure" : "blue"}/${entry}.js`, import.meta.url).href;
+    const first = new URL(`../../src/global/${entry === "BlueClasses" ? "blueexposure" : "blue"}/${entry}.js`, import.meta.url).href;
     const holder = new URL("../../src/global/blue/index.js", import.meta.url).href;
     const program = `import ${JSON.stringify(first)};
 import { blue } from ${JSON.stringify(holder)};

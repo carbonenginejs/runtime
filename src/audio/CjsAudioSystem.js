@@ -574,7 +574,7 @@ export class CjsAudioSystem
      * @returns {object[]} Adopted objects, in visit order.
      * @impl custom Audio composition applies its existing adoption operations
      * over the walk of Carbon's Find functions (Find.cpp:352-396): an explicit
-     * stack, each object once, children from be.EnumerateChildren.
+     * stack, each object once, children from blue.EnumerateChildren.
      */
     AdoptGraph(root)
     {
@@ -641,7 +641,7 @@ export class CjsAudioSystem
      * @param {object|null} root Root whose reachable audio objects are released.
      * @returns {object[]} Objects actually released, once each in visit order.
      * @impl custom The walk is Carbon's Find shape (Find.cpp:352-396) over
-     * be.EnumerateChildren; the audio system keeps its existing deterministic
+     * blue.EnumerateChildren; the audio system keeps its existing deterministic
      * release operations and adoption ownership checks.
      */
     ReleaseGraph(root)

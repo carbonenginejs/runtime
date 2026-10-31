@@ -1,4 +1,4 @@
-import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
+import { BlueResMan } from "../../npm/dist/global/blue/BlueResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
@@ -52,7 +52,7 @@ test("format-cache view identity ignores constructor names but tracks bytes and 
         static outputs = { raw: { output: "raw" } };
         static read() { return { reads: ++reads }; }
     }
-    const manager = new CjsBlueResMan({source: { Read: () => new Uint8Array([1]) }}).RegisterFormat(Format);
+    const manager = new BlueResMan({source: { Read: () => new Uint8Array([1]) }}).RegisterFormat(Format);
     const descriptor = manager.GetFormatDescriptors("viewidentity")[0];
     class a extends Uint8Array {}
     const view = new a([1]);

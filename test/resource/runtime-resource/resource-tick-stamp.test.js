@@ -1,14 +1,14 @@
 // Tick-stamp renewal: a plain KeepAlive() writes the manager tick's time onto
 // the resource, and the MotherLode folds it into its record before it decides
-// anything (BlueAsyncRes.KeepAlive, CjsMotherLode._SettleRenewals).
+// anything (BlueAsyncRes.KeepAlive, MotherLode._SettleRenewals).
 //
-// Its own file because CjsBlueResMan.activityTime is process-wide: once a
+// Its own file because BlueResMan.activityTime is process-wide: once a
 // manager has ticked, every plain KeepAlive in the process takes the stamp.
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 
 import "../../../npm/dist/index.js";
-import { CjsBlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/global/blue/index.js";
+import { BlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/global/blue/index.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
 
 
@@ -16,7 +16,7 @@ import { RegisterDataLoader } from "../../support/testDataRes.js";
 async function managed()
 {
   const clock = { now: 1000 };
-  const resMan = new CjsBlueResMan({ source: { Read: () => "{}" } });
+  const resMan = new BlueResMan({ source: { Read: () => "{}" } });
   blue.resMan = resMan;
   RegisterDataLoader(resMan, "data", value => JSON.parse(value));
   resMan.motherLode._now = () => clock.now;

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { BeCallbackMan, BlueCallbackMan, BlueCallbackManTicker, BlueCallbackManWorker, BlueResManQueue, CjsBlueResMan, IBlueCallbackMan } from "../../src/global/blue/index.js";
+import { BeCallbackMan, BlueCallbackMan, BlueCallbackManTicker, BlueCallbackManWorker, BlueResManQueue, BlueResMan, IBlueCallbackMan } from "../../src/global/blue/index.js";
 
 // blue/src/CallbackMan.cpp: urgent before regular, fences after every thread
 // drained what came before, cancel removes a queued entry and discards one in
@@ -724,7 +724,7 @@ test("CALLBACKMAN_DEBUGGING logs Carbon's CallbackMan lines on blue/CallbackMan,
 
 test("resMan's queues are named callback managers indexed by BlueResManQueue", () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   assert.equal(resMan._threadQueues[BlueResManQueue.BRMQ_MAIN]._name, "resMan main");
   assert.equal(resMan._threadQueues[BlueResManQueue.BRMQ_BACKGROUND]._name, "resMan background");
 });

@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
-import { CjsScriptCallback } from "#blue";
+import { BlueScriptCallback } from "#blue";
 
 /** A render step that draws a set of line graphs with a shared scale and legend. */
 @be.define("TriStepRenderLineGraph")
@@ -47,7 +47,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
   @type.float32
   maxLegend = 1000000000000;
 
-  /** Carbon's m_scaleChangeCallback storage: a CjsScriptCallback, or null. */
+  /** Carbon's m_scaleChangeCallback storage: a BlueScriptCallback, or null. */
   _scaleChangeCallback = null;
 
   /** m_scaleChangeCallback (BlueScriptCallback) [READWRITE]: the stored script callback, or null. */
@@ -58,10 +58,10 @@ export class TriStepRenderLineGraph extends TriRenderStep
     return this._scaleChangeCallback;
   }
 
-  /** Stores a function (wrapped) or a CjsScriptCallback (CjsScriptCallback.from). */
+  /** Stores a function (wrapped) or a BlueScriptCallback (BlueScriptCallback.from). */
   set scaleChangeCallback(value)
   {
-    this._scaleChangeCallback = CjsScriptCallback.from(value);
+    this._scaleChangeCallback = BlueScriptCallback.from(value);
   }
 
   /**

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue, CjsBlueClasses } from "../../src/global/blue/index.js";
+import { blue, BlueClasses } from "../../src/global/blue/index.js";
 import { CjsSchema, type } from "../../src/global/schema/index.js";
 import * as CcpLog from "../../src/global/logging/ccpLog.js";
 import * as classRegistry from "../../src/global/blueexposure/classes/registry.js";
@@ -109,9 +109,9 @@ test("independent aliases of an abstract type keep their explicitly selected fac
   }
 });
 
-test("blue.classes is a CjsBlueClasses registry", () =>
+test("blue.classes is a BlueClasses registry", () =>
 {
-  assert.equal(blue.classes.constructor, CjsBlueClasses);
+  assert.equal(blue.classes.constructor, BlueClasses);
 });
 
 test("an unregistered class is not found, and creating it yields null", () =>
@@ -162,19 +162,19 @@ test("a second registration under a taken name keeps the first (BlueClasses.cpp:
 test("a custom createFn and flags are kept", () =>
 {
   const made = { made: true };
-  blue.classes.RegisterClasses([ { name: "TestCustom", type: Unschemed, createFn: () => made, flags: CjsBlueClasses.Flags.DISABLE_PYTHON_CONSTRUCTION } ]);
+  blue.classes.RegisterClasses([ { name: "TestCustom", type: Unschemed, createFn: () => made, flags: BlueClasses.Flags.DISABLE_PYTHON_CONSTRUCTION } ]);
   assert.equal(blue.classes.CreateInstanceFromName("TestCustom"), made);
   assert.equal(blue.classes.GetClassRegistration("TestCustom").flags, 1);
   blue.classes.UnregisterClasses([ { name: "TestCustom" } ]);
 });
 
-test("all CjsBlueClasses instances share complete factory records without exposing mutable entries", () =>
+test("all BlueClasses instances share complete factory records without exposing mutable entries", () =>
 {
-  const first = new CjsBlueClasses();
-  const second = new CjsBlueClasses();
+  const first = new BlueClasses();
+  const second = new BlueClasses();
   const made = { custom: true };
   const factory = () => made;
-  const input = { name: " SharedFactory ", type: Unschemed, createFn: factory, flags: CjsBlueClasses.Flags.DISABLE_PYTHON_CONSTRUCTION };
+  const input = { name: " SharedFactory ", type: Unschemed, createFn: factory, flags: BlueClasses.Flags.DISABLE_PYTHON_CONSTRUCTION };
   first.RegisterClasses([ input ]);
   try
   {
@@ -202,8 +202,8 @@ test("all CjsBlueClasses instances share complete factory records without exposi
 
 test("duplicates through either facade keep the first whole registration and log the duplicate", () =>
 {
-  const first = new CjsBlueClasses();
-  const second = new CjsBlueClasses();
+  const first = new BlueClasses();
+  const second = new BlueClasses();
   const messages = [];
   const echo = (channel, severity, userData, message) => { messages.push({ channel: channel.facility, severity, message }); };
   CcpLog.RegisterLogEcho(echo, CcpLog.LogType.LOGTYPE_ERR);
@@ -236,8 +236,8 @@ test("duplicates through either facade keep the first whole registration and log
 
 test("explicit deletion and schema re-registration discard former factory extras", () =>
 {
-  const first = new CjsBlueClasses();
-  const second = new CjsBlueClasses();
+  const first = new BlueClasses();
+  const second = new BlueClasses();
   const oldValue = {};
   class Replacement { value = 7; }
   first.RegisterClasses([ { name: "ReplaceAfterDelete", type: Unschemed, createFn: () => oldValue, flags: 1 } ]);
@@ -274,7 +274,7 @@ test("registration revisions refresh schemas through both facades; defaults are 
   CjsSchema.define(Defaults, { className: "RegistrationRevisionDefaults", fields: { value: type.uint32 } });
   class Resource { static isResource = true; }
   class Ordinary {}
-  const registry = new CjsBlueClasses();
+  const registry = new BlueClasses();
   const before = CjsSchema.getSchema(Holder);
   assert.deepEqual(before.children.map(field => field.name), [ "reference" ]);
   assert.deepEqual(before.resources, []);
@@ -315,7 +315,7 @@ test("registration revisions refresh schemas through both facades; defaults are 
 
 test("canonical and alias collisions resolve independently without erasing sealed metadata", () =>
 {
-  const registry = new CjsBlueClasses();
+  const registry = new BlueClasses();
   class Original {}
   class Other {}
   class Later { declared = 4; }
@@ -351,7 +351,7 @@ test("registration uses explicit names without inspecting Function.name and pres
 {
   class HiddenName {}
   Object.defineProperty(HiddenName, "name", { get() { throw new Error("Function.name was read"); } });
-  const registry = new CjsBlueClasses();
+  const registry = new BlueClasses();
   assert.throws(() => CjsSchema.setConstructor(" ", HiddenName), /non-empty name/);
   assert.throws(() => registry.RegisterClasses([ { name: "InvalidConstructor", type: {} } ]), /must be a function/);
   assert.equal(CjsSchema.getConstructor("InvalidConstructor"), null);
@@ -392,14 +392,14 @@ test("QueryThisInterface walks the exposure table and chain, logging a miss unle
     CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
   });
 
-  const classes = new CjsBlueClasses();
+  const classes = new BlueClasses();
   const child = new Child();
   assert.equal(classes.QueryThisInterface(child, Child, child.constructor), child);
   assert.equal(classes.QueryThisInterface(child, Parent, child.constructor), child);
   assert.equal(classes.QueryThisInterface(child, IThing, child.constructor), child);
   assert.deepEqual(errors, []);
 
-  assert.equal(classes.QueryThisInterface(child, Unrelated, child.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT), null);
+  assert.equal(classes.QueryThisInterface(child, Unrelated, child.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT), null);
   assert.deepEqual(errors, []);
   assert.equal(classes.QueryThisInterface(child, Unrelated, child.constructor), null);
   assert.equal(errors.length, 1);

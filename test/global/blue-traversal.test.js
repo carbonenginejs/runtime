@@ -25,7 +25,7 @@ CjsSchema.define(Graph, {
     ]
 });
 
-// Preorder over be.EnumerateChildren in canonical order, once per object,
+// Preorder over blue.EnumerateChildren in canonical order, once per object,
 // so each test checks which edges EnumerateChildren reports and their order.
 function names(root)
 {

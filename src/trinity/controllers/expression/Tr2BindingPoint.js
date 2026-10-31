@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.h
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.cpp
-import { blue, CjsBlueClasses, IList, INotify } from "#blue";
+import { blue, BlueClasses, IList, INotify } from "#blue";
 import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor, type } from "#schema";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "../../../global/blue/dictionaryDeclarations.js";
 
@@ -229,7 +229,7 @@ export class Tr2BindingPoint
     this._destinationObject = object;
     this._entryOffset = entryOffset;
     this._arraySize = arraySize;
-    this._notifyPtr = blue.classes.QueryThisInterface(object, INotify, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+    this._notifyPtr = blue.classes.QueryThisInterface(object, INotify, object.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT);
     return true;
   }
 
@@ -330,7 +330,7 @@ export class Tr2BindingPoint
   {
     if (Array.isArray(object)) return object;
     if (!object || typeof object !== "object") return null;
-    return blue.classes.QueryThisInterface(object, IList, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+    return blue.classes.QueryThisInterface(object, IList, object.constructor, BlueClasses.BLUEQIOPT.BEQI_SILENT);
   }
 
   /** Carbon GetListElement by index (cpp:78-92); negative counts from the end. */

@@ -5,7 +5,7 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL, CjsWebgpuUtils } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { CjsBlueResMan, TriTextureRes, CjsMotherLode } from "../../../npm/dist/resource/index.js";
+import { BlueResMan, TriTextureRes, MotherLode } from "../../../npm/dist/resource/index.js";
 import { DescribeBitmap, RealizeTexture } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { Tr2BaseDeviceResourceAL, Tr2TextureAL, ALResult, Tr2BitmapDimensions, Tr2MsaaDesc, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
@@ -275,7 +275,7 @@ function volumeDds(size)
 
 test("a 24-bit volume DDS becomes a 3D bgra8unorm texture, one write for all its slices", async () =>
 {
-  const resMan = new CjsBlueResMan();
+  const resMan = new BlueResMan();
   resMan.Register({ source: { Read: () => Promise.resolve(volumeDds(4)) } });
   await configureResourceManager(resMan);
 
@@ -470,7 +470,7 @@ test("cache eviction reaches WebGPU AL Destroy on every texture reload without a
 {
   const { al, calls } = composed();
   // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
-  const motherLode = new CjsMotherLode({ now: () => 0, cacheSize: 0 });
+  const motherLode = new MotherLode({ now: () => 0, cacheSize: 0 });
   const resource = new TriTextureRes();
   resourceIdentityFixture(resource, "res:/synthetic/evict.dds");
 

@@ -11,7 +11,7 @@ import { CjsWebmFormat } from "../../src/resource/formats/webm/CjsWebmFormat.js"
 import { CjsOggFormat } from "../../src/resource/formats/ogg/CjsOggFormat.js";
 import { CjsWavFormat } from "../../src/resource/formats/wav/CjsWavFormat.js";
 import { TestDataRes } from "../support/testDataRes.js";
-import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
+import { BlueResMan } from "../../npm/dist/global/blue/BlueResMan.js";
 import "../support/frameLoop.js";
 
 const { STREAM_AUDIO, STREAM_VIDEO, STREAM_AUDIO_VIDEO } = StreamType;
@@ -66,7 +66,7 @@ class BothFormat extends AudioFormat {
 }
 
 test("format routing selects declared stream flags while resource identity stays path plus ex", async () => {
-  const manager = new CjsBlueResMan({ source: { Read: () => new Uint8Array([1]) } });
+  const manager = new BlueResMan({ source: { Read: () => new Uint8Array([1]) } });
   blue.resMan = manager;
   for (const Format of [AudioFormat, VideoFormat, BothFormat]) manager.RegisterFormat(Format);
   manager.RegisterExtension("streams", TestDataRes, { Formats: [AudioFormat, VideoFormat, BothFormat] });
@@ -91,7 +91,7 @@ test("format routing selects declared stream flags while resource identity stays
 test("ResMan consumes stream requests before real Ogg probes and decoders", async () => {
   const bytes = readFileSync(new URL("./runtime-resource/fixtures/ogg/sine-440.ogg", import.meta.url));
   for (const ordered of [false, true]) {
-    const manager = new CjsBlueResMan({ source: { Read: () => bytes } });
+    const manager = new BlueResMan({ source: { Read: () => bytes } });
   blue.resMan = manager;
     manager.RegisterFormat(CjsOggFormat);
     // Unordered, the route takes the registered format; ordered, its own list.

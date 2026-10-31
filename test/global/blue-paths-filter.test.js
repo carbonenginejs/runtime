@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsBluePaths, BlueResFileSystemRemote, RemoteFileCache } from "../../npm/dist/global/blue/index.js";
+import { BluePaths, BlueResFileSystemRemote, RemoteFileCache } from "../../npm/dist/global/blue/index.js";
 
 const ROOT = "res:/graphics/character/";
 const FILES = [
@@ -33,7 +33,7 @@ function mount(paths, files)
 
 function fixture()
 {
-  const paths = new CjsBluePaths();
+  const paths = new BluePaths();
   mount(paths, FILES);
   return paths;
 }
@@ -120,7 +120,7 @@ test("Filter returns empty results for a negative control, missing directory and
   const paths = fixture();
   assert.deepEqual(paths.Filter(ROOT + "**/never-a-resource.negative-control"), []);
   assert.deepEqual(paths.Filter("res:/missing/**/*.color"), []);
-  assert.deepEqual(new CjsBluePaths().Filter(ROOT + "**/*.color"), []);
+  assert.deepEqual(new BluePaths().Filter(ROOT + "**/*.color"), []);
   assert.deepEqual(paths.Filter(ROOT, () => false), []);
 });
 

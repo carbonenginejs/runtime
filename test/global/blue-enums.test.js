@@ -131,7 +131,7 @@ test("the SOF blink enum uses one native-owned object through Blue and its stati
     const { EveSOFDataBlinkType } = await import("../../npm/dist/sof/shared/EveSOFDataBlinkType.js");
     const { EveSOFDataHullPlaneSetItem } = await import("../../npm/dist/sof/hull/EveSOFDataHullPlaneSetItem.js");
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { be: services } = await import("../../npm/dist/global/blue/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
     const field = schema.getSchema(EveSOFDataHullPlaneSetItem).fields.find(value => value.enum?.enumType === "trinity.EveSOFDataBlinkType.BlinkType");
     assert.ok(field);
     assert.equal(field.enum.members, EveSOFDataBlinkType.BlinkType);
@@ -144,7 +144,7 @@ test("the SOF blink enum uses one native-owned object through Blue and its stati
 test("SOF-owned enum fields resolve native choosers without merging independent types", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { be: services } = await import("../../npm/dist/global/blue/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
     const cases = [
         ["hull", "EveSOFDataHull", "BuildClass", "buildClass", 5],
         ["hull", "EveSOFDataHull", "ImpactEffectType", "impactEffectType", 3],
@@ -200,7 +200,7 @@ test("SOF-owned enum fields resolve native choosers without merging independent 
 test("shared SOF enum fields resolve through Blue with native reflection labels and signed LOD values", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { be: services, DictReader } = await import("../../npm/dist/global/blue/index.js");
+    const { blue: services, DictReader } = await import("../../npm/dist/global/blue/index.js");
     const cases = [
         ["generic", "EveSOFDataGenericHullCategory", "reflectionMode", "ReflectionMode", "trinity.EntityComponents.ReflectionMode"],
         ["hull", "EveSOFDataHullChild", "lowestLodVisible", "Tr2Lod", "trinity.Tr2Lod"],
@@ -240,7 +240,7 @@ test("shared SOF enum fields resolve through Blue with native reflection labels 
 test("Trinity shares SOF's registered reflection and LOD objects", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { be: services } = await import("../../npm/dist/global/blue/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
     const cases = [
         ["child/EveChildCloud2", "reflectionMode", "ReflectionMode"],
         ["child/EveChildMesh", "reflectionMode", "ReflectionMode"],
@@ -278,7 +278,7 @@ test("Trinity shares SOF's registered reflection and LOD objects", async () =>
 test("particle enum consumers share the native owner and chooser", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { be: services } = await import("../../npm/dist/global/blue/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
     const { Tr2ParticleElementDeclarationName: Name } = await import("../../npm/dist/trinity/particle/element/Tr2ParticleElementDeclarationName.js");
     const identity = "trinity.Tr2ParticleElementDeclarationName.Type";
     assert.equal(services.enums.GetEnum(identity), Name.Type);
@@ -318,7 +318,7 @@ test("particle enum consumers share the native owner and chooser", async () =>
 test("post-process enum fields resolve through Blue with Carbon's choosers", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { be: services } = await import("../../npm/dist/global/blue/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
     // [ module under trinity/postProcess, field, identity, class static, Carbon exposedName ]
     const cases = [
         ["effect/Tr2PPGenericEffect", "quality", "trinity.PostProcess.Quality", "Quality", "PostProcessQuality"],
@@ -358,7 +358,7 @@ test("post-process enum fields resolve through Blue with Carbon's choosers", asy
 test("curve enum fields resolve through Blue, and audio shares Blue's TRIEXTRAPOLATION", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { be: services } = await import("../../npm/dist/global/blue/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
     // [ module, field, identity, class static ]
     const cases = [
         ["trinity/curves/curve/Tr2CurveScalar", "extrapolationBefore", "trinity.Tr2CurveExtrapolation"],

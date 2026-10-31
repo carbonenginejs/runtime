@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {test, beforeEach, afterEach} from "node:test";
 import {CjsSchema, blue as exposure} from "../../../npm/dist/global/schema/index.js";
-import {blue, BlueAsyncRes, CjsBlueResMan, CjsMotherLode, ICacheable, getMotherLodeKey} from "../../../npm/dist/global/blue/index.js";
+import {blue, BlueAsyncRes, BlueResMan, MotherLode, ICacheable, getMotherLodeKey} from "../../../npm/dist/global/blue/index.js";
 import {TriTextureRes} from "../../../npm/dist/resource/index.js";
 import {normalizeResourcePath} from "#utils/path";
 
@@ -40,15 +40,15 @@ function insertSized(motherLode, name, size)
 }
 function expire(motherLode) { return motherLode.PurgeInactive({time: 10, maxIdleMilliseconds: 5}); }
 let previous;
-beforeEach(() => { previous = blue.resMan; blue.resMan = new CjsBlueResMan(); });
+beforeEach(() => { previous = blue.resMan; blue.resMan = new BlueResMan(); });
 afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previous; } });
 
 
 
-test("CjsMotherLode exposes canonical identity and activity diagnostics", () =>
+test("MotherLode exposes canonical identity and activity diagnostics", () =>
 {
   let time = 100;
-  const motherLode = new CjsMotherLode({
+  const motherLode = new MotherLode({
     cacheSize: 4096,
     now: () => time++
   });
@@ -90,9 +90,9 @@ test("CjsMotherLode exposes canonical identity and activity diagnostics", () =>
   assert.ok(stats.activityFrame >= 4);
 });
 
-test("CjsMotherLode replacement and removal clean displaced resource ownership", () =>
+test("MotherLode replacement and removal clean displaced resource ownership", () =>
 {
-  const motherLode = new CjsMotherLode();
+  const motherLode = new MotherLode();
   const key = getMotherLodeKey("res:/data/value.bin", "raw@1");
   const first = cacheResource("res:/data/value.bin");
   const blocked = cacheResource("res:/data/value.bin");
@@ -165,9 +165,9 @@ test("CjsMotherLode replacement and removal clean displaced resource ownership",
   assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
 });
 
-test("CjsMotherLode clears cached entries and shuts down idempotently", () =>
+test("MotherLode clears cached entries and shuts down idempotently", () =>
 {
-  const motherLode = new CjsMotherLode();
+  const motherLode = new MotherLode();
   const live = cacheResource("res:/data/live.bin");
   const { resource: cached } = insertSized(motherLode, "cached", 64);
   let cachedDestroyed = 0;
@@ -201,9 +201,9 @@ test("CjsMotherLode clears cached entries and shuts down idempotently", () =>
   assert.equal(motherLode.Has(restarted.GetPath(), "legacy"), true);
 });
 
-test("CjsMotherLode trims cached identities oldest-first by reported memory use", () =>
+test("MotherLode trims cached identities oldest-first by reported memory use", () =>
 {
-  const motherLode = new CjsMotherLode({ cacheSize: 128 });
+  const motherLode = new MotherLode({ cacheSize: 128 });
   const destroyed = [];
 
   const createCached = name =>
@@ -253,9 +253,9 @@ test("CjsMotherLode trims cached identities oldest-first by reported memory use"
   assert.equal(motherLode.GetSize(), 0);
 });
 
-test("CjsMotherLode validates cache-size cleanup options before changing policy", () =>
+test("MotherLode validates cache-size cleanup options before changing policy", () =>
 {
-  const motherLode = new CjsMotherLode({ cacheSize: 128 });
+  const motherLode = new MotherLode({ cacheSize: 128 });
 
   assert.throws(
     () => motherLode.SetCacheSize(64, []),
@@ -264,9 +264,9 @@ test("CjsMotherLode validates cache-size cleanup options before changing policy"
   assert.equal(motherLode.GetCacheSize(), 128);
 });
 
-test("CjsMotherLode caches only expired ICacheable entries that fit, and use takes them back out", () =>
+test("MotherLode caches only expired ICacheable entries that fit, and use takes them back out", () =>
 {
-  const motherLode = new CjsMotherLode({ cacheSize: 30 });
+  const motherLode = new MotherLode({ cacheSize: 30 });
   const plainKey = getMotherLodeKey("res:/data/plain.bin");
   const plain = cacheResource(plainKey, BlueAsyncRes);
   motherLode.Insert(plainKey, plain, { time: 0 });
@@ -312,9 +312,9 @@ test("CjsMotherLode caches only expired ICacheable entries that fit, and use tak
   assert.equal(motherLode.Lookup(renewed.key), renewed.resource);
 });
 
-test("CjsMotherLode keeps an entry whose size is unknown pending until it is known", () =>
+test("MotherLode keeps an entry whose size is unknown pending until it is known", () =>
 {
-  const motherLode = new CjsMotherLode({ cacheSize: 100 });
+  const motherLode = new MotherLode({ cacheSize: 100 });
   const pending = insertSized(motherLode, "pending", 0);
   pending.resource.known = false;
   const unwanted = insertSized(motherLode, "unwanted", 0);
@@ -337,9 +337,9 @@ test("CjsMotherLode keeps an entry whose size is unknown pending until it is kno
   assert.equal(motherLode.Lookup(pending.key), pending.resource);
 });
 
-test("CjsMotherLode cache trim preserves failed owners and reports partial pressure relief", () =>
+test("MotherLode cache trim preserves failed owners and reports partial pressure relief", () =>
 {
-  const motherLode = new CjsMotherLode({ cacheSize: 100 });
+  const motherLode = new MotherLode({ cacheSize: 100 });
   const { key: failingKey, resource: failing } = insertSized(motherLode, "failing-cache", 60);
   const { key: stuckKey, resource: stuck } = insertSized(motherLode, "stuck-cache", 60);
   const { key: goodKey, resource: good } = insertSized(motherLode, "good-cache", 60);
@@ -371,10 +371,10 @@ test("CjsMotherLode cache trim preserves failed owners and reports partial press
   assert.equal(motherLode.Delete(stuckKey, { cleanup: false }), true);
 });
 
-test("CjsBlueResMan Update enforces cache pressure unless one update skips it", async () =>
+test("BlueResMan Update enforces cache pressure unless one update skips it", async () =>
 {
-  const motherLode = new CjsMotherLode({ cacheSize: 16 });
-  const resMan = new CjsBlueResMan({ motherLode });
+  const motherLode = new MotherLode({ cacheSize: 16 });
+  const resMan = new BlueResMan({ motherLode });
   const { key, resource } = insertSized(motherLode, "update-cache", 8);
   const later = insertSized(motherLode, "update-cache-later", 12);
   expire(motherLode);
@@ -388,10 +388,10 @@ test("CjsBlueResMan Update enforces cache pressure unless one update skips it", 
   assert.equal(blue.resMan.GetResourceStatus(resource).purged, true);
 });
 
-test("CjsMotherLode inactivity purge preserves failed owners and continues", () =>
+test("MotherLode inactivity purge preserves failed owners and continues", () =>
 {
   let time = 0;
-  const motherLode = new CjsMotherLode({ now: () => time });
+  const motherLode = new MotherLode({ now: () => time });
   const failingKey = getMotherLodeKey("res:/data/failing-purge.bin");
   const goodKey = getMotherLodeKey("res:/data/good-purge.bin");
   const failing = cacheResource("res:/data/failing-purge.bin");

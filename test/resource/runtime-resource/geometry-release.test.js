@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 
 import { TriStorageFlags } from "../../../npm/dist/global/consts/graphics/index.js";
-import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
-import { blue, CjsBlueResMan, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
+import { MotherLode } from "../../../npm/dist/global/blue/MotherLode.js";
+import { blue, BlueResMan, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../../npm/dist/trinity/resources/geometry/index.js";
 import { CjsCmfFormat } from "../../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { configureResourceManager } from "../../support/configuredResMan.js";
@@ -79,7 +79,7 @@ test("ReleaseResources honours Carbon's storage mask", () =>
 
 test("payload-only expiry preserves geometry while ordinary payloads still expire", () =>
 {
-  const cache = new CjsMotherLode({now: () => 0});
+  const cache = new MotherLode({now: () => 0});
   const geometry = loadedGeometry();
   const payload = geometry.GetCMFData();
   const ordinary = plainResource("res:/synthetic/ordinary.bin", {value: 1});
@@ -118,7 +118,7 @@ test("device-released geometry waits for the native explicit Reload", async () =
 });
 
 let previous;
-beforeEach(() => { previous = blue.resMan; blue.resMan = new CjsBlueResMan(); });
+beforeEach(() => { previous = blue.resMan; blue.resMan = new BlueResMan(); });
 afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previous; } });
 
 /** Plain-data fixture for MotherLode's separate data lease. */

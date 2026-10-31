@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { beforeEach, afterEach } from "node:test";
-import { blue, CjsBlueResMan, IBlueResource, ICacheable } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan, IBlueResource, ICacheable } from "../../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { TriTextureRes, Tr2ImageRes } from "../../../npm/dist/trinity/resources/texture/index.js";
 import { Tr2LightProfileRes } from "../../../npm/dist/resource/index.js";
@@ -21,7 +21,7 @@ function profileBytes(width = 1024)
 function managerWithSource(bytes)
 {
   const paths = [];
-  const manager = new CjsBlueResMan({ source: { Read(path) { paths.push(path); return bytes; } } });
+  const manager = new BlueResMan({ source: { Read(path) { paths.push(path); return bytes; } } });
   blue.resMan = manager;
   manager.Register(DefaultConfiguration);
   return { manager, paths };

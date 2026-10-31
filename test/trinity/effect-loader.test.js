@@ -2,7 +2,7 @@ import { configureResourceManager } from "../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
+import { BlueResMan } from "../../npm/dist/global/blue/BlueResMan.js";
 import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
@@ -20,7 +20,7 @@ test("CjsLibrary loads an effect and retains its permutation reader", async () =
   writer.addBody(0, buildSyntheticDescription({ label: "registered" }));
   const bytes = writer.toBytes();
   let reads = 0;
-  const manager = await configureResourceManager(new CjsBlueResMan({
+  const manager = await configureResourceManager(new BlueResMan({
     source: { Read() { reads++; return bytes; } }
   }));
   const effect = await manager.FetchResource("res:/registered.sm_hi");
@@ -45,7 +45,7 @@ async function withGlobalManager(run)
   // start one. The bytes are irrelevant here - these tests assert the route and
   // the handle, not container decoding.
   const source = { Read() { return new Uint8Array(0); } };
-  const resourceManager = await configureResourceManager(new CjsBlueResMan({ source }));
+  const resourceManager = await configureResourceManager(new BlueResMan({ source }));
   const previous = blue.resMan;
   blue.resMan = resourceManager;
   try
@@ -116,7 +116,7 @@ test("external resource replacement detaches the earlier acquisition and keeps t
 
 test("every compiled shader extension routes to Tr2EffectRes", async () =>
 {
-  const resourceManager = await configureResourceManager(new CjsBlueResMan());
+  const resourceManager = await configureResourceManager(new BlueResMan());
 
   // Carbon's nine, not three: the older compiled tiers still occur in shipped
   // trees. Plus Incarna's fxt.
@@ -247,9 +247,9 @@ test("a hand-assigned resource is never replaced", async () =>
 test("the slot names the contract, not the implementation", async () =>
 {
   // This replaces a test that asserted SetGlobal refused anything that was not
-  // a CjsBlueResMan. That check was the problem: it nailed every consumer to one
+  // a BlueResMan. That check was the problem: it nailed every consumer to one
   // concrete class, so no stub, recording or alternative manager could be
-  // installed without subclassing the real one. be.resMan is typed by what
+  // installed without subclassing the real one. blue.resMan is typed by what
   // it must answer, which is the whole point of naming the contract.
   class MinimalResMan extends IBlueResMan
   {

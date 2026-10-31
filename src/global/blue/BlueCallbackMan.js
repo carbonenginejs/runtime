@@ -24,7 +24,7 @@ import { exposure as be } from "#be";
 import { CjsSchema, meta } from "#schema";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { BlueCallbackManThreadData } from "./BlueCallbackManThreadData.js";
-import { CjsBlueOS } from "./CjsBlueOS.js";
+import { BlueOS } from "./BlueOS.js";
 import { IBlueThreadMonitor } from "./IBlueThreadMonitor.js";
 import { BeThreadMonitor, BlueThreadMonitor } from "./BlueThreadMonitor.js";
 import { ScopedThreadStatus } from "./ScopedThreadStatus.js";
@@ -54,12 +54,12 @@ const MAX_THREAD_COUNT = 32;
  * Carbon's `CcpGetTimestamp()` (core/CcpTime.cpp:11-23), the steady counter the
  * queue stamps and measures against (CallbackMan.cpp:123, :408-411), as uint64
  * nanosecond ticks; its frequency, `CcpGetTimestampFrequency()`, is 1e9 here.
- * Adapted: the counter is Blue's host monotonic clock, `CjsBlueOS.Monotonic()`
+ * Adapted: the counter is Blue's host monotonic clock, `BlueOS.Monotonic()`
  * (milliseconds), which every steady-clock port reads (blue-clock-epoch).
  */
 function timestampTicks()
 {
-  return BigInt.asUintN(64, BigInt(Math.trunc(CjsBlueOS.Monotonic() * 1e6)));
+  return BigInt.asUintN(64, BigInt(Math.trunc(BlueOS.Monotonic() * 1e6)));
 }
 
 /** Carbon's `CallbackMan` log channel (CallbackMan.cpp:10). */
@@ -707,7 +707,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     }
 
     td.currentId = entry.id;
-    const started = CjsBlueOS.Monotonic();
+    const started = BlueOS.Monotonic();
     const threadName = this._isRunningOwnThreads ? td.name : BlueThreadMonitor.MAIN_THREAD;
     this._Report(entry.id, entry, "started",
       { kind, thread: threadName, waited: Number(timestampTicks() - entry.timeStamp) / 1e9 },
@@ -742,7 +742,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * @param {boolean} processedFenceEntry Whether the entry came from the fence queue.
    * @param {?string} thread The worker whose status to restore when the entry settles, or null for this thread.
    * @param {number} previousStatus That worker's status before the entry.
-   * @param {number} started When the entry started, in milliseconds (`CjsBlueOS.Monotonic`).
+   * @param {number} started When the entry started, in milliseconds (`BlueOS.Monotonic`).
    * @param {string} threadName The thread's name, for the entry's log lines.
    * @returns {boolean} True: an entry was started.
    */
@@ -759,7 +759,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
 
     const finish = () =>
     {
-      const seconds = (CjsBlueOS.Monotonic() - started) / 1000;
+      const seconds = (BlueOS.Monotonic() - started) / 1000;
       this._Report(entry.id, entry, "done", { thread: threadName, seconds },
         "<<Processing callback done - %g seconds", seconds);
       if (thread !== null) BeThreadMonitor.SetThreadStatus__Thread(thread, previousStatus);

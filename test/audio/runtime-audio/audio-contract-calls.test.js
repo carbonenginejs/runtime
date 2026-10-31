@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { AudEmitter, AudGameObjResource, AudListener, AudManager, AudUIPlayer, SoundPrioritization, Tr2AudioStretchBase } from "../../../npm/dist/audio/index.js";
-import { CjsScriptCallback } from "../../../npm/dist/global/blueexposure/CjsScriptCallback.js";
+import { BlueScriptCallback } from "../../../npm/dist/global/blueexposure/BlueScriptCallback.js";
 import { WwiseSoundEngineStubWith, AudioManagerWith } from "../../support/audioStub.js";
 
 for (const missing of [ "IsCulled", "Wake" ])
@@ -76,19 +76,19 @@ test("UI completion stores a script callback and invokes it", () =>
   const player = new AudUIPlayer();
   // A function is wrapped where it enters (Carbon's m_callback is a BlueScriptCallback).
   player.eventSenderCallback = name => names.push(name);
-  assert.ok(player.eventSenderCallback instanceof CjsScriptCallback);
+  assert.ok(player.eventSenderCallback instanceof BlueScriptCallback);
   AudUIPlayer._InvokeCallback(player.eventSenderCallback, "function_event");
-  const blue = new CjsScriptCallback(name => names.push(name));
+  const blue = new BlueScriptCallback(name => names.push(name));
   player.eventSenderCallback = blue;
   assert.equal(player.eventSenderCallback, blue);
   AudUIPlayer._InvokeCallback(blue, "blue_event");
   assert.deepEqual(names, [ "function_event", "blue_event" ]);
-  assert.throws(() => { player.eventSenderCallback = { CallVoid() {} }; }, /function or a CjsScriptCallback/u);
+  assert.throws(() => { player.eventSenderCallback = { CallVoid() {} }; }, /function or a BlueScriptCallback/u);
 });
 
 test("UI completion fails when a Blue callback loses CallVoid", () =>
 {
-  const callback = new CjsScriptCallback(() => {});
+  const callback = new BlueScriptCallback(() => {});
   callback.CallVoid = undefined;
   assert.throws(() => AudUIPlayer._InvokeCallback(callback, "event"), TypeError);
 });

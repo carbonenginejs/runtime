@@ -7,11 +7,11 @@
 // DISABLE_PYTHON_CONSTRUCTION:
 // - MotherLode (MotherLode_Blue.cpp:7-12). No C++ caller creates it through the
 //   registry; its one instance is BlueResMan's embedded m_loadObjectCache
-//   (BlueResMan.h:123), which CjsBlueResMan constructs as its own member.
+//   (BlueResMan.h:123), which BlueResMan constructs as its own member.
 // - BluePyOS (BluePython_Blue.cpp:39), created by BlueOS.cpp:809. It is the
 //   Python OS, which is not ported.
 // Not a decision about JavaScript's ability: a WeakRef would express it. With
-// no caller there is nothing to port. One residual difference: CjsMotherLode's
+// no caller there is nothing to port. One residual difference: MotherLode's
 // registration keeps the registry's constructing default createFn
 // (src/global/blueexposure/classes/registry.js), so CreateInstance would return a
 // fresh instance where Carbon returns the live one. Nothing calls it.

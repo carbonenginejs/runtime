@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
-import { blue, CjsBluePaths, CjsBlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
+import { blue, BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import "../../support/frameLoop.js";
 
@@ -21,9 +21,9 @@ function InstallPalettes(t)
     const text = new Map(expected.palettes.map(palette => [ palette.path, palette.text ]));
     const cache = new RemoteFileCache();
     cache.AddFileIndex(expected.palettes.map((palette, index) => `${palette.path},synthetic/${index},checksum,1`).join("\n"));
-    const paths = new CjsBluePaths();
+    const paths = new BluePaths();
     paths.RegisterFileSystem(new BlueResFileSystemRemote(cache));
-    const resMan = new CjsBlueResMan({ source: { Read: path => new TextEncoder().encode(text.get(path)) } });
+    const resMan = new BlueResMan({ source: { Read: path => new TextEncoder().encode(text.get(path)) } });
     const previous = installBlueServices({ paths, resMan }, false);
     t.after(() =>
     {

@@ -6,7 +6,7 @@ import { BlueAsyncRes, blue } from "#blue";
 /**
  * Physical audio byte-owner resource whose payload may back one complete file or several logical audio files.
  *
- * CjsBlueResMan owns asynchronous attempts and cached identity. This resource
+ * BlueResMan owns asynchronous attempts and cached identity. This resource
  * owns the physical byte view without interpreting BNK or media semantics;
  * logical audio resources borrow windows instead of retaining duplicate banks.
  */

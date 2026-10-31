@@ -13,7 +13,7 @@ import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { TriTextureRes } from "../../npm/dist/resource/index.js";
 
 
-import { blue, BlueAsyncRes, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueAsyncRes, BlueResMan } from "../../npm/dist/global/blue/index.js";
 
 
 /** Adds a texture parameter bound to a resource in `state`, counting renewals. */
@@ -205,5 +205,5 @@ test("the scene renews the environment maps it publishes, once a frame", async (
 });
 
 let previousManager;
-beforeEach(() => { previousManager=blue.resMan; blue.resMan=new CjsBlueResMan(); });
+beforeEach(() => { previousManager=blue.resMan; blue.resMan=new BlueResMan(); });
 afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan=previousManager; } });

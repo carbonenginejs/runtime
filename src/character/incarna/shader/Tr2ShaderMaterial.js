@@ -176,7 +176,7 @@ export class Tr2ShaderMaterial extends IRoot
    * A failed load is not kept, so a later call tries again.
    *
    * @implemented
-   * @param {object} resourceManager The `CjsBlueResMan` to load through.
+   * @param {object} resourceManager The `BlueResMan` to load through.
    * @returns {Promise<Tr2ShaderManager>} The library.
    * @throws {TypeError} When the file is not a Tr2ShaderManager.
    */

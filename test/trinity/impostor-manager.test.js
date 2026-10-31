@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {be,IInitialize,INotify} from '../../npm/dist/global/blue/index.js';
+import {blue,IInitialize,INotify} from '../../npm/dist/global/blue/index.js';
 import {CjsSchema} from '../../npm/dist/global/schema/index.js';
 import {Tr2ImpostorManager,Tr2QuadRenderer,Tr2Renderer,TriDevice,Tr2VariableStore,Tr2RenderTarget,TriRenderBatchAccumulator,Tr2RenderContext_GetMainThreadRenderContext} from '../../npm/dist/trinity/index.js';
 import {Tr2RenderContextALStub,ALResult} from '../../npm/dist/trinityal/index.js';
@@ -9,10 +9,10 @@ import {TR2SHADERMODEL,TriBatchType} from '../../npm/dist/global/consts/graphics
 import {StubResMan} from '../support/stubResMan.js';
 
 function setup(t) {
-  const context=Tr2RenderContext_GetMainThreadRenderContext(),oldAL=context.GetRenderContextAL(),oldRes=be.resMan;
+  const context=Tr2RenderContext_GetMainThreadRenderContext(),oldAL=context.GetRenderContextAL(),oldRes=blue.resMan;
   const oldQuad=Tr2QuadRenderer._instance,oldShader=Tr2Renderer.GetShaderModel(),al=new Tr2RenderContextALStub(),quad=new Tr2QuadRenderer();
-  al.CreateDevice();context.SetRenderContextAL(al);be.resMan=new StubResMan();Tr2QuadRenderer._instance=quad;
-  const managers=[];t.after(()=>{for(const m of managers)m.Destruct();quad._vertexBuffer.ReleaseResources();quad._quad?.Destroy();quad._quadIB?.Destroy();Tr2QuadRenderer._instance=oldQuad;Tr2Renderer.SetShaderModel(oldShader);context.SetRenderContextAL(oldAL);be.resMan=oldRes;al.Destroy();});
+  al.CreateDevice();context.SetRenderContextAL(al);blue.resMan=new StubResMan();Tr2QuadRenderer._instance=quad;
+  const managers=[];t.after(()=>{for(const m of managers)m.Destruct();quad._vertexBuffer.ReleaseResources();quad._quad?.Destroy();quad._quadIB?.Destroy();Tr2QuadRenderer._instance=oldQuad;Tr2Renderer.SetShaderModel(oldShader);context.SetRenderContextAL(oldAL);blue.resMan=oldRes;al.Destroy();});
   return {context,al,quad,manager(){const m=new Tr2ImpostorManager();managers.push(m);return m;}};
 }
 function hash(x=1) {return {viewDir:[x,2,3],upDir:[0,1,0]};}

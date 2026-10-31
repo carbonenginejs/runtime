@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/TriCurveSet_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { type, blue as legacyBlue } from "#schema";
-import { CjsScriptCallback, IInitialize, ISimTimeRebaseNotify, blue, BlueList, CcpTime } from "#blue";
+import { BlueScriptCallback, IInitialize, ISimTimeRebaseNotify, blue, BlueList, CcpTime } from "#blue";
 import { ITriFunction } from "../../global/blue/ITriFunction.js";
 import { ITriCurveLength } from "../../global/blue/ITriCurveLength.js";
 import { ITr2Updateable } from "../core/ITr2Updateable.js";
@@ -112,7 +112,7 @@ export class TriCurveSet extends IInitialize
   _timeRangeMax = 0;
 
   /** Carbon's `m_callback`: a BlueScriptCallback value member, invalid until set. */
-  _callback = new CjsScriptCallback();
+  _callback = new BlueScriptCallback();
 
   /**
    * Carbon's Update( Be::Time realTime, Be::Time simTime ) (TriCurveSet.cpp:51-64):
@@ -347,20 +347,20 @@ export class TriCurveSet extends IInitialize
    * (`TriCurveSet.cpp:246-250`).
    *
    * @adapted Carbon copies a BlueScriptCallback into its value member. The
-   *   argument is adapted once through CjsScriptCallback.from (a function, a
-   *   CjsScriptCallback, or a Call/CallVoid host object; null stores an invalid
-   *   callback) and held in a fresh CjsScriptCallback, so the stored slot is a
+   *   argument is adapted once through BlueScriptCallback.from (a function, a
+   *   BlueScriptCallback, or a Call/CallVoid host object; null stores an invalid
+   *   callback) and held in a fresh BlueScriptCallback, so the stored slot is a
    *   copy: destroying it later leaves the caller's own callback valid, as
    *   destroying Carbon's copy does.
    * @param {number} seconds Delay measured on the source timeline.
-   * @param {CjsScriptCallback|Function|object|null} callback Callback copied into the owned slot.
+   * @param {BlueScriptCallback|Function|object|null} callback Callback copied into the owned slot.
    * @returns {void}
    */
   @be.mapMethodAndWrap()
   StopAfterWithCallback(seconds, callback)
   {
     this.StopAfter(seconds);
-    this._callback = new CjsScriptCallback(CjsScriptCallback.from(callback));
+    this._callback = new BlueScriptCallback(BlueScriptCallback.from(callback));
   }
 
   /**
@@ -539,7 +539,7 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Updates with the current frame time, as Carbon does: Update( double(
-   * BeOS->GetCurrentFrameTime() ) ) (TriCurveSet.cpp:320-322), reading be.os at
+   * BeOS->GetCurrentFrameTime() ) ) (TriCurveSet.cpp:320-322), reading blue.os at
    * the call. This is the method Carbon exposes to script as `Update`
    * (TriCurveSet_Blue.cpp:100-103).
    *

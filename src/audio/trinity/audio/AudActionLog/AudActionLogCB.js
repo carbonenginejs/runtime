@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Hand-owned behavior port. Verify against audio/AudActionLogCB.json and the
 // AudActionRecord*.json schema documents.
 
-import { blue, CjsScriptCallback } from "#blue";
+import { blue, BlueScriptCallback } from "#blue";
 import { IAudActionLog } from "./IAudActionLog.js";
 import { AudActionRecordPostEvent } from "./AudActionRecordPostEvent.js";
 import { AudActionRecordExecuteActionOnPlayingID } from "./AudActionRecordExecuteActionOnPlayingID.js";
@@ -28,18 +28,18 @@ export class AudActionLogCB extends IAudActionLog
    * Registers the callback used by Flush; null unregisters without clearing records.
    *
    * Carbon stores a BlueScriptCallback (audio/src/AudActionLog.cpp:131-134); a
-   * function is wrapped at the boundary (CjsScriptCallback.from), anything else
+   * function is wrapped at the boundary (BlueScriptCallback.from), anything else
    * throws, and undefined also unregisters the callback.
    *
    * @adapted
-   * @param {Function|CjsScriptCallback|null|undefined} callback Record recipient.
+   * @param {Function|BlueScriptCallback|null|undefined} callback Record recipient.
    * @returns {void}
    * @throws {TypeError} If the callback cannot be invoked.
    */
   @be.mapMethodAndWrap()
   RegisterCallback(callback)
   {
-    this._callback = CjsScriptCallback.from(callback);
+    this._callback = BlueScriptCallback.from(callback);
   }
 
   /**

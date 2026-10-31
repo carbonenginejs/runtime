@@ -80,7 +80,7 @@ for configuration shapes and partial-failure behavior.
 
 `global/blue` exports the process-wide `blue` instance and its `CjsBlue` class.
 The holder delegates `Fetch`: DNA to its installed SOF, other inputs to its
-resource manager. `CjsBlueResMan` and `CjsBlueClasses` are the adapted service
+resource manager. `BlueResMan` and `BlueClasses` are the adapted service
 identities. Class/enum declarations share their existing authoritative registries.
 The SOF slot starts absent and throws when used before installation. Audio starts
 with a silent `CjsWwiseSoundEngineStub`; the contract and stub live in the
@@ -112,7 +112,7 @@ constructor after its definition instead.
 
 `blue.classes.QueryThisInterface(object, X, options)` answers the exposure
 question: the object when its table maps `X`, otherwise null. A miss is logged
-unless `CjsBlueClasses.BLUEQIOPT.BEQI_SILENT` is passed. Copier and declared
+unless `BlueClasses.BLUEQIOPT.BEQI_SILENT` is passed. Copier and declared
 readers use the same table to choose between initialization and member
 notifications. Declaring a table does not initialize objects, change JavaScript
 inheritance, or change stored-member and property inheritance.

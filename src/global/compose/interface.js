@@ -484,7 +484,7 @@ function OwnInterfaceTable(Constructor, decoratorName)
  * IT DESCRIBES AND DOES NOT INSTALL. Nothing is added to the prototype, and
  * `cast` deliberately does not read it: `cast` ports `dynamic_cast`, which
  * answers to the base list. Exposure is asked through
- * `be.classes.QueryThisInterface`, so the two casts can never be confused.
+ * `blue.classes.QueryThisInterface`, so the two casts can never be confused.
  *
  * @param {Function[]} Interfaces The mapped interfaces, in `_Blue.cpp` order.
  * @param {boolean} [sourceOrder=false] Preserve source order for separate Stage-3 map decorators.

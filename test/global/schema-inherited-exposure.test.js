@@ -4,7 +4,7 @@ import { transformSync } from "@babel/core";
 import decoratorsPlugin from "@babel/plugin-proposal-decorators";
 import { exposure as be } from "#be";
 import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
-import { CjsBlueClasses } from "../../src/global/blueexposure/CjsBlueClasses.js";
+import { BlueClasses } from "../../src/global/blueexposure/BlueClasses.js";
 import { getClassRegistration } from "../../src/global/blueexposure/classes/registry.js";
 
 // decorator-upgrade.md § 00 "Inherited members mapped by a subclass": every be.map* decorator also works above a class, naming a member
@@ -37,7 +37,7 @@ test("a method mapped above a subclass lands in the subclass's own table, not th
     assert.equal(CjsSchema.getMethod(Base, "Rebuild").exposure, undefined);
     assert.equal(CjsSchema.getMethod(Other, "Rebuild").exposure, undefined);
     assert.equal(new Sub().Rebuild(), 1, "no override is written");
-    const info = CjsBlueClasses._typeInfo(Sub, 0)[3];
+    const info = BlueClasses._typeInfo(Sub, 0)[3];
     assert.ok("Rebuild" in info);
 });
 

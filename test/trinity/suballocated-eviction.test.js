@@ -2,11 +2,11 @@ import { prepareResourceFixture, resourceIdentityFixture } from "../support/reso
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { TriGeometryRes as SourceTriGeometryRes } from "../../src/trinity/resources/geometry/TriGeometryRes.js";
-import { CjsMotherLode as SourceCjsMotherLode } from "../../src/global/blue/CjsMotherLode.js";
+import { MotherLode as SourceCjsMotherLode } from "../../src/global/blue/MotherLode.js";
 import { Tr2VirtualAllocator } from "../../src/trinity/core/device/Tr2VirtualAllocator.js";
 import { Tr2SuballocatedBuffer } from "../../npm/dist/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBuffer.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
-import { TriGeometryRes, CjsMotherLode } from "../../npm/dist/resource/index.js";
+import { TriGeometryRes, MotherLode } from "../../npm/dist/resource/index.js";
 import { CreateLodAllocations, SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
 import { TriStorageFlags } from "../../npm/dist/global/consts/graphics/index.js";
 import { Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -151,7 +151,7 @@ test("suballocated buffer ReleaseResources honours managed storage and detaches 
 // Each geometry is registered with the MotherLode of its own module graph: the
 // registry casts what it holds to its BlueAsyncRes, and a src class is not the
 // dist one.
-for (const [ source, Geometry, MotherLode ] of [ [ "source", SourceTriGeometryRes, SourceCjsMotherLode ], [ "dist", TriGeometryRes, CjsMotherLode ] ])
+for (const [ source, Geometry, ModuleMotherLode ] of [ [ "source", SourceTriGeometryRes, SourceCjsMotherLode ], [ "dist", TriGeometryRes, MotherLode ] ])
 test(`${source} geometry evict/reload cycles return every LOD's used bytes to the live-resource baseline`, () =>
 {
   const renderContext = context();
@@ -160,7 +160,7 @@ test(`${source} geometry evict/reload cycles return every LOD's used bytes to th
   const baseline = usedBytes(buffer);
   const liveBuffer = live.GetBuffer();
   // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
-  const motherLode = new MotherLode({ now: () => 0, cacheSize: 0 });
+  const motherLode = new ModuleMotherLode({ now: () => 0, cacheSize: 0 });
   const geometry = new Geometry();
   resourceIdentityFixture(geometry, "res:/synthetic/eviction.cmf");
 

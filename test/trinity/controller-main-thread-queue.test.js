@@ -263,7 +263,7 @@ test("Tr2Controller queues updateable Updates with Blue ticks (Tr2Controller.cpp
   ExecuteMainThreadActions();
   assert.equal(calls.length, 1);
   assert.equal(calls[0][1], frame);
-  // Real time is be.os actual time: Blue ticks on the runtime epoch, an exact Number.
+  // Real time is blue.os actual time: Blue ticks on the runtime epoch, an exact Number.
   assert.equal(Number.isSafeInteger(calls[0][0]) && calls[0][0] > 0, true, "real time is runtime-epoch Blue ticks");
 });
 

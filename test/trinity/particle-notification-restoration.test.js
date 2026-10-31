@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2ParticleSystem } from "../../npm/dist/trinity/index.js";
-import { blue, CjsBlueOS, NotifyModified } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueOS, NotifyModified } from "../../npm/dist/global/blue/index.js";
 
 test("particle batch handles sorting, clock rebasing and both emitter notifications", () =>
 {
-  const prior = blue.os, os = new CjsBlueOS(), system = new Tr2ParticleSystem();
+  const prior = blue.os, os = new BlueOS(), system = new Tr2ParticleSystem();
   blue.os = os;
   try
   {
@@ -43,7 +43,7 @@ test("particle batch handles sorting, clock rebasing and both emitter notificati
 
 test("particle initialization registers and flags emitters; destruction releases the original clock", () =>
 {
-  const prior = blue.os, os = new CjsBlueOS(), replacement = new CjsBlueOS(), system = new Tr2ParticleSystem();
+  const prior = blue.os, os = new BlueOS(), replacement = new BlueOS(), system = new Tr2ParticleSystem();
   blue.os = os;
   try
   {

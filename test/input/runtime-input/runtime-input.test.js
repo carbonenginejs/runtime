@@ -204,7 +204,7 @@ test("Tr2MainWindow normalizes callbacks once and distinguishes CallVoid from Ca
     assert.equal(mainWindow.ProcessMessages(), false);
     assert.throws(
         () => { mainWindow.onKeyUp = { Call() {}, CallVoid() {} }; },
-        /function or a CjsScriptCallback/u
+        /function or a BlueScriptCallback/u
     );
     assert.equal(mainWindow.onKeyUp, null);
 });

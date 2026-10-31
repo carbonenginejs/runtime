@@ -1025,7 +1025,7 @@ export class TriGeometryRes extends BlueAsyncRes
       throw new Error(
         "TriGeometryRes cannot answer an intersection query: CPU geometry is "
         + "not resident. The payload was never loaded or has been released. "
-        + "Reload through CjsBlueResMan before querying."
+        + "Reload through BlueResMan before querying."
       );
     }
     return meshes;

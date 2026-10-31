@@ -12,7 +12,7 @@ import {
   convertProjectionCoordToWorldPickRay,
   screenToProjection
 } from "../view/pickRay.js";
-import { blue, CjsScriptCallback, EnumRegistrationType, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
+import { blue, BlueScriptCallback, EnumRegistrationType, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
 import { TriGeometryRes } from "#trinity/resources/geometry";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
@@ -452,7 +452,7 @@ export class TriDevice extends IRoot
    * THIS IS A CALLBACK, not a method a caller invokes directly. Carbon
    * declares it under an `// IBlueEvents` banner (`TriDevice.h:154-159`) and
    * the device hands ITSELF to `BeOS->RegisterForTicks( this, TRINITY )`
-   * (`TriDevice.cpp:310`), so the pump calls it. `be.os` is that pump here.
+   * (`TriDevice.cpp:310`), so the pump calls it. `blue.os` is that pump here.
    *
    * BOTH TIMES ARE `Be::Time` - 100-nanosecond ticks since the client started,
    * not seconds. Carbon divides the delta by 10,000,000 to get the seconds the
@@ -1141,7 +1141,7 @@ export class TriDevice extends IRoot
     if (this.#hasDevice && !this.DeviceExists())
     {
       TriDevice.#deviceLostCount += 1;
-      const onDeviceRemoved = CjsScriptCallback.from(this.onDeviceRemoved);
+      const onDeviceRemoved = BlueScriptCallback.from(this.onDeviceRemoved);
       if (onDeviceRemoved && onDeviceRemoved.IsValid())
       {
         onDeviceRemoved.CallVoid(ALResult.E_DEVICELOST, "Device lost", TriDevice.#deviceLostCount, "", "", "");

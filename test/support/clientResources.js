@@ -1,5 +1,5 @@
 // Real client resources for tests, through BePaths as the client loads them: the
-// build's resfileindex goes into a RemoteFileCache, registered with be.paths,
+// build's resfileindex goes into a RemoteFileCache, registered with blue.paths,
 // whose downloads come from the local tools-core service. Tests skip only when
 // that service is not running.
 //

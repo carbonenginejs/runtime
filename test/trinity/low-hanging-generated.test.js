@@ -391,7 +391,7 @@ test("EveChildBulletStorm rebuilds locator instances and transitions its clip sp
 
 test("EveChildExplosion schedules local and global Carbon explosion children", () =>
 {
-  // Both spawns copy their source through be.classes.CopyTo (cpp:228, 474),
+  // Both spawns copy their source through blue.classes.CopyTo (cpp:228, 474),
   // so the sources are real registered children and the spawned ones are copies.
   const local = new EveChildContainer();
   local.name = "local";

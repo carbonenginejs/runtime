@@ -4,10 +4,10 @@ import { exposure as be } from "#be";
 // Source: blueexposure/include/BlueTypes.h:409-419 (Be::ClassRegistration)
 // Source: blueexposure/include/Find.h, blueexposure/Find.cpp (the Find functions, as statics)
 //
-// The registry behind `be.classes` (`BeClasses`).
+// The registry behind `blue.classes` (`BeClasses`).
 //
 // The classes/registry leaf owns complete registration records for every
-// CjsBlueClasses instance and for CjsSchema. Class metadata remains schema-owned;
+// BlueClasses instance and for CjsSchema. Class metadata remains schema-owned;
 // registering or removing a name never creates or discards that metadata.
 // The first registration wins, and replacement requires explicit removal.
 //
@@ -55,11 +55,11 @@ const EDIT_FLAGS = 0x100;
 const EDIT_ENUM = 0x200;
 
 
-/** `CjsBlueClasses` - the class registry `be.classes` holds, per blueexposure/BlueClasses.cpp.
+/** `BlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp.
  *
  * Carbon: BlueClasses (blueexposure/BlueClasses.h:23)
  */
-export class CjsBlueClasses extends IBlueClasses
+export class BlueClasses extends IBlueClasses
 {
 
   /** Carbon's `Be::ClassRegistration::Flags` (BlueTypes.h:415-418). */
@@ -84,7 +84,7 @@ export class CjsBlueClasses extends IBlueClasses
    */
   static Initialize()
   {
-    if (!BeClasses) setBeClasses(new CjsBlueClasses());
+    if (!BeClasses) setBeClasses(new BlueClasses());
     return true;
   }
 
@@ -248,10 +248,10 @@ export class CjsBlueClasses extends IBlueClasses
    * @param {number} [options=BEQI_NONE] `BLUEQIOPT` flags.
    * @returns {object|null} `self`, or null.
    */
-  QueryThisInterface(self, riid, type, options = CjsBlueClasses.BLUEQIOPT.BEQI_NONE)
+  QueryThisInterface(self, riid, type, options = BlueClasses.BLUEQIOPT.BEQI_NONE)
   {
     if (mappedInterfaces(type).has(riid)) return self;
-    if (type && (options & CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === 0)
+    if (type && (options & BlueClasses.BLUEQIOPT.BEQI_SILENT) === 0)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "Interface %s not found on class %s",
         CjsSchema.getClassName(riid), CjsSchema.getClassName(type));
@@ -351,7 +351,7 @@ export class CjsBlueClasses extends IBlueClasses
     {
       throw new TypeError("GetClassTypes: registrations carry no module, so a module filter cannot be applied.");
     }
-    return getClassRegistrations().map(registration => CjsBlueClasses._typeInfo(registration.type, 0));
+    return getClassRegistrations().map(registration => BlueClasses._typeInfo(registration.type, 0));
   }
 
   /**
@@ -481,7 +481,7 @@ export class CjsBlueClasses extends IBlueClasses
       if (seen.has(e.obj)) continue;
       seen.add(e.obj);
 
-      if (CjsBlueClasses._isMatch(e.obj, names))
+      if (BlueClasses._isMatch(e.obj, names))
       {
         result.push(e.obj);
         if (prune) continue;
@@ -490,7 +490,7 @@ export class CjsBlueClasses extends IBlueClasses
       if (maxLevel >= 0 && e.level >= maxLevel) continue;
 
       const level = e.level + 1;
-      CjsBlueClasses.enumerateChildren__Filter(
+      BlueClasses.enumerateChildren__Filter(
         e.obj,
         child => stack.push({ obj: child, level }),
         child => stack.push({ obj: child, level }),
@@ -518,7 +518,7 @@ export class CjsBlueClasses extends IBlueClasses
   GetTypeInfo(obj)
   {
     if (obj === null || typeof obj !== "object") throw new TypeError("Value is not a Blue object");
-    return CjsBlueClasses._typeInfo(obj.constructor, 0);
+    return BlueClasses._typeInfo(obj.constructor, 0);
   }
 
   /**
@@ -672,7 +672,7 @@ export class CjsBlueClasses extends IBlueClasses
    */
   static enumerateChildren__OnChild(obj, onChild)
   {
-    CjsBlueClasses.enumerateChildren__Filter(
+    BlueClasses.enumerateChildren__Filter(
       obj,
       (child, _type, member) => onChild(child, member, null),
       (child, index, member) => onChild(child, member, index),
@@ -712,10 +712,10 @@ export class CjsBlueClasses extends IBlueClasses
     {
       if (member.role !== "member" || !filter(member)) continue;
 
-      let value = CjsBlueClasses._readStorage(obj, member.key);
-      if (member.index !== undefined) value = CjsBlueClasses._readStorage(value, member.index);
+      let value = BlueClasses._readStorage(obj, member.key);
+      if (member.index !== undefined) value = BlueClasses._readStorage(value, member.index);
 
-      CjsBlueClasses._enumerateValue(value, member.type, (child, kind, index, container) =>
+      BlueClasses._enumerateValue(value, member.type, (child, kind, index, container) =>
       {
         if (kind === "list") onListItem(child, index, member, container);
         else if (kind === "dict") onDictItem(child, index, member, container);
@@ -746,9 +746,9 @@ export class CjsBlueClasses extends IBlueClasses
     if (!from || !to) throw new Error("neither from nor to parameter can be None");
 
     const result = [];
-    CjsBlueClasses._EnumerateRoutes(from, to, stack =>
+    BlueClasses._EnumerateRoutes(from, to, stack =>
     {
-      result.push(CjsBlueClasses._routeOf(stack));
+      result.push(BlueClasses._routeOf(stack));
       return true;
     });
     return result;
@@ -778,9 +778,9 @@ export class CjsBlueClasses extends IBlueClasses
     if (from === to) return [];
 
     let path = null;
-    CjsBlueClasses._EnumerateRoutes(from, to, stack =>
+    BlueClasses._EnumerateRoutes(from, to, stack =>
     {
-      path = CjsBlueClasses._routeOf(stack);
+      path = BlueClasses._routeOf(stack);
       return false;
     });
 
@@ -828,7 +828,7 @@ export class CjsBlueClasses extends IBlueClasses
       if (seen.has(obj)) continue;
       seen.add(obj);
 
-      CjsBlueClasses.enumerateChildren__Filter(
+      BlueClasses.enumerateChildren__Filter(
         obj,
         (child, _type, member) =>
         {
@@ -883,7 +883,7 @@ export class CjsBlueClasses extends IBlueClasses
 
       if (Interface && ownMappedInterfaces(current.constructor).has(Interface)) result.push(current);
 
-      CjsBlueClasses.enumerateChildren__OnChild(current, child => stack.push(child));
+      BlueClasses.enumerateChildren__OnChild(current, child => stack.push(child));
     }
     return result;
   }
@@ -914,7 +914,7 @@ export class CjsBlueClasses extends IBlueClasses
 
       if (current === to) return true;
 
-      CjsBlueClasses.enumerateChildren__OnChild(current, child => stack.push(child));
+      BlueClasses.enumerateChildren__OnChild(current, child => stack.push(child));
     }
     return false;
   }
@@ -968,7 +968,7 @@ export class CjsBlueClasses extends IBlueClasses
 
         const parent = stack.length - 1;
         const level = e.level + 1;
-        CjsBlueClasses.enumerateChildren__Filter(
+        BlueClasses.enumerateChildren__Filter(
           obj,
           (child, _type, member) => stack.push({ obj: child, level, parent, member, index: 0, collection: null }),
           (child, index, member, collection) => stack.push({ obj: child, level, parent, member, index, collection }),
@@ -1064,7 +1064,7 @@ export class CjsBlueClasses extends IBlueClasses
   static _enumerateValue(value, declaration, visit, kind = "attribute", index = null, collection = null)
   {
     if (value === null || typeof value !== "object") return;
-    const type = CjsBlueClasses._describeType(declaration);
+    const type = BlueClasses._describeType(declaration);
     switch (type?.kind)
     {
       case "rootRef":
@@ -1084,7 +1084,7 @@ export class CjsBlueClasses extends IBlueClasses
         for (let i = 0; i < items.length; i++)
         {
           const entry = Object.getOwnPropertyDescriptor(items, i);
-          if (entry) CjsBlueClasses._enumerateValue(entry.value, type.itemType, visit, "list", i, value);
+          if (entry) BlueClasses._enumerateValue(entry.value, type.itemType, visit, "list", i, value);
         }
         return;
       }
@@ -1094,7 +1094,7 @@ export class CjsBlueClasses extends IBlueClasses
         const entries = value instanceof Map
           ? Array.from(value.entries())
           : Object.keys(value).map(key => [ key, Object.getOwnPropertyDescriptor(value, key).value ]);
-        for (const [ key, item ] of entries) CjsBlueClasses._enumerateValue(item, type.valueType, visit, "dict", key, value);
+        for (const [ key, item ] of entries) BlueClasses._enumerateValue(item, type.valueType, visit, "dict", key, value);
         return;
       }
     }
@@ -1103,20 +1103,20 @@ export class CjsBlueClasses extends IBlueClasses
 }
 
 
-CjsSchema.exposure.mapInterface(IBlueClasses)(CjsBlueClasses);
-CjsSchema.decorateMethod(CjsBlueClasses, "CreateInstance", blue.method);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetClassTypes", blue.method);
-CjsSchema.decorateMethod(CjsBlueClasses, "LiveCount", blue.method);
-CjsSchema.decorateMethod(CjsBlueClasses, "LockCount", blue.method);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetWrapperList", blue.method);
-CjsSchema.decorateMethod(CjsBlueClasses, "LiveList", be.mapMethod(), meta.notUsed);
-CjsSchema.decorateMethod(CjsBlueClasses, "ProcessAllPendingDeletes", blue.method, meta.noop);
-CjsSchema.decorateMethod(CjsBlueClasses, "Copy", blue.method);
-CjsSchema.decorateMethod(CjsBlueClasses, "Find", blue.method);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetTypeInfo", blue.method);
-CjsSchema.decorateMethod(CjsBlueClasses, "GetPersistedClassesReport", blue.method);
-CjsSchema.blue.define(CjsBlueClasses, {
-  className: "CjsBlueClasses",
+CjsSchema.exposure.mapInterface(IBlueClasses)(BlueClasses);
+CjsSchema.decorateMethod(BlueClasses, "CreateInstance", blue.method);
+CjsSchema.decorateMethod(BlueClasses, "GetClassTypes", blue.method);
+CjsSchema.decorateMethod(BlueClasses, "LiveCount", blue.method);
+CjsSchema.decorateMethod(BlueClasses, "LockCount", blue.method);
+CjsSchema.decorateMethod(BlueClasses, "GetWrapperList", blue.method);
+CjsSchema.decorateMethod(BlueClasses, "LiveList", be.mapMethod(), meta.notUsed);
+CjsSchema.decorateMethod(BlueClasses, "ProcessAllPendingDeletes", blue.method, meta.noop);
+CjsSchema.decorateMethod(BlueClasses, "Copy", blue.method);
+CjsSchema.decorateMethod(BlueClasses, "Find", blue.method);
+CjsSchema.decorateMethod(BlueClasses, "GetTypeInfo", blue.method);
+CjsSchema.decorateMethod(BlueClasses, "GetPersistedClassesReport", blue.method);
+CjsSchema.blue.define(BlueClasses, {
+  className: "BlueClasses",
   unused: [
     "FindVariable", "UpdateObjectCount",
     "ProcessPendingDeletes",
@@ -1127,4 +1127,4 @@ CjsSchema.blue.define(CjsBlueClasses, {
 
 // Carbon's `BeClassesInitializer doTheInit` (BlueClasses.cpp:40-55) runs `BlueClasses::Initialize()` during static
 // initialization, so `BeClasses` exists before anything asks for it; module evaluation is the JavaScript equivalent.
-CjsBlueClasses.Initialize();
+BlueClasses.Initialize();
