@@ -2,12 +2,11 @@ import { CjsSchema } from "#schema";
 
 import { installAudioLibraryDocument } from "./audioLibraryDocument.js";
 import { decompressGzipIfNeeded } from "#utils/compression";
+import { CjsJsonFormat } from "#resource/formats/json";
 import {
     createAudioResourceReader,
     normalizeAudioResourceBytes,
 } from "../library-builder/resourceSource.js";
-
-const TEXT_DECODER = new TextDecoder();
 
 /**
  * The document sections a schema-v2 audio library may leave out, in the order
@@ -152,7 +151,7 @@ export class CjsAudioLibrary
 
         try
         {
-            values = JSON.parse(TEXT_DECODER.decode(jsonBytes));
+            values = CjsJsonFormat.read(jsonBytes, { source: "audio library" });
         }
         catch (error)
         {

@@ -178,6 +178,7 @@ directly. See [geometry interchange](geometry-interchange.md).
 | Granny GR2/GSF (`.gr2`/`.gsf`) | `CjsGr2Format` | `@carbonenginejs/runtime/resource/formats/gr2` |
 | IES photometry (`.ies`, TILT=NONE) | `CjsIESFormat` | `@carbonenginejs/runtime/resource/formats/ies` |
 | JPEG (`.jpg`/`.jpeg`) | `CjsJpegFormat` | `@carbonenginejs/runtime/resource/formats/jpeg` |
+| JSON (`.json`) | `CjsJsonFormat` | `@carbonenginejs/runtime/resource/formats/json` |
 | JSON Lines (`.jsonl`) | `CjsJsonlFormat` | `@carbonenginejs/runtime/resource/formats/jsonl` |
 | MP3 (`.mp3`) | `CjsMp3Format` | `@carbonenginejs/runtime/resource/formats/mp3` |
 | MP4 (`.mp4`) | `CjsMp4Format` | `@carbonenginejs/runtime/resource/formats/mp4` |

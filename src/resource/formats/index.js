@@ -25,6 +25,7 @@ export { CjsIESFormat } from "./ies/index.js";
 export { CjsGltfFormat } from "./gltf/index.js";
 export { CjsGr2Format } from "./gr2/index.js";
 export { CjsJpegFormat } from "./jpeg/index.js";
+export { CjsJsonFormat } from "./json/index.js";
 export { CjsJsonlFormat } from "./jsonl/index.js";
 export { CjsMp3Format } from "./mp3/index.js";
 export { CjsMp4Format } from "./mp4/index.js";

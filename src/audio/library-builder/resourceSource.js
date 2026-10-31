@@ -1,4 +1,5 @@
 import { blue } from "#blue";
+import { CjsJsonFormat } from "#resource/formats/json";
 
 const TEXT_DECODER = new TextDecoder();
 
@@ -47,7 +48,7 @@ export function decodeAudioResourceJson(bytes, path)
 {
     try
     {
-        return JSON.parse(decodeAudioResourceText(bytes));
+        return CjsJsonFormat.read(bytes, { source: path });
     }
     catch (error)
     {
