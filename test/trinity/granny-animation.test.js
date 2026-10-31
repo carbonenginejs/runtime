@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
 import { GrannyBoneOffset } from "../../npm/dist/trinity/core/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 const identity3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
@@ -109,7 +110,7 @@ test("Tr2GrannyAnimation builds and samples browser bone matrices", () =>
   assert.ok(Math.abs(bones[15] - 5) < 1e-6, "bone 1 translation x");
   assert.ok(Math.abs(animation.GetMorphAnimations().get("Smile") - 0.5) < 1e-6);
 
-  assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "PlayAnimation")?.impl?.status, "adapted");
+  assert.equal(MarkerTag("Tr2GrannyAnimation", "PlayAnimation"), "adapted");
   assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "PlayAnimationOnce")?.carbon?.method, true);
 });
 

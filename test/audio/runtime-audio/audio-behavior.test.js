@@ -3,6 +3,7 @@ import { AudioManagerWith } from "../../support/audioStub.js";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { AudEmitter, AudEventCurve, AudEventKey, AudStaticDataRepository } from "../../../npm/dist/audio/index.js";
+import { MarkerTag } from "../../support/markerTags.js";
 
 
 test("AudStaticDataRepository catalogs audiometadata and answers Carbon queries", () =>
@@ -184,12 +185,12 @@ test("behavior method metadata reflects implementation status", () =>
   new AudEventCurve();
   new AudStaticDataRepository();
 
-  assert.equal(CjsSchema.getMethod(AudEventCurve, "AddKey").impl.status, "implemented");
-  assert.equal(CjsSchema.getMethod(AudEventCurve, "UpdateValue").impl.status, "implemented");
-  assert.equal(CjsSchema.getMethod(AudEventCurve, "Length").impl.status, "implemented");
-  assert.equal(CjsSchema.getMethod(AudEventCurve, "SetSourceTriObserver").impl.status, "implemented");
-  assert.equal(CjsSchema.getMethod(AudEmitter, "HandleEvent").impl.status, "implemented");
-  assert.equal(CjsSchema.getMethod(AudStaticDataRepository, "Initialize").impl.status, "adapted");
+  assert.equal(MarkerTag("AudEventCurve", "AddKey"), "implemented");
+  assert.equal(MarkerTag("AudEventCurve", "UpdateValue"), "implemented");
+  assert.equal(MarkerTag("AudEventCurve", "Length"), "implemented");
+  assert.equal(MarkerTag("AudEventCurve", "SetSourceTriObserver"), "implemented");
+  assert.equal(MarkerTag("AudEmitter", "HandleEvent"), "implemented");
+  assert.equal(MarkerTag("AudStaticDataRepository", "Initialize"), "adapted");
 });
 
 test("only SetPosition places an emitter; a values position is read-only", async () =>

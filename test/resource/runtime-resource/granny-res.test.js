@@ -10,6 +10,7 @@ import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import "../../support/frameLoop.js";
+import { MarkerTag } from "../../support/markerTags.js";
 
 // Our own generated GR2, made for the racing demo: not a client asset, and the
 // only GR2 we have generated that loads correctly (operator, 2026-10-25).
@@ -277,7 +278,7 @@ test("rows and states: Carbon's exposure names and what the projection cannot an
     "GetMeshMorphCount", "GetMeshMorphName", "GetAllMeshMorphNamesNoDigits", "GetAnimationName", "GetAnimationDuration", "RayIntersection" ])
   {
     assert.equal(row(name).exposure.macro, "MAP_METHOD_AND_WRAP", name);
-    assert.equal(row(name).impl.status, "adapted", name);
+    assert.equal(MarkerTag("TriGrannyRes", name), "adapted", name);
   }
 
   for (const name of [ "modelCount", "meshCount", "animationCount" ])
@@ -289,22 +290,22 @@ test("rows and states: Carbon's exposure names and what the projection cannot an
     "GetTrackGroupCount", "GetTrackGroupName", "GetVectorTrackCount", "GetVectorTrackName", "GetEventTrackCount", "GetEventTrackName",
     "BakeBlendshape__NameToWeight", "BakeBlendshape__Weights" ])
   {
-    assert.equal(row(name).impl.status, "notImplemented", name);
+    assert.equal(MarkerTag("TriGrannyRes", name), "notImplemented", name);
     assert.throws(() => new TriGrannyRes()[name](), /is not implemented in CarbonEngineJS/u, name);
   }
 
-  assert.equal(row("GetGrannyFile").impl.status, "adapted");
+  assert.equal(MarkerTag("TriGrannyRes", "GetGrannyFile"), "adapted");
   assert.equal(loaded().GetGrannyFile().models[0].name, "ship");
 
   // Ported for character morph baking (CPU blendshape bake into independent geometry).
   for (const name of [ "CreateGeometryRes", "BakeBlendshapeFromScript" ])
   {
-    assert.equal(row(name).impl.status, "adapted", name);
+    assert.equal(MarkerTag("TriGrannyRes", name), "adapted", name);
   }
 
   for (const name of [ "GetCMFData", "GetCMFViewData", "GetCMFContents" ])
   {
-    assert.equal(row(name).impl.status, "notSupported", name);
+    assert.equal(MarkerTag("TriGrannyRes", name), "notSupported", name);
     assert.throws(() => new TriGrannyRes()[name](), Error, name);
   }
 });

@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { EveMeshOverlayEffect } from "../../npm/dist/trinity/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 test("EveMeshOverlayEffect routes batches and owns its OverlayType enum", () =>
@@ -145,8 +146,8 @@ test("completed EveMeshOverlayEffect is maintained and source-backed", () =>
     existsSync(new URL("../../src/trinity/generated/eve/overlays/EveMeshOverlayEffect.js", import.meta.url)),
     false
   );
-  assert.equal(CjsSchema.getMethod(EveMeshOverlayEffect, "GetEffects")?.impl?.status, "adapted");
-  assert.equal(CjsSchema.getMethod(EveMeshOverlayEffect, "GetType")?.impl?.status, "implemented");
+  assert.equal(MarkerTag("EveMeshOverlayEffect", "GetEffects"), "adapted");
+  assert.equal(MarkerTag("EveMeshOverlayEffect", "GetType"), "implemented");
 
   const summary = JSON.parse(readFileSync(new URL("../../src/trinity/generated/summary.json", import.meta.url), "utf8"));
   assert.equal(

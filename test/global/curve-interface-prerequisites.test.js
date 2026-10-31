@@ -17,6 +17,7 @@ import { ITriCurveLength as DirectLength } from "../../src/global/blue/ITriCurve
 import { ITriDuration } from "../../src/trinity/curves/ITriDuration.js";
 import { ITr2ValueBinding } from "../../src/trinity/curves/ITr2ValueBinding.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const contracts = [
   {
@@ -82,11 +83,11 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     {
       assert.equal(CjsSchema.getMethod(Contract, method).impl.status, "abstract", `${name}.${method}`);
     }
-    if (hasReset) assert.equal(CjsSchema.getMethod(Contract, "Reset").impl.status, "adapted");
+    if (hasReset) assert.equal(MarkerTag(name, "Reset"), "adapted");
     // Carbon's Be::Time overloads: one shared TimeAsDouble forward per interface, overridden where Carbon differs.
     for (const method of ticks)
     {
-      assert.equal(CjsSchema.getMethod(Contract, method).impl.status, "adapted", `${name}.${method}`);
+      assert.equal(MarkerTag(name, method), "adapted", `${name}.${method}`);
     }
   });
 

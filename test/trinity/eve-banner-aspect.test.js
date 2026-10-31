@@ -8,6 +8,7 @@ import { color } from "../../npm/dist/global/math/color.js";
 import { ITr2DebugRenderer2 } from "../../npm/dist/global/interfaces/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { EveBannerItem, EveBannerSet, IEveSpaceObjectAttachment, Tr2Effect, TriFrustum } from "../../npm/dist/trinity/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 function assertClose(actual, expected, tolerance = 1e-5)
@@ -37,7 +38,7 @@ test("EveBannerSet.GetBannerAspectRatio handles flat authored scale", () =>
   const banner = nontrivialBanner();
   assert.equal(EveBannerSet.GetBannerAspectRatio(banner), 0.5);
   assert.equal(
-    CjsSchema.getMethod(EveBannerSet, "GetBannerAspectRatio")?.impl?.status,
+    MarkerTag("EveBannerSet", "GetBannerAspectRatio"),
     "implemented"
   );
 });

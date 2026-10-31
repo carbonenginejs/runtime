@@ -12,6 +12,7 @@ import {
   AudUIPlayer,
   SoundPrioritization
 } from "../../../npm/dist/audio/index.js";
+import { MarkerTag } from "../../support/markerTags.js";
 
 
 function makeWorld()
@@ -619,8 +620,8 @@ test("AudManager exposes portable culling/debug methods and marks native device 
     assert.equal(manager.GetDebugDisplayAllEmitters(), false);
 
     new AudManager();
-    assert.equal(CjsSchema.getMethod(AudManager, "EnableSpatialAudio").impl.status, "notSupported");
-    assert.equal(CjsSchema.getMethod(AudManager, "StartProfilerCapture").impl.status, "notSupported");
+    assert.equal(MarkerTag("AudManager", "EnableSpatialAudio"), "notSupported");
+    assert.equal(MarkerTag("AudManager", "StartProfilerCapture"), "notSupported");
     assert.equal(manager.SpatialAudioIsSupported(), false);
     assert.equal(manager.IsProfilerCapturing(), false);
   }

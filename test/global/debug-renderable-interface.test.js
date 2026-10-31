@@ -13,6 +13,7 @@ import { ITr2DebugRenderer2 as DirectDebugRenderer } from "../../src/global/inte
 import { Tr2DebugColor } from "../../src/global/interfaces/Tr2DebugColor.js";
 import { Tr2DebugObjectReference } from "../../src/global/interfaces/Tr2DebugObjectReference.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 test("ITr2DebugRenderable has one registered identity and its two native abstract methods", () =>
 {
@@ -21,7 +22,7 @@ test("ITr2DebugRenderable has one registered identity and its two native abstrac
   assert.equal(CjsSchema.getConstructor("ITr2DebugRenderable"), ITr2DebugRenderable);
   for (const method of ["GetDebugOptions", "RenderDebugInfo"])
   {
-    assert.equal(CjsSchema.getMethod(ITr2DebugRenderable, method).impl.status, "abstract");
+    assert.equal(MarkerTag("ITr2DebugRenderable", method), "abstract");
   }
   assert.deepEqual(CjsSchema.getSchema(ITr2DebugRenderable).members, []);
   assert.deepEqual(CjsSchema.getSchema(ITr2DebugRenderable).properties, []);
@@ -153,7 +154,7 @@ test("ITr2DebugRenderer2 declares every unique native operation as an abstract o
   {
     for (const method of methods)
     {
-      assert.equal(CjsSchema.getMethod(ITr2DebugRenderer2, method).impl.status, "abstract");
+      assert.equal(MarkerTag("ITr2DebugRenderer2", method), "abstract");
       assert.throws(() => renderer[method](), new RegExp(`ITr2DebugRenderer2\\.${method}\\(.*\\) must be implemented`, "u"));
     }
   }

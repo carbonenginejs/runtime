@@ -6,6 +6,7 @@ import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { Tr2BoneMatrixCurve, Tr2CurveVector3Lerp, Tr2ObjectFollowCurveKey, Tr2ObjectFollowCurveKeyRotationSetting, Tr2ScalarExprKey, TriColorSequencer, TriVectorSequencer } from "../../npm/dist/trinity/index.js";
 import { TRIOPERATOR } from "../../npm/dist/global/consts/graphics/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 /** Child color function returning one fixed color for both time overloads. */
 function Child(r, g, b, a)
@@ -41,7 +42,7 @@ test("TriColorSequencer private GetValueAtAdd/GetValueAtMult keep Carbon's per-o
 
 test("Tr2CurveVector3Lerp GetAutoTangent is declared-only in Carbon and throws", () =>
 {
-  assert.equal(CjsSchema.getMethod(Tr2CurveVector3Lerp, "_GetAutoTangent")?.impl?.status, "notUsed");
+  assert.equal(MarkerTag("Tr2CurveVector3Lerp", "_GetAutoTangent"), "notUsed");
   assert.throws(() => new Tr2CurveVector3Lerp()._GetAutoTangent(), /deliberately does not use/);
 });
 

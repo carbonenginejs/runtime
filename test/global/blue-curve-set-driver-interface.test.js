@@ -6,6 +6,7 @@ import { ICurveSetDriver, blue } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
 import { ICurveSetDriver as DirectDriver } from "../../src/global/blue/ICurveSetDriver.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 test("ICurveSetDriver has one registered identity and an abstract native method", () =>
 {
@@ -13,7 +14,7 @@ test("ICurveSetDriver has one registered identity and an abstract native method"
   assert.equal(CjsSchema.getClassName(ICurveSetDriver), "ICurveSetDriver");
   assert.equal(CjsSchema.getConstructor("ICurveSetDriver"), ICurveSetDriver);
   assert.equal(blue.classes.GetClassRegistration("ICurveSetDriver").type, ICurveSetDriver);
-  assert.equal(CjsSchema.getMethod(ICurveSetDriver, "GetCurveSetTime").impl.status, "abstract");
+  assert.equal(MarkerTag("ICurveSetDriver", "GetCurveSetTime"), "abstract");
   assert.deepEqual(CjsSchema.getSchema(ICurveSetDriver).members, []);
   assert.deepEqual(CjsSchema.getSchema(ICurveSetDriver).properties, []);
   assert.deepEqual(Object.getOwnPropertyNames(ICurveSetDriver.prototype), [ "constructor", "GetCurveSetTime" ]);

@@ -18,6 +18,7 @@ import { Tr2StateMachine } from "../../npm/dist/trinity/controllers/state/Tr2Sta
 import { Tr2StateMachineState } from "../../npm/dist/trinity/controllers/state/Tr2StateMachineState.js";
 import { Tr2StateMachineTransition } from "../../npm/dist/trinity/controllers/state/Tr2StateMachineTransition.js";
 import { EveSpaceObject2 } from "../../npm/dist/trinity/eve/spaceObject/EveSpaceObject2.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const Type = Tr2SyncToAnimation;
 
@@ -96,7 +97,7 @@ test("Sync is model-free with nominal finalizer composition, native empty defaul
   assert.notEqual(members[0].edit.notify, true);
   assert.equal(Object.hasOwn(Type.prototype, "CanTransition"), true);
   assert.notEqual(Type.prototype.CanTransition, ITr2StateMachineStateFinalizer.prototype.CanTransition);
-  assert.equal(CjsSchema.getMethod(Type, "CanTransition").impl.status, "adapted");
+  assert.equal(MarkerTag(CjsSchema.getClassName(Type), "CanTransition"), "adapted");
 });
 
 test("Sync retains exact exposure and composition in a fresh process", () =>

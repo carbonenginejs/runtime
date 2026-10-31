@@ -13,6 +13,7 @@ import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/e
 import { Tr2StateMachine } from "../../npm/dist/trinity/controllers/state/Tr2StateMachine.js";
 import { Tr2StateMachineState } from "../../npm/dist/trinity/controllers/state/Tr2StateMachineState.js";
 import { Tr2StateMachineTransition } from "../../npm/dist/trinity/controllers/state/Tr2StateMachineTransition.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const Type = Tr2StateMachineTransition;
 
@@ -96,7 +97,7 @@ test("model-free Transition retains its exact query contract and native stored-m
   assert.equal(CjsSchema.isFieldExported(property), true);
   assert.equal(CjsSchema.isFieldExported(property, { persistOnly: true }), false);
   assert.equal(CjsSchema.isFieldExported(property, { roundTrip: true }), false);
-  assert.equal(property.impl.status, "adapted");
+  assert.equal(MarkerTag(CjsSchema.getClassName(Type), "isConditionValid"), "adapted");
 });
 
 test("isConditionValid is a live getter delegating to the retained lazy JS validity method", () =>
@@ -293,8 +294,8 @@ test("metadata distinguishes custom JS helpers from renamed native UpdateDestina
     assert.equal(method?.carbon?.method, undefined, name);
   }
   const update = CjsSchema.getMethod(Type, "_UpdateDestination");
-  assert.equal(update.impl.status, "adapted");
-  assert.equal(CjsSchema.getMethod(Type, "GetState").impl.status, "adapted");
+  assert.equal(MarkerTag(CjsSchema.getClassName(Type), "_UpdateDestination"), "adapted");
+  assert.equal(MarkerTag(CjsSchema.getClassName(Type), "GetState"), "adapted");
   assert.equal(CjsSchema.getMethod(Type, "GetSource").carbon.method, true);
   const transition = new Type(), source = State("source");
   transition.Link(source);

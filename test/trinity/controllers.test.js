@@ -7,6 +7,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue, DictReader, INotify } from "../../npm/dist/global/blue/index.js";
 import { ITr2SoundEmitterOwner } from "../../npm/dist/trinity/eve/ITr2SoundEmitterOwner.js";
 import { EveSpaceObject2 } from "../../npm/dist/trinity/eve/spaceObject/EveSpaceObject2.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -65,7 +66,7 @@ test("controller methods expose source-backed Carbon metadata", () =>
   // Carbon-private ports carry Carbon's name after `_` and no Blue exposure.
   for (const [ctor, methodName, status] of [[Tr2StateMachine, "_FollowTransitions", "adapted"], [Tr2StateMachineState, "_GetNextState", "adapted"], [Tr2StateMachineTransition, "_UpdateDestination", "adapted"]])
   {
-    assertEquals(CjsSchema.getMethod(ctor, methodName)?.impl?.status, status, `${ctor.name}.${methodName} should be marked ${status}`);
+    assertEquals(MarkerTag(CjsSchema.getClassName(ctor), methodName), status, `${ctor.name}.${methodName} should be marked ${status}`);
   }
   for (const name of ["GetTime", "GetVariableValue", "SetVariableValue", "GetExpressionContext"])
   {
@@ -122,7 +123,7 @@ function assertCarbonMethod(ctor, methodName, status)
   const schema = CjsSchema.getSchema(ctor);
   assertEquals(Boolean(schema.blue || schema.carbon), true, `${ctor.name} must declare its Carbon origin`);
   assertEquals(method?.carbon?.cjs, undefined, `${ctor.name}.${methodName} must remain a native method`);
-  assertEquals(method?.impl?.status, status, `${ctor.name}.${methodName} should be marked ${status}`);
+  assertEquals(MarkerTag(CjsSchema.getClassName(ctor), methodName), status, `${ctor.name}.${methodName} should be marked ${status}`);
 }
 test("Tr2ControllerFloatVariable writes destinations and dirty masks", () =>
 {

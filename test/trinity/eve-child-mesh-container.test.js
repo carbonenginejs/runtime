@@ -28,13 +28,14 @@ import {
 } from "../../npm/dist/trinity/index.js";
 import { EveChildLineSet } from "../../npm/dist/trinity/eve/child/EveChildLineSet.js";
 import { Tr2Mesh } from "../../npm/dist/trinity/core/mesh/Tr2Mesh.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 test("generated Eve children inherit maintained local-transform rebuilding", () =>
 {
   new EveChildTransform();
   assert.equal(
-    CjsSchema.getMethod(EveChildTransform, "RebuildLocalTransform")?.impl?.status,
+    MarkerTag("EveChildTransform", "RebuildLocalTransform"),
     "implemented"
   );
   const affected = [
@@ -58,7 +59,7 @@ test("generated Eve children inherit maintained local-transform rebuilding", () 
       Child.name
     );
     assert.equal(
-      CjsSchema.getMethod(Child, "RebuildLocalTransform")?.impl?.status,
+      MarkerTag(CjsSchema.getClassName(Child), "RebuildLocalTransform"),
       "implemented",
       Child.name
     );

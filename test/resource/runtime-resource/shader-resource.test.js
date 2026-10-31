@@ -9,6 +9,7 @@ import { buildSyntheticDescription, str } from "./format/carbonEffectSynthetic.j
 import { Tr2EffectConstant, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectParameterAnnotation, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2Pass, Tr2SamplerSetup } from "../../../src/resource/shader/index.js";
 import { GetGlobalEffectOptions, ModifyGlobalEffectOptions, Tr2EffectRes } from "../../../src/trinity/shader/Tr2EffectRes.js";
 import { Tr2Shader } from "../../../src/trinity/shader/Tr2Shader.js";
+import { MarkerTag } from "../../support/markerTags.js";
 
 /**
  * These tests import **source**, not `npm/dist`.
@@ -275,11 +276,11 @@ test("Tr2Shader retains its native Blue exposure", () =>
   );
   // Origin comes from the class registered above; the method keeps its state.
   assert.equal(
-    CjsSchema.getMethod(Tr2Shader, "GetConstant")?.impl?.status,
+    MarkerTag("Tr2Shader", "GetConstant"),
     "implemented"
   );
   assert.equal(
-    CjsSchema.getMethod(Tr2Shader, "GetTechniqueIndex")?.impl?.status,
+    MarkerTag("Tr2Shader", "GetTechniqueIndex"),
     "adapted"
   );
 });

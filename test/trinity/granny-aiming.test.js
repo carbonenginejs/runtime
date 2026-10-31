@@ -4,6 +4,7 @@ import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2Gra
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 function close(actual, expected)
 {
@@ -53,7 +54,7 @@ test("UpdateAimingBone is Carbon-private (Tr2GrannyAnimation.h:175,191)", () =>
   assert.equal(typeof value._UpdateAimingBone, "function");
   assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "UpdateAimingBone")?.carbon?.method, undefined);
   assert.equal(CjsSchema.getSchema(Tr2GrannyAnimation).blue, true);
-  assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "_UpdateAimingBone")?.impl?.status, "adapted");
+  assert.equal(MarkerTag("Tr2GrannyAnimation", "_UpdateAimingBone"), "adapted");
   assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "_UpdateAimingBone")?.carbon, undefined);
 });
 

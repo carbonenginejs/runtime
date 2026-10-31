@@ -30,6 +30,7 @@ import {
   TriValueBinding
 } from "../../npm/dist/trinity/index.js";
 import { UpdateContext } from "../support/eveUpdateContext.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 function closeArray(actual, expected, epsilon = 1e-6)
@@ -450,8 +451,8 @@ test("dynamic graph classes live only in maintained human-readable trees", () =>
   {
     assert.equal(existsSync(new URL(path, import.meta.url)), false, path);
   }
-  assert.equal(CjsSchema.getMethod(Tr2DynamicBinding, "Link")?.impl?.status, "adapted");
-  assert.equal(CjsSchema.getMethod(EveMultiEffect, "UpdateAsyncronous")?.impl?.status, "adapted");
+  assert.equal(MarkerTag("Tr2DynamicBinding", "Link"), "adapted");
+  assert.equal(MarkerTag("EveMultiEffect", "UpdateAsyncronous"), "adapted");
   const sourceProperty = CjsSchema.getSchema(TriValueBinding).properties.find(field => field.name === "sourceObject");
   const sourceMember = CjsSchema.getSchema(TriValueBinding).members.find(field => field.name === "sourceObject");
   assert.notEqual(sourceProperty.edit.persist, true);

@@ -70,6 +70,7 @@ import { Tr2Light } from "../../npm/dist/trinity/eve/lights/Tr2Light.js";
 import { EveBezierCurve, EveCircle, EveLineChildContainer, IEveLineSetPath } from "../../npm/dist/trinity/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 // A minimal accumulator duck carrying a fresh per-object store.
@@ -85,7 +86,7 @@ test("EveTurretFiringFX reports Carbon's per-muzzle effect count", () =>
   firingFX.stretch.push({}, {}, {});
 
   assert.equal(firingFX.GetPerMuzzleEffectCount(), 3);
-  assert.equal(CjsSchema.getMethod(EveTurretFiringFX, "GetPerMuzzleEffectCount")?.impl?.status, "implemented");
+  assert.equal(MarkerTag("EveTurretFiringFX", "GetPerMuzzleEffectCount"), "implemented");
 });
 
 test("EveUiObject operates on Trinity mesh picking and visibility areas", () =>
@@ -138,7 +139,7 @@ test("EveChildEffectPropagator.Stop resets playback and clears effect instances"
   assert.equal(clearCalls, 1);
   assert.equal(propagator.effect.instances.length, 0);
   // Carbon calls m_effect->ClearInstanceList() directly (cpp:126-129).
-  assert.equal(CjsSchema.getMethod(EveChildEffectPropagator, "Stop")?.impl?.status, "implemented");
+  assert.equal(MarkerTag("EveChildEffectPropagator", "Stop"), "implemented");
 });
 
 test("Tr2MaterialParameterStore resolves local overrides before parent values", () =>
@@ -336,8 +337,8 @@ test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", (
   second.SetDirty();
   assert.equal(inner.isDirty, false, "unloaded children are detached before the list is cleared");
 
-  assert.equal(CjsSchema.getMethod(Tr2Sprite2dContainerBase, "SetChildDirty")?.impl?.status, "implemented");
-  assert.equal(CjsSchema.getMethod(Tr2Sprite2dContainerBase, "OnListModified")?.impl?.status, "implemented");
+  assert.equal(MarkerTag("Tr2Sprite2dContainerBase", "SetChildDirty"), "implemented");
+  assert.equal(MarkerTag("Tr2Sprite2dContainerBase", "OnListModified"), "implemented");
   assert.equal(CjsSchema.getField(Tr2Sprite2dContainerBase, "children")?.type.kind, "list");
 });
 
@@ -622,7 +623,7 @@ test("EveCamera restores Carbon constructor defaults and portable controls", () 
 
   for (const name of ["Dolly", "OrbitParent", "RotateOnOrbit", "ResetStartTime", "SetOrbit", "SetRotationOnOrbit", "Zoom"])
   {
-    assert.equal(CjsSchema.getMethod(EveCamera, name)?.impl?.status, "implemented", name);
+    assert.equal(MarkerTag("EveCamera", name), "implemented", name);
   }
 });
 
@@ -882,7 +883,7 @@ test("EveSwarm maintains Carbon's portable CPU swarmer graph", () =>
   assert.equal(swarm.vehicles.length, 0);
   for (const name of ["AddSwarmer", "RemoveSwarmer", "PickFiringOrigin", "EnableSwarming", "SetCount"])
   {
-    assert.notEqual(CjsSchema.getMethod(EveSwarm, name)?.impl?.status, "not-implemented", name);
+    assert.notEqual(MarkerTag("EveSwarm", name), "not-implemented", name);
   }
 });
 
@@ -1167,7 +1168,7 @@ test("particle emitters and near-field spheres enforce Carbon's shared element c
   constraint.generators.push(collisionGenerator);
   assert.equal(constraint.Bind(constraintSystem), false);
 
-  assert.equal(CjsSchema.getMethod(EveChildParticleSphere, "Refresh")?.impl?.status, "adapted");
+  assert.equal(MarkerTag("EveChildParticleSphere", "Refresh"), "adapted");
 });
 
 test("capsule particle generators interpolate authored emitter transforms", () =>

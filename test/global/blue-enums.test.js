@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { blue, CjsBlueEnumRegistry, EnumRegistrationType } from "#blue";
 import { CjsSchema, type } from "#schema";
+import { MarkerTag } from "../support/markerTags.js";
 
 test("Blue enum names preserve Carbon chooser order, aliases and partial masks", () =>
 {
@@ -93,7 +94,7 @@ test("Blue and schema share registration and resolve qualified fields after regi
     assert.equal(Object.hasOwn(CjsSchema.getSchema(CjsBlueEnumRegistry), "modelledOn"), false);
     for (const name of ["RegisterEnum", "HasEnum", "GetEnum", "GetEnumInfo", "GetEnumName", "GetNameFromValue", "GetNameFromBitmask"])
     {
-        assert.ok(CjsSchema.getMethod(CjsBlueEnumRegistry, name).impl);
+        assert.ok(MarkerTag("CjsBlueEnumRegistry", name));
     }
     class Host { mode = 1; }
     CjsSchema.define(Host, { className: "RegistryEnumHost", fields: {

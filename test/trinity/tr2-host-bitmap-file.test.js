@@ -11,6 +11,7 @@ import { installBlueServices } from "../../npm/dist/global/blue/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { ALResult } from "../../npm/dist/trinityal/ALResult.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 /** A 32-bit BMP: pixel (x, y) is b = 10 + x, g = 20 + y, r = 30, a = 200 (top-left origin). */
 function bmp(width, height)
@@ -129,7 +130,7 @@ test("the script CreateFromFile answers a description or None, and rejects a non
   const row = CjsSchema.getMethod(Tr2HostBitmap, "_PyCreateFromFile");
   assert.equal(row.exposure.macro, "MAP_METHOD_AS_METHOD");
   assert.equal(row.exposure.name, "CreateFromFile");
-  assert.equal(CjsSchema.getMethod(Tr2HostBitmap, "CreateFromFile").impl.status, "adapted");
+  assert.equal(MarkerTag("Tr2HostBitmap", "CreateFromFile"), "adapted");
 });
 
 test("SetPixel and GetPixel__Data copy four bytes, with Carbon's off-by-one bounds (cpp:652-685)", () =>
@@ -238,7 +239,7 @@ test("CountPixelsOfValue and IsMonochrome read channels of 0xAARRGGBB (cpp:574-6
   assert.equal(none.CountPixelsOfValue("r", 0), 0);
   assert.equal(none.IsMonochrome(), false);
 
-  assert.equal(CjsSchema.getMethod(Tr2HostBitmap, "CountPixelsOfValue").impl.status, "implemented");
+  assert.equal(MarkerTag("Tr2HostBitmap", "CountPixelsOfValue"), "implemented");
 });
 
 test("ChangeFormatFromScript answers an ALResult and carries the ChangeFormat row (cpp:31-34)", () =>

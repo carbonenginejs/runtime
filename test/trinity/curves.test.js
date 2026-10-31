@@ -16,6 +16,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { color } from "../../npm/dist/global/math/color.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -204,7 +205,7 @@ test("curve methods expose source-backed Carbon metadata", () =>
     assertCarbonMethod(ctor, methodName, status);
   }
   // Carbon-private, so not Blue methods.
-  for (const method of ["_InvertLinearColor", "_InvertLinearValue"]) assertEquals(CjsSchema.getMethod(Tr2CurveColorMixer, method)?.impl?.status, "implemented");
+  for (const method of ["_InvertLinearColor", "_InvertLinearValue"]) assertEquals(MarkerTag("Tr2CurveColorMixer", method), "implemented");
   assertCarbonMethod(Tr2CurveEulerRotationExpression, "GetExpression", "implemented");
   assertCarbonMethod(Tr2CurveEulerRotationExpression, "SetExpression", "adapted");
   for (const method of ["Compile", "GetContext"]) assertEquals(CjsSchema.getMethod(Tr2CurveEulerRotationExpression, method)?.carbon, undefined);
@@ -233,9 +234,9 @@ test("promoted curve families expose source-backed Carbon metadata", () =>
   {
     assertCarbonMethod(ctor, methodName, status);
   }
-  assertEquals(CjsSchema.getMethod(Tr2ScalarExprKey, "UpdateValues")?.impl?.status, "adapted");
+  assertEquals(MarkerTag("Tr2ScalarExprKey", "UpdateValues"), "adapted");
   // An overload variant carries its donor in its name, so it has no carbon metadata of its own.
-  assertEquals(CjsSchema.getMethod(Tr2CurveEulerRotationExpression, "GetInputValue__Time")?.impl?.status, "adapted");
+  assertEquals(MarkerTag("Tr2CurveEulerRotationExpression", "GetInputValue__Time"), "adapted");
   const jsOnlyMethods = [[Tr2CurveScalarExpression, "Compile"], [Tr2CurveVector3Expression, "Compile"]];
   for (const methodName of ["Update", "GetKeyTangent", "SetKeyTangent", "GetLocalTime"])
   {
@@ -772,7 +773,7 @@ test("promoted follow and bone curves keep Carbon defaults", () =>
     ["SetKeyInterpolation", "implemented"]
   ])
   {
-    assertEquals(CjsSchema.getMethod(Tr2BoneMatrixCurve, method)?.impl?.status, status, method);
+    assertEquals(MarkerTag("Tr2BoneMatrixCurve", method), status, method);
   }
 });
 test("Tr2CurveScalarKey defaults match Carbon", () =>

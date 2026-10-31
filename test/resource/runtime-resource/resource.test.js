@@ -17,6 +17,7 @@ import { LoadData } from "../../support/loadData.js";
 import { RegisterDataLoader, TestDataRes } from "../../support/testDataRes.js";
 import {blue} from "../../../npm/dist/global/blue/index.js";
 import "../../support/frameLoop.js";
+import { MarkerTag } from "../../support/markerTags.js";
 
 /** A concrete family test double that owns its reader result. */
 class TestValueResource extends BlueAsyncRes
@@ -580,9 +581,9 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
   assert.equal(CjsSchema.getConstructor("TriTextureRes"), TriTextureRes);
   assert.equal(CjsSchema.getField(TriTextureRes, "variants"), null);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "PrepareResources").carbon.method, true);
-  assert.equal(CjsSchema.getMethod(TriTextureRes, "Save").impl.status, "notSupported");
-  assert.equal(CjsSchema.getMethod(TriTextureRes, "CreateEmptyTexture").impl.status, "notSupported");
-  assert.equal(CjsSchema.getMethod(TriTextureRes, "_DoLoad").impl.status, "adapted");
+  assert.equal(MarkerTag("TriTextureRes", "Save"), "notSupported");
+  assert.equal(MarkerTag("TriTextureRes", "CreateEmptyTexture"), "notSupported");
+  assert.equal(MarkerTag("TriTextureRes", "_DoLoad"), "adapted");
 
   assert.equal(geometry.GetMeshCount(), 1);
   assert.equal(geometry.GetAnimationCount(), 0);
@@ -655,9 +656,9 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
   assert.equal(geometry.GetCMFData() !== null, true);
   assert.equal("payload" in TriGeometryRes, false);
   assert.equal(CjsSchema.getField(TriGeometryRes, "meshes"), null);
-  assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetMeshCount").impl.status, "adapted");
-  assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetSkeletonCount").impl.status, "adapted");
-  assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetSkeletonData").impl.status, "adapted");
+  assert.equal(MarkerTag("TriGeometryRes", "GetMeshCount"), "adapted");
+  assert.equal(MarkerTag("TriGeometryRes", "GetSkeletonCount"), "adapted");
+  assert.equal(MarkerTag("TriGeometryRes", "GetSkeletonData"), "adapted");
   assert.throws(
     () => geometry.SetupMeshes({ animations: [] }),
     error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID" && error.field === "meshes"

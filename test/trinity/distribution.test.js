@@ -37,6 +37,7 @@ import { EveDistributionSpawnerInterval } from "../../npm/dist/trinity/eve/distr
 import { EveDistributionSpawnerTriggerPlane } from "../../npm/dist/trinity/eve/distribution/spawners/EveDistributionSpawnerTriggerPlane.js";
 import { EveDistributionSpawnerTriggerSnake } from "../../npm/dist/trinity/eve/distribution/spawners/EveDistributionSpawnerTriggerSnake.js";
 import { EveDistributionSpawnerTriggerSphere } from "../../npm/dist/trinity/eve/distribution/spawners/EveDistributionSpawnerTriggerSphere.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 test("locator distributions rebuild and consume Carbon placement pools", () =>
@@ -109,8 +110,8 @@ test("locator distributions rebuild and consume Carbon placement pools", () =>
   distribution.SetControllerVariable("Intensity", 0.5);
   assert.deepEqual(calls.at(-1), ["variable", "Intensity", 0.5]);
   assert.equal(distribution.GetInitialPlacementData(99), null);
-  assert.equal(CjsSchema.getMethod(EveBaseDistributionMethod, "AddEntity")?.impl?.status, "implemented");
-  assert.equal(CjsSchema.getMethod(EveBaseDistributionMethod, "RegeneratePlacementData")?.impl?.status, "adapted");
+  assert.equal(MarkerTag("EveBaseDistributionMethod", "AddEntity"), "implemented");
+  assert.equal(MarkerTag("EveBaseDistributionMethod", "RegeneratePlacementData"), "adapted");
 });
 
 test("distribution updates release timed-out locators and recompute centers", () =>
@@ -371,7 +372,7 @@ test("parent locator generators resolve and rebuild the Carbon locator-set contr
   distribution.UpdateSyncronous(context, params);
   assert.equal(distribution.GetFreePlacementCount(), 2);
   assert.equal(
-    CjsSchema.getMethod(EveDistributionPlacementGeneratorParentLocators, "GetInitialPlacements")?.impl?.status,
+    MarkerTag("EveDistributionPlacementGeneratorParentLocators", "GetInitialPlacements"),
     "adapted"
   );
 });
@@ -444,11 +445,11 @@ test("volume generators consume Carbon volume points and change callbacks", () =
   }
 
   assert.equal(
-    CjsSchema.getMethod(EveSphereVolume, "GeneratePointsInVolume")?.impl?.status,
+    MarkerTag("EveSphereVolume", "GeneratePointsInVolume"),
     "adapted"
   );
   assert.equal(
-    CjsSchema.getMethod(EveDistributionPlacementGeneratorVolume, "GetInitialPlacements")?.impl?.status,
+    MarkerTag("EveDistributionPlacementGeneratorVolume", "GetInitialPlacements"),
     "adapted"
   );
 });
@@ -505,11 +506,11 @@ test("sphere and plane trigger spawners follow Carbon sorted trigger progress", 
   }
 
   assert.equal(
-    CjsSchema.getMethod(EveDistributionSpawnerTriggerSphere, "UpdateSyncronous")?.impl?.status,
+    MarkerTag("EveDistributionSpawnerTriggerSphere", "UpdateSyncronous"),
     "adapted"
   );
   assert.equal(
-    CjsSchema.getMethod(EveDistributionSpawnerTriggerPlane, "UpdateSyncronous")?.impl?.status,
+    MarkerTag("EveDistributionSpawnerTriggerPlane", "UpdateSyncronous"),
     "adapted"
   );
 });
@@ -563,7 +564,7 @@ test("snake trigger spawners follow Carbon nearest-placement travel", () =>
   }
 
   assert.equal(
-    CjsSchema.getMethod(EveDistributionSpawnerTriggerSnake, "UpdateSyncronous")?.impl?.status,
+    MarkerTag("EveDistributionSpawnerTriggerSnake", "UpdateSyncronous"),
     "adapted"
   );
 });

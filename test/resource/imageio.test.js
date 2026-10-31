@@ -15,6 +15,7 @@ import { ImageIO, HostBitmap, LoadParameters, ImageIOResult, Metadata } from "..
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 // The composing application registers formats once with each table that maps an
 // extension: ImageIO for the codec, its resource manager for the resource class.
@@ -337,6 +338,6 @@ test("ImageIO refuses non-image formats and keeps Carbon's first-registered look
 test("ImageIO's adaptations are recorded in schema metadata", () =>
 {
   for (const name of [ "registerImageHandler", "readImage", "readImageAsync", "isSaveSupported", "saveImage" ])
-    assert.equal(CjsSchema.getMethod(ImageIO, name).impl.status, "adapted");
-  assert.equal(CjsSchema.getMethod(ImageIO, "getImageHandler").impl.status, "adapted");
+    assert.equal(MarkerTag("ImageIO", name), "adapted");
+  assert.equal(MarkerTag("ImageIO", "getImageHandler"), "adapted");
 });

@@ -7,6 +7,7 @@ import { blue, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/g
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2BindingVector3, Tr2PyValueBinding, Tr2ExternalParameter, Tr2DynamicBinding } from "../../npm/dist/trinity/index.js";
 import { TriCurveSet, ITr2ValueBinding } from "../../npm/dist/trinity/curves/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 test("binding records expose exact native nominal bases and query order", () =>
 {
@@ -125,7 +126,7 @@ test("external setters retain eager invalidation and portable normalization", ()
   assert.equal(external.GetName(), "");
   external.SetName(7);
   assert.equal(external.GetName(), "7");
-  assert.equal(CjsSchema.getMethod(Tr2ExternalParameter, "SetName").impl.status, "adapted");
+  assert.equal(MarkerTag("Tr2ExternalParameter", "SetName"), "adapted");
   external.SetDestinationObject(vector);
   external.SetDestinationAttribute("value");
   const snapshot = external.GetValue();

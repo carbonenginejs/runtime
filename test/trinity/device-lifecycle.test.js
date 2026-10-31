@@ -11,6 +11,7 @@ import {
   Tr2GpuParticleSystem, EveSpaceScene, EveUpdateContext, EveShip2, Tr2Effect
 } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 /**
@@ -358,6 +359,6 @@ test("TriDevice.minimumModelLOD is an accessor over Get/SetMinimumModelLOD (TriD
 
   const property = CjsSchema.getSchema(TriDevice).properties.find(entry => entry.name === "minimumModelLOD");
   assert.equal(property.exposure.macro, "MAP_PROPERTY");
-  assert.equal(CjsSchema.getMethod(TriDevice, "GetMinimumModelLOD").impl.status, "implemented");
-  assert.equal(CjsSchema.getMethod(TriDevice, "SetMinimumModelLOD").impl.status, "adapted");
+  assert.equal(MarkerTag("TriDevice", "GetMinimumModelLOD"), "implemented");
+  assert.equal(MarkerTag("TriDevice", "SetMinimumModelLOD"), "adapted");
 });

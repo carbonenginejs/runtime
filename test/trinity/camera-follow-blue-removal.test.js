@@ -12,6 +12,7 @@ import { Tr2CameraFollowCurveKey } from "../../npm/dist/trinity/curves/key/Tr2Ca
 import { Tr2FollowCurve } from "../../npm/dist/trinity/curves/curve/Tr2FollowCurve.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 /** Sets the renderer's camera: identity view, a 90-degree square projection with front clip 1. */
 function camera(_t)
@@ -29,7 +30,7 @@ test("camera key constructs without model state and implements the native five-m
   assert.equal("from" in Tr2CameraFollowCurveKey, false);
   for (const name of ["GetValue", "GetTime", "GetInterpolationType", "GetLeftTangent", "GetRightTangent"])
   {
-    assert.equal(CjsSchema.getMethod(ITr2FollowCurveKey, name).impl.status, "abstract");
+    assert.equal(MarkerTag("ITr2FollowCurveKey", name), "abstract");
     assert.equal(Object.hasOwn(Tr2CameraFollowCurveKey.prototype, name), true);
   }
   assert.deepEqual(GetResources(key, []), []);

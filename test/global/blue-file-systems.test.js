@@ -14,6 +14,7 @@ import {
   IBlueResFileSystem
 } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const { BYTES, TEXT, STREAM, VALUE } = BlueResFileSystemForm;
 const encode = text => new TextEncoder().encode(text);
@@ -97,7 +98,7 @@ test("BlueResFileSystemLocal exposes the W members under Carbon's names (BlueRes
     assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP", member);
     assert.equal(row.exposure.name, name, member);
     assert.equal(row.impl.status, "notSupported", member);
-    assert.equal(CjsSchema.getMethod(BlueResFileSystemLocal, name).impl.status, "notSupported", name);
+    assert.equal(MarkerTag("BlueResFileSystemLocal", name), "notSupported", name);
   }
 
   // The W member returns the non-W call, so a host that implements the non-W body serves both.

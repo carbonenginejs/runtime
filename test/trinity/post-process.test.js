@@ -22,6 +22,7 @@ import {
 } from "../../npm/dist/trinity/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -50,7 +51,7 @@ test("Tr2PostProcess owns Carbon's legacy stage graph", () =>
   assertEquals(postProcess.Initialize(), true);
   assertEquals(postProcess.stages.length, 1);
   assertEquals(CjsSchema.getConstructor("Tr2PostProcess"), Tr2PostProcess);
-  assertEquals(CjsSchema.getMethod(Tr2PostProcess, "Initialize")?.impl?.status, "implemented");
+  assertEquals(MarkerTag("Tr2PostProcess", "Initialize"), "implemented");
 });
 
 test("post-process attributes expand Carbon's complete 114-field Blue surface", () =>
@@ -286,9 +287,9 @@ test("maintained SSAO owns Carbon quality state and leaves filtering explicit", 
   ssao.SetQuality(Tr2SSAO.SSAOQuality.LOW, true);
   assertEquals(ssao.quality, Tr2SSAO.SSAOQuality.LOW);
   assertEquals(ssao.downsampled, true);
-  assertEquals(CjsSchema.getMethod(Tr2SSAO, "Enable")?.impl?.status, "implemented");
-  assertEquals(CjsSchema.getMethod(Tr2SSAO, "SetQuality")?.impl?.status, "implemented");
-  assertEquals(CjsSchema.getMethod(Tr2SSAO, "Filter")?.impl?.status, "adapted");
+  assertEquals(MarkerTag("Tr2SSAO", "Enable"), "implemented");
+  assertEquals(MarkerTag("Tr2SSAO", "SetQuality"), "implemented");
+  assertEquals(MarkerTag("Tr2SSAO", "Filter"), "adapted");
 
   // Disabled: Carbon's empty texture (Tr2SSAO.cpp:87-90).
   assertEquals(ssao.Filter(null, null, null, null, false).IsValid(), false);
@@ -355,10 +356,10 @@ test("maintained post-process renderer owns quality and a ported Execute", () =>
   assertEquals(renderer.GetPostProcessingQuality(), Tr2PostProcessRenderer.Quality.HIGH);
   renderer.SetPostProcessingQuality(Tr2PostProcessRenderer.Quality.LOW);
   assertEquals(renderer.GetPostProcessingQuality(), Tr2PostProcessRenderer.Quality.LOW);
-  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "GetPostProcessingQuality")?.impl?.status, "implemented");
-  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "SetPostProcessingQuality")?.impl?.status, "implemented");
-  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "Execute")?.impl?.status, "adapted");
+  assertEquals(MarkerTag("Tr2PostProcessRenderer", "GetPostProcessingQuality"), "implemented");
+  assertEquals(MarkerTag("Tr2PostProcessRenderer", "SetPostProcessingQuality"), "implemented");
+  assertEquals(MarkerTag("Tr2PostProcessRenderer", "Execute"), "adapted");
   // The passes still to port stay explicit; each runs only when the scene's
   // post process enables it (post-process-renderer.test.js runs the chain).
-  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "RenderUpscaling")?.impl?.status, "notImplemented");
+  assertEquals(MarkerTag("Tr2PostProcessRenderer", "RenderUpscaling"), "notImplemented");
 });

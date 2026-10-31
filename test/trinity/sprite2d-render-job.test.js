@@ -7,6 +7,7 @@ import {
   Tr2SpriteObjectBase,
   Tr2SpriteObjectPickState
 } from "../../npm/dist/trinity/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 test("Sprite2D bases start pickable and fail incomplete traversal contracts loudly", () =>
@@ -15,8 +16,8 @@ test("Sprite2D bases start pickable and fail incomplete traversal contracts loud
   assert.equal(sprite.pickState, Tr2SpriteObjectPickState.TR2_SPS_ON);
   assert.throws(() => sprite.GatherSprites({}), /must be implemented/);
   assert.throws(() => sprite.PickPoint(0, 0, {}), /must be implemented/);
-  assert.equal(CjsSchema.getMethod(Tr2SpriteObjectBase, "GatherSprites")?.impl?.status, "abstract");
-  assert.equal(CjsSchema.getMethod(Tr2SpriteObjectBase, "PickPoint")?.impl?.status, "abstract");
+  assert.equal(MarkerTag("Tr2SpriteObjectBase", "GatherSprites"), "abstract");
+  assert.equal(MarkerTag("Tr2SpriteObjectBase", "PickPoint"), "abstract");
 });
 
 test("Tr2Sprite2dRenderJob gathers its required render job directly", () =>
@@ -94,9 +95,9 @@ test("Tr2Sprite2dRenderJob is maintained and generator-protected", () =>
   ));
   const disposition = summary.skipped.find(entry => entry.className === "Tr2Sprite2dRenderJob");
 
-  assert.equal(CjsSchema.getMethod(Tr2Sprite2dRenderJob, "GatherSprites")?.impl?.status, "implemented");
-  assert.equal(CjsSchema.getMethod(Tr2Sprite2dRenderJob, "PickPoint")?.impl?.status, "implemented");
-  assert.equal(CjsSchema.getMethod(Tr2Sprite2dRenderJob, "GetVertexCount")?.impl?.status, "implemented");
+  assert.equal(MarkerTag("Tr2Sprite2dRenderJob", "GatherSprites"), "implemented");
+  assert.equal(MarkerTag("Tr2Sprite2dRenderJob", "PickPoint"), "implemented");
+  assert.equal(MarkerTag("Tr2Sprite2dRenderJob", "GetVertexCount"), "implemented");
   assert.equal(CjsSchema.getField(Tr2Sprite2dRenderJob, "renderJob")?.type?.kind, "rootRef");
   assert.equal(disposition?.reason, "hand-maintained source exists");
   assert.equal(existsSync(new URL(

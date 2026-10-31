@@ -39,6 +39,7 @@ import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { TriLineSet } from "../../npm/dist/trinity/core/line/TriLineSet.js";
 import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 const { TermType } = Tr2ExpressionTermInfo;
@@ -649,9 +650,9 @@ test("runtime instance data spawns Carbon particle declarations from CPU rows", 
   assert.deepEqual(Array.from(particleSystem.GetParticleElement(1, "semantic:3")), [16]);
   assert.deepEqual(Array.from(particleSystem.GetParticleElement(1, "custom:heat")), [17]);
 
-  assertEquals(CjsSchema.getMethod(Tr2RuntimeInstanceData, "Spawn")?.impl?.status, "adapted");
-  assertEquals(CjsSchema.getMethod(Tr2RuntimeInstanceData, "SaveToCMF")?.impl?.status, "notImplemented");
-  assertEquals(CjsSchema.getMethod(Tr2RuntimeInstanceData, "SaveToGranny")?.impl?.status, "notImplemented");
+  assertEquals(MarkerTag("Tr2RuntimeInstanceData", "Spawn"), "adapted");
+  assertEquals(MarkerTag("Tr2RuntimeInstanceData", "SaveToCMF"), "notImplemented");
+  assertEquals(MarkerTag("Tr2RuntimeInstanceData", "SaveToGranny"), "notImplemented");
   assert.throws(() => data.SaveToCMF("res:/instance.cmf"), /not implemented/);
   assert.throws(() => data.SaveToGranny("res:/instance.gr2"), /not implemented/);
 });
@@ -809,9 +810,9 @@ test("TriView builds Carbon's right-handed look-at transform", () =>
   assertMatrixValues(detached, replacement);
   detached[12] = 100;
   assertEquals(view.transform[12], 7);
-  assertEquals(CjsSchema.getMethod(TriView, "SetLookAtPosition")?.impl?.status, "implemented");
-  assertEquals(CjsSchema.getMethod(TriView, "SetTransform")?.impl?.status, "implemented");
-  assertEquals(CjsSchema.getMethod(TriView, "GetTransform")?.impl?.status, "adapted");
+  assertEquals(MarkerTag("TriView", "SetLookAtPosition"), "implemented");
+  assertEquals(MarkerTag("TriView", "SetTransform"), "implemented");
+  assertEquals(MarkerTag("TriView", "GetTransform"), "adapted");
   assertEquals(existsSync(new URL("../../src/trinity/generated/trinityCore/TriView.js", import.meta.url)), false);
 });
 
@@ -920,7 +921,7 @@ test("Tr2ExpressionTermInfo factories preserve Carbon term types and isolate arg
   assertEquals(stringFn.type, TermType.STRING_FUNCTION);
   assertEquals(stringFn.GetArguments().join(","), "name");
   assertEquals(CjsSchema.getField(Tr2ExpressionTermInfo, "type")?.type.kind, "int32");
-  assertEquals(CjsSchema.getMethod(Tr2ExpressionTermInfo, "GetArguments")?.impl?.status, "implemented");
+  assertEquals(MarkerTag("Tr2ExpressionTermInfo", "GetArguments"), "implemented");
 });
 
 test("Tr2VariableStore forms a global-rooted graph with Carbon lookup rules", () =>

@@ -15,6 +15,7 @@ import {
   Tr2InteriorPlaceable,
   Tr2SkinnedObject
 } from "../../npm/dist/character/index.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 
 test("ITr2Renderable publishes Carbon's default and throwing required surface", () =>
@@ -29,7 +30,7 @@ test("ITr2Renderable publishes Carbon's default and throwing required surface", 
 
   for (const method of [ "GetBatches", "HasTransparentBatches", "GetSortValue", "GetPerObjectData" ])
   {
-    assert.equal(CjsSchema.getMethod(ITr2Renderable, method)?.impl?.status, "abstract");
+    assert.equal(MarkerTag("ITr2Renderable", method), "abstract");
   }
 });
 

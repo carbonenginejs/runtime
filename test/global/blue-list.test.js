@@ -5,6 +5,7 @@ import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier,
 import { CjsSchema, type, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 class Item
 {
@@ -73,7 +74,7 @@ test("IList exposes abstract operations while BlueList keeps its generic templat
   assert.equal(CjsSchema.getConstructor("BlueList"), null);
   for (const name of [ "GetSize", "GetInfo", "Insert", "Remove", "Append", "GetAt", "FindKey", "Swap", "Sort", "SetNotify", "Move", "GetAllItems" ])
   {
-    assert.equal(CjsSchema.getMethod(IList, name).impl.status, "abstract");
+    assert.equal(MarkerTag("IList", name), "abstract");
     assert.throws(() => new IList()[name](), /IList\./u);
   }
   const list = MakeList();

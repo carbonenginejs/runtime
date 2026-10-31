@@ -8,6 +8,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { UpdateContext, FixedFrustum } from "../support/eveUpdateContext.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const TICKS_PER_SECOND = 10_000_000;
 
@@ -97,6 +98,6 @@ test("Carbon quirk, reproduced: a hidden UI object is still forced visible", () 
 
 test("both overrides carry their status markers", () =>
 {
-  assert.equal(CjsSchema.getMethod(EveUiObject, "UpdateWorldTransform")?.impl?.status, "adapted");
-  assert.equal(CjsSchema.getMethod(EveUiObject, "UpdateVisibility")?.impl?.status, "adapted");
+  assert.equal(MarkerTag("EveUiObject", "UpdateWorldTransform"), "adapted");
+  assert.equal(MarkerTag("EveUiObject", "UpdateVisibility"), "adapted");
 });

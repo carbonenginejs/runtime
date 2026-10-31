@@ -16,6 +16,7 @@ import {
   Tr2TexturePipelineStepPack,
   TriTextureRes
 } from "../../../npm/dist/resource/index.js";
+import { MarkerTag } from "../../support/markerTags.js";
 
 test("Tr2TextureLodManager mirrors Carbon registration and removal order", async () =>
 {
@@ -32,7 +33,7 @@ test("Tr2TextureLodManager mirrors Carbon registration and removal order", async
   assert.equal(manager.UnregisterTexture(first), manager);
   assert.deepEqual(manager.GetManagedTextures(), [ second ]);
   assert.equal(
-    CjsSchema.getMethod(Tr2TextureLodManager, "GetManagedTextures").impl.status,
+    MarkerTag("Tr2TextureLodManager", "GetManagedTextures"),
     "implemented"
   );
 });
@@ -49,7 +50,7 @@ test("Tr2TexturePipeline collects sorted unique Carbon step dependencies", async
 
   assert.deepEqual(pipeline.GetResourceDependencies(), [ "res:/a.png", "res:/z.png" ]);
   assert.equal(
-    CjsSchema.getMethod(Tr2TexturePipeline, "GetResourceDependencies").impl.status,
+    MarkerTag("Tr2TexturePipeline", "GetResourceDependencies"),
     "adapted"
   );
 });
@@ -79,7 +80,7 @@ test("Tr2TexturePipeline runs Carbon's steps against one HostBitmap", async () =
   assert.deepEqual([ ...result.GetMipRawData(0) ], [ 30, 40, 50, 255 ]);
   assert.equal(source.GetWidth(), 2, "the input bitmap is not consumed");
   assert.equal(
-    CjsSchema.getMethod(Tr2TexturePipeline, "Execute").impl.status,
+    MarkerTag("Tr2TexturePipeline", "Execute"),
     "adapted"
   );
 });

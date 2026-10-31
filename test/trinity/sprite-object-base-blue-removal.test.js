@@ -13,6 +13,7 @@ import { Tr2Sprite2dTransform } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2
 import { Tr2Sprite2dRenderJob } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dRenderJob.js";
 import { Tr2SpriteObject } from "../../npm/dist/trinity/sprite2d/Tr2SpriteObject.js";
 import { Tr2Sprite2dContainer } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dContainer.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const descendants=[Tr2SpriteObjectBase,Tr2Sprite2dContainerBase,Tr2Sprite2dTransform,Tr2Sprite2dRenderJob,Tr2SpriteObject,Tr2Sprite2dContainer];
 
@@ -41,7 +42,7 @@ test("native six-verb sprite interface stays abstract and model-free",()=>{
  const nativeVerbs=["GatherSprites","PickPoint","SetParent","SetDirty","SetChildDirty","IsAuxMouseover"];
  assert.deepEqual(Object.getOwnPropertyNames(ITr2SpriteObject.prototype).filter(n=>n!=="constructor"),nativeVerbs);
  for (const name of ["ClassType","QueryInterface","GetRootObject"]) assert.equal(ITr2SpriteObject.prototype[name],ExposureRoot.prototype[name]);
- const base=new ITr2SpriteObject();assert.equal(base.GetRootObject(),base);assert.equal(base.ClassType(),CjsSchema.getSchema(ITr2SpriteObject));for(const name of nativeVerbs){assert.throws(()=>base[name](),/must be implemented/);assert.equal(CjsSchema.getMethod(ITr2SpriteObject,name).impl.status,"abstract");}
+ const base=new ITr2SpriteObject();assert.equal(base.GetRootObject(),base);assert.equal(base.ClassType(),CjsSchema.getSchema(ITr2SpriteObject));for(const name of nativeVerbs){assert.throws(()=>base[name](),/must be implemented/);assert.equal(MarkerTag("ITr2SpriteObject", name),"abstract");}
  assert.equal(CjsSchema.getConstructor("ITr2SpriteObject"),ITr2SpriteObject);
  assert.equal(blue.classes.CreateInstanceFromName("ITr2SpriteObject"),null);assert.equal(blue.classes.CreateInstanceFromName("Tr2SpriteObjectBase"),null);
 });

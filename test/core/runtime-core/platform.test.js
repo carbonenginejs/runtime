@@ -9,6 +9,7 @@ import {
     Tr2VideoDriver
 } from "../../../npm/dist/core/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { MarkerTag } from "../../support/markerTags.js";
 
 function fakeAdapter()
 {
@@ -138,6 +139,6 @@ test("Tr2PlatformInfo's properties are accessors over Carbon's getters (Tr2Platf
     }
     for (const method of [ "GetPlatformName", "GetPlatformID", "IsLowPerformance" ])
     {
-        assert.equal(CjsSchema.getMethod(Tr2PlatformInfo, method).impl.status, "adapted", method);
+        assert.equal(MarkerTag("Tr2PlatformInfo", method), "adapted", method);
     }
 });

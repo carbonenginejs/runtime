@@ -7,6 +7,7 @@ import { ICustomPersist, blue } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
 import { ICustomPersist as DirectPersist } from "../../src/global/blue/ICustomPersist.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
+import { MarkerTag } from "../support/markerTags.js";
 
 const methods = [ "GetWriteBufferAndSize", "ReleaseWriteBuffer", "AllocateReadBuffer", "SetBufferAndSize" ];
 
@@ -23,7 +24,7 @@ test("ICustomPersist registers one identity with exactly its four native abstrac
   assert.deepEqual(Array.from(mappedInterfaces(ICustomPersist)), [ExposureRoot]);
   for (const method of methods)
   {
-    assert.equal(CjsSchema.getMethod(ICustomPersist, method).impl.status, "abstract");
+    assert.equal(MarkerTag("ICustomPersist", method), "abstract");
   }
 });
 

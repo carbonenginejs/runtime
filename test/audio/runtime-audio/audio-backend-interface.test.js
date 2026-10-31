@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsWebAudioSoundEngine, CjsWwiseSoundEngineStub, ICjsWwiseSoundEngine } from "../../../npm/dist/audio/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { MarkerTag } from "../../support/markerTags.js";
 
 const METHODS = Object.getOwnPropertyNames(ICjsWwiseSoundEngine.prototype).filter(name => name !== "constructor");
 
@@ -22,7 +23,7 @@ test("callback cancellation and authored Stops are required backend contracts", 
   for (const method of [ "CancelEventCallbackGameObject", "HandlesEventStops" ])
   {
     assert.ok(METHODS.includes(method));
-    assert.equal(CjsSchema.getMethod(ICjsWwiseSoundEngine, method).impl.status, "abstract");
+    assert.equal(MarkerTag("ICjsWwiseSoundEngine", method), "abstract");
     assert.throws(() => backend[method](71), new RegExp(`^Error: ICjsWwiseSoundEngine\\.${method}\\([^)]*\\) must be implemented\\.$`, "u"));
   }
 });
