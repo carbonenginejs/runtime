@@ -2964,7 +2964,10 @@ export class CjsBlueResMan
   _LogResourceEvent(resource, event, format, ...args)
   {
     if (!CcpLog.IsLogging(CcpLog.LogType.LOGTYPE_INFO)) return;
+    // A resource made directly, with no path, has no MotherLode identity and
+    // so no saga; it is not logged, and logging never throws.
     const path = resource.GetPath();
+    if (!path) return;
     const data = { subtitle: "resMan", saga: getMotherLodeKey(path, resource.GetExt()), label: path, event };
     CcpLog.LogFuncChannel(s_ch, CcpLog.LogType.LOGTYPE_INFO, data, format, ...args);
   }
