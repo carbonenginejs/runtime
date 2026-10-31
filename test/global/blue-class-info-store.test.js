@@ -46,7 +46,7 @@ test("every schema row is found by its exposed name with its flags and key, and 
     {
       // The row Carbon's RTTI takes for a name is its first that is not hidden.
       const value = rtti.FindAttribute(rowName);
-      const row = list.find(entry => !(ClassInfo._VarEntryOf(type, entry).editFlags & HIDDEN));
+      const row = list.find(entry => !(ClassInfo._varEntryOf(type, entry).editFlags & HIDDEN));
       if (!row)
       {
         if (value) problems.push(`${name}.${rowName}: hidden, but found`);
@@ -57,7 +57,7 @@ test("every schema row is found by its exposed name with its flags and key, and 
         problems.push(`${name}.${rowName}: missing`);
         continue;
       }
-      const flags = ClassInfo._VarEntryOf(type, row).editFlags;
+      const flags = ClassInfo._varEntryOf(type, row).editFlags;
       if (value.var.editFlags !== flags) problems.push(`${name}.${rowName}: flags ${value.var.editFlags}, schema ${flags}`);
       if (value.var.key !== (row.key ?? row.name)) problems.push(`${name}.${rowName}: key ${value.var.key}, schema ${row.key}`);
     }

@@ -41,8 +41,8 @@ export class CjsBlue
   /** Host-pumped clock; construction does not register any tick recipient. */
   os = new BlueOS();
 
-  /** Carbon's `BeClasses` (BlueClasses.cpp:28): blueexposure's registry, made by `BlueClasses.Initialize()`. */
-  classes = BlueClasses.Initialize() ? BeClasses : null;
+  /** Carbon's `BeClasses` (BlueClasses.cpp:28): blueexposure's registry, made by `BlueClasses.initialize()`. */
+  classes = BlueClasses.initialize() ? BeClasses : null;
 
   /** Installed SOF service; absent until the composition root supplies it. */
   sof = null;

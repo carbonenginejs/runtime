@@ -62,32 +62,6 @@ const EDIT_ENUM = 0x200;
 export class BlueClasses extends IBlueClasses
 {
 
-  /** Carbon's `Be::ClassRegistration::Flags` (BlueTypes.h:415-418). */
-  static Flags = {
-    DISABLE_PYTHON_CONSTRUCTION: 1
-  };
-
-  /** Carbon's `BLUEQIOPT` (BlueTypes.h:468-472). */
-  static BLUEQIOPT = {
-    BEQI_NONE: 0x0,
-    BEQI_SILENT: 0x1
-  };
-
-  /**
-   * `BlueClasses::Initialize()` (BlueClasses.cpp:257-264): makes the one
-   * registry `BeClasses`. Carbon's instance is a function static, so a
-   * second call keeps it; so does this.
-   *
-   * @adapted Carbon also records the main thread's id here; JavaScript runs
-   *   Blue on one thread, so there is none to record.
-   * @returns {boolean} True.
-   */
-  static Initialize()
-  {
-    if (!BeClasses) setBeClasses(new BlueClasses());
-    return true;
-  }
-
   /**
    * Register every entry of a table (BlueClasses.cpp:296-302).
    *
@@ -216,16 +190,6 @@ export class BlueClasses extends IBlueClasses
   {
     // Carbon (BlueClasses.cpp:448-464) looks the name up itself; a class id is the name here, so CreateInstance answers.
     return this.CreateInstance(className);
-  }
-
-  /**
-   * Register one entry, refusing a name already taken (BlueClasses.cpp:266-280).
-   *
-   * @adapted
-   */
-  _RegisterSingleClass(registration)
-  {
-    registerClass(registration);
   }
 
   /**
@@ -562,6 +526,41 @@ export class BlueClasses extends IBlueClasses
   }
 
   /**
+   * `RegisterSingleClass( cr )` (protected, BlueClasses.cpp:266-280):
+   * registers one entry, refusing a name already taken; Carbon logs
+   * "Class %s.%s is already registered!" and keeps the first.
+   *
+   * @adapted Carbon inserts into its own `m_classes` and `m_classesByName`
+   *   maps keyed by `Be::Clsid`. Here a class id is its name, and the table is
+   *   the registry leaf's (`classes/registry.js`), so declarations can register
+   *   before the registry instance exists; `registerClass` does the check, the
+   *   log and the insert.
+   * @param {{name: string, type: Function, createFn?: Function, flags?: number}} registration
+   *   The entry: its name, its class, an optional factory and its
+   *   `Be::ClassRegistration::Flags`.
+   * @returns {void}
+   */
+  _RegisterSingleClass(registration)
+  {
+    registerClass(registration);
+  }
+
+  /**
+   * `BlueClasses::Initialize()` (BlueClasses.cpp:257-264): makes the one
+   * registry `BeClasses`. Carbon's instance is a function static, so a
+   * second call keeps it; so does this.
+   *
+   * @adapted Carbon also records the main thread's id here; JavaScript runs
+   *   Blue on one thread, so there is none to record.
+   * @returns {boolean} True.
+   */
+  static initialize()
+  {
+    if (!BeClasses) setBeClasses(new BlueClasses());
+    return true;
+  }
+
+  /**
    * `IsMatch( IRoot*, const idvector_t& )` (Find.cpp:147-156): the object's
    * class, or any class its exposure chains to, has one of the names.
    *
@@ -748,7 +747,7 @@ export class BlueClasses extends IBlueClasses
     if (!from || !to) throw new Error("neither from nor to parameter can be None");
 
     const result = [];
-    BlueClasses._EnumerateRoutes(from, to, stack =>
+    BlueClasses._enumerateRoutes(from, to, stack =>
     {
       result.push(BlueClasses._routeOf(stack));
       return true;
@@ -780,7 +779,7 @@ export class BlueClasses extends IBlueClasses
     if (from === to) return [];
 
     let path = null;
-    BlueClasses._EnumerateRoutes(from, to, stack =>
+    BlueClasses._enumerateRoutes(from, to, stack =>
     {
       path = BlueClasses._routeOf(stack);
       return false;
@@ -934,7 +933,7 @@ export class BlueClasses extends IBlueClasses
    *   arrival; false stops the walk.
    * @returns {void}
    */
-  static _EnumerateRoutes(from, to, operation)
+  static _enumerateRoutes(from, to, operation)
   {
     const stack = [];
     if (from === to)
@@ -1102,6 +1101,29 @@ export class BlueClasses extends IBlueClasses
     }
   }
 
+  /**
+   * Carbon's `Be::ClassRegistration::Flags` (BlueTypes.h:415-418): a
+   * registration's flag word. `DISABLE_PYTHON_CONSTRUCTION` keeps the class
+   * out of its Python module, so Python cannot construct it
+   * (BlueRegistrationPython.cpp:297-302).
+   *
+   * @enum {number}
+   */
+  static Flags = {
+    DISABLE_PYTHON_CONSTRUCTION: 1
+  };
+
+  /**
+   * Carbon's `BLUEQIOPT` (BlueTypes.h:468-472): the options
+   * `QueryThisInterface` takes. `BEQI_SILENT` suppresses the log on a miss.
+   *
+   * @enum {number}
+   */
+  static BLUEQIOPT = {
+    BEQI_NONE: 0x0,
+    BEQI_SILENT: 0x1
+  };
+
 }
 
 
@@ -1129,4 +1151,4 @@ CjsSchema.blue.define(BlueClasses, {
 
 // Carbon's `BeClassesInitializer doTheInit` (BlueClasses.cpp:40-55) runs `BlueClasses::Initialize()` during static
 // initialization, so `BeClasses` exists before anything asks for it; module evaluation is the JavaScript equivalent.
-BlueClasses.Initialize();
+BlueClasses.initialize();

@@ -38,14 +38,6 @@ export class ClassInfo
 {
 
   /**
-   * Ours: the registered name, which minification cannot change.
-   *
-   * @cjs
-   * @implemented
-   */
-  static className = "ClassInfo";
-
-  /**
    * `mClassId`: the registered class name (a class id is its name, see BlueClasses).
    *
    * @implemented
@@ -148,7 +140,7 @@ export class ClassInfo
     ci.blue = schema.blue === true;
     for (const Interface of ownMappedInterfaces(Constructor)) ci.interfaceTable.push(CjsSchema.getClassName(Interface));
 
-    const Parent = ClassInfo._ParentClass(Constructor);
+    const Parent = ClassInfo._parentClass(Constructor);
     ci.parentClassInfo = Parent ? ClassInfo.exposeToBlue(Parent) : null;
     for (let parent = ci.parentClassInfo; parent; parent = parent.parentClassInfo)
     {
@@ -168,7 +160,7 @@ export class ClassInfo
       // complete rows under one name are both kept, as both are in Carbon's table.
       if (seen.has(member.name) && !member.exposure) continue;
       if (member.exposure) seen.add(member.name);
-      ci.memberTable.push(ClassInfo._VarEntryOf(Constructor, member));
+      ci.memberTable.push(ClassInfo._varEntryOf(Constructor, member));
     }
 
     // mPyMethodTable holds the class's methods and its parents' along the exposure chain, the walk PyGetTypeInfo makes
@@ -202,7 +194,7 @@ export class ClassInfo
    * @param {Function} Constructor The class.
    * @returns {Function|null} The parent class, or null.
    */
-  static _ParentClass(Constructor)
+  static _parentClass(Constructor)
   {
     for (let type = Object.getPrototypeOf(Constructor); type && type !== Function.prototype; type = Object.getPrototypeOf(type))
     {
@@ -224,7 +216,7 @@ export class ClassInfo
    * @param {object} member The schema's member or property record.
    * @returns {VarEntry} The row.
    */
-  static _VarEntryOf(Constructor, member)
+  static _varEntryOf(Constructor, member)
   {
     const entry = new VarEntry();
     const type = member.type;
@@ -249,7 +241,7 @@ export class ClassInfo
     entry.chooserTable = chooser ? chooser.map(item => [ item.name, item.value, item.description || "" ]) : null;
     if (member.role === "property" || member.property)
     {
-      const descriptor = ClassInfo._FindDescriptor(Constructor.prototype, entry.key);
+      const descriptor = ClassInfo._findDescriptor(Constructor.prototype, entry.key);
       entry.getProperty = descriptor?.get ?? null;
       entry.setProperty = descriptor?.set ?? null;
     }
@@ -266,7 +258,7 @@ export class ClassInfo
    * @param {string} key The property key.
    * @returns {PropertyDescriptor|null} The descriptor, or null.
    */
-  static _FindDescriptor(prototype, key)
+  static _findDescriptor(prototype, key)
   {
     for (let target = prototype; target; target = Object.getPrototypeOf(target))
     {
@@ -275,6 +267,14 @@ export class ClassInfo
     }
     return null;
   }
+
+  /**
+   * Ours: the registered name, which minification cannot change.
+   *
+   * @cjs
+   * @implemented
+   */
+  static className = "ClassInfo";
 
 }
 

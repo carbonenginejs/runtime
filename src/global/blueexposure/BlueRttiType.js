@@ -23,14 +23,6 @@ export class BlueRttiType
 {
 
   /**
-   * Ours: the registered name, which minification cannot change.
-   *
-   * @cjs
-   * @implemented
-   */
-  static className = "BlueRttiType";
-
-  /**
    * `mVarMap`: members and properties by name.
    *
    * @implemented
@@ -130,6 +122,14 @@ export class BlueRttiType
   {
     return this.fullMap.get(name) ?? null;
   }
+
+  /**
+   * Ours: the registered name, which minification cannot change.
+   *
+   * @cjs
+   * @implemented
+   */
+  static className = "BlueRttiType";
 
 }
 

@@ -20,14 +20,6 @@ export class VarEntry
 {
 
   /**
-   * Ours: the registered name, which minification cannot change.
-   *
-   * @cjs
-   * @implemented
-   */
-  static className = "VarEntry";
-
-  /**
    * `mName`: the exposed name.
    *
    * @implemented
@@ -98,6 +90,14 @@ export class VarEntry
    * @implemented
    */
   blue = false;
+
+  /**
+   * Ours: the registered name, which minification cannot change.
+   *
+   * @cjs
+   * @implemented
+   */
+  static className = "VarEntry";
 
 }
 
