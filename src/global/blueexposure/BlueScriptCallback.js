@@ -34,7 +34,8 @@ export class BlueScriptCallback
      */
     constructor(callback = null)
     {
-        this._callback = callback instanceof BlueScriptCallback ? callback._callback : callback ?? null;
+        const source = CjsSchema.cast(callback, BlueScriptCallback);
+        this._callback = source ? source._callback : callback ?? null;
     }
 
     /**
@@ -52,7 +53,8 @@ export class BlueScriptCallback
     static from(value)
     {
         if (value === null || value === undefined) return null;
-        if (value instanceof BlueScriptCallback) return value;
+        const callback = CjsSchema.cast(value, BlueScriptCallback);
+        if (callback) return callback;
         if (typeof value === "function") return new BlueScriptCallback(value);
         throw new TypeError("A script callback must be a function or a BlueScriptCallback.");
     }
