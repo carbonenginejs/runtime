@@ -38,7 +38,7 @@ let installingServices = false;
  * error, reporting failed compensation in an AggregateError. Borrowed services
  * are never configured, pumped, initialized or destroyed here.
  *
- * @param {object} [services={}] Named resMan, paths, os, sof and audio references.
+ * @param {object} [services={}] Named resMan, paths, os, sof, characterLibrary and audio references.
  * @param {boolean} [running=true] Whether the installed manager should receive ticks.
  * @returns {object} Previous references and running state for explicit restoration.
  */
@@ -53,7 +53,7 @@ export function installBlueServices(services = {}, running = true)
   {
     const previous = {
       resMan: blue.resMan, paths: blue.paths, os: blue.os,
-      sof: blue.sof, audio: blue.audio, running: tickPair !== null
+      sof: blue.sof, characterLibrary: blue.characterLibrary, audio: blue.audio, running: tickPair !== null
     };
     const next = { ...previous };
     for (const [name, Contract] of [["resMan", IBlueResMan], ["paths", IBluePaths], ["os", IBlueOS], ["audio", ICjsWwiseSoundEngine]])
@@ -68,6 +68,10 @@ export function installBlueServices(services = {}, running = true)
     if (Object.hasOwn(services, "sof"))
     {
       next.sof = services.sof;
+    }
+    if (Object.hasOwn(services, "characterLibrary"))
+    {
+      next.characterLibrary = services.characterLibrary;
     }
 
     const candidate = running ? { os: next.os, resMan: next.resMan } : null;
@@ -109,6 +113,7 @@ export function installBlueServices(services = {}, running = true)
     blue.paths = next.paths;
     blue.os = next.os;
     blue.sof = next.sof;
+    blue.characterLibrary = next.characterLibrary;
     blue.audio = next.audio;
     tickPair = candidate;
     return previous;

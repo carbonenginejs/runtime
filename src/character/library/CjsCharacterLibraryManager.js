@@ -1,7 +1,6 @@
 import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
 import { CjsCharacterPart } from "../model/catalog/CjsCharacterPart.js";
 import { CjsCharacterModifier } from "../model/catalog/CjsCharacterModifier.js";
-import { CjsSchema } from "#schema";
 import { blue } from "#blue";
 import { CjsCharacterLibraryBuilder } from "./CjsCharacterLibraryBuilder.js";
 import { CjsCharacterColorVariation } from "../model/source/CjsCharacterColorVariation.js";
@@ -12,6 +11,9 @@ import { normalizeResourcePath } from "#utils/path";
 /** Installs, loads, and queries one combined hydrated character library. */
 export class CjsCharacterLibraryManager
 {
+
+    /** The registered name: the manager is never hydrated, so it is not a schema class (class-ownership.md § *Class-shape rules*). */
+    static className = "CjsCharacterLibraryManager";
 
     _sourceBuilder = null;
 
@@ -1135,8 +1137,3 @@ function PrepareLibrary(value)
 }
 
 export default CjsCharacterLibraryManager;
-
-CjsSchema.meta.define("CjsCharacterLibraryManager")(CjsCharacterLibraryManager);
-
-// The one character library (Blue's characterLibrary slot), filled when the character module loads.
-blue.characterLibrary = new CjsCharacterLibraryManager();

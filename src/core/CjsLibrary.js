@@ -227,10 +227,10 @@ export class CjsLibrary
 
   /**
    * Claims the single application root and installs Blue's named providers.
-   * A default SOF is constructed lazily here, never by the global holder.
+   * A default SOF and character library are constructed lazily here, never by the global holder.
    * Repeated initialization returns this root until Shutdown; the first call
    * chooses its providers. All provider validation precedes publication.
-   * @param {object} [options={}] Preconfigured resMan, paths, os, sof and audio providers.
+   * @param {object} [options={}] Preconfigured resMan, paths, os, sof, characterLibrary and audio providers.
    * @returns {Promise<CjsLibrary>} The initialized root.
    */
   async Initialize(options = {})
@@ -252,6 +252,11 @@ export class CjsLibrary
         {
           const { EveSOF } = await import("../sof/EveSOF.js");
           services.sof = new EveSOF();
+        }
+        if (!Object.hasOwn(services, "characterLibrary"))
+        {
+          const { CjsCharacterLibraryManager } = await import("../character/library/CjsCharacterLibraryManager.js");
+          services.characterLibrary = new CjsCharacterLibraryManager();
         }
         this._previousServices = installBlueServices(services);
         const installedPolicy = installedResourcePolicies.get(blue.resMan) || null;

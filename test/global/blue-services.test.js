@@ -120,6 +120,23 @@ test("CjsLibrary initializes once, rejects a second root and restores borrowed p
   await second.Shutdown();
 });
 
+test("CjsLibrary supplies the one character library unless given one, and restores the empty slot", async t =>
+{
+  assert.equal(blue.characterLibrary, null);
+  const library = new CjsLibrary();
+  t.after(() => library.Shutdown());
+  await library.Initialize({sof: {Fetch() {}}});
+  assert.equal(blue.characterLibrary.constructor.className, "CjsCharacterLibraryManager");
+  await library.Shutdown();
+  assert.equal(blue.characterLibrary, null);
+
+  const given = {};
+  const previous = installBlueServices({characterLibrary: given}, false);
+  assert.equal(blue.characterLibrary, given);
+  installBlueServices(previous, previous.running);
+  assert.equal(blue.characterLibrary, null);
+});
+
 test("failed initial tick registration leaves no publication or active-root claim and can retry", async t =>
 {
   const library = new CjsLibrary(), os = new CjsBlueOS();

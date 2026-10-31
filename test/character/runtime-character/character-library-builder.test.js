@@ -77,9 +77,9 @@ async function WithResManSource(Read, run)
     }
 }
 
-test("the character module fills Blue's one character library", () =>
+test("importing the character module leaves Blue's character library slot empty, as sof is", () =>
 {
-    assert.ok(blue.characterLibrary instanceof CjsCharacterLibraryManager);
+    assert.equal(blue.characterLibrary, null);
 });
 
 test("resource builder fetches every caller-supplied cFSD document into a hydrated library", async () =>

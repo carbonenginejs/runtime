@@ -71,8 +71,8 @@ class HolderOS extends IBlueOS
 
 function holderFixture(t)
 {
-  const old = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: blue.sof, audio: blue.audio, running: true };
-  const next = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: blue.sof, audio: blue.audio, running: true };
+  const old = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: blue.sof, characterLibrary: blue.characterLibrary, audio: blue.audio, running: true };
+  const next = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: blue.sof, characterLibrary: blue.characterLibrary, audio: blue.audio, running: true };
   const previous = installBlueServices(old);
   const cookie = old.os.calls[0].cookie;
   old.os.calls.length = 0;
