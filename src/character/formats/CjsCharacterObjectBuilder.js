@@ -1,4 +1,6 @@
 import { CjsSchema } from "../../global/schema/CjsSchema.js";
+import { getResourceExtension, normalizeResourcePath } from "#utils/path";
+import { CjsLoadingObject } from "../../global/blue/CjsLoadingObject.js";
 import { CjsYamlFormat } from "../../resource/formats/yaml/CjsYamlFormat.js";
 import { CjsYamlReader } from "../../resource/formats/yaml/core/CjsYamlReader.js";
 import { CjsCharacterLibraryConfiguration } from "../library/CjsCharacterLibraryConfiguration.js";
@@ -96,6 +98,83 @@ export class CjsCharacterObjectBuilder
     GetPath()
     {
         return this._path;
+    }
+
+    /**
+     * The `ex` the character `.yaml` kinds load under: a character `.yaml` routes as `.yaml` + `character`,
+     * so plain `.yaml` stays the generic reader's.
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*; Ruru, 2026-11-01): Carbon's `ex` is a
+     * resource factory suffix; the character `.yaml` files have no extension of their own to register.
+     */
+    static ex = "character";
+
+    /**
+     * The extensions the character text kinds register under: each kind's own extension (`color`, `type`,
+     * `proj`, ...), and `.yaml` + `ex` for the `.yaml` kinds and the files without an extension.
+     * @returns {string[]} Normalized registration extensions.
+     */
+    static getExtensions()
+    {
+        const extensions = new Set();
+        for (const row of CjsCharacterLibraryConfiguration.getRows())
+        {
+            if (CjsCharacterLibraryConfiguration.kinds[row.kind].pathOnly) continue;
+            extensions.add(CjsCharacterObjectBuilder.getRouteExtension(row.match.slice(row.match.lastIndexOf("/") + 1)));
+        }
+        return [ ...extensions ].sort();
+    }
+
+    /**
+     * The registration extension a character source loads under: its own, or `yaml` + `ex` for `.yaml` and
+     * extension-less files.
+     * @param {string} path A source path or file pattern.
+     * @returns {string} The normalized registration extension.
+     */
+    static getRouteExtension(path)
+    {
+        const extension = getResourceExtension(path).toLowerCase();
+        return !extension || extension === "yaml" ? "yaml" + CjsCharacterObjectBuilder.ex : extension;
+    }
+
+    /**
+     * The resMan LoadObject options that route a character source to its object builder.
+     * @param {string} path The source path.
+     * @returns {{ext?: string, ex?: string}} Empty for a kind with its own extension.
+     */
+    static getLoadOptions(path)
+    {
+        return CjsCharacterObjectBuilder.getRouteExtension(path) === "yaml" + CjsCharacterObjectBuilder.ex
+            ? { ext: ".yaml", ex: CjsCharacterObjectBuilder.ex }
+            : {};
+    }
+
+    /**
+     * Registers the character object builder for every character text extension on a resMan
+     * (`getExtensions`). Each build asks `kindOf` which configured kind the path is.
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*): the character formats register
+     * themselves, as Carbon modules register their own extensions (`BLUE_REGISTER_RESOURCE_EXTENSION`,
+     * `IBlueResMan.h:151`); `CjsCharacterLibraryManager.Initialize` calls this.
+     *
+     * @param {object} resMan The resource manager.
+     * @param {function(string): (string|null)} kindOf A canonical source path's configured kind, or null.
+     * @returns {void}
+     */
+    static registerObjectBuilders(resMan, kindOf)
+    {
+        const create = (bytes, context) =>
+        {
+            const path = normalizeResourcePath(context.path);
+            const kind = kindOf(path);
+            if (!kind) throw new TypeError(`No configured character source for ${path}`);
+            return new CjsCharacterObjectBuilder(bytes, kind, path);
+        };
+        for (const extension of CjsCharacterObjectBuilder.getExtensions()) resMan.RegisterObjectBuilder(extension, create);
+        // LoadObject consults a bare object builder only without an ex (CjsBlueResMan LoadObject), so the .yaml + ex
+        // route is an explicit object route over the builder just registered. Its builder answers the object, so
+        // the route's Identify is never reached; it keeps the values as they are.
+        resMan.RegisterExtension("yaml" + CjsCharacterObjectBuilder.ex, CjsLoadingObject, { Identify: () => true });
     }
 
     /**

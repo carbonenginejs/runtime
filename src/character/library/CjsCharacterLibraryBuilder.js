@@ -1,4 +1,4 @@
-import { getResourceExtension, normalizeResourcePath } from "#utils/path";
+import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
 import { CjsCharacterObjectBuilder } from "../formats/CjsCharacterObjectBuilder.js";
 import { CjsSchema } from "#schema";
@@ -40,24 +40,22 @@ export class CjsCharacterLibraryBuilder
 
     _indexed = false;
 
-    _readerOptions = {};
-
     /**
      * Creates the optional Blue-only source loader beside the legacy static APIs.
-     * @param {object} options Blue paths/resMan, optional configuration and YAML options.
+     * @param {object} options Blue paths/resMan and optional configuration.
      */
     constructor(options = {})
     {
         this._paths = options.paths ?? null;
         this._resMan = options.resMan ?? null;
         this._configuration = options.configuration ?? CjsCharacterLibraryConfiguration;
-        this._readerOptions = options.readerOptions ?? {};
         this._flatLibrary = new CjsCharacterLibrary();
         this._flatLibrary.schemaVersion = 13;
     }
 
     /**
-     * Indexes configured Blue paths and installs one object builder per text extension.
+     * Indexes configured Blue paths. The object builders are registered once, by the manager's
+     * `Initialize` (`CjsCharacterObjectBuilder.registerObjectBuilders`).
      * @returns {CjsCharacterLibraryBuilder} This loader.
      */
     Index()
@@ -85,26 +83,20 @@ export class CjsCharacterLibraryBuilder
                 this._kindPaths.get(row.kind).add(path);
             }
         }
-        const extensions = new Set();
-        for (const [path, kind] of this._sourceKinds)
-        {
-            if (!this._configuration.kinds[kind].pathOnly) extensions.add(getResourceExtension(path) || ".yaml");
-        }
-        for (const extension of extensions)
-        {
-            const previous = this._resMan.GetObjectLoader(extension);
-            this._resMan.RegisterObjectBuilder(extension, (bytes, context) =>
-            {
-                const path = normalizeResourcePath(context.path);
-                const kind = this._sourceKinds.get(path);
-                if (kind && !this._configuration.kinds[kind].pathOnly)
-                    return new CjsCharacterObjectBuilder(bytes, kind, path, this._readerOptions);
-                if (previous) return previous(bytes, context);
-                throw new TypeError(`No configured character source for ${path}`);
-            });
-        }
         this._indexed = true;
         return this;
+    }
+
+    /**
+     * The configured kind of an indexed text source, for the registered object builder.
+     * @param {string} path A canonical source path.
+     * @returns {string|null} Its kind; null for an unindexed or path-only source.
+     */
+    GetSourceKind(path)
+    {
+        this.Index();
+        const kind = this._sourceKinds.get(path) ?? null;
+        return kind && !this._configuration.kinds[kind].pathOnly ? kind : null;
     }
 
     /**
@@ -227,7 +219,7 @@ export class CjsCharacterLibraryBuilder
         }
         else
         {
-            record = await this._resMan.LoadObject(path, getResourceExtension(path) ? {} : { ext: ".yaml" });
+            record = await this._resMan.LoadObject(path, CjsCharacterObjectBuilder.getLoadOptions(path));
             if (!record) throw new Error(`Character source did not load: ${path}`);
             const source = CjsCharacterObjectBuilder.getSource(record);
             if (!source) throw new TypeError(`Character source bypassed its configured object builder: ${path}`);

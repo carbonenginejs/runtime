@@ -46,6 +46,7 @@ function fixture(t)
         resMan.Clear();
     });
     const builder = new CjsCharacterLibraryBuilder({ paths, resMan });
+    CjsCharacterObjectBuilder.registerObjectBuilders(resMan, path => builder.GetSourceKind(path));
     return { builder, resMan, paths, reads };
 }
 
@@ -89,7 +90,8 @@ test("lazy Blue reads load each record once on first need, preserve unrelated YA
     assert.deepEqual(await manager.ListCameraSequenceNames(), [SEQUENCE]);
     assert.equal((await manager.GetPostBaseNames(BASENAME)).value, "one two");
     assert.deepEqual(await resMan.LoadObject("res:/unrelated.yaml"), { fallback: true });
-    const direct = await resMan.LoadObject(CAMERA);
+    // A character .yaml loads under its own ex; plain .yaml stays the generic reader (above).
+    const direct = await resMan.LoadObject(CAMERA, CjsCharacterObjectBuilder.getLoadOptions(CAMERA));
     assert.notEqual(direct, a);
     assert.equal(CjsCharacterObjectBuilder.getSource(direct).kind, "cameras");
     await assert.rejects(manager.GetCamera("res:/missing.yaml"), /Unresolved/);

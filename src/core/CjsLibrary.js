@@ -253,12 +253,15 @@ export class CjsLibrary
           const { EveSOF } = await import("../sof/EveSOF.js");
           services.sof = new EveSOF();
         }
+        let createdCharacterLibrary = null;
         if (!Object.hasOwn(services, "characterLibrary"))
         {
           const { CjsCharacterLibraryManager } = await import("../character/library/CjsCharacterLibraryManager.js");
-          services.characterLibrary = new CjsCharacterLibraryManager();
+          createdCharacterLibrary = services.characterLibrary = new CjsCharacterLibraryManager();
         }
         this._previousServices = installBlueServices(services);
+        // The character library registers its own formats on the installed resMan; this root lists none.
+        if (createdCharacterLibrary) createdCharacterLibrary.Initialize(blue);
         const installedPolicy = installedResourcePolicies.get(blue.resMan) || null;
         if (this._configurationOwners?.resMan !== blue.resMan)
         {

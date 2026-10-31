@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
-import { CjsBluePaths, CjsBlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
+import { blue, CjsBluePaths, CjsBlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import "../../support/frameLoop.js";
 
@@ -28,7 +28,7 @@ function Library(t)
         installBlueServices(previous, previous.running);
         resMan.Clear();
     });
-    return new CjsCharacterLibraryManager();
+    return new CjsCharacterLibraryManager().Initialize(blue);
 }
 
 test("FetchType answers each .type tuple as Graphene's readYaml did", async t =>

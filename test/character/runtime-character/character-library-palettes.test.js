@@ -44,7 +44,7 @@ function Settle(promise)
 test("FetchPalette answers each palette as Graphene's readPaletteFile did, for every option set", async t =>
 {
     InstallPalettes(t);
-    const library = new CjsCharacterLibraryManager();
+    const library = new CjsCharacterLibraryManager().Initialize(blue);
     for (const palette of expected.palettes)
     {
         for (let i = 0; i < expected.combos.length; i++)
@@ -61,7 +61,7 @@ test("the shared library starts lazily over Blue's installed services and loads 
     const reads = [];
     const read = blue.resMan.source.Read;
     blue.resMan.SetSource({ Read: path => { reads.push(path); return read(path); } });
-    const library = new CjsCharacterLibraryManager();
+    const library = new CjsCharacterLibraryManager().Initialize(blue);
     const [ path ] = expected.palettes.map(palette => palette.path);
     await library.FetchPalette(path);
     await library.FetchPalette(path);
@@ -71,7 +71,7 @@ test("the shared library starts lazily over Blue's installed services and loads 
 test("a palette's colours are the record's own fields, and FetchPalette hands out copies", async t =>
 {
     InstallPalettes(t);
-    const library = new CjsCharacterLibraryManager();
+    const library = new CjsCharacterLibraryManager().Initialize(blue);
     const [ path ] = expected.palettes.map(palette => palette.path);
     const palette = await library.FetchPalette(path, { specular: true });
     const record = await library.GetColorVariation(path);

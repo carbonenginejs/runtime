@@ -5,6 +5,7 @@ import { blue } from "#blue";
 import { CjsCharacterLibraryBuilder } from "./CjsCharacterLibraryBuilder.js";
 import { CjsCharacterColorVariation } from "../model/source/CjsCharacterColorVariation.js";
 import { CjsCharacterTexture } from "../model/resources/CjsCharacterTexture.js";
+import { CjsCharacterObjectBuilder } from "../formats/CjsCharacterObjectBuilder.js";
 
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
@@ -1016,6 +1017,27 @@ export class CjsCharacterLibraryManager
     {
         this._resourceManager = resMan;
         this._library.SetResourceManager(resMan);
+        return this;
+    }
+
+    /**
+     * Registers the character formats on Blue's resMan: every character text extension builds through
+     * `CjsCharacterObjectBuilder`, whose kind this library's source answers. Called by `CjsLibrary` when it
+     * creates the library; the library's source itself still starts on first need.
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*; current-work § *Character formats live
+     * in the character library*): `CjsLibrary` lists no character formats.
+     *
+     * @param {object} services Blue (`blue`): its installed resMan receives the registrations.
+     * @returns {CjsCharacterLibraryManager} This library.
+     */
+    Initialize(services)
+    {
+        CjsCharacterObjectBuilder.registerObjectBuilders(services.resMan, path =>
+        {
+            this._StartLazySource();
+            return this._sourceBuilder ? this._sourceBuilder.GetSourceKind(path) : null;
+        });
         return this;
     }
 
