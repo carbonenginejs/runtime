@@ -1,4 +1,4 @@
-import { CjsBlue } from "./CjsBlue.js";
+import { CjsBlueClasses } from "./CjsBlueClasses.js";
 
 /**
  * Collects the unique resources reachable from an object, including a
@@ -7,8 +7,8 @@ import { CjsBlue } from "./CjsBlue.js";
  *
  * Ours: Carbon has no such collector. The walk is the shape of Carbon's Find
  * functions (`FindInterface`, Find.cpp:352-396): an explicit stack, each object
- * visited once, children from `CjsBlue.enumerateChildren` (the static body
- * of `be.EnumerateChildren`; importing the `blue` instance here would be an
+ * visited once, children from `CjsBlueClasses.enumerateChildren__OnChild` (the static body
+ * of `blue.EnumerateChildren`; importing the `blue` instance here would be an
  * import cycle, since the holder's resource manager imports this module). Resources are listed
  * in that visit order.
  *
@@ -31,7 +31,7 @@ export function GetResources(root, out)
 
     if (obj.isResource === true) out.push(obj);
 
-    CjsBlue.enumerateChildren(obj, child => stack.push(child));
+    CjsBlueClasses.enumerateChildren__OnChild(obj, child => stack.push(child));
   }
   return out;
 }
