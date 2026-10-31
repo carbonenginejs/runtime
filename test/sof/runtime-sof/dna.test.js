@@ -2298,14 +2298,9 @@ test("runtime-SOF async boundary introduces no engine or format-layer imports", 
       specifiers.push(match[2]);
     }
   }
-  for (const manifestPath of ["../../../package.json"])
-  {
-    const manifest = JSON.parse(readFileSync(new URL(manifestPath, import.meta.url), "utf8"));
-    for (const key of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"])
-    {
-      specifiers.push(...Object.keys(manifest[key] ?? {}));
-    }
-  }
+  // SOF has no manifest of its own since it moved into runtime (9af536160);
+  // runtime's package dependencies belong to every layer, so only SOF's own
+  // imports are checked.
   // The Black format reader is the sole sanctioned resource edge. Resource
   // management, Trinity, audio, and engine layers remain outside SOF.
   const allowed = new Set(["#blue/formats/black"]);

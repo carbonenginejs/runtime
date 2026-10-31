@@ -5,6 +5,7 @@ import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { BeObjectMetadata } from "../../../npm/dist/global/blue/BlueObjectMetadata.js";
 import { EveShip2, TriTextureParameter } from "../../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";
+import { random as carbonRandom } from "../../../npm/dist/global/math/random.js";
 
 const resources = composeStubResMan();
 const originalDna = "hull:faction:race:respathinsert?none";
@@ -422,6 +423,8 @@ async function RaceFixture(configure = null)
 test("race edits match fresh visuals while retaining mesh, boosters, trails and impact state", async t =>
 {
   t.mock.method(Math, "random", () => 0.25);
+  // Booster light, blink and wave phases come from Carbon's CRT stream (#math/random) since b0ea2575e.
+  t.mock.method(carbonRandom, "triFloatRandom01", () => 0.25);
   const { ship, sof, updater } = await RaceFixture();
   const next = originalDna.replace(":race:", ":other:");
   const desired = CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(next));
@@ -779,6 +782,8 @@ test("live transform state survives a texture-only update", async () =>
 test("generated booster glows survive an insert edit without relaxing ordinary sprite topology", async t =>
 {
   t.mock.method(Math, "random", () => 0.25);
+  // Booster light, blink and wave phases come from Carbon's CRT stream (#math/random) since b0ea2575e.
+  t.mock.method(carbonRandom, "triFloatRandom01", () => 0.25);
   const { ship, updater, sof } = await Fixture(options =>
   {
     options.black.hull[0].booster = { hasTrails: false, items: [{
