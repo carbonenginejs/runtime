@@ -261,9 +261,6 @@ export class BlueResMan
    */
   loadObjectCache = createLoadObjectCache(this.loadObjectCacheSize, () => this.motherLode.GetActivityTime());
 
-  /** Handles held by `loadObjectCache`, so the shared lifecycle code finds their lode. */
-  _objectLoads = new WeakSet();
-
   /** Default source for later requests, or null for blue.paths (SetSource). */
   source = null;
 
@@ -376,6 +373,16 @@ export class BlueResMan
    * builder, kept as the payload, never handed to a caller.
    */
   _objectBuilderLoaders = new WeakSet();
+
+  /**
+   * The handles held by `loadObjectCache` rather than `motherLode`.
+   * `_GetLoadingObject` adds each one, and `_LodeOf` reads this set, so the
+   * lifecycle code both caches share finds the right lode for a handle.
+   *
+   * @cjs
+   * @implemented
+   */
+  _objectLoads = new WeakSet();
 
   /** Whether a background-queue pump is already scheduled. */
   _backgroundPumpScheduled = false;
@@ -624,18 +631,28 @@ export class BlueResMan
   }
 
   /**
-   * `CancelFromQueue` (BlueResMan.cpp:346-357) - cancels one entry of a queue.
+   * `CancelFromQueue( q, id )` (BlueResMan.cpp:346-357): cancels one entry of
+   * a queue through its callback manager's `Cancel`. Carbon skips a queue
+   * that was never created; both of ours exist from construction.
    *
    * @implemented
+   * @param {number} queue `BlueResManQueue`.
+   * @param {number} id The entry's id, as `AddToQueue` returned it.
+   * @returns {void}
    */
   CancelFromQueue(queue, id) {
     this._threadQueues[queue].Cancel(id);
   }
 
   /**
-   * `GetNextIdForQueue` (BlueResMan.cpp:359-372) - the id a queue's next entry gets.
+   * `GetNextIdForQueue( q )` (BlueResMan.cpp:359-372): the id the queue's
+   * next entry will get, from its callback manager's `GetNextId`. Carbon
+   * returns 0 for a queue that was never created; both of ours exist from
+   * construction.
    *
    * @implemented
+   * @param {number} queue `BlueResManQueue`.
+   * @returns {number} The next entry's id.
    */
   GetNextIdForQueue(queue) {
     return this._threadQueues[queue].GetNextId();
@@ -650,40 +667,6 @@ export class BlueResMan
    */
   PumpMainThreadQueue() {
     return this._threadQueues[BlueResManQueue.BRMQ_MAIN].Update();
-  }
-
-  /**
-   * The prepare loop of `BlueResMan::Update` (BlueResMan.cpp:446-464): unthrottle
-   * the background queue, run one main-queue entry, and repeat while under the
-   * time slice or while more than `maxAllowedInPrepareQueue` are waiting.
-   * `Update` reads its count and time for Carbon's statistics; `Wait` runs
-   * it too. Nothing else runs prepare work.
-   *
-   * @param {object} [options={}] `maxTime` (seconds, default `maxPrepareTime`) and a `now` clock in milliseconds.
-   * @returns {{processed: number, elapsed: number}} Entries run, and milliseconds spent.
-   */
-  _RunMainThreadQueue(options = {}) {
-    const main = this._threadQueues[BlueResManQueue.BRMQ_MAIN];
-    const background = this._threadQueues[BlueResManQueue.BRMQ_BACKGROUND];
-    const now = typeof options.now === "function" ? options.now : defaultQueueNow;
-    const timeSlice = (options.maxTime ?? this.maxPrepareTime) * 1000;
-    const startedAt = now();
-    let processed = 0;
-    let elapsed = 0;
-
-    // Urgent mode only flags queue entries; the slice holds whatever the mode
-    // (BlueResMan.cpp:446-465).
-    do
-    {
-      background.Unthrottle();
-      const didSomething = main.Update();
-      elapsed = now() - startedAt;
-      if (!didSomething) break;
-      ++processed;
-    }
-    while (elapsed < timeSlice || main.GetSize() > this.maxAllowedInPrepareQueue);
-
-    return { processed, elapsed };
   }
 
   /**
@@ -3281,6 +3264,40 @@ export class BlueResMan
       delete builder.values;
     }
     return resource.constructor.LoadingResult.LR_SUCCESS;
+  }
+
+  /**
+   * The prepare loop of `BlueResMan::Update` (BlueResMan.cpp:446-464): unthrottle
+   * the background queue, run one main-queue entry, and repeat while under the
+   * time slice or while more than `maxAllowedInPrepareQueue` are waiting.
+   * `Update` reads its count and time for Carbon's statistics; `Wait` runs
+   * it too. Nothing else runs prepare work.
+   *
+   * @param {object} [options={}] `maxTime` (seconds, default `maxPrepareTime`) and a `now` clock in milliseconds.
+   * @returns {{processed: number, elapsed: number}} Entries run, and milliseconds spent.
+   */
+  _RunMainThreadQueue(options = {}) {
+    const main = this._threadQueues[BlueResManQueue.BRMQ_MAIN];
+    const background = this._threadQueues[BlueResManQueue.BRMQ_BACKGROUND];
+    const now = typeof options.now === "function" ? options.now : defaultQueueNow;
+    const timeSlice = (options.maxTime ?? this.maxPrepareTime) * 1000;
+    const startedAt = now();
+    let processed = 0;
+    let elapsed = 0;
+
+    // Urgent mode only flags queue entries; the slice holds whatever the mode
+    // (BlueResMan.cpp:446-465).
+    do
+    {
+      background.Unthrottle();
+      const didSomething = main.Update();
+      elapsed = now() - startedAt;
+      if (!didSomething) break;
+      ++processed;
+    }
+    while (elapsed < timeSlice || main.GetSize() > this.maxAllowedInPrepareQueue);
+
+    return { processed, elapsed };
   }
 
 }
