@@ -1,7 +1,7 @@
 import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue, INotify, IListNotify, BlueList } from "../../npm/dist/global/blue/index.js";
+import { blue, INotify, IListNotify, BlueList, ClassInfo } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
@@ -42,7 +42,7 @@ test("native six-verb sprite interface stays abstract and model-free",()=>{
  const nativeVerbs=["GatherSprites","PickPoint","SetParent","SetDirty","SetChildDirty","IsAuxMouseover"];
  assert.deepEqual(Object.getOwnPropertyNames(ITr2SpriteObject.prototype).filter(n=>n!=="constructor"),nativeVerbs);
  for (const name of ["ClassType","QueryInterface","GetRootObject"]) assert.equal(ITr2SpriteObject.prototype[name],ExposureRoot.prototype[name]);
- const base=new ITr2SpriteObject();assert.equal(base.GetRootObject(),base);assert.equal(base.ClassType(),CjsSchema.getSchema(ITr2SpriteObject));for(const name of nativeVerbs){assert.throws(()=>base[name](),/must be implemented/);assert.equal(MarkerTag("ITr2SpriteObject", name),"abstract");}
+ const base=new ITr2SpriteObject();assert.equal(base.GetRootObject(),base);assert.equal(base.ClassType(),ClassInfo.exposeToBlue(ITr2SpriteObject));for(const name of nativeVerbs){assert.throws(()=>base[name](),/must be implemented/);assert.equal(MarkerTag("ITr2SpriteObject", name),"abstract");}
  assert.equal(CjsSchema.getConstructor("ITr2SpriteObject"),ITr2SpriteObject);
  assert.equal(blue.classes.CreateInstanceFromName("ITr2SpriteObject"),null);assert.equal(blue.classes.CreateInstanceFromName("Tr2SpriteObjectBase"),null);
 });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { IRoot, CjsBlueClasses } from "../../src/global/blue/index.js";
+import { IRoot, CjsBlueClasses, ClassInfo } from "../../src/global/blue/index.js";
 import { CjsSchema, blue } from "../../src/global/schema/index.js";
 
 class RootTestObject extends IRoot
@@ -24,7 +24,7 @@ test("IRoot exposes root identity and shared concrete class metadata", () =>
   for (const Type of [IRoot, RootTestObject, RootTestChild])
   {
     const value = new Type();
-    const info = CjsSchema.getSchema(Type);
+    const info = ClassInfo.exposeToBlue(Type);
     assert.equal(value.ClassType(), info);
     assert.equal(new Type().ClassType(), info);
     assert.notEqual(info, Type);
@@ -35,7 +35,7 @@ test("IRoot exposes root identity and shared concrete class metadata", () =>
     assert.equal(value.QueryInterface(Type), value);
   }
   assert.notEqual(new RootTestObject().ClassType(), new RootTestChild().ClassType());
-  assert.equal(new RootTestObject().ClassType().className, "IRootTestObject");
+  assert.equal(new RootTestObject().ClassType().classId, "IRootTestObject");
 });
 
 test("instance and service queries honor explicit exposure instead of method inheritance", () =>
@@ -59,13 +59,16 @@ test("instance and service queries honor explicit exposure instead of method inh
     "EXPOSURE_BEGIN_IMP adds IRoot even when the JS class has no IRoot method inheritance");
 });
 
-test("IRoot adds no lifetime API or serialized state", () =>
+test("IRoot's reference-counting half is present and refused, and adds no serialized state", () =>
 {
+  // Carbon's IRoot declares Lock, Unlock, GetFlags, GetRefCount and FinalDelete (BlueTypes.h:483-510); garbage
+  // collection replaces the count, so each is not supported and throws rather than pretending (decorator-upgrade § 000).
   const value = new RootTestObject();
   const before = CjsSchema.getValues(value);
   for (const name of ["Lock", "Unlock", "GetRefCount", "GetFlags", "_FinalDelete"])
   {
-    assert.equal(name in value, false);
+    assert.equal(typeof value[name], "function", name);
+    assert.throws(() => value[name](), /garbage collection/, name);
   }
   assert.deepEqual(Object.keys(value), ["value"]);
   assert.deepEqual(CjsSchema.getValues(value), before);

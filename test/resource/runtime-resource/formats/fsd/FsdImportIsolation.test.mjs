@@ -7,9 +7,13 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
 const FSD_ROOT = path.join(PACKAGE_ROOT, "npm", "dist", "resource", "formats", "fsd");
 // Table headers reuse Carbon's existing type vocabulary and its pure helpers.
-// FsdObject inherits Carbon's IRoot; admit its query/logging leaves, not Blue services or bootstrap.
+// FsdObject inherits Carbon's IRoot; admit its query/logging leaves and the class-info store its ClassType
+// reads, not Blue services or bootstrap.
 const SHARED_FORMAT_MODULES = new Set([
     "global/blueexposure/IRoot.js",
+    "global/blueexposure/ClassInfo.js",
+    "global/blueexposure/VarEntry.js",
+    "global/blueexposure/classes/registry.js",
     "global/compose/interface.js",
     "global/consts/ccpLog.js",
     "global/logging/CcpLogChannel_t.js",
