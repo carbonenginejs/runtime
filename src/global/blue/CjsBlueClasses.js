@@ -39,6 +39,7 @@ import { CjsSchema, meta, blue } from "#schema";
 import { getCarbonTypeDefinition } from "../schema/types/carbonTypes.js";
 import { mappedInterfaces, exposureChainTo } from "../compose/interface.js";
 import { IBlueClasses } from "./IBlueClasses.js";
+import { BlueRttiType } from "./classes/BlueRttiType.js";
 import { Copier } from "./Copier.js";
 import * as CcpLog from "../logging/ccpLog.js";
 // The class, not the `blue` instance: the holder constructs this registry,
@@ -299,6 +300,23 @@ export class CjsBlueClasses extends IBlueClasses
   CloneTo(source, dest)
   {
     return new Copier().CloneTo(source, dest);
+  }
+
+  /**
+   * `GetRtti( const Be::ClassInfo *ci )` (BlueClasses.cpp:586-593): the
+   * class's flattened run-time type information, built on the first request
+   * and kept on the class info.
+   *
+   * @param {import("./classes/ClassInfo.js").ClassInfo} ci The class information, from `ClassInfo.ExposeToBlue(Class)`.
+   * @returns {BlueRttiType} The class's RTTI.
+   */
+  GetRtti(ci)
+  {
+    if (!ci.rtti)
+    {
+      ci.rtti = new BlueRttiType(ci);
+    }
+    return ci.rtti;
   }
 
   /**
@@ -648,6 +666,7 @@ CjsSchema.decorateMethod(CjsBlueClasses, "QueryThisInterface", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueClasses, "CopyTo", meta.implemented);
 CjsSchema.decorateMethod(CjsBlueClasses, "CopyTo__Callbacks", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueClasses, "CloneTo", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueClasses, "GetRtti", meta.implemented);
 CjsSchema.decorateMethod(CjsBlueClasses, "GetClassTypes", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueClasses, "LiveCount", blue.method, meta.notSupported);
 CjsSchema.decorateMethod(CjsBlueClasses, "LockCount", blue.method, meta.notSupported);
@@ -664,6 +683,6 @@ CjsSchema.blue.define(CjsBlueClasses, {
     "FindVariable", "UpdateObjectCount",
     "ProcessPendingDeletes",
     "SetPendingDeletesEnabled", "IsPendingDeletesEnabled",
-    "RegisterThunker", "GetRtti"
+    "RegisterThunker"
   ]
 });
