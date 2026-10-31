@@ -5,6 +5,7 @@ import {
     CjsCharacterObjectBuilder, CjsCharacterCamera, CjsCharacterColorVariation
 } from "../../../npm/dist/character/index.js";
 import { CjsBluePaths, CjsBlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
+import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/topmiddle/shirtcf01";
 const CAMERA = "res:/graphics/character/global/paperdolllibrary/cameras/test.yaml";
@@ -35,7 +36,14 @@ function fixture(t)
         return new TextEncoder().encode(text.get(path));
     } } });
     resMan.RegisterObjectBuilder("yaml", () => ({ CreateObject: () => ({ fallback: true }) }));
-    t.after(() => resMan.Clear());
+    // A loading object queues its read on the installed resMan, as Carbon's BlueAsyncRes
+    // does on BeResMan (BlueAsyncRes.cpp:221-227), so this one must be blue.resMan.
+    const previous = installBlueServices({ paths, resMan }, false);
+    t.after(() =>
+    {
+        installBlueServices(previous, previous.running);
+        resMan.Clear();
+    });
     const builder = new CjsCharacterLibraryBuilder({ paths, resMan });
     return { builder, resMan, paths, reads };
 }
