@@ -4,6 +4,7 @@ import { CjsCharacterModifier } from "../model/catalog/CjsCharacterModifier.js";
 import { blue } from "#blue";
 import { CjsCharacterLibraryBuilder } from "./CjsCharacterLibraryBuilder.js";
 import { CjsCharacterColorVariation } from "../model/source/CjsCharacterColorVariation.js";
+import { CjsCharacterTexture } from "../model/resources/CjsCharacterTexture.js";
 
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
@@ -18,6 +19,9 @@ export class CjsCharacterLibraryManager
     _sourceBuilder = null;
 
     _partJoins = new Map();
+
+    /** Material-mask areas by detail and zone path (or zone path alone), derived once beside the records. */
+    _materialMaskAreas = new Map();
 
     /**
      * Reads one flat kind through its lazy Blue loader when present.
@@ -273,6 +277,64 @@ export class CjsCharacterLibraryManager
             specularColors: specular ? specularColors.map(color => Float32Array.from(color)) : null,
             pattern: value.pattern ? CjsCharacterColorVariation.patternOf(value, path) : null
         };
+    }
+
+    /**
+     * The colour areas (1 to 3) a detail map paints through its zone map: the material-mask decode
+     * (`CjsCharacterTexture.usedColourAreas`) over both ready textures, read from blue.resMan by path and
+     * released after the decode. Each pair is decoded once for every character; a failed decode is retried.
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*): Graphene's composers decoded each pair
+     * themselves (`textureComposer.colorAreas`); the material mask is part data the library resolves
+     * (operator, 2026-11-01).
+     *
+     * @param {string} detailPath The detail map's `res:` path, as the composer loads it.
+     * @param {string} zonePath The zone map's `res:` path.
+     * @returns {Promise<number[]>} The used areas, ascending; a new list per call.
+     */
+    async FetchMaterialMaskAreas(detailPath, zonePath)
+    {
+        this._StartLazySource();
+        return (await this._MaterialMaskAreas(detailPath + "|" + zonePath, async () =>
+        {
+            const [ detail, zones ] = await Promise.all([ LoadTexture(detailPath), LoadTexture(zonePath) ]);
+            return CjsCharacterTexture.usedColourAreas(detail, zones, CjsCharacterTexture.encodingOf(detail), CjsCharacterTexture.encodingOf(zones));
+        })).slice();
+    }
+
+    /**
+     * The colour areas (1 to 3) a zone map alone selects (`CjsCharacterTexture.areasOfZone`), for layers that
+     * paint every pixel of their zone (head tattoos, lipstick, eye makeup). Decoded once per zone, as
+     * `FetchMaterialMaskAreas`.
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*): Graphene's `zoneAreas.js`
+     * (`AreasOfZone`), moved onto the library.
+     *
+     * @param {string} zonePath The zone map's `res:` path.
+     * @returns {Promise<number[]>} The selected areas, ascending; a new list per call.
+     * @throws {Error} When the zone selects no area.
+     */
+    async FetchMaterialMaskAreas__Zone(zonePath)
+    {
+        this._StartLazySource();
+        return (await this._MaterialMaskAreas(zonePath, async () => CjsCharacterTexture.areasOfZone(await LoadTexture(zonePath), zonePath))).slice();
+    }
+
+    /**
+     * One cached material-mask decode: concurrent requests share it, a failed one is forgotten.
+     * @param {string} key The paths it was decoded from.
+     * @param {function(): Promise<number[]>} decode The decode.
+     * @returns {Promise<number[]>} The cached areas.
+     */
+    _MaterialMaskAreas(key, decode)
+    {
+        if (!this._materialMaskAreas.has(key))
+        {
+            const operation = decode();
+            this._materialMaskAreas.set(key, operation);
+            operation.catch(() => { if (this._materialMaskAreas.get(key) === operation) this._materialMaskAreas.delete(key); });
+        }
+        return this._materialMaskAreas.get(key);
     }
 
     /**
@@ -981,6 +1043,7 @@ export class CjsCharacterLibraryManager
         installed.SetResourceManager(this._resourceManager);
         this._library = installed;
         this._partJoins.clear();
+        this._materialMaskAreas.clear();
         if (this._sourceBuilder && this._sourceBuilder.GetLibrary() !== installed) this._sourceBuilder = null;
         return installed;
     }
@@ -1054,6 +1117,7 @@ export class CjsCharacterLibraryManager
                 installed.SetResourceManager(this._resourceManager);
                 this._library = installed;
                 this._partJoins.clear();
+                this._materialMaskAreas.clear();
                 if (this._sourceBuilder && this._sourceBuilder.GetLibrary() !== installed) this._sourceBuilder = null;
                 return true;
             });
@@ -1184,6 +1248,18 @@ function PrepareLibrary(value)
 
     installed.Reindex();
     return installed;
+}
+
+/**
+ * A ready texture resource from blue.resMan, as a composer loads it (the path's resource, waited on).
+ * @param {string} path The texture's `res:` path.
+ * @returns {Promise<object>} The ready resource, with its CPU bitmap.
+ */
+async function LoadTexture(path)
+{
+    const resource = blue.resMan.GetResource(path);
+    await blue.resMan.Ready(resource);
+    return resource;
 }
 
 export default CjsCharacterLibraryManager;
