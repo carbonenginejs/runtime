@@ -29,7 +29,7 @@ export class CjsCharacterDefinition extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    sourceText = null;
+    sourceText = "";
 
 }
 

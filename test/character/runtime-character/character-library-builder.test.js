@@ -886,8 +886,8 @@ test("retains non-character PNG ancillary units without promoting placement poli
     assert.equal(values.hasPlacementMetadata, false);
     assert.equal(values.offsetX, 0);
     assert.equal(values.extentX, 1);
-    assert.equal(values.placementPolicy, null);
-    assert.equal(values.placementStatus, null);
+    assert.equal(values.placementPolicy, "");
+    assert.equal(values.placementStatus, "");
 });
 
 test("rebuilds private record indexes after direct editor mutation", () =>

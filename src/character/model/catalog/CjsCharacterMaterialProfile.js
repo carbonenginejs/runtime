@@ -25,7 +25,7 @@ export class CjsCharacterMaterialProfile extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    pattern = null;
+    pattern = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterColorValue")

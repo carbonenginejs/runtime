@@ -9,7 +9,7 @@ export class CjsCharacterAncestry extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    shortDescription = null;
+    shortDescription = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST, "bloodlineID")
     @type.object.ref("CjsCharacterBloodline")
@@ -21,11 +21,11 @@ export class CjsCharacterAncestry extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    descriptionID = null;
+    descriptionID = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    iconID = null;
+    iconID = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32
@@ -37,7 +37,7 @@ export class CjsCharacterAncestry extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    nameID = null;
+    nameID = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32

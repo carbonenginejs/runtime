@@ -40,32 +40,32 @@ export class CjsCharacterTextureMetadata extends CjsCharacterRecord
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.int32
-    offsetXRaw = null;
+    offsetXRaw = 0;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.int32
-    offsetYRaw = null;
+    offsetYRaw = 0;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.uint32
-    offsetUnit = null;
+    offsetUnit = 0;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.uint32
-    physicalPixelDimensionsXRaw = null;
+    physicalPixelDimensionsXRaw = 0;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.uint32
-    physicalPixelDimensionsYRaw = null;
+    physicalPixelDimensionsYRaw = 0;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.uint32
-    physicalPixelDimensionsUnit = null;
+    physicalPixelDimensionsUnit = 0;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
@@ -105,17 +105,17 @@ export class CjsCharacterTextureMetadata extends CjsCharacterRecord
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    placementEncoding = null;
+    placementEncoding = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    placementPolicy = null;
+    placementPolicy = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    placementStatus = null;
+    placementStatus = "";
 
     /** Converts generic CjsPngFormat inspection facts into character placement. */
     static fromPngInspection(recordID, sourcePath, metadata)
@@ -146,17 +146,17 @@ export class CjsCharacterTextureMetadata extends CjsCharacterRecord
             sourceFormat: "png",
             width: RequireDimension(metadata.width, "width"),
             height: RequireDimension(metadata.height, "height"),
-            offsetXRaw: rawOffset === null ? null : Number(rawOffset.x),
-            offsetYRaw: rawOffset === null ? null : Number(rawOffset.y),
-            offsetUnit: rawOffset === null ? null : Number(rawOffset.unit),
+            offsetXRaw: rawOffset === null ? 0 : Number(rawOffset.x),
+            offsetYRaw: rawOffset === null ? 0 : Number(rawOffset.y),
+            offsetUnit: rawOffset === null ? 0 : Number(rawOffset.unit),
             physicalPixelDimensionsXRaw: rawPhysical === null
-                ? null
+                ? 0
                 : Number(rawPhysical.x),
             physicalPixelDimensionsYRaw: rawPhysical === null
-                ? null
+                ? 0
                 : Number(rawPhysical.y),
             physicalPixelDimensionsUnit: rawPhysical === null
-                ? null
+                ? 0
                 : Number(rawPhysical.unit),
             offsetX: offset ? Number(offset.x) / 1e6 : 0,
             offsetY: offset ? Number(offset.y) / 1e6 : 0,
@@ -167,13 +167,13 @@ export class CjsCharacterTextureMetadata extends CjsCharacterRecord
             hasPlacementMetadata,
             placementEncoding: hasPlacementMetadata
                 ? "png-oFFs-pHYs-millionths"
-                : null,
+                : "",
             placementPolicy: hasPlacementMetadata
                 ? "ccp-character-atlas-millionths-v1"
-                : null,
+                : "",
             placementStatus: hasPlacementMetadata
                 ? "experimental-policy"
-                : null
+                : ""
         };
     }
 

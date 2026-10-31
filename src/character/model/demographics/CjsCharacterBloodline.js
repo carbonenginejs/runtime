@@ -13,7 +13,7 @@ export class CjsCharacterBloodline extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    corporationID = null;
+    corporationID = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
@@ -21,7 +21,7 @@ export class CjsCharacterBloodline extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    iconID = null;
+    iconID = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32

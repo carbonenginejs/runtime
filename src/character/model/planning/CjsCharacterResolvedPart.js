@@ -34,7 +34,7 @@ export class CjsCharacterResolvedPart
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    modelFamily = null;
+    modelFamily = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

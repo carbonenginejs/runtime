@@ -12,7 +12,7 @@ export class CjsCharacterModifierReference
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    modifierPath = null;
+    modifierPath = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterPartSource")

@@ -24,7 +24,7 @@ export class CjsCharacterTextureAsset
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    quality = null;
+    quality = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

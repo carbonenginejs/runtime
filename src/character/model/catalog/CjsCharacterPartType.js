@@ -42,7 +42,7 @@ export class CjsCharacterPartType extends CjsCharacterRecord
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    colorVariant = null;
+    colorVariant = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

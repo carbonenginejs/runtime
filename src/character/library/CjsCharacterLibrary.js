@@ -330,27 +330,27 @@ export class CjsCharacterLibrary
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    sourceTarget = null;
+    sourceTarget = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    sourceGame = null;
+    sourceGame = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    sourceProvider = null;
+    sourceProvider = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    sourceBuild = null;
+    sourceBuild = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    generatedAt = null;
+    generatedAt = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

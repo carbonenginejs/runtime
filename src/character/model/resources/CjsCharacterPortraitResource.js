@@ -20,7 +20,7 @@ export class CjsCharacterPortraitResource extends CjsCharacterRecord
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    typeID = null;
+    typeID = "";
 
 }
 

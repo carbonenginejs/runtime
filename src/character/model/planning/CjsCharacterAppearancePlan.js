@@ -299,7 +299,7 @@ export class CjsCharacterAppearancePlan
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    sourceBuild = null;
+    sourceBuild = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

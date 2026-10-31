@@ -13,15 +13,15 @@ export class CjsCharacterArchetype extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    location = null;
+    location = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    descriptionID = null;
+    descriptionID = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    titleID = null;
+    titleID = "";
 
 }
 

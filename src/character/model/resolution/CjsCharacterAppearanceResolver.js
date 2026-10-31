@@ -354,7 +354,7 @@ function ResolveColorSelections(plan, paperdoll)
         plan.CreateColorSelection({
             colorKey: location.colorKey,
             colorNameA: colorA.colorName,
-            colorNameBC: colorBC?.colorName ?? null,
+            colorNameBC: colorBC?.colorName ?? "",
             gloss: value.gloss,
             weight: value.weight,
             hasGloss: location.hasGloss,
@@ -581,7 +581,7 @@ function ResolveModifier(
         texturePaths: [ ...version.textureCandidates ],
         requestedLod,
         resolvedLod: modelBundle?.lod ?? null,
-        modelFamily: modelBundle?.modelFamily ?? null,
+        modelFamily: modelBundle?.modelFamily ?? "",
         origin: partOrigin
     });
 
@@ -1188,7 +1188,7 @@ function ResolvePartDependencies(
             texturePaths: [ ...version.textureCandidates ],
             requestedLod,
             resolvedLod: modelBundle?.lod ?? null,
-            modelFamily: modelBundle?.modelFamily ?? null,
+            modelFamily: modelBundle?.modelFamily ?? "",
             origin: partOrigin
         });
 

@@ -181,7 +181,7 @@ export class CjsCharacterPaperdoll extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32
-    renderStatus = null;
+    renderStatus = 0;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32

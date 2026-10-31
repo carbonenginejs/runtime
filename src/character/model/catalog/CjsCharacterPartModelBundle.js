@@ -27,15 +27,15 @@ export class CjsCharacterPartModelBundle
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    lodOrigin = null;
+    lodOrigin = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    modelFamily = null;
+    modelFamily = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    modelFamilyOrigin = null;
+    modelFamilyOrigin = "";
 
 }
 

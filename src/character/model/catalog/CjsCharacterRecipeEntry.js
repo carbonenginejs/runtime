@@ -47,7 +47,7 @@ export class CjsCharacterRecipeEntry
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    colorVariation = null;
+    colorVariation = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
@@ -62,7 +62,7 @@ export class CjsCharacterRecipeEntry
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    pattern = null;
+    pattern = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

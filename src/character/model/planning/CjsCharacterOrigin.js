@@ -14,17 +14,17 @@ export class CjsCharacterOrigin
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    document = null;
+    document = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    recordID = null;
+    recordID = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    jsonPointer = null;
+    jsonPointer = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
@@ -34,7 +34,7 @@ export class CjsCharacterOrigin
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    rule = null;
+    rule = "";
 
 }
 

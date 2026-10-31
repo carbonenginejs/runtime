@@ -19,7 +19,7 @@ export class CjsCharacterAppearanceColorSelection
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    colorNameBC = null;
+    colorNameBC = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

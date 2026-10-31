@@ -37,7 +37,7 @@ export class CjsCharacterResource extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    typeID = null;
+    typeID = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.uint8
