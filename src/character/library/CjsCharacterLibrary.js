@@ -1,6 +1,6 @@
 import { CjsPngFormat } from "../../resource/formats/png/CjsPngFormat.js";
 import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
-import { CjsCharacterGeneric } from "./kinds/CjsCharacterGeneric.js";
+import { CjsCharacterGeneric } from "../model/source/CjsCharacterGeneric.js";
 import { exposure as be } from "#be";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsSchema, meta, type } from "#schema";

@@ -4,7 +4,7 @@ import { CjsCharacterModifier } from "./CjsCharacterModifier.js";
 import { CjsSchema } from "#schema";
 import { blue } from "#blue";
 import { CjsCharacterLibraryBuilder } from "./CjsCharacterLibraryBuilder.js";
-import { CjsCharacterColorVariation } from "./kinds/CjsCharacterColorVariation.js";
+import { CjsCharacterColorVariation } from "../model/source/CjsCharacterColorVariation.js";
 
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";

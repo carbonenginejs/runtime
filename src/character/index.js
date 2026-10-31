@@ -19,7 +19,6 @@ export * from "./trinity/index.js";
 export * from "./incarna/index.js";
 export * from "./application/index.js";
 export { createCharacterYamlTagHandlers, readCharacterYamlObject } from "./formats/yaml.js";
-export * from "./library/kinds/index.js";
 export { CjsCharacterObjectBuilder } from "./formats/CjsCharacterObjectBuilder.js";
 export { CjsCharacterLibraryConfiguration } from "./library/CjsCharacterLibraryConfiguration.js";
 export { CjsCharacterNamedValue } from "./library/CjsCharacterNamedValue.js";
