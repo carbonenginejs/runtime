@@ -3810,9 +3810,6 @@ function createExposureNamespace(legacy)
         ...exposureConstants(),
         define: name => exposureClassDecorator(name, false, true),
         interface: name => exposureClassDecorator(name, true, true),
-        // One MAP_INTERFACE line, or several as one ordered array (`mapInterface([A, B])`), registered in that order.
-        mapInterface: (...Interfaces) => carbonInterfaceDecorator(Interfaces.flat(), true),
-        exposureChainTo: Parent => carbonChainToDecorator(Parent),
         inherit: (...Bases) => CjsSchema.blue.inherit(...Bases),
         abstract: legacy.abstract,
         ...createMapNamespace(true)
@@ -3832,6 +3829,10 @@ function createMapNamespace(blue)
 {
     const ns = blue ? "be" : "meta";
     return {
+        // One MAP_INTERFACE line, or several as one ordered array (`mapInterface([A, B])`), registered in that order. The interface
+        // table and the chain record no Blue flag in either namespace: whether the class is Carbon's exposure is its identity's fact.
+        mapInterface: (...Interfaces) => carbonInterfaceDecorator(Interfaces.flat(), true),
+        exposureChainTo: Parent => carbonChainToDecorator(Parent),
         mapAttribute: (flags, name) => inheritedAware(ns, "mapAttribute", "member", name, key => exposureAttributeDecorator("MAP_ATTRIBUTE", flags, undefined, key, blue)),
         // Carbon's `MAP_ATTRIBUTE( name, member[index], ... )` for one element of an array member: the row sits on the array field.
         mapAttribute__Index: (flags, name, index) => exposureIndexDecorator(flags, name, index, blue),
