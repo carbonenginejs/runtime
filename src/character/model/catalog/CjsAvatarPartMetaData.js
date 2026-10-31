@@ -41,9 +41,13 @@ export class CjsAvatarPartMetaData extends CjsCharacterRecord
     @type.string
     lod2Replacement = "";
 
+    /**
+     * The part's colour-area count; -1 when the file does not state one, so a
+     * reader can fall back to counting the areas its zone map selects.
+     */
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.int32
-    numColorAreas = 0;
+    numColorAreas = -1;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.list("string")

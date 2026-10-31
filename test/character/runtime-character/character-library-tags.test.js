@@ -43,6 +43,13 @@ test("one handler supports registry names and preserves YAML alias identity", ()
     assert.notEqual(Read(source).first, value.first);
 });
 
+test("an unstated numColorAreas reads as -1, apart from an authored 0", () =>
+{
+    // 8 of 548 shipped metadata.yaml files omit it; readers then count the zone map's areas.
+    assert.equal(Read("!!python/object:paperDoll.AvatarPartMetaData\nforcesLooseTop: false\n").numColorAreas, -1);
+    assert.equal(Read("!!python/object:paperDoll.AvatarPartMetaData\nnumColorAreas: 0\n").numColorAreas, 0);
+});
+
 test("unknown object tags and non-mapping values are rejected without execution", () =>
 {
     assert.throws(() => Read("!!python/object:missing.Class {}"), /no explicit handler/);
