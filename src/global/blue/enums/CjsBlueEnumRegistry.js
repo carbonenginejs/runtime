@@ -64,6 +64,8 @@ export class CjsBlueEnumRegistry
      * Registering the same object, name and metadata again is harmless. A
      * conflicting registration, or a second name for one object, throws
      * TypeError before publication and does not freeze the rejected object.
+     *
+     * @adapted
      */
     Register(name, values, definition = {})
     {
@@ -75,43 +77,69 @@ export class CjsBlueEnumRegistry
      * The supplied literal retains its identity and gains no property: its name
      * lives in this registry (GetEnumName), as nothing may add a property to an
      * object after its construction (class-shape rule, 2026-10-19).
+     *
+     * @adapted
      */
     Create(name, values, definition = {})
     {
         return this._Register(name, values, definition);
     }
 
-    /** Sets a registration using the same conflict checks; never silently replaces a type. */
+    /**
+     * Sets a registration using the same conflict checks; never silently replaces a type.
+     *
+     * @adapted
+     */
     Set(name, values, definition = {})
     {
         return this.Register(name, values, definition);
     }
 
-    /** Returns the registered enum; the shorter spelling of GetEnum. */
+    /**
+     * Returns the registered enum; the shorter spelling of GetEnum.
+     *
+     * @adapted
+     */
     Get(name)
     {
         return this.GetEnum(name);
     }
 
-    /** Compatibility spelling for existing registration callers. */
+    /**
+     * Compatibility spelling for existing registration callers.
+     *
+     * @adapted
+     */
     RegisterEnum(name, values, definition = {})
     {
         return this.Register(name, values, definition);
     }
 
-    /** Carbon EnumRegistration<T>::GetValueName, with the native alias ordering. */
+    /**
+     * Carbon EnumRegistration<T>::GetValueName, with the native alias ordering.
+     *
+     * @adapted
+     */
     GetValueName(name, value)
     {
         return this.GetNameFromValue(name, value);
     }
 
-    /** Carbon EnumRegistration<T>::GetValueNameAsBitMask, including contained composites. */
+    /**
+     * Carbon EnumRegistration<T>::GetValueNameAsBitMask, including contained composites.
+     *
+     * @adapted
+     */
     GetValueNameAsBitMask(name, value)
     {
         return this.GetNameFromBitmask(name, value);
     }
 
-    /** Validates the full registration before mutating either the enum or registry. */
+    /**
+     * Validates the full registration before mutating either the enum or registry.
+     *
+     * @adapted
+     */
     _Register(name, values, definition)
     {
         if (typeof name !== "string" || !name || name.trim() !== name)
@@ -211,6 +239,8 @@ export class CjsBlueEnumRegistry
      * Carbon: a lookup in `BlueRegistration::GetEnumRegs`
      * (BlueRegistration.h:117), as EnumTypeRegistration::GetTypeValuesGetter
      * does (:290-300), tested for presence.
+     *
+     * @adapted
      */
     HasEnum(name)
     {
@@ -222,6 +252,8 @@ export class CjsBlueEnumRegistry
      *
      * Carbon: EnumTypeRegistration::GetTypeValuesGetter (BlueRegistration.h:290-300)
      * finds the registration in GetEnumRegs, and its getter returns the values.
+     *
+     * @adapted
      */
     GetEnum(name)
     {
@@ -234,6 +266,8 @@ export class CjsBlueEnumRegistry
      * Carbon: the GetEnumRegs entry (BlueRegistration.h:117) with its
      * EnumRegistration<T>::GetValues records (:245-250). Differs: an unknown
      * name throws ReferenceError, where GetTypeValuesGetter returns NULL.
+     *
+     * @adapted
      */
     GetEnumInfo(name)
     {
@@ -248,6 +282,8 @@ export class CjsBlueEnumRegistry
      * No single Carbon originator: a PyBlueEnumObject (BlueRegistrationPython.cpp:24)
      * is created per registration name, so Carbon never has to look the name up
      * from the values object. This reverse lookup is ours.
+     *
+     * @adapted
      */
     GetEnumName(values)
     {
@@ -266,6 +302,8 @@ export class CjsBlueEnumRegistry
      * joins every exact match, as this does. Differs: no match throws
      * RangeError where Python raises AttributeError("Enum value not found"),
      * and the C++ functions return an empty string.
+     *
+     * @adapted
      */
     GetNameFromValue(name, value)
     {
@@ -292,6 +330,8 @@ export class CjsBlueEnumRegistry
      * the mask is joined with " | ", including aliases and composites. Unknown
      * remaining bits do not invalidate known matches, and zero matches only an
      * explicit zero entry.
+     *
+     * @adapted
      */
     GetNameFromBitmask(name, mask)
     {
