@@ -30,7 +30,7 @@ export class CjsCharacterLibraryManager
         {
             if (!this._sourceBuilder.ListSourceNames(kind).includes(name))
                 throw new Error(`Unresolved character ${kind} reference: ${name}`);
-            await this._sourceBuilder.LoadKind(kind);
+            await this._sourceBuilder.LoadRecord(kind, name);
             if (generation !== this._installGeneration) throw new Error("Character library was replaced during a kind load.");
             record = this._library.GetKindRecord(kind, name);
         }

@@ -36,6 +36,8 @@ export class CjsCharacterLibraryBuilder
 
     _kindLoads = new Map();
 
+    _recordLoads = new Map();
+
     _indexed = false;
 
     _readerOptions = {};
@@ -167,37 +169,72 @@ export class CjsCharacterLibraryBuilder
      */
     async LoadSourceFamily(kind)
     {
-        const declaration = this._configuration.kinds[kind];
         const names = [...this._kindPaths.get(kind)].sort();
         for (let start = 0; start < names.length; start += 8)
         {
-            const results = await Promise.allSettled(names.slice(start, start + 8).map(async path =>
-            {
-                if (this._flatLibrary.GetKindRecord(kind, path)) return;
-                const variant = kind === "cameras" ? "cameraSequences" : kind === "posts" ? "scalarPosts" : null;
-                if (variant && this._flatLibrary.GetKindRecord(variant, path)) return;
-                if (!await this._paths.FileExists(path)) throw new Error(`Missing indexed character source: ${path}`);
-                let record, actual = kind;
-                if (declaration.pathOnly)
-                {
-                    const Constructor = CjsSchema.getConstructor(declaration.className);
-                    record = new Constructor();
-                    const value = declaration.className === "CjsCharacterNamedValue" ? { name: path, value: path } : { name: path, resFilePath: path };
-                    CjsSchema.setValues(record, value, { initialize: false });
-                }
-                else
-                {
-                    record = await this._resMan.LoadObject(path, getResourceExtension(path) ? {} : { ext: ".yaml" });
-                    if (!record) throw new Error(`Character source did not load: ${path}`);
-                    const source = CjsCharacterObjectBuilder.getSource(record);
-                    if (!source) throw new TypeError(`Character source bypassed its configured object builder: ${path}`);
-                    actual = source.kind;
-                }
-                this._flatLibrary.AddKind(actual, path, record);
-            }));
+            const results = await Promise.allSettled(names.slice(start, start + 8).map(path => this.LoadRecord(kind, path)));
             const failure = results.find(result => result.status === "rejected");
             if (failure) throw failure.reason;
         }
+    }
+
+    /**
+     * Loads one indexed source record on its first need, through the existing Blue object route,
+     * and stores it in the flat library. Concurrent requests for one path share one load; a failed
+     * load is forgotten, so a later request retries it.
+     *
+     * Ours, as the whole builder is (non-carbon-extensions.md § *The shared character library*): the
+     * library loads each record when a reader first needs it, rather than its whole family, so one
+     * palette read does not read every palette (operator ruling, 2026-11-01).
+     *
+     * @param {string} kind Configured source family.
+     * @param {string} path Canonical indexed source path.
+     * @returns {Promise<object>} The stored record, of the family or its identified variant.
+     */
+    async LoadRecord(kind, path)
+    {
+        const variant = kind === "cameras" ? "cameraSequences" : kind === "posts" ? "scalarPosts" : null;
+        const stored = this._flatLibrary.GetKindRecord(kind, path) ?? (variant ? this._flatLibrary.GetKindRecord(variant, path) : null);
+        if (stored) return stored;
+        if (!this._recordLoads.has(path))
+        {
+            const operation = this._LoadRecord(kind, path);
+            this._recordLoads.set(path, operation);
+            const clear = () => { if (this._recordLoads.get(path) === operation) this._recordLoads.delete(path); };
+            operation.then(clear, clear);
+        }
+        return this._recordLoads.get(path);
+    }
+
+    /**
+     * LoadRecord's read: a path-only kind becomes its path record; a text kind loads through resMan
+     * LoadObject and its configured object builder, which identifies the record's actual kind.
+     * @param {string} kind Configured source family.
+     * @param {string} path Canonical indexed source path.
+     * @returns {Promise<object>} The stored record.
+     */
+    async _LoadRecord(kind, path)
+    {
+        const declaration = this._configuration.kinds[kind];
+        if (!await this._paths.FileExists(path)) throw new Error(`Missing indexed character source: ${path}`);
+        let record, actual = kind;
+        if (declaration.pathOnly)
+        {
+            const Constructor = CjsSchema.getConstructor(declaration.className);
+            record = new Constructor();
+            const value = declaration.className === "CjsCharacterNamedValue" ? { name: path, value: path } : { name: path, resFilePath: path };
+            CjsSchema.setValues(record, value, { initialize: false });
+        }
+        else
+        {
+            record = await this._resMan.LoadObject(path, getResourceExtension(path) ? {} : { ext: ".yaml" });
+            if (!record) throw new Error(`Character source did not load: ${path}`);
+            const source = CjsCharacterObjectBuilder.getSource(record);
+            if (!source) throw new TypeError(`Character source bypassed its configured object builder: ${path}`);
+            actual = source.kind;
+        }
+        this._flatLibrary.AddKind(actual, path, record);
+        return record;
     }
 
     /**
@@ -211,7 +248,7 @@ export class CjsCharacterLibraryBuilder
         const key = normalizeResourcePath(path);
         const kind = this._sourceKinds.get(key);
         if (!kind) throw new Error(`Unresolved character reference: ${path}`);
-        await this.LoadKind(kind);
+        await this.LoadRecord(kind, key);
         const variant = kind === "cameras" ? "cameraSequences" : kind === "posts" ? "scalarPosts" : null;
         return this._flatLibrary.GetKindRecord(kind, key)
             ?? (variant ? this._flatLibrary.GetKindRecord(variant, key) : null);

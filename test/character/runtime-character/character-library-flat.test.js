@@ -74,7 +74,7 @@ test("flat values retain source identities and leave legacy payloads unchanged",
     assert.deepEqual(copy.ListKindNames("cameras"), []);
 });
 
-test("lazy Blue reads cache families, preserve unrelated YAML and distinguish content variants", async t =>
+test("lazy Blue reads load each record once on first need, preserve unrelated YAML and distinguish content variants", async t =>
 {
     const { builder, resMan, reads } = fixture(t);
     await builder.Build({ lazy: true });
@@ -82,8 +82,10 @@ test("lazy Blue reads cache families, preserve unrelated YAML and distinguish co
     const manager = new CjsCharacterLibraryManager(null, { sourceBuilder: builder });
     const [a,b] = await Promise.all([manager.GetCamera(CAMERA), manager.GetCamera(CAMERA)]);
     assert.equal(a,b);
-    assert.equal(reads.length, 2);
+    // One record, not its family: the camera sequence beside it is not read yet.
+    assert.deepEqual(reads, [CAMERA]);
     assert.deepEqual(await manager.ListCameraNames(), [CAMERA]);
+    assert.deepEqual(reads, [CAMERA, SEQUENCE]);
     assert.deepEqual(await manager.ListCameraSequenceNames(), [SEQUENCE]);
     assert.equal((await manager.GetPostBaseNames(BASENAME)).value, "one two");
     assert.deepEqual(await resMan.LoadObject("res:/unrelated.yaml"), { fallback: true });
@@ -172,7 +174,7 @@ test("a pending part join cannot cross a library replacement", async t =>
     const gate = new Promise(resolve => { release = resolve; });
     class DelayedBuilder extends CjsCharacterLibraryBuilder
     {
-        async LoadKind(kind) { await gate; return super.LoadKind(kind); }
+        async LoadRecord(kind, path) { await gate; return super.LoadRecord(kind, path); }
     }
     const builder = new DelayedBuilder({ paths, resMan });
     const manager = new CjsCharacterLibraryManager(null, { sourceBuilder: builder });
