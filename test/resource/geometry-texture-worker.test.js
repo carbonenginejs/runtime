@@ -3,7 +3,7 @@ import { createDdsBitmap } from "../../npm/dist/resource/formats/dds/ddsBitmap.j
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Worker } from "node:worker_threads";
-import { CjsBlueResMan, CjsResManWorkerLoader, CjsResManQueue } from "../../npm/dist/global/blue/index.js";
+import { BlueResManQueue, CjsBlueResMan, CjsResManWorkerLoader } from "../../npm/dist/global/blue/index.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
@@ -214,7 +214,7 @@ test("deleting a resource rejects its late worker result without occupying the m
   const resource = manager.GetResource("res:/obsolete.gr2");
   const pending = manager.Ready(resource).then(()=>null,error=>error);
   const result = await arrival;
-  assert.equal(await manager.QueueTask(CjsResManQueue.MAIN,()=>"responsive").promise,"responsive");
+  assert.equal(await new Promise(resolve=>manager.AddToQueue(BlueResManQueue.BRMQ_MAIN,resolve,"responsive")),"responsive");
   manager.Delete("res:/obsolete.gr2");
   deliver(result);
   assert.ok(await pending,"stale readiness must reject");
@@ -304,8 +304,8 @@ test("direct Granny Load uses library registration, both queues and the worker",
   const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read() { reads++; return bytes; } } });
   await configureResourceManager(manager);
   assert.equal(manager.GetFormatDescriptors("gr2").length, 0, "no bare-format registration masks the extension/ex reader");
-  manager.PauseQueue(CjsResManQueue.BACKGROUND);
-  manager.PauseQueue(CjsResManQueue.MAIN);
+  manager.PauseQueue(BlueResManQueue.BRMQ_BACKGROUND);
+  manager.PauseQueue(BlueResManQueue.BRMQ_MAIN);
   const resource = new TriGrannyRes();
   const other = new TriGrannyRes();
   const original = CjsGr2Format.prototype.ReadDataAsync;
@@ -316,7 +316,7 @@ test("direct Granny Load uses library registration, both queues and the worker",
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(reads, 0, "a paused background queue prevents source I/O");
   assert.equal(messages.length, 0);
-  manager.ResumeQueue(CjsResManQueue.BACKGROUND);
+  manager.ResumeQueue(BlueResManQueue.BRMQ_BACKGROUND);
   const deadline = Date.now() + 10000;
   while (manager.GetPendingLoads() !== 0)
   {
@@ -327,7 +327,7 @@ test("direct Granny Load uses library registration, both queues and the worker",
   assert.equal(reads, 1, "concurrent direct handles share the source operation");
   assert.equal(messages.filter(message => message.operation === "format.read").length, 1,
     "the stable registered descriptor shares the decode operation");
-  manager.ResumeQueue(CjsResManQueue.MAIN);
+  manager.ResumeQueue(BlueResManQueue.BRMQ_MAIN);
   assert.deepEqual(await Promise.all([first, second]), [true, true]);
   assert.equal(resource.GetExt(), "raw");
   assert.equal(resource.GetGrannyFile().meshes.length, 1);

@@ -19,7 +19,7 @@
 //     YamlWriter).
 //
 // CcpTime and CcpDateTime port core/include/CcpTime.h. Files with no Carbon
-// header of the same name (CjsScriptCallback, CjsResManWorkQueue,
+// header of the same name (CjsScriptCallback,
 // CjsFormatStore, CjsLoadingObject, the lowercase helper modules) state their
 // donor, or that they have none, in their own headers.
 //
@@ -104,7 +104,6 @@ export * from "./CjsLoadingObject.js";
 export * from "./CjsMotherLode.js";
 export * from "./worker/CjsResManMainThreadLoader.js";
 export * from "./worker/CjsResManWorkerLoader.js";
-export { CjsResManQueue } from "./CjsResManWorkQueue.js";
 export * from "./CjsBlueResMan.js";
 export * from "./IBluePaths.js";
 export * from "./IBlueClasses.js";

@@ -302,7 +302,7 @@ test("GetObject refuses a load that yields plain data, and names GetResource", a
 });
 
 // Builds from a registered object builder are MAIN-queue tasks: FIFO, each
-// whole, drained within the pump's time budget (Carbon's one-build-at-a-time
+// whole, drained within the prepare loop's time slice (Carbon's one-build-at-a-time
 // BlackReader wait, BlackReader.cpp:233-262; ccpwgl findings 0277-0279).
 test("object builds drain FIFO within the prepare budget, never split, re-entrant last", async () =>
 {
@@ -342,7 +342,7 @@ test("object builds drain FIFO within the prepare budget, never split, re-entran
   for (let pumps = 0; pumps < 50 && order.length < 21; pumps++)
   {
     const before = built;
-    resMan.PumpMainThreadQueue({ maxTime: 0.010, maxItems: 0, now: () => clock });
+    resMan.Update({ cache: false, purge: false, prepare: { maxTime: 0.010, now: () => clock } });
     perPump.push(built - before);
     await new Promise(resolve => setTimeout(resolve, 0));
   }

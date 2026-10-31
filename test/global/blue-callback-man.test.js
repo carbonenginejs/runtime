@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { BeCallbackMan, BlueCallbackMan, BlueCallbackManTicker, BlueCallbackManWorker, IBlueCallbackMan } from "../../src/global/blue/index.js";
+import { BeCallbackMan, BlueCallbackMan, BlueCallbackManTicker, BlueCallbackManWorker, BlueResManQueue, CjsBlueResMan, IBlueCallbackMan } from "../../src/global/blue/index.js";
 
 // blue/src/CallbackMan.cpp: urgent before regular, fences after every thread
 // drained what came before, cancel removes a queued entry and discards one in
@@ -722,14 +722,11 @@ test("CALLBACKMAN_DEBUGGING logs Carbon's CallbackMan lines on blue/CallbackMan,
   }
 });
 
-test("resMan's queues name their manager and label each task by kind and path", async () =>
+test("resMan's queues are named callback managers indexed by BlueResManQueue", () =>
 {
-  const { CjsResManWorkQueue } = await import("../../src/global/blue/CjsResManWorkQueue.js");
-  assert.equal(CjsResManWorkQueue.labelTask({ metadata: { kind: "load", path: "res:/a.dds" } }), "load res:/a.dds");
-  assert.equal(CjsResManWorkQueue.labelTask({ metadata: { flags: 0 } }), "task");
-  assert.equal(CjsResManWorkQueue.labelTask({ metadata: null }), "task");
-  const queue = new CjsResManWorkQueue("background");
-  assert.equal(queue._manager._name, "resMan background");
+  const resMan = new CjsBlueResMan();
+  assert.equal(resMan._threadQueues[BlueResManQueue.BRMQ_MAIN]._name, "resMan main");
+  assert.equal(resMan._threadQueues[BlueResManQueue.BRMQ_BACKGROUND]._name, "resMan background");
 });
 
 test("an entry labeler runs only while CALLBACKMAN_DEBUGGING is on", () =>

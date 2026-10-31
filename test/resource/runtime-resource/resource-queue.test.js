@@ -6,50 +6,46 @@ import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
 
 import { CjsBlueResMan } from "../../../npm/dist/global/blue/CjsBlueResMan.js";
 
-import { blue, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResManQueue, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
 
-import { CjsResManQueue as RootCjsResManQueue } from "../../../npm/dist/resource/index.js";
-
-import {
-  CjsResManQueue,
-  CjsResManWorkQueue
-} from "../../../npm/dist/global/blue/CjsResManWorkQueue.js";
+import { BlueResManQueue as RootBlueResManQueue } from "../../../npm/dist/resource/index.js";
 
 import { LoadData } from "../../support/loadData.js";
 
-test("CjsResManWorkQueue preserves ids, pause state, and queued cancellation", async () => {
-  assert.equal(RootCjsResManQueue, CjsResManQueue);
-  const queue = new CjsResManWorkQueue(CjsResManQueue.MAIN);
+const { BRMQ_MAIN, BRMQ_BACKGROUND } = BlueResManQueue;
+
+test("AddToQueue returns ids; a cancelled entry never runs (BlueResMan.cpp:332-357)", async () => {
+  assert.equal(RootBlueResManQueue, BlueResManQueue);
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  blue.resMan = resMan;
   const calls = [];
-  const first = queue.Add(task => calls.push(task.id));
-  const second = queue.Add(() => calls.push("cancelled"));
-  const cancelled = assert.rejects(
-    second.promise,
-    error => error.code === "CJS_RESMAN_QUEUE_CANCELLED" && error.id === second.id
-  );
+  const nextId = resMan.GetNextIdForQueue(BRMQ_MAIN);
+  const first = resMan.AddToQueue(BRMQ_MAIN, context => calls.push(context), "first");
+  const second = resMan.AddToQueue(BRMQ_MAIN, context => calls.push(context), "second");
 
-  assert.equal(first.id, 1);
-  assert.equal(second.id, 2);
-  assert.equal(queue.GetNextId(), 3);
-  queue.Pause();
-  assert.equal(queue.Pump().processed, 0);
-  assert.equal(queue.Cancel(second.id, "test cancellation"), true);
-  await cancelled;
+  assert.equal(first, nextId);
+  assert.equal(second, first + 1);
+  assert.equal(resMan.GetPendingPrepares(), 2);
+  resMan.PauseQueue(BRMQ_MAIN);
+  assert.equal(resMan.PumpMainThreadQueue(), false, "a paused queue starts nothing");
+  resMan.CancelFromQueue(BRMQ_MAIN, second);
+  assert.equal(resMan.GetPendingPrepares(), 1);
 
-  queue.Resume();
-  assert.equal(queue.Pump({ maxItems: 1 }).processed, 1);
-  await first.promise;
-  assert.deepEqual(calls, [ 1 ]);
-  assert.equal(queue.GetPendingCount(), 0);
+  resMan.ResumeQueue(BRMQ_MAIN);
+  assert.equal(resMan.PumpMainThreadQueue(), true);
+  assert.equal(resMan.PumpMainThreadQueue(), false);
+  assert.deepEqual(calls, [ "first" ], "the callback gets its context, as Carbon's (IBlueCallbackMan.h:12)");
+  assert.equal(resMan.GetPendingPrepares(), 0);
 });
 
-test("CjsResManWorkQueue limits concurrent background work", async () => {
-  const queue = new CjsResManWorkQueue(CjsResManQueue.BACKGROUND, { concurrency: 2 });
+test("SetLoadingThreadCount caps loads in flight; a freed slot starts the next without a tick", async () => {
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  blue.resMan = resMan;
+  resMan.SetLoadingThreadCount(2);
   const releases = [];
   let active = 0;
   let maximum = 0;
-
-  const add = () => queue.Add(() => new Promise(resolve => {
+  const add = () => resMan.AddToQueue(BRMQ_BACKGROUND, () => new Promise(resolve => {
     active++;
     maximum = Math.max(maximum, active);
     releases.push(() => {
@@ -58,38 +54,18 @@ test("CjsResManWorkQueue limits concurrent background work", async () => {
     });
   }));
 
-  const tasks = [ add(), add(), add() ];
-  assert.equal(queue.Pump().processed, 2);
-  assert.equal(queue.GetActiveCount(), 2);
-  assert.equal(queue.GetQueuedCount(), 1);
+  add(); add(); add();
+  assert.equal(resMan.PumpBackgroundQueue(), true);
+  assert.equal(resMan.GetQueueStats(BRMQ_BACKGROUND).active, 2);
+  assert.equal(resMan.GetQueueStats(BRMQ_BACKGROUND).queued, 1);
 
   releases.shift()();
-  await FlushMicrotasks();
-  assert.equal(queue.Pump().processed, 1);
+  await WaitUntil(() => releases.length === 2);
   assert.equal(maximum, 2);
 
   while (releases.length) releases.shift()();
-  await Promise.all(tasks.map(task => task.promise));
-  assert.equal(queue.GetPendingCount(), 0);
+  await WaitUntil(() => resMan.GetPendingLoads() === 0);
   assert.equal(maximum, 2);
-});
-
-test("CjsBlueResMan exposes Blue-style queue controls", async () => {
-  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
-  blue.resMan = resMan;
-  const calls = [];
-  const nextId = resMan.GetNextIdForQueue(CjsResManQueue.MAIN);
-  const id = resMan.AddToQueue(CjsResManQueue.PREPARE, () => calls.push("prepared"));
-
-  assert.equal(id, nextId);
-  assert.equal(resMan.GetPendingPrepares(), 1);
-  resMan.PauseQueue(CjsResManQueue.MAIN);
-  assert.equal(resMan.PumpMainThreadQueue(), false);
-  resMan.ResumeQueue(CjsResManQueue.MAIN);
-  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1 }), true);
-  await FlushMicrotasks();
-  assert.deepEqual(calls, [ "prepared" ]);
-  assert.equal(resMan.GetPendingPrepares(), 0);
 });
 
 test("native loading reads on BACKGROUND and prepares once on MAIN", async () =>
@@ -106,7 +82,7 @@ test("native loading reads on BACKGROUND and prepares once on MAIN", async () =>
   await WaitUntil(() => resMan.GetPendingPrepares() === 1);
   assert.equal(resMan.GetPendingLoads(), 0);
   assert.equal(resource.IsPrepared(), false);
-  assert.equal(resMan.PumpMainThreadQueue({maxItems: 1, maxTime: 0}), true);
+  assert.equal(resMan.PumpMainThreadQueue(), true);
   const object = await operation;
   assert.equal(object.bytes, bytes);
   assert.equal(resMan.GetResourcePayload(resource), object);
@@ -133,12 +109,13 @@ test("suffix-selected resources share source bytes while retaining their native 
   assert.equal(resMan.GetPendingLoads(), 2);
   await WaitUntil(() => resMan.GetPendingPrepares() === 2);
   assert.equal(reads, 1);
-  resMan.PumpMainThreadQueue({maxItems: 2, maxTime: 0});
+  resMan.PumpMainThreadQueue();
+  resMan.PumpMainThreadQueue();
   assert.equal((await raw).emit, "raw");
   assert.equal((await json).emit, "json");
 });
 
-test("Wait captures dynamic resource descendants and excludes later queue tasks", async () => {
+test("Wait also waits for work queued after the call (BlueResMan.cpp:971-977)", async () => {
   let releaseRead;
   let releaseLaterTask;
   const resMan = new CjsBlueResMan({
@@ -151,75 +128,37 @@ test("Wait captures dynamic resource descendants and excludes later queue tasks"
     releaseRead = () => resolve({ bytes });
   }));
 
-  const operation = LoadData(resMan, "res:/queue/wait-lineage.bin");
+  const operation = LoadData(resMan, "res:/queue/wait-later.bin");
   let waitSettled = false;
   const fence = resMan.Wait().then(value => {
     waitSettled = true;
     return value;
   });
-  const laterTask = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
-    new Promise(resolve => { releaseLaterTask = resolve; }));
+  resMan.AddToQueue(BRMQ_BACKGROUND, () => new Promise(resolve => { releaseLaterTask = resolve; }));
 
   await WaitUntil(() => typeof releaseRead === "function" && typeof releaseLaterTask === "function");
-  assert.equal(waitSettled, false);
   releaseRead();
-
-  assert.equal(await fence, resMan);
   const value = await operation;
   assert.deepEqual(value.bytes, new Uint8Array([ 5 ]));
-  assert.equal(waitSettled, true);
-  assert.equal(resMan.GetQueueStats(CjsResManQueue.BACKGROUND).active, 1);
+  await FlushMicrotasks();
+  assert.equal(waitSettled, false, "the entry queued after the call still counts");
 
   releaseLaterTask();
-  await laterTask.promise;
+  assert.equal(await fence, resMan);
+  assert.equal(resMan.GetPendingLoads() + resMan.GetPendingPrepares(), 0);
 });
 
-test("concurrent Wait calls preserve distinct task snapshot boundaries", async () => {
-  const releases = [];
+test("Wait counts a cancelled entry and a rejected one as done", async () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   blue.resMan = resMan;
-  const first = resMan.QueueTask(CjsResManQueue.MAIN, () =>
-    new Promise(resolve => releases.push(resolve)));
-  const firstFence = resMan.Wait({ pump: false });
-  const second = resMan.QueueTask(CjsResManQueue.MAIN, () =>
-    new Promise(resolve => releases.push(resolve)));
-  let secondFenceSettled = false;
-  const secondFence = resMan.Wait({ pump: false }).then(value => {
-    secondFenceSettled = true;
-    return value;
-  });
-
-  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1 }), true);
-  releases.shift()();
-  await first.promise;
-  assert.equal(await firstFence, resMan);
-  assert.equal(secondFenceSettled, false);
-  assert.equal(resMan.GetQueueStats(CjsResManQueue.MAIN).queued, 1);
-
-  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1 }), true);
-  releases.shift()();
-  await second.promise;
-  assert.equal(await secondFence, resMan);
-});
-
-test("Wait treats captured queue failure and cancellation as settlement", async () => {
-  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
-  blue.resMan = resMan;
-  const failing = resMan.QueueTask(CjsResManQueue.MAIN, () => {
-    throw new Error("expected wait failure");
-  });
-  const cancelled = resMan.QueueTask(CjsResManQueue.MAIN, () => "not run");
-  const failingAssertion = assert.rejects(failing.promise, /expected wait failure/u);
-  const cancelledAssertion = assert.rejects(
-    cancelled.promise,
-    error => error.code === "CJS_RESMAN_QUEUE_CANCELLED"
-  );
+  const failing = resMan.AddToQueue(BRMQ_MAIN, () => Promise.reject(new Error("expected wait failure")));
+  const cancelled = resMan.AddToQueue(BRMQ_MAIN, () => assert.fail("a cancelled entry must not run"));
   const fence = resMan.Wait({ pump: false });
 
-  assert.equal(resMan.CancelFromQueue(CjsResManQueue.MAIN, cancelled.id, "wait test"), true);
-  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1 }), true);
-  await Promise.all([ failingAssertion, cancelledAssertion ]);
+  resMan.CancelFromQueue(BRMQ_MAIN, cancelled);
+  assert.equal(resMan.PumpMainThreadQueue(), true);
   assert.equal(await fence, resMan);
+  assert.ok(failing > 0);
 });
 
 test("Wait resolves after a captured resource lineage fails", async () => {
@@ -247,7 +186,7 @@ test("Clear cancellation settles an already captured resource lineage", async ()
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
   blue.resMan = resMan;
-  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
+  resMan.PauseQueue(BRMQ_BACKGROUND);
   resMan.RegisterObjectLoader("bin", value => value);
   const operation = LoadData(resMan, "res:/queue/wait-clear.bin");
   const resource = resMan.Lookup("res:/queue/wait-clear.bin");
@@ -269,18 +208,18 @@ test("Wait pump false relies on an external queue driver", async () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   blue.resMan = resMan;
   let ran = false;
-  const task = resMan.QueueTask(CjsResManQueue.MAIN, () => { ran = true; });
+  resMan.AddToQueue(BRMQ_MAIN, () => { ran = true; });
   let waitSettled = false;
   const fence = resMan.Wait({ pump: false }).then(value => {
     waitSettled = true;
     return value;
   });
 
-  await FlushMicrotasks();
+  await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(ran, false);
   assert.equal(waitSettled, false);
-  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1 }), true);
-  await task.promise;
+  assert.equal(resMan.PumpMainThreadQueue(), true);
+  assert.equal(ran, true);
   assert.equal(await fence, resMan);
 });
 
@@ -288,8 +227,8 @@ test("Wait does not resume a paused queue", async () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   blue.resMan = resMan;
   let ran = false;
-  const task = resMan.QueueTask(CjsResManQueue.MAIN, () => { ran = true; });
-  resMan.PauseQueue(CjsResManQueue.MAIN);
+  resMan.AddToQueue(BRMQ_MAIN, () => { ran = true; });
+  resMan.PauseQueue(BRMQ_MAIN);
   let waitSettled = false;
   const fence = resMan.Wait().then(value => {
     waitSettled = true;
@@ -299,22 +238,19 @@ test("Wait does not resume a paused queue", async () => {
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(ran, false);
   assert.equal(waitSettled, false);
-  assert.equal(resMan.GetQueueStats(CjsResManQueue.MAIN).paused, true);
+  assert.equal(resMan.GetQueueStats(BRMQ_MAIN).paused, true);
 
-  resMan.ResumeQueue(CjsResManQueue.MAIN);
+  resMan.ResumeQueue(BRMQ_MAIN);
   assert.equal(await fence, resMan);
-  await task.promise;
   assert.equal(ran, true);
 });
 
-test("Wait awaits every captured task under background concurrency", async () => {
+test("Wait waits for every background entry under its concurrency", async () => {
   const releases = [];
   const resMan = new CjsBlueResMan({ maxConcurrentLoads: 2 });
   blue.resMan = resMan;
-  const first = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
-    new Promise(resolve => releases.push(resolve)));
-  const second = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
-    new Promise(resolve => releases.push(resolve)));
+  resMan.AddToQueue(BRMQ_BACKGROUND, () => new Promise(resolve => releases.push(resolve)));
+  resMan.AddToQueue(BRMQ_BACKGROUND, () => new Promise(resolve => releases.push(resolve)));
   let waitSettled = false;
   const fence = resMan.Wait().then(value => {
     waitSettled = true;
@@ -323,10 +259,9 @@ test("Wait awaits every captured task under background concurrency", async () =>
 
   await WaitUntil(() => releases.length === 2);
   releases.shift()();
-  await first.promise;
+  await FlushMicrotasks();
   assert.equal(waitSettled, false);
   releases.shift()();
-  await second.promise;
   assert.equal(await fence, resMan);
 });
 
@@ -465,8 +400,8 @@ test("resources created in urgent mode load and prepare ahead of regular ones (B
   waited.then(() => { settled = true; });
   while (!settled)
   {
-    resMan.PumpBackgroundQueue({ maxItems: 1 });
-    resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 });
+    resMan.PumpBackgroundQueue();
+    resMan.PumpMainThreadQueue();
     await FlushMicrotasks();
   }
 
@@ -483,9 +418,9 @@ test("a background queue drains on its own: a finished task starts the next with
   const resMan = new CjsBlueResMan({ maxConcurrentLoads: 1 });
   blue.resMan = resMan;
   const order = [];
-  const first = resMan.QueueTask("background", async () => { await null; order.push("first"); return 1; });
-  const second = resMan.QueueTask("background", async () => { order.push("second"); return 2; });
-  await Promise.race([ Promise.all([ first.promise, second.promise ]), new Promise((_, reject) => setTimeout(() => reject(new Error("the second task never started")), 500)) ]);
+  resMan.AddToQueue(BRMQ_BACKGROUND, async () => { await null; order.push("first"); });
+  resMan.AddToQueue(BRMQ_BACKGROUND, async () => { order.push("second"); });
+  await WaitUntil(() => order.length === 2);
   assert.deepEqual(order, [ "first", "second" ]);
 });
 
@@ -520,9 +455,10 @@ test("urgent mode keeps the per-tick prepare budget (BlueResMan.cpp:446-465)", (
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   blue.resMan = resMan;
   const ran = [];
-  for (const name of [ "a", "b", "c" ]) resMan.QueueTask("main", () => { ran.push(name); });
+  for (const name of [ "a", "b", "c" ]) resMan.AddToQueue(BRMQ_MAIN, () => { ran.push(name); });
   resMan.SetUrgentResourceLoads(true);
-  resMan.PumpMainThreadQueue({ maxItems: 1 });
+  let clock = 0;
+  resMan.Update({ cache: false, purge: false, prepare: { maxTime: 0.001, now: () => clock++ } });
   assert.deepEqual(ran, [ "a" ]);
   resMan.SetUrgentResourceLoads(false);
 });
@@ -530,7 +466,7 @@ test("urgent mode keeps the per-tick prepare budget (BlueResMan.cpp:446-465)", (
 test("Update fills Carbon's statistics members (BlueResMan.cpp:466-500)", () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   blue.resMan = resMan;
-  for (const name of [ "a", "b", "c" ]) resMan.QueueTask("main", () => name);
+  for (const name of [ "a", "b", "c" ]) resMan.AddToQueue(BRMQ_MAIN, () => name);
   let clock = 0;
   // Each clock read advances 1 ms; the slice is 1 ms, so one prepare per tick.
   const tick = { cache: false, purge: false, prepare: { maxTime: 0.001, now: () => clock++ } };
@@ -561,7 +497,7 @@ test("Update keeps preparing past its slice while more than maxAllowedInPrepareQ
   assert.equal(new CjsBlueResMan().maxAllowedInPrepareQueue, 256, "Carbon's default (BlueResMan.cpp:84)");
   assert.throws(() => resMan.Register({ maxAllowedInPrepareQueue: -1 }), TypeError);
   const ran = [];
-  for (const name of [ "a", "b", "c" ]) resMan.QueueTask("main", () => { ran.push(name); });
+  for (const name of [ "a", "b", "c" ]) resMan.AddToQueue(BRMQ_MAIN, () => { ran.push(name); });
   let clock = 0;
 
   resMan.Update({ cache: false, purge: false, prepare: { maxTime: 0.001, now: () => clock++ } });
@@ -571,14 +507,14 @@ test("Update keeps preparing past its slice while more than maxAllowedInPrepareQ
   assert.equal(resMan.pendingPrepares, 1);
 });
 
-test("SetLoadingThreadCount clamps to one and sets the background concurrency (BlueResMan.cpp:520-528)", () => {
+test("SetLoadingThreadCount clamps to one and sets the background queue's thread count (BlueResMan.cpp:520-528)", () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false, maxConcurrentLoads: 3 });
-  assert.equal(resMan.GetQueueStats("background").concurrency, 3, "maxConcurrentLoads configures it");
+  assert.equal(resMan._threadQueues[BRMQ_BACKGROUND]._threadCount, 3, "maxConcurrentLoads configures it");
   resMan.SetLoadingThreadCount(0);
-  assert.equal(resMan.GetQueueStats("background").concurrency, 1);
+  assert.equal(resMan._threadQueues[BRMQ_BACKGROUND]._threadCount, 1);
   assert.equal(resMan.maxConcurrentLoads, 1);
   resMan.SetLoadingThreadCount(5);
-  assert.equal(resMan.GetQueueStats("background").concurrency, 5);
+  assert.equal(resMan._threadQueues[BRMQ_BACKGROUND]._threadCount, 5);
   assert.equal(resMan.maxConcurrentLoads, 5);
 });
 let previousManager;

@@ -29,8 +29,8 @@ class QueueResMan extends CjsBlueResMan
   ReserveBackgroundLoadMemory(size) { this.reserved.push(size); }
   ReleaseBackgroundLoadMemory(size) { this.released.push(size); }
 
-  /** Runs a queued entry the way CjsResManWorkQueue does: context as `this`, a record as the argument. */
-  Run(entry) { return entry.callback.call(entry.context, { id: entry.id, queue: entry.queue, metadata: null }); }
+  /** Runs a queued entry as BlueCallbackMan does: `callback(context)` (IBlueCallbackMan.h:12). */
+  Run(entry) { return entry.callback(entry.context); }
 }
 
 class MapPaths extends IBluePaths

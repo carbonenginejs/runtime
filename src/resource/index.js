@@ -29,7 +29,7 @@ export {
   getMotherLodeKey,
   CjsResManMainThreadLoader,
   CjsResManWorkerLoader,
-  CjsResManQueue,
+  BlueResManQueue,
   CjsBlueResMan
 } from "#blue";
 

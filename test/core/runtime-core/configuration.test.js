@@ -101,9 +101,9 @@ test("live configuration applies scheduling but defers image-handler policy unti
   await library.Initialize(owners);
   const register = t.mock.method(owners.resMan, "Register");
   const count = ImageIO._imageHandlers.filter(value => value === CjsPngFormat).length;
-  library.SetConfiguration({ imageHandlers: { png: CjsPngFormat }, resMan: { maxPrepareItemsPerTick: 7 } });
+  library.SetConfiguration({ imageHandlers: { png: CjsPngFormat }, resMan: { maxPrepareTime: 0.007 } });
   assert.equal(register.mock.callCount(), 1);
-  assert.deepEqual(register.mock.calls[0].arguments, [{ maxPrepareItemsPerTick: 7 }]);
+  assert.deepEqual(register.mock.calls[0].arguments, [{ maxPrepareTime: 0.007 }]);
   assert.equal(ImageIO._imageHandlers.filter(value => value === CjsPngFormat).length, count);
   library.SetConfiguration({ imageHandlers: { png: CjsVtaFormat }, resMan: { maxConcurrentLoads: 1, maxAllowedInPrepareQueue: 64 } });
   assert.equal(owners.resMan.maxConcurrentLoads, 1, "independent scheduling changes apply immediately");

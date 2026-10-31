@@ -10,7 +10,7 @@ import {
   CjsResManMainThreadLoader,
   CjsResManWorkerLoader,
   CjsBlueResMan,
-  CjsResManQueue
+  BlueResManQueue
 } from "../../../npm/dist/resource/index.js";
 import { CjsResManWorker } from "../../../npm/dist/global/blue/worker/CjsResManWorker.js";
 import { LoadData } from "../../support/loadData.js";
@@ -197,7 +197,7 @@ test("CjsBlueResMan loads through the worker when its source offers a worker req
   await WaitUntil(() => resMan.GetPendingPrepares() === 1);
   for (let stage = 0; stage < 1; stage++) {
     assert.equal(
-      resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }),
+      resMan.PumpMainThreadQueue(),
       true
     );
     await Promise.resolve();
@@ -380,7 +380,7 @@ test("CjsBlueResMan sends worker-safe reads off the main queue and publishes on 
   resolveFormat();
   await WaitUntil(() => resMan.GetPendingPrepares() === 1);
   assert.equal(
-    resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }),
+    resMan.PumpMainThreadQueue(),
     true
   );
 
@@ -395,7 +395,7 @@ test("CjsBlueResMan sends worker-safe reads off the main queue and publishes on 
   assert.deepEqual(result.input, new Uint8Array([ 8 ]));
   assert.equal(result.options.emit, "raw");
   assert.equal(result.format, "TestWorkerQueueFormat");
-  assert.equal(resMan.GetQueueStats(CjsResManQueue.MAIN).pending, 0);
+  assert.equal(resMan.GetQueueStats(BlueResManQueue.BRMQ_MAIN).pending, 0);
   assert.equal(resMan.GetPendingWorkers(), 0);
   assert.equal(resMan.IsLoading(), false);
 });

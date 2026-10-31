@@ -10,7 +10,7 @@ import { blue as blueService } from "./blue.js";
 import { CjsLoadingObject } from "./CjsLoadingObject.js";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { CjsSchema, meta, blue } from "#schema";
-import { IBlueResMan } from "./IBlueResMan.js";
+import { BlueResManQueue, IBlueResMan } from "./IBlueResMan.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { IRoot } from "./IRoot.js";
 import { IBlueResource } from "./IBlueResource.js";
@@ -26,10 +26,7 @@ import {
 
 import { GetResources } from "./getResources.js";
 import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
-import {
-  CjsResManQueue,
-  CjsResManWorkQueue
-} from "./CjsResManWorkQueue.js";
+import { BlueCallbackMan } from "./BlueCallbackMan.js";
 import {
   CjsResManMainThreadLoader
 } from "./worker/CjsResManMainThreadLoader.js";
@@ -143,28 +140,25 @@ let nextLocalValueIdentity = 1;
 
 /**
  * Queue and automatic-purge controls accepted by {@link CjsBlueResMan#Update}.
- * Top-level queue options remain a compatibility form for the prepare pump.
+ * Top-level `maxTime` and `now` remain a compatibility form for `prepare`.
  *
  * @typedef {object} CjsResManUpdateOptions
- * @property {object} [background] Background queue pump options.
- * @property {object} [prepare] Main-thread prepare queue pump options.
+ * @property {{maxTime?: number, now?: Function}} [prepare] The prepare loop's time slice in seconds (default
+ *   `maxPrepareTime`) and a millisecond clock.
  * @property {false|object} [cache] `false` skips recorded-byte housekeeping; otherwise supplies cache-cleanup policy.
  * @property {false|CjsResManAutoPurgePumpOptions} [purge] `false` skips this update's automatic sweep; otherwise supplies its timestamp.
  */
 
 /**
- * Snapshot-fence controls accepted by {@link CjsBlueResMan#Wait}.
+ * Controls accepted by {@link CjsBlueResMan#Wait}.
  *
- * The default pump uses the manager's ordinary queue budgets and honors queue
- * pause state. `pump: false` leaves all progress to an external driver. The
- * yield callback is used only while this call is pumping and may return either
- * a promise or an immediate value.
+ * By default `Wait` pumps both queues, honouring their pause state.
+ * `pump: false` leaves all progress to an external driver. The yield callback
+ * runs between checks and may return either a promise or an immediate value.
  *
  * @typedef {object} CjsResManWaitOptions
- * @property {boolean} [pump=true] Whether this call pumps the two queues while awaiting its snapshot.
- * @property {object} [background] Options forwarded to `PumpBackgroundQueue`.
- * @property {object} [prepare] Options forwarded to `PumpMainThreadQueue`.
- * @property {() => (*|Promise<*>)} [yield] Cooperative wait between pump attempts.
+ * @property {boolean} [pump=true] Whether this call pumps the two queues while it waits.
+ * @property {() => (*|Promise<*>)} [yield] Cooperative wait between checks.
  */
 
 // `dynamic:` protocol (BlueResMan.cpp:219-223): the name is the segment after
@@ -285,9 +279,6 @@ export class CjsBlueResMan
    */
   maxPrepareTime = 0.005;
 
-  /** Prepare items per tick; 0 for no limit. */
-  maxPrepareItemsPerTick = 0;
-
   /**
    * `m_maxAllowedInPrepareQueue( 256 )` (BlueResMan.cpp:84): `Update` keeps
    * preparing past its time slice while more than this many are waiting
@@ -339,12 +330,6 @@ export class CjsBlueResMan
 
   _lastAutoPurgeTime = null;
 
-
-  _nextResourceOperationId = 1;
-  _queueOperations = new Map();
-
-  _resourceOperations = new Map();
-
   /** Urgent loads, reloads and reads while pending (WaitUrgent). */
   _urgentOperations = new Set();
 
@@ -382,17 +367,23 @@ export class CjsBlueResMan
   /** Whether a main-thread-queue pump is already scheduled. */
   _mainThreadPumpScheduled = false;
 
-  /** Background load queue. */
-  _loadQueue = new CjsResManWorkQueue(CjsResManQueue.BACKGROUND, {
-    concurrency: this.maxConcurrentLoads,
-    onReady: () => this.ScheduleBackgroundQueue()
-  });
-
-  /** Main-thread prepare queue. */
-  _prepareQueue = new CjsResManWorkQueue(CjsResManQueue.MAIN, {
-    concurrency: 1,
-    onReady: () => this.ScheduleMainThreadQueue()
-  });
+  /**
+   * `m_threadQueues[BRMQ_COUNT]` (BlueResMan.h:132): the callback managers,
+   * indexed by `BlueResManQueue` and used as `m_threadQueues[BRMQ_MAIN]` and
+   * `m_threadQueues[BRMQ_BACKGROUND]` (BlueResMan.cpp:100-110).
+   *
+   * Adapted: Carbon's background slot is the process-wide `BeCallbackMan`
+   * (BlueResMan.cpp:110), whose threads block on a quick local read. Ours is
+   * resMan's own manager in `Update` mode, whose async slots wait on the
+   * network, so loads in flight have their own count (`SetLoadingThreadCount`).
+   * Neither runs its own threads: resMan pumps both, and each one's slot-free
+   * callback, which `Resume` also calls, stands in for Carbon's semaphore.
+   */
+  _threadQueues = createThreadQueues(
+    this.maxConcurrentLoads,
+    () => this.ScheduleMainThreadQueue(),
+    () => this.ScheduleBackgroundQueue()
+  );
 
   /**
    * Create a GPU-free resource manager and apply its initial registration.
@@ -472,11 +463,6 @@ export class CjsBlueResMan
       {
         assertNonNegativeNumber(value, "CjsBlueResMan maxPrepareTime");
         this.maxPrepareTime = value;
-      },
-      maxPrepareItemsPerTick: value =>
-      {
-        assertNonNegativeInteger(value, "CjsBlueResMan maxPrepareItemsPerTick");
-        this.maxPrepareItemsPerTick = value;
       },
       maxAllowedInPrepareQueue: value =>
       {
@@ -603,117 +589,125 @@ export class CjsBlueResMan
   }
 
   /**
-   * Enqueues a resource task on the selected execution lane for the resource
-   * manager. Carbon writes the request id to its `id` output parameter
-   * (IBlueResMan.h:82); the output parameter is the return value here.
+   * `AddToQueue` (BlueResMan.cpp:332-344) - queues a callback on one of the
+   * manager's queues. The callback is called with the context, as Carbon's
+   * `void (*)( void* pContext )` (IBlueCallbackMan.h:12); an async callback
+   * returns its promise to the callback manager, which holds the slot until it
+   * settles. Carbon writes the id through its output pointer; it is the return
+   * value here (ruled 2026-10-17).
    *
-   * @param {*} queue The queue.
-   * @param {Function} callback The callback.
-   * @param {*} [context=null] The callback's context.
-   * @param {number} [flags=0] `IBlueCallbackMan` flags.
-   * @returns {number} The request id.
+   * Adapted: Carbon's threads wake on the queue's semaphore; here the queue is
+   * scheduled for a pump (`ScheduleMainThreadQueue`, `ScheduleBackgroundQueue`).
+   *
+   * @param {number} queue `BlueResManQueue`.
+   * @param {Function} callback Called with the context.
+   * @param {*} [context=null] The callback's argument.
+   * @param {number} [flags=IBlueCallbackMan.BCBF_NONE] `IBlueCallbackMan` flags.
+   * @returns {number} The entry's id.
    */
-  AddToQueue(queue, callback, context = null, flags = 0) {
-    const task = this.QueueTask(queue, callback, context, { flags });
-    task.promise.catch(error => {
-      this.EmitEvent("queueerror", this, task.queue, task.id, error);
-    });
-    return task.id;
+  AddToQueue(queue, callback, context = null, flags = IBlueCallbackMan.BCBF_NONE) {
+    const id = { value: 0 };
+    this._threadQueues[queue].Add(callback, context, flags, id);
+
+    if (queue === BlueResManQueue.BRMQ_MAIN) this.ScheduleMainThreadQueue();
+    else this.ScheduleBackgroundQueue();
+    return id.value;
   }
 
-  /** Cancels a queued resource task before it starts for the resource manager. */
-  CancelFromQueue(queue, id, reason = "") {
-    return this.GetWorkQueue(queue).Cancel(id, reason);
+  /** `CancelFromQueue` (BlueResMan.cpp:346-357) - cancels one entry of a queue. */
+  CancelFromQueue(queue, id) {
+    this._threadQueues[queue].Cancel(id);
   }
 
-  /**
-   * Allocates the next task identifier for a selected queue for the resource
-   * manager.
-   */
+  /** `GetNextIdForQueue` (BlueResMan.cpp:359-372) - the id a queue's next entry gets. */
   GetNextIdForQueue(queue) {
-    return this.GetWorkQueue(queue).GetNextId();
+    return this._threadQueues[queue].GetNextId();
   }
 
   /**
-   * Starts pending preparation work within the main-thread concurrency limit for
-   * the resource manager.
-   */
-  PumpMainThreadQueue(options = {}) {
-    return this._PumpMainThreadQueue(options).processed > 0;
-  }
-
-  /**
-   * The prepare loop of `BlueResMan::Update` (BlueResMan.cpp:446-464), shared by
-   * `PumpMainThreadQueue` and `Update`, which reads its counts and time for
-   * Carbon's statistics.
+   * `PumpMainThreadQueue` (BlueResMan.cpp:374-379) - one `Update` of the main
+   * queue.
    *
-   * @param {object} options `maxItems`, `maxTime` (seconds) and a `now` clock.
-   * @returns {object} The prepare queue's pump result (`processed`, `elapsed` in ms, counts).
+   * @returns {boolean} Whether an entry was started.
    */
-  _PumpMainThreadQueue(options) {
-    // BlueResMan.cpp:452: each main tick first lets a throttled background
-    // queue resume.
-    this._loadQueue.Unthrottle();
-    // Urgent mode only flags queue entries; BlueResMan::Update keeps its time
-    // slice whatever the mode (BlueResMan.cpp:446-465).
-    const result = this._prepareQueue.Pump({
-      maxItems: options.maxItems ?? this.maxPrepareItemsPerTick,
-      maxTime: (options.maxTime ?? this.maxPrepareTime) * 1000,
-      maxAllowedInPrepareQueue: this.maxAllowedInPrepareQueue,
-      now: options.now
-    });
-    if (result.queued > 0 && result.active === 0) this.ScheduleMainThreadQueue();
-    return result;
+  PumpMainThreadQueue() {
+    return this._threadQueues[BlueResManQueue.BRMQ_MAIN].Update();
   }
 
   /**
-   * Starts pending load work within the background concurrency limit for the
-   * resource manager.
+   * The prepare loop of `BlueResMan::Update` (BlueResMan.cpp:446-464): unthrottle
+   * the background queue, run one main-queue entry, and repeat while under the
+   * time slice or while more than `maxAllowedInPrepareQueue` are waiting.
+   * `Update` reads its count and time for Carbon's statistics; the scheduled
+   * auto-pump and `Wait` run it too.
+   *
+   * @param {object} [options={}] `maxTime` (seconds, default `maxPrepareTime`) and a `now` clock in milliseconds.
+   * @returns {{processed: number, elapsed: number}} Entries run, and milliseconds spent.
    */
-  PumpBackgroundQueue(options = {}) {
-    const result = this._loadQueue.Pump({
-      maxItems: options.maxItems ?? 0,
-      maxTime: options.maxTime === undefined ? 0 : options.maxTime * 1000,
-      now: options.now
-    });
-    return result.processed > 0;
+  _RunMainThreadQueue(options = {}) {
+    const main = this._threadQueues[BlueResManQueue.BRMQ_MAIN];
+    const background = this._threadQueues[BlueResManQueue.BRMQ_BACKGROUND];
+    const now = typeof options.now === "function" ? options.now : defaultQueueNow;
+    const timeSlice = (options.maxTime ?? this.maxPrepareTime) * 1000;
+    const startedAt = now();
+    let processed = 0;
+    let elapsed = 0;
+
+    // Urgent mode only flags queue entries; the slice holds whatever the mode
+    // (BlueResMan.cpp:446-465).
+    do
+    {
+      background.Unthrottle();
+      const didSomething = main.Update();
+      elapsed = now() - startedAt;
+      if (!didSomething) break;
+      ++processed;
+    }
+    while (elapsed < timeSlice || main.GetSize() > this.maxAllowedInPrepareQueue);
+
+    // The slice ran out with entries still waiting and none running: nothing
+    // frees a slot to call back, so the next pump is scheduled here.
+    if (main.GetActiveCount() === 0 && main.GetSize() > 0) this.ScheduleMainThreadQueue();
+    return { processed, elapsed };
   }
 
   /**
-   * Prevents the selected queue from starting additional work for the resource
-   * manager.
+   * Starts background entries while the queue has free slots.
+   *
+   * Ours: Carbon's background queue runs its own threads, which take entries
+   * themselves; ours runs in `Update` mode (see `_threadQueues`), so this
+   * fills its slots.
+   *
+   * @returns {boolean} Whether an entry was started.
    */
+  PumpBackgroundQueue() {
+    const background = this._threadQueues[BlueResManQueue.BRMQ_BACKGROUND];
+    let started = false;
+    while (background.Update()) started = true;
+    return started;
+  }
+
+  /** `PauseQueue` (BlueResMan.cpp:381-389) - forwards to the queue's `Pause`. */
   PauseQueue(queue) {
-    this.GetWorkQueue(queue).Pause();
-    return this;
+    this._threadQueues[queue].Pause();
   }
 
   /**
-   * Allows the selected queue to start pending work again for the resource
-   * manager.
+   * `ResumeQueue` (BlueResMan.cpp:391-399) - forwards to the queue's `Resume`,
+   * whose last call schedules the queue again through its slot-free callback.
    */
   ResumeQueue(queue) {
-    const name = CjsResManWorkQueue.normalizeName(queue);
-    this.GetWorkQueue(name).Resume();
-    if (name === CjsResManQueue.MAIN) this.ScheduleMainThreadQueue();
-    else this.ScheduleBackgroundQueue();
-    return this;
+    this._threadQueues[queue].Resume();
   }
 
-  /**
-   * Returns the number of load tasks waiting or running for the resource
-   * manager.
-   */
+  /** `GetPendingLoads` (BlueResMan.cpp:505-508) - the background queue's entries, waiting or running. */
   GetPendingLoads() {
-    return this._loadQueue.GetPendingCount();
+    return this._threadQueues[BlueResManQueue.BRMQ_BACKGROUND].GetSize();
   }
 
-  /**
-   * Returns the number of preparation tasks waiting or running for the resource
-   * manager.
-   */
+  /** `GetPendingPrepares` (BlueResMan.cpp:510-513) - the main queue's entries, waiting or running. */
   GetPendingPrepares() {
-    return this._prepareQueue.GetPendingCount();
+    return this._threadQueues[BlueResManQueue.BRMQ_MAIN].GetSize();
   }
 
   /**
@@ -722,23 +716,25 @@ export class CjsBlueResMan
    * into Carbon's members. Our `Update` runs it straight after its prepare
    * loop, before the cache and purge housekeeping Carbon's has no part of.
    *
-   * @param {object} prepareResult The prepare queue's pump result.
+   * @param {{processed: number, elapsed: number}} prepareResult The prepare loop's count and milliseconds.
    */
   _UpdateStatistics(prepareResult) {
+    const main = this._threadQueues[BlueResManQueue.BRMQ_MAIN];
+    const background = this._threadQueues[BlueResManQueue.BRMQ_BACKGROUND];
     const timeInUpdate = prepareResult.elapsed / 1000;
     this.preparesHandledLastTick = prepareResult.processed;
     this.preparesHandledTotal += this.preparesHandledLastTick;
     if (this.preparesHandledLastTick > this.preparesHandledPerTickMax) this.preparesHandledPerTickMax = this.preparesHandledLastTick;
     if (timeInUpdate > this.mainThreadMaxTime) this.mainThreadMaxTime = timeInUpdate;
 
-    this.pendingPrepares = this._prepareQueue.GetPendingCount();
-    this.pendingLoads = this._loadQueue.GetPendingCount();
+    this.pendingPrepares = main.GetSize();
+    this.pendingLoads = background.GetSize();
 
-    this.prepareQueueTimeMax = this._prepareQueue.GetTimeInQueueMax();
-    this.prepareQueueTimeAverage = this._prepareQueue.GetTimeInQueueAverage();
+    this.prepareQueueTimeMax = main.GetTimeInQueueMax();
+    this.prepareQueueTimeAverage = main.GetTimeInQueueAverage();
 
-    this.loadQueueTimeMax = this._loadQueue.GetTimeInQueueMax();
-    this.loadQueueTimeAverage = this._loadQueue.GetTimeInQueueAverage();
+    this.loadQueueTimeMax = background.GetTimeInQueueMax();
+    this.loadQueueTimeAverage = background.GetTimeInQueueAverage();
   }
 
   /**
@@ -747,25 +743,40 @@ export class CjsBlueResMan
    *
    * Adapted: Carbon stops the queue's threads, sets the count and runs them
    * again. Our background queue is not threaded; its slots are async, so the
-   * count applies to the next loads without a stop.
+   * count applies to the next loads without a stop, and the queue is pumped
+   * in case the count rose.
    *
    * @param {number} n The count; below 1 becomes 1.
    */
   SetLoadingThreadCount(n) {
     if (n < 1) n = 1;
     this.maxConcurrentLoads = n;
-    this._loadQueue.SetConcurrency(n);
+    this._threadQueues[BlueResManQueue.BRMQ_BACKGROUND].SetThreadCount(n);
+    this.ScheduleBackgroundQueue();
   }
 
   /**
-   * Returns queue counts and concurrency state for diagnostics for the resource
-   * manager.
+   * One queue's counts and waiting times, for diagnostics panels.
+   *
+   * Ours: Carbon exposes the same figures as members filled by `Update`
+   * (BlueResMan_Blue.cpp:154-230); this reads them from the queue now, plus
+   * the running count (`BlueCallbackMan.GetActiveCount`).
+   *
+   * @param {number} queue `BlueResManQueue`.
+   * @returns {{pending: number, active: number, queued: number, paused: boolean, averageWait: number, maxWait: number}}
+   *   Entries waiting or running, running, waiting, whether paused, and the waits in seconds.
    */
-  GetQueueStats(queue = null) {
-    if (queue !== null && queue !== undefined) return this.GetWorkQueue(queue).GetStats();
+  GetQueueStats(queue) {
+    const manager = this._threadQueues[queue];
+    const pending = manager.GetSize();
+    const active = manager.GetActiveCount();
     return {
-      loads: this._loadQueue.GetStats(),
-      prepares: this._prepareQueue.GetStats()
+      pending,
+      active,
+      queued: pending - active,
+      paused: manager.IsPaused(),
+      averageWait: manager.GetTimeInQueueAverage(),
+      maxWait: manager.GetTimeInQueueMax()
     };
   }
 
@@ -876,8 +887,8 @@ export class CjsBlueResMan
     // One clock read per tick: every plain KeepAlive() until the next update
     // renews with this time (BlueAsyncRes.KeepAlive).
     this.activityTime = this.motherLode.GetActivityTime();
-    const loaded = this.PumpBackgroundQueue(options.background || {});
-    const prepareResult = this._PumpMainThreadQueue(options.prepare || options);
+    const loaded = this.PumpBackgroundQueue();
+    const prepareResult = this._RunMainThreadQueue(options.prepare || options);
     const prepared = prepareResult.processed > 0;
     this._UpdateStatistics(prepareResult);
     const cacheOptions = options.cache === true || options.cache === undefined
@@ -928,32 +939,21 @@ export class CjsBlueResMan
   }
 
   /**
-   * Wait for the manager work that exists when this method is called.
-   * The snapshot contains active queued resource load roots and direct queue
-   * tasks. A captured resource root includes every CPU-work descendant it
-   * enqueues later, while unrelated roots/tasks submitted after the call do
-   * not postpone this fence. Shared-source joins do not merge distinct roots.
+   * `Wait` (BlueResMan.cpp:935-982) - returns once both queues are empty:
+   * `GetPendingLoads() + GetPendingPrepares()` is zero. Without Stackless,
+   * Carbon runs `Update()` until then (`:971-977`), so it also waits for work
+   * queued after the call, such as the textures a ship requests while it
+   * loads. A failed or cancelled entry has left its queue, so it counts as
+   * done.
    *
-   * Failure and queued cancellation count as terminal settlement: callers
-   * observe those errors through the original operation promises, while this
-   * method resolves after every captured promise settles. By default it pumps
-   * background and main queues directly, so waiting never triggers automatic
-   * retention sweeps. Paused queues remain paused. With `pump: false`, an
-   * external driver must resume/pump queues or the returned promise may remain
-   * pending.
+   * Adapted: Carbon blocks; here each pass pumps both queues as `Update` does
+   * (its statistics included) and then yields, since a load's slot frees only
+   * when its fetch settles. Paused queues stay paused, and `Wait` waits for
+   * them. With `pump: false` it only checks the count between yields, leaving
+   * the pumping to whoever ticks the manager.
    *
-   * A standalone canonical `PrepareResourceObjectQueued()` call opens a
-   * resource root. Direct `LoadResourceObject()`, direct
-   * `PrepareResourceObject()`, standalone `ReadResource()`, and standalone
-   * `ReadFormatOnce()` calls bypass the two queues and are not resource roots
-   * unless they also own a captured queue task.
-   *
-   * Adapted: Carbon's `Wait` (BlueResMan.cpp:933-968) sends a fenced marker
-   * through the queues; here the pending operations' promises are awaited, which
-   * settles at the same point without blocking.
-   *
-   * @param {CjsResManWaitOptions} [options={}] Snapshot pumping and cooperative-yield controls.
-   * @returns {Promise<CjsBlueResMan>} This manager after all captured work settles.
+   * @param {CjsResManWaitOptions} [options={}] Pumping and cooperative-yield controls.
+   * @returns {Promise<CjsBlueResMan>} This manager, once both queues are empty.
    * @throws {TypeError} If options, `pump`, or `yield` are invalid.
    * @throws {Error} If a queue pump or custom yield callback itself fails.
    */
@@ -972,43 +972,30 @@ export class CjsBlueResMan
       throw new TypeError("CjsBlueResMan.Wait yield must be a function when supplied.");
     }
 
-    const snapshot = new Set([
-      ...this._resourceOperations.values(),
-      ...this._queueOperations.values()
-    ]);
-    if (snapshot.size === 0) return this;
-
-    const fence = Promise.allSettled([ ...snapshot ]);
-    if (options.pump === false)
-    {
-      await fence;
-      return this;
-    }
-
     const yieldQueue = options.yield || defaultQueueYield;
-    let settled = false;
-    fence.then(() => { settled = true; });
-    while (!settled)
+    while (this.GetPendingLoads() + this.GetPendingPrepares() > 0)
     {
-      this.PumpBackgroundQueue(options.background || {});
-      this.PumpMainThreadQueue(options.prepare || {});
-      if (!settled) await Promise.race([ fence, Promise.resolve().then(yieldQueue) ]);
+      if (options.pump !== false)
+      {
+        this.PumpBackgroundQueue();
+        this._UpdateStatistics(this._RunMainThreadQueue());
+        if (this.GetPendingLoads() + this.GetPendingPrepares() === 0) break;
+      }
+      await yieldQueue();
     }
-    await fence;
     return this;
   }
 
   /**
-   * `WaitUrgent` (BlueResMan.cpp:970-980): settles once the urgent loads,
-   * reloads and reads pending at the call have finished.
+   * `WaitUrgent` (BlueResMan.cpp:984-1000): settles once the urgent loads and
+   * reloads pending at the call have finished.
    *
    * Adapted: Carbon sends a marker flagged `BCBF_FENCE | BCBF_URGENT` through the
    * background queue and then the main queue. That works because Carbon queues a
    * resource's prepare as one main-queue entry before its load entry finishes
    * (BlueAsyncRes.cpp:108-120). Ours queues the prepare in stages after the load
-   * promise settles, so a marker could pass between them; the urgent
-   * operations pending at the call are awaited instead, as `Wait` does for all
-   * of them.
+   * settles, so a marker could pass between them; the urgent operations pending
+   * at the call are awaited instead.
    *
    * @returns {Promise<CjsBlueResMan>} This manager, once those operations have settled.
    */
@@ -1018,7 +1005,7 @@ export class CjsBlueResMan
     return this;
   }
 
-  /** Keeps an urgent load, reload or read for `WaitUrgent` while it is pending. */
+  /** Keeps an urgent load or reload for `WaitUrgent` while it is pending. */
   _TrackUrgentOperation(operation)
   {
     this._urgentOperations.add(operation);
@@ -1027,37 +1014,15 @@ export class CjsBlueResMan
   }
 
   /**
-   * Returns the execution queue selected by its public lane name for the
-   * resource manager.
-   */
-  GetWorkQueue(queue) {
-    return CjsResManWorkQueue.normalizeName(queue) === CjsResManQueue.MAIN
-      ? this._prepareQueue
-      : this._loadQueue;
-  }
-
-  /**
-   * Add one low-level task to a manager queue and retain its promise only while
-   * pending so a contemporaneous {@link CjsBlueResMan#Wait} snapshot can include
-   * it. This does not assign resource lineage to tasks the callback may submit
-   * later; callers should return/await such work or use a manager resource
-   * operation.
+   * Schedules a background pump on a microtask, when entries are waiting and
+   * the queue is not paused.
    *
-   * @param {string} queue Queue name or compatibility alias.
-   * @param {Function} callback Queue callback receiving immutable task metadata.
-   * @param {*} [context=null] `this` value used to invoke the callback.
-   * @param {object|null} [metadata=null] Opaque diagnostics retained on the task.
-   * @returns {object} Queue task record containing id, queue, state, metadata, and promise.
-   * @throws {TypeError} If the queue or callback is invalid.
+   * Ours: the stand-in for Carbon's background threads waking on their
+   * semaphore (see `_threadQueues`).
    */
-  QueueTask(queue, callback, context = null, metadata = null)
-  {
-    return this._TrackQueueTask(this.GetWorkQueue(queue).Add(callback, context, metadata));
-  }
-
-  /** Requests a later background-queue scheduling pass for the resource manager. */
   ScheduleBackgroundQueue() {
-    if (this._backgroundPumpScheduled || this._loadQueue.IsPaused()) return this;
+    const background = this._threadQueues[BlueResManQueue.BRMQ_BACKGROUND];
+    if (this._backgroundPumpScheduled || background.IsPaused() || background.GetSize() === background.GetActiveCount()) return this;
     this._backgroundPumpScheduled = true;
     Promise.resolve().then(() => {
       this._backgroundPumpScheduled = false;
@@ -1067,16 +1032,21 @@ export class CjsBlueResMan
   }
 
   /**
-   * Requests a later main-thread preparation scheduling pass for the resource
-   * manager.
+   * Schedules a run of the prepare loop through `queueScheduler`, when
+   * `autoPumpMainThreadQueue` is on, entries are waiting and the queue is not
+   * paused.
+   *
+   * Ours: Carbon's main queue runs only from `Update` each frame; the
+   * auto-pump is our option for hosts that want prepares between frames.
    */
   ScheduleMainThreadQueue() {
-    if (!this.autoPumpMainThreadQueue || this._mainThreadPumpScheduled || this._prepareQueue.IsPaused()) return this;
+    const main = this._threadQueues[BlueResManQueue.BRMQ_MAIN];
+    if (!this.autoPumpMainThreadQueue || this._mainThreadPumpScheduled || main.IsPaused() || main.GetSize() === main.GetActiveCount()) return this;
     this._mainThreadPumpScheduled = true;
     try {
       this.queueScheduler(() => {
         this._mainThreadPumpScheduled = false;
-        this.PumpMainThreadQueue();
+        this._RunMainThreadQueue();
       });
     } catch (error) {
       this._mainThreadPumpScheduled = false;
@@ -1863,24 +1833,36 @@ export class CjsBlueResMan
    * BlackReader serves one build at a time, a second caller waiting until the
    * first is done (the m_allowYield wait, BlackReader.cpp:233-262). Here the
    * queue is that wait: builds run FIFO (a re-entrant request queues behind
-   * the rest), each whole - one construction is never split - and PumpMainThreadQueue
-   * stops once its time budget is spent, at least one build per pump. The
+   * the rest), each whole - one construction is never split - and the prepare
+   * loop stops once its time slice is spent, at least one build per pass. The
    * budget is the measured reason (ccpwgl findings 0277-0279): 80 copies
    * built at once were one 2.7 s task; drained within the budget, no slice
-   * exceeded 50 ms. The caller's promise settles when its build runs.
+   * exceeded 50 ms.
+   *
+   * The promise is the object path's own, LoadObject's stand-in for Carbon's
+   * Stackless yield (see `LoadObject`); the queue entry itself carries none.
+   * It settles when the entry runs. An entry still queued when `Clear` runs
+   * stays queued, as Carbon's queues have no clear; it fails when it runs.
    *
    * @param {BlueAsyncRes} resource Resource whose payload is the builder.
    * @returns {Promise<object>} This caller's new object.
    */
   _QueueObjectBuild(resource)
   {
-    const task = this.QueueTask(CjsResManQueue.MAIN, () => this._BuildObject(resource), resource, {
-      kind: "build",
-      path: resource.GetPath(),
-      flags: urgentFlags(resource)
+    return new Promise((resolve, reject) =>
+    {
+      this.AddToQueue(BlueResManQueue.BRMQ_MAIN, builderResource =>
+      {
+        try
+        {
+          resolve(this._BuildObject(builderResource));
+        }
+        catch (error)
+        {
+          reject(error);
+        }
+      }, resource, urgentFlags(resource));
     });
-    this.ScheduleMainThreadQueue();
-    return task.promise;
   }
 
   /**
@@ -2290,15 +2272,17 @@ export class CjsBlueResMan
     return { pending, failed };
   }
 
-  /** Cancel queued/native attempts and clear the owned cache and read ledgers. */
+  /**
+   * Cancel the cached resources' pending loads and clear the owned cache and
+   * read ledgers. Each load's queue entries go with it (`CancelPendingLoad`);
+   * other entries stay queued, as Carbon's queues have no clear.
+   */
   Clear()
   {
     for (const [, resource] of this.motherLode.Entries())
     {
       if (CjsSchema.cast(resource, IBlueResource)) resource.CancelPendingLoad();
     }
-    this._loadQueue.Clear();
-    this._prepareQueue.Clear();
     this.motherLode.Clear();
     this.sourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
@@ -2556,64 +2540,22 @@ export class CjsBlueResMan
   }
 
   /**
-   * Retain a low-level queue task only until settlement so `Wait()` can take a
-   * synchronous snapshot without making completed values long-lived.
+   * Open one active resource mutation: while any is open, MotherLode cannot be
+   * replaced underneath it (`Register`).
    *
-   * @param {object} task Queue task returned by `CjsResManWorkQueue.Add()`.
-   * @returns {object} The supplied task.
+   * @returns {() => void} Idempotent completion callback.
    */
-  _TrackQueueTask(task)
-  {
-    this._queueOperations.set(task, task.promise);
-    task.promise.then(() =>
-    {
-      if (this._queueOperations.get(task) === task.promise)
-      {
-        this._queueOperations.delete(task);
-      }
-    }, () =>
-    {
-      if (this._queueOperations.get(task) === task.promise)
-      {
-        this._queueOperations.delete(task);
-      }
-    });
-    return task;
-  }
-
-  /**
-   * Open one active resource-mutation record. Queued records additionally own
-   * a settlement promise visible to contemporaneous `Wait()` snapshots;
-   * direct records block unsafe MotherLode replacement but remain outside that
-   * two-queue fence.
-   *
-   * @param {boolean} queued Whether the operation belongs to the queued fence.
-   * @returns {() => void} Idempotent record completion callback.
-   */
-  _BeginResourceOperation(queued)
+  _BeginResourceOperation()
   {
     this._activeResourceOperations += 1;
-    const id = queued ? this._nextResourceOperationId++ : 0;
-    let resolveDone = noop;
-    const done = queued
-      ? new Promise(resolve => { resolveDone = resolve; })
-      : null;
-    if (queued) this._resourceOperations.set(id, done);
     let finished = false;
     return () =>
     {
       if (finished) return;
       finished = true;
       this._activeResourceOperations = Math.max(0, this._activeResourceOperations - 1);
-      if (queued && this._resourceOperations.get(id) === done)
-      {
-        this._resourceOperations.delete(id);
-      }
-      resolveDone();
     };
   }
-
-
 
 
   /**
@@ -2761,7 +2703,7 @@ export class CjsBlueResMan
     record.purged = false;
     record.payload = null;
     this._objectBuilders.delete(resource);
-    const operation = { request: record.request, promise: null, resolve: null, reject: null, locked: false, finish: this._BeginResourceOperation(true) };
+    const operation = { request: record.request, promise: null, resolve: null, reject: null, locked: false, finish: this._BeginResourceOperation() };
     record.request = getResourceLoaderOptions(record.request, record.request.source);
     operation.promise = new Promise((resolve, reject) =>
     {
@@ -3998,6 +3940,41 @@ function defaultQueueYield()
   return new Promise(resolve => setTimeout(resolve, 0));
 }
 
+/** BeTimer's role in `BlueResMan::Update` (BlueResMan.cpp:446): Blue's host milliseconds. */
+function defaultQueueNow()
+{
+  return CjsBlueOS.Monotonic();
+}
+
+/**
+ * resMan's two callback managers, indexed by `BlueResManQueue` (see
+ * `CjsBlueResMan._threadQueues`): the main queue with one slot, as Carbon's
+ * `Update`-mode manager has, and the background queue with one async slot per
+ * load in flight.
+ *
+ * @param {number} loadingThreadCount Background slots.
+ * @param {Function} onMainSlotFree Called when a main slot frees or the queue resumes.
+ * @param {Function} onBackgroundSlotFree Called when a background slot frees or the queue resumes.
+ * @returns {BlueCallbackMan[]} The managers.
+ */
+function createThreadQueues(loadingThreadCount, onMainSlotFree, onBackgroundSlotFree)
+{
+  const queues = [];
+
+  const main = new BlueCallbackMan();
+  main.SetName("resMan main");
+  main.SetSlotFreeCallback(onMainSlotFree);
+  queues[BlueResManQueue.BRMQ_MAIN] = main;
+
+  const background = new BlueCallbackMan();
+  background.SetName("resMan background");
+  background.SetThreadCount(loadingThreadCount);
+  background.SetSlotFreeCallback(onBackgroundSlotFree);
+  queues[BlueResManQueue.BRMQ_BACKGROUND] = background;
+
+  return queues;
+}
+
 function normalizeRegistrationEntries(value)
 {
   if (value === null || value === undefined) return [];
@@ -4158,13 +4135,13 @@ for (const method of [ "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemo
   CjsSchema.decorateMethod(CjsBlueResMan, method, blue.method, meta.noop);
 }
 CjsSchema.decorateMethod(CjsBlueResMan, "AddToQueue", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "CancelFromQueue", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetNextIdForQueue", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "PumpMainThreadQueue", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "PauseQueue", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "ResumeQueue", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingLoads", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingPrepares", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "CancelFromQueue", meta.implemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetNextIdForQueue", meta.implemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "PumpMainThreadQueue", meta.implemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "PauseQueue", meta.implemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "ResumeQueue", meta.implemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingLoads", meta.implemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingPrepares", meta.implemented);
 CjsSchema.decorateMethod(CjsBlueResMan, "SetLoadingThreadCount", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "SetUrgentResourceLoads", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "IsUrgentResourceLoads", meta.adapted);

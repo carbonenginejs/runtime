@@ -365,15 +365,15 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::StaticLoadAsync (blue/src/BlueAsyncRes.cpp:71-75)
    *
-   * Adapted: the resource manager's queue passes the context as `this` and a
-   * task record as the argument (`CjsResManWorkQueue.Add`), so the resource
-   * Carbon receives as `pContext` arrives as `this`.
+   * The load is asynchronous; its promise goes back to the callback manager,
+   * which holds the queue slot until it settles.
    *
+   * @param {BlueAsyncRes} context The resource, the queue entry's context.
    * @returns {Promise<void>}
    */
-  static _staticLoadAsync()
+  static _staticLoadAsync(context)
   {
-    return this._LoadAsync();
+    return context._LoadAsync();
   }
 
   /**
@@ -419,11 +419,11 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::StaticPrepareAsync (blue/src/BlueAsyncRes.cpp:138-142)
    *
-   * Adapted: the queue's context arrives as `this` (see `_staticLoadAsync`).
+   * @param {BlueAsyncRes} context The resource, the queue entry's context.
    */
-  static _staticPrepareAsync()
+  static _staticPrepareAsync(context)
   {
-    this._PrepareAsync();
+    context._PrepareAsync();
   }
 
   /** Complete the native prepare phase and settle the manager operation before notifying owners. */
@@ -454,14 +454,17 @@ export class BlueAsyncRes
 
     /**
    * Carbon StaticFailedLoadNotify (BlueAsyncRes.cpp:160-189).
-   * Adapted: the queue binds its resource context as this instead of passing
-   * Carbon's void pointer. Failure stays prepared but bad until explicit Reload.
-   * @this {BlueAsyncRes}
+   * Adapted: the resource also clears its queue id, records itself bad and
+   * settles resMan's load operation, so a waiting caller learns of the
+   * failure; it stays prepared but bad until an explicit Reload. Carbon's
+   * null-context check is dropped: the entry is always queued with its
+   * resource.
+   * @param {BlueAsyncRes} context The resource, the queue entry's context.
    * @returns {void}
    */
-  static _staticFailedLoadNotify()
+  static _staticFailedLoadNotify(context)
   {
-    const resource = this;
+    const resource = context;
     resource._prepareCbId = 0;
     resource._isPrepared = true;
     resource._loadSucceeded = false;
@@ -652,9 +655,9 @@ CjsSchema.decorateMethod(BlueAsyncRes, "_DoPrepare", meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "_DoOpenStream", meta.adapted);
 CjsSchema.decorateMethod(BlueAsyncRes, "_OnShutdown", meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "_CleanupLoadData", meta.implemented);
-CjsSchema.decorateMethod(BlueAsyncRes, "_staticLoadAsync", meta.adapted);
+CjsSchema.decorateMethod(BlueAsyncRes, "_staticLoadAsync", meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "_LoadAsync", meta.adapted);
-CjsSchema.decorateMethod(BlueAsyncRes, "_staticPrepareAsync", meta.adapted);
+CjsSchema.decorateMethod(BlueAsyncRes, "_staticPrepareAsync", meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "_PrepareAsync", meta.implemented);
 CjsSchema.decorateMethod(BlueAsyncRes, "_staticFailedLoadNotify", meta.adapted);
 CjsSchema.decorateMethod(BlueAsyncRes, "_CloseStream", meta.implemented);
