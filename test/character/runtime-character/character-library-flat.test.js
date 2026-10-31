@@ -97,6 +97,24 @@ test("lazy Blue reads load each record once on first need, preserve unrelated YA
     await assert.rejects(manager.GetCamera("res:/missing.yaml"), /Unresolved/);
 });
 
+test("listing a path-named kind reads the index only and keeps stored names", async t =>
+{
+    const { builder, reads } = fixture(t);
+    await builder.Build({ lazy: true });
+    const manager = new CjsCharacterLibraryManager(null, { sourceBuilder: builder });
+    assert.deepEqual(await manager.ListColorVariationNames(), [ROOT + "/default.color"]);
+    assert.deepEqual(await manager.ListTypeNames(), [ROOT + "/types/shirt.type"]);
+    assert.deepEqual(await manager.ListAvatarPartMetaDataNames(), [ROOT + "/metadata.yaml"]);
+    assert.deepEqual(reads, []);
+    const stored = new CjsCharacterColorVariation();
+    manager.GetLibrary().AddKind("colorVariations", "user-named", stored);
+    assert.deepEqual(await manager.ListColorVariationNames(), [ROOT + "/default.color", "user-named"]);
+    assert.deepEqual(reads, []);
+    // A shared family still reads its files: only the bytes say camera or camera sequence.
+    assert.deepEqual(await manager.ListCameraNames(), [CAMERA]);
+    assert.deepEqual(reads.sort(), [CAMERA, SEQUENCE].sort());
+});
+
 test("GetPart joins exact records and paths without acquiring opaque resources", async t =>
 {
     const { builder, reads } = fixture(t);

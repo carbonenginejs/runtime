@@ -45,16 +45,26 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * Lists exact names after any shared source family has been identified.
+     * Lists a kind's exact names: the stored records' names, merged with the indexed source paths.
+     * A kind whose record name is its path lists from the index without loading anything. Only the
+     * shared families (cameras and cameraSequences, posts and scalarPosts) load their whole family
+     * first, because which variant a file holds is known only once it is read.
      * @param {string} kind Configured kind.
-     * @returns {Promise<Array<string>>} Names of this shape, not candidate variants.
+     * @returns {Promise<Array<string>>} Sorted names of this shape, not candidate variants.
      */
     async ListKindNames(kind)
     {
         const generation = this._installGeneration;
-        if (this._sourceBuilder) await this._sourceBuilder.LoadKind(kind);
+        const shared = CjsCharacterLibraryBuilder.isSharedFamily(kind);
+        if (this._sourceBuilder && shared) await this._sourceBuilder.LoadKind(kind);
         if (generation !== this._installGeneration) throw new Error("Character library was replaced during a kind listing.");
-        return this._library.ListKindNames(kind).sort();
+        const names = new Set(this._library.ListKindNames(kind));
+        if (this._sourceBuilder && !shared)
+        {
+            const paths = this._sourceBuilder.ListSourceNames(kind);
+            for (let i = 0; i < paths.length; i++) names.add(paths[i]);
+        }
+        return [...names].sort();
     }
 
     /**

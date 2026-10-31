@@ -254,6 +254,17 @@ export class CjsCharacterLibraryBuilder
         return record;
     }
 
+    /**
+     * Whether a kind belongs to a family whose files hold either of two record kinds (cameras or
+     * cameraSequences, posts or scalarPosts), so a file's kind is known only once it is read.
+     * @param {string} kind Configured kind.
+     * @returns {boolean} True for the four shared-family kinds.
+     */
+    static isSharedFamily(kind)
+    {
+        return kind === "cameras" || kind === "cameraSequences" || kind === "posts" || kind === "scalarPosts";
+    }
+
     static schema = "carbonenginejs.characterLibrary";
 
     static schemaVersion = 11;
