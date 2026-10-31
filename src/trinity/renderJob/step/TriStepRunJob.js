@@ -17,14 +17,22 @@ export class TriStepRunJob extends TriRenderStep
   @type.object.ref("TriRenderJob")
   job = null;
 
-  /** Stores the nested job this step runs. */
+  /**
+   * Stores the nested job this step runs.
+   *
+   * @adapted
+   */
   @meta.adapted
   __init__(job = null)
   {
     this.SetRenderJob(job);
   }
 
-  /** Replaces the nested job; null makes the step a no-op. */
+  /**
+   * Replaces the nested job; null makes the step a no-op.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.adapted
   SetRenderJob(job)
@@ -36,6 +44,8 @@ export class TriStepRunJob extends TriRenderStep
    * Runs the nested job with the same render context and maps its job status onto a
    * step result, so a nested job that is still in progress leaves the owning job
    * in progress too and resumes at this same step next frame.
+   *
+   * @implemented
    */
 
   @meta.implemented

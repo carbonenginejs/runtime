@@ -43,6 +43,8 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 
   /**
    * Checks whether transform track handles are ready.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -53,6 +55,8 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 
   /**
    * Clears transform track handles.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -65,6 +69,8 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 
   /**
    * Applies transform track handles.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -94,6 +100,8 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
    * is read with Carbon's own GetKeyFrameAtT, everything else with the Granny
    * evaluator stand-in; the scale curve always uses the evaluator
    * (Tr2GrannyTransformTrack.cpp:27-53).
+   *
+   * @adapted
    */
 
   @meta.adapted

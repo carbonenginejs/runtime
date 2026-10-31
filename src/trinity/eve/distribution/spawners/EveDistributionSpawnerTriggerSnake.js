@@ -59,6 +59,8 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
   /**
    * Picks a random pooled placement as the first target of the walk and
    * restarts.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -80,6 +82,8 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
   /**
    * Clears the travel timers and the destination count, leaving a zero travel
    * duration so the next update triggers the current target immediately.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -95,6 +99,8 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    * free placement nearest a point extrapolated past the last target, charging
    * extra travel time for the distance covered; stops after totalDestinations,
    * which -1 makes unlimited.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -140,7 +146,11 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
     }
   }
 
-  /** Ignores controller variables; the walk is purely time-driven. */
+  /**
+   * Ignores controller variables; the walk is purely time-driven.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetControllerVariable(_name, _value)
   {

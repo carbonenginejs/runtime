@@ -14,6 +14,8 @@ export class ITr2DebugRenderable extends IRoot
   /**
    * Adds this object's supported debug options to the caller's set.
    * Native signature: void GetDebugOptions(Tr2DebugRendererOptions& options) = 0.
+   *
+   * @abstract
    * @param {Set<string>} _options The caller-owned set, adapting std::set<std::string>.
    * @returns {void}
    */
@@ -24,6 +26,8 @@ export class ITr2DebugRenderable extends IRoot
   /**
    * Submits this object's debug information to the supplied renderer.
    * Native signature: void RenderDebugInfo(ITr2DebugRenderer2& renderer) = 0.
+   *
+   * @abstract
    * @param {object} _renderer The caller's debug renderer.
    * @returns {void}
    */

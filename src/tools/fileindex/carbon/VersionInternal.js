@@ -40,6 +40,8 @@ export class VersionInternal
      * 0.1.0 > 1.0.0. `LessThanOrEqual` negates it; `GreaterThanOrEqual` is
      * lexicographic; the four operators disagree.
      *
+     * @adapted
+     * @renamed operator>
      * @param {import('./VersionInternal.js').VersionInternal} value Version to compare against.
      * @returns {boolean} Whether the documented condition or parse succeeds.
      */
@@ -53,6 +55,8 @@ export class VersionInternal
      *
      * Quirk, reproduced (CE-41): true when any one component is less.
      *
+     * @adapted
+     * @renamed operator<
      * @param {import('./VersionInternal.js').VersionInternal} value Version to compare against.
      * @returns {boolean} Whether the documented condition or parse succeeds.
      */
@@ -64,6 +68,8 @@ export class VersionInternal
     /**
      * `operator>=` (VersionInternal.cpp:64-97), which is lexicographic.
      *
+     * @adapted
+     * @renamed operator>=
      * @param {import('./VersionInternal.js').VersionInternal} value Version to compare against.
      * @returns {boolean} Whether the documented condition or parse succeeds.
      */
@@ -76,6 +82,8 @@ export class VersionInternal
     /**
      * `operator<=` (VersionInternal.cpp:119-122): `!(this > value)`, over the quirky `>`.
      *
+     * @adapted
+     * @renamed operator<=
      * @param {import('./VersionInternal.js').VersionInternal} value Version to compare against.
      * @returns {boolean} Whether the documented condition or parse succeeds.
      */
@@ -87,6 +95,8 @@ export class VersionInternal
     /**
      * `operator==` (VersionInternal.cpp:99-117).
      *
+     * @adapted
+     * @renamed operator==
      * @param {import('./VersionInternal.js').VersionInternal} value Version to compare against.
      * @returns {boolean} Whether the documented condition or parse succeeds.
      */
@@ -98,6 +108,7 @@ export class VersionInternal
     /**
      * Formats the native dotted document version.
      *
+     * @implemented
      * @returns {string} Formatted value using native field or path spelling.
      */
     ToString()
@@ -108,6 +119,7 @@ export class VersionInternal
     /**
      * std::stoi prefix parsing, signed-int range and unsigned assignment.
      *
+     * @implemented
      * @param {string} text Dotted version text to parse.
      * @returns {boolean} Whether the documented condition or parse succeeds.
      */
@@ -129,6 +141,7 @@ export class VersionInternal
     /**
      * Native version accessors.
      *
+     * @implemented
      * @returns {number|undefined} Stored version component, or undefined before initialization.
      */
     getMajor()
@@ -139,6 +152,7 @@ export class VersionInternal
     /**
      * Native version accessors.
      *
+     * @implemented
      * @returns {number|undefined} Stored version component, or undefined before initialization.
      */
     getMinor()
@@ -149,6 +163,7 @@ export class VersionInternal
     /**
      * Native version accessors.
      *
+     * @implemented
      * @returns {number|undefined} Stored version component, or undefined before initialization.
      */
     getPatch()
@@ -160,6 +175,7 @@ export class VersionInternal
      * `isVersionValid` - whether this is one of S_VALID_DOCUMENT_VERSIONS
      * (VersionInternal.cpp:189-199).
      *
+     * @implemented
      * @returns {boolean} Whether the version is valid.
      */
     isVersionValid()

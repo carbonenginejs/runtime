@@ -13,6 +13,8 @@ export class ITriFunction extends IRoot
   /**
    * Updates the current value at the supplied time.
    * Native signature: void UpdateValue(double time) = 0.
+   *
+   * @abstract
    * @param {number} _time Native double time.
    * @returns {void}
    */
@@ -23,6 +25,8 @@ export class ITriFunction extends IRoot
   /**
    * Retains Carbon's optional, empty reset operation.
    * Native signature: void Reset() {}.
+   *
+   * @adapted
    * @returns {void}
    */
   Reset()

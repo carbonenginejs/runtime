@@ -31,6 +31,7 @@ export class IInitialize extends IRoot
    * `Initialize` - called once after a read fills every member, in place of
    * per-member notification.
    *
+   * @abstract
    * @returns {boolean} False when initialization failed. Readers ignore this;
    * object construction and copying do not.
    */

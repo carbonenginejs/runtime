@@ -76,6 +76,8 @@ export class EveChildModifierCameraOrientedRotationConstrained extends IEveChild
    * decompose the child, project (camPos - translation) into the child's
    * rotation frame, take its heading atan2(vec.x, vec.z), and pre-multiply a
    * world-up rotation by that angle. Return result * transform.
+   *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused

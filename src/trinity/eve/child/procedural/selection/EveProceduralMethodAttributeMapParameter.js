@@ -30,8 +30,12 @@ export class EveProceduralMethodAttributeMapParameter extends IRoot
   @type.string
   name = "";
 
-  /** Carbon EveProceduralMethodAttributeMapParameter::Initialize (cpp:15-22):
-   * lazily create the child ref. */
+  /**
+   * Carbon EveProceduralMethodAttributeMapParameter::Initialize (cpp:15-22):
+   * lazily create the child ref.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -47,6 +51,8 @@ export class EveProceduralMethodAttributeMapParameter extends IRoot
    * Carbon EveProceduralMethodAttributeMapParameter::OnModified (cpp:24-35):
    * a child assignment blocks its auto-load until the map selects it. The
    * value argument follows the repo's OnModified duck.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -63,7 +69,11 @@ export class EveProceduralMethodAttributeMapParameter extends IRoot
     return true;
   }
 
-  /** Carbon method SetModified (cpp:37-40). */
+  /**
+   * Carbon method SetModified (cpp:37-40).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetModified(isModified)
@@ -71,7 +81,11 @@ export class EveProceduralMethodAttributeMapParameter extends IRoot
     this._modified = !!isModified;
   }
 
-  /** Carbon method IsModified (cpp:42-45). */
+  /**
+   * Carbon method IsModified (cpp:42-45).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsModified()
@@ -79,7 +93,11 @@ export class EveProceduralMethodAttributeMapParameter extends IRoot
     return this._modified;
   }
 
-  /** Carbon method GetName (cpp:47-50). */
+  /**
+   * Carbon method GetName (cpp:47-50).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -87,7 +105,11 @@ export class EveProceduralMethodAttributeMapParameter extends IRoot
     return this.name;
   }
 
-  /** Carbon method GetChild (cpp:52-55). */
+  /**
+   * Carbon method GetChild (cpp:52-55).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetChild()
@@ -95,8 +117,12 @@ export class EveProceduralMethodAttributeMapParameter extends IRoot
     return this.child;
   }
 
-  /** Carbon EveProceduralMethodAttributeMapParameter::Load (cpp:57-63):
-   * one-line bypass-blocker reload delegate. */
+  /**
+   * Carbon EveProceduralMethodAttributeMapParameter::Load (cpp:57-63):
+   * one-line bypass-blocker reload delegate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Load()

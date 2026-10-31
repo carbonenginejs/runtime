@@ -175,6 +175,7 @@ export class Tr2ReflectionProbe
   /**
    * Carbon `IsValid` (`cpp:63-66`): whether the probe's resources are ready.
    *
+   * @implemented
    * @returns {boolean} True when prepared.
    */
 
@@ -184,7 +185,11 @@ export class Tr2ReflectionProbe
     return this.OnPrepareResources(renderContext);
   }
 
-  /** Carbon `HasData` (`cpp:68-71`): whether a filter has written the reflection. */
+  /**
+   * Carbon `HasData` (`cpp:68-71`): whether a filter has written the reflection.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasData()
@@ -192,7 +197,11 @@ export class Tr2ReflectionProbe
     return this._hasData && this.reflectionTexture.IsValid();
   }
 
-  /** Carbon `GetReflection` (`cpp:206-209`): the filtered cube. */
+  /**
+   * Carbon `GetReflection` (`cpp:206-209`): the filtered cube.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetReflection()
@@ -200,7 +209,11 @@ export class Tr2ReflectionProbe
     return this.reflectionTexture;
   }
 
-  /** Carbon `SetBackLightColor` (`cpp:211-214`). */
+  /**
+   * Carbon `SetBackLightColor` (`cpp:211-214`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetBackLightColor(color)
@@ -208,7 +221,11 @@ export class Tr2ReflectionProbe
     vec4.copy(this.backlightColor, color);
   }
 
-  /** Carbon `SetBackLightContrast` (`cpp:216-219`). */
+  /**
+   * Carbon `SetBackLightContrast` (`cpp:216-219`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetBackLightContrast(contrast)
@@ -216,7 +233,11 @@ export class Tr2ReflectionProbe
     this.backlightContrast = contrast;
   }
 
-  /** Carbon `ReleaseResources` (`cpp:221-224`). */
+  /**
+   * Carbon `ReleaseResources` (`cpp:221-224`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseResources(_storage)
@@ -230,6 +251,7 @@ export class Tr2ReflectionProbe
    * UAV-compatible, `cpp:234-236`). WebGPU cannot write R11G11B10 from compute,
    * so it takes Carbon's DX12 fallback.
    *
+   * @adapted
    * @returns {boolean} Whether the resources are ready.
    */
 
@@ -249,6 +271,7 @@ export class Tr2ReflectionProbe
    * the reflection cube (MIP_COUNT + 1 mips), and on first run the three
    * effects with their parameters.
    *
+   * @implemented
    * @returns {boolean} Whether every target was created.
    */
 
@@ -330,7 +353,11 @@ export class Tr2ReflectionProbe
     return true;
   }
 
-  /** Carbon `OnModified` (`cpp:323-329`): rebuild everything on any change. */
+  /**
+   * Carbon `OnModified` (`cpp:323-329`): rebuild everything on any change.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_value)
@@ -339,7 +366,11 @@ export class Tr2ReflectionProbe
     return true;
   }
 
-  /** Carbon `DestroyRenderTargets` (`cpp:331-345`). */
+  /**
+   * Carbon `DestroyRenderTargets` (`cpp:331-345`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   DestroyRenderTargets()
@@ -364,6 +395,8 @@ export class Tr2ReflectionProbe
    * cube, generate its mips, filter those into the reflection's mips 1..7,
    * and copy the source into mip 0 - the last two with Hollywood backlighting
    * seen from the current view.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -396,6 +429,8 @@ export class Tr2ReflectionProbe
    * Carbon `RunFilter` (`cpp:383-389`), exposed to Blue as "Filters the
    * currently set texture": rebuild the targets in RGBA16F and filter
    * `customSourceTexture`.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -406,7 +441,11 @@ export class Tr2ReflectionProbe
     this.Filter(renderContext);
   }
 
-  /** Carbon `IsHollyWoodModeOn` (`cpp:391-394`). */
+  /**
+   * Carbon `IsHollyWoodModeOn` (`cpp:391-394`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsHollyWoodModeOn()
@@ -414,7 +453,11 @@ export class Tr2ReflectionProbe
     return this.hollywoodMode;
   }
 
-  /** Carbon `ReadyForDynamicObjectReflections` (`cpp:396-400`). */
+  /**
+   * Carbon `ReadyForDynamicObjectReflections` (`cpp:396-400`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReadyForDynamicObjectReflections()
@@ -422,7 +465,11 @@ export class Tr2ReflectionProbe
     return this._onePassDone;
   }
 
-  /** Carbon `GetStartFace` (`cpp:80-87`). */
+  /**
+   * Carbon `GetStartFace` (`cpp:80-87`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetStartFace()
@@ -432,7 +479,11 @@ export class Tr2ReflectionProbe
       : this.currentFrame;
   }
 
-  /** Carbon `GetEndFace` (`cpp:89-96`). */
+  /**
+   * Carbon `GetEndFace` (`cpp:89-96`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetEndFace()
@@ -448,6 +499,8 @@ export class Tr2ReflectionProbe
    * the intermediate-size viewport and a square projection that keeps the
    * current near/far terms, and inverts culling (the cube target is
    * left-handed). Without render-pass hints the faces are cleared here.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -494,6 +547,8 @@ export class Tr2ReflectionProbe
    * mirrored for the left-handed cube: Carbon's `LookAtMatrix(...) * xInverter`
    * (row-vector) is `xInverter` applied after the look-at, so in gl order the
    * inverter is the left operand.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -518,6 +573,8 @@ export class Tr2ReflectionProbe
    * Carbon `EndRenderPass` (`cpp:177-204`): copies the rendered faces into the
    * cube, restores culling and the saved state, filters, and advances the face
    * when only one side renders per frame.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -552,6 +609,8 @@ export class Tr2ReflectionProbe
   /**
    * Carbon `GetFrustum` (`cpp:73-78`): the frustum of the current view and
    * projection from the probe position, over the current viewport.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -563,7 +622,11 @@ export class Tr2ReflectionProbe
     return frustum;
   }
 
-  /** Carbon `GetDepthBuffer` (`h:59`): face `face`'s depth buffer. */
+  /**
+   * Carbon `GetDepthBuffer` (`h:59`): face `face`'s depth buffer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDepthBuffer(face)

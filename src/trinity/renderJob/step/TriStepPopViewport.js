@@ -17,7 +17,11 @@ import { TriRenderJob } from "../TriRenderJob.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepPopViewport extends TriRenderStep
 {
-  /** Restores the viewport saved by the matching push step. */
+  /**
+   * Restores the viewport saved by the matching push step.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)

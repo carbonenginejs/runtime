@@ -144,10 +144,10 @@ export class Tr2Denoiser extends IRoot
    *
    * INVALID IN, EMPTY OUT. A source or depth that is not valid returns null
    * rather than borrowing four textures to produce nothing.
-   * Adapted: Apply consumes the source handle; explicit cleanup replaces the
-   * native local-handle destructors (Tr2Denoiser.cpp:59-162 and
-   * Tr2GpuResourcePool.h:GpuResourceHandle). Only the returned result escapes.
    *
+   * @adapted Apply consumes the source handle; explicit cleanup replaces the
+   *   native local-handle destructors (Tr2Denoiser.cpp:59-162 and
+   *   Tr2GpuResourcePool.h:GpuResourceHandle). Only the returned result escapes.
    * @param {object} source The noisy texture, as a pool handle.
    * @param {object} depth The scene depth buffer.
    * @param {object|null} normals Optional normals; absence selects a permutation.
@@ -170,6 +170,7 @@ export class Tr2Denoiser extends IRoot
    * renderContext ) (cpp:59-162), named by its inserted index parameter: renders
    * into array slice index of the result. Same adaptations as Apply.
    *
+   * @adapted
    * @param {number} index Array slice of the result to render into.
    * @returns {object|null} The result handle, or null.
    */
@@ -290,6 +291,7 @@ export class Tr2Denoiser extends IRoot
   /**
    * Carbon `SetRadius` (`cpp:170-172`).
    *
+   * @implemented
    * @param {number} value The new radius.
    * @returns {void}
    */
@@ -305,6 +307,7 @@ export class Tr2Denoiser extends IRoot
    * Carbon `OnModified` (`cpp:164-168`): any authored change re-sends the
    * weights on the next Apply.
    *
+   * @implemented
    * @returns {boolean} True, as Carbon's does.
    */
 

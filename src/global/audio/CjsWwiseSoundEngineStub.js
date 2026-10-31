@@ -241,30 +241,48 @@ export class CjsWwiseSoundEngineStub extends ICjsWwiseSoundEngine
     /**
      * Not implemented, as on the Web Audio backend: Carbon added spatial-audio
      * geometry after the backend was ported. Reports failure.
+     *
+     * @notImplemented
      */
     InitSpatialAudioGeometry(_settings)
     {
         return false;
     }
 
-    /** Not implemented (spatial-audio geometry, not ported). */
+    /**
+     * Not implemented (spatial-audio geometry, not ported).
+     *
+     * @notImplemented
+     */
     SetGeometry(_geometrySetId, _params)
     {
         return false;
     }
 
-    /** Not implemented (spatial-audio geometry, not ported). */
+    /**
+     * Not implemented (spatial-audio geometry, not ported).
+     *
+     * @notImplemented
+     */
     SetGeometryInstance(_geometryInstanceId, _params)
     {
         return false;
     }
 
-    /** Not implemented (spatial-audio geometry, not ported). */
+    /**
+     * Not implemented (spatial-audio geometry, not ported).
+     *
+     * @notImplemented
+     */
     RemoveGeometry(_geometrySetId)
     {
     }
 
-    /** Not implemented (spatial-audio geometry, not ported). */
+    /**
+     * Not implemented (spatial-audio geometry, not ported).
+     *
+     * @notImplemented
+     */
     RemoveGeometryInstance(_geometryInstanceId)
     {
     }

@@ -50,7 +50,11 @@ export class TriObserverLocal extends ITriObserverLocal
    */
   _mute = false;
 
-  /** Gets native mute state. @returns {boolean} Current mute state. */
+  /**
+   * Gets native mute state. @returns {boolean} Current mute state.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.boolean
   @meta.implemented
@@ -59,7 +63,11 @@ export class TriObserverLocal extends ITriObserverLocal
     return this.GetMute();
   }
 
-  /** Applies mute through the native setter. @param {boolean} value Mute state. */
+  /**
+   * Applies mute through the native setter. @param {boolean} value Mute state.
+   *
+   * @implemented
+   */
   @meta.implemented
   set mute(value)
   {
@@ -82,6 +90,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * back to +Z with +Y up. A present observer requires UpdatePlacement.
    * JavaScript returns a boolean and leases invocation-local pooled vectors,
    * released even on nested calls or failure; the native method returns void.
+   *
+   * @adapted
    * @param {Float32Array} worldTransform World matrix.
    * @returns {boolean} Whether an observer was updated.
    */
@@ -122,6 +132,8 @@ export class TriObserverLocal extends ITriObserverLocal
   /**
    * Carbon TriObserverLocal::GetDebugOptions (cpp:96-102): forwards to the
    * observer when it is debug-renderable.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -138,6 +150,8 @@ export class TriObserverLocal extends ITriObserverLocal
   /**
    * Carbon TriObserverLocal::RenderDebugInfo (cpp:104-111): forwards to the
    * observer when it is debug-renderable.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -151,7 +165,11 @@ export class TriObserverLocal extends ITriObserverLocal
     }
   }
 
-  /** Gets the bound placement observer. @returns {object|null} Observer. */
+  /**
+   * Gets the bound placement observer. @returns {object|null} Observer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetObserver()
@@ -162,6 +180,8 @@ export class TriObserverLocal extends ITriObserverLocal
   /**
    * Binds the placement observer that Update drives; the mute state is not
    * reapplied to the new observer. JavaScript nullish input clears the binding.
+   *
+   * @adapted
    * @param {object|null} observer Placement observer.
    * @returns {void}
    */
@@ -175,6 +195,8 @@ export class TriObserverLocal extends ITriObserverLocal
   /**
    * Copies the observer's object-local position; the caller's vector is not
    * retained.
+   *
+   * @implemented
    * @param {Float32Array|number[]} position Local position.
    * @returns {void}
    */
@@ -188,6 +210,8 @@ export class TriObserverLocal extends ITriObserverLocal
   /**
    * Copies the observer's object-local facing direction; the caller's vector is
    * not retained.
+   *
+   * @implemented
    * @param {Float32Array|number[]} front Local facing vector.
    * @returns {void}
    */
@@ -198,7 +222,11 @@ export class TriObserverLocal extends ITriObserverLocal
     vec3.copy(this.front, front);
   }
 
-  /** Gets mute state. @returns {boolean} Whether the observer is muted. */
+  /**
+   * Gets mute state. @returns {boolean} Whether the observer is muted.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMute()
@@ -211,6 +239,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * the state is already what was asked for. JavaScript coerces to bool and
    * returns a change flag; a registered nominal audio contract replaces native
    * dynamic_cast without loading the optional audio module.
+   *
+   * @adapted
    * @param {boolean} mute Desired state.
    * @returns {boolean} Whether the stored state changed.
    */
@@ -235,7 +265,11 @@ export class TriObserverLocal extends ITriObserverLocal
     return true;
   }
 
-  /** Native no-op callback. @returns {boolean} True. */
+  /**
+   * Native no-op callback. @returns {boolean} True.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   OnModified()

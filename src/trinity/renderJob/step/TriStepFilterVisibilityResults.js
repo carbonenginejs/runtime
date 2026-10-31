@@ -49,7 +49,11 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   @type.object.ref("Tr2VisibilityResults")
   outputResults = null;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(input = null, output = null, eventFilter = undefined, filter = undefined)
@@ -60,7 +64,11 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
     if (filter !== undefined) this.SetFilterType(filter);
   }
 
-  /** Carbon SetEventFilter (cpp:98): the event-type bitfield Execute masks by. */
+  /**
+   * Carbon SetEventFilter (cpp:98): the event-type bitfield Execute masks by.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetEventFilter(eventFilter)
@@ -68,7 +76,11 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
     this.eventFilter = Number(eventFilter) >>> 0;
   }
 
-  /** Carbon SetFilterType (cpp:112): ONLY_ vs EXCLUDE_OBJECTS_IN_LIST. */
+  /**
+   * Carbon SetFilterType (cpp:112): ONLY_ vs EXCLUDE_OBJECTS_IN_LIST.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetFilterType(filterType)
@@ -76,7 +88,11 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
     this.filterType = Number(filterType) | 0;
   }
 
-  /** Carbon SetInputResults (h:49-52): the non-owning source result set. */
+  /**
+   * Carbon SetInputResults (h:49-52): the non-owning source result set.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetInputResults(results)
@@ -84,7 +100,11 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
     this.inputResults = results ?? null;
   }
 
-  /** Carbon SetOutputResults (h:53-56): the non-owning destination set. */
+  /**
+   * Carbon SetOutputResults (h:53-56): the non-owning destination set.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetOutputResults(results)
@@ -94,6 +114,8 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
 
   /**
    * Filters the input visibility results into the output set using the event and object masks.
+   *
+   * @adapted
    */
 
   @meta.adapted

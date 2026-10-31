@@ -22,6 +22,7 @@ export class Tr2TextureAtlasMan extends IRoot
   /**
    * Returns the first atlas of a format (`Tr2TextureAtlasMan.cpp:19-32`).
    *
+   * @implemented
    * @param {number} fmt A `PixelFormat` value.
    * @returns {Tr2TextureAtlas|null} The atlas, or null.
    */
@@ -49,6 +50,7 @@ export class Tr2TextureAtlasMan extends IRoot
    * second atlas, which `FindAtlas` never returns. That shipped behaviour is
    * what this does.
    *
+   * @implemented
    * @param {number} fmt A `PixelFormat` value.
    * @param {number} width Atlas width.
    * @param {number} height Atlas height.
@@ -71,6 +73,7 @@ export class Tr2TextureAtlasMan extends IRoot
    * (`Tr2TextureAtlasMan_Blue.cpp:28-32`); see `AddAtlas` for why the Blue
    * name lands here.
    *
+   * @implemented
    * @param {number} fmt A `PixelFormat` value.
    * @returns {void}
    */
@@ -93,6 +96,7 @@ export class Tr2TextureAtlasMan extends IRoot
    * `Tr2TextureAtlasMan.h:30`): casts the unsigned format to `PixelFormat`
    * and calls `AddAtlas`. A JS number needs no cast.
    *
+   * @implemented
    * @param {number} fmt A `PixelFormat` value.
    * @param {number} width Atlas width.
    * @param {number} height Atlas height.
@@ -109,6 +113,7 @@ export class Tr2TextureAtlasMan extends IRoot
    * `Tr2TextureAtlasMan.h:31`): casts the unsigned format to `PixelFormat`
    * and calls `RemoveAtlas`. A JS number needs no cast.
    *
+   * @implemented
    * @param {number} fmt A `PixelFormat` value.
    * @returns {void}
    */

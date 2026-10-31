@@ -69,38 +69,62 @@ export class EveSmartLightBaseGroup extends IRoot
   /** Caller-owned faction-colour result; never aliases the SOF model. */
   _resolvedGroupColor = color.createLinear();
 
-  /** IEveSmartLightGroup default: no asynchronous work. */
+  /**
+   * IEveSmartLightGroup default: no asynchronous work.
+   *
+   * @adapted
+   */
   @meta.adapted
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 
-  /** IEveSmartLightGroup default: no synchronous work. */
+  /**
+   * IEveSmartLightGroup default: no synchronous work.
+   *
+   * @adapted
+   */
   @meta.adapted
   UpdateSyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 
-  /** IEveSmartLightGroup default: no visibility state. */
+  /**
+   * IEveSmartLightGroup default: no visibility state.
+   *
+   * @adapted
+   */
   @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
-  /** IEveSmartLightGroup default: contributes no renderables. */
+  /**
+   * IEveSmartLightGroup default: contributes no renderables.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;
   }
 
-  /** IEveSmartLightGroup default: contributes no quads. */
+  /**
+   * IEveSmartLightGroup default: contributes no quads.
+   *
+   * @adapted
+   */
   @meta.adapted
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
 
-  /** IEveSmartLightGroup default: registers no quad effect. */
+  /**
+   * IEveSmartLightGroup default: registers no quad effect.
+   *
+   * @adapted
+   */
   @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
@@ -118,7 +142,11 @@ export class EveSmartLightBaseGroup extends IRoot
     return this.GetGroupColor();
   }
 
-  /** Faction-aware group color (EveSmartLightBaseGroup.cpp:43-53). */
+  /**
+   * Faction-aware group color (EveSmartLightBaseGroup.cpp:43-53).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetGroupColor()
@@ -135,6 +163,8 @@ export class EveSmartLightBaseGroup extends IRoot
   /**
    * Stores the inherited faction color set and fans it out to the attribute
    * modifiers (EveSmartLightBaseGroup.cpp:30-41).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -151,7 +181,11 @@ export class EveSmartLightBaseGroup extends IRoot
     }
   }
 
-  /** Overwrites the custom color (EveSmartLightBaseGroup.cpp:55-58). */
+  /**
+   * Overwrites the custom color (EveSmartLightBaseGroup.cpp:55-58).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetColor(color)
@@ -159,7 +193,11 @@ export class EveSmartLightBaseGroup extends IRoot
     vec4.copy(this.customColor, color);
   }
 
-  /** Fans a controller variable out to the attribute modifiers (EveSmartLightBaseGroup.cpp:60-66). */
+  /**
+   * Fans a controller variable out to the attribute modifiers (EveSmartLightBaseGroup.cpp:60-66).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetControllerVariable(name, value)
@@ -173,6 +211,8 @@ export class EveSmartLightBaseGroup extends IRoot
   /**
    * Newly inserted attribute modifiers inherit the parent color set
    * (EveSmartLightBaseGroup.cpp:16-28).
+   *
+   * @implemented
    */
 
   @meta.implemented

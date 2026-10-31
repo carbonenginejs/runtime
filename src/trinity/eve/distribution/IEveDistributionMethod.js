@@ -10,41 +10,73 @@ import { meta } from "#schema";
 export class IEveDistributionMethod extends IRoot
 {
 
-  /** Regenerates the distribution's complete placement data. */
+  /**
+   * Regenerates the distribution's complete placement data.
+   *
+   * @abstract
+   */
   @be.abstract
   RegeneratePlacementData() {}
 
-  /** Returns the number of available placements. */
+  /**
+   * Returns the number of available placements.
+   *
+   * @abstract
+   */
   @be.abstract
   GetNumberOfPlacements() {}
 
-  /** Returns placement data for the requested entry. */
+  /**
+   * Returns placement data for the requested entry.
+   *
+   * @abstract
+   */
   @be.abstract
   GetPlacementData(_index) {}
 
-  /** Writes the center of the requested placement data. */
+  /**
+   * Writes the center of the requested placement data.
+   *
+   * @abstract
+   */
   @be.abstract
   GetPlacementDataCenter(_index, _out) {}
 
-  /** Reports whether the distribution produces dynamic movement. */
+  /**
+   * Reports whether the distribution produces dynamic movement.
+   *
+   * @abstract
+   */
   @be.abstract
   GetHasDynamicMovement() {}
 
-  /** Runs the optional synchronous distribution update hook. */
+  /**
+   * Runs the optional synchronous distribution update hook.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateSyncronous(_updateContext)
   {
   }
 
-  /** Runs the optional asynchronous distribution update hook. */
+  /**
+   * Runs the optional asynchronous distribution update hook.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateAsyncronous(_updateContext)
   {
   }
 
-  /** Accepts an optional controller variable. */
+  /**
+   * Accepts an optional controller variable.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetControllerVariable(_name, _value)

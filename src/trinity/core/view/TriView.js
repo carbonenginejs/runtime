@@ -19,7 +19,11 @@ export class TriView extends IRoot
   @type.mat4
   transform = mat4.create();
 
-  /** Copies a view matrix in; the caller's buffer is not retained. */
+  /**
+   * Copies a view matrix in; the caller's buffer is not retained.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetTransform(value)
@@ -31,8 +35,8 @@ export class TriView extends IRoot
    * Copies the view matrix into out and returns
    * it, since JS cannot safely hand out Carbon's const matrix reference.
    *
-   * Adapted: Copies the transform into the caller's output matrix instead of returning
-   * Carbon's const Matrix reference.
+   * @adapted Copies the transform into the caller's output matrix instead of returning
+   *   Carbon's const Matrix reference.
    */
 
   @meta.adapted
@@ -41,7 +45,11 @@ export class TriView extends IRoot
     return mat4.copy(out, this.transform);
   }
 
-  /** Builds Carbon's right-handed look-at view transform. */
+  /**
+   * Builds Carbon's right-handed look-at view transform.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetLookAtPosition(eye, at, up)

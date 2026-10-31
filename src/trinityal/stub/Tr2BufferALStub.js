@@ -55,6 +55,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   /**
    * Creates the buffer.
    *
+   * @implemented
    * @param {Tr2BufferDescriptionAL} desc The buffer description.
    * @param {ArrayBufferView|null} initialData Initial contents, if any.
    * @param {object} renderContext The context to create against.
@@ -85,7 +86,11 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
     this._buffer = new Uint8Array(0);
   }
 
-  /** Releases the buffer and leaves the device-resource registry. */
+  /**
+   * Releases the buffer and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -95,6 +100,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   /**
    * Whether the buffer holds anything.
    *
+   * @implemented
    * @returns {boolean} True when it has a size.
    */
   IsValid()
@@ -105,6 +111,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   /**
    * Which memory class this buffer occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -115,6 +122,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   /**
    * The buffer description.
    *
+   * @implemented
    * @returns {Tr2BufferDescriptionAL} The description.
    */
   GetDesc()
@@ -140,6 +148,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   /**
    * Carbon's MapForReading( data, renderContext ): maps the whole buffer.
    *
+   * @adapted
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
@@ -152,6 +161,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
    * Carbon's MapForReading( data, offset, size, renderContext ): maps a byte
    * range; an empty or out-of-range span is E_INVALIDARG.
    *
+   * @adapted
    * @param {object} renderContext The context to map against.
    * @param {number} offset Byte offset of the range.
    * @param {number} size Bytes in the range.
@@ -189,7 +199,11 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
     return { result: ALResult.S_OK, data };
   }
 
-  /** Carbon's stub releases nothing on unmap; the storage is the buffer. */
+  /**
+   * Carbon's stub releases nothing on unmap; the storage is the buffer.
+   *
+   * @implemented
+   */
   UnmapForReading()
   {
   }
@@ -197,6 +211,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   /**
    * Maps the whole buffer for writing.
    *
+   * @adapted
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
@@ -209,7 +224,10 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
     return { result: ALResult.S_OK, data: this._buffer };
   }
 
-  /** @see UnmapForReading */
+  /**
+   * @implemented
+   * @see UnmapForReading
+   */
   UnmapForWriting()
   {
   }
@@ -220,6 +238,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
    * A buffer mapped often is written through a map, so Carbon refuses
    * `WRITE_OFTEN` here outright.
    *
+   * @implemented
    * @param {number} offset Byte offset of the range.
    * @param {number} size Bytes in the range.
    * @param {ArrayBufferView} data The bytes.
@@ -243,6 +262,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   /**
    * Where the shader-resource view sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index".
    */
   GetSrvIndexInHeap()
@@ -253,6 +273,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   /**
    * Where the unordered-access view sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index".
    */
   GetUavIndexInHeap()
@@ -269,6 +290,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -278,6 +300,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   /**
    * Names the buffer for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */

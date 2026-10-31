@@ -47,6 +47,8 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    */
   /**
    * Does nothing: the contained forces are not updated through the volume.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -57,6 +59,8 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
   /**
    * Child-force aggregation with (1 - d/r)^exponent falloff inside the sphere
    * (Tr2ForceSphereVolume.cpp:38-59).
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -83,6 +87,8 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * Carbon Tr2ForceSphereVolume::RenderDebugInfo (Particle/Tr2ForceSphereVolume.cpp:61-68):
    * the volume as a 20-segment wireframe sphere in 0xffaaaa00, then every
    * contained force with the same arguments.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} aabb The particle system's bounds, packed min/max.

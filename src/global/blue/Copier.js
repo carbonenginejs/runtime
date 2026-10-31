@@ -77,10 +77,9 @@ export class Copier extends ICopier
    * SUCCESS with the object to use, FAILURE, or FALLBACK to let the copier
    * copy it.
    *
-   * Adapted: the callback returns `{ result, dest }`, where Carbon's writes
-   * the destination through its `dest` output parameter and returns the
-   * result.
-   *
+   * @adapted the callback returns `{ result, dest }`, where Carbon's writes
+   *   the destination through its `dest` output parameter and returns the
+   *   result.
    * @param {((source: object, dest: object|null, copier: Copier, context: *) => {result: number, dest?: object|null})|null} copyOverride
    * @param {*} context Passed to the callback as its last argument.
    */
@@ -95,6 +94,7 @@ export class Copier extends ICopier
    * called with the source, the destination, the copier and the context
    * after every successful copy, nested ones included.
    *
+   * @implemented
    * @param {((source: object, dest: object, copier: Copier, context: *) => void)|null} postCopy
    * @param {*} context Passed to the callback as its last argument.
    */
@@ -108,14 +108,13 @@ export class Copier extends ICopier
    * Copies `source` into `dest`, or into a new instance of its class when
    * `dest` is null (Copier.cpp:46-120).
    *
-   * Adapted: Carbon returns bool and writes the destination through an
-   * IRoot**; JavaScript returns the destination or null, as the Python CopyTo
-   * returns the copy. Generic lists require an existing, equally configured
-   * destination: JavaScript template arguments are instance data, not a
-   * registered native class that can be constructed without arguments. The
-   * outer operation releases its memo on failure or exception as well as
-   * success, so a later call cannot reuse a partially copied graph.
-   *
+   * @adapted Carbon returns bool and writes the destination through an
+   *   IRoot**; JavaScript returns the destination or null, as the Python CopyTo
+   *   returns the copy. Generic lists require an existing, equally configured
+   *   destination: JavaScript template arguments are instance data, not a
+   *   registered native class that can be constructed without arguments. The
+   *   outer operation releases its memo on failure or exception as well as
+   *   success, so a later call cannot reuse a partially copied graph.
    * @param {object} source The object to copy.
    * @param {object|null} [dest=null] An existing object of the same class, or null.
    * @returns {object|null} The destination, or null when the copy failed.
@@ -173,9 +172,8 @@ export class Copier extends ICopier
   /**
    * Copies preserving topology - which `CopyTo` already does (Copier.cpp:36-40).
    *
-   * Adapted: Carbon returns bool and writes the destination through an
-   * IRoot**; JavaScript returns the destination or null.
-   *
+   * @adapted Carbon returns bool and writes the destination through an
+   *   IRoot**; JavaScript returns the destination or null.
    * @param {object} source The object to copy.
    * @param {object|null} [dest=null] An existing object of the same class, or null.
    * @returns {object|null} The destination, or null when the copy failed.
@@ -193,9 +191,9 @@ export class Copier extends ICopier
    * PERSIST member is notified, without requiring NOTIFY; false aborts the copy.
    * Source ICopierCustomAssignment runs after members, and Initialize runs last.
    *
-   * Adapted: native member offsets select explicit JavaScript backing keys and
-   * optional indexes. Canonical members retain derived-to-base declaration order;
-   * live properties are not storage, and their accessors are never invoked.
+   * @adapted native member offsets select explicit JavaScript backing keys and
+   *   optional indexes. Canonical members retain derived-to-base declaration order;
+   *   live properties are not storage, and their accessors are never invoked.
    */
   _CopyToInternal(source, dest)
   {

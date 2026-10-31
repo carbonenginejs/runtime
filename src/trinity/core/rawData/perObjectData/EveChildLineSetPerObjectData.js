@@ -19,6 +19,8 @@ export class EveChildLineSetPerObjectData extends Tr2PerObjectData
   /**
    * Uses the family's declared-stage gate in place of Carbon's unconditional
    * VS/PS uploads; see this folder's README and documented adaptation CE-19.
+   *
+   * @adapted
    */
   @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)

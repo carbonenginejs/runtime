@@ -115,6 +115,7 @@ export class EveKDdroneManagementTree extends IRoot
    * The root AgentRef is copied into m_tree by value (cpp:28-29, ruling 16),
    * so the tree's root is a separate record from its agentRefs entry.
    *
+   * @implemented
    * @param {Array} agents - DroneAgent records
    * @param {Number} numberOfBehaviors
    */
@@ -148,6 +149,8 @@ export class EveKDdroneManagementTree extends IRoot
    * Throttled incremental rebalance: every timeBetweenUpdate seconds each node
    * is checked against its children and locally re-sorted when the splitting
    * invariant broke (Carbon UpdateTree, cpp:44-55).
+   *
+   * @implemented
    * @param {Number} dt - delta time in seconds
    */
 
@@ -169,6 +172,8 @@ export class EveKDdroneManagementTree extends IRoot
   /**
    * Standard nearest-neighbour tree search for callers outside the behavior
    * group (Carbon FindClosestAgent, cpp:276-289).
+   *
+   * @implemented
    * @param {Float32Array} pos
    * @returns {Object|null} the closest DroneAgent record
    */
@@ -195,6 +200,8 @@ export class EveKDdroneManagementTree extends IRoot
    * radius at once (Carbon FindDronesInRange, cpp:374-430). The result is
    * indexed [behaviorIndex][agentIndex] -> agents in range (up to
    * maxFoundPerAgent per Carbon's early-out bookkeeping).
+   *
+   * @implemented
    * @param {Array} agents - DroneAgent records
    * @param {Array<Number>} ranges - per-behavior search radii (-1 = don't care)
    * @param {Number} behaviorGroupBoundingSphereRadius
@@ -542,6 +549,8 @@ export class EveKDdroneManagementTree extends IRoot
   /**
    * Carbon EveKDdroneManagementTree::RenderDebugInfo (cpp:534-542): the
    * outer debug box, then every split plane of the tree.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentWorldLocation Only its translation offsets the split planes.
    */
@@ -563,6 +572,8 @@ export class EveKDdroneManagementTree extends IRoot
    * node's split plane as a thin box with its inner lines, recurses into both
    * halves, and grows debugSquareSize to 1.5 times the node's largest
    * absolute coordinate.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {object|null} tree The AgentRef node.
    * @param {vec3} debugSquareCorner1
@@ -627,6 +638,8 @@ export class EveKDdroneManagementTree extends IRoot
   /**
    * Carbon EveKDdroneManagementTree::DrawSquareInnerLines (cpp:591-615):
    * four lines from the agent to the split plane's corners.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {vec3} agentPos
    * @param {vec3} P1

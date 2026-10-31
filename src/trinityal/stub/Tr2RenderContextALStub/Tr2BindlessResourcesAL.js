@@ -22,6 +22,7 @@ export class Tr2BindlessResourcesAL
    * cannot tell apart without the `instanceof` the port forbids, so this
    * throws and names the specific methods. Engine code calls those.
    *
+   * @adapted
    * @param {object} _resource The resource to make resident.
    * @throws {TypeError} Always.
    */
@@ -34,6 +35,7 @@ export class Tr2BindlessResourcesAL
    * Carbon's `Add( const Tr2TextureAL& )` (Tr2RenderContextStub.h:35-37):
    * empty in the stub.
    *
+   * @implemented
    * @param {object} _texture A `Tr2TextureAL`.
    */
   Add__TextureAL(_texture)
@@ -44,6 +46,7 @@ export class Tr2BindlessResourcesAL
    * Carbon's `Add( const Tr2BufferAL& )` (Tr2RenderContextStub.h:38-40):
    * empty in the stub.
    *
+   * @implemented
    * @param {object} _buffer A `Tr2BufferAL`.
    */
   Add__BufferAL(_buffer)
@@ -55,13 +58,18 @@ export class Tr2BindlessResourcesAL
    * (Tr2RenderContextStub.h:41-43): adds the contents of another list; empty
    * in the stub.
    *
+   * @implemented
    * @param {Tr2BindlessResourcesAL} _resources The list whose contents to add.
    */
   Add__BindlessResourcesAL(_resources)
   {
   }
 
-  /** Empties the list. */
+  /**
+   * Empties the list.
+   *
+   * @implemented
+   */
   Clear()
   {
   }

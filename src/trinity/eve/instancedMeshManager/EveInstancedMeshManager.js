@@ -310,20 +310,19 @@ export class EveInstancedMeshManager
    * twice its size when it is too small), and publishes the buffer as the
    * global "InstancedPerObjectBuffer".
    *
-   * Adapted:
-   * - The registry takes the component name, as EveComponentRegistry's
+   * @adapted - The registry takes the component name, as EveComponentRegistry's
    *   ProcessComponents does, because JavaScript has no template
    *   specialization to resolve it from IEveInstanceMeshProvider.
-   * - `Tr2GpuStructuredBuffer.Create` takes the render context as an added
+   *   - `Tr2GpuStructuredBuffer.Create` takes the render context as an added
    *   argument (its own JSDoc gives the reason).
-   * - The upload is guarded: Carbon's GetGpuBuffer returns a value member
+   *   - The upload is guarded: Carbon's GetGpuBuffer returns a value member
    *   that always exists, ours returns null until a create succeeds, and a
    *   failed map hands back no bytes. Carbon would write through a null
    *   pointer in either case; this port skips the copy.
-   * - Each record's bytes are copied with one Float32Array view over the
+   *   - Each record's bytes are copied with one Float32Array view over the
    *   mapping where Carbon memcpys `sizeof( EveSpacePerObjectData )` per
    *   record; the bytes are identical.
-   * - The CCP_STATS counters (cpp:107, 112-115, 119-120) have no JavaScript
+   *   - The CCP_STATS counters (cpp:107, 112-115, 119-120) have no JavaScript
    *   counterpart and are omitted.
    * @param {EveComponentRegistry} registry The scene's component registry.
    */
@@ -377,9 +376,9 @@ export class EveInstancedMeshManager
    * Carbon AddPerObjectData (cpp:123-133): appends the provider's per-object
    * record and points the handle at its slot.
    *
-   * Adapted: Carbon fills the caller's handle, asserting and guarding that it
-   * is empty; the handle here is created by the call and returned (rule 11),
-   * so it is always empty and the guard always passes.
+   * @adapted Carbon fills the caller's handle, asserting and guarding that it
+   *   is empty; the handle here is created by the call and returned (rule 11),
+   *   so it is always empty and the guard always passes.
    * @param {RawData} data The provider's EveSpacePerObjectData record, read in place each frame.
    * @returns {EveInstancedMeshManagerDataHandle} The PerObjectDataHandle.
    */
@@ -404,6 +403,8 @@ export class EveInstancedMeshManager
    * Carbon quirks, reproduced: unlike the other two removals there is no
    * assert or validity guard, so the handle must be valid; and only `index`
    * is reset - `owner` keeps pointing at this manager.
+   *
+   * @implemented
    * @param {EveInstancedMeshManagerDataHandle} handle A valid PerObjectDataHandle.
    */
   @meta.implemented
@@ -440,8 +441,8 @@ export class EveInstancedMeshManager
    * copying the enclosing sphere and flags and keeping the provider's
    * per-instance sphere array, with one zeroed screen size per sphere.
    *
-   * Adapted: the handle is created and returned rather than filled (rule 11),
-   * so Carbon's empty-handle assert and guard always pass.
+   * @adapted the handle is created and returned rather than filled (rule 11),
+   *   so Carbon's empty-handle assert and guard always pass.
    * @param {{center: vec3, radius: number}} bounds The group's enclosing sphere, copied.
    * @param {EveInstancedMeshManagerInstanceFlags} flags The group's flags, copied.
    * @param {Array<{center: vec3, radius: number}>} boundingSpheres The provider's per-instance spheres, read in place.
@@ -473,6 +474,8 @@ export class EveInstancedMeshManager
    * group into the removed slot - first re-pointing every mesh group that
    * used the last slot - patches the moved group's handle, and empties the
    * handle (index and owner). Nothing happens for an empty handle.
+   *
+   * @implemented
    * @param {EveInstancedMeshManagerDataHandle} handle The BoundingSphereHandle.
    */
   @meta.implemented
@@ -510,6 +513,8 @@ export class EveInstancedMeshManager
   /**
    * Carbon SetSphereGroupBounds (cpp:215-220): copies a new enclosing sphere
    * and flags into the handle's sphere group.
+   *
+   * @implemented
    * @param {EveInstancedMeshManagerDataHandle} handle A valid BoundingSphereHandle.
    * @param {{center: vec3, radius: number}} bounds The group's enclosing sphere, copied.
    * @param {EveInstancedMeshManagerInstanceFlags} flags The group's flags, copied.
@@ -530,6 +535,8 @@ export class EveInstancedMeshManager
    * after `areaCount`. The array's element type, which is what tells them
    * apart, is invisible to JavaScript, so this name throws rather than
    * guessing from how many arguments a caller passed.
+   *
+   * @notSupported
    * @throws {TypeError} Always.
    */
   @meta.notSupported
@@ -545,11 +552,11 @@ export class EveInstancedMeshManager
    * buffer layout. The first registration of a key fills the MeshData's
    * bounding radius and per-LOD screen-size thresholds from the geometry.
    *
-   * Adapted: the handle is created and returned (rule 11); Carbon's three
-   * debug asserts (empty handle, valid per-object and sphere handles) are not
-   * ported. The mesh's LOD list follows our geometry payload's flattening
-   * (MeshLods). The picking owner is the JavaScript object itself, Carbon's
-   * IRoot.
+   * @adapted the handle is created and returned (rule 11); Carbon's three
+   *   debug asserts (empty handle, valid per-object and sphere handles) are not
+   *   ported. The mesh's LOD list follows our geometry payload's flattening
+   *   (MeshLods). The picking owner is the JavaScript object itself, Carbon's
+   *   IRoot.
    * @param {TriGeometryRes} geometry
    * @param {number} combinedVertexDeclaration
    * @param {number} batchType A TriBatchType value.
@@ -628,7 +635,7 @@ export class EveInstancedMeshManager
    * included. The first registration of a key fills the MeshData's bounding
    * radius and per-LOD screen-size thresholds from the geometry.
    *
-   * Adapted: as AddMeshGroup__DynamicPerInstanceData.
+   * @adapted as AddMeshGroup__DynamicPerInstanceData.
    * @param {TriGeometryRes} geometry
    * @param {number} combinedVertexDeclaration
    * @param {number} batchType A TriBatchType value.
@@ -709,6 +716,8 @@ export class EveInstancedMeshManager
    *
    * Carbon quirk, reproduced: only `index` is reset; `owner` keeps pointing
    * at this manager.
+   *
+   * @implemented
    * @param {EveInstancedMeshManagerDataHandle} handle The MeshGroupHandle.
    */
   @meta.implemented
@@ -744,6 +753,8 @@ export class EveInstancedMeshManager
   /**
    * Carbon AllocateInstanceData (private, cpp:966-973): a span of the dynamic
    * or static instance buffer for `count` instance records.
+   *
+   * @implemented
    * @param {number} count Instance records.
    * @param {boolean} isDynamic Which buffer and element layout.
    * @returns {EveInstancedMeshManagerInstanceBufferAllocation}
@@ -764,6 +775,8 @@ export class EveInstancedMeshManager
    * requiring RENDER_IN_REFLECTION too when `reason` is a reflection - then
    * bins, uploads and commits the visible instances into the paired
    * accumulators.
+   *
+   * @implemented
    * @param {TriFrustum} cameraFrustum The view frustum (Carbon's header names it frustum).
    * @param {number} invLodFactor The update context's inverse LOD factor.
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches `[batchType, accumulator]` pairs, Carbon's initializer_list.
@@ -791,6 +804,8 @@ export class EveInstancedMeshManager
    * Carbon GetShadowBatches (h:99, cpp:710-725): as GetBatches, but only
    * shadow-casting groups pass the filter, and culling and sizing are done
    * against the shadow frustum.
+   *
+   * @implemented
    * @param {TriFrustum} cameraFrustum The camera frustum (Carbon's header names it frustum).
    * @param {IEveShadowFrustum} shadowFrustum The shadow pass's cull view.
    * @param {number} invLodFactor
@@ -820,6 +835,8 @@ export class EveInstancedMeshManager
    * Carbon's public GetPickingBatches (h:100, cpp:727-737): culls against the
    * one-pixel picking frustum, sized by the view frustum, and commits one
    * picking batch per visible LOD slot of every mesh group.
+   *
+   * @implemented
    * @param {EvePendingPickingReadback} readback The pointer-framework request.
    * @param {TriFrustum} viewFrustum
    * @param {TriFrustum} pickingFrustum
@@ -844,9 +861,9 @@ export class EveInstancedMeshManager
    * mesh's material the largest screen size it was drawn at this pass, so its
    * textures can stream the mips that size needs.
    *
-   * Adapted: Carbon reads `m_uvDensities` off LOD 0; a decoded LOD without
-   * densities passes an empty list, as Tr2MeshBase does, which the material
-   * reads as "no LOD data".
+   * @adapted Carbon reads `m_uvDensities` off LOD 0; a decoded LOD without
+   *   densities passes an empty list, as Tr2MeshBase does, which the material
+   *   reads as "no LOD data".
    */
   @meta.adapted
   ReportUsedScreenSizes()
@@ -874,6 +891,8 @@ export class EveInstancedMeshManager
    * Carbon's other two overloads take a second frustum, so they are the
    * named variants and this one keeps the bare name. Tr2ParallelDo runs the
    * groups in parallel; here they run in order.
+   *
+   * @implemented
    * @param {TriFrustum} cameraFrustum
    * @param {number} invLodFactor
    * @param {EveInstancedMeshManagerInstanceFlags} filter
@@ -924,6 +943,8 @@ export class EveInstancedMeshManager
    * Carbon's picking PerformFrustumCulling (private, h:273, cpp:554-597): as
    * the camera overload, but the visibility tests use the picking frustum
    * while the pixel sizes still come from the camera frustum.
+   *
+   * @implemented
    * @param {TriFrustum} cameraFrustum
    * @param {TriFrustum} pickingFrustum
    * @param {number} invLodFactor
@@ -977,6 +998,8 @@ export class EveInstancedMeshManager
    * pixel size only when it is at least SHADOW_SIZE_THRESHOLD in the shadow
    * map (and, for a straddling group, visible to the shadow frustum).
    * tbb::parallel_for_each runs serially here.
+   *
+   * @implemented
    * @param {TriFrustum} cameraFrustum
    * @param {IEveShadowFrustum} shadowFrustum
    * @param {number} invLodFactor
@@ -1038,6 +1061,8 @@ export class EveInstancedMeshManager
    * Carbon's three private BinVisibleInstances overloads (h:274-276) differ in
    * parameter type and count; JavaScript cannot tell them apart, so this
    * name throws and the manager calls the named variants.
+   *
+   * @notSupported
    * @throws {TypeError} Always.
    */
   @meta.notSupported
@@ -1050,7 +1075,7 @@ export class EveInstancedMeshManager
    * Carbon's mesh BinVisibleInstances (private, h:274, cpp:651-668): clears
    * the mesh's LOD slots and bins every group's visible instances into them.
    *
-   * Adapted: `std::pair<uint32_t, float>` is a `[count, maxScreenSize]` array.
+   * @adapted `std::pair<uint32_t, float>` is a `[count, maxScreenSize]` array.
    * @param {EveInstancedMeshManagerMeshKey} mesh
    * @param {EveInstancedMeshManagerMeshData} meshInfo
    * @returns {[number, number]} The binned instance count and the largest screen size seen.
@@ -1081,8 +1106,8 @@ export class EveInstancedMeshManager
    * SCREEN_SIZE_THRESHOLD to the slot of its LOD and mirroring, as
    * `[instance, perObjectDataIndex]`.
    *
-   * Adapted: the pair is an array, and the instance is the record itself
-   * where Carbon stores its address.
+   * @adapted the pair is an array, and the instance is the record itself
+   *   where Carbon stores its address.
    * @param {EveInstancedMeshManagerMeshKey} mesh
    * @param {EveInstancedMeshManagerMeshData} meshInfo
    * @param {EveInstancedMeshManagerMeshGroup} group
@@ -1118,6 +1143,8 @@ export class EveInstancedMeshManager
    * every mesh whose batch type was asked for and records its visible count
    * and largest screen size; any other mesh's visible count is zeroed.
    * tbb::parallel_for_each runs serially here.
+   *
+   * @implemented
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches
    */
   @meta.implemented
@@ -1146,8 +1173,8 @@ export class EveInstancedMeshManager
    * reads its object through the instance's perObjectDataIndex). A slot
    * whose draw is invalid still advances the instance offset.
    *
-   * Adapted: the CCP_STATS counters (cpp:920-921) are omitted, as in
-   * CollectMeshes; LOD allocations are realized on use (GetLodSlotDraw).
+   * @adapted the CCP_STATS counters (cpp:920-921) are omitted, as in
+   *   CollectMeshes; LOD allocations are realized on use (GetLodSlotDraw).
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches
    * @returns {number} The number of batches committed.
    */
@@ -1242,12 +1269,12 @@ export class EveInstancedMeshManager
    * non-empty LOD slot, each with its own instance-buffer span and a
    * PickingPerObjectData carrying the group owner's picking word.
    *
-   * Adapted: Carbon writes the owner's root-object address as the picking
-   * pointer and appends the owner to `readback.m_blueObjects`. JavaScript
-   * objects have no address, so the request's RetainObject does both,
-   * returning its one-based retained index and sequence - as the scene's own
-   * pointer picking does. The owner is the provider itself, which is its own
-   * root object here.
+   * @adapted Carbon writes the owner's root-object address as the picking
+   *   pointer and appends the owner to `readback.m_blueObjects`. JavaScript
+   *   objects have no address, so the request's RetainObject does both,
+   *   returning its one-based retained index and sequence - as the scene's own
+   *   pointer picking does. The owner is the provider itself, which is its own
+   *   root object here.
    * @param {EvePendingPickingReadback} readback
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches
    */
@@ -1322,15 +1349,14 @@ export class EveInstancedMeshManager
    * transform(s), per-object data index and picking indices - advancing the
    * allocation's data past them.
    *
-   * Adapted:
-   * - The elements are written through a DataView, little-endian like the
+   * @adapted - The elements are written through a DataView, little-endian like the
    *   GPU, where Carbon writes C++ structs in place; the byte layout is
    *   EveInstancedMeshManager{Static,Dynamic}PerInstanceBufferElement's.
-   * - The static instance record (EveChildInstancedMeshInstance) holds its
+   *   - The static instance record (EveChildInstancedMeshInstance) holds its
    *   transform as a mat4, so it is packed with Float4x3.fromMat4 here; Carbon
    *   packs it once in EveChildInstancedMeshes::AddMesh (cpp:560). The bytes
    *   are those of Float4x3( Matrix ) (MatrixUtils.cpp:6-20).
-   * - The data pointer advances once per call, by subarray, rather than per
+   *   - The data pointer advances once per call, by subarray, rather than per
    *   element; a mapping that failed (`data` null) writes nothing where
    *   Carbon would write through null.
    * @param {EveInstancedMeshManagerMeshKey} mesh
@@ -1397,6 +1423,8 @@ export class EveInstancedMeshManager
    * `lodCount - 1`, which wraps to 0xFFFFFFFF in Carbon's uint32_t; it is
    * returned as that value. The manager never has such a mesh, because
    * every registered mesh has at least one LOD.
+   *
+   * @implemented
    * @param {EveInstancedMeshManagerMeshData} meshInfo
    * @param {number} screenSize
    * @returns {number} The LOD index.

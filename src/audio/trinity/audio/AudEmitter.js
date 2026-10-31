@@ -128,11 +128,17 @@ export class AudEmitter extends AudGameObjResource
   /**
    * m_debugColor (Color, AudEmitter.h:76): the emitter's debug colour, random per emitter
    * (AudEmitter.cpp:23, 40) and red once code scales its attenuation.
+   *
+   * @implemented
    */
   @meta.implemented
   _debugColor = GenerateDebugColor(0.4, 0.9);
 
-  /** m_simulationColor (Color, AudEmitter.h:77): green, `0xff00ff00` (AudEmitter.cpp:24, 41). */
+  /**
+   * m_simulationColor (Color, AudEmitter.h:77): green, `0xff00ff00` (AudEmitter.cpp:24, 41).
+   *
+   * @implemented
+   */
   @meta.implemented
   _simulationColor = colorMath.fromARGB(colorMath.create(), 0xff00ff00);
 
@@ -140,6 +146,8 @@ export class AudEmitter extends AudGameObjResource
    * Carbon `Py__init__` (AudEmitter_Blue.cpp), the Python constructor: sets
    * the name, then runs the no-argument `Initialize()`.
    *
+   * @implemented
+   * @renamed Py__init__
    * @param {string} [name] Emitter name; Carbon defaults it to empty.
    */
   @be.mapMethodAndWrapOptionalArgs()
@@ -151,7 +159,11 @@ export class AudEmitter extends AudGameObjResource
     this.Initialize();
   }
 
-  /** Carbon method SendEvent -> PostEvent (ITr2AudEmitter). */
+  /**
+   * Carbon method SendEvent -> PostEvent (ITr2AudEmitter).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   SendEvent(name, bypassPrefix = false)
@@ -159,7 +171,11 @@ export class AudEmitter extends AudGameObjResource
     return this.PostEvent(name, bypassPrefix);
   }
 
-  /** Carbon method HandleEvent (IBlueEventListener): event tracks post directly on this emitter. */
+  /**
+   * Carbon method HandleEvent (IBlueEventListener): event tracks post directly on this emitter.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HandleEvent(eventName)
@@ -171,6 +187,8 @@ export class AudEmitter extends AudGameObjResource
    * Carbon method SetPosition (AudEmitter.cpp:75-79): the one place Carbon marks
    * a game object as placed (which lets Wake register it), then applies the
    * parent placement.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("SetPlacement")
   @meta.implemented
@@ -180,7 +198,12 @@ export class AudEmitter extends AudGameObjResource
     return this.SetPlacementFromParent(front, top, position);
   }
 
-  /** Carbon Blue method SetPlacement -> SetPosition. */
+  /**
+   * Carbon Blue method SetPlacement -> SetPosition.
+   *
+   * @implemented
+   * @renamed SetPosition
+   */
   @meta.renamed("SetPosition")
   @meta.implemented
   SetPlacement(front, top, position)
@@ -188,7 +211,11 @@ export class AudEmitter extends AudGameObjResource
     return this.SetPosition(front, top, position);
   }
 
-  /** Carbon method UpdatePlacement: placement observers forward here. */
+  /**
+   * Carbon method UpdatePlacement: placement observers forward here.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdatePlacement(front, top, position)
@@ -199,7 +226,11 @@ export class AudEmitter extends AudGameObjResource
   // Linear remap of the input from [minNormalizedValue, maxNormalizedValue]
   // to [minNormalizedScalingFactor, maxNormalizedScalingFactor]. Carbon does
   // NOT clamp - out-of-domain inputs extrapolate. Preserved.
-  /** Carbon method SetAttenuationScalingFactor: optional normalization, then base store/push. */
+  /**
+   * Carbon method SetAttenuationScalingFactor: optional normalization, then base store/push.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetAttenuationScalingFactor(scalingFactor)
@@ -217,7 +248,11 @@ export class AudEmitter extends AudGameObjResource
     return super.SetAttenuationScalingFactor(finalScalingFactor);
   }
 
-  /** Carbon method SetName (ITr2AudEmitter). */
+  /**
+   * Carbon method SetName (ITr2AudEmitter).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetName(name)
@@ -225,7 +260,11 @@ export class AudEmitter extends AudGameObjResource
     this.name = String(name ?? "");
   }
 
-  /** Carbon method GetName (ITr2AudEmitter). */
+  /**
+   * Carbon method GetName (ITr2AudEmitter).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -233,7 +272,11 @@ export class AudEmitter extends AudGameObjResource
     return this.name;
   }
 
-  /** Carbon method SetPrefix (ITr2AudEmitter). */
+  /**
+   * Carbon method SetPrefix (ITr2AudEmitter).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetPrefix(prefix)
@@ -241,7 +284,11 @@ export class AudEmitter extends AudGameObjResource
     this.eventPrefix = String(prefix ?? "");
   }
 
-  /** Carbon method SetVisibility (ITr2AudEmitter). */
+  /**
+   * Carbon method SetVisibility (ITr2AudEmitter).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetVisibility(isVisible)
@@ -253,6 +300,7 @@ export class AudEmitter extends AudGameObjResource
    * Carbon: AudEmitter::GetDebugOptions (AudEmitter.cpp:125-129; AudEmitter.h:61): offers
    * the attenuation sphere and emitter direction toggles.
    *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
   @meta.implemented
@@ -267,8 +315,7 @@ export class AudEmitter extends AudGameObjResource
    * sphere, direction arrow and name, but only for an emitter that is not culled while
    * audio is enabled.
    *
-   * Adapted: `g_audioManager` is the `AudGameObjResource.manager` seam.
-   *
+   * @adapted `g_audioManager` is the `AudGameObjResource.manager` seam.
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
   @meta.adapted
@@ -293,13 +340,12 @@ export class AudEmitter extends AudGameObjResource
    * wireframes with 8 segments plus one per 5000 of radius, at most 25.
    * Drawn only when every emitter is shown or the attenuation-sphere option is on.
    *
-   * Adapted: `g_debugDisplayAllEmitters` is the manager's flag (`GetDebugDisplayAllEmitters`).
-   * The range is `max( m_visualizationRadius, AK::SoundEngine::Query::GetMaxRadius( m_ID ) )`
-   * in Carbon; that Wwise query has no seam on the sound-engine interface, so the
-   * authored radius this emitter already tracks for its posted events
-   * (`GetMaxAttenuationRadius` is its square times the scaling factor) stands in:
-   * `sqrt( radiusSq ) * scalingFactor`.
-   *
+   * @adapted `g_debugDisplayAllEmitters` is the manager's flag (`GetDebugDisplayAllEmitters`).
+   *   The range is `max( m_visualizationRadius, AK::SoundEngine::Query::GetMaxRadius( m_ID ) )`
+   *   in Carbon; that Wwise query has no seam on the sound-engine interface, so the
+   *   authored radius this emitter already tracks for its posted events
+   *   (`GetMaxAttenuationRadius` is its square times the scaling factor) stands in:
+   *   `sqrt( radiusSq ) * scalingFactor`.
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
   @meta.adapted
@@ -338,8 +384,7 @@ export class AudEmitter extends AudGameObjResource
    * distance to the listener clamped to 25..250 and its radius 0.035 of its length with a
    * 1.5 floor, under the direction option.
    *
-   * Adapted: the effective front is `GetFront()`, which is Carbon's `m_effectiveOrientation.front`.
-   *
+   * @adapted the effective front is `GetFront()`, which is Carbon's `m_effectiveOrientation.front`.
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
   @meta.adapted
@@ -386,6 +431,7 @@ export class AudEmitter extends AudGameObjResource
    * Carbon quirk (cpp:209): the built string is passed as DrawText's printf format, so a
    * name holding `%` is read as a conversion. Reproduced.
    *
+   * @adapted
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
   @meta.adapted

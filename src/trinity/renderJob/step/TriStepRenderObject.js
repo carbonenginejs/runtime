@@ -73,7 +73,11 @@ export class TriStepRenderObject extends TriRenderStep
   // are scratch that Execute fills and empties within the one call.
   #batches = null;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(renderable = null)
@@ -94,6 +98,8 @@ export class TriStepRenderObject extends TriRenderStep
    *
    * The accumulators are cleared at the end of the call exactly as Carbon does
    * (cpp:65-68), so the step holds no batches between frames.
+   *
+   * @implemented
    */
 
   @meta.implemented

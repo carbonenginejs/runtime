@@ -331,8 +331,7 @@ export class EveChildMesh extends EveChildTransform
    * Origin mode used to place this child mesh.
    * Carbon origin (EveChildMesh.h:288).
    *
-   * Adapted: Persisted by the JavaScript values format; Carbon exposes this field read-only.
-   *
+   * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {number}
    */
   @meta.adapted
@@ -365,6 +364,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Rebuilds the local transform up front when the child is marked
    * staticTransform, since UpdateTransform will not rebuild it on later frames.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -385,7 +386,8 @@ export class EveChildMesh extends EveChildTransform
 
   /**
    * Carbon owner-list consequences (EveChildMesh.cpp:103–194).
-   * Adapted: JS arrays use the shared list mutation entry points; component interface IDs use the existing EveComponentType map.
+   *
+   * @adapted JS arrays use the shared list mutation entry points; component interface IDs use the existing EveComponentType map.
    */
 
   @meta.adapted
@@ -453,6 +455,8 @@ export class EveChildMesh extends EveChildTransform
    * Applies the authored scale/rotation/translation and, when supplied, the
    * lowest LOD level at which the child stays visible; returns the rebuilt local
    * transform.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -468,6 +472,8 @@ export class EveChildMesh extends EveChildTransform
 
   /**
    * Replaces the instance placement list with clones of the supplied matrices, so later caller mutations do not reach the child.
+   *
+   * @implemented
    * @param {Iterable<Float32Array>} instances - 16-value matrices; a wrongly sized entry throws TypeError
    * @returns {Array<Float32Array>} the stored list
    */
@@ -491,6 +497,9 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Returns the live instance transform list, not a copy - mutating it changes
    * what the child renders.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -499,7 +508,11 @@ export class EveChildMesh extends EveChildTransform
     return this.instanceTransforms;
   }
 
-  /** Returns the Tr2MeshBase this child draws, or null (Carbon EveChildMesh.cpp:968-971). */
+  /**
+   * Returns the Tr2MeshBase this child draws, or null (Carbon EveChildMesh.cpp:968-971).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMesh()
@@ -511,6 +524,8 @@ export class EveChildMesh extends EveChildTransform
    * Assigns the Tr2MeshBase this child draws; a nullish value clears it, which
    * also makes the child permanently invisible (UpdateVisibility requires a
    * mesh).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -521,7 +536,11 @@ export class EveChildMesh extends EveChildTransform
     this._restPoseBoneTransforms = null;
   }
 
-  /** Appends an overlay owned by this child; inherited hull overlays render after it. */
+  /**
+   * Appends an overlay owned by this child; inherited hull overlays render after it.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddOverlayEffect(effect)
@@ -530,7 +549,11 @@ export class EveChildMesh extends EveChildTransform
     this.overlayEffects.push(effect);
   }
 
-  /** Removes the first matching owned overlay. */
+  /**
+   * Removes the first matching owned overlay.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RemoveOverlayEffect(effect)
@@ -539,7 +562,11 @@ export class EveChildMesh extends EveChildTransform
     if (index !== -1) this.overlayEffects.splice(index, 1);
   }
 
-  /** Returns the first owned overlay whose authored name matches. */
+  /**
+   * Returns the first owned overlay whose authored name matches.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetOverlayEffectByName(name)
@@ -550,6 +577,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Records whether this child's placement was authored in space or by SOF (the
    * Origin enum).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -561,6 +590,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Copies the given scale into the child's SRT scaling; it reaches the world
    * transform on the next local-transform rebuild.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -572,6 +603,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Sets the reflection mode, which decides whether the child registers as a
    * ReflectionRenderable and whether it casts shadows during reflection passes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -583,6 +616,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Sets whether the child registers as a shadow caster and contributes opaque
    * shadow batches.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -595,6 +630,8 @@ export class EveChildMesh extends EveChildTransform
    * Sets the minimum screen size, in pixels across, that the child's world
    * bounding sphere must reach - after the frame's inverse LOD factor scaling -
    * before UpdateVisibility marks it visible.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -605,6 +642,8 @@ export class EveChildMesh extends EveChildTransform
 
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildMesh.cpp:1047-1050): copies the world transform into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -618,6 +657,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * The authored name, persisted with the child and used to identify it in the
    * parent graph.
+   *
+   * @implemented
    */
   @meta.implemented
   GetName()
@@ -625,7 +666,11 @@ export class EveChildMesh extends EveChildTransform
     return this.name;
   }
 
-  /** Sets the authored child name, coercing nullish to the empty string. */
+  /**
+   * Sets the authored child name, coercing nullish to the empty string.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetName(name)
   {
@@ -635,6 +680,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Appends a transform modifier; modifiers fold over the child's world
    * transform in insertion order on each async update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -647,6 +694,8 @@ export class EveChildMesh extends EveChildTransform
    * Appends a decal; decals refresh their visibility only while the child itself
    * is visible, and ride along in GetRenderables when the mesh has a geometry
    * resource.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -658,6 +707,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Appends an attachment; attachments refresh their lights and visibility every
    * frame regardless of the child's own visibility.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -669,6 +720,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Drops every attachment, removing their lights, batches and visibility
    * updates from this child.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -680,6 +733,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Appends a light, submitted to the light manager from the child's world
    * transform while the child displays.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -691,6 +746,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Drops every light, which also stops the child registering as a LightOwner on
    * the next component registration.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -699,7 +756,11 @@ export class EveChildMesh extends EveChildTransform
     this.lights.length = 0;
   }
 
-  /** Returns true unconditionally - a child mesh reports itself as always on. */
+  /**
+   * Returns true unconditionally - a child mesh reports itself as always on.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsAlwaysOn()
@@ -707,7 +768,11 @@ export class EveChildMesh extends EveChildTransform
     return true;
   }
 
-  /** Forwards a shader option to the mesh, every decal and every attachment. */
+  /**
+   * Forwards a shader option to the mesh, every decal and every attachment.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetShaderOption(name, value)
@@ -728,6 +793,8 @@ export class EveChildMesh extends EveChildTransform
    * Names of the mesh's morph targets in index order, or an empty array when the
    * mesh exposes none; the indices line up with the records GetMorphTargets
    * returns.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -739,6 +806,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Writes a named morph weight on the mesh; it only reaches the render path
    * after the next UpdateMorphAnimationBuffer pass re-sorts the indexed buffer.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -751,6 +820,8 @@ export class EveChildMesh extends EveChildTransform
    * Reads a named morph weight straight from the mesh (0 when it has no such
    * target), bypassing any animation-driven value the morph buffer may have
    * applied.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -767,6 +838,8 @@ export class EveChildMesh extends EveChildTransform
    * weight. Weights below 0.001 are inactive. The buffer is ordered runtime
    * records, then baked records, then inactive ones, and the offsets record
    * each active partition's start and count.
+   *
+   * @adapted
    */
   @meta.adapted
   UpdateMorphAnimationBuffer()
@@ -840,7 +913,11 @@ export class EveChildMesh extends EveChildTransform
     return this._morphAnimationOffsets.allCount;
   }
 
-  /** Returns detached active indexed morph records for the native filter. */
+  /**
+   * Returns detached active indexed morph records for the native filter.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetMorphTargets(filter = 2)
   {
@@ -879,11 +956,11 @@ export class EveChildMesh extends EveChildTransform
    * index is the area id; any other takes SofLocatorIndex, parsed as
    * strtoul does, or 0 when absent.
    *
-   * Adapted: Carbon's Python tuple (or None) is an array (or null), as
-   * EveChildInstancedMeshes.GetSofSourceLocator returns.
-   *
    * Waiting: our SOF does not yet stamp BeObjectMetadata on the children it
    * builds (EveSOF.cpp:4012, 4150), so SOF-built children return null.
+   *
+   * @adapted Carbon's Python tuple (or None) is an array (or null), as
+   *   EveChildInstancedMeshes.GetSofSourceLocator returns.
    * @param {number} areaId The picked area.
    * @returns {Array|null} [hullName, locatorSetName, locatorIndex], or null.
    */
@@ -933,11 +1010,11 @@ export class EveChildMesh extends EveChildTransform
    * re-bind the updater when the mesh's geometry changed, and step it when
    * `updateAnimation` is on.
    *
-   * Adapted: audio-geometry registration is not ported; the step uses the
-   * frame delta where Carbon's PrePhysicsAnimation reads Tr2Renderer's
-   * animation clock; Tr2AnimationMeshBinding (an updater without a mesh
-   * binding) is unported, so GetBoneTransforms falls back to the rest pose
-   * there.
+   * @adapted audio-geometry registration is not ported; the step uses the
+   *   frame delta where Carbon's PrePhysicsAnimation reads Tr2Renderer's
+   *   animation clock; Tr2AnimationMeshBinding (an updater without a mesh
+   *   binding) is unported, so GetBoneTransforms falls back to the rest pose
+   *   there.
    */
 
   @meta.adapted
@@ -968,6 +1045,8 @@ export class EveChildMesh extends EveChildTransform
    * invalidation (cpp:988-991), audio geometry
    * (cpp:920-930), parent VS/PS struct refresh (cpp:932-960), and the skinned
    * GetBounds overload are not modelled, hence @impl.adapted.
+   *
+   * @adapted
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params - localToWorldTransform + boneCount/bones
    * @returns {Float32Array} worldTransform
@@ -1112,6 +1191,7 @@ export class EveChildMesh extends EveChildTransform
    * EveChildMesh.cpp:1481-1484). A placement container whose animation owner
    * is this mesh uploads this updater's palette.
    *
+   * @implemented
    * @returns {Tr2GrannyAnimation|null} The updater.
    */
 
@@ -1132,7 +1212,8 @@ export class EveChildMesh extends EveChildTransform
    *
    * Carbon also assigns `accumulatedTransforms` and never reads it; that dead
    * local is not reproduced.
-   * Adapted: Tr2AnimationMeshBinding remains unported; Carbon's identity rest-pose fallback is used when neither live palette source is available.
+   *
+   * @adapted Tr2AnimationMeshBinding remains unported; Carbon's identity rest-pose fallback is used when neither live palette source is available.
    */
 
   @meta.adapted
@@ -1159,6 +1240,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Builds Carbon's identity Float4x3 rest-pose palette. Geometry with no bone
    * bindings still receives one identity because skinned shaders read bone 0.
+   *
+   * @implemented
    */
   @meta.implemented
   GetRestPoseBoneTransforms()
@@ -1190,7 +1273,8 @@ export class EveChildMesh extends EveChildTransform
    * Resolves this child's visibility for the frame from its world bounding
    * sphere, the parent LOD, and the authored screen-size thresholds, recording
    * the mesh and per-instance screen sizes the batch path then draws at.
-   * Adapted: Bone-fed decal bounds still await the decal seam and the raytracing refresh is not ported yet; the LOD/screen-size math and the bone-fed attachment pass are ported.
+   *
+   * @adapted Bone-fed decal bounds still await the decal seam and the raytracing refresh is not ported yet; the LOD/screen-size math and the bone-fed attachment pass are ported.
    */
 
   @meta.adapted
@@ -1298,7 +1382,8 @@ export class EveChildMesh extends EveChildTransform
    * only while the per-instance gate passed; decals ride along through their
    * renderable collectors (mesh cache is not ported yet, passed null
    * as in EveSpaceObject2.GetRenderables).
-   * Adapted: The decal mesh cache is not ported yet (null placeholder); collection structure is ported.
+   *
+   * @adapted The decal mesh cache is not ported yet (null placeholder); collection structure is ported.
    */
 
   @meta.adapted
@@ -1341,8 +1426,12 @@ export class EveChildMesh extends EveChildTransform
     return out;
   }
 
-  /** Carbon EveChildMesh::GetBoundingSphere (cpp:618-627): the realized world
-   * sphere, valid only after an update produced bounds (radius > 0). */
+  /**
+   * Carbon EveChildMesh::GetBoundingSphere (cpp:618-627): the realized world
+   * sphere, valid only after an update produced bounds (radius > 0).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -1355,7 +1444,11 @@ export class EveChildMesh extends EveChildTransform
     return false;
   }
 
-  /** Carbon EveChildMesh::HasTransparentBatches (cpp:629-637). */
+  /**
+   * Carbon EveChildMesh::HasTransparentBatches (cpp:629-637).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -1375,8 +1468,12 @@ export class EveChildMesh extends EveChildTransform
     return false;
   }
 
-  /** Carbon EveChildMesh::IsVisible (cpp:639-650): sphere-in-frustum plus the
-   * estimated pixel size against the context visibility threshold. */
+  /**
+   * Carbon EveChildMesh::IsVisible (cpp:639-650): sphere-in-frustum plus the
+   * estimated pixel size against the context visibility threshold.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsVisible(updateContext)
@@ -1394,14 +1491,18 @@ export class EveChildMesh extends EveChildTransform
     return false;
   }
 
-  /** Carbon EveChildMesh::GetBatches (cpp:652-670): the mesh delegates per
+  /**
+   * Carbon EveChildMesh::GetBatches (cpp:652-670): the mesh delegates per
    * batch type and activated attachments recurse, at
    * min(currentInstanceScreenSize, currentScreenSize) and with a reverse-winding
    * flag from Determinant(m_worldTransform) < 0 - a negative determinant means
    * the transform mirrors, which flips triangle facing. A determinant is
    * transpose-invariant, so the row-vector/column-vector difference does not
    * apply to this test. Returns whether any batch was committed (JS addition;
-   * Carbon returns void). */
+   * Carbon returns void).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
@@ -1437,7 +1538,11 @@ export class EveChildMesh extends EveChildTransform
     return committed;
   }
 
-  /** Carbon EveChildMesh::RebuildOverlayAreaBlocks (cpp:699-703): caches the mesh's two overlay block lists. */
+  /**
+   * Carbon EveChildMesh::RebuildOverlayAreaBlocks (cpp:699-703): caches the mesh's two overlay block lists.
+   *
+   * @implemented
+   */
   @meta.implemented
   RebuildOverlayAreaBlocks()
   {
@@ -1445,7 +1550,11 @@ export class EveChildMesh extends EveChildTransform
     this._overlayAreaBlocksBuilt = true;
   }
 
-  /** Emits damage, child-owned, then inherited parent overlays over this mesh. */
+  /**
+   * Emits damage, child-owned, then inherited parent overlays over this mesh.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetBatchesFromOverlayVector(batches, perObjectData, batchType)
@@ -1486,10 +1595,14 @@ export class EveChildMesh extends EveChildTransform
     return committed;
   }
 
-  /** Carbon EveChildMesh::GetShadowBatches (cpp:672-681): the OPAQUE areas
+  /**
+   * Carbon EveChildMesh::GetShadowBatches (cpp:672-681): the OPAQUE areas
    * only, gated on display/mesh/hasUpdated, at the caller's shadow pixel size
    * rather than the child's own screen size. Returns whether any batch was
-   * committed (JS addition; Carbon returns void). */
+   * committed (JS addition; Carbon returns void).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetShadowBatches(batches, perObjectData, shadowPixelSize = Infinity)
@@ -1506,8 +1619,11 @@ export class EveChildMesh extends EveChildTransform
     return false;
   }
 
-  /** Carbon EveChildMesh::GetSortValue (cpp:787-792): view distance scaled by
+  /**
+   * Carbon EveChildMesh::GetSortValue (cpp:787-792): view distance scaled by
    * sortValueScale plus sortValueOffset.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1520,8 +1636,12 @@ export class EveChildMesh extends EveChildTransform
     return Math.hypot(x, y, z) * this.sortValueScale + this.sortValueOffset;
   }
 
-  /** Carbon EveChildMesh::GetShadowPerObjectData (cpp:794-797) forwards the
-   * shadow pass to the same per-object record. */
+  /**
+   * Carbon EveChildMesh::GetShadowPerObjectData (cpp:794-797) forwards the
+   * shadow pass to the same per-object record.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetShadowPerObjectData(accumulator = null)
@@ -1540,6 +1660,8 @@ export class EveChildMesh extends EveChildTransform
    * shaders read it regardless. Adapted: the morph ring is not ported, so its
    * offsets keep their defaults; Carbon allocates a pooled handle where this
    * port wraps the persistent payloads in a per-gather picking record.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -1571,6 +1693,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Carbon's IsCastingShadow( cameraFrustum, position, radius, renderReason )
    * (cpp:341): whether the world bounding sphere overlaps the query sphere.
+   *
+   * @implemented
    * @param {Object} cameraFrustum
    * @param {vec3} position
    * @param {Number} radius
@@ -1606,6 +1730,8 @@ export class EveChildMesh extends EveChildTransform
    * Carbon's IsCastingShadow( cameraFrustum, shadowFrustum, renderReason,
    * sizeInShadow ) (cpp:298). Carbon's float& sizeInShadow out-param becomes
    * the optional trailing length-1 array.
+   *
+   * @adapted
    * @param {Object} cameraFrustum
    * @param {Object} shadowFrustum
    * @param {Number} renderReason
@@ -1678,20 +1804,28 @@ export class EveChildMesh extends EveChildTransform
     return sizeInShadow > 5;
   }
 
-  /** Carbon EveChildMesh::ChangeLOD (cpp:1052-1054) is an intentional no-op. */
+  /**
+   * Carbon EveChildMesh::ChangeLOD (cpp:1052-1054) is an intentional no-op.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ChangeLOD(_lod)
   {
   }
 
-  /** Carbon EveChildMesh::RegisterComponents (cpp:239-269): LightOwner when
+  /**
+   * Carbon EveChildMesh::RegisterComponents (cpp:239-269): LightOwner when
    * lights are authored; ReflectionRenderable (ShouldReflect) and ShadowCaster
    * (castShadow) only when a mesh is present; then forwards the attachments.
    * Gate m_display. "MeshMorph" stays OUT-OF-BAND: Carbon registers it at
    * baked-morph need inside BakeMorphs (cpp:1404-1409), not here - the JS
    * BakeMorphs stub is the site that would register it when the GPU morph
-   * bake is ported. */
+   * bake is ported.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -1723,10 +1857,14 @@ export class EveChildMesh extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildMesh::UnRegisterComponents (cpp:275-290): forwards the
+  /**
+   * Carbon EveChildMesh::UnRegisterComponents (cpp:275-290): forwards the
    * attachments only (own components were already removed by
    * EveEntity::UnRegister, EveEntity.cpp:90); no display re-check.
-   * UnregisterAudioGeometry (cpp:277) is audio-engine-owned and unported. */
+   * UnregisterAudioGeometry (cpp:277) is audio-engine-owned and unported.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -1741,13 +1879,17 @@ export class EveChildMesh extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildMesh::GetLights (cpp:1638-1652): BOTH gates (empty
+  /**
+   * Carbon EveChildMesh::GetLights (cpp:1638-1652): BOTH gates (empty
    * lights and display, cpp:1640 - unlike EveSpaceObject2's display-only),
    * then per light AddLight(manager, worldTransform, 1, bones, boneCount)
    * FOLLOWED by SetBrightnessMultiplier(m_activationStrength) - the
    * one-frame-lag order is contract (the submission uses the multiplier
    * stamped on the previous pass; the first pass uses the Tr2Light default
-   * 1). */
+   * 1).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLights(lightManager)
@@ -1767,7 +1909,11 @@ export class EveChildMesh extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildMesh::GetID returns GetRawRoot(), i.e. this object. */
+  /**
+   * Carbon EveChildMesh::GetID returns GetRawRoot(), i.e. this object.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetID(_area = 0)
@@ -1780,9 +1926,9 @@ export class EveChildMesh extends EveChildTransform
    * a chain - a mesh change satisfies the first two, and the third only runs
    * for a child that owns locator sets.
    *
-   * Adapted: Carbon caches m_instancedMesh = BlueCastPtr(m_mesh) here
-   * (cpp:198-217) and refreshes it only on notify or Initialize; ours keeps no
-   * cache and casts the mesh where the instanced interface is used.
+   * @adapted Carbon caches m_instancedMesh = BlueCastPtr(m_mesh) here
+   *   (cpp:198-217) and refreshes it only on notify or Initialize; ours keeps no
+   *   cache and casts the mesh where the instanced interface is used.
    */
 
   @meta.adapted
@@ -1809,6 +1955,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Carbon InvalidateOwnerMergedLocators (EveChildMesh.cpp:1330-1336): tell the
    * owner its merged locator sets are stale, and why.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1817,7 +1965,11 @@ export class EveChildMesh extends EveChildTransform
     this.GetOwner()?.InvalidateMergedLocators(reason);
   }
 
-  /** Invalidates merged locators on both the old and new owner. */
+  /**
+   * Invalidates merged locators on both the old and new owner.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetOwner(owner)
@@ -1829,7 +1981,11 @@ export class EveChildMesh extends EveChildTransform
     this.InvalidateOwnerMergedLocators("structure");
   }
 
-  /** Contributes child-owned locator sets with the child-to-object transform. */
+  /**
+   * Contributes child-owned locator sets with the child-to-object transform.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   CollectOwnedLocatorSets(parentTransform, out)
@@ -1848,6 +2004,8 @@ export class EveChildMesh extends EveChildTransform
    * Contributes this child's geometry to the owner's merged raycast set
    * (Carbon EveChildMesh.cpp:2061-2077): one record per mesh, its areas
    * appended to the shared pool by batch type.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1863,7 +2021,11 @@ export class EveChildMesh extends EveChildTransform
     out.push({ geometry, childToObject, areaStart, areaCount: areaPool.length - areaStart });
   }
 
-  /** Replaces the locator sets owned by this child and invalidates the owner. */
+  /**
+   * Replaces the locator sets owned by this child and invalidates the owner.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetOwnedLocatorSets(sets)
@@ -1876,6 +2038,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Returns this child mesh's armour and hull damage overlay; a child mesh is
    * one part, so the tag is ignored (Carbon EveChildMesh.cpp:2098-2101).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1884,7 +2048,11 @@ export class EveChildMesh extends EveChildTransform
     return this.damageOverlay;
   }
 
-  /** Creates this child mesh's damage overlay when it does not yet exist (Carbon cpp:2103-2109). */
+  /**
+   * Creates this child mesh's damage overlay when it does not yet exist (Carbon cpp:2103-2109).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreatePartDamageOverlay(_partTag)
@@ -1892,7 +2060,11 @@ export class EveChildMesh extends EveChildTransform
     this.damageOverlay ??= new EveDamageOverlay();
   }
 
-  /** Sets the per-part armour damage shader stamped by SOF placement creation. */
+  /**
+   * Sets the per-part armour damage shader stamped by SOF placement creation.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetArmorDamageShaderEffect(effect)
@@ -1900,7 +2072,11 @@ export class EveChildMesh extends EveChildTransform
     this.armorDamageShader = effect ?? null;
   }
 
-  /** Returns the per-part armour damage shader, or null when the part has none (Carbon cpp:2116-2119). */
+  /**
+   * Returns the per-part armour damage shader, or null when the part has none (Carbon cpp:2116-2119).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPartArmorDamageShaderEffect(_partTag)
@@ -1911,6 +2087,8 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Returns the locator list of this child's own damage set, or null when the
    * child owns no damage locators (Carbon EveChildMesh.cpp:2121-2131).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1927,6 +2105,8 @@ export class EveChildMesh extends EveChildTransform
    * Resolves one damage locator's BIND-pose position in the child's local
    * space - no bone transform, the stable overlay seed position (Carbon
    * EveChildMesh.cpp:2133-2143).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1943,6 +2123,8 @@ export class EveChildMesh extends EveChildTransform
    * Resolves one damage locator's animated position and direction in the
    * child's local space, posed by this child's own animation updater (Carbon
    * EveChildMesh.cpp:2145-2155; the part tag is ignored).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1960,6 +2142,7 @@ export class EveChildMesh extends EveChildTransform
    * a pick pass should test, by mask. Unlike the hull's version this one has no
    * overlay effects to pull in.
    *
+   * @implemented
    * @param {Object} batches - the picking accumulator
    * @param {Number} pickTypes - a Tr2PickType mask
    * @param {Object} perObjectData - this child's per-object record
@@ -2010,6 +2193,8 @@ export class EveChildMesh extends EveChildTransform
    * the updater has no authored resPath - one that does keeps its own
    * resource. When the mesh has no geometry yet the shared binding is cleared
    * rather than left stale, so a later mesh swap rebinds cleanly.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -2034,7 +2219,11 @@ export class EveChildMesh extends EveChildTransform
     updater.SetSharedGeometryRes(null);
   }
 
-  /** Carbon BakeMorphs runs the merge-morphs GPU compute pass; GPU-owned. */
+  /**
+   * Carbon BakeMorphs runs the merge-morphs GPU compute pass; GPU-owned.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   BakeMorphs(..._args)
@@ -2042,7 +2231,11 @@ export class EveChildMesh extends EveChildTransform
     throw new Error("EveChildMesh.BakeMorphs is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon UnbakeMorphs releases the baked-morph GPU allocation; GPU-owned. */
+  /**
+   * Carbon UnbakeMorphs releases the baked-morph GPU allocation; GPU-owned.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   UnbakeMorphs(..._args)
@@ -2050,7 +2243,11 @@ export class EveChildMesh extends EveChildTransform
     throw new Error("EveChildMesh.UnbakeMorphs is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon IsMeshBaked reads the baked-morph GPU allocation state; GPU-owned. */
+  /**
+   * Carbon IsMeshBaked reads the baked-morph GPU allocation state; GPU-owned.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   IsMeshBaked(..._args)

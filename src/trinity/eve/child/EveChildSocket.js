@@ -108,6 +108,8 @@ export class EveChildSocket extends EveChildTransform
   /**
    * Carbon EveChildSocket.cpp:431-437 forwards an event. Adapted: retain calls
    * made while the synchronous native load is pending in JavaScript.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -121,6 +123,8 @@ export class EveChildSocket extends EveChildTransform
    * Carbon BindParameters (EveChildSocket.cpp:146-178), exposed as Rebind by
    * EveChildSocket_Blue.cpp:67-72. Adapted: the existing partial port creates
    * string bindings only; already-authored parameter classes bind directly.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap("Rebind")
   @meta.adapted
@@ -146,7 +150,11 @@ export class EveChildSocket extends EveChildTransform
     return true;
   }
 
-  /** Blue-exposed alias for Carbon BindParameters (EveChildSocket_Blue.cpp:67). */
+  /**
+   * Blue-exposed alias for Carbon BindParameters (EveChildSocket_Blue.cpp:67).
+   *
+   * @implemented
+   */
   @legacyBlue.method
   @meta.implemented
   Rebind()
@@ -154,7 +162,11 @@ export class EveChildSocket extends EveChildTransform
     this.BindParameters();
   }
 
-  /** Carbon EveChildSocket.cpp:174-183 propagates each bound parameter. */
+  /**
+   * Carbon EveChildSocket.cpp:174-183 propagates each bound parameter.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Propogate()
@@ -165,6 +177,8 @@ export class EveChildSocket extends EveChildTransform
   /**
    * Carbon Initialize (cpp:185-191) always succeeds. Adapted: binding,
    * propagation, and deferred forwarding follow asynchronous LoadChild.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -184,7 +198,11 @@ export class EveChildSocket extends EveChildTransform
     return true;
   }
 
-  /** Carbon EveChildSocket.cpp:28-31 returns the authored plug path. */
+  /**
+   * Carbon EveChildSocket.cpp:28-31 returns the authored plug path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPlugResPath()
@@ -194,8 +212,9 @@ export class EveChildSocket extends EveChildTransform
 
   /**
    * Carbon cpp:33-40 reloads only a changed path, without binding parameters.
-   * Adapted: forward calls made during the asynchronous load after arrival;
-   * unlike Initialize, this setter does not bind or propagate parameters.
+   *
+   * @adapted forward calls made during the asynchronous load after arrival;
+   *   unlike Initialize, this setter does not bind or propagate parameters.
    */
 
   @meta.adapted
@@ -214,7 +233,11 @@ export class EveChildSocket extends EveChildTransform
     });
   }
 
-  /** Carbon EveChildSocket.cpp:42-45 reloads by initializing again. */
+  /**
+   * Carbon EveChildSocket.cpp:42-45 reloads by initializing again.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Reload()
@@ -222,7 +245,11 @@ export class EveChildSocket extends EveChildTransform
     this.Initialize();
   }
 
-  /** Carbon EveChildSocket.cpp:194-206 reacts to path and display changes. */
+  /**
+   * Carbon EveChildSocket.cpp:194-206 reacts to path and display changes.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(propertyName = null)
@@ -234,9 +261,10 @@ export class EveChildSocket extends EveChildTransform
 
   /**
    * Carbon EveChildSocket.cpp:479-497 replaces its plug through typed LoadObject.
-   * Adapted: LoadObject is asynchronous in JS. Discard superseded completions,
-   * let the caller finish native binding and deferred forwarding. The promise
-   * resolves to the native success boolean; failure logs and leaves no plug.
+   *
+   * @adapted LoadObject is asynchronous in JS. Discard superseded completions,
+   *   let the caller finish native binding and deferred forwarding. The promise
+   *   resolves to the native success boolean; failure logs and leaves no plug.
    */
 
   @meta.adapted
@@ -273,7 +301,11 @@ export class EveChildSocket extends EveChildTransform
     return true;
   }
 
-  /** Propagates the owning space object to the loaded plug. */
+  /**
+   * Propagates the owning space object to the loaded plug.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetOwner(owner)
@@ -283,7 +315,11 @@ export class EveChildSocket extends EveChildTransform
     if (this.plug) this.plug.SetOwner(owner);
   }
 
-  /** Propagates a modular part tag to the loaded plug. */
+  /**
+   * Propagates a modular part tag to the loaded plug.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetPartTag(tag)
@@ -297,6 +333,8 @@ export class EveChildSocket extends EveChildTransform
   /**
    * Carbon cpp:423-429 forwards a variable. Adapted: replay calls made during
    * asynchronous loading after the plug has been registered and bound.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -309,6 +347,8 @@ export class EveChildSocket extends EveChildTransform
   /**
    * Carbon cpp:447-453 starts the plug controllers. Adapted: defer starts made
    * during loading until the native registration/binding order is complete.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -321,6 +361,8 @@ export class EveChildSocket extends EveChildTransform
   /**
    * Carbon cpp:344-350 forwards to the plug. Adapted: queued while the plug is
    * still loading, as SetControllerVariable is.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -330,7 +372,11 @@ export class EveChildSocket extends EveChildTransform
     else if (this.plug) this.plug.PlayAllCurveSets();
   }
 
-  /** Carbon cpp:352-358 forwards to the plug. Adapted: queued while loading. */
+  /**
+   * Carbon cpp:352-358 forwards to the plug. Adapted: queued while loading.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   StopAllCurveSets()
@@ -339,7 +385,11 @@ export class EveChildSocket extends EveChildTransform
     else if (this.plug) this.plug.StopAllCurveSets();
   }
 
-  /** Carbon cpp:360-366 forwards to the plug. Adapted: queued while loading. */
+  /**
+   * Carbon cpp:360-366 forwards to the plug. Adapted: queued while loading.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   PlayCurveSet(name, rangeName = "")
@@ -348,7 +398,11 @@ export class EveChildSocket extends EveChildTransform
     else if (this.plug) this.plug.PlayCurveSet(name, rangeName);
   }
 
-  /** Carbon cpp:368-374 forwards to the plug. Adapted: queued while loading. */
+  /**
+   * Carbon cpp:368-374 forwards to the plug. Adapted: queued while loading.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   StopCurveSet(name)
@@ -357,7 +411,11 @@ export class EveChildSocket extends EveChildTransform
     else if (this.plug) this.plug.StopCurveSet(name);
   }
 
-  /** Carbon cpp:376-382 forwards a sample to the plug; while it loads there is no plug and the sample is dropped. */
+  /**
+   * Carbon cpp:376-382 forwards a sample to the plug; while it loads there is no plug and the sample is dropped.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateCurveSet(name, time)
@@ -365,7 +423,11 @@ export class EveChildSocket extends EveChildTransform
     if (this.plug) this.plug.UpdateCurveSet(name, time);
   }
 
-  /** Carbon cpp:384-391: the plug's duration, 0 without one. */
+  /**
+   * Carbon cpp:384-391: the plug's duration, 0 without one.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCurveSetDuration(name)
@@ -373,7 +435,11 @@ export class EveChildSocket extends EveChildTransform
     return this.plug ? this.plug.GetCurveSetDuration(name) : 0;
   }
 
-  /** Carbon cpp:393-400: the plug's range duration, 0 without one. */
+  /**
+   * Carbon cpp:393-400: the plug's range duration, 0 without one.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRangeDuration(name, rangeName)
@@ -381,8 +447,12 @@ export class EveChildSocket extends EveChildTransform
     return this.plug ? this.plug.GetRangeDuration(name, rangeName) : 0;
   }
 
-  /** Carbon EveChildSocket::RegisterComponents (cpp:212-221): forward-only to
-   * the plug. Gate IsInRegistry() && plug && m_display. */
+  /**
+   * Carbon EveChildSocket::RegisterComponents (cpp:212-221): forward-only to
+   * the plug. Gate IsInRegistry() && plug && m_display.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -393,8 +463,12 @@ export class EveChildSocket extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildSocket::UnRegisterComponents (cpp:227-236): forwards to
-   * the plug; no display re-check. */
+  /**
+   * Carbon EveChildSocket::UnRegisterComponents (cpp:227-236): forwards to
+   * the plug; no display re-check.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -406,7 +480,11 @@ export class EveChildSocket extends EveChildTransform
   }
 
 
-  /** Carbon GetEffectChildByName (EveChildSocket.cpp:239-246): asks the plug. */
+  /**
+   * Carbon GetEffectChildByName (EveChildSocket.cpp:239-246): asks the plug.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetEffectChildByName(name)
@@ -415,14 +493,22 @@ export class EveChildSocket extends EveChildTransform
     return null;
   }
 
-  /** Carbon AddToEffectChildrenList (EveChildSocket.cpp:248-250): does nothing. */
+  /**
+   * Carbon AddToEffectChildrenList (EveChildSocket.cpp:248-250): does nothing.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddToEffectChildrenList(_child)
   {
   }
 
-  /** Carbon RemoveFromEffectChildrenList (EveChildSocket.cpp:252-254): does nothing. */
+  /**
+   * Carbon RemoveFromEffectChildrenList (EveChildSocket.cpp:252-254): does nothing.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RemoveFromEffectChildrenList(_child)
@@ -430,6 +516,8 @@ export class EveChildSocket extends EveChildTransform
   }
   /**
    * Carbon EveChildSocket::SetShaderOption (cpp:402-408): forwards to the plug.
+   *
+   * @implemented
    * @param {string} name
    * @param {string} value
    */
@@ -444,6 +532,8 @@ export class EveChildSocket extends EveChildTransform
 
   /**
    * Carbon EveChildSocket::GetDebugOptions (cpp:455-465): the plug's options.
+   *
+   * @implemented
    * @param {Set<string>} options
    */
   @meta.implemented
@@ -463,6 +553,8 @@ export class EveChildSocket extends EveChildTransform
   /**
    * Carbon EveChildSocket::RenderDebugInfo (cpp:467-477): the plug draws,
    * unless the socket is hidden or empty.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
   @meta.implemented
@@ -479,7 +571,11 @@ export class EveChildSocket extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildSocket::FindSoundEmitter (cpp:499-506): the plug's emitter. */
+  /**
+   * Carbon EveChildSocket::FindSoundEmitter (cpp:499-506): the plug's emitter.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   FindSoundEmitter(name)

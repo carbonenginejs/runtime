@@ -74,19 +74,18 @@ export class ClassInfo
    * `ExposeToBlue()` (BlueExposureMacrosPython.h:20-67): the class's
    * information, built on the first call and returned from then on.
    *
-   * Adapted: our decorators stand in for the macros. Carbon generates one
-   * `ExposeToBlue` per class from its macros; JavaScript has one static that
-   * takes the class and reads its decorator metadata.
-   * The record is rebuilt only when that metadata has changed since (the
-   * schema hands out a new record then), which happens while classes are
-   * still being declared and in tests.
-   *
    * `parentClassInfo` follows the nearest registered JavaScript superclass,
    * not `EXPOSURE_CHAINTO`: our metadata inherits members along `extends`, and
    * 769 of 1459 registered classes declare no chain while their superclass
    * does have members (measured 2026-11-01). QueryInterface still walks the
    * exposure chain (`mappedInterfaces`).
    *
+   * @adapted our decorators stand in for the macros. Carbon generates one
+   *   `ExposeToBlue` per class from its macros; JavaScript has one static that
+   *   takes the class and reads its decorator metadata.
+   *   The record is rebuilt only when that metadata has changed since (the
+   *   schema hands out a new record then), which happens while classes are
+   *   still being declared and in tests.
    * @param {Function} Constructor A class with registered metadata.
    * @returns {ClassInfo} Its class information.
    */
@@ -151,6 +150,8 @@ export class ClassInfo
    * The nearest superclass with a registered name, standing in for
    * `mParentClassInfo` (see `exposeToBlue`). Ours.
    *
+   * @cjs
+   * @implemented
    * @param {Function} Constructor The class.
    * @returns {Function|null} The parent class, or null.
    */
@@ -170,6 +171,8 @@ export class ClassInfo
    * PyGetTypeInfo reports them (CjsBlueClasses._typeInfo). Ours: Carbon's
    * macros write each `VarEntry` directly.
    *
+   * @cjs
+   * @implemented
    * @param {Function} Constructor The class, for the property's accessors.
    * @param {object} member The schema's member or property record.
    * @returns {VarEntry} The row.
@@ -210,6 +213,8 @@ export class ClassInfo
    * The accessor descriptor for a key, wherever it is on the prototype chain.
    * Ours: Carbon's macros take the getter and setter as arguments.
    *
+   * @cjs
+   * @implemented
    * @param {object} prototype The class prototype.
    * @param {string} key The property key.
    * @returns {PropertyDescriptor|null} The descriptor, or null.

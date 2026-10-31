@@ -51,7 +51,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     this.PrepareResources();
   }
 
-  /** Carbon EveChildBulletStorm.cpp:70: only instance-source edits rebuild the swarm. */
+  /**
+   * Carbon EveChildBulletStorm.cpp:70: only instance-source edits rebuild the swarm.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(names)
@@ -158,7 +162,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   @type.object.ref("Tr2Effect")
   effect = null;
 
-  /** Carbon method CanChangeState (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method CanChangeState (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   CanChangeState()
@@ -166,7 +174,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     return !this._changingClipSphere;
   }
 
-  /** Carbon EveChildBulletStorm::Initialize (cpp:60-64): a loaded storm prepares its resources. */
+  /**
+   * Carbon EveChildBulletStorm::Initialize (cpp:60-64): a loaded storm prepares its resources.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -175,14 +187,22 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     return true;
   }
 
-  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed. */
+  /**
+   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
-  /** Carbon EveChildBulletStorm::ReleaseResources (cpp:98-103). Adapted: the buffers are destroyed explicitly. */
+  /**
+   * Carbon EveChildBulletStorm::ReleaseResources (cpp:98-103). Adapted: the buffers are destroyed explicitly.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources()
@@ -209,6 +229,8 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * Carbon EveChildBulletStorm::OnPrepareResources (cpp:110-150): the instanced declaration (corner id on stream 0,
    * PerInstanceVertex on stream 1), the four-corner buffer, the per-instance buffer, and two quads of the shared
    * quad-list index buffer. Adapted: the AL description replaces the native stride/count overload.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -233,6 +255,8 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * times, each carrying the locator position, its up axis and (rand, rand, rand, (j + streamRand) / multiplier).
    * Random draws delegate to the matching generator in global/math/random.js.
    * CPU instances are retained; GPU buffers are created only while resource creation is allowed.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -279,7 +303,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     return true;
   }
 
-  /** Carbon EveChildBulletStorm::GetRenderables (cpp:84-91): once updated and displayed. Adapted: returns the array. */
+  /**
+   * Carbon EveChildBulletStorm::GetRenderables (cpp:84-91): once updated and displayed. Adapted: returns the array.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetRenderables(renderables)
@@ -288,7 +316,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     return renderables;
   }
 
-  /** Carbon EveChildBulletStorm::GetBoundingSphere (cpp:209-212): reports a sphere without writing one - the storm may be huge. */
+  /**
+   * Carbon EveChildBulletStorm::GetBoundingSphere (cpp:209-212): reports a sphere without writing one - the storm may be huge.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
@@ -298,6 +330,8 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
 
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildBulletStorm.cpp:295-298): copies the world transform into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -308,7 +342,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     return mat4.copy(out, this.worldTransform);
   }
 
-  /** Carbon method StartEffect (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method StartEffect (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StartEffect()
@@ -318,7 +356,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     this._changingClipSphere = true;
   }
 
-  /** Carbon method StopEffect (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method StopEffect (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StopEffect()
@@ -328,7 +370,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     this._changingClipSphere = true;
   }
 
-  /** Carbon EveChildBulletStorm::HasTransparentBatches is always false. */
+  /**
+   * Carbon EveChildBulletStorm::HasTransparentBatches is always false.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -336,7 +382,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     return false;
   }
 
-  /** Carbon EveChildBulletStorm::GetSortValue is the constant zero. */
+  /**
+   * Carbon EveChildBulletStorm::GetSortValue is the constant zero.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -348,6 +398,8 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * Carbon EveChildBulletStorm::GetBatches (cpp:313-350): additive only; the corner quad on stream 0 drawn once per
    * instance from stream 1 over the shared quad-list index buffer. Adapted: the effect is asked IsGood before drawing,
    * as the other instanced draws do.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -372,11 +424,15 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     batches.Commit(batch);
   }
 
-  /** Carbon EveChildBulletStorm::GetPerObjectData (cpp:393-410): transposed
+  /**
+   * Carbon EveChildBulletStorm::GetPerObjectData (cpp:393-410): transposed
    * world (Set(MATRIX) does it), effectInfo = (targetObjects.length,
    * sourceRadius + range, clipSphere, speed), then targetPositionsWS[i] per
    * target blob. Slots past targetBlobs.length are NEVER written - the
-   * per-element writes keep Carbon's arena-garbage tail. VS-only payload. */
+   * per-element writes keep Carbon's arena-garbage tail. VS-only payload.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPerObjectData(accumulator)
@@ -405,6 +461,8 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * floored at 4050), refreshes the source object's radius, and - while the clip
    * sphere is still animating - advances it at the storm's travel speed over the
    * total reach, clamped to -1..1.
+   *
+   * @adapted
    */
 
   @meta.adapted

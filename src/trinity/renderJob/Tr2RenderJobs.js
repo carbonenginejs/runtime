@@ -39,6 +39,8 @@ export class Tr2RenderJobs extends IRoot
   /**
    * Carbon Tr2RenderJobs::Run (cpp:23-98): runs every recurring job, then every one-off job keeping only those still RJ_IN_PROGRESS for the next frame, then chained jobs until one reports RJ_IN_PROGRESS, at which point that job and all remaining ones are carried over.
    * The whole pass is bracketed by a render-target/depth-stencil batch so no job can leak a binding past the frame.
+   *
+   * @adapted
    * @param {object} [executor] performs the work the jobs describe; defaults to the shared Tr2RenderContext
    */
 
@@ -89,6 +91,8 @@ export class Tr2RenderJobs extends IRoot
    * Carbon Tr2RenderJobs::RunUpdate (cpp:100-111): runs the update-recurring
    * jobs only; unlike Run this pass reschedules nothing and is not bracketed by
    * a batch.
+   *
+   * @adapted
    */
 
   @meta.adapted

@@ -68,6 +68,8 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
   /**
    * Sets the behaviour name and renames both owned curves to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:364-368
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -85,7 +87,8 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * timeline time, then scaled by distance, by the anchor radius when
    * proportional, and by the distance scalar curve.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:371-404
-   * Adapted: gl-matrix writes the output vector. Carbon retains the normalized zero direction; glMatrix arithmetic parity remains pending.
+   *
+   * @adapted gl-matrix writes the output vector. Carbon retains the normalized zero direction; glMatrix arithmetic parity remains pending.
    */
 
   @meta.adapted

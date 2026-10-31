@@ -52,6 +52,7 @@ export class TriStepRemoteUpdate extends TriRenderStep
    * which hands its arguments to SetData. The shared-memory feed the step runs on is `_WIN32` only (Windows pipe and event
    * handles), so nothing else here is ported.
    *
+   * @implemented
    * @param {TriView} view The view the step publishes.
    * @param {TriProjection} projection The projection it publishes.
    * @param {TriViewport} viewport The viewport it publishes.
@@ -67,6 +68,7 @@ export class TriStepRemoteUpdate extends TriRenderStep
   /**
    * Stores the feed's sources (TriStepRemoteUpdate.cpp:95-101).
    *
+   * @implemented
    * @param {TriView} view The view.
    * @param {TriProjection} projection The projection.
    * @param {TriViewport} viewport The viewport.

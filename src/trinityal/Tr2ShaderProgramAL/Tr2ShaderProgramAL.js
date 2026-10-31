@@ -71,11 +71,10 @@ export class Tr2ShaderProgramAL
    * `count` shaders and replaces this value's; a failure leaves it on the null
    * implementation.
    *
-   * Adapted: the render context allocates the implementation instead of a
-   * compile-time platform include, and Carbon's `Tr2ShaderAL*` array is a
-   * JavaScript array of `Tr2ShaderAL` values. The previous share is released
-   * explicitly because JavaScript has no shared_ptr.
-   *
+   * @adapted the render context allocates the implementation instead of a
+   *   compile-time platform include, and Carbon's `Tr2ShaderAL*` array is a
+   *   JavaScript array of `Tr2ShaderAL` values. The previous share is released
+   *   explicitly because JavaScript has no shared_ptr.
    * @param {import("../Tr2ShaderAL/Tr2ShaderAL.js").Tr2ShaderAL[]} shaders The stages.
    * @param {number} count How many of them to link.
    * @param {object} renderContext The primary context to create against.
@@ -99,6 +98,7 @@ export class Tr2ShaderProgramAL
    * signatures, and every other backend answers `E_FAIL`. No JavaScript
    * backend is DX12, so this is Carbon's non-DX12 branch.
    *
+   * @implemented
    * @param {object} _bufferLayout A `Tr2IndirectBufferLayoutAL`.
    * @param {object} _renderContext The primary context.
    * @returns {number} `E_FAIL`.
@@ -112,6 +112,7 @@ export class Tr2ShaderProgramAL
   /**
    * Whether the program linked (`Tr2ShaderProgramAL.cpp:45-48`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -123,6 +124,7 @@ export class Tr2ShaderProgramAL
   /**
    * The implementation's memory class (`Tr2ShaderProgramAL.cpp:50-53`).
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.implemented
@@ -134,8 +136,8 @@ export class Tr2ShaderProgramAL
   /**
    * Compares implementation identity (`Tr2ShaderProgramAL.cpp:55-58`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2ShaderProgramAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -148,6 +150,7 @@ export class Tr2ShaderProgramAL
   /**
    * The program's register map (`Tr2ShaderProgramAL.cpp:60-63`).
    *
+   * @implemented
    * @returns {Tr2RegisterMapAL} The map; empty when uncreated.
    */
   @meta.implemented
@@ -160,6 +163,7 @@ export class Tr2ShaderProgramAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2ShaderProgramAL.cpp:65-76`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
@@ -175,6 +179,7 @@ export class Tr2ShaderProgramAL
    * The shared backend implementation (`Tr2ShaderProgramAL.cpp:78-81`); the
    * null implementation when uncreated, as Carbon returns `NullProgram().get()`.
    *
+   * @implemented
    * @returns {object} The implementation.
    */
   @meta.implemented

@@ -16,7 +16,11 @@ export class TriStepUpdate extends TriRenderStep
   @type.object.ref("ITr2Updateable")
   object = null;
 
-  /** Carbon method __init__ -> SetUpdateable (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> SetUpdateable (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(object = null)
@@ -28,6 +32,7 @@ export class TriStepUpdate extends TriRenderStep
    * Ticks the bound updateable object with the raw frame clocks
    * (TriStepUpdate.cpp:19-26); the render context is not forwarded.
    *
+   * @implemented
    * @param {number} realTime Raw Blue real-time ticks.
    * @param {number} simTime Raw Blue simulation ticks.
    * @param {Tr2RenderContext} _renderContext Context supplied by the step executor; unused, as in Carbon.

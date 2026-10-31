@@ -31,6 +31,8 @@ export class EveChildModifierBooster extends IEveChildTransformModifier
    * Reproduces EveChildModifierBooster::ApplyTransform (Carbon):
    * B = sqrt(dist^2 - r^2); scale = B / dist; trans = -r^2 / (dist * scale);
    * return translationTransform * alignMat * scalingTransform * transform.
+   *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused

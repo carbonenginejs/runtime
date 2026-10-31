@@ -33,7 +33,11 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
   @type.object.ref("TriCurveSet")
   curveSet = null;
 
-  /** Live readonly validity of the retained expression evaluator. */
+  /**
+   * Live readonly validity of the retained expression evaluator.
+   *
+   * @adapted
+   */
   @be.mapPropertyReadOnly()
   @type.boolean
   @meta.adapted
@@ -47,7 +51,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Links this action to a controller and compiles its expression.
-   * Adapted: a CSP-safe AST program replaces native parser bytecode.
+   *
+   * @adapted a CSP-safe AST program replaces native parser bytecode.
    */
 
   @meta.adapted
@@ -59,8 +64,9 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Clears runtime expression state.
-   * Adapted: the retained JS cache reset also zeros its timestamps, unlike native
-   * Unlink which clears only the controller and evaluator.
+   *
+   * @adapted the retained JS cache reset also zeros its timestamps, unlike native
+   *   Unlink which clears only the controller and evaluator.
    */
 
   @meta.adapted
@@ -71,8 +77,9 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Starts timeline updates for this action.
-   * Adapted: retains the JS optional-controller convenience and records the
-   * supplied controller and last time; native Start only sets the start time.
+   *
+   * @adapted retains the JS optional-controller convenience and records the
+   *   supplied controller and last time; native Start only sets the start time.
    */
 
   @meta.adapted
@@ -90,7 +97,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Stops timeline updates for this action.
-   * Adapted: an omitted controller uses the stored JS link; no link is a no-op.
+   *
+   * @adapted an omitted controller uses the stored JS link; no link is a no-op.
    */
 
   @meta.adapted
@@ -101,6 +109,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Rebases stored simulation time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -112,10 +122,11 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Applies the retained evaluator result to the curve set and records every tick.
-   * Adapted: the existing CSP-safe AST context and numeric result conversion
-   * represent native expression evaluation. Evaluation errors skip ApplyTime;
-   * successful nonfinite results and target errors remain visible. Stored text does not
-   * compile during Update; Link or OnModified owns recompilation.
+   *
+   * @adapted the existing CSP-safe AST context and numeric result conversion
+   *   represent native expression evaluation. Evaluation errors skip ApplyTime;
+   *   successful nonfinite results and target errors remain visible. Stored text does not
+   *   compile during Update; Link or OnModified owns recompilation.
    */
 
   @meta.adapted
@@ -143,6 +154,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Recompiles when the expression changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -158,8 +171,9 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Checks whether the value expression compiles.
-   * Adapted: retains the JS explicit lazy-compilation helper. The live property
-   * observes the retained evaluator without compiling, as native does.
+   *
+   * @adapted retains the JS explicit lazy-compilation helper. The live property
+   *   observes the retained evaluator without compiling, as native does.
    */
   @legacyBlue.method
   @meta.adapted
@@ -174,6 +188,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * IsExpressionValid(attrName), which cannot share one C++ function, so
    * this forward takes and discards the attribute name. Same forward here
    * for nominal parity.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("IsExpressionValid")
   @meta.implemented
@@ -184,8 +200,9 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Gets expression term metadata.
-   * Adapted: the shared AST adapter supplies term records instead of native
-   * Tr2ExpressionTermInfo instances, followed by linked controller records.
+   *
+   * @adapted the shared AST adapter supplies term records instead of native
+   *   Tr2ExpressionTermInfo instances, followed by linked controller records.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -199,8 +216,9 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Evaluates an arbitrary expression.
-   * Adapted: retains the existing AST convenience return of zero for invalid
-   * syntax and permits unlinked evaluation, unlike native BlueStdResult errors.
+   *
+   * @adapted retains the existing AST convenience return of zero for invalid
+   *   syntax and permits unlinked evaluation, unlike native BlueStdResult errors.
    */
   @be.mapMethodAndWrap()
   @meta.adapted

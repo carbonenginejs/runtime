@@ -72,6 +72,8 @@ export class EveSOFDataHullBannerSetItem extends IRoot
    * Carbon MAP_PROPERTY "scaling" over GetScaling/SetScaling
    * (EveSOFData_Blue.cpp:707): the getter returns a copy, and the setter
    * corrects one axis to keep the usage's target aspect ratio.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.vec3
@@ -81,7 +83,11 @@ export class EveSOFDataHullBannerSetItem extends IRoot
     return this.GetScaling();
   }
 
-  /** Stores the scale and corrects one axis when aspect preservation is on. */
+  /**
+   * Stores the scale and corrects one axis when aspect preservation is on.
+   *
+   * @implemented
+   */
   @meta.implemented
   set scaling(value)
   {
@@ -103,6 +109,8 @@ export class EveSOFDataHullBannerSetItem extends IRoot
    * Carbon MAP_PROPERTY "angleX" over GetAngleX/SetAngleX
    * (EveSOFData_Blue.cpp:710): the horizontal curve angle; the setter
    * rescales the vertical axis when aspect preservation is on.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.float32
@@ -112,7 +120,11 @@ export class EveSOFDataHullBannerSetItem extends IRoot
     return this.GetAngleX();
   }
 
-  /** Stores the horizontal curve angle and rescales the vertical axis when aspect preservation is on. */
+  /**
+   * Stores the horizontal curve angle and rescales the vertical axis when aspect preservation is on.
+   *
+   * @implemented
+   */
   @meta.implemented
   set angleX(value)
   {
@@ -134,6 +146,8 @@ export class EveSOFDataHullBannerSetItem extends IRoot
    * Carbon MAP_PROPERTY "angleY" over GetAngleY/SetAngleY
    * (EveSOFData_Blue.cpp:712): the vertical curve angle; the setter
    * rescales the horizontal axis when aspect preservation is on.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.float32
@@ -143,7 +157,11 @@ export class EveSOFDataHullBannerSetItem extends IRoot
     return this.GetAngleY();
   }
 
-  /** Stores the vertical curve angle and rescales the horizontal axis when aspect preservation is on. */
+  /**
+   * Stores the vertical curve angle and rescales the horizontal axis when aspect preservation is on.
+   *
+   * @implemented
+   */
   @meta.implemented
   set angleY(value)
   {

@@ -51,6 +51,7 @@ export class LoadParameters
    * adapted: Carbon writes both through references, reading `mipCount` in;
    * JavaScript takes `mipCount` and returns both.
    *
+   * @adapted
    * @param {number} width Width of mip 0.
    * @param {number} height Height of mip 0.
    * @param {number} mipCount The source's mip count.

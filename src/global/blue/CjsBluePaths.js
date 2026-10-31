@@ -144,9 +144,8 @@ export class CjsBluePaths extends IBluePaths
    * `RegisterFileSystem` - adds a file system before or after the others
    * (cpp:364-385).
    *
-   * Adapted: takes the instance, where Carbon takes a class-name suffix and
-   * creates it, so a host can pass a file system bound to one build's cache.
-   *
+   * @adapted takes the instance, where Carbon takes a class-name suffix and
+   *   creates it, so a host can pass a file system bound to one build's cache.
    * @param {import("./IBlueResFileSystem.js").IBlueResFileSystem} fileSystem File system.
    * @param {number} [beforeOrAfter=BluePathsBeforeOrAfter.AFTER] `BluePathsBeforeOrAfter`.
    * @returns {CjsBluePaths} This service.
@@ -162,8 +161,7 @@ export class CjsBluePaths extends IBluePaths
   /**
    * `UnregisterFileSystem` - removes a registered file system (cpp:387-400).
    *
-   * Adapted: by instance, where Carbon finds it by class name.
-   *
+   * @adapted by instance, where Carbon finds it by class name.
    * @throws {Error} "File system not found".
    */
   UnregisterFileSystem(fileSystem)
@@ -173,7 +171,11 @@ export class CjsBluePaths extends IBluePaths
     this._resFileSystems.splice(index, 1);
   }
 
-  /** `IsFileSystemRegistered` - whether a file system is in the list (cpp:402-410). Adapted: by instance. */
+  /**
+   * `IsFileSystemRegistered` - whether a file system is in the list (cpp:402-410). Adapted: by instance.
+   *
+   * @adapted
+   */
   IsFileSystemRegistered(fileSystem)
   {
     return this._resFileSystems.includes(fileSystem);
@@ -183,6 +185,7 @@ export class CjsBluePaths extends IBluePaths
    * `GetDirectoryContents` - every file system's entries for the directory
    * (cpp:111-117).
    *
+   * @implemented
    * @param {string} directory Res path of the directory.
    * @param {Set<string>} [results=new Set()] Entry names, added to.
    * @returns {Set<string>} `results`.
@@ -210,6 +213,8 @@ export class CjsBluePaths extends IBluePaths
    * deduplicated across file systems. Names are as GetDirectoryContents reports
    * them; the remote file system lists stored .black as .red (Carbon).
    *
+   * @cjs
+   * @implemented
    * @param {string} path Rooted glob, or literal res:/ directory when matcher is supplied.
    * @param {string|RegExp|function(string):*|null} [matcher=null] Relative glob, regex or predicate.
    * @returns {string[]} Canonical lowercase res:/ file paths.
@@ -294,7 +299,11 @@ export class CjsBluePaths extends IBluePaths
   }
 
 
-  /** `IsDirectory` - whether any file system has a directory at the path (cpp:119-130). */
+  /**
+   * `IsDirectory` - whether any file system has a directory at the path (cpp:119-130).
+   *
+   * @implemented
+   */
   IsDirectory(path)
   {
     for (const fileSystem of this._resFileSystems)
@@ -307,6 +316,8 @@ export class CjsBluePaths extends IBluePaths
   /**
    * `FileExists` - whether any file system can supply the file: the others
    * first, then the local one, remembering a local hit (cpp:143-168).
+   *
+   * @implemented
    */
   FileExists(filename)
   {
@@ -328,6 +339,8 @@ export class CjsBluePaths extends IBluePaths
    *
    * Not whether the resource manager has loaded it: that is a different
    * cache, one level up.
+   *
+   * @implemented
    */
   FileExistsLocally(filename)
   {
@@ -350,7 +363,11 @@ export class CjsBluePaths extends IBluePaths
     return false;
   }
 
-  /** `FileNeedsDownload` - whether the remote cache lists the file but does not hold its bytes (cpp:208-220). */
+  /**
+   * `FileNeedsDownload` - whether the remote cache lists the file but does not hold its bytes (cpp:208-220).
+   *
+   * @implemented
+   */
   FileNeedsDownload(filename)
   {
     return this._remoteFileCache !== null
@@ -363,13 +380,13 @@ export class CjsBluePaths extends IBluePaths
    * it, in a form the caller accepts, or `null` when none has it
    * (cpp:227-268).
    *
-   * Adapted: asynchronous; routed by protocol and matched by form (see the top
-   * of this file); and without Carbon's language-code substitution
-   * (`AdjustFilenameForLanguageCode`), which picks a localized sibling of a
-   * `res:` path, since nothing here localizes resources. A file system's
-   * rejection (a server error, an abort) ends the read: only "not here" moves
-   * on to the next file system.
-   *
+   * @adapted asynchronous; routed by protocol and matched by form (see the top
+   *   of this file); and without Carbon's language-code substitution
+   *   (`AdjustFilenameForLanguageCode`), which picks a localized sibling of a
+   *   `res:` path, since nothing here localizes resources. A file system's
+   *   rejection (a server error, an abort) ends the read: only "not here" moves
+   *   on to the next file system.
+   * @renamed GetStreamFromPathW
    * @param {string} path Res path.
    * @param {object} [options={}] Read options.
    * @param {string[]} [options.accept=["bytes"]] Accepted `BlueResFileSystemForm`s, preferred first.

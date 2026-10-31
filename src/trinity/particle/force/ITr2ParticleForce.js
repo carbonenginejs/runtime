@@ -10,7 +10,11 @@ import { meta, blue } from "#schema";
 export class ITr2ParticleForce extends IRoot
 {
 
-  /** Updates force-owned state before particle integration. */
+  /**
+   * Updates force-owned state before particle integration.
+   *
+   * @abstract
+   */
   @be.abstract
   Update(_dt) {}
 
@@ -22,6 +26,8 @@ export class ITr2ParticleForce extends IRoot
    * Adapted: Carbon returns the vector by value. Forces are evaluated per
    * particle per frame, so the vector is written into `out` and `out` is
    * returned, rather than allocated per call; every force returns `out`.
+   *
+   * @abstract
    * @param {vec3} _position The particle position.
    * @param {vec3} _velocity The particle velocity.
    * @param {number} _dt Frame time.
@@ -38,6 +44,7 @@ export class ITr2ParticleForce extends IRoot
    * (ITr2ParticleForce.h:14): the base body is empty, so a force that draws nothing
    * inherits this.
    *
+   * @adapted
    * @param {ITr2DebugRenderer2} _renderer The debug renderer.
    * @param {mat4} _worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.

@@ -14,6 +14,7 @@ export class IEveVolume extends IRoot
    * Carbon `GetIntensity( Vector3 position )` (IEveVolume.h:13): the volume
    * intensity at a position.
    *
+   * @abstract
    * @param {vec3} _position The position.
    * @returns {number} The intensity.
    */
@@ -24,6 +25,7 @@ export class IEveVolume extends IRoot
    * Carbon `RegisterForChanges( const std::function<void()>& callBack )`
    * (IEveVolume.h:14): registers a change callback.
    *
+   * @abstract
    * @param {Function} _callBack Called when the volume changes.
    * @returns {number} The callback ID.
    */
@@ -33,6 +35,7 @@ export class IEveVolume extends IRoot
   /**
    * Carbon `UnregisterForChanges( uint32_t callbackID )` (IEveVolume.h:15).
    *
+   * @abstract
    * @param {number} _callbackID An ID `RegisterForChanges` returned.
    */
   @be.abstract
@@ -44,6 +47,7 @@ export class IEveVolume extends IRoot
    * (IEveVolume.h:16-17): appends points in the volume, each facing the
    * closest outward surface.
    *
+   * @abstract
    * @param {Array<vec3>} _points Caller-owned list the points are appended to.
    * @param {number} _howManyToAdd How many points to append.
    * @param {boolean} _excludeInnerVolume Whether to skip the inner volume.
@@ -56,6 +60,7 @@ export class IEveVolume extends IRoot
    * Carbon `RenderDebugInfo( ITr2DebugRenderer2& renderer, const Matrix&
    * parentTransform, const Color& baseColor = 0xFFFFFFFF )` (IEveVolume.h:18).
    *
+   * @abstract
    * @param {ITr2DebugRenderer2} _renderer The debug renderer.
    * @param {mat4} _parentTransform The parent's world transform.
    * @param {vec4} [_baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
@@ -67,6 +72,7 @@ export class IEveVolume extends IRoot
    * Carbon `const CcpMath::Sphere GetBoundingSphere() const`
    * (IEveVolume.h:19).
    *
+   * @abstract
    * @returns {{center: vec3, radius: number}} The volume's bounding sphere.
    */
   @be.abstract

@@ -48,6 +48,8 @@ export class Tr2SkinnedObjectLod
   /**
    * Repopulates availability when one of the three owned proxy references
    * changes.
+   *
+   * @implemented
    */
   @meta.implemented
   OnModified(value)
@@ -61,7 +63,11 @@ export class Tr2SkinnedObjectLod
     return true;
   }
 
-  /** Enables whole-model selection whenever at least one detail proxy is present. */
+  /**
+   * Enables whole-model selection whenever at least one detail proxy is present.
+   *
+   * @implemented
+   */
   @meta.implemented
   PopulateLods()
   {
@@ -75,6 +81,8 @@ export class Tr2SkinnedObjectLod
   /**
    * Selects the best available or resident whole-model proxy for a projected
    * pixel diameter.
+   *
+   * @implemented
    */
   @meta.implemented
   SetLOD(_frustum, estimatedPixelDiameter)
@@ -146,10 +154,9 @@ export class Tr2SkinnedObjectLod
    * it (Tr2SkinnedObjectLOD.cpp:151-166). A null model leaves an existing
    * proxy's object alone.
    *
-   * Adapted: Carbon passes `model->GetRawRoot()`, a C++ pointer adjustment to
-   * the IRoot base; a JavaScript object is its own root, so the model is held
-   * as it is.
-   *
+   * @adapted Carbon passes `model->GetRawRoot()`, a C++ pointer adjustment to
+   *   the IRoot base; a JavaScript object is its own root, so the model is held
+   *   as it is.
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The model.
    * @returns {void}
    */
@@ -176,8 +183,7 @@ export class Tr2SkinnedObjectLod
    * it (Tr2SkinnedObjectLOD.cpp:168-183). A null model leaves an existing
    * proxy's object alone.
    *
-   * Adapted: as SetHighDetailModel, the model is its own raw root.
-   *
+   * @adapted as SetHighDetailModel, the model is its own raw root.
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The model.
    * @returns {void}
    */
@@ -204,8 +210,7 @@ export class Tr2SkinnedObjectLod
    * (Tr2SkinnedObjectLOD.cpp:185-200). A null model leaves an existing proxy's
    * object alone.
    *
-   * Adapted: as SetHighDetailModel, the model is its own raw root.
-   *
+   * @adapted as SetHighDetailModel, the model is its own raw root.
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The model.
    * @returns {void}
    */
@@ -234,6 +239,7 @@ export class Tr2SkinnedObjectLod
    * (Tr2SkinnedObjectLOD.cpp:70-95). The selected proxy gets a zero timeout and
    * is never unloaded.
    *
+   * @implemented
    * @param {number} time Simulation time in Blue ticks.
    * @param {number} deltaTime Frame length in Blue ticks.
    * @returns {boolean} Always false, as the maintained native implementation
@@ -269,6 +275,8 @@ export class Tr2SkinnedObjectLod
   /**
    * Overrides the selected whole-model detail index used by proxy lifecycle and
    * capability queries.
+   *
+   * @implemented
    */
   @meta.implemented
   SetCurrentLod(lod)
@@ -276,21 +284,33 @@ export class Tr2SkinnedObjectLod
     this._currentLod = lod;
   }
 
-  /** Returns the selected whole-model detail index, or -1 before selection. */
+  /**
+   * Returns the selected whole-model detail index, or -1 before selection.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCurrentLod()
   {
     return this._currentLod;
   }
 
-  /** Reports whether at least one detail proxy permits whole-model selection. */
+  /**
+   * Reports whether at least one detail proxy permits whole-model selection.
+   *
+   * @implemented
+   */
   @meta.implemented
   HaveLodSetup()
   {
     return this._allowLodSelection;
   }
 
-  /** Allows shadow casting without selection or only for the high-detail model. */
+  /**
+   * Allows shadow casting without selection or only for the high-detail model.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsCastingShadow()
   {
@@ -300,6 +320,8 @@ export class Tr2SkinnedObjectLod
   /**
    * Allows cloth simulation when selection is disabled or the current detail
    * index is within the requested maximum.
+   *
+   * @implemented
    */
   @meta.implemented
   IsSimulatingCloth(maxClothLod)
@@ -311,9 +333,8 @@ export class Tr2SkinnedObjectLod
    * Installs a changed model into the selected proxy, falling through to a lower
    * proxy when it is absent (Tr2SkinnedObjectLOD.cpp:114-148).
    *
-   * Adapted: Carbon passes `model->GetRawRoot()`; a JavaScript object is its
-   * own root, so the model is passed as it is.
-   *
+   * @adapted Carbon passes `model->GetRawRoot()`; a JavaScript object is its
+   *   own root, so the model is passed as it is.
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The changed model.
    * @returns {void}
    */

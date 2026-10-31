@@ -182,6 +182,8 @@ export class EveChildExplosion extends EveChildContainer
 
   /**
    * Carbon SetLocalExplosionTransforms (cpp:149-157): replaces the local explosion transforms.
+   *
+   * @implemented
    * @param {Iterable<mat4>} transforms Local explosion transforms.
    */
   @be.mapMethodAndWrap()
@@ -193,6 +195,8 @@ export class EveChildExplosion extends EveChildContainer
 
   /**
    * Carbon SetGlobalExplosionOffset (cpp:167-173): stores the offset divided by the explosion's own scaling.
+   *
+   * @implemented
    * @param {vec3} offset Offset in local coordinates.
    */
   @be.mapMethodAndWrap()
@@ -205,7 +209,11 @@ export class EveChildExplosion extends EveChildContainer
     this._globalExplosionOffset[2] /= this.scaling[2];
   }
 
-  /** Carbon RegisterComponents (cpp:45-48): base container registration only. */
+  /**
+   * Carbon RegisterComponents (cpp:45-48): base container registration only.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -216,6 +224,8 @@ export class EveChildExplosion extends EveChildContainer
   /**
    * Carbon UnRegisterComponents (cpp:54-65): unregisters the generated global explosion container, then the
    * base container's children. The container is always an EveChildContainer, so Carbon's EveEntity cast holds.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -232,6 +242,8 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon Play (cpp:71-89): stops, then, when any explosion source exists, appends the shared child, collects
    * the shared subgraph, schedules the explosions and starts playback. A null shared child is not appended:
    * Carbon's BlueList Append rejects null (BlueListUtil.h:594-599).
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -259,6 +271,8 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon Stop (cpp:95-107): while registered, unregisters the spawned children and the global container
    * (the explosion itself stays registered), clears the spawned children, and drops the shared set, the
    * global instances and the global container.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -286,6 +300,7 @@ export class EveChildExplosion extends EveChildContainer
    * independent branches that each decrement the countdown, so with both authored the countdown runs at twice
    * the rate and the singular branch, which spawns first, suppresses the list.
    *
+   * @implemented
    * @param {EveUpdateContext} updateContext Frame context; GetDeltaT is in seconds.
    * @param {object} params Child update params from the owner.
    */
@@ -394,6 +409,8 @@ export class EveChildExplosion extends EveChildContainer
   /**
    * Carbon RegisterWithQuadRenderer (cpp:294-312): registers the explosion sources, not the spawned copies and
    * not the base container's children. Quirk, reproduced: the singular localExplosion is not registered.
+   *
+   * @implemented
    * @param {Tr2QuadRenderer} quadRenderer Quad renderer.
    */
 
@@ -411,6 +428,8 @@ export class EveChildExplosion extends EveChildContainer
    * factor raised to its index; the global start, total duration and wreck-switch time follow from them.
    *
    * Uses the shared CRT quotient, including the native inclusive upper endpoint.
+   *
+   * @adapted
    * @param {number} localExplosionCount Number of local explosions.
    */
 
@@ -447,6 +466,8 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon FindSharedObjects (cpp:319-388): collects every object reachable from localExplosionShared through
    * persisted IROOT/IROOTPTR members, list items and dictionary values. The schema field table stands in for
    * the Blue member table; Carbon's extra push of the current object (cpp:360) is a no-op on the visited set.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -483,8 +504,8 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon CopyElement (cpp:401-422), the copier override: a shared object is aliased into the copy instead of
    * duplicated; anything else falls back to the ordinary copier.
    *
-   * Adapted: Carbon's static callback receives the explosion as void* context and writes an out-pointer; this is
-   * bound to the explosion and returns the copier override's `{ result, dest }` record.
+   * @adapted Carbon's static callback receives the explosion as void* context and writes an out-pointer; this is
+   *   bound to the explosion and returns the copier override's `{ result, dest }` record.
    * @param {object} source Object being copied.
    * @returns {{result: number, dest?: object}} Copier override result.
    */
@@ -533,6 +554,8 @@ export class EveChildExplosion extends EveChildContainer
    * and appends it.
    *
    * Uses the native CRT rand() % n selection.
+   *
+   * @adapted
    * @param {mat4} transform Local explosion transform in this child's local frame.
    */
 

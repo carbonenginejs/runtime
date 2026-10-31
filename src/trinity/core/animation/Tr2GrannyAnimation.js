@@ -265,9 +265,9 @@ export class Tr2GrannyAnimation extends IRoot
   /**
    * Refreshes an owned resource from its authored path and rebuilds cached bones.
    *
-   * Adapted: Resolves decoded resources synchronously through CjsGrannyCurves.
-   * Explicit SetGrannyResource attachments survive a pathless Initialize; borrowed
-   * geometry remains authoritative until detached, as in Carbon.
+   * @adapted Resolves decoded resources synchronously through CjsGrannyCurves.
+   *   Explicit SetGrannyResource attachments survive a pathless Initialize; borrowed
+   *   geometry remains authoritative until detached, as in Carbon.
    */
   @meta.adapted
 
@@ -283,6 +283,9 @@ export class Tr2GrannyAnimation extends IRoot
 
   /**
    * Attaches an already decoded TriGrannyRes-compatible resource.
+   *
+   * @cjs
+   * @adapted
    * @param {TriGrannyRes|null} resource Clip resource to subscribe to, or null to detach.
    */
   @meta.cjs
@@ -304,6 +307,8 @@ export class Tr2GrannyAnimation extends IRoot
    * `EveChildMesh::InitializeAnimation` when the updater has no authored path
    * of its own. A null resource clears the binding, which is Carbon's fallback
    * when the mesh has no geometry yet.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -330,9 +335,9 @@ export class Tr2GrannyAnimation extends IRoot
 
   /**
    * Carbon ReleaseCachedData (Tr2GrannyAnimation.cpp:362-365) runs Cleanup.
-   * Adapted: the JS pose model is the cached data, so dropping it is the
-   * cleanup; the next RebuildCachedData builds it again.
    *
+   * @adapted the JS pose model is the cached data, so dropping it is the
+   *   cleanup; the next RebuildCachedData builds it again.
    * @param {object} resource Resource that released its payload.
    */
 
@@ -349,6 +354,8 @@ export class Tr2GrannyAnimation extends IRoot
    * Tr2GrannyAnimation.cpp:588, :633) and `EveChildMesh::GetBoneTransforms`
    * branches on it to choose between this controller's palette and a separate
    * Tr2AnimationMeshBinding. Defaults false, matching cpp:81.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -357,7 +364,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this._useMeshBinding;
   }
 
-  /** Carbon `SetUseMeshBinding` (Tr2GrannyAnimation.h:60). */
+  /**
+   * Carbon `SetUseMeshBinding` (Tr2GrannyAnimation.h:60).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetUseMeshBinding(enable)
@@ -365,7 +376,12 @@ export class Tr2GrannyAnimation extends IRoot
     this._useMeshBinding = !!enable;
   }
 
-  /** Whether the bound geometry was borrowed from the mesh. */
+  /**
+   * Whether the bound geometry was borrowed from the mesh.
+   *
+   * @cjs
+   * @adapted
+   */
   @meta.cjs
     @meta.adapted
   HasSharedGeometryRes()
@@ -378,6 +394,7 @@ export class Tr2GrannyAnimation extends IRoot
    * m_geometryRes). Adapted: this port holds it in `grannyRes`, flagged by
    * `_sharedGeometry`.
    *
+   * @adapted
    * @returns {object|null} The TriGeometryRes.
    */
 
@@ -397,6 +414,7 @@ export class Tr2GrannyAnimation extends IRoot
    * `grannyRes`, told apart by `_sharedGeometry`, and a standalone resource is
    * a decoded payload rather than a granny_file.
    *
+   * @adapted
    * @returns {object|null} The gr2 read.
    */
 
@@ -413,10 +431,10 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * Carbon `IsUsingCMF` (cpp:393-403) asks the granny resource, then the
    * borrowed geometry, each of which knows by the reader that loaded it.
-   * Adapted: a standalone resource here is a decoded gr2 payload
-   * (CjsGrannyCurves), so only borrowed geometry can be CMF until a .cmf
-   * animation-file route exists.
    *
+   * @adapted a standalone resource here is a decoded gr2 payload
+   *   (CjsGrannyCurves), so only borrowed geometry can be CMF until a .cmf
+   *   animation-file route exists.
    * @returns {boolean} True when animating a CMF file.
    */
 
@@ -430,6 +448,7 @@ export class Tr2GrannyAnimation extends IRoot
    * The CMF data this updater animates, or null (Carbon `GetCMFData`,
    * cpp:405-429; adapted as IsUsingCMF is).
    *
+   * @adapted
    * @returns {object|null} The CMF payload.
    */
 
@@ -449,6 +468,8 @@ export class Tr2GrannyAnimation extends IRoot
    * Rebuilds CPU bone state from the decoded format payload. Adapted: JS owns
    * the pose instead of the Granny SDK; this also performs Cleanup's bounds
    * cache invalidation (Tr2GrannyAnimation.cpp:1889) when the rig changes.
+   *
+   * @adapted
    */
   @meta.adapted
 
@@ -577,10 +598,11 @@ export class Tr2GrannyAnimation extends IRoot
 
   /**
    * Caches bone-local binding corners (Tr2GrannyAnimation.cpp:846-951).
-   * Adapted: the GR2 projection stores mesh references as indices and names
-   * OBBMin/OBBMax minBounds/maxBounds; the CPU rig owns the name lookup.
-   * CMF visits the first mesh in skeleton order; GR2 visits every model's
-   * mesh bindings in file order. That order also controls sphere expansion.
+   *
+   * @adapted the GR2 projection stores mesh references as indices and names
+   *   OBBMin/OBBMax minBounds/maxBounds; the CPU rig owns the name lookup.
+   *   CMF visits the first mesh in skeleton order; GR2 visits every model's
+   *   mesh bindings in file order. That order also controls sphere expansion.
    * @returns {boolean} Whether binding information is available.
    */
 
@@ -640,10 +662,11 @@ export class Tr2GrannyAnimation extends IRoot
   /**
    * Expands the bounds over binding corners transformed by the current WORLD
    * pose (Tr2GrannyAnimation.cpp:962-1022), not the skinning-offset palette.
-   * Adapted: the CPU rig supplies Granny/CMF world matrices; the GR2 reader's
-   * initialPlacement carries the model translation (absent means identity).
-   * Carbon's BoundingSphereUpdate starts at the origin and uses its 1e-4
-   * squared-distance tolerance, so an AABB-derived sphere is not equivalent.
+   *
+   * @adapted the CPU rig supplies Granny/CMF world matrices; the GR2 reader's
+   *   initialPlacement carries the model translation (absent means identity).
+   *   Carbon's BoundingSphereUpdate starts at the origin and uses its 1e-4
+   *   squared-distance tolerance, so an AABB-derived sphere is not equivalent.
    * @param {vec4} boundingSphere Destination center and radius.
    * @param {vec3} aabbMin Destination minimum.
    * @param {vec3} aabbMax Destination maximum.
@@ -698,13 +721,13 @@ export class Tr2GrannyAnimation extends IRoot
   /**
    * Advances CPU animation controls and rebuilds browser bone matrices.
    *
-   * Adapted: Carbon's CMF PrePhysicsAnimation (Tr2GrannyAnimation.cpp:1693-1745)
-   * driven by an explicit delta instead of Tr2Renderer's animation clock. The
-   * pose is PERSISTENT, as in Carbon: it is rest-posed once at setup
-   * (cpp:624) and sampling writes only bones of active animations
-   * (cmf AnimationSequencer::Sample, mesh/src/cmf/animation.cpp:810-819), so a
-   * bone nothing animates keeps its last value - an aimed bone keeps its aim
-   * after DisableAimBone.
+   * @adapted Carbon's CMF PrePhysicsAnimation (Tr2GrannyAnimation.cpp:1693-1745)
+   *   driven by an explicit delta instead of Tr2Renderer's animation clock. The
+   *   pose is PERSISTENT, as in Carbon: it is rest-posed once at setup
+   *   (cpp:624) and sampling writes only bones of active animations
+   *   (cmf AnimationSequencer::Sample, mesh/src/cmf/animation.cpp:810-819), so a
+   *   bone nothing animates keeps its last value - an aimed bone keeps its aim
+   *   after DisableAimBone.
    */
   @meta.adapted
   Update(dt = 0)
@@ -784,7 +807,11 @@ export class Tr2GrannyAnimation extends IRoot
     }
   }
 
-  /** The registered pose modifier, or null (Carbon Tr2GrannyAnimation.cpp:2170-2173). */
+  /**
+   * The registered pose modifier, or null (Carbon Tr2GrannyAnimation.cpp:2170-2173).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPoseModifier()
@@ -795,6 +822,8 @@ export class Tr2GrannyAnimation extends IRoot
   /**
    * Registers the non-owning modify-the-sampled-pose hook (Carbon
    * Tr2GrannyAnimation.cpp:2175-2178); pass null to clear it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -834,7 +863,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this._poseModifierView;
   }
 
-  /** Carbon method PlayAnimationEx (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method PlayAnimationEx (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   PlayAnimationEx(animName, loopCount, delay, speed, clearWhenDone = true)
@@ -846,6 +879,7 @@ export class Tr2GrannyAnimation extends IRoot
    * Carbon AddAnimationLayer (cpp:2051-2087): a layer whose bones all start
    * at weight 0, initialized at once when the rig is already built.
    *
+   * @implemented
    * @param {string} layerName Layer name.
    * @param {number} [layerWeight=1] Layer weight.
    * @returns {void}
@@ -879,8 +913,7 @@ export class Tr2GrannyAnimation extends IRoot
    * Carbon FindBoneByName (cpp:1929-1963): the first skeleton bone with the
    * name.
    *
-   * Adapted: returns the index, or -1, for Carbon's bool and out parameter.
-   *
+   * @adapted returns the index, or -1, for Carbon's bool and out parameter.
    * @param {string} name Bone name.
    * @returns {number} The bone index, or -1.
    */
@@ -904,8 +937,7 @@ export class Tr2GrannyAnimation extends IRoot
    * call it for their `mask` before playing on the layer
    * (Tr2ActionPlayMeshAnimation.cpp:56-59).
    *
-   * Adapted: Carbon's composite-pose allocation has no counterpart.
-   *
+   * @adapted Carbon's composite-pose allocation has no counterpart.
    * @param {string} layerName Layer name.
    * @param {string} trackMask Bone mask name.
    * @returns {void}
@@ -962,7 +994,11 @@ export class Tr2GrannyAnimation extends IRoot
     return weights;
   }
 
-  /** Carbon AddAnimationLayerAllBones (cpp:2252-2270): "" is the base layer. */
+  /**
+   * Carbon AddAnimationLayerAllBones (cpp:2252-2270): "" is the base layer.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddAnimationLayerAllBones(layerName)
@@ -972,7 +1008,11 @@ export class Tr2GrannyAnimation extends IRoot
     layer.AddAllBones(this);
   }
 
-  /** Carbon AddAnimationLayerBone (cpp:2231-2249): "" is the base layer. */
+  /**
+   * Carbon AddAnimationLayerBone (cpp:2231-2249): "" is the base layer.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddAnimationLayerBone(layerName, boneName)
@@ -985,8 +1025,8 @@ export class Tr2GrannyAnimation extends IRoot
   /**
    * Carbon method AddSecondaryResPath (MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Resource loading stays resource-layer-owned; registered decoded resources are attached synchronously
-   * when available.
+   * @adapted Resource loading stays resource-layer-owned; registered decoded resources are attached synchronously
+   *   when available.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1001,7 +1041,12 @@ export class Tr2GrannyAnimation extends IRoot
     return true;
   }
 
-  /** Attaches a decoded secondary animation resource after async loading. */
+  /**
+   * Attaches a decoded secondary animation resource after async loading.
+   *
+   * @cjs
+   * @adapted
+   */
   @meta.cjs
     @meta.adapted
   SetSecondaryGrannyResource(resPath, resource)
@@ -1018,8 +1063,8 @@ export class Tr2GrannyAnimation extends IRoot
   /**
    * Aims a named bone axis toward a target in skeleton coordinates on each update.
    *
-   * Adapted: Stores the native vectors in gl-matrix arrays. The correction is
-   * applied after sampling and before pose modifiers and bone offsets.
+   * @adapted Stores the native vectors in gl-matrix arrays. The correction is
+   *   applied after sampling and before pose modifiers and bone offsets.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1036,10 +1081,9 @@ export class Tr2GrannyAnimation extends IRoot
    * cpp:1611-1651, private): replaces the first matching bone's local rotation
    * with the aiming correction.
    *
-   * Adapted: uses the decoded runtime skeleton and gl-matrix world transforms.
-   * Native quirk (Tr2GrannyAnimation.cpp:1639): parent transpose is used even
-   * under non-uniform scale. Do not substitute a true inverse.
-   *
+   * @adapted uses the decoded runtime skeleton and gl-matrix world transforms.
+   *   Native quirk (Tr2GrannyAnimation.cpp:1639): parent transpose is used even
+   *   under non-uniform scale. Do not substitute a true inverse.
    * @param {object} skeleton Skeleton view containing ordered bone names.
    * @returns {void}
    */
@@ -1080,7 +1124,11 @@ export class Tr2GrannyAnimation extends IRoot
     quat.rotationArcCarbon(bone.orientation, this._aimAxis, direction);
   }
 
-  /** Carbon method ChainAnimation (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChainAnimation (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ChainAnimation(animName)
@@ -1088,7 +1136,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this.PlayAnimation(animName, false, 1, 0, 1, true);
   }
 
-  /** Carbon method ChainAnimationEx (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChainAnimationEx (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ChainAnimationEx(animName, loopCount, delay, speed)
@@ -1096,7 +1148,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this.PlayAnimation(animName, false, loopCount, delay, speed, true);
   }
 
-  /** Carbon method ClearAnimations (Tr2GrannyAnimation.cpp:1515-1518): the base layer's. */
+  /**
+   * Carbon method ClearAnimations (Tr2GrannyAnimation.cpp:1515-1518): the base layer's.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearAnimations()
@@ -1110,6 +1166,8 @@ export class Tr2GrannyAnimation extends IRoot
    * Tr2GrannyAnimationLayer::StopAnimations). Distinct from EndAnimation
    * (finish the current loop) and ClearAnimations (drop everything with no
    * delay bookkeeping).
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -1123,6 +1181,7 @@ export class Tr2GrannyAnimation extends IRoot
    * layer has that name (Carbon Tr2GrannyAnimation.cpp:305-319). An empty
    * string is a name, not the base layer, as in Carbon's map lookup.
    *
+   * @implemented
    * @param {?string} name
    * @returns {?Tr2GrannyAnimationLayer}
    */
@@ -1137,7 +1196,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this._layers.get(String(name)) ?? null;
   }
 
-  /** Carbon method ClearAnimationLayers (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ClearAnimationLayers (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearAnimationLayers()
@@ -1145,7 +1208,11 @@ export class Tr2GrannyAnimation extends IRoot
     this._layers.clear();
   }
 
-  /** Carbon method DisableAimBone (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method DisableAimBone (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   DisableAimBone()
@@ -1153,7 +1220,11 @@ export class Tr2GrannyAnimation extends IRoot
     this._aimingBone = false;
   }
 
-  /** Carbon method EndAnimation (Tr2GrannyAnimation.cpp:1505-1508): the base layer's. */
+  /**
+   * Carbon method EndAnimation (Tr2GrannyAnimation.cpp:1505-1508): the base layer's.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   EndAnimation()
@@ -1161,7 +1232,11 @@ export class Tr2GrannyAnimation extends IRoot
     this._baseLayer.EndAnimation();
   }
 
-  /** Carbon method GetAdditiveBlendMode (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetAdditiveBlendMode (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetAdditiveBlendMode()
@@ -1169,7 +1244,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this._additiveMode;
   }
 
-  /** Carbon method GetLayerWeight (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetLayerWeight (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetLayerWeight(layerName)
@@ -1177,7 +1256,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this._getLayer(layerName)?.weight ?? 0;
   }
 
-  /** Carbon method GetSecondaryAnimationName (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetSecondaryAnimationName (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   GetSecondaryAnimationName(resPath, index)
@@ -1186,14 +1269,22 @@ export class Tr2GrannyAnimation extends IRoot
     return getName(CjsGrannyCurves.getAnimations(source)[Number(index) || 0]);
   }
 
-  /** Carbon method PlayAnimation -> PlayAnimationOnce (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method PlayAnimation -> PlayAnimationOnce (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @meta.adapted
   PlayAnimation(animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {
     return this._playLayer("", animName, replace, loopCount, delay, speed, clearWhenDone);
   }
 
-  /** Native-name alias retained for controller integrations. */
+  /**
+   * Native-name alias retained for controller integrations.
+   *
+   * @adapted
+   */
   @meta.adapted
   @be.mapMethodAndWrap("PlayAnimation")
   PlayAnimationOnce(animName)
@@ -1201,14 +1292,22 @@ export class Tr2GrannyAnimation extends IRoot
     return this.PlayAnimation(animName, true, 1, 0, 1, true);
   }
 
-  /** Carbon method PlayLayerAnimation -> PlayLayerAnimationByName (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method PlayLayerAnimation -> PlayLayerAnimationByName (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @meta.adapted
   PlayLayerAnimation(layerName, animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {
     return this._playLayer(layerName, animName, replace, loopCount, delay, speed, clearWhenDone);
   }
 
-  /** Alias used by Carbon controller actions. */
+  /**
+   * Alias used by Carbon controller actions.
+   *
+   * @adapted
+   */
   @meta.adapted
   @be.mapMethodAndWrap("PlayLayerAnimation")
   PlayLayerAnimationByName(...args)
@@ -1216,7 +1315,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this.PlayLayerAnimation(...args);
   }
 
-  /** Carbon RemoveAnimationLayerBone (cpp:2273-2291): "" is the base layer. */
+  /**
+   * Carbon RemoveAnimationLayerBone (cpp:2273-2291): "" is the base layer.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   RemoveAnimationLayerBone(layerName, boneName)
@@ -1226,7 +1329,11 @@ export class Tr2GrannyAnimation extends IRoot
     layer.RemoveBone(this, boneName);
   }
 
-  /** Carbon method GetAnimationNames (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetAnimationNames (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   GetAnimationNames()
@@ -1248,7 +1355,11 @@ export class Tr2GrannyAnimation extends IRoot
     return names;
   }
 
-  /** Carbon method SetAdditiveBlendMode (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetAdditiveBlendMode (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetAdditiveBlendMode(additive)
@@ -1256,7 +1367,11 @@ export class Tr2GrannyAnimation extends IRoot
     this._additiveMode = !!additive;
   }
 
-  /** Carbon method SetLayerControlParam (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetLayerControlParam (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetLayerControlParam(layerName, controlParam)
@@ -1271,7 +1386,11 @@ export class Tr2GrannyAnimation extends IRoot
     return true;
   }
 
-  /** Carbon method SetLayerControlParamSkewRate (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetLayerControlParamSkewRate (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetLayerControlParamSkewRate(layerName, skewRate)
@@ -1285,7 +1404,11 @@ export class Tr2GrannyAnimation extends IRoot
     return true;
   }
 
-  /** Carbon method SetLayerWeight (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetLayerWeight (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetLayerWeight(layerName, layerWeight)
@@ -1299,7 +1422,11 @@ export class Tr2GrannyAnimation extends IRoot
     return true;
   }
 
-  /** Carbon method TogglePauseAnimations (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method TogglePauseAnimations (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   TogglePauseAnimations(pause)
@@ -1307,7 +1434,11 @@ export class Tr2GrannyAnimation extends IRoot
     this._paused = !!pause;
   }
 
-  /** Returns whether a model-bearing decoded Granny payload is ready. */
+  /**
+   * Returns whether a model-bearing decoded Granny payload is ready.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   IsInitialized()
@@ -1328,6 +1459,8 @@ export class Tr2GrannyAnimation extends IRoot
    *
    * Float4x3 drops the constant fourth column and stores the first three
    * columns of the 4x4 (Utilities/MatrixUtils.cpp:6-20).
+   *
+   * @adapted
    */
   @meta.adapted
 
@@ -1382,8 +1515,9 @@ export class Tr2GrannyAnimation extends IRoot
   /**
    * Carbon GetSkeletonBoneIndices (Tr2GrannyAnimation.cpp:431-436): the CMF mesh's
    * skeleton bone indices.
-   * Adapted: one list serves Carbon's m_skeletonBoneIndices (CMF) and the Granny
-   * binding-to-bone indices, as the palette builders fill it.
+   *
+   * @adapted one list serves Carbon's m_skeletonBoneIndices (CMF) and the Granny
+   *   binding-to-bone indices, as the palette builders fill it.
    * @returns {number[]} The bound bone indices.
    */
   @meta.adapted
@@ -1393,7 +1527,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this._meshBoneIndices;
   }
 
-  /** Returns the number of mesh bones in the current palette. */
+  /**
+   * Returns the number of mesh bones in the current palette.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetMeshBoneCount()
@@ -1401,7 +1539,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this._meshBoneIndices.length;
   }
 
-  /** Copies a named bone's world transform into an output matrix. */
+  /**
+   * Copies a named bone's world transform into an output matrix.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   GetBoneWorldTransform(boneName, out)
@@ -1415,7 +1557,12 @@ export class Tr2GrannyAnimation extends IRoot
     return out;
   }
 
-  /** Copies an indexed bone's world transform into an output matrix. */
+  /**
+   * Copies an indexed bone's world transform into an output matrix.
+   *
+   * @cjs
+   * @adapted
+   */
   @meta.cjs
     @meta.adapted
   GetBoneTransform(index, out)
@@ -1429,7 +1576,12 @@ export class Tr2GrannyAnimation extends IRoot
     return out;
   }
 
-  /** Resolves a bone name or index to its current world matrix. */
+  /**
+   * Resolves a bone name or index to its current world matrix.
+   *
+   * @cjs
+   * @adapted
+   */
   @meta.cjs
     @meta.adapted
   GetBoneMatrix(bone)
@@ -1441,7 +1593,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this.GetBoneWorldTransform(bone, mat4.create());
   }
 
-  /** Returns the current world transforms for every animation bone. */
+  /**
+   * Returns the current world transforms for every animation bone.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetAnimationTransforms()
@@ -1449,7 +1605,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this._runtimeModel?.bones.map(bone => bone.worldTransform) ?? [];
   }
 
-  /** Returns the ordered names of the current animation bones. */
+  /**
+   * Returns the ordered names of the current animation bones.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetAnimationBoneList()
@@ -1457,7 +1617,11 @@ export class Tr2GrannyAnimation extends IRoot
     return this._runtimeModel?.bones.map(bone => bone.name) ?? [];
   }
 
-  /** Returns a detached snapshot of morph values sampled during the last update. */
+  /**
+   * Returns a detached snapshot of morph values sampled during the last update.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetMorphAnimations()
@@ -1465,7 +1629,12 @@ export class Tr2GrannyAnimation extends IRoot
     return new Map(this._morphAnimations);
   }
 
-  /** Exposes retained aim state to an engine-side IK adapter. */
+  /**
+   * Exposes retained aim state to an engine-side IK adapter.
+   *
+   * @cjs
+   * @adapted
+   */
   @meta.cjs
     @meta.adapted
   GetAimBoneState()
@@ -1633,9 +1802,8 @@ export class Tr2GrannyAnimation extends IRoot
    * animation's duration, searching the primary then the secondary resources; 0 when
    * there is no such animation. EveChildTurret.PlayAnimation reads it for every action.
    *
-   * Adapted: Carbon branches on IsUsingCMF between FindCMFAnimationByName and
-   * FindGrannyAnimationByName; _findAnimation serves both through CjsGrannyCurves.
-   *
+   * @adapted Carbon branches on IsUsingCMF between FindCMFAnimationByName and
+   *   FindGrannyAnimationByName; _findAnimation serves both through CjsGrannyCurves.
    * @param {string} name The animation name.
    * @returns {number} Its duration in seconds, or 0.
    */
@@ -1707,6 +1875,9 @@ export class Tr2GrannyAnimation extends IRoot
    * Source: trinity/trinity/Tr2GrannyAnimation.cpp:367-389
    * Custom: decoded payloads represent native Granny file-info pointers; resource
    * identity selects the required GetPayload method without probing its presence.
+   *
+   * @cjs
+   * @implemented
    * @param {TriGrannyRes} resource Native resource whose retained Granny graph is inspected.
    */
   _getSource(resource)
@@ -2153,7 +2324,11 @@ export class Tr2GrannyAnimation extends IRoot
   }
 
 
-  /** Carbon destructor (Tr2GrannyAnimation.cpp:99-117): detach shared geometry. */
+  /**
+   * Carbon destructor (Tr2GrannyAnimation.cpp:99-117): detach shared geometry.
+   *
+   * @adapted
+   */
   @meta.adapted
   Destruct()
   {

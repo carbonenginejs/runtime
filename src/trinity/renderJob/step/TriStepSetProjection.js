@@ -17,7 +17,11 @@ export class TriStepSetProjection extends TriRenderStep
   @type.object.ref("TriProjection")
   projection = null;
 
-  /** Stores the projection this step installs. */
+  /**
+   * Stores the projection this step installs.
+   *
+   * @adapted
+   */
   @meta.adapted
   __init__(projection = null)
   {
@@ -27,6 +31,8 @@ export class TriStepSetProjection extends TriRenderStep
   /**
    * Replaces the projection; null makes the step a no-op rather than clearing
    * the current projection.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.adapted
@@ -38,6 +44,8 @@ export class TriStepSetProjection extends TriRenderStep
   /**
    * Sets the authored projection on the renderer, leaving the current
    * projection untouched when there is none (TriStepSetProjection.cpp:20-27).
+   *
+   * @implemented
    */
 
   @meta.implemented

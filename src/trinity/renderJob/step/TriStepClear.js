@@ -50,6 +50,8 @@ export class TriStepClear extends TriRenderStep
   /**
    * Enables each clear channel according to whether its argument was supplied
    * and non-null, so constructing with a colour alone clears colour only.
+   *
+   * @adapted
    */
   @be.mapMethod()
   @meta.adapted
@@ -67,6 +69,8 @@ export class TriStepClear extends TriRenderStep
    * Hands the render context a clear description with the colour clamped to 0..1 and
    * one enable flag per channel; which attachments those apply to is the
    * render context's decision.
+   *
+   * @implemented
    */
 
   @meta.implemented

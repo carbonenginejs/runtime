@@ -9,22 +9,38 @@ import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttribute
 export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttributeModifier
 {
 
-  /** Updates modifier state for the current smart-light group activation. */
+  /**
+   * Updates modifier state for the current smart-light group activation.
+   *
+   * @abstract
+   */
   @be.abstract
   UpdateSyncronous(_updateContext, _params, _activationMultiplier) {}
 
-  /** Applies this modifier to one smart-light attribute. */
+  /**
+   * Applies this modifier to one smart-light attribute.
+   *
+   * @abstract
+   */
   @be.abstract
   ProcessAttributeModifier(_attribute, _placement, _entityPosition, _entityDirection, _modifierStrength) {}
 
-  /** Accepts an optional controller variable. */
+  /**
+   * Accepts an optional controller variable.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetControllerVariable(_name, _value)
   {
   }
 
-  /** Accepts optional inherited colour properties. */
+  /**
+   * Accepts optional inherited colour properties.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetInheritProperties(_colorSet)

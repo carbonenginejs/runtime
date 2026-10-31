@@ -27,6 +27,7 @@ export class INotify extends IRoot
    * `OnModified` - a Be::NOTIFY member changed; re-derive whatever depended on
    * it. Editor settlement retains dirty state when this returns false.
    *
+   * @abstract
    * @param {string|string[]|null} _propertyName The changed member's name in JavaScript.
    * @returns {boolean} False to halt the caller.
    */

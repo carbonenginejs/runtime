@@ -29,7 +29,11 @@ export class EveEntity extends IRoot
   /** m_indexInRegistry (size_t) - runtime-only. */
   indexInRegistry = -1;
 
-  /** Whether this entity currently belongs to a component registry. */
+  /**
+   * Whether this entity currently belongs to a component registry.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsInRegistry()
@@ -42,6 +46,8 @@ export class EveEntity extends IRoot
    * subclass publish the components it owns through RegisterComponents. Passing
    * nothing only leaves the current registry; re-registering with the same
    * registry is a no-op.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -66,6 +72,8 @@ export class EveEntity extends IRoot
   /**
    * Leaves the given registry, dropping every component it holds for this
    * entity, but only when it is the registry this entity is actually in.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -83,6 +91,8 @@ export class EveEntity extends IRoot
   /**
    * Asks the current registry to re-evaluate this entity's component
    * registrations, for use after state that gates them changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -94,6 +104,8 @@ export class EveEntity extends IRoot
   /**
    * The registry this entity belongs to, or null; subclasses read it in
    * RegisterComponents to decide what to publish.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -105,6 +117,8 @@ export class EveEntity extends IRoot
   /**
    * The registry slot index recorded for a component bit, or undefined when this
    * entity has no component of that type.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -116,6 +130,8 @@ export class EveEntity extends IRoot
   /**
    * Records the slot index a registry assigned for a component bit; called by
    * the registry, not by entities.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -127,6 +143,8 @@ export class EveEntity extends IRoot
   /**
    * Drops the recorded slot index for a component bit; called by the registry
    * when that component is released.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -135,7 +153,12 @@ export class EveEntity extends IRoot
     this._componentIndexLookup.delete(componentBit);
   }
 
-  /** Drops every recorded component slot index without touching the registry. */
+  /**
+   * Drops every recorded component slot index without touching the registry.
+   *
+   * @cjs
+   * @implemented
+   */
   @meta.cjs
     @meta.implemented
   ClearComponentState()
@@ -146,6 +169,8 @@ export class EveEntity extends IRoot
   /**
    * Override point where a subclass publishes the components it owns; called
    * after joining a registry, and again on ReRegister.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -157,6 +182,8 @@ export class EveEntity extends IRoot
    * Override point where a subclass releases components it published itself;
    * called while leaving a registry, after the registry has dropped its own
    * records.
+   *
+   * @implemented
    */
 
   @meta.implemented

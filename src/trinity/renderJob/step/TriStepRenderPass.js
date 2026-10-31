@@ -28,7 +28,11 @@ export class TriStepRenderPass extends TriRenderStep
   @type.object.ref("ITr2MultiPassScene")
   scene = null;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(scene = null, passType = 0)
@@ -40,6 +44,8 @@ export class TriStepRenderPass extends TriRenderStep
   /**
    * Renders a present multi-pass scene directly and observes its terminate result.
    * Carbon TriStepRenderPass.cpp:16-27 retains the nullable scene branch.
+   *
+   * @implemented
    */
 
   @meta.implemented

@@ -74,6 +74,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 
   /**
    * Reports whether a destination owner has resolved, without validating the variable or relinking.
+   *
+   * @implemented
    * @returns {boolean} Whether the cached destination is non-null.
    */
   @be.mapPropertyReadOnly()
@@ -89,9 +91,10 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 
   /**
    * Links to the destination owner.
-   * Adapted: retains the existing binding-roots adapter. Native checks
-   * ITr2ControllerOwner on the owner, GetRootObject result and selected target;
-   * those nominal owner declarations are incomplete in the current domain.
+   *
+   * @adapted retains the existing binding-roots adapter. Native checks
+   *   ITr2ControllerOwner on the owner, GetRootObject result and selected target;
+   *   those nominal owner declarations are incomplete in the current domain.
    */
 
   @meta.adapted
@@ -103,6 +106,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 
   /**
    * Clears the destination owner.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -115,11 +120,11 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   /**
    * Starts the destination if requested, then samples and writes its variable.
    *
-   * Adapted: Uses the existing JavaScript owner-binding adapter rather than native
-   * interface casts. A supplied controller refreshes the stored link. Missing
-   * source values use the authored constant; nonfinite source values are copied.
-   * Native Start keeps Link's controller rather than replacing it. That existing
-   * no-argument/refresh convenience remains outside this model-base removal.
+   * @adapted Uses the existing JavaScript owner-binding adapter rather than native
+   *   interface casts. A supplied controller refreshes the stored link. Missing
+   *   source values use the authored constant; nonfinite source values are copied.
+   *   Native Start keeps Link's controller rather than replacing it. That existing
+   *   no-argument/refresh convenience remains outside this model-base removal.
    */
 
   @meta.adapted
@@ -148,6 +153,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 
   /**
    * Relinks the destination on the native destinationOwner notification.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -159,6 +166,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 
   /**
    * Checks whether the destination owner resolved.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -170,6 +179,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   /**
    * Checks whether a target variable name is authored.
    * Custom: native declares this method but provides no body or Blue exposure.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -181,6 +192,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   /**
    * Resolves `destination` by case-insensitively matching destinationOwner
    * against the owner's binding roots.
+   *
+   * @adapted
    */
 
   @meta.adapted

@@ -19,6 +19,7 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
   /**
    * Creates the query.
    *
+   * @implemented
    * @returns {number} An `ALResult`.
    */
   Create()
@@ -26,25 +27,38 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** @returns {boolean} True, as Carbon's stub is always valid. */
+  /**
+   * @implemented
+   * @returns {boolean} True, as Carbon's stub is always valid.
+   */
   IsValid()
   {
     return true;
   }
 
-  /** Releases the query. */
+  /**
+   * Releases the query.
+   *
+   * @implemented
+   */
   Destroy()
   {
     super.Destroy();
   }
 
-  /** @returns {number} An `ALResult`. */
+  /**
+   * @implemented
+   * @returns {number} An `ALResult`.
+   */
   Begin()
   {
     return ALResult.S_OK;
   }
 
-  /** @returns {number} An `ALResult`. */
+  /**
+   * @implemented
+   * @returns {number} An `ALResult`.
+   */
   End()
   {
     return ALResult.S_OK;
@@ -53,6 +67,7 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
   /**
    * The collected statistics.
    *
+   * @adapted
    * @returns {object} `{ result, data }` with an empty data set.
    */
   GetStats()
@@ -63,6 +78,7 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
   /**
    * How many values a statistics set holds.
    *
+   * @adapted
    * @param {Array} data A statistics set.
    * @returns {number} The count.
    */
@@ -74,6 +90,7 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
   /**
    * One value's label.
    *
+   * @adapted
    * @param {Array} data A statistics set.
    * @param {number} index Which value.
    * @returns {string} The label, empty when absent.
@@ -86,6 +103,7 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
   /**
    * One value's description.
    *
+   * @adapted
    * @param {Array} data A statistics set.
    * @param {number} index Which value.
    * @returns {string} The description, empty when absent.
@@ -98,6 +116,7 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
   /**
    * One value.
    *
+   * @adapted
    * @param {Array} data A statistics set.
    * @param {number} index Which value.
    * @returns {number} The value, zero when absent.
@@ -107,7 +126,10 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
     return data?.[index]?.value ?? 0;
   }
 
-  /** @returns {number} A `Tr2ALMemoryType`; MANAGED, not VIDEO, as Carbon has it. */
+  /**
+   * @implemented
+   * @returns {number} A `Tr2ALMemoryType`; MANAGED, not VIDEO, as Carbon has it.
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;
@@ -117,6 +139,7 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
   /**
    * Names the query for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name
    *   (`Tr2PipelineStatsQueryALStub.cpp:70-73`).
@@ -135,6 +158,7 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
    * (`Tr2PipelineStatsQueryALStub.cpp:65-68`). Overridden here for that reason
    * alone - the base class no-op would otherwise be silently wrong.
    *
+   * @implemented
    * @param {object} description Accumulator, keyed by name.
    */
   Describe(description)

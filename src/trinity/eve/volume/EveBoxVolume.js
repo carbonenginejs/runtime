@@ -116,7 +116,11 @@ export class EveBoxVolume extends IEveVolume
   /** Carbon EveBoxVolume::MIN_AABB (EveBoxVolume.h:60, cpp:12). */
   static _MIN_AABB = vec3.fromValues(-0.5, -0.5, -0.5);
 
-  /** Carbon Initialize (EveBoxVolume.cpp:35-39): runs Setup. */
+  /**
+   * Carbon Initialize (EveBoxVolume.cpp:35-39): runs Setup.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -129,6 +133,7 @@ export class EveBoxVolume extends IEveVolume
    * Carbon GetBoundingSphere (EveBoxVolume.cpp:53-56): the sphere Setup cached,
    * returned by value as a fresh { center, radius }.
    *
+   * @implemented
    * @returns {{center: vec3, radius: number}}
    */
 
@@ -160,6 +165,7 @@ export class EveBoxVolume extends IEveVolume
    * zero - the default - every point maps to the box position, and when each
    * position component lies in [-0.5, 0.5] the whole outer box reads 1.
    *
+   * @implemented
    * @param {vec3} position Point in the volume's parent space; not modified.
    * @returns {number} The intensity.
    */
@@ -203,6 +209,7 @@ export class EveBoxVolume extends IEveVolume
   /**
    * Appends random points expressed in box-local space, centred on the box rather than offset by its position, choosing between the inner box and the six shell zones in proportion to their volumes and biasing shell samples outward by fallOffFactor. Generates nothing when any scaling axis is zero.
    *
+   * @adapted
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Drops the inner box from the choice, keeping every point in the shell.
    */
@@ -291,6 +298,8 @@ export class EveBoxVolume extends IEveVolume
   /**
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -301,7 +310,11 @@ export class EveBoxVolume extends IEveVolume
     return id;
   }
 
-  /** Drops a change callback by the id RegisterForChanges returned. */
+  /**
+   * Drops a change callback by the id RegisterForChanges returned.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnregisterForChanges(callbackId)
@@ -312,6 +325,8 @@ export class EveBoxVolume extends IEveVolume
   /**
    * Re-runs Setup after an authored change to position, scaling, rotation or
    * inner scaling, then notifies every registered listener.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -337,6 +352,7 @@ export class EveBoxVolume extends IEveVolume
    * two boxes recorded, in outer-box unit space; m_boxTransform takes them
    * back out. Until such a call both sit at the box centre.
    *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} parentTransform The parent's world transform.
    * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
@@ -381,6 +397,8 @@ export class EveBoxVolume extends IEveVolume
    * is kept as it is) and the bounding sphere. Box's Setup does NOT fire
    * change callbacks - OnModified does (cpp:194-215), unlike the ellipsoid,
    * whose Setup fires them itself.
+   *
+   * @implemented
    */
 
   @meta.implemented

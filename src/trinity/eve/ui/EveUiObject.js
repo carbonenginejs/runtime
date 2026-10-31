@@ -42,8 +42,7 @@ export class EveUiObject extends EveSpaceObject2
    * already-scaled transform again. Carbon quirk (CE-191): the inverse world
    * transform the base computed is not refreshed, so it stays unscaled.
    *
-   * Adapted: Carbon returns nothing; this returns the base's JavaScript result.
-   *
+   * @adapted Carbon returns nothing; this returns the base's JavaScript result.
    * @param {number} time Frame time in Blue ticks.
    * @returns {boolean} False when the base had already built the transform for this time.
    */
@@ -79,9 +78,8 @@ export class EveUiObject extends EveSpaceObject2
    * for which the base returns before computing anything
    * (EveSpaceObject2.cpp:1596-1599); display still gates its renderables.
    *
-   * Adapted: Carbon returns nothing; this returns isVisible, as the JavaScript
-   * base does.
-   *
+   * @adapted Carbon returns nothing; this returns isVisible, as the JavaScript
+   *   base does.
    * @param {EveUpdateContext} updateContext The frame context.
    * @param {mat4} parentTransform The parent's transform.
    * @returns {boolean} isVisible, always true.
@@ -103,6 +101,8 @@ export class EveUiObject extends EveSpaceObject2
   /**
    * Enables or disables display on every mesh area carrying the given name,
    * across all batch types.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -129,6 +129,8 @@ export class EveUiObject extends EveSpaceObject2
    * Maps a picking area index back to its area name, returning "invalid_mesh"
    * when there is no mesh and "invalid_areaid" when no picking area has that
    * index.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented

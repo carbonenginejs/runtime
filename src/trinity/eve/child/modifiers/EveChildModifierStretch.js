@@ -38,6 +38,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * The returned Matrix is written into caller-owned `out`, as the
    * IEveChildTransformModifier interface takes it.
    *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [_bones] - Carbon signature parity, unused
@@ -73,6 +74,8 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * Binds the vector function sampled at the frame time for the stretch
    * endpoint; a nullish value clears it and leaves the SetDestPosition fallback
    * in effect.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -84,6 +87,8 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
   /**
    * Copies the fallback stretch endpoint used when no destination vector
    * function is bound, or before one yields a value.
+   *
+   * @implemented
    */
 
   @meta.implemented

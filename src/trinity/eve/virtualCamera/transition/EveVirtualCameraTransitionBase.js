@@ -9,6 +9,8 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
 /**
  * Base for camera hand-overs, owning the source and target cameras plus the
  * temporary camera that is rendered while the hand-over runs.
+ *
+ * @abstract
  */
 @be.define("EveVirtualCameraTransitionBase")
 @be.inherit(IRoot)
@@ -27,6 +29,8 @@ export class EveVirtualCameraTransitionBase extends IRoot
   /**
    * Returns the camera to render from: the target once the transition has
    * completed, otherwise the temporary transition camera.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -38,6 +42,8 @@ export class EveVirtualCameraTransitionBase extends IRoot
   /**
    * Sets the camera the transition starts from; it is paused when the transition
    * stops.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -49,6 +55,8 @@ export class EveVirtualCameraTransitionBase extends IRoot
   /**
    * Sets the camera the transition hands control to; its timeline is reset on
    * Play and it is resumed on Stop.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -61,6 +69,8 @@ export class EveVirtualCameraTransitionBase extends IRoot
    * Starts the transition: creates the temporary transition camera seeded with
    * the source camera's transform, rewinds the target camera's timeline, and
    * starts the transition camera running.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -79,6 +89,8 @@ export class EveVirtualCameraTransitionBase extends IRoot
   /**
    * Ends the transition by resuming the target camera and pausing the source and
    * transition cameras.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -92,6 +104,8 @@ export class EveVirtualCameraTransitionBase extends IRoot
   /**
    * Advances the transition camera and stops the transition as soon as the
    * subclass reports it complete.
+   *
+   * @implemented
    */
 
   @meta.implemented

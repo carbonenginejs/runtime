@@ -125,6 +125,8 @@ export class CjsLibrary
 
   /**
    * Applies entries through fixed existing owners; records each successful call.
+   *
+   * @implemented
    * @param {object} configuration Normalized application registration configuration.
    * @returns {void}
    */
@@ -230,6 +232,8 @@ export class CjsLibrary
    * A default SOF and character library are constructed lazily here, never by the global holder.
    * Repeated initialization returns this root until Shutdown; the first call
    * chooses its providers. All provider validation precedes publication.
+   *
+   * @implemented
    * @param {object} [options={}] Preconfigured resMan, paths, os, sof, characterLibrary and audio providers.
    * @returns {Promise<CjsLibrary>} The initialized root.
    */

@@ -40,210 +40,330 @@ export class SpatialAudioSettings
 
   _enableDiffractionOnBoundaryEdges = true;
 
-  /** Returns whether geometry-based spatial audio is enabled. */
+  /**
+   * Returns whether geometry-based spatial audio is enabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetSpatialAudioGeometryEnabled()
   {
     return this._spatialAudioGeometryEnabled;
   }
 
-  /** Enables or disables geometry-based spatial audio. */
+  /**
+   * Enables or disables geometry-based spatial audio.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetSpatialAudioGeometryEnabled(value)
   {
     this._spatialAudioGeometryEnabled = Boolean(value);
   }
 
-  /** Returns the movement threshold used for spatial path validation. */
+  /**
+   * Returns the movement threshold used for spatial path validation.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMovementThreshold()
   {
     return this._movementThreshold;
   }
 
-  /** Sets the movement threshold used for spatial path validation. */
+  /**
+   * Sets the movement threshold used for spatial path validation.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMovementThreshold(value)
   {
     this._movementThreshold = Math.fround(value);
   }
 
-  /** Returns the maximum number of primary spatial-audio rays. */
+  /**
+   * Returns the maximum number of primary spatial-audio rays.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetNumberOfPrimaryRays()
   {
     return this._numberOfPrimaryRays;
   }
 
-  /** Sets the maximum number of primary spatial-audio rays. */
+  /**
+   * Sets the maximum number of primary spatial-audio rays.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetNumberOfPrimaryRays(value)
   {
     this._numberOfPrimaryRays = Number(value) | 0;
   }
 
-  /** Returns the maximum reflection order. */
+  /**
+   * Returns the maximum reflection order.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxReflectionOrder()
   {
     return this._maxReflectionOrder;
   }
 
-  /** Sets the maximum reflection order. */
+  /**
+   * Sets the maximum reflection order.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxReflectionOrder(value)
   {
     this._maxReflectionOrder = Number(value) | 0;
   }
 
-  /** Returns the maximum diffraction order. */
+  /**
+   * Returns the maximum diffraction order.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxDiffractionOrder()
   {
     return this._maxDiffractionOrder;
   }
 
-  /** Sets the maximum diffraction order. */
+  /**
+   * Sets the maximum diffraction order.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxDiffractionOrder(value)
   {
     this._maxDiffractionOrder = Number(value) | 0;
   }
 
-  /** Returns the maximum number of emitter room auxiliary sends. */
+  /**
+   * Returns the maximum number of emitter room auxiliary sends.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxEmitterRoomAuxSends()
   {
     return this._maxEmitterRoomAuxSends;
   }
 
-  /** Sets the maximum number of emitter room auxiliary sends. */
+  /**
+   * Sets the maximum number of emitter room auxiliary sends.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
     this._maxEmitterRoomAuxSends = Number(value) | 0;
   }
 
-  /** Returns the diffraction order applied at reflection endpoints. */
+  /**
+   * Returns the diffraction order applied at reflection endpoints.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetDiffractionOnReflectionsOrder()
   {
     return this._diffractionOnReflectionsOrder;
   }
 
-  /** Sets the diffraction order applied at reflection endpoints. */
+  /**
+   * Sets the diffraction order applied at reflection endpoints.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
     this._diffractionOnReflectionsOrder = Number(value) | 0;
   }
 
-  /** Returns the maximum spatial-audio path length. */
+  /**
+   * Returns the maximum spatial-audio path length.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxPathLength()
   {
     return this._maxPathLength;
   }
 
-  /** Sets the maximum spatial-audio path length. */
+  /**
+   * Sets the maximum spatial-audio path length.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxPathLength(value)
   {
     this._maxPathLength = Math.fround(value);
   }
 
-  /** Returns the targeted spatial-audio CPU percentage. */
+  /**
+   * Returns the targeted spatial-audio CPU percentage.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCPULimitPercentage()
   {
     return this._cpuLimitPercentage;
   }
 
-  /** Sets the targeted spatial-audio CPU percentage. */
+  /**
+   * Sets the targeted spatial-audio CPU percentage.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetCPULimitPercentage(value)
   {
     this._cpuLimitPercentage = Math.fround(value);
   }
 
-  /** Returns the number of frames used for load balancing. */
+  /**
+   * Returns the number of frames used for load balancing.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLoadBalancingSpread()
   {
     return this._loadBalancingSpread;
   }
 
-  /** Sets the number of frames used for load balancing. */
+  /**
+   * Sets the number of frames used for load balancing.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetLoadBalancingSpread(value)
   {
     this._loadBalancingSpread = Number(value) | 0;
   }
 
-  /** Returns whether geometric diffraction and transmission are enabled. */
+  /**
+   * Returns whether geometric diffraction and transmission are enabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetEnableDiffractionAndTransmission()
   {
     return this._enableDiffractionAndTransmission;
   }
 
-  /** Enables or disables geometric diffraction and transmission. */
+  /**
+   * Enables or disables geometric diffraction and transmission.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetEnableDiffractionAndTransmission(value)
   {
     this._enableDiffractionAndTransmission = Boolean(value);
   }
 
-  /** Returns whether Wwise calculates emitter virtual positions. */
+  /**
+   * Returns whether Wwise calculates emitter virtual positions.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCalcEmitterVirtualPosition()
   {
     return this._calcEmitterVirtualPosition;
   }
 
-  /** Enables or disables Wwise emitter virtual-position calculation. */
+  /**
+   * Enables or disables Wwise emitter virtual-position calculation.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetCalcEmitterVirtualPosition(value)
   {
     this._calcEmitterVirtualPosition = Boolean(value);
   }
 
-  /** Returns the geometry surface transmission loss. */
+  /**
+   * Returns the geometry surface transmission loss.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetTransmissionLoss()
   {
     return this._transmissionLoss;
   }
 
-  /** Sets geometry surface transmission loss, clamped to the Carbon range. */
+  /**
+   * Sets geometry surface transmission loss, clamped to the Carbon range.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetTransmissionLoss(value)
   {
     this._transmissionLoss = Math.max(0, Math.min(1, Math.fround(value)));
   }
 
-  /** Returns whether geometry diffraction is enabled. */
+  /**
+   * Returns whether geometry diffraction is enabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetEnableDiffraction()
   {
     return this._enableDiffraction;
   }
 
-  /** Enables or disables geometry diffraction. */
+  /**
+   * Enables or disables geometry diffraction.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetEnableDiffraction(value)
   {
     this._enableDiffraction = Boolean(value);
   }
 
-  /** Returns whether geometry boundary-edge diffraction is enabled. */
+  /**
+   * Returns whether geometry boundary-edge diffraction is enabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetEnableDiffractionOnBoundaryEdges()
   {
     return this._enableDiffractionOnBoundaryEdges;
   }
 
-  /** Enables or disables geometry boundary-edge diffraction. */
+  /**
+   * Enables or disables geometry boundary-edge diffraction.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetEnableDiffractionOnBoundaryEdges(value)
   {
@@ -253,8 +373,8 @@ export class SpatialAudioSettings
   /**
    * Carbon method PopulateInitSettings, mapped to a plain Wwise-shaped object.
    *
-   * Adapted: AkSpatialAudioInitSettings is represented by a caller-owned plain JavaScript
-   * object.
+   * @adapted AkSpatialAudioInitSettings is represented by a caller-owned plain JavaScript
+   *   object.
    */
   @meta.adapted
   PopulateInitSettings(out)

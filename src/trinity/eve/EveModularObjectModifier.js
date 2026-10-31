@@ -33,7 +33,11 @@ export class EveModularObjectModifier extends IRoot
   /** Serializes asynchronous hull/resource edits across sessions on one owner. */
   static _pendingEdits = new WeakMap();
 
-  /** Opens an edit session and creates persistent part data when absent. */
+  /**
+   * Opens an edit session and creates persistent part data when absent.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Create(object, sof, objectLoader = null)
@@ -58,8 +62,9 @@ export class EveModularObjectModifier extends IRoot
 
   /**
    * Builds and attaches one SOF hull part, returning its unique part tag.
-   * Adapted: async SOF acquisition requires serialization per owner so IDs
-   * and composed graphs cannot be overwritten by concurrent edit sessions.
+   *
+   * @adapted async SOF acquisition requires serialization per owner so IDs
+   *   and composed graphs cannot be overwritten by concurrent edit sessions.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -72,7 +77,11 @@ export class EveModularObjectModifier extends IRoot
     return this._QueueEdit(() => this._AddHull(hullName, factionName, raceName, savedPosition, savedRotation, savedScale));
   }
 
-  /** Completes one serialized native hull edit after awaiting its SOF build. */
+  /**
+   * Completes one serialized native hull edit after awaiting its SOF build.
+   *
+   * @adapted
+   */
   @meta.adapted
   async _AddHull(hullName, factionName, raceName, position, rotation, scale)
   {
@@ -118,7 +127,8 @@ export class EveModularObjectModifier extends IRoot
 
   /**
    * Loads and attaches one resource child, returning its unique part tag.
-   * Adapted: promise-capable browser acquisition shares the owner's edit order.
+   *
+   * @adapted promise-capable browser acquisition shares the owner's edit order.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -131,7 +141,11 @@ export class EveModularObjectModifier extends IRoot
     return this._QueueEdit(() => this._AddChild(resourcePath, savedPosition, savedRotation, savedScale));
   }
 
-  /** Completes one serialized child load before updating tags, records and bounds. */
+  /**
+   * Completes one serialized child load before updating tags, records and bounds.
+   *
+   * @adapted
+   */
   @meta.adapted
   async _AddChild(resourcePath, position, rotation, scale)
   {
@@ -183,7 +197,11 @@ export class EveModularObjectModifier extends IRoot
     return operation;
   }
 
-  /** Removes a modular part and every child carrying its tag. */
+  /**
+   * Removes a modular part and every child carrying its tag.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Remove(partId)
@@ -207,7 +225,11 @@ export class EveModularObjectModifier extends IRoot
     return true;
   }
 
-  /** Replaces a modular part transform and updates its attached children. */
+  /**
+   * Replaces a modular part transform and updates its attached children.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   SetTransform(partId, position, rotation, scale)
@@ -260,10 +282,10 @@ export class EveModularObjectModifier extends IRoot
    * Recomputes culling bounds from the current modular part spheres
    * (EveModularObjectModifier.cpp:46-69).
    *
-   * Adapted: Carbon applies the bounds once, from the modifier's destructor
-   * (cpp:41-44). JavaScript has no deterministic destructor, so every edit
-   * applies them as it completes; the bounds after the last edit are the ones
-   * Carbon's destructor would set.
+   * @adapted Carbon applies the bounds once, from the modifier's destructor
+   *   (cpp:41-44). JavaScript has no deterministic destructor, so every edit
+   *   applies them as it completes; the bounds after the last edit are the ones
+   *   Carbon's destructor would set.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -307,7 +329,11 @@ export class EveModularObjectModifier extends IRoot
     return bounds;
   }
 
-  /** Copies a modular part's authored position. */
+  /**
+   * Copies a modular part's authored position.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetPosition(partId, out)
@@ -315,7 +341,11 @@ export class EveModularObjectModifier extends IRoot
     return vec3.copy(out, this._GetPart(partId).position);
   }
 
-  /** Copies a modular part's authored rotation. */
+  /**
+   * Copies a modular part's authored rotation.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetRotation(partId, out)
@@ -323,7 +353,11 @@ export class EveModularObjectModifier extends IRoot
     return quat.copy(out, this._GetPart(partId).rotation);
   }
 
-  /** Copies a modular part's authored scale. */
+  /**
+   * Copies a modular part's authored scale.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetScale(partId, out)

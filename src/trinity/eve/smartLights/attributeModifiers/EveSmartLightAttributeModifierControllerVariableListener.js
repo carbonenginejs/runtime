@@ -59,6 +59,8 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
   /**
    * Seeds the listener from its default value before the base crossfade seed
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:15-21).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -74,6 +76,8 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * Reapplies the activation state when the received value or the inversion
    * flag is edited, then defers to the base active-edit handling
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:23-39).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -88,6 +92,8 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * Receives a controller variable: a name match updates the listener state,
    * and the value always fans out to the child modifiers
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:41-60).
+   *
+   * @implemented
    */
 
   @meta.implemented

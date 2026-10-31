@@ -51,7 +51,11 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   @type.uint32
   currentSubmittedTriangleCount = 0;
 
-  /** Carbon method AddTriangle (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddTriangle (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   AddTriangle(position1, color1, position2, color2, position3, color3)
@@ -70,7 +74,11 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
     });
   }
 
-  /** Carbon method ClearTriangles (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ClearTriangles (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearTriangles()
@@ -78,7 +86,11 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
     this.triangles.length = 0;
   }
 
-  /** Native SubmitChanges; JS array length replaces inaccessible vector capacity. */
+  /**
+   * Native SubmitChanges; JS array length replaces inaccessible vector capacity.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   SubmitChanges()
@@ -94,6 +106,8 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
 
   /**
    * Recolors all existing vertices and submits them, as Carbon does.
+   *
+   * @adapted
    */
   @meta.adapted
   SetCurrentColor(color)
@@ -109,6 +123,8 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
 
   /**
    * Prepares existing geometry after reader population; JS arrays need no reserve.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -120,6 +136,8 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
 
   /**
    * The native average of triangle vertices transformed into world space.
+   *
+   * @implemented
    */
   @meta.implemented
   GetCenterOfMass(out)
@@ -136,14 +154,22 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
     return vec3.transformMat4(out, out, this.worldTransform);
   }
 
-  /** Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled. */
+  /**
+   * Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
-  /** Explicit AL destruction replaces Carbon's empty reference-counted handles. */
+  /**
+   * Explicit AL destruction replaces Carbon's empty reference-counted handles.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources()
@@ -152,7 +178,11 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
     this._vertexBuffer.Destroy();
   }
 
-  /** Packs Carbon's native vertex records into mapped AL storage instead of memcpy. */
+  /**
+   * Packs Carbon's native vertex records into mapped AL storage instead of memcpy.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   OnPrepareResources()
@@ -204,7 +234,11 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
     return true;
   }
 
-  /** Native Tr2SolidSet draw dispatch, including the visible-buffer gate for picking. */
+  /**
+   * Native Tr2SolidSet draw dispatch, including the visible-buffer gate for picking.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBatchesImpl(accumulator, perObjectData, effect, _reason)

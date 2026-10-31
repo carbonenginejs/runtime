@@ -80,6 +80,8 @@ export class EveChildTransform extends EveSpaceObjectChild
    * RebuildLocalTransform below, which mutates and does not consult
    * staticTransform. Carbon returns Matrix by value; the org out-last
    * convention receives it.
+   *
+   * @implemented
    */
   @meta.implemented
   ComputeLocalTransform(out)
@@ -94,6 +96,8 @@ export class EveChildTransform extends EveSpaceObjectChild
   /**
    * Rebuilds the local matrix from scale, rotation, and translation when useSRT
    * is enabled, then returns it.
+   *
+   * @implemented
    */
   @meta.implemented
   RebuildLocalTransform()
@@ -107,6 +111,8 @@ export class EveChildTransform extends EveSpaceObjectChild
 
   /**
    * Applies the supplied SRT components (each optional - omitted ones keep their current value) and rebuilds the local transform; a child with useSRT off returns its authored localTransform unchanged.
+   *
+   * @adapted
    * @param {Number} [_lowestLodVisible] - accepted for Carbon signature parity, unused here
    * @returns {Float32Array} the child's live local transform
    */
@@ -135,6 +141,8 @@ export class EveChildTransform extends EveSpaceObjectChild
   /**
    * Setup that also latches useStaticRotation, so from then on UpdateTransform
    * strips the parent's rotation and the child keeps a fixed world orientation.
+   *
+   * @adapted
    */
   @meta.adapted
   SetupWithStaticRotation(scale = null, rotation = null, translation = null, lowestLodVisible = null)
@@ -147,6 +155,8 @@ export class EveChildTransform extends EveSpaceObjectChild
    * Setup that also latches staticTransform, so from then on UpdateTransform
    * reuses the local transform as-is instead of recomposing it from the SRT
    * values every frame.
+   *
+   * @adapted
    */
   @meta.adapted
   SetupWithStaticTransform(scale = null, rotation = null, translation = null, lowestLodVisible = null)
@@ -162,6 +172,8 @@ export class EveChildTransform extends EveSpaceObjectChild
 
   /**
    * Recomputes the child's world transform from its parent for this frame - the single place a child's placement is driven. A staticTransform or non-SRT child reuses its local transform as-is; otherwise it is recomposed first, and when useStaticScale or useStaticRotation is set the parent is decomposed and rebuilt with unit scale and/or identity rotation before the two are combined.
+   *
+   * @adapted
    * @param {Float32Array} parentTransform - borrowed, read only
    * @returns {Float32Array} the child's live world transform
    */

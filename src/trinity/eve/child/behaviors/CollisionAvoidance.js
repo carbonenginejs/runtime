@@ -54,7 +54,11 @@ export class CollisionAvoidance extends IRoot
   // per-agent loop stays allocation-free.
   _volumeCenters = [];
 
-  /** Carbon CollisionAvoidance::GetProcessPriority (cpp:18-21). */
+  /**
+   * Carbon CollisionAvoidance::GetProcessPriority (cpp:18-21).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -66,6 +70,8 @@ export class CollisionAvoidance extends IRoot
    * Pushes each agent out of every exclusion volume it intersects,
    * intensity-weighted away from the volume centre (Carbon CalculateBehavior,
    * cpp:23-49). Carbon returns an always-empty force vector here.
+   *
+   * @implemented
    * @param {Array} agents - DroneAgent records
    * @param {Array|null} _scratchData - unused (no scratch)
    * @param {Number} _deltaTime
@@ -109,6 +115,8 @@ export class CollisionAvoidance extends IRoot
 
   /**
    * Carbon CollisionAvoidance::GetDebugOptions (cpp:51-54).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -121,6 +129,8 @@ export class CollisionAvoidance extends IRoot
   /**
    * Carbon CollisionAvoidance::RenderDebugInfo (cpp:56-65): delegates exclusion-volume
    * debug geometry when its option is enabled.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation

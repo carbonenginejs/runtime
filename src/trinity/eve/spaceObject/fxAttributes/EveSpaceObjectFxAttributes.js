@@ -138,8 +138,8 @@ export class EveSpaceObjectFxAttributes extends IEveFxAttribute
    * Collects the space-object attributes used by effect bindings. Carbon's
    * Blue casts are represented by the corresponding runtime constructors.
    *
-   * Adapted: Carbon BlueCastPtr checks become JavaScript instanceof checks; native out
-   * parameters are typed-array copy-outs.
+   * @adapted Carbon BlueCastPtr checks become JavaScript instanceof checks; native out
+   *   parameters are typed-array copy-outs.
    */
 
   @meta.adapted

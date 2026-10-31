@@ -14,7 +14,11 @@ import { CjsSchema, meta } from "#schema";
 /** `IBlueDynamicResourceConstructor` - builds a resource for a `dynamic:/<name>` path. */
 export class IBlueDynamicResourceConstructor
 {
-  /** `GetResource` - construct the resource this query describes. */
+  /**
+   * `GetResource` - construct the resource this query describes.
+   *
+   * @abstract
+   */
   GetResource(_query) {}
 
   /**

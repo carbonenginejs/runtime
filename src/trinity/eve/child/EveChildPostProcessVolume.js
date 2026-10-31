@@ -77,8 +77,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Sphere_inline.h:33-36), so the result always includes the local origin -
    * matching Carbon exactly.
    *
-   * Adapted: Volume bounds use { center, radius } records instead of CcpMath::Sphere values;
-   * missing centres and negative or invalid radii are skipped.
+   * @adapted Volume bounds use { center, radius } records instead of CcpMath::Sphere values;
+   *   missing centres and negative or invalid radii are skipped.
    */
 
   @meta.adapted
@@ -125,6 +125,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
 
   /**
    * The volume's name.
+   *
+   * @implemented
    */
   @meta.implemented
   GetName()
@@ -134,6 +136,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
 
   /**
    * Sets the volume's name, coercing the value to a string.
+   *
+   * @implemented
    */
   @meta.implemented
   SetName(name)
@@ -141,20 +145,32 @@ export class EveChildPostProcessVolume extends EveChildTransform
     this.name = String(name ?? "");
   }
 
-  /** Carbon's visibility pass is empty (EveChildPostProcessVolume.cpp:84-86). */
+  /**
+   * Carbon's visibility pass is empty (EveChildPostProcessVolume.cpp:84-86).
+   *
+   * @adapted
+   */
   @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
-  /** Post-process volumes publish no renderables (EveChildPostProcessVolume.h:40). */
+  /**
+   * Post-process volumes publish no renderables (EveChildPostProcessVolume.h:40).
+   *
+   * @adapted
+   */
   @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;
   }
 
-  /** Copies the object-space bound (EveChildPostProcessVolume.cpp:88-94). */
+  /**
+   * Copies the object-space bound (EveChildPostProcessVolume.cpp:88-94).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -163,7 +179,11 @@ export class EveChildPostProcessVolume extends EveChildTransform
     return true;
   }
 
-  /** Carbon's synchronous pass is empty (EveChildPostProcessVolume.cpp:96-98). */
+  /**
+   * Carbon's synchronous pass is empty (EveChildPostProcessVolume.cpp:96-98).
+   *
+   * @adapted
+   */
   @meta.adapted
   UpdateSyncronous(_updateContext, _params)
   {
@@ -174,8 +194,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * the transform and bound, then resolve the post-process intensity from the
    * camera position against the inclusion and exclusion volumes.
    *
-   * Adapted: a singular world transform keeps the volume off for the frame,
-   * where Carbon inverts unconditionally (cpp:100).
+   * @adapted a singular world transform keeps the volume off for the frame,
+   *   where Carbon inverts unconditionally (cpp:100).
    */
 
   @meta.adapted
@@ -239,14 +259,22 @@ export class EveChildPostProcessVolume extends EveChildTransform
     }
   }
 
-  /** Carbon's implementation is empty (EveChildPostProcessVolume.cpp:143-145): the argument is left as it was. */
+  /**
+   * Carbon's implementation is empty (EveChildPostProcessVolume.cpp:143-145): the argument is left as it was.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetLocalToWorldTransform(_out = null)
   {
   }
 
-  /** Forwards to the base transform setup (EveChildPostProcessVolume.cpp:164-168). */
+  /**
+   * Forwards to the base transform setup (EveChildPostProcessVolume.cpp:164-168).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
@@ -256,6 +284,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
 
   /**
    * Always true: the volume stays active regardless of where the camera is.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -267,8 +297,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /**
    * Builds the initial bound (EveChildPostProcessVolume.cpp:177-181).
    *
-   * Adapted: The Carbon constructor's attribute-instance creation (cpp:11-18) is deferred to
-   * first use because the generated field default stays null.
+   * @adapted The Carbon constructor's attribute-instance creation (cpp:11-18) is deferred to
+   *   first use because the generated field default stays null.
    */
 
   @meta.adapted
@@ -281,6 +311,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
 
   /**
    * Carbon EveChildPostProcessVolume::GetDebugOptions (cpp:169-174).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -300,6 +332,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * "Bounding Sphere". Carbon passes the volume colours as packed words that
    * convert implicitly to IEveVolume's `const Color&`; JavaScript holds them
    * as converted Colors.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -336,8 +370,12 @@ export class EveChildPostProcessVolume extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildPostProcessVolume::RegisterComponents (cpp:62-65):
-   * unconditional PostProcessOwner leaf self-registration. */
+  /**
+   * Carbon EveChildPostProcessVolume::RegisterComponents (cpp:62-65):
+   * unconditional PostProcessOwner leaf self-registration.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -354,6 +392,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * removes the PostProcessOwner component. Reached from EveEntity::UnRegister
    * (EveEntity.cpp:81-94) after UnRegisterAllComponents has already removed
    * it, so there the removal finds nothing; Carbon does it anyway.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -362,7 +402,11 @@ export class EveChildPostProcessVolume extends EveChildTransform
     this.GetComponentRegistry().UnRegisterComponent(EveComponentType.PostProcessOwner, this);
   }
 
-  /** Returns the owned attribute record (EveChildPostProcessVolume.cpp:217-220). */
+  /**
+   * Returns the owned attribute record (EveChildPostProcessVolume.cpp:217-220).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPostProcessAttributes()

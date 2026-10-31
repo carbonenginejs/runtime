@@ -108,7 +108,11 @@ export class Tr2DataTextureManager
     this.ReleaseResources();
   }
 
-  /** Nothing to do after loading (Carbon cpp:31-34). */
+  /**
+   * Nothing to do after loading (Carbon cpp:31-34).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -123,6 +127,8 @@ export class Tr2DataTextureManager
    * Carbon skips creation during a device reset via
    * Tr2Renderer::IsResourceCreationAllowed, which has no JS counterpart; a context
    * with no device refuses Create instead.
+   *
+   * @adapted
    */
   @meta.adapted
   PrepareResources()
@@ -136,6 +142,8 @@ export class Tr2DataTextureManager
    *
    * Carbon creates in place on the by-value Tr2TextureAL; JS textures come from the
    * render-context factory and are installed on the reference, which broadcasts.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -169,6 +177,8 @@ export class Tr2DataTextureManager
    *
    * Carbon resets the by-value texture to an empty Tr2TextureAL; JS destroys the
    * texture and installs null.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -177,7 +187,11 @@ export class Tr2DataTextureManager
     this._dataTexture.SetTexture(null);
   }
 
-  /** Republishes the data texture as ImpactShieldDataMap (Carbon cpp:84-87). */
+  /**
+   * Republishes the data texture as ImpactShieldDataMap (Carbon cpp:84-87).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetVariables()
@@ -190,6 +204,8 @@ export class Tr2DataTextureManager
    * records each block's pixel offset (Carbon cpp:93-164). With nothing
    * queued the previous offsets survive, as in Carbon; offsets are recorded
    * only when the texture maps.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -252,6 +268,7 @@ export class Tr2DataTextureManager
    * Carbon reads flat Vector4 arrays; the JS owners keep columns of vec4s, which
    * are copied here into Carbon's flat header-then-data[x*H + y] order.
    *
+   * @adapted
    * @param {Float32Array[]} header - textureHeight vec4s, one per texture row
    * @param {Number} blockLength - data columns, not counting the header
    * @param {Float32Array[][]} data - blockLength columns of textureHeight vec4s
@@ -278,7 +295,11 @@ export class Tr2DataTextureManager
     return blockID;
   }
 
-  /** Returns a block's pixel offset from the last packing Update, or -1 (Carbon cpp:211-220). */
+  /**
+   * Returns a block's pixel offset from the last packing Update, or -1 (Carbon cpp:211-220).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetTextureOffset(blockID)

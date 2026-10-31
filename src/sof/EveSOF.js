@@ -729,8 +729,9 @@ export class EveSOF extends IRoot
 
   /**
    * Loads the catalog through the same readiness boundary as asynchronous builds.
-   * Adapted: Carbon loads synchronously; public JS acquisition returns a promise
-   * so explicit reloads cannot bypass pending reads or source-replacement checks.
+   *
+   * @adapted Carbon loads synchronously; public JS acquisition returns a promise
+   *   so explicit reloads cannot bypass pending reads or source-replacement checks.
    */
 
   @meta.adapted
@@ -793,7 +794,8 @@ export class EveSOF extends IRoot
 
   /**
    * Creates a DNA selection after acquiring its catalog closure.
-   * Adapted: Carbon starts with a monolithic catalog; JS callers await readiness.
+   *
+   * @adapted Carbon starts with a monolithic catalog; JS callers await readiness.
    */
 
   @meta.adapted
@@ -803,7 +805,11 @@ export class EveSOF extends IRoot
     return this._CreateDna(dnaString);
   }
 
-  /** Resolves Carbon's DNA against prepared data during synchronous assembly. */
+  /**
+   * Resolves Carbon's DNA against prepared data during synchronous assembly.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   _CreateDna(dnaString)
@@ -893,7 +899,8 @@ export class EveSOF extends IRoot
 
   /**
    * Performs Carbon's separate slow/offline DNA validation after data acquisition.
-   * Adapted: asynchronous catalogs must be ready before native validation runs.
+   *
+   * @adapted asynchronous catalogs must be ready before native validation runs.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -906,8 +913,8 @@ export class EveSOF extends IRoot
   /**
    * Carbon's three-name build: delegates to BuildFromDNA with the joined DNA.
    *
-   * Adapted: returns what BuildFromDNA returns (model values for now), not
-   * Carbon's live space-object instance.
+   * @adapted returns what BuildFromDNA returns (model values for now), not
+   *   Carbon's live space-object instance.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1000,14 +1007,13 @@ export class EveSOF extends IRoot
   /**
    * Builds a modular hull into an existing space-object values graph or model.
    *
-   * Adapted: Carbon mutates a live EveSpaceObject2 and accepts an armor-damage
-   * effect cache. This method composes model values without importing Trinity.
-   * A registered owner is exported and repopulated through SetValues; an object
-   * values root has its enumerable fields replaced. The owner object is retained,
-   * but existing nested identities are not guaranteed. Invalid DNA returns false
-   * before applying the composed graph. Errors during hydration or replacement
-   * can leave the owner partially updated.
-   *
+   * @adapted Carbon mutates a live EveSpaceObject2 and accepts an armor-damage
+   *   effect cache. This method composes model values without importing Trinity.
+   *   A registered owner is exported and repopulated through SetValues; an object
+   *   values root has its enumerable fields replaced. The owner object is retained,
+   *   but existing nested identities are not guaranteed. Invalid DNA returns false
+   *   before applying the composed graph. Errors during hydration or replacement
+   *   can leave the owner partially updated.
    * @param {object} owner Supported self-describing space-object root.
    * @param {string} dnaString Modular hull DNA.
    * @param {number} partTag Value coerced and validated as a uint32 part tag.
@@ -1031,7 +1037,8 @@ export class EveSOF extends IRoot
   /**
    * Composes against the current owner only after acquisition. The collection
    * pass computes dependencies without publishing values or mutating the owner.
-   * Adapted: JS values composition replaces native in-place object assembly.
+   *
+   * @adapted JS values composition replaces native in-place object assembly.
    */
   @meta.adapted
 
@@ -1318,10 +1325,10 @@ export class EveSOF extends IRoot
    * Carbon's DNA build. Layout options may be passed directly or under an
    * `options.layout` object.
    *
-   * Adapted: returns model values (BuildValuesFromDNA), not Carbon's live
-   * space-object instance; no object build is ported yet. The SOF may build
-   * objects, and must keep returning values as a service (operator,
-   * 2026-10-27).
+   * @adapted returns model values (BuildValuesFromDNA), not Carbon's live
+   *   space-object instance; no object build is ported yet. The SOF may build
+   *   objects, and must keep returning values as a service (operator,
+   *   2026-10-27).
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1333,6 +1340,8 @@ export class EveSOF extends IRoot
   /**
    * Executes prepared native assembly without suspension. Adapted: assembles
    * model values instead of constructing Trinity objects.
+   *
+   * @adapted
    */
   @meta.adapted
   _BuildFromDNA(dnaString, options)
@@ -1682,9 +1691,9 @@ export class EveSOF extends IRoot
   /**
    * Creates the base Tr2Mesh graph and populates its SOF shader areas.
    *
-   * Adapted: Creates a Tr2Mesh document node and shader-area references instead of
-   * allocating a live mesh. Transparent-area records feed depth generation; missing
-   * shader records produce build diagnostics.
+   * @adapted Creates a Tr2Mesh document node and shader-area references instead of
+   *   allocating a live mesh. Transparent-area records feed depth generation; missing
+   *   shader records produce build diagnostics.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -1710,9 +1719,9 @@ export class EveSOF extends IRoot
   /**
    * Populates all five Carbon hull-area categories in source order.
    *
-   * Adapted: Populates document area-reference arrays and collects transparent-area
-   * records for depth generation. Category order and accumulated mesh-index offsets
-   * follow Carbon; the method returns true instead of void.
+   * @adapted Populates document area-reference arrays and collects transparent-area
+   *   records for depth generation. Category order and accumulated mesh-index offsets
+   *   follow Carbon; the method returns true instead of void.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -1744,9 +1753,9 @@ export class EveSOF extends IRoot
   /**
    * Converts one Carbon HullAreas vector into Tr2MeshArea/effect graph nodes.
    *
-   * Adapted: Creates mesh-area and effect nodes and returns build records alongside
-   * the source count. Missing shaders produce diagnostics; already produced areas are
-   * retained while that source contributes zero count. Missing source vectors are empty.
+   * @adapted Creates mesh-area and effect nodes and returns build records alongside
+   *   the source count. Missing shaders produce diagnostics; already produced areas are
+   *   retained while that source contributes zero count. Missing source vectors are empty.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -1799,9 +1808,9 @@ export class EveSOF extends IRoot
   /**
    * Emits depth clones for transparent areas requesting Carbon depth generation.
    *
-   * Adapted: Creates depth-area and effect nodes from transparent-area records
-   * instead of copying live objects through Carbon’s class system. The depth effect
-   * retains the transparency-resource reference selected by the generic depth shader.
+   * @adapted Creates depth-area and effect nodes from transparent-area records
+   *   instead of copying live objects through Carbon’s class system. The depth effect
+   *   retains the transparency-resource reference selected by the generic depth shader.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -1834,8 +1843,8 @@ export class EveSOF extends IRoot
   /**
    * Emits enabled pattern projections as EveCustomMask graph nodes.
    *
-   * Adapted: Emits mask nodes and fields instead of constructing live masks and
-   * calling their Setup method.
+   * @adapted Emits mask nodes and fields instead of constructing live masks and
+   *   calling their Setup method.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -1868,8 +1877,8 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon decal sets and static index buffers for SOF hydration.
    *
-   * Adapted: Emits decal/effect nodes and staticIndexBuffers for hydration instead
-   * of constructing live decals and calling their initialization methods.
+   * @adapted Emits decal/effect nodes and staticIndexBuffers for hydration instead
+   *   of constructing live decals and calling their initialization methods.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -1989,9 +1998,9 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon's CPU-side armor, hull, flicker, and shield impact graph.
    *
-   * Adapted: Emits effect, emitter and overlay nodes instead of creating live
-   * Trinity objects or preparing GPU resources. Space-object initialization derives
-   * the damage-locator count after hydration.
+   * @adapted Emits effect, emitter and overlay nodes instead of creating live
+   *   Trinity objects or preparing GPU resources. Space-object initialization derives
+   *   the damage-locator count after hydration.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2074,8 +2083,8 @@ export class EveSOF extends IRoot
   /**
    * Selects Carbon's legacy or SOF6 effect-child path.
    *
-   * Adapted: Selects the legacy or SOF6 branch using document field owners in place
-   * of live object interfaces.
+   * @adapted Selects the legacy or SOF6 branch using document field owners in place
+   *   of live object interfaces.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2095,10 +2104,10 @@ export class EveSOF extends IRoot
   /**
    * Emits legacy path-resolved children and Carbon's authored animation graph.
    *
-   * Adapted: Imports child graphs through the synchronous resource adapter instead
-   * of blocking BeResMan loads. Without a resolver, emits deferred EveChildRef nodes;
-   * emitter-rate bindings into unloaded children are diagnosed rather than constructed.
-   * Curves and bindings are data for later initialization.
+   * @adapted Imports child graphs through the synchronous resource adapter instead
+   *   of blocking BeResMan loads. Without a resolver, emits deferred EveChildRef nodes;
+   *   emitter-rate bindings into unloaded children are diagnosed rather than constructed.
+   *   Curves and bindings are data for later initialization.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2201,9 +2210,9 @@ export class EveSOF extends IRoot
   /**
    * Emits SOF6 child sets after visibility and build-filter selection.
    *
-   * Adapted: Imports resolved child graphs or emits deferred references instead of
-   * loading live objects. Placement is stored in node fields; visibility/build filtering
-   * and wrong-type early termination follow Carbon.
+   * @adapted Imports resolved child graphs or emits deferred references instead of
+   *   loading live objects. Placement is stored in node fields; visibility/build filtering
+   *   and wrong-type early termination follow Carbon.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2372,9 +2381,9 @@ export class EveSOF extends IRoot
   /**
    * Emits local observers while retaining audio-backend construction intent.
    *
-   * Adapted: Emits TriObserverLocal and AudEmitter nodes with placement and attenuation
-   * values instead of constructing and initializing audio interfaces. Hydration and
-   * audio realization remain caller-owned.
+   * @adapted Emits TriObserverLocal and AudEmitter nodes with placement and attenuation
+   *   values instead of constructing and initializing audio interfaces. Hydration and
+   *   audio realization remain caller-owned.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2432,9 +2441,9 @@ export class EveSOF extends IRoot
   /**
    * Loads filtered controller graph resources through the CPU document seam.
    *
-   * Adapted: Uses the synchronous resolver for typed controller data. Without a
-   * resolver, emits Tr2ControllerReference. Unresolved or incompatible resolved roots
-   * are diagnosed and skipped.
+   * @adapted Uses the synchronous resolver for typed controller data. Without a
+   *   resolver, emits Tr2ControllerReference. Unresolved or incompatible resolved roots
+   *   are diagnosed and skipped.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2452,9 +2461,9 @@ export class EveSOF extends IRoot
   /**
    * Loads authored model curve resources after legacy animation bindings.
    *
-   * Adapted: Imports typed curve graphs through the resolver. Without a resolver,
-   * emits CjsExternalRef nodes carrying the required interface instead of loading typed
-   * resources immediately.
+   * @adapted Imports typed curve graphs through the resolver. Without a resolver,
+   *   emits CjsExternalRef nodes carrying the required interface instead of loading typed
+   *   resources immediately.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2478,9 +2487,9 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon's first-hull instanced attachment container and child meshes.
    *
-   * Adapted: Emits instance rows, bounds, shader descriptions and child nodes instead
-   * of allocating runtime instance buffers and preparing effects. Identity/general
-   * transform paths retain Carbon’s different auxiliary-matrix orientations.
+   * @adapted Emits instance rows, bounds, shader descriptions and child nodes instead
+   *   of allocating runtime instance buffers and preparing effects. Identity/general
+   *   transform paths retain Carbon’s different auxiliary-matrix orientations.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2562,9 +2571,9 @@ export class EveSOF extends IRoot
   /**
    * Creates the CPU-document half of Carbon's Tr2InstancedMesh pair.
    *
-   * Adapted: Stores the instance layout, rows and bounds in document nodes instead
-   * of copying records into Tr2RuntimeInstanceData and uploading them. Empty input
-   * returns null.
+   * @adapted Stores the instance layout, rows and bounds in document nodes instead
+   *   of copying records into Tr2RuntimeInstanceData and uploading them. Empty input
+   *   returns null.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2601,11 +2610,11 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon layout placement batches from the deterministic CPU plan.
    *
-   * Adapted: Emits placements from the deterministic layout plan instead of building
-   * objects while consuming Carbon’s global random generator. Shared meshes are reused
-   * within this document; resource and animation realization follow hydration. Ordinary
-   * builds omit Carbon’s incrementing per-placement tags; modular builds supply a fixed
-   * part tag through buildContext.
+   * @adapted Emits placements from the deterministic layout plan instead of building
+   *   objects while consuming Carbon’s global random generator. Shared meshes are reused
+   *   within this document; resource and animation realization follow hydration. Ordinary
+   *   builds omit Carbon’s incrementing per-placement tags; modular builds supply a fixed
+   *   part tag through buildContext.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2943,10 +2952,10 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon's ship-only booster graph and booster locator records.
    *
-   * Adapted: Emits booster effects, trails, locators and the booster and trail
-   * records Carbon's Add calls derive (EveBoosterSet2.cpp:770-814) instead of
-   * populating live sets and preparing resources. Multi-hull offsets accumulate;
-   * the last hull supplies alwaysOn, and any hull can enable trails.
+   * @adapted Emits booster effects, trails, locators and the booster and trail
+   *   records Carbon's Add calls derive (EveBoosterSet2.cpp:770-814) instead of
+   *   populating live sets and preparing resources. Multi-hull offsets accumulate;
+   *   the last hull supplies alwaysOn, and any hull can enable trails.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -3126,9 +3135,9 @@ export class EveSOF extends IRoot
    * offset. Quad-renderer registration and PrepareResources are engine
    * realizations; the booster set node carries everything else.
    *
-   * Adapted: Emits the child booster graph for later hydration and resource
-   * preparation. The first hull supplies the drive name, shader path, parameter and
-   * texture overrides for the whole set; all hulls contribute items with offsets.
+   * @adapted Emits the child booster graph for later hydration and resource
+   *   preparation. The first hull supplies the drive name, shader path, parameter and
+   *   texture overrides for the whole set; all hulls contribute items with offsets.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -3342,9 +3351,9 @@ export class EveSOF extends IRoot
   /**
    * Emits the currently maintained Carbon attachment stages in source order.
    *
-   * Adapted: Emits document nodes in Carbon stage order and uses the presence of
-   * externalParameters to select banner-capable roots. The native instanced-placement
-   * build flag is a boolean here. Sprite and sprite-line effects share within this call.
+   * @adapted Emits document nodes in Carbon stage order and uses the presence of
+   *   externalParameters to select banner-capable roots. The native instanced-placement
+   *   build flag is a boolean here. Sprite and sprite-line effects share within this call.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -3373,9 +3382,9 @@ export class EveSOF extends IRoot
   /**
    * Emits visible EveSpriteSet attachments and their SOF6 lights.
    *
-   * Adapted: Emits sprite, effect and light descriptors without native resource
-   * acquisition or set rebuilding. The supplied sharedEffect carries document-local
-   * effect identity, and light timestamps use the injected buildTime.
+   * @adapted Emits sprite, effect and light descriptors without native resource
+   *   acquisition or set rebuilding. The supplied sharedEffect carries document-local
+   *   effect identity, and light timestamps use the injected buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -3482,8 +3491,8 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon spotlight geometry, effects, and authored SOF6 light descriptors.
    *
-   * Adapted: Emits effect, texture, spotlight and light descriptors instead of
-   * constructing and rebuilding native attachments. Light timestamps use buildTime.
+   * @adapted Emits effect, texture, spotlight and light descriptors instead of
+   *   constructing and rebuilding native attachments. Light timestamps use buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -3632,9 +3641,9 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon plane-set effects, items, and authored SOF6 lights.
    *
-   * Adapted: Emits plane, effect, texture and light descriptors, preserving texture
-   * references for light-driven planes without native effect updates or set rebuilding.
-   * Light timestamps use the injected buildTime.
+   * @adapted Emits plane, effect, texture and light descriptors, preserving texture
+   *   references for light-driven planes without native effect updates or set rebuilding.
+   *   Light timestamps use the injected buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -3823,9 +3832,9 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon sprite-line geometry and authored SOF6 per-sprite lights.
    *
-   * Adapted: Emits sprite-line and per-sprite light descriptors, stores light-profile
-   * paths instead of acquiring resources, and uses the supplied document-local effect.
-   * Light timestamps use the injected buildTime.
+   * @adapted Emits sprite-line and per-sprite light descriptors, stores light-profile
+   *   paths instead of acquiring resources, and uses the supplied document-local effect.
+   *   Light timestamps use the injected buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -3953,9 +3962,9 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon haze geometry and authored SOF6 point-light descriptors.
    *
-   * Adapted: Emits haze and light descriptors without native resource acquisition
-   * or set rebuilding. Effects share by path within this call instead of being retained
-   * on the EveSOF instance. Light timestamps use the injected buildTime.
+   * @adapted Emits haze and light descriptors without native resource acquisition
+   *   or set rebuilding. Effects share by path within this call instead of being retained
+   *   on the EveSOF instance. Light timestamps use the injected buildTime.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -4101,10 +4110,10 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon's legacy per-item-visible banner groups.
    *
-   * Adapted: Emits banner, light, effect and external-parameter descriptors; native
-   * effect updates, set rebuilding and parameter initialization are deferred to the
-   * consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
-   * Carbon can retain an empty set and external parameter for visible authored items.
+   * @adapted Emits banner, light, effect and external-parameter descriptors; native
+   *   effect updates, set rebuilding and parameter initialization are deferred to the
+   *   consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
+   *   Carbon can retain an empty set and external parameter for visible authored items.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -4165,10 +4174,10 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon's SOF6 visibility-grouped banner sets.
    *
-   * Adapted: Emits banner, light, effect and external-parameter descriptors; native
-   * effect updates, set rebuilding and parameter initialization are deferred to the
-   * consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
-   * Carbon can retain an empty set and external parameter for visible authored items.
+   * @adapted Emits banner, light, effect and external-parameter descriptors; native
+   *   effect updates, set rebuilding and parameter initialization are deferred to the
+   *   consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
+   *   Carbon can retain an empty set and external parameter for visible authored items.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -4250,9 +4259,9 @@ export class EveSOF extends IRoot
   /**
    * Emits Carbon hull lights with faction visibility, color, and multi-hull transforms.
    *
-   * Adapted: Emits flattened light descriptors instead of constructing native lights
-   * and calling SetLightData. Timestamps use buildTime; unsupported light kinds and
-   * missing colors are skipped without native error logging.
+   * @adapted Emits flattened light descriptors instead of constructing native lights
+   *   and calling SetLightData. Timestamps use buildTime; unsupported light kinds and
+   *   missing colors are skipped without native error logging.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -4335,8 +4344,8 @@ export class EveSOF extends IRoot
   /**
    * Adds turret and last-hull audio locators with Carbon multi-hull offsets.
    *
-   * Adapted: Appends document references instead of constructing native EveLocator2
-   * objects; hull selection and translation offsets follow Carbon.
+   * @adapted Appends document references instead of constructing native EveLocator2
+   *   objects; hull selection and translation offsets follow Carbon.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -4376,11 +4385,10 @@ export class EveSOF extends IRoot
   /**
    * Builds an armor-damage effect node, or null when damage data is absent.
    *
-   * Adapted: Ports the file-local CreateArmorDamageEffect helper
-   * (EveSOF.cpp:2595-2618) as a document builder. Each call emits a fresh effect;
-   * the native race-and-animation cache is not reproduced, so shared identity
-   * also differs, not just allocation cost.
-   *
+   * @adapted Ports the file-local CreateArmorDamageEffect helper
+   *   (EveSOF.cpp:2595-2618) as a document builder. Each call emits a fresh effect;
+   *   the native race-and-animation cache is not reproduced, so shared identity
+   *   also differs, not just allocation cost.
    * @param {object} document Target document builder.
    * @param {EveSOFDNA} dna Resolved DNA.
    * @returns {object|null} Effect node reference or null.
@@ -4408,9 +4416,9 @@ export class EveSOF extends IRoot
    * hulls merge into one node; bone indices stay authored because they
    * address the CHILD's skeleton.
    *
-   * Adapted: Returns document references for merged locator sets instead of native
-   * EveLocatorSets instances. Hull-local positions, authored scale and bone indices
-   * remain available to the placement child.
+   * @adapted Returns document references for merged locator sets instead of native
+   *   EveLocatorSets instances. Hull-local positions, authored scale and bone indices
+   *   remain available to the placement child.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -4455,9 +4463,9 @@ export class EveSOF extends IRoot
   /**
    * Merges same-name locator sets across all hulls in Carbon map order.
    *
-   * Adapted: Emits and merges document locator nodes. Omitted, empty or non-array
-   * offsets use one identity placement; Carbon does not populate locators in its explicit
-   * empty-offset branch. Optional part tags are normalized to uint32 here.
+   * @adapted Emits and merges document locator nodes. Omitted, empty or non-array
+   *   offsets use one identity placement; Carbon does not populate locators in its explicit
+   *   empty-offset branch. Optional part tags are normalized to uint32 here.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -4614,8 +4622,8 @@ export class EveSOF extends IRoot
    * turret-area material selected by a faction catalog entry (Carbon
    * EveSOF.cpp:4260-4269).
    *
-   * Adapted: Delegates effect traversal and mutation through the supplied turret’s
-   * ApplySofTurretMaterial interface instead of walking Trinity objects inside SOF.
+   * @adapted Delegates effect traversal and mutation through the supplied turret’s
+   *   ApplySofTurretMaterial interface instead of walking Trinity objects inside SOF.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -4629,10 +4637,9 @@ export class EveSOF extends IRoot
   /**
    * Resolves faction turret parameters and forwards them to the turret.
    *
-   * Adapted: Delegates effect traversal and updates to the supplied turret's
-   * ApplySofTurretMaterial method, keeping SOF independent of Trinity classes
-   * (EveSOF.cpp:4201-4254).
-   *
+   * @adapted Delegates effect traversal and updates to the supplied turret's
+   *   ApplySofTurretMaterial method, keeping SOF independent of Trinity classes
+   *   (EveSOF.cpp:4201-4254).
    * @param {object} turret Turret exposing ApplySofTurretMaterial.
    * @param {object} genericData Generic turret material configuration.
    * @param {object} factionData Faction material and color configuration.
@@ -4650,7 +4657,11 @@ export class EveSOF extends IRoot
     this._ApplyFactionToTurretShader(turret, genericData, factionData);
   }
 
-  /** Applies already-resolved native faction material parameters synchronously. */
+  /**
+   * Applies already-resolved native faction material parameters synchronously.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   _ApplyFactionToTurretShader(turret, genericData, factionData)
@@ -4667,8 +4678,8 @@ export class EveSOF extends IRoot
    * Applies a faction's turret-area material to every opaque area of a child
    * turret's mesh (Carbon EveSOF.cpp:4271-4298).
    *
-   * Adapted: Delegates opaque mesh-area traversal and mutation through the child
-   * turret’s ApplySofTurretMaterial interface instead of walking Trinity objects in SOF.
+   * @adapted Delegates opaque mesh-area traversal and mutation through the child
+   *   turret’s ApplySofTurretMaterial interface instead of walking Trinity objects in SOF.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -4683,8 +4694,8 @@ export class EveSOF extends IRoot
    * Parses the parent DNA and applies its faction turret values to matching
    * shader constants or vector parameters.
    *
-   * Adapted: Delegates effect traversal and mutation through the turret’s
-   * ApplySofTurretMaterial interface. Invalid DNA returns without Carbon’s error log.
+   * @adapted Delegates effect traversal and mutation through the turret’s
+   *   ApplySofTurretMaterial interface. Invalid DNA returns without Carbon’s error log.
    */
   @be.mapMethodAndWrap()
   @meta.adapted

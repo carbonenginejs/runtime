@@ -60,7 +60,12 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     TriDevice.RegisterResource(this);
   }
 
-  /** Immediate object picking becomes awaitable on browser backends. */
+  /**
+   * Immediate object picking becomes awaitable on browser backends.
+   *
+   * @adapted
+   * @renamed PickObjectOnly
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   @meta.renamed("PickObjectOnly")
@@ -71,7 +76,11 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     return result.object;
   }
 
-  /** Native object/point tuple, with an awaitable readback. */
+  /**
+   * Native object/point tuple, with an awaitable readback.
+   *
+   * @adapted
+   */
   @be.mapMethod()
   @meta.adapted
   async PickPointAndObject(x, y, projection, view, viewport)
@@ -81,7 +90,11 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     return result.object ? [result.object, result.position] : null;
   }
 
-  /** Native back-to-front primitive draw, inside the caller's render context. */
+  /**
+   * Native back-to-front primitive draw, inside the caller's render context.
+   *
+   * @adapted
+   */
   @meta.adapted
   Render(context)
   {
@@ -112,40 +125,64 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     }
   }
 
-  /** Native empty scene update; manipulators update when rendered or picked. */
+  /**
+   * Native empty scene update; manipulators update when rendered or picked.
+   *
+   * @implemented
+   */
   @meta.implemented
   Update(_realTime, _simTime)
   {
   }
 
-  /** Native empty debug-render entry point. */
+  /**
+   * Native empty debug-render entry point.
+   *
+   * @implemented
+   */
   @meta.implemented
   RenderDebugInfo(_context)
   {
   }
 
-  /** Native empty prepare hook; constants are created when first filled. */
+  /**
+   * Native empty prepare hook; constants are created when first filled.
+   *
+   * @implemented
+   */
   @meta.implemented
   OnPrepareResources()
   {
     return true;
   }
 
-  /** Explicitly drives the native resource hook while its C++ base has no JS port. */
+  /**
+   * Explicitly drives the native resource hook while its C++ base has no JS port.
+   *
+   * @adapted
+   */
   @meta.adapted
   PrepareResources()
   {
     return this.OnPrepareResources();
   }
 
-  /** Native device-resource diagnostic description. */
+  /**
+   * Native device-resource diagnostic description.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetDescription()
   {
     return "Tr2PrimitiveScene";
   }
 
-  /** Native constant-buffer release. */
+  /**
+   * Native constant-buffer release.
+   *
+   * @adapted
+   */
   @meta.adapted
   ReleaseResources()
   {
@@ -159,6 +196,8 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   @meta.adapted
   Destruct()
@@ -176,6 +215,8 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    * orthographic projection is rebuilt as a one-pixel square off-centre
    * box, keeping its width-based extent; any other is scaled as the base
    * does.
+   *
+   * @implemented
    */
   @meta.implemented
   SetupTransformsForPicking(fx, fy, projection, view, viewport)
@@ -205,7 +246,11 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     }
   }
 
-  /** Native zero-initialized per-frame struct, with the three transposed matrices. */
+  /**
+   * Native zero-initialized per-frame struct, with the three transposed matrices.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetupPerFrameData(context)
   {
@@ -229,14 +274,22 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     }
   }
 
-  /** Native per-frame hook. */
+  /**
+   * Native per-frame hook.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetPerFrameDataForPicking(context)
   {
     this.SetupPerFrameData(context);
   }
 
-  /** Native primitive and current manipulator visibility gather. */
+  /**
+   * Native primitive and current manipulator visibility gather.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetPickingObjectsToRender(_direction, context = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -254,32 +307,52 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     return objects;
   }
 
-  /** Native scene-owned accumulator. */
+  /**
+   * Native scene-owned accumulator.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetOpaquePickingBatchAccumulator()
   {
     return this._opaqueBatches;
   }
-  /** Native scene-owned accumulator. */
+  /**
+   * Native scene-owned accumulator.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetPickingBatchAccumulator()
   {
     return this._pickingBatches;
   }
-  /** Native primitive picking areas always participate. */
+  /**
+   * Native primitive picking areas always participate.
+   *
+   * @implemented
+   */
   @meta.implemented
   RenderPickingAreasForComponents(_pass)
   {
     return true;
   }
-  /** Native scene-owned float picking target. */
+  /**
+   * Native scene-owned float picking target.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetPickBuffer()
   {
     return this._pickBuffer;
   }
 
-  /** Returns native pass masks instead of an output array and count. */
+  /**
+   * Returns native pass masks instead of an output array and count.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetRequiredPasses(requested)
   {
@@ -294,7 +367,11 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     return passes;
   }
 
-  /** Native float decoding; the donor does not write areaId for primitives. */
+  /**
+   * Native float decoding; the donor does not write areaId for primitives.
+   *
+   * @adapted
+   */
   @meta.adapted
   DecodeBufferPixel(data, pass, results)
   {
@@ -306,7 +383,11 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     results.depth = r;
   }
 
-  /** Native primitive pass draws dedicated picking geometry only. */
+  /**
+   * Native primitive pass draws dedicated picking geometry only.
+   *
+   * @adapted
+   */
   @meta.adapted
   RenderPicking(_opaque, picking, pass, context)
   {

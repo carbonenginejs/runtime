@@ -15,7 +15,11 @@ import { EveChildTransform } from "./EveChildTransform.js";
 export class ITr2FroxelFogSettings extends EveChildTransform
 {
 
-  /** Returns the provider's stable FroxelFogSettings value record. */
+  /**
+   * Returns the provider's stable FroxelFogSettings value record.
+   *
+   * @abstract
+   */
   @be.abstract
   GetFroxelFogSettings() {}
 

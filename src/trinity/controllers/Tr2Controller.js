@@ -95,6 +95,8 @@ export class Tr2Controller extends EveThrottleable
   /**
    * Number of callbacks currently registered (native read-only size_t property).
    * JavaScript array length remains a Number, declared uint64.
+   *
+   * @implemented
    * @returns {number} Live callback count.
    */
   @be.mapPropertyReadOnly()
@@ -107,6 +109,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Returns the current callback-vector size (Tr2Controller.h:63-66).
+   *
+   * @implemented
    * @returns {number} Number of registered callbacks.
    */
   @meta.implemented
@@ -118,7 +122,8 @@ export class Tr2Controller extends EveThrottleable
   /**
    * Handles notifications from the three owned lists (cpp:36-109).
    * Only insertion/removal has an effect; unload, load, move and swap are ignored.
-   * Adapted: exact mapped constructor identities represent native BlueCastPtr.
+   *
+   * @adapted exact mapped constructor identities represent native BlueCastPtr.
    * @param {number} event List event flags.
    * @param {number} [_key=0] Unused first key.
    * @param {number} [_key2=0] Unused second key.
@@ -146,8 +151,9 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Unlinks, rebuilds the variable buffer, then links children to this controller.
-   * Adapted: Float32Array/index pairs and a mutable BigInt word replace native
-   * float pointers and a uint64_t pointer; variable-view records include JS indices.
+   *
+   * @adapted Float32Array/index pairs and a mutable BigInt word replace native
+   *   float pointers and a uint64_t pointer; variable-view records include JS indices.
    * @param {object} owner Object controlled by this instance.
    * @returns {void}
    */
@@ -189,6 +195,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Stops unless deleting, disconnects children and variable destinations, then drops the owner.
+   *
+   * @implemented
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
@@ -223,6 +231,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Relinks the current owner when linked.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -238,6 +248,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Reports whether an owner is retained.
+   *
+   * @implemented
    * @returns {boolean} Whether Link has run without a following Unlink.
    */
 
@@ -249,6 +261,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Stops any previous run, marks all variables dirty, then starts every state machine.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -269,6 +283,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Stops each state machine in list order when playing.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -289,8 +305,9 @@ export class Tr2Controller extends EveThrottleable
   /**
    * Updates state machines, then queues updateables in native order (cpp:230-270).
    * Queued Update receives Blue actual and frame ticks, as Carbon's does.
-   * Adapted: the dirty mask is a BigInt holder, and the CCP_STATS counters and
-   * timers are omitted.
+   *
+   * @adapted the dirty mask is a BigInt holder, and the CCP_STATS counters and
+   *   timers are omitted.
    * @param {number} [normalizedUpdateFrequency=0.5] Normalized throttle detail.
    * @returns {void}
    */
@@ -328,6 +345,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Sets the first matching float variable, ignoring absent names.
+   *
+   * @implemented
    * @param {string} name Variable name.
    * @param {number} value New value.
    * @returns {void}
@@ -341,6 +360,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Executes every matching handler in list order while playing.
+   *
+   * @implemented
    * @param {string} eventName Authored event name.
    * @returns {void}
    */
@@ -363,6 +384,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Returns the current linked owner.
+   *
+   * @implemented
    * @returns {object|null} Owner, or null when unlinked.
    */
   @be.mapMethodAndWrap()
@@ -374,6 +397,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Finds the first variable with the exact authored name.
+   *
+   * @implemented
    * @param {string} name Variable name.
    * @returns {Tr2ControllerFloatVariable|null} Matching variable or null.
    */
@@ -386,7 +411,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Reads the first matching variable.
-   * Adapted: undefined represents native std::optional<float> absence.
+   *
+   * @adapted undefined represents native std::optional<float> absence.
    * @param {string} name Variable name.
    * @returns {number|undefined} Value, or undefined when absent.
    */
@@ -434,7 +460,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Appends one expression term per variable in list order.
-   * Adapted: plain JS term records replace Tr2ExpressionTermInfo objects.
+   *
+   * @adapted plain JS term records replace Tr2ExpressionTermInfo objects.
    * @param {Array<object>} out Caller-owned term collection.
    * @returns {void}
    */
@@ -455,6 +482,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Returns the owned variable list as borrowed storage.
+   *
+   * @implemented
    * @returns {BlueList} Configured variable list.
    */
 
@@ -466,7 +495,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Returns the parser-facing layout of the current variable buffer.
-   * Adapted: JS records expose both element index and byte offset.
+   *
+   * @adapted JS records expose both element index and byte offset.
    * @returns {Array<object>} Borrowed variable layout records.
    */
 
@@ -478,7 +508,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Returns the packed variable buffer.
-   * Adapted: Float32Array replaces the native untyped buffer pointer.
+   *
+   * @adapted Float32Array replaces the native untyped buffer pointer.
    * @returns {Float32Array} Borrowed variable storage.
    */
 
@@ -490,7 +521,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Grows the temporary expression arena when needed.
-   * Adapted: ArrayBuffer replaces native CcpMallocBuffer scratch storage.
+   *
+   * @adapted ArrayBuffer replaces native CcpMallocBuffer scratch storage.
    * @param {number} size Required byte capacity.
    * @returns {void}
    */
@@ -506,7 +538,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Returns the current temporary expression arena.
-   * Adapted: ArrayBuffer replaces the native untyped arena pointer.
+   *
+   * @adapted ArrayBuffer replaces the native untyped arena pointer.
    * @returns {ArrayBuffer} Borrowed scratch storage.
    */
 
@@ -518,7 +551,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Lazily collects the owner and variables as named binding roots.
-   * Adapted: JS references and two-item arrays replace native IRoot pointers/pairs.
+   *
+   * @adapted JS references and two-item arrays replace native IRoot pointers/pairs.
    * @returns {Array<Array>} Borrowed name/object pairs.
    */
 
@@ -541,6 +575,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Adds an updateable to the controller set.
+   *
+   * @implemented
    * @param {ITr2Updateable} updateable Object updated after state machines.
    * @returns {void}
    */
@@ -553,6 +589,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Removes an updateable from the controller set.
+   *
+   * @implemented
    * @param {ITr2Updateable} updateable Previously registered object.
    * @returns {void}
    */
@@ -565,8 +603,9 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Runs matching callbacks while playing, continuing after reported exceptions.
-   * Adapted: JS functions and CcpLog replace BlueScriptCallback; the retained JS
-   * return reports whether a match ran, whereas Carbon returns void.
+   *
+   * @adapted JS functions and CcpLog replace BlueScriptCallback; the retained JS
+   *   return reports whether a match ran, whereas Carbon returns void.
    * @param {string} callbackName Callback name.
    * @returns {boolean} Whether a matching callback was invoked.
    */
@@ -600,8 +639,9 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Appends a named callback, including an empty name.
-   * Adapted: stores a JS function instead of BlueScriptCallback and preserves the
-   * existing true return; Carbon returns void.
+   *
+   * @adapted stores a JS function instead of BlueScriptCallback and preserves the
+   *   existing true return; Carbon returns void.
    * @param {string} callbackName Callback name.
    * @param {Function} callback Function called without arguments.
    * @returns {boolean} Always true after registration.
@@ -619,6 +659,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Clears every registered callback.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()

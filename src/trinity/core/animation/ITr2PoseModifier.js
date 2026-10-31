@@ -16,6 +16,8 @@ export class ITr2PoseModifier
 
   /**
    * Adjusts the sampled pose in place.
+   *
+   * @abstract
    * @param {Object} _skeleton - the mesh skeleton (cmf.Skeleton shape)
    * @param {Object} _pose - the sampled pose to modify in place
    */

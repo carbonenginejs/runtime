@@ -28,6 +28,8 @@ export class EveVirtualCameraBehaviourVector3MoveUp extends EveVirtualCameraBeha
   /**
    * Returns the camera's up direction scaled by the current distance; the up
    * axis already includes the camera roll.
+   *
+   * @adapted
    */
 
   @meta.adapted

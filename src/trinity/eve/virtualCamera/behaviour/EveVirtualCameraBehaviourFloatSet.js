@@ -33,6 +33,8 @@ export class EveVirtualCameraBehaviourFloatSet extends EveVirtualCameraBehaviour
   /**
    * Returns the delta that replaces the incoming value with the authored one,
    * since the camera accumulates behaviour results additively.
+   *
+   * @implemented
    */
 
   @meta.implemented

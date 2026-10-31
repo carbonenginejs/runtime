@@ -37,8 +37,12 @@ export class EveProceduralMethodRandomParameter extends IRoot
   @type.int32
   weighting = 1;
 
-  /** Carbon EveProceduralMethodRandomParameter::Initialize (cpp:26-33):
-   * lazily create the child ref. */
+  /**
+   * Carbon EveProceduralMethodRandomParameter::Initialize (cpp:26-33):
+   * lazily create the child ref.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -55,6 +59,8 @@ export class EveProceduralMethodRandomParameter extends IRoot
    * weighting change clamps to >= 1 and flags the parameter modified; a child
    * assignment blocks its auto-load. The value argument follows the repo's
    * OnModified duck.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -77,7 +83,11 @@ export class EveProceduralMethodRandomParameter extends IRoot
     return true;
   }
 
-  /** Carbon method GetName (cpp:16-19). */
+  /**
+   * Carbon method GetName (cpp:16-19).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -85,7 +95,11 @@ export class EveProceduralMethodRandomParameter extends IRoot
     return this.name;
   }
 
-  /** Carbon method SetName (cpp:21-24). */
+  /**
+   * Carbon method SetName (cpp:21-24).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetName(name)
@@ -93,7 +107,11 @@ export class EveProceduralMethodRandomParameter extends IRoot
     this.name = String(name ?? "");
   }
 
-  /** Carbon method SetModified (cpp:54-57). */
+  /**
+   * Carbon method SetModified (cpp:54-57).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetModified(isModified)
@@ -101,7 +119,11 @@ export class EveProceduralMethodRandomParameter extends IRoot
     this._modified = !!isModified;
   }
 
-  /** Carbon method IsModified (cpp:59-62). */
+  /**
+   * Carbon method IsModified (cpp:59-62).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsModified()
@@ -109,7 +131,11 @@ export class EveProceduralMethodRandomParameter extends IRoot
     return this._modified;
   }
 
-  /** Carbon method GetWeighting (cpp:64-67). */
+  /**
+   * Carbon method GetWeighting (cpp:64-67).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWeighting()
@@ -117,7 +143,11 @@ export class EveProceduralMethodRandomParameter extends IRoot
     return this.weighting;
   }
 
-  /** Carbon method GetChild (cpp:69-72). */
+  /**
+   * Carbon method GetChild (cpp:69-72).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetChild()
@@ -125,8 +155,12 @@ export class EveProceduralMethodRandomParameter extends IRoot
     return this.child;
   }
 
-  /** Carbon EveProceduralMethodRandomParameter::Load (cpp:74-80): one-line
-   * bypass-blocker reload delegate. */
+  /**
+   * Carbon EveProceduralMethodRandomParameter::Load (cpp:74-80): one-line
+   * bypass-blocker reload delegate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Load()

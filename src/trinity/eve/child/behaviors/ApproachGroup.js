@@ -68,7 +68,11 @@ export class ApproachGroup extends IRoot
 
   _returnForces = [];
 
-  /** Carbon ApproachGroup::GetProcessPriority (cpp:22-25). */
+  /**
+   * Carbon ApproachGroup::GetProcessPriority (cpp:22-25).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -81,9 +85,8 @@ export class ApproachGroup extends IRoot
    * frames and replays the cached pull forces in between (Carbon
    * CalculateBehavior, cpp:27-106).
    *
-   * Adapted: Debug force pairs are only collected when group.collectForces is set, keeping
-   * the per-agent loop allocation-free.
-   *
+   * @adapted Debug force pairs are only collected when group.collectForces is set, keeping
+   *   the per-agent loop allocation-free.
    * @param {Array} agents - DroneAgent records
    * @param {Array|null} _scratchData - unused (no scratch)
    * @param {Number} _deltaTime
@@ -185,7 +188,11 @@ export class ApproachGroup extends IRoot
     return returnForces;
   }
 
-  /** Carbon ApproachGroup::GetBehaviorSearchRadius (cpp:108-120). */
+  /**
+   * Carbon ApproachGroup::GetBehaviorSearchRadius (cpp:108-120).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBehaviorSearchRadius()
@@ -201,6 +208,8 @@ export class ApproachGroup extends IRoot
 
   /**
    * Carbon ApproachGroup::GetDebugOptions (cpp:122-125).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -214,6 +223,8 @@ export class ApproachGroup extends IRoot
    * Carbon ApproachGroup::RenderDebugInfo (cpp:127-140): a vision-range
    * sphere around every agent, tinted from white toward blue (ARGB 0xff1111ff) as the range
    * approaches 1500.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Array} agents DroneAgent records.
    * @param {mat4} parentWorldLocation Places the agents in world space.

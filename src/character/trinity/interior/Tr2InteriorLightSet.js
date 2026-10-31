@@ -10,7 +10,11 @@ export class Tr2InteriorLightSet
 
   _lightInstances = [];
 
-  /** Adds one native light identity to the transient active-light set. */
+  /**
+   * Adds one native light identity to the transient active-light set.
+   *
+   * @implemented
+   */
   @meta.implemented
   AddLight(lightSource, _viewPosition)
   {
@@ -21,14 +25,22 @@ export class Tr2InteriorLightSet
     });
   }
 
-  /** Clears every transient light instance. */
+  /**
+   * Clears every transient light instance.
+   *
+   * @implemented
+   */
   @meta.implemented
   Clear()
   {
     this._lightInstances.length = 0;
   }
 
-  /** Returns the source-backed active-light count. */
+  /**
+   * Returns the source-backed active-light count.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetNumOfActiveLights()
   {
@@ -37,10 +49,11 @@ export class Tr2InteriorLightSet
 
   /**
    * Carbon PopulateLightData (Interior/Tr2InteriorLightSet.cpp:61-88).
-   * Adapted: writes directly into the leased RawData PS buffer instead of a
-   * stack struct copied afterwards. Cached records retain native field order.
-   * Native lightCount is the full list size even when only ten records fit.
-   * The first four viewProjection matrices are already packed: copy raw.
+   *
+   * @adapted writes directly into the leased RawData PS buffer instead of a
+   *   stack struct copied afterwards. Cached records retain native field order.
+   *   Native lightCount is the full list size even when only ten records fit.
+   *   The first four viewProjection matrices are already packed: copy raw.
    */
   @blue.method
   @meta.adapted

@@ -116,7 +116,11 @@ export class EveStarfield
     TriDevice.UnregisterResource(this);
   }
 
-  /** Initializes device storage when creation is allowed (cpp:98-102). */
+  /**
+   * Initializes device storage when creation is allowed (cpp:98-102).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -125,14 +129,22 @@ export class EveStarfield
     return true;
   }
 
-  /** Inherited Tr2DeviceResource.cpp:21-32 creation guard. */
+  /**
+   * Inherited Tr2DeviceResource.cpp:21-32 creation guard.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
-  /** Explicit AL destruction replaces native assignment to an empty buffer. */
+  /**
+   * Explicit AL destruction replaces native assignment to an empty buffer.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources()
@@ -145,6 +157,8 @@ export class EveStarfield
    * Generates the native packed sprite stream and uploads it (cpp:110-174).
    * The AL description replaces the C++ stride/count overload. The local
    * TriRand sequence preserves seeded stars without reseeding unrelated JS code.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -172,7 +186,11 @@ export class EveStarfield
     return true;
   }
 
-  /** All notified changes request a regenerated seeded stream (cpp:176-181). */
+  /**
+   * All notified changes request a regenerated seeded stream (cpp:176-181).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_name)
@@ -181,7 +199,11 @@ export class EveStarfield
     return true;
   }
 
-  /** Regenerates dirty storage, retaining the retry flag after failure (cpp:183-193). */
+  /**
+   * Regenerates dirty storage, retaining the retry flag after failure (cpp:183-193).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(_time)
@@ -191,7 +213,11 @@ export class EveStarfield
     if (this.PrepareResources()) this._dirty = false;
   }
 
-  /** Returns the assigned star material (header:78-81). */
+  /**
+   * Returns the assigned star material (header:78-81).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetEffect()
@@ -199,7 +225,11 @@ export class EveStarfield
     return this.effect;
   }
 
-  /** Assigns the material without regenerating vertices (header:83-86). */
+  /**
+   * Assigns the material without regenerating vertices (header:83-86).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetEffect(effect)
@@ -207,7 +237,11 @@ export class EveStarfield
     this.effect = effect;
   }
 
-  /** Submits the sprite quads through the existing shared index allocation (cpp:62-95). */
+  /**
+   * Submits the sprite quads through the existing shared index allocation (cpp:62-95).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetBatches(accumulator, perObjectData)

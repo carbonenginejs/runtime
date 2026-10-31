@@ -57,6 +57,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
   /**
    * Carbon Tr2Sprite2dLineTrace.cpp:779-789 tests the unmasked event.
+   *
+   * @implemented
    * @param {number} event BLUELISTEVENT value.
    * @param {number} _key Changed key.
    * @param {number} _key2 Second key.
@@ -162,9 +164,9 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * Carbon bug (CE-154), Tr2Sprite2dLineTrace.cpp:100-187: a looping trace whose total length is 0 gives a NaN relative
    * length, never reaches its end, and never leaves the loop. Reproduced (it hangs, as Carbon does).
    *
-   * Adapted: JS arrays replace the native vectors; `m_renderVertices.reserve( GetEstimatedVertexCount() )`
-   * (cpp:71) has no JS counterpart and is dropped. `RenderTriangleVerts` receives array slices in place of the
-   * `&m_renderVertices[offset]` / `&m_renderIndices[offset]` pointers.
+   * @adapted JS arrays replace the native vectors; `m_renderVertices.reserve( GetEstimatedVertexCount() )`
+   *   (cpp:71) has no JS counterpart and is dropped. `RenderTriangleVerts` receives array slices in place of the
+   *   `&m_renderVertices[offset]` / `&m_renderIndices[offset]` pointers.
    * @param {Tr2Sprite2dScene} renderer Gathering scene.
    * @returns {void}
    */
@@ -304,6 +306,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * Carbon quirk (CE-155), Tr2Sprite2dLineTrace.cpp:219-240: unlike Tr2Sprite2dPolygon::PickPoint it neither pushes
    * `m_translation` nor tests the second winding, so a translated trace is picked at its untranslated position
    * and only triangles of the scene's expected winding hit. Reproduced.
+   *
+   * @implemented
    * @param {number} x Screen x.
    * @param {number} y Screen y.
    * @param {Tr2Sprite2dScene} renderer Picking scene.
@@ -345,6 +349,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
   /**
    * Carbon Tr2Sprite2dLineTrace::CalcLength (Tr2Sprite2dLineTrace.cpp:247-274): polyline length, closed when looping.
+   *
+   * @implemented
    * @returns {number} Total length.
    */
   @meta.implemented
@@ -374,6 +380,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
   /**
    * Carbon Tr2Sprite2dLineTrace::GetEstimatedVertexCount (Tr2Sprite2dLineTrace.cpp:276-286): the reserve hint,
    * `size * 4 + 2 + size * (unsigned)m_lineWidth`.
+   *
+   * @implemented
    * @returns {number} Estimated vertex count.
    */
   @meta.implemented
@@ -396,7 +404,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * AddRoundJoint and AddMiterJoint).
    * Carbon quirk (CE-158), cpp:428-431: a draw-call split copies the last two render vertices into the new draw
    * call; for round and no-corner traces nothing indexes them. Reproduced.
-   * Adapted: copying a prepared vertex by value (cpp:428-431) uses copyD3DVertex, JS having no struct copy.
+   *
+   * @adapted copying a prepared vertex by value (cpp:428-431) uses copyD3DVertex, JS having no struct copy.
    * @param {Tr2Sprite2dScene} renderer Gathering scene.
    * @param {Float32Array|number[]} from Segment start.
    * @param {Float32Array|number[]} fromColor Start colour.
@@ -570,7 +579,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * truncates once a trace holds more than 65535 render vertices; Carbon then writes past the end, which JS cannot
    * reproduce (the slice simply comes up short). The fan vertices come from CCP_MALLOC (cpp:578-580, CE-156) and the unused
    * texture coordinate (texCoord[0] when anti-aliased, texCoord[1] otherwise) is never written.
-   * Adapted: JS uses the vertex default (0, 0) for those never-written coordinates.
+   *
+   * @adapted JS uses the vertex default (0, 0) for those never-written coordinates.
    * @param {Tr2Sprite2dScene} renderer Gathering scene.
    * @param {number} capAngleTo Joint angle.
    * @param {Tr2Sprite2dVertexBase} v2 Segment bottom-right vertex.
@@ -665,7 +675,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    *
    * Carbon bugs reproduced as in AddRoundJoint: uint16 `vertexCount` in the resize (cpp:679, 732; CE-157) and the
    * never-written texture coordinate of the CCP_MALLOC vertex (cpp:673-707; CE-156).
-   * Adapted: JS uses the vertex default (0, 0) for the never-written coordinate.
+   *
+   * @adapted JS uses the vertex default (0, 0) for the never-written coordinate.
    * @param {Tr2Sprite2dScene} renderer Gathering scene.
    * @param {number} capAngleTo Joint angle.
    * @param {Tr2Sprite2dVertexBase} v2 Segment bottom-right vertex.
@@ -742,6 +753,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
   /**
    * Carbon Tr2Sprite2dLineTrace::GetMiterPoint (Tr2Sprite2dLineTrace.cpp:742-753): the outer intersection of the
    * two offset stroke edges.
+   *
+   * @implemented
    * @param {number} halfWidth Half stroke width.
    * @param {number[]} basePoint Inner corner.
    * @param {number} startAngle Incoming normal angle.
@@ -762,6 +775,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
   /**
    * Carbon Tr2Sprite2dLineTrace::ClampAngle (Tr2Sprite2dLineTrace.cpp:755-766): one wrap into [-pi, pi].
+   *
+   * @implemented
    * @param {number} angle Angle in radians.
    * @returns {number} Wrapped angle.
    */
@@ -775,6 +790,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
   /**
    * Carbon Tr2Sprite2dLineTrace::ClearVertices (Tr2Sprite2dLineTrace.cpp:768-777).
+   *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -798,9 +815,9 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * {@link Tr2Sprite2dLineTrace.transformPosition}, x and y are affine and the third column (z) is discarded by
    * the Vector2 store (CE-150).
    *
-   * Adapted: Python tuples/sequences are JS arrays (typed arrays and strings count as sequences), `None` is
-   * `null`, and an omitted optional argument is `undefined`. Carbon's "OOO|O" makes `positionTransform` and
-   * `colors` required.
+   * @adapted Python tuples/sequences are JS arrays (typed arrays and strings count as sequences), `None` is
+   *   `null`, and an omitted optional argument is `undefined`. Carbon's "OOO|O" makes `positionTransform` and
+   *   `colors` required.
    * @param {number[]|Array<number[]>} positions 2-item position or sequence of them.
    * @param {Array<number[]>|null} positionTransform Three 3-item rows, or null for identity.
    * @param {number[]|Array<number[]>} colors 4-item colour or sequence of them.
@@ -872,9 +889,9 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * Carbon quirk (CE-160), Tr2Sprite2dLineTrace_Blue.cpp:299: a non-string item in a `names` sequence raises the
    * texCoords0 error message. Both reproduced.
    *
-   * Adapted: Python tuples/sequences are JS arrays and `None` is `null`; an omitted optional argument is
-   * `undefined` and is treated as `None`, as Carbon does (cpp:181-192, 199). Carbon's "O|OOO" makes `positions`
-   * required (it may be `null`).
+   * @adapted Python tuples/sequences are JS arrays and `None` is `null`; an omitted optional argument is
+   *   `undefined` and is treated as `None`, as Carbon does (cpp:181-192, 199). Carbon's "O|OOO" makes `positions`
+   *   required (it may be `null`).
    * @param {number[]|Array<number[]>|null} positions 2-item vec2_0, sequence of them, or null.
    * @param {Array<number[]>|null} [positionTransform] Three 3-item rows, or null for identity.
    * @param {number[]|Array<number[]>|null} [colors] 4-item colour, sequence of them, or null.
@@ -958,7 +975,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
   /**
    * Port of the anonymous-namespace `ToFloatTuple` (Tr2Sprite2dLineTrace_Blue.cpp:15-44).
-   * Adapted: a Python tuple is a JS array or typed array; Python float/int items are JS numbers.
+   *
+   * @adapted a Python tuple is a JS array or typed array; Python float/int items are JS numbers.
    * @param {*} value Candidate tuple.
    * @param {number} length Required item count.
    * @param {Float32Array|number[]} destination Receives the items.
@@ -992,7 +1010,9 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
   /**
    * Builds Carbon's `Matrix transform` from `positionTransform` (Tr2Sprite2dLineTrace_Blue.cpp:66-78, 198-210):
    * an identity Matrix whose `_11.._13`, `_21.._23` and `_41.._43` receive the three tuples (gl indices 0, 4, 12).
-   * Adapted: Python tuples are JS arrays and `None` is `null`.
+   *
+   * @cjs
+   * @adapted Python tuples are JS arrays and `None` is `null`.
    * @param {Float32Array} transform Receives the 4x4 transform.
    * @param {Array<number[]>|null} value Three 3-item rows, or null.
    * @returns {Float32Array} `transform`.
@@ -1021,6 +1041,9 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    *   x' = x*a00 + y*a10 + a20, y' = x*a01 + y*a11 + a21 (z' = x*a02 + y*a12 + a22).
    * `Vector2( XMVECTOR )` keeps x and y only, so the third input column has no effect here.
    * gl-matrix `vec2.transformMat4` computes exactly x' and y' on the shared layout.
+   *
+   * @cjs
+   * @implemented
    * @param {Float32Array} out Receives x and y.
    * @param {Float32Array|number[]} position Input x and y.
    * @param {Float32Array} transform Matrix from readPositionTransform.
@@ -1035,6 +1058,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
   /**
    * Carbon `Length( const Vector2& )` (math/include/Vector2_inline.h:157-160).
+   *
+   * @implemented
    * @param {number[]} v Vector.
    * @returns {number} Euclidean length.
    */
@@ -1046,6 +1071,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
   /**
    * Carbon `Normalize( const Vector2& )` (math/include/Vector2_inline.h:163-171): a zero vector stays zero.
+   *
+   * @implemented
    * @param {number[]} v Vector.
    * @returns {number[]} New normalised vector.
    */

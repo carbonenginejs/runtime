@@ -46,7 +46,11 @@ export class WodPlaceableRes
   _maxBounds = vec3.create();
   _isReady = false;
 
-  /** Returns the squared near fade distance. */
+  /**
+   * Returns the squared near fade distance.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetNearFadeDistance()
@@ -54,7 +58,11 @@ export class WodPlaceableRes
     return this.nearFadeDistance;
   }
 
-  /** Returns the squared far fade distance. */
+  /**
+   * Returns the squared far fade distance.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFarFadeDistance()
@@ -62,7 +70,11 @@ export class WodPlaceableRes
     return this.farFadeDistance;
   }
 
-  /** Returns the visual model. */
+  /**
+   * Returns the visual model.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetVisualModel()
@@ -70,7 +82,11 @@ export class WodPlaceableRes
     return this.visualModel;
   }
 
-  /** Returns the live curve set collection. */
+  /**
+   * Returns the live curve set collection.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCurveSets()
@@ -78,7 +94,11 @@ export class WodPlaceableRes
     return this.curveSets;
   }
 
-  /** Returns the native shadow-caster flag. */
+  /**
+   * Returns the native shadow-caster flag.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsShadowCaster()
@@ -86,8 +106,11 @@ export class WodPlaceableRes
     return this.isShadowCaster;
   }
 
-  /** Delegates batch construction to the assigned model.
+  /**
+   * Delegates batch construction to the assigned model.
    * Carbon declaration: WodPlaceableRes::GetBatches (trinity/trinity/Wod/WodPlaceableRes.h:35).
+   *
+   * @implemented
    */
   @meta.implemented
   GetBatches(batches, batchType, matrix, data)
@@ -95,7 +118,11 @@ export class WodPlaceableRes
     if (this.visualModel) this.visualModel.GetBatches(batches, batchType, matrix, data);
   }
 
-  /** Reports transparent areas, including hidden meshes as Carbon does. */
+  /**
+   * Reports transparent areas, including hidden meshes as Carbon does.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparency()
@@ -107,6 +134,8 @@ export class WodPlaceableRes
    * Caches bounds once every model mesh is ready. Carbon requires a visualModel
    * here; an incomplete authored graph is a contract error, not a ready resource.
    * Subsequent calls retain the native cache even if visualModel changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -118,7 +147,11 @@ export class WodPlaceableRes
     return true;
   }
 
-  /** Copies cached bounds, attempting readiness first as in the native header. */
+  /**
+   * Copies cached bounds, attempting readiness first as in the native header.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingBox(min, max)

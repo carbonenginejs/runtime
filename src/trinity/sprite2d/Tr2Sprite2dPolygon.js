@@ -36,6 +36,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 
   /**
    * Carbon Tr2Sprite2dPolygon.cpp:158-161 invalidates geometry for every list event.
+   *
+   * @implemented
    * @param {number} _event BLUELISTEVENT value.
    * @param {number} _key Changed key.
    * @param {number} _key2 Second key.
@@ -89,12 +91,12 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * vertices, splits the triangles into batches that fit one draw call, prepares each batch; then submits every
    * batch under the polygon translation.
    *
-   * Adapted: JS arrays replace the native vectors and pointers. `std::vector::resize` becomes an explicit grow or
-   * truncate, and `&m_renderVertices[i][0]` is the batch array itself, which `PrepareTriangleVerts` fills in place.
-   * Carbon sizes `indexMap` by `m_triangles.size() * 3` but indexes it by vertex index (cpp:71, 86-89), which
-   * writes out of bounds when a vertex index exceeds that size (Carbon bug CE-152, cpp:71). JS cannot reproduce the
-   * undefined behaviour, so an out-of-range slot reads as unmapped, which is what the code evidently intends.
-   * This is a silent fix, pending the operator's decision (CE-152).
+   * @adapted JS arrays replace the native vectors and pointers. `std::vector::resize` becomes an explicit grow or
+   *   truncate, and `&m_renderVertices[i][0]` is the batch array itself, which `PrepareTriangleVerts` fills in place.
+   *   Carbon sizes `indexMap` by `m_triangles.size() * 3` but indexes it by vertex index (cpp:71, 86-89), which
+   *   writes out of bounds when a vertex index exceeds that size (Carbon bug CE-152, cpp:71). JS cannot reproduce the
+   *   undefined behaviour, so an out-of-range slot reads as unmapped, which is what the code evidently intends.
+   *   This is a silent fix, pending the operator's decision (CE-152).
    * @param {Tr2Sprite2dScene} renderer Gathering scene.
    * @returns {void}
    */
@@ -198,6 +200,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 
   /**
    * Picks both native triangle windings, restoring translation even on an early hit (Tr2Sprite2dPolygon.cpp:115-146).
+   *
+   * @implemented
    * @param {number} x Screen x.
    * @param {number} y Screen y.
    * @param {Tr2Sprite2dScene} renderer Picking scene.
@@ -229,6 +233,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 
   /**
    * Carbon Tr2Sprite2dPolygon::GetColor (Tr2Sprite2dPolygon.cpp:148-151).
+   *
+   * @implemented
    * @returns {Float32Array} A copy of the polygon colour.
    */
   @meta.implemented
@@ -241,6 +247,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * Carbon Tr2Sprite2dPolygon::SetColor (Tr2Sprite2dPolygon.cpp:153-156) hides the base setter and only stores the
    * colour. Carbon quirk, Tr2Sprite2dPolygon.cpp:153-156 (CE-127): unlike Tr2SpriteObject::SetColor it does not
    * call SetDirty, so prepared vertices keep the old tint until something else dirties the polygon. Reproduced.
+   *
+   * @implemented
    * @param {Float32Array|number[]} val New RGBA colour.
    * @returns {void}
    */
@@ -255,7 +263,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * Each item must be a 3-item array of integers; indices are truncated to uint16 as `uint16_t( int32_t )`. Items
    * before a bad one stay appended, then a TypeError is raised, as in Carbon.
    *
-   * Adapted: Python tuples and sequences are JS arrays, and Python ints are integral JS numbers.
+   * @adapted Python tuples and sequences are JS arrays, and Python ints are integral JS numbers.
    * @param {Array<number[]>} triangles Sequence of 3-item vertex index arrays.
    * @returns {void}
    */
@@ -290,11 +298,11 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * `positionTransform` into `_11.._13`, `_21.._23` and `_41.._43` of an identity Matrix (cpp:69-77). See
    * {@link Tr2Sprite2dPolygon.transformPosition} for what that makes of z and w.
    *
-   * Adapted: Python tuples/sequences are JS arrays (typed arrays and strings count as sequences, as Python's
-   * PySequence_Check would), Python `None` is `null`, and an omitted optional argument is `undefined`. Carbon's
-   * "OOO|OO" makes `positionTransform` and `colors` required. Carbon quirk (CE-151), Tr2Sprite2dPolygon_Blue.cpp:96-124:
-   * unlike SetVertices this method does not map `None` texture coordinates to "absent", so an explicit `null`
-   * raises the TypeError, which is reproduced.
+   * @adapted Python tuples/sequences are JS arrays (typed arrays and strings count as sequences, as Python's
+   *   PySequence_Check would), Python `None` is `null`, and an omitted optional argument is `undefined`. Carbon's
+   *   "OOO|OO" makes `positionTransform` and `colors` required. Carbon quirk (CE-151), Tr2Sprite2dPolygon_Blue.cpp:96-124:
+   *   unlike SetVertices this method does not map `None` texture coordinates to "absent", so an explicit `null`
+   *   raises the TypeError, which is reproduced.
    * @param {number[]|Array<number[]>} positions 2-item position or sequence of them.
    * @param {Array<number[]>|null} positionTransform Three 3-item rows, or null for identity.
    * @param {number[]|Array<number[]>} colors 4-item colour or sequence of them.
@@ -379,9 +387,9 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * Overwrites existing vertices in order; `null` leaves that attribute unchanged. Stops at the shortest sequence.
    * Positions are transformed as in {@link Tr2Sprite2dPolygon#AppendVertices}.
    *
-   * Adapted: Python tuples/sequences are JS arrays and `None` is `null`; an omitted optional argument is
-   * `undefined` and is treated as `None`, as Carbon does (cpp:226-241, 249). Carbon's "O|OOOO" makes `positions`
-   * required (it may be `null`).
+   * @adapted Python tuples/sequences are JS arrays and `None` is `null`; an omitted optional argument is
+   *   `undefined` and is treated as `None`, as Carbon does (cpp:226-241, 249). Carbon's "O|OOOO" makes `positions`
+   *   required (it may be `null`).
    * @param {number[]|Array<number[]>|null} positions 2-item vec2_0, sequence of them, or null.
    * @param {Array<number[]>|null} [positionTransform] Three 3-item rows, or null for identity.
    * @param {number[]|Array<number[]>|null} [colors] 4-item colour, sequence of them, or null.
@@ -481,6 +489,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 
   /**
    * Carbon returns no vertices while hidden, otherwise the authored count (Tr2Sprite2dPolygon.cpp:163-171).
+   *
+   * @implemented
    * @returns {number} Vertex count.
    */
   @meta.implemented
@@ -492,8 +502,9 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
   /**
    * Port of the anonymous-namespace `ToFloatTuple` (Tr2Sprite2dPolygon_Blue.cpp:16-45): when `value` is a tuple of
    * exactly `length` numbers, writes them as floats into `destination` and returns true.
-   * Adapted: a Python tuple is a JS array or typed array; Python float/int items are JS numbers (any number,
-   * including NaN and infinities, as PyFloat accepts them).
+   *
+   * @adapted a Python tuple is a JS array or typed array; Python float/int items are JS numbers (any number,
+   *   including NaN and infinities, as PyFloat accepts them).
    * @param {*} value Candidate tuple.
    * @param {number} length Required item count.
    * @param {Float32Array|number[]} destination Receives the items.
@@ -529,7 +540,9 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * (Tr2Sprite2dPolygon_Blue.cpp:69-81, 248-260): an identity Matrix whose rows `_11.._13`, `_21.._23` and
    * `_41.._43` receive the three tuples. `None` keeps the identity. The matrix shares gl-matrix's byte layout, so
    * `_11` is index 0, `_21` index 4 and `_41` index 12.
-   * Adapted: Python tuples are JS arrays and `None` is `null`.
+   *
+   * @cjs
+   * @adapted Python tuples are JS arrays and `None` is `null`.
    * @param {Float32Array} transform Receives the 4x4 transform.
    * @param {Array<number[]>|null} value Three 3-item rows, or null.
    * @returns {Float32Array} `transform`.
@@ -567,6 +580,9 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    *
    * `vec3.transformMat4` on (x, y, 0) computes exactly this: row 2 is multiplied by z = 0, and its w division is
    * by the same w = 1 (math conventions: TransformCoord is vec3.transformMat4 on the shared layout).
+   *
+   * @cjs
+   * @implemented
    * @param {Float32Array} out Receives x, y and z.
    * @param {Float32Array|number[]} position Input x and y.
    * @param {Float32Array} transform Matrix from readPositionTransform.

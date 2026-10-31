@@ -10,28 +10,44 @@ import { meta } from "#schema";
 export class IEveDistributionSpawner extends IRoot
 {
 
-  /** Resets the spawner against regenerated placement data. */
+  /**
+   * Resets the spawner against regenerated placement data.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Reset()
   {
   }
 
-  /** Restarts spawner state without regenerating placement data. */
+  /**
+   * Restarts spawner state without regenerating placement data.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Restart()
   {
   }
 
-  /** Runs the optional synchronous spawning update hook. */
+  /**
+   * Runs the optional synchronous spawning update hook.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateSyncronous(_updateContext)
   {
   }
 
-  /** Accepts an optional controller variable. */
+  /**
+   * Accepts an optional controller variable.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetControllerVariable(_name, _value)

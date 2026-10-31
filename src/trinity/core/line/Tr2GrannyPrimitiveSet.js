@@ -72,7 +72,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     TriDevice.RegisterResource(this);
   }
 
-  /** Acquires the authored resource after reader population (cpp:38-44). */
+  /**
+   * Acquires the authored resource after reader population (cpp:38-44).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -82,7 +86,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     return true;
   }
 
-  /** Resource replacement precedes the base's color notification (cpp:174-182). */
+  /**
+   * Resource replacement precedes the base's color notification (cpp:174-182).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(names)
@@ -93,10 +101,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   /**
    * Carbon: SetGrannyResource (trinity/trinity/Tr2GrannyPrimitiveSet.cpp:214-237).
-   * Adapted: Requests ordinary TriGeometryRes rather than Carbon's "raw" suffix;
-   * this implementation reads its decoded mesh channels rather than SDK handles.
-   * A pending nonempty replacement retains the old primitive buffers until it
-   * succeeds, as native does.
+   *
+   * @adapted Requests ordinary TriGeometryRes rather than Carbon's "raw" suffix;
+   *   this implementation reads its decoded mesh channels rather than SDK handles.
+   *   A pending nonempty replacement retains the old primitive buffers until it
+   *   succeeds, as native does.
    */
 
   @meta.adapted
@@ -124,7 +133,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     this.grannyRes.RemoveNotifyTarget(this);
   }
 
-  /** Releases only the current resource's derived data (cpp:185-191). */
+  /**
+   * Releases only the current resource's derived data (cpp:185-191).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseCachedData(resource)
@@ -132,7 +145,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     if (resource === this.grannyRes) this.CleanUp();
   }
 
-  /** Rebuilds only a successfully prepared current resource (cpp:194-202). */
+  /**
+   * Rebuilds only a successfully prepared current resource (cpp:194-202).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RebuildCachedData(resource)
@@ -143,7 +160,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     this.PrepareResources();
   }
 
-  /** Clears cached geometry and GPU storage, retaining the native last bound (cpp:205-212). */
+  /**
+   * Clears cached geometry and GPU storage, retaining the native last bound (cpp:205-212).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   CleanUp()
@@ -155,7 +176,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     this.ReleaseResources();
   }
 
-  /** Keeps source-format provenance despite the common decoded payload shape (cpp:240-253). */
+  /**
+   * Keeps source-format provenance despite the common decoded payload shape (cpp:240-253).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreatePrimitive()
@@ -165,7 +190,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     else this.CreatePrimitiveFromGranny();
   }
 
-  /** Decoded CPU channels replace native CMF streams; exact picking name is preserved. */
+  /**
+   * Decoded CPU channels replace native CMF streams; exact picking name is preserved.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   CreatePrimitiveFromCMF()
@@ -177,6 +206,8 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * Decoded CPU channels replace the Granny SDK; native picking-prefix matching
    * is preserved. The shared projection retains the complete topology stream,
    * including triangles outside material groups, as the native SDK does.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -234,7 +265,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     }
   }
 
-  /** Updates cached vertex colors, without reassigning the authored color field (cpp:519-526). */
+  /**
+   * Updates cached vertex colors, without reassigning the authored color field (cpp:519-526).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetCurrentColor(color)
@@ -243,14 +278,22 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     this.PrepareResources();
   }
 
-  /** Inherited native device-resource creation guard. */
+  /**
+   * Inherited native device-resource creation guard.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
-  /** Explicit destruction replaces native empty-handle assignment (cpp:47-53). */
+  /**
+   * Explicit destruction replaces native empty-handle assignment (cpp:47-53).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources()
@@ -261,7 +304,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     this._lineIndexBuffer.Destroy();
   }
 
-  /** Creates and uploads native buffers through existing AL descriptions (cpp:54-133). */
+  /**
+   * Creates and uploads native buffers through existing AL descriptions (cpp:54-133).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   OnPrepareResources()
@@ -304,12 +351,12 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   /**
    * Emits native ordinary or dedicated picking ranges (cpp:135-171).
    *
-   * Adapted: asking `IsGood()` before the storage guard renews the resource
-   * and revives a purged one, standing in for Carbon's retained handle. While
-   * the source is not good this set releases what it built from it and
-   * re-registers as its notify target, because the resource released the set
-   * when it last completed; the rebuild on completion replaces the data. A
-   * failed source is not re-registered, or it would call back every frame.
+   * @adapted asking `IsGood()` before the storage guard renews the resource
+   *   and revives a purged one, standing in for Carbon's retained handle. While
+   *   the source is not good this set releases what it built from it and
+   *   re-registers as its notify target, because the resource released the set
+   *   when it last completed; the rebuild on completion replaces the data. A
+   *   failed source is not re-registered, or it would call back every frame.
    * @param {Tr2BatchAccumulator} accumulator Batch destination.
    * @param {object} perObjectData Owner per-object constants.
    * @param {Tr2Effect|null} effect Explicit effect override.
@@ -338,7 +385,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     accumulator.Commit(batch);
   }
 
-  /** Native development resource description, returned instead of an output string. */
+  /**
+   * Native development resource description, returned instead of an output string.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetDescription()
@@ -352,6 +403,8 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   Destruct()
   {

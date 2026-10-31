@@ -37,8 +37,12 @@ export class EveProceduralMethodThresholdParameter extends IRoot
   @type.float32
   threshold = 1;
 
-  /** Carbon EveProceduralMethodThresholdParameter::Initialize (cpp:16-23):
-   * lazily create the child ref. */
+  /**
+   * Carbon EveProceduralMethodThresholdParameter::Initialize (cpp:16-23):
+   * lazily create the child ref.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -55,6 +59,8 @@ export class EveProceduralMethodThresholdParameter extends IRoot
    * threshold change clamps to >= 0 and flags the parameter modified; a child
    * assignment blocks its auto-load. The value argument follows the repo's
    * OnModified duck.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -77,7 +83,11 @@ export class EveProceduralMethodThresholdParameter extends IRoot
     return true;
   }
 
-  /** Carbon method SetModified (cpp:44-47). */
+  /**
+   * Carbon method SetModified (cpp:44-47).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetModified(isModified)
@@ -85,7 +95,11 @@ export class EveProceduralMethodThresholdParameter extends IRoot
     this._modified = !!isModified;
   }
 
-  /** Carbon method IsModified (cpp:49-52). */
+  /**
+   * Carbon method IsModified (cpp:49-52).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsModified()
@@ -93,7 +107,11 @@ export class EveProceduralMethodThresholdParameter extends IRoot
     return this._modified;
   }
 
-  /** Carbon method GetThreshold (cpp:54-57). */
+  /**
+   * Carbon method GetThreshold (cpp:54-57).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetThreshold()
@@ -101,7 +119,11 @@ export class EveProceduralMethodThresholdParameter extends IRoot
     return this.threshold;
   }
 
-  /** Carbon method GetChild (cpp:59-62). */
+  /**
+   * Carbon method GetChild (cpp:59-62).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetChild()
@@ -109,8 +131,12 @@ export class EveProceduralMethodThresholdParameter extends IRoot
     return this.child;
   }
 
-  /** Carbon EveProceduralMethodThresholdParameter::Load (cpp:64-70): one-line
-   * bypass-blocker reload delegate. */
+  /**
+   * Carbon EveProceduralMethodThresholdParameter::Load (cpp:64-70): one-line
+   * bypass-blocker reload delegate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Load()

@@ -142,7 +142,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     this.PrepareResources();
   }
 
-  /** Carbon ReleaseResources (cpp:362-364): nothing to release. */
+  /**
+   * Carbon ReleaseResources (cpp:362-364): nothing to release.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseResources(_storage)
@@ -159,8 +163,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * geometry into the shared buffer. A set without an effect builds neither,
    * so it reads as invisible rather than unbounded.
    *
-   * Adapted: Tr2SuballocatedBuffer has no Free, so the old allocations are
-   * dropped rather than returned.
+   * @adapted Tr2SuballocatedBuffer has no Free, so the old allocations are
+   *   dropped rather than returned.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -226,6 +230,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * plus BLENDINDICES pushed straight into the items at offset 16 without
    * advancing the ledger - so it reads the normal's z and w, where w carries
    * the bone. The buffers are built if they are missing.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -253,6 +259,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /**
    * Carbon GetBatches (cpp:185-217): one batch of every banner, additive (or
    * picking when pickable), not until the primary texture has loaded.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -277,7 +285,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     batches.Commit(batch);
   }
 
-  /** Carbon CreateBannerGeometry (cpp:493-513): flat, or curved along one or both axes. */
+  /**
+   * Carbon CreateBannerGeometry (cpp:493-513): flat, or curved along one or both axes.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreateBannerGeometry(vertices, indices, item)
@@ -290,7 +302,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     else this.CreateCurvedBannerGeometry(vertices, indices, item);
   }
 
-  /** Carbon CreateFlatBannerGeometry (cpp:515-533): one quad. */
+  /**
+   * Carbon CreateFlatBannerGeometry (cpp:515-533): one quad.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreateFlatBannerGeometry(vertices, indices, item)
@@ -307,7 +323,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     indices.push(start, start + 1, start + 2, start + 2, start + 1, start + 3);
   }
 
-  /** Carbon CreateVerticalCurvedBannerGeometry (cpp:535-583): bent around X, a segment per 5 degrees. */
+  /**
+   * Carbon CreateVerticalCurvedBannerGeometry (cpp:535-583): bent around X, a segment per 5 degrees.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreateVerticalCurvedBannerGeometry(vertices, indices, item)
@@ -346,7 +366,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     }
   }
 
-  /** Carbon CreateHorizontalCurvedBannerGeometry (cpp:585-634): bent around Y. */
+  /**
+   * Carbon CreateHorizontalCurvedBannerGeometry (cpp:585-634): bent around Y.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreateHorizontalCurvedBannerGeometry(vertices, indices, item)
@@ -386,7 +410,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     }
   }
 
-  /** Carbon CreateCurvedBannerGeometry (cpp:636-693): bent around both axes. */
+  /**
+   * Carbon CreateCurvedBannerGeometry (cpp:636-693): bent around both axes.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreateCurvedBannerGeometry(vertices, indices, item)
@@ -449,8 +477,12 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     return mat4.invert(out, out);
   }
 
-  /** Carbon EveBannerSet::GetAabb (cpp:392-395): the item-set bounds. The bone
-   * count is forwarded ungated - a banner set has no skinned flag. */
+  /**
+   * Carbon EveBannerSet::GetAabb (cpp:392-395): the item-set bounds. The bone
+   * count is forwarded ungated - a banner set has no skinned flag.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
@@ -461,8 +493,9 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /**
    * The largest single banner half-diagonal, as measured by the last Rebuild.
    *
-   * Adapted: Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it
-   * through an accessor.
+   * @cjs
+   * @adapted Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it
+   *   through an accessor.
    */
   @meta.cjs
     @meta.adapted
@@ -474,8 +507,9 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /**
    * The result of the last UpdateVisibility (Carbon m_isVisible).
    *
-   * Adapted: Carbon reads the m_isVisible member directly; JavaScript exposes it through an
-   * accessor.
+   * @cjs
+   * @adapted Carbon reads the m_isVisible member directly; JavaScript exposes it through an
+   *   accessor.
    */
   @meta.cjs
     @meta.adapted
@@ -497,6 +531,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    *
    * The effect is told the screen size on EVERY path, culled or not, because it
    * drives texture streaming rather than drawing.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -557,6 +593,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
   /**
    * Carbon EveBannerSet::GetDebugOptions (cpp:218-223).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -582,6 +620,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * "Banner Sets Lights" draws each light twice, inner then outer radius, with
    * the saturated authored color - or the texture average color when a primary
    * texture parameter is attached, exactly as GetLights decides it.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentTransform
    * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
@@ -684,6 +724,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /**
    * The SOF reference id of the banner at an index, which is how a caller maps a
    * picked banner back to its authored slot.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -692,10 +734,14 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     return this.banners[index].reference;
   }
 
-  /** Measures the generated banner surface exactly as Carbon does: flat
+  /**
+   * Measures the generated banner surface exactly as Carbon does: flat
    * banners use authored X/Y scale, while curved banners sum the same
    * approximately five-degree transformed arc chords used by geometry
-   * generation. */
+   * generation.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   static GetBannerAspectRatio(banner)
@@ -746,8 +792,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Carbon Initialize (cpp:105-109) is Rebuild; the declaration comes from the
    * constructor's PrepareResources (cpp:98).
    *
-   * Adapted: a JS object is usually constructed before the device exists, so
-   * the declaration is prepared here, after the first Rebuild.
+   * @adapted a JS object is usually constructed before the device exists, so
+   *   the declaration is prepared here, after the first Rebuild.
    */
 
   @meta.adapted
@@ -761,6 +807,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /**
    * Copies a loose banner description into a stored EveBannerItem, appends it
    * and returns the copy; the source object is not retained.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -772,7 +820,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     return copy;
   }
 
-  /** Carbon structure-list observer, EveBannerSet.cpp:357–360. */
+  /**
+   * Carbon structure-list observer, EveBannerSet.cpp:357–360.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnStructureListModified()
@@ -803,6 +855,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /**
    * Sets the effect that draws the banners; without one Rebuild produces no
    * bounds and the set never draws.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -811,7 +865,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     this.effect = effect ?? null;
   }
 
-  /** Sets the banner key that the set's picking id is derived from. */
+  /**
+   * Sets the banner key that the set's picking id is derived from.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetKey(key)
@@ -819,7 +877,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     this.key = Number(key) | 0;
   }
 
-  /** The picking id this set writes, which is 101 plus the authored key. */
+  /**
+   * The picking id this set writes, which is 101 plus the authored key.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPickingID()
@@ -830,6 +892,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /**
    * Carbon SetShaderOption (EveBannerSet.cpp:314-320): sets a shader option on
    * the banner effect when one is attached.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -844,6 +908,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /**
    * Sets the texture parameter whose average colour replaces the authored colour
    * of every banner light.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -855,6 +921,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /**
    * Converts a SOF-authored light description into an EveBannerLight and appends
    * it to the set.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -863,9 +931,13 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     this.lights.push(EveBannerLight.FromSOF(light));
   }
 
-  /** Carbon EveBannerSet::RegisterComponents (cpp:457-464): LightOwner
+  /**
+   * Carbon EveBannerSet::RegisterComponents (cpp:457-464): LightOwner
    * UNCONDITIONAL (no lights-empty check, unlike the other packed sets -
-   * GetLights self-gates on display/lights instead, cpp:468). */
+   * GetLights self-gates on display/lights instead, cpp:468).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -877,16 +949,18 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     }
   }
 
-  /** Carbon EveBannerSet::UpdateLights (cpp:164-183): the shared packed-set
+  /**
+   * Carbon EveBannerSet::UpdateLights (cpp:164-183): the shared packed-set
    * bone pattern (boneIndex >= 0; column-stride Float4x3 unpack; 4th
    * column zeroed, [15] = 1; boneMatrix *= parentTransform - Carbon
    * row-vector, bone FIRST: gl operands SWAP; else copy the parent). Stamps
    * the activation strength (boosterGain unused by banners).
    *
-   * Adapted: Carbon skips bone 0 here (EveBannerSet.cpp:168; CE-27), so a light on binding 0
-   * gets only the parent transform. Binding 0 is a mesh bone binding and can
-   * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
-   * Normal2Warp - so ours applies bone 0 like any other. */
+   * @adapted Carbon skips bone 0 here (EveBannerSet.cpp:168; CE-27), so a light on binding 0
+   *   gets only the parent transform. Binding 0 is a mesh bone binding and can
+   *   be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
+   *   Normal2Warp - so ours applies bone 0 like any other.
+   */
 
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
@@ -917,8 +991,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * parameter or texture resource is absent or has the wrong concrete type.
    * Carbon GetAverageColor (EveBannerSet.cpp:441-455).
    *
-   * Adapted: Writes and returns the caller's colour vector instead of a Color value.
-   *
+   * @adapted Writes and returns the caller's colour vector instead of a Color value.
    * @param {vec4} out Destination colour.
    * @returns {vec4} The destination colour.
    */
@@ -956,8 +1029,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * contrast EvePlaneSet's multiply); no blink/fade; point conversion on
    * the bone matrix.
    *
-   * Adapted: The light manager receives a JavaScript light record carrying the profile
-   * reference; average colour is read through the texture resource contract.
+   * @adapted The light manager receives a JavaScript light record carrying the profile
+   *   reference; average colour is read through the texture resource contract.
    */
 
   @meta.adapted

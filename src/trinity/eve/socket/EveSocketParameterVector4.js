@@ -26,6 +26,8 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
   /**
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -35,7 +37,11 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
     super.ClearBindings();
   }
 
-  /** Restores every binding's default and copies it out, then clears. */
+  /**
+   * Restores every binding's default and copies it out, then clears.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Reset()
@@ -76,6 +82,8 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
   /**
    * Restores the first captured default into the existing value vector, or
    * zeroes it when nothing was captured.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented

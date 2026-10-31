@@ -9,15 +9,27 @@ import { meta } from "#schema";
 export class CjsTrinityBatchDispatcher
 {
 
-  /** Prepares a finalized canonical batch map for later encoding. */
+  /**
+   * Prepares a finalized canonical batch map for later encoding.
+   *
+   * @abstract
+   */
   @meta.abstract
   PrepareBatchMap(_batchMap) {}
 
-  /** Encodes one canonical batch type from a prepared map into a render pass. */
+  /**
+   * Encodes one canonical batch type from a prepared map into a render pass.
+   *
+   * @abstract
+   */
   @meta.abstract
   EncodeBatchType(_pass, _preparedBatchMap, _batchType) {}
 
-  /** Releases renderer-owned state associated with a prepared batch map. */
+  /**
+   * Releases renderer-owned state associated with a prepared batch map.
+   *
+   * @abstract
+   */
   @meta.abstract
   DestroyBatchMap(_preparedBatchMap) {}
 

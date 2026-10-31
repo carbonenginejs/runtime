@@ -23,6 +23,7 @@ export class IEveTransform extends IRoot
    * Carbon's `void Update( const EveUpdateContext& updateContext )`
    * (IEveTransform.h:17): advances the child for the frame.
    *
+   * @abstract
    * @param {object} _updateContext The frame's EveUpdateContext.
    */
   @meta.abstract

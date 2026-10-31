@@ -9,15 +9,27 @@ import { meta } from "#schema";
 export class CjsTrinityBatchResolver
 {
 
-  /** Resolves a canonical batch's material into renderer-owned pipeline inputs. */
+  /**
+   * Resolves a canonical batch's material into renderer-owned pipeline inputs.
+   *
+   * @abstract
+   */
   @meta.abstract
   ResolveMaterial(_material, _batch, _context) {}
 
-  /** Resolves a canonical batch's geometry source into renderer-owned geometry. */
+  /**
+   * Resolves a canonical batch's geometry source into renderer-owned geometry.
+   *
+   * @abstract
+   */
   @meta.abstract
   ResolveGeometry(_geometrySource, _batch, _context) {}
 
-  /** Resolves a canonical batch's object data into renderer-owned bindings. */
+  /**
+   * Resolves a canonical batch's object data into renderer-owned bindings.
+   *
+   * @abstract
+   */
   @meta.abstract
   ResolveBindings(_batch, _objectData, _context) {}
 

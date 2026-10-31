@@ -222,7 +222,11 @@ export class EveSpherePin
     TriDevice.UnregisterResource(this);
   }
 
-  /** Native initialization requests geometry and refreshes bounds, not the draw effect path. */
+  /**
+   * Native initialization requests geometry and refreshes bounds, not the draw effect path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -235,6 +239,8 @@ export class EveSpherePin
   /**
    * Applies native notification branches in order. JS coalesces changed names
    * into one call, so independent branches handle every field in that call.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -256,6 +262,8 @@ export class EveSpherePin
   /**
    * Requests the decoded geometry resource. Native notification callbacks are
    * both empty; JS polls its readiness without installing inert subscriptions.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -267,14 +275,22 @@ export class EveSpherePin
       : null;
   }
 
-  /** Native ReleaseResources is empty; final destruction releases the index buffer. */
+  /**
+   * Native ReleaseResources is empty; final destruction releases the index buffer.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources(_storage)
   {
   }
 
-  /** Requests index regeneration when initialized geometry outlives its AL buffer. */
+  /**
+   * Requests index regeneration when initialized geometry outlives its AL buffer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnPrepareResources()
@@ -283,14 +299,22 @@ export class EveSpherePin
     return true;
   }
 
-  /** The native resource completion callback is empty. */
+  /**
+   * The native resource completion callback is empty.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   RebuildCachedData(_resource)
   {
   }
 
-  /** The native resource release callback is empty. */
+  /**
+   * The native resource release callback is empty.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseCachedData(_resource)
@@ -301,6 +325,8 @@ export class EveSpherePin
    * Builds selected uint16 triangles. A reusable result replaces native out
    * references, and AL Create takes the existing JS description overload.
    * Empty selections destroy the old buffer but retain the native rebuild flag.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -325,6 +351,8 @@ export class EveSpherePin
    * Shares and builds the native spherical index, then publishes a dirty subset.
    * JS geometry already retains decoded CPU channels, so the same resource
    * replaces Carbon's separate "raw" TriGrannyRes request.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -348,7 +376,11 @@ export class EveSpherePin
     }
   }
 
-  /** Advances curves using native TimeAsDouble conversion from 100 ns ticks. */
+  /**
+   * Advances curves using native TimeAsDouble conversion from 100 ns ticks.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(updateContext)
@@ -356,7 +388,11 @@ export class EveSpherePin
     for (const curveSet of this.curveSets) curveSet.Update(CcpTime.timeAsDouble(updateContext.GetTime()));
   }
 
-  /** Native update orders synchronous geometry publication before curve updates. */
+  /**
+   * Native update orders synchronous geometry publication before curve updates.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update__UpdateContext(updateContext)
@@ -365,7 +401,11 @@ export class EveSpherePin
     this.UpdateAsyncronous(updateContext);
   }
 
-  /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
+  /**
+   * Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(updateContext)
@@ -373,7 +413,11 @@ export class EveSpherePin
     return this.Update__UpdateContext(updateContext);
   }
 
-  /** Native visibility updates placement but performs no frustum cull. */
+  /**
+   * Native visibility updates placement but performs no frustum cull.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
@@ -382,7 +426,11 @@ export class EveSpherePin
     this.UpdateViewDependentData(updateContext.GetFrustum(), parentTransform);
   }
 
-  /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
+  /**
+   * Carbon's GetRenderables( renderables ): forwards with no impostor manager.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(renderables)
@@ -390,7 +438,11 @@ export class EveSpherePin
     return this.GetRenderables__Impostors(renderables, null);
   }
 
-  /** Native collection checks display only; the optional impostor manager is unused. */
+  /**
+   * Native collection checks display only; the optional impostor manager is unused.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetRenderables__Impostors(renderables, _impostors)
@@ -398,7 +450,11 @@ export class EveSpherePin
     if (this.display) renderables.push(this);
   }
 
-  /** Native query returns the local sphere, without applying the world matrix. */
+  /**
+   * Native query returns the local sphere, without applying the world matrix.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -407,7 +463,11 @@ export class EveSpherePin
     return true;
   }
 
-  /** Native bounds are the center normal and authored pin radius. */
+  /**
+   * Native bounds are the center normal and authored pin radius.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   BuildBoundingSphere()
@@ -415,7 +475,11 @@ export class EveSpherePin
     vec4.set(this.boundingSphere, this.centerNormal[0], this.centerNormal[1], this.centerNormal[2], this.pinRadius);
   }
 
-  /** Native sphere pins always use high LOD. */
+  /**
+   * Native sphere pins always use high LOD.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLODLevel()
@@ -423,21 +487,33 @@ export class EveSpherePin
     return Tr2Lod.TR2_LOD_HIGH;
   }
 
-  /** Native model-center update is empty. */
+  /**
+   * Native model-center update is empty.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
 
-  /** Native model-center query leaves its output untouched. */
+  /**
+   * Native model-center query leaves its output untouched.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetModelCenterWorldPosition(_position)
   {
   }
 
-  /** Native pins do not provide a local bounding box. */
+  /**
+   * Native pins do not provide a local bounding box.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
@@ -445,7 +521,11 @@ export class EveSpherePin
     return false;
   }
 
-  /** Native IEveTransform query deliberately returns identity. */
+  /**
+   * Native IEveTransform query deliberately returns identity.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalToWorldTransform(out)
@@ -454,7 +534,11 @@ export class EveSpherePin
   }
 
 
-  /** Carbon EveSpherePin::HasTransparentBatches is always true. */
+  /**
+   * Carbon EveSpherePin::HasTransparentBatches is always true.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -462,7 +546,11 @@ export class EveSpherePin
     return true;
   }
 
-  /** Distance from the renderer's view, without per-frame vector allocation. */
+  /**
+   * Distance from the renderer's view, without per-frame vector allocation.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -472,7 +560,11 @@ export class EveSpherePin
     return vec3.distance(Tr2Renderer.GetViewPosition(), vec3_0) * this.sortValueMultiplier;
   }
 
-  /** Routes transparent and picking passes through the corresponding native effect. */
+  /**
+   * Routes transparent and picking passes through the corresponding native effect.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason)
@@ -490,6 +582,8 @@ export class EveSpherePin
   /**
    * Binds selected pin indices beside shared mesh-zero / LOD-zero vertices.
    * JS realizes geometry lazily here because its resource layer cannot use AL.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -513,7 +607,11 @@ export class EveSpherePin
     accumulator.Commit(batch);
   }
 
-  /** Native picking-mask routing, including transparent and additive requests. */
+  /**
+   * Native picking-mask routing, including transparent and additive requests.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPickingBatches(accumulator, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
@@ -528,7 +626,11 @@ export class EveSpherePin
   }
 
 
-  /** Carbon EveSpherePin::GetID uses the pin itself as its picking identity. */
+  /**
+   * Carbon EveSpherePin::GetID uses the pin itself as its picking identity.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetID()
@@ -536,12 +638,16 @@ export class EveSpherePin
     return this;
   }
 
-  /** Carbon EveSpherePin::UpdateViewDependentData (cpp:243-251):
+  /**
+   * Carbon EveSpherePin::UpdateViewDependentData (cpp:243-251):
    * m_worldTransform = TransformationMatrix(scaling, rotation, translation) *
    * parentTransform. Carbon (row-vector): local * parent - local first, so
    * gl multiply(world, parent, local); Carbon (s, r, t) is gl
    * fromRotationTranslationScale (r, t, s). The frustum argument is unused
-   * in Carbon's body and kept for signature parity. */
+   * in Carbon's body and kept for signature parity.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateViewDependentData(_frustum, parentTransform)
@@ -552,10 +658,14 @@ export class EveSpherePin
     mat4.multiply(this.worldTransform, parentTransform, mat4_0);
   }
 
-  /** Carbon EveSpherePin::GetPerObjectData (cpp:336-357). One transient
+  /**
+   * Carbon EveSpherePin::GetPerObjectData (cpp:336-357). One transient
    * payload; SetAndTranspose performs Carbon's `Transpose(m_worldTransform)`.
    * The struct registers with stages ["vs", "ps"]: the SAME bytes are bound
-   * to both per-object slots (cpp:415-425). */
+   * to both per-object slots (cpp:415-425).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPerObjectData(accumulator)

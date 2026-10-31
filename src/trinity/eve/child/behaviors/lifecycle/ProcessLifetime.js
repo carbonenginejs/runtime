@@ -114,7 +114,11 @@ export class ProcessLifetime extends IRoot
 
   _tunnelGroupSnapshot = [];
 
-  /** Carbon ProcessLifetime::Initialize (cpp:33-38). */
+  /**
+   * Carbon ProcessLifetime::Initialize (cpp:33-38).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -129,8 +133,8 @@ export class ProcessLifetime extends IRoot
    * Carbon ProcessLifetime::OnListModified (ProcessLifetime.cpp:40-72): an inserted, removed or loaded spline tunnel
    * group is handed the callback that rebuilds this behavior's tunnel registry, and the registry is rebuilt.
    *
-   * Adapted: inserted and loaded groups are re-wired as a whole list (_WireTunnelGroups) rather than one value at a
-   * time.
+   * @adapted inserted and loaded groups are re-wired as a whole list (_WireTunnelGroups) rather than one value at a
+   *   time.
    */
 
   @meta.adapted
@@ -157,7 +161,11 @@ export class ProcessLifetime extends IRoot
     this.UpdateTunnelRegistry();
   }
 
-  /** Carbon ProcessLifetime::OnModified (cpp:27-31). */
+  /**
+   * Carbon ProcessLifetime::OnModified (cpp:27-31).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_value = null)
@@ -166,7 +174,11 @@ export class ProcessLifetime extends IRoot
     return true;
   }
 
-  /** Carbon ProcessLifetime::GetProcessPriority (cpp:74-77). */
+  /**
+   * Carbon ProcessLifetime::GetProcessPriority (cpp:74-77).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -174,7 +186,11 @@ export class ProcessLifetime extends IRoot
     return this.behaviorPriority;
   }
 
-  /** Carbon ProcessLifetime::GetBehaviorName (cpp:79-82). */
+  /**
+   * Carbon ProcessLifetime::GetBehaviorName (cpp:79-82).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBehaviorName()
@@ -185,7 +201,7 @@ export class ProcessLifetime extends IRoot
   /**
    * Per-agent scratch record count (Carbon sizeof(ProcessLifetimeData)).
    *
-   * Adapted: Carbon returns a byte size; scratch here is one record per agent, so any non-zero value means it has one.
+   * @adapted Carbon returns a byte size; scratch here is one record per agent, so any non-zero value means it has one.
    */
 
   @meta.adapted
@@ -197,7 +213,7 @@ export class ProcessLifetime extends IRoot
   /**
    * Fresh per-agent scratch record (Carbon ProcessLifetimeData placement init).
    *
-   * Adapted: Carbon initializes caller-provided raw memory; here the fresh record is returned.
+   * @adapted Carbon initializes caller-provided raw memory; here the fresh record is returned.
    */
 
   @meta.adapted
@@ -206,7 +222,11 @@ export class ProcessLifetime extends IRoot
     return new ProcessLifetimeData();
   }
 
-  /** Carbon IBehavior::UpdateState override (h:59-62). */
+  /**
+   * Carbon IBehavior::UpdateState override (h:59-62).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateState(state)
@@ -220,6 +240,8 @@ export class ProcessLifetime extends IRoot
    * m_returningAge triggers - assigns the closest exit tunnel, flies it out,
    * removes it, and optionally respawns it (Carbon CalculateBehavior,
    * cpp:94-213).
+   *
+   * @adapted
    * @param {Array} agents - DroneAgent records
    * @param {Array} scratchData - per-agent ProcessLifetimeData records
    * @param {Number} deltaTime
@@ -371,6 +393,8 @@ export class ProcessLifetime extends IRoot
    * Rebuilds the local tunnel list from this behavior's own spline tunnel
    * groups and flags the ID reassignment (Carbon UpdateTunnelRegistry,
    * cpp:446-462).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -389,6 +413,8 @@ export class ProcessLifetime extends IRoot
 
   /**
    * Carbon ProcessLifetime::GetDebugOptions (cpp:496-499).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -401,6 +427,8 @@ export class ProcessLifetime extends IRoot
   /**
    * Carbon ProcessLifetime::RenderDebugInfo (cpp:501-510): delegates every
    * spline tunnel's debug geometry when its option is enabled.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation
@@ -421,6 +449,8 @@ export class ProcessLifetime extends IRoot
   /**
    * First positions of every entrance tunnel; used by SpawnDrones to pick
    * timed spawn points (Carbon GetEntrancePoints, cpp:428-444).
+   *
+   * @implemented
    */
 
   @meta.implemented

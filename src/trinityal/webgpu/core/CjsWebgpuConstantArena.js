@@ -74,7 +74,11 @@ export class CjsWebgpuConstantArena
     if (Number.isInteger(limit) && limit > CONST_ALIGNMENT) this._alignment = limit;
   }
 
-  /** Carbon's `Reset`: the next frame starts at page zero, offset zero. */
+  /**
+   * Carbon's `Reset`: the next frame starts at page zero, offset zero.
+   *
+   * @implemented
+   */
   Reset()
   {
     this._page = 0;
@@ -85,6 +89,7 @@ export class CjsWebgpuConstantArena
   /**
    * Copies bytes into the arena and says where they landed.
    *
+   * @adapted
    * @param {Uint8Array} bytes The constants; may be shorter than `size`.
    * @param {number} size Bytes to reserve, at least the bytes' length.
    * @returns {{page: number, offset: number, size: number}} The region.
@@ -116,6 +121,7 @@ export class CjsWebgpuConstantArena
   /**
    * The `GPUBuffer` for a page, created on first use.
    *
+   * @adapted
    * @param {number} page The page index.
    * @returns {object} The buffer.
    */
@@ -134,6 +140,7 @@ export class CjsWebgpuConstantArena
    * next page has never been made; ours is reached through `GetPage`, which is
    * the same "make it if it is not there" with one caller instead of two.
    *
+   * @adapted
    * @param {number} index The page index.
    * @returns {void}
    */
@@ -148,7 +155,11 @@ export class CjsWebgpuConstantArena
     });
   }
 
-  /** Bytes allocated this frame so far. */
+  /**
+   * Bytes allocated this frame so far.
+   *
+   * @implemented
+   */
   GetTotalUploadedSize()
   {
     return this._totalUploadedSize + this._offset;

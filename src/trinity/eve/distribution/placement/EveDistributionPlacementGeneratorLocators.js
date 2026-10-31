@@ -20,7 +20,11 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   @type.structList("Locator")
   locators = [];
 
-  /** Flags the pool as stale when the authored locator list changes. */
+  /**
+   * Flags the pool as stale when the authored locator list changes.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   OnStructureListModified(_event, _item, _index, _list)
@@ -31,6 +35,7 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   /**
    * Appends one placement per authored locator, copying its position, direction, scale and bone index, and clears the regeneration request.
    *
+   * @adapted
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
@@ -55,7 +60,11 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
     this._requestRegeneration = false;
   }
 
-  /** Reports whether the locator list changed since the pool was last generated. */
+  /**
+   * Reports whether the locator list changed since the pool was last generated.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsRequestingRegeneration()
@@ -63,7 +72,11 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
     return this._requestRegeneration;
   }
 
-  /** No per-frame work; this generator only reacts to locator list changes. */
+  /**
+   * No per-frame work; this generator only reacts to locator list changes.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(_updateContext, _params, _owner)

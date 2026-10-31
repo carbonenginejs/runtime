@@ -42,8 +42,9 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Reads condition validity through the native read-only property.
-   * Adapted: delegates to the existing lazy JavaScript validity check; reading
-   * this property does not introduce native eager evaluator binding.
+   *
+   * @adapted delegates to the existing lazy JavaScript validity check; reading
+   *   this property does not introduce native eager evaluator binding.
    * @returns {boolean} Whether the current condition compiles successfully.
    */
   @be.mapPropertyReadOnly()
@@ -70,6 +71,8 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Links this transition to its source state.
+   *
+   * @adapted
    * @param {Tr2StateMachineState} state Source state whose machine owns the transition.
    * @returns {void}
    */
@@ -87,6 +90,8 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Unlinks this transition from its source state.
+   *
+   * @adapted
    * @returns {void}
    */
 
@@ -105,9 +110,9 @@ export class Tr2StateMachineTransition extends IRoot
    * Carbon OnModified (Tr2StateMachineTransition.cpp:17-37): refreshes the
    * condition or the cached destination. Blue's `name` is m_destinationName.
    *
-   * Adapted: on a condition change Carbon calls m_evaluator.SetExpr bound to the
-   * source state machine; ours clears the cached program and names, compiles
-   * through CjsControllerExpressionProgram, and updates the variable mask.
+   * @adapted on a condition change Carbon calls m_evaluator.SetExpr bound to the
+   *   source state machine; ours clears the cached program and names, compiles
+   *   through CjsControllerExpressionProgram, and updates the variable mask.
    * @param {string} propertyName Exposed authored member name.
    * @returns {boolean} True after the notification is handled.
    */
@@ -152,8 +157,8 @@ export class Tr2StateMachineTransition extends IRoot
   /**
    * Evaluates a linked transition when its referenced variables may have changed.
    *
-   * Adapted: Uses the runtime AST evaluator and BigInt dirty masks in place of
-   * Carbon's bytecode evaluator and uint64 mask.
+   * @adapted Uses the runtime AST evaluator and BigInt dirty masks in place of
+   *   Carbon's bytecode evaluator and uint64 mask.
    * @param {bigint|number} [variableDirtyMask=0] Changed controller variable bits.
    * @returns {boolean} Whether the current linked condition activates.
    */
@@ -185,6 +190,8 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Gets the cached destination last resolved by Link or a name notification.
+   *
+   * @adapted
    * @returns {Tr2StateMachineState|null} Cached destination, or null when unresolved.
    */
 
@@ -196,6 +203,8 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Gets the source state.
+   *
+   * @adapted
    * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
   @be.mapMethodAndWrap("GetState")
@@ -207,7 +216,8 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Gets the source state.
-   * Adapted: native Blue exposes GetSource under this wrapper name.
+   *
+   * @adapted native Blue exposes GetSource under this wrapper name.
    * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
   @meta.adapted
@@ -221,6 +231,8 @@ export class Tr2StateMachineTransition extends IRoot
    * state can skip evaluation when none of them changed; returns 0 (never skip)
    * when the condition calls an impure function or references a variable that is
    * missing or beyond the 64-bit mask.
+   *
+   * @adapted
    * @returns {bigint} Relevant variable bits, or zero when evaluation cannot be skipped.
    */
 
@@ -255,8 +267,9 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Checks whether the condition is valid.
-   * Adapted: retains the lazy JavaScript compilation check, including unlinked
-   * inspection, rather than introducing native eager evaluator lifetime here.
+   *
+   * @adapted retains the lazy JavaScript compilation check, including unlinked
+   *   inspection, rather than introducing native eager evaluator lifetime here.
    * @returns {boolean} Whether the authored condition compiles successfully.
    */
 
@@ -268,6 +281,8 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Checks whether the condition expression is valid.
+   *
+   * @adapted
    * @param {string} [_attributeName] Ignored native attribute-name argument.
    * @returns {boolean} Current condition validity.
    */
@@ -280,6 +295,8 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Evaluates an arbitrary expression against this transition's current context.
+   *
+   * @adapted
    * @param {string} expression Expression to evaluate in the current JS context.
    * @returns {number} Evaluated number, or the retained zero result for invalid compilation.
    */
@@ -307,6 +324,8 @@ export class Tr2StateMachineTransition extends IRoot
 
   /**
    * Gets expression term metadata known by the linked controller.
+   *
+   * @adapted
    * @returns {Array<object>} New collection of supported functions and linked variables.
    */
   @be.mapMethodAndWrap()
@@ -375,7 +394,8 @@ export class Tr2StateMachineTransition extends IRoot
    * state's machine and logs when none matches. The authored name is the
    * destination state name, not a label for the edge; an empty name is looked
    * up like any other, as in the donor.
-   * Adapted: native UpdateDestination retains its private JavaScript name.
+   *
+   * @adapted native UpdateDestination retains its private JavaScript name.
    * @returns {void}
    */
 

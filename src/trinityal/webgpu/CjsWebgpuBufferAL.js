@@ -145,6 +145,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
   /**
    * Creates the buffer against a device.
    *
+   * @adapted
    * @param {Tr2BufferDescriptionAL} desc The description.
    * @param {ArrayBufferView|null} initialData Initial contents, if any.
    * @param {object} renderContext The WebGPU render context AL.
@@ -209,13 +210,21 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** Whether the buffer holds anything. */
+  /**
+   * Whether the buffer holds anything.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._handle !== null;
   }
 
-  /** The description this buffer was created from, or null. */
+  /**
+   * The description this buffer was created from, or null.
+   *
+   * @implemented
+   */
   GetDesc()
   {
     return this._desc;
@@ -239,6 +248,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * Carbon returns `{ result, data }` from its stub and a raw pointer from the
    * backends; the stub's shape is the one Trinity callers already read.
    *
+   * @adapted
    * @param {object} _renderContext Unused; the device came from Create.
    * @returns {{result: number, data: Uint8Array|null}} The shadow.
    */
@@ -294,6 +304,8 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * backends: DX11 `UpdateSubresource` on the whole buffer (cpp:400), DX12
    * `CopyBufferRegion` of `m_size` (Tr2ResourceHelper.cpp:234), Metal a blit of
    * `m_mtlBuffer.length` (mm:259).
+   *
+   * @adapted
    */
   UnmapForWriting()
   {
@@ -315,6 +327,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * partial write. Ours never moves: the retained shadow is written and the
    * range uploaded, the same result as the map path.
    *
+   * @adapted
    * @param {number} offset Byte offset of the range.
    * @param {number} size Bytes in the range.
    * @param {ArrayBufferView} data The bytes.
@@ -351,7 +364,11 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** Releases this implementation and unregisters its final owner. */
+  /**
+   * Releases this implementation and unregisters its final owner.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -395,6 +412,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    *
    * This is Carbon's whole-buffer MapForReading( data, renderContext ).
    *
+   * @adapted
    * @returns {{result: number, data: Uint8Array|null}} The bytes, or null.
    */
   MapForReading(_renderContext)
@@ -406,6 +424,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * Carbon's MapForReading( data, offset, size, renderContext ): a byte range,
    * one frame late as MapForReading; an empty span is E_INVALIDARG.
    *
+   * @adapted
    * @param {number} offset Byte offset.
    * @param {number} size Byte count.
    * @returns {{result: number, data: Uint8Array|null}} The bytes, or null.
@@ -431,7 +450,11 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
     return { result: ALResult.S_OK, data: this._readback.slice(offset, offset + span) };
   }
 
-  /** Nothing to release: MapForReading hands out a copy. */
+  /**
+   * Nothing to release: MapForReading hands out a copy.
+   *
+   * @adapted
+   */
   UnmapForReading()
   {
   }
@@ -486,6 +509,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * no residency signal, so the honest answer is the device-heap default rather
    * than a claim about video memory.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -500,6 +524,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * sweep walks; the base class's own version is empty
    * (`Tr2DeviceResourceAL/Tr2BaseDeviceResourceAL.js`), and so is the stub's.
    *
+   * @adapted
    * @param {object} description The description to fill.
    * @returns {object} The description, filled.
    */
@@ -519,6 +544,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * `GPUObjectBase.label` is writable after creation, so unlike the stub this
    * one keeps the name where the browser's own error messages will quote it.
    *
+   * @adapted
    * @param {string} name The name to attach.
    * @returns {number} An `ALResult` value.
    */
@@ -539,6 +565,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * sentinel, as the stub does. It is not a gap to be filled later; there is
    * nothing for it to number.
    *
+   * @adapted
    * @returns {number} `NO_HEAP_INDEX`.
    */
   GetSrvIndexInHeap()
@@ -549,6 +576,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
   /**
    * The buffer's index in an unordered-access descriptor heap.
    *
+   * @adapted
    * @returns {number} `NO_HEAP_INDEX`; see `GetSrvIndexInHeap`.
    */
   GetUavIndexInHeap()

@@ -142,7 +142,11 @@ export class Tr2SSAO extends IRoot
   @type.float32
   radius = 6;
 
-  /** Enables or disables Carbon's detail SSAO layer. */
+  /**
+   * Enables or disables Carbon's detail SSAO layer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Enable(enable)
@@ -150,7 +154,11 @@ export class Tr2SSAO extends IRoot
     this.enabled = Boolean(enable);
   }
 
-  /** Selects the detail-layer quality and resolution policy. */
+  /**
+   * Selects the detail-layer quality and resolution policy.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetQuality(quality, downsampled)
@@ -187,6 +195,7 @@ export class Tr2SSAO extends IRoot
    * CORTAO's effects and lookup table are made on the first call, as Carbon's
    * are. Carbon's GPU regions are not ported.
    *
+   * @adapted
    * @param {object} depthBuffer The scene depth, a `Tr2TextureAL`.
    * @param {object} normalBuffer The depth pass's normal map, a `Tr2TextureAL`.
    * @param {object} gpuResourcePool The driver's `Tr2GpuResourcePool`.
@@ -237,6 +246,7 @@ export class Tr2SSAO extends IRoot
    * the render context, which holds Tr2Renderer's camera state in this
    * runtime. Carbon's GPU regions are not ported.
    *
+   * @adapted
    * @param {object} depthBuffer The scene depth.
    * @param {object} normalBuffer The normal map.
    * @param {object} gpuResourcePool The driver's pool.
@@ -454,6 +464,8 @@ export class Tr2SSAO extends IRoot
    * Carbon: Hash (trinity/trinity/Tr2SSAO.cpp:535-538).
    * Private instance bit-mix for per-frame/per-pixel sampling, preserving
    * uint32 multiplication wrap with imul.
+   *
+   * @implemented
    */
   @meta.implemented
   _Hash(n)

@@ -792,6 +792,7 @@ export class CjsWebgpuRenderContextAL
    * so the object is stable across calls; built lazily here because the device
    * is a constructor argument and the caps read its limits.
    *
+   * @implemented
    * @returns {CjsWebgpuCapsAL} The capabilities.
    */
   GetCaps()
@@ -811,6 +812,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * The frame being recorded now.
    *
+   * @implemented
    * @returns {number} One past the last frame submitted.
    */
   GetRecordingFrameNumber()
@@ -828,6 +830,7 @@ export class CjsWebgpuRenderContextAL
    * fencing against it is therefore protected by submission order rather than
    * by GPU completion.
    *
+   * @implemented
    * @returns {number} Frames submitted.
    */
   GetRenderedFrameNumber()
@@ -856,16 +859,15 @@ export class CjsWebgpuRenderContextAL
    * path (`TriDevice::ChangeDevice`, TriDevice.cpp:340-420): it asks the
    * WebGPU boundary for a replacement device.
    *
-   * Adapted (forced by WebGPU): `requestAdapter`/`requestDevice` are
-   * asynchronous, while Carbon's device creation is synchronous. The first
-   * call after a loss starts the replacement and answers `E_DEVICELOST`;
-   * TriDevice retries `ChangeDevice` every tick while its device is lost, as
-   * Carbon's does (TriDevice12.cpp:308-315), and a later call answers `S_OK`
-   * once the new device exists. A failed replacement is logged, answered with
-   * `E_FAIL`, and retried on the next call. When it lands, the sampler
-   * factory's states are created again against the new device, keeping their
-   * identity, since pass descriptions compare them by identity.
-   *
+   * @adapted `requestAdapter`/`requestDevice` are
+   *   asynchronous, while Carbon's device creation is synchronous. The first
+   *   call after a loss starts the replacement and answers `E_DEVICELOST`;
+   *   TriDevice retries `ChangeDevice` every tick while its device is lost, as
+   *   Carbon's does (TriDevice12.cpp:308-315), and a later call answers `S_OK`
+   *   once the new device exists. A failed replacement is logged, answered with
+   *   `E_FAIL`, and retried on the next call. When it lands, the sampler
+   *   factory's states are created again against the new device, keeping their
+   *   identity, since pass descriptions compare them by identity.
    * @returns {number} An `ALResult`: `S_OK`, `E_DEVICELOST` while a
    *   replacement is pending, or `E_FAIL` when one failed.
    */
@@ -921,11 +923,10 @@ export class CjsWebgpuRenderContextAL
   /**
    * Whether a device exists.
    *
-   * Adapted: Carbon's DX backends learn of a removed device by asking it
-   * (`GetDeviceRemovedReason()`, TriDevice11.cpp:43, TriDevice12.cpp:290); the
-   * neutral abstraction layer has no such query. Here a lost WebGPU device
-   * makes the context invalid, which is how TriDevice's tick learns of it.
-   *
+   * @adapted Carbon's DX backends learn of a removed device by asking it
+   *   (`GetDeviceRemovedReason()`, TriDevice11.cpp:43, TriDevice12.cpp:290); the
+   *   neutral abstraction layer has no such query. Here a lost WebGPU device
+   *   makes the context invalid, which is how TriDevice's tick learns of it.
    * @returns {boolean} Whether a usable device exists.
    */
   IsValid()
@@ -936,6 +937,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Opens the frame's command buffer.
    *
+   * @adapted
    * @returns {number} `S_OK`.
    */
   BeginScene()
@@ -1065,6 +1067,8 @@ export class CjsWebgpuRenderContextAL
    * Metal's ReleaseLater retains API storage until its frame completes.
    * WebGPU destroy is safe after submit; a callback captures either a texture
    * or an engine buffer handle without retaining a cleared AL value.
+   *
+   * @adapted
    */
   @meta.adapted
   ReleaseLater(release)
@@ -1081,7 +1085,11 @@ export class CjsWebgpuRenderContextAL
     for (const release of pending) release();
   }
 
-  /** Closes and submits the current frame before releasing retired API storage. */
+  /**
+   * Closes and submits the current frame before releasing retired API storage.
+   *
+   * @adapted
+   */
   EndScene()
   {
     this._Record(this._workQueue.EndFrame());
@@ -1132,6 +1140,7 @@ export class CjsWebgpuRenderContextAL
    * carry, so they collapse into one variadic list. The depth attachment is
    * always last.
    *
+   * @adapted
    * @param {...object} attachments `Tr2ColorAttachment`s then a `Tr2DepthAttachment`.
    */
   RenderPassHint(...attachments)
@@ -1142,7 +1151,11 @@ export class CjsWebgpuRenderContextAL
     this._workQueue.RenderPassHint(colors, depth);
   }
 
-  /** Ends the declared pass, so following work opens a new one. */
+  /**
+   * Ends the declared pass, so following work opens a new one.
+   *
+   * @implemented
+   */
   EndRenderPassHint()
   {
     this._Record(this._workQueue.EndRenderPassHint());
@@ -1180,7 +1193,11 @@ export class CjsWebgpuRenderContextAL
     return a.Equals(b);
   }
 
-  /** Binds a retained texture value at one color slot. */
+  /**
+   * Binds a retained texture value at one color slot.
+   *
+   * @adapted
+   */
   SetRenderTarget(slot, renderTarget, slice = 0)
   {
     if (renderTarget && renderTarget !== this._renderTarget && !renderTarget.IsValid()) renderTarget = null;
@@ -1224,6 +1241,7 @@ export class CjsWebgpuRenderContextAL
    * shared stack pops the most recent push whatever its slot, so pushing slot 0
    * then slot 1 and popping slot 0 restores the wrong surface.
    *
+   * @implemented
    * @param {number} [slot] The slot.
    * @returns {number} `S_OK`.
    */
@@ -1239,6 +1257,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Restores the target saved for one slot.
    *
+   * @adapted
    * @param {number} [slot] The slot.
    * @returns {number} An `ALResult`: whether anything was saved.
    */
@@ -1258,6 +1277,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Depth of one slot's stack.
    *
+   * @implemented
    * @param {number} [slot] The slot.
    * @returns {number} The depth.
    */
@@ -1269,6 +1289,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Binds the depth-stencil target.
    *
+   * @adapted
    * @param {object|null} depthStencil A `Tr2TextureAL`, or null to detach.
    * @returns {number} `S_OK`.
    */
@@ -1298,7 +1319,11 @@ export class CjsWebgpuRenderContextAL
     return this._depthStencil;
   }
 
-  /** Saves the bound depth-stencil target. @returns {number} `S_OK`. */
+  /**
+   * Saves the bound depth-stencil target. @returns {number} `S_OK`.
+   *
+   * @implemented
+   */
   PushDepthStencil()
   {
     this._depthStencilStack.push(this._depthStencil ? new Tr2TextureAL({ copy: this._depthStencil }) : null);
@@ -1306,7 +1331,11 @@ export class CjsWebgpuRenderContextAL
     return ALResult.S_OK;
   }
 
-  /** Restores the saved depth-stencil target. @returns {number} An `ALResult`: whether one was saved. */
+  /**
+   * Restores the saved depth-stencil target. @returns {number} An `ALResult`: whether one was saved.
+   *
+   * @implemented
+   */
   PopDepthStencil()
   {
     if (!this._depthStencilStack.length) return ALResult.E_FAIL;
@@ -1318,7 +1347,10 @@ export class CjsWebgpuRenderContextAL
     return ALResult.S_OK;
   }
 
-  /** @returns {number} Depth of the depth-stencil stack. */
+  /**
+   * @implemented
+   * @returns {number} Depth of the depth-stencil stack.
+   */
   GetStackSizeDS()
   {
     return this._depthStencilStack.length;
@@ -1327,6 +1359,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * The size of the target at one slot.
    *
+   * @adapted
    * @param {number} [slot] The slot.
    * @returns {object} `{ result, width, height }`.
    */
@@ -1342,6 +1375,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Sets the viewport following draws use.
    *
+   * @adapted
    * @param {object} viewport `{ x, y, width, height }`.
    * @returns {number} `S_OK`.
    */
@@ -1356,7 +1390,10 @@ export class CjsWebgpuRenderContextAL
     return ALResult.S_OK;
   }
 
-  /** @returns {object|null} The current viewport. */
+  /**
+   * @adapted
+   * @returns {object|null} The current viewport.
+   */
   GetViewport()
   {
     return this._viewport ? { ...this._viewport } : null;
@@ -1379,10 +1416,10 @@ export class CjsWebgpuRenderContextAL
    * CLEARFLAGS_TARGET/ZBUFFER/STENCIL; a call naming none of them clears the
    * target and depth, which is what every caller without flags meant. As in
    * Metal, a cleared target or depth that is not bound is a failure.
-   * Adapted: canvas passes obtain depth from the presentation target rather
-   * than a Tr2TextureAL binding. Validate that same effective attachment used
-   * by _Descriptor, and include its requested clear in the pass load actions.
    *
+   * @adapted canvas passes obtain depth from the presentation target rather
+   *   than a Tr2TextureAL binding. Validate that same effective attachment used
+   *   by _Descriptor, and include its requested clear in the pass load actions.
    * @param {object} [options] `{ color, depth, stencil, clearColor, clearDepth, clearStencil, slot }`.
    * @returns {number} An `ALResult`: whether the clear was declared.
    */
@@ -1431,6 +1468,7 @@ export class CjsWebgpuRenderContextAL
    * WebGPU needs a `GPUComputePipeline`, made once per program here, where a
    * D3D context binds the compute shader directly.
    *
+   * @adapted
    * @param {number} x Thread groups along x.
    * @param {number} y Thread groups along y.
    * @param {number} z Thread groups along z.
@@ -1512,6 +1550,7 @@ export class CjsWebgpuRenderContextAL
    * `INDIRECT` (CjsWebgpuBufferAL); Carbon's particle system creates its sort
    * arguments that way (`Tr2GpuParticleSystem.cpp:212`).
    *
+   * @adapted
    * @param {object} indirectParams A `Tr2BufferAL` holding the group counts.
    * @param {number} [offset] Byte offset of them, a multiple of 4.
    * @returns {number} An `ALResult`: `E_FAIL` for an invalid buffer or no compute program.
@@ -1542,6 +1581,7 @@ export class CjsWebgpuRenderContextAL
    * contents it believes are cleared, which a compute pass cannot detect.
    * Carbon's stub refuses the same way (`Tr2RenderContextALStub.ClearUav`).
    *
+   * @adapted
    * @param {object} resource The buffer or texture to clear.
    * @param {number[]} value The clear value, four components.
    * @param {boolean} [_clearWithFloat] Whether the value is float or integer.
@@ -1574,6 +1614,7 @@ export class CjsWebgpuRenderContextAL
    * The browser presents a configured canvas after the submission that drew
    * into its current texture, so the swap-chain half has nothing to do.
    *
+   * @adapted
    * @returns {number} `S_OK`.
    */
   Present()
@@ -1586,6 +1627,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Sets the primitive topology following draws use.
    *
+   * @adapted
    * @param {number} topology A `Topology` value.
    * @returns {number} An `ALResult`: whether the AL knows it.
    */
@@ -1606,12 +1648,11 @@ export class CjsWebgpuRenderContextAL
   /**
    * Binds the vertex declaration (`Tr2RenderContextMetal.mm:894-899`).
    *
-   * Adapted: Metal copies the handle; this records its implementation, read
-   * as Metal's friend reads `m_layout`, and null for an invalid handle, so the
-   * draw tests one pointer as `CheckDrawResources` tests
-   * `m_vertexLayout.IsValid()` (`:532-539`). The redundancy test and the
-   * pipeline dirtying are DX12's (`Tr2RenderContextDx12.cpp:321`).
-   *
+   * @adapted Metal copies the handle; this records its implementation, read
+   *   as Metal's friend reads `m_layout`, and null for an invalid handle, so the
+   *   draw tests one pointer as `CheckDrawResources` tests
+   *   `m_vertexLayout.IsValid()` (`:532-539`). The redundancy test and the
+   *   pipeline dirtying are DX12's (`Tr2RenderContextDx12.cpp:321`).
    * @param {Tr2VertexLayoutAL} vertexLayout The vertex layout.
    * @returns {number} `S_OK`.
    */
@@ -1638,6 +1679,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Binds one vertex stream.
    *
+   * @adapted
    * @param {number} stream The slot.
    * @param {object} buffer A `Tr2BufferAL`.
    * @param {number} offset Byte offset.
@@ -1662,6 +1704,7 @@ export class CjsWebgpuRenderContextAL
    * Carbon's SetIndices( buffer ) (Tr2RenderContextDx11.cpp:1508): binds the
    * index buffer with its own description's stride.
    *
+   * @implemented
    * @param {object} buffer A `Tr2BufferAL`.
    * @returns {number} `S_OK`.
    */
@@ -1673,6 +1716,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Carbon's SetIndices( buffer, stride ): binds the index buffer.
    *
+   * @adapted
    * @param {object} buffer A `Tr2BufferAL`.
    * @param {number} stride Bytes per index.
    * @returns {number} `S_OK`.
@@ -1689,10 +1733,9 @@ export class CjsWebgpuRenderContextAL
    * Binds the shader program following draws run
    * (`Tr2RenderContextMetal.mm:901-920`): an unchanged program is skipped.
    *
-   * Adapted: Metal copies the handle; this records its implementation, read
-   * as Metal's friend reads `m_program`, and null for an invalid handle, so
-   * the draw tests one pointer.
-   *
+   * @adapted Metal copies the handle; this records its implementation, read
+   *   as Metal's friend reads `m_program`, and null for an invalid handle, so
+   *   the draw tests one pointer.
    * @param {Tr2ShaderProgramAL} value The shader program.
    * @returns {number} `S_OK`.
    */
@@ -1725,6 +1768,7 @@ export class CjsWebgpuRenderContextAL
    * would be the mistake this whole lane exists to undo. This stores the inputs
    * and marks the pipeline dirty, as Carbon's setters do.
    *
+   * @adapted
    * @param {object} setup A `Tr2RenderStateSetup`.
    * @param {object} [overrides] The state manager's render-state overrides.
    * @returns {number} An `ALResult`: whether a setup was supplied.
@@ -1772,6 +1816,7 @@ export class CjsWebgpuRenderContextAL
    * because the resolver is where the projection belongs and adding a second
    * translator here is the mistake this file already carries a warning about.
    *
+   * @adapted
    * @param {number} state A `RenderState` value.
    * @param {number} value The value to set.
    * @returns {number} `S_OK`.
@@ -2375,10 +2420,9 @@ export class CjsWebgpuRenderContextAL
    * `Tr2RenderContextMetal.mm:679-686`): copies the bytes into this frame's
    * arena under a fresh, zeroed token, so every call takes a new region.
    *
-   * Adapted: Carbon returns a `uint64_t` packing Metal's page and offset; the
-   * region is that pair unpacked, which is what a bind group needs. Null with
-   * no device, where Carbon always has one.
-   *
+   * @adapted Carbon returns a `uint64_t` packing Metal's page and offset; the
+   *   region is that pair unpacked, which is what a bind group needs. Null with
+   *   no device, where Carbon always has one.
    * @param {ArrayBufferView} data The constants.
    * @param {number} size Bytes to upload.
    * @returns {{page: number, offset: number, size: number}|null} The region.
@@ -2399,11 +2443,10 @@ export class CjsWebgpuRenderContextAL
    * between keeps one region. Carbon reaches straight into the impl for it
    * (`buffer.m_buffer->m_token`), which is why the impl's token is public.
    *
-   * Adapted: the packed `uint64_t` is returned unpacked, and Carbon's
-   * `return 0` for no storage is null. An implementation of another backend's
-   * kind has no shadow this arena can read and answers null too; Carbon's
-   * handle can only hold the one compiled backend's.
-   *
+   * @adapted the packed `uint64_t` is returned unpacked, and Carbon's
+   *   `return 0` for no storage is null. An implementation of another backend's
+   *   kind has no shadow this arena can read and answers null too; Carbon's
+   *   handle can only hold the one compiled backend's.
    * @param {Tr2ConstantBufferAL} buffer The constant buffer.
    * @returns {{page: number, offset: number, size: number}|null} The region.
    */
@@ -2831,9 +2874,8 @@ export class CjsWebgpuRenderContextAL
    * Binds a prepared set of textures, samplers and buffers.
    *
    *
-   * Adapted: A copied public wrapper retains the shared ownership record while this context
-   * binds the WebGPU implementation.
-   *
+   * @adapted A copied public wrapper retains the shared ownership record while this context
+   *   binds the WebGPU implementation.
    * @param {object} resourceSet A `Tr2ResourceSetAL`.
    * @returns {number} `S_OK`.
    */
@@ -2864,9 +2906,8 @@ export class CjsWebgpuRenderContextAL
    * implementation binds itself (`Tr2ConstantBufferALMetal.mm:81-92`). The
    * bound state is what the draw reads when it assembles its bind groups.
    *
-   * Adapted: the shader type is range-checked too, because the bound table is
-   * keyed by it in JavaScript.
-   *
+   * @adapted the shader type is range-checked too, because the bound table is
+   *   keyed by it in JavaScript.
    * @param {Tr2ConstantBufferAL} buffer The constant buffer.
    * @param {number} constantType A `ShaderType`.
    * @param {number} registerIndex The constant-buffer register.
@@ -2933,6 +2974,7 @@ export class CjsWebgpuRenderContextAL
    * Real, unlike the stub's empty body: `insertDebugMarker` is what a WebGPU
    * capture tool shows, and this is the only reason Carbon's markers exist.
    *
+   * @adapted
    * @param {string} marker The label.
    */
   AddGpuMarker(marker)
@@ -2945,6 +2987,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Opens a named debug group.
    *
+   * @implemented
    * @param {string} marker The label.
    */
   PushGpuMarker(marker)
@@ -2956,7 +2999,11 @@ export class CjsWebgpuRenderContextAL
     if (target) target.pushDebugGroup(String(marker));
   }
 
-  /** Closes the innermost debug group, on the encoder that opened it. */
+  /**
+   * Closes the innermost debug group, on the encoder that opened it.
+   *
+   * @implemented
+   */
   PopGpuMarker()
   {
     const target = this._markerStack.pop();
@@ -2967,6 +3014,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Marks a point in the frame for a profiler.
    *
+   * @adapted
    * @param {string} frameEvent The event name.
    */
   MarkFrameEvent(frameEvent)
@@ -2977,6 +3025,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Tears the device down, dropping every piece of bound state.
    *
+   * @adapted
    * @returns {boolean} True.
    */
   Destroy()
@@ -3032,6 +3081,7 @@ export class CjsWebgpuRenderContextAL
    * pass of a frame drew into whatever the last pass of the previous one had
    * left bound - the same shape as the 2048 shadow-map defect one layer up.
    *
+   * @implemented
    * @returns {boolean} True.
    */
   ResetRenderTargets()
@@ -3051,6 +3101,7 @@ export class CjsWebgpuRenderContextAL
    * default back buffer (`Tr2RenderContextMetal.mm:114-124`); ours receive both
    * through the constructor, so what remains is the registration.
    *
+   * @adapted
    * @returns {boolean} True.
    */
   SetAsPrimary()
@@ -3067,6 +3118,7 @@ export class CjsWebgpuRenderContextAL
    * name on the abstraction-layer contract, and a backend that spells it
    * correctly is a backend the contract cannot reach.
    *
+   * @implemented
    * @returns {object|null} The parameters, or null before any were set.
    */
   GetPresentParamaters()
@@ -3089,6 +3141,7 @@ export class CjsWebgpuRenderContextAL
    * by identity; their GPU objects are created again when the device is
    * (CreateDevice).
    *
+   * @adapted
    * @returns {boolean} True.
    */
   ReleaseDeviceResources()
@@ -3135,6 +3188,7 @@ export class CjsWebgpuRenderContextAL
    * `GetHeight` exactly as a `Tr2TextureAL` does, which is why it can be bound
    * at slot zero without an adapter.
    *
+   * @adapted
    * @returns {object|null} The render target, or null before composition.
    */
   GetDefaultBackBuffer()
@@ -3145,6 +3199,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * The back buffer's pixel format, as a Carbon `PixelFormat`.
    *
+   * @adapted
    * @returns {number} The format, or `PIXEL_FORMAT_UNKNOWN` before composition
    *   or for a canvas format outside the four the spec allows.
    */
@@ -3162,6 +3217,7 @@ export class CjsWebgpuRenderContextAL
    * already exists and is reconfigured instead, which is the same act against a
    * surface the page owns rather than one the backend allocates.
    *
+   * @adapted
    * @param {object} presentParameters Carbon's `Tr2PresentParametersAL`.
    * @returns {number} An `ALResult` value.
    */
@@ -3181,6 +3237,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Whether textures can be reached without a binding.
    *
+   * @implemented
    * @returns {boolean} False. WebGPU has no bindless path at all: every
    *   resource is reached through a bind group.
    */
@@ -3192,6 +3249,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * How much video memory the adapter has.
    *
+   * @implemented
    * @returns {number} Zero, as the stub reports. WebGPU deliberately exposes no
    *   memory size - it is a fingerprinting surface - so this is not a gap that
    *   a later browser fills in.
@@ -3207,6 +3265,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Whether depth is bound read-only.
    *
+   * @implemented
    * @returns {boolean} The flag.
    */
   GetReadOnlyDepth()
@@ -3244,6 +3303,7 @@ export class CjsWebgpuRenderContextAL
    * builds; wiring it there is a pass-descriptor change rather than a state
    * one, and the flag has to exist before it can be read.
    *
+   * @adapted
    * @param {boolean} enable Whether depth is read-only.
    */
   SetReadOnlyDepth(enable)
@@ -3259,6 +3319,7 @@ export class CjsWebgpuRenderContextAL
    * Real when a frame is open: `copyBufferToBuffer` is a command-encoder verb,
    * so it needs the encoder `BeginScene` created and nothing else.
    *
+   * @adapted
    * @param {object} destination The destination `Tr2BufferAL`.
    * @param {number} destinationOffset Byte offset into it.
    * @param {object} source The source `Tr2BufferAL`.
@@ -3296,6 +3357,7 @@ export class CjsWebgpuRenderContextAL
    * Carbon's particle system draws its quads this way
    * (`Tr2GpuParticleSystem.cpp:692-702`).
    *
+   * @adapted
    * @param {object} params A `Tr2BufferAL` with `DRAW_INDIRECT_ARGS` usage.
    * @param {number} [offset] Byte offset of the arguments, a multiple of 4.
    * @returns {number} An `ALResult`: whether the draw was recorded.
@@ -3327,6 +3389,7 @@ export class CjsWebgpuRenderContextAL
    * `DrawIndexedPrimitivesIndirect`; dx11 (`Tr2RenderContextDx11.cpp:1061-1076`)
    * and dx12 (`Tr2RenderContextDx12.cpp:641-665`) take the same arguments.
    *
+   * @adapted
    * @param {object} params A `Tr2BufferAL` with `DRAW_INDIRECT_ARGS` usage.
    * @param {number} [offset] Byte offset of the arguments, a multiple of 4.
    * @returns {number} An `ALResult`: whether the draw was recorded.
@@ -3351,6 +3414,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Declares that a batch of resources is about to be used.
    *
+   * @implemented
    * @param {object} _destination Where they are used.
    * @param {number} _usage How they are used.
    * @param {object[]} _resources The resources.
@@ -3366,6 +3430,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Declares a ray-tracing acceleration structure in use.
    *
+   * @implemented
    * @param {object} _tlas The top-level structure.
    * @returns {number} `S_OK`, as the stub reports.
    */
@@ -3377,6 +3442,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Dispatches rays.
    *
+   * @notSupported
    * @returns {number} `E_FAIL`; WebGPU has no ray-tracing pipeline.
    */
   DispatchRays()
@@ -3387,6 +3453,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Whether the device recorded a GPU state marker after a fault.
    *
+   * @implemented
    * @returns {number} `E_FAIL`; WebGPU surfaces device loss as a promise and a
    *   reason string, with no marker or breadcrumb to read.
    */
@@ -3398,6 +3465,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * The resource a GPU page fault named.
    *
+   * @implemented
    * @returns {number} `E_FAIL`; see `GetGpuStateMarker`.
    */
   GetGpuPageFaultResource()
@@ -3412,6 +3480,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Enables upscaling.
    *
+   * @implemented
    * @returns {number} `UpscalingResult.OK` - Carbon's stub succeeds WITHOUT
    *   creating anything, so a caller that then asks for a context gets null.
    *   That pairing is Carbon's and both halves are kept.
@@ -3424,6 +3493,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * An existing upscaling context.
    *
+   * @implemented
    * @returns {null} Null; none is kept.
    */
   GetUpscalingContext()
@@ -3434,6 +3504,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Creates an upscaling context.
    *
+   * @implemented
    * @returns {null} Null; none is created.
    */
   CreateUpscalingContext()
@@ -3441,7 +3512,11 @@ export class CjsWebgpuRenderContextAL
     return null;
   }
 
-  /** Destroys an upscaling context; there are none. */
+  /**
+   * Destroys an upscaling context; there are none.
+   *
+   * @implemented
+   */
   DeleteUpscalingContext()
   {
   }
@@ -3449,6 +3524,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * What an upscaling context is doing.
    *
+   * @implemented
    * @returns {object} A default `UpscalingInfo`; two of its values are not zero.
    */
   GetUpscalingInfo()
@@ -3473,6 +3549,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * The techniques an adapter supports.
    *
+   * @implemented
    * @returns {Array} Empty.
    */
   GetSupportedUpscalingTechniques()
@@ -3483,6 +3560,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * The upscaling currently set up.
    *
+   * @adapted
    * @returns {object} "No upscaling", in the four fields Carbon fills.
    */
   GetUpscalingSetup()
@@ -3502,6 +3580,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Records the primary render context.
    *
+   * @adapted
    * @param {object} renderContext The context to make primary.
    */
   static SetPrimaryRenderContext(renderContext)
@@ -3512,6 +3591,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * The primary render context, which must exist.
    *
+   * @implemented
    * @returns {object} The primary context.
    */
   static GetPrimaryRenderContext()
@@ -3524,6 +3604,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * The primary render context, or null.
    *
+   * @implemented
    * @returns {object|null} The primary context.
    */
   static GetPrimaryRenderContextPointer()
@@ -3538,6 +3619,7 @@ export class CjsWebgpuRenderContextAL
    * `Tr2RenderContextMetal.mm:419-422`. An indexed draw with nothing to index
    * is a caller error a backend can catch without a device.
    *
+   * @adapted
    * @param {number} indexCountPerInstance Indices each instance reads.
    * @param {number} instanceCount Instances to draw.
    * @param {number} startIndexLocation First index.
@@ -3579,6 +3661,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Draws the bound geometry, non-indexed.
    *
+   * @adapted
    * @param {number} vertexCountPerInstance Vertices each instance reads.
    * @param {number} instanceCount Instances to draw.
    * @param {number} startVertexLocation First vertex.
@@ -3607,6 +3690,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Draws a primitive COUNT, converting it to vertices first.
    *
+   * @adapted
    * @param {number} numVertices Vertices the index range spans.
    * @param {number} startIndex First index.
    * @param {number} primitiveCount Primitives to draw.
@@ -3621,6 +3705,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Draws a primitive count, non-indexed.
    *
+   * @adapted
    * @param {number} startVertex First vertex.
    * @param {number} primitiveCount Primitives to draw.
    * @returns {number} An `ALResult`: whether the draw was recorded.
@@ -3641,6 +3726,7 @@ export class CjsWebgpuRenderContextAL
    * so the helper IS the implementation rather than a detail of it, and the
    * port is shared rather than written again here.
    *
+   * @adapted
    * @param {number} primitiveCount Primitives to draw.
    * @param {ArrayBufferView} vertexStreamZeroData The vertices.
    * @param {number} vertexStreamZeroStride Bytes per vertex.
@@ -3663,6 +3749,7 @@ export class CjsWebgpuRenderContextAL
    * The same helper, staging indices as well as vertices. Carbon has an
    * overload per index width; the width is read off the array here instead.
    *
+   * @adapted
    * @param {number} numVertices Vertices the index data spans.
    * @param {number} primitiveCount Primitives to draw.
    * @param {Uint16Array|Uint32Array} indexData The indices.
@@ -3686,6 +3773,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * How many vertices a primitive count describes at the bound topology.
    *
+   * @implemented
    * @param {number} primitiveCount Primitives.
    * @returns {number} Vertices.
    */

@@ -146,6 +146,7 @@ export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
    * - With an effect below TR2_SFX_ONE_TEXTURE and no primary texture, Carbon dereferences a
    *   null `m_texturePrimary` (cpp:72); this throws a TypeError at the same point (bug, CE-162).
    *
+   * @implemented
    * @param {Tr2Sprite2dScene} renderer Scene gathering this sprite.
    * @returns {void}
    */
@@ -218,6 +219,7 @@ export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
    * without a picking mask the hit test uses radius -1, the scene's inscribed-ellipse test; with a
    * mask, the rectangle and then the mask.
    *
+   * @implemented
    * @param {number} x Screen x.
    * @param {number} y Screen y.
    * @param {Tr2Sprite2dScene} renderer Scene supplying the active transform and clip.
@@ -244,6 +246,7 @@ export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
   /**
    * Carbon Tr2Sprite2dStretchVertical::GetVertexCount (Tr2Sprite2dStretchVertical.cpp:152-160).
    *
+   * @implemented
    * @returns {number} 0 when hidden, otherwise 24.
    */
   @meta.implemented
@@ -265,6 +268,7 @@ export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
    * the sprite is shifted horizontally (Tr2Sprite2dStretchVertical.h:54-55). Carbon's expressions are
    * kept as written.
    *
+   * @implemented
    * @param {Tr2Sprite2dVertexBase[]} v Eight destination vertices.
    * @param {number} srcHeight Source height in texels.
    * @param {ArrayLike<number>} vertOffset Offset added to every position.

@@ -13,13 +13,21 @@ export class TnyOutlineCompositeNode extends ITr2RenderNode
     this._helper = helper;
   }
 
-  /** The later render-job step has one frame destination and no named outputs. */
+  /**
+   * The later render-job step has one frame destination and no named outputs.
+   *
+   * @implemented
+   */
   Validate(dimensions, outputs)
   {
     return !this._helper._destroyed && dimensions.length === 1 && outputs.length === 0;
   }
 
-  /** Consumes only a mask produced for this context and these frame timestamps. */
+  /**
+   * Consumes only a mask produced for this context and these frame timestamps.
+   *
+   * @implemented
+   */
   Execute(destinations, _outputs, realTime, simTime, _rootTimer, renderContext)
   {
     const helper = this._helper;

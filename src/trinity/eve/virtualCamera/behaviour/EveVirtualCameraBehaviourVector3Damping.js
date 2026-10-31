@@ -40,6 +40,8 @@ export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBeh
    * returns the offset from the incoming position to that smoothed one; the
    * first update (local time at or below zero) seeds the retained position and
    * returns zero.
+   *
+   * @adapted
    */
 
   @meta.adapted

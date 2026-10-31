@@ -52,7 +52,8 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
 
   /**
    * Prepares dirty geometry, then reapplies textures and submits cached quads.
-   * Adapted: Array slices replace native pointers; indices stay relative to the slice.
+   *
+   * @adapted Array slices replace native pointers; indices stay relative to the slice.
    */
   @meta.adapted
 
@@ -117,7 +118,11 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
   /** Number of vertices prepared by the most recent gather. @type {number} */
   _vertexCount = 0;
 
-  /** Tests authored dimensions and the optional mask in the active transform. */
+  /**
+   * Tests authored dimensions and the optional mask in the active transform.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PickPoint(x, y, renderer)
@@ -132,7 +137,11 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
     return this;
   }
 
-  /** Budgets a quad plus optional shadow and glow quads before gathering. */
+  /**
+   * Budgets a quad plus optional shadow and glow quads before gathering.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetVertexCount()

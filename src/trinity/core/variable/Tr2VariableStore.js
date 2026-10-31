@@ -37,6 +37,8 @@ export class Tr2VariableStore
 
   /**
    * Native live parent property; uses the existing root-protection setter.
+   *
+   * @implemented
    * @returns {Tr2VariableStore|null} Parent searched after local lookup.
    */
   @be.mapProperty()
@@ -49,6 +51,8 @@ export class Tr2VariableStore
 
   /**
    * Assigns the native live parent property through the root-protection rule.
+   *
+   * @implemented
    * @param {Tr2VariableStore|null} value New parent store.
    * @returns {void}
    */
@@ -73,6 +77,8 @@ export class Tr2VariableStore
   /**
    * The store searched next when a lookup misses here; null on the global store,
    * which is the root.
+   *
+   * @implemented
    * @returns {Tr2VariableStore|null} Current parent.
    */
 
@@ -85,8 +91,9 @@ export class Tr2VariableStore
   /**
    * Assigns the parent used during variable search. The global store keeps
    * no parent, as Carbon enforces.
-   * Adapted: nullish input becomes null. The native development-only cycle
-   * assertion remains a held gap; this method does not validate the graph.
+   *
+   * @adapted nullish input becomes null. The native development-only cycle
+   *   assertion remains a held gap; this method does not validate the graph.
    * @param {Tr2VariableStore|null} variableStore Next store searched.
    * @returns {void}
    */
@@ -109,12 +116,12 @@ export class Tr2VariableStore
    * has no static types, so the caller states it. Returns null on a type
    * conflict without setting the value, as Carbon does.
    *
-   * Adapted: the template parameter is an explicit TriVariableContentType
-   * argument, and the method is public. Carbon's RegisterVariable(name, value)
-   * overloads, and the Python bridge that picks one from the value, are not
-   * ported: JavaScript cannot tell a whole float from an int, or a colour
-   * from a Vector4 (CE-53). Reserve a name with
-   * RegisterVariableType(name, TRIVARIABLE_INVALID).
+   * @adapted the template parameter is an explicit TriVariableContentType
+   *   argument, and the method is public. Carbon's RegisterVariable(name, value)
+   *   overloads, and the Python bridge that picks one from the value, are not
+   *   ported: JavaScript cannot tell a whole float from an int, or a colour
+   *   from a Vector4 (CE-53). Reserve a name with
+   *   RegisterVariableType(name, TRIVARIABLE_INVALID).
    * @param {string} name Local variable name.
    * @param {number} contentType TriVariableContentType of the value.
    * @param {*} value Value to store.
@@ -135,8 +142,9 @@ export class Tr2VariableStore
    * reusing the one already registered under the name, and registers that.
    * Carbon quirk, reproduced: the existing variable is looked up in
    * GlobalStore even on a local store (cpp:222).
-   * Adapted: explicit copy construction replaces C++ value assignment, which
-   * JavaScript assignment would alias.
+   *
+   * @adapted explicit copy construction replaces C++ value assignment, which
+   *   JavaScript assignment would alias.
    * @param {string} name Local variable name.
    * @param {Tr2TextureAL} texture Texture to publish.
    * @returns {TriVariable|null} Registered variable, or null on a type conflict.
@@ -161,10 +169,11 @@ export class Tr2VariableStore
   /**
    * Carbon's Python RegisterVariable( name, value ) (Tr2VariableStore_Blue.cpp:95-150),
    * which picks a C++ overload from the value's Python type.
-   * Not supported: a JavaScript value cannot say its own type - a whole float
-   * reads as an int, and a colour as a Vector4 (CE-53). Callers state it:
-   * RegisterVariableInternal(name, type, value), RegisterVariableType(name,
-   * type) to reserve a name, or RegisterVariable__TextureAL for a raw texture.
+   *
+   * @notSupported a JavaScript value cannot say its own type - a whole float
+   *   reads as an int, and a colour as a Vector4 (CE-53). Callers state it:
+   *   RegisterVariableInternal(name, type, value), RegisterVariableType(name,
+   *   type) to reserve a name, or RegisterVariable__TextureAL for a raw texture.
    * @throws {TypeError} Always.
    */
   @be.mapMethod()
@@ -176,6 +185,8 @@ export class Tr2VariableStore
 
   /**
    * Unregisters a variable in this store or the first parent that has it.
+   *
+   * @implemented
    * @param {string} name Variable name to remove.
    * @returns {void}
    */
@@ -197,8 +208,9 @@ export class Tr2VariableStore
   /**
    * Unregisters a variable in this store only; the removed variable is
    * invalidated so existing references stop binding.
-   * Adapted: existing JavaScript nullish names address the empty-string key;
-   * native null names return false without looking up an entry.
+   *
+   * @adapted existing JavaScript nullish names address the empty-string key;
+   *   native null names return false without looking up an entry.
    * @param {string|null} name Local key to remove.
    * @returns {boolean} Whether an entry was removed.
    */
@@ -219,6 +231,8 @@ export class Tr2VariableStore
 
   /**
    * Searches this store and its parents; null when not found.
+   *
+   * @implemented
    * @param {string} name Variable name to search.
    * @returns {TriVariable|null} First matching local or ancestor variable.
    */
@@ -241,8 +255,9 @@ export class Tr2VariableStore
 
   /**
    * Searches this store only; null when not found.
-   * Adapted: existing JavaScript nullish names address the empty-string key;
-   * native null names return null without looking up an entry.
+   *
+   * @adapted existing JavaScript nullish names address the empty-string key;
+   *   native null names return null without looking up an entry.
    * @param {string|null} name Local key to search.
    * @returns {TriVariable|null} Existing local variable.
    */
@@ -256,6 +271,8 @@ export class Tr2VariableStore
   /**
    * Searches this store and its parents; a miss reserves the name in THIS
    * store with the INVALID type.
+   *
+   * @implemented
    * @param {string} name Variable name to find or reserve.
    * @returns {TriVariable} Matching variable or a new local reservation.
    */
@@ -274,8 +291,9 @@ export class Tr2VariableStore
   /**
    * Searches this store only; a miss reserves the name here with the
    * INVALID type.
-   * Adapted: the existing JavaScript empty-key normalization also reserves a
-   * nullish name, whereas native null names return null without reservation.
+   *
+   * @adapted the existing JavaScript empty-key normalization also reserves a
+   *   nullish name, whereas native null names return null without reservation.
    * @param {string|null} name Local key to find or reserve.
    * @returns {TriVariable} Existing or reserved local variable.
    */
@@ -288,8 +306,9 @@ export class Tr2VariableStore
 
   /**
    * Gets the names of the variables held locally by this store.
-   * Adapted: JavaScript Map enumeration uses insertion order rather than the
-   * native unordered-map iteration order.
+   *
+   * @adapted JavaScript Map enumeration uses insertion order rather than the
+   *   native unordered-map iteration order.
    * @returns {string[]} Local names in insertion order.
    */
   @be.mapMethodAndWrap()
@@ -305,11 +324,11 @@ export class Tr2VariableStore
    * only reserved as INVALID, returns null on a hard type conflict, and
    * otherwise creates the local variable, which holds no value until SetValue.
    *
-   * Adapted: public here, so a name can be reserved (TRIVARIABLE_INVALID) or
-   * typed before it has a value; RegisterVariableInternal registers and sets
-   * in one call.
-   * The conflict result keeps Carbon's null without its log and development
-   * assertion.
+   * @adapted public here, so a name can be reserved (TRIVARIABLE_INVALID) or
+   *   typed before it has a value; RegisterVariableInternal registers and sets
+   *   in one call.
+   *   The conflict result keeps Carbon's null without its log and development
+   *   assertion.
    * @param {string} name Local key.
    * @param {number} contentType Native TriVariableContentType.
    * @returns {TriVariable|null} Reused or created variable, or type conflict.
@@ -405,8 +424,9 @@ export class Tr2VariableStore
 
   /**
    * The root of the variable-store graph (Carbon's free GlobalStore function).
-   * Adapted: a static entry and construction guard preserve the native singleton
-   * without the protected-constructor overload.
+   *
+   * @adapted a static entry and construction guard preserve the native singleton
+   *   without the protected-constructor overload.
    * @returns {Tr2VariableStore} Process-global store.
    */
   @meta.adapted

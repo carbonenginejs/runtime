@@ -5,12 +5,17 @@ import { IRoot } from "./IRoot.js";
 // three states of its load. Plain JavaScript so a test can import it raw.
 import { CjsSchema, meta } from "#schema";
 
-/** `IBlueResource` - a loadable resource's identity and load state. */
+/**
+ * `IBlueResource` - a loadable resource's identity and load state.
+ *
+ * @abstract
+ */
 export class IBlueResource extends IRoot
 {
   /**
    * `Initialize` - sets the resource identity.
    *
+   * @abstract
    * @param {string} name The resource path.
    * @param {string} ext The extension.
    */
@@ -19,6 +24,7 @@ export class IBlueResource extends IRoot
   /**
    * `GetPath` - the resource path.
    *
+   * @abstract
    * @returns {string}
    */
   GetPath() {}
@@ -26,6 +32,7 @@ export class IBlueResource extends IRoot
   /**
    * `GetExt` - the resource extension.
    *
+   * @abstract
    * @returns {string}
    */
   GetExt() {}
@@ -33,6 +40,7 @@ export class IBlueResource extends IRoot
   /**
    * `IsLoading` - true as soon as the load phase is done; prepare may still be pending.
    *
+   * @abstract
    * @returns {boolean}
    */
   IsLoading() {}
@@ -40,6 +48,7 @@ export class IBlueResource extends IRoot
   /**
    * `IsPrepared` - true as soon as prepare has finished. Errors in either phase show in `IsGood`.
    *
+   * @abstract
    * @returns {boolean}
    */
   IsPrepared() {}
@@ -47,6 +56,7 @@ export class IBlueResource extends IRoot
   /**
    * `IsGood` - true when the resource loaded and prepared without errors.
    *
+   * @abstract
    * @returns {boolean}
    */
   IsGood() {}

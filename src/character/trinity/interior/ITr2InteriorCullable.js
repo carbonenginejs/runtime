@@ -6,7 +6,11 @@ import { CjsSchema, meta } from "#schema";
 /** Tests interior visibility and provides the object's world transform. */
 export class ITr2InteriorCullable extends IRoot
 {
-  /** Tests the frustum and writes the object-to-world matrix. */
+  /**
+   * Tests the frustum and writes the object-to-world matrix.
+   *
+   * @abstract
+   */
   IsInFrustum(_frustum, _objectToWorld) {}
 }
 CjsSchema.decorateMethod(ITr2InteriorCullable, "IsInFrustum", meta.abstract);

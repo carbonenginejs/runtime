@@ -30,6 +30,7 @@ export class CjsMeshConstructor extends IBlueDynamicResourceConstructor
   /**
    * A built mesh costs a download and a decode to rebuild, so it is kept.
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
 
@@ -40,6 +41,8 @@ export class CjsMeshConstructor extends IBlueDynamicResourceConstructor
 
   /**
    * Create the resource; its native asynchronous load owns the selected mesh read.
+   *
+   * @adapted
    * @param {string} query Mesh index and source path after the dynamic mesh prefix.
    * @returns {TriGeometryRes} Initialized mesh resource.
    */
@@ -56,6 +59,7 @@ export class CjsMeshConstructor extends IBlueDynamicResourceConstructor
    * The mesh index and source path of a mesh query, or null when it is
    * malformed or the source is neither a `.gr2` nor a `.cmf` file.
    *
+   * @implemented
    * @param {string} query `<meshIndex>/<source path>`.
    * @returns {{meshIndex: number, path: string}|null} The request.
    */
@@ -73,6 +77,7 @@ export class CjsMeshConstructor extends IBlueDynamicResourceConstructor
   /**
    * The `dynamic:/mesh/` path for one mesh of a source file.
    *
+   * @implemented
    * @param {number} meshIndex Mesh to keep.
    * @param {string} sourcePath The `.gr2` or `.cmf` resource path.
    * @returns {string} The mesh path.

@@ -14,7 +14,11 @@
 import { exposure as be } from "#be";
 import { meta } from "#schema";
 
-/** Receives change notifications from an atlas texture it registered with. */
+/**
+ * Receives change notifications from an atlas texture it registered with.
+ *
+ * @abstract
+ */
 @meta.carbon("ITr2AtlasTextureNotifyTarget")
 @be.abstract
 export class ITr2AtlasTextureNotifyTarget
@@ -23,6 +27,7 @@ export class ITr2AtlasTextureNotifyTarget
    * Carbon pure virtual `AtlasTextureChanged`: the atlas texture changed in a
    * way that invalidates whatever was built from it.
    *
+   * @abstract
    * @param {import("./Tr2AtlasTexture.js").Tr2AtlasTexture} _texture The atlas texture that changed.
    * @returns {void}
    */

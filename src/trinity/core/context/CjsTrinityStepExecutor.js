@@ -8,15 +8,27 @@ import { meta } from "#schema";
 export class CjsTrinityStepExecutor
 {
 
-  /** Begins one canonical render step. */
+  /**
+   * Begins one canonical render step.
+   *
+   * @abstract
+   */
   @meta.abstract
   BeginStep(_step, _realTime, _simTime, _job, _context) {}
 
-  /** Executes one canonical render step. */
+  /**
+   * Executes one canonical render step.
+   *
+   * @abstract
+   */
   @meta.abstract
   ExecuteStep(_step, _realTime, _simTime, _job, _context) {}
 
-  /** Ends one canonical render step. */
+  /**
+   * Ends one canonical render step.
+   *
+   * @abstract
+   */
   @meta.abstract
   EndStep(_step, _realTime, _simTime, _job, _context) {}
 
@@ -27,11 +39,19 @@ export class CjsTrinityStepExecutor
   // calls. The executor's copies were the retired intent-recording mechanism's
   // and no longer had a caller - the direct executor's were empty bodies.
 
-  /** Opens a render-target and depth-stencil batch bracket. */
+  /**
+   * Opens a render-target and depth-stencil batch bracket.
+   *
+   * @abstract
+   */
   @meta.abstract
   BeginBatch(_owner, _context) {}
 
-  /** Closes a render-target and depth-stencil batch bracket. */
+  /**
+   * Closes a render-target and depth-stencil batch bracket.
+   *
+   * @abstract
+   */
   @meta.abstract
   EndBatch(_owner, _context) {}
 

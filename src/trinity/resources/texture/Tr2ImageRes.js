@@ -42,6 +42,8 @@ export class Tr2ImageRes extends BlueAsyncRes
   /**
    * Carbon DoLoad (Tr2ImageRes.cpp:39-52). Browser decoding may run in a worker;
    * the manager checks cancellation before the decoded bitmap is adopted.
+   *
+   * @adapted
    * @returns {Promise<number>} Native LoadingResult.
    */
   async _DoLoad()
@@ -59,6 +61,7 @@ export class Tr2ImageRes extends BlueAsyncRes
   /**
    * Return image width in pixels.
    *
+   * @adapted
    * @returns {number}
    */
   GetWidth()
@@ -69,6 +72,7 @@ export class Tr2ImageRes extends BlueAsyncRes
   /**
    * Return image height in pixels.
    *
+   * @adapted
    * @returns {number}
    */
   GetHeight()
@@ -83,6 +87,7 @@ export class Tr2ImageRes extends BlueAsyncRes
    * adapted: Carbon returns a `Color`; this returns `{r, g, b, a}` in 0..1,
    * the shape `HostBitmap.GetPixel` already answers in.
    *
+   * @adapted
    * @param {number} x Pixel column.
    * @param {number} y Pixel row.
    * @returns {{r: number, g: number, b: number, a: number}} The colour.
@@ -112,6 +117,7 @@ export class Tr2ImageRes extends BlueAsyncRes
    * Carbon IsPixelOpaque (Tr2ImageRes.cpp:54-70): BGRA only, and "opaque"
    * means an alpha byte above 0x7f.
    *
+   * @adapted
    * @param {number} x Pixel column.
    * @param {number} y Pixel row.
    * @returns {boolean} Whether the pixel is opaque.
@@ -134,6 +140,7 @@ export class Tr2ImageRes extends BlueAsyncRes
   /**
    * Carbon GetBitmap (Tr2ImageRes.cpp:110-113): the bitmap DoLoad decoded.
    *
+   * @adapted
    * @returns {HostBitmap} The bitmap, valid once the image has loaded.
    */
   GetBitmap()
@@ -145,6 +152,7 @@ export class Tr2ImageRes extends BlueAsyncRes
    * Carbon: Tr2ImageRes::DoPrepare (Tr2ImageRes.cpp:50-53): nothing to prepare. The
    * decoded bitmap is the whole resource and no device object is made from it.
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
   _DoPrepare()
@@ -156,6 +164,7 @@ export class Tr2ImageRes extends BlueAsyncRes
    * Carbon IsMemoryUsageKnown (cpp:14): usage is only trustworthy once the
    * async load has settled.
    *
+   * @implemented
    * @returns {boolean}
    */
   IsMemoryUsageKnown()
@@ -163,7 +172,11 @@ export class Tr2ImageRes extends BlueAsyncRes
     return !this.IsLoading();
   }
 
-  /** Carbon GetMemoryUsage (Tr2ImageRes.cpp:19): bitmap size or unloaded placeholder. */
+  /**
+   * Carbon GetMemoryUsage (Tr2ImageRes.cpp:19): bitmap size or unloaded placeholder.
+   *
+   * @adapted
+   */
   GetMemoryUsage()
   {
     return this.bitmap.IsValid() ? this.bitmap.GetRawDataSize() : 1024;
@@ -172,8 +185,9 @@ export class Tr2ImageRes extends BlueAsyncRes
 
   /**
    * Explicit JS cleanup of the bitmap owned by Carbon's resource destructor.
-   * Adapted: explicit JS teardown replaces native destruction; the existing
-   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   *
+   * @adapted explicit JS teardown replaces native destruction; the existing
+   *   MotherLode switches keep CPU data and opaque adapter cleanup independent.
    * @param {object} [options={}] Existing MotherLode cleanup policy.
    * @param {boolean} [options.releasePayload=true] Release owned family data.
    * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.

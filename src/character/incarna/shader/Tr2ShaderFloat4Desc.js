@@ -14,6 +14,8 @@ import { meta, type } from "#schema";
  * persist.
  *
  * Data only.
+ *
+ * @adapted
  */
 @meta.define("Tr2ShaderFloat4Desc")
 @meta.adapted

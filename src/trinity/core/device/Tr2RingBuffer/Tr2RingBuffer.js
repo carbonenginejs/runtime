@@ -137,6 +137,7 @@ export class Tr2RingBuffer
    * so preparation reacquires the current main-thread context; explicit
    * isolated contexts retain the existing JS argument adaptation.
    *
+   * @adapted
    * @param {string} key Names the data type, e.g. "ChildBoosterInstance".
    * @param {number} stride Bytes per row.
    * @param {object} renderContext The context to create the buffer through.
@@ -221,6 +222,7 @@ export class Tr2RingBuffer
   /**
    * Names the ring, and its buffer if one exists.
    *
+   * @implemented
    * @param {string} name The debug label.
    * @returns {void}
    */
@@ -236,6 +238,7 @@ export class Tr2RingBuffer
   /**
    * The backend buffer these rows live in.
    *
+   * @implemented
    * @returns {object|null} The buffer, or null until backend creation succeeds.
    */
 
@@ -253,6 +256,7 @@ export class Tr2RingBuffer
    * BEHIND the tail and would reach it, the ring is full of frames the GPU may
    * still be reading, so it doubles instead of overwriting them.
    *
+   * @implemented
    * @param {ArrayBufferView} data The packed rows.
    * @param {number} count How many rows.
    * @returns {number} The element offset the rows landed at.
@@ -297,10 +301,9 @@ export class Tr2RingBuffer
   /**
    * Pushes what changed to the backend and locks it for this frame.
    *
-   * Adapted: a failed JS buffer factory leaves null rather than an invalid
-   * inline buffer. Skip that failed update but retain Carbon's region/fence
-   * bookkeeping; later preparation restores all bytes from the CPU mirror.
-   *
+   * @adapted a failed JS buffer factory leaves null rather than an invalid
+   *   inline buffer. Skip that failed update but retain Carbon's region/fence
+   *   bookkeeping; later preparation restores all bytes from the CPU mirror.
    * @param {object} renderContext The context to update through.
    * @returns {void}
    */
@@ -334,6 +337,7 @@ export class Tr2RingBuffer
    * still reading corrupts it, and the cost of being late is a slightly larger
    * ring.
    *
+   * @implemented
    * @param {number} recordingFrame The frame being recorded.
    * @param {number} completedFrame The frame the device reports finished.
    * @returns {void}
@@ -367,11 +371,10 @@ export class Tr2RingBuffer
    * with the tail at the new one, so the next upload lands in the fresh space
    * and everything already written is re-uploaded once.
    *
-   * Adapted: a failed JS factory returns null instead of leaving Carbon's
-   * inline buffer invalid. An unavailable context is deferred without asking
-   * the factory to create an unreachable invalid resource. Both retain the
-   * mirror for OnPrepareResources.
-   *
+   * @adapted a failed JS factory returns null instead of leaving Carbon's
+   *   inline buffer invalid. An unavailable context is deferred without asking
+   *   the factory to create an unreachable invalid resource. Both retain the
+   *   mirror for OnPrepareResources.
    * @param {number} size The new capacity, in elements.
    * @returns {void}
    */
@@ -400,6 +403,7 @@ export class Tr2RingBuffer
   /**
    * Prepares the arena when resource creation is allowed (Tr2DeviceResource.cpp:21-32).
    *
+   * @implemented
    * @returns {boolean} Whether preparation succeeded or was deferred.
    */
   @meta.implemented
@@ -413,6 +417,7 @@ export class Tr2RingBuffer
    * Retains the mirror/provider; Carbon's ring release is empty (cpp:143-145).
    * The AL resource lifecycle invalidates the backing storage separately.
    *
+   * @implemented
    * @param {number} _storage Storage mask.
    * @returns {void}
    */
@@ -425,14 +430,13 @@ export class Tr2RingBuffer
   /**
    * Recreates invalid backend storage from the retained CPU mirror (cpp:147-158).
    *
-   * Adapted: the JS context may replace its AL at runtime, so an otherwise
-   * valid buffer from the previous backend must also be recreated. Ambient
-   * rings reacquire the current main-thread context, as Carbon does, including
-   * after context destruction/recreation. Explicit isolated contexts remain
-   * supported by the existing GetInstance argument. The ring
-   * and its offsets remain unchanged. Failed allocation retains the mirror,
-   * just as Carbon keeps its invalid inline buffer for another preparation.
-   *
+   * @adapted the JS context may replace its AL at runtime, so an otherwise
+   *   valid buffer from the previous backend must also be recreated. Ambient
+   *   rings reacquire the current main-thread context, as Carbon does, including
+   *   after context destruction/recreation. Explicit isolated contexts remain
+   *   supported by the existing GetInstance argument. The ring
+   *   and its offsets remain unchanged. Failed allocation retains the mirror,
+   *   just as Carbon keeps its invalid inline buffer for another preparation.
    * @returns {boolean} True, matching Carbon even if allocation fails.
    */
 

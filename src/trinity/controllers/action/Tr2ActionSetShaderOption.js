@@ -34,8 +34,9 @@ export class Tr2ActionSetShaderOption extends ITr2ControllerAction
 
   /**
    * Sets a shader option on the controller owner when supported.
-   * Adapted: preserves the existing owner adapter until the native
-   * IShaderConfigurer contract is ported; this is not a native BlueCast check.
+   *
+   * @adapted preserves the existing owner adapter until the native
+   *   IShaderConfigurer contract is ported; this is not a native BlueCast check.
    */
 
   @meta.adapted

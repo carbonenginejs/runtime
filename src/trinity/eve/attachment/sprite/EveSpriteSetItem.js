@@ -74,8 +74,8 @@ export class EveSpriteSetItem extends IRoot
    * - the sprite at its largest blink scale. `out` is required; the item-set
    * bounds builder supplies its own scratch.
    *
-   * Adapted: Carbon returns Sphere by value; JavaScript follows the runtime sphere
-   * out-parameter convention.
+   * @adapted Carbon returns Sphere by value; JavaScript follows the runtime sphere
+   *   out-parameter convention.
    */
 
   @meta.adapted
@@ -84,7 +84,11 @@ export class EveSpriteSetItem extends IRoot
     return box3.fromPositionRadius(out, this.position, this.maxScale);
   }
 
-  /** The parent bone this sprite rides. */
+  /**
+   * The parent bone this sprite rides.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoneIndex()

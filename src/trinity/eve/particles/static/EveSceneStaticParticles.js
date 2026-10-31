@@ -101,7 +101,11 @@ export class EveSceneStaticParticles extends IRoot
    * stamped by Update. */
   center = vec3.create();
 
-  /** Carbon's post-hydration initializer has no additional work. */
+  /**
+   * Carbon's post-hydration initializer has no additional work.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -109,12 +113,16 @@ export class EveSceneStaticParticles extends IRoot
     return true;
   }
 
-  /** Carbon EveSceneStaticParticles::Update (cpp:90-105): the same
+  /**
+   * Carbon EveSceneStaticParticles::Update (cpp:90-105): the same
    * low-quality/clusters/mesh triple early-out as UpdateVisibility; stashes
    * the previous world matrix, rebuilds the camera-relative translation from
    * the DOUBLE-precision offset centerOfClusters - origin (narrowed to
    * float32 per component only when it enters the matrix, Carbon's
-   * float(offset.x) casts), and stamps the world-space sphere center. */
+   * float(offset.x) casts), and stamps the world-space sphere center.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(updateContext)
@@ -138,7 +146,8 @@ export class EveSceneStaticParticles extends IRoot
     vec3.transformMat4(this.center, this.boundingSphere, this.worldMatrix);
   }
 
-  /** Carbon EveSceneStaticParticles::UpdateVisibility (cpp:107-123): visible
+  /**
+   * Carbon EveSceneStaticParticles::UpdateVisibility (cpp:107-123): visible
    * is stamped false first (so a quality toggle / cleared clusters drop the
    * system the same frame); the pixel size is measured on the UNTRANSLATED
    * LOCAL bounding sphere (cpp:117) while the inside test and the frustum
@@ -146,7 +155,10 @@ export class EveSceneStaticParticles extends IRoot
    * camera being inside the cluster sphere bypasses BOTH the frustum test
    * and the size gate; the size gate is strict > against
    * PARTICLE_CLUSTER_MIN_SIZE * lodFactor. estimatedSize is stamped even
-   * when invisible - GetBatches consumes it as the LOD size (cpp:139). */
+   * when invisible - GetBatches consumes it as the LOD size (cpp:139).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext)
@@ -170,9 +182,13 @@ export class EveSceneStaticParticles extends IRoot
     this.visible = inBoundingSphere || (this.IsVisible(updateContext) && estimatedSizeWithinBounds);
   }
 
-  /** Carbon EveSceneStaticParticles::IsVisible (cpp:170-174): the world-space
+  /**
+   * Carbon EveSceneStaticParticles::IsVisible (cpp:170-174): the world-space
    * center with the local radius through the ONE-ARG IsSphereVisible - the
-   * back-plane-ignored TriFrustum quirk applies (cullBackPlane false). */
+   * back-plane-ignored TriFrustum quirk applies (cullBackPlane false).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsVisible(updateContext)
@@ -181,9 +197,13 @@ export class EveSceneStaticParticles extends IRoot
     return updateContext.GetFrustum().IsSphereVisible(SPHERE_SCRATCH);
   }
 
-  /** Carbon EveSceneStaticParticles::GetRenderables (cpp:129-135): pushes the
+  /**
+   * Carbon EveSceneStaticParticles::GetRenderables (cpp:129-135): pushes the
    * object ITSELF when visible; the frustum parameter is deliberately unused
-   * (kept for the scene call-site contract, EveSpaceScene.cpp:1504-1507). */
+   * (kept for the scene call-site contract, EveSpaceScene.cpp:1504-1507).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(_frustum, out)
@@ -195,9 +215,13 @@ export class EveSceneStaticParticles extends IRoot
     return out;
   }
 
-  /** Carbon EveSceneStaticParticles::GetBatches (cpp:137-140): the mesh's
+  /**
+   * Carbon EveSceneStaticParticles::GetBatches (cpp:137-140): the mesh's
    * areas of the requested type with the stamped estimatedSize as the LOD
-   * screen size. */
+   * screen size.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
@@ -205,8 +229,12 @@ export class EveSceneStaticParticles extends IRoot
     this.mesh.GetBatches(batches, this.mesh.GetAreas(batchType), perObjectData, this.estimatedSize);
   }
 
-  /** Carbon EveSceneStaticParticles::GetShadowBatches (cpp:142-145): the
-   * particle clusters never cast shadows. */
+  /**
+   * Carbon EveSceneStaticParticles::GetShadowBatches (cpp:142-145): the
+   * particle clusters never cast shadows.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetShadowBatches(_batches, _perObjectData, _shadowPixelSize)
@@ -214,12 +242,14 @@ export class EveSceneStaticParticles extends IRoot
     return false;
   }
 
-  /** Carbon EveSceneStaticParticles::GetPerObjectData (cpp:147-158): the
+  /**
+   * Carbon EveSceneStaticParticles::GetPerObjectData (cpp:147-158): the
    * world/lastWorld pair (HLSL packing transposes of single matrices - no
    * composition).
    *
-   * Adapted: the accumulator allocates the catalogued record by name, and
-   * SetAndTranspose writes the stored layout. */
+   * @adapted the accumulator allocates the catalogued record by name, and
+   *   SetAndTranspose writes the stored layout.
+   */
 
   @meta.adapted
   GetPerObjectData(accumulator)
@@ -234,7 +264,11 @@ export class EveSceneStaticParticles extends IRoot
     return data;
   }
 
-  /** Carbon EveSceneStaticParticles::HasTransparentBatches (cpp:160-163). */
+  /**
+   * Carbon EveSceneStaticParticles::HasTransparentBatches (cpp:160-163).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -242,7 +276,11 @@ export class EveSceneStaticParticles extends IRoot
     return false;
   }
 
-  /** Carbon EveSceneStaticParticles::GetSortValue (cpp:165-168). */
+  /**
+   * Carbon EveSceneStaticParticles::GetSortValue (cpp:165-168).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -252,6 +290,8 @@ export class EveSceneStaticParticles extends IRoot
 
   /**
    * Carbon EveSceneStaticParticles::GetDebugOptions (cpp:176-179).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -264,6 +304,8 @@ export class EveSceneStaticParticles extends IRoot
   /**
    * Carbon EveSceneStaticParticles::RenderDebugInfo (cpp:185-193): the
    * cluster bounding sphere, centre transformed into world space.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -286,8 +328,8 @@ export class EveSceneStaticParticles extends IRoot
   /**
    * Carbon method AddCluster (MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Carbon's native ClusterData/Vector3d value is represented by a plain record
-   * with a Float64Array position.
+   * @adapted Carbon's native ClusterData/Vector3d value is represented by a plain record
+   *   with a Float64Array position.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -306,9 +348,9 @@ export class EveSceneStaticParticles extends IRoot
    * Rebuilds particle instance rows and publishes their bounds.
    * Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp:225-327
    *
-   * Adapted: CPU rows use SetElementLayout/SetData in place of native buffer
-   * writes. Random draws use Carbon's shared CRT stream; a nonzero cluster seed reseeds it.
-   * Boolean return and empty-cluster cleanup still differ from native.
+   * @adapted CPU rows use SetElementLayout/SetData in place of native buffer
+   *   writes. Random draws use Carbon's shared CRT stream; a nonzero cluster seed reseeds it.
+   *   Boolean return and empty-cluster cleanup still differ from native.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -414,6 +456,8 @@ export class EveSceneStaticParticles extends IRoot
   /**
    * Clears clusters and destroys data only on the runtime instance-data class.
    * Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp:64-74
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -429,8 +473,8 @@ export class EveSceneStaticParticles extends IRoot
    * Gets the mesh's concrete runtime instance data, or null on a failed cast.
    * Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp:200-218
    *
-   * Adapted: CjsSchema.cast represents QueryInterface and the logging channel
-   * is explicit because JavaScript modules have no native module-name linker symbol.
+   * @adapted CjsSchema.cast represents QueryInterface and the logging channel
+   *   is explicit because JavaScript modules have no native module-name linker symbol.
    * @private
    * @returns {Tr2RuntimeInstanceData|null} The accepted instance-data receiver.
    */

@@ -58,6 +58,8 @@ export class EveRemotePositionCurve extends ITriVectorFunction
   /**
    * Carbon's inline UpdateValue (EveRemotePositionCurve.h:20-24) calls the double Update, which is a no-op; the sweep
    * advances only through Update__Ticks.
+   *
+   * @implemented
    * @param {number} time Seconds.
    */
 
@@ -70,6 +72,8 @@ export class EveRemotePositionCurve extends ITriVectorFunction
   /**
    * Carbon's Update(double) is a no-op returning its input (EveRemotePositionCurve.cpp:75-78); Update__Ticks advances
    * the sweep.
+   *
+   * @implemented
    * @param {number} _time Unused seconds.
    * @param {Float32Array} out Caller-owned vec3, returned unchanged.
    * @returns {Float32Array} out
@@ -86,6 +90,8 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * interpolated offset into both value and out. The start time latches on the first call, the sweep stays at its
    * first direction until delayTime has passed, and with cycle set it wraps every sweepTime instead of holding at the
    * second direction. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Caller-owned vec3; zeroed when there is no start-position curve.
    * @returns {Float32Array} out
@@ -124,6 +130,8 @@ export class EveRemotePositionCurve extends ITriVectorFunction
   /**
    * Reports the value computed by the last Update; the time argument is ignored
    * and nothing is re-evaluated.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -135,6 +143,8 @@ export class EveRemotePositionCurve extends ITriVectorFunction
   /**
    * The first derivative is not modelled for this curve; out is returned
    * untouched.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -146,6 +156,8 @@ export class EveRemotePositionCurve extends ITriVectorFunction
   /**
    * The second derivative is not modelled for this curve; out is returned
    * untouched.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -157,6 +169,8 @@ export class EveRemotePositionCurve extends ITriVectorFunction
   /**
    * Copies the value computed by the last Update; the time argument is ignored
    * and nothing is re-evaluated.
+   *
+   * @implemented
    */
 
   @meta.implemented

@@ -31,6 +31,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * `E_FAIL` either way: dx11 answers it for an invalid context and for a device
    * that refuses the query, and every WebGL2 device refuses this one.
    *
+   * @adapted
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
@@ -46,6 +47,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the query was created: never.
    *
+   * @notSupported
    * @returns {boolean} False.
    */
   IsValid()
@@ -56,6 +58,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * dx11's answer for a query never created (`:40-51`).
    *
+   * @notSupported
    * @returns {number} `E_INVALIDARG`.
    */
   Begin(_renderContext)
@@ -66,6 +69,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * dx11's answer for a query never created (`:53-64`).
    *
+   * @notSupported
    * @returns {number} `E_INVALIDARG`.
    */
   End(_renderContext)
@@ -76,6 +80,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * dx11's answer for a query never created (`:66-77`).
    *
+   * @adapted
    * @returns {{result: number, data: Tr2PipelineStatsDataALWebgl2}} dx11's out argument comes back here.
    */
   @meta.adapted
@@ -88,6 +93,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * How many values a statistics record holds: none on WebGL2 (dx11 answers
    * its fixed field table's size, `:79-82`).
    *
+   * @adapted
    * @param {Array} _data A statistics record.
    * @returns {number} Zero.
    */
@@ -100,6 +106,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * A value's label (`:84-87`); there are no values.
    *
+   * @adapted
    * @param {Array} _data A statistics record.
    * @param {number} _index The value index.
    * @returns {string} The empty string.
@@ -113,6 +120,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * A value's description (`:89-92`); there are no values.
    *
+   * @adapted
    * @param {Array} _data A statistics record.
    * @param {number} _index The value index.
    * @returns {string} The empty string.
@@ -126,6 +134,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * A value (`:94-97`); there are no values.
    *
+   * @adapted
    * @param {Array} _data A statistics record.
    * @param {number} _index The value index.
    * @returns {number} Zero.
@@ -139,6 +148,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this query occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -149,6 +159,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the query for the device-resource registry, with dx11's keys.
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -160,6 +171,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the query, kept for `Describe`.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

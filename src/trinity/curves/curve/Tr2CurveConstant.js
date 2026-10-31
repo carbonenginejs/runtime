@@ -53,6 +53,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
   /**
    * Carbon no-op retained for function interface compatibility.
    *
+   * @adapted
    * @param {number} _time Time in seconds.
    * @returns {void}
    */
@@ -65,6 +66,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
   /**
    * Returns the scalar component, or copies the constant into the supplied output.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} [out] Caller-owned output storage.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
@@ -84,6 +86,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
   /**
    * Returns the scalar component, or copies the constant into the supplied output.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} [out] Caller-owned output storage.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
@@ -104,6 +107,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * Carbon's Update(Be::Time) for every interface the constant implements: the scalar form returns the value, the
    * vector, quaternion and color forms copy it into out (cpp:49-67, 114-131). The scalar base's one-argument tick
    * method would drop out, so the constant declares its own. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
@@ -116,6 +121,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
 
   /**
    * Carbon's GetValueAt(Be::Time) for every interface the constant implements, as Update__Ticks. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
@@ -129,6 +136,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
   /**
    * Carbon no-op retained for scalar function interface compatibility.
    *
+   * @adapted
    * @param {number} _scale Curve parameter.
    * @returns {void}
    */
@@ -141,6 +149,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
   /**
    * Gets the first derivative vector or quaternion for the supplied time.
    *
+   * @implemented
    * @param {number} _time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
@@ -155,6 +164,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
   /**
    * Gets the second derivative vector or quaternion for the supplied time.
    *
+   * @implemented
    * @param {number} _time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
@@ -169,6 +179,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
   /**
    * Copies the constant vector value into `out`.
    *
+   * @adapted
    * @param {number} _time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.

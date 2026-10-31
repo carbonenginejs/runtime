@@ -46,7 +46,11 @@ export class EveMissile extends EveSpaceObject2
   _estimatedTotalAliveTime = 1;
   _lastValidSpeed = 0;
 
-  /** Registers each warhead's sprites; Carbon does not register the missile base. */
+  /**
+   * Registers each warhead's sprites; Carbon does not register the missile base.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -54,7 +58,11 @@ export class EveMissile extends EveSpaceObject2
     for (const warhead of this.warheads) warhead.RegisterWithQuadRenderer(quadRenderer);
   }
 
-  /** Forwards quad submission to each warhead with the caller's frustum and renderer. */
+  /**
+   * Forwards quad submission to each warhead with the caller's frustum and renderer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
@@ -65,6 +73,8 @@ export class EveMissile extends EveSpaceObject2
   /**
    * Runs the base initialization and silences all warhead particle emitting
    * until launch.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -79,6 +89,8 @@ export class EveMissile extends EveSpaceObject2
    * Arms the missile for a new flight: latches the launching ship's velocity and
    * the estimated flying time, resets the flight clock, and silences warhead
    * emitting.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -99,7 +111,7 @@ export class EveMissile extends EveSpaceObject2
    * flight and fires the explosion callback on detonation, and finally rebuilds
    * the missile bounding sphere from the warheads.
    *
-   * Adapted: Target and curve output parameters are out-last; the optional script callback uses the existing JavaScript callback adapter at invocation.
+   * @adapted Target and curve output parameters are out-last; the optional script callback uses the existing JavaScript callback adapter at invocation.
    */
 
   @meta.adapted
@@ -171,6 +183,8 @@ export class EveMissile extends EveSpaceObject2
    * Runs inherited visibility first, then each warhead's visibility pass against the missile world transform
    * composed with that warhead's offset, and merges the warheads' LOD levels
    * into the missile's.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -188,8 +202,9 @@ export class EveMissile extends EveSpaceObject2
 
   /**
    * Collects inherited visual branches first, then each warhead's renderables.
-   * Adapted: returns the caller's output array; the existing collectors do not
-   * represent Carbon's impostor-manager argument.
+   *
+   * @adapted returns the caller's output array; the existing collectors do not
+   *   represent Carbon's impostor-manager argument.
    */
   @meta.adapted
 
@@ -203,6 +218,8 @@ export class EveMissile extends EveSpaceObject2
   /**
    * Writes the missile's world-space bounding sphere, built from the
    * warhead-derived local sphere and the missile world transform.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -216,6 +233,8 @@ export class EveMissile extends EveSpaceObject2
   /**
    * Recomputes the missile's local bounding sphere as the union of its warheads'
    * local spheres.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -236,7 +255,7 @@ export class EveMissile extends EveSpaceObject2
    * Returns null: the missile owns no renderable, so each warhead publishes its
    * own per-object record.
    *
-   * Adapted: The missile owns no renderable; its warheads publish their own backend-neutral records.
+   * @adapted The missile owns no renderable; its warheads publish their own backend-neutral records.
    */
 
   @meta.adapted

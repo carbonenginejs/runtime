@@ -38,7 +38,11 @@ export class EveLineContainer extends IRoot
   @type.boolean
   display = true;
 
-  /** Rebuilds the complete logical line set from the authored connectors. */
+  /**
+   * Rebuilds the complete logical line set from the authored connectors.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(context)
@@ -57,7 +61,11 @@ export class EveLineContainer extends IRoot
     this.lineSet.SubmitChanges();
   }
 
-  /** Carbon's synchronous phase owns the connector rebuild. */
+  /**
+   * Carbon's synchronous phase owns the connector rebuild.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext)
@@ -65,14 +73,22 @@ export class EveLineContainer extends IRoot
     this.Update(updateContext);
   }
 
-  /** Carbon performs no asynchronous work for this container. */
+  /**
+   * Carbon performs no asynchronous work for this container.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
-  /** Delegates transformed visibility only while this container is displayed. */
+  /**
+   * Delegates transformed visibility only while this container is displayed.
+   *
+   * @implemented
+   */
 
   @blue.contextual(["camera"])
   @meta.implemented
@@ -84,7 +100,11 @@ export class EveLineContainer extends IRoot
     }
   }
 
-  /** Collects the concrete line set only while this container is displayed. */
+  /**
+   * Collects the concrete line set only while this container is displayed.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetRenderables__Impostors(renderables, impostors)
@@ -95,7 +115,11 @@ export class EveLineContainer extends IRoot
     }
   }
 
-  /** Delegates the line set's local bound when one is authored. */
+  /**
+   * Delegates the line set's local bound when one is authored.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(sphere, query = 0)
@@ -103,7 +127,11 @@ export class EveLineContainer extends IRoot
     return this.lineSet ? this.lineSet.GetBoundingSphere(sphere, query) : false;
   }
 
-  /** Delegates Carbon's model-center update hook. */
+  /**
+   * Delegates Carbon's model-center update hook.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateModelCenterWorldPosition(position, time)
@@ -114,7 +142,11 @@ export class EveLineContainer extends IRoot
     }
   }
 
-  /** Delegates Carbon's non-updating model-center query. */
+  /**
+   * Delegates Carbon's non-updating model-center query.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetModelCenterWorldPosition(position)
@@ -125,7 +157,11 @@ export class EveLineContainer extends IRoot
     }
   }
 
-  /** Delegates a local AABB query when the line set can supply one. */
+  /**
+   * Delegates a local AABB query when the line set can supply one.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalBoundingBox(minBounds, maxBounds)
@@ -133,7 +169,11 @@ export class EveLineContainer extends IRoot
     return this.lineSet ? this.lineSet.GetLocalBoundingBox(minBounds, maxBounds) : false;
   }
 
-  /** Delegates Carbon's local-to-world query without inventing a fallback. */
+  /**
+   * Delegates Carbon's local-to-world query without inventing a fallback.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalToWorldTransform(transform)

@@ -133,6 +133,7 @@ export class CjsIncarnaEmulator
    * hull; its locator set then holds both placements. The lights, in the
    * root's space, become the root hull's one light set, named as the assembly.
    *
+   * @implemented
    * @param {string} name The root hull's and the layout's name; no `:` or `;`.
    * @param {Array<{object: object, transform: ArrayLike<number>}>} pieces Each Tr2InteriorStatic and where it sits in the assembly.
    * @param {string} faction An SOF faction the data manager has, such as "caldaribase".
@@ -195,6 +196,7 @@ export class CjsIncarnaEmulator
    * place found is mirrored across the axis's zero plane, except a place
    * within one cell of the plane, which is put on it once.
    *
+   * @implemented
    * @param {object} resourceManager The `CjsBlueResMan` that serves the areas' textures, as the constructor takes it; `dynamic:/incarna` is registered on it.
    * @param {Array<{object: object, transform: ArrayLike<number>}>} pieces As `AddAssembly` takes them, their geometry loaded.
    * @param {object} [options]
@@ -239,6 +241,7 @@ export class CjsIncarnaEmulator
   /**
    * One overlay map's glow mask, as the areas draw it.
    *
+   * @implemented
    * @param {object} resourceManager The `CjsBlueResMan` serving `dynamic:/incarna`.
    * @param {string} source The overlay map's resource path.
    * @returns {Promise<{data: Uint8Array, width: number, height: number, max: number}|null>} The mask's top level and its brightest texel; null when it did not load.
@@ -276,6 +279,7 @@ export class CjsIncarnaEmulator
    * `headroom` higher: a room's floor under its ceiling, not the gap under a
    * floor, a roof under open space, or ground beside a wall.
    *
+   * @implemented
    * @param {Array<{object: object, transform: ArrayLike<number>}>} pieces As `AddAssembly` takes them, their geometry loaded.
    * @param {object} [options]
    * @param {number} [options.spacing=3.6] The grid's spacing, in metres.
@@ -362,6 +366,7 @@ export class CjsIncarnaEmulator
    * shader is listed (EveSOF.cpp:786-791), and each pair takes the same
    * parameters and textures.
    *
+   * @implemented
    * @throws {Error} When the generic data lacks a packed quad shader.
    */
   @meta.implemented
@@ -381,6 +386,7 @@ export class CjsIncarnaEmulator
    * The DNA `AddAssembly` returns for an assembly: its root hull, the faction
    * and race, and its layout.
    *
+   * @implemented
    * @param {string} name The assembly's name.
    * @param {string} faction The SOF faction.
    * @param {string} race The SOF race.
@@ -395,6 +401,7 @@ export class CjsIncarnaEmulator
   /**
    * The hull one Incarna detail mesh becomes.
    *
+   * @implemented
    * @param {string} name The hull's name.
    * @param {object} mesh A Tr2Mesh of an initialized piece, its geometry loaded.
    * @param {Map<string, number>} [slots] Each Incarna material's SOF material slot (`materialSlots`); an area whose material has none takes its overlay map's reflection mask.
@@ -427,6 +434,7 @@ export class CjsIncarnaEmulator
   /**
    * The quad area one Incarna area becomes.
    *
+   * @implemented
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
    * @param {{shader: string, areaType: string, details: boolean, fills: Object<string, string>}} kind How the area is drawn, an `AREA_KINDS` entry.
    * @param {Map<string, number>} [slots] Each Incarna material's SOF material slot, as `CreateHull` takes them.
@@ -473,6 +481,7 @@ export class CjsIncarnaEmulator
    * IncarnaSimpleTransparent) have none, so their overlay map's alpha is not
    * glow, and an opaque material can set black to hide the mask it shares.
    *
+   * @implemented
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
    * @returns {boolean} True when the area glows.
    */
@@ -493,6 +502,7 @@ export class CjsIncarnaEmulator
    * clamp(1.032 - |3.19 (mask - i / 3)|, 0, 1)
    * (`quad/unpacked_quaddetailv5.sm_depth`, pass 0 pixel).
    *
+   * @implemented
    * @param {object[]} areas Tr2MeshAreas holding the Tr2Effects their materials became.
    * @returns {Map<string, number>} Slots by `materialKey`.
    */
@@ -513,6 +523,7 @@ export class CjsIncarnaEmulator
    * An Incarna area's material identity: its `MaterialDiffuseColor`'s red,
    * green and blue, rounded to three places, or "none".
    *
+   * @implemented
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
    * @returns {string} Such as "0.34,0.39,0.41".
    */
@@ -526,6 +537,7 @@ export class CjsIncarnaEmulator
   /**
    * The Incarna maps an area's material sets, by parameter name.
    *
+   * @implemented
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
    * @returns {Map<string, string>} Resource paths, such as "OverlayMap" to the `_os` map's.
    */
@@ -547,6 +559,7 @@ export class CjsIncarnaEmulator
    * by its glow times the surface it covers, with the mesh normal there. A
    * triangle covering no texel centre is read once at its middle.
    *
+   * @implemented
    * @param {Map<string, {weight: number, sum: Float32Array, normal: Float32Array}>} cells The cells, by `x,y,z` cell coordinates: each one's glow, glow-weighted place sum and glow-weighted normal sum.
    * @param {object} data The mesh's CPU record (`TriGeometryRes.GetMeshData`).
    * @param {object} area A Tr2MeshArea, whose index groups are read.
@@ -650,6 +663,7 @@ export class CjsIncarnaEmulator
    * along its mean normal, or on the surface where the normals cancel, as a
    * pane's two sides do.
    *
+   * @implemented
    * @param {Map<string, {weight: number, sum: Float32Array, normal: Float32Array}>} cells From `gatherGlow`, by `x,y,z` cell coordinates.
    * @param {{cell: number, spacing: number, distance: number, mirror: number|null}} options As `findGlowLightPositions` takes them.
    * @returns {Float32Array[]} The places.
@@ -731,6 +745,7 @@ export class CjsIncarnaEmulator
    * A light set of point lights (`EveSOFDataHullLightSetItem`, whose type is
    * POINT_LIGHT), named in order.
    *
+   * @implemented
    * @param {string} name The set's name.
    * @param {Array<{position: ArrayLike<number>, radius: number, innerRadius: number, brightness: number, lightColor: number}>} lights The lights, in the hull's space.
    * @returns {object} The EveSOFDataHullLightSet.
@@ -758,6 +773,7 @@ export class CjsIncarnaEmulator
    * The hull name a detail mesh's geometry gets: the file's name and the mesh
    * index, so two pieces drawing the same mesh share it.
    *
+   * @implemented
    * @param {object} mesh A Tr2Mesh.
    * @returns {string} Such as "incarna_walkway_04_cal_1".
    */
@@ -773,6 +789,7 @@ export class CjsIncarnaEmulator
    * locator is an EveSOFDataTransform, so each transform is decomposed as
    * Carbon's layout code decomposes one (`mat4.decomposeCarbon`).
    *
+   * @implemented
    * @param {string} name The set's name, the piece hull's.
    * @param {Array<ArrayLike<number>>} transforms Where each placement sits in the assembly.
    * @returns {object} The EveSOFDataHullLocatorSet.
@@ -795,6 +812,7 @@ export class CjsIncarnaEmulator
    * The layout placement putting a piece hull at every locator of its set.
    * Not instanced: each placement is an EveChildMesh with its own areas.
    *
+   * @implemented
    * @param {string} hullName The piece hull, whose locator set has the same name.
    * @returns {object} The EveSOFDataHullExtensionPlacement.
    */
@@ -813,6 +831,7 @@ export class CjsIncarnaEmulator
    * A sphere around every placed piece: the box around each placement's
    * transformed sphere, then the sphere around that box.
    *
+   * @implemented
    * @param {Array<{sphere: ArrayLike<number>, transforms: Array<ArrayLike<number>>}>} hulls Each piece hull's sphere and placements.
    * @returns {Float32Array} The sphere, centre then radius.
    */
@@ -838,6 +857,7 @@ export class CjsIncarnaEmulator
   /**
    * A named SOF value: an EveSOFDataTexture or EveSOFDataParameter.
    *
+   * @implemented
    * @param {string} className The registered class.
    * @param {string} name The value's name.
    * @param {string} field The field holding the value.

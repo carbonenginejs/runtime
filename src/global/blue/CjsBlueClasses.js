@@ -78,9 +78,8 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * Register every entry of a table (BlueClasses.cpp:296-302).
    *
-   * Adapted: Carbon walks a null-terminated array; JavaScript takes any iterable of
-   * registrations.
-   *
+   * @adapted Carbon walks a null-terminated array; JavaScript takes any iterable of
+   *   registrations.
    * @param {Array<{name: string, type: Function, createFn?: Function, flags?: number}>} table Registrations.
    */
   RegisterClasses(table)
@@ -95,6 +94,7 @@ export class CjsBlueClasses extends IBlueClasses
    * `RegisterClasses( std::vector<Be::ClassRegistration>& table )`: register
    * every entry of a vector (BlueClasses.cpp:314-320).
    *
+   * @implemented
    * @param {Array<{name: string, type: Function, createFn?: Function, flags?: number}>} table Registrations.
    */
   RegisterClasses__Vector(table)
@@ -106,6 +106,7 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * Remove every entry of a table (BlueClasses.cpp:304-310, 282-294).
    *
+   * @implemented
    * @param {Array<{name: string}>} table Registrations to remove.
    */
   UnregisterClasses(table)
@@ -120,6 +121,7 @@ export class CjsBlueClasses extends IBlueClasses
    * `UnregisterClasses( std::vector<Be::ClassRegistration>& table )`: remove
    * every entry of a vector (BlueClasses.cpp:323-329).
    *
+   * @implemented
    * @param {Array<{name: string}>} table Registrations to remove.
    */
   UnregisterClasses__Vector(table)
@@ -132,9 +134,8 @@ export class CjsBlueClasses extends IBlueClasses
    * A copy of the shared registration, or null (BlueClasses.cpp:331-336).
    * Changing this returned record does not mutate the registered entry.
    *
-   * Adapted: A class id is the class name: there are no GUIDs to carry, and Carbon already
-   * forbids name clashes between modules.
-   *
+   * @adapted A class id is the class name: there are no GUIDs to carry, and Carbon already
+   *   forbids name clashes between modules.
    * @param {string} clsid Class id, which is the class name.
    * @returns {{name: string, type: Function, createFn: Function, flags: number}|null} Registration.
    */
@@ -147,9 +148,8 @@ export class CjsBlueClasses extends IBlueClasses
    * `FindClsid( const char* name )`: the class id registered under a name, or
    * null (BlueClasses.cpp:355-364).
    *
-   * Adapted: the id is the class name; the registered spelling is returned
-   * where Carbon returns a pointer to the registered `Be::Clsid`.
-   *
+   * @adapted the id is the class name; the registered spelling is returned
+   *   where Carbon returns a pointer to the registered `Be::Clsid`.
    * @param {string} name Class name.
    * @returns {string|null} Class id.
    */
@@ -165,8 +165,7 @@ export class CjsBlueClasses extends IBlueClasses
    * parameter and returns whether it found one; the output parameter is the
    * return value here, and null is Carbon's false.
    *
-   * Adapted: the id is the class name, as in `FindClsid(name)`.
-   *
+   * @adapted the id is the class name, as in `FindClsid(name)`.
    * @param {string} _module Module name; Carbon ignores it.
    * @param {string} name Class name.
    * @returns {string|null} Class id.
@@ -180,9 +179,8 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * A new instance of the class with this id, or null (BlueClasses.cpp:429-445).
    *
-   * Adapted: Carbon returns bool and writes the instance through ppv after a QueryInterface
-   * for riid; JavaScript returns the instance or null, with no interface id to query.
-   *
+   * @adapted Carbon returns bool and writes the instance through ppv after a QueryInterface
+   *   for riid; JavaScript returns the instance or null, with no interface id to query.
    * @param {string} clsid Class id, which is the class name.
    * @returns {object|null} New instance.
    */
@@ -196,9 +194,8 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * A new instance of the class registered under a name, or null (BlueClasses.cpp:448-464).
    *
-   * Adapted: Carbon returns bool and writes the instance through ppv after a QueryInterface
-   * for riid; JavaScript returns the instance or null, with no interface id to query.
-   *
+   * @adapted Carbon returns bool and writes the instance through ppv after a QueryInterface
+   *   for riid; JavaScript returns the instance or null, with no interface id to query.
    * @param {string} className Class name.
    * @returns {object|null} New instance.
    */
@@ -208,7 +205,11 @@ export class CjsBlueClasses extends IBlueClasses
     return this.CreateInstance(className);
   }
 
-  /** Register one entry, refusing a name already taken (BlueClasses.cpp:266-280). */
+  /**
+   * Register one entry, refusing a name already taken (BlueClasses.cpp:266-280).
+   *
+   * @adapted
+   */
   _RegisterSingleClass(registration)
   {
     registerClass(registration);
@@ -222,13 +223,12 @@ export class CjsBlueClasses extends IBlueClasses
    * `mParentClassInfo`. A miss is logged unless `BEQI_SILENT` is set, and
    * only when a type was given, as Carbon logs only for a non-null `type`.
    *
-   * Adapted: Carbon writes the offset-adjusted pointer to its `ppv` output
-   * parameter and returns bool; the output parameter is the return value
-   * here, and JavaScript has no offsets, so it is `self` or null. `type` is
-   * the class itself, a JavaScript class being its own type information. The
-   * log names the class without Carbon's module prefix, which JavaScript
-   * classes do not carry.
-   *
+   * @adapted Carbon writes the offset-adjusted pointer to its `ppv` output
+   *   parameter and returns bool; the output parameter is the return value
+   *   here, and JavaScript has no offsets, so it is `self` or null. `type` is
+   *   the class itself, a JavaScript class being its own type information. The
+   *   log names the class without Carbon's module prefix, which JavaScript
+   *   classes do not carry.
    * @param {object} self The object to query.
    * @param {Function} riid The interface or class to ask for.
    * @param {Function|null} type The class whose exposure table is walked, usually `self.constructor`.
@@ -250,6 +250,7 @@ export class CjsBlueClasses extends IBlueClasses
    * `CopyTo( source, dest )`: `CopyTo__Callbacks` with Carbon's default
    * callbacks and contexts, all null (IBlueClasses.h:72-79).
    *
+   * @implemented
    * @param {object} source The object to copy.
    * @param {object|null} dest An existing object of the same class, which is filled and returned, or null for a new one.
    * @returns {object|null} The destination, or null when the copy failed.
@@ -266,10 +267,9 @@ export class CjsBlueClasses extends IBlueClasses
    * `dest` is null, through a fresh Copier given both callbacks and their
    * contexts (BlueClasses.cpp:498-510).
    *
-   * Adapted: Carbon returns bool and writes the destination to its `dest`
-   * output parameter; the output parameter is the return value here, the
-   * destination or null.
-   *
+   * @adapted Carbon returns bool and writes the destination to its `dest`
+   *   output parameter; the output parameter is the return value here, the
+   *   destination or null.
    * @param {object} source The object to copy.
    * @param {object|null} dest An existing object of the same class, which is filled and returned, or null for a new one.
    * @param {Function|null} [copyOverride=null] See `Copier.SetCopyOverrideCallback`.
@@ -289,10 +289,9 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * Copies preserving topology, through a fresh Copier (BlueClasses.cpp:512-516).
    *
-   * Adapted: Carbon returns bool and writes the destination to its `dest`
-   * output parameter; the output parameter is the return value here, the
-   * destination or null.
-   *
+   * @adapted Carbon returns bool and writes the destination to its `dest`
+   *   output parameter; the output parameter is the return value here, the
+   *   destination or null.
    * @param {object} source The object to copy.
    * @param {object|null} dest An existing object of the same class, which is filled and returned, or null for a new one.
    * @returns {object|null} The destination, or null when the copy failed.
@@ -307,6 +306,7 @@ export class CjsBlueClasses extends IBlueClasses
    * class's flattened run-time type information, built on the first request
    * and kept on the class info.
    *
+   * @implemented
    * @param {import("./ClassInfo.js").ClassInfo} ci The class information, from `ClassInfo.exposeToBlue(Class)`.
    * @returns {BlueRttiType} The class's RTTI.
    */
@@ -327,6 +327,7 @@ export class CjsBlueClasses extends IBlueClasses
    * module (see FindClsid), so a module name throws rather than filtering
    * nothing.
    *
+   * @adapted
    * @param {string|null} [moduleName=null] Carbon's optional module filter.
    * @returns {Array<Array<object>>} One GetTypeInfo record per class.
    * @throws {TypeError} When a module name is given.
@@ -343,10 +344,9 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * `LiveCount` (BlueClasses_Blue.cpp:162-184): live instances per class.
    *
-   * Not supported: Carbon counts construction and destruction in each
-   * ClassInfo. JavaScript objects are released by the garbage collector, which
-   * reports neither, so no count exists.
-   *
+   * @notSupported Carbon counts construction and destruction in each
+   *   ClassInfo. JavaScript objects are released by the garbage collector, which
+   *   reports neither, so no count exists.
    * @returns {never}
    * @throws {Error} Always.
    */
@@ -358,8 +358,7 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * `LockCount` (BlueClasses_Blue.cpp:187-207): reference locks per class.
    *
-   * Not supported: JavaScript has no reference counts (see IRoot).
-   *
+   * @notSupported JavaScript has no reference counts (see IRoot).
    * @returns {never}
    * @throws {Error} Always.
    */
@@ -372,9 +371,8 @@ export class CjsBlueClasses extends IBlueClasses
    * `GetWrapperList` (BlueClasses_Blue.cpp:210-217): every Blue object wrapped
    * for Python.
    *
-   * Not supported: there are no Python wrappers. The per-object wrapper Carbon
-   * keeps (BlueWrapper, BluePyWrap.cpp) is not ported.
-   *
+   * @notSupported there are no Python wrappers. The per-object wrapper Carbon
+   *   keeps (BlueWrapper, BluePyWrap.cpp) is not ported.
    * @returns {never}
    * @throws {Error} Always.
    */
@@ -390,6 +388,7 @@ export class CjsBlueClasses extends IBlueClasses
    * Not used: live-object enumeration is a `BLUE_LIVELIST_ENABLED` debugging aid, and it reports
    * LiveCount's and LockCount's numbers, which JavaScript does not keep.
    *
+   * @notUsed
    * @returns {never}
    * @throws {Error} Always.
    */
@@ -415,6 +414,7 @@ export class CjsBlueClasses extends IBlueClasses
    * `Copy` - Blue's `PyCopy` (BlueClasses_Blue.cpp:219-240): a copy of an
    * object through its persisted members, by `CopyTo`.
    *
+   * @implemented
    * @param {object} src The object to copy.
    * @returns {object} The copy.
    * @throws {TypeError} When `src` is not an object, Carbon's "Value is not a Blue object".
@@ -437,10 +437,9 @@ export class CjsBlueClasses extends IBlueClasses
    * the descent at that depth; `prune` does not look below a match. Results are
    * in Carbon's stack order.
    *
-   * Adapted: a class id is `module.Name` as Carbon requires
-   * (`Clsid::InitFromString`, BlueTypes.cpp:55-80), but the module is ignored,
-   * as FindClsid ignores it; JavaScript registrations carry none.
-   *
+   * @adapted a class id is `module.Name` as Carbon requires
+   *   (`Clsid::InitFromString`, BlueTypes.cpp:55-80), but the module is ignored,
+   *   as FindClsid ignores it; JavaScript registrations carry none.
    * @param {object} obj Root object.
    * @param {string|string[]} className Class id or ids, e.g. "trinity.Tr2Effect".
    * @param {number} [maxLevel=-1] Maximum depth; negative is unlimited.
@@ -494,12 +493,11 @@ export class CjsBlueClasses extends IBlueClasses
    * (BlueClasses_Blue.cpp:266-280, TypeInfo.cpp:66-190): four records, the
    * class, its interfaces, its members and its methods.
    *
-   * Adapted: a member's `type` is the schema type kind, not Carbon's numeric
-   * `Be::VarType`, which the schema does not record. `module` is empty and
-   * `autovar` is 0: registrations carry no module, and JavaScript objects
-   * have no IRoot flags. Method documentation and `signatures` are empty: no
-   * docstrings or signatures are kept.
-   *
+   * @adapted a member's `type` is the schema type kind, not Carbon's numeric
+   *   `Be::VarType`, which the schema does not record. `module` is empty and
+   *   `autovar` is 0: registrations carry no module, and JavaScript objects
+   *   have no IRoot flags. Method documentation and `signatures` are empty: no
+   *   docstrings or signatures are kept.
    * @param {object} obj The object.
    * @returns {Array<object>} `[classInfo, interfaces, members, methods]`.
    * @throws {TypeError} When obj is not an object, Carbon's "Value is not a Blue object".
@@ -515,10 +513,9 @@ export class CjsBlueClasses extends IBlueClasses
    * persisted member, sorted by name, listing each persisted member and its type.
    * A float-array member also lists its element count.
    *
-   * Adapted: the type is the schema type kind, not Carbon's numeric
-   * `Be::VarType` (see GetTypeInfo); the element count is the vector or
-   * matrix length the kind defines.
-   *
+   * @adapted the type is the schema type kind, not Carbon's numeric
+   *   `Be::VarType` (see GetTypeInfo); the element count is the vector or
+   *   matrix length the kind defines.
    * @returns {string} The report.
    */
   GetPersistedClassesReport()

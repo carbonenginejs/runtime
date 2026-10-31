@@ -129,7 +129,11 @@ export class VideoPlayer
     this._withSound = withSound;
   }
 
-  /** Carbon Create; browser takes acquired bytes, with its native decoder replacing VideoController. */
+  /**
+   * Carbon Create; browser takes acquired bytes, with its native decoder replacing VideoController.
+   *
+   * @adapted
+   */
   Create(stream, _audioSink = null, _audioTrack = 0, looped = false)
   {
     this._ReleaseMedia();
@@ -189,7 +193,11 @@ export class VideoPlayer
     return true;
   }
 
-  /** Upload only a new decoded frame; the AL retains storage and ordinary material bindings. */
+  /**
+   * Upload only a new decoded frame; the AL retains storage and ordinary material bindings.
+   *
+   * @adapted
+   */
   Update()
   {
     const video = this.video, resource = this.bgraTexture;
@@ -314,7 +322,11 @@ export class VideoPlayer
     return true;
   }
 
-  /** Carbon Pause; no media-clock emulation and no decode/readback driven by lights. */
+  /**
+   * Carbon Pause; no media-clock emulation and no decode/readback driven by lights.
+   *
+   * @adapted
+   */
   Pause()
   {
     this._paused = true;
@@ -322,7 +334,11 @@ export class VideoPlayer
     if (this.video) this.video.pause();
   }
 
-  /** Carbon Resume; blocked autoplay waits for an explicit host retry after a gesture. */
+  /**
+   * Carbon Resume; blocked autoplay waits for an explicit host retry after a gesture.
+   *
+   * @adapted
+   */
   Resume()
   {
     this._paused = false;
@@ -343,12 +359,18 @@ export class VideoPlayer
     });
   }
 
-  /** Carbon pause query, independent of buffering and autoplay policy. */
+  /**
+   * Carbon pause query, independent of buffering and autoplay policy.
+   *
+   * @adapted
+   */
   IsPaused() { return this._paused; }
 
   /**
    * is_paused (MAP_PROPERTY_READONLY): Carbon's property over IsPaused, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (videoplayer/VideoPlayer_Blue.cpp:53).
+   *
+   * @adapted
    */
   get is_paused()
   {
@@ -356,13 +378,16 @@ export class VideoPlayer
   }
   /**
    * Media playback time in nanoseconds, as Carbon's uint64_t `media_time` (VideoPlayer_Blue.cpp:88-91).
-   * Adapted: read from the browser's seconds clock and truncated to whole nanoseconds.
+   *
+   * @adapted read from the browser's seconds clock and truncated to whole nanoseconds.
    */
   GetMediaTime() { return this.video ? VideoPlayer._secondsToNanoseconds(this.video.currentTime) : 0; }
 
   /**
    * media_time (MAP_PROPERTY_READONLY): Carbon's property over GetMediaTime, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (videoplayer/VideoPlayer_Blue.cpp:88).
+   *
+   * @adapted
    */
   get media_time()
   {
@@ -370,21 +395,29 @@ export class VideoPlayer
   }
   /**
    * Total media duration in nanoseconds (VideoPlayer_Blue.cpp:92-95).
-   * Adapted: read from the browser's duration in seconds; 0 while it is unknown.
+   *
+   * @adapted read from the browser's duration in seconds; 0 while it is unknown.
    */
   GetDuration() { return this.video && Number.isFinite(this.video.duration) ? VideoPlayer._secondsToNanoseconds(this.video.duration) : 0; }
   /**
    * Seeks to a time from the video start, in nanoseconds (VideoPlayer_Blue.cpp:65-69).
-   * Adapted: the browser seeks in seconds and owns presentation scheduling.
+   *
+   * @adapted the browser seeks in seconds and owns presentation scheduling.
    * @param {number} time Seek time in nanoseconds.
    */
   Seek(time) { if (this.video) this.video.currentTime = time / VideoPlayer.NANOSECONDS_PER_SECOND; }
-  /** Carbon state; autoplayBlocked and Validate distinguish browser policy from decode failure. */
+  /**
+   * Carbon state; autoplayBlocked and Validate distinguish browser policy from decode failure.
+   *
+   * @adapted
+   */
   GetState() { return this._state; }
 
   /**
    * state (MAP_PROPERTY_READONLY): Carbon's property over GetState, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (videoplayer/VideoPlayer_Blue.cpp:49).
+   *
+   * @adapted
    */
   get state()
   {
@@ -392,7 +425,8 @@ export class VideoPlayer
   }
   /**
    * Media time downloaded from the input stream, in nanoseconds (VideoPlayer_Blue.cpp:96-99).
-   * Adapted: the end of the browser's last buffered range, in seconds, truncated to whole nanoseconds.
+   *
+   * @adapted the end of the browser's last buffered range, in seconds, truncated to whole nanoseconds.
    */
   GetDownloadedMediaTime()
   {
@@ -403,6 +437,8 @@ export class VideoPlayer
   /**
    * downloaded_media_time (MAP_PROPERTY_READONLY): Carbon's property over GetDownloadedMediaTime, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (videoplayer/VideoPlayer_Blue.cpp:96).
+   *
+   * @adapted
    */
   get downloaded_media_time()
   {
@@ -422,7 +458,11 @@ export class VideoPlayer
     return Math.trunc(seconds * VideoPlayer.NANOSECONDS_PER_SECOND);
   }
 
-  /** Browser metadata; hasAlpha is unknown because HTMLVideoElement does not expose it. */
+  /**
+   * Browser metadata; hasAlpha is unknown because HTMLVideoElement does not expose it.
+   *
+   * @adapted
+   */
   GetVideoInfo(metadata = {})
   {
     if (!this.video || !this.video.videoWidth) throw new Error("Video information is not yet parsed");
@@ -432,7 +472,11 @@ export class VideoPlayer
     return metadata;
   }
 
-  /** Explicit Carbon clear, preserving dimensions and GPU storage until the next decoded frame. */
+  /**
+   * Explicit Carbon clear, preserving dimensions and GPU storage until the next decoded frame.
+   *
+   * @adapted
+   */
   ClearTextures()
   {
     const resource = this.bgraTexture;
@@ -443,13 +487,25 @@ export class VideoPlayer
     resource.SetAverageColor(0, 0, 0, 0);
   }
 
-  /** Carbon modification invalidates presentation deduplication without advancing the media clock. */
+  /**
+   * Carbon modification invalidates presentation deduplication without advancing the media clock.
+   *
+   * @adapted
+   */
   OnModified(_value = null) { this._serial++; return true; }
 
-  /** Optional Carbon tick integration; decoded-frame notifications still own presentation timing. */
+  /**
+   * Optional Carbon tick integration; decoded-frame notifications still own presentation timing.
+   *
+   * @adapted
+   */
   OnTick(_realTime, _simTime, _cookie) { this.Update(); }
 
-  /** Carbon setter invalidates the upload cache when a target changes. */
+  /**
+   * Carbon setter invalidates the upload cache when a target changes.
+   *
+   * @adapted
+   */
   SetBgraTexture(texture)
   {
     if (texture === this._bgraTexture) return;
@@ -461,10 +517,18 @@ export class VideoPlayer
     this.OnModified();
   }
 
-  /** Return Carbon's assigned texture resource. */
+  /**
+   * Return Carbon's assigned texture resource.
+   *
+   * @implemented
+   */
   GetBgraTexture() { return this._bgraTexture; }
 
-  /** Carbon Validate exposes the last playback failure to its host. */
+  /**
+   * Carbon Validate exposes the last playback failure to its host.
+   *
+   * @adapted
+   */
   Validate() { if (this.error) throw this.error; return true; }
 
   /** Notify only state transitions, as Carbon VideoPlayer::Update does. */
@@ -527,6 +591,8 @@ export class VideoPlayer
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   Destruct()
   {

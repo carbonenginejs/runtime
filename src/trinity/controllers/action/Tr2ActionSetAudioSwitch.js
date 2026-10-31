@@ -43,6 +43,8 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
 
   /**
    * Sets a Wwise-style switch on a named emitter.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -56,7 +58,8 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
 
   /**
    * Starts manually with an explicit controller.
-   * Adapted: TypeError represents the native null-controller Python error.
+   *
+   * @adapted TypeError represents the native null-controller Python error.
    */
   @be.mapMethodAndWrap()
   @meta.adapted

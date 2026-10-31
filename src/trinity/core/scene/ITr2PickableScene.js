@@ -21,6 +21,8 @@ export class ITr2PickableScene
    * Native immediate pick, adapted to await WebGPU. Each pass captures its own
    * mapping after submission. Camera state is restored before yielding, and
    * the candidate list is retained by this call until decoding finishes.
+   *
+   * @adapted
    */
   @meta.adapted
   async PickObject(context, x, y, projection, view, viewport, results)
@@ -121,6 +123,8 @@ export class ITr2PickableScene
    * viewport and centred on the pick point. AdjustProjection leaves the
    * translation row alone, so an orthographic projection is not recentred;
    * Carbon's own Tr2PrimitiveScene overrides for exactly that.
+   *
+   * @implemented
    */
   @meta.implemented
   SetupTransformsForPicking(fx, fy, projection, view, viewport)
@@ -135,7 +139,11 @@ export class ITr2PickableScene
     Tr2Renderer.AdjustProjection(scaling, translation);
   }
 
-  /** Native object indices remain local to this call's retained candidate list. */
+  /**
+   * Native object indices remain local to this call's retained candidate list.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetBatches(objects, opaque, picking)
   {
@@ -153,7 +161,11 @@ export class ITr2PickableScene
     if (picking) picking.Finalize();
   }
 
-  /** The native generic opaque/picking pass; primitives override its draw choice. */
+  /**
+   * The native generic opaque/picking pass; primitives override its draw choice.
+   *
+   * @adapted
+   */
   @meta.adapted
   RenderPicking(opaque, picking, pass, context)
   {
@@ -173,28 +185,60 @@ export class ITr2PickableScene
     }
   }
 
-  /** Native virtual scene hook. */
+  /**
+   * Native virtual scene hook.
+   *
+   * @abstract
+   */
   @meta.abstract
   SetPerFrameDataForPicking(_context) {}
-  /** Native virtual scene hook. */
+  /**
+   * Native virtual scene hook.
+   *
+   * @abstract
+   */
   @meta.abstract
   GetPickingObjectsToRender(_direction, _context) {}
-  /** Native virtual scene hook. */
+  /**
+   * Native virtual scene hook.
+   *
+   * @abstract
+   */
   @meta.abstract
   GetOpaquePickingBatchAccumulator() {}
-  /** Native virtual scene hook. */
+  /**
+   * Native virtual scene hook.
+   *
+   * @abstract
+   */
   @meta.abstract
   GetPickingBatchAccumulator() {}
-  /** Native virtual scene hook. */
+  /**
+   * Native virtual scene hook.
+   *
+   * @abstract
+   */
   @meta.abstract
   GetRequiredPasses(_components) {}
-  /** Native virtual scene hook. */
+  /**
+   * Native virtual scene hook.
+   *
+   * @abstract
+   */
   @meta.abstract
   RenderPickingAreasForComponents(_pass) {}
-  /** Native virtual scene hook. */
+  /**
+   * Native virtual scene hook.
+   *
+   * @abstract
+   */
   @meta.abstract
   DecodeBufferPixel(_data, _pass, _results) {}
-  /** Native virtual scene hook. */
+  /**
+   * Native virtual scene hook.
+   *
+   * @abstract
+   */
   @meta.abstract
   GetPickBuffer() {}
 }

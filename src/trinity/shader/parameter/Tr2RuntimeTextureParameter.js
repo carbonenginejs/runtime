@@ -42,6 +42,8 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
   /**
    * Blue construction form: forwards the name, provider and UAV mip level to
    * Create.
+   *
+   * @adapted
    */
   @meta.adapted
   __init__(name = "", texture = null, uavMipLevel = 0)
@@ -52,6 +54,8 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
   /**
    * Assigns name, texture provider and UAV mip level together, notifying only
    * when at least one of them actually changed; returns whether it did.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.implemented
@@ -71,7 +75,11 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
     return true;
   }
 
-  /** The shader resource name this texture binds to. */
+  /**
+   * The shader resource name this texture binds to.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -79,7 +87,11 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
     return this.name;
   }
 
-  /** Content hash: the texture provider's identity (Carbon hashes its pointer). */
+  /**
+   * Content hash: the texture provider's identity (Carbon hashes its pointer).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
@@ -90,6 +102,8 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
   /**
    * Invalidates the resource sets of every material this parameter is attached
    * to.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -102,6 +116,8 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
   /**
    * Deliberately does nothing: Carbon caches the effect resource type here for
    * later resource-set binding, which the Trinity layer leaves to engine adapters.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -117,13 +133,12 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * provider's texture as a shader resource. With none, a null binding, which
    * a backend fills with its placeholder as Carbon's fallback texture.
    *
-   * Adapted: a provider that is a loaded texture resource has its texture
-   * made here, on first bind, through the trailing `renderContext`
-   * (`RealizeTexture`), as `TriTextureParameter` and `TriVariable` do; Carbon
-   * made it at load. Without this, a `TriTextureRes` handed to
-   * `Tr2Effect.SetParameter` (CORTAO's lookup table) bound the placeholder
-   * forever.
-   *
+   * @adapted a provider that is a loaded texture resource has its texture
+   *   made here, on first bind, through the trailing `renderContext`
+   *   (`RealizeTexture`), as `TriTextureParameter` and `TriVariable` do; Carbon
+   *   made it at load. Without this, a `TriTextureRes` handed to
+   *   `Tr2Effect.SetParameter` (CORTAO's lookup table) bound the placeholder
+   *   forever.
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -144,6 +159,9 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
 
   /**
    * The provider's texture, realized through the context if it is a resource that has loaded but not yet been created; null otherwise.
+   *
+   * @cjs
+   * @implemented
    * @param {object|null} renderContext Context used for deferred device realization.
    * @returns {object|null} Native AL texture or null until available.
    */
@@ -167,6 +185,7 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * Carbon `ApplyUav` (`Tr2RuntimeTextureParameter.cpp:49-60`): the
    * provider's texture as an unordered-access view at this parameter's mip.
    *
+   * @implemented
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -186,6 +205,8 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
   /**
    * Swaps the texture provider and notifies owners; returns false when it is
    * already the same object.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -203,6 +224,8 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
   /**
    * The attached provider, or null; this package holds the reference but never
    * resolves or uploads it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -214,6 +237,8 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
   /**
    * Sets the mip level to use when this texture is bound as an unordered-access
    * view, coerced to uint32.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -225,6 +250,8 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
   /**
    * Registers a material to be invalidated when this parameter changes;
    * duplicates are ignored.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -248,6 +275,9 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * Ours, like TriTextureParameter's: Carbon's resources are reference counted.
    * The cast is to a resource as Carbon's `BlueCastPtr` does; a texture
    * reference or render target is not one, and holds nothing to renew.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -257,7 +287,11 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
     if (resource) resource.KeepAlive();
   }
 
-  /** Stops tracking a material so later texture changes no longer invalidate its resource sets. */
+  /**
+   * Stops tracking a material so later texture changes no longer invalidate its resource sets.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnRemovedFromMaterial(material)

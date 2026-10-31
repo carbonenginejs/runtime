@@ -14,6 +14,8 @@ import { meta, type } from "#schema";
  * the record shows only that the member persists.
  *
  * Data only.
+ *
+ * @adapted
  */
 @meta.define("Tr2ShaderManager")
 @meta.adapted

@@ -263,6 +263,8 @@ export class BehaviorGroupBooster extends IRoot
    * Carbon InitializeEffects (cpp:112-129): creates the hardcoded booster and
    * flare effects when absent, registering each new flare effect with the
    * quad renderer, then rebuilds the flare templates.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -289,6 +291,8 @@ export class BehaviorGroupBooster extends IRoot
   /**
    * Carbon InitializeHaloFlare (cpp:131-135, private): keys the halo flare
    * effect by its hash and registers it with the global quad renderer.
+   *
+   * @implemented
    */
   @meta.implemented
   _InitializeHaloFlare()
@@ -301,6 +305,8 @@ export class BehaviorGroupBooster extends IRoot
   /**
    * Carbon InitializeAmbientFlare (cpp:137-141, private): keys the ambient
    * flare effect by its hash and registers it with the global quad renderer.
+   *
+   * @implemented
    */
   @meta.implemented
   _InitializeAmbientFlare()
@@ -310,7 +316,11 @@ export class BehaviorGroupBooster extends IRoot
       QUAD_INSTANCE_SIZE, 1, EveChildQuad.GetQuadDefinition(), this.ambientFlareEffect);
   }
 
-  /** Carbon BehaviorGroupBooster::GetDisplay (cpp:254-257). */
+  /**
+   * Carbon BehaviorGroupBooster::GetDisplay (cpp:254-257).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDisplay()
@@ -318,7 +328,11 @@ export class BehaviorGroupBooster extends IRoot
     return this.display;
   }
 
-  /** Carbon BehaviorGroupBooster::GetLightSize (cpp:259-266). */
+  /**
+   * Carbon BehaviorGroupBooster::GetLightSize (cpp:259-266).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLightSize()
@@ -330,7 +344,11 @@ export class BehaviorGroupBooster extends IRoot
     return 0;
   }
 
-  /** Carbon BehaviorGroupBooster::GetOffset (cpp:268-271). */
+  /**
+   * Carbon BehaviorGroupBooster::GetOffset (cpp:268-271).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetOffset()
@@ -338,7 +356,11 @@ export class BehaviorGroupBooster extends IRoot
     return this.boosterOffset;
   }
 
-  /** Carbon BehaviorGroupBooster::GetAtlasIndex0 (cpp:273-276). */
+  /**
+   * Carbon BehaviorGroupBooster::GetAtlasIndex0 (cpp:273-276).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAtlasIndex0()
@@ -346,7 +368,11 @@ export class BehaviorGroupBooster extends IRoot
     return this.atlasIndex0;
   }
 
-  /** Carbon BehaviorGroupBooster::GetAtlasIndex1 (cpp:278-281). */
+  /**
+   * Carbon BehaviorGroupBooster::GetAtlasIndex1 (cpp:278-281).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAtlasIndex1()
@@ -354,7 +380,11 @@ export class BehaviorGroupBooster extends IRoot
     return this.atlasIndex1;
   }
 
-  /** Carbon BehaviorGroupBooster::GetEffect (cpp:365-368). */
+  /**
+   * Carbon BehaviorGroupBooster::GetEffect (cpp:365-368).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetEffect()
@@ -362,7 +392,11 @@ export class BehaviorGroupBooster extends IRoot
     return this.boosterEffect;
   }
 
-  /** Resizes the authored flare lists after an agent-count change. */
+  /**
+   * Resizes the authored flare lists after an agent-count change.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RebuildFlareBuffer(count)
@@ -374,6 +408,8 @@ export class BehaviorGroupBooster extends IRoot
   /**
    * Carbon SetupQuads updates the templates, retaining already-sized flare
    * records as native vector::resize does. JavaScript stores explicit row fields.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -406,6 +442,8 @@ export class BehaviorGroupBooster extends IRoot
    * a later SetupQuads does not refresh entries copied before initialization.
    * This is a potential lifecycle hazard, not a confirmed native execution bug.
    * See BehaviorGroupBooster.cpp:177-215 and BlackReader.cpp:394-405.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -439,8 +477,8 @@ export class BehaviorGroupBooster extends IRoot
    * InitializeAmbientFlare) and the templates rebuilt; a removed one clears its
    * flare list; any other member rebuilds the templates.
    *
-   * Adapted: JavaScript coalesces changed names into one call, so each name
-   * takes Carbon's branch and the batch rebuilds once, before the clears.
+   * @adapted JavaScript coalesces changed names into one call, so each name
+   *   takes Carbon's branch and the batch rebuilds once, before the clears.
    */
 
   @meta.adapted
@@ -480,9 +518,8 @@ export class BehaviorGroupBooster extends IRoot
    * (Carbon AddLight, cpp:435-445). Carbon ignores the parentTransform
    * parameter; the JS port keeps the signature.
    *
-   * Adapted: Converts the Blue frame clock to seconds for the noise phase and submits the
-   * light through the supplied manager's AddPointLight method.
-   *
+   * @adapted Converts the Blue frame clock to seconds for the noise phase and submits the
+   *   light through the supplied manager's AddPointLight method.
    * @param {Object} lightManager
    * @param {Float32Array} position - light position (xyz read)
    * @param {Number} radiusModifier
@@ -508,6 +545,8 @@ export class BehaviorGroupBooster extends IRoot
    * Carbon Initialize (cpp:82-110): registers the flare effects that are set,
    * rebuilds the flare templates, then builds the booster declaration and
    * reserves the shared quad indices.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -529,6 +568,8 @@ export class BehaviorGroupBooster extends IRoot
    * Carbon AddFlare writes world/local quad rows and the two authored LOD curves.
    * Existing quad packing handles float16 storage; Blue ticks convert once to
    * seconds for noise. The halo modifier receives the owning render context.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -586,7 +627,11 @@ export class BehaviorGroupBooster extends IRoot
     }
   }
 
-  /** Carbon GetVertexDeclaration returns the combined box/instance declaration. */
+  /**
+   * Carbon GetVertexDeclaration returns the combined box/instance declaration.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetVertexDeclaration()
@@ -594,7 +639,11 @@ export class BehaviorGroupBooster extends IRoot
     return this._vertexDeclarationHandle;
   }
 
-  /** Carbon GetBatch binds the shared box and the owning system's instance stream. */
+  /**
+   * Carbon GetBatch binds the shared box and the owning system's instance stream.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetBatch(instanceBuffer, startInstance, instanceDataStride, count)
@@ -616,7 +665,11 @@ export class BehaviorGroupBooster extends IRoot
     return batch;
   }
 
-  /** Carbon CreateBuffer selects the shared box for high shader quality. */
+  /**
+   * Carbon CreateBuffer selects the shared box for high shader quality.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreateBuffer()
@@ -628,6 +681,8 @@ export class BehaviorGroupBooster extends IRoot
    * Carbon RegisterWithQuadRenderer (cpp:365-378): keys each set flare effect
    * by its hash and registers it, in the child-quad layout, with the given
    * quad renderer.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -658,9 +713,9 @@ export class BehaviorGroupBooster extends IRoot
    * reaches only the global renderer, and another view's renderer drops its
    * quads until the booster is registered with it again.
    *
-   * Adapted: Carbon copies m_flareCount Quad structs in one AddQuads; ours
-   * packs each Quad record into its instance bytes and adds them one at a
-   * time, which accumulates the same bytes.
+   * @adapted Carbon copies m_flareCount Quad structs in one AddQuads; ours
+   *   packs each Quad record into its instance bytes and adds them one at a
+   *   time, which accumulates the same bytes.
    */
 
   @meta.adapted
@@ -684,6 +739,8 @@ export class BehaviorGroupBooster extends IRoot
   /**
    * Carbon BehaviorGroupBooster::RenderBoosterDebug (cpp:480-493): a unit
    * cylinder along -Z at the booster offset in the agent's frame.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} agentTransform The agent's world transform.
@@ -709,6 +766,8 @@ export class BehaviorGroupBooster extends IRoot
   /**
    * Carbon BehaviorGroupBooster::RenderLightDebug (cpp:495-500): a
    * half-transparent solid sphere of the light's radius and colour.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} agentTransform The light's world transform.
@@ -726,6 +785,8 @@ export class BehaviorGroupBooster extends IRoot
    * Carbon SetupBoosterEffect (cpp:246-283, private): the drone booster
    * effect's default noise, colour, atlas and scale parameters and its four
    * textures.
+   *
+   * @implemented
    * @param {Tr2Effect} effect The effect to configure.
    */
   @meta.implemented
@@ -756,6 +817,8 @@ export class BehaviorGroupBooster extends IRoot
   /**
    * Carbon CreateBoosterEffect (cpp:285-299, private): the volumetric drone
    * booster effect at the given LOD option, configured by SetupBoosterEffect.
+   *
+   * @implemented
    * @param {string} lodOption The BOOSTER_LOD option value.
    * @returns {Tr2Effect} The new effect.
    */
@@ -778,6 +841,8 @@ export class BehaviorGroupBooster extends IRoot
   /**
    * Carbon CreateFlareEffect (cpp:301-312, private): the flare-quad effect
    * used by both the ambient and halo flares.
+   *
+   * @implemented
    * @returns {Tr2Effect} The new effect.
    */
   @meta.implemented

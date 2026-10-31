@@ -111,6 +111,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
    * dx11's `ON_BLOCK_EXIT` destroys a set that fails part-way; every failure
    * here returns before anything outlives the call, and `Destroy` runs first.
    *
+   * @adapted
    * @param {import("../Tr2ResourceSetAL/Tr2ResourceSetDescriptionAL.js").Tr2ResourceSetDescriptionAL} description What to bind.
    * @param {import("./Tr2ShaderProgramALWebgl2.js").Tr2ShaderProgramALWebgl2} program The program it binds against.
    * @param {object} _renderContext Unused, as in dx11.
@@ -310,7 +311,11 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
     this._units = [];
   }
 
-  /** Releases the set and leaves the device-resource registry. */
+  /**
+   * Releases the set and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -320,6 +325,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether `Create` succeeded.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -330,6 +336,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this set occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -340,6 +347,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the set for the device-resource registry, with dx11's keys.
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -351,6 +359,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the set. WebGL has no debug names, so it is kept for `Describe`.
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

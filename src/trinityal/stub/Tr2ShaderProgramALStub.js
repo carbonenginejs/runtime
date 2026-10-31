@@ -32,7 +32,11 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
 
   _registerMap = new Tr2RegisterMapAL();
 
-  /** Returns the register map that Carbon's stub deliberately leaves empty. */
+  /**
+   * Returns the register map that Carbon's stub deliberately leaves empty.
+   *
+   * @implemented
+   */
   GetRegisterMap()
   {
     return this._registerMap;
@@ -41,6 +45,7 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
   /**
    * Links the shaders into a program (`Tr2ShaderProgramALStub.cpp:20-49`).
    *
+   * @adapted
    * @param {object[]} shaders The `Tr2ShaderAL` values to link.
    * @param {number} count How many of them to link.
    * @param {object} renderContext The context to link against.
@@ -80,7 +85,11 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
     this._shaders = [];
   }
 
-  /** Releases the program and leaves the device-resource registry. */
+  /**
+   * Releases the program and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -90,6 +99,7 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
   /**
    * Whether the program linked.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -110,6 +120,7 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
   /**
    * Which memory class this program occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -126,6 +137,7 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -135,6 +147,7 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
   /**
    * Names the program for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */

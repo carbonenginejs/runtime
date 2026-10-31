@@ -42,6 +42,7 @@ export class Tr2TexturePipelineStepPack extends IRoot
    * Carbon GetResourceDependencies (cpp:39-57), the ITr2TexturePipelineStep
    * virtual: insert each channel's non-empty path into the caller's set.
    *
+   * @implemented
    * @param {Set<string>} [resources] Caller-owned; allocated when omitted.
    * @returns {Set<string>} The set, for the caller that omitted it.
    */
@@ -66,9 +67,8 @@ export class Tr2TexturePipelineStepPack extends IRoot
    * every pixel after the first is shifted. Here R8 is tested as declared and
    * the destination advances by its own pixel size.
    *
-   * Adapted: Carbon's R8 case tests a format its own guard rejects (a heap overflow) and its
-   * BGRX case shifts every pixel after the first; both fixed (issue 2).
-   *
+   * @adapted Carbon's R8 case tests a format its own guard rejects (a heap overflow) and its
+   *   BGRX case shifts every pixel after the first; both fixed (issue 2).
    * @param {import("#imageio").HostBitmap} bitmap The pipeline's bitmap.
    * @param {Map<string, import("#imageio").HostBitmap>} inputs Loaded inputs by path.
    * @returns {boolean} Whether the step succeeded.
@@ -205,6 +205,7 @@ export class Tr2TexturePipelineStepPack extends IRoot
    * Carbon's SwapRedBlue (cpp:10-21): a channel index is authored in RGBA
    * order and read from BGRA memory.
    *
+   * @implemented
    * @param {number} channel Authored channel index.
    * @returns {number} Byte index within the pixel.
    */
@@ -222,9 +223,8 @@ export class Tr2TexturePipelineStepPack extends IRoot
    * so a BGRX output leaves its X byte alone instead of shifting every pixel
    * after the first (issue 2).
    *
-   * Adapted: The destination advances by the output's bytes per pixel, so a BGRX output is
-   * not shifted (issue 2).
-   *
+   * @adapted The destination advances by the output's bytes per pixel, so a BGRX output is
+   *   not shifted (issue 2).
    * @param {import("#imageio").HostBitmap} bitmap Destination bitmap.
    * @param {object[]} channels Four sources: data, offset, pixelStride, rowStride.
    * @param {number} channelCount How many of them to write per pixel.

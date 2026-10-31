@@ -456,6 +456,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
      * `AK::SpatialAudio::Init` does, so the manager treats geometry as
      * unavailable.
      *
+     * @notImplemented
      * @param {object} _settings - AkSpatialAudioInitSettings values.
      * @returns {boolean} Always false.
      */
@@ -470,6 +471,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
      * AudGeometry.cpp:76-118). Not implemented: Carbon added spatial-audio
      * geometry after this backend was ported; not ported yet.
      *
+     * @notImplemented
      * @param {number} _geometrySetId - AkGeometrySetID.
      * @param {object} _params - AkGeometryParams values.
      * @returns {boolean} Always false: the set is not registered.
@@ -485,6 +487,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
      * AudGeometry.cpp:127, :151). Not implemented: Carbon added spatial-audio
      * geometry after this backend was ported; not ported yet.
      *
+     * @notImplemented
      * @param {number} _geometryInstanceId - AkGeometryInstanceID.
      * @param {object} _params - AkGeometryInstanceParams values.
      * @returns {boolean} Always false: the instance is not placed.
@@ -501,6 +504,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
      * geometry after this backend was ported; not ported yet. Nothing was
      * registered, so there is nothing to remove.
      *
+     * @notImplemented
      * @param {number} _geometrySetId - AkGeometrySetID.
      */
     RemoveGeometry(_geometrySetId)
@@ -513,6 +517,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
      * AudGeometry.cpp:170). Not implemented: Carbon added spatial-audio
      * geometry after this backend was ported; not ported yet.
      *
+     * @notImplemented
      * @param {number} _geometryInstanceId - AkGeometryInstanceID.
      */
     RemoveGeometryInstance(_geometryInstanceId)

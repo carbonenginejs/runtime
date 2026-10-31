@@ -83,8 +83,12 @@ export class EveChildLightingOverride extends EveChildTransform
   @type.list("IEveVolume")
   volumes = [];
 
-  /** Carbon EveChildLightingOverride::RegisterComponents (cpp:47-50):
-   * unconditional EveLightingOverride leaf self-registration. */
+  /**
+   * Carbon EveChildLightingOverride::RegisterComponents (cpp:47-50):
+   * unconditional EveLightingOverride leaf self-registration.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -102,6 +106,8 @@ export class EveChildLightingOverride extends EveChildTransform
    * EveEntity::UnRegister (EveEntity.cpp:81-94) after UnRegisterAllComponents
    * has already removed it, so there the removal finds nothing; Carbon does it
    * anyway.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -114,6 +120,8 @@ export class EveChildLightingOverride extends EveChildTransform
    * Returns this child's contribution to the lighting system: its priority, the
    * blend intensity resolved by the last async update, and the sun
    * colour/intensity plus background and reflection intensities to blend toward.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -134,6 +142,8 @@ export class EveChildLightingOverride extends EveChildTransform
   /**
    * The authored name, persisted with the override and used to identify it in
    * the parent graph.
+   *
+   * @implemented
    */
   @meta.implemented
   GetName()
@@ -141,7 +151,11 @@ export class EveChildLightingOverride extends EveChildTransform
     return this.name;
   }
 
-  /** Sets the authored override name, coercing nullish to the empty string. */
+  /**
+   * Sets the authored override name, coercing nullish to the empty string.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetName(name)
   {
@@ -150,6 +164,8 @@ export class EveChildLightingOverride extends EveChildTransform
 
   /**
    * Copies the cached local-space bounding sphere into out and always reports success, even before any volume has contributed.
+   *
+   * @adapted
    * @param {Float32Array} out - caller-owned; receives (x, y, z, radius)
    * @returns {Boolean} always true
    */
@@ -161,7 +177,11 @@ export class EveChildLightingOverride extends EveChildTransform
     return true;
   }
 
-  /** No-op: a lighting override carries no sync-side frame work. */
+  /**
+   * No-op: a lighting override carries no sync-side frame work.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateSyncronous(_updateContext, _params)
   {
@@ -174,6 +194,8 @@ export class EveChildLightingOverride extends EveChildTransform
    * is inside the bounding sphere, the strongest volume intensity there
    * (short-circuiting at 1) is scaled by the authored intensity - a camera
    * outside leaves the strength at zero.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -248,6 +270,8 @@ export class EveChildLightingOverride extends EveChildTransform
 
   /**
    * Carbon EveChildLightingOverride::GetDebugOptions (cpp:157-161).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -262,6 +286,8 @@ export class EveChildLightingOverride extends EveChildTransform
    * Carbon EveChildLightingOverride::RenderDebugInfo (cpp:163-177): every
    * volume under the world transform with "Volumes", then the bounding sphere
    * placed at its centre under the world transform with "Bounding Sphere".
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -290,19 +316,31 @@ export class EveChildLightingOverride extends EveChildTransform
     }
   }
 
-  /** No-op: a lighting override is not renderable and keeps no visibility state. */
+  /**
+   * No-op: a lighting override is not renderable and keeps no visibility state.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
-  /** No-op: a lighting override contributes settings, never renderables. */
+  /**
+   * No-op: a lighting override contributes settings, never renderables.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetRenderables(_renderables)
   {
   }
 
-  /** No-op: a lighting override has no LOD levels. */
+  /**
+   * No-op: a lighting override has no LOD levels.
+   *
+   * @implemented
+   */
   @meta.implemented
   ChangeLOD(_lod)
   {

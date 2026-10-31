@@ -39,8 +39,8 @@ export class Tr2RenderNodeSprite2dScene extends IRoot
    * Whether this node can run against the given destinations, requiring at
    * least one destination, a scene, and a background that validates first.
    *
-   * Adapted: Carbon asserts before returning false on an empty destination list; the port
-   * returns false without asserting and lets the caller decide.
+   * @adapted Carbon asserts before returning false on an empty destination list; the port
+   *   returns false without asserting and lets the caller decide.
    */
 
   @meta.adapted

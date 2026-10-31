@@ -83,7 +83,11 @@ export class EveLineChildContainer extends IEveLineSetPath
   @type.list("IEveLineSetPath")
   lines = [];
 
-  /** Carbon invalidates generated points and bounds for every authored change. */
+  /**
+   * Carbon invalidates generated points and bounds for every authored change.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_value = null)
@@ -92,7 +96,11 @@ export class EveLineChildContainer extends IEveLineSetPath
     return true;
   }
 
-  /** Carbon invalidates generated points and bounds for every line-list change. */
+  /**
+   * Carbon invalidates generated points and bounds for every line-list change.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnListModified(_event = 0, _key = 0, _key2 = 0, _value = null, _list = null)
@@ -100,7 +108,11 @@ export class EveLineChildContainer extends IEveLineSetPath
     this._regenerate = true;
   }
 
-  /** Updates every child and rebuilds points or aggregate bounds when required. */
+  /**
+   * Updates every child and rebuilds points or aggregate bounds when required.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(updateContext, params)
@@ -127,7 +139,11 @@ export class EveLineChildContainer extends IEveLineSetPath
     return updateBounds;
   }
 
-  /** Regenerates child points beneath this container's composed world transform. */
+  /**
+   * Regenerates child points beneath this container's composed world transform.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GeneratePoints(parentTransform = EveLineChildContainer._identity)
@@ -153,6 +169,8 @@ export class EveLineChildContainer extends IEveLineSetPath
    * Emits zero-scale records when hidden, otherwise forwards the native shared
    * data pointer to every child unchanged. The mutable byte cursor replaces
    * uint8_t*&; no extra container transform is applied (cpp:58-83).
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -174,7 +192,11 @@ export class EveLineChildContainer extends IEveLineSetPath
     }
   }
 
-  /** Returns the sum of every child path's generated-point count. */
+  /**
+   * Returns the sum of every child path's generated-point count.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPointCount()
@@ -190,6 +212,8 @@ export class EveLineChildContainer extends IEveLineSetPath
   /**
    * Rebuilds Carbon's intentionally loose preliminary sphere: the mean child
    * centre plus the largest centre distance and largest child radius.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -243,7 +267,11 @@ export class EveLineChildContainer extends IEveLineSetPath
     sph3.set(this._boundingSphere, centre[0], centre[1], centre[2], Math.sqrt(distanceSquared) + biggestRadius);
   }
 
-  /** Writes the aggregate sphere after applying this container's local transform. */
+  /**
+   * Writes the aggregate sphere after applying this container's local transform.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out)
@@ -251,7 +279,11 @@ export class EveLineChildContainer extends IEveLineSetPath
     return sph3.transformMat4(out, this._boundingSphere, this.localTransform);
   }
 
-  /** Culls the container before forwarding visibility to every child path. */
+  /**
+   * Culls the container before forwarding visibility to every child path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(frustum, parentLod, systemLocation)
@@ -275,7 +307,11 @@ export class EveLineChildContainer extends IEveLineSetPath
     }
   }
 
-  /** Forwards line emission while both authored and computed visibility permit it. */
+  /**
+   * Forwards line emission while both authored and computed visibility permit it.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddLinesToSet(lineSet, color, animationColor, scrollSpeed)
@@ -290,7 +326,11 @@ export class EveLineChildContainer extends IEveLineSetPath
     }
   }
 
-  /** Carbon declares no container-specific debug options (cpp:170-173). */
+  /**
+   * Carbon declares no container-specific debug options (cpp:170-173).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetDebugOptions(_options)
@@ -302,6 +342,8 @@ export class EveLineChildContainer extends IEveLineSetPath
    * "LineSets" option, the container's bounding sphere (with "Bounding
    * Sphere") placed by its world transform under the parent, then every child
    * path's debug info under the same parent location.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentWorldLocation
    */

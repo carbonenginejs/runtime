@@ -25,6 +25,8 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
   /**
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -34,7 +36,11 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
     super.ClearBindings();
   }
 
-  /** Restores every binding's default and copies it out, then clears. */
+  /**
+   * Restores every binding's default and copies it out, then clears.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Reset()
@@ -71,6 +77,8 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
   /**
    * Restores the first captured default, falling back to false when nothing was
    * captured.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented

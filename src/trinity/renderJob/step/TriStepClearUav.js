@@ -54,7 +54,11 @@ export class TriStepClearUav extends TriRenderStep
   @type.uint32
   bitValue3 = 0;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD).
+   *
+   * @adapted
+   */
   @be.mapMethod()
   @meta.adapted
   __init__(buffer = null, values = null)
@@ -79,6 +83,8 @@ export class TriStepClearUav extends TriRenderStep
 
   /**
    * Clears the bound unordered-access buffer to its configured value.
+   *
+   * @adapted
    */
 
   @meta.adapted

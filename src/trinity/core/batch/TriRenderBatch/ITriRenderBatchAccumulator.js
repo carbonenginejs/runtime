@@ -13,6 +13,8 @@ import { CjsSchema, meta } from "#schema";
  * Abstract base for render-batch accumulators: holds the shared rendering mode,
  * user data and per-object-data store, and declares the collect and sort
  * contract concrete accumulators implement.
+ *
+ * @abstract
  */
 @meta.carbon("ITriRenderBatchAccumulator")
 @be.abstract
@@ -81,6 +83,8 @@ export class ITriRenderBatchAccumulator
   /**
    * Constructs the requested per-object-data object; Carbon pool-allocates here,
    * but in JS the GC owns lifetime, so this only calls the constructor.
+   *
+   * @adapted
    */
   Allocate(Constructor)
   {
@@ -90,19 +94,29 @@ export class ITriRenderBatchAccumulator
   /**
    * Attaches an opaque caller value that every batch collected by this
    * accumulator carries.
+   *
+   * @implemented
    */
   SetUserData(userData)
   {
     this.userData = userData;
   }
 
-  /** Sets the rendering mode that Commit stamps onto every batch collected here. */
+  /**
+   * Sets the rendering mode that Commit stamps onto every batch collected here.
+   *
+   * @implemented
+   */
   SetRenderingMode(mode)
   {
     this.renderingMode = mode;
   }
 
-  /** The rendering mode stamped onto collected batches. */
+  /**
+   * The rendering mode stamped onto collected batches.
+   *
+   * @implemented
+   */
   GetRenderingMode()
   {
     return this.renderingMode;
@@ -111,6 +125,8 @@ export class ITriRenderBatchAccumulator
   /**
    * Abstract: concrete accumulators drop every collected batch and reset the
    * shared state.
+   *
+   * @abstract
   */
   @meta.abstract
   Clear() {}
@@ -118,34 +134,58 @@ export class ITriRenderBatchAccumulator
   /**
    * Abstract: concrete accumulators take ownership of a batch and file it for
    * sorting.
+   *
+   * @abstract
   */
   @meta.abstract
   Commit(_batch) {}
 
-  /** Abstract: the GDPR-eligible batch vector. */
+  /**
+   * Abstract: the GDPR-eligible batch vector.
+   *
+   * @abstract
+   */
   @meta.abstract
   GetGdprBatches() {}
 
-  /** Abstract: the plain batch vector. */
+  /**
+   * Abstract: the plain batch vector.
+   *
+   * @abstract
+   */
   @meta.abstract
   GetBatches() {}
 
-  /** Abstract: concrete accumulators sort and group-count the collected batches. */
+  /**
+   * Abstract: concrete accumulators sort and group-count the collected batches.
+   *
+   * @abstract
+   */
   @meta.abstract
   Finalize() {}
 
-  /** Abstract: total number of collected batches. */
+  /**
+   * Abstract: total number of collected batches.
+   *
+   * @abstract
+   */
   @meta.abstract
   GetBatchCount() {}
 
   /**
    * Abstract: whether the collected batches are effect-sorted rather than
    * order-preserving.
+   *
+   * @abstract
   */
   @meta.abstract
   IsChainedByEffect() {}
 
-  /** Abstract: folds another accumulator's batches into this one. */
+  /**
+   * Abstract: folds another accumulator's batches into this one.
+   *
+   * @abstract
+   */
   @meta.abstract
   TransferFrom(_source) {}
 }

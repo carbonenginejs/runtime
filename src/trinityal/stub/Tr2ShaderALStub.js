@@ -53,6 +53,7 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
   /**
    * Creates the shader.
    *
+   * @adapted
    * @param {number} type The pipeline stage, as a Carbon `ShaderType` value.
    * @param {ArrayBufferView} bytecode The compiled bytecode.
    * @param {object|null} signature The shader signature.
@@ -72,7 +73,11 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** Releases the bytecode and leaves the device-resource registry. */
+  /**
+   * Releases the bytecode and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._type = ShaderType.INVALID_SHADER;
@@ -84,6 +89,7 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
   /**
    * Whether the shader has both a stage and bytecode.
    *
+   * @implemented
    * @returns {boolean} True when usable.
    */
   IsValid()
@@ -94,6 +100,7 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
   /**
    * The pipeline stage.
    *
+   * @implemented
    * @returns {number} A Carbon `ShaderType` value; INVALID_SHADER when unset.
    */
   GetType()
@@ -104,6 +111,7 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
   /**
    * The stored bytecode.
    *
+   * @adapted
    * @returns {{result: number, bytecode: Uint8Array|null}} The bytecode.
    */
   GetBytecode()
@@ -116,6 +124,7 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
   /**
    * The shader signature.
    *
+   * @implemented
    * @returns {object|null} The signature given at creation.
    */
   GetSignature()
@@ -129,6 +138,7 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
    * Carbon uses this for null shaders - a stage the pipeline must name but
    * that does no work. The shader stays INVALID, which is the point.
    *
+   * @implemented
    * @param {number} type The pipeline stage.
    */
   SetNullShaderType(type)
@@ -139,6 +149,7 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
   /**
    * Which memory class this shader occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -155,6 +166,7 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -164,6 +176,7 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
   /**
    * Names the shader for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */

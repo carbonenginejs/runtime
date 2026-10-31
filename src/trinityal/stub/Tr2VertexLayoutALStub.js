@@ -37,6 +37,7 @@ export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
   /**
    * Creates the layout.
    *
+   * @adapted
    * @param {object[]} definition The vertex element list.
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
@@ -52,7 +53,11 @@ export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** Releases the definition and leaves the device-resource registry. */
+  /**
+   * Releases the definition and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._definition = null;
@@ -62,6 +67,7 @@ export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
   /**
    * Whether a definition was stored.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -82,6 +88,7 @@ export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
   /**
    * Which memory class this layout occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -98,6 +105,7 @@ export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -107,6 +115,7 @@ export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
   /**
    * Names the layout for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */

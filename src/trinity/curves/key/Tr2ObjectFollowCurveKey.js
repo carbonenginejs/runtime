@@ -110,6 +110,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 
   /**
    * Resolves the current locator cache.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -122,6 +124,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Re-resolves the locator after object or locator-name changes.
    * JavaScript property-name tokens replace native Be::Var member matching.
+   *
+   * @implemented
    * @param {string|null} propertyName Changed member name.
    * @returns {boolean} True.
    */
@@ -138,6 +142,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 
   /**
    * Gets the key time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -148,6 +154,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 
   /**
    * Gets the segment interpolation mode starting at this key.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -159,6 +167,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Gets the rotated left tangent into `out`.
    * The caller's output buffer replaces the native vector value return.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -170,6 +180,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Gets the rotated right tangent into `out`.
    * The caller's output buffer replaces the native vector value return.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -182,6 +194,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Gets the followed object position plus local offset into `out`.
    * Carbon: Tr2ObjectFollowCurveKey::GetValue (trinity/trinity/Curves/Tr2FollowCurveKey.cpp:101-141).
    * The caller's output buffer replaces the native vector value return.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -227,6 +241,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Finds the first locator in the requested Carbon locator set.
    * Mapped constructor identities implement the native BlueCastPtr query.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -253,6 +269,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Carbon: Tr2ObjectFollowCurveKey::GetLocatorRotation (trinity/trinity/Curves/Tr2FollowCurveKey.cpp:82-89).
    * Carbon's RotationMatrix( Normalize( direction ) ) (Matrix_inline.h:365-386) shares its byte layout with
    * gl-matrix's fromQuat, so the matrix ports unchanged; the caller's output replaces the native value return.
+   *
+   * @adapted
    * @param {Float32Array} out Destination matrix.
    * @returns {Float32Array} The destination.
    */
@@ -271,6 +289,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Gets the followed object's world rotation as a matrix, or identity when it has no world position.
    * Carbon: Tr2ObjectFollowCurveKey::GetModelRotation (trinity/trinity/Curves/Tr2FollowCurveKey.cpp:91-98).
    * Same layout note as _GetLocatorRotation; the caller's output replaces the native value return.
+   *
+   * @adapted
    * @param {Float32Array} out Destination matrix.
    * @returns {Float32Array} The destination.
    */

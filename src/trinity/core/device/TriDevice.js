@@ -262,6 +262,8 @@ export class TriDevice extends IRoot
   /**
    * m_minimumModelLOD (TriDevice.h:287, initialised to 0 at TriDevice.cpp:176): the first N model LODs
    * that are not loaded; 0 disables. Read and written through Get/SetMinimumModelLOD.
+   *
+   * @implemented
    */
   @meta.implemented
   _minimumModelLOD = 0;
@@ -271,6 +273,7 @@ export class TriDevice extends IRoot
    *
    * Carbon: TriDevice::GetMinimumModelLOD (trinity/trinity/TriDevice.cpp:1501-1504; TriDevice.h:220).
    *
+   * @implemented
    * @returns {number} The minimum model LOD.
    */
   @meta.implemented
@@ -285,12 +288,11 @@ export class TriDevice extends IRoot
    *
    * Carbon: TriDevice::SetMinimumModelLOD (trinity/trinity/TriDevice.cpp:1506-1528; TriDevice.h:290).
    *
-   * Adapted: Carbon walks the mutex-guarded static registry with a `dynamic_cast<TriGeometryRes*>`;
-   * this walks `GetResourcesRegistered()`'s snapshot with `CjsSchema.cast`, and needs no lock in this
-   * JS realm. `TriGeometryRes` does not register itself with the device yet (it is not a
-   * `Tr2DeviceResource` here), so only geometry a host registers is reloaded, and nothing reads the
-   * value when LODs are created.
-   *
+   * @adapted Carbon walks the mutex-guarded static registry with a `dynamic_cast<TriGeometryRes*>`;
+   *   this walks `GetResourcesRegistered()`'s snapshot with `CjsSchema.cast`, and needs no lock in this
+   *   JS realm. `TriGeometryRes` does not register itself with the device yet (it is not a
+   *   `Tr2DeviceResource` here), so only geometry a host registers is reloaded, and nothing reads the
+   *   value when LODs are created.
    * @param {number} minimumModelLOD The first N model LODs to skip.
    * @returns {void}
    */
@@ -314,6 +316,7 @@ export class TriDevice extends IRoot
    * minimumModelLOD (MAP_PROPERTY): Carbon's property over GetMinimumModelLOD/SetMinimumModelLOD, which the macro calls.
    * Carbon: MAP_PROPERTY (trinity/trinity/TriDevice_Blue.cpp:285-289).
    *
+   * @implemented
    * @type {number}
    */
   @be.mapProperty()
@@ -324,6 +327,7 @@ export class TriDevice extends IRoot
     return this.GetMinimumModelLOD();
   }
 
+  /** @implemented */
   @meta.implemented
   set minimumModelLOD(value)
   {
@@ -333,6 +337,8 @@ export class TriDevice extends IRoot
   /**
    * Width over height of the device viewport in pixels; zero when there is no
    * viewport or its height is zero.
+   *
+   * @implemented
    */
   @meta.implemented
   AspectRatio()
@@ -349,6 +355,8 @@ export class TriDevice extends IRoot
    * Maps window-space pixel coordinates into the [-1, 1] projection space.
    * DX maps viewport pixel CENTRES to view space, so for four pixels, pixel
    * 3 maps to 1 and pixel 0 to -1.
+   *
+   * @adapted
    */
   @meta.adapted
   ScreenToProjection(x, y, viewport = this.viewport, out)
@@ -368,6 +376,8 @@ export class TriDevice extends IRoot
    *
    * The returned vectors are detached from the picking helper's reusable
    * scratch storage, so a later query cannot mutate an earlier result.
+   *
+   * @adapted
    */
   @be.mapMethodAsMethod()
   @meta.adapted
@@ -382,7 +392,11 @@ export class TriDevice extends IRoot
     return [ new Float32Array(ray.direction), new Float32Array(ray.start) ];
   }
 
-  /** Time in seconds, recentered regularly (once per hour). */
+  /**
+   * Time in seconds, recentered regularly (once per hour).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetAnimationTime()
   {
@@ -392,6 +406,8 @@ export class TriDevice extends IRoot
   /**
    * Elapsed animation time since startTime, correct across the hourly
    * ANIMATION_TIME_MAX recenter.
+   *
+   * @implemented
    */
   @meta.implemented
   GetAnimationTimeElapsed(startTime)
@@ -429,7 +445,11 @@ export class TriDevice extends IRoot
   /** The animation time before the current tick, for the render-time vector. */
   previousAnimationTime = 0;
 
-  /** `Tr2Renderer::GetCurrentFrameCounter` reads this through gTriDev. */
+  /**
+   * `Tr2Renderer::GetCurrentFrameCounter` reads this through gTriDev.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCurrentFrameCounter()
   {
@@ -451,12 +471,11 @@ export class TriDevice extends IRoot
    * so a stall does not jump every animation forward, and the clock recentres
    * hourly.
    *
-   * Adapted: Carbon's OnTick also sets a crash key and schedules the next event; those two
-   * operations are not ported. The clock, Update, HandleRenderTick, main-thread action drain
-   * and resource-pool sweep are. The cookie is accepted so the signature matches
-   * IBlueEvents, and ignored because Carbon's body ignores it too - it exists for
-   * registrants that register more than once.
-   *
+   * @adapted Carbon's OnTick also sets a crash key and schedules the next event; those two
+   *   operations are not ported. The clock, Update, HandleRenderTick, main-thread action drain
+   *   and resource-pool sweep are. The cookie is accepted so the signature matches
+   *   IBlueEvents, and ignored because Carbon's body ignores it too - it exists for
+   *   registrants that register more than once.
    * @param {number} realTime Time since the client started, in 100ns ticks.
    * @param {number} simTime The same, slowed under load to manage it.
    * @param {*} [_cookie] The cookie this device registered with; unread.
@@ -505,12 +524,11 @@ export class TriDevice extends IRoot
   /**
    * Tears the device down and stops it being ticked (`TriDevice.cpp:687-691`).
    *
-   * Adapted: also releases the scene's and occlusion buffer's static GPU
-   * resources, which Carbon leaves to process exit. Both classes are reached
-   * by registered name, not imported: EveSpaceScene is a Tr2DeviceResource,
-   * whose module imports this one, so a static import here is a cycle. A
-   * class that was never loaded created no statics.
-   *
+   * @adapted also releases the scene's and occlusion buffer's static GPU
+   *   resources, which Carbon leaves to process exit. Both classes are reached
+   *   by registered name, not imported: EveSpaceScene is a Tr2DeviceResource,
+   *   whose module imports this one, so a static import here is a cycle. A
+   *   class that was never loaded created no statics.
    * @returns {TriDevice} This device.
    */
   @meta.adapted
@@ -583,6 +601,7 @@ export class TriDevice extends IRoot
    * registry. Carbon's mutex-protected set needs no lock in this JS realm;
    * owners explicitly unregister at teardown because JS has no destructor.
    *
+   * @adapted
    * @returns {object[]} Registered resources at the time of this call.
    */
   @meta.adapted
@@ -594,6 +613,7 @@ export class TriDevice extends IRoot
   /**
    * Registers a device resource so it is prepared and released with the device.
    *
+   * @implemented
    * @param {object} resource A `Tr2DeviceResource`.
    * @returns {void}
    */
@@ -610,6 +630,7 @@ export class TriDevice extends IRoot
   /**
    * Unregisters one.
    *
+   * @implemented
    * @param {object} resource The registered resource.
    * @returns {void}
    */
@@ -627,6 +648,7 @@ export class TriDevice extends IRoot
    * false. On the headless backend the two coincide, because the AL's validity
    * IS the device.
    *
+   * @implemented
    * @returns {boolean} Whether the ambient context has a live backend.
    */
   @be.mapMethodAndWrap("DoesD3DDeviceExist")
@@ -645,6 +667,7 @@ export class TriDevice extends IRoot
    * both. The alias forwards rather than being the implementation, so there is
    * one body to be wrong.
    *
+   * @implemented
    * @returns {boolean} Whether the ambient context has a live backend.
    */
   @legacyBlue.method
@@ -658,6 +681,7 @@ export class TriDevice extends IRoot
    * Releases the device's resources and the ambient render context with it
    * (`TriDevice.cpp:480-487`).
    *
+   * @implemented
    * @returns {TriDevice} This device.
    */
   @meta.implemented
@@ -683,12 +707,11 @@ export class TriDevice extends IRoot
    * Carbon's Python `OnInvalidate` walk (`:531-590`) has no counterpart: there
    * is no Python here.
    *
-   * Adapted: Carbon guards against a resource unregistering itself mid-iteration with an
-   * s_resourcesToBeRemoved set and an s_iteratingForRelease flag; iterating over a copy of
-   * the registry answers the same problem without two statics to keep in step. Carbon also
-   * logs a warning for a null entry, which this registry cannot hold because
-   * RegisterResource refuses it at the door.
-   *
+   * @adapted Carbon guards against a resource unregistering itself mid-iteration with an
+   *   s_resourcesToBeRemoved set and an s_iteratingForRelease flag; iterating over a copy of
+   *   the registry answers the same problem without two statics to keep in step. Carbon also
+   *   logs a warning for a null entry, which this registry cannot hold because
+   *   RegisterResource refuses it at the door.
    * @param {number} [storage] A `TriStorage` mask.
    * @returns {TriDevice} This device.
    */
@@ -714,9 +737,8 @@ export class TriDevice extends IRoot
    * Rebuilds every registered resource after a device comes up
    * (`TriDevice.cpp:1038-1059`).
    *
-   * Adapted: Carbon's third step is RebuildDeviceResourcesInPython, which has no
-   * counterpart: there is no Python here and no second resource registry to rebuild.
-   *
+   * @adapted Carbon's third step is RebuildDeviceResourcesInPython, which has no
+   *   counterpart: there is no Python here and no second resource registry to rebuild.
    * @returns {TriDevice} This device.
    */
   @meta.adapted
@@ -738,9 +760,8 @@ export class TriDevice extends IRoot
    * The early return is Carbon's: a software device with no output window has
    * nothing to present to, and saying so is not a failure.
    *
-   * Adapted: the failed HRESULT is logged through CcpLog; Carbon's separate
-   * LogAllLiveResources video-memory inventory is still unavailable here.
-   *
+   * @adapted the failed HRESULT is logged through CcpLog; Carbon's separate
+   *   LogAllLiveResources video-memory inventory is still unavailable here.
    * @param {number} adapter Which adapter.
    * @param {object} presentParameters A `Tr2PresentParametersAL`.
    * @returns {boolean} Whether the parameters were accepted.
@@ -767,6 +788,7 @@ export class TriDevice extends IRoot
   /**
    * Whether the device was removed and is not yet replaced (`TriDevice.h:193-196`).
    *
+   * @implemented
    * @returns {boolean} Carbon's mDeviceLost.
    */
   @meta.implemented
@@ -780,13 +802,12 @@ export class TriDevice extends IRoot
    * release everything, create the device, take the new parameters, then
    * `InitD3DDevice` and `PrepareDeviceResources`.
    *
-   * Adapted: the render context is kept rather than destroyed and rebuilt (see
-   * HandleRenderTick), so the device is created through the kept abstraction
-   * layer's `CreateDevice`. `Tr2SyncToGpu::Flush`, `CreateUpscalingTechnique`
-   * and the display-mode read have no counterpart here. A creation still
-   * pending (`E_DEVICELOST`, WebGPU's asynchronous device request) returns
-   * false without logging, so the next tick asks again.
-   *
+   * @adapted the render context is kept rather than destroyed and rebuilt (see
+   *   HandleRenderTick), so the device is created through the kept abstraction
+   *   layer's `CreateDevice`. `Tr2SyncToGpu::Flush`, `CreateUpscalingTechnique`
+   *   and the display-mode read have no counterpart here. A creation still
+   *   pending (`E_DEVICELOST`, WebGPU's asynchronous device request) returns
+   *   false without logging, so the next tick asks again.
    * @param {number} adapter Which adapter.
    * @param {*} hWnd The output window; a canvas here.
    * @param {object|null} pp Present parameters, or null for the current ones.
@@ -842,11 +863,10 @@ export class TriDevice extends IRoot
    * video-memory resources, re-apply the present parameters, then
    * `InitD3DDevice` and `PrepareDeviceResources`.
    *
-   * Adapted: Carbon's reentrancy guard and `SetResourceCreationAllowed`
-   * toggling are not ported (resource creation follows device validity here,
-   * see `Tr2Renderer.IsResourceCreationAllowed`), nor is the display-mode
-   * re-read.
-   *
+   * @adapted Carbon's reentrancy guard and `SetResourceCreationAllowed`
+   *   toggling are not ported (resource creation follows device validity here,
+   *   see `Tr2Renderer.IsResourceCreationAllowed`), nor is the display-mode
+   *   re-read.
    * @param {number} [adapter] Which adapter.
    * @param {object|null} [pp] Present parameters, or null for the current ones.
    * @returns {boolean} Whether the reset succeeded.
@@ -885,11 +905,10 @@ export class TriDevice extends IRoot
    * Fills in the default viewport once a device exists
    * (`TriDevice.cpp:315-338`).
    *
-   * Adapted: Carbon also reads the adapter display mode into mDisplayMode when there is an
-   * output window or the device is not software. That enumeration has no browser counterpart
-   * - see CreateSimpleDevice - so the viewport half is ported and the display-mode half is
-   * not.
-   *
+   * @adapted Carbon also reads the adapter display mode into mDisplayMode when there is an
+   *   output window or the device is not software. That enumeration has no browser counterpart
+   *   - see CreateSimpleDevice - so the viewport half is ported and the display-mode half is
+   *   not.
    * @returns {boolean} False when there is no device to describe.
    */
   @meta.adapted
@@ -918,10 +937,9 @@ export class TriDevice extends IRoot
    * truthful to put in those fields. Windowed and adapterless creation are
    * complete.
    *
-   * Adapted: CreateUpscalingTechnique and the nvperfhud accommodation have no
-   * backend implementation here. Device-creation failure is logged through
-   * CcpLog; display-mode enumeration remains the explicit refusal above.
-   *
+   * @adapted CreateUpscalingTechnique and the nvperfhud accommodation have no
+   *   backend implementation here. Device-creation failure is logged through
+   *   CcpLog; display-mode enumeration remains the explicit refusal above.
    * @param {*} hwnd The output window; a canvas here.
    * @param {number} width Back-buffer width.
    * @param {number} height Back-buffer height.
@@ -1012,6 +1030,7 @@ export class TriDevice extends IRoot
    * passing null is how the App says it is done: that branch tears the device
    * down and unregisters it.
    *
+   * @implemented
    * @param {number} adapter Which adapter.
    * @param {object|null} presentParameters A `Tr2PresentParametersAL`, or null.
    * @returns {boolean} True, as Carbon's does unconditionally.
@@ -1065,9 +1084,8 @@ export class TriDevice extends IRoot
    * Registers a callback to run after the update, before the frame
    * (`TriDevice.cpp:1189-1192`).
    *
-   * Adapted: Carbon delegates to an IBlueCallbackMan, which carries flags and a comparison
-   * function neither of which has a caller here; this is the list itself.
-   *
+   * @adapted Carbon delegates to an IBlueCallbackMan, which carries flags and a comparison
+   *   function neither of which has a caller here; this is the list itself.
    * @param {Function} callback The callback.
    * @param {*} [context] Passed back to it.
    * @returns {TriDevice} This device.
@@ -1090,11 +1108,10 @@ export class TriDevice extends IRoot
    * ITERATED OVER A COPY, as Carbon does and for the reason Carbon gives: a
    * curve set finishing can add curve sets to this list.
    *
-   * Adapted: Carbon opens with TriSrand( simTime ), seeding its global random stream so a
-   * frame is reproducible from its simulation time; the math layer's random is not a
-   * seedable global, so there is nothing to seed. The BlueList refcount dance around Remove
-   * has no counterpart either, because a JS array holds no references to release.
-   *
+   * @adapted Carbon opens with TriSrand( simTime ), seeding its global random stream so a
+   *   frame is reproducible from its simulation time; the math layer's random is not a
+   *   seedable global, so there is nothing to seed. The BlueList refcount dance around Remove
+   *   has no counterpart either, because a JS array holds no references to release.
    * @param {number} realTime Time since the client started, in 100ns ticks.
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
@@ -1136,6 +1153,7 @@ export class TriDevice extends IRoot
    * there is no HRESULT, `BeGetErrorMessage`, GPU marker or page-fault report
    * here, so marker and resource description are empty.
    *
+   * @adapted
    * @param {number} realTime Time since the client started, in 100ns ticks.
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
@@ -1183,6 +1201,7 @@ export class TriDevice extends IRoot
    * Carbon's `ISimTimeRebaseNotify` half (`TriDevice.cpp:848-851`): the
    * simulation clock was MOVED, so carry the device's copy with it.
    *
+   * @implemented
    * @param {number} oldTime The simulation time before the move.
    * @param {number} newTime The simulation time after it.
    * @returns {TriDevice} This device.
@@ -1194,7 +1213,11 @@ export class TriDevice extends IRoot
     return this;
   }
 
-  /** Carbon method CreateUpscalingContext (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method CreateUpscalingContext (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.notImplemented
   CreateUpscalingContext(...args)
@@ -1202,7 +1225,11 @@ export class TriDevice extends IRoot
     throw new Error("TriDevice.CreateUpscalingContext is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method DeleteUpscalingContext (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method DeleteUpscalingContext (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   DeleteUpscalingContext(...args)
@@ -1210,7 +1237,11 @@ export class TriDevice extends IRoot
     throw new Error("TriDevice.DeleteUpscalingContext is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method GetRenderResolution (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetRenderResolution (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   GetRenderResolution(...args)
@@ -1218,7 +1249,11 @@ export class TriDevice extends IRoot
     throw new Error("TriDevice.GetRenderResolution is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method RefreshDeviceResources (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method RefreshDeviceResources (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   RefreshDeviceResources(...args)
@@ -1243,9 +1278,8 @@ export class TriDevice extends IRoot
    * `BeginFrame`/`EndFrame`. Both are named here so the gap is visible at the
    * site that needs them, rather than being discovered as a silent omission.
    *
-   * Adapted: Tr2SyncToGpu is unported and Tr2GpuProfiler is a fields-only shell, so their
-   * two calls are absent from the body. Everything else is Carbon's order verbatim.
-   *
+   * @adapted Tr2SyncToGpu is unported and Tr2GpuProfiler is a fields-only shell, so their
+   *   two calls are absent from the body. Everything else is Carbon's order verbatim.
    * @returns {boolean} True, as Carbon's does.
    */
   @be.mapMethodAndWrap()
@@ -1286,6 +1320,7 @@ export class TriDevice extends IRoot
    * frames to a hidden document, which is the case this exists for. Kept as a call site so
    * the frame body is Carbon's order and a host that CAN throttle has somewhere to do it.
    *
+   * @notSupported
    * @returns {void}
    */
   @meta.notSupported
@@ -1296,6 +1331,7 @@ export class TriDevice extends IRoot
   /**
    * The render jobs the frame body runs (`TriDevice.cpp:1119-1122`).
    *
+   * @implemented
    * @param {object|null} renderJobs A `Tr2RenderJobs`, or null to detach.
    * @returns {TriDevice} This device.
    */
@@ -1323,7 +1359,11 @@ export class TriDevice extends IRoot
   /** Carbon m_renderJobs (TriDevice.h:311). */
   #renderJobs = null;
 
-  /** Carbon method GetRenderingPlatformID (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetRenderingPlatformID (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   GetRenderingPlatformID(...args)
@@ -1331,7 +1371,11 @@ export class TriDevice extends IRoot
     throw new Error("TriDevice.GetRenderingPlatformID is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SupportsRenderTargetFormat (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SupportsRenderTargetFormat (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   SupportsRenderTargetFormat(...args)
@@ -1342,12 +1386,11 @@ export class TriDevice extends IRoot
   /**
    * Whether the adapter supports a variable refresh rate (G-Sync, FreeSync).
    *
-   * Adapted: Carbon asks the adapter through DXGI. A browser is never told whether the
-   * display has a variable refresh rate - requestAnimationFrame reports no such thing - so
-   * the only truthful answer is no. Constant rather than a refusal because
-   * CreateSimpleDevice records it in the present parameters on every creation, and a device
-   * that cannot be created is worse than one that reports a capability it does not have.
-   *
+   * @adapted Carbon asks the adapter through DXGI. A browser is never told whether the
+   *   display has a variable refresh rate - requestAnimationFrame reports no such thing - so
+   *   the only truthful answer is no. Constant rather than a refusal because
+   *   CreateSimpleDevice records it in the present parameters on every creation, and a device
+   *   that cannot be created is worse than one that reports a capability it does not have.
    * @returns {boolean} False.
    */
   @be.mapMethodAndWrap()
@@ -1357,7 +1400,11 @@ export class TriDevice extends IRoot
     return false;
   }
 
-  /** Carbon method SupportsRaytracing (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SupportsRaytracing (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   SupportsRaytracing(...args)
@@ -1365,7 +1412,11 @@ export class TriDevice extends IRoot
     throw new Error("TriDevice.SupportsRaytracing is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetUpscaling (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetUpscaling (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   SetUpscaling(...args)
@@ -1373,7 +1424,11 @@ export class TriDevice extends IRoot
     throw new Error("TriDevice.SetUpscaling is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method GetRenderContext (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetRenderContext (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   GetRenderContext(...args)
@@ -1385,13 +1440,12 @@ export class TriDevice extends IRoot
    * Refreshes the list of upscaling techniques this adapter offers
    * (`TriDevice.cpp:1330` and the DX12 backends).
    *
-   * Adapted: Carbon enumerates DLSS, FSR and XeSS through vendor SDKs. No backend here
-   * offers any of them, so the list is empty - which is the truthful answer, not a stub.
-   * SetUpscaling still REFUSES, because that is the verb where a caller asks for upscaling
-   * and would otherwise be silently given none. CreateSimpleDevice calls this on every
-   * creation, so a refusal here would break device creation to report a capability nobody
-   * asked for.
-   *
+   * @adapted Carbon enumerates DLSS, FSR and XeSS through vendor SDKs. No backend here
+   *   offers any of them, so the list is empty - which is the truthful answer, not a stub.
+   *   SetUpscaling still REFUSES, because that is the verb where a caller asks for upscaling
+   *   and would otherwise be silently given none. CreateSimpleDevice calls this on every
+   *   creation, so a refusal here would break device creation to report a capability nobody
+   *   asked for.
    * @returns {TriDevice} This device.
    */
   @be.mapMethodAndWrap()

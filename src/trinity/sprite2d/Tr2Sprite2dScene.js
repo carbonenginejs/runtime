@@ -284,6 +284,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /**
    * Carbon IsUsingLinearColorSpace (Tr2Sprite2dScene.cpp:2631-2634).
    *
+   * @implemented
    * @returns {boolean} Whether the scene renders in linear colour space.
    */
   @meta.implemented
@@ -301,6 +302,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * RS_SRGBWRITEENABLE on around the scene, and texture SRVs are bound through an sRGB view
    * (COLOR_SPACE_SRGB) so sRGB-encoded textures are decoded into linear space.
    *
+   * @implemented
    * @param {boolean} use Whether to render in linear colour space.
    * @returns {void}
    */
@@ -318,6 +320,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon SetGammaCorrectText (Tr2Sprite2dScene.cpp:2648-2652): stores the flag and selects
    * the FONT_GAMMACORRECT option on the 2D ubershader only.
    *
+   * @implemented
    * @param {boolean} use Whether font output is gamma corrected.
    * @returns {void}
    */
@@ -332,6 +335,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /**
    * Carbon IsGammaCorrectingText (Tr2Sprite2dScene.cpp:2654-2657).
    *
+   * @implemented
    * @returns {boolean} Whether font output is gamma corrected.
    */
   @meta.implemented
@@ -366,7 +370,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   _depth = 0;
 
-  /** Combines a translation with the current parent without promoting translation-only paths. */
+  /**
+   * Combines a translation with the current parent without promoting translation-only paths.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PushTranslation(translation)
@@ -387,7 +395,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._transformStack.push(entry);
   }
 
-  /** Removes the current translation scope. */
+  /**
+   * Removes the current translation scope.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PopTranslation()
@@ -395,7 +407,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._transformStack.pop();
   }
 
-  /** Returns the current native translation slot, or zero outside traversal. */
+  /**
+   * Returns the current native translation slot, or zero outside traversal.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   GetTranslation()
@@ -403,7 +419,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return this._transformStack.at(-1)?.translation ?? [0, 0];
   }
 
-  /** Composes local then parent using reversed gl-matrix multiplication order. */
+  /**
+   * Composes local then parent using reversed gl-matrix multiplication order.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   PushTransform(matrix)
@@ -424,7 +444,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._transformStack.push({ isTranslationOnly: false, isTranslationOnlySet: false, transform, translation: null });
   }
 
-  /** Removes the current matrix scope. */
+  /**
+   * Removes the current matrix scope.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PopTransform()
@@ -432,7 +456,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._transformStack.pop();
   }
 
-  /** Temporarily ignores inherited transforms for absolute-coordinate containers. */
+  /**
+   * Temporarily ignores inherited transforms for absolute-coordinate containers.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PushTransformAbsolute()
@@ -440,7 +468,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._transformStack.push({ isTranslationOnly: true, isTranslationOnlySet: true, translation: [0, 0], transform: null });
   }
 
-  /** Restores the parent after an absolute-coordinate scope. */
+  /**
+   * Restores the parent after an absolute-coordinate scope.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PopTransformAbsolute()
@@ -448,7 +480,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._transformStack.pop();
   }
 
-  /** Returns a point in local coordinates; matrices use the native non-perspective transform. */
+  /**
+   * Returns a point in local coordinates; matrices use the native non-perspective transform.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   InverseTransformPoint(point)
@@ -473,6 +509,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon's private TransformPoint (Tr2Sprite2dScene.h:176, cpp:2622-2629): the row-vector
    * Vector4(x, y, 0, 1) * m, deliberately without perspective division.
    *
+   * @implemented
    * @param {Float32Array|number[]} result Receives x and y.
    * @param {Float32Array|number[]} point The point to transform.
    * @param {Float32Array} matrix The transform.
@@ -487,7 +524,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     result[1] = matrix[1] * x + matrix[5] * y + matrix[13];
   }
 
-  /** Pushes the transformed axis-aligned bounds intersected with the parent clip. */
+  /**
+   * Pushes the transformed axis-aligned bounds intersected with the parent clip.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PushClipRectangle(x, y, width, height)
@@ -537,7 +578,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._clipStack.push(rect);
   }
 
-  /** Restores the parent clip; native 3D clipping remains disabled. */
+  /**
+   * Restores the parent clip; native 3D clipping remains disabled.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PopClipRectangle()
@@ -547,7 +592,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._clipStack.pop();
   }
 
-  /** Returns the active absolute clipping bounds. */
+  /**
+   * Returns the active absolute clipping bounds.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetClipRectangle()
@@ -555,7 +604,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return this._clipStack.at(-1);
   }
 
-  /** Tests inclusive absolute clip bounds before local-coordinate hit testing. */
+  /**
+   * Tests inclusive absolute clip bounds before local-coordinate hit testing.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   IsInsideClipRect(point)
@@ -564,7 +617,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return !clip || !(point[0] < clip.left || point[0] > clip.right || point[1] < clip.top || point[1] > clip.bottom);
   }
 
-  /** Native rectangular, circular or radius=-1 elliptical hit test. */
+  /**
+   * Native rectangular, circular or radius=-1 elliptical hit test.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   IsInside(point, topLeft, width, height, radius)
@@ -589,7 +646,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return true;
   }
 
-  /** Tests Carbon's finite line band and midpoint-radius endpoint bound in screen space. */
+  /**
+   * Tests Carbon's finite line band and midpoint-radius endpoint bound in screen space.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   IsInsideLineSegment(point, start, end, lineWidth)
@@ -620,7 +681,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return !(Math.sqrt(cx * cx + cy * cy) > length * 0.5);
   }
 
-  /** Tests native triangle winding after transforming vertices, including native degeneracy gates. */
+  /**
+   * Tests native triangle winding after transforming vertices, including native degeneracy gates.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   IsInsideTriangle(point, v0, v1, v2)
@@ -679,7 +744,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     repeatMode: 0
   }));
 
-  /** Copies the current vertex tint. */
+  /**
+   * Copies the current vertex tint.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetColor(value)
@@ -687,7 +756,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     vec4.copy(this._color, value);
   }
 
-  /** Copies the outline tint. */
+  /**
+   * Copies the outline tint.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetOutlineColor(value)
@@ -695,7 +768,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     vec4.copy(this._outlineColor, value);
   }
 
-  /** Sets the outline alpha threshold. */
+  /**
+   * Sets the outline alpha threshold.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetOutlineThreshold(value)
@@ -703,7 +780,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._outlineThreshold = value;
   }
 
-  /** Sets the sprite blend code. */
+  /**
+   * Sets the sprite blend code.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetBlendmode(value)
@@ -711,7 +792,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._blendMode = value;
   }
 
-  /** Selects color, glow, or both render outputs. */
+  /**
+   * Selects color, glow, or both render outputs.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetSpriteTarget(value)
@@ -719,7 +804,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._spriteTarget = value;
   }
 
-  /** Sets glow output intensity. */
+  /**
+   * Sets glow output intensity.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetGlowBrightness(value)
@@ -727,7 +816,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._glowBrightness = value;
   }
 
-  /** Retains only the native horizontal and vertical tiling bits. */
+  /**
+   * Retains only the native horizontal and vertical tiling bits.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetTileMode(value)
@@ -735,7 +828,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._tileMode = value & (Tr2Sprite2dTextureSettings.S2D_TS_TILE_X | Tr2Sprite2dTextureSettings.S2D_TS_TILE_Y);
   }
 
-  /** Selects the vertex effect and its required texture count. */
+  /**
+   * Selects the vertex effect and its required texture count.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetSpriteEffect(value)
@@ -752,7 +849,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     }
   }
 
-  /** Selects a subrectangle within the current atlas input. */
+  /**
+   * Selects a subrectangle within the current atlas input.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetTextureWindow(index, x, y, width, height)
@@ -760,7 +861,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     if (this._texture[index]) this._texture[index].CalcSubTextureWindow(this._textureSettings[index].textureWindow, x, y, width, height);
   }
 
-  /** Copies the texture transform, or disables it for a null matrix. */
+  /**
+   * Copies the texture transform, or disables it for a null matrix.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetTextureTransform(index, matrix)
@@ -770,7 +875,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     if (matrix !== null) mat4.copy(setting.transform, matrix);
   }
 
-  /** Checks every texture required by the active effect. */
+  /**
+   * Checks every texture required by the active effect.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _TexturesReady()
@@ -787,6 +896,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon SetSpriteVerticesUVs (public, Tr2Sprite2dScene.h:106, cpp:2402-2459): applies
    * tiling, affine UV transforms, and atlas windows in native order.
    *
+   * @implemented
    * @param {Array<Array<number[]>>} uv [texture][corner] UV pairs to fill.
    * @param {number} width Sprite width, for tiling.
    * @param {number} height Sprite height, for tiling.
@@ -821,8 +931,9 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /**
    * Prepares four local vertices; transform/clip/parent alpha are applied at submission.
-   * Adapted: unused native UV stack slots are zero-filled deterministically in JS.
-   * Carbon declaration: Tr2Sprite2dScene::PrepareSpriteVerts (trinity/trinity/Sprite2d/Tr2Sprite2dScene.h:99).
+   *
+   * @adapted unused native UV stack slots are zero-filled deterministically in JS.
+   *   Carbon declaration: Tr2Sprite2dScene::PrepareSpriteVerts (trinity/trinity/Sprite2d/Tr2Sprite2dScene.h:99).
    */
   @meta.adapted
   PrepareSpriteVerts(vertices, position, width, height, effect)
@@ -882,12 +993,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * held. Parent translation, alpha, depth, transform index and clip are applied later, at
    * RenderTriangleVerts.
    *
-   * Adapted: Carbon walks `verts` as raw memory with a byte `stride`, so one routine accepts
-   * every vertex type derived from Tr2Sprite2dVertexBase. A JS array of vertex objects is
-   * indexed by element and needs no stride, so `stride` is accepted for the donor signature
-   * and unused. A C++ pointer offset (`&m_vertices[16]`) is a `slice()` of the array here:
-   * the slice holds the same vertex objects, so the writes reach the caller's array.
-   *
+   * @adapted Carbon walks `verts` as raw memory with a byte `stride`, so one routine accepts
+   *   every vertex type derived from Tr2Sprite2dVertexBase. A JS array of vertex objects is
+   *   indexed by element and needs no stride, so `stride` is accepted for the donor signature
+   *   and unused. A C++ pointer offset (`&m_vertices[16]`) is a `slice()` of the array here:
+   *   the slice holds the same vertex objects, so the writes reach the caller's array.
    * @param {Tr2Sprite2dD3DVertex[]} destVerts Renderer vertices to fill, from index 0.
    * @param {Tr2Sprite2dVertexBase[]} verts Authored vertices to read, from index 0.
    * @param {number} _stride Carbon's byte stride between source vertices; unused.
@@ -948,7 +1058,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return true;
   }
 
-  /** Stores inherited opacity for the next gathered elements. */
+  /**
+   * Stores inherited opacity for the next gathered elements.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetAccumulatedAlpha(value)
@@ -956,7 +1070,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._accumulatedAlpha = value;
   }
 
-  /** Returns inherited opacity. */
+  /**
+   * Returns inherited opacity.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetAccumulatedAlpha()
@@ -964,7 +1082,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return this._accumulatedAlpha;
   }
 
-  /** Seeds the native root depth and unclipped bounds before gathering. */
+  /**
+   * Seeds the native root depth and unclipped bounds before gathering.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _PrepareStacksBeforeRender()
@@ -975,7 +1097,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._clipStack.push(clip);
   }
 
-  /** Removes the root stack entries after balanced traversal. */
+  /**
+   * Removes the root stack entries after balanced traversal.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _CleanUpStacksAfterRender()
@@ -984,7 +1110,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._clipStack.pop();
   }
 
-  /** Maps a child [-1,1] depth interval into its parent's interval in 3D mode. */
+  /**
+   * Maps a child [-1,1] depth interval into its parent's interval in 3D mode.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PushDepthRange(min, max)
@@ -995,7 +1125,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._depthStack.push([parent[0] + range * 0.5 * (min + 1), parent[0] + range * 0.5 * (max + 1)]);
   }
 
-  /** Restores the parent 3D depth interval. */
+  /**
+   * Restores the parent 3D depth interval.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PopDepthRange()
@@ -1003,7 +1137,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     if (!this._is2dRenderContext) this._depthStack.pop();
   }
 
-  /** Maps a relative depth into the active 3D interval. */
+  /**
+   * Maps a relative depth into the active 3D interval.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetDepth(depth)
@@ -1023,10 +1161,9 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /**
    * Publishes the camera direction and updates every owned curve set before cleanup.
    *
-   * Adapted: Carbon reads Tr2Renderer::GetViewLookAt (cpp:205), the view's third
-   * column; writes go through the existing variable-store handle; curve-set clocks
-   * remain raw ticks.
-   *
+   * @adapted Carbon reads Tr2Renderer::GetViewLookAt (cpp:205), the view's third
+   *   column; writes go through the existing variable-store handle; curve-set clocks
+   *   remain raw ticks.
    * @param {number} realTime Raw Blue real-time ticks (100ns).
    * @param {number} simTime Raw Blue simulation ticks (100ns).
    * Not Blue-exposed: Tr2Sprite2dScene_Blue.cpp:242 maps PickObject only; Update is the
@@ -1069,6 +1206,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon's private RemoveFinishedCurveSets (Tr2Sprite2dScene.h:163, cpp:2252-2267): removes
    * stopped sets in place using native Blue list removal semantics.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1086,6 +1224,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon OnModified (Tr2Sprite2dScene.cpp:2193-2205): clamps maxSpriteCount to
    * SPRITE_COUNT_MAX and releases the scene resources.
    *
+   * @implemented
    * @param {*} value The modified Blue value.
    * @returns {boolean} Always true.
    */
@@ -1101,7 +1240,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return true;
   }
 
-  /** Native scene resource release; explicit Destroy replaces AL value destruction. */
+  /**
+   * Native scene resource release; explicit Destroy replaces AL value destruction.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   ReleaseResources(storage)
@@ -1142,12 +1285,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Not Blue-exposed: Tr2Sprite2dScene_Blue.cpp:242 maps PickObject only; Render is the
    * ITr2Scene interface entry.
    *
-   * Adapted: Carbon's Tr2RenderContext is the backend context, so its AddGpuMarker is a
-   * direct call; ours composes the backend and reaches it through GetRenderContextAL().
-   * D3DPERF_EVENT is an empty macro in Carbon (TriUtil.h:8) and has no port. m_lastViewMatrix
-   * and m_lastProjectionMatrix (cpp:249-250) are written and never read, so they are not
-   * stored.
-   *
+   * @adapted Carbon's Tr2RenderContext is the backend context, so its AddGpuMarker is a
+   *   direct call; ours composes the backend and reaches it through GetRenderContextAL().
+   *   D3DPERF_EVENT is an empty macro in Carbon (TriUtil.h:8) and has no port. m_lastViewMatrix
+   *   and m_lastProjectionMatrix (cpp:249-250) are written and never read, so they are not
+   *   stored.
    * @param {Tr2RenderContext} renderContext The context to render into.
    * @returns {void}
    */
@@ -1199,6 +1341,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * starts as the scene's setting; 2D scenes cancel the view, 3D scenes place themselves with
    * TransformationMatrix( scaling, rotation, translation ).
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1217,6 +1360,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon DetermineViewportSize (Tr2Sprite2dScene.cpp:2313-2334): a fullscreen scene takes
    * the main viewport's size, then the size is published to UIViewportSize.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1236,6 +1380,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /**
    * Carbon SetViewportSizeToVariableStore (Tr2Sprite2dScene.cpp:2303-2311).
    *
+   * @implemented
    * @param {number} displayWidth Width in pixels.
    * @param {number} displayHeight Height in pixels.
    * @returns {void}
@@ -1251,6 +1396,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /**
    * Carbon PrepareRenderContextForRendering (Tr2Sprite2dScene.cpp:2354-2368).
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The rendering context.
    * @returns {void}
    */
@@ -1274,6 +1420,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon PrepareRenderContextAfterRendering (Tr2Sprite2dScene.cpp:2370-2380).
    * EndManagedRendering clears the textures set on the device, so the cached ones are dropped.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The rendering context.
    * @returns {void}
    */
@@ -1295,6 +1442,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Each pixel is the little-endian uint32 0xff000000 | f << 16 | f << 8 | f, so the
    * B8G8R8A8 bytes are f, f, f, 0xff. Like Carbon, a failed lock is not tolerated.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1322,7 +1470,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._defaultTexture.UnlockBuffer();
   }
 
-  /** Native scene debug rendering is empty. @param {Tr2RenderContext} _renderContext Active context. @returns {void} */
+  /**
+   * Native scene debug rendering is empty. @param {Tr2RenderContext} _renderContext Active context. @returns {void}
+   *
+   * @adapted
+   */
   @meta.adapted
 
   RenderDebugInfo(_renderContext)
@@ -1333,8 +1485,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Picks children in native order, projecting through the scene plane in 3D mode.
    * The only Blue-exposed method (Tr2Sprite2dScene_Blue.cpp:242-252).
    *
-   * Adapted: Uses the portable ScreenToProjection helper; debug-renderer annotations are omitted.
-   *
+   * @adapted Uses the portable ScreenToProjection helper; debug-renderer annotations are omitted.
    * @param {number} x Screen x.
    * @param {number} y Screen y.
    * @param {TriProjection|null} [projection=null] Projection, for 3D picking.
@@ -1440,6 +1591,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * default texture: a silent fix, kept until the operator rules on CE-126 (reproduce or
    * keep). That pending ruling, not a platform limit, is the reason for the adapted marker.
    *
+   * @adapted
    * @returns {boolean} Whether rendering can go forward.
    */
   @meta.adapted
@@ -1473,7 +1625,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return true;
   }
 
-  /** Creates native ring buffers, the 88-byte vertex declaration and diagnostic texture. */
+  /**
+   * Creates native ring buffers, the 88-byte vertex declaration and diagnostic texture.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   _OnPrepareResources()
@@ -1510,7 +1666,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return true;
   }
 
-  /** Resolves primary texture registers from the native UI effect reflection. */
+  /**
+   * Resolves primary texture registers from the native UI effect reflection.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _SelectEffect()
@@ -1543,6 +1703,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon quirk (CE-166), Tr2Sprite2dScene.cpp:736: the comparison reads only GetTexture(), so a
    * render-target texture (GetTexture() null) flushes on every call. Reproduced.
    *
+   * @implemented
    * @param {number} index Texture slot, 0 or 1.
    * @param {Tr2AtlasTexture|null} texture The texture, or null.
    * @param {number} settings Tr2Sprite2dTextureSettings bits.
@@ -1571,7 +1732,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     state.tileY = !!(settings & Tr2Sprite2dTextureSettings.S2D_TS_TILE_Y);
   }
 
-  /** Reports an active native display-list capture. */
+  /**
+   * Reports an active native display-list capture.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   IsCapturing()
@@ -1594,6 +1759,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * CCP_ASSERT( !m_captureDisplayList ) (cpp:1946) is compiled out of the shipping build, so
    * a capture started inside another one replaces it, as Carbon's does (which leaks it).
    *
+   * @implemented
    * @param {ITr2SpriteObject} owner The display list's owner.
    * @returns {boolean} Always true; the capture storage always exists here.
    */
@@ -1607,7 +1773,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return true;
   }
 
-  /** Native doubling growth; typed-array allocation/copy replaces aligned realloc. */
+  /**
+   * Native doubling growth; typed-array allocation/copy replaces aligned realloc.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   _GrowCaptureVertexBuffer(vertexCount)
@@ -1618,7 +1788,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._captureVertexData = data;
   }
 
-  /** Native doubling growth; typed-array allocation/copy replaces aligned realloc. */
+  /**
+   * Native doubling growth; typed-array allocation/copy replaces aligned realloc.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   _GrowCaptureIndexBuffer(indexCount)
@@ -1629,8 +1803,12 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._captureIndexData = data;
   }
 
-  /** Uploads capture storage, reusing previous native buffers when their size fits.
-   * Explicit AL ownership transfer replaces C++ value assignment. */
+  /**
+   * Uploads capture storage, reusing previous native buffers when their size fits.
+   * Explicit AL ownership transfer replaces C++ value assignment.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   EndCapture(previousDisplayList)
@@ -1674,7 +1852,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return list;
   }
 
-  /** Native capture cancellation/restoration; JS keeps direct and capture arrays separately. */
+  /**
+   * Native capture cancellation/restoration; JS keeps direct and capture arrays separately.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   _ResetCapture()
@@ -1693,6 +1875,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * `texture->GetTexture()` only, without IssueDrawCall's render-target fallback
    * (cpp:1135-1141), so captured render-target textures replay as null. Reproduced.
    *
+   * @implemented
    * @param {Tr2Sprite2dDisplayList} list The display list to replay.
    * @returns {void}
    */
@@ -1746,6 +1929,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon RunJob (Tr2Sprite2dScene.cpp:1755-1792): flushes geometry, then records the job in
    * an open capture or runs it now and drops the cached textures the job may have replaced.
    *
+   * @implemented
    * @param {TriRenderJob} job The render job.
    * @returns {void}
    */
@@ -1777,6 +1961,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * to an embedded job and restores the UI state after it, with sRGB writes off during the
    * job in linear colour space.
    *
+   * @implemented
    * @param {TriRenderJob} job The render job.
    * @returns {void}
    */
@@ -1818,6 +2003,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * the layer's texture, and sets the transform and clip stacks aside for fresh ones clipped
    * to the texture. Layers nest.
    *
+   * @implemented
    * @param {Tr2TextureAL} rt The layer's render-target texture.
    * @returns {void}
    */
@@ -1865,11 +2051,10 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * an all-zero, degenerate (invisible) quad. Reproduced: the retained _layerVertices are reset
    * to that state on every call, so a failed EndLayer never re-draws the previous layer's quad.
    *
-   * Adapted: the D3D vertex's scalar members (clipRect, glowBrightness, transformIndex,
-   * blendMode, spriteEffect, tileMode, outlineThreshold) are left uninitialised on Carbon's
-   * stack (ITr2Sprite2dRenderer.h:62-95); JS cannot reproduce indeterminate memory, so they
-   * reset to 0.
-   *
+   * @adapted the D3D vertex's scalar members (clipRect, glowBrightness, transformIndex,
+   *   blendMode, spriteEffect, tileMode, outlineThreshold) are left uninitialised on Carbon's
+   *   stack (ITr2Sprite2dRenderer.h:62-95); JS cannot reproduce indeterminate memory, so they
+   *   reset to 0.
    * @param {number} x Layer left, in the outer coordinates.
    * @param {number} y Layer top.
    * @param {number} width Layer width.
@@ -1932,7 +2117,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._DetermineViewportSize();
   }
 
-  /** Carbon GetMaxVertexCountPerDrawCall (Tr2Sprite2dScene.cpp:2183-2186). @returns {number} Vertex capacity of one draw. */
+  /**
+   * Carbon GetMaxVertexCountPerDrawCall (Tr2Sprite2dScene.cpp:2183-2186). @returns {number} Vertex capacity of one draw.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetMaxVertexCountPerDrawCall()
@@ -1940,7 +2129,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return this.maxSpriteCount * 4;
   }
 
-  /** Carbon GetMaxIndexCountPerDrawCall (Tr2Sprite2dScene.cpp:2188-2191). @returns {number} Index capacity of one draw. */
+  /**
+   * Carbon GetMaxIndexCountPerDrawCall (Tr2Sprite2dScene.cpp:2188-2191). @returns {number} Index capacity of one draw.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetMaxIndexCountPerDrawCall()
@@ -1955,10 +2148,9 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * parent translation, accumulated alpha, 3D depth, transform index and clip, and offsets
    * the indices, without mutating the source vertices.
    *
-   * Adapted: Carbon's helpers advance raw write pointers into the mirrors; here the write
-   * position is the vertex and index count, so the pointer-keeping helpers fold into this
-   * method and EnsureBufferSpace is not a separate public method.
-   *
+   * @adapted Carbon's helpers advance raw write pointers into the mirrors; here the write
+   *   position is the vertex and index count, so the pointer-keeping helpers fold into this
+   *   method and EnsureBufferSpace is not a separate public method.
    * @param {Tr2Sprite2dD3DVertex[]} vertices Renderer vertices, from index 0.
    * @param {number} vertexCount Number of vertices.
    * @param {number[]} indices Triangle indices relative to the first vertex.
@@ -2034,9 +2226,8 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * CCP_ASSERT( !m_captureDisplayList ) (cpp:1023) is compiled out of the shipping build, so
    * inside a capture this flushes into the capture and still draws directly, as Carbon does.
    *
-   * Adapted: two silent fixes of Carbon behaviour are kept pending the operator's ruling (the
-   * reason for the marker): see CE-123 and CE-124 at their sites.
-   *
+   * @adapted two silent fixes of Carbon behaviour are kept pending the operator's ruling (the
+   *   reason for the marker): see CE-123 and CE-124 at their sites.
    * @param {Tr2BufferAL} vertices Vertex buffer in the 88-byte Tr2Sprite2dD3DVertex layout.
    * @param {number} vertexCount Number of vertices.
    * @param {Tr2BufferAL} indices Index buffer.
@@ -2090,6 +2281,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon IssueDrawCall (Tr2Sprite2dScene.cpp:1047-1164): records the pending batch into an
    * open capture, or uploads it through the ring buffers and renders it with the UI effect.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -2179,8 +2371,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * Carbon SubmitGeometry (Tr2Sprite2dScene.cpp:1166-1197): binds the transposed GUI transform
    * array and draws the current indexed batch.
    *
-   * Adapted: a typed-array palette replaces the native stack matrix array.
-   *
+   * @adapted a typed-array palette replaces the native stack matrix array.
    * @param {Tr2RenderContext} context The rendering context.
    * @returns {void}
    */

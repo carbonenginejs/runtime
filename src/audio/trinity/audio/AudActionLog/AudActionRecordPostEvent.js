@@ -35,7 +35,11 @@ export class AudActionRecordPostEvent extends AudActionRecord
     this.name = String(name);
   }
 
-  /** Returns Carbon's Python-bridge tuple as a JavaScript array. */
+  /**
+   * Returns Carbon's Python-bridge tuple as a JavaScript array.
+   *
+   * @adapted
+   */
   ToPyObject()
   {
     return [ "AudActionRecordPostEvent", this.time, this.emitterID, this.playID, this.eventID, this.name ];

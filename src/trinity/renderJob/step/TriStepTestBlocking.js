@@ -27,8 +27,8 @@ export class TriStepTestBlocking extends TriRenderStep
    * Reports the step still in progress while its flag is set, and complete
    * once it is cleared.
    *
-   * Adapted: Carbon logs the outcome through its own logger on each call; logging is a host
-   * concern.
+   * @adapted Carbon logs the outcome through its own logger on each call; logging is a host
+   *   concern.
    */
 
   @meta.adapted

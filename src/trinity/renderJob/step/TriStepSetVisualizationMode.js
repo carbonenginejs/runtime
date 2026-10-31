@@ -22,7 +22,11 @@ export class TriStepSetVisualizationMode extends TriRenderStep
   @type.int32
   mode = 0;
 
-  /** Stores the target object and the visualization mode to apply to it. */
+  /**
+   * Stores the target object and the visualization mode to apply to it.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(object = null, mode = 0)
@@ -52,6 +56,8 @@ export class TriStepSetVisualizationMode extends TriRenderStep
    * Pushes the mode straight onto the target object; unlike most steps this one
    * does not go through the render context. Carbon
    * TriStepSetVisualizationMode.cpp:33-41 null-checks only the renderer.
+   *
+   * @implemented
    */
 
   @meta.implemented

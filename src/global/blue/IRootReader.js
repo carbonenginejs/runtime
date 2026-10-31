@@ -10,22 +10,46 @@ import { IRoot } from "./IRoot.js";
 /** `IRootReader` - reads an object tree from a stream, per blue/src/IRootReader.h:15-25. */
 export class IRootReader extends IRoot
 {
-  /** `ReadFromStream` - reads the stream's root object, or null on failure. */
+  /**
+   * `ReadFromStream` - reads the stream's root object, or null on failure.
+   *
+   * @abstract
+   */
   ReadFromStream(_stream) {}
 
-  /** `ReadForCachingFromStream` - reads the stream for caching; returns whether it succeeded. */
+  /**
+   * `ReadForCachingFromStream` - reads the stream for caching; returns whether it succeeded.
+   *
+   * @abstract
+   */
   ReadForCachingFromStream(_stream) {}
 
-  /** `SetFileName` - the file name reported in errors. */
+  /**
+   * `SetFileName` - the file name reported in errors.
+   *
+   * @abstract
+   */
   SetFileName(_name) {}
 
-  /** `SetDoInitialize` - whether read objects are initialized. */
+  /**
+   * `SetDoInitialize` - whether read objects are initialized.
+   *
+   * @abstract
+   */
   SetDoInitialize(_doInitialize) {}
 
-  /** `SetTimeSlice` - the time a read may take per step. */
+  /**
+   * `SetTimeSlice` - the time a read may take per step.
+   *
+   * @abstract
+   */
   SetTimeSlice(_seconds) {}
 
-  /** `GetErrorMessage` - why the last `ReadFromStream` returned null. */
+  /**
+   * `GetErrorMessage` - why the last `ReadFromStream` returned null.
+   *
+   * @abstract
+   */
   GetErrorMessage() {}
 }
 

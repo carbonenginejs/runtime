@@ -27,6 +27,8 @@ export class EveChildModifierHalo extends IEveChildTransformModifier
    * then scales each parent axis by clamp(dot(normalize(camPos - myPos),
    * normalize(transformZ)), 0) SQUARED - the facing falloff. Reads
    * GetViewPosition + GetInverseViewTransform.
+   *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused

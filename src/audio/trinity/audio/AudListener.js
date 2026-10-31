@@ -7,7 +7,11 @@ import { LISTENER_GAME_OBJ_ID } from "./SoundPrioritization.js";
 
 const FLOAT_MAX = 3.4028234663852886e38;
 
-/** Represents the singleton Carbon listener and its effective orientation and position. Its id is fixed at 4 and prioritization never culls it. */
+/**
+ * Represents the singleton Carbon listener and its effective orientation and position. Its id is fixed at 4 and prioritization never culls it.
+ *
+ * @abstract
+ */
 @be.define("AudListener")
 @be.exposureChainTo(AudGameObjResource)
 @be.abstract
@@ -39,6 +43,8 @@ export class AudListener extends AudGameObjResource
    * Forwards Carbon's Blue-exposed SetPosition call to SetPlacementFromParent.
    * Source: audio/src/AudListener_Blue.cpp:17-20.
    *
+   * @implemented
+   * @renamed SetPlacementFromParent
    * @param {ArrayLike<number>} front Forward direction.
    * @param {ArrayLike<number>} top Up direction.
    * @param {ArrayLike<number>} position Listener position.
@@ -54,12 +60,11 @@ export class AudListener extends AudGameObjResource
   /**
    * Orthonormalizes and stores the listener pose, then forwards it when the backend supports listener placement.
    *
-   * Adapted: Carbon stores position only with an initialized manager and submits
-   * only after listener registration (audio/src/AudListener.cpp:52-73). JavaScript
-   * retains placement without those gates so a headless listener can be realized
-   * later. It passes right-handed vectors to the backend instead of performing
-   * Wwise's RH2LH::convertListener conversion.
-   *
+   * @adapted Carbon stores position only with an initialized manager and submits
+   *   only after listener registration (audio/src/AudListener.cpp:52-73). JavaScript
+   *   retains placement without those gates so a headless listener can be realized
+   *   later. It passes right-handed vectors to the backend instead of performing
+   *   Wwise's RH2LH::convertListener conversion.
    * @param {ArrayLike<number>} front Forward direction.
    * @param {ArrayLike<number>} top Up direction.
    * @param {ArrayLike<number>} positionValue Listener position.

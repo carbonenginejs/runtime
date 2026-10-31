@@ -14,7 +14,11 @@ import { meta } from "#schema";
 // (Tr2SpriteObject.h:121) and Tr2Sprite2dLayer (Tr2Sprite2dLayer.h:18).
 import { blue } from "#schema";
 
-/** Receives change notifications from a Sprite2D texture it registered with. */
+/**
+ * Receives change notifications from a Sprite2D texture it registered with.
+ *
+ * @abstract
+ */
 @meta.carbon("ITr2Sprite2dTextureNotifyTarget")
 @be.abstract
 export class ITr2Sprite2dTextureNotifyTarget
@@ -23,6 +27,7 @@ export class ITr2Sprite2dTextureNotifyTarget
    * Carbon pure virtual `Sprite2dTextureChanged`: the texture changed in a way
    * that invalidates whatever was built from it.
    *
+   * @abstract
    * @param {import("./ITr2Sprite2dTexture.js").ITr2Sprite2dTexture} _texture The texture that changed.
    * @returns {void}
    */

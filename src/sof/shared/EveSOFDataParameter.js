@@ -47,6 +47,8 @@ export class EveSOFDataParameter extends IRoot
   /**
    * The parameter as a shader vec4; the typed subclasses override this with
    * their broadcast/zero-pad rules (Carbon virtual GetValue, EveSOFData.h:27).
+   *
+   * @implemented
    * @returns {Float32Array} Independent vector, matching native return-by-value.
    */
   @meta.implemented

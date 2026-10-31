@@ -18,6 +18,7 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
   /**
    * Creates the timer, releasing any previous one first as Carbon does.
    *
+   * @implemented
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult`.
    */
@@ -32,14 +33,21 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** Releases the timer. */
+  /**
+   * Releases the timer.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._isValid = false;
     super.Destroy();
   }
 
-  /** @returns {boolean} Whether the timer was created. */
+  /**
+   * @implemented
+   * @returns {boolean} Whether the timer was created.
+   */
   IsValid()
   {
     return this._isValid;
@@ -48,6 +56,7 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
   /**
    * Starts timing.
    *
+   * @implemented
    * @returns {boolean} True, as Carbon's stub returns.
    */
   Begin()
@@ -55,7 +64,11 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
     return true;
   }
 
-  /** Stops timing. */
+  /**
+   * Stops timing.
+   *
+   * @implemented
+   */
   End()
   {
   }
@@ -68,6 +81,7 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
    * badly in a caller computing a rate; the negative distinguishes "no timer"
    * from "no time".
    *
+   * @implemented
    * @returns {number} Seconds, or -1 without a timer.
    */
   GetTime()
@@ -75,7 +89,10 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
     return this._isValid ? 0.0001 : -1;
   }
 
-  /** @returns {number} A `Tr2ALMemoryType`. */
+  /**
+   * @implemented
+   * @returns {number} A `Tr2ALMemoryType`.
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_VIDEO;
@@ -91,6 +108,7 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -100,6 +118,7 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
   /**
    * Names the timer for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name
    *   (`Tr2GpuTimerALStub.cpp:55-58`).

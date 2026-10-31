@@ -167,6 +167,7 @@ export class Tr2RenderContextALStub
   /**
    * Installs the primary render context.
    *
+   * @implemented
    * @param {Tr2RenderContextALStub|null} renderContext The context to install.
    */
   static SetPrimaryRenderContext(renderContext)
@@ -182,6 +183,7 @@ export class Tr2RenderContextALStub
    * asking for the primary context when there is none is a caller defect, so
    * this throws rather than handing back a null nobody checks.
    *
+   * @implemented
    * @returns {Tr2RenderContextALStub} The primary render context.
    */
   static GetPrimaryRenderContext()
@@ -198,6 +200,7 @@ export class Tr2RenderContextALStub
    * The pointer form Carbon offers beside the reference form, for callers that
    * are asking WHETHER there is one.
    *
+   * @implemented
    * @returns {Tr2RenderContextALStub|null} The primary render context.
    */
   static GetPrimaryRenderContextPointer()
@@ -215,6 +218,7 @@ export class Tr2RenderContextALStub
    * parameters, because creating the back buffer is a resource create and so
    * asks this same context whether it is valid yet.
    *
+   * @adapted
    * @param {object} [presentParameters] Present parameters, as the AL shapes
    * them: `{ mode: { width, height } }`.
    * @returns {number} `S_OK` once valid.
@@ -621,6 +625,7 @@ export class Tr2RenderContextALStub
    * (`Tr2RenderContextStub.cpp:249-260`), and the create is checked: a mode
    * with no size produces no back buffer rather than a zero-sized one.
    *
+   * @adapted
    * @param {object} presentParameters `{ mode: { width, height } }`.
    * @returns {number} An `ALResult` value.
    */
@@ -648,6 +653,7 @@ export class Tr2RenderContextALStub
    * (`Tr2RenderContextStub.h:70`); a caller asks the context, never the caps
    * object directly, which is why this lives here rather than on a factory.
    *
+   * @implemented
    * @returns {Tr2CapsALStub} The capabilities.
    */
   GetCaps()
@@ -663,6 +669,7 @@ export class Tr2RenderContextALStub
    * is the render context's own (`Tr2RenderContextStub.h:245-248`), and was
    * called `GetBackBuffer` here until 2026-09-09.
    *
+   * @implemented
    * @returns {Tr2TextureALStub} The back buffer, created or not.
    */
   GetDefaultBackBuffer()
@@ -673,6 +680,7 @@ export class Tr2RenderContextALStub
   /**
    * The back buffer's pixel format.
    *
+   * @implemented
    * @returns {number} A `PixelFormat` value.
    */
   GetBackBufferFormat()
@@ -687,6 +695,7 @@ export class Tr2RenderContextALStub
    * array is `E_FAIL`, while an empty slot is `E_INVALIDCALL` - the caller
    * asked a reasonable question about a target that is not there.
    *
+   * @adapted
    * @param {number} [slot] Target slot.
    * @returns {{result: number, width: number, height: number}} The size.
    */
@@ -704,6 +713,7 @@ export class Tr2RenderContextALStub
   /**
    * Releases every bound target and the back buffer, as a device loss does.
    *
+   * @adapted
    * @returns {boolean} True.
    */
   ReleaseDeviceResources()
@@ -716,7 +726,11 @@ export class Tr2RenderContextALStub
     return true;
   }
 
-  /** Carbon's Destroy clears the bound targets and drops validity (cpp:62-69). */
+  /**
+   * Carbon's Destroy clears the bound targets and drops validity (cpp:62-69).
+   *
+   * @adapted
+   */
   Destroy()
   {
     this._defaultBackBuffer.Destroy();
@@ -736,7 +750,11 @@ export class Tr2RenderContextALStub
     return true;
   }
 
-  /** Whether a device was created. Resource creation depends on this. */
+  /**
+   * Whether a device was created. Resource creation depends on this.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._isValid;
@@ -745,6 +763,7 @@ export class Tr2RenderContextALStub
   /**
    * Binds a render target to a slot, keeping it so a caller can read it back.
    *
+   * @adapted
    * @param {number} slot Target slot.
    * @param {object|null} renderTarget The target.
    * @returns {number} `S_OK`.
@@ -785,6 +804,7 @@ export class Tr2RenderContextALStub
    * state manager, which pushes and then sets. Folding that into the backend
    * here would put a Trinity-level verb in the abstraction layer.
    *
+   * @adapted
    * @param {number} [slot] Target slot.
    * @returns {number} `S_OK`.
    */
@@ -803,6 +823,7 @@ export class Tr2RenderContextALStub
   /**
    * Restores the target saved for a slot, binding it again.
    *
+   * @adapted
    * @param {number} [slot] Target slot.
    * @returns {number} `S_OK`, or `E_FAIL` when nothing was saved.
    */
@@ -831,6 +852,7 @@ export class Tr2RenderContextALStub
   /**
    * Carbon's GetStackSizeRT, which is per slot.
    *
+   * @adapted
    * @param {number} [slot] Target slot.
    * @returns {number} Saved targets for that slot.
    */
@@ -842,6 +864,7 @@ export class Tr2RenderContextALStub
   /**
    * Binds the depth-stencil surface.
    *
+   * @adapted
    * @param {object|null} depthStencil The surface.
    * @returns {number} `S_OK`.
    */
@@ -863,6 +886,7 @@ export class Tr2RenderContextALStub
   /**
    * Saves the bound depth-stencil. Binds nothing; see `PushRenderTarget`.
    *
+   * @adapted
    * @returns {number} `S_OK`.
    */
   PushDepthStencil()
@@ -878,6 +902,7 @@ export class Tr2RenderContextALStub
    * Reports an empty stack rather than throwing, as Carbon does
    * (`Tr2RenderContextStub.cpp:365-374`).
    *
+   * @adapted
    * @returns {number} `S_OK`, or `E_FAIL` when nothing was saved.
    */
   PopDepthStencil()
@@ -891,7 +916,11 @@ export class Tr2RenderContextALStub
     return ALResult.S_OK;
   }
 
-  /** Carbon's GetStackSizeDS. */
+  /**
+   * Carbon's GetStackSizeDS.
+   *
+   * @adapted
+   */
   GetStackSizeDS()
   {
     return this._depthStencilStack.length;
@@ -900,6 +929,7 @@ export class Tr2RenderContextALStub
   /**
    * Sets the viewport.
    *
+   * @adapted
    * @param {object} viewport Viewport rectangle and depth range.
    * @returns {number} `S_OK`.
    */
@@ -910,7 +940,11 @@ export class Tr2RenderContextALStub
     return ALResult.S_OK;
   }
 
-  /** The current viewport. */
+  /**
+   * The current viewport.
+   *
+   * @adapted
+   */
   GetViewport()
   {
     return this._viewport;
@@ -919,6 +953,7 @@ export class Tr2RenderContextALStub
   /**
    * Clears the bound targets. A clear needs no GPU to be recorded as done.
    *
+   * @adapted
    * @param {object} _options Clear colour, depth, stencil and flags.
    * @returns {number} `S_OK`.
    */
@@ -938,6 +973,7 @@ export class Tr2RenderContextALStub
   /**
    * REFUSED, as Carbon refuses it (`Tr2RenderContextStub.cpp:87-95`).
    *
+   * @implemented
    * @returns {number} `E_FAIL`, always.
    */
   ClearUav()
@@ -953,6 +989,7 @@ export class Tr2RenderContextALStub
    * DX11 uses the pair for nothing, and a command-encoder backend creates its
    * command buffer on the first and submits on the second.
    *
+   * @implemented
    * @returns {number} `S_OK`.
    */
   BeginScene()
@@ -960,7 +997,10 @@ export class Tr2RenderContextALStub
     return ALResult.S_OK;
   }
 
-  /** @see BeginScene */
+  /**
+   * @implemented
+   * @see BeginScene
+   */
   EndScene()
   {
     return ALResult.S_OK;
@@ -969,6 +1009,7 @@ export class Tr2RenderContextALStub
   /**
    * Binds the vertex declaration a following draw reads its streams through.
    *
+   * @implemented
    * @param {object} _layout A `Tr2VertexLayoutAL`.
    * @returns {number} `S_OK`.
    */
@@ -980,6 +1021,7 @@ export class Tr2RenderContextALStub
   /**
    * Binds one vertex stream.
    *
+   * @implemented
    * @param {number} _stream The stream index.
    * @param {object} _buffer A `Tr2BufferAL`.
    * @param {number} _offset Byte offset into the buffer.
@@ -996,6 +1038,7 @@ export class Tr2RenderContextALStub
    *
    * Carbon's SetIndices( buffer, stride ) (Tr2RenderContextStub.cpp:83).
    *
+   * @implemented
    * @param {object} _buffer A `Tr2BufferAL`.
    * @param {number} _stride Bytes per index.
    * @returns {number} `S_OK`.
@@ -1008,6 +1051,7 @@ export class Tr2RenderContextALStub
   /**
    * Carbon's SetIndices( buffer ) (Tr2RenderContextStub.cpp:78).
    *
+   * @implemented
    * @param {object} _buffer A `Tr2BufferAL`.
    * @returns {number} `S_OK`.
    */
@@ -1026,6 +1070,7 @@ export class Tr2RenderContextALStub
    * `SubmitGeometry` hands `m_topology` straight through
    * (`Tr2RenderContext.cpp:86`).
    *
+   * @implemented
    * @param {number} topology A `Topology` value.
    * @returns {number} An `ALResult`: whether the topology is one the AL knows.
    */
@@ -1037,6 +1082,7 @@ export class Tr2RenderContextALStub
   /**
    * Binds the vertex and pixel shader pair following draws run.
    *
+   * @implemented
    * @param {object} _shaderProgram A `Tr2ShaderProgramAL`.
    * @returns {number} `S_OK`.
    */
@@ -1052,6 +1098,7 @@ export class Tr2RenderContextALStub
    * `Tr2ResourceSetAL` once and rebinds it per draw, rather than binding each
    * resource individually.
    *
+   * @implemented
    * @param {object} _resourceSet A `Tr2ResourceSetAL`.
    * @returns {number} `S_OK`.
    */
@@ -1066,6 +1113,7 @@ export class Tr2RenderContextALStub
    * The register is the one `Tr2Renderer` names - b0 effect, b1/b2 per frame,
    * b3/b4 per object - so this is where that map meets the device.
    *
+   * @implemented
    * @param {object} _buffer A `Tr2ConstantBufferAL`.
    * @param {number} _constantType A `ShaderType`.
    * @param {number} _registerIndex The constant-buffer register.
@@ -1092,6 +1140,7 @@ export class Tr2RenderContextALStub
    * REFUSED, as Carbon refuses it (`cpp:97-101`). A buffer-to-buffer copy needs
    * a real backend, and succeeding silently would hide that.
    *
+   * @implemented
    * @returns {number} `E_FAIL`, always.
    */
   CopySubBuffer()
@@ -1105,6 +1154,7 @@ export class Tr2RenderContextALStub
    * Carbon's stub keeps no state here and always answers false (`cpp:211-217`),
    * so a caller that needs read-only depth needs a real backend.
    *
+   * @implemented
    * @param {boolean} _enable Ignored.
    */
   SetReadOnlyDepth(_enable)
@@ -1122,7 +1172,10 @@ export class Tr2RenderContextALStub
   {
   }
 
-  /** @see SetReadOnlyDepth @returns {boolean} False, always. */
+  /**
+   * @implemented
+   * @see SetReadOnlyDepth @returns {boolean} False, always.
+   */
   GetReadOnlyDepth()
   {
     return false;
@@ -1142,6 +1195,7 @@ export class Tr2RenderContextALStub
    * Carbon's two overloads differ only in how many colour attachments they
    * carry, so they collapse into one variadic list here.
    *
+   * @adapted
    * @param {...object} _attachments `Tr2ColorAttachment`s then one
    *   `Tr2DepthAttachment`.
    */
@@ -1165,18 +1219,25 @@ export class Tr2RenderContextALStub
    * are ported because a backend that drops them silently loses every capture
    * label - which is only ever noticed while debugging something else.
    *
+   * @implemented
    * @param {string} _marker The label.
    */
   AddGpuMarker(_marker)
   {
   }
 
-  /** @see AddGpuMarker @param {string} _marker The label. */
+  /**
+   * @implemented
+   * @see AddGpuMarker @param {string} _marker The label.
+   */
   PushGpuMarker(_marker)
   {
   }
 
-  /** @see AddGpuMarker */
+  /**
+   * @implemented
+   * @see AddGpuMarker
+   */
   PopGpuMarker()
   {
   }
@@ -1184,6 +1245,7 @@ export class Tr2RenderContextALStub
   /**
    * Whether the backend can address textures without binding them.
    *
+   * @implemented
    * @returns {boolean} False; the stub has no bindless path.
    */
   SupportsBindlessTextures()
@@ -1195,6 +1257,7 @@ export class Tr2RenderContextALStub
    * Accepts a render state. Carbon's stub validates the topology enum and
    * accepts the rest (`cpp:112-119`); state values are not interpreted.
    *
+   * @implemented
    * @returns {number} `S_OK`.
    */
   SetRenderState()
@@ -1209,6 +1272,7 @@ export class Tr2RenderContextALStub
    * device, so it holds the last setup and reports it - the bookkeeping being
    * the feature, as everywhere else here.
    *
+   * @adapted
    * @param {object} setup A `Tr2RenderStateSetup`.
    * @param {object} [overrides] The render-state overrides applied to it.
    * @returns {number} An `ALResult`: whether a setup was supplied.
@@ -1233,6 +1297,8 @@ export class Tr2RenderContextALStub
   /**
    * Carbon: RunComputeShader (trinity/trinityal/stub/Tr2RenderContextStub.h:171-174).
    * The stub cannot execute compute work and reports failure.
+   *
+   * @implemented
    * @returns {number} `E_FAIL`.
    */
   RunComputeShader()
@@ -1243,6 +1309,8 @@ export class Tr2RenderContextALStub
   /**
    * Carbon: RunComputeShaderIndirect (trinity/trinityal/stub/Tr2RenderContextStub.h:175-178).
    * The stub cannot execute indirect compute work and reports failure.
+   *
+   * @implemented
    * @returns {number} `E_FAIL`.
    */
   RunComputeShaderIndirect()
@@ -1255,6 +1323,7 @@ export class Tr2RenderContextALStub
    * (`cpp:126-186`); the count is ours, so a headless test can assert that the
    * frame reached the point of drawing.
    *
+   * @adapted
    * @returns {number} `S_OK`.
    */
   DrawIndexedInstanced(_indexCountPerInstance, _instanceCount, _startIndexLocation, _baseVertexLocation, _startInstanceLocation)
@@ -1264,7 +1333,10 @@ export class Tr2RenderContextALStub
     return ALResult.S_OK;
   }
 
-  /** @see DrawIndexedInstanced */
+  /**
+   * @adapted
+   * @see DrawIndexedInstanced
+   */
   DrawInstanced(_vertexCountPerInstance, _instanceCount, _startVertexLocation, _startInstanceLocation)
   {
     this._drawCount += 1;
@@ -1275,6 +1347,7 @@ export class Tr2RenderContextALStub
   /**
    * Counts an indexed draw with no instancing.
    *
+   * @adapted
    * @param {number} _numVertices Vertices the index range spans.
    * @param {number} _startIndex First index to read.
    * @param {number} _primitiveCount Primitives to draw.
@@ -1291,6 +1364,7 @@ export class Tr2RenderContextALStub
   /**
    * Counts a non-indexed draw with no instancing.
    *
+   * @adapted
    * @param {number} _startVertex First vertex to read.
    * @param {number} _primitiveCount Primitives to draw.
    * @returns {number} `S_OK`.
@@ -1312,6 +1386,7 @@ export class Tr2RenderContextALStub
    * Carbon's two overloads differ only in 16- versus 32-bit index data, which
    * is carried by the array's own type here.
    *
+   * @adapted
    * @param {number} _numVertices Vertices the index data spans.
    * @param {number} _primitiveCount Primitives to draw.
    * @param {ArrayBufferView} indexData The indices.
@@ -1334,6 +1409,7 @@ export class Tr2RenderContextALStub
    * Carbon does NOT validate here, unlike its indexed counterpart
    * (`cpp:165-171`), and the asymmetry is transcribed rather than tidied.
    *
+   * @adapted
    * @param {number} _primitiveCount Primitives to draw.
    * @param {ArrayBufferView} _vertexStreamZeroData The vertices.
    * @param {number} _vertexStreamZeroStride Bytes per vertex.
@@ -1350,6 +1426,7 @@ export class Tr2RenderContextALStub
    * REFUSED, as Carbon refuses both indirect draws (`Tr2RenderContextStub.h:161-169`).
    * Reading the draw arguments from a buffer needs a GPU.
    *
+   * @implemented
    * @returns {number} `E_FAIL`, always.
    */
   DrawIndexedInstancedIndirect()
@@ -1357,7 +1434,10 @@ export class Tr2RenderContextALStub
     return ALResult.E_FAIL;
   }
 
-  /** @see DrawIndexedInstancedIndirect @returns {number} `E_FAIL`, always. */
+  /**
+   * @implemented
+   * @see DrawIndexedInstancedIndirect @returns {number} `E_FAIL`, always.
+   */
   DrawInstancedIndirect()
   {
     return ALResult.E_FAIL;
@@ -1381,6 +1461,7 @@ export class Tr2RenderContextALStub
    * particular swap chain is `Tr2SwapChainAL::Present(renderContext)`, a
    * different call on a different class. This one takes no argument.
    *
+   * @implemented
    * @returns {number} `S_OK`.
    */
   Present()
@@ -1393,6 +1474,7 @@ export class Tr2RenderContextALStub
   /**
    * The frame being recorded now.
    *
+   * @implemented
    * @returns {number} One past the finished frame.
    */
   GetRecordingFrameNumber()
@@ -1403,6 +1485,7 @@ export class Tr2RenderContextALStub
   /**
    * The last frame the device has finished.
    *
+   * @implemented
    * @returns {number} The finished frame.
    */
   GetRenderedFrameNumber()
@@ -1417,6 +1500,7 @@ export class Tr2RenderContextALStub
    * Carbon's stub returns 0 (`Tr2RenderContextStub.cpp:325-328`) - not
    * "unknown", but a device with no memory, which is what a stub has.
    *
+   * @implemented
    * @returns {number} Zero.
    */
   GetTotalVideoMemory()
@@ -1428,6 +1512,7 @@ export class Tr2RenderContextALStub
   /**
    * Makes a resource list resident for a draw.
    *
+   * @implemented
    * @param {number} _destination Carbon's `Tr2UseResourceDestination`.
    * @param {number} _usage Carbon's `Tr2GpuUsage::Type`.
    * @param {Tr2BindlessResourcesAL} _resources The list to make resident.
@@ -1444,6 +1529,7 @@ export class Tr2RenderContextALStub
   /**
    * Binds a top-level acceleration structure for raytracing.
    *
+   * @implemented
    * @param {object} _tlas The acceleration structure.
    * @returns {number} `S_OK` (`Tr2RenderContextStub.cpp:443-446`).
    */
@@ -1456,6 +1542,7 @@ export class Tr2RenderContextALStub
   /**
    * Dispatches a raytracing pipeline.
    *
+   * @implemented
    * @param {object} _pipeline The raytracing pipeline state.
    * @param {object} _shaderTable The shader table.
    * @param {string} _rayGenShader The ray generation shader name.
@@ -1473,6 +1560,7 @@ export class Tr2RenderContextALStub
   /**
    * The GPU's last known state, for a crash report.
    *
+   * @implemented
    * @returns {number} `E_FAIL`; the stub has no state to report (`cpp:413-416`).
    */
   GetGpuStateMarker()
@@ -1484,6 +1572,7 @@ export class Tr2RenderContextALStub
   /**
    * The resource a GPU page fault touched, for a crash report.
    *
+   * @implemented
    * @returns {number} `E_FAIL`; the stub cannot fault (`cpp:419-428`).
    */
   GetGpuPageFaultResource()
@@ -1495,6 +1584,7 @@ export class Tr2RenderContextALStub
   /**
    * Marks a point in the frame for a profiler.
    *
+   * @implemented
    * @param {number} _frameEvent Carbon's `Tr2RenderContextEnum::FrameEvent`.
    */
   MarkFrameEvent(_frameEvent)
@@ -1510,6 +1600,7 @@ export class Tr2RenderContextALStub
    * and a caller that then asks for a context gets null. That pairing is
    * Carbon's, and both halves are ported as they are.
    *
+   * @implemented
    * @param {number} _technique A `Technique` value.
    * @param {number} _setting A `Setting` value.
    * @param {boolean} _frameGeneration Whether frame generation is wanted.
@@ -1525,6 +1616,7 @@ export class Tr2RenderContextALStub
   /**
    * An existing upscaling context.
    *
+   * @implemented
    * @param {number} _contextId The context id.
    * @returns {null} Null; the stub keeps none (`cpp:464-467`).
    */
@@ -1537,6 +1629,7 @@ export class Tr2RenderContextALStub
   /**
    * Creates an upscaling context, or reuses one.
    *
+   * @implemented
    * @param {object} _params Carbon's `UpscalingContextParams`.
    * @param {number} _existingContext A context id, or `INVALID_UPSCALING_CONTEXT_ID`.
    * @returns {null} Null; the stub creates none (`cpp:469-472`).
@@ -1550,6 +1643,7 @@ export class Tr2RenderContextALStub
   /**
    * Destroys an upscaling context.
    *
+   * @implemented
    * @param {number} _contextId The context id.
    */
   DeleteUpscalingContext(_contextId)
@@ -1560,6 +1654,7 @@ export class Tr2RenderContextALStub
   /**
    * What an upscaling context is doing.
    *
+   * @implemented
    * @param {number} _contextId The context id.
    * @returns {object} A default-constructed `UpscalingInfo` (`cpp:478-481`).
    */
@@ -1588,6 +1683,7 @@ export class Tr2RenderContextALStub
   /**
    * The techniques an adapter supports.
    *
+   * @implemented
    * @param {number} _adapter The adapter index.
    * @returns {Array} Empty; the stub supports none (`cpp:491-494`).
    */
@@ -1613,6 +1709,7 @@ export class Tr2RenderContextALStub
    * ones that body assigns; a port never silently fixes Carbon, so the quirk is
    * recorded here rather than resolved.
    *
+   * @adapted
    * @returns {object} The current upscaling setup.
    */
   GetUpscalingSetup()

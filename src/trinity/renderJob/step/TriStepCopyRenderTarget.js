@@ -66,6 +66,8 @@ export class TriStepCopyRenderTarget extends TriRenderStep
   /**
    * Carbon PyInitLowLevel (TriStepCopyRenderTarget_Blue.cpp:14-70): the
    * destination is cast to a render target, else to a texture resource.
+   *
+   * @implemented
    */
   @be.mapMethod()
   @meta.implemented
@@ -92,6 +94,8 @@ export class TriStepCopyRenderTarget extends TriRenderStep
    * destination texture resource's. A negative destination origin clamps to
    * zero and trims the same amount off the copied region; a source viewport
    * with no extent copies nothing.
+   *
+   * @implemented
    */
 
   @meta.implemented

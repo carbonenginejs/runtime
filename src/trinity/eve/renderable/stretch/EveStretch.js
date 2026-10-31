@@ -39,7 +39,11 @@ import { sph3 } from "#math/sph3";
 export class EveStretch extends IEveFiringEffectElement
 {
 
-  /** Carbon EveStretch.cpp:43: display controls component registry membership. */
+  /**
+   * Carbon EveStretch.cpp:43: display controls component registry membership.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   OnModified(names)
@@ -151,6 +155,8 @@ export class EveStretch extends IEveFiringEffectElement
    * source curve the source position falls back to the translation of the
    * transform last given to SetSourceTransform. Skipped entirely while update is
    * false.
+   *
+   * @implemented
    */
   @meta.implemented
   UpdateSynchronous(context)
@@ -176,8 +182,8 @@ export class EveStretch extends IEveFiringEffectElement
    * asynchronous phase to the displayed endpoint children plus the stretch and
    * move children, and feeds both audio objects the current endpoints.
    *
-   * Adapted: Carbon splits synchronous and asynchronous work; the browser graph keeps both
-   * phases but executes child calls serially.
+   * @adapted Carbon splits synchronous and asynchronous work; the browser graph keeps both
+   *   phases but executes child calls serially.
    */
   @meta.adapted
   UpdateAsynchronous(context)
@@ -231,7 +237,11 @@ export class EveStretch extends IEveFiringEffectElement
     return this.Update(context);
   }
 
-  /** Runs both update phases in order, for callers that drive the stretch outside the scene's split synchronous/asynchronous pass. */
+  /**
+   * Runs both update phases in order, for callers that drive the stretch outside the scene's split synchronous/asynchronous pass.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update__UpdateContext(updateContext)
@@ -241,7 +251,11 @@ export class EveStretch extends IEveFiringEffectElement
     return true;
   }
 
-  /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
+  /**
+   * Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(updateContext)
@@ -255,10 +269,10 @@ export class EveStretch extends IEveFiringEffectElement
    * after StartMoving), then the move-completion set and the curve sets take the
    * ABSOLUTE scene time, all in seconds.
    *
-   * Adapted: Carbon's curve-LOD gate (`m_useCurveLod` with
-   * EveLODHelper::ShouldUpdate on m_lodLevel) is not applied. lodLevel is set by
-   * UpdateVisibility's child LOD merge, which is not ported, so the gate would
-   * read the default level and update the curves once a second.
+   * @adapted Carbon's curve-LOD gate (`m_useCurveLod` with
+   *   EveLODHelper::ShouldUpdate on m_lodLevel) is not applied. lodLevel is set by
+   *   UpdateVisibility's child LOD merge, which is not ported, so the gate would
+   *   read the default level and update the curves once a second.
    */
 
   @meta.adapted
@@ -281,7 +295,8 @@ export class EveStretch extends IEveFiringEffectElement
    * mode the source transform's Z is scaled by the length. The move child is turned the same way and slides from source
    * to destination with the progress curve. Carbon quirk, kept: the move direction is flipped once more when not -Z
    * forward, so when a stretch child was placed both flips cancel.
-   * Adapted: the child LOD merge is not ported; parentTransform is unused, as in Carbon.
+   *
+   * @adapted the child LOD merge is not ported; parentTransform is unused, as in Carbon.
    */
 
   @meta.adapted
@@ -348,7 +363,11 @@ export class EveStretch extends IEveFiringEffectElement
     }
   }
 
-  /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
+  /**
+   * Carbon's GetRenderables( renderables ): forwards with no impostor manager.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(out)
@@ -359,9 +378,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Appends the displayed children's renderables to out; this package stops at collection, and runtime-engine turns the collected objects into draw batches.
    *
-   * Adapted: Appends renderables to a JavaScript array and returns it; the caller submits
-   * the collected objects.
-   *
+   * @adapted Appends renderables to a JavaScript array and returns it; the caller submits
+   *   the collected objects.
    * @returns {Array} out
    */
   @meta.adapted
@@ -380,6 +398,8 @@ export class EveStretch extends IEveFiringEffectElement
    * Restarts the travelling child from the source end: clears the latched start
    * time and the completion flag, re-shows the move child and fires the stretch
    * audio event.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -394,7 +414,11 @@ export class EveStretch extends IEveFiringEffectElement
     if (autoAudio) autoAudio.TriggerStretchEvent();
   }
 
-  /** Starts the travelling child and plays the first curve set. */
+  /**
+   * Starts the travelling child and plays the first curve set.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Start()
@@ -406,6 +430,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Shows or hides the whole stretch, gating visibility, renderable collection
    * and light contribution.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -418,6 +444,8 @@ export class EveStretch extends IEveFiringEffectElement
    * Pins the source endpoint to a plain position, which also switches the
    * stretch out of transform mode so the source orientation is derived from the
    * span again.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -430,6 +458,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Pins the destination endpoint and rebuilds its transform as a pure
    * translation.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -443,6 +473,8 @@ export class EveStretch extends IEveFiringEffectElement
    * Pins the source endpoint from a full transform and switches the stretch into
    * transform mode, so UpdateVisibility uses the supplied orientation instead of
    * deriving one from the two endpoints.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -456,6 +488,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Pins the destination endpoint from a full transform and takes its position
    * from that transform's translation.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -468,6 +502,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Reverses the direction the stretch child is scaled along, for effects
    * authored pointing down -Z.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -479,6 +515,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Longest curve-set duration in seconds, each divided by that set's own time
    * scale.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -494,6 +532,8 @@ export class EveStretch extends IEveFiringEffectElement
 
   /**
    * Begins a firing cycle by curve-set name convention: play_start and play_loop are played from -delay, play_end is stopped, and the audio outburst/impact/stretch events are triggered. Starting play_start also restarts the travelling child.
+   *
+   * @implemented
    * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
    */
 
@@ -529,6 +569,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Ends a firing cycle: play_start and play_loop stop, play_end plays, the
    * travelling child restarts and the stretch audio stops.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -555,6 +597,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Sets both endpoints from a firing call, accepting either a 16-element source
    * transform or a source position, and marks the stretch as -Z forward.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -569,6 +613,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Selects which endpoint children take part in updates, visibility, renderable
    * collection and light contribution.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -581,6 +627,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Uniform scale applied to the source endpoint child's basis and to its light
    * placement.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -592,6 +640,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * Uniform scale applied to the destination endpoint child's basis and to its
    * light placement.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -603,6 +653,8 @@ export class EveStretch extends IEveFiringEffectElement
   /**
    * IEveFiringEffectElement intensity hook; EveStretch has no intensity term of
    * its own.
+   *
+   * @adapted
    */
   @meta.adapted
   SetIntensity(_intensity)
@@ -613,6 +665,8 @@ export class EveStretch extends IEveFiringEffectElement
    * Carbon GetBoundingSphere (EveStretch.cpp:363-394): the union of the
    * destination, source and stretch children's spheres, in that order; the
    * travelling child is not included.
+   *
+   * @implemented
    * @param {vec4} out - packed (x, y, z, radius), written when any child contributes
    * @param {number} [query] - BoundingSphereQuery forwarded to the children
    * @returns {Boolean} whether any child contributed a sphere
@@ -640,8 +694,8 @@ export class EveStretch extends IEveFiringEffectElement
    * endpoint positions, each scaled by its endpoint scale; a hidden stretch or a
    * hidden endpoint contributes nothing.
    *
-   * Adapted: Forwards light collection to the authored child objects through the supplied
-   * light manager.
+   * @adapted Forwards light collection to the authored child objects through the supplied
+   *   light manager.
    */
 
   @meta.adapted
@@ -654,8 +708,12 @@ export class EveStretch extends IEveFiringEffectElement
     if (this._displayDestination) for (const light of this.destLights) light.AddLight(lightManager, destination, this._destinationScale);
   }
 
-  /** Carbon EveStretch::RegisterComponents (cpp:606-613): LightOwner leaf
-   * self-registration. Gate m_display. */
+  /**
+   * Carbon EveStretch::RegisterComponents (cpp:606-613): LightOwner leaf
+   * self-registration. Gate m_display.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -667,33 +725,53 @@ export class EveStretch extends IEveFiringEffectElement
     }
   }
 
-  /** Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:49). Leaves position untouched. */
+  /**
+   * Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:49). Leaves position untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateModelCenterWorldPosition(position, t)
   {
   }
 
-  /** Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:50). Leaves position untouched. */
+  /**
+   * Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:50). Leaves position untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetModelCenterWorldPosition(position)
   {
   }
 
-  /** Carbon: GetLocalBoundingBox (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:51-54). No local box; leaves outputs untouched. */
+  /**
+   * Carbon: GetLocalBoundingBox (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:51-54). No local box; leaves outputs untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     return false;
   }
 
-  /** Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:55-58). Writes identity into caller storage. */
+  /**
+   * Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:55-58). Writes identity into caller storage.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     mat4.identity(transform);
   }
 
-  /** Carbon: GetLODLevel (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:76-79). Returns the stored LOD. */
+  /**
+   * Carbon: GetLODLevel (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:76-79). Returns the stored LOD.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLODLevel()
   {

@@ -99,6 +99,8 @@ export class TriFrustum
    * Carbon's implicit copy assignment (TriFrustum.h:16-77 declares no
    * operator=, so every member is copied), which JavaScript cannot overload.
    * Carbon's culling statistics counters (h:42-44) are not ported.
+   *
+   * @renamed operator=
    * @param {TriFrustum} other
    * @returns {TriFrustum} this
    */
@@ -123,6 +125,8 @@ export class TriFrustum
   /**
    * Carbon TriFrustum::DeriveFrustum (cpp:26-36) - extracts the frustum planes
    * from the view and projection matrix in world coordinates.
+   *
+   * @implemented
    * @param {Float32Array} view
    * @param {Float32Array} viewPos - camera world position
    * @param {Float32Array} projection
@@ -145,6 +149,8 @@ export class TriFrustum
    * extraction by adding/subtracting matrix columns, then normalizing.
    * Carbon _rc flat indices: col1 = (0, 4, 8, 12), col2 = (1, 5, 9, 13),
    * col3 = (2, 6, 10, 14), col4 = (3, 7, 11, 15).
+   *
+   * @implemented
    * @param {Float32Array} proj - composed view*projection (or projection alone)
    */
   @meta.implemented
@@ -180,6 +186,8 @@ export class TriFrustum
   /**
    * Carbon's IsSphereVisible( const Vector4* sphere, cullBackPlane ) (cpp:121):
    * the packed (x, y, z, radius) form.
+   *
+   * @implemented
    * @param {Float32Array} sphere - packed (x, y, z, radius)
    * @param {Boolean} [cullBackPlane]
    * @returns {Boolean}
@@ -196,6 +204,8 @@ export class TriFrustum
    * any part of the sphere is inside the frustum. Carbon deliberately skips the
    * back plane unless cullBackPlane ("For some reason the old code ignored the
    * back plane").
+   *
+   * @implemented
    * @param {Float32Array} center
    * @param {Number} radius
    * @param {Boolean} [cullBackPlane]
@@ -225,6 +235,8 @@ export class TriFrustum
 
   /**
    * Carbon TriFrustum::SphereTest (cpp:150-166) - full six-plane classification.
+   *
+   * @adapted
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult
    */
@@ -254,6 +266,8 @@ export class TriFrustum
   /**
    * Carbon TriFrustum::IsPointVisible (cpp:168-174) - wraps the sphere test
    * with a radius of zero.
+   *
+   * @implemented
    * @param {Float32Array} point
    * @returns {Boolean}
    */
@@ -266,6 +280,8 @@ export class TriFrustum
   /**
    * Carbon's IsBoxVisible( const CcpMath::AxisAlignedBox& aabb ) (cpp:187): a
    * packed box3; an empty box is not visible.
+   *
+   * @implemented
    * @param {Float32Array} aabb - box3
    * @returns {Boolean}
    */
@@ -283,6 +299,8 @@ export class TriFrustum
    * Carbon's IsBoxVisible( boundsMin, boundsMax ) (cpp:187-232), named by the
    * parameters that replace aabb (docs 22d1237, 2b749d3). Frustum-AABB test via
    * the positive vertex; may return false positives, never false negatives.
+   *
+   * @implemented
    * @param {Float32Array} min - boundsMin
    * @param {Float32Array} max - boundsMax
    * @returns {Boolean}
@@ -309,6 +327,8 @@ export class TriFrustum
    * pixel coverage of a packed (x, y, z, radius) sphere on screen.
    * Carbon defect CE-04, reproduced: this family's overloads disagree off-axis
    * (the Sphere and AxisAlignedBox forms use the Est maths).
+   *
+   * @implemented
    * @param {Float32Array} sphere
    * @returns {Number}
    */
@@ -321,6 +341,8 @@ export class TriFrustum
   /**
    * Carbon's GetPixelSizeAccross( const CcpMath::Sphere& sphere ) (cpp:295-298):
    * delegates to GetPixelSizeAccrossEst - CE-04, kept.
+   *
+   * @implemented
    * @param {{ center: Float32Array, radius: Number }} sphere
    * @returns {Number}
    */
@@ -334,6 +356,8 @@ export class TriFrustum
    * Carbon's GetPixelSizeAccross( const CcpMath::AxisAlignedBox& box )
    * (cpp:300-307): 0 for an empty box, else the box's bounding sphere through
    * the Sphere overload, so the Est maths - CE-04, kept.
+   *
+   * @implemented
    * @param {Float32Array} box - box3
    * @returns {Number}
    */
@@ -348,6 +372,8 @@ export class TriFrustum
   /**
    * Carbon's GetPixelSizeAccrossEst( const Vector4* sphere ) (cpp:239-242):
    * cheaper distance-based estimate of a packed sphere's pixel size. CE-04.
+   *
+   * @implemented
    * @param {Float32Array} sphere
    * @returns {Number}
    */
@@ -360,6 +386,8 @@ export class TriFrustum
   /**
    * Carbon TriFrustum::GetPixelSizeAccross(center, radius) (cpp:245-272). CE-04:
    * disagrees off-axis with the Est form, kept.
+   *
+   * @implemented
    * @param {Float32Array} center
    * @param {Number} radius
    * @returns {Number}
@@ -395,6 +423,8 @@ export class TriFrustum
 
   /**
    * Carbon TriFrustum::GetPixelSizeAccrossEst(center, radius) (cpp:274-293).
+   *
+   * @implemented
    * @param {Float32Array} center
    * @param {Number} radius
    * @returns {Number}
@@ -428,6 +458,8 @@ export class TriFrustum
    * the view/projection data needed for pixel-diameter extraction, then
    * DeconstructProjectionMatrix (MatrixUtils.cpp:28-42) recovers aspect, fov
    * and the clip planes from the projection matrix.
+   *
+   * @adapted
    * @param {Float32Array} view
    * @param {Float32Array} viewPos
    * @param {Float32Array} projection

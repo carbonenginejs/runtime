@@ -41,7 +41,11 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   @type.uint32
   _seed = 0;
 
-  /** Live Blue seed property, separate from persisted backing storage. */
+  /**
+   * Live Blue seed property, separate from persisted backing storage.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.uint32
   @meta.implemented
@@ -50,7 +54,10 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
     return this.GetSeed();
   }
 
-  /** @param {number} value New seed; every assignment rebuilds rotations. */
+  /**
+   * @implemented
+   * @param {number} value New seed; every assignment rebuilds rotations.
+   */
   @meta.implemented
   set seed(value)
   {
@@ -89,6 +96,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   /**
    * Advances the cached quaternion using the existing seconds-based curve contract.
    *
+   * @implemented
    * @param {number} time Source time in seconds.
    * @returns {void}
    */
@@ -101,9 +109,9 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 
   /**
    * Updates the cached value and copies it into caller-owned storage.
-   * Adapted: JavaScript retains time-first seconds and an output buffer instead
-   * of Carbon's output-first Be::Time/double overloads.
    *
+   * @adapted JavaScript retains time-first seconds and an output buffer instead
+   *   of Carbon's output-first Be::Time/double overloads.
    * @param {number} time Source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
@@ -118,9 +126,9 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 
   /**
    * Samples into caller-owned storage without changing the cached value.
-   * Adapted: JavaScript retains time-first seconds and an output buffer instead
-   * of Carbon's output-first Be::Time/double overloads.
    *
+   * @adapted JavaScript retains time-first seconds and an output buffer instead
+   *   of Carbon's output-first Be::Time/double overloads.
    * @param {number} time Source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
@@ -135,6 +143,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   /**
    * Carbon's Update(Be::Time): the tick time wraps by the period in integer ticks before converting
    * (Tr2CurveRandomAxisRotation.cpp:31-37). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
@@ -148,6 +158,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 
   /**
    * Carbon's GetValueAt(Be::Time): samples at the tick time wrapped by the period (cpp:47-52). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
@@ -172,6 +184,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   /**
    * Leaves the caller's derivative output unchanged, as Carbon does.
    *
+   * @adapted
    * @param {number} _time Unused source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
@@ -186,6 +199,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   /**
    * Leaves the caller's second-derivative output unchanged, as Carbon does.
    *
+   * @adapted
    * @param {number} _time Unused source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
@@ -199,8 +213,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 
   /**
    * Samples the quaternion at the supplied time.
-   * Adapted: writes caller-owned storage instead of returning a native value copy.
    *
+   * @adapted writes caller-owned storage instead of returning a native value copy.
    * @param {number} time Source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
@@ -240,6 +254,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * The native Blue table omits IInitialize despite the C++ base; readers and
    * Copier therefore do not discover this method through that query.
    *
+   * @implemented
    * @returns {boolean} True.
    */
 
@@ -256,6 +271,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   /**
    * Gets the stored seed.
    *
+   * @implemented
    * @returns {number} Unsigned 32-bit seed.
    */
 
@@ -267,9 +283,9 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 
   /**
    * Stores the seed and rebuilds rotations on every call, including equal seeds.
-   * Adapted: >>> 0 supplies the native uint32_t argument conversion. No model
-   * event, values settle loop or changed-value return is part of this setter.
    *
+   * @adapted >>> 0 supplies the native uint32_t argument conversion. No model
+   *   event, values settle loop or changed-value return is part of this setter.
    * @param {number} seed Unsigned 32-bit seed.
    * @returns {void}
    */
@@ -283,10 +299,10 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 
   /**
    * Rebuilds the pre/post rotations using the existing generator.
-   * Adapted: nonzero seeds use the current MSVC-compatible engine helper;
-   * seed zero uses the Blue actual-time clock, as Carbon does.
-   * Angle samples retain native float intermediates.
    *
+   * @adapted nonzero seeds use the current MSVC-compatible engine helper;
+   *   seed zero uses the Blue actual-time clock, as Carbon does.
+   *   Angle samples retain native float intermediates.
    * @returns {void}
    */
 
@@ -316,8 +332,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 
   /**
    * Draws an angle with native float intermediates.
-   * Adapted: represents the native anonymous RandAngle helper in JavaScript.
    *
+   * @adapted represents the native anonymous RandAngle helper in JavaScript.
    * @param {Function} engine Existing unit-interval generator.
    * @returns {number} Angle in radians.
    */

@@ -53,7 +53,11 @@ export class EveCloudVolumeBall extends IRoot
 
   _owner = null;
 
-  /** Native cpp:26-33 forwards every edit; JavaScript WeakRef replaces BlueWeakRef ownership. */
+  /**
+   * Native cpp:26-33 forwards every edit; JavaScript WeakRef replaces BlueWeakRef ownership.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_names)

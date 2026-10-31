@@ -23,6 +23,9 @@ function files(dir, extensions, excluded = new Set([".git", "node_modules", "npm
  */
 export const MARKER_TAGS = ["implemented","adapted","noop","notSupported","renamed","cjs","abstract","notImplemented","notUsed"];
 const MARKER_TAG = new RegExp("^[ \\t]*\\*?[ \\t]*@(" + MARKER_TAGS.join("|") + ")\\b[ \\t]*(.*)$", "gm");
+/** The marker decorators the tags replace, by the inventory's normalized names. */
+// meta.noop is not converted (its tag is parked for the operator), so it stays a decorator in every mode.
+const MARKER_DECORATORS = new Set([ ...MARKER_TAGS.filter(tag => tag !== "noop").map(tag => "meta." + tag), "exposure.abstract", "blue.abstract" ]);
 /** The marker tags in one JSDoc comment's text, as `{ name: "meta.<tag>", args, line offset }`. */
 export function markerTags(commentValue) {
     const tags = [];
@@ -44,9 +47,16 @@ function walk(node, fn) {
 }
 
 
-/** Parses class/member metadata, literal definitions and finite decorator loops without executing source. */
-export function inventoryRuntime(root)
+/**
+ * Parses class/member metadata, literal definitions and finite decorator loops without executing source.
+ *
+ * `options.markers` chooses where implementation markers are read from while they move to JSDoc tags: "both"
+ * (default), "tags" (marker decorators ignored) or "decorators" (tags ignored). Comparing the two single modes proves
+ * the tags say what the decorators say.
+ */
+export function inventoryRuntime(root, options = {})
 {
+const markers = options.markers ?? "both";
 const classes = [], manifest = [], diagnostics = [], decorators = [], filePlans = [], externals = [];
 for (const file of files(path.join(root,"src"), [".js"])) {
     const raw = fs.readFileSync(file), source = slash(path.relative(root,file)), text = raw.toString("utf8");
@@ -106,9 +116,11 @@ for (const file of files(path.join(root,"src"), [".js"])) {
         return best;
     };
     const tagged = (node, existing) => {
+        if (markers === "decorators") return existing;
         const comment = jsDocOf(node);
         if (!comment) return existing;
-        const own = new Set(existing.map(d => d.name));
+        // In "both" a tag repeating a decorator adds nothing; in "tags" the decorators are dropped at the end.
+        const own = new Set(markers === "tags" ? [] : existing.map(d => d.name));
         const tags = markerTags(comment.value).filter(t => !own.has(t.name))
             .map(t => ({ ...t, line: comment.loc.start.line, start: comment.start, end: comment.end }));
         for (const t of tags) decorators.push({ source, dropped, ...t });
@@ -244,6 +256,13 @@ for(const e of externals) {
             else old.decorators.push(...m.decorators.map(x=>({...x,source:e.source})));
         }
     } else diagnostics.push({source:e.source,class:e.name,kind:"external-registration",candidates:candidates.map(c=>c.source)});
+}
+if (markers === "tags") {
+    const isMarkerDecorator = d => !d.form && MARKER_DECORATORS.has(d.name);
+    for (const c of classes) {
+        c.decorators = c.decorators.filter(d => !isMarkerDecorator(d));
+        for (const m of c.members) m.decorators = m.decorators.filter(d => !isMarkerDecorator(d));
+    }
 }
 
     return {classes,manifest,diagnostics,decorators};

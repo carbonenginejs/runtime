@@ -18,6 +18,7 @@ export class CjsBackendCandidate
     /**
      * Proves this candidate against one resolved composition context.
      *
+     * @abstract
      * @param {object} _context - Backend-selection context.
      * @returns {*} Backend-owned proof result.
      */

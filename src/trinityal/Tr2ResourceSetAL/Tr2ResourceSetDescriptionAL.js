@@ -68,9 +68,8 @@ export class Tr2ResourceSetDescriptionAL
    * unchecked in Carbon, so a stage or register outside the map throws a
    * RangeError (ruling 11).
    *
-   * Adapted: the record keeps its own copy of the handle and destroys the one it
-   * replaces; JavaScript has no copy assignment or destructors.
-   *
+   * @adapted the record keeps its own copy of the handle and destroys the one it
+   *   replaces; JavaScript has no copy assignment or destructors.
    * @returns {boolean} Whether the record changed.
    */
   @meta.adapted
@@ -95,9 +94,8 @@ export class Tr2ResourceSetDescriptionAL
    * unchecked in Carbon, so a stage or register outside the map throws a
    * RangeError (ruling 11).
    *
-   * Adapted: the record keeps its own copy of the handle and destroys the one it
-   * replaces; JavaScript has no copy assignment or destructors.
-   *
+   * @adapted the record keeps its own copy of the handle and destroys the one it
+   *   replaces; JavaScript has no copy assignment or destructors.
    * @returns {boolean} Whether the record changed.
    */
   @meta.adapted
@@ -136,9 +134,8 @@ export class Tr2ResourceSetDescriptionAL
    * unchecked in Carbon, so a stage or register outside the map throws a
    * RangeError (ruling 11).
    *
-   * Adapted: the record keeps its own copy of the handle and destroys the one it
-   * replaces; JavaScript has no copy assignment or destructors.
-   *
+   * @adapted the record keeps its own copy of the handle and destroys the one it
+   *   replaces; JavaScript has no copy assignment or destructors.
    * @returns {boolean} Whether the record changed.
    */
   @meta.adapted
@@ -163,8 +160,7 @@ export class Tr2ResourceSetDescriptionAL
    * unchecked in Carbon, so a stage or register outside the map throws a
    * RangeError (ruling 11).
    *
-   * Adapted: JS has no unions: colorSpace stores the shared mip/colour-space word.
-   *
+   * @adapted JS has no unions: colorSpace stores the shared mip/colour-space word.
    * @returns {boolean} Whether the record changed.
    */
   @meta.adapted
@@ -204,8 +200,7 @@ export class Tr2ResourceSetDescriptionAL
    * unchecked in Carbon, so a stage or register outside the map throws a
    * RangeError (ruling 11).
    *
-   * Adapted: the record keeps its own copy of the handle, as the C++ assignment does.
-   *
+   * @adapted the record keeps its own copy of the handle, as the C++ assignment does.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The sampler register.
    * @param {Tr2SamplerStateAL} sampler The sampler state.
@@ -231,6 +226,8 @@ export class Tr2ResourceSetDescriptionAL
    * register that maps to no resource. The stage/register lookup itself is
    * unchecked in Carbon, so a stage or register outside the map throws a
    * RangeError (ruling 11).
+   *
+   * @implemented
    */
   @meta.implemented
   SetSrvHeapView(stage, registerIndex)
@@ -250,6 +247,8 @@ export class Tr2ResourceSetDescriptionAL
    * register that maps to no resource. The stage/register lookup itself is
    * unchecked in Carbon, so a stage or register outside the map throws a
    * RangeError (ruling 11).
+   *
+   * @implemented
    */
   @meta.implemented
   SetUavHeapView(stage, registerIndex)
@@ -269,6 +268,8 @@ export class Tr2ResourceSetDescriptionAL
    * register that maps to no resource. The stage/register lookup itself is
    * unchecked in Carbon, so a stage or register outside the map throws a
    * RangeError (ruling 11).
+   *
+   * @implemented
    */
   @meta.implemented
   SetSamplerHeapView(stage, registerIndex)
@@ -285,8 +286,9 @@ export class Tr2ResourceSetDescriptionAL
    * Compares the identities of the three owning arrays, preserving Carbon's
    * equality quirk.
    *
-   * Adapted: JavaScript spells the native equality operator as a method; array identities
-   * preserve unique_ptr comparison.
+   * @adapted JavaScript spells the native equality operator as a method; array identities
+   *   preserve unique_ptr comparison.
+   * @renamed operator==
    */
   @meta.adapted
   Equals(other)
@@ -301,8 +303,8 @@ export class Tr2ResourceSetDescriptionAL
    * the arrays; a moved-from description keeps its counts with null storage,
    * so this throws there as Carbon dereferences null (ruling 11).
    *
-   * Adapted: the handles are destroyed explicitly; JavaScript has no
-   * destructors.
+   * @adapted the handles are destroyed explicitly; JavaScript has no
+   *   destructors.
    */
   @meta.adapted
   ClearResources()
@@ -329,9 +331,9 @@ export class Tr2ResourceSetDescriptionAL
    * moved-from storage is null with unchanged counts, so this throws there as
    * Carbon dereferences null (ruling 11).
    *
-   * Adapted: JavaScript has no implementation pointer bytes; stable backend identities use
-   * process-local 32-bit IDs. Distinct invalid backend identities are retained. Traversal,
-   * zero seed, signed-byte FNV and donor omissions are preserved.
+   * @adapted JavaScript has no implementation pointer bytes; stable backend identities use
+   *   process-local 32-bit IDs. Distinct invalid backend identities are retained. Traversal,
+   *   zero seed, signed-byte FNV and donor omissions are preserved.
    */
   @meta.adapted
   ComputeHash()

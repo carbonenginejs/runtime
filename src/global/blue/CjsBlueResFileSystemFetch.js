@@ -204,29 +204,37 @@ export class CjsBlueResFileSystemFetch extends IBlueResFileSystem
   /**
    * `FileExists` - always false.
    *
-   * Adapted: Carbon's answer is synchronous, and a URL can only be asked
-   * asynchronously. Existence questions belong to a file system with an index,
-   * such as `BlueResFileSystemRemote`.
+   * @adapted Carbon's answer is synchronous, and a URL can only be asked
+   *   asynchronously. Existence questions belong to a file system with an index,
+   *   such as `BlueResFileSystemRemote`.
    */
   FileExists(_filename)
   {
     return false;
   }
 
-  /** `IsDirectory` - always false; adapted as `FileExists`. */
+  /**
+   * `IsDirectory` - always false; adapted as `FileExists`.
+   *
+   * @adapted
+   */
   IsDirectory(_dir)
   {
     return false;
   }
 
-  /** `GetDirectoryContents` - adds nothing; a URL cannot be listed. Adapted as `FileExists`. */
+  /**
+   * `GetDirectoryContents` - adds nothing; a URL cannot be listed. Adapted as `FileExists`.
+   *
+   * @adapted
+   */
   GetDirectoryContents(_dir, _results) {}
 
   /**
    * `ResolvePathW` - the URL the file is read from, or `null` when the path
    * has no URL.
    *
-   * Adapted: a URL, where Carbon gives a disk path.
+   * @adapted a URL, where Carbon gives a disk path.
    */
   ResolvePathW(path)
   {
@@ -244,8 +252,8 @@ export class CjsBlueResFileSystemFetch extends IBlueResFileSystem
    * `GetStreamFromPathW` - the file in the requested form, or `null` when the
    * server says it is not there (404, 410).
    *
-   * Adapted: see the top of this file and of IBlueResFileSystem.js.
-   *
+   * @adapted see the top of this file and of IBlueResFileSystem.js.
+   * @renamed GetStreamFromPathW
    * @param {string} path Resource path.
    * @param {import("./IBlueResFileSystem.js").BlueResFileSystemRequest} request Form and signal.
    * @returns {Promise<import("./IBlueResFileSystem.js").BlueResFileSystemResult|null>} The file, or `null`.

@@ -63,6 +63,7 @@ export class Tr2RingBufferOffsets
   /**
    * Where this frame's rows start, in elements.
    *
+   * @implemented
    * @returns {number} The offset, or `INVALID_OFFSET` before an upload.
    */
   GetCurrentFrameOffset()
@@ -73,6 +74,7 @@ export class Tr2RingBufferOffsets
   /**
    * Where last frame's rows start, in elements.
    *
+   * @implemented
    * @returns {number} The offset, or `INVALID_OFFSET` before a second frame.
    */
   GetPreviousFrameOffset()
@@ -87,6 +89,7 @@ export class Tr2RingBufferOffsets
    * is ignored rather than appended, so an object updated twice does not eat
    * the ring twice. `AdvanceFrame` is what re-arms it.
    *
+   * @implemented
    * @param {Tr2RingBuffer} buffer The arena for this data type.
    * @param {ArrayBufferView} transforms The packed rows.
    * @param {number} count How many rows.
@@ -109,6 +112,7 @@ export class Tr2RingBufferOffsets
   /**
    * Rolls this frame's offset into last frame's and re-arms the upload.
    *
+   * @implemented
    * @returns {void}
    */
   AdvanceFrame()

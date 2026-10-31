@@ -58,7 +58,8 @@ export class Tr2MaterialParameterStore extends IInitialize
 
   /**
    * Requests the authored parent after Blue finishes populating this store.
-   * Adapted: the existing resource manager completes LoadObject asynchronously.
+   *
+   * @adapted the existing resource manager completes LoadObject asynchronously.
    * @returns {boolean} True after starting or clearing the parent request.
    */
 
@@ -71,6 +72,8 @@ export class Tr2MaterialParameterStore extends IInitialize
 
   /**
    * Reloads only when the notified native parentPath member changes.
+   *
+   * @implemented
    * @param {string|null} propertyName Changed declaration name.
    * @returns {boolean} True after handling the notification.
    */
@@ -84,9 +87,10 @@ export class Tr2MaterialParameterStore extends IInitialize
 
   /**
    * Releases the old parent before the native typed LoadObject request.
-   * Adapted: JavaScript drops the reference instead of unlocking a BluePtr.
-   * Awaiting the existing manager needs stale-result guards; failures leave
-   * the parent empty and are logged. No resource-manager lifecycle is added.
+   *
+   * @adapted JavaScript drops the reference instead of unlocking a BluePtr.
+   *   Awaiting the existing manager needs stale-result guards; failures leave
+   *   the parent empty and are logged. No resource-manager lifecycle is added.
    * @returns {Promise<Tr2MaterialParameterStore|null>} Accepted current parent.
    */
   @meta.adapted
@@ -124,6 +128,8 @@ export class Tr2MaterialParameterStore extends IInitialize
 
   /**
    * Looks a parameter up locally, then walks the parent chain.
+   *
+   * @implemented
    * @param {string} name Parameter name.
    * @returns {object|null} First entry, including a local null shadow, or null.
    */

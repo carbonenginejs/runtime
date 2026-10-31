@@ -106,7 +106,11 @@ export class EveChildRef extends EveChildTransform
   /** Which LoadChild request is current, so a superseded load is dropped. */
   _loadRequest = 0;
 
-  /** Carbon EveChildRef::GetResPath (cpp:22-25). */
+  /**
+   * Carbon EveChildRef::GetResPath (cpp:22-25).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetResPath()
@@ -114,7 +118,11 @@ export class EveChildRef extends EveChildTransform
     return this.resPath;
   }
 
-  /** Carbon EveChildRef::SetResPath (cpp:27-37): set, then load when automatic. */
+  /**
+   * Carbon EveChildRef::SetResPath (cpp:27-37): set, then load when automatic.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetResPath(resPath)
@@ -123,7 +131,11 @@ export class EveChildRef extends EveChildTransform
     this.OnModified("resPath");
   }
 
-  /** Carbon EveChildRef::Reload (cpp:39-45). */
+  /**
+   * Carbon EveChildRef::Reload (cpp:39-45).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   Reload(bypassAutoLoadBlocker = false)
@@ -131,7 +143,11 @@ export class EveChildRef extends EveChildTransform
     if (this.loadChildAutomatically || bypassAutoLoadBlocker) this.LoadChild();
   }
 
-  /** Carbon EveChildRef::SetAutoLoadBlocker (cpp:47-50). */
+  /**
+   * Carbon EveChildRef::SetAutoLoadBlocker (cpp:47-50).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetAutoLoadBlocker(shouldBlockAutoLoad)
@@ -139,7 +155,11 @@ export class EveChildRef extends EveChildTransform
     this.loadChildAutomatically = !shouldBlockAutoLoad;
   }
 
-  /** Carbon EveChildRef::Initialize (cpp:52-60). */
+  /**
+   * Carbon EveChildRef::Initialize (cpp:52-60).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -148,7 +168,11 @@ export class EveChildRef extends EveChildTransform
     return true;
   }
 
-  /** Carbon EveChildRef::OnModified (cpp:62-76). */
+  /**
+   * Carbon EveChildRef::OnModified (cpp:62-76).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(propertyName = null)
@@ -162,8 +186,8 @@ export class EveChildRef extends EveChildTransform
    * Carbon EveChildRef::LoadChild (cpp:342-360): drops the old child, loads
    * the file as an EveSpaceObjectChild, registers it.
    *
-   * Adapted: the load resolves later (see the class note). Returns whether a
-   * load was started; a failure logs as Carbon's does.
+   * @adapted the load resolves later (see the class note). Returns whether a
+   *   load was started; a failure logs as Carbon's does.
    */
 
   @meta.adapted
@@ -196,7 +220,11 @@ export class EveChildRef extends EveChildTransform
     return true;
   }
 
-  /** Carbon EveChildRef::RegisterComponents (cpp:78-87). */
+  /**
+   * Carbon EveChildRef::RegisterComponents (cpp:78-87).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -207,7 +235,11 @@ export class EveChildRef extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildRef::UnRegisterComponents (cpp:89-98). */
+  /**
+   * Carbon EveChildRef::UnRegisterComponents (cpp:89-98).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -218,7 +250,11 @@ export class EveChildRef extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildRef::GetEffectChildByName (cpp:100-107). */
+  /**
+   * Carbon EveChildRef::GetEffectChildByName (cpp:100-107).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetEffectChildByName(name)
@@ -227,7 +263,11 @@ export class EveChildRef extends EveChildTransform
     return owner === null ? null : owner.GetEffectChildByName(name);
   }
 
-  /** Carbon EveChildRef::AddToEffectChildrenList (cpp:109-115). */
+  /**
+   * Carbon EveChildRef::AddToEffectChildrenList (cpp:109-115).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddToEffectChildrenList(child)
@@ -235,7 +275,11 @@ export class EveChildRef extends EveChildTransform
     CjsSchema.cast(this.child, IEveEffectChildrenOwner)?.AddToEffectChildrenList(child);
   }
 
-  /** Carbon EveChildRef::RemoveFromEffectChildrenList (cpp:117-123). */
+  /**
+   * Carbon EveChildRef::RemoveFromEffectChildrenList (cpp:117-123).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RemoveFromEffectChildrenList(child)
@@ -243,7 +287,11 @@ export class EveChildRef extends EveChildTransform
     CjsSchema.cast(this.child, IEveEffectChildrenOwner)?.RemoveFromEffectChildrenList(child);
   }
 
-  /** Carbon EveChildRef::SetProceduralContainerVariable (cpp:125-131). */
+  /**
+   * Carbon EveChildRef::SetProceduralContainerVariable (cpp:125-131).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetProceduralContainerVariable(name, value)
@@ -251,7 +299,11 @@ export class EveChildRef extends EveChildTransform
     this.child?.SetProceduralContainerVariable(name, value);
   }
 
-  /** Carbon EveChildRef::UpdateVisibility (cpp:133-143). */
+  /**
+   * Carbon EveChildRef::UpdateVisibility (cpp:133-143).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
@@ -260,7 +312,11 @@ export class EveChildRef extends EveChildTransform
     this.child?.UpdateVisibility(updateContext, parentTransform, parentLod);
   }
 
-  /** Carbon EveChildRef::GetRenderables (cpp:145-151). */
+  /**
+   * Carbon EveChildRef::GetRenderables (cpp:145-151).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(renderables)
@@ -271,6 +327,8 @@ export class EveChildRef extends EveChildTransform
   /**
    * Carbon EveChildRef::GetBoundingSphere (cpp:153-163): the child's normal
    * bounds, whatever query was asked.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -279,7 +337,11 @@ export class EveChildRef extends EveChildTransform
     return this.child ? this.child.GetBoundingSphere(sphere, 0) === true : false;
   }
 
-  /** Carbon EveChildRef::RegisterWithQuadRenderer (cpp:165-171). */
+  /**
+   * Carbon EveChildRef::RegisterWithQuadRenderer (cpp:165-171).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -287,7 +349,11 @@ export class EveChildRef extends EveChildTransform
     this.child?.RegisterWithQuadRenderer(quadRenderer);
   }
 
-  /** Carbon EveChildRef::AddQuadsToQuadRenderer (cpp:173-179). */
+  /**
+   * Carbon EveChildRef::AddQuadsToQuadRenderer (cpp:173-179).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
@@ -295,7 +361,11 @@ export class EveChildRef extends EveChildTransform
     if (this.display && this.child) this.child.AddQuadsToQuadRenderer(frustum, quadRenderer);
   }
 
-  /** Carbon EveChildRef::UpdateSyncronous (cpp:181-192). */
+  /**
+   * Carbon EveChildRef::UpdateSyncronous (cpp:181-192).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext, params)
@@ -304,7 +374,11 @@ export class EveChildRef extends EveChildTransform
     this.child.UpdateSyncronous(updateContext, this._ChildParams(params));
   }
 
-  /** Carbon EveChildRef::UpdateAsyncronous (cpp:194-209): the transform first, then the child. */
+  /**
+   * Carbon EveChildRef::UpdateAsyncronous (cpp:194-209): the transform first, then the child.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
@@ -324,7 +398,11 @@ export class EveChildRef extends EveChildTransform
     };
   }
 
-  /** Carbon EveChildRef::GetLocalToWorldTransform (cpp:211-214). */
+  /**
+   * Carbon EveChildRef::GetLocalToWorldTransform (cpp:211-214).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalToWorldTransform(transform)
@@ -333,7 +411,11 @@ export class EveChildRef extends EveChildTransform
     return transform;
   }
 
-  /** Carbon EveChildRef::PlayCurveSet (cpp:216-222). */
+  /**
+   * Carbon EveChildRef::PlayCurveSet (cpp:216-222).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
@@ -342,7 +424,11 @@ export class EveChildRef extends EveChildTransform
     if (owner) owner.PlayCurveSet(name, rangeName);
   }
 
-  /** Carbon EveChildRef::StopCurveSet (cpp:224-230). */
+  /**
+   * Carbon EveChildRef::StopCurveSet (cpp:224-230).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopCurveSet(name)
@@ -351,7 +437,11 @@ export class EveChildRef extends EveChildTransform
     if (owner) owner.StopCurveSet(name);
   }
 
-  /** Carbon EveChildRef::UpdateCurveSet (cpp:232-238). */
+  /**
+   * Carbon EveChildRef::UpdateCurveSet (cpp:232-238).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateCurveSet(name, time)
@@ -364,6 +454,8 @@ export class EveChildRef extends EveChildTransform
    * Carbon EveChildRef::GetCurveSetDuration (cpp:240-247). Quirk, ported as
    * written: Carbon calls the child and discards its result, so this is
    * always 0.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -374,7 +466,11 @@ export class EveChildRef extends EveChildTransform
     return 0;
   }
 
-  /** Carbon EveChildRef::GetRangeDuration (cpp:249-256). Same quirk: always 0. */
+  /**
+   * Carbon EveChildRef::GetRangeDuration (cpp:249-256). Same quirk: always 0.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRangeDuration(name, rangeName)
@@ -384,7 +480,11 @@ export class EveChildRef extends EveChildTransform
     return 0;
   }
 
-  /** Carbon EveChildRef::PlayAllCurveSets (cpp:258-264). */
+  /**
+   * Carbon EveChildRef::PlayAllCurveSets (cpp:258-264).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayAllCurveSets()
@@ -393,7 +493,11 @@ export class EveChildRef extends EveChildTransform
     if (owner) owner.PlayAllCurveSets();
   }
 
-  /** Carbon EveChildRef::SetShaderOption (cpp:266-272). */
+  /**
+   * Carbon EveChildRef::SetShaderOption (cpp:266-272).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetShaderOption(name, value)
@@ -401,7 +505,11 @@ export class EveChildRef extends EveChildTransform
     this.child?.SetShaderOption(name, value);
   }
 
-  /** Carbon EveChildRef::ChangeLOD (cpp:279-285). */
+  /**
+   * Carbon EveChildRef::ChangeLOD (cpp:279-285).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ChangeLOD(lod)
@@ -409,7 +517,11 @@ export class EveChildRef extends EveChildTransform
     this.child?.ChangeLOD(lod);
   }
 
-  /** Carbon EveChildRef::SetControllerVariable (cpp:287-293). */
+  /**
+   * Carbon EveChildRef::SetControllerVariable (cpp:287-293).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
@@ -417,7 +529,11 @@ export class EveChildRef extends EveChildTransform
     this.child?.SetControllerVariable(name, value);
   }
 
-  /** Carbon EveChildRef::HandleControllerEvent (cpp:295-301). */
+  /**
+   * Carbon EveChildRef::HandleControllerEvent (cpp:295-301).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
@@ -425,7 +541,11 @@ export class EveChildRef extends EveChildTransform
     this.child?.HandleControllerEvent(name);
   }
 
-  /** Carbon EveChildRef::SetInheritProperties (cpp:303-312). */
+  /**
+   * Carbon EveChildRef::SetInheritProperties (cpp:303-312).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetInheritProperties(colorSet)
@@ -434,7 +554,11 @@ export class EveChildRef extends EveChildTransform
     if (owner) owner.SetInheritProperties(colorSet);
   }
 
-  /** Carbon EveChildRef::StartControllers (cpp:314-320). */
+  /**
+   * Carbon EveChildRef::StartControllers (cpp:314-320).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
@@ -442,7 +566,11 @@ export class EveChildRef extends EveChildTransform
     this.child?.StartControllers();
   }
 
-  /** Carbon EveChildRef::FindSoundEmitter (cpp:362-369). */
+  /**
+   * Carbon EveChildRef::FindSoundEmitter (cpp:362-369).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   FindSoundEmitter(name)
@@ -451,7 +579,11 @@ export class EveChildRef extends EveChildTransform
     return owner === null ? null : owner.FindSoundEmitter(name);
   }
 
-  /** Carbon EveChildRef::SetOwner (cpp:371-381). */
+  /**
+   * Carbon EveChildRef::SetOwner (cpp:371-381).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetOwner(owner)
@@ -461,7 +593,11 @@ export class EveChildRef extends EveChildTransform
     if (this.child) this.child.SetOwner(owner);
   }
 
-  /** Carbon EveChildRef::SetPartTag (cpp:383-393). */
+  /**
+   * Carbon EveChildRef::SetPartTag (cpp:383-393).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetPartTag(tag)

@@ -48,6 +48,8 @@ export class Tr2ExpressionTermInfo extends IRoot
 
   /**
    * A detached copy of the argument-name list.
+   *
+   * @implemented
    * @returns {string[]} Argument names in factory order.
    */
   @be.mapMethodAndWrap()
@@ -59,6 +61,8 @@ export class Tr2ExpressionTermInfo extends IRoot
 
   /**
    * Builds a VARIABLE term, which takes no arguments.
+   *
+   * @implemented
    * @param {string} category Help category.
    * @param {string} name Variable name.
    * @param {string} description Help text.
@@ -75,7 +79,8 @@ export class Tr2ExpressionTermInfo extends IRoot
   /**
    * Builds a FUNCTION term where every trailing value but the last is an
    * argument name and the last is the description.
-   * Adapted: combines the native fixed-arity factory overloads in one JavaScript rest parameter.
+   *
+   * @adapted combines the native fixed-arity factory overloads in one JavaScript rest parameter.
    * @param {string} category Help category.
    * @param {string} name Function name.
    * @param {...string} argumentsAndDescription Argument names followed by help text.
@@ -93,6 +98,8 @@ export class Tr2ExpressionTermInfo extends IRoot
 
   /**
    * Builds a STRING_FUNCTION term taking exactly one argument.
+   *
+   * @implemented
    * @param {string} category Help category.
    * @param {string} name Function name.
    * @param {string} argument Sole argument name.

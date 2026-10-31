@@ -167,9 +167,9 @@ export class HostBitmap extends BitmapDimensions
   /**
    * A 2D bitmap with one array element (HostBitmap.cpp:71-110).
    * Carbon: Create (imageio/HostBitmap.cpp:71-110)
-   * Adapted: catchable JavaScript allocation RangeErrors replace Carbon's
-   * null-allocation check. Fatal out-of-memory failures cannot be recovered.
    *
+   * @adapted catchable JavaScript allocation RangeErrors replace Carbon's
+   *   null-allocation check. Fatal out-of-memory failures cannot be recovered.
    * @param {number} width Width of mip 0.
    * @param {number} height Height of mip 0.
    * @param {number} mipCount Mip count; 0 means the full chain.
@@ -222,9 +222,9 @@ export class HostBitmap extends BitmapDimensions
   /**
    * A 2D array bitmap (HostBitmap.cpp:112-151).
    * Carbon: Create2DArray (imageio/HostBitmap.cpp:112-151)
-   * Adapted: catchable JavaScript allocation RangeErrors replace Carbon's
-   * null-allocation check. Fatal out-of-memory failures cannot be recovered.
    *
+   * @adapted catchable JavaScript allocation RangeErrors replace Carbon's
+   *   null-allocation check. Fatal out-of-memory failures cannot be recovered.
    * @param {number} width Width of mip 0.
    * @param {number} height Height of mip 0.
    * @param {number} mipCount Mip count; 0 means the full chain.
@@ -281,6 +281,7 @@ export class HostBitmap extends BitmapDimensions
    * (Carbon does not check its allocation here, issue 15; a JavaScript
    * allocation throws instead of returning null.)
    *
+   * @implemented
    * @param {number} width Face width and height.
    * @param {number} mipCount Mip count; 0 means the full chain.
    * @param {number} format A `PixelFormat` value.
@@ -311,6 +312,7 @@ export class HostBitmap extends BitmapDimensions
    *
    * diverged: height and depth are validated; Carbon checks width only (issue 15).
    *
+   * @adapted
    * @param {number} width Width of mip 0.
    * @param {number} height Height of mip 0.
    * @param {number} depth Depth of mip 0.
@@ -344,6 +346,7 @@ export class HostBitmap extends BitmapDimensions
    * quirk: unlike the Create family it does not call Destroy() first, and it
    * does not check that a compressed size is a multiple of 4 (217).
    *
+   * @implemented
    * @param {BitmapDimensions} dimensions Description to copy.
    * @returns {boolean} Whether it was created.
    */
@@ -370,6 +373,7 @@ export class HostBitmap extends BitmapDimensions
   /**
    * Whether the bitmap holds data (HostBitmap.cpp:230-233).
    *
+   * @implemented
    * @returns {boolean} Whether it is valid.
    */
   IsValid()
@@ -381,6 +385,7 @@ export class HostBitmap extends BitmapDimensions
    * Clear the data and invalidate the description (HostBitmap.cpp:235-240).
    * Only the type and format are reset; the sizes are kept, as in Carbon.
    *
+   * @implemented
    * @returns {void}
    */
   Destroy()
@@ -392,6 +397,7 @@ export class HostBitmap extends BitmapDimensions
   /**
    * Relabel the format without touching the bytes (HostBitmap.cpp:242-255).
    *
+   * @implemented
    * @param {number} format A `PixelFormat` value of the same byte size.
    * @returns {boolean} Whether the label changed.
    */
@@ -419,6 +425,7 @@ export class HostBitmap extends BitmapDimensions
    * Compressed formats are refused here, as in Carbon. The browser conversions
    * that decode and encode block formats are layered on top in resource/imageio.
    *
+   * @adapted
    * @param {number} format A `PixelFormat` value.
    * @returns {boolean} Whether the conversion was done.
    */
@@ -535,6 +542,7 @@ export class HostBitmap extends BitmapDimensions
    * reference; JavaScript returns both. Protected in Carbon and unused in
    * imageio.
    *
+   * @adapted
    * @param {BitmapDimensions} bd Description to compare with.
    * @param {boolean} checkDimensions Whether width and height must match.
    * @param {string} _log Prefix included in diagnostic messages.
@@ -582,6 +590,7 @@ export class HostBitmap extends BitmapDimensions
    * (448-453), and assumes every array element is `size / arraySize` bytes
    * (Carbon's own comment: "is it safe to assume this?").
    *
+   * @adapted
    * @param {number} level Mip level.
    * @param {number} [arrayIndex=0] Array element.
    * @returns {Uint8Array|null} View of the mip's bytes onward.
@@ -620,6 +629,7 @@ export class HostBitmap extends BitmapDimensions
    * The pitch of mip 0 in bytes (HostBitmap.cpp:477-489); for a compressed
    * format, the bytes in one row of blocks.
    *
+   * @implemented
    * @returns {number} Pitch.
    */
   GetPitch()
@@ -644,6 +654,7 @@ export class HostBitmap extends BitmapDimensions
    * quirk: for a compressed format `y` indexes block rows while `x` advances a
    * quarter block per pixel (517-519); ported as written.
    *
+   * @adapted
    * @param {number} [x] Column.
    * @param {number} [y] Row.
    * @returns {Uint8Array|null} The bytes, a view into them, or null.
@@ -664,6 +675,7 @@ export class HostBitmap extends BitmapDimensions
   /**
    * The byte size of the data (HostBitmap.cpp:524-527).
    *
+   * @implemented
    * @returns {number} Byte size.
    */
   GetRawDataSize()
@@ -674,6 +686,7 @@ export class HostBitmap extends BitmapDimensions
   /**
    * The byte size of one array element (HostBitmap.cpp:529-532).
    *
+   * @implemented
    * @returns {number} Byte size.
    */
   GetArrayElementSize()
@@ -685,6 +698,7 @@ export class HostBitmap extends BitmapDimensions
    * Copy the inner rectangle's edge pixels outward into a margin, for a
    * clamping effect (HostBitmap.cpp:539-595). The corners are not written.
    *
+   * @implemented
    * @param {number} margin Margin width in pixels.
    * @returns {boolean} Whether the margin was filled.
    */
@@ -747,6 +761,7 @@ export class HostBitmap extends BitmapDimensions
    * (HostBitmap.cpp:597-643). Channels are byte indices, so for BGRA formats
    * they are in memory order: 0 is blue.
    *
+   * @implemented
    * @param {HostBitmap} source Source bitmap.
    * @param {number} srcChannel Source byte index within a pixel.
    * @param {number} dstChannel Destination byte index within a pixel.
@@ -802,6 +817,7 @@ export class HostBitmap extends BitmapDimensions
    *
    * quirk: SNORM and SINT bytes are averaged as unsigned (716-719).
    *
+   * @adapted
    * @returns {boolean} Whether it was downsampled.
    */
   Downsample2x2()
@@ -885,6 +901,7 @@ export class HostBitmap extends BitmapDimensions
    * diverged: an empty rectangle returns false and leaves the bitmap intact;
    * Carbon Destroy()s it and returns true (758-762, issue 14).
    *
+   * @adapted
    * @param {number} left Left column.
    * @param {number} top Top row.
    * @param {number} right Right column, exclusive.
@@ -934,6 +951,7 @@ export class HostBitmap extends BitmapDimensions
    * diverged: requires exactly one mip level; Carbon's `GetMipCount() > 1`
    * lets a full-chain bitmap (mip count 0) through (795, issue 17).
    *
+   * @adapted
    * @param {number} face Array element.
    * @param {number} times Quarter turns.
    * @returns {boolean} Whether it was rotated.
@@ -1010,6 +1028,7 @@ export class HostBitmap extends BitmapDimensions
    * +X (2,1), -X (0,1), +Y (1,0), -Y (1,2), +Z (1,1), -Z (1,3) in face-size
    * cells, and -Z is turned 180 degrees.
    *
+   * @implemented
    * @returns {boolean} Whether it was converted.
    */
   ConvertCrossmapToCubemap()
@@ -1087,6 +1106,7 @@ export class HostBitmap extends BitmapDimensions
    * `GetPitch() / GetWidth() * cubeSize` (991) and its per-line copy are wrong
    * for block rows, so it produced a corrupt volume (issue 16).
    *
+   * @adapted
    * @returns {boolean} Whether it was converted.
    */
   ConvertToVolume()
@@ -1147,6 +1167,7 @@ export class HostBitmap extends BitmapDimensions
    * diverged: checks validity, and leaves the mip count untouched when it
    * refuses; Carbon has no validity check and leaves it at 0 (1036-1080, issue 13).
    *
+   * @adapted
    * @param {number} [levels=0] Total levels to keep; 0 means the full chain.
    * @returns {boolean} Whether the mips were generated.
    */
@@ -1222,6 +1243,7 @@ export class HostBitmap extends BitmapDimensions
    * duplicates, neighbours clamp to the right column and bottom row, and an odd
    * trailing column or row is dropped. Private in Carbon.
    *
+   * @implemented
    * @param {Uint8Array} source The source mip.
    * @param {number} width Source width.
    * @param {number} height Source height.
@@ -1271,6 +1293,7 @@ export class HostBitmap extends BitmapDimensions
   /**
    * Keep mip 0 of every array element and drop the rest (HostBitmap.cpp:1176-1198).
    *
+   * @implemented
    * @returns {boolean} False only for an invalid bitmap.
    */
   DropMipMaps()
@@ -1311,6 +1334,7 @@ export class HostBitmap extends BitmapDimensions
    * full-chain bitmap so it always fails, and it divides by the whole grid even
    * when samples were skipped (1217, 1292, issue 9).
    *
+   * @adapted
    * @returns {{r: number, g: number, b: number, a: number}|null} The colour.
    */
   GetAverageColor()
@@ -1402,6 +1426,7 @@ export class HostBitmap extends BitmapDimensions
    * `x > width || y > height` (1324), reading one past the row, and its R8 case
    * (1332) is unreachable behind the format guard (issue 8).
    *
+   * @adapted
    * @param {number} x Column.
    * @param {number} y Row.
    * @returns {{r: number, g: number, b: number, a: number}|null} The colour.

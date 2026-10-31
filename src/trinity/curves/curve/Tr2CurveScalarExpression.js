@@ -40,7 +40,11 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   @type.expression
   _expression = "";
 
-  /** Live expression property, separate from persisted backing storage. */
+  /**
+   * Live expression property, separate from persisted backing storage.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.expression
   @meta.implemented
@@ -49,7 +53,10 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
     return this.GetExpression();
   }
 
-  /** @param {string} value Source compiled immediately by the native setter. */
+  /**
+   * @implemented
+   * @param {string} value Source compiled immediately by the native setter.
+   */
   @meta.implemented
   set expression(value)
   {
@@ -108,7 +115,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Compiles nonempty persisted source through its setter after load.
-   * Adapted: uses the existing JavaScript expression program.
+   *
+   * @adapted uses the existing JavaScript expression program.
    * @returns {boolean} True.
    */
 
@@ -126,6 +134,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Updates the cached scalar value.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -136,6 +146,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Updates and returns the scalar value.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -147,6 +159,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Gets the scalar value at a time.
+   *
+   * @implemented
    */
   @meta.implemented
   GetValueAt(time)
@@ -156,6 +170,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Scales expression time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -166,7 +182,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Evaluates the expression.
-   * Adapted: retains the JavaScript program and evaluation-result fallback.
+   *
+   * @adapted retains the JavaScript program and evaluation-result fallback.
    */
   @be.mapMethodAndWrap("GetValueAt")
   @meta.adapted
@@ -199,6 +216,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Gets the authored expression.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -210,7 +229,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Compiles nonempty source immediately and commits it only on success.
    * Empty source changes only the stored text, retaining the program.
-   * Adapted: uses the existing JavaScript expression program.
+   *
+   * @adapted uses the existing JavaScript expression program.
    * @param {string} expression Authored source text.
    * @returns {void}
    */
@@ -232,6 +252,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Gets this curve's random constant.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -243,6 +265,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Carbon's GetInputValue( index ): the n-th input sampled at the current
    * context time; zero for an out-of-range index.
+   *
+   * @implemented
    * @param {number} index Input index.
    * @returns {number}
    */
@@ -255,6 +279,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Carbon's GetInputValue( index, time ): the n-th input sampled at time.
+   *
+   * @implemented
    * @param {number} index Input index.
    * @param {number} time Sample time.
    * @returns {number}
@@ -272,6 +298,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Regenerates the random constant.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -282,7 +310,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Gets expression terms exposed by this curve.
-   * Adapted: returns the existing JavaScript expression-term records.
+   *
+   * @adapted returns the existing JavaScript expression-term records.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -293,7 +322,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
 
   /**
    * Evaluates an arbitrary expression with this curve's context.
-   * Adapted: retains the JavaScript compiler and zero-on-invalid result contract.
+   *
+   * @adapted retains the JavaScript compiler and zero-on-invalid result contract.
    */
   @be.mapMethodAndWrap()
   @meta.adapted

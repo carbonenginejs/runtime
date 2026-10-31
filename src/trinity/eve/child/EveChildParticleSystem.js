@@ -277,7 +277,11 @@ export class EveChildParticleSystem extends EveChildTransform
    */
   _hasUpdated = false;
 
-  /** Rebuilds static local transforms (EveChildParticleSystem.cpp:43-50). */
+  /**
+   * Rebuilds static local transforms (EveChildParticleSystem.cpp:43-50).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -292,6 +296,8 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Carbon re-registers the renderable component when m_reflectionMode or
    * m_display change (EveChildParticleSystem.cpp:71-78).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -306,6 +312,8 @@ export class EveChildParticleSystem extends EveChildTransform
 
   /**
    * The particle system child's name.
+   *
+   * @implemented
    */
   @meta.implemented
   GetName()
@@ -315,6 +323,8 @@ export class EveChildParticleSystem extends EveChildTransform
 
   /**
    * Sets the particle system child's name, coercing the value to a string.
+   *
+   * @implemented
    */
   @meta.implemented
   SetName(name)
@@ -322,7 +332,11 @@ export class EveChildParticleSystem extends EveChildTransform
     this.name = String(name ?? "");
   }
 
-  /** Forwards to the base transform setup (EveChildParticleSystem.cpp:95-98). */
+  /**
+   * Forwards to the base transform setup (EveChildParticleSystem.cpp:95-98).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
@@ -334,6 +348,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Frustum/screen-size visibility against the mesh bound and the LOD probe
    * sphere, then per-system view-dependent updates
    * (EveChildParticleSystem.cpp:100-121).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -362,6 +378,8 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Stateless visibility probe used by the entity layer
    * (EveChildParticleSystem.cpp:123-127).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -375,7 +393,8 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Sorts particles and publishes this child as a renderable when visible
    * (EveChildParticleSystem.cpp:130-143).
-   * Adapted: returns the caller-owned array for JS chaining; Carbon returns void.
+   *
+   * @adapted returns the caller-owned array for JS chaining; Carbon returns void.
    */
 
   @meta.adapted
@@ -393,7 +412,11 @@ export class EveChildParticleSystem extends EveChildTransform
     return renderables;
   }
 
-  /** Copies the world-space mesh bound when built (EveChildParticleSystem.cpp:145-153). */
+  /**
+   * Copies the world-space mesh bound when built (EveChildParticleSystem.cpp:145-153).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -408,6 +431,8 @@ export class EveChildParticleSystem extends EveChildTransform
 
   /**
    * Whether the assigned mesh has transparent areas, when the child is displayed and a mesh is set.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -424,8 +449,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Delegates the selected mesh areas at Carbon's maximum screen size, reversing
    * winding for reflection renders (EveChildParticleSystem.cpp:155-161).
    *
-   * Adapted: Returns whether JavaScript mesh delegation committed a batch; Carbon's void
-   * method exposes no result.
+   * @adapted Returns whether JavaScript mesh delegation committed a batch; Carbon's void
+   *   method exposes no result.
    */
 
   @meta.adapted
@@ -453,6 +478,8 @@ export class EveChildParticleSystem extends EveChildTransform
 
   /**
    * Distance from the view position to the world translation (EveChildParticleSystem.cpp:173-178).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -468,10 +495,10 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Carbon method GetPerObjectData (EveChildParticleSystem.cpp:180-195).
    *
-   * Adapted: Carbon's transient EveBasicPerObjectData fill (cpp:182-194): world/worldLast
-   * transposed, worldInverse = Inverse(world). Trinity Allocs the record from the
-   * accumulator's store and Sets logical values by name (the store transposes per the engine
-   * layout).
+   * @adapted Carbon's transient EveBasicPerObjectData fill (cpp:182-194): world/worldLast
+   *   transposed, worldInverse = Inverse(world). Trinity Allocs the record from the
+   *   accumulator's store and Sets logical values by name (the store transposes per the engine
+   *   layout).
    */
 
   @meta.adapted
@@ -489,7 +516,11 @@ export class EveChildParticleSystem extends EveChildTransform
     return data;
   }
 
-  /** Carbon's synchronous pass is empty (EveChildParticleSystem.cpp:197-199). */
+  /**
+   * Carbon's synchronous pass is empty (EveChildParticleSystem.cpp:197-199).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateSyncronous(_updateContext, _params)
@@ -500,13 +531,13 @@ export class EveChildParticleSystem extends EveChildTransform
    * Per-frame async update (EveChildParticleSystem.cpp:201-280): rebuild the
    * world transform, fold the transform modifiers, rebuild the bounding and
    * LOD spheres, then drive the particle systems and emitters.
-   * Adapted: the existing JS particle update-argument record uses seconds.
-   * Convert the raw context ticks only at that boundary; GetTime retains its
-   * native tick contract. Native consumers instead convert the tick difference
-   * (Tr2DynamicEmitter.cpp:119; Tr2ParticleSystem.cpp:527).
-   *
    * Adapted: Renderer-global frustum state is read from the update context, and
    * emitter/system updates use the backend-neutral argument record.
+   *
+   * @adapted the existing JS particle update-argument record uses seconds.
+   *   Convert the raw context ticks only at that boundary; GetTime retains its
+   *   native tick contract. Native consumers instead convert the tick difference
+   *   (Tr2DynamicEmitter.cpp:119; Tr2ParticleSystem.cpp:527).
    */
 
   @meta.adapted
@@ -596,6 +627,8 @@ export class EveChildParticleSystem extends EveChildTransform
 
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildParticleSystem.cpp:286-289): copies the world transform into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -609,6 +642,8 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Clamps each system's particle budget when the parent's LOD changed
    * (EveChildParticleSystem.cpp:295-318).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -638,6 +673,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Carbon EveChildParticleSystem::GetDebugOptions
    * (Eve/SpaceObject/Children/EveChildParticleSystem.cpp:310-320): the mesh's
    * options when there is a mesh, then every particle system's.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -659,6 +696,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * (Eve/SpaceObject/Children/EveChildParticleSystem.cpp:322-332): the mesh
    * under the world transform when displayed, then every particle system,
    * which draws regardless of display.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    */
 
@@ -675,7 +714,11 @@ export class EveChildParticleSystem extends EveChildTransform
     }
   }
 
-  /** Carbon method AddTransformModifier (EveChildParticleSystem.cpp:344-347). */
+  /**
+   * Carbon method AddTransformModifier (EveChildParticleSystem.cpp:344-347).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddTransformModifier(modifier)
@@ -683,9 +726,13 @@ export class EveChildParticleSystem extends EveChildTransform
     this.transformModifiers.push(modifier);
   }
 
-  /** Carbon EveChildParticleSystem::RegisterComponents (cpp:58-68):
+  /**
+   * Carbon EveChildParticleSystem::RegisterComponents (cpp:58-68):
    * ReflectionRenderable leaf self-registration behind ShouldReflect (Carbon
-   * redundantly re-checks m_display inside the outer display gate). */
+   * redundantly re-checks m_display inside the outer display gate).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()

@@ -81,15 +81,24 @@ export class IBlueResFileSystem extends IRoot
    */
   static forms = null;
 
-  /** `FileExists` - whether this file system can supply the file. */
+  /**
+   * `FileExists` - whether this file system can supply the file.
+   *
+   * @abstract
+   */
   FileExists(_path) {}
 
-  /** `IsDirectory` - whether this file system holds a directory at the path. */
+  /**
+   * `IsDirectory` - whether this file system holds a directory at the path.
+   *
+   * @abstract
+   */
   IsDirectory(_path) {}
 
   /**
    * `GetDirectoryContents` - adds the directory's entries to `results`.
    *
+   * @abstract
    * @param {string} _directory Res path of the directory.
    * @param {Set<string>} _results Entry names, added to.
    */
@@ -105,6 +114,8 @@ export class IBlueResFileSystem extends IRoot
    * than the file being absent (a server error, an abort), so the failure
    * reaches the caller instead of reading as "not here".
    *
+   * @renamed GetStreamFromPathW
+   * @abstract
    * @param {string} _path Res path.
    * @param {BlueResFileSystemRequest} _request The form to answer in, and a signal.
    * @returns {Promise<BlueResFileSystemResult|null>} The file, or `null`.
@@ -117,6 +128,7 @@ export class IBlueResFileSystem extends IRoot
    * and returns whether it did; the output parameter is the return value
    * here, and `null` is Carbon's false.
    *
+   * @abstract
    * @param {string} _path Res path.
    * @returns {string|null} The resolved path, or `null`.
    */

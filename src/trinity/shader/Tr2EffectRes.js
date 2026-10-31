@@ -46,6 +46,9 @@ export class Tr2EffectRes extends BlueAsyncRes
    * Carbon: Tr2EffectRes::DoLoad (trinity/trinity/Resources/Tr2EffectRes.cpp:137-243).
    * Our LOADING adapter passes bytes unchanged; DoLoad retains the reader to
    * decode permutation bodies on demand. Pre-decoding here loses that lifetime.
+   *
+   * @cjs
+   * @adapted
    * @param {Uint8Array|ArrayBuffer} bytes Compiled effect container.
    * @returns {Uint8Array|ArrayBuffer} The same bytes.
    */
@@ -75,6 +78,8 @@ export class Tr2EffectRes extends BlueAsyncRes
   /**
    * Carbon DoLoad (Tr2EffectRes.cpp:137-243). Keep the container reader for lazy
    * permutations; browser backend translation occurs before adopting the reader.
+   *
+   * @adapted
    * @returns {number} Native LoadingResult.
    */
   _DoLoad()
@@ -133,10 +138,9 @@ export class Tr2EffectRes extends BlueAsyncRes
    * - an unmatched or invalid value selects the axis's `defaultOption`, which
    *   is often not 0.
    *
-   * Adapted: Carbon interns the selected body's handles during the read
-   * (Tr2EffectDescription.cpp:587-666); ours are interned later at the Trinity boundary, so
-   * this returns the hydrated shader graph rather than an already-stamped one.
-   *
+   * @adapted Carbon interns the selected body's handles during the read
+   *   (Tr2EffectDescription.cpp:587-666); ours are interned later at the Trinity boundary, so
+   *   this returns the hydrated shader graph rather than an already-stamped one.
    * @param {Array<object>|Map<string,string>} options Local name/value choices.
    * @param {number|null} count Number of local entries to consider.
    * @returns {Tr2Shader|null} Selected device-free shader reflection.
@@ -224,6 +228,8 @@ export class Tr2EffectRes extends BlueAsyncRes
    * Adapted: Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact
    * package-index hydration for deterministic package consumers and tests.
    *
+   * @cjs
+   * @implemented
    * @param {number} index Exact non-negative permutation index.
    * @returns {Tr2Shader|null} The shader, or null when the index is past the end.
    */
@@ -410,6 +416,8 @@ export class Tr2EffectRes extends BlueAsyncRes
    * The option values a permutation index selects - `GetShader`'s mixed radix,
    * first axis least significant, run backwards.
    *
+   * @cjs
+   * @implemented
    * @param {number} index Permutation index.
    * @returns {Array<{name: string, value: string}>}
    */
@@ -429,9 +437,8 @@ export class Tr2EffectRes extends BlueAsyncRes
   /**
    * Return a small JSON-friendly permutation description.
    *
-   * Adapted: Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a
-   * JSON-friendly plain axis description.
-   *
+   * @adapted Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a
+   *   JSON-friendly plain axis description.
    * @returns {Array<*>}
    */
   GetPermutationDescription()
@@ -454,6 +461,8 @@ export class Tr2EffectRes extends BlueAsyncRes
   /**
    * Carbon ReleaseResources (Tr2EffectRes.cpp:328-341): full storage release
    * clears flags, cancels loading and releases targets' derived shader state.
+   *
+   * @adapted
    * @param {number} [storage] Native storage mask.
    */
   ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
@@ -467,8 +476,9 @@ export class Tr2EffectRes extends BlueAsyncRes
 
   /**
    * Explicit JS teardown of retained container and translated permutation readers.
-   * Adapted: explicit JS teardown replaces native destruction; the existing
-   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   *
+   * @adapted explicit JS teardown replaces native destruction; the existing
+   *   MotherLode switches keep CPU data and opaque adapter cleanup independent.
    * @param {object} [options={}] Existing MotherLode cleanup policy.
    * @param {boolean} [options.releasePayload=true] Release owned family data.
    * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
@@ -489,6 +499,7 @@ export class Tr2EffectRes extends BlueAsyncRes
   /**
    * Carbon `IsMemoryUsageKnown` (Tr2EffectRes.cpp:374-377): known once loaded.
    *
+   * @implemented
    * @returns {boolean}
    */
   IsMemoryUsageKnown()
@@ -499,12 +510,11 @@ export class Tr2EffectRes extends BlueAsyncRes
   /**
    * Carbon `GetMemoryUsage` (Tr2EffectRes.cpp:379-384): the container's bytes.
    *
-   * Adapted: a browser translates permutations into containers of their own
-   * after the load (`SetPermutationTranslator`), and those bytes are held here
-   * too, so each one held is added once. Like Carbon, this leaves out compiled
-   * shaders and pipelines, which the render context keeps whether or not this
-   * resource lives.
-   *
+   * @adapted a browser translates permutations into containers of their own
+   *   after the load (`SetPermutationTranslator`), and those bytes are held here
+   *   too, so each one held is added once. Like Carbon, this leaves out compiled
+   *   shaders and pipelines, which the render context keeps whether or not this
+   *   resource lives.
    * @returns {number} Bytes.
    */
   GetMemoryUsage()
@@ -522,11 +532,10 @@ export class Tr2EffectRes extends BlueAsyncRes
    * Carbon: Tr2EffectRes::DoPrepare (Tr2EffectRes.cpp:316-326), private virtual. Drops
    * every shader built from the previous load so `GetShader` rebuilds them.
    *
-   * Adapted: Carbon then answers `Tr2Renderer::IsResourceCreationAllowed()`, which is
-   * false while a device reset is under way and so postpones the prepare. That gate
-   * lives in trinity and the resource layer cannot import it; this layer has no
-   * device to reset, so it answers true.
-   *
+   * @adapted Carbon then answers `Tr2Renderer::IsResourceCreationAllowed()`, which is
+   *   false while a device reset is under way and so postpones the prepare. That gate
+   *   lives in trinity and the resource layer cannot import it; this layer has no
+   *   device to reset, so it answers true.
    * @returns {boolean} Always true.
    */
   _DoPrepare()
@@ -545,6 +554,7 @@ export class Tr2EffectRes extends BlueAsyncRes
    * loading. Tr2EffectRes does not derive from Tr2DeviceResource here and the resource
    * layer cannot reach either gate.
    *
+   * @notImplemented
    * @returns {boolean} Never returns.
    */
   _OnPrepareResources()
@@ -556,8 +566,7 @@ export class Tr2EffectRes extends BlueAsyncRes
    * Carbon: Tr2EffectRes::GetDescription (Tr2EffectRes.cpp:366-372), compiled under
    * TRINITYDEV. Appends the resource path in the form `Tr2EffectRes: 'path'`.
    *
-   * Adapted: Carbon fills a `std::string&` output; the description is the return value.
-   *
+   * @adapted Carbon fills a `std::string&` output; the description is the return value.
    * @returns {string} The description.
    */
   GetDescription()

@@ -44,6 +44,8 @@ export class TriRenderBatchAreaBlock
    * Compacts a vector of possibly overlapping or adjacent blocks into the
    * minimal set of contiguous runs, rewriting the caller's array in place and
    * returning it.
+   *
+   * @adapted
    */
   static Optimize(areaBlockVector)
   {

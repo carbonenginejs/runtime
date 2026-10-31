@@ -19,7 +19,11 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 export class Tr2GpuStructuredBuffer extends IRoot
 {
 
-  /** Carbon Tr2GpuStructuredBuffer.cpp: create from persisted parameters on the ambient context. */
+  /**
+   * Carbon Tr2GpuStructuredBuffer.cpp: create from persisted parameters on the ambient context.
+   *
+   * @implemented
+   */
   @meta.implemented
   Initialize()
   {
@@ -27,7 +31,11 @@ export class Tr2GpuStructuredBuffer extends IRoot
     return true;
   }
 
-  /** Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules. */
+  /**
+   * Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules.
+   *
+   * @implemented
+   */
   @meta.implemented
   OnModified(_names)
   {
@@ -75,6 +83,7 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * Carbon's CreateBuffer reaches the main-thread context through
    * USE_MAIN_THREAD_RENDER_CONTEXT, and callers here hold their context.
    *
+   * @adapted
    * @param {number} count Element count.
    * @param {number} stride Bytes per element.
    * @param {number} creationFlags `Tr2GpuStructuredBuffer.CreationFlag` bits.
@@ -96,6 +105,7 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * CPU-writable. A zero count or stride refuses and keeps the current
    * buffer; a failed create leaves none.
    *
+   * @adapted
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
@@ -119,7 +129,11 @@ export class Tr2GpuStructuredBuffer extends IRoot
     return ALResult.S_OK;
   }
 
-  /** Carbon SetName (cpp:151-158): labels the buffer now and on every re-create. */
+  /**
+   * Carbon SetName (cpp:151-158): labels the buffer now and on every re-create.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetName(name)
   {
@@ -134,6 +148,8 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   @meta.adapted
   Destruct()
@@ -146,6 +162,7 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * Carbon GetGpuBuffer (cpp:94-97), the ITr2GpuBuffer face a GPUBUFFER
    * variable binds through; null until created.
    *
+   * @implemented
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
@@ -155,7 +172,11 @@ export class Tr2GpuStructuredBuffer extends IRoot
     return this._buffer;
   }
 
-  /** Carbon IsValid (cpp:106-109). */
+  /**
+   * Carbon IsValid (cpp:106-109).
+   *
+   * @implemented
+   */
   @meta.implemented
   IsValid()
   {
@@ -165,6 +186,8 @@ export class Tr2GpuStructuredBuffer extends IRoot
   /**
    * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2GpuStructuredBuffer_Blue.cpp:82).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -173,14 +196,22 @@ export class Tr2GpuStructuredBuffer extends IRoot
     return this.IsValid();
   }
 
-  /** Carbon GetCount (cpp:173-175): the created buffer's element count, 0 without one. */
+  /**
+   * Carbon GetCount (cpp:173-175): the created buffer's element count, 0 without one.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCount()
   {
     return this._buffer ? this._buffer.GetDesc().count : 0;
   }
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.notImplemented
   __init__(...args)
@@ -188,7 +219,11 @@ export class Tr2GpuStructuredBuffer extends IRoot
     throw new Error("Tr2GpuStructuredBuffer.__init__ is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method DebugGetData -> PyGetData (MAP_METHOD). */
+  /**
+   * Carbon method DebugGetData -> PyGetData (MAP_METHOD).
+   *
+   * @notImplemented
+   */
   @be.mapMethod()
   @meta.notImplemented
   DebugGetData(...args)

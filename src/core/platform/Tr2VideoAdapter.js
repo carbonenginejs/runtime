@@ -66,6 +66,7 @@ export class Tr2VideoAdapter extends IRoot
      * Carbon's GetDeviceIdentifierString: the stable adapter identifier, or an
      * empty string when the browser exposes none.
      *
+     * @adapted
      * @returns {string} The identifier.
      */
     GetDeviceIdentifierString()
@@ -77,6 +78,7 @@ export class Tr2VideoAdapter extends IRoot
      * Carbon's GetDriverInfo: a new driver report holding a copy of this
      * adapter's driver info.
      *
+     * @adapted
      * @returns {Tr2VideoDriver} The copy.
      */
     GetDriverInfo()

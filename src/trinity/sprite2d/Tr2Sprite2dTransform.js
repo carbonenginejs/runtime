@@ -68,7 +68,11 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
   @type.vec2
   scale = vec2.fromValues(1, 1);
 
-  /** Gathers backgrounds then children in reverse order under the local transform and opacity. */
+  /**
+   * Gathers backgrounds then children in reverse order under the local transform and opacity.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GatherSprites(renderer)
@@ -93,7 +97,11 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
     renderer.PopTransform();
   }
 
-  /** Picks translated bounds first, then transformed children in front-to-back order. */
+  /**
+   * Picks translated bounds first, then transformed children in front-to-back order.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PickPoint(x, y, renderer)
@@ -139,8 +147,9 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 
   /**
    * Returns Carbon's pixel-rounded pivot transform, including display translation.
-   * Adapted: Expands Transformation2DMatrix into column-vector coefficients;
-   * this preserves its scale-axis rotation, scale, final rotation and translation order.
+   *
+   * @adapted Expands Transformation2DMatrix into column-vector coefficients;
+   *   this preserves its scale-axis rotation, scale, final rotation and translation order.
    * @returns {Float32Array} Owned 4x4 local transform.
    */
   @meta.adapted
@@ -171,9 +180,8 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
   /**
    * Transforms one local point using native rounded centers and rotation order.
    *
-   * Adapted: Applies the native matrix operation order directly to a coordinate pair and
-   * returns a new vec2.
-   *
+   * @adapted Applies the native matrix operation order directly to a coordinate pair and
+   *   returns a new vec2.
    * @param {number} x Local horizontal coordinate.
    * @param {number} y Local vertical coordinate.
    * @returns {Float32Array} Newly allocated transformed point.

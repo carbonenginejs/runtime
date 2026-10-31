@@ -12,25 +12,53 @@ export const BLUE_OBJECT_METADATA_KEY = "__bluemetadata__";
 /** `IBlueObjectMetadata` - per-object string metadata, per blue/include/IBlueObjectMetadata.h. */
 export class IBlueObjectMetadata extends IRoot
 {
-  /** `GetMetadata` - the object's key/value table, or null when it has none. */
+  /**
+   * `GetMetadata` - the object's key/value table, or null when it has none.
+   *
+   * @abstract
+   */
   GetMetadata(_owner) {}
 
-  /** `Set` - sets one key on the object. */
+  /**
+   * `Set` - sets one key on the object.
+   *
+   * @abstract
+   */
   Set(_owner, _key, _value) {}
 
-  /** `Get` - one key's value, or `defaultValue` when absent. */
+  /**
+   * `Get` - one key's value, or `defaultValue` when absent.
+   *
+   * @abstract
+   */
   Get(_owner, _key, _defaultValue) {}
 
-  /** `Delete` - removes one key. */
+  /**
+   * `Delete` - removes one key.
+   *
+   * @abstract
+   */
   Delete(_owner, _key) {}
 
-  /** `DeleteObject` - removes every key the object has. */
+  /**
+   * `DeleteObject` - removes every key the object has.
+   *
+   * @abstract
+   */
   DeleteObject(_owner) {}
 
-  /** `CopyShallow` - copies the source object's keys onto the target. */
+  /**
+   * `CopyShallow` - copies the source object's keys onto the target.
+   *
+   * @abstract
+   */
   CopyShallow(_source, _target) {}
 
-  /** `CopyDeep` - copies metadata across an object graph. */
+  /**
+   * `CopyDeep` - copies metadata across an object graph.
+   *
+   * @abstract
+   */
   CopyDeep(_source, _target) {}
 }
 

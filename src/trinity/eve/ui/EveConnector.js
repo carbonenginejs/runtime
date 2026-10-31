@@ -160,8 +160,8 @@ export class EveConnector extends IRoot
   /**
    * Samples any authored endpoint functions at the active update time.
    *
-   * Adapted: JavaScript vector functions use GetValueAt(time, out); Carbon's pointer-first
-   * spelling is a native calling convention.
+   * @adapted JavaScript vector functions use GetValueAt(time, out); Carbon's pointer-first
+   *   spelling is a native calling convention.
    */
 
   @meta.adapted
@@ -178,7 +178,11 @@ export class EveConnector extends IRoot
     }
   }
 
-  /** Adds the connector's selected logical line records to an owned line set. */
+  /**
+   * Adds the connector's selected logical line records to an owned line set.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddLine(lineSet)

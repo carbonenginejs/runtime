@@ -10,7 +10,11 @@ import { blue } from "#schema";
 export class IEveFxAttribute extends IRoot
 {
 
-  /** Updates effect attributes during the asynchronous graph phase. */
+  /**
+   * Updates effect attributes during the asynchronous graph phase.
+   *
+   * @abstract
+   */
   @be.abstract
   UpdateAsyncronous(_updateContext) {}
 

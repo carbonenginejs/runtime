@@ -96,9 +96,10 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
 
   /**
    * Forwards this path and controller owner to the registered prefetch callback.
-   * Adapted: native Link deduplicates paths process-wide, checks local files and
-   * queues an urgent background ResFile open. The JS runtime owns those choices
-   * through its callback; this action neither duplicates them nor claims parity.
+   *
+   * @adapted native Link deduplicates paths process-wide, checks local files and
+   *   queues an urgent background ResFile open. The JS runtime owns those choices
+   *   through its callback; this action neither duplicates them nor claims parity.
    */
 
   @meta.adapted
@@ -112,7 +113,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * Carbon Start (Tr2ActionChildEffect.cpp:68-135): resolve the owner, look
    * up a child of childName on it, and load the path when there is none.
    *
-   * Adapted: the load is asynchronous (see _loadChild).
+   * @adapted the load is asynchronous (see _loadChild).
    */
 
   @meta.adapted
@@ -186,8 +187,9 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * to the owner and start its controllers; then rebind a redirected owner.
    * A failed load adds nothing.
    *
-   * Adapted: the JS resource manager resolves asynchronously, so this runs
-   * when the file arrives, and a Stop or newer load before then discards it.
+   * @cjs
+   * @adapted the JS resource manager resolves asynchronously, so this runs
+   *   when the file arrives, and a Stop or newer load before then discards it.
    */
   @meta.cjs
     @meta.adapted
@@ -232,8 +234,8 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * the child from the owner Start would resolve; a multi-effect without the
    * named parameter returns before the child is forgotten, as Carbon's does.
    *
-   * Adapted: invalidates a pending asynchronous load, and releases the device
-   * resources of a child this action loaded.
+   * @adapted invalidates a pending asynchronous load, and releases the device
+   *   resources of a child this action loaded.
    */
 
   @meta.adapted

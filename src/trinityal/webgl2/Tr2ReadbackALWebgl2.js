@@ -75,6 +75,7 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the GPU has finished the frame that recorded the copy (`:343-346`).
    *
+   * @implemented
    * @param {object} renderContext The primary context.
    * @returns {boolean} True once mapping will not wait.
    */
@@ -86,9 +87,8 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Maps the copy (`:348-372`): read once, then the same bytes on every call.
    *
-   * Adapted: dx11's out parameters come back as `{ result, data, pitch }`, as
-   * every backend's readback answers, and the map is `getBufferSubData`.
-   *
+   * @adapted dx11's out parameters come back as `{ result, data, pitch }`, as
+   *   every backend's readback answers, and the map is `getBufferSubData`.
    * @param {object} _renderContext The primary context.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
    */
@@ -115,8 +115,8 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Releases the copy (`:374-383`).
    *
-   * Adapted: the pack buffer is deleted here, where dx11 releases its staging
-   * texture's reference; JavaScript has no destructor to do it.
+   * @adapted the pack buffer is deleted here, where dx11 releases its staging
+   *   texture's reference; JavaScript has no destructor to do it.
    */
   @meta.adapted
   Destroy()
@@ -131,6 +131,7 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
   /**
    * dx11 describes nothing for a readback (`:385-387`).
    *
+   * @implemented
    * @param {object} _description The record to fill.
    */
   Describe(_description)
@@ -138,6 +139,7 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /**
+   * @implemented
    * @returns {number} `AL_MEMORY_MANAGED` (`:389-392`).
    */
   GetMemoryClass()
@@ -146,6 +148,7 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /**
+   * @implemented
    * @returns {boolean} Whether the copy is still held (`:394-397`).
    */
   IsValid()

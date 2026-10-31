@@ -33,7 +33,11 @@ export class EveShip2 extends EveMobile
   @type.object.ref("EveBoosterSet2")
   _boosters = null;
 
-  /** Live booster property; persistence reads and writes the backing member directly. */
+  /**
+   * Live booster property; persistence reads and writes the backing member directly.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.rootRef("EveBoosterSet2")
   @meta.implemented
@@ -42,7 +46,11 @@ export class EveShip2 extends EveMobile
     return this.GetBoosters();
   }
 
-  /** Replaces the booster set through Carbon's component-registration setter. */
+  /**
+   * Replaces the booster set through Carbon's component-registration setter.
+   *
+   * @implemented
+   */
   @meta.implemented
   set boosters(boosters)
   {
@@ -71,6 +79,8 @@ export class EveShip2 extends EveMobile
    * Carbon MAP_PROPERTY "audioSpeedParameter" over the private
    * GetAudioParameter/SetAudioParameter (EveShip2_Blue.cpp:19): the audio
    * parameter fed the ship's speed every update.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.rootRef("IRoot")
@@ -80,7 +90,11 @@ export class EveShip2 extends EveMobile
     return this._GetAudioParameter();
   }
 
-  /** Rebinds the speed feed to the replacement audio parameter. */
+  /**
+   * Rebinds the speed feed to the replacement audio parameter.
+   *
+   * @implemented
+   */
   @meta.implemented
   set audioSpeedParameter(value)
   {
@@ -94,6 +108,8 @@ export class EveShip2 extends EveMobile
    * Carbon EveShip2::UpdateSyncronous - base sync, then speed from the world
    * velocity, audio speed parameter, and booster acceleration from the
    * position curve's second derivative (EveShip2.cpp:16-45).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -127,7 +143,11 @@ export class EveShip2 extends EveMobile
     }
   }
 
-  /** Carbon EveShip2::UpdateAsyncronous - base async, then boosters. */
+  /**
+   * Carbon EveShip2::UpdateAsyncronous - base async, then boosters.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(updateContext)
@@ -140,7 +160,11 @@ export class EveShip2 extends EveMobile
     this.UpdateBoosters(updateContext);
   }
 
-  /** Carbon EveShip2::UpdateBoosters (EveShip2.cpp:55-64). */
+  /**
+   * Carbon EveShip2::UpdateBoosters (EveShip2.cpp:55-64).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateBoosters(updateContext)
@@ -162,7 +186,11 @@ export class EveShip2 extends EveMobile
     this.boosters.UpdateTrails(deltaT, time);
   }
 
-  /** Carbon EveShip2::UpdateVisibility - base, then booster visibility. */
+  /**
+   * Carbon EveShip2::UpdateVisibility - base, then booster visibility.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
@@ -178,7 +206,11 @@ export class EveShip2 extends EveMobile
     }
   }
 
-  /** Carbon EveShip2::GetRenderables - base, then booster renderables. */
+  /**
+   * Carbon EveShip2::GetRenderables - base, then booster renderables.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetRenderables__Impostors(out, _impostors)
@@ -195,7 +227,11 @@ export class EveShip2 extends EveMobile
     return out;
   }
 
-  /** Carbon EveShip2::RegisterWithQuadRenderer (EveShip2.cpp:165-172): EveMobile's, then the booster glows. */
+  /**
+   * Carbon EveShip2::RegisterWithQuadRenderer (EveShip2.cpp:165-172): EveMobile's, then the booster glows.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -207,7 +243,11 @@ export class EveShip2 extends EveMobile
     }
   }
 
-  /** Carbon EveShip2::AddQuadsToQuadRenderer (EveShip2.cpp:174-185): EveMobile's, then the booster glows. */
+  /**
+   * Carbon EveShip2::AddQuadsToQuadRenderer (EveShip2.cpp:174-185): EveMobile's, then the booster glows.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
@@ -223,7 +263,11 @@ export class EveShip2 extends EveMobile
     }
   }
 
-  /** Returns the attached booster set, or null when the ship has none. */
+  /**
+   * Returns the attached booster set, or null when the ship has none.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoosters()
@@ -237,6 +281,8 @@ export class EveShip2 extends EveMobile
    * an incoming booster from a foreign registry when this ship is detached.
    * JavaScript uses the shared cast for the native EveEntity casts and treats
    * an omitted pointer as null; replacing a reference does not destroy it.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -256,8 +302,12 @@ export class EveShip2 extends EveMobile
     }
   }
 
-  /** Carbon EveShip2::RegisterComponents (cpp:145-153): base registration,
-   * then forwards the booster set (no display gate of its own). */
+  /**
+   * Carbon EveShip2::RegisterComponents (cpp:145-153): base registration,
+   * then forwards the booster set (no display gate of its own).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -270,8 +320,12 @@ export class EveShip2 extends EveMobile
     }
   }
 
-  /** Carbon EveShip2::UnRegisterComponents (cpp:155-163): base, then forwards
-   * the booster set. */
+  /**
+   * Carbon EveShip2::UnRegisterComponents (cpp:155-163): base, then forwards
+   * the booster set.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -284,7 +338,11 @@ export class EveShip2 extends EveMobile
     }
   }
 
-  /** Carbon EveShip2::DisplayBoosters - boosters render with the children. */
+  /**
+   * Carbon EveShip2::DisplayBoosters - boosters render with the children.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   DisplayBoosters()
@@ -296,6 +354,7 @@ export class EveShip2 extends EveMobile
    * Carbon EveShip2::GetParentData (cpp:336-342): the base record, plus the
    * kill count the hull's kill-counter decals display.
    *
+   * @implemented
    * @param {IEveSpaceObject2ParentData} out Caller-owned record, refreshed in place.
    * @returns {IEveSpaceObject2ParentData} out
    */
@@ -311,6 +370,8 @@ export class EveShip2 extends EveMobile
   /**
    * Returns the kill count displayed on the hull, which the space-object effect
    * attributes expose to effect bindings.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -323,6 +384,7 @@ export class EveShip2 extends EveMobile
    * Carbon GetBoosterIntensity (EveShip2.cpp:387-395): the booster set's
    * intensity, or 0 without boosters.
    *
+   * @implemented
    * @returns {number}
    */
   @meta.implemented
@@ -336,6 +398,8 @@ export class EveShip2 extends EveMobile
   /**
    * Returns the ship's maximum speed, the divisor that normalizes current speed
    * into the bound audio speed parameter.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -348,8 +412,8 @@ export class EveShip2 extends EveMobile
    * Carbon EveShip2::UpdateShipSpeedForAudio - normalizes speed/maxSpeed
    * into the bound audio parameter (EveShip2.cpp:360-380).
    *
-   * Adapted: Blue FindEntry member binding becomes a duck-typed value holder; the runtime
-   * audio layer owns the emitter side.
+   * @adapted Blue FindEntry member binding becomes a duck-typed value holder; the runtime
+   *   audio layer owns the emitter side.
    */
 
   @meta.adapted
@@ -370,11 +434,10 @@ export class EveShip2 extends EveMobile
    * Carbon EveShip2::SetAudioParameter (private, EveShip2.cpp:291-325):
    * stores the audio parameter that UpdateShipSpeedForAudio feeds.
    *
-   * Adapted: Carbon also resolves the parameter's float "value" member and
-   * its NOTIFY flag through Blue reflection (m_audioParameterInfo,
-   * cpp:296-324); UpdateShipSpeedForAudio's value-holder check stands in
-   * for that cached member pointer.
-   *
+   * @adapted Carbon also resolves the parameter's float "value" member and
+   *   its NOTIFY flag through Blue reflection (m_audioParameterInfo,
+   *   cpp:296-324); UpdateShipSpeedForAudio's value-holder check stands in
+   *   for that cached member pointer.
    * @param {object|null} aud The audio parameter, or null to unbind.
    */
   @meta.adapted
@@ -386,6 +449,7 @@ export class EveShip2 extends EveMobile
   /**
    * Carbon EveShip2::GetAudioParameter (private, EveShip2.cpp:348-351).
    *
+   * @implemented
    * @returns {object|null} The bound audio parameter.
    */
   @meta.implemented
@@ -397,6 +461,8 @@ export class EveShip2 extends EveMobile
   /**
    * Carbon EveShip2::RebuildCachedData - after geometry load, re-attach
    * turrets to the freshly loaded locators (EveShip2.cpp:169-174).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -409,6 +475,8 @@ export class EveShip2 extends EveMobile
   /**
    * Carbon RebuildBoosterSet (EveShip2.cpp:234-258): one booster per
    * "locator_booster" locator, then the set prepares its resources.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -432,6 +500,8 @@ export class EveShip2 extends EveMobile
   /**
    * Runs the base space-object initialization; the ship adds no setup of its
    * own.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -446,6 +516,8 @@ export class EveShip2 extends EveMobile
    * into shipData.x before delegating to the base record
    * (EveShip2.cpp:275-289). The ship-data vec4 is exposed for the
    * per-object values builder.
+   *
+   * @implemented
    */
 
   @meta.implemented

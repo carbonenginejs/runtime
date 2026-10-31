@@ -137,7 +137,11 @@ export class Tr2ImpostorManager
     TriDevice.RegisterResource(this);
   }
 
-  /** Native initialization resets slots and prepares resources; creation failures remain on the wrappers. */
+  /**
+   * Native initialization resets slots and prepares resources; creation failures remain on the wrappers.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -147,7 +151,11 @@ export class Tr2ImpostorManager
     return true;
   }
 
-  /** Every native member notification performs one complete initialization. */
+  /**
+   * Every native member notification performs one complete initialization.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified()
@@ -156,21 +164,33 @@ export class Tr2ImpostorManager
     return true;
   }
 
-  /** Native ReleaseResources is empty; wrapper owners retain their resources until recreation or destruction. */
+  /**
+   * Native ReleaseResources is empty; wrapper owners retain their resources until recreation or destruction.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseResources()
   {
   }
 
-  /** The supplied context replaces the native main-thread device-creation gate. */
+  /**
+   * The supplied context replaces the native main-thread device-creation gate.
+   *
+   * @adapted
+   */
   @meta.adapted
   PrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     return !renderContext.IsValid() || this.OnPrepareResources(renderContext);
   }
 
-  /** Recreates native atlas/capture surfaces through existing wrappers and an explicit JS context. */
+  /**
+   * Recreates native atlas/capture surfaces through existing wrappers and an explicit JS context.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
@@ -185,14 +205,22 @@ export class Tr2ImpostorManager
     return true;
   }
 
-  /** Native script constructor alias; its tile default differs from the C++ constructor. */
+  /**
+   * Native script constructor alias; its tile default differs from the C++ constructor.
+   *
+   * @implemented
+   */
   @meta.implemented
   __init__(width = 1024, height = 1024, itemWidth = 16, itemHeight = 16)
   {
     this.Create(width, height, itemWidth, itemHeight);
   }
 
-  /** Stores native unsigned sizes and initializes the manager. */
+  /**
+   * Stores native unsigned sizes and initializes the manager.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.implemented
   Create(width = 1024, height = 1024, itemWidth = 16, itemHeight = 16)
@@ -204,7 +232,11 @@ export class Tr2ImpostorManager
     this.Initialize();
   }
 
-  /** Reinitializes only when the native billboard dimensions change. */
+  /**
+   * Reinitializes only when the native billboard dimensions change.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetItemSize(width, height)
@@ -217,7 +249,11 @@ export class Tr2ImpostorManager
     this.Initialize();
   }
 
-  /** Native Reset clears objects and rebuilds slots; the render queue survives until BeginUpdate. */
+  /**
+   * Native Reset clears objects and rebuilds slots; the render queue survives until BeginUpdate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Reset()
@@ -226,7 +262,11 @@ export class Tr2ImpostorManager
     this._atlas.Resize(this.width, this.height, this.itemWidth, this.itemHeight);
   }
 
-  /** Registers an object or updates its value-copied hash, respecting new-object capture and atlas capacity. */
+  /**
+   * Registers an object or updates its value-copied hash, respecting new-object capture and atlas capacity.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Add(object, hash)
@@ -252,7 +292,11 @@ export class Tr2ImpostorManager
     return true;
   }
 
-  /** Clears this frame's queue and marks existing objects unused until Add. */
+  /**
+   * Clears this frame's queue and marks existing objects unused until Add.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   BeginUpdate()
@@ -269,6 +313,8 @@ export class Tr2ImpostorManager
    * Retires unused slots, emits native 36-byte quad records, then queues
    * highest-priority recaptures. JS Map order breaks equal-priority ties;
    * native unordered-map iteration does not promise an ordering.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -309,7 +355,11 @@ export class Tr2ImpostorManager
     store.RegisterVariableInternal("ImposterItemSize", TriVariableContentType.TRIVARIABLE_FLOAT4, this._itemSize);
   }
 
-  /** Returns the current native capture queue length. */
+  /**
+   * Returns the current native capture queue length.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderQueueLength()
@@ -317,7 +367,11 @@ export class Tr2ImpostorManager
     return this._renderQueue.length;
   }
 
-  /** Native comparison is descending despite its ascending-order comment. */
+  /**
+   * Native comparison is descending despite its ascending-order comment.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   static compareImpostors(first, second)
@@ -328,6 +382,8 @@ export class Tr2ImpostorManager
   /**
    * Clears a dirty atlas only with queued captures, then binds and clears the
    * capture strip. JS context options replace native Clear bit flags.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -354,6 +410,8 @@ export class Tr2ImpostorManager
    * Native target conversions become GetRenderTarget; hashes are value-copied
    * before each copy, including failed copies, as in Carbon. A failed JS
    * wrapper has null storage, represented by the native empty AL value here.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -376,7 +434,11 @@ export class Tr2ImpostorManager
     }
   }
 
-  /** Native viewport selection; rejects index equal to length instead of native out-of-bounds access. */
+  /**
+   * Native viewport selection; rejects index equal to length instead of native out-of-bounds access.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   BeginImpostorUpdate(index, renderContext)
@@ -386,14 +448,22 @@ export class Tr2ImpostorManager
     return this._renderQueue[index];
   }
 
-  /** Native EndImpostorUpdate is intentionally empty. */
+  /**
+   * Native EndImpostorUpdate is intentionally empty.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   EndImpostorUpdate()
   {
   }
 
-  /** Native live count. */
+  /**
+   * Native live count.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetImpostorCount()
@@ -401,7 +471,11 @@ export class Tr2ImpostorManager
     return this._objects.size;
   }
 
-  /** Returns the native capture depth owner. */
+  /**
+   * Returns the native capture depth owner.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetItemDepthStencil()
@@ -409,7 +483,11 @@ export class Tr2ImpostorManager
     return this._ds;
   }
 
-  /** Declared without a native definition; billboard draws belong to Tr2QuadRenderer. */
+  /**
+   * Declared without a native definition; billboard draws belong to Tr2QuadRenderer.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   Render()

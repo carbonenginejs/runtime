@@ -123,6 +123,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Re-evaluates expressions in stored key order without sorting.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -134,6 +136,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Gets authored duration.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -148,6 +152,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Updates cached value.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -167,8 +173,9 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Gets value at a time.
-   * Adapted: JS Number arithmetic and the existing scalar Hermite helper replace
-   * native float temporaries. Native key-value-based cycling/reversal is retained.
+   *
+   * @adapted JS Number arithmetic and the existing scalar Hermite helper replace
+   *   native float temporaries. Native key-value-based cycling/reversal is retained.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -227,7 +234,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Gets a key time.
-   * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
+   *
+   * @adapted retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -238,7 +246,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Sets a key time.
-   * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
+   *
+   * @adapted retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -252,7 +261,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Gets a key value.
-   * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
+   *
+   * @adapted retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -263,7 +273,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Sets a key value.
-   * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
+   *
+   * @adapted retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -277,6 +288,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Gets the number of keys.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -287,7 +300,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Gets a key interpolation value.
-   * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
+   *
+   * @adapted retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -298,7 +312,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Sets a key interpolation value.
-   * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
+   *
+   * @adapted retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -312,6 +327,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Gets a key left tangent.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -323,6 +340,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Sets a key left tangent.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -336,6 +355,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Gets a key right tangent.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -347,6 +368,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Sets a key right tangent.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -383,8 +406,9 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Adds a key through the native typed list mutation surface.
-   * Adapted: construction uses new and retains JS optional defaults and the existing
-   * insertion scan (NaN inserts first); native instance creation can fail.
+   *
+   * @adapted construction uses new and retains JS optional defaults and the existing
+   *   insertion scan (NaN inserts first); native instance creation can fail.
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
@@ -407,8 +431,9 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Removes a key through the native typed list mutation surface.
-   * Adapted: invalid JS indexes are ignored; a negative index must not become the
-   * BlueList clear sentinel because the native method receives an unsigned index.
+   *
+   * @adapted invalid JS indexes are ignored; a negative index must not become the
+   *   BlueList clear sentinel because the native method receives an unsigned index.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -419,6 +444,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 
   /**
    * Re-evaluates expressions; the native editor compatibility name does not sort.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -430,6 +457,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Re-evaluates every key's expressions in order, passing each key its
    * predecessor so expressions can reference prevKeyTime and prevKeyValue.
+   *
+   * @implemented
    */
   @meta.implemented
   _ReEvaluateKeys()
@@ -471,8 +500,9 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Interpolates between two adjacent keys using the left key's mode; a null key
    * on either side means the sample lies outside the key range and that end is
    * held flat at the present key's value.
-   * Adapted: JS Number arithmetic and a scalar return replace native float/out storage;
-   * Hermite uses the existing equivalent scalar helper.
+   *
+   * @adapted JS Number arithmetic and a scalar return replace native float/out storage;
+   *   Hermite uses the existing equivalent scalar helper.
    */
   @meta.adapted
   _Interpolate(time, lastKey, nextKey)

@@ -17,6 +17,7 @@ export class ICjsSfxControls
     /**
      * Installs a resolved program on the post and returns what was installed.
      *
+     * @abstract
      * @param {Array<object>} _program - Resolved program.
      * @returns {Array<object>|null}
      */
@@ -25,6 +26,7 @@ export class ICjsSfxControls
     /**
      * The posting game object's current switch in a group.
      *
+     * @abstract
      * @param {string|number} _group - Switch group name or id.
      * @returns {string|number|null}
      */
@@ -33,6 +35,7 @@ export class ICjsSfxControls
     /**
      * The current global state in a group.
      *
+     * @abstract
      * @param {string|number} _group - State group name or id.
      * @returns {string|number|null}
      */
@@ -41,6 +44,7 @@ export class ICjsSfxControls
     /**
      * A state group's weighted states, mid-transition included.
      *
+     * @abstract
      * @param {string|number} _group - State group name or id.
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {Array<{ state: string|number, weight: number }>}
@@ -50,6 +54,7 @@ export class ICjsSfxControls
     /**
      * The posting game object's RTPC value.
      *
+     * @abstract
      * @param {string|number} _name - RTPC name or id.
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number|null|undefined} The value, or nothing when unset.
@@ -59,6 +64,7 @@ export class ICjsSfxControls
     /**
      * A global RTPC value.
      *
+     * @abstract
      * @param {string|number} _name - RTPC name or id.
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number|null|undefined} The value, or nothing when unset.
@@ -68,6 +74,7 @@ export class ICjsSfxControls
     /**
      * Live Voice Volume offset, in dB, for the matched voices.
      *
+     * @abstract
      * @param {Array<string|number>} _matchIds - Authored object ids.
      * @returns {number}
      */
@@ -76,6 +83,7 @@ export class ICjsSfxControls
     /**
      * Live Voice Pitch offset, in cents, for the matched voices.
      *
+     * @abstract
      * @param {Array<string|number>} _matchIds - Authored object ids.
      * @returns {number}
      */
@@ -84,6 +92,7 @@ export class ICjsSfxControls
     /**
      * Live Voice Low-pass offset for the matched voices.
      *
+     * @abstract
      * @param {Array<string|number>} _matchIds - Authored object ids.
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number}
@@ -93,6 +102,7 @@ export class ICjsSfxControls
     /**
      * Live Voice High-pass offset for the matched voices.
      *
+     * @abstract
      * @param {Array<string|number>} _matchIds - Authored object ids.
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number}
@@ -102,6 +112,7 @@ export class ICjsSfxControls
     /**
      * Sets a switch on the posting game object (a SetSwitch action).
      *
+     * @abstract
      * @param {string|number} _group - Switch group name or id.
      * @param {string|number} _value - Switch name or id.
      */
@@ -110,6 +121,7 @@ export class ICjsSfxControls
     /**
      * Sets a global state (a SetState action).
      *
+     * @abstract
      * @param {string|number} _group - State group name or id.
      * @param {string|number} _value - State name or id.
      */
@@ -119,6 +131,7 @@ export class ICjsSfxControls
      * The AbortSignal that ends one program leaf: its selection's, else its
      * program slot's, else the post's.
      *
+     * @abstract
      * @param {string|number} _programSlotId - Program slot id.
      * @param {number} _actionIndex - Action index in the program.
      * @param {number} _leafIndex - Leaf index in the action.

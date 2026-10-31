@@ -42,7 +42,11 @@ export class TriStepRunComputeShader extends TriRenderStep
   @type.uint32
   offsetForArgs = 0;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(effect = null, groupDimX = 1, groupDimY = 1, groupDimZ = 1)
@@ -56,6 +60,8 @@ export class TriStepRunComputeShader extends TriRenderStep
   /**
    * Carbon Execute (TriStepRunComputeShader.cpp:37-55): dispatches through
    * Tr2Renderer, indirectly from the provider's buffer when one is bound.
+   *
+   * @implemented
    */
 
   @meta.implemented

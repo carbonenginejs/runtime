@@ -106,11 +106,18 @@ export class TriGrannyRes extends BlueAsyncRes
    */
   _memoryUsage = 0;
 
-  /** m_useCMF - whether the file is a `.cmf` (TriGrannyRes.h:140). */
+  /**
+   * m_useCMF - whether the file is a `.cmf` (TriGrannyRes.h:140).
+   *
+   * @implemented
+   */
   _useCMF = false;
 
   /**
    * Check application registration before opening the source through resMan.
+   *
+   * @implemented
+   * @adapted
    * @returns {Promise<boolean>} Whether the configured source opened.
    * @throws {Error} When the source extension has no registered reader.
    */
@@ -123,6 +130,8 @@ export class TriGrannyRes extends BlueAsyncRes
   /**
    * Carbon DoLoad (TriGrannyRes.cpp:200-260). Browser reads may use a worker;
    * retain the decoded Granny projection after the manager checks cancellation.
+   *
+   * @adapted
    * @returns {Promise<number>} Native LoadingResult.
    */
   async _DoLoad()
@@ -165,6 +174,7 @@ export class TriGrannyRes extends BlueAsyncRes
   /**
    * Carbon `IsMemoryUsageKnown` (TriGrannyRes.cpp:1727-1730): known once loaded.
    *
+   * @implemented
    * @returns {boolean}
    */
   IsMemoryUsageKnown()
@@ -175,6 +185,7 @@ export class TriGrannyRes extends BlueAsyncRes
   /**
    * Carbon `GetMemoryUsage` (TriGrannyRes.cpp:1732-1735): `m_memoryUsage`.
    *
+   * @implemented
    * @returns {number} Bytes.
    */
   GetMemoryUsage()
@@ -184,8 +195,9 @@ export class TriGrannyRes extends BlueAsyncRes
 
   /**
    * Carbon Load (TriGrannyRes.cpp:173-198), exposed as LoadForTools.
-   * Adapted: browser I/O and decoding use resMan's normal background/worker
-   * and main preparation queues instead of Carbon's inline stream read.
+   *
+   * @adapted browser I/O and decoding use resMan's normal background/worker
+   *   and main preparation queues instead of Carbon's inline stream read.
    * @param {string} path Resource path.
    * @returns {Promise<boolean>} Whether loading and preparation succeeded.
    */
@@ -210,6 +222,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::IsUsingCMF (trinity/trinity/Resources/TriGrannyRes.cpp:1800-1807;
    * TriGrannyRes.h:112). `WITH_GRANNY` is on (decorator-upgrade.md § 00), so it answers `m_useCMF`.
    *
+   * @implemented
    * @returns {boolean} Whether `Load` was given a `.cmf`.
    */
   IsUsingCMF()
@@ -220,6 +233,8 @@ export class TriGrannyRes extends BlueAsyncRes
   /**
    * Carbon GetGrannyFile (TriGrannyRes.h:50-53). Adapted: the decoded JS graph
    * represents the native Granny file; no pointer escapes into JavaScript.
+   *
+   * @adapted
    * @returns {object|null} Retained Granny graph.
    */
   GetGrannyFile()
@@ -234,6 +249,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:55). Not implemented: it indexes `granny_file_info::Skeletons`, the file's skeleton
    * list, which the projection does not keep (a model carries its own skeleton record).
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetGrannySkeleton(_skeletonIx)
@@ -248,8 +264,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:57). It logs and answers null with no file, no file info or an index that is too
    * high (a negative index is not checked).
    *
-   * Adapted: the file is the payload and the mesh is its projected mesh record, not a `granny_mesh`.
-   *
+   * @adapted the file is the payload and the mesh is its projected mesh record, not a `granny_mesh`.
    * @param {number} meshIx Mesh index.
    * @returns {object|null} The projected mesh, or null.
    */
@@ -279,6 +294,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:60). Not implemented: it returns the `granny_data_type_definition` array, which the
    * projection replaces with deinterleaved channels.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetGrannyVertexType(_meshIx)
@@ -293,6 +309,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:63). Not implemented: it is the total size of the vertex type definition (or the
    * CMF stride), neither of which the projection keeps.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetVertexSize(_meshIx)
@@ -306,6 +323,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetVertexComponentOffset (trinity/trinity/Resources/TriGrannyRes.cpp:382-410;
    * TriGrannyRes.h:67). Not implemented: it scans the vertex type definition, which the projection does not keep.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetVertexComponentOffset(_meshIx, _componentName)
@@ -320,9 +338,8 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:80). Logs "No Granny file loaded" without a file and "Invalid Granny file" without
    * file info, and answers null.
    *
-   * Adapted: `granny_file_info*` is the payload, the projection `CjsGr2Format` emits. It has no
-   * separate "invalid file info" state, so only the first message applies.
-   *
+   * @adapted `granny_file_info*` is the payload, the projection `CjsGr2Format` emits. It has no
+   *   separate "invalid file info" state, so only the first message applies.
    * @returns {object|null} The payload, or null.
    */
   ValidateFileInfo()
@@ -345,6 +362,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:158), protected. Logs "Animation index out of bounds" and answers null for an index
    * outside the file's animations.
    *
+   * @adapted
    * @param {number} ix Animation index.
    * @returns {object|null} The payload, or null.
    */
@@ -369,9 +387,8 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::ValidateMeshIndex (trinity/trinity/Resources/TriGrannyRes.cpp:1009-1022;
    * TriGrannyRes.h:161), protected. It only ever looks at `m_cmfContents`.
    *
-   * Adapted: `Be::Result<std::string>` success is undefined and the failure message is thrown. Since
-   * `Tr2CmfContents` is not ported the contents are always empty, so the first check always fails.
-   *
+   * @adapted `Be::Result<std::string>` success is undefined and the failure message is thrown. Since
+   *   `Tr2CmfContents` is not ported the contents are always empty, so the first check always fails.
    * @param {number} _meshIx Mesh index.
    * @returns {void}
    * @throws {Error} "Tried to use an invalid CMF file".
@@ -390,6 +407,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * bug: the Granny branch returns `fi->AnimationCount`, not `fi->ModelCount` (cpp:974), so a Granny
    * file's model count is its animation count (the CMF branch counts skeletons). Reproduced.
    *
+   * @adapted
    * @returns {number} The number of animations of a loaded file; 0 for the CMF branch or without a file.
    */
   GetModelCount()
@@ -403,7 +421,11 @@ export class TriGrannyRes extends BlueAsyncRes
     return fi.animations.length;
   }
 
-  /** Carbon property "modelCount" (TriGrannyRes_Blue.cpp:50-53, MAP_PROPERTY_READONLY): `GetModelCount`. */
+  /**
+   * Carbon property "modelCount" (TriGrannyRes_Blue.cpp:50-53, MAP_PROPERTY_READONLY): `GetModelCount`.
+   *
+   * @adapted
+   */
   get modelCount()
   {
     return this.GetModelCount();
@@ -416,6 +438,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:77). Exposed (TriGrannyRes_Blue.cpp:54-59, MAP_METHOD_AND_WRAP). An index past the
    * models logs "Model index out of bounds" and answers "".
    *
+   * @adapted
    * @param {number} ix Model index.
    * @returns {string} The name, or "".
    */
@@ -443,6 +466,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:84). Exposed as the method "GetMeshCount" and the read-only property "meshCount"
    * (TriGrannyRes_Blue.cpp:60-67).
    *
+   * @adapted
    * @returns {number} The mesh count; 0 for the CMF branch or without a file.
    */
   GetMeshCount()
@@ -456,7 +480,11 @@ export class TriGrannyRes extends BlueAsyncRes
     return fi.meshes.length;
   }
 
-  /** Carbon property "meshCount" (TriGrannyRes_Blue.cpp:60-63, MAP_PROPERTY_READONLY): `GetMeshCount`. */
+  /**
+   * Carbon property "meshCount" (TriGrannyRes_Blue.cpp:60-63, MAP_PROPERTY_READONLY): `GetMeshCount`.
+   *
+   * @adapted
+   */
   get meshCount()
   {
     return this.GetMeshCount();
@@ -468,6 +496,8 @@ export class TriGrannyRes extends BlueAsyncRes
    * The checks the Granny branch of each mesh query opens with (TriGrannyRes.cpp:1038-1046,
    * repeated in every query). Adapted: the failure message is thrown.
    *
+   * @cjs
+   * @adapted
    * @param {number} meshIx Mesh index.
    * @returns {object} The projected mesh.
    * @throws {Error} "Tried to get file info on an invalid Granny file" or "Mesh index out of range".
@@ -490,10 +520,9 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:87). Exposed (TriGrannyRes_Blue.cpp:68-72, MAP_METHOD_AND_WRAP). Carbon answers the
    * topology's group count, or `MaterialBindingCount` for a mesh with no topology.
    *
-   * Adapted: `Be::Result<std::string>` with the output `count` is the count returned and a failed
-   * result is a thrown `Error` with Carbon's message. The projection keeps the topology's index groups
-   * and not the material bindings, so a mesh with no topology answers 0.
-   *
+   * @adapted `Be::Result<std::string>` with the output `count` is the count returned and a failed
+   *   result is a thrown `Error` with Carbon's message. The projection keeps the topology's index groups
+   *   and not the material bindings, so a mesh with no topology answers 0.
    * @param {number} meshIx Mesh index.
    * @returns {number} The area count.
    * @throws {Error} "Tried to use an invalid CMF file", "Tried to get file info on an invalid Granny file" or "Mesh index out of range".
@@ -511,8 +540,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetMeshName (trinity/trinity/Resources/TriGrannyRes.cpp:1064-1094;
    * TriGrannyRes.h:88). Exposed (TriGrannyRes_Blue.cpp:73-77, MAP_METHOD_AND_WRAP).
    *
-   * Adapted: the output `name` is returned and a failed `Be::Result` is thrown, as `GetMeshAreaCount`.
-   *
+   * @adapted the output `name` is returned and a failed `Be::Result` is thrown, as `GetMeshAreaCount`.
    * @param {number} meshIx Mesh index.
    * @returns {string} The name.
    * @throws {Error} The `GetMeshAreaCount` messages.
@@ -530,8 +558,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetMeshBoneBindings (trinity/trinity/Resources/TriGrannyRes.cpp:1096-1134;
    * TriGrannyRes.h:91). Exposed (TriGrannyRes_Blue.cpp:78-82, MAP_METHOD_AND_WRAP).
    *
-   * Adapted: the output vector is returned (a new array) and a failed `Be::Result` is thrown.
-   *
+   * @adapted the output vector is returned (a new array) and a failed `Be::Result` is thrown.
    * @param {number} meshIx Mesh index.
    * @returns {string[]} The bone names, in binding order.
    * @throws {Error} The `GetMeshAreaCount` messages.
@@ -551,6 +578,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon builds the declaration from the Granny vertex type (`BuildFromGrannyVertexDecl`), and the
    * projection keeps eight fixed channels instead of the file's vertex members.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetMeshVertexElements(_meshIx)
@@ -565,9 +593,8 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:93). Exposed (TriGrannyRes_Blue.cpp:88-92, MAP_METHOD_AND_WRAP). Carbon sums
    * `TriCount` over the topology's groups, and answers 0 for a mesh with no topology.
    *
-   * Adapted: the output `count` is returned and a failed `Be::Result` is thrown. A group's `TriCount`
-   * is the length of its `faces` view over three.
-   *
+   * @adapted the output `count` is returned and a failed `Be::Result` is thrown. A group's `TriCount`
+   *   is the length of its `faces` view over three.
    * @param {number} meshIx Mesh index.
    * @returns {number} The triangle count.
    * @throws {Error} The `GetMeshAreaCount` messages.
@@ -593,10 +620,9 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:94). Exposed (TriGrannyRes_Blue.cpp:93-97, MAP_METHOD_AND_WRAP). Carbon answers
    * `MorphTargetCount`, or the vertex annotation set count when it is 0.
    *
-   * Adapted: the output `count` is returned and a failed `Be::Result` is thrown. The projection lists
-   * the morph targets followed by the annotation sets that hold rows, so an annotation set with no
-   * rows is not counted.
-   *
+   * @adapted the output `count` is returned and a failed `Be::Result` is thrown. The projection lists
+   *   the morph targets followed by the annotation sets that hold rows, so an annotation set with no
+   *   rows is not counted.
    * @param {number} meshIx Mesh index.
    * @returns {number} The morph target count.
    * @throws {Error} The `GetMeshAreaCount` messages.
@@ -615,9 +641,8 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:95). Exposed (TriGrannyRes_Blue.cpp:98-103, MAP_METHOD_AND_WRAP). Carbon names the
    * morph target by `ScalarName`, or the annotation set by `Name`.
    *
-   * Adapted: the output `name` is returned and a failed `Be::Result` is thrown (the extra message is
-   * "Morph target index out of range").
-   *
+   * @adapted the output `name` is returned and a failed `Be::Result` is thrown (the extra message is
+   *   "Morph target index out of range").
    * @param {number} meshIx Mesh index.
    * @param {number} morphIx Morph target index.
    * @returns {string} The name.
@@ -644,8 +669,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * quirk: the copy stops after 1023 characters kept (cpp:1361-1378), so a longer name is truncated.
    * Reproduced.
    *
-   * Adapted: the output vector is returned (a new array) and a failed `Be::Result` is thrown.
-   *
+   * @adapted the output vector is returned (a new array) and a failed `Be::Result` is thrown.
    * @param {number} meshIx Mesh index.
    * @returns {string[]} One name per morph target.
    * @throws {Error} The `GetMeshAreaCount` messages.
@@ -677,6 +701,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetAnimationCount (trinity/trinity/Resources/TriGrannyRes.cpp:1547-1575;
    * TriGrannyRes.h:98). Exposed as the read-only property "animationCount" (TriGrannyRes_Blue.cpp:111-114).
    *
+   * @adapted
    * @returns {number} The animation count; 0 for the CMF branch or without a file.
    */
   GetAnimationCount()
@@ -690,7 +715,11 @@ export class TriGrannyRes extends BlueAsyncRes
     return fi.animations.length;
   }
 
-  /** Carbon property "animationCount" (TriGrannyRes_Blue.cpp:111-114, MAP_PROPERTY_READONLY): `GetAnimationCount`. */
+  /**
+   * Carbon property "animationCount" (TriGrannyRes_Blue.cpp:111-114, MAP_PROPERTY_READONLY): `GetAnimationCount`.
+   *
+   * @adapted
+   */
   get animationCount()
   {
     return this.GetAnimationCount();
@@ -702,6 +731,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetAnimationName (trinity/trinity/Resources/TriGrannyRes.cpp:1577-1610;
    * TriGrannyRes.h:99). Exposed (TriGrannyRes_Blue.cpp:115-119, MAP_METHOD_AND_WRAP).
    *
+   * @adapted
    * @param {number} ix Animation index.
    * @returns {string} The name, or "" for an index outside the animations.
    */
@@ -722,6 +752,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetAnimationDuration (trinity/trinity/Resources/TriGrannyRes.cpp:1612-1646;
    * TriGrannyRes.h:101). Exposed (TriGrannyRes_Blue.cpp:120-125, MAP_METHOD_AND_WRAP).
    *
+   * @adapted
    * @param {number} ix Animation index.
    * @returns {number} The duration, or 0 for an index outside the animations.
    */
@@ -744,6 +775,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * `granny_file_info::TrackGroups`, the file's own list; the projection keeps track groups only under
    * each animation.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetTrackGroupCount()
@@ -757,6 +789,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetTrackGroupName (trinity/trinity/Resources/TriGrannyRes.cpp:1523-1545;
    * TriGrannyRes.h:105). Exposed (TriGrannyRes_Blue.cpp:128-132). Not implemented, as `GetTrackGroupCount`.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetTrackGroupName(_groupIdx)
@@ -770,6 +803,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetVectorTrackCount (trinity/trinity/Resources/TriGrannyRes.cpp:1406-1427;
    * TriGrannyRes.h:103). Exposed (TriGrannyRes_Blue.cpp:133-137). Not implemented, as `GetTrackGroupCount`.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetVectorTrackCount(_groupIdx)
@@ -783,6 +817,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetVectorTrackName (trinity/trinity/Resources/TriGrannyRes.cpp:1429-1453;
    * TriGrannyRes.h:104). Exposed (TriGrannyRes_Blue.cpp:138-143). Not implemented, as `GetTrackGroupCount`.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetVectorTrackName(_groupIdx, _ix)
@@ -796,6 +831,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetEventTrackCount (trinity/trinity/Resources/TriGrannyRes.cpp:1455-1476;
    * TriGrannyRes.h:107). Exposed (TriGrannyRes_Blue.cpp:144-148). Not implemented: the projection keeps no text tracks.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetEventTrackCount(_groupIdx)
@@ -809,6 +845,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetEventTrackName (trinity/trinity/Resources/TriGrannyRes.cpp:1478-1502;
    * TriGrannyRes.h:108). Exposed (TriGrannyRes_Blue.cpp:149-154). Not implemented: the projection keeps no text tracks.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   GetEventTrackName(_groupIdx, _ix)
@@ -827,15 +864,14 @@ export class TriGrannyRes extends BlueAsyncRes
    * normal (normalised), first texture coordinates and the first bone index of the first vertex when the
    * mesh has those channels.
    *
-   * Adapted: the file is the payload and its channels are the projection's float arrays, so the
-   * vertex members are read from `vertex.position`, `normal`, `texcoord0` and `blendIndice` with the
-   * channel's own width (a four-wide position is read as its first three). Carbon reads the bone index
-   * as the first byte of the vertex's index member; the projection holds it as a number. A mesh with no
-   * index stream is skipped, as one with no `PrimaryTopology` is. A mesh without a position channel is skipped.
-   *
    * quirk: like Carbon, a hit is found among triangles whose `dist` is below the closest so far with no
    * back-face test; two triangles at the same distance keep the first.
    *
+   * @adapted the file is the payload and its channels are the projection's float arrays, so the
+   *   vertex members are read from `vertex.position`, `normal`, `texcoord0` and `blendIndice` with the
+   *   channel's own width (a four-wide position is read as its first three). Carbon reads the bone index
+   *   as the first byte of the vertex's index member; the projection holds it as a number. A mesh with no
+   *   index stream is skipped, as one with no `PrimaryTopology` is. A mesh without a position channel is skipped.
    * @param {ArrayLike<number>} pos Ray origin.
    * @param {ArrayLike<number>} dir Ray direction.
    * @param {number} meshIndex Mesh to test; negative for all.
@@ -960,6 +996,8 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: FindAreaIndex, an anonymous-namespace helper of TriGrannyRes.cpp (cpp:1937-1948). The index
    * is divided by 3 and the first group with `TriFirst <= index < TriFirst + TriCount` wins.
    *
+   * @cjs
+   * @adapted
    * @param {object} mesh A projected mesh.
    * @param {number} index Index of the triangle's first vertex index.
    * @returns {number} The area index, or -1.
@@ -978,7 +1016,11 @@ export class TriGrannyRes extends BlueAsyncRes
     return -1;
   }
 
-  /** Carbon CreateGeometryRes (TriGrannyRes.cpp:1737-1752), with lazy JS device allocation. */
+  /**
+   * Carbon CreateGeometryRes (TriGrannyRes.cpp:1737-1752), with lazy JS device allocation.
+   *
+   * @adapted
+   */
   CreateGeometryRes()
   {
     const geometry = new TriGeometryRes();
@@ -993,6 +1035,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:73), the overload taking `NameToWeightMap`. Not implemented: it blends the morph
    * targets into a vertex buffer and uploads it through a `Tr2SuballocatedBuffer::Allocation`.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   BakeBlendshape__NameToWeight(_meshIx, _nameToWeight, _vertexData, _renderContext, _vertexDataSize)
@@ -1007,6 +1050,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:76), the overload taking `std::vector<float>` weights. Not implemented, as
    * `BakeBlendshape__NameToWeight`.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   BakeBlendshape__Weights(_meshIx, _weights, _vertexData, _renderContext, _vertexDataSize)
@@ -1021,6 +1065,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:171), protected, the overload with the optional name map and `deltaOnly`. Not
    * implemented, as `BakeBlendshape__NameToWeight`.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   _BakeBlendshape__DeltaOnly(_meshIx, _weights, _vertexData, _renderContext, _vertexDataSize, _nameToWeight, _deltaOnly)
@@ -1036,6 +1081,8 @@ export class TriGrannyRes extends BlueAsyncRes
    * operations retain the native threshold and do not clamp weights above one.
    * As in Carbon, CPU source channels stay immutable; only the destination
    * vertex allocation is rewritten. Picking retains the source geometry.
+   *
+   * @adapted
    * @param {number} meshIx Source and destination mesh index.
    * @param {ArrayLike<number>} weights Weights in exact source target order.
    * @param {TriGeometryRes} geom Independently owned destination geometry.
@@ -1083,6 +1130,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * TriGrannyRes.h:114). Not supported: `cmf::Data` is the native CMF library's structure and
    * `Tr2CmfContents` is not ported (resource/dropped).
    *
+   * @notSupported
    * @throws {Error} Always.
    */
   GetCMFData()
@@ -1096,6 +1144,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetCMFViewData (trinity/trinity/Resources/TriGrannyRes.cpp:1814-1817;
    * TriGrannyRes.h:115). Not supported, as `GetCMFData`.
    *
+   * @notSupported
    * @throws {Error} Always.
    */
   GetCMFViewData(_view)
@@ -1109,6 +1158,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon: TriGrannyRes::GetCMFContents (trinity/trinity/Resources/TriGrannyRes.cpp:1819-1822;
    * TriGrannyRes.h:116). Not supported, as `GetCMFData`.
    *
+   * @notSupported
    * @throws {Error} Always.
    */
   GetCMFContents()
@@ -1119,6 +1169,7 @@ export class TriGrannyRes extends BlueAsyncRes
   /**
    * Carbon `DoPrepare` (TriGrannyRes.cpp:271-275): nothing to prepare.
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
   _DoPrepare()
@@ -1132,8 +1183,9 @@ export class TriGrannyRes extends BlueAsyncRes
 
   /**
    * Drop the graph owned by Carbon's resource destructor.
-   * Adapted: explicit JS teardown replaces native destruction; the existing
-   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   *
+   * @adapted explicit JS teardown replaces native destruction; the existing
+   *   MotherLode switches keep CPU data and opaque adapter cleanup independent.
    * @param {object} [options={}] Existing MotherLode cleanup policy.
    * @param {boolean} [options.releasePayload=true] Release owned family data.
    * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.

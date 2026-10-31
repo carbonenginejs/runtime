@@ -148,6 +148,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /**
    * The authored name, persisted with the child and used to identify it in the
    * parent graph.
+   *
+   * @implemented
    */
   @meta.implemented
   GetName()
@@ -155,7 +157,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return this.name;
   }
 
-  /** Sets the authored child name, coercing nullish to the empty string. */
+  /**
+   * Sets the authored child name, coercing nullish to the empty string.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetName(name)
   {
@@ -166,6 +172,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Carbon EveChildInstancedMeshes::UpdateVisibility (cpp:183-186) only caches
    * the frame's camera frustum for later use; the JS port has no consumer for
    * that cache, so the frame hook does nothing.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -179,6 +187,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Carbon EveChildInstancedMeshes::GetRenderables (cpp:200-207): the base
    * hull draws through the instanced mesh manager, so this child is a
    * renderable only for overlay draws - inherited, own, or part damage.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -197,6 +207,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Carbon EveChildInstancedMeshes::GetBoundingSphere (cpp:192-195) always
    * returns false - the child publishes no bounds of its own, because each mesh
    * registers its own sphere group with the manager.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -274,6 +286,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Stamps the child's world transform from the parent's localToWorldTransform
    * (Carbon cpp:197-200); every per-instance cull sphere the async pass builds
    * is derived from it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -309,9 +323,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * (cpp:257-270), a live SetSphereGroupBounds refresh on registered handles
    * (cpp:272-278), and the hasUpdated stamp (cpp:281).
    *
-   * Adapted: Trinity fills the CPU per-object data; the raytracing mesh build is not ported.
-   * Bounds are read through GetMeshData, and entries without minBounds or maxBounds are
-   * skipped.
+   * @adapted Trinity fills the CPU per-object data; the raytracing mesh build is not ported.
+   *   Bounds are read through GetMeshData, and entries without minBounds or maxBounds are
+   *   skipped.
    */
 
   @meta.adapted
@@ -581,6 +595,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildInstancedMeshes.cpp:415-418): copies the world transform into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -595,6 +611,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Carbon EveChildInstancedMeshes::Setup (cpp:335-337) is an intentional no-op:
    * placement comes from the authored per-instance transforms, not from an SRT
    * setup.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -605,6 +623,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /**
    * Carbon EveChildInstancedMeshes::ChangeLOD (cpp:339-341) is an intentional
    * no-op; the child keeps no LOD state.
+   *
+   * @implemented
    */
   @meta.implemented
   ChangeLOD()
@@ -614,6 +634,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /**
    * Accepts and discards the placement origin; this child has no Carbon origin
    * field and stores none.
+   *
+   * @adapted
    */
   @meta.adapted
   SetOrigin()
@@ -623,6 +645,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /**
    * Returns false, so owners treat this child as subject to normal activation
    * gating.
+   *
+   * @implemented
    */
   @meta.implemented
   IsAlwaysOn()
@@ -637,8 +661,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * re-register with the NEW effectHash on the next AddMeshesToManager pass.
    * Sphere/per-object handles deliberately stay registered.
    *
-   * Adapted: Handle invalidation after manager removal is explicit in JavaScript; the option
-   * write, hash refresh and registration lifecycle otherwise follow Carbon.
+   * @adapted Handle invalidation after manager removal is explicit in JavaScript; the option
+   *   write, hash refresh and registration lifecycle otherwise follow Carbon.
    */
 
   @meta.adapted
@@ -663,6 +687,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
   /**
    * Carbon AddMesh (cpp:443-590). Instances join an existing mesh with the same geometry, mesh index, shadow and reflection flags, areas (effect path, hash, batch type and range), SOF hull and locator set, and locator-set ownership (cpp:464-538): they are appended after its instances, the mesh's manager registrations are dropped, and the latch clears so they re-register. Otherwise a mesh is appended: the area ducks are normalized, the instance transforms copied with each instance's sphere index, mirroring and picking indices (cpp:557-567), CASTS_SHADOW plus one flag bit per area batch type stamped (cpp:583-590), and the latch cleared.
+   *
+   * @adapted
    * @param {Iterable} areas - area ducks ({effect, batchType, areaIndex, areaCount})
    * @param {Iterable<Float32Array>} instanceTransforms - 16-value matrices; copied, not retained
    * @param {Number} partTag - modular owner shared by every appended instance
@@ -841,8 +867,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Removes every instance owned by a modular part, dropping empty meshes and
    * invalidating manager registrations.
    *
-   * Adapted: JavaScript explicitly nulls manager handles after removal; Carbon invalidates
-   * them by reference.
+   * @adapted JavaScript explicitly nulls manager handles after removal; Carbon invalidates
+   *   them by reference.
    */
 
   @meta.adapted
@@ -918,6 +944,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * records via areaStart/areaCount; meshes with no matching areas contribute
    * nothing. Carbon row-vector instanceTransform * parentTransform maps to
    * gl-matrix multiply(out, parentTransform, instanceTransform).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -956,6 +984,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * that instance's part (Carbon EveChildInstancedMeshes.cpp:1473-1495).
    * Carbon row-vector instanceTransform * parentTransform maps to gl-matrix
    * multiply(out, parentTransform, instanceTransform).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -976,7 +1006,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     }
   }
 
-  /** Returns a part's damage overlay, or null while it has none (Carbon cpp:1497-1500). */
+  /**
+   * Returns a part's damage overlay, or null while it has none (Carbon cpp:1497-1500).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPartDamageOverlay(partTag)
@@ -984,7 +1018,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return this._FindPartDamageOverlay(partTag);
   }
 
-  /** Creates a part's damage overlay when it does not yet exist (Carbon cpp:1502-1509). */
+  /**
+   * Creates a part's damage overlay when it does not yet exist (Carbon cpp:1502-1509).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreatePartDamageOverlay(partTag)
@@ -995,7 +1033,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     }
   }
 
-  /** Returns the armour damage shader of the mesh carrying a part (Carbon cpp:1511-1518). */
+  /**
+   * Returns the armour damage shader of the mesh carrying a part (Carbon cpp:1511-1518).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPartArmorDamageShaderEffect(partTag)
@@ -1007,6 +1049,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Writes the part-local pose of one of a part's damage locators. Shared
    * instances carry no skeleton, so the pose is the authored one (Carbon
    * cpp:1520-1534 passes a null animation updater).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1027,6 +1071,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * cull spheres from the live transforms - but a part that owns locators
    * invalidates the owner's merged set. The per-part filter lives HERE, not at
    * the call site (the shared child carries many parts' instances).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1060,6 +1106,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Returns one [translation, rotation, scale] decomposition per instance of a
    * mesh (Carbon EveChildInstancedMeshes.cpp:781-806, script-exposed tooling);
    * throws RangeError where Carbon raises IndexError.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1087,6 +1135,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Drops every mesh and clears the hasUpdated stamp so nothing re-registers
    * until another update pass runs; registration handles are NOT released here,
    * so call UnregisterFromMeshManager first when a manager still holds them.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -1099,6 +1150,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
   /**
    * Decodes a picking area id back to the SOF locator it came from.
+   *
+   * @implemented
    * @param {Number} areaId - mesh ordinal in the high 16 bits, locator index in the low 16 (the pairing AddMeshesToManager registers)
    * @returns {Array|null} [sofHullName, sofLocatorSetName, locatorIndex], or null when the mesh is unknown or carries no SOF hull name
    */
@@ -1115,7 +1168,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return [mesh.sofHullName, mesh.sofLocatorSetName, value & 0xffff];
   }
 
-  /** Number of meshes currently held. */
+  /**
+   * Number of meshes currently held.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetMeshCount()
@@ -1125,6 +1182,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
   /**
    * Reports one mesh's authoring state as a positional tuple (Carbon's multiple out-params).
+   *
+   * @adapted
    * @param {Number} meshId - mesh index; RangeError when out of range
    * @returns {Array} [geometryPath, geometryResource, meshIndex, castsShadow, reflectionMode, areaCount, instanceCount]
    */
@@ -1146,6 +1205,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
   /**
    * Reports one area of one mesh as a positional tuple (Carbon's multiple out-params).
+   *
+   * @adapted
    * @param {Number} meshId - mesh index; RangeError when out of range
    * @param {Number} areaId - area index within that mesh; RangeError when out of range
    * @returns {Array} [effect, batchType, areaIndex, areaCount] - the effect is the live reference
@@ -1167,6 +1228,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /**
    * Whether the given mesh is currently displayed; throws RangeError for an
    * unknown mesh index.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1181,8 +1244,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * mesh-group handles - which is why AddMeshesToManager's display-off skip
    * does NOT clear the latch (the handles are already gone).
    *
-   * Adapted: Handle invalidation after removal is explicit (Carbon's DataHandle is
-   * invalidated by the manager by reference).
+   * @adapted Handle invalidation after removal is explicit (Carbon's DataHandle is
+   *   invalidated by the manager by reference).
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1214,7 +1277,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     }
   }
 
-  /** Returns whether one instanced mesh inherits parent overlay effects. */
+  /**
+   * Returns whether one instanced mesh inherits parent overlay effects.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetMeshInheritOverlayEffects(meshId)
@@ -1222,7 +1289,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return EveChildInstancedMeshes._GetMesh(this.meshes, meshId).inheritOverlayEffects;
   }
 
-  /** Enables or disables parent-overlay inheritance for one mesh. */
+  /**
+   * Enables or disables parent-overlay inheritance for one mesh.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetMeshInheritOverlayEffects(meshId, inherit)
@@ -1241,7 +1312,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     }
   }
 
-  /** Adds an overlay effect owned by one instanced mesh. */
+  /**
+   * Adds an overlay effect owned by one instanced mesh.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddMeshOverlayEffect(meshId, overlayEffect)
@@ -1250,7 +1325,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     EveChildInstancedMeshes._GetMesh(this.meshes, meshId).ownOverlayEffects.push(overlayEffect);
   }
 
-  /** Removes an overlay effect owned by one instanced mesh. */
+  /**
+   * Removes an overlay effect owned by one instanced mesh.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   RemoveMeshOverlayEffect(meshId, overlayEffect)
@@ -1260,7 +1339,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     if (index !== -1) overlays.splice(index, 1);
   }
 
-  /** Removes every overlay effect owned by one instanced mesh. */
+  /**
+   * Removes every overlay effect owned by one instanced mesh.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearMeshOverlayEffects(meshId)
@@ -1268,7 +1351,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     EveChildInstancedMeshes._GetMesh(this.meshes, meshId).ownOverlayEffects.length = 0;
   }
 
-  /** Returns the number of overlay effects owned by one instanced mesh. */
+  /**
+   * Returns the number of overlay effects owned by one instanced mesh.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetMeshOverlayEffectCount(meshId)
@@ -1279,6 +1366,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /**
    * Assigns one mesh's geometry resource, bumping the revision only when it
    * actually changes; registration waits for the next AddMeshesToManager pass.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -1296,6 +1386,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Returns a detached snapshot of one mesh - instance transforms cloned, areas
    * shallow-copied, geometry resource shared by reference - so callers can read
    * it without touching live registration state.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -1309,6 +1402,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Monotonic counter bumped by every structural change (AddMesh, Clear,
    * SetMeshDisplay, SetGeometryResource, SetShaderOption), for consumers caching
    * derived data.
+   *
+   * @cjs
+   * @implemented
    */
   @meta.cjs
     @meta.implemented
@@ -1317,7 +1413,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return this._revision;
   }
 
-  /** Reports whether any active own or inherited overlay has a transparent pass. */
+  /**
+   * Reports whether any active own or inherited overlay has a transparent pass.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -1336,7 +1436,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return false;
   }
 
-  /** Returns the squared camera distance used to sort transparent overlays. */
+  /**
+   * Returns the squared camera distance used to sort transparent overlays.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetSortValue()
@@ -1348,7 +1452,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       viewPosition[2] - this.worldTransform[14]);
   }
 
-  /** Exposes stable per-instance CPU record pairs for this frame's overlay batches. */
+  /**
+   * Exposes stable per-instance CPU record pairs for this frame's overlay batches.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetPerObjectData(_accumulator = null)
@@ -1374,7 +1482,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return first;
   }
 
-  /** Emits child-owned then inherited overlays per visible instance and LOD. */
+  /**
+   * Emits child-owned then inherited overlays per visible instance and LOD.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetBatches(
@@ -1447,9 +1559,13 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return committed;
   }
 
-  /** Carbon EveChildInstancedMeshes::RegisterComponents (cpp:36-43):
+  /**
+   * Carbon EveChildInstancedMeshes::RegisterComponents (cpp:36-43):
    * unconditional InstancedMeshProvider + ShadowCaster leaf
-   * self-registration. */
+   * self-registration.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -1462,9 +1578,13 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     }
   }
 
-  /** Carbon EveChildInstancedMeshes::UnRegisterComponents (cpp:45-48) only
+  /**
+   * Carbon EveChildInstancedMeshes::UnRegisterComponents (cpp:45-48) only
    * calls UnregisterFromMeshManager; own components were already removed by
-   * EveEntity::UnRegister (EveEntity.cpp:90). */
+   * EveEntity::UnRegister (EveEntity.cpp:90).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -1477,8 +1597,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * every registered mesh-group / sphere-group / per-object handle is removed
    * through the manager that issued the opaque handles, then the latch clears.
    *
-   * Adapted: Handle invalidation after removal is explicit (Carbon's DataHandle is
-   * invalidated by the manager by reference).
+   * @adapted Handle invalidation after removal is explicit (Carbon's DataHandle is
+   *   invalidated by the manager by reference).
    */
 
   @meta.adapted
@@ -1532,9 +1652,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * pickingOwnerIndex is the mesh ordinal (pairs with GetSofSourceLocator's
    * meshIndex<<16 decode).
    *
-   * Adapted: Manager allocation returns opaque handles instead of filling native output
-   * parameters. Geometry presence and IsGood replace the native combined-vertex-declaration
-   * gate; the declaration argument is zero and the JavaScript object is the picking owner.
+   * @adapted Manager allocation returns opaque handles instead of filling native output
+   *   parameters. Geometry presence and IsGood replace the native combined-vertex-declaration
+   *   gate; the declaration argument is zero and the JavaScript object is the picking owner.
    */
 
   @meta.adapted
@@ -1651,25 +1771,37 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     }
   }
 
-  /** Carbon EveChildInstancedMeshes::IsCastingShadow (cpp:73-76) always
+  /**
+   * Carbon EveChildInstancedMeshes::IsCastingShadow (cpp:73-76) always
    * returns false (instanced shadows cull per instance group); presence
-   * satisfies the "ShadowCaster" duck contract. */
+   * satisfies the "ShadowCaster" duck contract.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsCastingShadow__ShadowFrustum(..._args)
   {
     return false;
   }
 
-  /** Carbon EveChildInstancedMeshes::GetShadowBatches (cpp:78-80) is an
-   * intentional no-op (the instanced mesh manager emits the batches). */
+  /**
+   * Carbon EveChildInstancedMeshes::GetShadowBatches (cpp:78-80) is an
+   * intentional no-op (the instanced mesh manager emits the batches).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetShadowBatches(..._args)
   {
   }
 
-  /** Carbon EveChildInstancedMeshes::GetShadowPerObjectData (cpp:82-85)
-   * returns null (per-object data flows through the mesh manager). */
+  /**
+   * Carbon EveChildInstancedMeshes::GetShadowPerObjectData (cpp:82-85)
+   * returns null (per-object data flows through the mesh manager).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetShadowPerObjectData(..._args)
@@ -1760,11 +1892,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * stands in as its previous-frame transform. That looks deliberate (a
    * static record has no previous transform), so it is not a CE.
    *
-   * Adapted: the trigger, since IBlueAsyncResNotifyTarget is not ported (see
-   * AddMeshesToManager); the mesh's elements are the geometry payload's
-   * declaration (GetMeshVertexElements) rather than the handle Carbon's
-   * loader stored; and the raytracing meshes Carbon frees here (cpp:729-737)
-   * are not ported.
+   * @adapted the trigger, since IBlueAsyncResNotifyTarget is not ported (see
+   *   AddMeshesToManager); the mesh's elements are the geometry payload's
+   *   declaration (GetMeshVertexElements) rather than the handle Carbon's
+   *   loader stored; and the raytracing meshes Carbon frees here (cpp:729-737)
+   *   are not ported.
    * @param {TriGeometryRes} resource The geometry that finished loading.
    */
   @meta.adapted

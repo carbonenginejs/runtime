@@ -17,7 +17,11 @@ export class TriStepGenerateMipMaps extends TriRenderStep
   @type.object.ref("Tr2RenderTarget")
   renderTarget = null;
 
-  /** Stores the render target whose mip chain is regenerated. */
+  /**
+   * Stores the render target whose mip chain is regenerated.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(renderTarget = null)
@@ -28,6 +32,8 @@ export class TriStepGenerateMipMaps extends TriRenderStep
   /**
    * Carbon Execute (TriStepGenerateMipMaps.cpp:15-22): regenerate the render
    * target texture's mip chain; with no target set the step is a no-op.
+   *
+   * @implemented
    */
 
   @meta.implemented

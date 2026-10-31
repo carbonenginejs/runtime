@@ -25,7 +25,11 @@ export class EveSOFDataParameterVector3 extends EveSOFDataParameter
   @type.vec3
   value = vec3.create();
 
-  /** Returns a new four-component vector with a zero-filled w component. */
+  /**
+   * Returns a new four-component vector with a zero-filled w component.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetValue()

@@ -47,6 +47,8 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
   /**
    * Reseeds the random stream from the wall clock, so rotations differ between
    * runs unless consistentRandom pins them to the placement id.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -60,6 +62,8 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
    * Builds a rotation from random yaw, pitch and roll between minRotation and
    * maxRotation, then either replaces the placement's initial rotation or
    * combines it with the authored one.
+   *
+   * @adapted
    */
 
   @meta.adapted

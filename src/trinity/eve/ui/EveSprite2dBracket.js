@@ -34,6 +34,8 @@ export class EveSprite2dBracket extends IRoot
 
   /**
    * Copies the bracket translation into caller-provided storage.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -44,6 +46,8 @@ export class EveSprite2dBracket extends IRoot
 
   /**
    * Replaces the bracket translation while preserving field identity.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -54,6 +58,8 @@ export class EveSprite2dBracket extends IRoot
 
   /**
    * Gets the authored atlas icon.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -64,6 +70,8 @@ export class EveSprite2dBracket extends IRoot
 
   /**
    * Gets the mutable authored color container.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -74,6 +82,8 @@ export class EveSprite2dBracket extends IRoot
 
   /**
    * Sets whether the bracket is displayed.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -84,6 +94,8 @@ export class EveSprite2dBracket extends IRoot
 
   /**
    * Gets whether the bracket is displayed.
+   *
+   * @implemented
    */
 
   @meta.implemented

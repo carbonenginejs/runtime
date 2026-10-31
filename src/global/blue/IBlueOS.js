@@ -38,84 +38,180 @@ export class IBlueOS extends IRoot
 {
   // ----- Startup and shutdown -----
 
-  /** `Startup` - bring Blue up. */
+  /**
+   * `Startup` - bring Blue up.
+   *
+   * @abstract
+   */
   Startup(_pyOptimizeFlag) {}
 
-  /** `Terminate` - end the process; Blue always shuts down by terminating. */
+  /**
+   * `Terminate` - end the process; Blue always shuts down by terminating.
+   *
+   * @abstract
+   */
   Terminate(_retCode) {}
 
-  /** `RegisterIndispensableTerminationStep` - work a DLL must do before a termination signal. */
+  /**
+   * `RegisterIndispensableTerminationStep` - work a DLL must do before a termination signal.
+   *
+   * @abstract
+   */
   RegisterIndispensableTerminationStep(_callback) {}
 
   // ----- Scheduling -----
 
-  /** `RegisterForTicks` - drive an IBlueEvents from the pump, with a cookie of the caller's choosing. */
+  /**
+   * `RegisterForTicks` - drive an IBlueEvents from the pump, with a cookie of the caller's choosing.
+   *
+   * @abstract
+   */
   RegisterForTicks(_cb, _cookie) {}
 
-  /** `UnregisterForTicks` - stop driving one. */
+  /**
+   * `UnregisterForTicks` - stop driving one.
+   *
+   * @abstract
+   */
   UnregisterForTicks(_cb, _cookie) {}
 
-  /** `RegisterForSimTimeRebase` - be told when the simulation clock is moved. */
+  /**
+   * `RegisterForSimTimeRebase` - be told when the simulation clock is moved.
+   *
+   * @abstract
+   */
   RegisterForSimTimeRebase(_cb) {}
 
-  /** `UnregisterForSimTimeRebase` - stop being told. */
+  /**
+   * `UnregisterForSimTimeRebase` - stop being told.
+   *
+   * @abstract
+   */
   UnregisterForSimTimeRebase(_cb) {}
 
   // ----- Error reporting -----
 
-  /** `SetError` - report a BLUEERROR or HRESULT, optionally naming the reporter. */
+  /**
+   * `SetError` - report a BLUEERROR or HRESULT, optionally naming the reporter.
+   *
+   * @abstract
+   */
   SetError(_error, _reporter, _format, ..._args) {}
 
-  /** `GetError` - the error log by index, null once there are no more. */
+  /**
+   * `GetError` - the error log by index, null once there are no more.
+   *
+   * @abstract
+   */
   GetError(_index) {}
 
-  /** `FormatError` - the error log formatted as a report. */
+  /**
+   * `FormatError` - the error log formatted as a report.
+   *
+   * @abstract
+   */
   FormatError() {}
 
-  /** `GetLanguageId` - the language the client is running in. */
+  /**
+   * `GetLanguageId` - the language the client is running in.
+   *
+   * @abstract
+   */
   GetLanguageId() {}
 
   // ----- Management -----
 
-  /** `PumpOS` - one pump cycle: advance the clocks and tick every registrant. */
+  /**
+   * `PumpOS` - one pump cycle: advance the clocks and tick every registrant.
+   *
+   * @abstract
+   */
   PumpOS() {}
 
   // ----- Information -----
 
-  /** `GetInfo` - the BeInfo record: real and simulation time, dilation, fps, pump counters. */
+  /**
+   * `GetInfo` - the BeInfo record: real and simulation time, dilation, fps, pump counters.
+   *
+   * @abstract
+   */
   GetInfo() {}
 
-  /** `GetActualTime` - the wallclock, adjusted for server sync, in Blue ticks on the runtime epoch. */
+  /**
+   * `GetActualTime` - the wallclock, adjusted for server sync, in Blue ticks on the runtime epoch.
+   *
+   * @abstract
+   */
   GetActualTime() {}
 
-  /** `IsPackaged` - whether the client is running from a package. */
+  /**
+   * `IsPackaged` - whether the client is running from a package.
+   *
+   * @abstract
+   */
   IsPackaged() {}
 
-  /** `GetCurrentFrameTime` - the cached smoothed time for this frame, in Blue ticks on the runtime epoch. */
+  /**
+   * `GetCurrentFrameTime` - the cached smoothed time for this frame, in Blue ticks on the runtime epoch.
+   *
+   * @abstract
+   */
   GetCurrentFrameTime() {}
 
-  /** `RunStackless` - whether the stackless scheduler is in use. */
+  /**
+   * `RunStackless` - whether the stackless scheduler is in use.
+   *
+   * @abstract
+   */
   RunStackless() {}
 
-  /** `SetStartupArgs` - the command line, after any expansion from an @ file. */
+  /**
+   * `SetStartupArgs` - the command line, after any expansion from an @ file.
+   *
+   * @abstract
+   */
   SetStartupArgs(_args) {}
 
-  /** `GetStartupArgs` - that expanded command line. */
+  /**
+   * `GetStartupArgs` - that expanded command line.
+   *
+   * @abstract
+   */
   GetStartupArgs() {}
 
-  /** `HasStartupArg` - whether an argument was passed. */
+  /**
+   * `HasStartupArg` - whether an argument was passed.
+   *
+   * @abstract
+   */
   HasStartupArg(_arg) {}
 
-  /** `GetInitTab` - the Python init table. */
+  /**
+   * `GetInitTab` - the Python init table.
+   *
+   * @abstract
+   */
   GetInitTab(_tabs) {}
 
-  /** `GetStartupArgValue` - the value of a /arg=value argument. */
+  /**
+   * `GetStartupArgValue` - the value of a /arg=value argument.
+   *
+   * @abstract
+   */
   GetStartupArgValue(_arg) {}
 
-  /** `SetMarkupZonesInPython` - whether profiling zones are marked up in Python. */
+  /**
+   * `SetMarkupZonesInPython` - whether profiling zones are marked up in Python.
+   *
+   * @abstract
+   */
   SetMarkupZonesInPython(_markupZonesInPython) {}
 
-  /** `ConstructPathListFromManifest` - the path list a manifest describes. */
+  /**
+   * `ConstructPathListFromManifest` - the path list a manifest describes.
+   *
+   * @abstract
+   */
   ConstructPathListFromManifest(_pathlist, _verifyManifest) {}
 }
 

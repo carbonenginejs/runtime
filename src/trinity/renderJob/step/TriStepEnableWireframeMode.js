@@ -15,7 +15,11 @@ export class TriStepEnableWireframeMode extends TriRenderStep
   @type.boolean
   enableWireframe = false;
 
-  /** Stores the wireframe flag, defaulting to off. */
+  /**
+   * Stores the wireframe flag, defaulting to off.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(value = false)
@@ -26,6 +30,8 @@ export class TriStepEnableWireframeMode extends TriRenderStep
   /**
    * Forwards the flag to the render context; nothing restores the previous mode, so a
    * matching step is needed to turn wireframe back off.
+   *
+   * @implemented
    */
 
   @meta.implemented

@@ -100,7 +100,11 @@ function MakeGeometryParams(geometryData, manager)
 export class AudGeometry extends ITr2AudGeometry
 {
 
-  /** Removes every registered set and instance from the current backend. */
+  /**
+   * Removes every registered set and instance from the current backend.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   static ClearAllGeometry()
@@ -121,9 +125,9 @@ export class AudGeometry extends ITr2AudGeometry
   /**
    * Carbon ITr2AudGeometry method SetGeometry.
    *
-   * Adapted: Wwise geometry calls route through optional SetGeometry/SetGeometryInstance
-   * backend methods using plain browser-safe parameter objects.
-   * Carbon declaration: AudGeometry::SetGeometry (audio/src/AudGeometry.h:48).
+   * @adapted Wwise geometry calls route through optional SetGeometry/SetGeometryInstance
+   *   backend methods using plain browser-safe parameter objects.
+   *   Carbon declaration: AudGeometry::SetGeometry (audio/src/AudGeometry.h:48).
    */
   @meta.adapted
   SetGeometry(geometrySetId, instanceId, geometryData, worldTransform)
@@ -164,9 +168,9 @@ export class AudGeometry extends ITr2AudGeometry
   /**
    * Carbon ITr2AudGeometry method SetGeometryTransform.
    *
-   * Adapted: The Wwise transform call routes through an optional browser backend with a
-   * plain parameter object.
-   * Carbon declaration: AudGeometry::SetGeometryTransform (audio/src/AudGeometry.h:62).
+   * @adapted The Wwise transform call routes through an optional browser backend with a
+   *   plain parameter object.
+   *   Carbon declaration: AudGeometry::SetGeometryTransform (audio/src/AudGeometry.h:62).
    */
   @meta.adapted
   SetGeometryTransform(geometrySetId, instanceId, worldTransform)
@@ -189,9 +193,9 @@ export class AudGeometry extends ITr2AudGeometry
   /**
    * Carbon ITr2AudGeometry method RemoveGeometry.
    *
-   * Adapted: Wwise geometry removal routes through optional browser backend methods while
-   * retaining Carbon's set reference counts.
-   * Carbon declaration: AudGeometry::RemoveGeometry (audio/src/AudGeometry.h:75).
+   * @adapted Wwise geometry removal routes through optional browser backend methods while
+   *   retaining Carbon's set reference counts.
+   *   Carbon declaration: AudGeometry::RemoveGeometry (audio/src/AudGeometry.h:75).
    */
   @meta.adapted
   RemoveGeometry(geometrySetId, instanceId)

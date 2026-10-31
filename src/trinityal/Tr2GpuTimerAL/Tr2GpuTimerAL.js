@@ -79,10 +79,9 @@ export class Tr2GpuTimerAL
    * disabled, otherwise a fresh implementation replaces this value's; a
    * failure leaves it on the null implementation.
    *
-   * Adapted: the render context allocates the implementation instead of a
-   * compile-time platform include. The previous share is released explicitly
-   * because JavaScript has no shared_ptr; existing copies keep it alive.
-   *
+   * @adapted the render context allocates the implementation instead of a
+   *   compile-time platform include. The previous share is released explicitly
+   *   because JavaScript has no shared_ptr; existing copies keep it alive.
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
@@ -103,6 +102,7 @@ export class Tr2GpuTimerAL
   /**
    * Starts timing (`Tr2GpuTimerAl.cpp:38-41`).
    *
+   * @implemented
    * @param {object} renderContext The context recording.
    * @returns {boolean} Whether the timer started.
    */
@@ -115,6 +115,7 @@ export class Tr2GpuTimerAL
   /**
    * Stops timing (`Tr2GpuTimerAl.cpp:43-46`).
    *
+   * @implemented
    * @param {object} renderContext The context recording.
    */
   @meta.implemented
@@ -126,6 +127,7 @@ export class Tr2GpuTimerAL
   /**
    * The last measured time (`Tr2GpuTimerAl.cpp:48-51`).
    *
+   * @implemented
    * @param {object} renderContext The context whose results are read.
    * @returns {number} The backend's measurement; -1 without a timer.
    */
@@ -138,6 +140,7 @@ export class Tr2GpuTimerAL
   /**
    * Whether the implementation exists (`Tr2GpuTimerAl.cpp:53-56`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -149,8 +152,8 @@ export class Tr2GpuTimerAL
   /**
    * Compares implementation identity (`Tr2GpuTimerAl.cpp:58-61`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2GpuTimerAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -163,6 +166,7 @@ export class Tr2GpuTimerAL
   /**
    * The implementation's memory class (`Tr2GpuTimerAl.cpp:63-66`).
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.implemented
@@ -175,6 +179,7 @@ export class Tr2GpuTimerAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2GpuTimerAl.cpp:68-79`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

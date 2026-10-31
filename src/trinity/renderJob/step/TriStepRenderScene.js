@@ -17,7 +17,11 @@ export class TriStepRenderScene extends TriRenderStep
   @type.object.ref("ITr2Scene")
   scene = null;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(scene = null)
@@ -28,6 +32,8 @@ export class TriStepRenderScene extends TriRenderStep
   /**
    * Renders a present scene directly and reports the step complete.
    * Carbon TriStepRenderScene.cpp:19-26 retains the nullable scene branch.
+   *
+   * @implemented
    */
 
   @meta.implemented

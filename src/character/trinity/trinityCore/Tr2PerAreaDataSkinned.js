@@ -21,7 +21,11 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
   /** m_perObjectDataPtr: the object owns world, mirror and PS data. */
   _perObjectDataPtr = null;
 
-  /** Native release behavior clamps the per-area count (cpp:196-206). */
+  /**
+   * Native release behavior clamps the per-area count (cpp:196-206).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   SetJointCount(n)
@@ -29,7 +33,11 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
     this._jointCount = Math.min(n, TR2_MAX_BONES_PER_MESHAREA);
   }
 
-  /** Copies one packed matrix; bounds assert becomes a JS error (cpp:208-213). */
+  /**
+   * Copies one packed matrix; bounds assert becomes a JS error (cpp:208-213).
+   *
+   * @adapted
+   */
   @blue.method
   @meta.adapted
   SetJointTransform(ix, data)
@@ -39,7 +47,11 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
     for (let i = 0; i < 12; i++) this._jointTransforms[offset + i] = data[i];
   }
 
-  /** Borrows the shared object, matching the native reference (h:173). */
+  /**
+   * Borrows the shared object, matching the native reference (h:173).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   SetPerObjectData(perObjectData)
@@ -47,7 +59,11 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
     this._perObjectDataPtr = perObjectData;
   }
 
-  /** Returns the remapped joint count (h:178). */
+  /**
+   * Returns the remapped joint count (h:178).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   GetJointCount()
@@ -55,7 +71,11 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
     return this._jointCount;
   }
 
-  /** Returns the retained packed matrix buffer (h:182). */
+  /**
+   * Returns the retained packed matrix buffer (h:182).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   GetMatrices()
@@ -65,8 +85,9 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
 
   /**
    * Uploads the area's joints and the object's transforms, then delegates PS.
-   * Adapted: the AL returns a mapped Uint8Array instead of void* (cpp:147-182).
-   * Unused joints and the reserved register remain untouched, as in Carbon.
+   *
+   * @adapted the AL returns a mapped Uint8Array instead of void* (cpp:147-182).
+   *   Unused joints and the reserved register remain untouched, as in Carbon.
    */
   @blue.method
   @meta.adapted
@@ -95,7 +116,11 @@ export class Tr2PerAreaDataSkinned extends Tr2PerObjectData
     return uploaded;
   }
 
-  /** Native indirect writer (cpp:184-194); Tr2IndirectDrawBufferWriter is unported. */
+  /**
+   * Native indirect writer (cpp:184-194); Tr2IndirectDrawBufferWriter is unported.
+   *
+   * @notImplemented
+   */
   @blue.method
   @meta.notImplemented
   ApplyConstantBuffers(_writer, _renderContext)

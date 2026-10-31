@@ -24,6 +24,8 @@ export class Tr2ParticleElementDeclaration extends IRoot
    * Carbon MAP_PROPERTY_READONLY "name" over GetName
    * (Tr2ParticleElementDeclaration_Blue.cpp:45): the element name composed of
    * type and customName.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.string
@@ -61,6 +63,7 @@ export class Tr2ParticleElementDeclaration extends IRoot
    * Returns the semantic dimension, or the authored dimension for CUSTOM elements.
    * Carbon GetSize (Tr2ParticleElementDeclaration.cpp:118-132).
    *
+   * @implemented
    * @returns {number} Two for lifetime, three for position or velocity, one for mass,
    * or the custom dimension.
    */

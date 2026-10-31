@@ -15,6 +15,7 @@ export class ITr2GenericParticleConstraint extends IRoot
    * (ITr2GenericParticleConstraint.h:45): called when the constraint is added
    * to a particle system or the system is re-bound.
    *
+   * @abstract
    * @param {Tr2ParticleSystem} _particleSystem The owning particle system.
    */
   @be.abstract
@@ -26,6 +27,7 @@ export class ITr2GenericParticleConstraint extends IRoot
    * unsigned* strides, unsigned count, float dt )`
    * (ITr2GenericParticleConstraint.h:36).
    *
+   * @abstract
    * @param {object} _arguments Arguments for child emitters.
    * @param {Array<Float32Array>} _particles Particle data, one array per element.
    * @param {Array<number>} _strides Floats per particle in each array.
@@ -41,6 +43,7 @@ export class ITr2GenericParticleConstraint extends IRoot
    * (ITr2GenericParticleConstraint.h:47): the base body is empty, so a constraint that draws nothing
    * inherits this.
    *
+   * @adapted
    * @param {ITr2DebugRenderer2} _renderer The debug renderer.
    * @param {mat4} _worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.

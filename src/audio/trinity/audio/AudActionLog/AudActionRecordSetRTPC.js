@@ -35,7 +35,11 @@ export class AudActionRecordSetRTPC extends AudActionRecord
     this.playID = playID;
   }
 
-  /** Returns Carbon's Python-bridge tuple as a JavaScript array. */
+  /**
+   * Returns Carbon's Python-bridge tuple as a JavaScript array.
+   *
+   * @adapted
+   */
   ToPyObject()
   {
     return [ "AudActionRecordSetRTPC", this.time, this.emitterID, this.name, this.value, this.playID ];

@@ -126,6 +126,7 @@ export class Tr2Renderer
   /**
    * The register the scene's per-frame vertex constants bind at.
    *
+   * @implemented
    * @returns {number} A constant-buffer register.
    */
   @meta.implemented
@@ -137,6 +138,7 @@ export class Tr2Renderer
   /**
    * The register the scene's per-frame pixel constants bind at.
    *
+   * @implemented
    * @returns {number} A constant-buffer register.
    */
   @meta.implemented
@@ -148,6 +150,7 @@ export class Tr2Renderer
   /**
    * The register an object's per-object vertex constants bind at.
    *
+   * @implemented
    * @returns {number} A constant-buffer register.
    */
   @meta.implemented
@@ -159,6 +162,7 @@ export class Tr2Renderer
   /**
    * The register an object's per-object pixel constants bind at.
    *
+   * @implemented
    * @returns {number} A constant-buffer register.
    */
   @meta.implemented
@@ -170,6 +174,7 @@ export class Tr2Renderer
   /**
    * The register ray-traced vertex-buffer data binds at.
    *
+   * @implemented
    * @returns {number} A constant-buffer register.
    */
   @meta.implemented
@@ -181,6 +186,7 @@ export class Tr2Renderer
   /**
    * The register the GUI's per-object vertex constants bind at.
    *
+   * @implemented
    * @returns {number} A constant-buffer register.
    */
   @meta.implemented
@@ -197,6 +203,7 @@ export class Tr2Renderer
    * pixel stage has its own register and every other stage shares the vertex
    * one (`Tr2Renderer.h:65-81`).
    *
+   * @adapted
    * @param {number} shaderType A Carbon `ShaderType` value.
    * @returns {number} A constant-buffer register.
    */
@@ -222,13 +229,12 @@ export class Tr2Renderer
    * `InitializeTrinity`: registers the renderer's global variables - `Time`,
    * then the camera matrices and frustum planes - once, at start-up.
    *
-   * Adapted: the variables are the same objects the view and projection
-   * setters and `BeginFrame` use, which still create them on first use for code that runs
-   * without `InitializeTrinity` (tests building a context directly). Not
-   * ported: `s_poolAllocator` (JS allocates). The effect state manager registers `ViewportSize`
-   * (Tr2EffectStateManager.cpp:631-637) at construction so standalone contexts
-   * also publish it before material mapping.
-   *
+   * @adapted the variables are the same objects the view and projection
+   *   setters and `BeginFrame` use, which still create them on first use for code that runs
+   *   without `InitializeTrinity` (tests building a context directly). Not
+   *   ported: `s_poolAllocator` (JS allocates). The effect state manager registers `ViewportSize`
+   *   (Tr2EffectStateManager.cpp:631-637) at construction so standalone contexts
+   *   also publish it before material mapping.
    * @returns {boolean} True, as Carbon's.
    */
   @meta.adapted
@@ -244,6 +250,8 @@ export class Tr2Renderer
    * Releases the fullscreen blitter, the debug text renderer and the debug
    * line set from native Shutdown (cpp:358-373).
    * Partial: the renderer-owned pool is still unported.
+   *
+   * @adapted
    */
   @meta.adapted
   static shutdown()
@@ -267,9 +275,8 @@ export class Tr2Renderer
    * this creates the blitter and the debug line set (cpp:1293-1296) and
    * reserves the quad-list index buffer.
    *
-   * Adapted: Carbon also allocates the quad vertex buffer here; only the
-   * blitter, the debug line set and the quad-list index buffer are ported.
-   *
+   * @adapted Carbon also allocates the quad vertex buffer here; only the
+   *   blitter, the debug line set and the quad-list index buffer are ported.
    * @param {object} [renderContext] The context to prepare the blitter against.
    * @returns {Tr2Blitter} The renderer's blitter.
    */
@@ -292,10 +299,9 @@ export class Tr2Renderer
    * the quad-list index buffer from the shared geometry buffer, so the next
    * `prepareDeviceResources` makes it again.
    *
-   * Adapted: the quad vertex buffer and the reversed quad-list index buffer
-   * are not ported (see prepareDeviceResources), so only the quad-list index
-   * buffer is freed.
-   *
+   * @adapted the quad vertex buffer and the reversed quad-list index buffer
+   *   are not ported (see prepareDeviceResources), so only the quad-list index
+   *   buffer is freed.
    * @param {number} s A `TriStorage` mask.
    * @returns {void}
    */
@@ -319,6 +325,7 @@ export class Tr2Renderer
    * them. `AdjustTextureCoordsToViewport` records what the correction is and
    * why folding it into the blitter would move every screen-quad draw.
    *
+   * @implemented
    * @param {object} renderContext The context to draw through.
    * @param {object} material The material to draw with.
    * @returns {boolean} Whether the quad was drawn.
@@ -338,9 +345,8 @@ export class Tr2Renderer
    * the caller's corners as the VERTEX rectangle. Carbon distinguishes the two
    * by overload; JavaScript has no overloads, so the rectangle form is named.
    *
-   * Adapted: Carbon distinguishes this from the material form by overload; JavaScript has
-   * none, so the rectangle form carries its own name.
-   *
+   * @adapted Carbon distinguishes this from the material form by overload; JavaScript has
+   *   none, so the rectangle form carries its own name.
    * @param {object} renderContext The context to draw through.
    * @param {object} effect The effect to draw with.
    * @param {Array<number>} topLeft Top-left vertex corner.
@@ -359,6 +365,7 @@ export class Tr2Renderer
    *
    * Carbon `DrawCameraSpaceScreenQuad` (`Tr2Renderer.cpp:1022-1028`).
    *
+   * @implemented
    * @param {object} renderContext The context to draw through.
    * @param {object} shader The shader state interface to run.
    * @param {object} material The material supplying its parameters.
@@ -376,6 +383,7 @@ export class Tr2Renderer
    *
    * Carbon `DrawFullScreenWithShader` (`Tr2Renderer.cpp:768-775`).
    *
+   * @implemented
    * @param {object} renderContext The context to draw through.
    * @param {object} material The material to draw with.
    * @returns {boolean} Whether the quad was drawn.
@@ -396,9 +404,8 @@ export class Tr2Renderer
    * `DrawScreenQuad` does not - Carbon draws that distinction and it is load
    * bearing.
    *
-   * Adapted: Carbon's four overloads differ only in an optional material and optional
-   * coordinates, which are defaults here.
-   *
+   * @adapted Carbon's four overloads differ only in an optional material and optional
+   *   coordinates, which are defaults here.
    * @param {object} renderContext The context to draw through.
    * @param {object} texture The texture to blit.
    * @param {object} [options] `material`, `tlTexCoord`, `brTexCoord`, `filter`.
@@ -425,6 +432,7 @@ export class Tr2Renderer
    * texture, its coordinates adjusted to the viewport first. False without a
    * blitter, as Carbon returns.
    *
+   * @implemented
    * @param {object} renderContext The context to draw through.
    * @param {object} effect The material to draw with.
    * @param {ArrayLike<number>} tlTexCoord Top-left texture coordinate.
@@ -461,9 +469,8 @@ export class Tr2Renderer
    * Carbon GetSettings (Tr2Renderer.cpp:1387-1391): the engine settings every
    * `TRI_REGISTER_SETTING` registers into.
    *
-   * Adapted: the registry is held by TriSettingsRegistrar, so classes can
-   * register without importing the renderer.
-   *
+   * @adapted the registry is held by TriSettingsRegistrar, so classes can
+   *   register without importing the renderer.
    * @returns {TriSettings} The renderer's settings.
    */
   @meta.adapted
@@ -479,6 +486,7 @@ export class Tr2Renderer
    * this. The clock itself is `TriDevice::m_animationTime`, advanced by the
    * tick; nothing here holds a copy.
    *
+   * @implemented
    * @returns {number} Seconds since the clock was last recentred.
    */
   @meta.implemented
@@ -491,6 +499,7 @@ export class Tr2Renderer
    * Seconds elapsed on the animation clock since `startTime`
    * (`Tr2Renderer.cpp:1035-1038`), correct across the hourly recentre.
    *
+   * @implemented
    * @param {number} startTime An earlier reading of the animation clock.
    * @returns {number} The elapsed seconds.
    */
@@ -509,6 +518,7 @@ export class Tr2Renderer
    * once (`Tr2Renderer.cpp:330`) and assigns it here (`:1040-1051`); w comes
    * from the variable's own prior value, not from a second clock.
    *
+   * @implemented
    * @returns {number[]} The published vector.
    */
   @meta.implemented
@@ -535,10 +545,9 @@ export class Tr2Renderer
    * Carbon clears its two statics, s_debugTextRenderer and s_debugLineSet
    * (Tr2Renderer.cpp:1056-1067), and so does this.
    *
-   * Adapted: before those statics were ported, this cleared the debug renderer
-   * installed on the ambient context instead, and it still does; Carbon's
-   * EndFrame does not touch that renderer.
-   *
+   * @adapted before those statics were ported, this cleared the debug renderer
+   *   installed on the ambient context instead, and it still does; Carbon's
+   *   EndFrame does not touch that renderer.
    * @returns {void}
    */
   @meta.adapted
@@ -568,6 +577,7 @@ export class Tr2Renderer
    * Carbon RenderDebugInfo (Tr2Renderer.cpp:1377-1390): draws, then clears,
    * the debug text and debug lines queued on the renderer during the frame.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The context to draw through.
    * @returns {void}
    */
@@ -590,6 +600,7 @@ export class Tr2Renderer
   /**
    * Opens the scene on the ambient render context (`Tr2Renderer.cpp:1066-1070`).
    *
+   * @implemented
    * @returns {*} Whatever the backend's BeginScene returns.
    */
   @meta.implemented
@@ -604,10 +615,9 @@ export class Tr2Renderer
    * The clear happens BEFORE EndScene, so every payload leased during the
    * frame dies at one point.
    *
-   * Adapted: Carbon's pool allocator is a Tr2Renderer static (s_poolAllocator); ours is per
-   * render context, so this clears the ambient context's. Moving the pool is open work - it
-   * has three call sites that read it off a context they were handed.
-   *
+   * @adapted Carbon's pool allocator is a Tr2Renderer static (s_poolAllocator); ours is per
+   *   render context, so this clears the ambient context's. Moving the pool is open work - it
+   *   has three call sites that read it off a context they were handed.
    * @returns {*} Whatever the backend's EndScene returns.
    */
   @meta.adapted
@@ -625,6 +635,7 @@ export class Tr2Renderer
    * and is advanced by the tick at `:805` - so the counter is the device's and
    * this only reads it (`Tr2Renderer.cpp:1088-1091`).
    *
+   * @implemented
    * @returns {number} The frame number.
    */
   @meta.implemented
@@ -637,6 +648,7 @@ export class Tr2Renderer
    * The shader model the renderer runs, which picks tier-dependent geometry
    * such as the booster box or star (`Tr2Renderer.cpp:1147-1150`).
    *
+   * @implemented
    * @returns {number} A `TR2SHADERMODEL` value.
    */
   @meta.implemented
@@ -645,7 +657,11 @@ export class Tr2Renderer
     return Tr2Renderer.#shaderModel;
   }
 
-  /** Carbon IsLowQuality (Tr2Renderer.cpp:1193-1197): the low shader model or below. */
+  /**
+   * Carbon IsLowQuality (Tr2Renderer.cpp:1193-1197): the low shader model or below.
+   *
+   * @implemented
+   */
   @meta.implemented
   static IsLowQuality()
   {
@@ -655,9 +671,8 @@ export class Tr2Renderer
   /**
    * Sets the renderer's shader model.
    *
-   * Adapted: Carbon also requests a device reset on change (Tr2Renderer.cpp:1126-1145); no
-   * device reset is ported, so nothing rebuilds tier-dependent resources.
-   *
+   * @adapted Carbon also requests a device reset on change (Tr2Renderer.cpp:1126-1145); no
+   *   device reset is ported, so nothing rebuilds tier-dependent resources.
    * @param {number} shaderModel A `TR2SHADERMODEL` value.
    * @returns {void}
    */
@@ -671,10 +686,9 @@ export class Tr2Renderer
    * Whether device resources may be created now: the main-thread context has
    * a backend with a device (`Tr2Renderer.cpp:1393-1397`).
    *
-   * Adapted: Carbon also ANDs s_isResourceCreationAllowed, which TriDevice clears during a
-   * reset (TriDevice.cpp:886); no device reset is ported, so the flag has nothing to clear
-   * it.
-   *
+   * @adapted Carbon also ANDs s_isResourceCreationAllowed, which TriDevice clears during a
+   *   reset (TriDevice.cpp:886); no device reset is ported, so the flag has nothing to clear
+   *   it.
    * @returns {boolean} True when creation is allowed.
    */
   @meta.adapted
@@ -688,6 +702,7 @@ export class Tr2Renderer
    * (`Tr2Renderer.cpp:1229-1266`). Sixteen-bit indices while every index
    * fits, thirty-two-bit beyond.
    *
+   * @implemented
    * @param {number} [numOfQuads] Quads the caller needs indices for.
    * @returns {void}
    */
@@ -751,6 +766,7 @@ export class Tr2Renderer
    * Invalid until `ReserveQuadListIndexBuffer` has made one, as Carbon's
    * default-constructed allocation is.
    *
+   * @implemented
    * @returns {Tr2SuballocatedBufferAllocation} The allocation.
    */
   @meta.implemented
@@ -769,6 +785,7 @@ export class Tr2Renderer
    * because JavaScript has no overloads. As in Carbon, the named form looks
    * the technique up before it checks the description is non-empty.
    *
+   * @adapted
    * @param {object} effect The `Tr2Material` holding the compute passes.
    * @param {...*} args `(groupDimX, groupDimY, groupDimZ, renderContext)` or
    *     `(techniqueName, groupDimX, groupDimY, groupDimZ, renderContext)`.
@@ -823,6 +840,7 @@ export class Tr2Renderer
    * buffer. Carbon's quirk kept: it answers true when no pass has a compute
    * stage, where `runComputeShader` answers false.
    *
+   * @adapted
    * @param {object} effect The `Tr2Material` holding the compute passes.
    * @param {object} indirectParams A `Tr2BufferAL` holding the group counts.
    * @param {number} offset Byte offset to them.
@@ -876,6 +894,7 @@ export class Tr2Renderer
    * Carbon SetPerspectiveProjection( fov, front, back, asp, viewportAdjustment )
    * (Tr2Renderer.cpp:403-415).
    *
+   * @implemented
    * @param {number} fov Vertical field of view, radians.
    * @param {number} front Near plane.
    * @param {number} back Far plane.
@@ -902,6 +921,7 @@ export class Tr2Renderer
    * Carbon SetPerspectiveProjection( left, right, bottom, top, front, back,
    * viewportAdjustment ) (Tr2Renderer.cpp:417-426).
    *
+   * @implemented
    * @param {number} left Left edge at the near plane.
    * @param {number} right Right edge.
    * @param {number} bottom Bottom edge.
@@ -927,6 +947,7 @@ export class Tr2Renderer
    * Carbon SetOrthoProjection( width, height, front, back, viewportAdjustment )
    * (Tr2Renderer.cpp:428-443).
    *
+   * @implemented
    * @param {number} width View width.
    * @param {number} height View height.
    * @param {number} front Near plane.
@@ -956,6 +977,7 @@ export class Tr2Renderer
    * Carbon SetOrthoProjection( left, right, bottom, top, front, back,
    * viewportAdjustment ) (Tr2Renderer.cpp:445-459).
    *
+   * @implemented
    * @param {number} left Left edge.
    * @param {number} right Right edge.
    * @param {number} bottom Bottom edge.
@@ -993,6 +1015,7 @@ export class Tr2Renderer
    * rebuilds its ortho projection instead (Tr2PrimitiveScene.cpp:158-169);
    * ITr2PickableScene and EveSpaceScene do not.
    *
+   * @implemented
    * @param {ArrayLike<number>} scaling x and y scale.
    * @param {ArrayLike<number>} translation x and y offset.
    * @returns {void}
@@ -1013,6 +1036,7 @@ export class Tr2Renderer
    * Carbon SetProjectionTransform (Tr2Renderer.cpp:461-468): an arbitrary
    * matrix, its parameters read back from it.
    *
+   * @implemented
    * @param {mat4} proj The projection.
    * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
    * @returns {void}
@@ -1030,6 +1054,7 @@ export class Tr2Renderer
   /**
    * Carbon GetCurrentProjectionType (Tr2Renderer.cpp:470-473).
    *
+   * @implemented
    * @returns {number} A `PROJECTION_TYPE` value.
    */
   @meta.implemented
@@ -1042,6 +1067,7 @@ export class Tr2Renderer
    * Carbon GetProjectionTransform (Tr2Renderer.cpp:475-478): the projection
    * with the viewport adjustment applied. A live matrix; callers read it.
    *
+   * @implemented
    * @returns {mat4} The projection.
    */
   @meta.implemented
@@ -1055,6 +1081,7 @@ export class Tr2Renderer
    * `_33` negated and offset by one, `_43` negated - indices 10 and 14.
    * Carbon returns by value; the copy goes into `out`.
    *
+   * @implemented
    * @param {mat4} out Receives the matrix.
    * @returns {mat4} out
    */
@@ -1071,6 +1098,7 @@ export class Tr2Renderer
    * Carbon GetProjectionRawTransform (Tr2Renderer.cpp:488-491): the projection
    * before the viewport adjustment. A live matrix; callers read it.
    *
+   * @implemented
    * @returns {mat4} The raw projection.
    */
   @meta.implemented
@@ -1090,6 +1118,7 @@ export class Tr2Renderer
    * Carbon quirk, reproduced: the depth is `m_minZ + p.z * m_maxZ` (:505), not
    * a lerp between the two; identical whenever minZ is 0.
    *
+   * @implemented
    * @param {ArrayLike<number>} worldPos The world position.
    * @param {{x: number, y: number, width: number, height: number, minZ: number, maxZ: number}} vp The viewport.
    * @param {vec3} out Receives the screen position.
@@ -1116,6 +1145,7 @@ export class Tr2Renderer
    * Carbon GetInverseProjectionTransform (Tr2Renderer.cpp:508-511). A live
    * matrix; callers read it.
    *
+   * @implemented
    * @returns {mat4} The inverse of the adjusted projection.
    */
   @meta.implemented
@@ -1129,6 +1159,7 @@ export class Tr2Renderer
    * projection set through SetProjectionTransform this is the far plane, as
    * UpdateProjectionParameters derives it.
    *
+   * @implemented
    * @returns {number} The front clip.
    */
   @meta.implemented
@@ -1140,6 +1171,7 @@ export class Tr2Renderer
   /**
    * Carbon GetBackClip (Tr2Renderer.cpp:518-521).
    *
+   * @implemented
    * @returns {number} The back clip.
    */
   @meta.implemented
@@ -1152,6 +1184,7 @@ export class Tr2Renderer
    * Carbon GetFrustumRadius (Tr2Renderer.cpp:523-526): the length of the
    * view-space far corner, set with the projection.
    *
+   * @implemented
    * @returns {number} The radius.
    */
   @meta.implemented
@@ -1165,6 +1198,7 @@ export class Tr2Renderer
    * from the registered variable, as Carbon reads it. The output reference is
    * the return value.
    *
+   * @implemented
    * @param {number} index The plane, 0 to 5.
    * @param {Float32Array|number[]} plane Receives the plane.
    * @returns {Float32Array|number[]} plane
@@ -1178,6 +1212,7 @@ export class Tr2Renderer
   /**
    * Carbon GetFieldOfView (Tr2Renderer.cpp:533-536).
    *
+   * @implemented
    * @returns {number} Radians; 1 for an orthographic projection.
    */
   @meta.implemented
@@ -1189,6 +1224,7 @@ export class Tr2Renderer
   /**
    * Carbon GetAspectRatio (Tr2Renderer.cpp:538-541).
    *
+   * @implemented
    * @returns {number} Width over height.
    */
   @meta.implemented
@@ -1200,6 +1236,7 @@ export class Tr2Renderer
   /**
    * Carbon GetOrthoWidth (Tr2Renderer.cpp:543-546).
    *
+   * @implemented
    * @returns {number} The width of the last orthographic projection.
    */
   @meta.implemented
@@ -1211,6 +1248,7 @@ export class Tr2Renderer
   /**
    * Carbon GetOrthoHeight (Tr2Renderer.cpp:548-551).
    *
+   * @implemented
    * @returns {number} The height of the last orthographic projection.
    */
   @meta.implemented
@@ -1223,6 +1261,7 @@ export class Tr2Renderer
    * Carbon SetWorldTransform (Tr2Renderer.cpp:553-559): copied, and the
    * "WorldMat" variable told.
    *
+   * @implemented
    * @param {mat4} m The world matrix.
    * @returns {void}
    */
@@ -1241,6 +1280,7 @@ export class Tr2Renderer
    * view-projection and frustum planes, and the "ViewMat"/"ViewInvMat"
    * variables.
    *
+   * @implemented
    * @param {mat4} m The view matrix.
    * @returns {void}
    */
@@ -1262,6 +1302,7 @@ export class Tr2Renderer
    * Carbon GetWorldTransform (Tr2Renderer.cpp:573-576). A live matrix;
    * callers read it.
    *
+   * @implemented
    * @returns {mat4} The world matrix.
    */
   @meta.implemented
@@ -1274,6 +1315,7 @@ export class Tr2Renderer
    * Carbon GetViewTransform (Tr2Renderer.cpp:578-581). A live matrix; callers
    * read it.
    *
+   * @implemented
    * @returns {mat4} The view matrix.
    */
   @meta.implemented
@@ -1286,6 +1328,7 @@ export class Tr2Renderer
    * Carbon GetInverseViewTransform (Tr2Renderer.cpp:583-586). A live matrix;
    * callers read it.
    *
+   * @implemented
    * @returns {mat4} The inverse view matrix.
    */
   @meta.implemented
@@ -1299,6 +1342,7 @@ export class Tr2Renderer
    * inverse view's translation row, `_41.._43`. Here it is a live view onto
    * indices 12-14 of the same matrix, so it follows every SetViewTransform.
    *
+   * @implemented
    * @returns {Float32Array} The camera position, three components.
    */
   @meta.implemented
@@ -1312,6 +1356,7 @@ export class Tr2Renderer
    * `_13 _23 _33` - indices 2, 6 and 10. Carbon returns by value; the copy
    * goes into `out`.
    *
+   * @implemented
    * @param {vec3} out Receives the direction.
    * @returns {vec3} out
    */
@@ -1326,6 +1371,7 @@ export class Tr2Renderer
    * Carbon GetViewport (Tr2Renderer.cpp:1392-1396): the main-thread context's
    * authored viewport, through its state manager.
    *
+   * @implemented
    * @returns {object|null} The viewport, or null before one is set.
    */
   @meta.implemented
@@ -1338,6 +1384,7 @@ export class Tr2Renderer
    * Carbon PushProjection (Tr2Renderer.cpp:976-979): saves the RAW projection
    * and the viewport adjustment.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1358,6 +1405,7 @@ export class Tr2Renderer
    * rather than the 1 SetOrthoProjection gave it. Carbon asserts the stack is
    * not empty and then reads it unchecked; here an empty stack throws.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1378,6 +1426,7 @@ export class Tr2Renderer
   /**
    * Carbon PushViewTransform (Tr2Renderer.cpp:993-996).
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1391,6 +1440,7 @@ export class Tr2Renderer
    * stack is not empty and then reads it unchecked; here an empty stack
    * throws.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented

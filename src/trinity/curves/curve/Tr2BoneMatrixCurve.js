@@ -155,14 +155,22 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   /** m_skeletonTag: the skeleton the cached joint belongs to, ~0u initially (cpp:29). */
   _skeletonTag = 0xffffffff;
 
-  /** Gets the native curve template's name. */
+  /**
+   * Gets the native curve template's name.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetName()
   {
     return this.name;
   }
 
-  /** Sets the native curve template's name. */
+  /**
+   * Sets the native curve template's name.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetName(value)
   {
@@ -171,7 +179,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Initializes sorted keys and cached value.
-   * Adapted: native Initialize only sorts; the existing JS adapter also samples zero.
+   *
+   * @adapted native Initialize only sorts; the existing JS adapter also samples zero.
    */
   @meta.adapted
   Initialize()
@@ -183,7 +192,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Gets authored duration.
-   * Adapted: retains the JS last-key fallback when authored length is zero.
+   *
+   * @adapted retains the JS last-key fallback when authored length is zero.
    */
   @meta.adapted
   Length()
@@ -195,6 +205,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Updates cached matrix value.
+   *
+   * @adapted
    */
   @meta.adapted
   UpdateValue(time)
@@ -204,7 +216,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Gets matrix value at a time.
-   * Adapted: the matrix is written into out rather than returned by value.
+   *
+   * @adapted the matrix is written into out rather than returned by value.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -221,7 +234,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Gets matrix value at a time.
-   * Adapted: the matrix is written into out rather than returned by value.
+   *
+   * @adapted the matrix is written into out rather than returned by value.
    */
   @meta.adapted
   GetValue(time, out)
@@ -231,6 +245,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Sorts keys by time.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -256,7 +272,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Adds a matrix key.
-   * Adapted: retains the JS direct key insertion and endpoint rollover helper.
+   *
+   * @adapted retains the JS direct key insertion and endpoint rollover helper.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -286,11 +303,10 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * key, copies the time and matrix, stamps the curve's m_interpolation (SPHERICAL_LINEAR from the constructor,
    * cpp:31) and appends it with Insert( -1 ).
    *
-   * Adapted: the key's unpersisted interpolation lives in the _keyInterpolations side table, because
-   * Tr2MatrixKey stores no interpolation field, and the curve has no m_interpolation member, so the
-   * constructor's SPHERICAL_LINEAR is stamped directly. Native returns without adding when CreateInstance
-   * fails; JavaScript construction cannot fail.
-   *
+   * @adapted the key's unpersisted interpolation lives in the _keyInterpolations side table, because
+   *   Tr2MatrixKey stores no interpolation field, and the curve has no m_interpolation member, so the
+   *   constructor's SPHERICAL_LINEAR is stamped directly. Native returns without adding when CreateInstance
+   *   fails; JavaScript construction cannot fail.
    * @param {number} time Key time in seconds.
    * @param {Float32Array} value Key matrix; copied into the new key.
    * @returns {void}
@@ -305,7 +321,11 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     this.keys.push(key);
   }
 
-  /** Gets the number of matrix keys. */
+  /**
+   * Gets the number of matrix keys.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyCount()
@@ -313,7 +333,11 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     return this.keys.length;
   }
 
-  /** Gets a key time, or the curve length when the index is out of range. */
+  /**
+   * Gets a key time, or the curve length when the index is out of range.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyTime(index)
@@ -321,7 +345,11 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     return Number(this.keys[index]?.time ?? this.length);
   }
 
-  /** Sets a key time without reordering; Carbon requires an explicit Sort call. */
+  /**
+   * Sets a key time without reordering; Carbon requires an explicit Sort call.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetKeyTime(index, time)
@@ -332,7 +360,9 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     }
   }
 
-  /** Adapted: returns a detached matrix rather than the native const reference. */
+  /**
+   * @adapted returns a detached matrix rather than the native const reference.
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   GetKeyValue(index)
@@ -340,7 +370,9 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     return mat4.clone(this.keys[index]?.value ?? this.endValue);
   }
 
-  /** Adapted: validates and copies caller matrices into existing key storage. */
+  /**
+   * @adapted validates and copies caller matrices into existing key storage.
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   SetKeyValue(index, value)
@@ -355,7 +387,11 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     }
   }
 
-  /** Gets a key interpolation, or Carbon's spherical-linear curve default. */
+  /**
+   * Gets a key interpolation, or Carbon's spherical-linear curve default.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyInterpolation(index)
@@ -366,7 +402,11 @@ export class Tr2BoneMatrixCurve extends ITriFunction
       : SPHERICAL_LINEAR;
   }
 
-  /** Sets the unpersisted interpolation mode on an existing matrix key. */
+  /**
+   * Sets the unpersisted interpolation mode on an existing matrix key.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetKeyInterpolation(index, interpolation)
@@ -380,6 +420,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Removes a matrix key.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -393,7 +435,11 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     }
   }
 
-  /** Carbon SetBone (Tr2BoneMatrixCurve.cpp:51-55): the bone name, and the joint caches reset. */
+  /**
+   * Carbon SetBone (Tr2BoneMatrixCurve.cpp:51-55): the bone name, and the joint caches reset.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetBone(bone)
@@ -404,6 +450,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Gets the source bone name.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -445,6 +493,8 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * re-resolved whenever the skeleton tag changes, and the bone's transform is composed
    * as (m_transform * bone) * skinnedObject.GetTransform() in Carbon's row-vector order,
    * which gl-matrix writes right to left.
+   *
+   * @implemented
    * @param {mat4} out
    * @returns {mat4} out
    */

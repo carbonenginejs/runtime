@@ -24,7 +24,11 @@ export class Tr2GStateParameter extends IInitialize
   @type.string
   nodename = "";
 
-  /** Carbon method GetName (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetName (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetName()
@@ -32,7 +36,11 @@ export class Tr2GStateParameter extends IInitialize
     return this.name;
   }
 
-  /** Carbon method GetNodeName (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetNodeName (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetNodeName()
@@ -40,7 +48,11 @@ export class Tr2GStateParameter extends IInitialize
     return this.nodename;
   }
 
-  /** Carbon method GetValue (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetValue (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetValue()
@@ -48,7 +60,11 @@ export class Tr2GStateParameter extends IInitialize
     return this.value;
   }
 
-  /** Carbon method SetName (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetName (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetName(name)
@@ -56,7 +72,11 @@ export class Tr2GStateParameter extends IInitialize
     this.name = String(name ?? "");
   }
 
-  /** Carbon method SetNodeName (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetNodeName (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetNodeName(name)
@@ -64,7 +84,11 @@ export class Tr2GStateParameter extends IInitialize
     this.nodename = String(name ?? "");
   }
 
-  /** Carbon method SetValue (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetValue (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetValue(value)
@@ -75,6 +99,8 @@ export class Tr2GStateParameter extends IInitialize
   /**
    * Reports successful portable initialization for the persisted parameter
    * record.
+   *
+   * @implemented
    */
   @meta.implemented
   Initialize()

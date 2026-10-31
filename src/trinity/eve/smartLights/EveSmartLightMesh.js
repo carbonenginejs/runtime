@@ -110,8 +110,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /**
    * Faction-aware group color from the flattened secondary base.
    *
-   * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base through
-   * its shared resolver.
+   * @adapted Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base through
+   *   its shared resolver.
    */
   @meta.adapted
   GetGroupColor()
@@ -128,7 +128,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /**
    * Overwrites the authored custom color.
    *
-   * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
+   * @adapted Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
   @meta.adapted
   SetColor(color)
@@ -139,7 +139,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /**
    * Stores the inherited faction colors and updates every modifier directly.
    *
-   * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
+   * @adapted Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
   @meta.adapted
   SetInheritProperties(colorSet)
@@ -157,7 +157,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /**
    * Fans a controller variable out to every modifier.
    *
-   * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
+   * @adapted Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
   @meta.adapted
   SetControllerVariable(name, value)
@@ -171,8 +171,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /**
    * Newly inserted modifiers receive the current inherited color set.
    *
-   * Adapted: Receives the Blue list event, inserted value and owning array explicitly; only
-   * an inserted modifier inherits the current colour set.
+   * @adapted Receives the Blue list event, inserted value and owning array explicitly; only
+   *   an inserted modifier inherits the current colour set.
    */
   @meta.adapted
   OnListModified(event, _key, _key2, value, list)
@@ -192,6 +192,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Carbon's EveChildMesh overload UpdateSyncronous( context, params ): an
    * empty override (EveSmartLightMesh.h:23); the owning EveChildSmartLightSet
    * drives this mesh through UpdateSyncronous__Distribution instead.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -203,6 +205,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Carbon's IEveSmartLightGroup overload UpdateSyncronous( context, params,
    * distribution ) (EveSmartLightMesh.cpp:21); the owning EveChildSmartLightSet
    * supplies the distribution.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -283,7 +287,11 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     }
   }
 
-  /** Carbon's EveChildMesh overload UpdateAsyncronous( context, params ): an empty override (EveSmartLightMesh.h:24). */
+  /**
+   * Carbon's EveChildMesh overload UpdateAsyncronous( context, params ): an empty override (EveSmartLightMesh.h:24).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateAsyncronous(_updateContext, _params)
@@ -293,6 +301,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /**
    * Carbon's IEveSmartLightGroup overload UpdateAsyncronous( context, params,
    * distribution ) (EveSmartLightMesh.cpp:139): updates the instance-mesh base.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -301,7 +311,11 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     return super.UpdateAsyncronous(updateContext, params);
   }
 
-  /** Forward to the instance renderer's two-stage visibility pass. */
+  /**
+   * Forward to the instance renderer's two-stage visibility pass.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
@@ -309,7 +323,11 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     return super.UpdateVisibility(updateContext, parentTransform, parentLod);
   }
 
-  /** Forward renderable collection to the instance renderer. */
+  /**
+   * Forward renderable collection to the instance renderer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(renderables)
@@ -317,7 +335,11 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     return super.GetRenderables(renderables);
   }
 
-  /** Smart groups report the last set-owned distribution count. */
+  /**
+   * Smart groups report the last set-owned distribution count.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetNumberOfEntities()
@@ -328,8 +350,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /**
    * Keeps SmartLightMesh's separate refresh latch armed as well.
    *
-   * Adapted: The inherited Carbon method is exposed on this derived Blue class; JS also arms
-   * the derived distribution path's explicit deferred-work latch.
+   * @adapted The inherited Carbon method is exposed on this derived Blue class; JS also arms
+   *   the derived distribution path's explicit deferred-work latch.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -343,8 +365,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Applies a resolved group color to every Tr2Effect area, preserving Carbon's
    * path/display/resource/mesh-index guards and exact last-color cache.
    *
-   * Adapted: TriGeometryRes exposes mesh validity through its maintained count contract
-   * instead of Carbon's native GetMeshData pointer.
+   * @adapted TriGeometryRes exposes mesh validity through its maintained count contract
+   *   instead of Carbon's native GetMeshData pointer.
    */
 
   @meta.adapted

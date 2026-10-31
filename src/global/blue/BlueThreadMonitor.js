@@ -25,8 +25,7 @@ export class BlueThreadMonitor extends IBlueThreadMonitor
    * `SetThreadStatus` (BlueThreadMonitor.cpp:12-22) - sets this thread's
    * status.
    *
-   * Adapted: the thread is named `MAIN_THREAD` rather than identified by id.
-   *
+   * @adapted the thread is named `MAIN_THREAD` rather than identified by id.
    * @param {number} status `BTS_*` status.
    * @returns {number} The previous status, `BTS_IDLE` for a thread not seen before.
    */
@@ -53,8 +52,7 @@ export class BlueThreadMonitor extends IBlueThreadMonitor
   /**
    * `GetStatus` (BlueThreadMonitor.cpp:24-37) - every known thread's status.
    *
-   * Adapted: each pair carries the thread's name, not a numeric id.
-   *
+   * @adapted each pair carries the thread's name, not a numeric id.
    * @returns {Array<[string, number]>} `[thread, status]` pairs.
    */
   GetStatus()

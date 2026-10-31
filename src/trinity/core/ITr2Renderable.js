@@ -22,19 +22,35 @@ export class ITr2Renderable extends IRoot
     return true;
   }
 
-  /** Emits batches of the requested type. */
+  /**
+   * Emits batches of the requested type.
+   *
+   * @abstract
+   */
   @be.abstract
   GetBatches(batches, batchType, perObjectData, reason) {}
 
-  /** Reports whether a transparent pass is required. */
+  /**
+   * Reports whether a transparent pass is required.
+   *
+   * @abstract
+   */
   @be.abstract
   HasTransparentBatches() {}
 
-  /** Returns the current transparent-sort value. */
+  /**
+   * Returns the current transparent-sort value.
+   *
+   * @abstract
+   */
   @be.abstract
   GetSortValue() {}
 
-  /** Returns or allocates the renderable's per-object data. */
+  /**
+   * Returns or allocates the renderable's per-object data.
+   *
+   * @abstract
+   */
   @be.abstract
   GetPerObjectData(accumulator) {}
 }

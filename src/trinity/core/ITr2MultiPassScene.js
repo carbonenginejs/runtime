@@ -8,6 +8,8 @@ export class ITr2MultiPassScene extends IRoot
 {
   /**
    * Renders one pass (ITr2MultiPassScene.h:43-44).
+   *
+   * @abstract
    * @param {number} _pass Native PassType value.
    * @param {Tr2RenderContext} _renderContext Active render context.
    * @returns {number} Native RenderPassResult value.

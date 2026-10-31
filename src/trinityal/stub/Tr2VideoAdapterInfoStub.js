@@ -46,6 +46,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * How many adapters exist.
    *
+   * @adapted
    * @returns {object} `{ result, count }`.
    */
   static GetAdapterCount()
@@ -56,6 +57,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * What one adapter is.
    *
+   * @adapted
    * @param {number} [_adapterIndex] Which adapter.
    * @returns {object} `{ result, info }`.
    */
@@ -80,6 +82,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * The monitor an adapter drives.
    *
+   * @adapted
    * @param {number} [_adapterIndex] Which adapter.
    * @returns {object} `{ result, monitor }`; there is no monitor.
    */
@@ -91,6 +94,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * The mode an adapter is currently in.
    *
+   * @adapted
    * @param {number} [_adapterIndex] Which adapter.
    * @returns {object} `{ result, mode }`.
    */
@@ -113,6 +117,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * How many modes an adapter offers for a back-buffer format.
    *
+   * @adapted
    * @param {number} [_adapterIndex] Which adapter.
    * @param {number} [_backBufferFormat] A `PixelFormat`.
    * @returns {object} `{ result, count }`.
@@ -129,6 +134,7 @@ export class Tr2VideoAdapterInfoStub
    * against the 800x600 it reports as current, which catches a caller that
    * treats the two as interchangeable.
    *
+   * @adapted
    * @param {number} [_adapterIndex] Which adapter.
    * @param {number} [_backBufferFormat] A `PixelFormat`.
    * @param {number} [_modeIndex] Which mode.
@@ -153,6 +159,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * The widest texture an adapter can hold.
    *
+   * @adapted
    * @param {number} [_adapterIndex] Which adapter.
    * @returns {object} `{ result, maxWidth }`.
    */
@@ -164,6 +171,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * Whether a format can be a back buffer.
    *
+   * @implemented
    * @param {number} [_adapterIndex] Which adapter.
    * @param {number} [_format] A `PixelFormat`.
    * @returns {boolean} True; the stub supports everything.
@@ -176,6 +184,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * Whether a format can be a render target.
    *
+   * @implemented
    * @param {number} [_adapterIndex] Which adapter.
    * @param {number} [_format] A `PixelFormat`.
    * @returns {boolean} True; the stub supports everything.
@@ -188,6 +197,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * Whether two adapter indices name different adapters.
    *
+   * @implemented
    * @param {number} adapter1 One index.
    * @param {number} adapter2 The other.
    * @returns {boolean} Whether they differ.
@@ -200,6 +210,7 @@ export class Tr2VideoAdapterInfoStub
   /**
    * Re-reads adapter data after a device change.
    *
+   * @implemented
    * @returns {number} An `ALResult`.
    */
   static RefreshData()

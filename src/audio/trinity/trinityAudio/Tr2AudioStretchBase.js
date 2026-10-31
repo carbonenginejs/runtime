@@ -47,7 +47,11 @@ export class Tr2AudioStretchBase
     this.Initialize();
   }
 
-  /** Carbon method Initialize: create the three standard emitters when absent. */
+  /**
+   * Carbon method Initialize: create the three standard emitters when absent.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -73,10 +77,10 @@ export class Tr2AudioStretchBase
   /**
    * Carbon method Update: position endpoints and project the listener onto the beam.
    *
-   * Adapted: Carbon reads Tr2Renderer's view position; the device-free audio graph uses the
-   * registered audio listener position, or the source position before a listener
-   * is registered. Present listeners must supply GetPosition. Carbon Update is
-   * Tr2AudioStretchBase.cpp:38-62.
+   * @adapted Carbon reads Tr2Renderer's view position; the device-free audio graph uses the
+   *   registered audio listener position, or the source position before a listener
+   *   is registered. Present listeners must supply GetPosition. Carbon Update is
+   *   Tr2AudioStretchBase.cpp:38-62.
    */
 
   @meta.adapted
@@ -97,6 +101,7 @@ export class Tr2AudioStretchBase
    * Finds the first initialized emitter with the requested name.
    * Carbon FindEmitterByName (Tr2AudioStretchBase.cpp:64-79).
    *
+   * @implemented
    * @param {string} name Emitter name.
    * @returns {ITr2AudEmitter|null} Matching emitter, or null.
    */
@@ -114,7 +119,11 @@ export class Tr2AudioStretchBase
     return null;
   }
 
-  /** Forwards supported debug options to the three nominal emitter interfaces. */
+  /**
+   * Forwards supported debug options to the three nominal emitter interfaces.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDebugOptions(options)
@@ -126,7 +135,11 @@ export class Tr2AudioStretchBase
     }
   }
 
-  /** Forwards debug drawing to the three nominal emitter interfaces. */
+  /**
+   * Forwards debug drawing to the three nominal emitter interfaces.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RenderDebugInfo(renderer)

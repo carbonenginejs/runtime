@@ -58,6 +58,8 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
   /**
    * Sets the behaviour name and renames the owned magnitude curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:164-167
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -72,7 +74,8 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * phase-offset local time (rate set by perlineScale, detail by octaves) and by
    * the magnitude envelope at normalized timeline time.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:170-181
-   * Adapted: the existing Perlin implementation and allocated instance phase replace native noise and pointer-derived phase.
+   *
+   * @adapted the existing Perlin implementation and allocated instance phase replace native noise and pointer-derived phase.
    */
 
   @meta.adapted

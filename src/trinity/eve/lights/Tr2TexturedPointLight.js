@@ -56,7 +56,11 @@ export class Tr2TexturedPointLight extends Tr2PointLight
 
   _saturation = 1;
 
-  /** Carbon SetSaturation (cpp:37-40); consumed by Update below. */
+  /**
+   * Carbon SetSaturation (cpp:37-40); consumed by Update below.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetSaturation(saturation)
@@ -68,6 +72,8 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * Carbon Initialize (cpp:16-23): fetch the texture when a path is
    * authored, then the point-light base. The reach is the process-wide
    * manager read at call time, which is what BeResMan is (be.resMan).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -83,6 +89,8 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   /**
    * Carbon SetLightData (cpp:25-29): the point light's copy, then the texture
    * is refetched from the new data's path.
+   *
+   * @implemented
    * @param {LightData} lightData
    */
 
@@ -95,6 +103,8 @@ export class Tr2TexturedPointLight extends Tr2PointLight
 
   /**
    * Carbon OnModified (cpp:42–49): texture changes refetch, then forward base.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -107,6 +117,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   /**
    * Carbon SetTexturePath (cpp:31-35): null the resource, then refetch.
    *
+   * @implemented
    * @param {string} path Texture resource path.
    */
 
@@ -122,6 +133,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * Applies the texture's average colour with the configured saturation.
    * Carbon Update (Tr2TexturedPointLight.cpp:51-57); no texture leaves the colour unchanged.
    *
+   * @implemented
    * @returns {void}
    */
 

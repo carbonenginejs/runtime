@@ -52,6 +52,8 @@ export class Tr2DebugObjectReference
   /**
    * Carbon's `operator bool` (cpp:84-87), which JavaScript cannot overload:
    * whether an object is referenced.
+   *
+   * @renamed operator bool
    * @returns {boolean}
    */
   IsValid()
@@ -61,6 +63,8 @@ export class Tr2DebugObjectReference
 
   /**
    * Carbon's `operator==` (cpp:102-105).
+   *
+   * @renamed operator==
    * @param {Tr2DebugObjectReference} other
    * @returns {boolean}
    */
@@ -71,6 +75,8 @@ export class Tr2DebugObjectReference
 
   /**
    * Carbon's `operator!=` (cpp:107-110).
+   *
+   * @renamed operator!=
    * @param {Tr2DebugObjectReference} other
    * @returns {boolean}
    */

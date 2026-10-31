@@ -52,6 +52,8 @@ export class TriShadowOrthoFrustum
    * camera plane facing away from the sun (DotNormal(plane, sunDir) < 0) the
    * sphere must not be entirely behind that plane. (Carbon's unused local
    * `val` on the negated center is dead code and is omitted.)
+   *
+   * @implemented
    * @param {Object} camera - TriFrustum duck ({ planes })
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Boolean}
@@ -83,6 +85,8 @@ export class TriShadowOrthoFrustum
   /**
    * Carbon TriShadowOrthoFrustum::GetSizeInShadow (h:70-73) - shadow-map pixel
    * coverage via TriFrustumOrtho.GetPixelSize.
+   *
+   * @implemented
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Number}
    */
@@ -94,6 +98,8 @@ export class TriShadowOrthoFrustum
 
   /**
    * Carbon TriShadowOrthoFrustum::GetEyePos (h:74-77).
+   *
+   * @implemented
    * @returns {Float32Array}
    */
   @meta.implemented
@@ -106,7 +112,8 @@ export class TriShadowOrthoFrustum
    * Carbon TriShadowOrthoFrustum::SphereTest (h:79-104): the ortho
    * classification (far plane ignored), demoted per sun-facing camera plane -
    * Outside when fully behind one, Intersect when straddling one.
-   * Adapted: Carbon takes a CcpMath::Sphere; the port accepts that as { center, radius } or a packed vec4.
+   *
+   * @adapted Carbon takes a CcpMath::Sphere; the port accepts that as { center, radius } or a packed vec4.
    * @param {Object} camera - TriFrustum duck ({ planes })
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult

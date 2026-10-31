@@ -15,6 +15,8 @@ export class TriStepPopDepthStencil extends TriRenderStep
   /**
    * Pops the depth-stencil pushed earlier in the job; popping more than was
    * pushed trips the job's stack guard.
+   *
+   * @implemented
    */
 
   @meta.implemented

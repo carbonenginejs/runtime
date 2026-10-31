@@ -61,8 +61,9 @@ export class EveBannerItem
    * banner bounds its own face and the depth behind it, not in front. Carbon
    * (row-vector) composes TransformationMatrix(scaling, rotation, position).
    *
-   * Adapted: Carbon inlines the per-banner box inside the set rebuild; the port moves it
-   * onto the item so the shared item-set builder can read it.
+   * @cjs
+   * @adapted Carbon inlines the per-banner box inside the set rebuild; the port moves it
+   *   onto the item so the shared item-set builder can read it.
    */
   @meta.cjs
     @meta.adapted
@@ -81,8 +82,9 @@ export class EveBannerItem
    * Carbon reads the item member directly (cpp:424); the item-set builder
    * needs the accessor every other set item already has.
    *
-   * Adapted: Accessor for the shared item-set bounds builder; Carbon reads jt->bone
-   * directly.
+   * @cjs
+   * @adapted Accessor for the shared item-set bounds builder; Carbon reads jt->bone
+   *   directly.
    */
   @meta.cjs
     @meta.adapted

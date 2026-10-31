@@ -40,6 +40,8 @@ export class Float4x3
   /**
    * Packs a transform into the twelve floats, writing into `out`. The static
    * helper and optional output buffer adapt the native Matrix constructor.
+   *
+   * @adapted
    */
   @meta.adapted
   static fromMat4(matrix, out)
@@ -51,6 +53,8 @@ export class Float4x3
    * Unpacks twelve floats back into a transform, restoring the fourth column
    * Carbon reconstructs as (0, 0, 0, 1); writes into `out`. The static helper
    * and optional output buffer adapt the native Matrix conversion operator.
+   *
+   * @adapted
    */
   @meta.adapted
   static toMat4(elements, out)

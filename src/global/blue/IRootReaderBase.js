@@ -61,9 +61,8 @@ export class IRootReaderBase
    * the member's name when the member is NOTIFY - one member per call, as
    * INotify.h specifies.
    *
-   * Adapted: returns whether the member's value changed, which `SetValues`
-   * reports and Carbon does not compute.
-   *
+   * @adapted returns whether the member's value changed, which `SetValues`
+   *   reports and Carbon does not compute.
    * @param {string} attributeName The key.
    * @param {object} instance The object being read into.
    * @param {object|null} notify The INotify to tell, or null.
@@ -186,6 +185,7 @@ export class IRootReaderBase
    * nothing yet is given a new object of its declared class, since a JavaScript
    * member is not storage the object already owns.
    *
+   * @adapted
    * @returns {boolean} Whether the member changed.
    */
   HandlePropertyIRoot(instance, field)
@@ -208,11 +208,10 @@ export class IRootReaderBase
    * index; missing ones are created and surplus ones dropped. A live record is
    * copied, never shared.
    *
-   * Adapted: Carbon appends each record to one packed buffer with notification
-   * muted, and its dictionary form is `{ items: [[member, ...], ...] }`. Ours
-   * holds one instance of the item class per record instead of packed memory,
-   * and reads our values format, one record per item.
-   *
+   * @adapted Carbon appends each record to one packed buffer with notification
+   *   muted, and its dictionary form is `{ items: [[member, ...], ...] }`. Ours
+   *   holds one instance of the item class per record instead of packed memory,
+   *   and reads our values format, one record per item.
    * @param {object} instance The owner.
    * @param {object} field The struct-list declaration.
    * @returns {boolean} Whether the member changed.
@@ -258,6 +257,7 @@ export class IRootReaderBase
    * dictionaryDeclarations owns the JS values-view precedence; native
    * DictReader::FindEntry instead selects by persistence/write eligibility.
    *
+   * @adapted
    * @param {string} name The key.
    * @param {Function} Constructor The instance's class.
    * @returns {object|null} The field record.
@@ -286,7 +286,11 @@ export class IRootReaderBase
     return false;
   }
 
-  /** Reads the current source value (`ReadValue`); a subclass provides it. */
+  /**
+   * Reads the current source value (`ReadValue`); a subclass provides it.
+   *
+   * @abstract
+   */
   ReadValue() {}
 
   /** Whether a value holds objects below its top level; a subclass that reads them says so. */
@@ -301,22 +305,43 @@ export class IRootReaderBase
     throw new Error("IRootReaderBase.ReadNestedObjects is provided by a reader.");
   }
 
-  /** Reads an object pointer member (`HandlePropertyIRootPtr`); a subclass provides it. */
+  /**
+   * Reads an object pointer member (`HandlePropertyIRootPtr`); a subclass provides it.
+   *
+   * @notImplemented
+   * @renamed HandlePropertyIRootPtr
+   */
   ReadIRootPtr(_instance, _field)
   {
     throw new Error("IRootReaderBase.ReadIRootPtr is provided by a reader.");
   }
 
-  /** Reads into an existing object (`ReadIRoot`); a subclass provides it. */
+  /**
+   * Reads into an existing object (`ReadIRoot`); a subclass provides it.
+   *
+   * @abstract
+   */
   ReadIRoot(_instance, _field) {}
 
-  /** Reads a new object (`ReadIRootClass`); a subclass provides it. */
+  /**
+   * Reads a new object (`ReadIRootClass`); a subclass provides it.
+   *
+   * @abstract
+   */
   ReadIRootClass(_field) {}
 
-  /** Reads a list member (`ReadList`); a subclass provides it. */
+  /**
+   * Reads a list member (`ReadList`); a subclass provides it.
+   *
+   * @abstract
+   */
   ReadList(_instance, _field) {}
 
-  /** Reads a binary block into an ICustomPersist (`ReadBinaryBlock`, IRootReader.h:114); a subclass provides it. */
+  /**
+   * Reads a binary block into an ICustomPersist (`ReadBinaryBlock`, IRootReader.h:114); a subclass provides it.
+   *
+   * @abstract
+   */
   ReadBinaryBlock(_instance, _propertyName) {}
 
   /**

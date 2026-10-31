@@ -64,6 +64,8 @@ export class TriProjection extends IRoot
   /**
    * Selects the field-of-view perspective mode, storing fov (in radians), aspect
    * and the near/far planes, and rebuilds the transform.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -80,6 +82,8 @@ export class TriProjection extends IRoot
   /**
    * Selects the off-centre perspective mode from explicit frustum edges measured
    * at the near plane, and rebuilds the transform.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -98,6 +102,8 @@ export class TriProjection extends IRoot
   /**
    * Selects the orthographic mode; width and height are stored in the left and
    * top slots and front/back in the near and far slots.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -114,6 +120,8 @@ export class TriProjection extends IRoot
   /**
    * Adopts a caller-supplied matrix verbatim as the projection, copying it
    * rather than retaining the caller's buffer.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -130,10 +138,9 @@ export class TriProjection extends IRoot
    * extends past the render target and was clipped to the device viewport.
    * Carbon's `_11 _22 _31 _32` are indices 0, 5, 8 and 9.
    *
-   * Adapted: our state manager has no viewport until a render target or a
-   * viewport is set, where Carbon's always has one; with none, the adjustment
-   * stays the identity.
-   *
+   * @adapted our state manager has no viewport until a render target or a
+   *   viewport is set, where Carbon's always has one; with none, the adjustment
+   *   stays the identity.
    * @param {Tr2RenderContext} renderContext The context whose viewport is read.
    * @returns {void}
    */
@@ -186,6 +193,7 @@ export class TriProjection extends IRoot
    * Carbon SetProjection() (TriProjection.cpp:111-128): sets this projection
    * on the renderer with no viewport adjustment.
    *
+   * @implemented
    * @returns {void}
    */
 
@@ -209,7 +217,11 @@ export class TriProjection extends IRoot
     }
   }
 
-  /** The active mode, one of the FOV, OFF_CENTER, ORTHO or CUSTOM constants. */
+  /**
+   * The active mode, one of the FOV, OFF_CENTER, ORTHO or CUSTOM constants.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetProjectionType()
@@ -219,6 +231,8 @@ export class TriProjection extends IRoot
 
   /**
    * Rebuilds the projection matrix from the stored parameters, without any view-dependent adjustment; an unset projection type yields identity.
+   *
+   * @adapted
    * @param {mat4} out Caller-owned destination.
    * @returns {mat4} The destination matrix.
    */
@@ -244,6 +258,8 @@ export class TriProjection extends IRoot
   /**
    * Rebuilds the cached transform field from the current parameters, then copies
    * it into out and returns it.
+   *
+   * @adapted
    */
 
   @meta.adapted

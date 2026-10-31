@@ -129,6 +129,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   /**
    * Carbon Tr2Sprite2dLayer::SetChildDirty (Tr2Sprite2dLayer.cpp:30-37).
    *
+   * @implemented
    * @param {ITr2SpriteObject} _child The child that changed.
    * @returns {void}
    */
@@ -149,6 +150,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * The render context's `Clear` takes the JS options object; `{ clearColor: true }` is Carbon's
    * `CLEARFLAGS_TARGET` with depth and stencil 0 (cpp:64).
    *
+   * @implemented
    * @param {Tr2Sprite2dScene} renderer Scene gathering this layer.
    * @returns {void}
    */
@@ -190,6 +192,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-33): creates nothing
    * while resource creation is disallowed, and reports success.
    *
+   * @implemented
    * @returns {boolean} False only when `OnPrepareResources` fails.
    */
   @meta.implemented
@@ -208,6 +211,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * render target the size of the display rectangle, readable as a shader resource. Carbon's
    * memory statistic is not ported.
    *
+   * @implemented
    * @returns {boolean} Whether the render target exists.
    */
   @meta.implemented
@@ -234,6 +238,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   /**
    * Carbon Tr2Sprite2dLayer::ReleaseResources (Tr2Sprite2dLayer.cpp:112-115).
    *
+   * @implemented
    * @param {number} [_storage] Carbon's TriStorage; unused, as in Carbon.
    * @returns {void}
    */
@@ -248,6 +253,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * Carbon Tr2Sprite2dLayer::AllocateRenderTarget (Tr2Sprite2dLayer.cpp:117-129): keeps a valid
    * target of the current display size, otherwise marks the layer dirty and recreates it.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -266,10 +272,9 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   /**
    * Carbon Tr2Sprite2dLayer::FreeRenderTarget (Tr2Sprite2dLayer.cpp:131-136).
    *
-   * Adapted: Carbon assigns an empty `Tr2TextureAL`, releasing its reference; JS has no
-   * reference counting, so the value is destroyed explicitly and replaced. The memory statistic
-   * is not ported.
-   *
+   * @adapted Carbon assigns an empty `Tr2TextureAL`, releasing its reference; JS has no
+   *   reference counting, so the value is destroyed explicitly and replaced. The memory statistic
+   *   is not ported.
    * @returns {void}
    */
   @meta.adapted
@@ -284,6 +289,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * Carbon Tr2Sprite2dLayer::GetVertexCount (Tr2Sprite2dLayer.cpp:138-142): asserts in debug
    * builds and returns 0.
    *
+   * @implemented
    * @returns {number} 0.
    */
   @meta.implemented
@@ -297,6 +303,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * Carbon Tr2Sprite2dLayer::SetTextureSecondary (Tr2Sprite2dLayer.cpp:144-159): moves the change
    * subscription and marks the layer dirty.
    *
+   * @implemented
    * @param {ITr2Sprite2dTexture|null} t New secondary texture.
    * @returns {void}
    */
@@ -316,6 +323,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   /**
    * Carbon Tr2Sprite2dLayer::GetTextureSecondary (Tr2Sprite2dLayer.cpp:161-164).
    *
+   * @implemented
    * @returns {ITr2Sprite2dTexture|null} The secondary texture.
    */
   @meta.implemented
@@ -329,6 +337,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * Carbon Tr2Sprite2dLayer::Sprite2dTextureChanged (Tr2Sprite2dLayer.cpp:166-169), the
    * ITr2Sprite2dTextureNotifyTarget callback.
    *
+   * @implemented
    * @param {ITr2Sprite2dTexture} _p The texture that changed.
    * @returns {void}
    */

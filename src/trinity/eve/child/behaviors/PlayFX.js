@@ -27,8 +27,11 @@ const NO_FORCES = [];
 export class PlayFX extends EveEntity
 {
 
-  /** Carbon PlayFX.cpp:166-200 maintains firing-effect registry membership.
+  /**
+   * Carbon PlayFX.cpp:166-200 maintains firing-effect registry membership.
    * Carbon declaration: PlayFX::OnListModified (trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.h:62).
+   *
+   * @implemented
    */
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
@@ -100,7 +103,11 @@ export class PlayFX extends EveEntity
 
   _stop = false;
 
-  /** Carbon PlayFX::GetProcessPriority (cpp:25-28). */
+  /**
+   * Carbon PlayFX::GetProcessPriority (cpp:25-28).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -108,7 +115,11 @@ export class PlayFX extends EveEntity
     return this.behaviorPriority;
   }
 
-  /** Carbon PlayFX::GetBehaviorName (cpp:30-33). */
+  /**
+   * Carbon PlayFX::GetBehaviorName (cpp:30-33).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBehaviorName()
@@ -119,8 +130,8 @@ export class PlayFX extends EveEntity
   /**
    * Per-agent scratch record count (Carbon sizeof(PlayFXData)).
    *
-   * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per
-   * agent, so any non-zero value means 'has scratch'.
+   * @adapted Carbon returns a byte size; the JS port models scratch as one plain record per
+   *   agent, so any non-zero value means 'has scratch'.
    */
 
   @meta.adapted
@@ -132,8 +143,8 @@ export class PlayFX extends EveEntity
   /**
    * Fresh per-agent scratch record (Carbon PlayFXData placement init).
    *
-   * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh
-   * record instead.
+   * @adapted Carbon initializes caller-provided raw memory; the JS port returns the fresh
+   *   record instead.
    */
 
   @meta.adapted
@@ -146,7 +157,11 @@ export class PlayFX extends EveEntity
     };
   }
 
-  /** Carbon IBehavior::UpdateState override (h:55-58). */
+  /**
+   * Carbon IBehavior::UpdateState override (h:55-58).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateState(state)
@@ -159,8 +174,9 @@ export class PlayFX extends EveEntity
    * arrives (agent.playFX), aims it in world space, and stops it after m_sec
    * seconds (Carbon CalculateBehavior, cpp:45-139). Generated effects are
    * required receivers; only the authored template is nullable.
-   * Adapted: JavaScript scratch records replace the native scratch-data pointer;
-   * an absent scratch record has no agent state to update.
+   *
+   * @adapted JavaScript scratch records replace the native scratch-data pointer;
+   *   an absent scratch record has no agent state to update.
    * @param {Array} agents - DroneAgent records
    * @param {Array} scratchData - per-agent PlayFXData records
    * @param {Number} _deltaTime
@@ -272,7 +288,11 @@ export class PlayFX extends EveEntity
     return NO_FORCES;
   }
 
-  /** Carbon PlayFX::UpdateAsyncronous (cpp:141-148). */
+  /**
+   * Carbon PlayFX::UpdateAsyncronous (cpp:141-148).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(updateContext, parentTransform)
@@ -284,7 +304,11 @@ export class PlayFX extends EveEntity
     }
   }
 
-  /** Carbon PlayFX::UpdateSyncronous (cpp:150-156). */
+  /**
+   * Carbon PlayFX::UpdateSyncronous (cpp:150-156).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext)
@@ -295,7 +319,11 @@ export class PlayFX extends EveEntity
     }
   }
 
-  /** Carbon PlayFX::GetRenderables (cpp:158-164). */
+  /**
+   * Carbon PlayFX::GetRenderables (cpp:158-164).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(renderables)
@@ -307,7 +335,11 @@ export class PlayFX extends EveEntity
     return renderables;
   }
 
-  /** Carbon PlayFX::RegisterComponents (cpp:202-215). */
+  /**
+   * Carbon PlayFX::RegisterComponents (cpp:202-215).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -323,7 +355,11 @@ export class PlayFX extends EveEntity
     }
   }
 
-  /** Carbon PlayFX::UnRegisterComponents (cpp:217-230). */
+  /**
+   * Carbon PlayFX::UnRegisterComponents (cpp:217-230).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -339,16 +375,24 @@ export class PlayFX extends EveEntity
     }
   }
 
-  /** Carbon method RegisterWithQuadRenderer (cpp:239-245) - quad renderer
-   * registration seam; the firing effect elements own the real quads. */
+  /**
+   * Carbon method RegisterWithQuadRenderer (cpp:239-245) - quad renderer
+   * registration seam; the firing effect elements own the real quads.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
-  /** Carbon method AddQuadsToQuadRenderer (cpp:253-259) - quad renderer
-   * submission seam; the firing effect elements own the real quads. */
+  /**
+   * Carbon method AddQuadsToQuadRenderer (cpp:253-259) - quad renderer
+   * submission seam; the firing effect elements own the real quads.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)

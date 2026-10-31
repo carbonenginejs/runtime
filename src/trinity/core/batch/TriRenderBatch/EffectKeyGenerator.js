@@ -10,8 +10,8 @@ export class EffectKeyGenerator
   /**
    * Orders shader identities, then vertex declarations.
    *
-   * Adapted: JavaScript has no pointer ordering; the existing per-reference ordinal keeps
-   * equal shader identities contiguous.
+   * @adapted JavaScript has no pointer ordering; the existing per-reference ordinal keeps
+   *   equal shader identities contiguous.
    */
   @meta.adapted
   static Less(batch1, batch2)
@@ -21,7 +21,11 @@ export class EffectKeyGenerator
     return batch1.vertexDeclaration < batch2.vertexDeclaration;
   }
 
-  /** Selects Carbon's regular sort path. */
+  /**
+   * Selects Carbon's regular sort path.
+   *
+   * @implemented
+   */
   @meta.implemented
   static GetSortType()
   {

@@ -75,6 +75,8 @@ export class EveSpaceObjectDecal
 
   /**
    * Carbon ReleaseResources (cpp:102-104): nothing to release.
+   *
+   * @adapted
    * @param {number} _s TriStorageFlags.
    */
 
@@ -86,6 +88,8 @@ export class EveSpaceObjectDecal
   /**
    * Carbon OnPrepareResources (cpp:107-115): drops built decal geometry whose
    * index buffer no longer exists, so it is rebuilt on the next draw.
+   *
+   * @implemented
    * @returns {boolean} True.
    */
 
@@ -224,6 +228,8 @@ export class EveSpaceObjectDecal
   /**
    * Builds the decal matrix and its inverse from the authored position, rotation
    * and scaling; returns false when the composed matrix is not invertible.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -238,6 +244,8 @@ export class EveSpaceObjectDecal
   /**
    * Rebuilds the decal matrix and its inverse after an authored placement
    * change.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -256,6 +264,8 @@ export class EveSpaceObjectDecal
    * Carbon CopyFrom (EveSpaceObjectDecal.cpp:388-400): copies exactly display, placement, bone index, geometry LOD
    * index, the decal matrix and its inverse, effect and minimum screen size. The name, batch type and per-LOD index
    * buffers are not copied.
+   *
+   * @implemented
    * @param {EveSpaceObjectDecal} source
    */
 
@@ -277,6 +287,8 @@ export class EveSpaceObjectDecal
   /**
    * Copies the authored decal position into the caller-owned out vector and
    * returns it.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -289,6 +301,8 @@ export class EveSpaceObjectDecal
    * Carbon SetPosition (EveSpaceObjectDecal.cpp:532-535): assigns the authored decal position only. The decal matrix
    * follows at the next Initialize or OnModified, as when Carbon's SOF sets the placement and then initializes the
    * decal.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -300,6 +314,8 @@ export class EveSpaceObjectDecal
   /**
    * Copies the authored decal rotation into the caller-owned out quaternion and
    * returns it.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -312,6 +328,8 @@ export class EveSpaceObjectDecal
    * Carbon SetRotation (EveSpaceObjectDecal.cpp:550-553): assigns the authored decal rotation only. The decal matrix
    * follows at the next Initialize or OnModified, as when Carbon's SOF sets the placement and then initializes the
    * decal.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -323,6 +341,8 @@ export class EveSpaceObjectDecal
   /**
    * Copies the authored decal scaling into the caller-owned out vector and
    * returns it.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -334,6 +354,9 @@ export class EveSpaceObjectDecal
   /**
    * Copies the decal's projection matrix into out; the value is only current as
    * of the last Initialize, OnModified or placement setter.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -345,6 +368,9 @@ export class EveSpaceObjectDecal
   /**
    * Copies the inverse of the decal's projection matrix into out, which is what
    * maps hull-space positions into the decal's unit cube.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -357,6 +383,8 @@ export class EveSpaceObjectDecal
    * Carbon SetScaling (EveSpaceObjectDecal.cpp:568-571): assigns the authored decal scaling only. The decal matrix
    * follows at the next Initialize or OnModified, as when Carbon's SOF sets the placement and then initializes the
    * decal.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -368,6 +396,8 @@ export class EveSpaceObjectDecal
   /**
    * The parent mesh bone the decal rides, or -1 when it rides the hull transform
    * directly.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -379,6 +409,8 @@ export class EveSpaceObjectDecal
   /**
    * Sets the parent mesh bone the decal rides; the bone matrix itself is only
    * picked up on the next SetBoneMatrix.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -391,6 +423,8 @@ export class EveSpaceObjectDecal
   /**
    * Replaces the SOF-authored triangle index lists, one array per LOD, coercing
    * each entry to an unsigned integer.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -403,6 +437,8 @@ export class EveSpaceObjectDecal
   /**
    * The per-LOD triangle index lists as fresh copies, so a caller cannot mutate
    * the stored buffers.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -414,6 +450,8 @@ export class EveSpaceObjectDecal
   /**
    * Whether any LOD carries triangle indices; a decal without them has no
    * geometry to draw.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -422,7 +460,11 @@ export class EveSpaceObjectDecal
     return this.staticIndexBuffers.some(lod => lod.length > 0);
   }
 
-  /** The triangle count per LOD, being each index list's length divided by three. */
+  /**
+   * The triangle count per LOD, being each index list's length divided by three.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   GetDecalPrimitiveCounts()
@@ -433,6 +475,8 @@ export class EveSpaceObjectDecal
   /**
    * Sets the LOD threshold in screen pixels below which UpdateVisibility culls
    * the decal; zero disables the test and makes the decal always visible.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -442,7 +486,11 @@ export class EveSpaceObjectDecal
     return true;
   }
 
-  /** Sets the effect that draws the decal; a decal without one is never visible. */
+  /**
+   * Sets the effect that draws the decal; a decal without one is never visible.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetEffect(effect)
@@ -454,6 +502,8 @@ export class EveSpaceObjectDecal
   /**
    * Sets a shader option on the decal effect; returns false when no effect that
    * accepts options is attached.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -467,6 +517,8 @@ export class EveSpaceObjectDecal
   /**
    * Sets the TriBatchType the decal submits under, overriding the opaque default
    * the constructor establishes.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -479,6 +531,8 @@ export class EveSpaceObjectDecal
   /**
    * Sets the draw priority the engine sorts decals on; the value is runtime-only
    * and never persisted.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -492,8 +546,9 @@ export class EveSpaceObjectDecal
    * Expands the parent's flat Float4x3 mesh-binding palette at parentBoneIndex.
    * Carbon EveSpaceObjectDecal.cpp:475-491 leaves the previous matrix unchanged
    * for -1 or an index at or beyond the bone count.
-   * Adapted: returns whether a matrix was copied for existing JS callers;
-   * the native method returns void.
+   *
+   * @adapted returns whether a matrix was copied for existing JS callers;
+   *   the native method returns void.
    */
 
   @meta.adapted
@@ -518,6 +573,8 @@ export class EveSpaceObjectDecal
    *
    * On every cull path Carbon leaves m_parentData STALE - only the visibility
    * is cleared - so the copy happens solely on the accept paths.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -611,8 +668,9 @@ export class EveSpaceObjectDecal
   /**
    * The visibility fade Carbon writes to displayData.y; 0 when lodded out.
    *
-   * Adapted: Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an
-   * accessor.
+   * @cjs
+   * @adapted Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an
+   *   accessor.
    */
   @meta.cjs
     @meta.adapted
@@ -621,7 +679,11 @@ export class EveSpaceObjectDecal
     return this._isVisible;
   }
 
-  /** Carbon EveSpaceObjectDecal::HasTransparentBatches (cpp:241-244). */
+  /**
+   * Carbon EveSpaceObjectDecal::HasTransparentBatches (cpp:241-244).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -629,7 +691,11 @@ export class EveSpaceObjectDecal
     return true;
   }
 
-  /** Carbon EveSpaceObjectDecal::GetSortValue (cpp:337-340). */
+  /**
+   * Carbon EveSpaceObjectDecal::GetSortValue (cpp:337-340).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -637,8 +703,12 @@ export class EveSpaceObjectDecal
     return 1;
   }
 
-  /** Carbon ITr2Pickable::GetID is inline on the decal (h:113-116) and returns
-   * the object itself; the area id selects nothing on this class. */
+  /**
+   * Carbon ITr2Pickable::GetID is inline on the decal (h:113-116) and returns
+   * the object itself; the area id selects nothing on this class.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetID(_areaId)
@@ -657,6 +727,8 @@ export class EveSpaceObjectDecal
    * equals Inverse(M)-transpose (carbon-math-conventions F2), inverting the
    * logical matrix and letting the encoder transpose produces byte-identical
    * output with one transpose less work.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -722,6 +794,7 @@ export class EveSpaceObjectDecal
    * itself in the list and the renderer asks it for batches later, which is why
    * everything expensive happens here and GetBatches only submits.
    *
+   * @adapted
    * @param {Array} out Renderable list.
    * @param {object} _meshCache Carbon's DecalMeshCache, only used by the
    *   selection path to avoid re-mapping hull buffers; unused here because a
@@ -777,6 +850,8 @@ export class EveSpaceObjectDecal
    * instanced mesh. Gathers as GetRenderables does against the instanced mesh's geometry,
    * then keeps its instance data, vertex declaration and bounds for the instanced
    * visibility and batch paths.
+   *
+   * @implemented
    * @param {Array} out Renderables collected.
    * @param {object} meshCache Carbon's DecalMeshCache, passed through.
    * @param {Tr2InstancedMesh} instancedMesh The instanced mesh the decal sits on.
@@ -843,7 +918,11 @@ export class EveSpaceObjectDecal
     return decalGeometry;
   }
 
-  /** Carbon EveSpaceObjectDecal::SetHighDetailDecalState (cpp:514-517). */
+  /**
+   * Carbon EveSpaceObjectDecal::SetHighDetailDecalState (cpp:514-517).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetHighDetailDecalState(isFrozen)
@@ -864,6 +943,7 @@ export class EveSpaceObjectDecal
    * together as Carbon's shared handle does. The instanced branch runs for decals
    * gathered through GetInstancedRenderables.
    *
+   * @adapted
    * @param {object} batches The accumulator batches are committed to.
    * @param {number} batchType The batch type being collected.
    * @param {object} perObjectData This decal's per-object data.
@@ -924,8 +1004,12 @@ export class EveSpaceObjectDecal
     if (batch.IsValid()) batches.Commit(batch);
   }
 
-  /** Carbon EveSpaceObjectDecal::GetPickingBatches (cpp:919-926): the
-   * attachment pick type, then the ordinary batches. */
+  /**
+   * Carbon EveSpaceObjectDecal::GetPickingBatches (cpp:919-926): the
+   * attachment pick type, then the ordinary batches.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPickingBatches(batches, pickTypes, perObjectData)

@@ -82,7 +82,11 @@ export class SplineTunnelGroup extends IRoot
   // they are being rebuilt.
   _creatingTunnels = false;
 
-  /** Carbon SplineTunnelGroup::GetTunnelGroupType (cpp:24-27). */
+  /**
+   * Carbon SplineTunnelGroup::GetTunnelGroupType (cpp:24-27).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetTunnelGroupType()
@@ -94,6 +98,8 @@ export class SplineTunnelGroup extends IRoot
    * Stores the owner's tunnel-registry callback and debug color, then
    * rebuilds the tunnels (Carbon SetSystemTunnelFunctionReferenceAndColor,
    * cpp:30-35).
+   *
+   * @implemented
    * @param {Function} callback
    * @param {Number} color - debug color (retained for parity; debug rendering is omitted)
    */
@@ -110,8 +116,9 @@ export class SplineTunnelGroup extends IRoot
    * Carbon method createSplineTunnels -> CreateSplineTunnels (cpp:37-79): one tunnel per curve, sampled at
    * breakPoints + 2 evenly spaced times, each point facing the next; then the registry callback, when one is set.
    *
-   * Adapted: a re-entrant call (the callback reading GetTunnels) returns the tunnels being built instead of starting
-   * again, and the tunnels are returned.
+   * @adapted a re-entrant call (the callback reading GetTunnels) returns the tunnels being built instead of starting
+   *   again, and the tunnels are returned.
+   * @renamed CreateSplineTunnels
    */
   @be.mapMethodAndWrap()
   @meta.renamed("CreateSplineTunnels")
@@ -165,7 +172,11 @@ export class SplineTunnelGroup extends IRoot
     return this.tunnels;
   }
 
-  /** Carbon SplineTunnelGroup::OnListModified. */
+  /**
+   * Carbon SplineTunnelGroup::OnListModified.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = null)
@@ -181,8 +192,8 @@ export class SplineTunnelGroup extends IRoot
   /**
    * Returns the tunnel records (Carbon GetTunnels, cpp:81-84).
    *
-   * Adapted: builds them on first access when curves are present, since the JS load path raises no curve-set list
-   * notify to trigger the first CreateSplineTunnels.
+   * @adapted builds them on first access when curves are present, since the JS load path raises no curve-set list
+   *   notify to trigger the first CreateSplineTunnels.
    */
 
   @meta.adapted
@@ -195,7 +206,11 @@ export class SplineTunnelGroup extends IRoot
     return this.tunnels;
   }
 
-  /** Carbon SplineTunnelGroup::GetCurveSets (cpp:86-89). */
+  /**
+   * Carbon SplineTunnelGroup::GetCurveSets (cpp:86-89).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCurveSets()
@@ -203,7 +218,11 @@ export class SplineTunnelGroup extends IRoot
     return this.curveSets;
   }
 
-  /** Carbon SplineTunnelGroup::SetNumBreakPoints (cpp:91-94). */
+  /**
+   * Carbon SplineTunnelGroup::SetNumBreakPoints (cpp:91-94).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetNumBreakPoints(value)
@@ -211,7 +230,11 @@ export class SplineTunnelGroup extends IRoot
     this.breakPoints = Number(value) | 0;
   }
 
-  /** Carbon SplineTunnelGroup::GetNumBreakPoints (cpp:96-99). */
+  /**
+   * Carbon SplineTunnelGroup::GetNumBreakPoints (cpp:96-99).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetNumBreakPoints()
@@ -219,7 +242,11 @@ export class SplineTunnelGroup extends IRoot
     return Math.max(this.breakPoints, 0);
   }
 
-  /** Carbon SplineTunnelGroup::Initialize (cpp:104-107). */
+  /**
+   * Carbon SplineTunnelGroup::Initialize (cpp:104-107).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -228,8 +255,12 @@ export class SplineTunnelGroup extends IRoot
     return true;
   }
 
-  /** Carbon SplineTunnelGroup::OnModified (cpp:112-117): any property change
-   * rebuilds the tunnels. */
+  /**
+   * Carbon SplineTunnelGroup::OnModified (cpp:112-117): any property change
+   * rebuilds the tunnels.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_value = null)
@@ -240,6 +271,8 @@ export class SplineTunnelGroup extends IRoot
 
   /**
    * Carbon SplineTunnelGroup::GetDebugOptions (cpp:143-146).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -254,6 +287,8 @@ export class SplineTunnelGroup extends IRoot
    * shape - pull and point-of-no-return spheres at its first spline point, a
    * marker sphere at point GetNumBreakPoints() + 1, and a cylWidth sphere and
    * cylinder along each point's direction vector.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentWorldLocation Places the tunnel geometry in world space.
    */

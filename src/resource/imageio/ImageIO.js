@@ -29,11 +29,10 @@ export class ImageIO
   /**
    * Registers an image format (Tr2ImageHandler.cpp:75-78).
    *
-   * Adapted: Carbon appends the handler's function table; ours appends the format
-   * class, whose statics are that table. Registering a format twice keeps one
-   * entry, as each Carbon handler's own `s_registered` guard does
-   * (e.g. Tr2PngHandler.cpp:435-444).
-   *
+   * @adapted Carbon appends the handler's function table; ours appends the format
+   *   class, whose statics are that table. Registering a format twice keeps one
+   *   entry, as each Carbon handler's own `s_registered` guard does
+   *   (e.g. Tr2PngHandler.cpp:435-444).
    * @param {Function} Format A CjsImageFormat subclass.
    * @returns {void}
    */
@@ -49,6 +48,7 @@ export class ImageIO
   /**
    * The text after the last '.', or "" (Tr2ImageHandler.cpp:45-49).
    *
+   * @implemented
    * @param {string} filename File name.
    * @returns {string} Extension.
    */
@@ -63,6 +63,7 @@ export class ImageIO
    * The first registered format whose checkExtension accepts the extension, or
    * null (Tr2ImageHandler.cpp:51-63).
    *
+   * @adapted
    * @param {string} extension Extension, without the dot.
    * @returns {Function|null} The registered format class, whose statics are the handler.
    */
@@ -94,8 +95,7 @@ export class ImageIO
    * Read an image into a bitmap, picking the handler by the filename in the
    * load parameters (Tr2ImageHandler.cpp:95-106).
    *
-   * Adapted: bytes replace the native stream.
-   *
+   * @adapted bytes replace the native stream.
    * @param {Uint8Array|ArrayBuffer} bytes File bytes.
    * @param {import("#imageio").LoadParameters} loadParameters Load parameters.
    * @param {import("#imageio").HostBitmap} bitmap Destination bitmap.
@@ -114,8 +114,7 @@ export class ImageIO
   /**
    * `readImage` that also serves formats whose decoder is asynchronous (PNG and VTA).
    *
-   * Adapted: browser decoders can be asynchronous (CjsImageFormat.readImageAsync).
-   *
+   * @adapted browser decoders can be asynchronous (CjsImageFormat.readImageAsync).
    * @param {Uint8Array|ArrayBuffer} bytes File bytes.
    * @param {import("#imageio").LoadParameters} loadParameters Load parameters.
    * @param {import("#imageio").HostBitmap} bitmap Destination bitmap.
@@ -135,6 +134,7 @@ export class ImageIO
    * Whether an image of these dimensions can be saved under a filename
    * (Tr2ImageHandler.cpp:117-128).
    *
+   * @adapted
    * @param {string} filename Destination file name.
    * @param {import("#imageio").BitmapDimensions} dimensions Image description.
    * @returns {ImageIOResult} OK if supported.
@@ -151,8 +151,7 @@ export class ImageIO
   /**
    * Save a bitmap in the format a filename names (Tr2ImageHandler.cpp:140-151).
    *
-   * Adapted: Carbon writes to a stream; this returns `{result, bytes}`.
-   *
+   * @adapted Carbon writes to a stream; this returns `{result, bytes}`.
    * @param {string} filename Destination file name.
    * @param {import("#imageio").HostBitmap} bitmap Bitmap to save.
    * @param {import("#imageio").Metadata|null} [metadata] Optional metadata.

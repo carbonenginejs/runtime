@@ -20,7 +20,11 @@ export class TriStepToggleCubemap extends TriRenderStep
   @type.boolean
   showCubemap = true;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(showCubemap = true, scene = null)
@@ -29,7 +33,11 @@ export class TriStepToggleCubemap extends TriRenderStep
     this.#scene = scene;
   }
 
-  /** Enables or disables the interior scene's background cubemap. */
+  /**
+   * Enables or disables the interior scene's background cubemap.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Execute(_realTime, _simTime, _renderContext)

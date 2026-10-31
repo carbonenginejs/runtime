@@ -222,6 +222,8 @@ export class EveChildLineSet extends EveChildTransform
    * Creates the default line set and regenerates paths (cpp:76-90). JS retains
    * replaced defaults until final destruction can account for shared graphs;
    * unlike BluePtr, assignment cannot tell whether another owner still uses one.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -238,7 +240,11 @@ export class EveChildLineSet extends EveChildTransform
     return true;
   }
 
-  /** Updates additive selection immediately and defers regeneration until collection. */
+  /**
+   * Updates additive selection immediately and defers regeneration until collection.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(name)
@@ -248,7 +254,11 @@ export class EveChildLineSet extends EveChildTransform
     return true;
   }
 
-  /** Regenerates every path beneath the current world transform, then bounds. */
+  /**
+   * Regenerates every path beneath the current world transform, then bounds.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GenerateManagedPoints()
@@ -257,7 +267,11 @@ export class EveChildLineSet extends EveChildTransform
     this.UpdateBoundingSphere();
   }
 
-  /** Empty path lists intentionally retain old line geometry (native cpp:149-165). */
+  /**
+   * Empty path lists intentionally retain old line geometry (native cpp:149-165).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   InitializeLineSet()
@@ -276,6 +290,8 @@ export class EveChildLineSet extends EveChildTransform
    * Aggregates path bounds with the selected mesh radius. Empty lists keep the
    * previous bound; native's helper leaves an uninitialized local output there.
    * The resource's existing sphere accessor replaces its native inline field.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -295,7 +311,11 @@ export class EveChildLineSet extends EveChildTransform
     CalculateBoundingSphereForLineSetPaths(this._boundingSphere, this.lines, reCalculateChildren, objectSizeBonus);
   }
 
-  /** Uses gl-matrix sphere transformation for Carbon's world cull and local pixel-size threshold. */
+  /**
+   * Uses gl-matrix sphere transformation for Carbon's world cull and local pixel-size threshold.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateVisibility(updateContext, _parentTransform, parentLod)
@@ -314,7 +334,11 @@ export class EveChildLineSet extends EveChildTransform
     for (const line of this.lines) line.UpdateVisibility(frustum, parentLod, this.worldTransform);
   }
 
-  /** Consumes pending regeneration only once an update and visibility allow collection. */
+  /**
+   * Consumes pending regeneration only once an update and visibility allow collection.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(renderables)
@@ -330,7 +354,11 @@ export class EveChildLineSet extends EveChildTransform
     if (this.renderType !== EveChildLineSet.lineSetType.OBJECT_RENDER && this.lineSet) this.lineSet.GetRenderables(renderables);
   }
 
-  /** Writes the aggregate bound transformed into world space using gl-matrix layout. */
+  /**
+   * Writes the aggregate bound transformed into world space using gl-matrix layout.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetBoundingSphere(out, _query = 0)
@@ -339,7 +367,11 @@ export class EveChildLineSet extends EveChildTransform
     return true;
   }
 
-  /** Updates every path before visibility gates, then fills the selected render modes. */
+  /**
+   * Updates every path before visibility gates, then fills the selected render modes.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext, params)
@@ -362,6 +394,8 @@ export class EveChildLineSet extends EveChildTransform
    * RawData receives logical matrices and applies Carbon's sole transpose;
    * inverse-of-transpose is encoded as transpose-of-inverse. A singular JS
    * inverse writes nonfinite data instead of reusing an unrelated scratch value.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -389,6 +423,8 @@ export class EveChildLineSet extends EveChildTransform
   /**
    * Maps the owned AL buffer and passes one advancing DataView cursor through
    * all paths. The cursor replaces uint8_t*&; finally unmaps if a JS path throws.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -424,6 +460,8 @@ export class EveChildLineSet extends EveChildTransform
    * Extends the mesh declaration with current/previous instance aliases.
    * JS prepares the lazy geometry allocations here so its declaration exists;
    * Carbon already has that storage when UpdateSyncronous runs.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -464,6 +502,8 @@ export class EveChildLineSet extends EveChildTransform
    * Builds native instanced batches from LOD zero of mesh zero (cpp:473).
    * JS realizes its geometry descriptor before setting stream 1 and instance
    * count, otherwise deferred preparation would overwrite those native fields.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -489,7 +529,11 @@ export class EveChildLineSet extends EveChildTransform
     }
   }
 
-  /** Borrows persistent owner constants; JS constructs the native pooled wrapper. */
+  /**
+   * Borrows persistent owner constants; JS constructs the native pooled wrapper.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetPerObjectData(_accumulator)
@@ -500,7 +544,11 @@ export class EveChildLineSet extends EveChildTransform
     return data;
   }
 
-  /** Reports transparent mesh areas only when display is enabled. */
+  /**
+   * Reports transparent mesh areas only when display is enabled.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -508,7 +556,11 @@ export class EveChildLineSet extends EveChildTransform
     return !!(this.display && this.mesh && this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length);
   }
 
-  /** Creates Carbon's initial instance capacity using the AL description overload. */
+  /**
+   * Creates Carbon's initial instance capacity using the AL description overload.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   OnPrepareResources()
@@ -518,7 +570,11 @@ export class EveChildLineSet extends EveChildTransform
     ), null, Tr2RenderContext_GetMainThreadRenderContext()));
   }
 
-  /** Native ReleaseResources resets declaration caches, retaining the buffer. */
+  /**
+   * Native ReleaseResources resets declaration caches, retaining the buffer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseResources()
@@ -526,7 +582,11 @@ export class EveChildLineSet extends EveChildTransform
     this._cachedSVD = this._vertexDeclarationHandle = Tr2EffectStateManager.Unknown;
   }
 
-  /** Copies the child's current world transform into caller-owned storage. */
+  /**
+   * Copies the child's current world transform into caller-owned storage.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalToWorldTransform(out)
@@ -534,7 +594,11 @@ export class EveChildLineSet extends EveChildTransform
     mat4.copy(out, this.worldTransform);
   }
 
-  /** Returns Carbon's authored activation bypass. */
+  /**
+   * Returns Carbon's authored activation bypass.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsAlwaysOn()
@@ -550,7 +614,11 @@ export class EveChildLineSet extends EveChildTransform
     return this.IsUpdating();
   }
 
-  /** Returns whether both display and the last visibility test allow updates. */
+  /**
+   * Returns whether both display and the last visibility test allow updates.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsUpdating()
@@ -558,7 +626,11 @@ export class EveChildLineSet extends EveChildTransform
     return this.display && this._isVisible;
   }
 
-  /** Returns the mesh assigned to object rendering. */
+  /**
+   * Returns the mesh assigned to object rendering.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMesh()
@@ -566,7 +638,11 @@ export class EveChildLineSet extends EveChildTransform
     return this.mesh;
   }
 
-  /** Returns the owner's most recently supplied speed. */
+  /**
+   * Returns the owner's most recently supplied speed.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetOwnerMaxSpeed()
@@ -574,7 +650,11 @@ export class EveChildLineSet extends EveChildTransform
     return this._ownerMaxSpeed;
   }
 
-  /** Copies the native world velocity (zero until another owner changes it). */
+  /**
+   * Copies the native world velocity (zero until another owner changes it).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWorldVelocity(out)
@@ -582,7 +662,11 @@ export class EveChildLineSet extends EveChildTransform
     vec3.copy(out, this._worldVelocity);
   }
 
-  /** Native child-line objects have a constant sort value. */
+  /**
+   * Native child-line objects have a constant sort value.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -590,14 +674,22 @@ export class EveChildLineSet extends EveChildTransform
     return 0;
   }
 
-  /** Native shader-option hook is empty. */
+  /**
+   * Native shader-option hook is empty.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetShaderOption(_name, _value)
   {
   }
 
-  /** Native child-line LOD hook is empty. */
+  /**
+   * Native child-line LOD hook is empty.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ChangeLOD(_lod)
@@ -606,6 +698,8 @@ export class EveChildLineSet extends EveChildTransform
 
   /**
    * Carbon EveChildLineSet::GetDebugOptions (cpp:511-514).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -620,6 +714,8 @@ export class EveChildLineSet extends EveChildTransform
    * hidden; otherwise every path's debug info under the world transform, then
    * the bounding sphere placed at its centre under the world transform with
    * "Bounding Sphere".
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -650,7 +746,11 @@ export class EveChildLineSet extends EveChildTransform
     }
   }
 
-  /** Returns native numeric TEXCOORD usage/index pairs in JS tuples. */
+  /**
+   * Returns native numeric TEXCOORD usage/index pairs in JS tuples.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   GetVertexElementAddedThroughCode()

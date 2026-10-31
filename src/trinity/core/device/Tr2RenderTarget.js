@@ -58,7 +58,11 @@ function GetUsage(msaaType, flags)
 export class Tr2RenderTarget extends IRoot
 {
 
-  /** m_name (std::string) [PERSISTONLY] */
+  /**
+   * m_name (std::string) [PERSISTONLY]
+   *
+   * @implemented
+   */
   @be.mapAttribute(be.PERSISTONLY, "name")
   @meta.implemented
   @type.string
@@ -81,6 +85,8 @@ export class Tr2RenderTarget extends IRoot
 
   /**
    * Carbon `py__init__` (`cpp:59-74`): creates when given a size and a format.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
@@ -100,6 +106,7 @@ export class Tr2RenderTarget extends IRoot
    * @returns {number} An `ALResult` value.
    */
   // Carbon bug (CE-214): Tr2RenderTarget_Blue.cpp:49-51 binds CreateArray to Create.
+  /** @implemented */
   @be.mapMethodAndWrapOptionalArgs("CreateArray")
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
@@ -118,6 +125,7 @@ export class Tr2RenderTarget extends IRoot
    * Carbon `CreateArray` (`cpp:130-186`): an array of render targets; a cube
    * array counts six faces per element.
    *
+   * @implemented
    * @returns {number} An `ALResult` value.
    */
   @meta.implemented
@@ -137,6 +145,7 @@ export class Tr2RenderTarget extends IRoot
    * Carbon `CreateManual` (`cpp:188-235`): the caller names the CPU and GPU
    * usage outright. Unlike the other two, it raises the texture-change event.
    *
+   * @implemented
    * @returns {number} An `ALResult` value.
    * Carbon declaration: Tr2RenderTarget::CreateManual (trinity/trinity/Tr2RenderTarget.h:57).
    */
@@ -175,6 +184,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * Carbon `GetTexture` (`cpp:237-245`): the texture, only when it can be
    * sampled.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -189,6 +200,7 @@ export class Tr2RenderTarget extends IRoot
    * texture changes. Listeners register an owner and an unbound method; the
    * event holds owners weakly.
    *
+   * @implemented
    * @returns {Tr2Event} m_onTextureChange.
    */
 
@@ -201,6 +213,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * Carbon `Attach` (`cpp:262-271`): reference an AL render target someone
    * else owns, such as a swap-chain back buffer.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -214,7 +228,11 @@ export class Tr2RenderTarget extends IRoot
     this._Changed();
   }
 
-  /** Carbon `Detach` (`cpp:277-285`). */
+  /**
+   * Carbon `Detach` (`cpp:277-285`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Detach()
@@ -227,7 +245,11 @@ export class Tr2RenderTarget extends IRoot
     this._attachedOwner = null;
   }
 
-  /** Carbon `IsAttached` (`cpp:294-297`). */
+  /**
+   * Carbon `IsAttached` (`cpp:294-297`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsAttached()
@@ -239,6 +261,7 @@ export class Tr2RenderTarget extends IRoot
    * Carbon `GetRenderTarget` (`cpp:305-312`): the attached texture while
    * attached, else the owned one.
    *
+   * @implemented
    * @returns {object|null} The `Tr2TextureAL`.
    */
 
@@ -248,7 +271,11 @@ export class Tr2RenderTarget extends IRoot
     return this.IsAttached() ? this._attachedRenderTarget : this._renderTarget;
   }
 
-  /** Carbon `IsValid` (`cpp:328-331`). */
+  /**
+   * Carbon `IsValid` (`cpp:328-331`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsValid()
@@ -256,7 +283,11 @@ export class Tr2RenderTarget extends IRoot
     return Boolean(this.GetRenderTarget()?.IsValid());
   }
 
-  /** Carbon `Destroy` (`cpp:333-352`): releases the owned texture and resets. */
+  /**
+   * Carbon `Destroy` (`cpp:333-352`): releases the owned texture and resets.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Destroy()
@@ -283,7 +314,11 @@ export class Tr2RenderTarget extends IRoot
     this._attachedOwner = null;
   }
 
-  /** Carbon `IsReadable` (`cpp:354-357`). */
+  /**
+   * Carbon `IsReadable` (`cpp:354-357`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsReadable()
@@ -295,6 +330,7 @@ export class Tr2RenderTarget extends IRoot
   /**
    * Carbon `GenerateMipMaps` (`cpp:359-364`).
    *
+   * @implemented
    * @returns {number} An `ALResult` value.
    */
   @be.mapMethodAndWrap()
@@ -307,6 +343,7 @@ export class Tr2RenderTarget extends IRoot
   /**
    * Carbon `Resolve` (`cpp:366-375`).
    *
+   * @implemented
    * @param {Tr2RenderTarget} destination The render target to resolve into.
    * @returns {number} An `ALResult` value.
    */
@@ -318,7 +355,11 @@ export class Tr2RenderTarget extends IRoot
     return this.GetRenderTarget().Resolve(destination.GetRenderTarget(), renderContext);
   }
 
-  /** Carbon Tr2RenderTarget::HasALObject always reports false (cpp:389-392). */
+  /**
+   * Carbon Tr2RenderTarget::HasALObject always reports false (cpp:389-392).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HasALObject(_type, _object)
@@ -326,7 +367,11 @@ export class Tr2RenderTarget extends IRoot
     return false;
   }
 
-  /** Carbon `GetSharedHandle` (`cpp:400-403`), exposed as `sharedHandle`. */
+  /**
+   * Carbon `GetSharedHandle` (`cpp:400-403`), exposed as `sharedHandle`.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   sharedHandle()
@@ -334,7 +379,11 @@ export class Tr2RenderTarget extends IRoot
     return this._renderTarget?.GetSharedHandle() ?? null;
   }
 
-  /** Carbon `GetWidth` (`cpp:411-414`). */
+  /**
+   * Carbon `GetWidth` (`cpp:411-414`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWidth()
@@ -342,7 +391,11 @@ export class Tr2RenderTarget extends IRoot
     return this.GetRenderTarget()?.GetWidth() ?? 0;
   }
 
-  /** Carbon `GetHeight` (`cpp:422-425`). */
+  /**
+   * Carbon `GetHeight` (`cpp:422-425`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHeight()
@@ -350,7 +403,11 @@ export class Tr2RenderTarget extends IRoot
     return this.GetRenderTarget()?.GetHeight() ?? 0;
   }
 
-  /** Carbon `GetMipCount` (`cpp:433-436`). */
+  /**
+   * Carbon `GetMipCount` (`cpp:433-436`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMipCount()
@@ -358,7 +415,11 @@ export class Tr2RenderTarget extends IRoot
     return this.GetRenderTarget()?.GetMipCount() ?? 0;
   }
 
-  /** Carbon `GetArraySize` (`cpp:444-447`). */
+  /**
+   * Carbon `GetArraySize` (`cpp:444-447`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetArraySize()
@@ -366,7 +427,11 @@ export class Tr2RenderTarget extends IRoot
     return this.GetRenderTarget()?.GetArraySize() ?? 0;
   }
 
-  /** Carbon `GetMsaaType` (`cpp:455-458`). */
+  /**
+   * Carbon `GetMsaaType` (`cpp:455-458`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMsaaType()
@@ -374,7 +439,11 @@ export class Tr2RenderTarget extends IRoot
     return this.GetRenderTarget()?.GetMsaaDesc().samples ?? 0;
   }
 
-  /** Carbon `GetMsaaQuality` (`cpp:466-469`). */
+  /**
+   * Carbon `GetMsaaQuality` (`cpp:466-469`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMsaaQuality()
@@ -382,7 +451,11 @@ export class Tr2RenderTarget extends IRoot
     return this.GetRenderTarget()?.GetMsaaDesc().quality ?? 0;
   }
 
-  /** Carbon `GetFormat` (`cpp:477-480`). */
+  /**
+   * Carbon `GetFormat` (`cpp:477-480`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFormat()
@@ -390,7 +463,11 @@ export class Tr2RenderTarget extends IRoot
     return this.GetRenderTarget()?.GetFormat() ?? PixelFormat.PIXEL_FORMAT_UNKNOWN;
   }
 
-  /** Carbon `GetType` (`cpp:482-485`). */
+  /**
+   * Carbon `GetType` (`cpp:482-485`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetType()
@@ -398,7 +475,11 @@ export class Tr2RenderTarget extends IRoot
     return this.GetRenderTarget()?.GetType() ?? TextureType.TEX_TYPE_INVALID;
   }
 
-  /** Carbon `SetName` (`cpp:44-48`), which names the texture too. */
+  /**
+   * Carbon `SetName` (`cpp:44-48`), which names the texture too.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetName(name)
@@ -407,7 +488,11 @@ export class Tr2RenderTarget extends IRoot
     this._renderTarget?.SetName(this._name);
   }
 
-  /** Carbon `GetName` (`cpp:50-53`). */
+  /**
+   * Carbon `GetName` (`cpp:50-53`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -418,6 +503,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * name (MAP_PROPERTY): Carbon's property over GetName/SetName, which the macro calls.
    * Carbon: MAP_PROPERTY (trinity/trinity/Tr2RenderTarget_Blue.cpp:75).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -426,6 +513,7 @@ export class Tr2RenderTarget extends IRoot
     return this.GetName();
   }
 
+  /** @implemented */
   @meta.implemented
   set name(value)
   {
@@ -435,6 +523,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * width (MAP_PROPERTY_READONLY): Carbon's property over GetWidth, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:77).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -446,6 +536,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * height (MAP_PROPERTY_READONLY): Carbon's property over GetHeight, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:78).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -457,6 +549,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * mipCount (MAP_PROPERTY_READONLY): Carbon's property over GetMipCount, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:79).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -468,6 +562,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * multiSampleType (MAP_PROPERTY_READONLY): Carbon's property over GetMsaaType, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:80).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -479,6 +575,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * multiSampleQuality (MAP_PROPERTY_READONLY): Carbon's property over GetMsaaQuality, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:81).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -490,6 +588,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * arraySize (MAP_PROPERTY_READONLY): Carbon's property over GetArraySize, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:82).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -501,6 +601,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * format (MAP_PROPERTY_READONLY): Carbon's property over GetFormat, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:84).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -512,6 +614,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * type (MAP_PROPERTY_READONLY): Carbon's property over GetType, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:85).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -523,6 +627,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:87).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -534,6 +640,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * isReadable (MAP_PROPERTY_READONLY): Carbon's property over IsReadable, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:88).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -545,6 +653,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * Carbon `ReleaseResources` (`cpp:488-495`): drop the owned texture when its
    * memory class is being released.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -561,6 +671,8 @@ export class Tr2RenderTarget extends IRoot
   /**
    * Carbon `OnPrepareResources` (`cpp:498-508`): recreate a released texture
    * from the parameters it was made with.
+   *
+   * @implemented
    */
 
   @meta.implemented

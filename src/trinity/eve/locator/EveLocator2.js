@@ -24,7 +24,11 @@ export class EveLocator2 extends IRoot
   @type.mat4
   transform = mat4.create();
 
-  /** Returns the name consumers select this locator by. */
+  /**
+   * Returns the name consumers select this locator by.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -35,6 +39,8 @@ export class EveLocator2 extends IRoot
   /**
    * Sets the name consumers select this locator by, coercing the value to a
    * string.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -46,6 +52,8 @@ export class EveLocator2 extends IRoot
   /**
    * Returns the locator's live transform matrix, not a copy; writes through it
    * change the locator.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -54,7 +62,11 @@ export class EveLocator2 extends IRoot
     return this.transform;
   }
 
-  /** Copies a matrix into the locator's own transform storage. */
+  /**
+   * Copies a matrix into the locator's own transform storage.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetTransform(value)

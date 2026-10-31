@@ -25,15 +25,27 @@ export class ITriEffectTextureParameter extends ITriEffectResourceParameter
   static UV_SET_MAX_COUNT = 8;
 
 
-  /** Reports the on-screen size this texture is drawn at, and returns the LOD that demands. */
+  /**
+   * Reports the on-screen size this texture is drawn at, and returns the LOD that demands.
+   *
+   * @abstract
+   */
   @meta.abstract
   UsedWithScreenSize(_screenSize, _worldRadius, _uvDensities) {}
 
-  /** Turns mip selection on, against one density scale per UV set. */
+  /**
+   * Turns mip selection on, against one density scale per UV set.
+   *
+   * @abstract
+   */
   @meta.abstract
   EnableTextureLoding(_uvDensityScale) {}
 
-  /** Turns mip selection off. */
+  /**
+   * Turns mip selection off.
+   *
+   * @abstract
+   */
   @meta.abstract
   DisableTextureLoding() {}
 }

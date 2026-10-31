@@ -14,6 +14,7 @@ export class IListNotify extends IRoot
    * successful nonempty bulk copy. The event may carry a load or unload flag,
    * so mask with BELIST_EVENTMASK before comparing.
    *
+   * @abstract
    * @param {number} _event A `BLUELISTEVENT` value from `#consts/blue`.
    * @param {number} _key The index acted on.
    * @param {number} _key2 The second index, for swaps and moves.

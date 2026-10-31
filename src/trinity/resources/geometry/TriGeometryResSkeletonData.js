@@ -16,6 +16,8 @@ export class TriGeometryResSkeletonData
    * Finds an exact joint name, returning Carbon's unsigned invalid sentinel
    * (TriGeometryRes.cpp:1841-1852). Decoded CMF payloads store their joint
    * names as a bones string array; the same method accepts that record form.
+   *
+   * @adapted
    */
   FindJoint(name)
   {

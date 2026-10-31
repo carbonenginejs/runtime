@@ -31,9 +31,8 @@ export class Tr2SyncToAnimation extends IRoot
    * Allows transition when the matching animation layer has no remaining time.
    * NaN and positive infinity do not satisfy Carbon's completion comparison.
    *
-   * Adapted: Resolves the animation controller through the runtime owner adapter
-   * instead of Carbon's EveSpaceObject2 cast.
-   *
+   * @adapted Resolves the animation controller through the runtime owner adapter
+   *   instead of Carbon's EveSpaceObject2 cast.
    * @param {Tr2Controller} controller Controller owning the animated object.
    * @returns {boolean} Whether the layer is absent or complete.
    */

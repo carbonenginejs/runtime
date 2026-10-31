@@ -17,13 +17,21 @@ export class CjsLoadingObject extends BlueAsyncRes
   /** Object routes construct independently for each LoadObject caller. */
   static handlerMode = ResourceHandlerMode.OBJECT;
 
-  /** Read through the configured reader; resMan retains plain data/builders. */
+  /**
+   * Read through the configured reader; resMan retains plain data/builders.
+   *
+   * @adapted
+   */
   _DoLoad()
   {
     return blue.resMan._LoadObjectData(this);
   }
 
-  /** No device preparation is needed for a cached object builder. */
+  /**
+   * No device preparation is needed for a cached object builder.
+   *
+   * @adapted
+   */
   _DoPrepare()
   {
     return true;
@@ -31,6 +39,8 @@ export class CjsLoadingObject extends BlueAsyncRes
 
   /**
    * Drop retained builder data at explicit JS cleanup, honoring MotherLode policy.
+   *
+   * @adapted
    * @param {object} [options={}] Existing releasePayload switch.
    * @returns {void}
    */

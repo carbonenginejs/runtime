@@ -46,9 +46,12 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   @type.string
   seed_temp = "";
 
-  /** Carbon EveProceduralMethodAttributeMap::OnModified (cpp:19-27): a seed
+  /**
+   * Carbon EveProceduralMethodAttributeMap::OnModified (cpp:19-27): a seed
    * change reselects. The value argument follows the repo's OnModified duck
    * (field name or field value).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -62,10 +65,14 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
     return true;
   }
 
-  /** Carbon EveProceduralMethodAttributeMap::SelectParameter (cpp:29-47): the
+  /**
+   * Carbon EveProceduralMethodAttributeMap::SelectParameter (cpp:29-47): the
    * first parameter whose name equals the seed string wins; a changed index
    * flags the selected child as modified. Carbon leaves the index untouched
-   * when no name matches. */
+   * when no name matches.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SelectParameter()
@@ -87,8 +94,12 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
     }
   }
 
-  /** Carbon EveProceduralMethodAttributeMap::IsSelectedChildModified
-   * (cpp:49-52). */
+  /**
+   * Carbon EveProceduralMethodAttributeMap::IsSelectedChildModified
+   * (cpp:49-52).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsSelectedChildModified()
@@ -96,10 +107,14 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
     return this._selectedChildModified;
   }
 
-  /** Carbon EveProceduralMethodAttributeMap::GetSelectedChild (cpp:54-74):
+  /**
+   * Carbon EveProceduralMethodAttributeMap::GetSelectedChild (cpp:54-74):
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
-   * path. */
+   * path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSelectedChild()
@@ -124,9 +139,13 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
     return null;
   }
 
-  /** Carbon EveProceduralMethodAttributeMap::UpdateAsyncronous (cpp:76-91):
+  /**
+   * Carbon EveProceduralMethodAttributeMap::UpdateAsyncronous (cpp:76-91):
    * reselect once any parameter reports itself modified, clearing the flags
-   * on the way. */
+   * on the way.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
@@ -146,7 +165,11 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
     }
   }
 
-  /** Carbon returns the owned volume vector by reference (cpp:93-96). */
+  /**
+   * Carbon returns the owned volume vector by reference (cpp:93-96).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDebugVolumes()

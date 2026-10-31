@@ -96,7 +96,11 @@ export class DictWriter extends IRootWriter
     }
   }
 
-  /** Records a member name for the next value. */
+  /**
+   * Records a member name for the next value.
+   *
+   * @adapted
+   */
   WriteMemberName(name)
   {
     this._pendingName = name;
@@ -115,6 +119,7 @@ export class DictWriter extends IRootWriter
    * Writes an object, an alias to one already written, or null
    * (`WriteIRoot( const IRoot* )`, YamlWriter.cpp:349-376).
    *
+   * @adapted
    * @param {object|null} instance The object.
    * @param {string|null} declaredClassName The class its member declares.
    */
@@ -156,7 +161,11 @@ export class DictWriter extends IRootWriter
     this._pendingName = this._recordNames.pop();
   }
 
-  /** Begins a list in the container being filled. */
+  /**
+   * Begins a list in the container being filled.
+   *
+   * @adapted
+   */
   WriteVectorBegin(_size)
   {
     const list = [];
@@ -164,7 +173,11 @@ export class DictWriter extends IRootWriter
     this._stack.push(list);
   }
 
-  /** Ends the list being filled. */
+  /**
+   * Ends the list being filled.
+   *
+   * @adapted
+   */
   WriteVectorEnd(_size)
   {
     this._stack.pop();
@@ -200,12 +213,11 @@ export class DictWriter extends IRootWriter
   /**
    * Writes nothing: a values bag carries no binary block.
    *
-   * Adapted: YamlWriter writes the bytes as a base64 `!!binary` scalar
-   * (YamlWriter.cpp:154-180), but DictReader, which reads these bags, refuses
-   * a binary block (DictReader.cpp:718-721), so a bag that held one could not
-   * be read back. The Copier does not copy one either (BINARYBLOCK's member
-   * size is 0, so Copier.cpp:173-176 always finds it unchanged).
-   *
+   * @adapted YamlWriter writes the bytes as a base64 `!!binary` scalar
+   *   (YamlWriter.cpp:154-180), but DictReader, which reads these bags, refuses
+   *   a binary block (DictReader.cpp:718-721), so a bag that held one could not
+   *   be read back. The Copier does not copy one either (BINARYBLOCK's member
+   *   size is 0, so Copier.cpp:173-176 always finds it unchanged).
    * @param {object} _persist The instance's ICustomPersist.
    * @param {string} _propertyName The block's member name.
    */
@@ -233,7 +245,11 @@ export class DictWriter extends IRootWriter
       this._options.refs === false ? "false - shared objects were written at every reference" : "on");
   }
 
-  /** `Cleanup` (YamlWriter.cpp:245-254). */
+  /**
+   * `Cleanup` (YamlWriter.cpp:245-254).
+   *
+   * @adapted
+   */
   _Cleanup()
   {
     this._stack.length = 0;

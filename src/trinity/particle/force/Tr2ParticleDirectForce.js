@@ -23,7 +23,11 @@ export class Tr2ParticleDirectForce extends ITr2ParticleForce
   @type.vec3
   force = vec3.fromValues(1, 1, 1);
 
-  /** Copies the authored constant force into caller-owned output. */
+  /**
+   * Copies the authored constant force into caller-owned output.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetForce(_position, _velocity, _dt, _mass, out)
@@ -34,6 +38,8 @@ export class Tr2ParticleDirectForce extends ITr2ParticleForce
   /**
    * Nothing to advance per frame: the force vector is authored and never
    * changes.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -46,6 +52,8 @@ export class Tr2ParticleDirectForce extends ITr2ParticleForce
    * a 10-segment wireframe arrow from the world-space origin to the force
    * vector taken as a world-space point, radius max(length * 0.1, 0.1), head
    * 0.4 of its length, in 0xffaaaa00.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.

@@ -28,6 +28,8 @@ export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
 
   /**
    * Sets the prefix when the controller owner exposes a named sound emitter.
+   *
+   * @implemented
    * @param {ITr2ActionController} controller The invoking controller.
    */
 
@@ -42,7 +44,8 @@ export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
 
   /**
    * Starts manually without changing state-machine state.
-   * Adapted: JavaScript TypeError represents native PyErr_SetString for null.
+   *
+   * @adapted JavaScript TypeError represents native PyErr_SetString for null.
    * @param {ITr2ActionController} controller The invoking controller.
    */
   @be.mapMethodAndWrap()

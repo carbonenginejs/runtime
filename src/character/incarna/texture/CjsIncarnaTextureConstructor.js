@@ -67,6 +67,7 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
   /**
    * A built texture costs a download and a decode to rebuild, so it is kept.
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
   @meta.implemented
@@ -77,6 +78,8 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
 
   /**
    * Build the native texture handle, retaining its recipe for same-handle reload.
+   *
+   * @implemented
    * @param {string} query Authored dynamic texture recipe after its registered prefix.
    * @returns {TriTextureRes} Initialized texture with a recipe retained for same-handle reload.
    */
@@ -103,6 +106,7 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
    * The recipe for an Incarna query, or null for an unknown role or a missing
    * source.
    *
+   * @implemented
    * @param {string} query `<role>/<source path>`.
    * @returns {Tr2TexturePipeline|null} The recipe.
    */
@@ -137,6 +141,7 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
    * The `dynamic:/incarna/` path for one quad input made from one Incarna
    * texture.
    *
+   * @implemented
    * @param {string} role A `ROLES` key, such as "albedo".
    * @param {string} sourcePath The Incarna texture's resource path.
    * @returns {string} The texture path.

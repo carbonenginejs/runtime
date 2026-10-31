@@ -62,6 +62,8 @@ export class CjsAudioRes extends BlueAsyncRes
 
     /**
      * Binds the shared physical resource and this file's byte window.
+     *
+     * @implemented
      * @param {CjsAudioBufferRes} backing Physical owner shared by logical bank windows.
      * @param {object} [options={}] Window bounds.
      * @param {number} [options.offset=0] Byte offset in the physical source.
@@ -239,6 +241,8 @@ export class CjsAudioRes extends BlueAsyncRes
 
     /**
      * Renews the child identity and the shared backing payload lease.
+     *
+     * @implemented
      * @param {object} [options={}] Existing activity frame/time overrides.
      * @returns {CjsAudioRes} This logical resource.
      */
@@ -251,6 +255,8 @@ export class CjsAudioRes extends BlueAsyncRes
 
     /**
      * Locks this child and increments the shared backing lock count.
+     *
+     * @implemented
      * @returns {number} Logical resource lock count after balancing its backing lock.
      */
     Lock()
@@ -277,6 +283,8 @@ export class CjsAudioRes extends BlueAsyncRes
 
     /**
      * Unlocks this child and releases one shared backing lock.
+     *
+     * @implemented
      * @returns {number} Logical resource lock count after balancing its backing lock.
      */
     Unlock()
@@ -333,6 +341,8 @@ export class CjsAudioRes extends BlueAsyncRes
     /**
      * Use the existing physical byte owner instead of opening the logical audio
      * identifier as a second file. This class is a browser audio adapter.
+     *
+     * @adapted
      * @returns {boolean} Whether a backing source is bound.
      */
     _DoOpenStream()
@@ -342,6 +352,8 @@ export class CjsAudioRes extends BlueAsyncRes
 
     /**
      * Wait for the physical resource without retaining another bank byte view.
+     *
+     * @adapted
      * @returns {Promise<number>} Native asynchronous-load result.
      */
     async _DoLoad()
@@ -352,6 +364,8 @@ export class CjsAudioRes extends BlueAsyncRes
 
     /**
      * The logical file is usable once its backing load has completed.
+     *
+     * @adapted
      * @returns {boolean} Whether its backing source remains bound.
      */
     _DoPrepare()

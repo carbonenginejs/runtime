@@ -66,7 +66,8 @@ export class Tr2MeshArea extends IRoot
 
   /**
    * m_generateDepthArea - authored depth-area participation (SOF-stamped).
-   * Adapted: Carbon declares m_generateDepthArea (trinity/trinity/Tr2MeshArea.h:95) but does not expose it; exposed here for the values interface.
+   *
+   * @adapted Carbon declares m_generateDepthArea (trinity/trinity/Tr2MeshArea.h:95) but does not expose it; exposed here for the values interface.
    */
 
   @meta.mapAttribute(meta.PERSIST)
@@ -76,7 +77,8 @@ export class Tr2MeshArea extends IRoot
 
   /**
    * m_alphaCutout - decal-style surface whose ray-facing rule is two-sided.
-   * Adapted: Carbon declares m_alphaCutout (trinity/trinity/Tr2MeshArea.h:99) but does not expose it; exposed here for the values interface.
+   *
+   * @adapted Carbon declares m_alphaCutout (trinity/trinity/Tr2MeshArea.h:99) but does not expose it; exposed here for the values interface.
    */
 
   @meta.mapAttribute(meta.PERSIST)
@@ -86,7 +88,8 @@ export class Tr2MeshArea extends IRoot
 
   /**
    * m_minLod (Tr2Lod) - minimal visible lod; TR2_LOD_UNSPECIFIED = -1.
-   * Adapted: Carbon declares m_minLod (trinity/trinity/Tr2MeshArea.h:82) but does not expose it; exposed here for the values interface.
+   *
+   * @adapted Carbon declares m_minLod (trinity/trinity/Tr2MeshArea.h:82) but does not expose it; exposed here for the values interface.
    */
 
   @meta.mapAttribute(meta.PERSIST)
@@ -100,7 +103,11 @@ export class Tr2MeshArea extends IRoot
   /** m_jointMappingAnimRig - shared joint mapping owned by the parent mesh. */
   #jointMappingAnimRig = null;
 
-  /** First geometry group of the area's range. */
+  /**
+   * First geometry group of the area's range.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetIndex()
@@ -111,6 +118,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * Sets the first geometry group, coerced to a signed integer; schedules the
    * batches rebuild.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -119,7 +128,11 @@ export class Tr2MeshArea extends IRoot
     this.index = Number(value) | 0;
   }
 
-  /** Number of geometry groups in the area's range. */
+  /**
+   * Number of geometry groups in the area's range.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetCount()
@@ -130,6 +143,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * Sets the group count, coerced to a signed integer; schedules the batches
    * rebuild.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -138,7 +153,11 @@ export class Tr2MeshArea extends IRoot
     this.count = Number(value) | 0;
   }
 
-  /** Whether the area is drawn; a hidden area emits no batch. */
+  /**
+   * Whether the area is drawn; a hidden area emits no batch.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetDisplay()
@@ -146,7 +165,11 @@ export class Tr2MeshArea extends IRoot
     return this.display;
   }
 
-  /** Shows or hides the area. */
+  /**
+   * Shows or hides the area.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetDisplay(value)
@@ -154,7 +177,11 @@ export class Tr2MeshArea extends IRoot
     this.display = !!value;
   }
 
-  /** Whether the area is drawn with reversed winding. */
+  /**
+   * Whether the area is drawn with reversed winding.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetReversed()
@@ -162,7 +189,11 @@ export class Tr2MeshArea extends IRoot
     return this.reversed;
   }
 
-  /** Carbon's second name for GetReversed. */
+  /**
+   * Carbon's second name for GetReversed.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   IsReversed()
@@ -170,7 +201,11 @@ export class Tr2MeshArea extends IRoot
     return this.reversed;
   }
 
-  /** Sets the reversed-winding flag; schedules the batches rebuild. */
+  /**
+   * Sets the reversed-winding flag; schedules the batches rebuild.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetReversed(value)
@@ -178,7 +213,11 @@ export class Tr2MeshArea extends IRoot
     this.reversed = !!value;
   }
 
-  /** Whether the area is lit with spherical-harmonic lighting. */
+  /**
+   * Whether the area is lit with spherical-harmonic lighting.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetUseSHLighting()
@@ -186,7 +225,11 @@ export class Tr2MeshArea extends IRoot
     return this.useSHLighting;
   }
 
-  /** Sets the spherical-harmonic lighting flag; schedules the batches rebuild. */
+  /**
+   * Sets the spherical-harmonic lighting flag; schedules the batches rebuild.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetUseSHLighting(value)
   {
@@ -196,6 +239,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * The area's effect, which serves as its material and shader key during batch
    * collection; null areas produce no batch.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -204,7 +249,11 @@ export class Tr2MeshArea extends IRoot
     return this.effect;
   }
 
-  /** Binds the effect used as this area's material. */
+  /**
+   * Binds the effect used as this area's material.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetMaterial(value)
@@ -215,6 +264,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * The authored area name, which SOF and effect bindings use to address this
    * area of the mesh.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -223,7 +274,11 @@ export class Tr2MeshArea extends IRoot
     return this.name;
   }
 
-  /** Sets the area name, coercing null to an empty string. */
+  /**
+   * Sets the area name, coercing null to an empty string.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetName(value)
@@ -234,6 +289,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * Whether the area takes part in shadow and overlay area-block collection; SOF
    * stamps this per batch type and it defaults to true.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -242,7 +299,11 @@ export class Tr2MeshArea extends IRoot
     return this.castsShadows;
   }
 
-  /** Sets shadow participation; schedules the batches rebuild. */
+  /**
+   * Sets shadow participation; schedules the batches rebuild.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetCastsShadows(value)
@@ -250,7 +311,11 @@ export class Tr2MeshArea extends IRoot
     this.castsShadows = !!value;
   }
 
-  /** Whether ray intersection treats this area as an alpha-cutout surface. */
+  /**
+   * Whether ray intersection treats this area as an alpha-cutout surface.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsAlphaCutout()
@@ -258,7 +323,11 @@ export class Tr2MeshArea extends IRoot
     return this.alphaCutout;
   }
 
-  /** Sets alpha-cutout participation; SOF stamps decal areas through this. */
+  /**
+   * Sets alpha-cutout participation; SOF stamps decal areas through this.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetAlphaCutout(value)
@@ -266,7 +335,11 @@ export class Tr2MeshArea extends IRoot
     this.alphaCutout = !!value;
   }
 
-  /** Whether the authored area participates in depth-area generation. */
+  /**
+   * Whether the authored area participates in depth-area generation.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetGenerateDepthArea()
@@ -274,7 +347,11 @@ export class Tr2MeshArea extends IRoot
     return this.generateDepthArea;
   }
 
-  /** Sets depth-area participation; schedules the batches rebuild. */
+  /**
+   * Sets depth-area participation; schedules the batches rebuild.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetGenerateDepthArea(value)
@@ -285,6 +362,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * Lowest LOD at which the area is visible; -1 (TR2_LOD_UNSPECIFIED) means
    * unrestricted.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -293,7 +372,11 @@ export class Tr2MeshArea extends IRoot
     return this.minLod;
   }
 
-  /** Sets the minimum visible LOD, coerced to a signed integer. */
+  /**
+   * Sets the minimum visible LOD, coerced to a signed integer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetMinLod(lod)
@@ -301,7 +384,11 @@ export class Tr2MeshArea extends IRoot
     this.minLod = Number(lod) | 0;
   }
 
-  /** Skinning joint count, filled in when the parent mesh binds to a rig. */
+  /**
+   * Skinning joint count, filled in when the parent mesh binds to a rig.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetJointCount()
@@ -312,6 +399,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * Sets the skinning joint count; CopyFrom deliberately resets it to zero for a
    * new owner.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -323,6 +412,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * The joint mapping array; it is owned by the parent mesh and shared by every
    * area, so it must not be mutated here.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -334,6 +425,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * The provided array is NOT owned by this instance, it is owned by the
    * parent mesh; each mesh area shares the same array.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -345,6 +438,8 @@ export class Tr2MeshArea extends IRoot
   /**
    * Carbon's operator= - copies authored fields and deliberately resets the
    * joint state, which BindToRig must rebuild for the new owner.
+   *
+   * @adapted
    */
   @meta.adapted
   CopyFrom(other)
@@ -369,9 +464,9 @@ export class Tr2MeshArea extends IRoot
    * writes it and no code in the tree consumes it - so this is ported for shape
    * rather than for a consumer.
    *
-   * Adapted: Carbon holds raw Tr2MeshBase* here, which do not keep the mesh alive; a
-   * JavaScript reference does. With no reader in the donor that retention is the only
-   * observable difference, and it is recorded rather than worked around.
+   * @adapted Carbon holds raw Tr2MeshBase* here, which do not keep the mesh alive; a
+   *   JavaScript reference does. With no reader in the donor that retention is the only
+   *   observable difference, and it is recorded rather than worked around.
    */
 
   @meta.adapted
@@ -383,9 +478,9 @@ export class Tr2MeshArea extends IRoot
   /**
    * Carbon RemoveOwnerMesh (Tr2MeshArea.cpp:206-218): swap-with-back removal.
    *
-   * Adapted: Carbon CCP_ASSERTs when the mesh is absent, which is a debug-build check; here
-   * it throws, since unregistering from an area a mesh never took is a caller defect either
-   * way.
+   * @adapted Carbon CCP_ASSERTs when the mesh is absent, which is a debug-build check; here
+   *   it throws, since unregistering from an area a mesh never took is a caller defect either
+   *   way.
    */
 
   @meta.adapted

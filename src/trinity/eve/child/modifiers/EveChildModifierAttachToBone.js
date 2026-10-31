@@ -26,6 +26,7 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    * Float4x3 column-stride 12-float palette (skill gotcha 7:
    * rows are (v0,v4,v8,v12) / (v1,v5,v9,v13) / (v2,v6,v10,v14)).
    *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} boneCount
    * @param {Float32Array|Array} bones - Float4x3 palette, 12 floats per bone
@@ -65,6 +66,8 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    * Selects which bone of the parent's palette the child follows; a negative
    * index, or one past the palette length, leaves the incoming transform
    * untouched.
+   *
+   * @implemented
    */
 
   @meta.implemented

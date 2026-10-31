@@ -38,7 +38,11 @@ export class TriFloatArrayParameter extends ITriEffectParameter
 
   #cachedEffect = null;
 
-  /** The shader constant-array name these rows bind to. */
+  /**
+   * The shader constant-array name these rows bind to.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -46,7 +50,11 @@ export class TriFloatArrayParameter extends ITriEffectParameter
     return this.name;
   }
 
-  /** Content hash: each row's vec4 bytes, then name. */
+  /**
+   * Content hash: each row's vec4 bytes, then name.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
@@ -58,7 +66,11 @@ export class TriFloatArrayParameter extends ITriEffectParameter
     return hashFnv1String(this.name, startingHash);
   }
 
-  /** Nothing to resolve - the rows are authored data; returns true. */
+  /**
+   * Nothing to resolve - the rows are authored data; returns true.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -69,6 +81,8 @@ export class TriFloatArrayParameter extends ITriEffectParameter
   /**
    * Re-resolves effect handles against the cached shader after any notified
    * field changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -81,6 +95,8 @@ export class TriFloatArrayParameter extends ITriEffectParameter
   /**
    * Caches the shader and records whether it reflects a constant of this name;
    * no GPU handle is bound.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -95,6 +111,8 @@ export class TriFloatArrayParameter extends ITriEffectParameter
 
   /**
    * Packs the rows contiguously into the destination, stopping at whichever limit comes first: the last row, the destination length, or the byte budget; a final row may be written partially.
+   *
+   * @adapted
    * @param size byte budget in the destination, four bytes per float
    * Carbon declaration: TriFloatArrayParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/TriFloatArrayParameter.h:56).
    */

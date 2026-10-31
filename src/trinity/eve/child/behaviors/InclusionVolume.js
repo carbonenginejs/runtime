@@ -64,7 +64,11 @@ export class InclusionVolume extends IRoot
 
   _returnForces = [];
 
-  /** Carbon InclusionVolume::GetProcessPriority (cpp:21-24). */
+  /**
+   * Carbon InclusionVolume::GetProcessPriority (cpp:21-24).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -77,10 +81,9 @@ export class InclusionVolume extends IRoot
    * their falloff shell; fully-inside agents feel no force (Carbon
    * CalculateBehavior, cpp:26-69).
    *
-   * Adapted: Carbon pushes a debug force pair for every agent unconditionally; the JS port
-   * collects them only when group.collectForces is set to keep the per-agent loop
-   * allocation-free.
-   *
+   * @adapted Carbon pushes a debug force pair for every agent unconditionally; the JS port
+   *   collects them only when group.collectForces is set to keep the per-agent loop
+   *   allocation-free.
    * @param {Array} agents - DroneAgent records
    * @param {Array|null} _scratchData - unused (no scratch)
    * @param {Number} _deltaTime
@@ -145,6 +148,8 @@ export class InclusionVolume extends IRoot
 
   /**
    * Carbon InclusionVolume::GetDebugOptions (cpp:71-74).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -157,6 +162,8 @@ export class InclusionVolume extends IRoot
   /**
    * Carbon InclusionVolume::RenderDebugInfo (cpp:76-85): delegates inclusion-volume
    * debug geometry when its option is enabled.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation

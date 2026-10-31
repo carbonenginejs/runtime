@@ -20,6 +20,8 @@ export class GradientTextureConstructor extends IBlueDynamicResourceConstructor
 {
   /**
    * Carbon GradientTextureConstructor::GetResource: initialize its native procedural path.
+   *
+   * @adapted
    * @param {string} query Authored dynamic texture recipe after its registered prefix.
    * @returns {TriTextureRes} Initialized texture with a recipe retained for same-handle reload.
    */

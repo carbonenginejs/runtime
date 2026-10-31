@@ -27,6 +27,8 @@ export class EveSOFDataParameterBool extends EveSOFDataParameter
   /**
    * Returns a new vector containing the boolean value as four identical
    * zero-or-one components.
+   *
+   * @implemented
    */
   @meta.implemented
 

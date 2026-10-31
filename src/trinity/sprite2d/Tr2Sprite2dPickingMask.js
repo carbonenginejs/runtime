@@ -33,7 +33,11 @@ export class Tr2Sprite2dPickingMask extends IRoot
   /** Native path backing storage; the exposed property delegates resource acquisition. @type {string} */
   _maskPath = "";
 
-  /** Carbon MAP_PROPERTY "maskPath" (Tr2Sprite2dPickingMask_Blue.cpp:27-33), read through GetMaskPath. @returns {string} */
+  /**
+   * Carbon MAP_PROPERTY "maskPath" (Tr2Sprite2dPickingMask_Blue.cpp:27-33), read through GetMaskPath. @returns {string}
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.wstring
   @meta.implemented
@@ -42,7 +46,11 @@ export class Tr2Sprite2dPickingMask extends IRoot
     return this.GetMaskPath();
   }
 
-  /** Carbon MAP_PROPERTY "maskPath" setter, written through SetMaskPath. @param {string} value Image path. */
+  /**
+   * Carbon MAP_PROPERTY "maskPath" setter, written through SetMaskPath. @param {string} value Image path.
+   *
+   * @implemented
+   */
   @meta.implemented
   set maskPath(value)
   {
@@ -88,7 +96,11 @@ export class Tr2Sprite2dPickingMask extends IRoot
   @type.resource("Tr2ImageRes")
   mask = null;
 
-  /** Carbon GetMaskPath (Tr2Sprite2dPickingMask.cpp:18-21). @returns {string} */
+  /**
+   * Carbon GetMaskPath (Tr2Sprite2dPickingMask.cpp:18-21). @returns {string}
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMaskPath()
@@ -100,9 +112,8 @@ export class Tr2Sprite2dPickingMask extends IRoot
    * Carbon: SetMaskPath (trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask.cpp:23-31).
    * Guard the redundant set, clear the mask and request the "raw" image suffix.
    *
-   * Adapted: Coerces paths to strings and clears
-   * empty paths without acquisition.
-   *
+   * @adapted Coerces paths to strings and clears
+   *   empty paths without acquisition.
    * @param {string} path Image resource path.
    * @returns {void}
    */
@@ -146,6 +157,7 @@ export class Tr2Sprite2dPickingMask extends IRoot
    * marked divergence), and the override is reproduced as written, so the
    * outcome matches Carbon: an R8 mask never passes a threshold of 0 or more.
    *
+   * @implemented
    * @param {Float32Array|number[]} point The test point, in the same space as topLeft.
    * @param {Float32Array|number[]} topLeft The sprite's top-left corner.
    * @param {number} width The sprite's width.

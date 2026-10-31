@@ -234,11 +234,10 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * `Add` (CallbackMan.cpp:94-146) - queues a callback run on the caller's
    * thread by `Update`.
    *
-   * Adapted: Carbon writes the id through its `CcpAtomic<uint32_t>*` out
-   * parameter; here `id`, when given, is an object whose `value` receives it.
-   * A function cannot be handed to a worker, so a manager running its own
-   * threads takes only named entries (`Add__Name`).
-   *
+   * @adapted Carbon writes the id through its `CcpAtomic<uint32_t>*` out
+   *   parameter; here `id`, when given, is an object whose `value` receives it.
+   *   A function cannot be handed to a worker, so a manager running its own
+   *   threads takes only named entries (`Add__Name`).
    * @param {Function} callback Called with the context.
    * @param {*} [context=null] Passed to the callback.
    * @param {number} [flags=IBlueCallbackMan.BCBF_NONE] `BCBF_*` flags.
@@ -261,11 +260,10 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `Add` for an entry run on the own threads, by callback name.
    *
-   * Adapted: a worker cannot run a main-thread function or write into the
-   * caller's memory, so the entry names a callback the worker module exports,
-   * its context must be cloneable, and its result comes back as the promise's
-   * value. `transfer` lists buffers moved, not copied, into the worker.
-   *
+   * @adapted a worker cannot run a main-thread function or write into the
+   *   caller's memory, so the entry names a callback the worker module exports,
+   *   its context must be cloneable, and its result comes back as the promise's
+   *   value. `transfer` lists buffers moved, not copied, into the worker.
    * @param {string} name Callback name exported by the worker module.
    * @param {*} [context=null] Cloneable context.
    * @param {number} [flags=IBlueCallbackMan.BCBF_NONE] `BCBF_*` flags.
@@ -295,7 +293,11 @@ export class BlueCallbackMan extends IBlueCallbackMan
     });
   }
 
-  /** Queues one entry; the body of Carbon's `Add` (cpp:98-143). */
+  /**
+   * Queues one entry; the body of Carbon's `Add` (cpp:98-143).
+   *
+   * @adapted
+   */
   _AddHelper(callback, name, context, transfer, flags, id, completion)
   {
     if (id) id.value = this._nextId;
@@ -336,10 +338,9 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * `Cancel` (CallbackMan.cpp:148-187) - removes a queued entry; for one in
    * progress, discards its outcome.
    *
-   * Adapted: Carbon blocks on the in-progress mutex until the callback
-   * finishes; nothing blocks here, so the returned promise settles then
-   * instead. A worker is also told, and stops the entry at its next yield.
-   *
+   * @adapted Carbon blocks on the in-progress mutex until the callback
+   *   finishes; nothing blocks here, so the returned promise settles then
+   *   instead. A worker is also told, and stops the entry at its next yield.
    * @param {number} id Entry id.
    * @returns {Promise<void>} Settles once the entry is no longer running.
    */
@@ -377,13 +378,12 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `Run` (CallbackMan.cpp:189-207) - creates the own threads.
    *
-   * Adapted: each thread is a worker built from the module given to
-   * `SetWorkerModule`; there are no OS threads to create. A host may have no
-   * workers, or block them, so creating one can throw. The workers already
-   * created are then terminated and the manager is left not running before
-   * the error is rethrown. This fixes our own adaptation; Carbon's threads
-   * always start (CallbackMan.cpp:189-206).
-   *
+   * @adapted each thread is a worker built from the module given to
+   *   `SetWorkerModule`; there are no OS threads to create. A host may have no
+   *   workers, or block them, so creating one can throw. The workers already
+   *   created are then terminated and the manager is left not running before
+   *   the error is rethrown. This fixes our own adaptation; Carbon's threads
+   *   always start (CallbackMan.cpp:189-206).
    * @throws {Error} When no worker module is set, or a worker cannot be created.
    */
   Run()
@@ -528,9 +528,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `Stop` (CallbackMan.cpp:245-271) - stops the own threads.
    *
-   * Adapted: Carbon joins each thread; here the promise settles once every
-   * entry in progress has finished, then the workers are terminated.
-   *
+   * @adapted Carbon joins each thread; here the promise settles once every
+   *   entry in progress has finished, then the workers are terminated.
    * @returns {Promise<void>} Settles once the workers are gone.
    */
   async Stop()
@@ -563,9 +562,9 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `Pause` (CallbackMan.cpp:273-279) - no new entry starts until resumed.
    *
-   * Adapted: Carbon asserts the own threads. Here it also holds an `Update`-mode
-   * manager, whose `Update` starts nothing while paused, because resMan's
-   * background queue is not threaded and is paused through this.
+   * @adapted Carbon asserts the own threads. Here it also holds an `Update`-mode
+   *   manager, whose `Update` starts nothing while paused, because resMan's
+   *   background queue is not threaded and is paused through this.
    */
   Pause()
   {
@@ -575,10 +574,10 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `Resume` (CallbackMan.cpp:281-295) - undoes one `Pause`.
    *
-   * Adapted: as `Pause`, it also serves an `Update`-mode manager. The last
-   * `Resume` wakes the own threads through the alarm, as Carbon's semaphore
-   * does; in `Update` mode it calls the slot-free callback instead, the
-   * owner's stand-in for that semaphore (see `SetSlotFreeCallback`).
+   * @adapted as `Pause`, it also serves an `Update`-mode manager. The last
+   *   `Resume` wakes the own threads through the alarm, as Carbon's semaphore
+   *   does; in `Update` mode it calls the slot-free callback instead, the
+   *   owner's stand-in for that semaphore (see `SetSlotFreeCallback`).
    */
   Resume()
   {
@@ -590,30 +589,41 @@ export class BlueCallbackMan extends IBlueCallbackMan
     else if (this._onSlotFree !== null) this._onSlotFree();
   }
 
-  /** `IsPaused` (CallbackMan.cpp:297-301). */
+  /**
+   * `IsPaused` (CallbackMan.cpp:297-301).
+   *
+   * @implemented
+   */
   IsPaused()
   {
     return this._pauseCounter > 0;
   }
 
-  /** `Throttle` (CallbackMan.h:53) - a no-op; a subclass overrides it. */
+  /**
+   * `Throttle` (CallbackMan.h:53) - a no-op; a subclass overrides it.
+   *
+   * @implemented
+   */
   Throttle() {}
 
-  /** `Unthrottle` (CallbackMan.h:57) - a no-op; a subclass overrides it. */
+  /**
+   * `Unthrottle` (CallbackMan.h:57) - a no-op; a subclass overrides it.
+   *
+   * @implemented
+   */
   Unthrottle() {}
 
   /**
    * `Update` (CallbackMan.cpp:303-316) - processes the next entry on the
    * caller's thread.
    *
-   * Adapted: an asynchronous entry holds its slot until it settles, so the
-   * manager keeps `SetThreadCount` slots for `Update` too; Carbon keeps one,
-   * which a synchronous callback always frees before the next call. Idle
-   * slots take turns, so each one checks the fence queue as Carbon's threads
-   * do; always taking the first idle slot would leave the others' fence bits
-   * set while regular entries keep coming. A paused manager starts nothing
-   * (see `Pause`).
-   *
+   * @adapted an asynchronous entry holds its slot until it settles, so the
+   *   manager keeps `SetThreadCount` slots for `Update` too; Carbon keeps one,
+   *   which a synchronous callback always frees before the next call. Idle
+   *   slots take turns, so each one checks the fence queue as Carbon's threads
+   *   do; always taking the first idle slot would leave the others' fence bits
+   *   set while regular entries keep coming. A paused manager starts nothing
+   *   (see `Pause`).
    * @returns {boolean} Whether an entry was started.
    */
   Update()
@@ -643,6 +653,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `UpdateThread` (CallbackMan.cpp:318-442) - takes the next entry for one
    * thread, fences first, then urgent, then regular, and runs it.
+   *
+   * @adapted
    */
   _UpdateThread(td)
   {
@@ -1003,19 +1015,31 @@ export class BlueCallbackMan extends IBlueCallbackMan
     td.worker.addEventListener("messageerror", event => this._OnWorkerFailure(td, event));
   }
 
-  /** `IsEmpty` (CallbackMan.cpp:470-473). */
+  /**
+   * `IsEmpty` (CallbackMan.cpp:470-473).
+   *
+   * @implemented
+   */
   IsEmpty()
   {
     return this._size === 0;
   }
 
-  /** `GetNextId` (CallbackMan.cpp:520-523). */
+  /**
+   * `GetNextId` (CallbackMan.cpp:520-523).
+   *
+   * @implemented
+   */
   GetNextId()
   {
     return this._nextId;
   }
 
-  /** `GetSize` (CallbackMan.cpp:515-518). */
+  /**
+   * `GetSize` (CallbackMan.cpp:515-518).
+   *
+   * @implemented
+   */
   GetSize()
   {
     return this._size;
@@ -1039,19 +1063,31 @@ export class BlueCallbackMan extends IBlueCallbackMan
     return active;
   }
 
-  /** `GetTimeInQueueMax` (CallbackMan.cpp:444-451), in seconds. */
+  /**
+   * `GetTimeInQueueMax` (CallbackMan.cpp:444-451), in seconds.
+   *
+   * @implemented
+   */
   GetTimeInQueueMax()
   {
     return Math.fround(Number(this._timeInQueueMax) / 1e9);
   }
 
-  /** `GetTimeInQueueAverage` (CallbackMan.cpp:453-460), in seconds. */
+  /**
+   * `GetTimeInQueueAverage` (CallbackMan.cpp:453-460), in seconds.
+   *
+   * @implemented
+   */
   GetTimeInQueueAverage()
   {
     return Math.fround(this._timeInQueueAverage / 1e9);
   }
 
-  /** `ResetQueueStats` (CallbackMan.cpp:462-468). */
+  /**
+   * `ResetQueueStats` (CallbackMan.cpp:462-468).
+   *
+   * @implemented
+   */
   ResetQueueStats()
   {
     this._timeInQueueAverage = 0;
@@ -1064,8 +1100,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * `SetPriority` (CallbackMan.cpp:475-491) - clamped to Carbon's range and
    * stored.
    *
-   * Adapted: a browser gives a worker no priority, so the value has no effect.
-   *
+   * @adapted a browser gives a worker no priority, so the value has no effect.
    * @param {number} priority `CCP_THREAD_PRIORITY_*`, -2 to 2.
    */
   SetPriority(priority)
@@ -1076,6 +1111,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `SetThreadCount` (CallbackMan.cpp:84-92) - at most 32.
    *
+   * @implemented
    * @param {number} threadCount Thread count.
    */
   SetThreadCount(threadCount)
@@ -1091,9 +1127,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `SetName` (CallbackMan.cpp:493-513).
    *
-   * Adapted: a worker's name is fixed when it is created, so a name set after
-   * `Run` names the next run's workers.
-   *
+   * @adapted a worker's name is fixed when it is created, so a name set after
+   *   `Run` names the next run's workers.
    * @param {string} name Name.
    */
   SetName(name)
@@ -1143,8 +1178,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `RemoveFromQueue` (CallbackMan.cpp:525-540).
    *
-   * Adapted: returns the removed entry rather than true, so `Cancel` can
-   * reject a named entry's promise.
+   * @adapted returns the removed entry rather than true, so `Cancel` can
+   *   reject a named entry's promise.
    */
   _RemoveFromQueue(queue, id)
   {
@@ -1159,6 +1194,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /**
    * `ExtractFromQueue` (CallbackMan.cpp:543-575) - takes the first unfenced
    * entry; fenced entries met first move to the fence queue.
+   *
+   * @adapted
    */
   _ExtractFromQueue(queue, threadIndex)
   {

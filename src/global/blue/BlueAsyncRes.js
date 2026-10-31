@@ -19,6 +19,8 @@ import { IBlueResource } from "./IBlueResource.js";
  * so Carbon's `CcpAtomic<uint32_t>` flags are plain booleans, and the
  * hand-grown notify-target block (`m_reloadNotifyTargets` plus its count) is an
  * Array.
+ *
+ * @abstract
  */
 export class BlueAsyncRes
 {
@@ -74,19 +76,31 @@ export class BlueAsyncRes
   /** `m_reloadNotifyTargets` - the registered `IBlueAsyncResNotifyTarget`s. */
   _reloadNotifyTargets = [];
 
-  /** `isGood` (MAP_PROPERTY_READONLY, _Blue.cpp:15-23). */
+  /**
+   * `isGood` (MAP_PROPERTY_READONLY, _Blue.cpp:15-23).
+   *
+   * @implemented
+   */
   get isGood()
   {
     return this.IsGood();
   }
 
-  /** `isPrepared` (MAP_PROPERTY_READONLY, _Blue.cpp:24-29). */
+  /**
+   * `isPrepared` (MAP_PROPERTY_READONLY, _Blue.cpp:24-29).
+   *
+   * @implemented
+   */
   get isPrepared()
   {
     return this.IsPrepared();
   }
 
-  /** `isLoading` (MAP_PROPERTY_READONLY, _Blue.cpp:30-35). */
+  /**
+   * `isLoading` (MAP_PROPERTY_READONLY, _Blue.cpp:30-35).
+   *
+   * @implemented
+   */
   get isLoading()
   {
     return this.IsLoading();
@@ -96,6 +110,8 @@ export class BlueAsyncRes
    * Carbon: BlueAsyncRes::Shutdown (blue/src/BlueAsyncRes.cpp:47-58)
    *
    * Cancels a pending load, then gives the subclass its `_OnShutdown`.
+   *
+   * @implemented
    */
   Shutdown()
   {
@@ -109,13 +125,19 @@ export class BlueAsyncRes
 
   /**
    * Carbon: BlueAsyncRes::ForceSynchronousLoad (blue/src/BlueAsyncRes.cpp:349-352)
+   *
+   * @implemented
    */
   ForceSynchronousLoad()
   {
     this._isForcedSynchronous = true;
   }
 
-  /** Cancel this attempt; late asynchronous results cannot mutate the next one. */
+  /**
+   * Cancel this attempt; late asynchronous results cannot mutate the next one.
+   *
+   * @implemented
+   */
   CancelPendingLoad()
   {
     blue.resMan._CancelResourceLoad(this);
@@ -139,10 +161,9 @@ export class BlueAsyncRes
    *
    * A target added to a prepared resource is notified at once.
    *
-   * Adapted: Carbon's duplicate-registration check is an assertion compiled
-   * out of release builds, so, as in a release build, a duplicate is not
-   * rejected. The Array replaces Carbon's capacity-rounded block.
-   *
+   * @adapted Carbon's duplicate-registration check is an assertion compiled
+   *   out of release builds, so, as in a release build, a duplicate is not
+   *   rejected. The Array replaces Carbon's capacity-rounded block.
    * @param {import("./IBlueAsyncResNotifyTarget.js").IBlueAsyncResNotifyTarget} target The target.
    */
   AddNotifyTarget(target)
@@ -158,11 +179,10 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::RemoveNotifyTarget (blue/src/BlueAsyncRes.cpp:292-347)
    *
-   * Adapted: the Array replaces Carbon's capacity-rounded block and is
-   * compacted in place, as Carbon's copy loop does; every entry equal to the
-   * target is removed. In place matters at scale: building a new array per
-   * call made tearing down 20,000 owners of one resource take over a second.
-   *
+   * @adapted the Array replaces Carbon's capacity-rounded block and is
+   *   compacted in place, as Carbon's copy loop does; every entry equal to the
+   *   target is removed. In place matters at scale: building a new array per
+   *   call made tearing down 20,000 owners of one resource take over a second.
    * @param {import("./IBlueAsyncResNotifyTarget.js").IBlueAsyncResNotifyTarget} target The target.
    */
   RemoveNotifyTarget(target)
@@ -183,6 +203,8 @@ export class BlueAsyncRes
 
   /**
    * Carbon: BlueAsyncRes::Reload (blue/src/BlueAsyncRes.cpp:370-375)
+   *
+   * @implemented
    */
   Reload()
   {
@@ -198,6 +220,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::Initialize (blue/include/BlueAsyncRes.h:67-70)
    *
+   * @implemented
    * @param {string} name Resource path, optionally with a `?query`.
    * @param {string} ext Requested extension.
    */
@@ -209,6 +232,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::GetPath (blue/include/BlueAsyncRes.h:72-75)
    *
+   * @implemented
    * @returns {string}
    */
   GetPath()
@@ -219,6 +243,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::GetExt (blue/include/BlueAsyncRes.h:77-80)
    *
+   * @implemented
    * @returns {string}
    */
   GetExt()
@@ -229,6 +254,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::IsLoading (blue/include/BlueAsyncRes.h:82-85)
    *
+   * @implemented
    * @returns {boolean}
    */
   IsLoading()
@@ -239,6 +265,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::IsPrepared (blue/include/BlueAsyncRes.h:87-90)
    *
+   * @implemented
    * @returns {boolean}
    */
   IsPrepared()
@@ -248,8 +275,9 @@ export class BlueAsyncRes
 
   /**
    * Native good flag, with browser inactivity renewal before use.
-   * Adapted: MotherLode.h:31-39 uses reference lifetime; JavaScript renews a timestamp.
-   * A failed resource stays failed until an explicit Reload.
+   *
+   * @adapted MotherLode.h:31-39 uses reference lifetime; JavaScript renews a timestamp.
+   *   A failed resource stays failed until an explicit Reload.
    * @returns {boolean}
    */
   IsGood()
@@ -261,6 +289,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::GetFilePath (blue/src/BlueAsyncRes.cpp:444-455)
    *
+   * @implemented
    * @returns {string} The path without its query.
    */
   GetFilePath()
@@ -272,6 +301,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::GetQuery (blue/src/BlueAsyncRes.cpp:457-468)
    *
+   * @implemented
    * @returns {string} The query after `?`, or an empty string.
    */
   GetQuery()
@@ -282,7 +312,8 @@ export class BlueAsyncRes
 
   /**
    * Carbon InitializeImpl (BlueAsyncRes.cpp:191-230), including its urgent-mode read.
-   * Adapted: resMan retains the promise and cancellation token for asynchronous I/O.
+   *
+   * @adapted resMan retains the promise and cancellation token for asynchronous I/O.
    * @param {string} name
    * @param {string} ext
    */
@@ -317,6 +348,7 @@ export class BlueAsyncRes
    *
    * Subclasses read `_dataStream` here.
    *
+   * @implemented
    * @returns {number|Promise<number>} A `BlueAsyncRes.LoadingResult`.
    */
   _DoLoad()
@@ -327,6 +359,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::DoPrepare (blue/include/BlueAsyncRes.h:113)
    *
+   * @implemented
    * @returns {boolean} Whether preparation succeeded.
    */
   _DoPrepare()
@@ -336,8 +369,9 @@ export class BlueAsyncRes
 
   /**
    * Open the query-free path through Blue's configured source.
-   * Adapted: the existing manager read cache preserves worker/source execution;
-   * this already-queued callback must not enqueue a second background read.
+   *
+   * @adapted the existing manager read cache preserves worker/source execution;
+   *   this already-queued callback must not enqueue a second background read.
    * @returns {Promise<boolean>}
    */
   async _DoOpenStream()
@@ -356,11 +390,15 @@ export class BlueAsyncRes
 
   /**
    * Carbon: BlueAsyncRes::OnShutdown (blue/include/BlueAsyncRes.h:123)
+   *
+   * @implemented
    */
   _OnShutdown() {}
 
   /**
    * Carbon: BlueAsyncRes::CleanupLoadData (blue/include/BlueAsyncRes.h:127)
+   *
+   * @implemented
    */
   _CleanupLoadData() {}
 
@@ -370,6 +408,7 @@ export class BlueAsyncRes
    * The load is asynchronous; its promise goes back to the callback manager,
    * which holds the queue slot until it settles.
    *
+   * @implemented
    * @param {BlueAsyncRes} context The resource, the queue entry's context.
    * @returns {Promise<void>}
    */
@@ -380,8 +419,9 @@ export class BlueAsyncRes
 
   /**
    * Native load phase, with asynchronous reads and attempt cancellation guards.
-   * Adapted: logical background work queues prepare on MAIN even on the same
-   * JavaScript thread, so the existing main-thread time slice remains effective.
+   *
+   * @adapted logical background work queues prepare on MAIN even on the same
+   *   JavaScript thread, so the existing main-thread time slice remains effective.
    * @returns {Promise<void>}
    */
   async _LoadAsync()
@@ -422,6 +462,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::StaticPrepareAsync (blue/src/BlueAsyncRes.cpp:138-142)
    *
+   * @implemented
    * @param {BlueAsyncRes} context The resource, the queue entry's context.
    */
   static _staticPrepareAsync(context)
@@ -429,7 +470,11 @@ export class BlueAsyncRes
     context._PrepareAsync();
   }
 
-  /** Complete the native prepare phase and settle the manager operation before notifying owners. */
+  /**
+   * Complete the native prepare phase and settle the manager operation before notifying owners.
+   *
+   * @implemented
+   */
   _PrepareAsync()
   {
     const attempt = blue.resMan._GetResourceLoad(this);
@@ -457,11 +502,12 @@ export class BlueAsyncRes
 
     /**
    * Carbon StaticFailedLoadNotify (BlueAsyncRes.cpp:160-189).
-   * Adapted: the resource also clears its queue id, records itself bad and
-   * settles resMan's load operation, so a waiting caller learns of the
-   * failure; it stays prepared but bad until an explicit Reload. Carbon's
-   * null-context check is dropped: the entry is always queued with its
-   * resource.
+   *
+   * @adapted the resource also clears its queue id, records itself bad and
+   *   settles resMan's load operation, so a waiting caller learns of the
+   *   failure; it stays prepared but bad until an explicit Reload. Carbon's
+   *   null-context check is dropped: the entry is always queued with its
+   *   resource.
    * @param {BlueAsyncRes} context The resource, the queue entry's context.
    * @returns {void}
    */
@@ -482,6 +528,8 @@ export class BlueAsyncRes
    * Carbon: BlueAsyncRes::CloseStream (blue/src/BlueAsyncRes.cpp:392-404)
    *
    * Releases the reserved background-load memory and drops the stream.
+   *
+   * @implemented
    */
   _CloseStream()
   {
@@ -497,7 +545,11 @@ export class BlueAsyncRes
     }
   }
 
-  /** Notify the persistent native targets; diagnose an owner that missed teardown. */
+  /**
+   * Notify the persistent native targets; diagnose an owner that missed teardown.
+   *
+   * @implemented
+   */
   _NotifyRebuildCachedData()
   {
     for (let i = 0; i < this._reloadNotifyTargets.length; ++i)
@@ -513,6 +565,8 @@ export class BlueAsyncRes
 
   /**
    * Carbon: BlueAsyncRes::NotifyReleaseCachedData (blue/src/BlueAsyncRes.cpp:362-368)
+   *
+   * @implemented
    */
   _NotifyReleaseCachedData()
   {
@@ -525,6 +579,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::SetPrepared (blue/src/BlueAsyncRes.cpp:60-63)
    *
+   * @implemented
    * @param {boolean} prepared
    */
   _SetPrepared(prepared)
@@ -535,6 +590,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::SetGood (blue/src/BlueAsyncRes.cpp:66-69)
    *
+   * @implemented
    * @param {boolean} good
    */
   _SetGood(good)
@@ -548,6 +604,7 @@ export class BlueAsyncRes
    * Splits `name=value&name&...` into `[name, value]` pairs; a bare name has an
    * empty value.
    *
+   * @implemented
    * @param {string} query The text after `?`.
    */
   _ParseQuery(query)
@@ -573,6 +630,7 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::FindFirstQueryArgumentByName (blue/src/BlueAsyncRes.cpp:432-442)
    *
+   * @implemented
    * @param {string} name Argument name.
    * @returns {Array<string>|null} The first `[name, value]` pair with that name.
    */
@@ -598,7 +656,11 @@ export class BlueAsyncRes
   /** Browser renewal timestamp, read by MotherLode without allocating per frame. */
   _lastUsedTime = 0;
 
-  /** Whether this instance is a domain resource for graph enumeration. */
+  /**
+   * Whether this instance is a domain resource for graph enumeration.
+   *
+   * @implemented
+   */
   get isResource()
   {
     return this.constructor.isResource === true;
@@ -606,6 +668,8 @@ export class BlueAsyncRes
 
   /**
    * Renew use; only a policy-purged resource revives, through its native Reload.
+   *
+   * @adapted
    * @param {object} [options] Deterministic activity values for tools/tests.
    */
   KeepAlive(options = undefined)
@@ -616,6 +680,9 @@ export class BlueAsyncRes
   /**
    * Mark an owner's completed destruction for the next-notify diagnostic.
    * Ours: JavaScript has no native destructor assertion.
+   *
+   * @cjs
+   * @implemented
    * @param {object} target
    */
   static markNotifyTargetDestructed(target)
@@ -623,7 +690,12 @@ export class BlueAsyncRes
     BlueAsyncRes._destructedNotifyTargets.add(target);
   }
 
-  /** Assert the native destructor's empty-target invariant in teardown tests. */
+  /**
+   * Assert the native destructor's empty-target invariant in teardown tests.
+   *
+   * @cjs
+   * @implemented
+   */
   AssertNoNotifyTargets()
   {
     if (this._reloadNotifyTargets.length) throw new Error("Resource still has notify targets: " + this.GetPath());

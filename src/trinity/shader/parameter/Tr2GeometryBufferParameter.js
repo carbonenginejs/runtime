@@ -56,7 +56,11 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
 
   cachedEffect = null;
 
-  /** The shader resource name this buffer binds to. */
+  /**
+   * The shader resource name this buffer binds to.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -64,7 +68,11 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
     return this.name;
   }
 
-  /** Content hash: resource path (when set) then name. */
+  /**
+   * Content hash: resource path (when set) then name.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
@@ -84,6 +92,7 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * TriGeometryRes.h:261-265), so for the resources that exist the answer is
    * null, as in Carbon.
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
 
@@ -101,6 +110,8 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
   /**
    * Consumes the `resource` dirty flag by re-initializing and re-resolving
    * handles against the cached shader.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -118,6 +129,8 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
   /**
    * Caches the shader and records whether it reflects a resource of this name;
    * no GPU buffer is bound.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -140,6 +153,7 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    * draw left, which a shader may legitimately still be reading, while an
    * unbound uav must be cleared or the next dispatch writes into a stale one.
    *
+   * @implemented
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -163,6 +177,7 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
    *
    * Carbon `Tr2GeometryBufferParameter::ApplyUav`.
    *
+   * @implemented
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -178,6 +193,8 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
   /**
    * Whether a buffer object has actually been attached; an authored resourcePath
    * alone does not make the parameter valid.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -189,6 +206,8 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
   /**
    * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter_Blue.cpp:32).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -200,6 +219,8 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
   /**
    * Attaches a buffer object directly and clears the authored resource path, so
    * the path can no longer override it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -212,6 +233,8 @@ export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
   /**
    * The attached buffer object, or null; held by reference and never created
    * here.
+   *
+   * @implemented
    */
 
   @meta.implemented

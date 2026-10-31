@@ -85,8 +85,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /**
    * Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface through the shared resolveGroupColor helper.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface through the shared resolveGroupColor helper.
    */
   @meta.adapted
   GetGroupColor()
@@ -103,8 +103,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /**
    * Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface.
    */
   @meta.adapted
   SetColor(color)
@@ -114,6 +114,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
 
   /**
    * display edits re-register the shared groups (EveSmartLightColorShareGroup.cpp:17-24).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -127,6 +129,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * Inserted attribute modifiers and light groups inherit the current color
    * set; inserted light groups register while this entity is registered
    * (EveSmartLightColorShareGroup.cpp:26-82).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -171,7 +175,11 @@ export class EveSmartLightColorShareGroup extends EveEntity
     }
   }
 
-  /** Registers the shared groups while displayed (EveSmartLightColorShareGroup.cpp:84-97). */
+  /**
+   * Registers the shared groups while displayed (EveSmartLightColorShareGroup.cpp:84-97).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -189,7 +197,11 @@ export class EveSmartLightColorShareGroup extends EveEntity
     }
   }
 
-  /** Unregisters the shared groups (EveSmartLightColorShareGroup.cpp:99-112). */
+  /**
+   * Unregisters the shared groups (EveSmartLightColorShareGroup.cpp:99-112).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -207,7 +219,11 @@ export class EveSmartLightColorShareGroup extends EveEntity
     }
   }
 
-  /** Quad fan-out, gated on display (EveSmartLightColorShareGroup.cpp:114-125). */
+  /**
+   * Quad fan-out, gated on display (EveSmartLightColorShareGroup.cpp:114-125).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
@@ -223,7 +239,11 @@ export class EveSmartLightColorShareGroup extends EveEntity
     }
   }
 
-  /** Renderable fan-out, gated on display (EveSmartLightColorShareGroup.cpp:127-138). */
+  /**
+   * Renderable fan-out, gated on display (EveSmartLightColorShareGroup.cpp:127-138).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(renderables)
@@ -243,6 +263,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /**
    * Updates the shared groups, then the group's own attribute modifiers with
    * full strength (EveSmartLightColorShareGroup.cpp:140-151).
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -264,6 +286,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * placement key, up direction), then pushes the shared color into every
    * child group before their asynchronous update
    * (EveSmartLightColorShareGroup.cpp:153-168).
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -297,6 +321,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /**
    * Fans a controller variable to the group's own modifiers, then to the
    * shared groups (EveSmartLightColorShareGroup.cpp:170-178).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -317,6 +343,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * Stores the inherited color set and fans it out to the modifiers and shared
    * groups; a null set is ignored entirely
    * (EveSmartLightColorShareGroup.cpp:180-190).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -336,7 +364,11 @@ export class EveSmartLightColorShareGroup extends EveEntity
     }
   }
 
-  /** Effect-registration fan-out (EveSmartLightColorShareGroup.cpp:192-198). */
+  /**
+   * Effect-registration fan-out (EveSmartLightColorShareGroup.cpp:192-198).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -347,7 +379,11 @@ export class EveSmartLightColorShareGroup extends EveEntity
     }
   }
 
-  /** Carbon debug-render fan-out, gated by this group's display flag. */
+  /**
+   * Carbon debug-render fan-out, gated by this group's display flag.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RenderDebugInfo(renderer, placements, size)
@@ -362,7 +398,11 @@ export class EveSmartLightColorShareGroup extends EveEntity
     }
   }
 
-  /** Visibility fan-out (EveSmartLightColorShareGroup.cpp:213-219). */
+  /**
+   * Visibility fan-out (EveSmartLightColorShareGroup.cpp:213-219).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)

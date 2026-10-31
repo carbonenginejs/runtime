@@ -9,6 +9,8 @@ export class IEveSpaceObjectDecalOwner extends IRoot
 
   /**
    * Adds one decal (h:10).
+   *
+   * @abstract
    * @param {EveSpaceObjectDecal} _newDecal
    */
   AddDecal(_newDecal)

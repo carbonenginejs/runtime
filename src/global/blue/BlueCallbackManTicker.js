@@ -37,14 +37,13 @@ export class BlueCallbackManTicker extends IBlueEvents
    * nothing ran. Carbon's backlog override (`m_maxAllowedInPrepareQueue`) is
    * not ported; nothing needs it yet.
    *
-   * Adapted: Carbon runs `BeCallbackMan` on its own threads, so nothing ticks
-   * it there; this tick exists for a browser without workers, and does nothing
-   * while the manager has them. The slice bounds only synchronous entries. A
-   * named entry is asynchronous, so `Update` only starts it and the work runs
-   * after the tick; the manager's single `Update` slot is what limits that
-   * to one entry per tick. One entry, such as a DXT encode, always runs to its
-   * end.
-   *
+   * @adapted Carbon runs `BeCallbackMan` on its own threads, so nothing ticks
+   *   it there; this tick exists for a browser without workers, and does nothing
+   *   while the manager has them. The slice bounds only synchronous entries. A
+   *   named entry is asynchronous, so `Update` only starts it and the work runs
+   *   after the tick; the manager's single `Update` slot is what limits that
+   *   to one entry per tick. One entry, such as a DXT encode, always runs to its
+   *   end.
    * @param {number} _realTime Time since the client started, in 100ns ticks.
    * @param {number} _simTime The same, slowed under load.
    * @param {*} _cookie Whatever the registrant passed to RegisterForTicks.

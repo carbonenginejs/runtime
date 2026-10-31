@@ -19,6 +19,7 @@ export class IBlueClasses extends IRoot
    * `RegisterClasses( const Be::ClassRegistration table[] )` - register every
    * entry of a null-terminated class-registration table.
    *
+   * @abstract
    * @param {Array<object>} _table Registrations.
    */
   RegisterClasses(_table) {}
@@ -27,6 +28,7 @@ export class IBlueClasses extends IRoot
    * `RegisterClasses( std::vector<Be::ClassRegistration>& table )` - register
    * every entry of a registration vector.
    *
+   * @abstract
    * @param {Array<object>} _table Registrations.
    */
   RegisterClasses__Vector(_table) {}
@@ -35,6 +37,7 @@ export class IBlueClasses extends IRoot
    * `UnregisterClasses( const Be::ClassRegistration table[] )` - remove every
    * entry of a null-terminated class-registration table.
    *
+   * @abstract
    * @param {Array<object>} _table Registrations to remove.
    */
   UnregisterClasses(_table) {}
@@ -43,17 +46,23 @@ export class IBlueClasses extends IRoot
    * `UnregisterClasses( std::vector<Be::ClassRegistration>& table )` - remove
    * every entry of a registration vector.
    *
+   * @abstract
    * @param {Array<object>} _table Registrations to remove.
    */
   UnregisterClasses__Vector(_table) {}
 
-  /** `GetClassRegistration` - the registration for a class id, or null. */
+  /**
+   * `GetClassRegistration` - the registration for a class id, or null.
+   *
+   * @abstract
+   */
   GetClassRegistration(_clsid) {}
 
   /**
    * `FindClsid( const char* name )` - the class id registered under a name,
    * or null.
    *
+   * @abstract
    * @param {string} _name Class name.
    * @returns {*} Class id, or null.
    */
@@ -65,16 +74,25 @@ export class IBlueClasses extends IRoot
    * the id to its `clsid` output parameter and returns whether it found one;
    * the output parameter is the return value here, and null is Carbon's false.
    *
+   * @abstract
    * @param {string} _module Module name.
    * @param {string} _name Class name.
    * @returns {*} Class id, or null.
    */
   FindClsid__Module(_module, _name) {}
 
-  /** `CreateInstance` - a new instance of the class with this id, or null. */
+  /**
+   * `CreateInstance` - a new instance of the class with this id, or null.
+   *
+   * @abstract
+   */
   CreateInstance(_clsid) {}
 
-  /** `CreateInstanceFromName` - a new instance of the class registered under this name, or null. */
+  /**
+   * `CreateInstanceFromName` - a new instance of the class registered under this name, or null.
+   *
+   * @abstract
+   */
   CreateInstanceFromName(_className) {}
 
   /**
@@ -83,6 +101,7 @@ export class IBlueClasses extends IRoot
    * Carbon writes the interface pointer to its `ppv` output parameter; the
    * output parameter is the return value here.
    *
+   * @abstract
    * @param {object} _self The object to query.
    * @param {Function} _riid The interface or class to ask for.
    * @param {Function|null} _type The class whose exposure table is walked.
@@ -91,16 +110,25 @@ export class IBlueClasses extends IRoot
    */
   QueryThisInterface(_self, _riid, _type, _options) {}
 
-  /** `FindVariable` - the exposed member entry for a name on a class type. */
+  /**
+   * `FindVariable` - the exposed member entry for a name on a class type.
+   *
+   * @abstract
+   */
   FindVariable(_name, _type) {}
 
-  /** `UpdateObjectCount` - adjust the live and lock counts of an object's class. */
+  /**
+   * `UpdateObjectCount` - adjust the live and lock counts of an object's class.
+   *
+   * @abstract
+   */
   UpdateObjectCount(_obj, _inst, _lock) {}
 
   /**
    * `CopyTo( source, dest )` - copy an object through its persisted members,
    * into `dest` or a new instance, with Carbon's default null callbacks.
    *
+   * @abstract
    * @param {object} _source The object to copy.
    * @param {object|null} _dest An existing object, or null.
    * @returns {object|null} The destination, or null.
@@ -114,6 +142,7 @@ export class IBlueClasses extends IRoot
    * destination to its `dest` output parameter; the output parameter is the
    * return value here.
    *
+   * @abstract
    * @param {object} _source The object to copy.
    * @param {object|null} _dest An existing object, or null.
    * @param {Function|null} [_copyOverride] Copy-override callback.
@@ -127,28 +156,53 @@ export class IBlueClasses extends IRoot
   /**
    * `CloneTo` - copy an object preserving topology; the same as `CopyTo`.
    *
+   * @abstract
    * @param {object} _source The object to copy.
    * @param {object|null} _dest An existing object, or null.
    * @returns {object|null} The destination, or null.
    */
   CloneTo(_source, _dest) {}
 
-  /** `ProcessPendingDeletes` - release objects whose deletion was deferred. */
+  /**
+   * `ProcessPendingDeletes` - release objects whose deletion was deferred.
+   *
+   * @abstract
+   */
   ProcessPendingDeletes() {}
 
-  /** `ProcessAllPendingDeletes` - release every deferred deletion. */
+  /**
+   * `ProcessAllPendingDeletes` - release every deferred deletion.
+   *
+   * @abstract
+   */
   ProcessAllPendingDeletes() {}
 
-  /** `SetPendingDeletesEnabled` - turn deferred deletion on or off. */
+  /**
+   * `SetPendingDeletesEnabled` - turn deferred deletion on or off.
+   *
+   * @abstract
+   */
   SetPendingDeletesEnabled(_enabled) {}
 
-  /** `IsPendingDeletesEnabled` - whether deletion is deferred. */
+  /**
+   * `IsPendingDeletesEnabled` - whether deletion is deferred.
+   *
+   * @abstract
+   */
   IsPendingDeletesEnabled() {}
 
-  /** `RegisterThunker` - register a script method-thunk table for an interface. */
+  /**
+   * `RegisterThunker` - register a script method-thunk table for an interface.
+   *
+   * @abstract
+   */
   RegisterThunker(_defs, _riid) {}
 
-  /** `GetRtti` - the runtime type information for a class type. */
+  /**
+   * `GetRtti` - the runtime type information for a class type.
+   *
+   * @abstract
+   */
   GetRtti(_type) {}
 }
 

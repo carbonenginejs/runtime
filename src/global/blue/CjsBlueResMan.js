@@ -421,6 +421,8 @@ export class CjsBlueResMan
    * detach ownership underneath asynchronous publication. Normal `Wait()`
    * drains queued roots only; direct callers must await their own promises.
    *
+   * @cjs
+   * @implemented
    * @param {object} [options={}] Additive source, registry, queue, format, and extension settings.
    * @param {number} [options.cacheSize] Recorded-byte budget immediately installed on the active MotherLode.
    * @param {object} [options.cacheCleanup] Cleanup policy used if a smaller configured budget evicts cached identities.
@@ -604,10 +606,9 @@ export class CjsBlueResMan
    * settles. Carbon writes the id through its output pointer; it is the return
    * value here (ruled 2026-10-17).
    *
-   * Adapted: Carbon's background threads wake on their semaphore; here a
-   * background entry schedules a pump (`ScheduleBackgroundQueue`). A main
-   * entry waits for `Update`, as Carbon's does.
-   *
+   * @adapted Carbon's background threads wake on their semaphore; here a
+   *   background entry schedules a pump (`ScheduleBackgroundQueue`). A main
+   *   entry waits for `Update`, as Carbon's does.
    * @param {number} queue `BlueResManQueue`.
    * @param {Function} callback Called with the context.
    * @param {*} [context=null] The callback's argument.
@@ -622,12 +623,20 @@ export class CjsBlueResMan
     return id.value;
   }
 
-  /** `CancelFromQueue` (BlueResMan.cpp:346-357) - cancels one entry of a queue. */
+  /**
+   * `CancelFromQueue` (BlueResMan.cpp:346-357) - cancels one entry of a queue.
+   *
+   * @implemented
+   */
   CancelFromQueue(queue, id) {
     this._threadQueues[queue].Cancel(id);
   }
 
-  /** `GetNextIdForQueue` (BlueResMan.cpp:359-372) - the id a queue's next entry gets. */
+  /**
+   * `GetNextIdForQueue` (BlueResMan.cpp:359-372) - the id a queue's next entry gets.
+   *
+   * @implemented
+   */
   GetNextIdForQueue(queue) {
     return this._threadQueues[queue].GetNextId();
   }
@@ -636,6 +645,7 @@ export class CjsBlueResMan
    * `PumpMainThreadQueue` (BlueResMan.cpp:374-379) - one `Update` of the main
    * queue.
    *
+   * @implemented
    * @returns {boolean} Whether an entry was started.
    */
   PumpMainThreadQueue() {
@@ -692,7 +702,11 @@ export class CjsBlueResMan
     return started;
   }
 
-  /** `PauseQueue` (BlueResMan.cpp:381-389) - forwards to the queue's `Pause`. */
+  /**
+   * `PauseQueue` (BlueResMan.cpp:381-389) - forwards to the queue's `Pause`.
+   *
+   * @implemented
+   */
   PauseQueue(queue) {
     this._threadQueues[queue].Pause();
   }
@@ -701,17 +715,27 @@ export class CjsBlueResMan
    * `ResumeQueue` (BlueResMan.cpp:391-399) - forwards to the queue's `Resume`.
    * A resumed background queue refills through its slot-free callback; the main
    * queue runs at the next `Update`.
+   *
+   * @implemented
    */
   ResumeQueue(queue) {
     this._threadQueues[queue].Resume();
   }
 
-  /** `GetPendingLoads` (BlueResMan.cpp:505-508) - the background queue's entries, waiting or running. */
+  /**
+   * `GetPendingLoads` (BlueResMan.cpp:505-508) - the background queue's entries, waiting or running.
+   *
+   * @implemented
+   */
   GetPendingLoads() {
     return this._threadQueues[BlueResManQueue.BRMQ_BACKGROUND].GetSize();
   }
 
-  /** `GetPendingPrepares` (BlueResMan.cpp:510-513) - the main queue's entries, waiting or running. */
+  /**
+   * `GetPendingPrepares` (BlueResMan.cpp:510-513) - the main queue's entries, waiting or running.
+   *
+   * @implemented
+   */
   GetPendingPrepares() {
     return this._threadQueues[BlueResManQueue.BRMQ_MAIN].GetSize();
   }
@@ -747,11 +771,10 @@ export class CjsBlueResMan
    * `SetLoadingThreadCount` (BlueResMan.cpp:520-528) - how many loads the
    * background queue runs at once, at least one.
    *
-   * Adapted: Carbon stops the queue's threads, sets the count and runs them
-   * again. Our background queue is not threaded; its slots are async, so the
-   * count applies to the next loads without a stop, and the queue is pumped
-   * in case the count rose.
-   *
+   * @adapted Carbon stops the queue's threads, sets the count and runs them
+   *   again. Our background queue is not threaded; its slots are async, so the
+   *   count applies to the next loads without a stop, and the queue is pumped
+   *   in case the count rose.
    * @param {number} n The count; below 1 becomes 1.
    */
   SetLoadingThreadCount(n) {
@@ -789,6 +812,8 @@ export class CjsBlueResMan
   /**
    * Switches resource loading between normal and urgent concurrency policy for
    * the resource manager.
+   *
+   * @adapted
    */
   SetUrgentResourceLoads(value) {
     this.urgentResourceLoads = Boolean(value);
@@ -798,6 +823,8 @@ export class CjsBlueResMan
   /**
    * Reports whether urgent resource-load scheduling is active for the resource
    * manager.
+   *
+   * @adapted
    */
   IsUrgentResourceLoads() {
     return this.urgentResourceLoads;
@@ -807,9 +834,8 @@ export class CjsBlueResMan
    * `IsOnMainThread` (BlueResMan.cpp:327) - whether the caller is on the thread
    * that ticks the main queue.
    *
-   * Adapted: Carbon compares thread ids. Here the manager lives only on the
-   * page's main thread and workers hold no manager, so any caller is on it.
-   *
+   * @adapted Carbon compares thread ids. Here the manager lives only on the
+   *   page's main thread and workers hold no manager, so any caller is on it.
    * @returns {boolean} True.
    */
   IsOnMainThread() {
@@ -820,6 +846,7 @@ export class CjsBlueResMan
    * `SaveObject` (BlueResMan.cpp:885-889) - writes an object to a black or
    * red file, through `SaveObjectW`.
    *
+   * @implemented
    * @param {object} object The object.
    * @param {string} path File path.
    * @returns {boolean} As `SaveObjectW`.
@@ -837,6 +864,7 @@ export class CjsBlueResMan
    * Not implemented: writing goes through a host file system, and nothing
    * here saves objects yet.
    *
+   * @notImplemented
    * @param {object} _object The object.
    * @param {string} _path File path.
    * @returns {never}
@@ -884,6 +912,7 @@ export class CjsBlueResMan
    * manager-owned active loads/prepares hold eviction locks. No housekeeping
    * operation fetches, prepares, or reloads source data.
    *
+   * @adapted
    * @param {CjsResManUpdateOptions} [options={}] Queue budgets and optional automatic-purge controls.
    * @returns {boolean} Whether queue work ran or housekeeping released owned state.
    * @throws {TypeError} If queue, cache, purge timing, or MotherLode policy options are invalid.
@@ -940,6 +969,7 @@ export class CjsBlueResMan
    * inside `Update`, so it ticks through the manager rather than registering
    * separately as Carbon's MotherLode does.
    *
+   * @implemented
    * @param {number} _realTime Real time.
    * @param {number} _simTime Simulation time.
    * @param {*} _cookie Registration cookie.
@@ -956,12 +986,11 @@ export class CjsBlueResMan
    * loads. A failed or cancelled entry has left its queue, so it counts as
    * done.
    *
-   * Adapted: Carbon blocks; here each pass pumps both queues as `Update` does
-   * (its statistics included) and then yields, since a load's slot frees only
-   * when its fetch settles. Paused queues stay paused, and `Wait` waits for
-   * them. With `pump: false` it only checks the count between yields, leaving
-   * the pumping to whoever ticks the manager.
-   *
+   * @adapted Carbon blocks; here each pass pumps both queues as `Update` does
+   *   (its statistics included) and then yields, since a load's slot frees only
+   *   when its fetch settles. Paused queues stay paused, and `Wait` waits for
+   *   them. With `pump: false` it only checks the count between yields, leaving
+   *   the pumping to whoever ticks the manager.
    * @param {CjsResManWaitOptions} [options={}] Pumping and cooperative-yield controls.
    * @returns {Promise<CjsBlueResMan>} This manager, once both queues are empty.
    * @throws {TypeError} If options, `pump`, or `yield` are invalid.
@@ -1000,13 +1029,12 @@ export class CjsBlueResMan
    * `WaitUrgent` (BlueResMan.cpp:984-1000): settles once the urgent loads and
    * reloads pending at the call have finished.
    *
-   * Adapted: Carbon sends a marker flagged `BCBF_FENCE | BCBF_URGENT` through the
-   * background queue and then the main queue. That works because Carbon queues a
-   * resource's prepare as one main-queue entry before its load entry finishes
-   * (BlueAsyncRes.cpp:108-120). Ours queues the prepare in stages after the load
-   * settles, so a marker could pass between them; the urgent operations pending
-   * at the call are awaited instead.
-   *
+   * @adapted Carbon sends a marker flagged `BCBF_FENCE | BCBF_URGENT` through the
+   *   background queue and then the main queue. That works because Carbon queues a
+   *   resource's prepare as one main-queue entry before its load entry finishes
+   *   (BlueAsyncRes.cpp:108-120). Ours queues the prepare in stages after the load
+   *   settles, so a marker could pass between them; the urgent operations pending
+   *   at the call are awaited instead.
    * @returns {Promise<CjsBlueResMan>} This manager, once those operations have settled.
    */
   async WaitUrgent()
@@ -1126,6 +1154,8 @@ export class CjsBlueResMan
    * Re-registration replaces the complete route for future uncached handles.
    * Existing handles retain the route snapshot captured at construction.
    *
+   * @cjs
+   * @implemented
    * @param {string} extension Input extension with or without a leading dot.
    * @param {Function} Handler IBlueResource-compatible handler constructor.
    * @param {Function|Function[]|object} [formatOrFormatsOrOptions={}] Reader and optional target configuration.
@@ -1243,6 +1273,7 @@ export class CjsBlueResMan
    * (BlueResMan.cpp:296-305). The name is lowercased, as Carbon's is; the
    * constructor's `GetResource(query)` returns a resource for that query.
    *
+   * @adapted
    * @param {string} name Name following `dynamic:/`.
    * @param {IBlueDynamicResourceConstructor} constructor Resource constructor.
    * @returns {CjsBlueResMan} This resource manager.
@@ -1262,6 +1293,7 @@ export class CjsBlueResMan
   /**
    * Removes a dynamic resource constructor (BlueResMan.cpp:312-325).
    *
+   * @adapted
    * @param {string} name Name following `dynamic:/`.
    * @returns {CjsBlueResMan} This resource manager.
    */
@@ -1302,6 +1334,7 @@ export class CjsBlueResMan
    * derived data before loading. Await Ready(resource) for completion. Failure
    * remains prepared but not good until another explicit reload.
    *
+   * @adapted
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Factory suffix, source provenance and explicit reload settings.
    * @param {string} [options.ex=""] Carbon factory suffix, appended to the source extension.
@@ -1329,6 +1362,7 @@ export class CjsBlueResMan
    * `GetResourceW` (BlueResMan.cpp:143-160) - `GetResource` for a
    * wide-character path.
    *
+   * @adapted
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] As `GetResource`.
    * @returns {BlueAsyncRes} As `GetResource`.
@@ -1341,6 +1375,9 @@ export class CjsBlueResMan
   /**
    * Resolve extension plus ex to its Res class, initialize, then insert as
    * Carbon does. Object loads have their own path (`_GetLoadingObject`).
+   *
+   * @cjs
+   * @implemented
    * @param {string} path
    * @param {object} [options={}]
    * @returns {BlueAsyncRes|null}
@@ -1404,6 +1441,7 @@ export class CjsBlueResMan
    * `const wchar_t*` one (BlueResMan.h:83) is `LoadObject__WChars`, which
    * differs only in string encoding, which JavaScript strings do not have.
    *
+   * @adapted
    * @adapted Carbon's LoadObject yields its Stackless tasklet while it reads and builds
    * (`GetFileContentsWithYield`, `CreateObjectWithYield`, BlueResMan.cpp:753,785), so its caller
    * sees a plain return while the program keeps running. A browser cannot block on a read, and
@@ -1424,6 +1462,7 @@ export class CjsBlueResMan
    * `LoadObject( const wchar_t* name, ... )` (BlueResMan.cpp:653) -
    * `LoadObject` for a wide-character path.
    *
+   * @adapted
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] As `LoadObject`.
    * @returns {Promise<*>} As `LoadObject`.
@@ -1436,6 +1475,9 @@ export class CjsBlueResMan
 
   /**
    * Load shared source data, then build a fresh object for this caller only.
+   *
+   * @cjs
+   * @implemented
    * @param {string} path Carbon-style resource path.
    * @param {object} options Source and reader options.
    * @param {boolean} build Whether to construct a fresh graph for this caller.
@@ -1550,6 +1592,8 @@ export class CjsBlueResMan
    * Identify class. Plain decoded values are neither a resource nor an object;
    * they are read directly (2026-11-01).
    *
+   * @cjs
+   * @implemented
    * @param {string} path The requested path.
    * @returns {never}
    * @throws {TypeError} Always.
@@ -1563,6 +1607,8 @@ export class CjsBlueResMan
    * Whether a resource loads through a registered object builder
    * (RegisterObjectBuilder) rather than a route or a plain loader.
    *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Canonical resource.
    * @returns {boolean} True for a builder-loaded resource.
    */
@@ -1584,6 +1630,9 @@ export class CjsBlueResMan
 
   /**
    * Reload the internal builder in place and return a fresh graph.
+   *
+   * @cjs
+   * @implemented
    * @param {string} path Carbon-style resource path.
    * @param {object} [options={}] Extension suffix, source and read options.
    * @returns {Promise<*>} The requested graph or resource after the same-handle load settles.
@@ -1595,6 +1644,9 @@ export class CjsBlueResMan
 
   /**
    * Await the same resource handle returned by GetResource.
+   *
+   * @cjs
+   * @implemented
    * @param {string} path Carbon-style resource path.
    * @param {object} [options={}] Extension suffix, source and read options.
    * @returns {Promise<*>} The requested graph or resource after the same-handle load settles.
@@ -1609,6 +1661,9 @@ export class CjsBlueResMan
 
   /**
    * Reload the existing handle in place, as BlueAsyncRes::Reload does.
+   *
+   * @cjs
+   * @implemented
    * @param {string} path Carbon-style resource path.
    * @param {object} [options={}] Extension suffix, source and read options.
    * @returns {Promise<*>} The requested graph or resource after the same-handle load settles.
@@ -1623,6 +1678,9 @@ export class CjsBlueResMan
    * Fetches what a path is: an object (a route or builder that yields one,
    * through FetchObject) or otherwise its resource (FetchResource), whose
    * payload holds decoded values.
+   *
+   * @cjs
+   * @implemented
    * @param {string} path Carbon-style resource path.
    * @param {object} [options={}] Extension suffix, source and read options.
    * @returns {Promise<*>} The requested graph or resource after the same-handle load settles.
@@ -1654,6 +1712,9 @@ export class CjsBlueResMan
 
   /**
    * Return the configured reader from our resource type table.
+   *
+   * @cjs
+   * @implemented
    * @param {string} extension Source extension, with or without a leading dot.
    * @param {string} [ex=""] Carbon resource suffix.
    * @returns {object} Configured format instance.
@@ -1670,6 +1731,9 @@ export class CjsBlueResMan
   /**
    * Our format-instance lookup uses the manager's sole extension/ex table.
    * Managed resources retain their captured route; direct loads use the same table.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose format is required.
    * @returns {CjsFormat} Configured instance.
    */
@@ -1683,6 +1747,9 @@ export class CjsBlueResMan
 
   /**
    * Decode through the configured reader and reject cancellation before returning to the family.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @param {*} bytes Input accepted by the registered reader.
    * @param {object|null} [options=null] Explicit read options, or the active attempt request.
@@ -1759,6 +1826,8 @@ export class CjsBlueResMan
    * and before payload publication. Worker decoding has settled by this point,
    * so constructors and Identify functions remain on the caller thread.
    *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Route handler receiving the decoded value.
    * @param {*} values Decoded format result.
    * @param {object} options Request options.
@@ -1903,6 +1972,9 @@ export class CjsBlueResMan
   /**
    * Builds a new object from the resource payload through its registered factory
    * or target hydrator.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {object} New object graph owned by this caller.
    */
@@ -1919,6 +1991,7 @@ export class CjsBlueResMan
    * constructor decides (`IBlueDynamicResourceConstructor.IsCacheable`), because
    * rebuilding costs a network fetch and a decode rather than a disk read.
    *
+   * @adapted
    * @param {string} key Normalized `dynamic:/<name>/<query>` path.
    * @param {string} cacheKey MotherLode key.
    * @returns {BlueAsyncRes} Canonical dynamic resource.
@@ -2041,6 +2114,9 @@ export class CjsBlueResMan
 
   /**
    * Look up a path/ex without changing its native state.
+   *
+   * @cjs
+   * @implemented
    * @param {string} path Carbon-style resource path.
    * @param {object} [options={}] Native ex suffix selecting the cached handle.
    * @returns {BlueAsyncRes|null} Cached handle without starting a read.
@@ -2052,6 +2128,9 @@ export class CjsBlueResMan
 
   /**
    * Forget the path/ex identity and cancel its pending work through cleanup.
+   *
+   * @cjs
+   * @implemented
    * @param {string} path Carbon-style resource path.
    * @param {object|null} [options=null] An ex suffix, or null to remove every suffix.
    * @returns {*} MotherLode deletion result.
@@ -2288,6 +2367,9 @@ export class CjsBlueResMan
 
   /**
    * Renew reachable resources while observing completion through pure native flags.
+   *
+   * @cjs
+   * @implemented
    * @param {object} watch Existing graph-watch record.
    * @param {number} time Current manager time in milliseconds.
    * @returns {{pending: BlueAsyncRes[], failed: BlueAsyncRes[]}} Unfinished and failed resources.
@@ -2323,6 +2405,9 @@ export class CjsBlueResMan
    * Cancel the cached resources' pending loads and clear the owned cache and
    * read ledgers. Each load's queue entries go with it (`CancelPendingLoad`);
    * other entries stay queued, as Carbon's queues have no clear.
+   *
+   * @cjs
+   * @implemented
    */
   Clear()
   {
@@ -2552,6 +2637,9 @@ export class CjsBlueResMan
   /**
    * Capture the configured route/request before native Initialize schedules loading.
    * Carbon inserts into MotherLode after Initialize (BlueResMan.cpp:286-288).
+   *
+   * @cjs
+   * @implemented
    * @param {Function} Constructor
    * @param {string} path
    * @param {string} ext
@@ -2577,6 +2665,9 @@ export class CjsBlueResMan
 
   /**
    * Carbon's cache suffix is ex; it does not encode a semantic output kind.
+   *
+   * @cjs
+   * @implemented
    * @param {object} [options={}] Request containing Carbon's ex suffix.
    * @returns {string} Validated suffix; other request options do not select identity.
    */
@@ -2690,7 +2781,11 @@ export class CjsBlueResMan
   /** Maximum automatic revivals after purge; explicit Reload is never capped. */
   maxReloadAttempts = 3;
 
-  /** @param {BlueAsyncRes} resource @returns {object} Mutable manager-only record. */
+  /**
+   * @cjs
+   * @implemented
+   * @param {BlueAsyncRes} resource @returns {object} Mutable manager-only record.
+   */
   _GetResourceRecord(resource)
   {
     let record = this._resourceRecords.get(resource);
@@ -2702,20 +2797,32 @@ export class CjsBlueResMan
     return record;
   }
 
-  /** @param {BlueAsyncRes} resource @returns {object} Captured request; never stored on the resource. */
+  /**
+   * @cjs
+   * @implemented
+   * @param {BlueAsyncRes} resource @returns {object} Captured request; never stored on the resource.
+   */
   _GetResourceRequest(resource)
   {
     const record = this._GetResourceRecord(resource);
     return record.operation?.request || record.request;
   }
 
-  /** @param {BlueAsyncRes} resource @returns {object|null} The active attempt token. */
+  /**
+   * @cjs
+   * @implemented
+   * @param {BlueAsyncRes} resource @returns {object|null} The active attempt token.
+   */
   _GetResourceLoad(resource)
   {
     return this._GetResourceRecord(resource).operation;
   }
 
-  /** @param {BlueAsyncRes} resource @param {object|null} attempt @returns {boolean} */
+  /**
+   * @cjs
+   * @implemented
+   * @param {BlueAsyncRes} resource @param {object|null} attempt @returns {boolean}
+   */
   _IsResourceLoadCurrent(resource, attempt)
   {
     return attempt !== null && this._GetResourceRecord(resource).operation === attempt;
@@ -2723,6 +2830,9 @@ export class CjsBlueResMan
 
   /**
    * Reject a cancelled result before a family mutates its owned data.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @param {object|null} attempt Token captured before asynchronous work.
    * @returns {void}
@@ -2740,6 +2850,9 @@ export class CjsBlueResMan
 
   /**
    * Start one native load attempt and retain its promise only until settlement.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {object} Attempt token holding its promise and temporary cache pin.
    */
@@ -2773,6 +2886,9 @@ export class CjsBlueResMan
 
   /**
    * Cancel only this handle's current attempt; no replacement generation exists.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {void}
    */
@@ -2795,6 +2911,9 @@ export class CjsBlueResMan
 
   /**
    * Store a native attempt's failure for its MAIN-queue completion.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @param {Error} error Failure retained for explicit inspection and promise rejection.
    * @returns {void}
@@ -2806,6 +2925,9 @@ export class CjsBlueResMan
 
   /**
    * Settle promises before native callbacks, which may synchronously Reload.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {void}
    */
@@ -2838,6 +2960,9 @@ export class CjsBlueResMan
 
   /**
    * Fail a never-started or dynamic resource without adding a string-event state machine.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @param {Error} error Failure retained for explicit inspection and promise rejection.
    * @returns {void}
@@ -2855,6 +2980,9 @@ export class CjsBlueResMan
   /**
    * Await the existing same-handle attempt. Failure never retries implicitly.
    * Reconstructing explicitly released plain data is an explicit read request.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource
    * @returns {Promise<*>} Resource handle or the internal handler's plain result.
    */
@@ -2886,6 +3014,9 @@ export class CjsBlueResMan
 
   /**
    * Pure inspection of native flags plus manager-only failure and purge data.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {{phase: string, error: Error|null, purged: boolean, loading: boolean, prepared: boolean, good: boolean, reloadAttempts: number}} Detached inspection snapshot; no renewal or retry.
    */
@@ -2901,6 +3032,9 @@ export class CjsBlueResMan
    * Pure read of a loading object's retained builder: the decoded values
    * `LoadObject` builds each caller's object from. A resource keeps its data on
    * itself, so it has none.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource A loading object in `loadObjectCache`, or a resource.
    * @returns {*} The builder, or null once released and for a resource.
    */
@@ -2911,6 +3045,9 @@ export class CjsBlueResMan
 
   /**
    * Whether a loading object's builder is still resident.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource A loading object in `loadObjectCache`, or a resource.
    * @returns {boolean} Whether the builder is retained; false for a resource.
    */
@@ -2923,6 +3060,9 @@ export class CjsBlueResMan
    * Release a loading object's builder without changing its identity; the next
    * `LoadObject` reads and parses again. MotherLode's idle sweep calls it. A
    * resource has none, so nothing happens.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource A loading object in `loadObjectCache`, or a resource.
    * @returns {void}
    */
@@ -2934,6 +3074,9 @@ export class CjsBlueResMan
 
   /**
    * Renew manager-owned plain/object data, without allocating a resource callback.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @param {object} [options] Existing MotherLode activity frame/time overrides.
    * @returns {void}
@@ -2955,6 +3098,8 @@ export class CjsBlueResMan
    * `LOGTYPE_INFO`, Carbon's lowest severity, and cost one check when no echo
    * listens.
    *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource The resource or loading object.
    * @param {string} event The step.
    * @param {string} format Printf format.
@@ -2986,6 +3131,9 @@ export class CjsBlueResMan
 
   /**
    * Pin one resource against inactivity purge.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {number} Resulting lock count, or zero for an uncached/pathless resource.
    */
@@ -2997,6 +3145,9 @@ export class CjsBlueResMan
 
   /**
    * Release one balanced inactivity pin.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {number} Resulting lock count, or zero for an uncached/pathless resource.
    */
@@ -3008,6 +3159,9 @@ export class CjsBlueResMan
 
   /**
    * Read the automatic purge-revival count.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {number} Automatic purge revival count.
    */
@@ -3018,6 +3172,9 @@ export class CjsBlueResMan
 
   /**
    * Explicitly reset the automatic revival budget.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {void}
    */
@@ -3028,6 +3185,9 @@ export class CjsBlueResMan
 
   /**
    * Renew the timestamp; only policy purge triggers the native same-handle Reload.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @param {object} [options] Existing MotherLode activity frame/time overrides.
    * @returns {void}
@@ -3062,6 +3222,9 @@ export class CjsBlueResMan
 
   /**
    * Record data loss due to manager policy, distinct from a sticky load failure.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {void}
    */
@@ -3080,6 +3243,9 @@ export class CjsBlueResMan
 
   /**
    * Release native owned data while retaining persistent targets for revival.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Cached resource.
    * @param {object} [options] Existing MotherLode cleanup policy.
    */
@@ -3094,6 +3260,9 @@ export class CjsBlueResMan
 
   /**
    * Read one internal object/data handler and retain only its builder or plain values.
+   *
+   * @cjs
+   * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
    * @returns {Promise<number>} Native success code after retaining decoded builder/plain data.
    */

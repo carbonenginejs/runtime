@@ -13,6 +13,8 @@ const FLOAT_MAX = 3.4028234663852886e38;
  * playing music" (AudMusicPlayer_Blue.cpp:10). Fixed id 3, named "Music",
  * FLT_MAX culling weight, fixed origin pose (AudMusicPlayer.cpp:6-11); all
  * behavior is inherited from AudEmitter (SendEvent/SetSwitch/SetRTPC/...).
+ *
+ * @abstract
  */
 @be.define("AudMusicPlayer")
 @be.exposureChainTo(AudEmitter)
@@ -29,7 +31,11 @@ export class AudMusicPlayer extends AudEmitter
     this.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
   }
 
-  /** The music player has no world placement. Source: AudMusicPlayer.cpp:17-20 (commit 2756050). */
+  /**
+   * The music player has no world placement. Source: AudMusicPlayer.cpp:17-20 (commit 2756050).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasUsableWorldPosition()

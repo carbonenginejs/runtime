@@ -292,6 +292,8 @@ export class Tr2Effect extends Tr2Material
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   Destruct()
   {
@@ -324,6 +326,7 @@ export class Tr2Effect extends Tr2Material
    * during a batched Start/EndUpdate still rebuilds immediately. Without one it
    * is the Blue method (MAP_METHOD_AND_WRAP to RebuildCachedDataInternal).
    *
+   * @adapted
    * @param {object} [resource] Resource that finished loading.
    */
   @legacyBlue.method
@@ -345,6 +348,8 @@ export class Tr2Effect extends Tr2Material
   /**
    * Overrides the store this effect's TriVariableParameter values resolve
    * against; passing null restores the fallback to the global store.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -370,7 +375,11 @@ export class Tr2Effect extends Tr2Material
     return Tr2VariableStore.globalStore().GetVariable(name);
   }
 
-  /** The effect's store, falling back to the global store at call time. */
+  /**
+   * The effect's store, falling back to the global store at call time.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetVariableStore()
@@ -381,6 +390,8 @@ export class Tr2Effect extends Tr2Material
   /**
    * The authored constant-parameter list itself, not a copy - callers that
    * mutate it mutate the effect.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -394,6 +405,8 @@ export class Tr2Effect extends Tr2Material
    * every parameter/resource - Carbon's effect dedup/batching key. Only
    * hashes authored content; values coming from a variable store are not
    * included. Not lightweight - do not call every frame.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -426,7 +439,11 @@ export class Tr2Effect extends Tr2Material
     return hash >>> 0;
   }
 
-  /** Carbon method GetParameterAnnotations -> PyGetParameterAnnotations (MAP_METHOD). */
+  /**
+   * Carbon method GetParameterAnnotations -> PyGetParameterAnnotations (MAP_METHOD).
+   *
+   * @implemented
+   */
   @be.mapMethod()
   @meta.implemented
   GetParameterAnnotations(parameterName)
@@ -435,7 +452,11 @@ export class Tr2Effect extends Tr2Material
     return this.shader ? this.shader.GetParameterAnnotations(parameterName) : null;
   }
 
-  /** Carbon method PopulateParameters (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method PopulateParameters (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   PopulateParameters()
@@ -479,7 +500,11 @@ export class Tr2Effect extends Tr2Material
     return true;
   }
 
-  /** Carbon method EndUpdate (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method EndUpdate (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   EndUpdate()
@@ -491,7 +516,11 @@ export class Tr2Effect extends Tr2Material
     }
   }
 
-  /** Carbon method PruneParameters (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method PruneParameters (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   PruneParameters()
@@ -507,7 +536,11 @@ export class Tr2Effect extends Tr2Material
     return true;
   }
 
-  /** Carbon method IsParameterUsedByTechnique (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method IsParameterUsedByTechnique (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   IsParameterUsedByTechnique(parameterName)
@@ -522,6 +555,7 @@ export class Tr2Effect extends Tr2Material
    * nothing. The callback is Carbon's `IRenderCallback`: anything with
    * `SubmitGeometry(renderContext)`, such as Tr2GpuParticleSystem.
    *
+   * @implemented
    * @param {object} callback The geometry source, with `SubmitGeometry`.
    * @param {object} renderContext The context to draw on.
    * @returns {void}
@@ -544,7 +578,11 @@ export class Tr2Effect extends Tr2Material
     }
   }
 
-  /** Carbon method StartUpdate (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method StartUpdate (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StartUpdate()
@@ -586,10 +624,10 @@ export class Tr2Effect extends Tr2Material
    * `GetSharedConstantBuffer`. The rest is unported.
    *
    *
-   * Adapted: Device-free JS reflection supplies stage signatures in authored order; pass
-   * descriptions allocate their map here and sampler states are seeded by the applying
-   * context.
-   *
+   * @cjs
+   * @adapted Device-free JS reflection supplies stage signatures in authored order; pass
+   *   descriptions allocate their map here and sampler states are seeded by the applying
+   *   context.
    * @returns {void}
    */
   @meta.cjs
@@ -676,6 +714,7 @@ export class Tr2Effect extends Tr2Material
    * mirror; one with variable parameters gets its own. That split is Carbon's
    * and it is why `Tr2MaterialStageInput` has both methods.
    *
+   * @adapted
    * @param {object} stage Reflected stage input.
    * @param {object} stageInput Material stage input to populate.
    * @param {object} passParameters Owning pass parameters.
@@ -775,6 +814,7 @@ export class Tr2Effect extends Tr2Material
    * Binding from the effect's own resources or from an effect parameter clears
    * GDR compatibility, because a general draw cannot know those values.
    *
+   * @adapted
    * @param {Map} resources Register-keyed reflected resources.
    * @param {Array} into Parameter vector to fill.
    * @param {object} passParameters Owning pass parameters.
@@ -888,6 +928,8 @@ export class Tr2Effect extends Tr2Material
    *
    * An unresolved path releases the prior internal acquisition without fetching.
    *
+   * @cjs
+   * @adapted
    * @returns {void}
    */
   @meta.cjs
@@ -933,6 +975,8 @@ export class Tr2Effect extends Tr2Material
    * destination cleared and is detached from the material, an inserted one is
    * attached, and cached data is rebuilt either way.
    * Carbon declaration: Tr2Effect::OnListModified (trinity/trinity/Shader/Tr2Effect.h:136).
+   *
+   * @implemented
    */
   @meta.implemented
   OnListModified(event, _key, _key2, value)
@@ -1039,6 +1083,8 @@ export class Tr2Effect extends Tr2Material
    * it completes. A failed resource is not re-registered: registering on a
    * finished resource calls back at once, which would rebuild every frame.
    *
+   * @cjs
+   * @adapted
    * @returns {boolean} Whether the effect can be drawn now.
    */
   @meta.cjs
@@ -1083,6 +1129,7 @@ export class Tr2Effect extends Tr2Material
    * path and initializes, even when the path is unchanged. An unchanged path
    * keeps its acquired effect resource.
    *
+   * @implemented
    * @param {string} path The authored effect path, or empty to clear it.
    */
   @meta.implemented
@@ -1165,6 +1212,8 @@ export class Tr2Effect extends Tr2Material
   /**
    * Carbon's SetResourceTexture2D - assigns the texture path on the named
    * resource, creating the TriTextureParameter when absent.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -1254,6 +1303,8 @@ export class Tr2Effect extends Tr2Material
    * has no map merge and no remove by name; the nearest is
    * `ClearAllParameters` / `ClearAllResources` (Tr2Effect.h:90-91).
    *
+   * @cjs
+   * @adapted
    * @param {object|null} [values={}] Parameter names mapped to values, descriptors or null.
    * @returns {boolean} Whether any parameter or resource was added, updated or removed.
    */
@@ -1289,6 +1340,8 @@ export class Tr2Effect extends Tr2Material
    * SetParameter__Vector2/3/4, SetParameter__Matrix, SetParameter__GpuBuffer,
    * SetParameter__TextureProvider, SetParameter__TextureAL, SetParameter__BufferAL),
    * because JavaScript has no static types to choose between them.
+   *
+   * @implemented
    * @param {string} name Parameter name.
    * @param {number} value Float value.
    * @returns {void}
@@ -1304,6 +1357,8 @@ export class Tr2Effect extends Tr2Material
    * Carbon's SetParameter( name, uint32_t ): stores the integer's bits as the
    * float parameter's value (reinterpret_cast, Tr2Effect.cpp), which shaders
    * read back with asuint.
+   *
+   * @implemented
    * @param {string} name Parameter name.
    * @param {number} value Unsigned 32-bit integer.
    * @returns {void}
@@ -1319,6 +1374,8 @@ export class Tr2Effect extends Tr2Material
    * Carbon's SetParameter( name, const Vector2& ): pads to Vector4( x, y, 0, 0 )
    * and sets the Vector4 parameter (Tr2Effect.cpp). The constant slot receives
    * only as many components as it declares.
+   *
+   * @implemented
    * @param {string} name Parameter name.
    * @param {ArrayLike<number>} value Two components.
    * @returns {void}
@@ -1333,6 +1390,8 @@ export class Tr2Effect extends Tr2Material
   /**
    * Carbon's SetParameter( name, const Vector3& ): pads to Vector4( value, 0 )
    * and sets the Vector4 parameter (Tr2Effect.cpp).
+   *
+   * @implemented
    * @param {string} name Parameter name.
    * @param {ArrayLike<number>} value Three components.
    * @returns {void}
@@ -1347,6 +1406,8 @@ export class Tr2Effect extends Tr2Material
   /**
    * Carbon's SetParameter( name, const Vector4& ): sets the named
    * Tr2Vector4Parameter, appending one when the name has none.
+   *
+   * @implemented
    * @param {string} name Parameter name.
    * @param {ArrayLike<number>} value Four components.
    * @returns {void}
@@ -1361,6 +1422,8 @@ export class Tr2Effect extends Tr2Material
   /**
    * Carbon's SetParameter( name, const Matrix& ): sets the named
    * Tr2Matrix4Parameter, appending one when the name has none.
+   *
+   * @implemented
    * @param {string} name Parameter name.
    * @param {ArrayLike<number>} value Sixteen components.
    * @returns {void}
@@ -1376,6 +1439,8 @@ export class Tr2Effect extends Tr2Material
    * Carbon's SetParameter( name, ITr2GpuBuffer* ) (Tr2Effect.cpp): sets the
    * buffer on the named Tr2GeometryBufferParameter, adding one when the name
    * has none. Unlike the Tr2BufferAL overload, the buffer is held directly.
+   *
+   * @implemented
    * @param {string} name Parameter name.
    * @param {?Object} buffer GPU buffer provider, or null to clear.
    * @returns {void}
@@ -1400,6 +1465,8 @@ export class Tr2Effect extends Tr2Material
   /**
    * Carbon's SetParameter( name, ITr2TextureProvider*, uavMipLevel = 0 ): a
    * named runtime texture slot fed by a live texture provider.
+   *
+   * @adapted
    * @param {string} name Parameter name.
    * @param {?Object} texture Texture provider, or null to clear.
    * @param {number} [uavMipLevel=0] UAV mip level.
@@ -1417,6 +1484,8 @@ export class Tr2Effect extends Tr2Material
    * (Tr2Effect.cpp:2191-2226): the slot holds a Tr2TextureReference, reused
    * while it exists, never the texture itself. Null is Carbon's empty
    * Tr2TextureAL{}, which TEMP_PARAM resets a slot with.
+   *
+   * @adapted
    * @param {string} name Parameter name.
    * @param {?Tr2TextureAL} texture Texture, or null for an empty one.
    * @param {number} [uavMipLevel=0] UAV mip level.
@@ -1433,6 +1502,8 @@ export class Tr2Effect extends Tr2Material
    * Carbon's SetParameter( name, const Tr2BufferAL& ) (Tr2Effect.cpp:2228-2255):
    * a named geometry buffer parameter holding a runtime GPU buffer. Null is
    * Carbon's empty Tr2BufferAL{}.
+   *
+   * @adapted
    * @param {string} name Parameter name.
    * @param {?Tr2BufferAL} buffer Buffer, or null for an empty one.
    * @returns {void}
@@ -1579,6 +1650,8 @@ export class Tr2Effect extends Tr2Material
    * Tr2Effect.cpp:424-439). Carbon has no map merge and no remove by name;
    * the nearest is `ClearAllResources` (Tr2Effect.h:91).
    *
+   * @cjs
+   * @adapted
    * @param {object|null} [values={}] Resource names mapped to res path strings or null.
    * @returns {boolean} Whether any resource was added, updated or removed.
    */
@@ -1616,6 +1689,8 @@ export class Tr2Effect extends Tr2Material
    * overload writes `m_constParameters`. Carbon has no update or remove by
    * name; the nearest is `ClearAllParameters` (Tr2Effect.h:90).
    *
+   * @cjs
+   * @adapted
    * @param {object|null} [values={}] Constant names mapped to numbers, vectors or null.
    * @returns {boolean} Whether any constant was added, updated or removed.
    * @throws {TypeError} If a value cannot be read as a vec4.
@@ -1674,6 +1749,8 @@ export class Tr2Effect extends Tr2Material
    * (Tr2Effect.h:86, Tr2Effect.cpp:452-478). Carbon has no update or remove
    * by name.
    *
+   * @cjs
+   * @adapted
    * @param {object|null} [values={}] Sampler names mapped to scalar bags, instances or null.
    * @returns {boolean} Whether an override was inserted, removed, replaced or changed.
    * @throws {TypeError} If the map, a row or a field is unsupported.

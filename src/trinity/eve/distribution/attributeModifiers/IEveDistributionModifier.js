@@ -10,12 +10,19 @@ import { meta, blue } from "#schema";
 export class IEveDistributionModifier extends IRoot
 {
 
-  /** Applies this modifier to one distribution placement. */
+  /**
+   * Applies this modifier to one distribution placement.
+   *
+   * @abstract
+   */
   @be.abstract
   ProcessDistributionModifier(_placement, _context) {}
 
-  /** Reports whether this modifier changes placement transforms.
+  /**
+   * Reports whether this modifier changes placement transforms.
    * Carbon declaration: IEveDistributionModifier::AffectsTransform (trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/IEveDistributionModifier.h:58).
+   *
+   * @implemented
    */
   @meta.implemented
   AffectsTransform()

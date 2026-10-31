@@ -63,8 +63,12 @@ export class EveChildSpherePin extends EveChildMesh
   @type.float32
   pinAlphaThreshold = 0;
 
-  /** Carbon EveChildSpherePin.cpp:30-38 updates the mesh first, then reads the
-   * required context clock and advances every attached curve set. */
+  /**
+   * Carbon EveChildSpherePin.cpp:30-38 updates the mesh first, then reads the
+   * required context clock and advances every attached curve set.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
@@ -82,6 +86,8 @@ export class EveChildSpherePin extends EveChildMesh
    * payload; Set(MATRIX) performs Carbon's `Transpose(m_worldTransform)`.
    * The struct registers with stages ["vs", "ps"]: the SAME bytes are bound
    * to both per-object slots (cpp:68-75).
+   *
+   * @implemented
    */
 
   @meta.implemented

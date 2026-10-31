@@ -64,7 +64,11 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   /** Caller-owned faction-colour result; never aliases the SOF model. */
   _resolvedGroupColor = color.createLinear();
 
-  /** Stores the inherited faction color set (EveSmartLightAttributeModifierColor.cpp:18-24). */
+  /**
+   * Stores the inherited faction color set (EveSmartLightAttributeModifierColor.cpp:18-24).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetInheritProperties(colorSet)
@@ -93,8 +97,8 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * SOFDataFactionColorChooser::TYPE_MAX; the inherited JS color set is
    * exactly that array, so its length is the bound.
    *
-   * Adapted: JS accepts Carbon's indexed colour array and the combined runtime's named SOF
-   * colour-set model through one direct two-representation boundary.
+   * @adapted JS accepts Carbon's indexed colour array and the combined runtime's named SOF
+   *   colour-set model through one direct two-representation boundary.
    */
 
   @meta.adapted
@@ -109,7 +113,11 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
     );
   }
 
-  /** Advances the crossfade state machine (EveSmartLightAttributeModifierColor.cpp:38-41). */
+  /**
+   * Advances the crossfade state machine (EveSmartLightAttributeModifierColor.cpp:38-41).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
@@ -122,6 +130,8 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * activation-scaled saturation and brightness multipliers, and clamps to
    * [0, 1] (EveSmartLightAttributeModifierColor.cpp:43-69). Component math
    * only - no allocation.
+   *
+   * @implemented
    */
 
   @meta.implemented

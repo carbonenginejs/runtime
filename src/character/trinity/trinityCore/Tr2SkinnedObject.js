@@ -20,6 +20,8 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 /**
  * Skinned character object managing whole-model LOD selection and an immediate
  * CPU skinning palette.
+ *
+ * @abstract
  */
 @be.define("Tr2SkinnedObject")
 @be.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify, ITr2SkinnedObject, ITr2DebugRenderable)
@@ -32,22 +34,38 @@ export class Tr2SkinnedObject extends IRoot
   /** Scratch for RenderDebugInfo. */
   static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(), color_0: color.create() };
 
-  /** Native base list observer intentionally does nothing (Tr2SkinnedObject.cpp:743). */
+  /**
+   * Native base list observer intentionally does nothing (Tr2SkinnedObject.cpp:743).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnListModified(_event, _key, _key2, _value, _theList) {}
 
-  /** Native base has no transparent-sort offset. */
+  /**
+   * Native base has no transparent-sort offset.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue() { return 0; }
 
-  /** Native base supplies no per-object render data. */
+  /**
+   * Native base supplies no per-object render data.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPerObjectData(_accumulator) { return null; }
 
-  /** Carbon GetBatches (h:113, cpp:592-601): guarded delegation to the model. */
+  /**
+   * Carbon GetBatches (h:113, cpp:592-601): guarded delegation to the model.
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
@@ -58,7 +76,11 @@ export class Tr2SkinnedObject extends IRoot
     }
   }
 
-  /** Native protected visibility hook (Tr2SkinnedObject.h:161-164). */
+  /**
+   * Native protected visibility hook (Tr2SkinnedObject.h:161-164).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   DoDisplay()
@@ -69,6 +91,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon GetDebugOptions (h:52, cpp:483-493): names, transforms and bounds,
    * and the two bone options when the visual model has a skeleton.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set the options are added to.
    * @returns {void}
    */
@@ -93,10 +117,10 @@ export class Tr2SkinnedObject extends IRoot
    * - "Bounds": the local bounds under the transform as a wireframe box,
    *   orange for explicit bounds and yellow otherwise.
    *
-   * Adapted: "Bones" and "Bones Names" draw nothing. Carbon draws them from
-   * its per-frame queues of accumulated joint transforms and its anim-rig to
-   * render-rig mappings (h:190-201), and this port skins immediately without
-   * those queues (see GetSkinningTransform).
+   * @adapted "Bones" and "Bones Names" draw nothing. Carbon draws them from
+   *   its per-frame queues of accumulated joint transforms and its anim-rig to
+   *   render-rig mappings (h:190-201), and this port skins immediately without
+   *   those queues (see GetSkinningTransform).
    * @param {ITr2DebugRenderer2} renderer The debug renderer drawing this frame; it decides which options are on.
    * @returns {void}
    */
@@ -127,8 +151,9 @@ export class Tr2SkinnedObject extends IRoot
 
   /**
    * Carbon GetSkinningTransform (h:50, cpp:732-740).
-   * Adapted: the existing immediate CPU skinning path has no delayed transform
-   * queue, so this returns the native empty-queue value, the current transform.
+   *
+   * @adapted the existing immediate CPU skinning path has no delayed transform
+   *   queue, so this returns the native empty-queue value, the current transform.
    */
   @blue.method
   @meta.adapted
@@ -137,7 +162,11 @@ export class Tr2SkinnedObject extends IRoot
     return this.transform;
   }
 
-  /** Carbon's UpdatePerObjectData body is empty (h:150, cpp:612-614). */
+  /**
+   * Carbon's UpdatePerObjectData body is empty (h:150, cpp:612-614).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   UpdatePerObjectData()
@@ -153,7 +182,11 @@ export class Tr2SkinnedObject extends IRoot
   /** m_maxDynamicBounds, retained local-space bound. */
   _maxDynamicBounds = vec3.create(); // alloc: retained native bound
 
-  /** Carbon GetLocalBoundingBox (h:74, cpp:616-638), preserving bounds precedence. */
+  /**
+   * Carbon GetLocalBoundingBox (h:74, cpp:616-638), preserving bounds precedence.
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   GetLocalBoundingBox(min, max)
@@ -177,6 +210,8 @@ export class Tr2SkinnedObject extends IRoot
    * Carbon GetClippedWorldBoundingObb (Tr2SkinnedObject.cpp:659-675): the local
    * bounding box in world space, tightened against the camera frustum.
    * Carbon's five output vectors become the returned Obb.
+   *
+   * @adapted
    * @param {mat4} localToWorld The skinning transform.
    * @param {TriFrustum|null} cameraFrustum Frustum to clip against, or null.
    * @returns {Obb|null} The box, or null without local bounds.
@@ -194,12 +229,20 @@ export class Tr2SkinnedObject extends IRoot
   /** GetClippedWorldBoundingObb's local bounds. */
   static boundsScratch = { vec3_0: vec3.create(), vec3_1: vec3.create() };
 
-  /** World position awaits the maintained TriMatrix storage conversion contract. */
+  /**
+   * World position awaits the maintained TriMatrix storage conversion contract.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   GetWorldPosition(_out) { throw new Error("Tr2SkinnedObject.GetWorldPosition requires the TriMatrix conversion port."); }
 
-  /** World rotation awaits the maintained TriMatrix storage conversion contract. */
+  /**
+   * World rotation awaits the maintained TriMatrix storage conversion contract.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   GetWorldRotation() { throw new Error("Tr2SkinnedObject.GetWorldRotation requires the TriMatrix conversion port."); }
@@ -260,6 +303,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon GetTransform (Tr2SkinnedObject.h:57-60): the world transform, copied
    * into out.
+   *
+   * @implemented
    * @param {mat4} out
    * @returns {mat4} out
    */
@@ -401,6 +446,8 @@ export class Tr2SkinnedObject extends IRoot
 
   /**
    * Carbon INotify hook: retains active model changes in the selected proxy.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -414,7 +461,11 @@ export class Tr2SkinnedObject extends IRoot
     return false;
   }
 
-  /** Carbon method GetCurrentLod. */
+  /**
+   * Carbon method GetCurrentLod.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCurrentLod()
@@ -425,8 +476,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon method SetHighDetailModel.
    *
-   * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
-   * already supplied proxy.
+   * @adapted Proxy construction belongs to the outer runtime adapter; this delegates to an
+   *   already supplied proxy.
    */
 
   @meta.adapted
@@ -438,8 +489,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon method SetMediumDetailModel.
    *
-   * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
-   * already supplied proxy.
+   * @adapted Proxy construction belongs to the outer runtime adapter; this delegates to an
+   *   already supplied proxy.
    */
 
   @meta.adapted
@@ -451,8 +502,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon method SetLowDetailModel.
    *
-   * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
-   * already supplied proxy.
+   * @adapted Proxy construction belongs to the outer runtime adapter; this delegates to an
+   *   already supplied proxy.
    */
 
   @meta.adapted
@@ -461,7 +512,11 @@ export class Tr2SkinnedObject extends IRoot
     this.lod.SetLowDetailModel(model);
   }
 
-  /** Carbon's base bounds implementation is deliberately an inline false stub. */
+  /**
+   * Carbon's base bounds implementation is deliberately an inline false stub.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(_out)
@@ -469,7 +524,11 @@ export class Tr2SkinnedObject extends IRoot
     return false;
   }
 
-  /** Carbon's base world-bounds implementation is deliberately an inline false stub. */
+  /**
+   * Carbon's base world-bounds implementation is deliberately an inline false stub.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWorldBoundingBox(_min, _max)
@@ -480,8 +539,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Selects one whole skinned model through the native LOD helper.
    *
-   * Adapted: The caller supplies the frustum and the LOD proxy. A changed visual model is
-   * posed immediately through this class's CPU UpdateBones implementation.
+   * @adapted The caller supplies the frustum and the LOD proxy. A changed visual model is
+   *   posed immediately through this class's CPU UpdateBones implementation.
    */
 
   @meta.adapted
@@ -513,7 +572,11 @@ export class Tr2SkinnedObject extends IRoot
     }
   }
 
-  /** Carbon method GetBoundingBoxInLocalSpace (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetBoundingBoxInLocalSpace (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   GetBoundingBoxInLocalSpace(...args)
@@ -521,7 +584,11 @@ export class Tr2SkinnedObject extends IRoot
     throw new Error("Tr2SkinnedObject.GetBoundingBoxInLocalSpace is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method ResetAnimationBindings (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ResetAnimationBindings (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ResetAnimationBindings()
@@ -532,7 +599,11 @@ export class Tr2SkinnedObject extends IRoot
     }
   }
 
-  /** Carbon method GetSkeletonTag (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetSkeletonTag (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetSkeletonTag()
@@ -543,10 +614,10 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon native method UpdateBones.
    *
-   * Adapted: Implements the immediate CPU rig mapping, 3x4 palette and dynamic
-   * bounds. Native cloth synchronization, delayed queues and backend upload
-   * remain outside this update. Bounds validity resets before early returns
-   * and follows current animation transforms (cpp:134,263-268).
+   * @adapted Implements the immediate CPU rig mapping, 3x4 palette and dynamic
+   *   bounds. Native cloth synchronization, delayed queues and backend upload
+   *   remain outside this update. Bounds validity resets before early returns
+   *   and follows current animation transforms (cpp:134,263-268).
    */
 
   @meta.adapted
@@ -622,8 +693,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon native method GetSkinningMatrices.
    *
-   * Adapted: Returns a detached immediate CPU palette rather than a pointer into the native
-   * delayed skinning queue.
+   * @adapted Returns a detached immediate CPU palette rather than a pointer into the native
+   *   delayed skinning queue.
    */
 
   @meta.adapted
@@ -635,8 +706,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon method GetBoneIndex (MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Consumes the CarbonEngineJS animation updater's bone-name array because
-   * JavaScript has no output-count reference.
+   * @adapted Consumes the CarbonEngineJS animation updater's bone-name array because
+   *   JavaScript has no output-count reference.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -657,8 +728,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon method GetBonePosition (MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Reads the CarbonEngineJS animation updater's matrix array and supports
-   * caller-provided vector output.
+   * @adapted Reads the CarbonEngineJS animation updater's matrix array and supports
+   *   caller-provided vector output.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -677,8 +748,8 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon native method GetBoneTransform.
    *
-   * Adapted: Returns a matrix from the CarbonEngineJS animation updater's transform array
-   * rather than a native pointer.
+   * @adapted Returns a matrix from the CarbonEngineJS animation updater's transform array
+   *   rather than a native pointer.
    */
 
   @meta.adapted
@@ -699,7 +770,11 @@ export class Tr2SkinnedObject extends IRoot
     return transforms[index] || null;
   }
 
-  /** Carbon method PrintAllBones (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method PrintAllBones (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   PrintAllBones(...args)

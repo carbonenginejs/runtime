@@ -64,7 +64,11 @@ export class TriStepRenderLineGraph extends TriRenderStep
     this._scaleChangeCallback = CjsScriptCallback.from(value);
   }
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(graphs = [], legendScale = undefined, scale = undefined, autoScale = undefined)
@@ -80,6 +84,8 @@ export class TriStepRenderLineGraph extends TriRenderStep
    * not ported (it needs Tr2Renderer::PrintfImmediate and fonts). Carbon
    * TriStepRenderLineGraph.cpp:98-106 calls a present Blue callback directly.
    * Adapted: A supplied JavaScript function is also accepted as a callback.
+   *
+   * @notImplemented
    */
 
   @meta.notImplemented

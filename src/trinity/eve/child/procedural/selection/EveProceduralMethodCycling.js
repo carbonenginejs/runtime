@@ -54,11 +54,14 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   @type.int32
   selectedChild = -1;
 
-  /** Carbon method restart -> SelectParameter (MAP_METHOD_AND_WRAP,
+  /**
+   * Carbon method restart -> SelectParameter (MAP_METHOD_AND_WRAP,
    * cpp:36-60): randomized order picks any OTHER index (the shifted draw);
    * Random draws delegate to the matching generator in global/math/random.js.
    * The start is Blue's frame time, read here as Carbon reads
    * BeOS->GetCurrentFrameTime(), less TimeFromDouble(startTimeOffset) (cpp:58).
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -89,8 +92,12 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     return true;
   }
 
-  /** Carbon EveProceduralMethodCycling::OnModified (cpp:23-26) is an
-   * intentional no-op notify. */
+  /**
+   * Carbon EveProceduralMethodCycling::OnModified (cpp:23-26) is an
+   * intentional no-op notify.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_value = null)
@@ -98,8 +105,11 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     return true;
   }
 
-  /** Carbon EveProceduralMethodCycling::OnListModified (cpp:28-34): a
+  /**
+   * Carbon EveProceduralMethodCycling::OnListModified (cpp:28-34): a
    * non-loading change to the parameter list reselects.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -111,8 +121,12 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     }
   }
 
-  /** Carbon EveProceduralMethodCycling::IsSelectedChildModified
-   * (cpp:62-65). */
+  /**
+   * Carbon EveProceduralMethodCycling::IsSelectedChildModified
+   * (cpp:62-65).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsSelectedChildModified()
@@ -120,10 +134,14 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     return this._selectedChildModified;
   }
 
-  /** Carbon EveProceduralMethodCycling::GetSelectedChild (cpp:67-87):
+  /**
+   * Carbon EveProceduralMethodCycling::GetSelectedChild (cpp:67-87):
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
-   * path. */
+   * path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSelectedChild()
@@ -148,10 +166,14 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     return null;
   }
 
-  /** Carbon EveProceduralMethodCycling::UpdateAsyncronous (cpp:89-106):
+  /**
+   * Carbon EveProceduralMethodCycling::UpdateAsyncronous (cpp:89-106):
    * reselect when no valid index exists or the current parameter's play
    * duration has elapsed on the frame clock: TimeAsFloat of
-   * BeOS->GetCurrentFrameTime() less the start (cpp:100). */
+   * BeOS->GetCurrentFrameTime() less the start (cpp:100).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
@@ -174,7 +196,11 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     }
   }
 
-  /** Carbon returns the owned volume vector by reference (cpp:108-111). */
+  /**
+   * Carbon returns the owned volume vector by reference (cpp:108-111).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDebugVolumes()

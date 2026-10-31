@@ -101,6 +101,7 @@ export class CjsBlueOS extends IBlueOS
    *   construction. The performance.now path avoids later wallclock
    *   adjustments; the Date.now fallback can move backwards.
    *
+   * @adapted
    * @returns {number} Blue ticks since the runtime epoch.
    */
   GetActualTime()
@@ -114,6 +115,7 @@ export class CjsBlueOS extends IBlueOS
    * on the runtime epoch (see GetActualTime). It is set at construction and by
    * each PumpOS, so every reader in one frame sees the same value.
    *
+   * @adapted
    * @returns {number} Blue ticks since the runtime epoch.
    */
   GetCurrentFrameTime()
@@ -125,9 +127,8 @@ export class CjsBlueOS extends IBlueOS
    * Carbon's GetSmoothedTime (BlueOS.cpp:1109-1138): the installed frame
    * clock's sample, or the actual time when none is installed.
    *
-   * Adapted: Carbon falls back to the actual time when the Python call fails;
-   * a JavaScript frame clock that throws propagates.
-   *
+   * @adapted Carbon falls back to the actual time when the Python call fails;
+   *   a JavaScript frame clock that throws propagates.
    * @returns {number} Blue ticks since the runtime epoch.
    */
   GetSmoothedTime()
@@ -144,18 +145,17 @@ export class CjsBlueOS extends IBlueOS
    * (:554-556); both are on the runtime epoch (see GetActualTime) and are what
    * OnTick receives (BlueOS.cpp:2190).
    *
-   * Adapted: Carbon also drives scheduler, IO, recycling and statistics work,
-   * and can dilate or rebase simulation time; none of that is ported. Carbon's
-   * clamp of a negative smoothed delta (:537-543) is not ported because only
-   * the statistics and sim-time dilation read that delta; the real time takes
-   * the unclamped sample (:552) here as there. It increments the pump count before callbacks rather
-   * than after them, permits nested pumping, and still calls snapshot entries
-   * removed during another callback. Native pumping guards reentrancy and checks
-   * current registration before each tick (BlueOS.cpp:674-679,2172-2182).
-   * Callback exceptions are caught so delivery continues. The retained failure
-   * is rethrown only if truthy; falsy thrown values may be swallowed. The method
-   * returns this service instead of Carbon's void return.
-   *
+   * @adapted Carbon also drives scheduler, IO, recycling and statistics work,
+   *   and can dilate or rebase simulation time; none of that is ported. Carbon's
+   *   clamp of a negative smoothed delta (:537-543) is not ported because only
+   *   the statistics and sim-time dilation read that delta; the real time takes
+   *   the unclamped sample (:552) here as there. It increments the pump count before callbacks rather
+   *   than after them, permits nested pumping, and still calls snapshot entries
+   *   removed during another callback. Native pumping guards reentrancy and checks
+   *   current registration before each tick (BlueOS.cpp:674-679,2172-2182).
+   *   Callback exceptions are caught so delivery continues. The retained failure
+   *   is rethrown only if truthy; falsy thrown values may be swallowed. The method
+   *   returns this service instead of Carbon's void return.
    * @returns {CjsBlueOS} This service when no truthy failure remains.
    * @throws {*} The retained callback failure, when truthy.
    */
@@ -204,12 +204,11 @@ export class CjsBlueOS extends IBlueOS
   /**
    * Returns a new BeInfo snapshot containing clocks and the pump count.
    *
-   * Adapted: Carbon returns its live state (BlueOS.cpp:1339-1342). A retained
-   * JavaScript snapshot does not update. Only the frame's real and simulation
-   * times, construction time and pump count are populated, on the runtime
-   * epoch; other fields retain BeInfo defaults. Simulation dilation and
-   * rebasing are not represented.
-   *
+   * @adapted Carbon returns its live state (BlueOS.cpp:1339-1342). A retained
+   *   JavaScript snapshot does not update. Only the frame's real and simulation
+   *   times, construction time and pump count are populated, on the runtime
+   *   epoch; other fields retain BeInfo defaults. Simulation dilation and
+   *   rebasing are not represented.
    * @returns {BeInfo} A new, partially populated snapshot.
    */
   GetInfo()
@@ -225,9 +224,8 @@ export class CjsBlueOS extends IBlueOS
   /**
    * Registers a callback and cookie for pump ticks, ignoring duplicate pairs.
    *
-   * Adapted: Schema identity enforces IBlueEvents at runtime. Carbon accepts a
-   * typed pointer and returns void; this method returns the service.
-   *
+   * @adapted Schema identity enforces IBlueEvents at runtime. Carbon accepts a
+   *   typed pointer and returns void; this method returns the service.
    * @param {object} cb An object implementing IBlueEvents.
    * @param {*} [cookie=null] Value passed back on each tick.
    * @returns {CjsBlueOS} This service.
@@ -250,8 +248,7 @@ export class CjsBlueOS extends IBlueOS
   /**
    * Removes the registration matching both callback and cookie, if present.
    *
-   * Adapted: Returns this service instead of Carbon's void return.
-   *
+   * @adapted Returns this service instead of Carbon's void return.
    * @param {object} cb The registered IBlueEvents object.
    * @param {*} [cookie=null] The cookie supplied at registration.
    * @returns {CjsBlueOS} This service.
@@ -280,10 +277,9 @@ export class CjsBlueOS extends IBlueOS
   /**
    * Registers a simulation-clock rebase listener, ignoring duplicates.
    *
-   * Adapted: Schema identity enforces ISimTimeRebaseNotify at runtime. Carbon
-   * accepts a typed pointer and returns void; this method returns the service.
-   * The listener is retained, but this service does not perform clock rebasing.
-   *
+   * @adapted Schema identity enforces ISimTimeRebaseNotify at runtime. Carbon
+   *   accepts a typed pointer and returns void; this method returns the service.
+   *   The listener is retained, but this service does not perform clock rebasing.
    * @param {object} cb An object implementing ISimTimeRebaseNotify.
    * @returns {CjsBlueOS} This service.
    * @throws {TypeError} If cb does not declare ISimTimeRebaseNotify.
@@ -301,8 +297,7 @@ export class CjsBlueOS extends IBlueOS
   /**
    * Removes a simulation-clock rebase listener, if present.
    *
-   * Adapted: Returns this service instead of Carbon's void return.
-   *
+   * @adapted Returns this service instead of Carbon's void return.
    * @param {object} cb The registered ISimTimeRebaseNotify object.
    * @returns {CjsBlueOS} This service.
    */
@@ -316,10 +311,9 @@ export class CjsBlueOS extends IBlueOS
   /**
    * Returns the fallback result for a runtime without Stackless Python.
    *
-   * Adapted: Carbon invokes StacklessMain and reports whether it succeeds with
-   * Stackless support (BlueOS.cpp:855-896). This method follows only its
-   * non-Stackless branch; it does not query scheduler status or run a scheduler.
-   *
+   * @adapted Carbon invokes StacklessMain and reports whether it succeeds with
+   *   Stackless support (BlueOS.cpp:855-896). This method follows only its
+   *   non-Stackless branch; it does not query scheduler status or run a scheduler.
    * @returns {boolean} False.
    */
   RunStackless()

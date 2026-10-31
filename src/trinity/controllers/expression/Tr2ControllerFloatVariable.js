@@ -80,6 +80,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * Carbon assigns only m_value (Tr2ControllerFloatVariable.cpp:17-20).
    * Controller linking later publishes it through SetDestinationBuffer.
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
 
@@ -96,6 +97,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * Writes the value before marking the dirty bit. Missing destinations are
    * ignored; errors from an installed destination callback propagate.
    *
+   * @implemented
    * @param {string|null} _propertyName Unused modified member name.
    * @returns {boolean} Always true after both operations succeed.
    */
@@ -111,6 +113,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
   /**
    * Gets the authored variable name.
    *
+   * @implemented
    * @returns {string} Name used by the controller to expose this expression slot.
    */
 
@@ -123,6 +126,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
   /**
    * Gets the current variable value.
    *
+   * @implemented
    * @returns {number} Current value, without reading the destination back.
    */
 
@@ -138,6 +142,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * Carbon performs all three operations even for an equal value
    * (Tr2ControllerFloatVariable.cpp:46-56).
    *
+   * @implemented
    * @param {number} value New value for the float32 schema field.
    * @returns {void}
    */
@@ -153,11 +158,10 @@ export class Tr2ControllerFloatVariable extends IInitialize
   /**
    * Binds a destination buffer slot and immediately writes the current value.
    *
-   * Adapted: JavaScript has no float pointer, so the destination is an indexed
-   * array, a writable value holder, or a callback receiving the current value.
-   * A holder takes precedence over indexed access. Null detaches the destination.
-   * This operation does not mark the dirty bit or take ownership of storage.
-   *
+   * @adapted JavaScript has no float pointer, so the destination is an indexed
+   *   array, a writable value holder, or a callback receiving the current value.
+   *   A holder takes precedence over indexed access. Null detaches the destination.
+   *   This operation does not mark the dirty bit or take ownership of storage.
    * @param {Array<number>|Float32Array|{value: number}|function(number): void|null} buffer Destination.
    * @param {number} [index=0] Slot used only for an indexed destination.
    * @returns {void}
@@ -174,11 +178,10 @@ export class Tr2ControllerFloatVariable extends IInitialize
   /**
    * Binds a dirty-mask holder used when the variable changes.
    *
-   * Adapted: a writable value holder replaces Carbon's uint64 pointer. BigInt
-   * preserves all 64 controller bits. Safe integer inputs are promoted to BigInt;
-   * unsafe Number inputs are rejected because their bits are already lost.
-   * Values wrap to uint64. Binding does not set bits; null detaches the holder.
-   *
+   * @adapted a writable value holder replaces Carbon's uint64 pointer. BigInt
+   *   preserves all 64 controller bits. Safe integer inputs are promoted to BigInt;
+   *   unsafe Number inputs are rejected because their bits are already lost.
+   *   Values wrap to uint64. Binding does not set bits; null detaches the holder.
    * @param {{value: bigint|number}|null} maskDestination Caller-owned mask holder.
    * @param {bigint|number} mask Bits to OR into the holder on modification.
    * @returns {void}

@@ -17,6 +17,7 @@ export class IEveChildTransformModifier extends IRoot
    * modifiers read the renderer's current view (Tr2Renderer statics), as
    * Carbon's do.
    *
+   * @abstract
    * @param {mat4} _transform The transform to modify (read only).
    * @param {number} _boneCount How many bones `bones` holds.
    * @param {Float32Array|null} _bones Float4x3 palette, 12 floats per bone.

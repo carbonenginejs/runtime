@@ -170,6 +170,8 @@ export class CjsWebgpuUtils
    * The `GPUTextureFormat` for a Carbon pixel format, as
    * `MetalUtils::GetMTLPixelFormat` (`MetalUtils.mm:124-133`).
    *
+   * @adapted
+   * @renamed GetMTLPixelFormat
    * @param {number} pixelFormat A Carbon `PixelFormat`.
    * @returns {string|null} The format, or null when WebGPU has none.
    */
@@ -220,7 +222,11 @@ export class CjsWebgpuUtils
     return SRGB_VIEW_FORMATS.get(format) ?? null;
   }
 
-  /** Fills the pixel format table (`MetalUtils.mm:12-121`). */
+  /**
+   * Fills the pixel format table (`MetalUtils.mm:12-121`).
+   *
+   * @adapted
+   */
   SetupPixelFormatConversionTable()
   {
     this._pixelFormatConversionTable.fill(null);

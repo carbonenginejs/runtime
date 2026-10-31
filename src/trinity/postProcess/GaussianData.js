@@ -89,6 +89,7 @@ export class GaussianData
    * The retained JavaScript number arithmetic uses doubles instead of native
    * float intermediates; the namespace function remains a static JS helper.
    *
+   * @adapted
    * @param {number} x The tap position.
    * @param {number} sigma The radius.
    * @param {number} weight The centre weight.
@@ -114,6 +115,7 @@ export class GaussianData
    * uses double arithmetic/scratch and reusable output storage rather than
    * native floats and a value return; existing radius/weight guards remain.
    *
+   * @adapted
    * @param {number} radius Radius in pixels.
    * @param {number} centerWeight The distribution's centre weight.
    * @param {number} normalizingFactor Pixels to texture coordinates.

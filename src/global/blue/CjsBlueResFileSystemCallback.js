@@ -38,22 +38,38 @@ export class CjsBlueResFileSystemCallback extends IBlueResFileSystem
     this._read = read;
   }
 
-  /** `FileExists` - always false: the function can only be asked for bytes. */
+  /**
+   * `FileExists` - always false: the function can only be asked for bytes.
+   *
+   * @adapted
+   */
   FileExists(_filename)
   {
     return false;
   }
 
-  /** `IsDirectory` - always false, as `FileExists`. */
+  /**
+   * `IsDirectory` - always false, as `FileExists`.
+   *
+   * @adapted
+   */
   IsDirectory(_dir)
   {
     return false;
   }
 
-  /** `GetDirectoryContents` - adds nothing, as `FileExists`. */
+  /**
+   * `GetDirectoryContents` - adds nothing, as `FileExists`.
+   *
+   * @adapted
+   */
   GetDirectoryContents(_dir, _results) {}
 
-  /** `ResolvePathW` - `null`: the function keeps no files anywhere a path names. */
+  /**
+   * `ResolvePathW` - `null`: the function keeps no files anywhere a path names.
+   *
+   * @adapted
+   */
   ResolvePathW(_path)
   {
     return null;
@@ -66,6 +82,8 @@ export class CjsBlueResFileSystemCallback extends IBlueResFileSystem
    * lookup (`RemoteFileCache::GetFileInfo`, `blue/src/RemoteFileCache.cpp:311-319`):
    * content stores paths such as `res:\Graphics\...\CostumeJF01.gr2`.
    *
+   * @adapted
+   * @renamed GetStreamFromPathW
    * @param {string} path Res path.
    * @param {import("./IBlueResFileSystem.js").BlueResFileSystemRequest} request Always the bytes form, and a signal.
    * @returns {Promise<import("./IBlueResFileSystem.js").BlueResFileSystemResult|null>} The bytes, or `null`.

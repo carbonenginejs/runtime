@@ -46,14 +46,22 @@ export class TriLineSet extends IRoot
   /** The VertexPosColor bytes SubmitGeometry draws from, grown with the vertex count. */
   _staging = new ArrayBuffer(0);
 
-  /** Carbon AddDefaultColor (cpp:30-47): one line in the default colour; ignored past the vertex cap. */
+  /**
+   * Carbon AddDefaultColor (cpp:30-47): one line in the default colour; ignored past the vertex cap.
+   *
+   * @implemented
+   */
   @meta.implemented
   AddDefaultColor(from, to)
   {
     this.Add(from, this.defaultColor, to, this.defaultColor);
   }
 
-  /** Carbon Add (cpp:49-66): one line with a colour at each end; ignored past the vertex cap. */
+  /**
+   * Carbon Add (cpp:49-66): one line with a colour at each end; ignored past the vertex cap.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Add(from, colorFrom, to, colorTo)
@@ -65,7 +73,11 @@ export class TriLineSet extends IRoot
     );
   }
 
-  /** Carbon AddTransformed (cpp:68-75): one line with both ends taken through a transform first. */
+  /**
+   * Carbon AddTransformed (cpp:68-75): one line with both ends taken through a transform first.
+   *
+   * @implemented
+   */
   @meta.implemented
   AddTransformed(transform, from, colorFrom, to, colorTo)
   {
@@ -73,7 +85,11 @@ export class TriLineSet extends IRoot
     this.Add(vec3.transformMat4(vec3_0, from, transform), colorFrom, vec3.transformMat4(vec3_1, to, transform), colorTo);
   }
 
-  /** Carbon AddSphere (cpp:77-143): rings of latitude and longitude, at least four segments, even. */
+  /**
+   * Carbon AddSphere (cpp:77-143): rings of latitude and longitude, at least four segments, even.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddSphere(center, radius, segments, color = 0xffffffff)
@@ -116,6 +132,8 @@ export class TriLineSet extends IRoot
   /**
    * Carbon AddCylinder (cpp:145-223): a frame along end -> start, scaled by radius and length, then for each segment
    * a side line, lines to the two end points, and the two rim edges.
+   *
+   * @implemented
    */
   @meta.implemented
   AddCylinder(start, end, radius, segments, color = 0xffffffff)
@@ -146,6 +164,8 @@ export class TriLineSet extends IRoot
   /**
    * Carbon AddCone (cpp:225-303): the cylinder's frame with every top point at the apex (start). Carbon quirk, kept:
    * it still adds the apex-to-start and apex-to-apex lines, which have zero length.
+   *
+   * @implemented
    */
   @meta.implemented
   AddCone(start, end, radius, segments, color = 0xffffffff)
@@ -173,7 +193,11 @@ export class TriLineSet extends IRoot
     }
   }
 
-  /** Carbon AddBox (cpp:305-328): the twelve edges of an axis-aligned box. */
+  /**
+   * Carbon AddBox (cpp:305-328): the twelve edges of an axis-aligned box.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddBox(min, max, color = 0xffffffff)
@@ -184,7 +208,11 @@ export class TriLineSet extends IRoot
     this._AddBoxEdges(min, max, vec3_0, vec3_1, vec3_2, vec3_3, vec3_4, vec3_5, color, null);
   }
 
-  /** Carbon's AddOrientedBox( transform, min, max, color ) (cpp:330-353): AddBox's edges through a transform. */
+  /**
+   * Carbon's AddOrientedBox( transform, min, max, color ) (cpp:330-353): AddBox's edges through a transform.
+   *
+   * @implemented
+   */
   @meta.implemented
   AddOrientedBox__MinMax(transform, min, max, color)
   {
@@ -194,7 +222,11 @@ export class TriLineSet extends IRoot
     this._AddBoxEdges(min, max, vec3_0, vec3_1, vec3_2, vec3_3, vec3_4, vec3_5, color, transform);
   }
 
-  /** Carbon's AddOrientedBox( boxMatrix, color ) (cpp:355-389): the unit box's corners through boxMatrix. */
+  /**
+   * Carbon's AddOrientedBox( boxMatrix, color ) (cpp:355-389): the unit box's corners through boxMatrix.
+   *
+   * @implemented
+   */
   @meta.implemented
   AddOrientedBox(boxMatrix, color)
   {
@@ -211,7 +243,11 @@ export class TriLineSet extends IRoot
     this._AddBoxEdges(vec3_6, vec3_7, vec3_0, vec3_1, vec3_2, vec3_3, vec3_4, vec3_5, color, null);
   }
 
-  /** Carbon Clear (cpp:391-394). */
+  /**
+   * Carbon Clear (cpp:391-394).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Clear()
@@ -219,7 +255,11 @@ export class TriLineSet extends IRoot
     this.vertices.length = 0;
   }
 
-  /** Carbon SetCurrentColor (cpp:396-404): recolours every vertex. */
+  /**
+   * Carbon SetCurrentColor (cpp:396-404): recolours every vertex.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetCurrentColor(color)
@@ -228,7 +268,11 @@ export class TriLineSet extends IRoot
     for (const vertex of this.vertices) vertex.color = value;
   }
 
-  /** Carbon SetDefaultColor (TriLineSet.h:42-45). */
+  /**
+   * Carbon SetDefaultColor (TriLineSet.h:42-45).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetDefaultColor(color)
@@ -239,6 +283,8 @@ export class TriLineSet extends IRoot
   /**
    * Carbon Render (cpp:406-418): with vertices, applies the debug position-and-colour declaration, sets the world
    * transform, and renders the debug line effect with this set as its geometry.
+   *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The render context.
    */
   @meta.implemented
@@ -251,7 +297,11 @@ export class TriLineSet extends IRoot
     helper.GetLineEffect().Render(this, renderContext);
   }
 
-  /** Carbon SubmitGeometry (cpp:420-430): the vertices as a line list, drawn from memory. */
+  /**
+   * Carbon SubmitGeometry (cpp:420-430): the vertices as a line list, drawn from memory.
+   *
+   * @implemented
+   */
   @meta.implemented
   SubmitGeometry(renderContext)
   {
@@ -260,7 +310,11 @@ export class TriLineSet extends IRoot
     renderContext.DrawPrimitiveUP(numLines, this._Pack(), VERTEX_POS_COLOR_SIZE);
   }
 
-  /** Carbon AddLines (cpp:432-438): each pair in the default colour. */
+  /**
+   * Carbon AddLines (cpp:432-438): each pair in the default colour.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddLines(lines)
@@ -268,7 +322,12 @@ export class TriLineSet extends IRoot
     for (const [ from, to ] of lines) this.AddDefaultColor(from, to);
   }
 
-  /** Carbon RenderFromScript (cpp:440-444), Blue's Render: renders on the main-thread render context. */
+  /**
+   * Carbon RenderFromScript (cpp:440-444), Blue's Render: renders on the main-thread render context.
+   *
+   * @implemented
+   * @renamed Render
+   */
   @be.mapMethodAndWrap("Render")
   @meta.renamed("Render")
   @meta.implemented

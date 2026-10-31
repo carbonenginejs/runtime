@@ -113,7 +113,11 @@ export class EveCloudEditableVolume
     this._thread = null;
   }
 
-  /** Begins the initial volume snapshot (cpp:64-68). */
+  /**
+   * Begins the initial volume snapshot (cpp:64-68).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -122,7 +126,11 @@ export class EveCloudEditableVolume
     return true;
   }
 
-  /** Any notified volume property schedules regeneration (cpp:70-74). */
+  /**
+   * Any notified volume property schedules regeneration (cpp:70-74).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_names)
@@ -133,9 +141,10 @@ export class EveCloudEditableVolume
 
   /**
    * Joins and publishes the current snapshot, then starts a dirty successor.
-   * Adapted: JavaScript cannot synchronously join a browser thread, so the
-   * pending iterator is drained here. Like native cpp:76-97 this explicit call
-   * can block, and returns the current snapshot without waiting for a successor.
+   *
+   * @adapted JavaScript cannot synchronously join a browser thread, so the
+   *   pending iterator is drained here. Like native cpp:76-97 this explicit call
+   *   can block, and returns the current snapshot without waiting for a successor.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -157,6 +166,8 @@ export class EveCloudEditableVolume
    * Publishes completed work before advancing curves (cpp:99-117).
    * Native status remains DataReady after publication: subsequent Updates
    * republish the bitmap until a new job changes that status.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -173,8 +184,9 @@ export class EveCloudEditableVolume
 
   /**
    * Preserves native loading/unloading owner assignment and regeneration (cpp:119-170).
-   * Adapted: JavaScript WeakRef stores the native BlueWeakRef owner.
-   * Carbon declaration: EveCloudEditableVolume::OnListModified (trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h:77).
+   *
+   * @adapted JavaScript WeakRef stores the native BlueWeakRef owner.
+   *   Carbon declaration: EveCloudEditableVolume::OnListModified (trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h:77).
    */
   @meta.adapted
   OnListModified(event, _key, _key2, value, _list)
@@ -209,10 +221,11 @@ export class EveCloudEditableVolume
 
   /**
    * Snapshots balls, sampling four curve frames for animated volumes (cpp:172-230).
-   * Adapted: portable JavaScript has no CcpThread or synchronous thread join.
-   * A resumable iterator preserves the job/publication boundary and runs in
-   * short event-loop slices. This is cooperative CPU work, not parallel work.
-   * Curve sampling and snapshot allocation remain synchronous, as in Carbon.
+   *
+   * @adapted portable JavaScript has no CcpThread or synchronous thread join.
+   *   A resumable iterator preserves the job/publication boundary and runs in
+   *   short event-loop slices. This is cooperative CPU work, not parallel work.
+   *   Curve sampling and snapshot allocation remain synchronous, as in Carbon.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -265,7 +278,11 @@ export class EveCloudEditableVolume
     }
   }
 
-  /** Returns the owned texture, whose bitmap is adopted at publication (cpp:357-360). */
+  /**
+   * Returns the owned texture, whose bitmap is adopted at publication (cpp:357-360).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetTexture()
@@ -300,6 +317,8 @@ export class EveCloudEditableVolume
 
   /**
    * Carbon EveCloudEditableVolume::GetDebugOptions (cpp:362-365).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -315,6 +334,8 @@ export class EveCloudEditableVolume
    * ball twice under the world transform at its position and radius -
    * wireframe, then solid with a zero colour. Each ball is its own owner.
    * Carbon declares minBounds/maxBounds here and never uses them.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} worldTransform
    */
@@ -355,6 +376,8 @@ export class EveCloudEditableVolume
    * box and one sphere per ball through Carbon's immediate-mode
    * Tr2Renderer::DrawOrientedBox / Tr2Renderer::DrawSphere, which have no
    * JavaScript port.
+   *
+   * @notImplemented
    * @param {mat4} _world
    * @param {Tr2RenderContext} _renderContext
    */
@@ -365,7 +388,11 @@ export class EveCloudEditableVolume
     throw new Error("EveCloudEditableVolume.RenderDebugInfo__RenderContext requires Tr2Renderer::DrawOrientedBox and Tr2Renderer::DrawSphere, which are not ported.");
   }
 
-  /** Native worker entry (cpp:232-237); iterator suspension replaces its OS thread. */
+  /**
+   * Native worker entry (cpp:232-237); iterator suspension replaces its OS thread.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   static *threadProc(params)
@@ -374,7 +401,11 @@ export class EveCloudEditableVolume
     return 0;
   }
 
-  /** Native animated worker entry (cpp:239-243); iterator suspension replaces its OS thread. */
+  /**
+   * Native animated worker entry (cpp:239-243); iterator suspension replaces its OS thread.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   static *threadProcAnimated(params)
@@ -383,7 +414,11 @@ export class EveCloudEditableVolume
     return 0;
   }
 
-  /** Native cpp:244-267; yields between rows and conversion blocks for portable scheduling. */
+  /**
+   * Native cpp:244-267; yields between rows and conversion blocks for portable scheduling.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   static *rasterizeBalls(params)
@@ -402,7 +437,11 @@ export class EveCloudEditableVolume
     params.status = Status.DataReady;
   }
 
-  /** Native cpp:270-294 packs four opacity frames into R,G,B,A; yields replace worker execution. */
+  /**
+   * Native cpp:270-294 packs four opacity frames into R,G,B,A; yields replace worker execution.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   static *rasterizeBallsAnimated(params)
@@ -428,9 +467,10 @@ export class EveCloudEditableVolume
 
   /**
    * Native cpp:297-337 accumulates BGRA illumination/opacity over truncated bounds.
-   * Adapted: row yields permit cooperative cancellation; the existing gamma
-   * helpers and arithmetic use JavaScript intermediates while accumulated
-   * channels round to float32; native floating-point byte identity is not claimed.
+   *
+   * @adapted row yields permit cooperative cancellation; the existing gamma
+   *   helpers and arithmetic use JavaScript intermediates while accumulated
+   *   channels round to float32; native floating-point byte identity is not claimed.
    */
 
   @meta.adapted

@@ -332,12 +332,11 @@ export class CjsWebgpuPsoDescription
    * the resolved descriptors; `vertexBufferLayouts` through the layout, the
    * program and the strides of the streams the layout reads.
    *
-   * Adapted: JavaScript has no addresses, so program and layout identities are
-   * the interned integers of `identityOf`, and formats are interned integers
-   * rather than Carbon's PixelFormat values. The strip index format, UNORM
-   * bits, unclipped depth and coverage discard are WebGPU pipeline inputs
-   * Carbon's block has no slot for.
-   *
+   * @adapted JavaScript has no addresses, so program and layout identities are
+   *   the interned integers of `identityOf`, and formats are interned integers
+   *   rather than Carbon's PixelFormat values. The strip index format, UNORM
+   *   bits, unclipped depth and coverage discard are WebGPU pipeline inputs
+   *   Carbon's block has no slot for.
    * @returns {number} The hash, also kept as `hash`.
    */
   UpdateHash()

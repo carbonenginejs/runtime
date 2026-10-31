@@ -56,7 +56,11 @@ export class Tr2EffectLibraryParameters
 
   // States: Tr2Material.cpp:108-117, statement for statement.
 
-  /** Records a resource this library binds and marks the used-texture list stale. */
+  /**
+   * Records a resource this library binds and marks the used-texture list stale.
+   *
+   * @implemented
+   */
   @meta.implemented
   AddUsedResource(resource)
   {
@@ -67,6 +71,8 @@ export class Tr2EffectLibraryParameters
   /**
    * Records a parameter whose value destination has been rerouted into this
    * library's storage.
+   *
+   * @implemented
    */
   @meta.implemented
   AddReroutable(reroutable)

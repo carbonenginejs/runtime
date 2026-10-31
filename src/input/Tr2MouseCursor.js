@@ -62,7 +62,12 @@ export class Tr2MouseCursor
         if (bitmap !== null) this.Create(bitmap, hotspotX, hotspotY, representations);
     }
 
-    /** Initializes this cursor using Carbon's constructor-style method name. */
+    /**
+     * Initializes this cursor using Carbon's constructor-style method name.
+     *
+     * @adapted
+     * @renamed py__init__
+     */
     __init__(bitmap, hotspotX = 0, hotspotY = 0, representations = [])
     {
         this.Create(bitmap, hotspotX, hotspotY, representations);
@@ -79,6 +84,8 @@ export class Tr2MouseCursor
      *
      * The previous cursor is released first, inline, as Carbon's Create
      * releases m_cursor before building the new one (Tr2MouseCursor.cpp:274-279).
+     *
+     * @adapted
      */
     Create(bitmap, hotspotX = 0, hotspotY = 0, representations = [])
     {
@@ -113,7 +120,11 @@ export class Tr2MouseCursor
         return true;
     }
 
-    /** Reports whether this cursor has a usable CSS value. */
+    /**
+     * Reports whether this cursor has a usable CSS value.
+     *
+     * @adapted
+     */
     IsValid()
     {
         return typeof this.cssCursor === "string" && this.cssCursor.length > 0;
@@ -122,13 +133,19 @@ export class Tr2MouseCursor
     /**
      * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
      * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/UI/Tr2MouseCursor_Blue.cpp:40).
+     *
+     * @adapted
      */
     get isValid()
     {
         return this.IsValid();
     }
 
-    /** Applies this cursor to a style-bearing browser target. */
+    /**
+     * Applies this cursor to a style-bearing browser target.
+     *
+     * @adapted
+     */
     Apply(target = globalThis.document?.documentElement)
     {
         if (!this.IsValid() || !target?.style) return false;

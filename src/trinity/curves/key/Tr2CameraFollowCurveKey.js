@@ -143,6 +143,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Initializes derived camera-box values.
    *
+   * @implemented
    * @returns {boolean} True after calculating the camera box.
    */
 
@@ -156,6 +157,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Clamps the FOV multiplier or captures camera state for an enabled change.
    *
+   * @implemented
    * @param {string|null} [propertyName=null] Changed field name.
    * @returns {boolean} True.
    */
@@ -180,11 +182,10 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Fits the bounds between the outer and inner view cones and transforms the result.
    *
-   * Adapted: gl-matrix carries its vector/quaternion transforms. Disabled keys
-   * retain the captured FOV, near plane and inverse view, but still use the
-   * current aspect (Tr2FollowCurveKey.cpp:204-220). Tangents use coordinate
-   * transforms, including translation, as Carbon does.
-   *
+   * @adapted gl-matrix carries its vector/quaternion transforms. Disabled keys
+   *   retain the captured FOV, near plane and inverse view, but still use the
+   *   current aspect (Tr2FollowCurveKey.cpp:204-220). Tangents use coordinate
+   *   transforms, including translation, as Carbon does.
    * @returns {void}
    */
 
@@ -237,8 +238,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Recalculates framing and copies the camera-box position into the output.
    *
-   * Adapted: Returns the caller-provided vector instead of a native value copy.
-   *
+   * @adapted Returns the caller-provided vector instead of a native value copy.
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
@@ -252,6 +252,8 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
 
   /**
    * Gets key time.
+   *
+   * @implemented
    * @returns {number} Authored key time.
    */
 
@@ -263,6 +265,8 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
 
   /**
    * Gets key interpolation.
+   *
+   * @implemented
    * @returns {number} Native follow-key interpolation enum value.
    */
 
@@ -275,8 +279,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Copies the last calculated left tangent into the output.
    *
-   * Adapted: Uses a caller-provided output vector instead of a native value copy.
-   *
+   * @adapted Uses a caller-provided output vector instead of a native value copy.
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
@@ -290,8 +293,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Copies the last calculated right tangent into the output.
    *
-   * Adapted: Uses a caller-provided output vector instead of a native value copy.
-   *
+   * @adapted Uses a caller-provided output vector instead of a native value copy.
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination vector.
    */

@@ -34,6 +34,8 @@ export class EvePickingContext extends IRoot
   /**
    * Records the outcome of a resolved pick: the sampled screen coordinates, the
    * object hit (null for none) and its area index.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -49,6 +51,8 @@ export class EvePickingContext extends IRoot
   /**
    * Returns the object from the last resolved pick, or null if nothing was hit;
    * the reference is borrowed and replaced by the next pick.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -57,7 +61,11 @@ export class EvePickingContext extends IRoot
     return this.lastPickedObject;
   }
 
-  /** Returns the area index from the last resolved pick. */
+  /**
+   * Returns the area index from the last resolved pick.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetExtraData1()
@@ -65,7 +73,11 @@ export class EvePickingContext extends IRoot
     return this.lastPickedExtraData1;
   }
 
-  /** Returns the second extra-data word from the last resolved pick. */
+  /**
+   * Returns the second extra-data word from the last resolved pick.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetExtraData2()
@@ -79,6 +91,8 @@ export class EvePickingContext extends IRoot
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   @meta.adapted
   Destruct()

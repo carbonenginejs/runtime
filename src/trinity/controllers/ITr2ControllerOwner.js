@@ -36,6 +36,7 @@ export class ITr2ControllerOwner extends IRoot
   /**
    * Sets one named controller variable on every controller this object owns.
    *
+   * @adapted
    * @param {string} _name The variable's name.
    * @param {number} _value Its new value.
    */
@@ -46,6 +47,7 @@ export class ITr2ControllerOwner extends IRoot
   /**
    * Reads one named controller variable.
    *
+   * @adapted
    * @param {string} _name The variable's name.
    * @returns {number|null} Its value, or null when no controller exposes it.
    */
@@ -57,13 +59,18 @@ export class ITr2ControllerOwner extends IRoot
   /**
    * Delivers one named controller event.
    *
+   * @adapted
    * @param {string} _name The event's name.
    */
   HandleControllerEvent(_name)
   {
   }
 
-  /** Starts every controller this object owns. */
+  /**
+   * Starts every controller this object owns.
+   *
+   * @adapted
+   */
   StartControllers()
   {
   }
@@ -74,6 +81,7 @@ export class ITr2ControllerOwner extends IRoot
    * Carbon's default contributes the owner itself, and so does this one: an
    * object with no other roots to offer is still a binding root.
    *
+   * @adapted
    * @param {object} out Caller-owned map, mutated in place.
    * @returns {object} The same map.
    */
@@ -87,6 +95,7 @@ export class ITr2ControllerOwner extends IRoot
   /**
    * Adopts a controller, however it arrived - SOF, a resource, or code.
    *
+   * @adapted
    * @param {object} _controller An `ITr2Controller`.
    */
   AddController(_controller)

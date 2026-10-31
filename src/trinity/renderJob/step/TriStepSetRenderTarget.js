@@ -20,7 +20,11 @@ export class TriStepSetRenderTarget extends TriRenderStep
   @type.object.ref("Tr2RenderTarget")
   renderTarget = null;
 
-  /** Stores the render target to bind. */
+  /**
+   * Stores the render target to bind.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(renderTarget = null)
@@ -31,6 +35,8 @@ export class TriStepSetRenderTarget extends TriRenderStep
   /**
    * Binds the render target to slot 0; with none set the current binding is left
    * alone rather than cleared.
+   *
+   * @implemented
    */
 
   @meta.implemented

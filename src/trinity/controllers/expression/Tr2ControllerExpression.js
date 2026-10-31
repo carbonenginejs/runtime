@@ -60,6 +60,8 @@ export class Tr2ControllerExpression
 
   /**
    * Compiles an expression against a state machine or controller.
+   *
+   * @adapted
    * @param {string} expression Source expression.
    * @param {Tr2StateMachine|ITr2ActionController} source Native overload context.
    * @param {object} [functions] Extra JavaScript parser functions.
@@ -90,7 +92,8 @@ export class Tr2ControllerExpression
 
   /**
    * Evaluates the compiled expression.
-   * Adapted: GetExpressionContext is an optional JavaScript evaluator extension, not a native controller method.
+   *
+   * @adapted GetExpressionContext is an optional JavaScript evaluator extension, not a native controller method.
    * @param {object|null} [extra=null] Additional evaluator context.
    * @returns {Array<boolean|number>} Success and numeric result.
    */
@@ -121,8 +124,9 @@ export class Tr2ControllerExpression
 
   /**
    * Clears the compiled expression.
-   * Adapted: retained JS behavior resets variableMask too; native cpp:577-585
-   * leaves that cached mask unchanged. This existing evaluator gap is held.
+   *
+   * @adapted retained JS behavior resets variableMask too; native cpp:577-585
+   *   leaves that cached mask unchanged. This existing evaluator gap is held.
    * @returns {void}
    */
   @meta.adapted
@@ -137,6 +141,8 @@ export class Tr2ControllerExpression
 
   /**
    * Checks whether the expression compiled successfully.
+   *
+   * @implemented
    * @returns {boolean} Whether a valid program is retained.
    */
   @meta.implemented
@@ -147,6 +153,8 @@ export class Tr2ControllerExpression
 
   /**
    * Gets the variable dirty mask referenced by this expression.
+   *
+   * @adapted
    * @returns {bigint} Cached variable bit mask.
    */
   @meta.adapted
@@ -157,6 +165,8 @@ export class Tr2ControllerExpression
 
   /**
    * Gets expression term metadata from the linked controller.
+   *
+   * @adapted
    * @param {Array} out] Output metadata list.
    * @returns {Array} The supplied list.
    */

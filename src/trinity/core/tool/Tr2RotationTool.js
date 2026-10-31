@@ -35,7 +35,11 @@ export class Tr2RotationTool extends Tr2ManipulationTool
     this.SelectAxis("w");
   }
 
-  /** Native axis/view/arcball rotation from consecutive plane intersections. */
+  /**
+   * Native axis/view/arcball rotation from consecutive plane intersections.
+   *
+   * @adapted
+   */
   @meta.adapted
   Move(x, y, dx, dy, viewport, view, projection)
   {
@@ -113,7 +117,11 @@ export class Tr2RotationTool extends Tr2ManipulationTool
     }
   }
 
-  /** Native rotation prepends in Carbon and therefore postmultiplies here. */
+  /**
+   * Native rotation prepends in Carbon and therefore postmultiplies here.
+   *
+   * @adapted
+   */
   @meta.adapted
   Update(context)
   {
@@ -152,7 +160,11 @@ export class Tr2RotationTool extends Tr2ManipulationTool
     }
   }
 
-  /** Native circular arcs, screen ring, arcball disk and thick picking prisms. */
+  /**
+   * Native circular arcs, screen ring, arcball disk and thick picking prisms.
+   *
+   * @adapted
+   */
   @meta.adapted
   GenLineSets()
   {
@@ -212,9 +224,12 @@ export class Tr2RotationTool extends Tr2ManipulationTool
   @type.quat
   rotation = quat.create();
 
-  /** m_wwLine (Tr2LineSetPtr, Tr2RotationTool.h:33): the screen-space ring
+  /**
+   * m_wwLine (Tr2LineSetPtr, Tr2RotationTool.h:33): the screen-space ring
    *  primitive whose scale is the arcball radius, built by GenLineSets.
-   *  Adapted: Carbon declares m_wwLine (trinity/trinity/Tr2RotationTool.h:33) but does not expose it; exposed here for the values interface. */
+   *
+   * @adapted Carbon declares m_wwLine (trinity/trinity/Tr2RotationTool.h:33) but does not expose it; exposed here for the values interface.
+   */
   @meta.mapAttribute(meta.READWRITE)
   @meta.adapted
   @type.object.ref("Tr2LineSet")
@@ -228,6 +243,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * axis handle uses that axis flipped toward the camera when
    * Dot(view, axis) > 0. Always normalised.
    *
+   * @implemented
    * @param {Float32Array} _ray Unused by this override, as in Carbon.
    * @param {Float32Array} viewMatrix
    * @param {Float32Array} out Caller-owned.
@@ -259,6 +275,8 @@ export class Tr2RotationTool extends Tr2ManipulationTool
   /**
    * Carbon GetUnTransformedBaseVectors (Tr2RotationTool.cpp:211-216): the
    * identity axes, the untransformed counterpart to GetBaseVectors.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -283,6 +301,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * is `mat4.multiply(out, projection, view)` here, and `v * M` is
    * `transformMat4(v, M)` over the shared byte layout.
    *
+   * @implemented
    * @param {number} mouseX
    * @param {number} mouseY
    * @param {{x:number,y:number,width:number,height:number}} viewport Tr2Viewport's m_x/m_y/m_width/m_height.
@@ -336,8 +355,8 @@ export class Tr2RotationTool extends Tr2ManipulationTool
   /**
    * Returns all authored rotation primitives in their stored order.
    *
-   * Adapted: JavaScript returns a fresh array instead of Carbon's reused private
-   * visible-object vector.
+   * @adapted JavaScript returns a fresh array instead of Carbon's reused private
+   *   visible-object vector.
    */
 
   @meta.adapted
@@ -346,7 +365,11 @@ export class Tr2RotationTool extends Tr2ManipulationTool
     return Array.from(this.primitives);
   }
 
-  /** Restores Carbon's authored axis and ring colours. */
+  /**
+   * Restores Carbon's authored axis and ring colours.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ResetPrimitiveColors()

@@ -11,7 +11,11 @@ import { meta } from "#schema";
 export class IEveSocketParameter extends IRoot
 {
 
-  /** Returns Carbon's default empty socket-parameter name. */
+  /**
+   * Returns Carbon's default empty socket-parameter name.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -19,14 +23,22 @@ export class IEveSocketParameter extends IRoot
     return "";
   }
 
-  /** Applies an optional socket-parameter name. */
+  /**
+   * Applies an optional socket-parameter name.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetName(_name)
   {
   }
 
-  /** Initializes the socket parameter and reports success. */
+  /**
+   * Initializes the socket parameter and reports success.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -34,14 +46,22 @@ export class IEveSocketParameter extends IRoot
     return true;
   }
 
-  /** Clears any bindings owned by the socket parameter. */
+  /**
+   * Clears any bindings owned by the socket parameter.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ClearBindings()
   {
   }
 
-  /** Binds an external parameter and reports success. */
+  /**
+   * Binds an external parameter and reports success.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   BindToExternalParameter(_externalParameter)
@@ -49,21 +69,33 @@ export class IEveSocketParameter extends IRoot
     return true;
   }
 
-  /** Resets the socket parameter. */
+  /**
+   * Resets the socket parameter.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Reset()
   {
   }
 
-  /** Restores the socket parameter's default value. */
+  /**
+   * Restores the socket parameter's default value.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetValueToDefault()
   {
   }
 
-  /** Reports whether Carbon considers the socket parameter used. */
+  /**
+   * Reports whether Carbon considers the socket parameter used.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Used()
@@ -71,7 +103,11 @@ export class IEveSocketParameter extends IRoot
     return true;
   }
 
-  /** Propagates the current value to owned bindings. */
+  /**
+   * Propagates the current value to owned bindings.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Propagate()

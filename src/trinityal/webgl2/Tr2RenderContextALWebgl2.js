@@ -351,6 +351,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Records the primary render context (`Tr2RenderContextDx11.cpp:804-807`).
    *
+   * @implemented
    * @param {object|null} renderContext The context to make primary.
    */
   static SetPrimaryRenderContext(renderContext)
@@ -361,6 +362,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * The primary render context, which must exist (`:809-813`, an assert).
    *
+   * @implemented
    * @returns {object} The primary context.
    */
   static GetPrimaryRenderContext()
@@ -373,6 +375,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * The primary render context, or null.
    *
+   * @implemented
    * @returns {object|null} The primary context.
    */
   static GetPrimaryRenderContextPointer()
@@ -386,6 +389,7 @@ export class Tr2RenderContextALWebgl2
    * it and applies the present parameters, validity first, because creating
    * the back buffer asks this context whether it is valid.
    *
+   * @adapted
    * @param {object} [presentParameters] `{ mode: { width, height } }`.
    * @returns {number} An `ALResult` value.
    */
@@ -406,6 +410,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Whether a device was created and is still usable.
    *
+   * @adapted
    * @returns {boolean} The flag.
    */
   IsValid()
@@ -416,6 +421,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * What this backend can do.
    *
+   * @implemented
    * @returns {Tr2CapsALWebgl2} The capabilities.
    */
   GetCaps()
@@ -801,6 +807,7 @@ export class Tr2RenderContextALWebgl2
    * chain's buffers and attaches the new one; here the back buffer is created
    * as the stub creates its own, `B8G8R8A8_UNORM` with one mip.
    *
+   * @adapted
    * @param {object} presentParameters `{ mode: { width, height } }`.
    * @returns {number} An `ALResult` value.
    */
@@ -840,6 +847,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * The present parameters last applied, under Carbon's misspelt name.
    *
+   * @implemented
    * @returns {object|null} The parameters.
    */
   GetPresentParamaters()
@@ -850,6 +858,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * The default back buffer.
    *
+   * @implemented
    * @returns {Tr2TextureALWebgl2} The back buffer, created or not.
    */
   GetDefaultBackBuffer()
@@ -860,6 +869,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * The back buffer's pixel format (`Tr2PrimaryRenderContextDx11.cpp:505-508`).
    *
+   * @adapted
    * @returns {number} A `PixelFormat` value.
    */
   GetBackBufferFormat()
@@ -870,6 +880,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Whether a texture is the default back buffer (`Tr2RenderContextDx11.cpp:2254-2257`).
    *
+   * @implemented
    * @param {object} renderTarget The texture.
    * @returns {boolean} True for the back buffer.
    */
@@ -888,6 +899,7 @@ export class Tr2RenderContextALWebgl2
    * Presenting does not end the frame: the browser shows the canvas once
    * control returns to it.
    *
+   * @adapted
    * @returns {number} An `ALResult`: whether the frame was shown.
    */
   @meta.adapted
@@ -954,6 +966,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * The frame being recorded (`Tr2PrimaryRenderContextDx11.cpp:864-867`).
    *
+   * @implemented
    * @returns {number} The frame number.
    */
   GetRecordingFrameNumber()
@@ -964,6 +977,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * The last frame the GPU has finished (`:869-872`).
    *
+   * @implemented
    * @returns {number} The frame number.
    */
   GetRenderedFrameNumber()
@@ -975,6 +989,7 @@ export class Tr2RenderContextALWebgl2
    * Opens a scene (`Tr2RenderContextDx11.cpp:897-926`): the bound program and
    * resource set are forgotten, so the scene binds its own.
    *
+   * @adapted
    * @returns {number} `S_OK`.
    */
   BeginScene()
@@ -988,6 +1003,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Closes a scene; dx11 does nothing here.
    *
+   * @implemented
    * @returns {number} `S_OK`.
    */
   EndScene()
@@ -1001,6 +1017,7 @@ export class Tr2RenderContextALWebgl2
    * Binds a render target to a slot (`Tr2RenderContextDx11.cpp:1464-1491`),
    * refusing a texture made without render-target usage.
    *
+   * @adapted
    * @param {number} slot The slot.
    * @param {object|null} renderTarget A `Tr2TextureALWebgl2`, or null to unbind.
    * @param {number} [slice] The array slice or cube face.
@@ -1038,6 +1055,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Saves the target bound at a slot (`:2178-2188`).
    *
+   * @implemented
    * @param {number} [slot] The slot.
    * @returns {number} An `ALResult`: whether it was saved.
    */
@@ -1052,6 +1070,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Restores the target saved for a slot (`:2190-2206`); an empty stack fails.
    *
+   * @implemented
    * @param {number} [slot] The slot.
    * @returns {number} An `ALResult`: whether one was restored.
    */
@@ -1071,6 +1090,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * How many targets are saved for a slot.
    *
+   * @implemented
    * @param {number} [slot] The slot.
    * @returns {number} The stack depth.
    */
@@ -1083,6 +1103,7 @@ export class Tr2RenderContextALWebgl2
    * Binds the depth-stencil target (`:1442-1462`), refusing a texture made
    * without depth-stencil usage.
    *
+   * @implemented
    * @param {object|null} depthStencil A `Tr2TextureALWebgl2`, or null to unbind.
    * @returns {number} An `ALResult`: whether it was bound.
    */
@@ -1114,6 +1135,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Saves the bound depth-stencil target (`:2208-2212`).
    *
+   * @implemented
    * @returns {number} `S_OK`.
    */
   PushDepthStencil()
@@ -1125,6 +1147,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Restores the saved depth-stencil target (`:2214-2225`); an empty stack fails.
    *
+   * @implemented
    * @returns {number} An `ALResult`: whether one was restored.
    */
   PopDepthStencil()
@@ -1140,6 +1163,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * How many depth-stencil targets are saved.
    *
+   * @implemented
    * @returns {number} The stack depth.
    */
   GetStackSizeDS()
@@ -1150,6 +1174,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * The size of the target at a slot (`:2227-2252`).
    *
+   * @adapted
    * @param {number} [slot] The slot.
    * @returns {{result: number, width: number, height: number}} dx11's out arguments come back here.
    */
@@ -1166,6 +1191,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Whether the bound depth is read-only.
    *
+   * @implemented
    * @returns {boolean} The flag.
    */
   GetReadOnlyDepth()
@@ -1181,6 +1207,7 @@ export class Tr2RenderContextALWebgl2
    * testing against it is lost for those draws, which is the loss this
    * backend accepts.
    *
+   * @adapted
    * @param {boolean} enable Whether depth is read-only.
    */
   @meta.adapted
@@ -1200,6 +1227,7 @@ export class Tr2RenderContextALWebgl2
    * binding depth with no target, resets the viewport and scissor to the new
    * size, which Trinity relies on.
    *
+   * @adapted
    * @param {number} changedSlot The slot that changed, or `MAX_RENDER_TARGET` for depth.
    */
   @meta.adapted
@@ -1302,6 +1330,7 @@ export class Tr2RenderContextALWebgl2
    * Sets the viewport (`:2164-2169`). Coordinates are D3D's and need no
    * conversion; see the head comment.
    *
+   * @implemented
    * @param {object} viewport `{ x, y, width, height, minZ, maxZ }`.
    * @returns {number} `S_OK`.
    */
@@ -1324,6 +1353,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * The viewport last set.
    *
+   * @adapted
    * @returns {object|null} A copy of it.
    */
   GetViewport()
@@ -1341,6 +1371,7 @@ export class Tr2RenderContextALWebgl2
    * `clearStencil` are dx11's `CLEARFLAGS_TARGET`, `_ZBUFFER` and `_STENCIL`;
    * a call naming none of them clears the target and depth.
    *
+   * @adapted
    * @param {object} [options] `{ color, depth, stencil, clearColor, clearDepth, clearStencil, slot }`.
    * @returns {number} `S_OK`.
    */
@@ -1388,6 +1419,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Refused: no WebGL2 resource has unordered access.
    *
+   * @notSupported
    * @returns {number} `E_FAIL`.
    */
   ClearUav()
@@ -1404,6 +1436,7 @@ export class Tr2RenderContextALWebgl2
    * dx11, a triangle fan draws as a point list: dx11 no longer supports fans
    * and its lookup gives them `POINTLIST`, which `ComputeVertexCount` matches.
    *
+   * @implemented
    * @param {number} topology A `Topology` value.
    * @returns {number} An `ALResult` value.
    */
@@ -1418,6 +1451,7 @@ export class Tr2RenderContextALWebgl2
    * The vertex count a primitive count describes under the bound topology
    * (`:930-958`), dx11's table including its fan entry.
    *
+   * @implemented
    * @param {number} primitiveCount Primitives.
    * @returns {number} Vertices.
    */
@@ -1438,10 +1472,9 @@ export class Tr2RenderContextALWebgl2
   /**
    * Binds the vertex layout (`:1562-1567`).
    *
-   * Adapted: dx11 copies the handle; this records its implementation, read
-   * as dx11's friend reads `m_layout`, and null for an invalid handle, so the
-   * draw tests one pointer as dx11 tests `m_vertexLayout.m_layout`.
-   *
+   * @adapted dx11 copies the handle; this records its implementation, read
+   *   as dx11's friend reads `m_layout`, and null for an invalid handle, so the
+   *   draw tests one pointer as dx11 tests `m_vertexLayout.m_layout`.
    * @param {Tr2VertexLayoutAL} layout The vertex layout.
    * @returns {number} `S_OK`.
    */
@@ -1455,6 +1488,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Binds a vertex stream (`:1493-1506`).
    *
+   * @adapted
    * @param {number} stream The slot.
    * @param {object} buffer A `Tr2BufferALWebgl2`.
    * @param {number} offset Byte offset.
@@ -1471,6 +1505,7 @@ export class Tr2RenderContextALWebgl2
    * Carbon's SetIndices( buffer ) (Tr2RenderContextDx11.cpp:1508): binds the
    * index buffer with its own description's stride.
    *
+   * @implemented
    * @param {object} buffer A `Tr2BufferAL`.
    * @returns {number} `S_OK`.
    */
@@ -1482,6 +1517,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Carbon's SetIndices( buffer, stride ) (`:1514-1518`): binds the index buffer.
    *
+   * @adapted
    * @param {object} buffer A `Tr2BufferALWebgl2`.
    * @param {number} stride Bytes per index.
    * @returns {number} `S_OK`.
@@ -1496,10 +1532,9 @@ export class Tr2RenderContextALWebgl2
   /**
    * Binds the shader program (`:1569-1606`).
    *
-   * Adapted: dx11 copies the handle; this records its implementation, read
-   * as dx11's friend reads `m_program`, and null for an invalid handle, so the
-   * draw tests one pointer.
-   *
+   * @adapted dx11 copies the handle; this records its implementation, read
+   *   as dx11's friend reads `m_program`, and null for an invalid handle, so the
+   *   draw tests one pointer.
    * @param {Tr2ShaderProgramAL} shaderProgram The shader program.
    * @returns {number} `S_OK`.
    */
@@ -1514,6 +1549,7 @@ export class Tr2RenderContextALWebgl2
    * Binds a resource set (`:1977-2139`). Its units are bound at the draw,
    * against the bound program.
    *
+   * @adapted
    * @param {object} resourceSet A `Tr2ResourceSetAL`.
    * @returns {number} `S_OK`.
    */
@@ -1535,11 +1571,10 @@ export class Tr2RenderContextALWebgl2
    * so the next one-shot bind cannot be skipped against it (`:1231-1238`). An
    * invalid handle binds nothing, as dx11 binds its null `m_buffer`.
    *
-   * Adapted: WebGL2 binds at the draw, so the slot records the implementation
-   * (dx11's `buffer.m_buffer->m_buffer`) instead of calling
-   * `*SSetConstantBuffers`; the register range is checked for every usage
-   * because the slot table is a JavaScript array.
-   *
+   * @adapted WebGL2 binds at the draw, so the slot records the implementation
+   *   (dx11's `buffer.m_buffer->m_buffer`) instead of calling
+   *   `*SSetConstantBuffers`; the register range is checked for every usage
+   *   because the slot table is a JavaScript array.
    * @param {Tr2ConstantBufferAL} buffer The constant buffer.
    * @param {number} constantType A `ShaderType`.
    * @param {number} registerIndex The constant-buffer register.
@@ -1765,6 +1800,7 @@ export class Tr2RenderContextALWebgl2
    * tables are applied here: `SetInvertedDepthTest`, `SetInvertedCullMode`
    * and `SetWireframeRendering` (`:800-858`).
    *
+   * @adapted
    * @param {object} setup A `Tr2RenderStateSetup`.
    * @param {object} [overrides] `{ invertedDepthTest, invertedCullMode, wireframe }`.
    * @returns {number} An `ALResult` value; `S_OK` for no setup, as dx11 answers a null list.
@@ -1803,6 +1839,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Sets one render state (`:1608-1612`).
    *
+   * @implemented
    * @param {number} state A `RenderState` value.
    * @param {number} value Its value.
    * @returns {number} An `ALResult` value.
@@ -1817,6 +1854,7 @@ export class Tr2RenderContextALWebgl2
    * already at its value is skipped; each change marks its description dirty.
    * Stencil and the depth-clip flag are carried as dx11 carries them.
    *
+   * @adapted
    * @param {number[]} pairs Flat `[state, value, ...]`.
    * @returns {number} `S_OK`.
    */
@@ -1908,6 +1946,7 @@ export class Tr2RenderContextALWebgl2
    * dx11's remap table, defect and all (`ALPHA_BLEND_REMAP`). The blend
    * constant is always (1, 1, 1, 1), as dx11 sets it.
    *
+   * @adapted
    * @returns {boolean} False when a factor has no WebGL2 equivalent.
    */
   @meta.adapted
@@ -1947,6 +1986,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Sets the depth-stencil state on the context (`:1940-1955`).
    *
+   * @adapted
    * @returns {boolean} True.
    */
   @meta.adapted
@@ -1988,6 +2028,7 @@ export class Tr2RenderContextALWebgl2
    * specification leaves to the implementation as D3D's are left to the
    * format. Turning depth clip off needs `EXT_depth_clamp`.
    *
+   * @adapted
    * @returns {boolean} False for a fill mode other than solid, which WebGL2
    *   cannot rasterize.
    */
@@ -2036,6 +2077,8 @@ export class Tr2RenderContextALWebgl2
    * Re-applies read-only depth and sRGB writes when they changed
    * (`:960-969`). sRGB writes change nothing here, so only read-only depth
    * can rebind the targets.
+   *
+   * @adapted
    */
   @meta.adapted
   ApplyReadOnlyDepth()
@@ -2052,6 +2095,7 @@ export class Tr2RenderContextALWebgl2
    * the dirty blend, depth-stencil and rasterizer states. dx11 also switches
    * the topology to patches for a hull shader; WebGL2 has none.
    *
+   * @adapted
    * @returns {boolean} Whether the draw can proceed.
    */
   @meta.adapted
@@ -2076,6 +2120,8 @@ export class Tr2RenderContextALWebgl2
   /**
    * Forgets every cached state, so the next draw sets all of them
    * (`:2268-2284`).
+   *
+   * @implemented
    */
   ResetCapturePlayback()
   {
@@ -2131,6 +2177,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Draws indexed and instanced, dx11's five-argument overload (`:1017-1037`).
    *
+   * @adapted
    * @param {number} indexCountPerInstance Indices per instance.
    * @param {number} instanceCount Instances.
    * @param {number} [startIndexLocation] First index.
@@ -2146,6 +2193,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Draws instanced without indices (`:1039-1059`).
    *
+   * @adapted
    * @param {number} vertexCountPerInstance Vertices per instance.
    * @param {number} instanceCount Instances.
    * @param {number} [startVertexLocation] First vertex.
@@ -2169,6 +2217,7 @@ export class Tr2RenderContextALWebgl2
    * Draws indexed (`:971-992`). dx11's fourth argument is the base vertex,
    * whatever the stub calls it.
    *
+   * @adapted
    * @param {number} _numVertices Unused, as in dx11.
    * @param {number} startIndex First index.
    * @param {number} primitiveCount Primitives.
@@ -2183,6 +2232,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Draws without indices (`:1095-1112`).
    *
+   * @adapted
    * @param {number} startVertex First vertex.
    * @param {number} primitiveCount Primitives.
    * @returns {number} An `ALResult` value.
@@ -2195,6 +2245,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Draws indexed from caller memory, through the shared helper (`:1122-1148`).
    *
+   * @adapted
    * @returns {number} An `ALResult` value.
    */
   DrawIndexedPrimitiveUP(numVertices, primitiveCount, indexData, vertexStreamZeroData, vertexStreamZeroStride)
@@ -2205,6 +2256,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Draws from caller memory, through the shared helper (`:1114-1120`).
    *
+   * @implemented
    * @returns {number} An `ALResult` value.
    */
   DrawPrimitiveUP(primitiveCount, vertexStreamZeroData, vertexStreamZeroStride)
@@ -2215,6 +2267,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Refused: WebGL2 has no indirect draw.
    *
+   * @adapted
    * @returns {number} `E_FAIL`.
    */
   @meta.adapted
@@ -2226,6 +2279,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Refused: WebGL2 has no indirect draw.
    *
+   * @adapted
    * @returns {number} `E_FAIL`.
    */
   @meta.adapted
@@ -2272,6 +2326,7 @@ export class Tr2RenderContextALWebgl2
   /**
    * Refused until compute is lowered to fragment passes.
    *
+   * @notSupported
    * @returns {number} `E_FAIL`.
    */
   RunComputeShader()
@@ -2279,7 +2334,10 @@ export class Tr2RenderContextALWebgl2
     return ALResult.E_FAIL;
   }
 
-  /** @returns {number} `E_FAIL`; see `RunComputeShader`. */
+  /**
+   * @notSupported
+   * @returns {number} `E_FAIL`; see `RunComputeShader`.
+   */
   RunComputeShaderIndirect()
   {
     return ALResult.E_FAIL;
@@ -2289,6 +2347,7 @@ export class Tr2RenderContextALWebgl2
    * Copies a byte range between buffers (`:1532-1560`), with
    * `copyBufferSubData`.
    *
+   * @implemented
    * @param {object} destination The destination buffer.
    * @param {number} destinationOffset Byte offset into it.
    * @param {object} source The source buffer.
@@ -2307,109 +2366,172 @@ export class Tr2RenderContextALWebgl2
     return ALResult.S_OK;
   }
 
-  /** Declared by dx11 and never defined there; dx12's is empty (`Tr2RenderContextDx12.h:159-161`). */
+  /**
+   * Declared by dx11 and never defined there; dx12's is empty (`Tr2RenderContextDx12.h:159-161`).
+   *
+   * @implemented
+   */
   static DestroyMainThreadRenderContext()
   {
   }
 
   // THE REST: dx11's answers, which are mostly nothing.
 
-  /** dx11's is empty (`:2414-2420`). */
+  /**
+   * dx11's is empty (`:2414-2420`).
+   *
+   * @adapted
+   */
   RenderPassHint(..._attachments)
   {
   }
 
-  /** The stub's counterpart of `RenderPassHint`; nothing to end. */
+  /**
+   * The stub's counterpart of `RenderPassHint`; nothing to end.
+   *
+   * @adapted
+   */
   EndRenderPassHint()
   {
   }
 
-  /** A marker for a GPU debugger; WebGL2 has none to name. */
+  /**
+   * A marker for a GPU debugger; WebGL2 has none to name.
+   *
+   * @notSupported
+   */
   AddGpuMarker(_marker)
   {
   }
 
-  /** @see AddGpuMarker */
+  /**
+   * @implemented
+   * @see AddGpuMarker
+   */
   PushGpuMarker(_marker)
   {
   }
 
-  /** @see AddGpuMarker */
+  /**
+   * @implemented
+   * @see AddGpuMarker
+   */
   PopGpuMarker()
   {
   }
 
-  /** @returns {boolean} False (`Tr2PrimaryRenderContextDx11.cpp:859-862`). */
+  /**
+   * @implemented
+   * @returns {boolean} False (`Tr2PrimaryRenderContextDx11.cpp:859-862`).
+   */
   SupportsBindlessTextures()
   {
     return false;
   }
 
-  /** @returns {number} Zero; WebGL2 does not expose video memory. */
+  /**
+   * @implemented
+   * @returns {number} Zero; WebGL2 does not expose video memory.
+   */
   GetTotalVideoMemory()
   {
     return 0;
   }
 
-  /** @returns {number} `S_OK`: a residency hint with nothing to do here. */
+  /**
+   * @implemented
+   * @returns {number} `S_OK`: a residency hint with nothing to do here.
+   */
   UseResources(_destination, _usage, _resources)
   {
     return ALResult.S_OK;
   }
 
-  /** @returns {number} `S_OK`, as the stub answers. */
+  /**
+   * @implemented
+   * @returns {number} `S_OK`, as the stub answers.
+   */
   UseAccelerationStructure(_tlas)
   {
     return ALResult.S_OK;
   }
 
-  /** @returns {number} `E_FAIL`; WebGL2 has no ray tracing. */
+  /**
+   * @implemented
+   * @returns {number} `E_FAIL`; WebGL2 has no ray tracing.
+   */
   DispatchRays()
   {
     return ALResult.E_FAIL;
   }
 
-  /** @returns {number} `E_FAIL`; WebGL2 reports context loss with no marker. */
+  /**
+   * @notSupported
+   * @returns {number} `E_FAIL`; WebGL2 reports context loss with no marker.
+   */
   GetGpuStateMarker()
   {
     return ALResult.E_FAIL;
   }
 
-  /** @returns {number} `E_FAIL`; see `GetGpuStateMarker`. */
+  /**
+   * @notSupported
+   * @returns {number} `E_FAIL`; see `GetGpuStateMarker`.
+   */
   GetGpuPageFaultResource()
   {
     return ALResult.E_FAIL;
   }
 
-  /** A profiler frame event; nothing records it here. */
+  /**
+   * A profiler frame event; nothing records it here.
+   *
+   * @implemented
+   */
   MarkFrameEvent(_frameEvent)
   {
   }
 
-  /** @returns {number} `OK`, as the stub answers, creating nothing. */
+  /**
+   * @adapted
+   * @returns {number} `OK`, as the stub answers, creating nothing.
+   */
   EnableUpscaling()
   {
     return UpscalingResult.OK;
   }
 
-  /** @returns {null} None exists. */
+  /**
+   * @implemented
+   * @returns {null} None exists.
+   */
   GetUpscalingContext()
   {
     return null;
   }
 
-  /** @returns {null} None is created. */
+  /**
+   * @implemented
+   * @returns {null} None is created.
+   */
   CreateUpscalingContext()
   {
     return null;
   }
 
-  /** There are none to delete. */
+  /**
+   * There are none to delete.
+   *
+   * @implemented
+   */
   DeleteUpscalingContext()
   {
   }
 
-  /** @returns {object} "No upscaling", as the stub answers. */
+  /**
+   * @implemented
+   * @returns {object} "No upscaling", as the stub answers.
+   */
   GetUpscalingInfo()
   {
     return {
@@ -2429,13 +2551,19 @@ export class Tr2RenderContextALWebgl2
     };
   }
 
-  /** @returns {Array} Empty. */
+  /**
+   * @implemented
+   * @returns {Array} Empty.
+   */
   GetSupportedUpscalingTechniques()
   {
     return [];
   }
 
-  /** @returns {object} "No upscaling". */
+  /**
+   * @adapted
+   * @returns {object} "No upscaling".
+   */
   GetUpscalingSetup()
   {
     return { technique: UpscalingTechnique.NONE, setting: UpscalingSetting.NATIVE, frameGeneration: false, temporal: false };
@@ -2445,6 +2573,7 @@ export class Tr2RenderContextALWebgl2
    * Releases what a lost device invalidates (`Tr2RenderContextDx11.cpp:2264-2266`
    * is empty); the bound targets are forgotten, as the stub forgets them.
    *
+   * @adapted
    * @returns {boolean} True.
    */
   ReleaseDeviceResources()
@@ -2463,6 +2592,7 @@ export class Tr2RenderContextALWebgl2
    * Releases the context (`Tr2RenderContextDx11.cpp:820-889`,
    * `Tr2PrimaryRenderContextDx11.cpp:63-105`).
    *
+   * @adapted
    * @returns {boolean} True.
    */
   Destroy()

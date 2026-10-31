@@ -22,6 +22,7 @@ export class Tr2RuntimeGpuBuffer extends IRoot
   /**
    * The held buffer; the index is ignored, as Carbon ignores it (cpp:6-9).
    *
+   * @implemented
    * @param {number} [_index] Unused.
    * @returns {object|null} The AL buffer.
    */
@@ -35,6 +36,7 @@ export class Tr2RuntimeGpuBuffer extends IRoot
   /**
    * Copies the held value (cpp:11-14); explicit reset replaces its C++ destructor.
    *
+   * @adapted
    * @param {object|null} buffer The AL buffer.
    * @returns {void}
    */

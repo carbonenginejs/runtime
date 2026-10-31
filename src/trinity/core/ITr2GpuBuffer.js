@@ -8,6 +8,8 @@ export class ITr2GpuBuffer extends IRoot
   /**
    * Returns the AL buffer; an implementation holding several (TriGeometryRes)
    * picks one by index.
+   *
+   * @abstract
    * @param {number} _index Buffer index.
    * @returns {object|null} The Tr2BufferAL, or null.
    */

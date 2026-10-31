@@ -23,14 +23,20 @@ export class EveChildCloudPerObjectData extends Tr2PerObjectData
     return [this.data];
   }
 
-  /** Adapted: RawData replaces the native struct and the shared uploader gates stages by the technique mask, as documented in this family's README (CE-19). */
+  /**
+   * @adapted RawData replaces the native struct and the shared uploader gates stages by the technique mask, as documented in this family's README (CE-19).
+   */
   @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
     return Tr2PerObjectData.setPerObjectDataToDevice(this, buffers, constantTypeMask, renderContext);
   }
 
-  /** Native indirect draw requires the currently unported Tr2IndirectDrawBufferWriter. */
+  /**
+   * Native indirect draw requires the currently unported Tr2IndirectDrawBufferWriter.
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   ApplyConstantBuffers()
   {

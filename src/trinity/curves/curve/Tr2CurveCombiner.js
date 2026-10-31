@@ -52,6 +52,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
   /**
    * Updates every child with zeroed pooled scratch and commits the sum after success.
    * Invocation-local leases preserve nested updates and are released on failure.
+   *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -88,6 +90,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
   /**
    * Carbon's Update(Be::Time): every child updates through its own Be::Time overload, and the sum is cached
    * (Tr2CurveCombiner.cpp:45-58). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -125,6 +129,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
   /**
    * Returns the longest child exposing the exact native curve-length interface.
    * JavaScript mapped constructor identities implement native BlueCastPtr; an exposed Length method is required.
+   *
+   * @adapted
    * @returns {number} Duration in seconds.
    */
 
@@ -144,6 +150,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
 
   /**
    * Samples into a caller-owned destination instead of returning a native value.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -158,6 +166,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
   /**
    * Updates the summed cache and copies it to the destination.
    * JavaScript uses seconds-first/output-last calls instead of native overloads.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -173,6 +183,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
   /**
    * Samples the existing child-sum algorithm into the output.
    * JavaScript uses seconds-first/output-last calls; native tick overloads are not dispatched.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -192,6 +204,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
 
   /**
    * Retains the native no-op first derivative.
+   *
+   * @adapted
    * @param {number} _time Unused time.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
@@ -205,6 +219,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
 
   /**
    * Retains the native no-op second derivative.
+   *
+   * @adapted
    * @param {number} _time Unused time.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
@@ -218,6 +234,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
 
   /**
    * Retains the native no-op interpolated position.
+   *
+   * @adapted
    * @param {number} _time Unused time.
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The unchanged destination.

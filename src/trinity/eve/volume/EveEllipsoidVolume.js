@@ -103,7 +103,11 @@ export class EveEllipsoidVolume extends IEveVolume
    */
   _outerIntersection = vec3.create();
 
-  /** Carbon Initialize (EveEllipsoidVolume.cpp:29-33): runs Setup. */
+  /**
+   * Carbon Initialize (EveEllipsoidVolume.cpp:29-33): runs Setup.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -116,6 +120,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * Carbon GetBoundingSphere (EveEllipsoidVolume.cpp:72-75): the sphere Setup
    * cached, returned by value as a fresh { center, radius }.
    *
+   * @implemented
    * @returns {{center: vec3, radius: number}}
    */
 
@@ -144,6 +149,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * volume Carbon tests is centred on position * RotationMatrix( rotation ),
    * not on the position RenderDebugInfo draws it at.
    *
+   * @implemented
    * @param {vec3} position Point in the volume's parent space; not modified.
    * @returns {number} The intensity.
    */
@@ -184,6 +190,7 @@ export class EveEllipsoidVolume extends IEveVolume
   /**
    * Appends random points expressed in ellipsoid-local space, centred on the ellipsoid rather than offset by its position, split between the inner ellipsoid and the shell by their volume ratio biased with fallOffFactor.
    *
+   * @adapted
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Keeps every point in the shell between the inner and outer shapes.
    */
@@ -239,6 +246,8 @@ export class EveEllipsoidVolume extends IEveVolume
   /**
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -249,7 +258,11 @@ export class EveEllipsoidVolume extends IEveVolume
     return id;
   }
 
-  /** Drops a change callback by the id RegisterForChanges returned. */
+  /**
+   * Drops a change callback by the id RegisterForChanges returned.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnregisterForChanges(callbackId)
@@ -260,6 +273,8 @@ export class EveEllipsoidVolume extends IEveVolume
   /**
    * Carbon OnModified (EveEllipsoidVolume.cpp:148-152): re-runs Setup, which
    * also notifies every registered listener.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -282,6 +297,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * two shapes recorded, in the inverse-rotated frame the rotation matrix
    * takes back out. Until such a call both sit at the parent origin.
    *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} parentTransform The parent's world transform.
    * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
@@ -327,6 +343,8 @@ export class EveEllipsoidVolume extends IEveVolume
    * matrix, its inverse (Carbon's Inverse) and the bounding sphere, and fire
    * EVERY change callback - the ellipsoid's callback fan-out lives INSIDE
    * Setup, opposite to the box's, whose OnModified fires them.
+   *
+   * @implemented
    */
 
   @meta.implemented

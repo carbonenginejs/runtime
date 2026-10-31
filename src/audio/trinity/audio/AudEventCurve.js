@@ -79,7 +79,11 @@ export class AudEventCurve extends IRoot
 
   _queuedEvent = "";
 
-  /** Carbon method AddKey (MAP_METHOD_AND_WRAP). Appends a key and resorts. */
+  /**
+   * Carbon method AddKey (MAP_METHOD_AND_WRAP). Appends a key and resorts.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddKey(time, evtName)
@@ -90,7 +94,11 @@ export class AudEventCurve extends IRoot
     this.InsertKey(key);
   }
 
-  /** Carbon method InsertKey (not Blue-mapped): insert, sort, reset cursor, refresh length. */
+  /**
+   * Carbon method InsertKey (not Blue-mapped): insert, sort, reset cursor, refresh length.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   InsertKey(key)
@@ -101,7 +109,11 @@ export class AudEventCurve extends IRoot
     this.length = this.keys[this.keys.length - 1].time;
   }
 
-  /** Carbon method GetKeyCount (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetKeyCount (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyCount()
@@ -109,7 +121,11 @@ export class AudEventCurve extends IRoot
     return this.keys.length;
   }
 
-  /** Carbon method GetKeyTime (MAP_METHOD_AND_WRAP). Returns 0 out of range. */
+  /**
+   * Carbon method GetKeyTime (MAP_METHOD_AND_WRAP). Returns 0 out of range.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyTime(ix)
@@ -117,7 +133,11 @@ export class AudEventCurve extends IRoot
     return InRange(this.keys, ix) ? this.keys[ix].time : 0;
   }
 
-  /** Carbon method GetKeyValue (MAP_METHOD_AND_WRAP). Returns "" out of range. */
+  /**
+   * Carbon method GetKeyValue (MAP_METHOD_AND_WRAP). Returns "" out of range.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyValue(ix)
@@ -125,7 +145,11 @@ export class AudEventCurve extends IRoot
     return InRange(this.keys, ix) ? this.keys[ix].value : "";
   }
 
-  /** Carbon method SetKeyTime (MAP_METHOD_AND_WRAP). Resorts and refreshes length. */
+  /**
+   * Carbon method SetKeyTime (MAP_METHOD_AND_WRAP). Resorts and refreshes length.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetKeyTime(ix, time)
@@ -139,7 +163,11 @@ export class AudEventCurve extends IRoot
     this.length = this.keys[this.keys.length - 1].time;
   }
 
-  /** Carbon method SetKeyValue (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetKeyValue (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetKeyValue(ix, value)
@@ -151,7 +179,11 @@ export class AudEventCurve extends IRoot
   }
 
   // Carbon leaves length untouched when the last key is removed - preserved.
-  /** Carbon method RemoveKey (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method RemoveKey (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   RemoveKey(ix)
@@ -169,7 +201,11 @@ export class AudEventCurve extends IRoot
     }
   }
 
-  /** Carbon method Initialize (IInitialize): sort persisted keys, refresh length and attach an emitter. */
+  /**
+   * Carbon method Initialize (IInitialize): sort persisted keys, refresh length and attach an emitter.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -196,8 +232,8 @@ export class AudEventCurve extends IRoot
    * externally tweaked key list can restore the invariant, which is what
    * the declaration was evidently for.
    *
-   * Adapted: Declared but never defined in Carbon; the body is the shared key sort every
-   * mutating call site runs.
+   * @adapted Declared but never defined in Carbon; the body is the shared key sort every
+   *   mutating call site runs.
    */
 
   @meta.adapted
@@ -207,8 +243,11 @@ export class AudEventCurve extends IRoot
     return this;
   }
 
-  /** Carbon method Length (ITriCurveLength): returns the cached final key time.
+  /**
+   * Carbon method Length (ITriCurveLength): returns the cached final key time.
    * Carbon declaration: AudEventCurve::Length (audio/src/AudEventCurve.h:40).
+   *
+   * @implemented
    */
   @meta.implemented
   Length()
@@ -216,7 +255,11 @@ export class AudEventCurve extends IRoot
     return this.length;
   }
 
-  /** Carbon method Reset (ITriFunction, not Blue-mapped): rewind the playback cursor. */
+  /**
+   * Carbon method Reset (ITriFunction, not Blue-mapped): rewind the playback cursor.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Reset()
@@ -224,7 +267,11 @@ export class AudEventCurve extends IRoot
     this._currentKeyIndex = 0;
   }
 
-  /** Carbon method GetSourceTriObserver (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetSourceTriObserver (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetSourceTriObserver()
@@ -232,7 +279,11 @@ export class AudEventCurve extends IRoot
     return this.sourceTriObserver;
   }
 
-  /** Carbon method SetSourceTriObserver (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetSourceTriObserver (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetSourceTriObserver(sourceTriObserver)
@@ -244,9 +295,9 @@ export class AudEventCurve extends IRoot
   /**
    * Carbon method CreateAudioEmitter: reuse or attach an AudEmitter placement observer.
    *
-   * Adapted: This preserves the donor's structural placement-observer seam until the
-   * combined runtime has a nominal multi-interface representation for the cross-layer Carbon
-   * contract.
+   * @adapted This preserves the donor's structural placement-observer seam until the
+   *   combined runtime has a nominal multi-interface representation for the cross-layer Carbon
+   *   contract.
    */
 
   @meta.adapted
@@ -273,7 +324,11 @@ export class AudEventCurve extends IRoot
     return emitter;
   }
 
-  /** Carbon method UpdateValue (ITriFunction): fires keyed events as time advances. */
+  /**
+   * Carbon method UpdateValue (ITriFunction): fires keyed events as time advances.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateValue(time)

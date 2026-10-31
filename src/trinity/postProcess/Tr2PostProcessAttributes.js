@@ -969,6 +969,8 @@ export class Tr2PostProcessAttributes extends IRoot
    * Restores every attribute to its default and clears its enable flag, then
    * deliberately re-enables the colour-correction attributes so entering a
    * volume does not interpolate white balance and grading up from zero.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -999,6 +1001,8 @@ export class Tr2PostProcessAttributes extends IRoot
    * alternate bloom arrays for non-native graph shapes. These non-update
    * adapters leave the established extraction algorithm unchanged.
    * Captures an authored post-process graph as an attribute set, enabling only the attributes whose source effect passed its own availability gate; the LUT slot is taken from the highest-sorted available LUT.
+   *
+   * @adapted
    * @param {object} postProcess source graph, read through its Get*IfAvailable accessors; null leaves a reset attribute set
    * @param {number} priority the priority band this volume competes in
    * @param {number} intensity this volume's weight within its band
@@ -1366,6 +1370,8 @@ export class Tr2PostProcessAttributes extends IRoot
    * Blends one attribute across the sources band by band: within a band the enabled sources' intensities are normalized against the weight still unspent, and the results are either summed or, for max-weight attributes, resolved to the single highest-weighted value. Bands stop contributing once the remaining weight is used up.
    * Adapts the native anonymous-namespace/PriorityBlend templates to dynamic
    * member names, JavaScript arrays, numeric coercion and optional observers.
+   *
+   * @adapted
    * @param {Array} sources must already be ordered by priority - runs of equal priority are treated as one band
    * @param {boolean} [maxWeight] pick-one rather than sum; defaults to whether the attribute is in MaxWeightAttributes, which covers paths, enums and booleans that cannot be interpolated
    * @returns {*} a freshly cloned value, never an alias of a source
@@ -1424,6 +1430,8 @@ export class Tr2PostProcessAttributes extends IRoot
    * Blends LUT paths over the same priority bands as Accumulate, but keeps up to four distinct paths instead of one, merging repeats and ranking by weight.
    * Adapts the native PriorityBlend LUT accumulator to JavaScript value records
    * and the existing optional debug-observer interface.
+   *
+   * @adapted
    * @returns {Array<{value: string, weight: number}>} the kept paths, weights renormalized to sum to 1
    */
   @meta.adapted
@@ -1483,6 +1491,8 @@ export class Tr2PostProcessAttributes extends IRoot
    * observers and direct effect-field assignment.
    * These established non-update adapters do not claim renderer parity.
    * Rebuilds a post-process graph from blended attribute sources: every effect slot and the LUT list are cleared first, then only the effects whose driving attribute blended to a non-zero value are recreated, so a slot left empty means nothing asked for it.
+   *
+   * @adapted
    * @param {Array} sources attribute sets ordered by priority, as Accumulate requires
    * @returns {object} the same post-process instance that was passed in
    */

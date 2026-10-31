@@ -79,10 +79,9 @@ export class Tr2PipelineStatsQueryAL
    * `Tr2PipelineStatsQueryAL.cpp:24-33`): a fresh implementation replaces this
    * value's; a failure leaves it on the null implementation.
    *
-   * Adapted: the render context allocates the implementation instead of a
-   * compile-time platform include. The previous share is released explicitly
-   * because JavaScript has no shared_ptr; existing copies keep it alive.
-   *
+   * @adapted the render context allocates the implementation instead of a
+   *   compile-time platform include. The previous share is released explicitly
+   *   because JavaScript has no shared_ptr; existing copies keep it alive.
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
@@ -101,6 +100,7 @@ export class Tr2PipelineStatsQueryAL
   /**
    * Starts collecting (`Tr2PipelineStatsQueryAL.cpp:35-38`).
    *
+   * @implemented
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
@@ -113,6 +113,7 @@ export class Tr2PipelineStatsQueryAL
   /**
    * Stops collecting (`Tr2PipelineStatsQueryAL.cpp:40-43`).
    *
+   * @implemented
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
@@ -125,9 +126,8 @@ export class Tr2PipelineStatsQueryAL
   /**
    * The collected statistics (`Tr2PipelineStatsQueryAL.cpp:45-48`).
    *
-   * Adapted: Carbon's `Tr2PipelineStatsDataAL&` output becomes the returned
-   * `data`, and the record remembers which backend made it, for the statics.
-   *
+   * @adapted Carbon's `Tr2PipelineStatsDataAL&` output becomes the returned
+   *   `data`, and the record remembers which backend made it, for the statics.
    * @param {object} renderContext The context whose results are read.
    * @returns {{result: number, data: object}} The statistics record.
    */
@@ -144,6 +144,7 @@ export class Tr2PipelineStatsQueryAL
   /**
    * Whether the implementation exists (`Tr2PipelineStatsQueryAL.cpp:50-53`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -155,8 +156,8 @@ export class Tr2PipelineStatsQueryAL
   /**
    * Compares implementation identity (`Tr2PipelineStatsQueryAL.cpp:55-58`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2PipelineStatsQueryAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -169,6 +170,7 @@ export class Tr2PipelineStatsQueryAL
   /**
    * The implementation's memory class (`Tr2PipelineStatsQueryAL.cpp:60-63`).
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.implemented
@@ -180,10 +182,9 @@ export class Tr2PipelineStatsQueryAL
   /**
    * How many values a record holds (`Tr2PipelineStatsQueryAL.cpp:65-68`).
    *
-   * Adapted: Carbon forwards to the one compiled backend's static; ours
-   * forwards to the static of the backend whose `GetStats` made the record.
-   * A record no backend made holds no values.
-   *
+   * @adapted Carbon forwards to the one compiled backend's static; ours
+   *   forwards to the static of the backend whose `GetStats` made the record.
+   *   A record no backend made holds no values.
    * @param {object} data A statistics record from `GetStats`.
    * @returns {number} The value count.
    */
@@ -197,6 +198,7 @@ export class Tr2PipelineStatsQueryAL
   /**
    * One value's label (`Tr2PipelineStatsQueryAL.cpp:70-73`); see `GetValueCount`.
    *
+   * @adapted
    * @param {object} data A statistics record from `GetStats`.
    * @param {number} index Which value.
    * @returns {string} The label.
@@ -211,6 +213,7 @@ export class Tr2PipelineStatsQueryAL
   /**
    * One value's description (`Tr2PipelineStatsQueryAL.cpp:75-78`); see `GetValueCount`.
    *
+   * @adapted
    * @param {object} data A statistics record from `GetStats`.
    * @param {number} index Which value.
    * @returns {string} The description.
@@ -225,6 +228,7 @@ export class Tr2PipelineStatsQueryAL
   /**
    * One value (`Tr2PipelineStatsQueryAL.cpp:80-83`); see `GetValueCount`.
    *
+   * @adapted
    * @param {object} data A statistics record from `GetStats`.
    * @param {number} index Which value.
    * @returns {number} The value.
@@ -240,6 +244,7 @@ export class Tr2PipelineStatsQueryAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2PipelineStatsQueryAL.cpp:85-96`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

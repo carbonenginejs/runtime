@@ -83,10 +83,9 @@ export class CjsWebgpuResourceSetAL
    * Resolves the description against the program.
    *
    *
-   * Adapted: WebGPU resolves native dense records into bind-group entries, validates the
-   * program map and fills missing resources with dummies. Descriptor heap views have no
-   * WebGPU representation and return E_FAIL.
-   *
+   * @adapted WebGPU resolves native dense records into bind-group entries, validates the
+   *   program map and fills missing resources with dummies. Descriptor heap views have no
+   *   WebGPU representation and return E_FAIL.
    * @param {object} description A `Tr2ResourceSetDescriptionAL`.
    * @param {object} shaderProgram The `Tr2ShaderProgramAL` this set binds against.
    * @param {object} renderContext The WebGPU render context AL.
@@ -139,8 +138,9 @@ export class CjsWebgpuResourceSetAL
   /**
    * One slot's resource, or the dummy Metal would put there.
    *
-   * Adapted: Resolves dense native records to WebGPU views and buffers; a pending resource
-   * or empty slot uses the context dummy, following Metal.
+   * @cjs
+   * @adapted Resolves dense native records to WebGPU views and buffers; a pending resource
+   *   or empty slot uses the context dummy, following Metal.
    */
   @meta.cjs
     @meta.adapted
@@ -251,13 +251,21 @@ export class CjsWebgpuResourceSetAL
     return this._program;
   }
 
-  /** Whether the set has been created and carries an identity. */
+  /**
+   * Whether the set has been created and carries an identity.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._id !== 0;
   }
 
-  /** Drops the resolved entries, leaving the set invalid. */
+  /**
+   * Drops the resolved entries, leaving the set invalid.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._entries = new Map();
@@ -267,7 +275,11 @@ export class CjsWebgpuResourceSetAL
     this._id = 0;
   }
 
-  /** Where the set lives, which is managed memory rather than the device. */
+  /**
+   * Where the set lives, which is managed memory rather than the device.
+   *
+   * @implemented
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;
@@ -276,6 +288,7 @@ export class CjsWebgpuResourceSetAL
   /**
    * Fills in a device-resource description.
    *
+   * @adapted
    * @param {object} description The description to fill.
    * @returns {object} The description, filled.
    */
@@ -291,6 +304,7 @@ export class CjsWebgpuResourceSetAL
   /**
    * Nothing here carries a label - the bind groups the context builds do.
    *
+   * @adapted
    * @returns {number} `S_OK`.
    */
   SetName(_name)

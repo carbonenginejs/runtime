@@ -44,9 +44,8 @@ export class AudParameter extends INotify
    * Carbon OnModified (AudParameter.cpp:17-28): a value change sets the RTPC
    * when the manager is enabled and an owner is bound.
    *
-   * Adapted: Carbon calls AK::SoundEngine::SetRTPCValue; ours calls the injected
-   * audio backend's SetRTPCValue.
-   *
+   * @adapted Carbon calls AK::SoundEngine::SetRTPCValue; ours calls the injected
+   *   audio backend's SetRTPCValue.
    * @param {string|null} propertyName Modified member name.
    * @returns {boolean} Always true when the calls complete.
    */

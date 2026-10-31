@@ -28,11 +28,10 @@ export class TriSettings extends IRoot
    * string are supported, and re-registering replaces the entry. Returns this
    * for chaining.
    *
-   * Adapted: Carbon takes a pointer to the value; here the owner and key of a
-   * live value stand for it. With no key, the entry holds `ownerOrValue` itself.
-   * `applies`, `enum`, `values` and `carbon` are ours, for a settings menu
-   * (see meta.setting); Carbon records none of them.
-   *
+   * @adapted Carbon takes a pointer to the value; here the owner and key of a
+   *   live value stand for it. With no key, the entry holds `ownerOrValue` itself.
+   *   `applies`, `enum`, `values` and `carbon` are ours, for a settings menu
+   *   (see meta.setting); Carbon records none of them.
    * @param {string} name The setting's name.
    * @param {object|boolean|number|string} ownerOrValue The value's owner, or the value.
    * @param {string} [key] The owner's property holding the value.
@@ -68,6 +67,7 @@ export class TriSettings extends IRoot
    * Carbon FindSetting (TriSettings.h:31-42): the entry for a setting, or null
    * when it is not registered.
    *
+   * @implemented
    * @param {string} name The setting's name.
    * @returns {{ valueType: string, owner: object, key: string, applies: string, enum: object|string|null, values: Array|null, carbon: boolean }|null} The entry.
    */
@@ -94,6 +94,8 @@ export class TriSettings extends IRoot
    * Carbon PyGetValue (TriSettings_Blue.cpp): the current value of a
    * registered setting; an unknown name throws RangeError, as Python's
    * LookupError.
+   *
+   * @implemented
    */
   @be.mapMethod()
   @meta.implemented
@@ -107,6 +109,8 @@ export class TriSettings extends IRoot
    * Carbon PySetValue (TriSettings_Blue.cpp): assigns a registered setting
    * through to the value it names. An unknown name throws RangeError; a value
    * whose type differs from the registered one throws TypeError.
+   *
+   * @implemented
    */
   @be.mapMethod()
   @meta.implemented
@@ -120,7 +124,11 @@ export class TriSettings extends IRoot
     setting.owner[setting.key] = value;
   }
 
-  /** Carbon GetReprString (TriSettings.h:44-57): a Python dict literal of every setting, in name order. */
+  /**
+   * Carbon GetReprString (TriSettings.h:44-57): a Python dict literal of every setting, in name order.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetReprString()
@@ -137,8 +145,8 @@ export class TriSettings extends IRoot
    * Carbon GetSettingReprString (TriSettings_Blue.cpp:8-44): one setting's
    * value as a Python literal.
    *
-   * Adapted: Carbon formats by Be::VARTYPE (%d for integers, %f for floats);
-   * JavaScript has one number type, so numbers format as JavaScript does.
+   * @adapted Carbon formats by Be::VARTYPE (%d for integers, %f for floats);
+   *   JavaScript has one number type, so numbers format as JavaScript does.
    */
 
   @meta.adapted
@@ -151,8 +159,7 @@ export class TriSettings extends IRoot
    * Returns the settings representation through the Blue-exposed repr hook.
    * Carbon PyRepr (TriSettings_Blue.cpp:46-53; exposed as __repr__ at 141-143).
    *
-   * Adapted: Returns a JavaScript string directly instead of converting it to a Python object.
-   *
+   * @adapted Returns a JavaScript string directly instead of converting it to a Python object.
    * @returns {string} The settings representation.
    */
   @be.mapMethod()

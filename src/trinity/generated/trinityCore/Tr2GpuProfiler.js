@@ -46,7 +46,11 @@ export class Tr2GpuProfiler extends IRoot
   @type.boolean
   capturing = false;
 
-  /** Carbon method IsReportReady -> IsDataReady (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method IsReportReady -> IsDataReady (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   IsReportReady(...args)
@@ -54,7 +58,11 @@ export class Tr2GpuProfiler extends IRoot
     throw new Error("Tr2GpuProfiler.IsReportReady is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method ClearData (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ClearData (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   ClearData(...args)
@@ -62,7 +70,11 @@ export class Tr2GpuProfiler extends IRoot
     throw new Error("Tr2GpuProfiler.ClearData is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Capture (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Capture (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   Capture(...args)
@@ -70,7 +82,11 @@ export class Tr2GpuProfiler extends IRoot
     throw new Error("Tr2GpuProfiler.Capture is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method GetFrameReport (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetFrameReport (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   GetFrameReport(...args)

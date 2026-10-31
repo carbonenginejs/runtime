@@ -11,7 +11,11 @@ import { blue } from "#schema";
 export class IEveReferencePoint extends IRoot
 {
 
-  /** Writes the world reference point for the requested time. */
+  /**
+   * Writes the world reference point for the requested time.
+   *
+   * @abstract
+   */
   @be.abstract
   GetReferencePoint(_time, _out) {}
 

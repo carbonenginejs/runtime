@@ -12,6 +12,7 @@ export class IVariableTicker
   /**
    * `OnTick` - one pump cycle, with the elapsed time given.
    *
+   * @abstract
    * @param {number} _timestamp Time since the client started, in 100ns ticks.
    * @param {number} _deltaTSec Seconds elapsed since the previous pump cycle.
    * @param {*} _cookie Whatever the registrant passed when it registered.

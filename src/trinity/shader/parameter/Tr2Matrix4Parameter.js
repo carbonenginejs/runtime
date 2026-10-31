@@ -41,7 +41,11 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
 
   #reroutedValue = null;
 
-  /** The shader constant name this matrix binds to; empty until authored. */
+  /**
+   * The shader constant name this matrix binds to; empty until authored.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -49,7 +53,11 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
     return this.name;
   }
 
-  /** Content hash: matrix bytes then name. */
+  /**
+   * Content hash: matrix bytes then name.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
@@ -59,6 +67,8 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
 
   /**
    * Refreshes from the reroute destination when one is set, then copies 16 components out.
+   *
+   * @implemented
    * @param {Float32Array} out Receives the 16 components.
    */
 
@@ -82,6 +92,8 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   /**
    * Copies 16 components in and writes through to the reroute destination when
    * one is set.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -100,7 +112,11 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
     }
   }
 
-  /** Whether reads and writes currently go through an external destination. */
+  /**
+   * Whether reads and writes currently go through an external destination.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsRerouted()
@@ -110,6 +126,8 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
 
   /**
    * Points the parameter at an external destination and seeds it with the current matrix; a target under 64 bytes or not writable as 16 components clears the reroute instead. Bindings are notified of the effective destination either way.
+   *
+   * @adapted
    * @param size destination capacity in bytes, not components
    */
 
@@ -139,6 +157,8 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * The array an upload should read - the reroute target when set, otherwise the
    * parameter's own matrix - paired with its 64-byte size. The array is
    * borrowed, not copied.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -153,6 +173,8 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   /**
    * Adds a binding to be notified whenever the destination is repointed;
    * duplicates are ignored.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -162,7 +184,11 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
     this.#bindings.push(binding);
   }
 
-  /** Stops notifying a binding; unknown bindings are ignored. */
+  /**
+   * Stops notifying a binding; unknown bindings are ignored.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UnregisterBinding(binding)
@@ -179,6 +205,8 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * Records whether the shader reflects a constant of this name and drops a
    * stale reroute when the shader is gone; reflection metadata only, no GPU
    * handle.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -197,6 +225,8 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   /**
    * Seeds an existing reroute destination with the current matrix; always
    * returns true.
+   *
+   * @implemented
    */
   @meta.implemented
   Initialize()
@@ -216,6 +246,8 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * reading back through the reroute first; the stored element order is copied
    * as-is, with no transpose.
    * Carbon declaration: Tr2Matrix4Parameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/Tr2Matrix4Parameter.h:45).
+   *
+   * @adapted
    */
   @meta.adapted
   CopyValueToEffect(_inputType, out)

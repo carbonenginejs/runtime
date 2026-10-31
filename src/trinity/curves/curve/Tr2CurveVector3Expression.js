@@ -38,7 +38,11 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   @type.expression
   _expressionX = "";
 
-  /** Live expression property, separate from persisted backing storage. */
+  /**
+   * Live expression property, separate from persisted backing storage.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.expression
   @meta.implemented
@@ -47,7 +51,10 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
     return this.GetExpressionX();
   }
 
-  /** @param {string} value Source compiled immediately by the native setter. */
+  /**
+   * @implemented
+   * @param {string} value Source compiled immediately by the native setter.
+   */
   @meta.implemented
   set expressionX(value)
   {
@@ -59,7 +66,11 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   @type.expression
   _expressionY = "";
 
-  /** Live expression property, separate from persisted backing storage. */
+  /**
+   * Live expression property, separate from persisted backing storage.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.expression
   @meta.implemented
@@ -68,7 +79,10 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
     return this.GetExpressionY();
   }
 
-  /** @param {string} value Source compiled immediately by the native setter. */
+  /**
+   * @implemented
+   * @param {string} value Source compiled immediately by the native setter.
+   */
   @meta.implemented
   set expressionY(value)
   {
@@ -80,7 +94,11 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   @type.expression
   _expressionZ = "";
 
-  /** Live expression property, separate from persisted backing storage. */
+  /**
+   * Live expression property, separate from persisted backing storage.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.expression
   @meta.implemented
@@ -89,7 +107,10 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
     return this.GetExpressionZ();
   }
 
-  /** @param {string} value Source compiled immediately by the native setter. */
+  /**
+   * @implemented
+   * @param {string} value Source compiled immediately by the native setter.
+   */
   @meta.implemented
   set expressionZ(value)
   {
@@ -148,7 +169,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Compiles nonempty persisted components through their indexed setter.
-   * Adapted: uses the existing JavaScript expression program.
+   *
+   * @adapted uses the existing JavaScript expression program.
    * @returns {boolean} True.
    */
 
@@ -169,6 +191,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Updates the cached vector value.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -179,6 +203,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Updates and returns the vector value.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -195,6 +221,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Gets the vector value at a time.
+   *
+   * @adapted
    */
   @meta.adapted
   GetValueAt(time, out)
@@ -204,6 +232,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Gets the vector value.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap("GetValueAt")
   @meta.adapted
@@ -219,6 +249,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Derivatives are not represented by Carbon expression curves.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -229,6 +261,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Derivatives are not represented by Carbon expression curves.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -240,6 +274,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Carbon's ITriVectorFunction GetValueDotAt(Be::Time); the class extends ITriColorFunction, so the vector-only
    * tick overloads are declared here. Like the double overload, it leaves out untouched.
+   *
+   * @adapted
    * @param {number} _time Unused Blue ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} out
@@ -252,6 +288,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Carbon's ITriVectorFunction GetValueDoubleDotAt(Be::Time); leaves out untouched, like the double overload.
+   *
+   * @adapted
    * @param {number} _time Unused Blue ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} out
@@ -264,6 +302,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Expression curves do not have segment interpolation state.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -274,6 +314,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Gets one authored component source; native callers supply indices 0 through 2.
+   *
+   * @implemented
    * @param {number} index Native component index.
    * @returns {string} Stored source text.
    */
@@ -286,8 +328,9 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Compiles a nonempty component source immediately and commits it on success.
-   * Adapted: the existing JavaScript program replaces native parser bytecode.
-   * Empty input changes only stored source, retaining the compiled program.
+   *
+   * @adapted the existing JavaScript program replaces native parser bytecode.
+   *   Empty input changes only stored source, retaining the compiled program.
    * @param {number} index Native component index, 0 through 2.
    * @param {string} expression Authored source text.
    * @returns {void}
@@ -308,7 +351,11 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
     this["_expression" + "XYZ"[index]] = expression;
   }
 
-  /** Gets the authored x-component expression source. */
+  /**
+   * Gets the authored x-component expression source.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetExpressionX()
@@ -316,7 +363,11 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
     return this.GetExpression(0);
   }
 
-  /** Gets the authored y-component expression source. */
+  /**
+   * Gets the authored y-component expression source.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetExpressionY()
@@ -324,7 +375,11 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
     return this.GetExpression(1);
   }
 
-  /** Gets the authored z-component expression source. */
+  /**
+   * Gets the authored z-component expression source.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetExpressionZ()
@@ -334,7 +389,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Sets the x-component source through the native indexed setter.
-   * Adapted: compilation uses the existing JavaScript expression program.
+   *
+   * @adapted compilation uses the existing JavaScript expression program.
    * @param {string} expression Authored source text.
    * @returns {void}
    */
@@ -347,7 +403,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Sets the y-component source through the native indexed setter.
-   * Adapted: compilation uses the existing JavaScript expression program.
+   *
+   * @adapted compilation uses the existing JavaScript expression program.
    * @param {string} expression Authored source text.
    * @returns {void}
    */
@@ -360,7 +417,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Sets the z-component source through the native indexed setter.
-   * Adapted: compilation uses the existing JavaScript expression program.
+   *
+   * @adapted compilation uses the existing JavaScript expression program.
    * @param {string} expression Authored source text.
    * @returns {void}
    */
@@ -374,6 +432,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Carbon's GetInputValue( index ): the n-th input sampled at the current
    * context time; zero for an out-of-range index.
+   *
+   * @implemented
    * @param {number} index Input index.
    * @returns {number}
    */
@@ -386,6 +446,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /**
    * Carbon's GetInputValue( index, time ): the n-th input sampled at time.
+   *
+   * @implemented
    * @param {number} index Input index.
    * @param {number} time Sample time.
    * @returns {number}
@@ -405,6 +467,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * Gets this curve's per-instance random constant, which stays fixed until
    * ResetRandomConstant is called so `randomConstant` expressions are stable
    * over time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -413,7 +477,11 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
     return this.randomConstant;
   }
 
-  /** Draws a new per-instance random constant in [0, 1). */
+  /**
+   * Draws a new per-instance random constant in [0, 1).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ResetRandomConstant()
@@ -421,7 +489,11 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
     this.randomConstant = carbonRandom.triFloatRandom01();
   }
 
-  /** Gets the curve expression terms offered to an editor for autocompletion. */
+  /**
+   * Gets the curve expression terms offered to an editor for autocompletion.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   GetExpressionTermInfo()
@@ -432,6 +504,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Compiles and evaluates an arbitrary expression against this curve's context
    * at time 0, returning 0 when it does not compile.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted

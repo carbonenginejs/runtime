@@ -73,6 +73,7 @@ export class Tr2BindingPoint
    * Carbon Link (cpp:281-293): unlink, then bind `object` when there is no
    * path, otherwise the object the path resolves to.
    *
+   * @implemented
    * @param {Array<[string, object]>} roots Named roots, as a controller's GetBindingPathRoots.
    */
   @meta.implemented
@@ -90,7 +91,11 @@ export class Tr2BindingPoint
     }
   }
 
-  /** Carbon Unlink (cpp:295-303). */
+  /**
+   * Carbon Unlink (cpp:295-303).
+   *
+   * @implemented
+   */
   @meta.implemented
   Unlink()
   {
@@ -105,6 +110,7 @@ export class Tr2BindingPoint
   /**
    * Carbon IsValid (cpp:305-308).
    *
+   * @implemented
    * @returns {boolean} Whether a destination is bound.
    */
   @meta.implemented
@@ -118,9 +124,8 @@ export class Tr2BindingPoint
    * components of a float array, or the swizzled one - then tell the object
    * through OnModified when it is an INotify.
    *
-   * Adapted: OnModified receives the member's exposed name; Carbon passes the
-   * member's storage address, which INotify implementations match by member.
-   *
+   * @adapted OnModified receives the member's exposed name; Carbon passes the
+   *   member's storage address, which INotify implementations match by member.
    * @param {number} value The value; stored as a C++ float first.
    */
   @meta.adapted
@@ -155,8 +160,7 @@ export class Tr2BindingPoint
   /**
    * Carbon GetValue (cpp:362-389).
    *
-   * Adapted: returns the value, or null where Carbon returns false.
-   *
+   * @adapted returns the value, or null where Carbon returns false.
    * @returns {number|null} The destination value as a float.
    */
   @meta.adapted
@@ -173,6 +177,7 @@ export class Tr2BindingPoint
   /**
    * Carbon GetBoundObject (cpp:481-488).
    *
+   * @implemented
    * @returns {object|null} The resolved object, else the authored one.
    */
   @meta.implemented
@@ -187,6 +192,7 @@ export class Tr2BindingPoint
    * (a swizzle only on an array, inside its size), and take the object as
    * INotify through Blue's silent cast.
    *
+   * @implemented
    * @param {object|null} object The destination object.
    * @param {string} attribute Member name with an optional `.x` swizzle.
    * @returns {boolean} Whether a destination was bound.
@@ -239,6 +245,7 @@ export class Tr2BindingPoint
    * (cpp:491-506): a root name, then any run of `.member`, `[index]` and
    * `["name"]` steps. A failed step resolves to null.
    *
+   * @implemented
    * @param {string} path The reference.
    * @param {Array<[string, object]>} roots Named roots.
    * @returns {object|null} The object the path names.

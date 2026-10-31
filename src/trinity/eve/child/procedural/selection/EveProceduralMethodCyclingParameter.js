@@ -51,8 +51,12 @@ export class EveProceduralMethodCyclingParameter extends IRoot
   @type.boolean
   restartRequired = true;
 
-  /** Carbon EveProceduralMethodCyclingParameter::Initialize (cpp:19-26):
-   * lazily create the child ref. */
+  /**
+   * Carbon EveProceduralMethodCyclingParameter::Initialize (cpp:19-26):
+   * lazily create the child ref.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -68,6 +72,8 @@ export class EveProceduralMethodCyclingParameter extends IRoot
    * Carbon EveProceduralMethodCyclingParameter::OnModified (cpp:28-39): a
    * child assignment blocks its auto-load until the cycle selects it. The
    * value argument follows the repo's OnModified duck.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -84,7 +90,11 @@ export class EveProceduralMethodCyclingParameter extends IRoot
     return true;
   }
 
-  /** Carbon method SetModified (cpp:41-44). */
+  /**
+   * Carbon method SetModified (cpp:41-44).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetModified(isModified)
@@ -92,7 +102,11 @@ export class EveProceduralMethodCyclingParameter extends IRoot
     this._modified = !!isModified;
   }
 
-  /** Carbon method IsModified (cpp:46-49). */
+  /**
+   * Carbon method IsModified (cpp:46-49).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsModified()
@@ -100,7 +114,11 @@ export class EveProceduralMethodCyclingParameter extends IRoot
     return this._modified;
   }
 
-  /** Carbon method GetName (cpp:51-54). */
+  /**
+   * Carbon method GetName (cpp:51-54).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -108,7 +126,11 @@ export class EveProceduralMethodCyclingParameter extends IRoot
     return this.name;
   }
 
-  /** Carbon method GetChild (cpp:56-59). */
+  /**
+   * Carbon method GetChild (cpp:56-59).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetChild()
@@ -116,7 +138,11 @@ export class EveProceduralMethodCyclingParameter extends IRoot
     return this.child;
   }
 
-  /** Carbon method GetDuration (cpp:61-64). */
+  /**
+   * Carbon method GetDuration (cpp:61-64).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDuration()
@@ -124,10 +150,14 @@ export class EveProceduralMethodCyclingParameter extends IRoot
     return this.playDuration;
   }
 
-  /** Carbon EveProceduralMethodCyclingParameter::Load (cpp:66-83): an
+  /**
+   * Carbon EveProceduralMethodCyclingParameter::Load (cpp:66-83): an
    * already-loaded parameter that needs no reload only restarts its
    * controllers/curve sets when required; otherwise the child ref reloads
-   * with the auto-load blocker bypassed. */
+   * with the auto-load blocker bypassed.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Load()

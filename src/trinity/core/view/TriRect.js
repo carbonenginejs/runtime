@@ -41,6 +41,8 @@ export class TriRect extends IRoot
    * Python-style constructor hook; assigns all four edges, each defaulting to
    * zero. JavaScript defaults adapt the exposed native SetDimentions wrapper;
    * direct assignments retain the existing JavaScript number representation.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
@@ -57,6 +59,8 @@ export class TriRect extends IRoot
    * current value. This is the exposed native PySetRect optional-argument
    * wrapper, using undefined instead of Be::Optional assignment state; it is
    * not the unexposed native SetRect(Tr2Rect*) overload.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted

@@ -41,6 +41,8 @@ export class EveVirtualCameraBehaviourVector3Inertia extends EveVirtualCameraBeh
    * values are heavier and slower to respond), advances the retained position by
    * it and returns the offset from the incoming position; the first update seeds
    * position and velocity and returns zero.
+   *
+   * @adapted
    */
 
   @meta.adapted

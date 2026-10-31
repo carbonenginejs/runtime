@@ -155,7 +155,11 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    */
   _geometryDirty = false;
 
-  /** Distribution-local bound, valid whenever mesh and distribution exist. */
+  /**
+   * Distribution-local bound, valid whenever mesh and distribution exist.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -171,8 +175,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   /**
    * Distribution sphere culling before the full EveChildMesh visibility pass.
    *
-   * Adapted: Carbon reads the active renderer frustum through EveUpdateContext; the CPU
-   * sphere and threshold policy are unchanged.
+   * @adapted Carbon reads the active renderer frustum through EveUpdateContext; the CPU
+   *   sphere and threshold policy are unchanged.
    */
 
   @legacyBlue.contextual(["camera"])
@@ -195,8 +199,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * Carbon's shadow-frustum overload. The optional final one-element array is
    * the JavaScript form of float& sizeInShadow.
    *
-   * Adapted: The float& sizeInShadow output is an optional one-element array; all culling
-   * and >5-pixel policy are ported.
+   * @adapted The float& sizeInShadow output is an optional one-element array; all culling
+   *   and >5-pixel policy are ported.
    */
   @meta.adapted
   IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
@@ -250,7 +254,11 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     return sizeInShadow > 5;
   }
 
-  /** Two-stage cull: the distribution sphere first, then EveChildMesh. */
+  /**
+   * Two-stage cull: the distribution sphere first, then EveChildMesh.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
@@ -270,8 +278,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   /**
    * Updates the distribution and republishes instance bytes when required.
    *
-   * Adapted: Tr2RuntimeInstanceData replaces Carbon's GPU-backed Tr2DirectInstanceData;
-   * logical transform production and refresh policy remain Trinity-owned.
+   * @adapted Tr2RuntimeInstanceData replaces Carbon's GPU-backed Tr2DirectInstanceData;
+   *   logical transform production and refresh policy remain Trinity-owned.
    */
 
   @meta.adapted
@@ -323,7 +331,11 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     }
   }
 
-  /** Async mesh update followed by distribution lifetime work. */
+  /**
+   * Async mesh update followed by distribution lifetime work.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
@@ -338,8 +350,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   /**
    * Creates the canonical CPU transform-stream provider and binds it.
    *
-   * Adapted: The engine realizes the bound Tr2RuntimeInstanceData; Trinity owns its
-   * canonical transform layout and bytes.
+   * @adapted The engine realizes the bound Tr2RuntimeInstanceData; Trinity owns its
+   *   canonical transform layout and bytes.
    */
 
   @meta.adapted
@@ -354,7 +366,11 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     return resource;
   }
 
-  /** Number of live placements in the owned distribution. */
+  /**
+   * Number of live placements in the owned distribution.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetNumberOfEntities()
@@ -362,7 +378,11 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     return this.distribution ? Number(this.distribution.GetNumberOfPlacements()) >>> 0 : 0;
   }
 
-  /** Re-arms static instance geometry publication. */
+  /**
+   * Re-arms static instance geometry publication.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   RefreshStaticGeometry()
@@ -375,9 +395,9 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * Builds logical current/previous matrices, publishes their canonical 3x4
    * bytes and stores the same logical matrices for ray/filter consumers.
    *
-   * Adapted: Carbon packs Tr2DirectInstanceData and stores transposed auxiliary
-   * matrices; JS keeps auxiliary ray/filter transforms logical and delegates row
-   * packing to Tr2RuntimeInstanceData. The camera is the renderer's (cpp:243).
+   * @adapted Carbon packs Tr2DirectInstanceData and stores transposed auxiliary
+   *   matrices; JS keeps auxiliary ray/filter transforms logical and delegates row
+   *   packing to Tr2RuntimeInstanceData. The camera is the renderer's (cpp:243).
    */
 
   @meta.adapted
@@ -509,8 +529,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   /**
    * Recomputes the distribution-local bounding sphere.
    *
-   * Adapted: The bounding calculation is unchanged; JS reads the same mesh sphere through
-   * TriGeometryRes's maintained geometry facade.
+   * @adapted The bounding calculation is unchanged; JS reads the same mesh sphere through
+   *   TriGeometryRes's maintained geometry facade.
    */
 
   @meta.adapted
@@ -564,8 +584,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   /**
    * Publishes transform rows and updates the instanced mesh's dynamic scale.
    *
-   * Adapted: Tr2RuntimeInstanceData owns the canonical CPU transform packing while engines
-   * own physical instance-buffer realization.
+   * @adapted Tr2RuntimeInstanceData owns the canonical CPU transform packing while engines
+   *   own physical instance-buffer realization.
    */
 
   @meta.adapted

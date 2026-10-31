@@ -81,10 +81,9 @@ export class Tr2OcclusionQueryAL
    * `Tr2OcclusionQueryAL.cpp:23-32`): a fresh implementation replaces this
    * value's; a failure leaves it on the null implementation.
    *
-   * Adapted: the render context allocates the implementation instead of a
-   * compile-time platform include. The previous share is released explicitly
-   * because JavaScript has no shared_ptr; existing copies keep it alive.
-   *
+   * @adapted the render context allocates the implementation instead of a
+   *   compile-time platform include. The previous share is released explicitly
+   *   because JavaScript has no shared_ptr; existing copies keep it alive.
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
@@ -103,6 +102,7 @@ export class Tr2OcclusionQueryAL
   /**
    * Starts counting (`Tr2OcclusionQueryAL.cpp:34-37`).
    *
+   * @implemented
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
@@ -115,6 +115,7 @@ export class Tr2OcclusionQueryAL
   /**
    * Stops counting (`Tr2OcclusionQueryAL.cpp:39-42`).
    *
+   * @implemented
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
@@ -128,8 +129,7 @@ export class Tr2OcclusionQueryAL
    * How many pixels passed (`Tr2OcclusionQueryAL.h:32`,
    * `Tr2OcclusionQueryAL.cpp:44-47`); `S_FALSE` while the result is not ready.
    *
-   * Adapted: Carbon's `uint32_t& count` output becomes the returned `count`.
-   *
+   * @adapted Carbon's `uint32_t& count` output becomes the returned `count`.
    * @param {object} renderContext The context whose results are read.
    * @param {number} [waitMode] A `WaitMode`; Carbon's default is `DO_NOT_WAIT`.
    * @returns {{result: number, count: number}} The answer.
@@ -143,6 +143,7 @@ export class Tr2OcclusionQueryAL
   /**
    * Whether the implementation exists (`Tr2OcclusionQueryAL.cpp:49-52`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -154,8 +155,8 @@ export class Tr2OcclusionQueryAL
   /**
    * Compares implementation identity (`Tr2OcclusionQueryAL.cpp:54-57`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2OcclusionQueryAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -168,6 +169,7 @@ export class Tr2OcclusionQueryAL
   /**
    * The implementation's memory class (`Tr2OcclusionQueryAL.cpp:59-62`).
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.implemented
@@ -180,6 +182,7 @@ export class Tr2OcclusionQueryAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2OcclusionQueryAL.cpp:64-75`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

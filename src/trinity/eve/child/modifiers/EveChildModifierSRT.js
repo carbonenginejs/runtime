@@ -39,6 +39,8 @@ export class EveChildModifierSRT extends IEveChildTransformModifier
    * TransformationMatrix(s,r,t) * transform in row-vector convention - SRT
    * first, then transform, which is mat4.multiply(out, transform, srt) in
    * gl-matrix). The returned Matrix is written into caller-owned `out`.
+   *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [_bones] - Carbon signature parity, unused

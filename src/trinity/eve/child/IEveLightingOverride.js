@@ -7,7 +7,11 @@ import { CjsSchema, meta } from "#schema";
 export class IEveLightingOverride extends IRoot
 {
 
-  /** Returns the priority, blend intensity, and lighting values to contribute. */
+  /**
+   * Returns the priority, blend intensity, and lighting values to contribute.
+   *
+   * @abstract
+   */
   GetOverrides() {}
 }
 

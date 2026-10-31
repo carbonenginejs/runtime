@@ -158,6 +158,8 @@ export class EveChildInstanceContainer extends EveChildTransform
    * Carbon MAP_PROPERTY "source" over GetSource/SetSource
    * (EveChildInstanceContainer_Blue.cpp:59): the setter moves child ownership
    * and the source's edit-mode registration to the replacement.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.rootRef("IEveSpaceObjectChild")
@@ -167,7 +169,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     return this.GetSource();
   }
 
-  /** Transfers child ownership and edit-mode registration to the replacement. */
+  /**
+   * Transfers child ownership and edit-mode registration to the replacement.
+   *
+   * @implemented
+   */
   @meta.implemented
   set source(value)
   {
@@ -180,7 +186,11 @@ export class EveChildInstanceContainer extends EveChildTransform
   @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
-  /** Carbon EveChildInstanceContainer::GetOwnerMaxSpeed (cpp:362-365). */
+  /**
+   * Carbon EveChildInstanceContainer::GetOwnerMaxSpeed (cpp:362-365).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetOwnerMaxSpeed()
@@ -188,7 +198,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     return this._ownerMaxSpeed;
   }
 
-  /** Propagates the owning space object to the source and live instances. */
+  /**
+   * Propagates the owning space object to the source and live instances.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetOwner(owner)
@@ -199,7 +213,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     if (this._source) this._source.SetOwner(owner);
   }
 
-  /** Propagates a modular part tag to the source and live instances. */
+  /**
+   * Propagates a modular part tag to the source and live instances.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetPartTag(tag)
@@ -211,7 +229,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     if (this._source) this._source.SetPartTag(next);
   }
 
-  /** Carbon EveChildInstanceContainer.cpp:160-166: modifiers invalidate distributed instances. */
+  /**
+   * Carbon EveChildInstanceContainer.cpp:160-166: modifiers invalidate distributed instances.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnListModified(_event, _key = 0, _key2 = 0, _value = null, list = null)
@@ -224,6 +246,7 @@ export class EveChildInstanceContainer extends EveChildTransform
    * locator set recreates the instances on the next update; a display change
    * re-registers with the scene component registry.
    *
+   * @implemented
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
@@ -243,7 +266,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     return true;
   }
 
-  /** Replaces the source and requests native instance recreation (cpp:116). */
+  /**
+   * Replaces the source and requests native instance recreation (cpp:116).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetSourceEffect(sourceEffect)
@@ -252,7 +279,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     this.reset = true;
   }
 
-  /** Returns the authored source (cpp:122). */
+  /**
+   * Returns the authored source (cpp:122).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSource()
@@ -260,7 +291,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     return this._source;
   }
 
-  /** Transfers child ownership and the source's edit-mode registration (cpp:128). */
+  /**
+   * Transfers child ownership and the source's edit-mode registration (cpp:128).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetSource(source)
@@ -274,7 +309,11 @@ export class EveChildInstanceContainer extends EveChildTransform
       CjsSchema.cast(source, EveEntity)?.Register(registry);
   }
 
-  /** Retains an authored transform and immediately creates its instance (cpp:146). */
+  /**
+   * Retains an authored transform and immediately creates its instance (cpp:146).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddInstanceTransform(scale, rotation, translation, boneIndex = -1)
@@ -289,7 +328,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     this.reset = false;
   }
 
-  /** Recreates locator instances first, followed by authored transforms (cpp:194). */
+  /**
+   * Recreates locator instances first, followed by authored transforms (cpp:194).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreateInstances(parent)
@@ -307,7 +350,11 @@ export class EveChildInstanceContainer extends EveChildTransform
       this.CreateInstance(transform.scale, transform.rotation, transform.translation, transform.boneIndex);
   }
 
-  /** Carbon GetEffectChildByName (cpp:513-517): none; the instances are not named children. */
+  /**
+   * Carbon GetEffectChildByName (cpp:513-517): none; the instances are not named children.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetEffectChildByName(_name)
@@ -315,21 +362,33 @@ export class EveChildInstanceContainer extends EveChildTransform
     return null;
   }
 
-  /** Carbon AddToEffectChildrenList (cpp:519-522): does nothing. */
+  /**
+   * Carbon AddToEffectChildrenList (cpp:519-522): does nothing.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddToEffectChildrenList(_child)
   {
   }
 
-  /** Carbon RemoveFromEffectChildrenList (cpp:524-527): does nothing. */
+  /**
+   * Carbon RemoveFromEffectChildrenList (cpp:524-527): does nothing.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RemoveFromEffectChildrenList(_child)
   {
   }
 
-  /** Copies the source with Blue's copier, retaining native wrapper/registration order (cpp:234). */
+  /**
+   * Copies the source with Blue's copier, retaining native wrapper/registration order (cpp:234).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreateInstance(scale, rotation, translation, boneIndex = -1)
@@ -361,7 +420,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     this.instances.push(root);
   }
 
-  /** Updates an existing root; an absent list entry is ignored (cpp:301). */
+  /**
+   * Updates an existing root; an absent list entry is ignored (cpp:301).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateInstance(index, scale, rotation, translation)
@@ -370,7 +433,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     if (instance) instance.Setup(scale, rotation, translation, Tr2Lod.TR2_LOD_LOW);
   }
 
-  /** Unregisters components and detaches children before clearing (cpp:339). */
+  /**
+   * Unregisters components and detaches children before clearing (cpp:339).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ClearInstanceList()
@@ -383,6 +450,8 @@ export class EveChildInstanceContainer extends EveChildTransform
   /**
    * Carbon PopFront (EveChildInstanceContainer.cpp:346-360): removes the oldest
    * instance, unregistering it first when this container is in a registry.
+   *
+   * @implemented
    * @returns {void}
    */
 
@@ -401,7 +470,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     }
   }
 
-  /** Selects whether an empty container exposes its source (cpp:333). */
+  /**
+   * Selects whether an empty container exposes its source (cpp:333).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   DisableEditMode(disable)
@@ -410,7 +483,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     this.ReRegister();
   }
 
-  /** Sets one instance variable, preserving the donor boundary bug (cpp:557-566). */
+  /**
+   * Sets one instance variable, preserving the donor boundary bug (cpp:557-566).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetControllerVariableForInstance(index, name, value)
@@ -421,7 +498,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     this.instances[index].SetControllerVariable(name, value);
   }
 
-  /** Sends one instance event; JS throws at the donor's invalid size boundary (cpp:568-577). */
+  /**
+   * Sends one instance event; JS throws at the donor's invalid size boundary (cpp:568-577).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   HandleControllerEventForInstance(index, name)
@@ -432,7 +513,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     this.instances[index].HandleControllerEvent(name);
   }
 
-  /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
@@ -440,7 +525,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     this._RunOnInstances(instance => instance.HandleControllerEvent(name));
   }
 
-  /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
@@ -452,7 +541,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     this._RunOnInstances(instance => instance.SetControllerVariable(key, next));
   }
 
-  /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method StartControllers (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
@@ -460,7 +553,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     this._RunOnInstances(instance => instance.StartControllers());
   }
 
-  /** Carbon EveChildInstanceContainer::PlayCurveSet (cpp:579-588): every curve-set-owning instance plays it. */
+  /**
+   * Carbon EveChildInstanceContainer::PlayCurveSet (cpp:579-588): every curve-set-owning instance plays it.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
@@ -471,7 +568,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     });
   }
 
-  /** Carbon EveChildInstanceContainer::StopCurveSet (cpp:590-600). */
+  /**
+   * Carbon EveChildInstanceContainer::StopCurveSet (cpp:590-600).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopCurveSet(name)
@@ -482,7 +583,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     });
   }
 
-  /** Carbon EveChildInstanceContainer::UpdateCurveSet (cpp:602-611). */
+  /**
+   * Carbon EveChildInstanceContainer::UpdateCurveSet (cpp:602-611).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateCurveSet(name, time)
@@ -493,7 +598,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     });
   }
 
-  /** Carbon EveChildInstanceContainer::GetCurveSetDuration (cpp:613-623): the source template answers. */
+  /**
+   * Carbon EveChildInstanceContainer::GetCurveSetDuration (cpp:613-623): the source template answers.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCurveSetDuration(name)
@@ -502,7 +611,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     return owner ? owner.GetCurveSetDuration(name) : 0;
   }
 
-  /** Carbon EveChildInstanceContainer::GetRangeDuration (cpp:625-635): the source template answers. */
+  /**
+   * Carbon EveChildInstanceContainer::GetRangeDuration (cpp:625-635): the source template answers.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRangeDuration(name, rangeName)
@@ -511,7 +624,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     return owner ? owner.GetRangeDuration(name, rangeName) : 0;
   }
 
-  /** Carbon EveChildInstanceContainer::PlayAllCurveSets (cpp:637-646): only container instances are asked. */
+  /**
+   * Carbon EveChildInstanceContainer::PlayAllCurveSets (cpp:637-646): only container instances are asked.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayAllCurveSets()
@@ -522,7 +639,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     });
   }
 
-  /** Carbon EveChildInstanceContainer::StopAllCurveSets (cpp:648-657): only container instances are asked. */
+  /**
+   * Carbon EveChildInstanceContainer::StopAllCurveSets (cpp:648-657): only container instances are asked.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopAllCurveSets()
@@ -536,6 +657,8 @@ export class EveChildInstanceContainer extends EveChildTransform
   /**
    * Forwards a shader option to the instances, or to the editable source when
    * no instances exist (Carbon EveChildInstanceContainer.cpp:490-493).
+   *
+   * @implemented
    * @param {string} name Shader option name.
    * @param {string} value Shader option value.
    */
@@ -590,7 +713,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     return next;
   }
 
-  /** Recreates pending instances, captures owner speed, and forwards native child params (cpp:388-410). */
+  /**
+   * Recreates pending instances, captures owner speed, and forwards native child params (cpp:388-410).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext, params)
@@ -612,12 +739,16 @@ export class EveChildInstanceContainer extends EveChildTransform
     this._RunOnInstances(child => child.UpdateSyncronous(updateContext, newParams));
   }
 
-  /** Carbon EveChildInstanceContainer::UpdateAsyncronous (cpp:418-443):
+  /**
+   * Carbon EveChildInstanceContainer::UpdateAsyncronous (cpp:418-443):
    * rebuild the world transform from the parent, fan out with childParent
    * params, sample the owner's world velocity when space-object rooted, and
    * arm GetRenderables. The Matrix-overload declaration at header:64 has no
    * definition - it exists only to un-hide the base overload under C++ name
-   * hiding, so JS ports ONE method. */
+   * hiding, so JS ports ONE method.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
@@ -645,9 +776,13 @@ export class EveChildInstanceContainer extends EveChildTransform
     this._hasUpdated = true;
   }
 
-  /** Carbon EveChildInstanceContainer::UpdateVisibility (cpp:378-386): the
+  /**
+   * Carbon EveChildInstanceContainer::UpdateVisibility (cpp:378-386): the
    * display gate, then the parent transform and LOD pass through UNCHANGED -
-   * unlike the update pair, which rebase onto this container's transform. */
+   * unlike the update pair, which rebase onto this container's transform.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
@@ -657,9 +792,13 @@ export class EveChildInstanceContainer extends EveChildTransform
     this._RunOnInstances(child => child.UpdateVisibility(updateContext, parentTransform, parentLod));
   }
 
-  /** Carbon EveChildInstanceContainer::GetRenderables (cpp:367-375): gated on
+  /**
+   * Carbon EveChildInstanceContainer::GetRenderables (cpp:367-375): gated on
    * display AND a completed async update; the std::vector& out-param becomes
-   * the returned array. */
+   * the returned array.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(out)
@@ -670,8 +809,12 @@ export class EveChildInstanceContainer extends EveChildTransform
     return out;
   }
 
-  /** Carbon EveChildInstanceContainer::RegisterWithQuadRenderer (cpp:467-473):
-   * the shared source registers once for every instance. */
+  /**
+   * Carbon EveChildInstanceContainer::RegisterWithQuadRenderer (cpp:467-473):
+   * the shared source registers once for every instance.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -679,7 +822,11 @@ export class EveChildInstanceContainer extends EveChildTransform
     if (this._source) this._source.RegisterWithQuadRenderer(quadRenderer);
   }
 
-  /** Carbon EveChildInstanceContainer::AddQuadsToQuadRenderer (cpp:475-478). */
+  /**
+   * Carbon EveChildInstanceContainer::AddQuadsToQuadRenderer (cpp:475-478).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
@@ -687,9 +834,13 @@ export class EveChildInstanceContainer extends EveChildTransform
     this._RunOnInstances(child => child.AddQuadsToQuadRenderer(frustum, quadRenderer));
   }
 
-  /** Carbon EveChildInstanceContainer::RegisterComponents (cpp:83-103):
+  /**
+   * Carbon EveChildInstanceContainer::RegisterComponents (cpp:83-103):
    * forwards the instances; with no instances (and edit mode enabled) the source
-   * template registers instead. Gate IsInRegistry() && m_display. */
+   * template registers instead. Gate IsInRegistry() && m_display.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -709,8 +860,12 @@ export class EveChildInstanceContainer extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildInstanceContainer::UnRegisterComponents (cpp:105-122):
-   * forwards the instances and the source; no display re-check. */
+  /**
+   * Carbon EveChildInstanceContainer::UnRegisterComponents (cpp:105-122):
+   * forwards the instances and the source; no display re-check.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()

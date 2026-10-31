@@ -20,6 +20,7 @@ export class ICopier extends IRoot
    * `SetCopyOverrideCallback` - a callback that may copy an object itself
    * before the copier does, and the context it is called with.
    *
+   * @abstract
    * @param {Function|null} _copyOverride The callback.
    * @param {*} _context Passed to the callback as its last argument.
    */
@@ -29,12 +30,17 @@ export class ICopier extends IRoot
    * `SetPostCopyCallback` - a callback run on every object after it is
    * copied, and the context it is called with.
    *
+   * @abstract
    * @param {Function|null} _postCopy The callback.
    * @param {*} _context Passed to the callback as its last argument.
    */
   SetPostCopyCallback(_postCopy, _context) {}
 
-  /** `CopyTo` - copy `source` into `dest`, creating `dest` when it is null. */
+  /**
+   * `CopyTo` - copy `source` into `dest`, creating `dest` when it is null.
+   *
+   * @abstract
+   */
   CopyTo(_source, _dest) {}
 }
 

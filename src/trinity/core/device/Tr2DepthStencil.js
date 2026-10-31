@@ -37,7 +37,11 @@ import "#consts/renderContext/formats";
 export class Tr2DepthStencil extends IRoot
 {
 
-  /** m_name (std::string) [PERSISTONLY] */
+  /**
+   * m_name (std::string) [PERSISTONLY]
+   *
+   * @implemented
+   */
   @be.mapAttribute(be.PERSISTONLY, "name")
   @meta.implemented
   @type.string
@@ -72,10 +76,9 @@ export class Tr2DepthStencil extends IRoot
    * Carbon's `else Destroy()`. Without it a caller could read a stale width off
    * an object whose texture never came back.
    *
-   * Adapted: Carbon returns an HRESULT and reaches the main-thread render context through a
-   * global; this returns a boolean and takes the context, which is the same reason
-   * Tr2Blitter does.
-   *
+   * @adapted Carbon returns an HRESULT and reaches the main-thread render context through a
+   *   global; this returns a boolean and takes the context, which is the same reason
+   *   Tr2Blitter does.
    * @param {number} width Surface width in pixels.
    * @param {number} height Surface height in pixels.
    * @param {number} format A `DepthStencilFormat` value.
@@ -122,6 +125,7 @@ export class Tr2DepthStencil extends IRoot
    * binding the result as a shader input is the reason: a depth buffer that was
    * never made readable must fail here rather than at the draw.
    *
+   * @implemented
    * @returns {object|null} The `Tr2TextureAL`, or null when it is not readable.
    */
 
@@ -143,9 +147,8 @@ export class Tr2DepthStencil extends IRoot
    * surface needs it whether or not it can also be sampled, and would otherwise
    * be told a perfectly good depth buffer does not exist.
    *
-   * Adapted: Carbon exposes the member directly through a conversion operator; JavaScript
-   * has none, so the raw surface is reached by name.
-   *
+   * @adapted Carbon exposes the member directly through a conversion operator; JavaScript
+   *   has none, so the raw surface is reached by name.
    * @returns {object|null} The `Tr2TextureAL`, or null before Create.
    */
   @meta.adapted
@@ -159,6 +162,7 @@ export class Tr2DepthStencil extends IRoot
    * texture changes. Listeners register an owner and an unbound method; the
    * event holds owners weakly.
    *
+   * @implemented
    * @returns {Tr2Event} m_onTextureChange.
    */
 
@@ -168,7 +172,11 @@ export class Tr2DepthStencil extends IRoot
     return this._onTextureChange;
   }
 
-  /** Carbon `IsValid` (`cpp:95-98`): whether the texture exists. */
+  /**
+   * Carbon `IsValid` (`cpp:95-98`): whether the texture exists.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsValid()
@@ -176,7 +184,11 @@ export class Tr2DepthStencil extends IRoot
     return Boolean(this.#depthStencil?.IsValid());
   }
 
-  /** Carbon `IsReadable` (`cpp:90-93`): whether the surface carries SHADER_RESOURCE. */
+  /**
+   * Carbon `IsReadable` (`cpp:90-93`): whether the surface carries SHADER_RESOURCE.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsReadable()
@@ -191,6 +203,7 @@ export class Tr2DepthStencil extends IRoot
    * Carbon `Destroy` (`cpp:100-111`), which resets the format to DSFMT_AUTO
    * rather than DSFMT_UNKNOWN.
    *
+   * @implemented
    * @returns {void}
    */
 
@@ -205,7 +218,11 @@ export class Tr2DepthStencil extends IRoot
     this._Changed();
   }
 
-  /** Carbon `GetWidth` (`cpp:141-144`), read off the texture. */
+  /**
+   * Carbon `GetWidth` (`cpp:141-144`), read off the texture.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWidth()
@@ -213,7 +230,11 @@ export class Tr2DepthStencil extends IRoot
     return this.#depthStencil?.GetWidth() ?? 0;
   }
 
-  /** Carbon `GetHeight` (`cpp:147-150`), read off the texture. */
+  /**
+   * Carbon `GetHeight` (`cpp:147-150`), read off the texture.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHeight()
@@ -221,7 +242,11 @@ export class Tr2DepthStencil extends IRoot
     return this.#depthStencil?.GetHeight() ?? 0;
   }
 
-  /** Carbon `GetMsaaSamples` (`cpp:153-156`). */
+  /**
+   * Carbon `GetMsaaSamples` (`cpp:153-156`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMsaaSamples()
@@ -229,7 +254,11 @@ export class Tr2DepthStencil extends IRoot
     return this.#msaa?.samples ?? 0;
   }
 
-  /** Carbon `GetMsaaQuality` (`cpp:159-162`). */
+  /**
+   * Carbon `GetMsaaQuality` (`cpp:159-162`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMsaaQuality()
@@ -237,7 +266,11 @@ export class Tr2DepthStencil extends IRoot
     return this.#msaa?.quality ?? 0;
   }
 
-  /** Carbon `GetMipCount` (`cpp:164-167`) returns a literal 1. */
+  /**
+   * Carbon `GetMipCount` (`cpp:164-167`) returns a literal 1.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMipCount()
@@ -245,7 +278,11 @@ export class Tr2DepthStencil extends IRoot
     return 1;
   }
 
-  /** Carbon `GetFormat` (`cpp:170-173`), the format asked for rather than the texture's. */
+  /**
+   * Carbon `GetFormat` (`cpp:170-173`), the format asked for rather than the texture's.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFormat()
@@ -253,7 +290,11 @@ export class Tr2DepthStencil extends IRoot
     return this.format;
   }
 
-  /** Carbon `SetName` (`cpp:20-24`), which names the texture too. */
+  /**
+   * Carbon `SetName` (`cpp:20-24`), which names the texture too.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetName(name)
@@ -262,7 +303,11 @@ export class Tr2DepthStencil extends IRoot
     this.#depthStencil?.SetName(this._name);
   }
 
-  /** Carbon `GetName` (`cpp:26-29`). */
+  /**
+   * Carbon `GetName` (`cpp:26-29`).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -273,6 +318,8 @@ export class Tr2DepthStencil extends IRoot
   /**
    * name (MAP_PROPERTY): Carbon's property over GetName/SetName, which the macro calls.
    * Carbon: MAP_PROPERTY (trinity/trinity/Tr2DepthStencil_Blue.cpp:41).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -281,6 +328,7 @@ export class Tr2DepthStencil extends IRoot
     return this.GetName();
   }
 
+  /** @implemented */
   @meta.implemented
   set name(value)
   {
@@ -290,6 +338,8 @@ export class Tr2DepthStencil extends IRoot
   /**
    * width (MAP_PROPERTY_READONLY): Carbon's property over GetWidth, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2DepthStencil_Blue.cpp:43).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -301,6 +351,8 @@ export class Tr2DepthStencil extends IRoot
   /**
    * height (MAP_PROPERTY_READONLY): Carbon's property over GetHeight, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2DepthStencil_Blue.cpp:44).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -312,6 +364,8 @@ export class Tr2DepthStencil extends IRoot
   /**
    * multiSampleType (MAP_PROPERTY_READONLY): Carbon's property over GetMsaaSamples, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2DepthStencil_Blue.cpp:45).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -323,6 +377,8 @@ export class Tr2DepthStencil extends IRoot
   /**
    * multiSampleQuality (MAP_PROPERTY_READONLY): Carbon's property over GetMsaaQuality, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2DepthStencil_Blue.cpp:46).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -334,6 +390,8 @@ export class Tr2DepthStencil extends IRoot
   /**
    * mipCount (MAP_PROPERTY_READONLY): Carbon's property over GetMipCount, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2DepthStencil_Blue.cpp:48).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -345,6 +403,8 @@ export class Tr2DepthStencil extends IRoot
   /**
    * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2DepthStencil_Blue.cpp:52).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -356,6 +416,8 @@ export class Tr2DepthStencil extends IRoot
   /**
    * isReadable (MAP_PROPERTY_READONLY): Carbon's property over IsReadable, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2DepthStencil_Blue.cpp:53).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -364,7 +426,11 @@ export class Tr2DepthStencil extends IRoot
     return this.IsReadable();
   }
 
-  /** Carbon Tr2DepthStencil::HasALObject always reports false (cpp:124-127). */
+  /**
+   * Carbon Tr2DepthStencil::HasALObject always reports false (cpp:124-127).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HasALObject(_type, _object)
@@ -372,7 +438,11 @@ export class Tr2DepthStencil extends IRoot
     return false;
   }
 
-  /** Carbon method sharedHandle -> GetSharedHandle (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method sharedHandle -> GetSharedHandle (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   sharedHandle(...args)

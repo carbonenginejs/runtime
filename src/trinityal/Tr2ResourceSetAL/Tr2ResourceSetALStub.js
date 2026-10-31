@@ -29,9 +29,8 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
   /**
    * Creates the resource set against a shader program.
    *
-   * Adapted: The native stub unconditionally succeeds; JS additionally retains description
-   * and program for headless inspection.
-   *
+   * @adapted The native stub unconditionally succeeds; JS additionally retains description
+   *   and program for headless inspection.
    * @param {Tr2ResourceSetDescriptionAL} description What to bind.
    * @param {object} program A `Tr2ShaderProgramAL`.
    * @param {object} renderContext The context to create against.
@@ -48,13 +47,20 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** @returns {boolean} Whether the set was created. */
+  /**
+   * @implemented
+   * @returns {boolean} Whether the set was created.
+   */
   IsValid()
   {
     return this._isValid;
   }
 
-  /** Releases the set. */
+  /**
+   * Releases the set.
+   *
+   * @adapted
+   */
   Destroy()
   {
     this._isValid = false;
@@ -76,7 +82,10 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
     return this._program;
   }
 
-  /** @returns {number} A `Tr2ALMemoryType`. */
+  /**
+   * @implemented
+   * @returns {number} A `Tr2ALMemoryType`.
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;
@@ -92,6 +101,7 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -101,6 +111,7 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
   /**
    * Names the resource set for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name
    *   (`Tr2ResourceSetALStub.cpp:41-44`).

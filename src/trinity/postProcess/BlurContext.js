@@ -30,7 +30,11 @@ export class BlurContext
   @type.enum("trinity.PostProcessBlur.BlurType")
   type = 0;
 
-  /** Carbon BlurContext::Hash - the blur-variant cache key (Tr2PostProcessRenderer.h:53-56). */
+  /**
+   * Carbon BlurContext::Hash - the blur-variant cache key (Tr2PostProcessRenderer.h:53-56).
+   *
+   * @implemented
+   */
   @meta.implemented
   Hash()
   {

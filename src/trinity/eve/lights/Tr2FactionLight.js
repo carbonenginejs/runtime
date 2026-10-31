@@ -332,6 +332,8 @@ export class Tr2FactionLight extends Tr2Light
 
   /**
    * Stores an inherited faction colour palette and recomputes the light's colour from it.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -346,6 +348,8 @@ export class Tr2FactionLight extends Tr2Light
 
   /**
    * Recolours the light by blending its palette entry's luminance with the full palette colour by the saturation factor, reporting false when no palette entry is available.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -384,6 +388,8 @@ export class Tr2FactionLight extends Tr2Light
 
   /**
    * The light's current colour.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -394,6 +400,8 @@ export class Tr2FactionLight extends Tr2Light
 
   /**
    * Switches the light between spot and point when the spotlight flag is edited, and recomputes the faction-derived colour when the faction colour or saturation changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -419,6 +427,7 @@ export class Tr2FactionLight extends Tr2Light
    * bone in range overwrites its 3x4 part (the stored transform is not
    * updated).
    *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldMatrix The owner's world matrix.
    * @param {Float32Array|null} [bones] Packed Float4x3 bone matrices.

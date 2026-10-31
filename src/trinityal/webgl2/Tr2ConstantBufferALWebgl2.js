@@ -54,6 +54,7 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Creates the constant buffer.
    *
+   * @adapted
    * @param {number} size Bytes.
    * @param {number} usage A `Tr2ConstantUsageAL` value.
    * @param {ArrayBufferView|null} initialData Initial contents, if any.
@@ -104,6 +105,7 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
    * a discarded dynamic mapping otherwise. A uniform buffer cannot be mapped,
    * so both hand back the mirror here.
    *
+   * @adapted
    * @param {object} _renderContext The context to lock against.
    * @returns {{result: number, data: Uint8Array|null}} The locked memory.
    */
@@ -125,6 +127,7 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
    * Closes the constants. A `ONE_SHOT` buffer stays on the CPU; the others
    * upload the mirror, orphaning the previous storage as `WRITE_DISCARD` does.
    *
+   * @adapted
    * @param {object} _renderContext The context the lock was made against.
    * @returns {number} An `ALResult` value.
    */
@@ -158,7 +161,11 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
     this._gl = null;
   }
 
-  /** Releases the buffer and leaves the device-resource registry. */
+  /**
+   * Releases the buffer and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -169,6 +176,7 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
    * Whether the buffer holds anything: dx11's rule, a size and either the
    * mirror (`ONE_SHOT`) or the device buffer.
    *
+   * @implemented
    * @returns {boolean} True when usable.
    */
   IsValid()
@@ -179,6 +187,7 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * The usage the buffer was created with.
    *
+   * @implemented
    * @returns {number} A `Tr2ConstantUsageAL` value.
    */
   GetUsage()
@@ -189,6 +198,7 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * The buffer's size in bytes.
    *
+   * @implemented
    * @returns {number} Bytes.
    */
   GetSize()
@@ -199,6 +209,7 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this buffer occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -209,6 +220,7 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the buffer for the device-resource registry, with dx11's keys.
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -222,6 +234,7 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the buffer. WebGL has no debug names, so it is kept for `Describe`.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

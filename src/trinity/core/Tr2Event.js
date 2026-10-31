@@ -8,7 +8,11 @@ export class Tr2Event
   listeners = [];
   inBroadcast = false;
 
-  /** Registers a weak owner and its unbound member function (Tr2Event.h:58-64). */
+  /**
+   * Registers a weak owner and its unbound member function (Tr2Event.h:58-64).
+   *
+   * @adapted
+   */
   @meta.adapted
   RegisterListener(owner, method)
   {
@@ -16,7 +20,11 @@ export class Tr2Event
     this.Register(owner, method);
   }
 
-  /** Unregisters one member, or all members of an owner (Tr2Event.h:78-105). */
+  /**
+   * Unregisters one member, or all members of an owner (Tr2Event.h:78-105).
+   *
+   * @adapted
+   */
   @meta.adapted
   UnregisterListener(owner, method)
   {
@@ -27,7 +35,11 @@ export class Tr2Event
     if (this.listeners.length === count) throw new Error("Trying to unregister an unregistered listener");
   }
 
-  /** WeakRef substitutes for BlueWeakRefBase; JS keeps the dereferenced owner live during callbacks. */
+  /**
+   * WeakRef substitutes for BlueWeakRefBase; JS keeps the dereferenced owner live during callbacks.
+   *
+   * @adapted
+   */
   @meta.adapted
   Broadcast(...args)
   {
@@ -40,21 +52,33 @@ export class Tr2Event
     finally { this.inBroadcast = false; }
   }
 
-  /** Explicit method argument replaces Carbon's template parameter (Tr2Event.h:148-151). */
+  /**
+   * Explicit method argument replaces Carbon's template parameter (Tr2Event.h:148-151).
+   *
+   * @adapted
+   */
   @meta.adapted
   static methodWrapper(owner, method, ...args)
   {
     return method.apply(owner, args);
   }
 
-  /** JS has no const-qualified methods; Carbon's const wrapper calls the same member (h:157-160). */
+  /**
+   * JS has no const-qualified methods; Carbon's const wrapper calls the same member (h:157-160).
+   *
+   * @adapted
+   */
   @meta.adapted
   static constMethodWrapper(owner, method, ...args)
   {
     return method.apply(owner, args);
   }
 
-  /** Stores the native owner/callback pair; WeakRef replaces BlueWeakRefBase (Tr2Event.h:124-132). */
+  /**
+   * Stores the native owner/callback pair; WeakRef replaces BlueWeakRefBase (Tr2Event.h:124-132).
+   *
+   * @adapted
+   */
   @meta.adapted
   Register(owner, callback)
   {
@@ -63,7 +87,11 @@ export class Tr2Event
     this.listeners.push({ owner: new WeakRef(owner), callback });
   }
 
-  /** Removes the matching native owner/callback pair (Tr2Event.h:135-143). */
+  /**
+   * Removes the matching native owner/callback pair (Tr2Event.h:135-143).
+   *
+   * @implemented
+   */
   @meta.implemented
   Unregister(owner, callback)
   {

@@ -77,6 +77,8 @@ export class TriVectorSequencer extends ITriVectorFunction
   /**
    * Updates the cached result of the child vector functions.
    * Samples into invocation-local output before committing the cache through Update.
+   *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -98,6 +100,8 @@ export class TriVectorSequencer extends ITriVectorFunction
   /**
    * Updates the cached result and copies it into `out`.
    * JavaScript retains seconds-first/output-last calls and existing sampling math.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -117,6 +121,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * to the average arm - the donor's `else`, not an ADD default. Each donor
    * combiner also has a duplicate double-position overload; one body here.
    * JavaScript retains seconds-first/output-last calls and existing sampling math.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -131,6 +137,8 @@ export class TriVectorSequencer extends ITriVectorFunction
 
   /**
    * Carbon's Update(Be::Time) (TriSequencer.cpp:45-52): samples the tick overload and caches it. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -146,6 +154,8 @@ export class TriVectorSequencer extends ITriVectorFunction
   /**
    * Carbon's GetValueAt(Be::Time) (cpp:63-73): the same dispatch, sampling children through their Be::Time
    * overloads. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -162,6 +172,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * Carbon GetValueAtMult (cpp:75-89/:132-146): seed (1,1,1), multiply
    * component-wise - the donor writes the three axes out by hand.
    * One body serves both donor overloads; ticks selects the children's Be::Time overload.
+   *
+   * @adapted
    * @param {number} time Seconds, or Blue ticks when ticks is set.
    * @param {boolean} ticks Whether time is Blue ticks.
    * @param {Float32Array} out Destination value.
@@ -184,6 +196,8 @@ export class TriVectorSequencer extends ITriVectorFunction
   /**
    * Carbon GetValueAtAdd (cpp:106-120/:148-160): seed zero, accumulate.
    * One body serves both donor overloads; ticks selects the children's Be::Time overload.
+   *
+   * @adapted
    * @param {number} time Seconds, or Blue ticks when ticks is set.
    * @param {boolean} ticks Whether time is Blue ticks.
    * @param {Float32Array} out Destination value.
@@ -209,6 +223,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * the infinite multiplier is never used and the zero seed comes back -
    * transcribed, not guarded.
    * One body serves both donor overloads; ticks selects the children's Be::Time overload.
+   *
+   * @adapted
    * @param {number} time Seconds, or Blue ticks when ticks is set.
    * @param {boolean} ticks Whether time is Blue ticks.
    * @param {Float32Array} out Destination value.
@@ -232,6 +248,8 @@ export class TriVectorSequencer extends ITriVectorFunction
   /**
    * Sums child-function velocities as Carbon does for every operator.
    * JavaScript retains seconds-first/output-last calls and existing sampling math.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -251,6 +269,8 @@ export class TriVectorSequencer extends ITriVectorFunction
   /**
    * Sums child-function accelerations as Carbon does for every operator.
    * JavaScript retains seconds-first/output-last calls and existing sampling math.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -269,6 +289,8 @@ export class TriVectorSequencer extends ITriVectorFunction
 
   /**
    * Carbon's GetValueDotAt(Be::Time) (cpp:178-191): sums the children's Be::Time velocities. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -287,6 +309,8 @@ export class TriVectorSequencer extends ITriVectorFunction
 
   /**
    * Carbon's GetValueDoubleDotAt(Be::Time) (cpp:211-224): sums the children's Be::Time accelerations. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -306,6 +330,8 @@ export class TriVectorSequencer extends ITriVectorFunction
   /**
    * Carbon leaves interpolated-position output unchanged for this sequencer.
    * JavaScript retains seconds-first/output-last calls and existing sampling math.
+   *
+   * @adapted
    * @param {number} _time Unused time.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.

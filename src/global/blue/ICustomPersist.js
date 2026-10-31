@@ -19,6 +19,8 @@ export class ICustomPersist extends IRoot
    * unsigned char** buffer, size_t* bufferSize) = 0.
    * The two output arguments describe native pointer outputs; this abstract
    * declaration does not prescribe a JavaScript output-slot representation.
+   *
+   * @abstract
    * @param {string} _memberName The persisted member's name.
    * @param {*} _buffer Native output argument for the byte pointer.
    * @param {*} _bufferSize Native output argument for the used byte count.
@@ -32,6 +34,8 @@ export class ICustomPersist extends IRoot
    * Releases the buffer supplied to a writer, according to the concrete owner.
    * Native signature: void ReleaseWriteBuffer(unsigned char* buffer) = 0.
    * Carbon supplies no default release behavior on this interface.
+   *
+   * @abstract
    * @param {*} _buffer The concrete implementation's write-buffer representation.
    * @returns {void}
    */
@@ -44,6 +48,8 @@ export class ICustomPersist extends IRoot
    * Native signature: unsigned char* AllocateReadBuffer(const char* memberName,
    * size_t bufferSize) = 0. The concrete implementation owns the JavaScript
    * representation of the returned writable byte pointer.
+   *
+   * @abstract
    * @param {string} _memberName The persisted member's name.
    * @param {number} _bufferSize Requested storage size in bytes.
    * @returns {*} The concrete implementation's writable buffer representation.
@@ -57,6 +63,8 @@ export class ICustomPersist extends IRoot
    * Native signature: void SetBufferAndSize(const char* memberName,
    * unsigned char* buffer, size_t bufferSize) = 0. The used byte count may be
    * smaller than the allocation; ownership after this call is class-specific.
+   *
+   * @abstract
    * @param {string} _memberName The persisted member's name.
    * @param {*} _buffer The concrete implementation's filled buffer representation.
    * @param {number} _bufferSize Used byte count.

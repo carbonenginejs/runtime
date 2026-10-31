@@ -79,6 +79,8 @@ export class Tr2QuadRenderer
    * Registers a quad effect once per key (Carbon Tr2QuadRenderer.cpp:61-83).
    * instanceSize is in bytes; the buffer alignment grows to the lcm of all
    * registered instance sizes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -115,10 +117,10 @@ export class Tr2QuadRenderer
   /**
    * Accumulates instance data for a registered effect (Carbon cpp:106-126).
    *
-   * Adapted: Carbon keeps a buffer per TBB thread; single-threaded JS keeps
-   * one pending list per record. The bytes are copied raw, as Carbon's memcpy;
-   * a number array is packed as float32, so a mixed-width record (float16
-   * tails) is packed by its producer first.
+   * @adapted Carbon keeps a buffer per TBB thread; single-threaded JS keeps
+   *   one pending list per record. The bytes are copied raw, as Carbon's memcpy;
+   *   a number array is packed as float32, so a mixed-width record (float16
+   *   tails) is packed by its producer first.
    */
 
   @meta.adapted
@@ -145,6 +147,8 @@ export class Tr2QuadRenderer
    * Concatenates every record's pending instances into one aligned CPU
    * buffer, stamping per-record bufferOffset/count (Carbon cpp:134-170).
    * Returns the largest quadCount among live records.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -183,6 +187,8 @@ export class Tr2QuadRenderer
   /**
    * Carbon UpdateInstanceBuffer (cpp:178-199): uploads the merged instances
    * into the ring and remembers where they landed.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -207,6 +213,8 @@ export class Tr2QuadRenderer
    * Carbon RecreateQuadBuffers (cpp:206-236): the quad corner stream (each
    * vertex is its own index as a float) and the index list, grown to the
    * largest quad count seen.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -241,6 +249,8 @@ export class Tr2QuadRenderer
   /**
    * Carbon BeginRendering (cpp:244-253): merge, upload, size the quad
    * buffers, make the declarations.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -252,7 +262,11 @@ export class Tr2QuadRenderer
     this.PrepareResources();
   }
 
-  /** Carbon DoneRendering (cpp:89-93): the ring region is fenced, the size reset. */
+  /**
+   * Carbon DoneRendering (cpp:89-93): the ring region is fenced, the size reset.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   DoneRendering(renderContext)
@@ -261,7 +275,11 @@ export class Tr2QuadRenderer
     this.bufferSize = 0;
   }
 
-  /** Carbon ReleaseResources (cpp:262-271): declarations are recreated on prepare. */
+  /**
+   * Carbon ReleaseResources (cpp:262-271): declarations are recreated on prepare.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseResources(storage)
@@ -275,14 +293,22 @@ export class Tr2QuadRenderer
     }
   }
 
-  /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
+  /**
+   * Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
   }
 
-  /** Carbon OnPrepareResources (cpp:279-289): a declaration per registered effect. */
+  /**
+   * Carbon OnPrepareResources (cpp:279-289): a declaration per registered effect.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnPrepareResources()
@@ -301,8 +327,8 @@ export class Tr2QuadRenderer
    * Emits one instanced batch per live record of the requested type
    * (Carbon cpp:297-318).
    *
-   * Adapted: Carbon commits a stack batch the accumulator copies; the
-   * accumulator allocates it here.
+   * @adapted Carbon commits a stack batch the accumulator copies; the
+   *   accumulator allocates it here.
    */
 
   @meta.adapted
@@ -329,7 +355,11 @@ export class Tr2QuadRenderer
     }
   }
 
-  /** Carbon GetInstanceBufferSize (cpp:324-327). */
+  /**
+   * Carbon GetInstanceBufferSize (cpp:324-327).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetInstanceBufferSize()
@@ -340,6 +370,8 @@ export class Tr2QuadRenderer
   /**
    * instanceBufferSize (MAP_PROPERTY_READONLY): Carbon's property over GetInstanceBufferSize, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2QuadRenderer_Blue.cpp:14).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -348,7 +380,11 @@ export class Tr2QuadRenderer
     return this.GetInstanceBufferSize();
   }
 
-  /** Carbon GetInstanceDataSize (cpp:333-336). */
+  /**
+   * Carbon GetInstanceDataSize (cpp:333-336).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetInstanceDataSize()
@@ -359,6 +395,8 @@ export class Tr2QuadRenderer
   /**
    * instanceDataSize (MAP_PROPERTY_READONLY): Carbon's property over GetInstanceDataSize, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2QuadRenderer_Blue.cpp:19).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented

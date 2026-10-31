@@ -69,10 +69,9 @@ export class Tr2FenceAL
    * a fresh implementation replaces this value's; a failure leaves it on the
    * null implementation.
    *
-   * Adapted: the render context allocates the implementation instead of a
-   * compile-time platform include. The previous share is released explicitly
-   * because JavaScript has no shared_ptr; existing copies keep it alive.
-   *
+   * @adapted the render context allocates the implementation instead of a
+   *   compile-time platform include. The previous share is released explicitly
+   *   because JavaScript has no shared_ptr; existing copies keep it alive.
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
@@ -91,6 +90,7 @@ export class Tr2FenceAL
   /**
    * Puts the fence into the command stream (`Tr2FenceAL.cpp:33-36`).
    *
+   * @implemented
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
@@ -103,8 +103,7 @@ export class Tr2FenceAL
   /**
    * Whether the GPU has passed the fence (`Tr2FenceAL.cpp:38-41`).
    *
-   * Adapted: Carbon's `bool& isReached` output becomes the returned `isReached`.
-   *
+   * @adapted Carbon's `bool& isReached` output becomes the returned `isReached`.
    * @param {object} renderContext The context whose stream is asked.
    * @returns {{result: number, isReached: boolean}} The answer.
    */
@@ -117,6 +116,7 @@ export class Tr2FenceAL
   /**
    * Waits for the fence (`Tr2FenceAL.cpp:43-46`).
    *
+   * @implemented
    * @param {object} renderContext The context whose stream is waited on.
    * @returns {number} An `ALResult` value.
    */
@@ -129,6 +129,7 @@ export class Tr2FenceAL
   /**
    * Whether the implementation exists on the device (`Tr2FenceAL.cpp:48-51`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -140,8 +141,8 @@ export class Tr2FenceAL
   /**
    * Compares implementation identity (`Tr2FenceAL.cpp:53-56`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2FenceAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -154,6 +155,7 @@ export class Tr2FenceAL
   /**
    * The implementation's memory class (`Tr2FenceAL.cpp:58-61`).
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.implemented
@@ -166,6 +168,7 @@ export class Tr2FenceAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2FenceAL.cpp:63-74`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

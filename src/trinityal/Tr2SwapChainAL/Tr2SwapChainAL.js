@@ -71,10 +71,9 @@ export class Tr2SwapChainAL
    * `Tr2SwapChainAL.cpp:21-31`): a fresh implementation replaces this value's;
    * a failure leaves it on the null implementation.
    *
-   * Adapted: the render context allocates the implementation instead of a
-   * compile-time platform include. The previous share is released explicitly
-   * because JavaScript has no shared_ptr; existing copies keep it alive.
-   *
+   * @adapted the render context allocates the implementation instead of a
+   *   compile-time platform include. The previous share is released explicitly
+   *   because JavaScript has no shared_ptr; existing copies keep it alive.
    * @param {number|object} windowHandle The window to present into.
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
@@ -94,6 +93,7 @@ export class Tr2SwapChainAL
   /**
    * Presents the back buffer (`Tr2SwapChainAL.cpp:33-36`).
    *
+   * @implemented
    * @param {object} renderContext The context presenting the frame.
    * @returns {number} An `ALResult` value.
    */
@@ -106,6 +106,7 @@ export class Tr2SwapChainAL
   /**
    * Whether the implementation can present (`Tr2SwapChainAL.cpp:38-41`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -118,6 +119,7 @@ export class Tr2SwapChainAL
    * The implementation's back buffer (`Tr2SwapChainAL.cpp:43-46`), which
    * Carbon reads as a friend (`m_swapChain->m_backBuffer`).
    *
+   * @implemented
    * @returns {Tr2TextureAL} The back buffer; a default, invalid one when uncreated.
    */
   @meta.implemented
@@ -129,6 +131,7 @@ export class Tr2SwapChainAL
   /**
    * Back-buffer width (`Tr2SwapChainAL.cpp:48-51`).
    *
+   * @implemented
    * @returns {number} Width in pixels.
    */
   @meta.implemented
@@ -140,6 +143,7 @@ export class Tr2SwapChainAL
   /**
    * Back-buffer height (`Tr2SwapChainAL.cpp:53-56`).
    *
+   * @implemented
    * @returns {number} Height in pixels.
    */
   @meta.implemented
@@ -151,8 +155,8 @@ export class Tr2SwapChainAL
   /**
    * Compares implementation identity (`Tr2SwapChainAL.cpp:58-61`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2SwapChainAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -165,6 +169,7 @@ export class Tr2SwapChainAL
   /**
    * The implementation's memory class (`Tr2SwapChainAL.cpp:63-66`).
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.implemented
@@ -177,6 +182,7 @@ export class Tr2SwapChainAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2SwapChainAL.cpp:68-79`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

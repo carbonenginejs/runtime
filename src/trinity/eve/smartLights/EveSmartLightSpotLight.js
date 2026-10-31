@@ -76,6 +76,7 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
    * colour is the group colour * brightness at alpha 0.03, with alpha steps of
    * 0.025 for the selected and inner variants.
    *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {Array<object>} placements Placement data with identifiers.
    * @param {number} size Number of placements to draw.

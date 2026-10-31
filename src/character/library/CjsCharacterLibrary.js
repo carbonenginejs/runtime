@@ -819,6 +819,8 @@ export class CjsCharacterLibrary
      * This enriches the catalog's source evidence. Character texture loading
      * uses the ordinary texture resource path; composition reads that texture's
      * native cutout, never this optional catalog record or its sibling PNG.
+     *
+     * @implemented
      * @param {string} resourcePath Texture path or extension-neutral identity.
      * @param {object} [options={}] Inspection services and catalog attribution.
      * @param {CjsBlueResMan} [options.resMan=this._resourceManager] Configured byte/format reader.

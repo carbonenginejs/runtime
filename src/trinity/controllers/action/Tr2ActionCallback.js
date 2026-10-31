@@ -25,6 +25,8 @@ export class Tr2ActionCallback extends ITr2ControllerAction
 
   /**
    * Notifies the linked controller callback registry.
+   *
+   * @implemented
    */
 
   @meta.implemented

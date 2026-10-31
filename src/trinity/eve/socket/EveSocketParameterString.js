@@ -55,6 +55,8 @@ export class EveSocketParameterString extends IEveSocketParameter
   /**
    * Creates the `valueExposure` external parameter pointing at this object's
    * `value` attribute on first call; later calls leave the existing one alone.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -74,6 +76,8 @@ export class EveSocketParameterString extends IEveSocketParameter
   /**
    * Drops the bound external parameters; unlike the typed socket parameters, the
    * captured defaults are kept.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -85,6 +89,7 @@ export class EveSocketParameterString extends IEveSocketParameter
   /**
    * Records a matching external parameter after capturing its current value as a default; strings are held directly instead of through a value binding, and propagation writes to them.
    *
+   * @adapted
    * @returns {boolean} True when the external parameter was valid, name-matched and stored.
    */
 
@@ -121,6 +126,8 @@ export class EveSocketParameterString extends IEveSocketParameter
   /**
    * Restores the default captured for the first bound external parameter,
    * leaving the value untouched when none was captured.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -129,7 +136,11 @@ export class EveSocketParameterString extends IEveSocketParameter
     if (this.defaults.length) this.value = this.defaults[0];
   }
 
-  /** Reports whether any external parameter is bound to this one. */
+  /**
+   * Reports whether any external parameter is bound to this one.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Used()
@@ -140,6 +151,8 @@ export class EveSocketParameterString extends IEveSocketParameter
   /**
    * Reads the current value through `valueExposure` and writes it into every
    * bound external parameter.
+   *
+   * @adapted
    */
 
   @meta.adapted

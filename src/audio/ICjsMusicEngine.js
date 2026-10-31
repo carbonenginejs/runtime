@@ -16,6 +16,7 @@ export class ICjsMusicEngine
     /**
      * Whether this engine owns an event.
      *
+     * @abstract
      * @param {string} _eventName - Event name.
      * @returns {boolean}
      */
@@ -24,6 +25,7 @@ export class ICjsMusicEngine
     /**
      * Posts a music event under a playing id the backend allocated.
      *
+     * @abstract
      * @param {string} _eventName - Event name.
      * @param {number} _playingID - Playing id.
      * @param {Function} _onFinished - Called once when the id ends.
@@ -35,6 +37,7 @@ export class ICjsMusicEngine
     /**
      * Applies a transport action to one playing id.
      *
+     * @abstract
      * @param {string} _action - Action name, as the backend received it.
      * @param {number} _playingID - Playing id.
      * @param {number} [_fadeOutDuration] - Fade in milliseconds.
@@ -44,6 +47,7 @@ export class ICjsMusicEngine
     /**
      * Current source play position in milliseconds, or -1 when unknown.
      *
+     * @abstract
      * @param {number} _playingID - Playing id.
      * @returns {number}
      */
@@ -52,6 +56,7 @@ export class ICjsMusicEngine
     /**
      * Sets a switch. Music switches are global; the game object is advisory.
      *
+     * @abstract
      * @param {string|number} _group - Switch group name or id.
      * @param {string|number} _value - Switch name or id.
      * @param {number} [_gameObjID] - Posting game object.
@@ -61,6 +66,7 @@ export class ICjsMusicEngine
     /**
      * Sets a global state.
      *
+     * @abstract
      * @param {string|number} _group - State group name or id.
      * @param {string|number} _value - State name or id.
      */
@@ -69,30 +75,50 @@ export class ICjsMusicEngine
     /**
      * Sets the music category volume (0..1).
      *
+     * @abstract
      * @param {number} _value - Linear volume.
      */
     SetMusicVolume(_value) {}
 
-    /** Reapplies live Bus Volume and filter state to scheduled routes. */
+    /**
+     * Reapplies live Bus Volume and filter state to scheduled routes.
+     *
+     * @abstract
+     */
     RefreshBusVolumeGains() {}
 
-    /** Reapplies dynamic Bus Volume RTPCs to scheduled routes. */
+    /**
+     * Reapplies dynamic Bus Volume RTPCs to scheduled routes.
+     *
+     * @abstract
+     */
     RefreshBusRtpcs() {}
 
-    /** Reapplies Immediate Audio Bus States to scheduled routes. */
+    /**
+     * Reapplies Immediate Audio Bus States to scheduled routes.
+     *
+     * @abstract
+     */
     RefreshBusStates() {}
 
-    /** Reapplies the shared SFX/music Audio Bus ducking envelopes. */
+    /**
+     * Reapplies the shared SFX/music Audio Bus ducking envelopes.
+     *
+     * @abstract
+     */
     RefreshBusDucking() {}
 
     /**
      * Scheduling tick, driven once per frame by the backend's RenderAudio.
+     *
+     * @abstract
      */
     Process() {}
 
     /**
      * Releases one cached media source.
      *
+     * @abstract
      * @param {string} _sourceId - Media source id.
      * @returns {boolean} Whether a cached source was released.
      */
@@ -101,11 +127,16 @@ export class ICjsMusicEngine
     /**
      * Releases every cached media source.
      *
+     * @abstract
      * @returns {number} The number released.
      */
     ClearMedia() {}
 
-    /** Cancels playback and releases the engine's state. */
+    /**
+     * Cancels playback and releases the engine's state.
+     *
+     * @abstract
+     */
     Dispose() {}
 
 }

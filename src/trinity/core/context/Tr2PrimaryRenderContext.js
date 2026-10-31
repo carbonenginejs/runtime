@@ -9,7 +9,11 @@ import { meta, blue } from "#schema";
 export class Tr2PrimaryRenderContext extends IRoot
 {
 
-  /** Carbon method GetDefaultBackBuffer -> GetBackBuffer (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetDefaultBackBuffer -> GetBackBuffer (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   GetDefaultBackBuffer(...args)
@@ -17,7 +21,11 @@ export class Tr2PrimaryRenderContext extends IRoot
     throw new Error("Tr2PrimaryRenderContext.GetDefaultBackBuffer is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method GetBackBufferFormat (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetBackBufferFormat (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   GetBackBufferFormat(...args)

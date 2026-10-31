@@ -84,14 +84,13 @@ export class CjsBlue
    * `EnumerateChildren(obj, onChild)` (Find.h:139-148): every object an
    * object references directly, through its members and its collections.
    *
-   * Adapted: Carbon reports a collection member's list object as a child and
-   * reaches the list's items through the list's own IList/IBlueDict interface.
-   * JavaScript collections are not Blue objects, so a declared collection's
-   * object items are reported here as children of the owner, with the member
-   * and the item's index or key. A direct member reports a null index (Carbon
-   * passes 0). Members run in the class's canonical order, derived to base, as
-   * Carbon walks `mParentClassInfo`; storage is read without running accessors.
-   *
+   * @adapted Carbon reports a collection member's list object as a child and
+   *   reaches the list's items through the list's own IList/IBlueDict interface.
+   *   JavaScript collections are not Blue objects, so a declared collection's
+   *   object items are reported here as children of the owner, with the member
+   *   and the item's index or key. A direct member reports a null index (Carbon
+   *   passes 0). Members run in the class's canonical order, derived to base, as
+   *   Carbon walks `mParentClassInfo`; storage is read without running accessors.
    * @param {object|null} obj Object whose immediate children are enumerated.
    * @param {function(object, object, (number|string|null)): void} onChild
    *   Receives the child, the member declaration, and the collection index or
@@ -107,6 +106,7 @@ export class CjsBlue
    * `EnumerateChildren(obj, onAttribute, onListItem, onDictItem, filter)`:
    * see `CjsBlue.enumerateChildren__Filter`.
    *
+   * @adapted
    * @param {object|null} obj Object whose immediate children are enumerated.
    * @param {function(object, Function, object, number): void} onAttribute Direct member child.
    * @param {function(object, number, object, object): void} onListItem List or set item.
@@ -123,6 +123,7 @@ export class CjsBlue
    * Carbon's free `EnumerateChildren(obj, onChild)` (Find.h:139-148): see
    * the instance method EnumerateChildren for the reported arguments.
    *
+   * @adapted
    * @param {object|null} obj Object whose immediate children are enumerated.
    * @param {function(object, object, (number|string|null)): void} onChild
    *   Receives the child, the member declaration, and the collection index or key.
@@ -145,12 +146,11 @@ export class CjsBlue
    * member filter. The filter decides for every member, collections included,
    * as Carbon's does for every IROOT/IROOTPTR member.
    *
-   * Adapted: as EnumerateChildren, collection items are reported for the
-   * owner's member. onAttribute receives the declaring class where Carbon passes
-   * its ClassInfo, and 0 for Carbon's member offset; onListItem and onDictItem
-   * also receive the member and the collection, which Carbon reaches through
-   * the list object itself.
-   *
+   * @adapted as EnumerateChildren, collection items are reported for the
+   *   owner's member. onAttribute receives the declaring class where Carbon passes
+   *   its ClassInfo, and 0 for Carbon's member offset; onListItem and onDictItem
+   *   also receive the member and the collection, which Carbon reaches through
+   *   the list object itself.
    * @param {object|null} obj Object whose immediate children are enumerated.
    * @param {function(object, Function, object, number): void} onAttribute
    *   Direct member child: child, declaring class, member, offset.
@@ -188,10 +188,9 @@ export class CjsBlue
    * Carbon's search marks each object seen once, so a node shared by two routes
    * yields only the first route through it.
    *
-   * Adapted: a step into a collection item is the two steps Carbon would take,
-   * `[owner, 0, member]` then `[collection, 1, index]`, because a JavaScript
-   * collection is not a Blue object in the enumeration.
-   *
+   * @adapted a step into a collection item is the two steps Carbon would take,
+   *   `[owner, 0, member]` then `[collection, 1, index]`, because a JavaScript
+   *   collection is not a Blue object in the enumeration.
    * @param {object} from Start of the routes.
    * @param {object} to End of the routes.
    * @returns {Array<Array<Array<*>>>} Every route; `[[]]` when from is to.
@@ -219,6 +218,7 @@ export class CjsBlue
    * (Find.cpp:400-433) and the RouteStep class are not ported; nothing here
    * replays a route.
    *
+   * @adapted
    * @param {object} from Start of the route.
    * @param {object} to End of the route.
    * @returns {Array<Array<*>>} The route; empty when from is to.
@@ -246,10 +246,9 @@ export class CjsBlue
    * the references that reach it, each `[parent, type, key]` as FindRoute's
    * steps.
    *
-   * Adapted: Carbon returns a Python dict keyed by object; this returns a Map.
-   * A collection item's reference names its collection and index, as Carbon
-   * names the list object; the collection itself is not a key.
-   *
+   * @adapted Carbon returns a Python dict keyed by object; this returns a Map.
+   *   A collection item's reference names its collection and index, as Carbon
+   *   names the list object; the collection itself is not a key.
    * @param {IRoot} root Root of the tree.
    * @returns {Map<object, Array<Array<*>>>} References per reached object.
    * @throws {TypeError} For a null root, which Carbon dereferences unchecked.
@@ -312,6 +311,7 @@ export class CjsBlue
    * class's `mInterfaceTable` on every pass, so an interface mapped only by a
    * chained parent never matches. Only the object's own table is tested here.
    *
+   * @implemented
    * @param {object|null} obj Root object.
    * @param {string} iidName Interface name.
    * @returns {object[]} Objects mapping the interface.
@@ -341,6 +341,7 @@ export class CjsBlue
    * `FindReference` (Find.cpp:507-548): whether one object is reachable from
    * another.
    *
+   * @implemented
    * @param {object|null} from Source object.
    * @param {object|null} to Destination object.
    * @returns {boolean} True when `to` is `from` or is referenced below it.
@@ -370,9 +371,8 @@ export class CjsBlue
    * Entries keep their parent's stack index, so the stack itself is the route
    * when `to` is reached; the level comparison pops finished branches.
    *
-   * Adapted: the anonymous-namespace template becomes a private method; its
-   * stack entry type is one record shape.
-   *
+   * @adapted the anonymous-namespace template becomes a private method; its
+   *   stack entry type is one record shape.
    * @param {object} from Start object.
    * @param {object} to End object.
    * @param {function(object[]): boolean} operation Receives the stack at each

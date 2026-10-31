@@ -20,7 +20,11 @@ export class TriStepSetViewport extends TriRenderStep
   @type.object.ref("TriViewport")
   viewport = null;
 
-  /** Stores the viewport this step installs. */
+  /**
+   * Stores the viewport this step installs.
+   *
+   * @adapted
+   */
   @meta.adapted
   __init__(viewport = null)
   {
@@ -30,6 +34,8 @@ export class TriStepSetViewport extends TriRenderStep
   /**
    * Replaces the viewport; null selects the full-screen viewport instead of
    * leaving the current one.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.adapted
@@ -41,6 +47,8 @@ export class TriStepSetViewport extends TriRenderStep
   /**
    * Sets the authored viewport, or asks the render context for its full-screen
    * viewport when none is set.
+   *
+   * @implemented
    */
 
   @meta.implemented

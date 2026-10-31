@@ -29,6 +29,7 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
    * (row-vector - scale first, transform last). Free mode: Billboard2D then
    * DistanceBase alignment: alignMat * billboard (align first).
    *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [_bones] - Carbon signature parity, unused

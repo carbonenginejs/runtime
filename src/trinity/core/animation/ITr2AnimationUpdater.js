@@ -8,6 +8,8 @@ export class ITr2AnimationUpdater extends IRoot
 {
   /**
    * Updates the pose before physics at the supplied time and model transform.
+   *
+   * @abstract
    * @param {number} _time Animation time.
    * @param {ArrayLike<number>} _modelTransform Model-to-world transform.
    * @returns {void}
@@ -17,6 +19,8 @@ export class ITr2AnimationUpdater extends IRoot
 
   /**
    * Updates the pose after physics at the supplied time and model transform.
+   *
+   * @abstract
    * @param {number} _time Animation time.
    * @param {ArrayLike<number>} _modelTransform Model-to-world transform.
    * @returns {void}
@@ -27,6 +31,8 @@ export class ITr2AnimationUpdater extends IRoot
   /**
    * Returns the animation's bone transforms.
    * Adapted: JavaScript providers return an array instead of Carbon's matrix pointer.
+   *
+   * @abstract
    * @returns {Array<ArrayLike<number>>} Bone transforms supplied by the provider.
    */
   @meta.abstract
@@ -35,6 +41,8 @@ export class ITr2AnimationUpdater extends IRoot
   /**
    * Returns the names corresponding to the animation's bone transforms.
    * Adapted: the returned array carries its count instead of Carbon's output reference.
+   *
+   * @abstract
    * @returns {Array<string>} Bone names supplied by the provider.
    */
   @meta.abstract

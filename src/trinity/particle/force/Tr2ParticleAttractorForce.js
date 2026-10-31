@@ -31,7 +31,11 @@ export class Tr2ParticleAttractorForce extends ITr2ParticleForce
   @type.float32
   magnitude = 1;
 
-  /** Applies a constant-magnitude force toward the configured origin. */
+  /**
+   * Applies a constant-magnitude force toward the configured origin.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out)
@@ -53,6 +57,8 @@ export class Tr2ParticleAttractorForce extends ITr2ParticleForce
   /**
    * Nothing to advance per frame: the force depends only on the authored
    * position and magnitude.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -63,6 +69,8 @@ export class Tr2ParticleAttractorForce extends ITr2ParticleForce
   /**
    * Carbon Tr2ParticleAttractorForce::RenderDebugInfo (Particle/Tr2ParticleAttractorForce.cpp:45-53): a star of
    * four 20-unit diagonals through the world-space position, in 0xffaaaa00.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.

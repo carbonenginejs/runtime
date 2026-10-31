@@ -83,6 +83,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    * Every refusal below is Carbon's, in Carbon's order
    * (`Tr2TextureALStub.cpp:18-95`).
    *
+   * @adapted
    * @param {Tr2BitmapDimensions} desc The texture description.
    * @param {Tr2MsaaDesc} msaa Multisample description.
    * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
@@ -174,6 +175,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    *
    * Carbon's stub refuses: sharing needs a real device on both sides.
    *
+   * @implemented
    * @returns {number} An `ALResult` value.
    */
   OpenShared()
@@ -191,7 +193,11 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
     this._data = null;
   }
 
-  /** Releases the texture and leaves the device-resource registry. */
+  /**
+   * Releases the texture and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -203,6 +209,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    *
    * Carbon's test is the width, because a created texture always has one.
    *
+   * @implemented
    * @returns {boolean} True when created.
    */
   IsValid()
@@ -213,6 +220,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * Which memory class this texture occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -223,6 +231,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * The texture description.
    *
+   * @implemented
    * @returns {Tr2BitmapDimensions} The description.
    */
   GetDesc()
@@ -233,6 +242,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * The multisample description.
    *
+   * @implemented
    * @returns {Tr2MsaaDesc} The description.
    */
   GetMsaaDesc()
@@ -243,6 +253,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * The GPU usage this texture was created with.
    *
+   * @implemented
    * @returns {number} A `Tr2GpuUsage` bit set.
    */
   GetGpuUsage()
@@ -253,6 +264,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * The CPU usage this texture was created with.
    *
+   * @implemented
    * @returns {number} A `Tr2CpuUsage` bit set.
    */
   GetCpuUsage()
@@ -358,6 +370,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    * was never created for reading is a caller mistake rather than a state
    * problem - which is why it answers `E_INVALIDCALL` and not `E_FAIL`.
    *
+   * @adapted
    * @param {Tr2TextureSubresource} region The subresource to map.
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
@@ -375,14 +388,22 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
     return this._Allocate(region);
   }
 
-  /** Carbon CreateReadback copies the selected stub storage into an owned snapshot. */
+  /**
+   * Carbon CreateReadback copies the selected stub storage into an owned snapshot.
+   *
+   * @implemented
+   */
   CreateReadback(region, renderContext)
   {
     const mapped = this.MapForReading(region, renderContext);
     return mapped.result === ALResult.S_OK ? new Tr2ReadbackALStub(mapped.data, mapped.pitch) : null;
   }
 
-  /** Releases a read mapping, keeping the buffer only for an "often" usage. */
+  /**
+   * Releases a read mapping, keeping the buffer only for an "often" usage.
+   *
+   * @implemented
+   */
   UnmapForReading()
   {
     this._ReleaseUnlessKept();
@@ -391,6 +412,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * Allocates and returns the storage for one subresource, for writing.
    *
+   * @adapted
    * @param {Tr2TextureSubresource} region The subresource to map.
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
@@ -415,7 +437,11 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
     return this._Allocate(region);
   }
 
-  /** Releases a write mapping, keeping the buffer only for an "often" usage. */
+  /**
+   * Releases a write mapping, keeping the buffer only for an "often" usage.
+   *
+   * @implemented
+   */
   UnmapForWriting()
   {
     this._ReleaseUnlessKept();
@@ -451,6 +477,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    * A texture mapped often is written through a map, not through this, so
    * Carbon refuses `WRITE_OFTEN` here outright.
    *
+   * @implemented
    * @param {Tr2TextureSubresource} region The subresource to write.
    * @param {ArrayBufferView} source The pixels.
    * @param {number} pitch Bytes per row in the source.
@@ -479,6 +506,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    * A whole-to-whole copy short-circuits; anything else must survive `Crop`,
    * which is where a mismatched face count or an empty overlap is caught.
    *
+   * @implemented
    * @param {Tr2TextureSubresource} destSubresource The region to write.
    * @param {Tr2TextureALStub} source The texture to read.
    * @param {Tr2TextureSubresource} sourceSubresource The region to read.
@@ -514,6 +542,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    * Only a texture that is both a render target and a shader resource can be
    * generated into, because that is how the hardware does it.
    *
+   * @implemented
    * @returns {number} An `ALResult` value.
    */
   GenerateMipMaps()
@@ -532,6 +561,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    * With one sample there is nothing to resolve, so Carbon falls back to a
    * plain copy - and inherits that copy's validation with it.
    *
+   * @implemented
    * @param {Tr2TextureALStub} destination The texture to resolve into.
    * @param {object} renderContext The context to resolve against.
    * @returns {number} An `ALResult` value.
@@ -572,6 +602,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * The handle another device could open this texture by.
    *
+   * @implemented
    * @returns {number} Always zero; the stub shares nothing.
    */
   GetSharedHandle()
@@ -582,6 +613,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * Where the shader-resource view sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index".
    */
   GetSrvIndexInHeap()
@@ -592,6 +624,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * Where the unordered-access view sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index".
    */
   GetUavIndexInHeap()
@@ -619,6 +652,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -628,6 +662,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * Names the texture for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */
@@ -639,6 +674,7 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /**
    * The debug name.
    *
+   * @implemented
    * @returns {null} Always null, as Carbon's stub returns.
    */
   GetName()

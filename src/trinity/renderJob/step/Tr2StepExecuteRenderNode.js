@@ -37,9 +37,9 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
    * Validates and executes the owned render-node contract. The runtime render
    * context records Carbon's failure clear as engine-consumable intents.
    *
-   * Adapted: dimension spans contain JS value records and the unported
-   * profile timer is null. The destination is the underlying texture, as in
-   * Tr2StepExecuteRenderNode.cpp:35-49.
+   * @adapted dimension spans contain JS value records and the unported
+   *   profile timer is null. The destination is the underlying texture, as in
+   *   Tr2StepExecuteRenderNode.cpp:35-49.
    */
 
   @meta.adapted

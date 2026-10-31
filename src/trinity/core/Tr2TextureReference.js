@@ -36,6 +36,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
 
   /**
    * Texture width; native readonly Blue property.
+   *
+   * @implemented
    * @returns {number} Current texture description value.
    */
   @be.mapPropertyReadOnly()
@@ -48,6 +50,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
 
   /**
    * Texture height; native readonly Blue property.
+   *
+   * @implemented
    * @returns {number} Current texture description value.
    */
   @be.mapPropertyReadOnly()
@@ -60,6 +64,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
 
   /**
    * Texture depth; native readonly Blue property.
+   *
+   * @implemented
    * @returns {number} Current texture description value.
    */
   @be.mapPropertyReadOnly()
@@ -72,6 +78,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
 
   /**
    * Texture type; native readonly Blue property.
+   *
+   * @implemented
    * @returns {number} Current texture description value.
    */
   @be.mapPropertyReadOnly()
@@ -84,6 +92,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
 
   /**
    * Number of mip levels; native readonly Blue property.
+   *
+   * @implemented
    * @returns {number} Current texture description value.
    */
   @be.mapPropertyReadOnly()
@@ -96,6 +106,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
 
   /**
    * Pixel format; native readonly Blue property.
+   *
+   * @implemented
    * @returns {number} Current texture description value.
    */
   @be.mapPropertyReadOnly()
@@ -108,6 +120,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
 
   /**
    * Number of textures in the array; native readonly Blue property.
+   *
+   * @implemented
    * @returns {number} Current texture description value.
    */
   @be.mapPropertyReadOnly()
@@ -120,6 +134,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
 
   /**
    * Texture name; native readonly Blue property.
+   *
+   * @implemented
    * @returns {string} Current texture description value.
    */
   @be.mapPropertyReadOnly()
@@ -130,7 +146,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.GetName();
   }
 
-  /** Returns the borrowed native by-value texture (Tr2TextureReference.cpp:11-14). */
+  /**
+   * Returns the borrowed native by-value texture (Tr2TextureReference.cpp:11-14).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetTexture()
@@ -138,7 +158,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.texture;
   }
 
-  /** Returns the owned native change event (Tr2TextureReference.cpp:16-19). */
+  /**
+   * Returns the owned native change event (Tr2TextureReference.cpp:16-19).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnTextureChange()
@@ -159,7 +183,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     this.onTextureChange.Broadcast();
   }
 
-  /** Texture width, or 0 with no texture (Carbon GetWidth, cpp:65-68). */
+  /**
+   * Texture width, or 0 with no texture (Carbon GetWidth, cpp:65-68).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWidth()
@@ -167,7 +195,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.texture ? this.texture.GetDesc().GetWidth() : 0;
   }
 
-  /** Texture height, or 0 with no texture (Carbon GetHeight, cpp:70-73). */
+  /**
+   * Texture height, or 0 with no texture (Carbon GetHeight, cpp:70-73).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHeight()
@@ -175,7 +207,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.texture ? this.texture.GetDesc().GetHeight() : 0;
   }
 
-  /** Texture depth, or 0 with no texture (Carbon GetDepth, cpp:75-78). */
+  /**
+   * Texture depth, or 0 with no texture (Carbon GetDepth, cpp:75-78).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDepth()
@@ -183,7 +219,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.texture ? this.texture.GetDesc().GetDepth() : 0;
   }
 
-  /** Texture type, or 0 with no texture (Carbon GetType, cpp:80-83). */
+  /**
+   * Texture type, or 0 with no texture (Carbon GetType, cpp:80-83).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetType()
@@ -191,7 +231,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.texture ? this.texture.GetDesc().GetType() : 0;
   }
 
-  /** Mip level count, or 0 with no texture (Carbon GetMipCount, cpp:85-88). */
+  /**
+   * Mip level count, or 0 with no texture (Carbon GetMipCount, cpp:85-88).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMipCount()
@@ -199,7 +243,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.texture ? this.texture.GetDesc().GetMipCount() : 0;
   }
 
-  /** Array size, or 0 with no texture (Carbon GetArraySize, cpp:90-93). */
+  /**
+   * Array size, or 0 with no texture (Carbon GetArraySize, cpp:90-93).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetArraySize()
@@ -207,7 +255,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.texture ? this.texture.GetDesc().GetArraySize() : 0;
   }
 
-  /** Pixel format, or 0 with no texture (Carbon GetFormat, cpp:95-98). */
+  /**
+   * Pixel format, or 0 with no texture (Carbon GetFormat, cpp:95-98).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFormat()
@@ -215,7 +267,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.texture ? this.texture.GetDesc().GetFormat() : 0;
   }
 
-  /** Texture debug name, or "" with no texture (Carbon GetName, cpp:100-104). */
+  /**
+   * Texture debug name, or "" with no texture (Carbon GetName, cpp:100-104).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -223,7 +279,11 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.texture ? this.texture.GetName() ?? "" : "";
   }
 
-  /** Saves the referenced texture to disk; needs texture readback and ImageIO saving, neither ported here. */
+  /**
+   * Saves the referenced texture to disk; needs texture readback and ImageIO saving, neither ported here.
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   Save(..._args)

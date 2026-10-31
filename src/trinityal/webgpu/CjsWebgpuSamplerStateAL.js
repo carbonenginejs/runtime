@@ -48,6 +48,7 @@ export class CjsWebgpuSamplerStateAL
   /**
    * Creates the sampler.
    *
+   * @adapted
    * @param {object} description A `Tr2SamplerDescription`, either spelling.
    * @param {object} renderContext The WebGPU render context AL.
    * @returns {number} An `ALResult` value.
@@ -103,19 +104,31 @@ export class CjsWebgpuSamplerStateAL
     return this._description;
   }
 
-  /** Whether the state holds a `GPUSampler`. */
+  /**
+   * Whether the state holds a `GPUSampler`.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._sampler !== null;
   }
 
-  /** No descriptor heap here, as the stub answers. */
+  /**
+   * No descriptor heap here, as the stub answers.
+   *
+   * @adapted
+   */
   GetIndexInHeap()
   {
     return NO_HEAP_INDEX;
   }
 
-  /** Drops the sampler, leaving the state invalid. */
+  /**
+   * Drops the sampler, leaving the state invalid.
+   *
+   * @implemented
+   */
   Destroy()
   {
     // A GPUSampler has no destroy(); dropping the reference releases it.
@@ -124,7 +137,11 @@ export class CjsWebgpuSamplerStateAL
     this._descriptor = null;
   }
 
-  /** Where the sampler lives, which is managed memory rather than the device. */
+  /**
+   * Where the sampler lives, which is managed memory rather than the device.
+   *
+   * @implemented
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;
@@ -133,6 +150,7 @@ export class CjsWebgpuSamplerStateAL
   /**
    * Fills in a device-resource description.
    *
+   * @adapted
    * @param {object} description The description to fill.
    * @returns {object} The description, filled.
    */
@@ -146,6 +164,7 @@ export class CjsWebgpuSamplerStateAL
   }
 
   /**
+   * @adapted
    * @param {string} name The label.
    * @returns {number} `S_OK`.
    */

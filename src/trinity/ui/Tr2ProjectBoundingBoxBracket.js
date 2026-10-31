@@ -222,6 +222,8 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
    *
    * The view position, view, projection and viewport are the Tr2Renderer
    * statics (cpp:329, 339).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -271,7 +273,11 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
     this.#PublishProjection(viewport);
   }
 
-  /** Clears every published result and updates the attached bracket. */
+  /**
+   * Clears every published result and updates the attached bracket.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetEmptyProjection()
@@ -288,7 +294,11 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
     this.UpdateBracket();
   }
 
-  /** Publishes the current rectangle to the attached Sprite2D container. */
+  /**
+   * Publishes the current rectangle to the attached Sprite2D container.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateBracket()

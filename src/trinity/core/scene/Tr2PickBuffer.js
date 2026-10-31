@@ -37,45 +37,73 @@ export class Tr2PickBuffer
     TriDevice.RegisterResource(this);
   }
 
-  /** Drops attachments so the next prepare uses the requested dimensions. */
+  /**
+   * Drops attachments so the next prepare uses the requested dimensions.
+   *
+   * @implemented
+   */
   SetSize(size)
   {
     this.ReleaseResources();
     this._size = size;
   }
 
-  /** Authored buffer size, prior to the native minimum-one clamp. */
+  /**
+   * Authored buffer size, prior to the native minimum-one clamp.
+   *
+   * @implemented
+   */
   GetSize()
   {
     return this._size;
   }
 
-  /** Native development resource description. */
+  /**
+   * Native development resource description.
+   *
+   * @adapted
+   */
   GetDescription()
   {
     return "Tr2PickBuffer";
   }
 
-  /** Native packed ARGB clear value. */
+  /**
+   * Native packed ARGB clear value.
+   *
+   * @implemented
+   */
   SetClearColor(value)
   {
     this._clearColor = value >>> 0;
   }
 
-  /** Releases both owned attachment values. */
+  /**
+   * Releases both owned attachment values.
+   *
+   * @adapted
+   */
   ReleaseResources()
   {
     this._pickTarget.Destroy();
     this._depthBuffer.Destroy();
   }
 
-  /** Explicit resource preparation replaces the absent native base-class drive. */
+  /**
+   * Explicit resource preparation replaces the absent native base-class drive.
+   *
+   * @adapted
+   */
   PrepareResources(context = Tr2RenderContext_GetMainThreadRenderContext())
   {
     return this._pickTarget.IsValid() && this._depthBuffer.IsValid() || this.OnPrepareResources(context);
   }
 
-  /** Native render target with frequent CPU reads and a D24S8 depth attachment. */
+  /**
+   * Native render target with frequent CPU reads and a D24S8 depth attachment.
+   *
+   * @adapted
+   */
   OnPrepareResources(context = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const size = Math.max(this._size, 1);
@@ -85,7 +113,11 @@ export class Tr2PickBuffer
       Tr2GpuUsage.DEPTH_STENCIL, context));
   }
 
-  /** Binds, clears and selects the full pick-target viewport. */
+  /**
+   * Binds, clears and selects the full pick-target viewport.
+   *
+   * @adapted
+   */
   BeginRendering(initialDepth, context)
   {
     if (!this._pickTarget.IsValid() || !this._depthBuffer.IsValid()) return false;
@@ -101,7 +133,11 @@ export class Tr2PickBuffer
     return true;
   }
 
-  /** Restores the caller's attachment stack. */
+  /**
+   * Restores the caller's attachment stack.
+   *
+   * @implemented
+   */
   EndRendering(context)
   {
     const esm = context.GetEffectStateManager();
@@ -110,7 +146,11 @@ export class Tr2PickBuffer
     return true;
   }
 
-  /** WebGPU's mapping is awaitable; callers submit before reaching this method. */
+  /**
+   * WebGPU's mapping is awaitable; callers submit before reaching this method.
+   *
+   * @adapted
+   */
   async MapForReading(context)
   {
     const readback = this.CreateReadback(context);
@@ -128,7 +168,11 @@ export class Tr2PickBuffer
     return this._pickTarget.CreateReadback(Tr2TextureSubresource.create__MipLevel(0), context);
   }
 
-  /** Completes the native borrowed-map lifetime. */
+  /**
+   * Completes the native borrowed-map lifetime.
+   *
+   * @implemented
+   */
   UnmapForReading(context)
   {
     if (this._pickTarget.IsValid()) this._pickTarget.UnmapForReading(context);
@@ -140,6 +184,8 @@ export class Tr2PickBuffer
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   Destruct()
   {

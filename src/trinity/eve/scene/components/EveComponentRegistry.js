@@ -31,6 +31,8 @@ export class EveComponentRegistry extends IRoot
   /**
    * Empties every component collection and detaches all registered entities,
    * resetting their registry link and component state.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -58,9 +60,9 @@ export class EveComponentRegistry extends IRoot
    * bit from each entity in it. Nothing happens when the collection was never
    * created.
    *
-   * Adapted: JavaScript names the component explicitly, as RegisterComponent
-   * does, because it has no template specialization. Carbon's collection
-   * loop guard has no counterpart without threads.
+   * @adapted JavaScript names the component explicitly, as RegisterComponent
+   *   does, because it has no template specialization. Carbon's collection
+   *   loop guard has no counterpart without threads.
    * @param {string} componentName The component type's registered name.
    */
 
@@ -82,6 +84,8 @@ export class EveComponentRegistry extends IRoot
   /**
    * Removes the entity from this registry and adds it back, moving it to the end
    * of the registration order.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -94,6 +98,8 @@ export class EveComponentRegistry extends IRoot
   /**
    * Adds an entity to the registry and records its index, returning false if the
    * entity is already registered anywhere.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -113,6 +119,8 @@ export class EveComponentRegistry extends IRoot
    * Removes an entity by swapping the last registered entity into its slot,
    * keeping the entity list dense, and returns false if the entity is not
    * registered here.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -139,6 +147,8 @@ export class EveComponentRegistry extends IRoot
   /**
    * Drops the entity from every component collection while leaving it registered
    * in the entity list.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -153,6 +163,8 @@ export class EveComponentRegistry extends IRoot
   /**
    * Returns the collection for a component name, or null when no collection has
    * been created for it yet.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -173,8 +185,8 @@ export class EveComponentRegistry extends IRoot
    * (Tr2VolumetricsRenderer.h:59). The rest check their pure-virtual method
    * names (EveComponentRequiredMethods).
    *
-   * Adapted: JavaScript passes Carbon's compile-time component name explicitly because it
-   * has no C++ template specialization.
+   * @adapted JavaScript passes Carbon's compile-time component name explicitly because it
+   *   has no C++ template specialization.
    */
 
   @meta.adapted
@@ -238,8 +250,8 @@ export class EveComponentRegistry extends IRoot
    * Removes an entity from the named component's collection, returning false
    * when no such collection exists.
    *
-   * Adapted: JavaScript passes Carbon's compile-time component name explicitly because it
-   * has no C++ template specialization.
+   * @adapted JavaScript passes Carbon's compile-time component name explicitly because it
+   *   has no C++ template specialization.
    */
 
   @meta.adapted
@@ -253,6 +265,8 @@ export class EveComponentRegistry extends IRoot
    * Creates a collection for a component name and assigns it the next free bit;
    * throws once 32 collections exist because the entity component mask is 32
    * bits wide.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -273,6 +287,8 @@ export class EveComponentRegistry extends IRoot
    * Appends an entity to a collection and stores the resulting index on the
    * entity under the collection's bit, returning false if it is already a
    * member.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -291,6 +307,8 @@ export class EveComponentRegistry extends IRoot
    * Removes an entity from a collection by swapping the back element into its
    * slot and fixing up the moved entity's stored index, returning false if it
    * was not a member.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -315,6 +333,8 @@ export class EveComponentRegistry extends IRoot
    * Returns the live entity array backing the named component collection, or an
    * empty array when the collection does not exist; the array is borrowed and
    * changes as entities register.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -326,6 +346,8 @@ export class EveComponentRegistry extends IRoot
   /**
    * Returns how many entities are in the named component collection, or 0 when
    * the collection does not exist.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -340,6 +362,8 @@ export class EveComponentRegistry extends IRoot
    * collection, and no-ops when the collection is absent. Carbon resolves the
    * name from the template type and holds a shared_lock; single-threaded JS
    * takes the name directly and needs no lock.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -356,6 +380,8 @@ export class EveComponentRegistry extends IRoot
   /**
    * Carbon ProcessComponentsUntil (h:270-290): identical to ProcessComponents
    * except it stops at the first processor call that returns true.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -372,6 +398,8 @@ export class EveComponentRegistry extends IRoot
   /**
    * Carbon RemoveCollectionFromEntityState (EveComponentRegistry.cpp:147-150):
    * clears the collection's bit from the entity's component mask.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -383,7 +411,7 @@ export class EveComponentRegistry extends IRoot
   /**
    * Carbon method GetComponentInfo (MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Returns Carbon's vector of name/count pairs as JavaScript tuple arrays.
+   * @adapted Returns Carbon's vector of name/count pairs as JavaScript tuple arrays.
    */
   @be.mapMethodAndWrap()
   @meta.adapted

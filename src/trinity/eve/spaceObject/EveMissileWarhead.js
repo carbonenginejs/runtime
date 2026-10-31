@@ -98,7 +98,11 @@ export class EveMissileWarhead extends EveTransform
   _lastPositionValid = false;
   _noisePhase = EveMissileWarhead._nextNoisePhase++ & 0xfff;
 
-  /** Registers the sprite effect independently of launch state and mesh visibility. */
+  /**
+   * Registers the sprite effect independently of launch state and mesh visibility.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -106,7 +110,11 @@ export class EveMissileWarhead extends EveTransform
     if (this.spriteSet) this.spriteSet.RegisterWithQuadRenderer(quadRenderer);
   }
 
-  /** Submits valid, non-dead warhead sprites at the current world transform. */
+  /**
+   * Submits valid, non-dead warhead sprites at the current world transform.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
@@ -119,6 +127,8 @@ export class EveMissileWarhead extends EveTransform
    * Resets the warhead to its pre-launch state and re-rolls the randomized
    * explosion distance, speed modifier and final-target timing that vary this
    * flight.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -152,6 +162,8 @@ export class EveMissileWarhead extends EveTransform
    * Latches the launch transform as the warhead's start offset and orientation
    * and marks the start data valid, which releases the state machine from its
    * delayed state.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -169,6 +181,8 @@ export class EveMissileWarhead extends EveTransform
    * Sets the destination offset the warhead flies toward; on a target switch it
    * also snapshots the previous destination and flight time so the change is
    * blended in rather than snapped.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -184,6 +198,8 @@ export class EveMissileWarhead extends EveTransform
 
   /**
    * Advances the delayed/launch/ejecting/tracking state machine by one frame, picking a damage locator when tracking begins and again at the spread-to-final switch.
+   *
+   * @implemented
    * @returns {number} The state-change event the missile must act on, or EVT_NONE.
    */
 
@@ -247,8 +263,8 @@ export class EveMissileWarhead extends EveTransform
    * (TriMath.cpp:896-902) with no denominator floor: a negative estimated
    * flying time clamps the fraction to 0 rather than timing out.
    *
-   * Adapted: the targetable's output position is its last argument instead of
-   * its first, because JavaScript has no reference parameters.
+   * @adapted the targetable's output position is its last argument instead of
+   *   its first, because JavaScript has no reference parameters.
    * @returns {number} EVT_EXPLODE when the warhead detonated this frame, otherwise EVT_NONE.
    */
 
@@ -290,7 +306,7 @@ export class EveMissileWarhead extends EveTransform
    * direction and orientation depend on; the noise phase is a stable
    * per-instance sequence rather than Carbon's pointer-derived one.
    *
-   * Adapted: Carbon's pointer-derived Perlin phase is replaced with a stable per-instance 12-bit sequence.
+   * @adapted Carbon's pointer-derived Perlin phase is replaced with a stable per-instance 12-bit sequence.
    */
 
   @meta.adapted
@@ -313,7 +329,7 @@ export class EveMissileWarhead extends EveTransform
    * offset and the bomb falloff - then rebuilds the warhead's offset transform
    * and slerps its orientation toward the direction of travel.
    *
-   * Adapted: Flight produces only the offset transform; visibility publishes world placement. Per-object data uses fresh CPU records instead of persistent native buffer invalidation.
+   * @adapted Flight produces only the offset transform; visibility publishes world placement. Per-object data uses fresh CPU records instead of persistent native buffer invalidation.
    */
 
   @meta.adapted
@@ -371,6 +387,8 @@ export class EveMissileWarhead extends EveTransform
   /**
    * Enables only native shared GPU emitters, including those of children whose
    * Blue exposure maps EveTransform.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -399,6 +417,8 @@ export class EveMissileWarhead extends EveTransform
    * medium-detail threshold, MEDIUM from the VISIBILITY threshold (Carbon:
    * the warhead mesh is hidden entirely at LOW, so the low-detail threshold
    * is not used). Returns the visibility.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -432,6 +452,8 @@ export class EveMissileWarhead extends EveTransform
    * invisible or at low LOD. The sprite set is NOT gathered here: Carbon's
    * EveMissileWarhead::GetRenderables never touches it, and EveSpriteSet has
    * no GetRenderables at all - attachments render through the batch path.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -445,6 +467,8 @@ export class EveMissileWarhead extends EveTransform
   /**
    * Writes the world-space sphere enclosing the warhead body, sized and centred
    * from warheadLength.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -458,6 +482,8 @@ export class EveMissileWarhead extends EveTransform
   /**
    * Writes the warhead body sphere in the missile's space, which the missile
    * unions into its own bounding sphere.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -471,6 +497,8 @@ export class EveMissileWarhead extends EveTransform
   /**
    * Returns the warhead's live offset transform relative to the missile; it is
    * the warhead's own matrix and is rewritten by the next flight update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -482,6 +510,8 @@ export class EveMissileWarhead extends EveTransform
   /**
    * Returns the damage locator index this warhead is tracking, or -1 when none
    * has been chosen.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -490,7 +520,11 @@ export class EveMissileWarhead extends EveTransform
     return this.targetLocatorID;
   }
 
-  /** Overrides the damage locator index this warhead tracks. */
+  /**
+   * Overrides the damage locator index this warhead tracks.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetTargetLocator(locator)
@@ -498,7 +532,11 @@ export class EveMissileWarhead extends EveTransform
     this.targetLocatorID = Number(locator) | 0;
   }
 
-  /** Returns the current flight state, one of EveMissileWarhead.State. */
+  /**
+   * Returns the current flight state, one of EveMissileWarhead.State.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetState()
@@ -509,6 +547,8 @@ export class EveMissileWarhead extends EveTransform
   /**
    * Returns the authored warhead id, which the missile passes to the explosion
    * callback.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -522,7 +562,7 @@ export class EveMissileWarhead extends EveTransform
    * the radius/length pair the shader needs; the record carries values only,
    * never GPU resources.
    *
-   * Adapted: A fresh CPU record encodes the world and missile size fields instead of invalidating persistent native per-object buffers.
+   * @adapted A fresh CPU record encodes the world and missile size fields instead of invalidating persistent native per-object buffers.
    */
 
   @meta.adapted
@@ -540,6 +580,8 @@ export class EveMissileWarhead extends EveTransform
    * pixel stage, else the 64-byte world matrix plus the 16-byte missile-size
    * vector. A pure size contract that must match UpdatePerObjectBuffer's
    * layout below.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -554,6 +596,7 @@ export class EveMissileWarhead extends EveTransform
    * bytes for every non-pixel stage. No AL object is touched here; the upload
    * happens on the engine side of the boundary.
    *
+   * @implemented
    * @param {number} shaderType A ShaderType value.
    * @param {number} _size Caller's byte budget (Carbon ignores it too).
    * @param {DataView} data Caller-owned staging view, little-endian.

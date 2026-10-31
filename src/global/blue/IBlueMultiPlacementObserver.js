@@ -13,6 +13,8 @@ export class IBlueMultiPlacementObserver extends IRoot
   /**
    * Receives the caller's ordered placement records.
    * Native signature: void UpdatePlacements(const PositionDescriptionVector& positions) = 0.
+   *
+   * @abstract
    * @param {Array<import("./PositionDescription.js").PositionDescription>} _positions The caller's records, adapting std::vector<PositionDescription>.
    * @returns {void}
    */

@@ -155,7 +155,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     this.PrepareResources();
   }
 
-  /** Recreates native geometry; explicit destruction replaces C++ buffer assignment. */
+  /**
+   * Recreates native geometry; explicit destruction replaces C++ buffer assignment.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Initialize()
@@ -169,6 +173,8 @@ export class EveChildCloud extends EveSpaceObjectChild
   /**
    * Carbon OnModified (cpp:200-209): a new tessellation level drops the vertex
    * and index buffers and prepares them again. The vertex declaration is kept.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -185,7 +191,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     return true;
   }
 
-  /** Explicit buffer destruction replaces native index-vector clear (cpp:275-279). */
+  /**
+   * Explicit buffer destruction replaces native index-vector clear (cpp:275-279).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources()
@@ -211,8 +221,9 @@ export class EveChildCloud extends EveSpaceObjectChild
 
   /**
    * Builds Carbon's staggered float2 grid and uint16 LODs (cpp:280-350).
-   * Adapted: the AL description replaces the native stride/count overload.
-   * Native quirks retained: LODs stop ABOVE 16, and uint16 indices wrap.
+   *
+   * @adapted the AL description replaces the native stride/count overload.
+   *   Native quirks retained: LODs stop ABOVE 16, and uint16 indices wrap.
    */
 
   @meta.adapted
@@ -276,7 +287,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     return true;
   }
 
-  /** Collects only visible, updated clouds with prepared geometry (cpp:218-230). */
+  /**
+   * Collects only visible, updated clouds with prepared geometry (cpp:218-230).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(renderables)
@@ -286,7 +301,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     renderables.push(this);
   }
 
-  /** Distance from the renderer's view, less the scaled sorting radius (cpp:247-252). */
+  /**
+   * Distance from the renderer's view, less the scaled sorting radius (cpp:247-252).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -300,6 +319,8 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Submits the native transparent indexed triangle grid (cpp:254-273).
    * Carbon creates a local batch and Commit copies it (TriRenderBatch.h:333-349).
    * The JS accumulator retains ownership, so each submission needs a fresh batch.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -321,8 +342,9 @@ export class EveChildCloud extends EveSpaceObjectChild
 
   /**
    * Fills the native 19-register VS block and selects grid LOD (cpp:352-407).
-   * Adapted: RawData owns the single GPU transpose. Empty clipped bounds use a zero-area rectangle,
-   * replacing the donor's uninitialized points[0] read when every point is clipped.
+   *
+   * @adapted RawData owns the single GPU transpose. Empty clipped bounds use a zero-area rectangle,
+   *   replacing the donor's uninitialized points[0] read when every point is clipped.
    */
 
   @meta.adapted
@@ -373,6 +395,8 @@ export class EveChildCloud extends EveSpaceObjectChild
   /**
    * Carbon EveChildCloud::GetDebugOptions (cpp:438-445): its own box option,
    * then the editable volume's.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -390,6 +414,8 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Carbon EveChildCloud::RenderDebugInfo (cpp:447-461): with "Bounding Box",
    * the unit box under the world transform; then the editable volume's debug
    * info under the same transform.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -414,7 +440,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     }
   }
 
-  /** Advances the editable volume, composes local SRT with its live parent and refreshes bounds. */
+  /**
+   * Advances the editable volume, composes local SRT with its live parent and refreshes bounds.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext, params)
@@ -434,7 +464,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     this.hasUpdated = true;
   }
 
-  /** Refreshes bounds from the transform finalized by the sync pass. */
+  /**
+   * Refreshes bounds from the transform finalized by the sync pass.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
@@ -442,7 +476,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     updateBoundingSphere(this);
   }
 
-  /** Applies Carbon's display, frustum and minimum-screen-size visibility gate. */
+  /**
+   * Applies Carbon's display, frustum and minimum-screen-size visibility gate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
@@ -455,7 +493,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     this.lastLodFactor = updateContext.GetLodFactor();
   }
 
-  /** Copies the current world-space sphere and always reports it available. */
+  /**
+   * Copies the current world-space sphere and always reports it available.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -464,7 +506,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     return true;
   }
 
-  /** Copies the transform composed during the last sync pass. */
+  /**
+   * Copies the transform composed during the last sync pass.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalToWorldTransform(out)
@@ -472,7 +518,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     return mat4.copy(out, this.worldTransform);
   }
 
-  /** Carbon always routes this legacy cloud through transparent rendering. */
+  /**
+   * Carbon always routes this legacy cloud through transparent rendering.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -482,9 +532,10 @@ export class EveChildCloud extends EveSpaceObjectChild
 
   /**
    * Projects the clipped cube to screen bounds (EveChildCloud.cpp:69-160).
-   * Adapted: visit the 12 unique edges instead of duplicated per-face edges;
-   * repeated candidates cannot change extrema. The all-points-clipped native
-   * bug reads uninitialized points[0]; use an explicit zero-area rectangle.
+   *
+   * @adapted visit the 12 unique edges instead of duplicated per-face edges;
+   *   repeated candidates cannot change extrema. The all-points-clipped native
+   *   bug reads uninitialized points[0]; use an explicit zero-area rectangle.
    */
   @meta.adapted
   static getProjectedCubeBounds(out, worldView, projection, scratch)

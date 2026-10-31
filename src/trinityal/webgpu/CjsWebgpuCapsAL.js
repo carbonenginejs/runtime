@@ -99,6 +99,7 @@ export class CjsWebgpuCapsAL
    * caller that emits f16 on a promise, against a device that turns out to lack
    * the feature, gets a shader that fails to compile rather than a slow one.
    *
+   * @adapted
    * @returns {boolean} Whether the device has `shader-f16`.
    */
   SupportsFloat16()
@@ -111,6 +112,7 @@ export class CjsWebgpuCapsAL
   /**
    * Whether a shader can read a buffer resource.
    *
+   * @implemented
    * @returns {boolean} True; storage buffers are core WebGPU.
    */
   SupportsGpuBuffer()
@@ -126,6 +128,7 @@ export class CjsWebgpuCapsAL
    * `GPUCanvasContext.configure`, and the frame is shown when the turn ends.
    * There is no chain for Trinity to create, resize or flip.
    *
+   * @adapted
    * @returns {boolean} False.
    */
   SupportsStandaloneSwapChain()
@@ -136,6 +139,7 @@ export class CjsWebgpuCapsAL
   /**
    * Whether a vertex shader can sample a texture.
    *
+   * @implemented
    * @returns {boolean} True; WebGPU binds textures to any stage.
    */
   SupportsVertexShaderTextures()
@@ -146,6 +150,7 @@ export class CjsWebgpuCapsAL
   /**
    * Whether the display refresh rate varies.
    *
+   * @implemented
    * @returns {boolean} False; the page presents through
    *   `requestAnimationFrame` and is not told what the display is doing.
    */
@@ -157,6 +162,7 @@ export class CjsWebgpuCapsAL
   /**
    * Whether hardware ray tracing is available.
    *
+   * @implemented
    * @returns {boolean} False; WebGPU has no ray-tracing pipeline.
    */
   SupportsRaytracing()

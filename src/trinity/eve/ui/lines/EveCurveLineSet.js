@@ -40,21 +40,33 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   @type.boolean
   isVisible = false;
 
-  /** Carbon performs no synchronous work for this leaf. */
+  /**
+   * Carbon performs no synchronous work for this leaf.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(_updateContext)
   {
   }
 
-  /** Carbon performs no asynchronous work for this leaf. */
+  /**
+   * Carbon performs no asynchronous work for this leaf.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
-  /** Carbon's IEveTransform update is intentionally empty. */
+  /**
+   * Carbon's IEveTransform update is intentionally empty.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update__UpdateContext(updateContext)
@@ -62,7 +74,11 @@ export class EveCurveLineSet extends Tr2CurveLineSet
 
   }
 
-  /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
+  /**
+   * Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(updateContext)
@@ -70,7 +86,11 @@ export class EveCurveLineSet extends Tr2CurveLineSet
     return this.Update__UpdateContext(updateContext);
   }
 
-  /** Composes local SRT with the parent and culls the transformed local sphere. */
+  /**
+   * Composes local SRT with the parent and culls the transformed local sphere.
+   *
+   * @implemented
+   */
 
   @blue.contextual(["camera"])
   @meta.implemented
@@ -94,7 +114,11 @@ export class EveCurveLineSet extends Tr2CurveLineSet
     this.isVisible = updateContext.GetFrustum().IsSphereVisible(WORLD_SPHERE);
   }
 
-  /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
+  /**
+   * Carbon's GetRenderables( renderables ): forwards with no impostor manager.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(renderables)
@@ -102,7 +126,11 @@ export class EveCurveLineSet extends Tr2CurveLineSet
     return this.GetRenderables__Impostors(renderables, null);
   }
 
-  /** Appends this renderable only when the last cull passed. */
+  /**
+   * Appends this renderable only when the last cull passed.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetRenderables__Impostors(renderables, _impostors)
@@ -114,7 +142,11 @@ export class EveCurveLineSet extends Tr2CurveLineSet
     return renderables;
   }
 
-  /** Copies Carbon's local-space bound. */
+  /**
+   * Copies Carbon's local-space bound.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -126,6 +158,8 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   /**
    * Carbon EveCurveLineSet::GetPerObjectData (cpp:106-125): the same standard
    * pair as EveLineSet, each with a transposed WorldMat.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -139,7 +173,11 @@ export class EveCurveLineSet extends Tr2CurveLineSet
     return data;
   }
 
-  /** Carbon always reports the high LOD for this UI renderable. */
+  /**
+   * Carbon always reports the high LOD for this UI renderable.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLODLevel()
@@ -147,21 +185,33 @@ export class EveCurveLineSet extends Tr2CurveLineSet
     return Tr2Lod.TR2_LOD_HIGH;
   }
 
-  /** Carbon provides no model-center update for this object. */
+  /**
+   * Carbon provides no model-center update for this object.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
 
-  /** Carbon provides no model-center result for this object. */
+  /**
+   * Carbon provides no model-center result for this object.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetModelCenterWorldPosition(_position)
   {
   }
 
-  /** Carbon provides no local box for this object. */
+  /**
+   * Carbon provides no local box for this object.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalBoundingBox(_minBounds, _maxBounds)
@@ -169,7 +219,11 @@ export class EveCurveLineSet extends Tr2CurveLineSet
     return false;
   }
 
-  /** Carbon's IEveTransform implementation deliberately returns identity. */
+  /**
+   * Carbon's IEveTransform implementation deliberately returns identity.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalToWorldTransform(out)

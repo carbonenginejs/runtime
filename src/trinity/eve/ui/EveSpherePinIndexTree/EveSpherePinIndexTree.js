@@ -102,6 +102,8 @@ export class EveSpherePinIndexTree
    * Builds mesh zero / LOD zero from decoded positions and ordered index groups.
    * JS payload channels replace format-specific byte streams; malformed or absent
    * channels return failure rather than performing native invalid memory access.
+   *
+   * @adapted
    */
   @meta.adapted
   Initialize()
@@ -159,14 +161,22 @@ export class EveSpherePinIndexTree
     return 1;
   }
 
-  /** Native readiness flag. */
+  /**
+   * Native readiness flag.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsInitialized()
   {
     return this.initialized;
   }
 
-  /** Marks each matching face once in left-before-right tree traversal order. */
+  /**
+   * Marks each matching face once in left-before-right tree traversal order.
+   *
+   * @implemented
+   */
   @meta.implemented
   MarkFaces(node, minTheta, maxTheta, minPhi, maxPhi)
   {
@@ -194,6 +204,8 @@ export class EveSpherePinIndexTree
    * Only primitives * 3 entries are accepted: native keeps the rejected tail.
    * Query radius remains both angular and Cartesian, and uint16 truncation and
    * unclamped pole tests are preserved (cpp:594-670).
+   *
+   * @adapted
    */
   @meta.adapted
   GetIndices(point, radius, output)

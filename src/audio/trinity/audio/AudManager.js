@@ -51,8 +51,8 @@ export class AudManager extends IRoot
   /**
    * m_settings (AudSettingsPtr) [AUTHORED]
    *
-   * Adapted: Carbon supplies this via UpdateSettings() outside Blue serialization; CarbonEngineJS persists it for
-   * values interchange.
+   * @adapted Carbon supplies this via UpdateSettings() outside Blue serialization; CarbonEngineJS persists it for
+   *   values interchange.
    */
   @meta.adapted
   @meta.mapAttribute(meta.PERSIST)
@@ -89,14 +89,22 @@ export class AudManager extends IRoot
     return this._state === "enabled";
   }
 
-  /** Carbon method GetState. */
+  /**
+   * Carbon method GetState.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetState()
   {
     return this._state;
   }
 
-  /** Carbon method GetStateValue: Carbon's scripting int (0/1/2). */
+  /**
+   * Carbon method GetStateValue: Carbon's scripting int (0/1/2).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap("GetState")
   @meta.implemented
   GetStateValue()
@@ -107,9 +115,9 @@ export class AudManager extends IRoot
   /**
    * Carbon method Enable: init if needed, enable, load Init.bnk + requested banks, wake everything.
    *
-   * Adapted: Wwise memory/stream/sound initialization is the backend's Init, while pre-enabled geometry uses optional
-   * InitSpatialAudioGeometry with Carbon's populated settings. The state machine, failure gate, bank loads, and wake
-   * pass follow audio/src/AudManager.cpp:148-180 and 848-881.
+   * @adapted Wwise memory/stream/sound initialization is the backend's Init, while pre-enabled geometry uses optional
+   *   InitSpatialAudioGeometry with Carbon's populated settings. The state machine, failure gate, bank loads, and wake
+   *   pass follow audio/src/AudManager.cpp:148-180 and 848-881.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -160,7 +168,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method Disable: cull everything, clear banks, drop to disabled (engine stays initialized). */
+  /**
+   * Carbon method Disable: cull everything, clear banks, drop to disabled (engine stays initialized).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Disable()
@@ -179,7 +191,11 @@ export class AudManager extends IRoot
     this._state = "disabled";
   }
 
-  /** Carbon method LoadBank: async - tracked LOADING immediately; backend callback drives LOADED. */
+  /**
+   * Carbon method LoadBank: async - tracked LOADING immediately; backend callback drives LOADED.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   LoadBank(name)
@@ -214,7 +230,11 @@ export class AudManager extends IRoot
     });
   }
 
-  /** Carbon method UnloadBank. */
+  /**
+   * Carbon method UnloadBank.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   UnloadBank(name)
@@ -243,7 +263,11 @@ export class AudManager extends IRoot
     });
   }
 
-  /** Carbon method ClearBanks. */
+  /**
+   * Carbon method ClearBanks.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearBanks()
@@ -257,7 +281,11 @@ export class AudManager extends IRoot
 
   // The deferred-event flush: waiting events fire with bypassPrefix=true
   // exactly on the transition to LOADED, then the queue clears.
-  /** Carbon method UpdateSoundBankStatus. */
+  /**
+   * Carbon method UpdateSoundBankStatus.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSoundBankStatus(bankID, status)
@@ -278,7 +306,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method RegisterEventAfterSoundBankLoad: queue an event on a LOADING bank (matched by name). */
+  /**
+   * Carbon method RegisterEventAfterSoundBankLoad: queue an event on a LOADING bank (matched by name).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterEventAfterSoundBankLoad(soundBankName, eventName, emitter)
@@ -292,7 +324,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method GetSoundBankStatus: by name or key; "not_loaded" when unknown. */
+  /**
+   * Carbon method GetSoundBankStatus: by name or key; "not_loaded" when unknown.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSoundBankStatus(name)
@@ -312,7 +348,11 @@ export class AudManager extends IRoot
     return "not_loaded";
   }
 
-  /** Carbon method GetLoadedSoundBanks: names with status loaded OR loading (Carbon counts both). */
+  /**
+   * Carbon method GetLoadedSoundBanks: names with status loaded OR loading (Carbon counts both).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetLoadedSoundBanks()
@@ -328,7 +368,11 @@ export class AudManager extends IRoot
     return names;
   }
 
-  /** Carbon method SetGlobalRTPC: pure backend passthrough, enabled-gated, no caching. */
+  /**
+   * Carbon method SetGlobalRTPC: pure backend passthrough, enabled-gated, no caching.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetGlobalRTPC(rtpcName, value)
@@ -345,7 +389,11 @@ export class AudManager extends IRoot
     return true;
   }
 
-  /** Carbon method SetState (global state group): passthrough, enabled-gated. */
+  /**
+   * Carbon method SetState (global state group): passthrough, enabled-gated.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetState(stateGroup, stateName)
@@ -359,7 +407,11 @@ export class AudManager extends IRoot
     return true;
   }
 
-  /** Carbon method LogPostEvent. */
+  /**
+   * Carbon method LogPostEvent.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   LogPostEvent(emitterID, playID, eventID, name)
@@ -370,7 +422,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method LogExecuteActionOnPlayingID. */
+  /**
+   * Carbon method LogExecuteActionOnPlayingID.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   LogExecuteActionOnPlayingID(emitterID, playID, action)
@@ -381,7 +437,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method LogSetSwitch. */
+  /**
+   * Carbon method LogSetSwitch.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   LogSetSwitch(emitterID, group, state)
@@ -392,7 +452,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method LogSetState. */
+  /**
+   * Carbon method LogSetState.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   LogSetState(group, state)
@@ -403,7 +467,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method LogSetRTPC. */
+  /**
+   * Carbon method LogSetRTPC.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   LogSetRTPC(emitterID, name, value, playID = 0)
@@ -414,7 +482,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method GetSpatialAudioGeometryEnabled. */
+  /**
+   * Carbon method GetSpatialAudioGeometryEnabled.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSpatialAudioGeometryEnabled()
@@ -434,6 +506,8 @@ export class AudManager extends IRoot
    * backend's optional SetObjectObstructionAndOcclusion(emitterID, 4,
    * obstruction, occlusion); an explicit false return is retried on the next
    * Process(), any other return is accepted.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -445,7 +519,11 @@ export class AudManager extends IRoot
     );
   }
 
-  /** Carbon method GetEmitterOcclusion: returns the live, mid-fade value. */
+  /**
+   * Carbon method GetEmitterOcclusion: returns the live, mid-fade value.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetEmitterOcclusion(emitterID)
@@ -453,7 +531,11 @@ export class AudManager extends IRoot
     return this._obstructionOcclusion.GetEmitterOcclusion(emitterID);
   }
 
-  /** Carbon method ClearObstructionOcclusion: fades every target to clear. */
+  /**
+   * Carbon method ClearObstructionOcclusion: fades every target to clear.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearObstructionOcclusion()
@@ -461,7 +543,11 @@ export class AudManager extends IRoot
     this._obstructionOcclusion.ClearAll();
   }
 
-  /** Carbon Blue property getter for game-driven obstruction/occlusion. */
+  /**
+   * Carbon Blue property getter for game-driven obstruction/occlusion.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetObstructionOcclusionEnabled()
@@ -469,7 +555,11 @@ export class AudManager extends IRoot
     return this._obstructionOcclusion.IsEnabled();
   }
 
-  /** Carbon Blue property setter for game-driven obstruction/occlusion. */
+  /**
+   * Carbon Blue property setter for game-driven obstruction/occlusion.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetObstructionOcclusionEnabled(value)
@@ -480,6 +570,8 @@ export class AudManager extends IRoot
   /**
    * obstructionOcclusionEnabled (MAP_PROPERTY): Carbon's property over GetObstructionOcclusionEnabled/SetObstructionOcclusionEnabled, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:54).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -488,6 +580,7 @@ export class AudManager extends IRoot
     return this.GetObstructionOcclusionEnabled();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set obstructionOcclusionEnabled(value)
@@ -495,7 +588,11 @@ export class AudManager extends IRoot
     this.SetObstructionOcclusionEnabled(value);
   }
 
-  /** Carbon Blue property getter for the obstruction/occlusion fade rate. */
+  /**
+   * Carbon Blue property getter for the obstruction/occlusion fade rate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetObstructionOcclusionFadeRate()
@@ -503,7 +600,11 @@ export class AudManager extends IRoot
     return this._obstructionOcclusion.GetFadeRate();
   }
 
-  /** Carbon Blue property setter for the obstruction/occlusion fade rate. */
+  /**
+   * Carbon Blue property setter for the obstruction/occlusion fade rate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetObstructionOcclusionFadeRate(value)
@@ -514,6 +615,8 @@ export class AudManager extends IRoot
   /**
    * obstructionOcclusionFadeRate (MAP_PROPERTY): Carbon's property over GetObstructionOcclusionFadeRate/SetObstructionOcclusionFadeRate, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:55).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -522,6 +625,7 @@ export class AudManager extends IRoot
     return this.GetObstructionOcclusionFadeRate();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set obstructionOcclusionFadeRate(value)
@@ -532,8 +636,8 @@ export class AudManager extends IRoot
   /**
    * Carbon method SetSpatialAudioGeometryEnabled.
    *
-   * Adapted: Browser backends may expose InitSpatialAudioGeometry; the setting and geometry lifecycle remain
-   * available even though WebAudio has no native diffraction engine.
+   * @adapted Browser backends may expose InitSpatialAudioGeometry; the setting and geometry lifecycle remain
+   *   available even though WebAudio has no native diffraction engine.
    */
 
   @meta.adapted
@@ -589,14 +693,22 @@ export class AudManager extends IRoot
     return true;
   }
 
-  /** Returns the spatial-audio movement threshold. */
+  /**
+   * Returns the spatial-audio movement threshold.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMovementThreshold()
   {
     return this._spatialAudioSettings.GetMovementThreshold();
   }
 
-  /** Sets the spatial-audio movement threshold. */
+  /**
+   * Sets the spatial-audio movement threshold.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMovementThreshold(value)
   {
@@ -606,6 +718,8 @@ export class AudManager extends IRoot
   /**
    * movementThreshold (MAP_PROPERTY): Carbon's property over GetMovementThreshold/SetMovementThreshold, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:38).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -614,6 +728,7 @@ export class AudManager extends IRoot
     return this.GetMovementThreshold();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set movementThreshold(value)
@@ -621,14 +736,22 @@ export class AudManager extends IRoot
     this.SetMovementThreshold(value);
   }
 
-  /** Returns the maximum number of primary spatial-audio rays. */
+  /**
+   * Returns the maximum number of primary spatial-audio rays.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetNumberOfPrimaryRays()
   {
     return this._spatialAudioSettings.GetNumberOfPrimaryRays();
   }
 
-  /** Sets the maximum number of primary spatial-audio rays. */
+  /**
+   * Sets the maximum number of primary spatial-audio rays.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetNumberOfPrimaryRays(value)
   {
@@ -638,6 +761,8 @@ export class AudManager extends IRoot
   /**
    * numberOfPrimaryRays (MAP_PROPERTY): Carbon's property over GetNumberOfPrimaryRays/SetNumberOfPrimaryRays, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:39).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -646,6 +771,7 @@ export class AudManager extends IRoot
     return this.GetNumberOfPrimaryRays();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set numberOfPrimaryRays(value)
@@ -653,14 +779,22 @@ export class AudManager extends IRoot
     this.SetNumberOfPrimaryRays(value);
   }
 
-  /** Returns the maximum reflection order. */
+  /**
+   * Returns the maximum reflection order.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxReflectionOrder()
   {
     return this._spatialAudioSettings.GetMaxReflectionOrder();
   }
 
-  /** Sets the maximum reflection order. */
+  /**
+   * Sets the maximum reflection order.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxReflectionOrder(value)
   {
@@ -670,6 +804,8 @@ export class AudManager extends IRoot
   /**
    * maxReflectionOrder (MAP_PROPERTY): Carbon's property over GetMaxReflectionOrder/SetMaxReflectionOrder, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:40).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -678,6 +814,7 @@ export class AudManager extends IRoot
     return this.GetMaxReflectionOrder();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set maxReflectionOrder(value)
@@ -685,14 +822,22 @@ export class AudManager extends IRoot
     this.SetMaxReflectionOrder(value);
   }
 
-  /** Returns the maximum diffraction order. */
+  /**
+   * Returns the maximum diffraction order.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxDiffractionOrder()
   {
     return this._spatialAudioSettings.GetMaxDiffractionOrder();
   }
 
-  /** Sets the maximum diffraction order. */
+  /**
+   * Sets the maximum diffraction order.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxDiffractionOrder(value)
   {
@@ -702,6 +847,8 @@ export class AudManager extends IRoot
   /**
    * maxDiffractionOrder (MAP_PROPERTY): Carbon's property over GetMaxDiffractionOrder/SetMaxDiffractionOrder, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:41).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -710,6 +857,7 @@ export class AudManager extends IRoot
     return this.GetMaxDiffractionOrder();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set maxDiffractionOrder(value)
@@ -717,14 +865,22 @@ export class AudManager extends IRoot
     this.SetMaxDiffractionOrder(value);
   }
 
-  /** Returns the maximum number of emitter room auxiliary sends. */
+  /**
+   * Returns the maximum number of emitter room auxiliary sends.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxEmitterRoomAuxSends()
   {
     return this._spatialAudioSettings.GetMaxEmitterRoomAuxSends();
   }
 
-  /** Sets the maximum number of emitter room auxiliary sends. */
+  /**
+   * Sets the maximum number of emitter room auxiliary sends.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
@@ -734,6 +890,8 @@ export class AudManager extends IRoot
   /**
    * maxEmitterRoomAuxSends (MAP_PROPERTY): Carbon's property over GetMaxEmitterRoomAuxSends/SetMaxEmitterRoomAuxSends, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:42).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -742,6 +900,7 @@ export class AudManager extends IRoot
     return this.GetMaxEmitterRoomAuxSends();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set maxEmitterRoomAuxSends(value)
@@ -749,14 +908,22 @@ export class AudManager extends IRoot
     this.SetMaxEmitterRoomAuxSends(value);
   }
 
-  /** Returns the diffraction order applied at reflection endpoints. */
+  /**
+   * Returns the diffraction order applied at reflection endpoints.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetDiffractionOnReflectionsOrder()
   {
     return this._spatialAudioSettings.GetDiffractionOnReflectionsOrder();
   }
 
-  /** Sets the diffraction order applied at reflection endpoints. */
+  /**
+   * Sets the diffraction order applied at reflection endpoints.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
@@ -766,6 +933,8 @@ export class AudManager extends IRoot
   /**
    * diffractionOnReflectionsOrder (MAP_PROPERTY): Carbon's property over GetDiffractionOnReflectionsOrder/SetDiffractionOnReflectionsOrder, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:43).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -774,6 +943,7 @@ export class AudManager extends IRoot
     return this.GetDiffractionOnReflectionsOrder();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set diffractionOnReflectionsOrder(value)
@@ -781,14 +951,22 @@ export class AudManager extends IRoot
     this.SetDiffractionOnReflectionsOrder(value);
   }
 
-  /** Returns the maximum spatial-audio path length. */
+  /**
+   * Returns the maximum spatial-audio path length.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxPathLength()
   {
     return this._spatialAudioSettings.GetMaxPathLength();
   }
 
-  /** Sets the maximum spatial-audio path length. */
+  /**
+   * Sets the maximum spatial-audio path length.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxPathLength(value)
   {
@@ -798,6 +976,8 @@ export class AudManager extends IRoot
   /**
    * maxPathLength (MAP_PROPERTY): Carbon's property over GetMaxPathLength/SetMaxPathLength, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:44).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -806,6 +986,7 @@ export class AudManager extends IRoot
     return this.GetMaxPathLength();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set maxPathLength(value)
@@ -813,14 +994,22 @@ export class AudManager extends IRoot
     this.SetMaxPathLength(value);
   }
 
-  /** Returns the targeted spatial-audio CPU percentage. */
+  /**
+   * Returns the targeted spatial-audio CPU percentage.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCPULimitPercentage()
   {
     return this._spatialAudioSettings.GetCPULimitPercentage();
   }
 
-  /** Sets the targeted spatial-audio CPU percentage. */
+  /**
+   * Sets the targeted spatial-audio CPU percentage.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetCPULimitPercentage(value)
   {
@@ -830,6 +1019,8 @@ export class AudManager extends IRoot
   /**
    * cpuLimitPercentage (MAP_PROPERTY): Carbon's property over GetCPULimitPercentage/SetCPULimitPercentage, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:45).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -838,6 +1029,7 @@ export class AudManager extends IRoot
     return this.GetCPULimitPercentage();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set cpuLimitPercentage(value)
@@ -845,14 +1037,22 @@ export class AudManager extends IRoot
     this.SetCPULimitPercentage(value);
   }
 
-  /** Returns the spatial-audio load-balancing spread. */
+  /**
+   * Returns the spatial-audio load-balancing spread.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLoadBalancingSpread()
   {
     return this._spatialAudioSettings.GetLoadBalancingSpread();
   }
 
-  /** Sets the spatial-audio load-balancing spread. */
+  /**
+   * Sets the spatial-audio load-balancing spread.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetLoadBalancingSpread(value)
   {
@@ -862,6 +1062,8 @@ export class AudManager extends IRoot
   /**
    * loadBalancingSpread (MAP_PROPERTY): Carbon's property over GetLoadBalancingSpread/SetLoadBalancingSpread, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:46).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -870,6 +1072,7 @@ export class AudManager extends IRoot
     return this.GetLoadBalancingSpread();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set loadBalancingSpread(value)
@@ -877,14 +1080,22 @@ export class AudManager extends IRoot
     this.SetLoadBalancingSpread(value);
   }
 
-  /** Returns whether geometric diffraction and transmission are enabled. */
+  /**
+   * Returns whether geometric diffraction and transmission are enabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetEnableDiffractionAndTransmission()
   {
     return this._spatialAudioSettings.GetEnableDiffractionAndTransmission();
   }
 
-  /** Enables or disables geometric diffraction and transmission. */
+  /**
+   * Enables or disables geometric diffraction and transmission.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetEnableDiffractionAndTransmission(value)
   {
@@ -894,6 +1105,8 @@ export class AudManager extends IRoot
   /**
    * enableDiffractionAndTransmission (MAP_PROPERTY): Carbon's property over GetEnableDiffractionAndTransmission/SetEnableDiffractionAndTransmission, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:47).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -902,6 +1115,7 @@ export class AudManager extends IRoot
     return this.GetEnableDiffractionAndTransmission();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set enableDiffractionAndTransmission(value)
@@ -909,14 +1123,22 @@ export class AudManager extends IRoot
     this.SetEnableDiffractionAndTransmission(value);
   }
 
-  /** Returns whether Wwise calculates emitter virtual positions. */
+  /**
+   * Returns whether Wwise calculates emitter virtual positions.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCalcEmitterVirtualPosition()
   {
     return this._spatialAudioSettings.GetCalcEmitterVirtualPosition();
   }
 
-  /** Enables or disables Wwise emitter virtual-position calculation. */
+  /**
+   * Enables or disables Wwise emitter virtual-position calculation.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetCalcEmitterVirtualPosition(value)
   {
@@ -926,6 +1148,8 @@ export class AudManager extends IRoot
   /**
    * calcEmitterVirtualPosition (MAP_PROPERTY): Carbon's property over GetCalcEmitterVirtualPosition/SetCalcEmitterVirtualPosition, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:48).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -934,6 +1158,7 @@ export class AudManager extends IRoot
     return this.GetCalcEmitterVirtualPosition();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set calcEmitterVirtualPosition(value)
@@ -941,14 +1166,22 @@ export class AudManager extends IRoot
     this.SetCalcEmitterVirtualPosition(value);
   }
 
-  /** Returns the geometry surface transmission loss. */
+  /**
+   * Returns the geometry surface transmission loss.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetTransmissionLoss()
   {
     return this._spatialAudioSettings.GetTransmissionLoss();
   }
 
-  /** Sets the geometry surface transmission loss. */
+  /**
+   * Sets the geometry surface transmission loss.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetTransmissionLoss(value)
   {
@@ -958,6 +1191,8 @@ export class AudManager extends IRoot
   /**
    * transmissionLoss (MAP_PROPERTY): Carbon's property over GetTransmissionLoss/SetTransmissionLoss, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:49).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -966,6 +1201,7 @@ export class AudManager extends IRoot
     return this.GetTransmissionLoss();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set transmissionLoss(value)
@@ -973,14 +1209,22 @@ export class AudManager extends IRoot
     this.SetTransmissionLoss(value);
   }
 
-  /** Returns whether geometry diffraction is enabled. */
+  /**
+   * Returns whether geometry diffraction is enabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetEnableDiffraction()
   {
     return this._spatialAudioSettings.GetEnableDiffraction();
   }
 
-  /** Enables or disables geometry diffraction. */
+  /**
+   * Enables or disables geometry diffraction.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetEnableDiffraction(value)
   {
@@ -990,6 +1234,8 @@ export class AudManager extends IRoot
   /**
    * enableDiffraction (MAP_PROPERTY): Carbon's property over GetEnableDiffraction/SetEnableDiffraction, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:50).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -998,6 +1244,7 @@ export class AudManager extends IRoot
     return this.GetEnableDiffraction();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set enableDiffraction(value)
@@ -1005,14 +1252,22 @@ export class AudManager extends IRoot
     this.SetEnableDiffraction(value);
   }
 
-  /** Returns whether geometry boundary-edge diffraction is enabled. */
+  /**
+   * Returns whether geometry boundary-edge diffraction is enabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetEnableDiffractionOnBoundaryEdges()
   {
     return this._spatialAudioSettings.GetEnableDiffractionOnBoundaryEdges();
   }
 
-  /** Enables or disables geometry boundary-edge diffraction. */
+  /**
+   * Enables or disables geometry boundary-edge diffraction.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetEnableDiffractionOnBoundaryEdges(value)
   {
@@ -1022,6 +1277,8 @@ export class AudManager extends IRoot
   /**
    * enableDiffractionOnBoundaryEdges (MAP_PROPERTY): Carbon's property over GetEnableDiffractionOnBoundaryEdges/SetEnableDiffractionOnBoundaryEdges, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:51).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1030,6 +1287,7 @@ export class AudManager extends IRoot
     return this.GetEnableDiffractionOnBoundaryEdges();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set enableDiffractionOnBoundaryEdges(value)
@@ -1037,14 +1295,22 @@ export class AudManager extends IRoot
     this.SetEnableDiffractionOnBoundaryEdges(value);
   }
 
-  /** Returns the one-shot opportunity window in milliseconds. */
+  /**
+   * Returns the one-shot opportunity window in milliseconds.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetOneShotWindow()
   {
     return this.soundPrioritization.GetOneShotWindow();
   }
 
-  /** Sets the one-shot opportunity window in milliseconds. */
+  /**
+   * Sets the one-shot opportunity window in milliseconds.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetOneShotWindow(value)
   {
@@ -1054,6 +1320,8 @@ export class AudManager extends IRoot
   /**
    * oneShotWindow (MAP_PROPERTY): Carbon's property over GetOneShotWindow/SetOneShotWindow, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:28).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1062,6 +1330,7 @@ export class AudManager extends IRoot
     return this.GetOneShotWindow();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set oneShotWindow(value)
@@ -1069,14 +1338,22 @@ export class AudManager extends IRoot
     this.SetOneShotWindow(value);
   }
 
-  /** Returns the weighted playing-2D contribution. */
+  /**
+   * Returns the weighted playing-2D contribution.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetPlaying2DWeight()
   {
     return this.soundPrioritization.GetPlaying2DWeight();
   }
 
-  /** Sets the raw playing-2D weight. */
+  /**
+   * Sets the raw playing-2D weight.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetPlaying2DWeight(value)
   {
@@ -1086,6 +1363,8 @@ export class AudManager extends IRoot
   /**
    * playing2DWeight (MAP_PROPERTY): Carbon's property over GetPlaying2DWeight/SetPlaying2DWeight, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:34).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1094,6 +1373,7 @@ export class AudManager extends IRoot
     return this.GetPlaying2DWeight();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set playing2DWeight(value)
@@ -1101,14 +1381,22 @@ export class AudManager extends IRoot
     this.SetPlaying2DWeight(value);
   }
 
-  /** Returns the weighted playing-events contribution. */
+  /**
+   * Returns the weighted playing-events contribution.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetPlayingEventsWeight()
   {
     return this.soundPrioritization.GetPlayingEventsWeight();
   }
 
-  /** Sets the raw playing-events weight. */
+  /**
+   * Sets the raw playing-events weight.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetPlayingEventsWeight(value)
   {
@@ -1118,6 +1406,8 @@ export class AudManager extends IRoot
   /**
    * activeSoundsWeight (MAP_PROPERTY): Carbon's property over GetPlayingEventsWeight/SetPlayingEventsWeight, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:29).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1126,6 +1416,7 @@ export class AudManager extends IRoot
     return this.GetPlayingEventsWeight();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set activeSoundsWeight(value)
@@ -1133,28 +1424,44 @@ export class AudManager extends IRoot
     this.SetPlayingEventsWeight(value);
   }
 
-  /** Returns the weighted vital-sound contribution. */
+  /**
+   * Returns the weighted vital-sound contribution.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetPlayingVitalSoundWeight()
   {
     return this.soundPrioritization.GetPlayingVitalSoundWeight();
   }
 
-  /** Sets the raw vital-sound weight. */
+  /**
+   * Sets the raw vital-sound weight.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetPlayingVitalSoundWeight(value)
   {
     this.soundPrioritization.SetPlayingVitalSoundWeight(value);
   }
 
-  /** Returns the weighted range contribution. */
+  /**
+   * Returns the weighted range contribution.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetRangeWeight()
   {
     return this.soundPrioritization.GetRangeWeight();
   }
 
-  /** Sets the raw range weight. */
+  /**
+   * Sets the raw range weight.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetRangeWeight(value)
   {
@@ -1164,6 +1471,8 @@ export class AudManager extends IRoot
   /**
    * rangeWeight (MAP_PROPERTY): Carbon's property over GetRangeWeight/SetRangeWeight, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:30).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1172,6 +1481,7 @@ export class AudManager extends IRoot
     return this.GetRangeWeight();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set rangeWeight(value)
@@ -1179,14 +1489,22 @@ export class AudManager extends IRoot
     this.SetRangeWeight(value);
   }
 
-  /** Returns the weighted used-emitter contribution. */
+  /**
+   * Returns the weighted used-emitter contribution.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetUsedEmitterWeight()
   {
     return this.soundPrioritization.GetUsedEmitterWeight();
   }
 
-  /** Sets the raw used-emitter weight. */
+  /**
+   * Sets the raw used-emitter weight.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetUsedEmitterWeight(value)
   {
@@ -1196,6 +1514,8 @@ export class AudManager extends IRoot
   /**
    * usedEmitterWeight (MAP_PROPERTY): Carbon's property over GetUsedEmitterWeight/SetUsedEmitterWeight, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:31).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1204,6 +1524,7 @@ export class AudManager extends IRoot
     return this.GetUsedEmitterWeight();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set usedEmitterWeight(value)
@@ -1211,14 +1532,22 @@ export class AudManager extends IRoot
     this.SetUsedEmitterWeight(value);
   }
 
-  /** Returns the weighted visibility contribution. */
+  /**
+   * Returns the weighted visibility contribution.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetVisibleWeight()
   {
     return this.soundPrioritization.GetVisibleWeight();
   }
 
-  /** Sets the raw visibility weight. */
+  /**
+   * Sets the raw visibility weight.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetVisibleWeight(value)
   {
@@ -1228,6 +1557,8 @@ export class AudManager extends IRoot
   /**
    * visibleWeight (MAP_PROPERTY): Carbon's property over GetVisibleWeight/SetVisibleWeight, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:33).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1236,6 +1567,7 @@ export class AudManager extends IRoot
     return this.GetVisibleWeight();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set visibleWeight(value)
@@ -1243,14 +1575,22 @@ export class AudManager extends IRoot
     this.SetVisibleWeight(value);
   }
 
-  /** Returns the weighted waiting-one-shot contribution. */
+  /**
+   * Returns the weighted waiting-one-shot contribution.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWaitingOneShotWeight()
   {
     return this.soundPrioritization.GetWaitingOneShotWeight();
   }
 
-  /** Sets the raw waiting-one-shot weight. */
+  /**
+   * Sets the raw waiting-one-shot weight.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetWaitingOneShotWeight(value)
   {
@@ -1260,6 +1600,8 @@ export class AudManager extends IRoot
   /**
    * waitingOneShotWeight (MAP_PROPERTY): Carbon's property over GetWaitingOneShotWeight/SetWaitingOneShotWeight, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:32).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1268,6 +1610,7 @@ export class AudManager extends IRoot
     return this.GetWaitingOneShotWeight();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set waitingOneShotWeight(value)
@@ -1275,14 +1618,22 @@ export class AudManager extends IRoot
     this.SetWaitingOneShotWeight(value);
   }
 
-  /** Returns the global prioritization weight multiplier. */
+  /**
+   * Returns the global prioritization weight multiplier.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWeightMultiplier()
   {
     return this.soundPrioritization.GetWeightMultiplier();
   }
 
-  /** Sets the global prioritization weight multiplier. */
+  /**
+   * Sets the global prioritization weight multiplier.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetWeightMultiplier(value)
   {
@@ -1292,6 +1643,8 @@ export class AudManager extends IRoot
   /**
    * weightMultiplier (MAP_PROPERTY): Carbon's property over GetWeightMultiplier/SetWeightMultiplier, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:26).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1300,6 +1653,7 @@ export class AudManager extends IRoot
     return this.GetWeightMultiplier();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set weightMultiplier(value)
@@ -1307,14 +1661,22 @@ export class AudManager extends IRoot
     this.SetWeightMultiplier(value);
   }
 
-  /** Returns the maximum number of awake audio objects. */
+  /**
+   * Returns the maximum number of awake audio objects.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxAwakeGameObjects()
   {
     return this.soundPrioritization.GetMaxAwakeGameObjects();
   }
 
-  /** Sets the maximum number of awake audio objects. */
+  /**
+   * Sets the maximum number of awake audio objects.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxAwakeGameObjects(value)
   {
@@ -1324,6 +1686,8 @@ export class AudManager extends IRoot
   /**
    * maxAwakeGameObjects (MAP_PROPERTY): Carbon's property over GetMaxAwakeGameObjects/SetMaxAwakeGameObjects, which the macro calls.
    * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:25).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -1332,6 +1696,7 @@ export class AudManager extends IRoot
     return this.GetMaxAwakeGameObjects();
   }
 
+  /** @implemented */
   @meta.implemented
 
   set maxAwakeGameObjects(value)
@@ -1339,7 +1704,11 @@ export class AudManager extends IRoot
     this.SetMaxAwakeGameObjects(value);
   }
 
-  /** Returns the non-reserved awake emitters. Source: AudManager.cpp:1247-1258 (commit c9b986d). */
+  /**
+   * Returns the non-reserved awake emitters. Source: AudManager.cpp:1247-1258 (commit c9b986d).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap("GetAwakeEmitters")
   @meta.implemented
   GetAwakeAudioEmitters()
@@ -1356,7 +1725,11 @@ export class AudManager extends IRoot
     return result;
   }
 
-  /** Carbon method StopAll: every prioritized emitter stops everything. */
+  /**
+   * Carbon method StopAll: every prioritized emitter stops everything.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StopAll()
@@ -1370,7 +1743,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method RegisterGameObject: callback map + prioritization registration. */
+  /**
+   * Carbon method RegisterGameObject: callback map + prioritization registration.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterGameObject(gameObjID, gameObject)
@@ -1389,8 +1766,8 @@ export class AudManager extends IRoot
    * Carbon's deferred bank queue owns strong AudGameObjResourcePtr entries.
    * Explicit JavaScript release instead purges those entries here.
    *
-   * Adapted: Carbon keeps deferred emitters alive through strong pointers; CarbonEngineJS explicit release must
-   * prevent a stale post after re-adoption.
+   * @adapted Carbon keeps deferred emitters alive through strong pointers; CarbonEngineJS explicit release must
+   *   prevent a stale post after re-adoption.
    */
 
   @meta.adapted
@@ -1406,7 +1783,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method RemoveCallbackGameObject. */
+  /**
+   * Carbon method RemoveCallbackGameObject.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RemoveCallbackGameObject(gameObjID)
@@ -1414,7 +1795,11 @@ export class AudManager extends IRoot
     this._callbackGameObjects.delete(gameObjID);
   }
 
-  /** Carbon method GetAudioEmitter (by game-object id). */
+  /**
+   * Carbon method GetAudioEmitter (by game-object id).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetAudioEmitter(gameObjID)
@@ -1425,7 +1810,7 @@ export class AudManager extends IRoot
   /**
    * Carbon method WithCallbackGameObject.
    *
-   * Adapted: The native locked callback map is synchronous in JavaScript's single-threaded graph runtime.
+   * @adapted The native locked callback map is synchronous in JavaScript's single-threaded graph runtime.
    */
 
   @meta.adapted
@@ -1443,8 +1828,8 @@ export class AudManager extends IRoot
   /**
    * Carbon debug method GetEventName.
    *
-   * Adapted: Carbon dereferences a missing emitter in this debug helper; the JavaScript graph returns an empty name
-   * when no emitter is registered.
+   * @adapted Carbon dereferences a missing emitter in this debug helper; the JavaScript graph returns an empty name
+   *   when no emitter is registered.
    */
 
   @meta.adapted
@@ -1454,7 +1839,11 @@ export class AudManager extends IRoot
     return emitter ? emitter.GetPlayingEvents().get(playingID) ?? "" : "";
   }
 
-  /** Carbon method GetListener: the fixed-id listener object. */
+  /**
+   * Carbon method GetListener: the fixed-id listener object.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetListener()
@@ -1462,7 +1851,11 @@ export class AudManager extends IRoot
     return this.GetAudioEmitter(LISTENER_GAME_OBJ_ID);
   }
 
-  /** Carbon method RegisterParameter: watcher refcount, entry created at 1. */
+  /**
+   * Carbon method RegisterParameter: watcher refcount, entry created at 1.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterParameter(name)
@@ -1476,7 +1869,11 @@ export class AudManager extends IRoot
     this._monitoredParameters.set(String(name), entry);
   }
 
-  /** Carbon method UnregisterParameter: erased when watchers hit 0. */
+  /**
+   * Carbon method UnregisterParameter: erased when watchers hit 0.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnregisterParameter(name)
@@ -1492,7 +1889,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method GetParameterInfo. */
+  /**
+   * Carbon method GetParameterInfo.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterInfo(name)
@@ -1500,7 +1901,11 @@ export class AudManager extends IRoot
     return this._monitoredParameters.get(String(name)) ?? null;
   }
 
-  /** Carbon method UpdateMonitoredParameters: refresh every entry from the backend RTPC query. */
+  /**
+   * Carbon method UpdateMonitoredParameters: refresh every entry from the backend RTPC query.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateMonitoredParameters()
@@ -1513,7 +1918,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method GetAudioCullingEnabled. */
+  /**
+   * Carbon method GetAudioCullingEnabled.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAudioCullingEnabled()
@@ -1522,7 +1931,11 @@ export class AudManager extends IRoot
     return this.audioCullingEnabled;
   }
 
-  /** Carbon Blue property getter GetAudioCullingEnabledProperty. */
+  /**
+   * Carbon Blue property getter GetAudioCullingEnabledProperty.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAudioCullingEnabledProperty()
@@ -1530,7 +1943,11 @@ export class AudManager extends IRoot
     return this.GetAudioCullingEnabled();
   }
 
-  /** Carbon method Process: cull (when enabled+flagged), render, flush the log. */
+  /**
+   * Carbon method Process: cull (when enabled+flagged), render, flush the log.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Process()
@@ -1560,7 +1977,11 @@ export class AudManager extends IRoot
     }
   }
 
-  /** Carbon method UpdateSettings. */
+  /**
+   * Carbon method UpdateSettings.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   UpdateSettings(settings)
@@ -1568,7 +1989,11 @@ export class AudManager extends IRoot
     this.settings = settings;
   }
 
-  /** Carbon method DisableAudioCulling: wake all objects, then disable prioritization. */
+  /**
+   * Carbon method DisableAudioCulling: wake all objects, then disable prioritization.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   DisableAudioCulling()
@@ -1584,7 +2009,11 @@ export class AudManager extends IRoot
     this.audioCullingEnabled = false;
   }
 
-  /** Carbon method EnableAudioCulling. */
+  /**
+   * Carbon method EnableAudioCulling.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   EnableAudioCulling()
@@ -1596,8 +2025,9 @@ export class AudManager extends IRoot
   /**
    * Carbon debug method GetPrioritizedEmitters: defensive current-order snapshot.
    *
-   * Adapted: Carbon returns SoundPrioritization's current debug list; CarbonEngineJS returns a defensive array of the
-   * same current order.
+   * @adapted Carbon returns SoundPrioritization's current debug list; CarbonEngineJS returns a defensive array of the
+   *   same current order.
+   * @renamed GetPrioritizedAudioEmitters
    */
   @meta.renamed("GetPrioritizedAudioEmitters")
   @meta.adapted
@@ -1609,8 +2039,8 @@ export class AudManager extends IRoot
   /**
    * Carbon debug flag; renderer consumption remains optional.
    *
-   * Adapted: Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
-   * renderer.
+   * @adapted Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
+   *   renderer.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1622,8 +2052,8 @@ export class AudManager extends IRoot
   /**
    * Carbon debug flag; renderer consumption remains optional.
    *
-   * Adapted: Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
-   * renderer.
+   * @adapted Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
+   *   renderer.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1635,7 +2065,7 @@ export class AudManager extends IRoot
   /**
    * Carbon debug flag query.
    *
-   * Adapted: The value is available to browser renderers even though the audio layer does not draw debug geometry.
+   * @adapted The value is available to browser renderers even though the audio layer does not draw debug geometry.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1644,7 +2074,11 @@ export class AudManager extends IRoot
     return this._debugDisplayAllEmitters;
   }
 
-  /** Native Wwise output-device replacement has no WebAudio equivalent. */
+  /**
+   * Native Wwise output-device replacement has no WebAudio equivalent.
+   *
+   * @notSupported
+   */
   @be.mapMethodAndWrap()
   @meta.notSupported
   EnableSpatialAudio()
@@ -1652,7 +2086,11 @@ export class AudManager extends IRoot
     return false;
   }
 
-  /** Native Wwise output-device replacement has no WebAudio equivalent. */
+  /**
+   * Native Wwise output-device replacement has no WebAudio equivalent.
+   *
+   * @notSupported
+   */
   @be.mapMethodAndWrap()
   @meta.notSupported
   DisableSpatialAudio()
@@ -1660,7 +2098,11 @@ export class AudManager extends IRoot
     return false;
   }
 
-  /** OS/Wwise spatial-output support cannot be inferred from a WebAudio panner. */
+  /**
+   * OS/Wwise spatial-output support cannot be inferred from a WebAudio panner.
+   *
+   * @notSupported
+   */
   @be.mapMethodAndWrap()
   @meta.notSupported
   SpatialAudioIsSupported()
@@ -1668,7 +2110,11 @@ export class AudManager extends IRoot
     return false;
   }
 
-  /** Native audio-device callbacks have no owned browser equivalent. */
+  /**
+   * Native audio-device callbacks have no owned browser equivalent.
+   *
+   * @notSupported
+   */
   @be.mapMethodAndWrap()
   @meta.notSupported
   RegisterAudioDeviceChangeCallback(callback)
@@ -1676,7 +2122,11 @@ export class AudManager extends IRoot
     return false;
   }
 
-  /** Native Wwise profiler capture is unavailable in WebAudio. */
+  /**
+   * Native Wwise profiler capture is unavailable in WebAudio.
+   *
+   * @notSupported
+   */
   @be.mapMethodAndWrap()
   @meta.notSupported
   StartProfilerCapture()
@@ -1684,7 +2134,11 @@ export class AudManager extends IRoot
     return false;
   }
 
-  /** Native Wwise profiler capture is unavailable in WebAudio. */
+  /**
+   * Native Wwise profiler capture is unavailable in WebAudio.
+   *
+   * @notSupported
+   */
   @be.mapMethodAndWrap()
   @meta.notSupported
   StopProfilerCapture()
@@ -1692,7 +2146,11 @@ export class AudManager extends IRoot
     return false;
   }
 
-  /** Native Wwise profiler capture is unavailable in WebAudio. */
+  /**
+   * Native Wwise profiler capture is unavailable in WebAudio.
+   *
+   * @notSupported
+   */
   @be.mapMethodAndWrap()
   @meta.notSupported
   IsProfilerCapturing()
@@ -1700,7 +2158,11 @@ export class AudManager extends IRoot
     return false;
   }
 
-  /** Carbon method ResetCullingSettings. */
+  /**
+   * Carbon method ResetCullingSettings.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ResetCullingSettings()

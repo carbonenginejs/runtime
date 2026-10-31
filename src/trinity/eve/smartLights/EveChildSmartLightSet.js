@@ -60,6 +60,8 @@ export class EveChildSmartLightSet extends EveChildTransform
 
   /**
    * The smart light set's name.
+   *
+   * @implemented
    */
   @meta.implemented
   GetName()
@@ -69,6 +71,8 @@ export class EveChildSmartLightSet extends EveChildTransform
 
   /**
    * Sets the smart light set's name, coercing the value to a string.
+   *
+   * @implemented
    */
   @meta.implemented
   SetName(name)
@@ -76,19 +80,31 @@ export class EveChildSmartLightSet extends EveChildTransform
     this.name = String(name ?? "");
   }
 
-  /** Carbon declares Setup inline empty (EveChildSmartLightSet.h:48). */
+  /**
+   * Carbon declares Setup inline empty (EveChildSmartLightSet.h:48).
+   *
+   * @adapted
+   */
   @meta.adapted
   Setup(_scale = null, _rotation = null, _translation = null, _lowestLodVisible = null)
   {
   }
 
-  /** Carbon declares ChangeLOD inline empty (EveChildSmartLightSet.h:49). */
+  /**
+   * Carbon declares ChangeLOD inline empty (EveChildSmartLightSet.h:49).
+   *
+   * @adapted
+   */
   @meta.adapted
   ChangeLOD(_lod)
   {
   }
 
-  /** Smart light sets carry no bound (EveChildSmartLightSet.h:39-42). */
+  /**
+   * Smart light sets carry no bound (EveChildSmartLightSet.h:39-42).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetBoundingSphere(_sphere = null, _query = 0)
   {
@@ -98,6 +114,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   /**
    * Rebuilds the world transform, then updates the distribution and every
    * light group (EveChildSmartLightSet.cpp:73-86).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -116,7 +134,11 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  /** Asynchronous fan-out to the distribution and light groups (EveChildSmartLightSet.cpp:88-99). */
+  /**
+   * Asynchronous fan-out to the distribution and light groups (EveChildSmartLightSet.cpp:88-99).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
@@ -132,7 +154,11 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  /** Visibility fan-out, gated on the distribution and display (EveChildSmartLightSet.cpp:101-110). */
+  /**
+   * Visibility fan-out, gated on the distribution and display (EveChildSmartLightSet.cpp:101-110).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
@@ -149,6 +175,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   /**
    * display/distribution edits re-register the entity components
    * (EveChildSmartLightSet.cpp:112-119).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -164,6 +192,8 @@ export class EveChildSmartLightSet extends EveChildTransform
    * inserted/removed EveEntity groups is a dynamic list-notify trigger and
    * stays a follow-up (registration is one-shot via
    * EveSpaceScene.ReregisterEntities in this pass).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -208,8 +238,12 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildSmartLightSet::RegisterComponents (cpp:121-134):
-   * forward-only to the light groups. Gate m_distribution && m_display. */
+  /**
+   * Carbon EveChildSmartLightSet::RegisterComponents (cpp:121-134):
+   * forward-only to the light groups. Gate m_distribution && m_display.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -227,8 +261,12 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildSmartLightSet::UnRegisterComponents (cpp:136-149):
-   * forwards to the light groups; no distribution/display re-check. */
+  /**
+   * Carbon EveChildSmartLightSet::UnRegisterComponents (cpp:136-149):
+   * forwards to the light groups; no distribution/display re-check.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -246,7 +284,11 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  /** Renderable fan-out, gated on the distribution and display (EveChildSmartLightSet.cpp:151-160). */
+  /**
+   * Renderable fan-out, gated on the distribution and display (EveChildSmartLightSet.cpp:151-160).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(renderables)
@@ -263,6 +305,8 @@ export class EveChildSmartLightSet extends EveChildTransform
 
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildSmartLightSet.cpp:162-165): copies the world transform into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -273,7 +317,11 @@ export class EveChildSmartLightSet extends EveChildTransform
     return mat4.copy(out, this.worldTransform);
   }
 
-  /** Fans a controller variable to the distribution and light groups (EveChildSmartLightSet.cpp:167-178). */
+  /**
+   * Fans a controller variable to the distribution and light groups (EveChildSmartLightSet.cpp:167-178).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetControllerVariable(name, value)
@@ -289,7 +337,11 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  /** Carbon debug-render fan-out for every light group at every placement. */
+  /**
+   * Carbon debug-render fan-out for every light group at every placement.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RenderDebugInfo(renderer)
@@ -308,7 +360,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   /**
    * Advertises the smartLightSets debug option (EveChildSmartLightSet.cpp:210-213).
    *
-   * Adapted: The caller supplies a JavaScript Set for native debug-option strings.
+   * @adapted The caller supplies a JavaScript Set for native debug-option strings.
    */
 
   @meta.adapted
@@ -320,6 +372,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   /**
    * Quad fan-out with the distribution's placement data
    * (EveChildSmartLightSet.cpp:191-200).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -336,7 +390,11 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  /** Effect-registration fan-out (EveChildSmartLightSet.cpp:202-208). */
+  /**
+   * Effect-registration fan-out (EveChildSmartLightSet.cpp:202-208).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -350,6 +408,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   /**
    * Lazily creates the property holder, stores the color set, and fans it out
    * to every light group (EveChildSmartLightSet.cpp:215-227).
+   *
+   * @implemented
    */
 
   @meta.implemented

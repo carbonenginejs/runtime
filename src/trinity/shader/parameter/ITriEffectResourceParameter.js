@@ -19,12 +19,20 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 export class ITriEffectResourceParameter extends ITriEffectParameter
 {
 
-  /** The parameter joined a material. Empty by default, as in the donor. */
+  /**
+   * The parameter joined a material. Empty by default, as in the donor.
+   *
+   * @implemented
+   */
   OnAddedToMaterial(_material)
   {
   }
 
-  /** The parameter left a material. Empty by default, as in the donor. */
+  /**
+   * The parameter left a material. Empty by default, as in the donor.
+   *
+   * @implemented
+   */
   OnRemovedFromMaterial(_material)
   {
   }

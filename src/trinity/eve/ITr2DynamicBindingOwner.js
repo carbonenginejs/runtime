@@ -8,6 +8,8 @@ export class ITr2DynamicBindingOwner extends IRoot
 {
   /**
    * Returns the named object roots used to resolve dynamic binding paths.
+   *
+   * @abstract
    * @returns {Object<string, object>} The owner's parameter map.
    */
 

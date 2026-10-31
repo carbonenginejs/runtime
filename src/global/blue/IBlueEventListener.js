@@ -13,6 +13,8 @@ export class IBlueEventListener extends IRoot
   /**
    * Handles an event delivered to this listener.
    * Native signature: void HandleEvent(const wchar_t* evtName) = 0.
+   *
+   * @abstract
    * @param {string} _eventName The event name; JavaScript strings retain the native wide-string content.
    * @returns {void}
    */

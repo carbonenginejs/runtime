@@ -104,6 +104,8 @@ export class EveDistanceField extends IRoot
    * Configures the field as static, so its extent and midpoint are the authored
    * ones rather than derived from tracked objects, and rebuilds the distance
    * curve set.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -123,6 +125,8 @@ export class EveDistanceField extends IRoot
    * Configures the field as dynamic and marks the coverage dirty, so the
    * midpoint and extent are recomputed from the tracked objects on the next
    * update.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -143,6 +147,8 @@ export class EveDistanceField extends IRoot
    * towards it using the in or out time constant depending on which way it
    * moves, and drives the curve set. The distance is the curve set's time axis,
    * not a delta.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -218,6 +224,8 @@ export class EveDistanceField extends IRoot
   /**
    * Defers a distance-curve rebuild to the next update when the minimum or
    * maximum distance changed.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -235,6 +243,8 @@ export class EveDistanceField extends IRoot
    * Marks the coverage dirty when a tracked object is inserted, and resets the
    * midpoint and extent once the last one is removed; events for other lists are
    * ignored.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -261,6 +271,8 @@ export class EveDistanceField extends IRoot
 
   /**
    * Carbon EveDistanceField::GetDebugOptions (EveDistanceField.cpp:297-300).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -280,6 +292,8 @@ export class EveDistanceField extends IRoot
    *
    * The text goes through renderer.DrawText as Carbon's does; the renderer
    * decides whether it can draw it.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 

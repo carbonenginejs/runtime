@@ -10,6 +10,8 @@ import { meta, type } from "#schema";
 /**
  * Base for the virtual camera behaviours that contribute a scalar delta to a
  * camera's field of view or roll each update.
+ *
+ * @abstract
  */
 @be.define("EveVirtualCameraBehaviourFloatBase")
 @be.inherit(INotify)
@@ -28,7 +30,11 @@ export class EveVirtualCameraBehaviourFloatBase extends IRoot
   @type.string
   name = "";
 
-  /** Returns the authored behaviour name shown in tooling. */
+  /**
+   * Returns the authored behaviour name shown in tooling.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -39,6 +45,8 @@ export class EveVirtualCameraBehaviourFloatBase extends IRoot
   /**
    * Sets the behaviour name, coercing to a string; subclasses override this to
    * rename the curves they own alongside it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -50,6 +58,8 @@ export class EveVirtualCameraBehaviourFloatBase extends IRoot
   /**
    * Re-applies the current name after a field change, which propagates it to any
    * owned curves through the subclass SetName override.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -59,7 +69,11 @@ export class EveVirtualCameraBehaviourFloatBase extends IRoot
     return true;
   }
 
-  /** Reports whether the camera should evaluate this behaviour this update. */
+  /**
+   * Reports whether the camera should evaluate this behaviour this update.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsActive()

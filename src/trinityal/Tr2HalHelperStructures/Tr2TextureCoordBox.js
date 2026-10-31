@@ -58,6 +58,7 @@ export class Tr2TextureCoordBox
   /**
    * Width of the box.
    *
+   * @implemented
    * @returns {number} Right minus left.
    */
   GetWidth()
@@ -68,6 +69,7 @@ export class Tr2TextureCoordBox
   /**
    * Height of the box.
    *
+   * @implemented
    * @returns {number} Bottom minus top.
    */
   GetHeight()
@@ -78,6 +80,7 @@ export class Tr2TextureCoordBox
   /**
    * Depth of the box.
    *
+   * @implemented
    * @returns {number} Back minus front.
    */
   GetDepth()
@@ -88,6 +91,8 @@ export class Tr2TextureCoordBox
   /**
    * Whether two boxes cover the same region.
    *
+   * @implemented
+   * @renamed operator==
    * @param {Tr2TextureCoordBox} other The box to compare with.
    * @returns {boolean} True when every coordinate matches.
    */

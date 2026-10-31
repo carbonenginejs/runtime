@@ -48,7 +48,7 @@ export class Tr2ControllerReference extends ITr2Controller
   /**
    * Resolves a nonempty resource path, preserving an assigned controller otherwise.
    *
-   * Adapted: BeResMan is be.resMan; its LoadObject completes asynchronously.
+   * @adapted BeResMan is be.resMan; its LoadObject completes asynchronously.
    * @returns {boolean} True after requesting any authored load.
    */
 
@@ -67,8 +67,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * controller, loads the new one and links it to the owner, without starting
    * it. Start intent and values pending for the previous load do not carry over.
    *
-   * Adapted: the load is asynchronous (ResolveController), and links the owner
-   * when it arrives.
+   * @adapted the load is asynchronous (ResolveController), and links the owner
+   *   when it arrives.
    * @param {string} propertyName Native exposed member name.
    * @returns {boolean} True after handling the notification.
    */
@@ -87,8 +87,9 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /**
    * Links the referenced controller to the same owner.
-   * Adapted: pending variables and start intent belong to one owner; reattachment
-   * clears them as the loaded controller would unlink before rebinding.
+   *
+   * @adapted pending variables and start intent belong to one owner; reattachment
+   *   clears them as the loaded controller would unlink before rebinding.
    * @param {object} owner Owner forwarded to the loaded controller.
    * @returns {void}
    */
@@ -107,8 +108,9 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /**
    * Unlinks the referenced controller.
-   * Adapted: discard pending owner variables and start intent so a late load
-   * cannot restart an owner that has already detached.
+   *
+   * @adapted discard pending owner variables and start intent so a late load
+   *   cannot restart an owner that has already detached.
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
@@ -124,6 +126,8 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /**
    * Checks whether this reference is linked to an owner.
+   *
+   * @implemented
    * @returns {boolean} Whether an owner is retained.
    */
 
@@ -135,7 +139,8 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /**
    * Starts the referenced controller.
-   * Adapted: retain start intent until the asynchronous load is linked.
+   *
+   * @adapted retain start intent until the asynchronous load is linked.
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -148,7 +153,8 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /**
    * Stops the referenced controller.
-   * Adapted: cancel pending start intent before the asynchronous load completes.
+   *
+   * @adapted cancel pending start intent before the asynchronous load completes.
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -161,6 +167,8 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /**
    * Updates the referenced controller.
+   *
+   * @implemented
    * @param {number} [normalizedUpdateFrequency=0] Update frequency forwarded unchanged.
    * @returns {void}
    */
@@ -173,8 +181,9 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /**
    * Sets a variable on the referenced controller.
-   * Adapted: retain the latest pending value and replay it after Link, before
-   * Start can execute one-shot actions on the asynchronously loaded controller.
+   *
+   * @adapted retain the latest pending value and replay it after Link, before
+   *   Start can execute one-shot actions on the asynchronously loaded controller.
    * @param {string} name Controller variable name.
    * @param {number} value Latest value to forward or replay.
    * @returns {void}
@@ -189,6 +198,8 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /**
    * Handles an event on the referenced controller.
+   *
+   * @implemented
    * @param {string} eventName Event forwarded to the loaded controller.
    * @returns {void}
    */
@@ -201,6 +212,8 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /**
    * Gets the linked owner.
+   *
+   * @implemented
    * @returns {object|null} Current owner.
    */
   @be.mapMethodAndWrap()

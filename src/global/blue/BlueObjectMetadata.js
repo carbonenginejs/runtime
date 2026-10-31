@@ -36,6 +36,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   /**
    * The object's table (BlueObjectMetadata.cpp:30-38).
    *
+   * @adapted
    * @param {object} owner The object.
    * @returns {Object<string, string>|null} The table, or null when it has none.
    */
@@ -48,6 +49,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   /**
    * Sets one key (:40-54). Keys and values are strings, as Carbon's are.
    *
+   * @adapted
    * @param {object} owner The object.
    * @param {string} key The key.
    * @param {string} value The value.
@@ -70,6 +72,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   /**
    * One key's value (:56-69).
    *
+   * @adapted
    * @returns {string|*} The value, or `defaultValue`.
    */
   Get(owner, key, defaultValue = null)
@@ -81,6 +84,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   /**
    * Removes one key, and the object's table once it is empty (:71-89).
    *
+   * @adapted
    * @returns {{ok: boolean, message: string}} Carbon's `BlueStdResult`.
    */
   Delete(owner, key)
@@ -97,6 +101,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   /**
    * Removes the object's table (:91-102).
    *
+   * @adapted
    * @returns {{ok: boolean, message: string}} Carbon's `BlueStdResult`.
    */
   DeleteObject(owner)
@@ -109,6 +114,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   /**
    * One key's value (:104-119).
    *
+   * @adapted
    * @returns {{result: {ok: boolean, message: string}, value: string|null}} Carbon's out argument comes back here.
    */
   Index(owner, key)
@@ -122,6 +128,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   /**
    * The object's keys (:121-136).
    *
+   * @adapted
    * @returns {{result: {ok: boolean, message: string}, keys: string[]}} Carbon's out argument comes back here.
    */
   GetKeys(owner)
@@ -133,6 +140,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   /**
    * A copy of the object's key/value pairs (:138-149).
    *
+   * @adapted
    * @returns {{result: {ok: boolean, message: string}, items: Object<string, string>}} Carbon's out argument comes back here.
    */
   GetItems(owner)
@@ -148,6 +156,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   /**
    * Copies the source object's keys onto the target (:156-168).
    *
+   * @adapted
    * @returns {{ok: boolean, message: string}} Carbon's `BlueStdResult`.
    */
   CopyShallow(source, target)
@@ -160,6 +169,8 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
    * Copies metadata across every object the source reaches (:170-217).
    * Carbon finds the source's IRoot interfaces by member walk (`FindInterface`);
    * nothing here needs it yet.
+   *
+   * @notImplemented
    */
   CopyDeep(_source, _target)
   {

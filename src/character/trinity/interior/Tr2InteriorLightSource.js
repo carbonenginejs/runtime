@@ -131,7 +131,11 @@ export class Tr2InteriorLightSource extends IRoot
 
   _boundsMax = vec3.fromValues(1, 1, 1);
 
-  /** Carbon method IsSpotLight (MAP_METHOD_AND_WRAP, h:90-93). */
+  /**
+   * Carbon method IsSpotLight (MAP_METHOD_AND_WRAP, h:90-93).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   IsSpotLight()
@@ -143,6 +147,7 @@ export class Tr2InteriorLightSource extends IRoot
    * Carbon: Tr2InteriorLightSource::GetDebugOptions (Tr2InteriorLightSource.cpp:164-167):
    * offers the "Lights" toggle.
    *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
   @meta.implemented
@@ -156,6 +161,7 @@ export class Tr2InteriorLightSource extends IRoot
    * with "Lights" on, a small wireframe sphere at the light, then its cone (a spot
    * light) or its range sphere.
    *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
    */
   @meta.implemented
@@ -181,7 +187,11 @@ export class Tr2InteriorLightSource extends IRoot
     }
   }
 
-  /** Carbon Initialize (cpp:59-63): derive the world box from position ± radius. */
+  /**
+   * Carbon Initialize (cpp:59-63): derive the world box from position ± radius.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -195,6 +205,7 @@ export class Tr2InteriorLightSource extends IRoot
    * coneAlphaOuter or coneDirection rebuilds the world bounding box. Carbon's
    * two branches run the same rebuild.
    *
+   * @implemented
    * @param {string|null} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
@@ -219,6 +230,7 @@ export class Tr2InteriorLightSource extends IRoot
    * non-spot forces BOTH angles to 360 (discarding that clamp), and the
    * cone direction normalizes into the record.
    *
+   * @implemented
    * @param {object} lightData Tr2InteriorPerObjectLightData-shaped record.
    * @returns {object} lightData
    */
@@ -270,6 +282,7 @@ export class Tr2InteriorLightSource extends IRoot
   /**
    * Carbon Update (cpp:146-152): forward the time to every curve set.
    *
+   * @implemented
    * @param {number} time Seconds.
    */
 
@@ -287,6 +300,7 @@ export class Tr2InteriorLightSource extends IRoot
    * frustum; otherwise the out matrix becomes the light's translation and
    * the world box answers.
    *
+   * @implemented
    * @param {object} frustum TriFrustum-shaped culler.
    * @param {Float32Array} [outObjectToWorld] Receives the translation matrix.
    * @returns {boolean}

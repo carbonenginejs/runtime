@@ -58,8 +58,8 @@ export class EveHazeSetItem extends IRoot
    * reaches to z 5 rather than 0.5, because a haze extends well beyond its
    * placement - transformed by its rotation, position and scaling.
    *
-   * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
-   * box3.
+   * @adapted Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
+   *   box3.
    */
 
   @meta.adapted
@@ -75,7 +75,11 @@ export class EveHazeSetItem extends IRoot
     return box3.transformMat4(out, EveHazeSetItem._bounds, transform);
   }
 
-  /** The parent bone this haze volume rides. */
+  /**
+   * The parent bone this haze volume rides.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoneIndex()

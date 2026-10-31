@@ -84,7 +84,11 @@ export class CjsWebgpuShaderProgramAL
 
   _registerMap = new Tr2RegisterMapAL();
 
-  /** Returns the dense register map built from the linked shader signatures. */
+  /**
+   * Returns the dense register map built from the linked shader signatures.
+   *
+   * @implemented
+   */
   GetRegisterMap()
   {
     return this._registerMap;
@@ -118,6 +122,7 @@ export class CjsWebgpuShaderProgramAL
    * array does, and each one's implementation is read as Metal reads
    * `shader->m_shader` (`Tr2ShaderProgramALMetal.mm:63-70`).
    *
+   * @adapted
    * @param {object[]} values The `Tr2ShaderAL` stages to link.
    * @param {number} count How many of them to link.
    * @param {object} renderContext The context to link against.
@@ -246,7 +251,11 @@ export class CjsWebgpuShaderProgramAL
     return ALResult.S_OK;
   }
 
-  /** Whether the program linked. */
+  /**
+   * Whether the program linked.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._shaders.length > 0;
@@ -268,7 +277,11 @@ export class CjsWebgpuShaderProgramAL
     return this._bindings;
   }
 
-  /** Metal's `GetInputs`: the vertex stage's pipeline inputs. */
+  /**
+   * Metal's `GetInputs`: the vertex stage's pipeline inputs.
+   *
+   * @implemented
+   */
   GetInputs()
   {
     return this._inputs;
@@ -339,7 +352,11 @@ export class CjsWebgpuShaderProgramAL
     return shader ? shader.GetModule() : null;
   }
 
-  /** Releases the linked shaders and the layout built from them. */
+  /**
+   * Releases the linked shaders and the layout built from them.
+   *
+   * @implemented
+   */
   Destroy()
   {
     // Layout objects have no destroy(); dropping the references releases them.
@@ -377,6 +394,7 @@ export class CjsWebgpuShaderProgramAL
   /**
    * Which memory class this program occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -387,6 +405,7 @@ export class CjsWebgpuShaderProgramAL
   /**
    * Fills in a device-resource description.
    *
+   * @adapted
    * @param {object} description The description to fill.
    * @returns {object} The description, filled.
    */
@@ -405,6 +424,7 @@ export class CjsWebgpuShaderProgramAL
    * WebGPU has no program object to label - there is no link step - so the name
    * reaches the modules, which is where it can actually appear in an error.
    *
+   * @adapted
    * @param {string} name The name to attach.
    * @returns {number} An `ALResult` value.
    */

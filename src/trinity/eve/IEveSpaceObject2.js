@@ -133,6 +133,7 @@ export class IEveSpaceObject2 extends IRoot
   /**
    * Writes the object's world velocity; a static object writes zero.
    *
+   * @implemented
    * @param {Float32Array} velocity Receives the velocity.
    */
 
@@ -176,6 +177,7 @@ export class IEveSpaceObject2 extends IRoot
   /**
    * Whether picking may hit this object.
    *
+   * @implemented
    * @returns {boolean} True unless the object opts out.
    */
 
@@ -187,6 +189,7 @@ export class IEveSpaceObject2 extends IRoot
   /**
    * Whether this object occludes audio.
    *
+   * @implemented
    * @returns {boolean} False unless the object opts in.
    */
 

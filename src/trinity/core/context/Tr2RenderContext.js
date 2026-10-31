@@ -1278,6 +1278,8 @@ export class Tr2RenderContext
   /**
    * Pre-92483097 Tr2RenderContext.cpp:887-946: request-local object and area
    * indices are FLOAT globals. Material application owns texture binding here.
+   *
+   * @adapted
    * @param {object} batches Finalized accumulator.
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
    * @returns {number} Number of submitted batches.
@@ -1318,6 +1320,7 @@ export class Tr2RenderContext
    * integer variables without ever converting the full value to Number.
    * Texture binding occurs through ApplyMaterialDataForPass in this port.
    *
+   * @adapted
    * @param {object} batches Finalized accumulator.
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
    * @returns {number} Number of submitted batches.
@@ -1564,6 +1567,7 @@ export class Tr2RenderContext
    * Releases the main-thread render context, as Carbon does
    * (`Tr2RenderContext.cpp:310-318`). The next reach for it builds a new one.
    *
+   * @implemented
    * @returns {void}
    */
 

@@ -41,6 +41,7 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
    * data means it can never hold anything, and Carbon logs and refuses rather
    * than handing back a buffer of zeroes.
    *
+   * @adapted
    * @param {number} size Size in bytes.
    * @param {number} usage A `Tr2ConstantUsageAL` value.
    * @param {ArrayBufferView|null} initialData Initial contents, if any.
@@ -76,6 +77,7 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
   /**
    * Hands back the shadow copy to write into.
    *
+   * @adapted
    * @returns {{result: number, data: Uint8Array|null}} The locked storage.
    */
   Lock()
@@ -88,6 +90,7 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
   /**
    * Releases the lock. The storage stays; there is nothing to upload to.
    *
+   * @implemented
    * @returns {number} An `ALResult` value.
    */
   Unlock()
@@ -95,7 +98,11 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** Releases the shadow copy and leaves the device-resource registry. */
+  /**
+   * Releases the shadow copy and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._shadowCopy = new Uint8Array(0);
@@ -105,6 +112,7 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
   /**
    * Whether the buffer holds anything.
    *
+   * @implemented
    * @returns {boolean} True when it has a size.
    */
   IsValid()
@@ -115,6 +123,7 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
   /**
    * The buffer's size.
    *
+   * @implemented
    * @returns {number} Size in bytes.
    */
   GetSize()
@@ -125,6 +134,7 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
   /**
    * Which memory class this buffer occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -141,6 +151,7 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -150,6 +161,7 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
   /**
    * Names the buffer for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */

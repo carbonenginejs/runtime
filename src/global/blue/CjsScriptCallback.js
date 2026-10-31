@@ -60,6 +60,7 @@ export class CjsScriptCallback
     /**
      * Reports whether a callback is stored.
      *
+     * @implemented
      * @returns {boolean} True when this callback can be invoked.
      */
     IsValid()
@@ -70,6 +71,7 @@ export class CjsScriptCallback
     /**
      * Releases the stored callback, leaving this invalid.
      *
+     * @implemented
      * @returns {void}
      */
     Destroy()
@@ -80,12 +82,11 @@ export class CjsScriptCallback
     /**
      * Invokes a callback whose return value is significant.
      *
-     * Adapted: JavaScript returns the callback result directly, without Carbon's
-     * typed output argument or BlueScriptCallbackStatus. Callback exceptions
-     * propagate to the caller (blueexposure/include/BlueScriptCallback.h:144-170).
-     * An invalid callback returns undefined; Carbon instead returns CALL_ERROR
-     * and leaves the caller's output argument unchanged.
-     *
+     * @adapted JavaScript returns the callback result directly, without Carbon's
+     *   typed output argument or BlueScriptCallbackStatus. Callback exceptions
+     *   propagate to the caller (blueexposure/include/BlueScriptCallback.h:144-170).
+     *   An invalid callback returns undefined; Carbon instead returns CALL_ERROR
+     *   and leaves the caller's output argument unchanged.
      * @param {...*} args - Callback arguments.
      * @returns {*} Callback result, or undefined when invalid.
      */
@@ -100,11 +101,10 @@ export class CjsScriptCallback
     /**
      * Invokes a notification callback and discards its result.
      *
-     * Adapted: Callback exceptions propagate in JavaScript instead of becoming
-     * BlueScriptCallbackStatus::EXCEPTION. An invalid callback returns undefined
-     * instead of CALL_ERROR; successful calls also return undefined rather than
-     * OK (blueexposure/BlueScriptCallback.cpp:282-305).
-     *
+     * @adapted Callback exceptions propagate in JavaScript instead of becoming
+     *   BlueScriptCallbackStatus::EXCEPTION. An invalid callback returns undefined
+     *   instead of CALL_ERROR; successful calls also return undefined rather than
+     *   OK (blueexposure/BlueScriptCallback.cpp:282-305).
      * @param {...*} args - Callback arguments.
      * @returns {void}
      */

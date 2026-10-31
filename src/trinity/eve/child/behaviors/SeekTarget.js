@@ -146,7 +146,11 @@ export class SeekTarget extends IRoot
   @type.boolean
   enabled = true;
 
-  /** Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddLocatorSet()
@@ -156,7 +160,11 @@ export class SeekTarget extends IRoot
     this.locatorSet = locatorSet;
   }
 
-  /** Carbon method SetTarget (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetTarget (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetTarget(target)
@@ -164,7 +172,11 @@ export class SeekTarget extends IRoot
     this.target = target;
   }
 
-  /** Carbon method ResetBehavior (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ResetBehavior (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ResetBehavior()
@@ -176,7 +188,11 @@ export class SeekTarget extends IRoot
     this._doneRepairing = true;
   }
 
-  /** Carbon method SetBehaviorWeight (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetBehaviorWeight (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetBehaviorWeight(value)
@@ -184,7 +200,11 @@ export class SeekTarget extends IRoot
     this.behaviorWeight = value;
   }
 
-  /** Carbon method SetExit (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetExit (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetExit(value)
@@ -192,7 +212,11 @@ export class SeekTarget extends IRoot
     this.exit = value;
   }
 
-  /** Carbon method SetTotalRepairTime (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetTotalRepairTime (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetTotalRepairTime(seconds)
@@ -200,7 +224,11 @@ export class SeekTarget extends IRoot
     this.totalRepairTime = seconds;
   }
 
-  /** Carbon method SetupShipRepair (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetupShipRepair (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetupShipRepair()
@@ -220,6 +248,8 @@ export class SeekTarget extends IRoot
    *   dimensions, so a cube still splits.
    * - Carbon counts boxes as int( largest ) / int( desiredLength ) with no last-box clamp; here the count rounds and
    *   the last box ends at the box maximum.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -290,9 +320,9 @@ export class SeekTarget extends IRoot
    * bucket's box (bounds inclusive) joins that bucket. Buckets are the outer loop and there is no break, so a locator
    * on a shared face joins both neighbours (Carbon quirk, reproduced). Empty buckets are then dropped.
    *
-   * Adapted: Carbon erases an empty bucket's index list but keeps its bounding box (cpp:432-443), so the box and
-   * bucket lists fall out of step and UpdateAgents' bucketId = id % boxes.size() can index past the buckets
-   * (undefined behaviour in C++, a throw here); the matching box is dropped too.
+   * @adapted Carbon erases an empty bucket's index list but keeps its bounding box (cpp:432-443), so the box and
+   *   bucket lists fall out of step and UpdateAgents' bucketId = id % boxes.size() can index past the buckets
+   *   (undefined behaviour in C++, a throw here); the matching box is dropped too.
    */
 
   @meta.adapted
@@ -338,6 +368,9 @@ export class SeekTarget extends IRoot
 
   /**
    * A shallow copy of the locator index buckets produced by splitting the target's bounding box, one array per slice.
+   *
+   * @cjs
+   * @implemented
    */
   @meta.cjs
     @meta.implemented
@@ -346,7 +379,11 @@ export class SeekTarget extends IRoot
     return this._locatorBucketIndices.map(bucket => [...bucket]);
   }
 
-  /** Carbon SeekTarget::GetProcessPriority (cpp:37-40). */
+  /**
+   * Carbon SeekTarget::GetProcessPriority (cpp:37-40).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -357,6 +394,8 @@ export class SeekTarget extends IRoot
   /**
    * Carbon SeekTarget::GetScratchMemorySize (cpp:43-46). Adapted: scratch is one plain record per agent, so any
    * non-zero answer means "has scratch", as for the other behaviors.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -365,7 +404,11 @@ export class SeekTarget extends IRoot
     return 1;
   }
 
-  /** Carbon SeekTarget::InitializeScratch (cpp:48-51) and SeekTargetData's defaults (SeekTarget.h:13-34). Adapted: returns the record. */
+  /**
+   * Carbon SeekTarget::InitializeScratch (cpp:48-51) and SeekTargetData's defaults (SeekTarget.h:13-34). Adapted: returns the record.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   InitializeScratch()
@@ -388,6 +431,8 @@ export class SeekTarget extends IRoot
    * Carbon quirks kept as written: timePassed is raised to at least secondsToTurn, so the ramp is always at full
    * weight; the force applies behaviorWeight on top of that.
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -548,6 +593,8 @@ export class SeekTarget extends IRoot
 
   /**
    * Carbon SeekTarget::GetDebugOptions (cpp:448-452).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -562,6 +609,8 @@ export class SeekTarget extends IRoot
    * Carbon SeekTarget::RenderDebugInfo (cpp:454-489): the arrived, marker and
    * slow-down spheres around each agent's last arrival point, and a sphere
    * arrow for every locator of the behavior's own locator set.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation Places the locators in world space.

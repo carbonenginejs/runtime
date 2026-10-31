@@ -58,9 +58,9 @@ export class EveCameraFxAttributes extends IEveFxAttribute
    * Collects Carbon's camera-relative attributes for the current child update,
    * from the renderer's current view (EveCameraFxAttributes.cpp:20-49).
    *
-   * Adapted: the parents' GetModelCenterWorldPosition and GetLocalToWorldTransform
-   * return their result rather than filling a reference, and a missing
-   * localToWorldTransform reads as the identity.
+   * @adapted the parents' GetModelCenterWorldPosition and GetLocalToWorldTransform
+   *   return their result rather than filling a reference, and a missing
+   *   localToWorldTransform reads as the identity.
    */
 
   @meta.adapted

@@ -40,6 +40,8 @@ export class TriVariable extends ITr2EffectValue
 
   /**
    * The registered variable name, which the store also uses as its key.
+   *
+   * @implemented
    * @returns {string} Variable result.
    */
 
@@ -51,6 +53,8 @@ export class TriVariable extends ITr2EffectValue
 
   /**
    * The TriVariableContentType fixed at registration; SetValue never changes it.
+   *
+   * @implemented
    * @returns {number} Variable result.
    * Carbon declaration: TriVariable::GetType (trinity/trinity/TriVariable.h:188).
    */
@@ -69,7 +73,8 @@ export class TriVariable extends ITr2EffectValue
    * caller that later reuses its array does not change the variable. Scalars
    * are stored as they are; texture and buffer providers are held by
    * reference, as Carbon holds their smart pointers.
-   * Adapted: Preserves the single JavaScript payload slot instead of the native typed union and returns success to existing callers.
+   *
+   * @adapted Preserves the single JavaScript payload slot instead of the native typed union and returns success to existing callers.
    * @param {*} value Portable value payload.
    * @returns {boolean} Variable result.
    */
@@ -100,7 +105,8 @@ export class TriVariable extends ITr2EffectValue
    * without an `out` a new array of the type's size is returned, as the
    * Tr2Vector*Parameter GetValue(out = vecN.create()) methods do. The stored
    * array itself is never handed out. Scalars and providers return as stored.
-   * Adapted: Adapts native typed output arguments to an optional array output or a direct JavaScript value return.
+   *
+   * @adapted Adapts native typed output arguments to an optional array output or a direct JavaScript value return.
    * @param {ArrayLike|undefined} [out] Optional destination for array components.
    * @returns {*} Variable result.
    */
@@ -124,7 +130,8 @@ export class TriVariable extends ITr2EffectValue
   /**
    * Clears the payload and returns the variable to the reserved INVALID
    * type, releasing texture/buffer references as Carbon's Clear does.
-   * Adapted: Releases the single JavaScript payload and invalidates its type; native Clear separately releases resource fields and clears union storage.
+   *
+   * @adapted Releases the single JavaScript payload and invalidates its type; native Clear separately releases resource fields and clears union storage.
    * @returns {void} No return value.
    */
 
@@ -139,7 +146,8 @@ export class TriVariable extends ITr2EffectValue
    * Clears the value but leaves the type alone, so a new SetValue will
    * still work. Carbon zeroes the union slot and drops texture/buffer
    * references; the JS payload slot zero-fills arrays and nulls references.
-   * Adapted: Preserves the portable array/scalar/reference clearing rules instead of zeroing the native union and separate resource pointers.
+   *
+   * @adapted Preserves the portable array/scalar/reference clearing rules instead of zeroing the native union and separate resource pointers.
    * @returns {void} No return value.
    */
 
@@ -173,6 +181,7 @@ export class TriVariable extends ITr2EffectValue
    * a skipped one. That is Carbon's, and it matters: leaving the register
    * untouched would let a draw read whatever the previous one bound there.
    *
+   * @adapted
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -211,6 +220,7 @@ export class TriVariable extends ITr2EffectValue
    * Carbon `TriVariable::ApplyUav` (`TriVariable.cpp:69+`). Same switch, no
    * colour space — a UAV is written rather than sampled.
    *
+   * @adapted
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -240,6 +250,9 @@ export class TriVariable extends ITr2EffectValue
    * not yet been created; null with no provider.
    * Custom: Carbon's resource creates its texture in DoPrepare; ours is made at
    * first bind (Tr2ImageIOHelpers.RealizeTexture), so only a resource realizes.
+   *
+   * @cjs
+   * @implemented
    * @param {object|null} [renderContext] Optional texture realization context.
    * @returns {object|null} The provider's texture.
    */
@@ -272,6 +285,8 @@ export class TriVariable extends ITr2EffectValue
   /**
    * Carbon's GetTypeName() const (TriVariable.h:193): this variable's type
    * name. The static ( t ) form is TriVariable.getTypeName.
+   *
+   * @implemented
    * @returns {string}
    */
 
@@ -284,6 +299,8 @@ export class TriVariable extends ITr2EffectValue
   /**
    * Carbon's GetTypeSize() const (TriVariable.h:198): this variable's
    * constant-buffer byte size. The static ( t ) form is TriVariable.getTypeSize.
+   *
+   * @implemented
    * @returns {number}
    */
 
@@ -295,6 +312,8 @@ export class TriVariable extends ITr2EffectValue
 
   /**
    * Native constant-buffer value size.
+   *
+   * @implemented
    * @returns {number} Byte size for this variable's registered type.
    */
 
@@ -374,6 +393,7 @@ export class TriVariable extends ITr2EffectValue
    * the variable has to be able to answer. It used to live only on a parallel
    * store's own variable class, which is why binding could not use Carbon's.
    *
+   * @adapted
    * @param {*} _inputType Accepted and ignored, matching the parameter shape.
    * @param {ArrayLike} destination Constant destination.
    * @param {number} [size] Byte budget in the destination.
@@ -421,7 +441,8 @@ export class TriVariable extends ITr2EffectValue
   /**
    * Carbon's display name for a content type; an unrecognised type falls back to
    * the INVALID label.
-   * Adapted: Uses the existing JavaScript lookup table and preserves its INVALID fallback for an unknown index.
+   *
+   * @adapted Uses the existing JavaScript lookup table and preserves its INVALID fallback for an unknown index.
    * @param {number} contentType Native content-type value.
    * @returns {string} Variable result.
    */
@@ -439,7 +460,8 @@ export class TriVariable extends ITr2EffectValue
    * they must register as the largest type. Texture and GPU-buffer slots are
    * pointer-sized in Carbon; the JS reference slot keeps the same 8 bytes so
    * shared-buffer offset math stays aligned with Carbon's.
-   * Adapted: Uses the existing JavaScript size table, including eight-byte reference slots and the zero fallback for an unknown index.
+   *
+   * @adapted Uses the existing JavaScript size table, including eight-byte reference slots and the zero fallback for an unknown index.
    * @param {number} contentType Native content-type value.
    * @returns {number} Variable result.
    */

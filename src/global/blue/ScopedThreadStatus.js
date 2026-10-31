@@ -26,6 +26,8 @@ export class ScopedThreadStatus
   /**
    * `~ScopedThreadStatus` (IBlueThreadMonitor.h:31-34) - restores the
    * previous status.
+   *
+   * @adapted
    */
   Destruct()
   {

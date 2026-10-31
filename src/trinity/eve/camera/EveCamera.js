@@ -399,7 +399,11 @@ export class EveCamera extends IRoot
   @type.boolean
   idleMove = false;
 
-  /** Builds Carbon's aspect-clamped, off-centre projection matrix. */
+  /**
+   * Builds Carbon's aspect-clamped, off-centre projection matrix.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   static CalculateProjectionMatrix(
@@ -438,6 +442,8 @@ export class EveCamera extends IRoot
    * Recovers the vertical field of view in radians from a projection matrix
    * produced by CalculateProjectionMatrix, undoing the aspect clamp that method
    * applies above 1.6.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -452,6 +458,8 @@ export class EveCamera extends IRoot
    * Rebuilds a projection matrix with new near and far clip distances,
    * preserving the field of view, aspect ratio and centre offsets recovered from
    * the original.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -474,6 +482,8 @@ export class EveCamera extends IRoot
    * Rebuilds a projection matrix with extra normalized x and y centre offsets
    * added to those the original already carries, used to shift the view frustum
    * without moving the camera.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -495,6 +505,8 @@ export class EveCamera extends IRoot
   /**
    * Returns the camera's TriView wrapper, whose transform is rewritten by each
    * successful update; it is live storage, not a copy.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -506,6 +518,8 @@ export class EveCamera extends IRoot
   /**
    * Returns the camera's TriProjection wrapper, whose transform is rebuilt from
    * the field of view and clip planes on each update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -517,6 +531,8 @@ export class EveCamera extends IRoot
   /**
    * Returns the world position resolved by the last update; the vector is the
    * camera's own storage and is overwritten next update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -525,7 +541,11 @@ export class EveCamera extends IRoot
     return this.pos;
   }
 
-  /** Carbon method Dolly (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Dolly (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Dolly(factor)
@@ -533,7 +553,11 @@ export class EveCamera extends IRoot
     this.translationFromParent += factor;
   }
 
-  /** Carbon method OrbitParent (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method OrbitParent (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   OrbitParent(horizontal, vertical)
@@ -565,7 +589,11 @@ export class EveCamera extends IRoot
     }
   }
 
-  /** Carbon method RotateOnOrbit (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method RotateOnOrbit (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   RotateOnOrbit(horizontal, vertical)
@@ -605,6 +633,8 @@ export class EveCamera extends IRoot
    * BlueCastPtr'd to Tr2CurveScalar. A key at or past the last key wraps to 0;
    * Carbon then indexes the keys unchecked, so a negative key throws here
    * instead of reading undefined (ruling 11), after storing it as Carbon does.
+   *
+   * @implemented
    * @param {number} [key] The key to jump to; -1 steps to the next one.
    * @returns {void}
    * @throws {RangeError} When the selected key is negative.
@@ -650,10 +680,10 @@ export class EveCamera extends IRoot
    * portable runtime accepts them explicitly while retaining simulation time
    * as argument zero for TriStepSetView compatibility.
    *
-   * Adapted: Receives Carbon's global device aspect ratio and real clock as optional
-   * arguments so the camera remains GPU- and platform-free. An application
-   * minimumDistance override permits character close-ups; null preserves the
-   * native distance floor.
+   * @adapted Receives Carbon's global device aspect ratio and real clock as optional
+   *   arguments so the camera remains GPU- and platform-free. An application
+   *   minimumDistance override permits character close-ups; null preserves the
+   *   native distance floor.
    */
 
   @meta.adapted
@@ -950,6 +980,8 @@ export class EveCamera extends IRoot
    * Re-derives yaw and pitch when the parent-orbit rotation quaternion changes,
    * and re-evaluates interest tracking (clearing the interest orbit speeds) when
    * the interest object changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -974,7 +1006,11 @@ export class EveCamera extends IRoot
     return true;
   }
 
-  /** Carbon method ResetStartTime (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ResetStartTime (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ResetStartTime()
@@ -982,7 +1018,11 @@ export class EveCamera extends IRoot
     this._startTime = 0;
   }
 
-  /** Carbon method SetOrbit (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetOrbit (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetOrbit(yaw, pitch)
@@ -995,7 +1035,11 @@ export class EveCamera extends IRoot
     this.yaw %= Math.PI * 2;
   }
 
-  /** Carbon method SetRotationOnOrbit (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetRotationOnOrbit (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetRotationOnOrbit(yaw, pitch)

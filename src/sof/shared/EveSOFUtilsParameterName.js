@@ -46,28 +46,44 @@ export class EveSOFUtilsParameterName
     }
   }
 
-  /** Reports whether construction matched one of the supplied material prefixes (EveSOFUtils.cpp:32-35). */
+  /**
+   * Reports whether construction matched one of the supplied material prefixes (EveSOFUtils.cpp:32-35).
+   *
+   * @implemented
+   */
   @meta.implemented
   IsMaterialIdxValid()
   {
     return this.materialIdx !== -1;
   }
 
-  /** Returns the zero-based matched prefix position, or -1 when none matched (EveSOFUtils.cpp:41-44). */
+  /**
+   * Returns the zero-based matched prefix position, or -1 when none matched (EveSOFUtils.cpp:41-44).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaterialIdx()
   {
     return this.materialIdx;
   }
 
-  /** Returns the currently qualified material parameter name (EveSOFUtils.cpp:56-59). */
+  /**
+   * Returns the currently qualified material parameter name (EveSOFUtils.cpp:56-59).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetFullName()
   {
     return this.fullname;
   }
 
-  /** Returns the parameter suffix remaining after its recognized material prefix (EveSOFUtils.cpp:50-53). */
+  /**
+   * Returns the parameter suffix remaining after its recognized material prefix (EveSOFUtils.cpp:50-53).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetShortName()
   {
@@ -77,6 +93,8 @@ export class EveSOFUtilsParameterName
   /**
    * When a prefix is recognized, rebuilds the qualified name with the requested
    * generic material prefix and updates the stored index (EveSOFUtils.cpp:65-72).
+   *
+   * @implemented
    */
   @meta.implemented
   ChangeMaterialIdx(genericData, index)

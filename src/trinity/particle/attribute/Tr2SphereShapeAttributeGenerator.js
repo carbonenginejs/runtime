@@ -112,6 +112,8 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    * Carbon MAP_PROPERTY_READONLY "name" over GetName
    * (Tr2SphereShapeAttributeGenerator_Blue.cpp:15): the elements the generator
    * writes. Carbon's description reuses the element-name wording.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.string
@@ -124,6 +126,8 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Resolves the position and velocity elements according to the control flags, marking the generator valid only when every required element resolves.
    * Carbon declaration: Tr2SphereShapeAttributeGenerator::Bind (trinity/trinity/Particle/Tr2SphereShapeAttributeGenerator.h:27).
+   *
+   * @implemented
    */
   @meta.implemented
   Bind(particleSystem, boundElements)
@@ -151,6 +155,8 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    * Samples a direction within the configured cone and radius range to write one particle's position and velocity offset.
    *
    * Uses the shared particle RNG for cone sampling, rotation and distribution-exponent order.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -201,6 +207,8 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * A label saying whether the generator controls position, velocity, both, or neither.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -215,7 +223,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Writes the generator's current position and rotation into the caller's vector and quaternion.
    *
-   * Adapted: Carbon's paired reference outputs become caller-provided out arguments.
+   * @adapted Carbon's paired reference outputs become caller-provided out arguments.
    */
 
   @meta.adapted
@@ -227,6 +235,8 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Copies the given position and rotation into the generator's transform.
+   *
+   * @implemented
    */
 
   @meta.implemented

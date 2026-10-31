@@ -8,6 +8,8 @@ export class IShaderConfigurer extends IRoot
 {
   /**
    * Sets a named shader option.
+   *
+   * @abstract
    * @param {string} _name The option name.
    * @param {string} _value The option value.
    * @returns {void}

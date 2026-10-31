@@ -69,7 +69,11 @@ export class DroneAvoidance extends IRoot
 
   _returnForces = [];
 
-  /** Carbon DroneAvoidance::GetProcessPriority (cpp:22-25). */
+  /**
+   * Carbon DroneAvoidance::GetProcessPriority (cpp:22-25).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -82,9 +86,8 @@ export class DroneAvoidance extends IRoot
    * velocity direction, on refresh frames; replays the cached forces in
    * between (Carbon CalculateBehavior, cpp:27-130).
    *
-   * Adapted: Debug force pairs are only collected when group.collectForces is set, keeping
-   * the per-agent loop allocation-free.
-   *
+   * @adapted Debug force pairs are only collected when group.collectForces is set, keeping
+   *   the per-agent loop allocation-free.
    * @param {Array} agents - DroneAgent records
    * @param {Array|null} _scratchData - unused (no scratch)
    * @param {Number} _deltaTime
@@ -211,7 +214,11 @@ export class DroneAvoidance extends IRoot
     return returnForces;
   }
 
-  /** Carbon DroneAvoidance::GetBehaviorSearchRadius (cpp:132-144). */
+  /**
+   * Carbon DroneAvoidance::GetBehaviorSearchRadius (cpp:132-144).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBehaviorSearchRadius()
@@ -227,6 +234,8 @@ export class DroneAvoidance extends IRoot
 
   /**
    * Carbon DroneAvoidance::GetDebugOptions (cpp:146-149).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -240,6 +249,8 @@ export class DroneAvoidance extends IRoot
    * Carbon DroneAvoidance::RenderDebugInfo (cpp:151-163): a vision-range
    * sphere around every agent, tinted from white toward blue (ARGB 0xff1111ff) as the range
    * approaches 300.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Array} agents DroneAgent records.
    * @param {mat4} parentWorldLocation Places the agents in world space.

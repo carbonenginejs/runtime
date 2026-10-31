@@ -15,13 +15,21 @@ export class Tr2ReadbackAL
     if (this._readback) this._readback.owners++;
   }
 
-  /** True only once this snapshot can be mapped without waiting. */
+  /**
+   * True only once this snapshot can be mapped without waiting.
+   *
+   * @implemented
+   */
   IsReady(renderContext)
   {
     return this._readback !== null && this._readback.implementation.IsReady(renderContext);
   }
 
-  /** An empty, released, or device-lost readback is invalid. */
+  /**
+   * An empty, released, or device-lost readback is invalid.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._readback !== null && this._readback.implementation.IsValid();
@@ -31,6 +39,8 @@ export class Tr2ReadbackAL
    * Returns native out-parameters as a mapping record. WebGPU returns a Promise
    * while pending because the browser cannot block; a ready mapping is immediate.
    * The bytes remain owned by this readback until its last owner releases it.
+   *
+   * @adapted
    */
   Map(renderContext)
   {
@@ -44,6 +54,8 @@ export class Tr2ReadbackAL
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   Destruct()
   {

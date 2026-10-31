@@ -105,13 +105,12 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
    * Creates the sampler from a description, following dx11's field mapping
    * (`Tr2SamplerStateALDx11.cpp:23-56`).
    *
-   * Adapted: the description is normalised first, as the WebGPU backend does
-   * (`CjsWebgpuSamplerStateAL.Create`). Descriptions reach the AL in two
-   * spellings - the effect reader's, with raw float bits (`minLODRaw`,
-   * `maxLODRaw`, `mipLODBiasRaw`, `borderColorRaw`) and `comparison` for the
-   * flag, and the override's plain floats - and Carbon's single struct is the
-   * normal form both reduce to.
-   *
+   * @adapted the description is normalised first, as the WebGPU backend does
+   *   (`CjsWebgpuSamplerStateAL.Create`). Descriptions reach the AL in two
+   *   spellings - the effect reader's, with raw float bits (`minLODRaw`,
+   *   `maxLODRaw`, `mipLODBiasRaw`, `borderColorRaw`) and `comparison` for the
+   *   flag, and the override's plain floats - and Carbon's single struct is the
+   *   normal form both reduce to.
    * @param {object} description A `Tr2SamplerDescription`, either spelling.
    *   The authored state.
    * @param {object} renderContext The context to create against.
@@ -186,7 +185,11 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
     this._gl = null;
   }
 
-  /** Releases the sampler and leaves the device-resource registry. */
+  /**
+   * Releases the sampler and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -196,6 +199,7 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Where the sampler sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index"; dx11 has no heap either.
    */
   GetIndexInHeap()
@@ -206,6 +210,7 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the sampler exists on the device.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -216,6 +221,7 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this sampler occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -226,6 +232,7 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the sampler for the device-resource registry, with dx11's keys.
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -237,6 +244,7 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the sampler. WebGL has no debug names, so it is kept for `Describe`.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

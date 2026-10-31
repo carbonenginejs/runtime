@@ -61,7 +61,11 @@ export class EveChildAudio extends EveChildTransform
     return true;
   }
 
-  /** Construction hook; forwards to Initialize. */
+  /**
+   * Construction hook; forwards to Initialize.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   __init__()
@@ -69,7 +73,11 @@ export class EveChildAudio extends EveChildTransform
     return this.Initialize();
   }
 
-  /** Renames the underlying emitter without touching this child's own name field. */
+  /**
+   * Renames the underlying emitter without touching this child's own name field.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetEmitterName(name)
@@ -77,7 +85,11 @@ export class EveChildAudio extends EveChildTransform
     this.audioEmitter?.SetName(String(name));
   }
 
-  /** Returns the authored child name, which is also the emitter's default name. */
+  /**
+   * Returns the authored child name, which is also the emitter's default name.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetName()
   {
@@ -87,6 +99,8 @@ export class EveChildAudio extends EveChildTransform
   /**
    * Sets the authored child name; the emitter only picks it up through
    * OnModified or an explicit SetEmitterName.
+   *
+   * @implemented
    */
   @meta.implemented
   SetName(name)
@@ -140,19 +154,29 @@ export class EveChildAudio extends EveChildTransform
   /**
    * No-op: the emitter is driven entirely from the sync pass, where the parent
    * transform is already final.
+   *
+   * @implemented
    */
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
   }
 
-  /** No-op: an audio child is never rendered and keeps no visibility state. */
+  /**
+   * No-op: an audio child is never rendered and keeps no visibility state.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
-  /** No-op: an audio child contributes no renderables. */
+  /**
+   * No-op: an audio child contributes no renderables.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetRenderables(_renderables)
   {
@@ -161,6 +185,8 @@ export class EveChildAudio extends EveChildTransform
   /**
    * Always returns false and leaves out untouched: an emitter has no spatial
    * extent to contribute to the owner's bounds.
+   *
+   * @implemented
    */
   @meta.implemented
   GetBoundingSphere(_out, _query = 0)
@@ -182,13 +208,19 @@ export class EveChildAudio extends EveChildTransform
   /**
    * No-op override: the audio child never composes a local transform from
    * authored SRT values, so its world transform is the parent's.
+   *
+   * @adapted
    */
   @meta.adapted
   Setup(_scale, _rotation, _translation, _lowestLodVisible)
   {
   }
 
-  /** No-op: an audio child has no LOD levels. */
+  /**
+   * No-op: an audio child has no LOD levels.
+   *
+   * @implemented
+   */
   @meta.implemented
   ChangeLOD(_lod)
   {
@@ -197,6 +229,8 @@ export class EveChildAudio extends EveChildTransform
   /**
    * Carbon EveChildAudio::GetDebugOptions (cpp:118-124): forwards to the
    * audio emitter when it is debug-renderable.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -213,6 +247,8 @@ export class EveChildAudio extends EveChildTransform
   /**
    * Carbon EveChildAudio::RenderDebugInfo (cpp:126-133): forwards to the
    * audio emitter when it is debug-renderable.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 

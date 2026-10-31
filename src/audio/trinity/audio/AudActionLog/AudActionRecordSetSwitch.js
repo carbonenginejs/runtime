@@ -31,7 +31,11 @@ export class AudActionRecordSetSwitch extends AudActionRecord
     this.state = String(state);
   }
 
-  /** Returns Carbon's Python-bridge tuple as a JavaScript array. */
+  /**
+   * Returns Carbon's Python-bridge tuple as a JavaScript array.
+   *
+   * @adapted
+   */
   ToPyObject()
   {
     return [ "AudActionRecordSetSwitch", this.time, this.emitterID, this.group, this.state ];

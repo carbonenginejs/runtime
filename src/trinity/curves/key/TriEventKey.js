@@ -26,7 +26,11 @@ export class TriEventKey extends IRoot
   @type.wstring
   value = "";
 
-  /** Host callable; JavaScript GC replaces native Py_XDECREF ownership. */
+  /**
+   * Host callable; JavaScript GC replaces native Py_XDECREF ownership.
+   *
+   * @adapted
+   */
   @be.mapAttribute(be.READWRITE)
   /** Carbon: m_callable (trinity/trinity/Curves/TriEventKey.h:22).
    * Adapted: Python values use ordinary JavaScript callables; they are not IRoot objects.
@@ -35,7 +39,11 @@ export class TriEventKey extends IRoot
   @type.unknown
   callable = null;
 
-  /** Host callable arguments; runtime-only and owned through ordinary JS references. */
+  /**
+   * Host callable arguments; runtime-only and owned through ordinary JS references.
+   *
+   * @adapted
+   */
   @be.mapAttribute(be.READWRITE)
   /** Carbon: m_callableArgs (trinity/trinity/Curves/TriEventKey.h:23).
    * Adapted: Python values use ordinary JavaScript argument arrays; they are not IRoot objects.

@@ -74,7 +74,11 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   @type.uint32
   currentSubmittedTriangleCount = 0;
 
-  /** Carbon method AddLine (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddLine (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   AddLine(position1, color1, position2, color2)
@@ -90,6 +94,8 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   /** Carbon method AddPickingTriangle (MAP_METHOD_AND_WRAP). */
   /**
    * Appends a triangle to the picking list that accompanies the lines.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -102,7 +108,11 @@ export class Tr2LineSet extends Tr2PrimitiveSet
     });
   }
 
-  /** Carbon method ClearLines (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ClearLines (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearLines()
@@ -113,6 +123,8 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   /** Carbon method ClearPickingTriangles (MAP_METHOD_AND_WRAP). */
   /**
    * Empties the picking-triangle list, leaving the lines intact.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -121,7 +133,11 @@ export class Tr2LineSet extends Tr2PrimitiveSet
     this.triangles.length = 0;
   }
 
-  /** Native SubmitChanges; JS array length replaces inaccessible vector capacity. */
+  /**
+   * Native SubmitChanges; JS array length replaces inaccessible vector capacity.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   SubmitChanges()
@@ -139,6 +155,8 @@ export class Tr2LineSet extends Tr2PrimitiveSet
 
   /**
    * Recolors all existing vertices and submits them, as Carbon does.
+   *
+   * @adapted
    */
   @meta.adapted
 
@@ -154,6 +172,8 @@ export class Tr2LineSet extends Tr2PrimitiveSet
 
   /**
    * Prepares existing geometry after reader population; JS arrays need no reserve.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -164,14 +184,22 @@ export class Tr2LineSet extends Tr2PrimitiveSet
     return true;
   }
 
-  /** Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled. */
+  /**
+   * Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
-  /** Explicit AL destruction replaces Carbon's empty reference-counted handles. */
+  /**
+   * Explicit AL destruction replaces Carbon's empty reference-counted handles.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources()
@@ -182,7 +210,11 @@ export class Tr2LineSet extends Tr2PrimitiveSet
     this.pickingVertexBuffer.Destroy();
   }
 
-  /** Packs Carbon's native vertex records into mapped AL storage instead of memcpy. */
+  /**
+   * Packs Carbon's native vertex records into mapped AL storage instead of memcpy.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   OnPrepareResources()
@@ -259,7 +291,11 @@ export class Tr2LineSet extends Tr2PrimitiveSet
     return true;
   }
 
-  /** Native Tr2LineSet draw dispatch, including the visible-buffer gate for picking. */
+  /**
+   * Native Tr2LineSet draw dispatch, including the visible-buffer gate for picking.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBatchesImpl(accumulator, perObjectData, effect, reason)

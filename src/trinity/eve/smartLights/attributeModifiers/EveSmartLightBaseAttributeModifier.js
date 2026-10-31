@@ -114,6 +114,8 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * Seeds the crossfade state machine: a modifier authored active but not
    * starting active animates into its active state
    * (EveSmartLightBaseAttributeModifier.cpp:27-33).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -128,6 +130,8 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
   /**
    * Reacts to an `active` edit by restarting the crossfade from the current
    * (unmapped) position (EveSmartLightBaseAttributeModifier.cpp:35-48).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -148,6 +152,8 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
   /**
    * Applies an activation state, optionally restarting the play time
    * (EveSmartLightBaseAttributeModifier.cpp:50-63).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -170,6 +176,8 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * Maps the linear crossfade position through the intensity power curve,
    * mirrored around the deactivating direction
    * (EveSmartLightBaseAttributeModifier.cpp:65-70).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -184,6 +192,8 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * Advances the crossfade/delayed-activation state machine and folds the
    * parent multiplier into the final activation strength
    * (EveSmartLightBaseAttributeModifier.cpp:72-125).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -243,6 +253,8 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
    * Final activation strength for one placement, multiplied by the optional
    * lifetime curve sampled per the lifetime formula
    * (EveSmartLightBaseAttributeModifier.cpp:127-151).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -274,7 +286,11 @@ export class EveSmartLightBaseAttributeModifier extends IRoot
     return this.finalAttributeMultiplier * activationMultiplier;
   }
 
-  /** Carbon declares ResetChildren inline empty on the base (EveSmartLightBaseAttributeModifier.h:41). */
+  /**
+   * Carbon declares ResetChildren inline empty on the base (EveSmartLightBaseAttributeModifier.h:41).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ResetChildren(_parentActive)

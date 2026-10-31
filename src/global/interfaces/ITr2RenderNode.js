@@ -7,10 +7,18 @@ import { CjsSchema, blue, meta } from "../schema/index.js";
 export class ITr2RenderNode extends IRoot
 {
 
-  /** Validates the node against its requested destinations and named outputs. */
+  /**
+   * Validates the node against its requested destinations and named outputs.
+   *
+   * @abstract
+   */
   Validate(_destinationDimensions, _outputs, _realTime, _simTime) {}
 
-  /** Executes the node into its requested destinations. */
+  /**
+   * Executes the node into its requested destinations.
+   *
+   * @abstract
+   */
   Execute(_destinations, _outputs, _realTime, _simTime, _rootTimer, _renderContext) {}
 }
 

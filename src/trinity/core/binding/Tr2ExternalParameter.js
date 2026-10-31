@@ -57,7 +57,8 @@ export class Tr2ExternalParameter extends IInitialize
 
   /**
    * Carbon method GetValue (MAP_METHOD_AND_WRAP).
-   * Adapted: Returns a defensive JavaScript value copy in place of Carbon's BlueScriptValue conversion.
+   *
+   * @adapted Returns a defensive JavaScript value copy in place of Carbon's BlueScriptValue conversion.
    * @returns {*} Defensive copy for arrays, otherwise the bound value.
    */
   @be.mapMethodAndWrap()
@@ -75,7 +76,8 @@ export class Tr2ExternalParameter extends IInitialize
 
   /**
    * Carbon method SetValue (MAP_METHOD_AND_WRAP).
-   * Adapted: Validates and converts portable schema values before assignment instead of using Carbon's Python Blue conversion bridge.
+   *
+   * @adapted Validates and converts portable schema values before assignment instead of using Carbon's Python Blue conversion bridge.
    * @param {*} value Value to convert and assign.
    * @returns {boolean} True after assignment and notification.
    */
@@ -118,7 +120,8 @@ export class Tr2ExternalParameter extends IInitialize
    * Resolves destinationAttribute against the destination object, caching the
    * schema field, component offset and value category; an unresolvable attribute
    * leaves valid false and still returns true.
-   * Adapted: Resolves Carbon Blue entries through CjsSchema with a narrow plain-object fallback for portable graph adapters.
+   *
+   * @adapted Resolves Carbon Blue entries through CjsSchema with a narrow plain-object fallback for portable graph adapters.
    * @returns {boolean} True, including when the destination is invalid.
    */
 
@@ -157,6 +160,8 @@ export class Tr2ExternalParameter extends IInitialize
 
   /**
    * Re-resolves the cached destination entry after any field change.
+   *
+   * @implemented
    * @param {string|null} [_value=null] Changed member name.
    * @returns {boolean} True after resolving the destination.
    */
@@ -170,6 +175,8 @@ export class Tr2ExternalParameter extends IInitialize
 
   /**
    * The parameter's exposed name.
+   *
+   * @implemented
    * @returns {string} Exposed name.
    */
 
@@ -181,7 +188,8 @@ export class Tr2ExternalParameter extends IInitialize
 
   /**
    * Sets the exposed name, coercing null to an empty string.
-   * Adapted: Normalizes JavaScript inputs to a string, including null to an empty name, before assignment.
+   *
+   * @adapted Normalizes JavaScript inputs to a string, including null to an empty name, before assignment.
    * @param {*} name Name normalized by the portable string adapter.
    * @returns {void}
    */
@@ -195,7 +203,8 @@ export class Tr2ExternalParameter extends IInitialize
   /**
    * Rebinds the destination object and immediately re-resolves the cached entry,
    * where Carbon defers that to its notify lifecycle.
-   * Adapted: Normalizes a nullish object and eagerly rebuilds the portable entry cache; Carbon assigns the pointer and uses its notify lifecycle.
+   *
+   * @adapted Normalizes a nullish object and eagerly rebuilds the portable entry cache; Carbon assigns the pointer and uses its notify lifecycle.
    * @param {object|null} destinationObject Destination owner.
    * @returns {void}
    */
@@ -210,7 +219,8 @@ export class Tr2ExternalParameter extends IInitialize
   /**
    * Rebinds the destination attribute and immediately re-resolves the cached
    * entry.
-   * Adapted: Normalizes the attribute to a string and eagerly rebuilds the portable entry cache; Carbon assigns the string and uses its notify lifecycle.
+   *
+   * @adapted Normalizes the attribute to a string and eagerly rebuilds the portable entry cache; Carbon assigns the string and uses its notify lifecycle.
    * @param {*} destinationAttribute Member name with an optional component.
    * @returns {void}
    */
@@ -225,6 +235,8 @@ export class Tr2ExternalParameter extends IInitialize
   /**
    * Whether the destination attribute currently resolves to a supported value
    * shape.
+   *
+   * @implemented
    * @returns {boolean} Whether the destination resolved.
    */
 
@@ -238,7 +250,8 @@ export class Tr2ExternalParameter extends IInitialize
    * The live value of the bound attribute, re-resolving first if needed; null
    * when the binding cannot be resolved. Array values are the destination's own
    * buffers, not copies.
-   * Adapted: Returns the portable field value instead of Carbon's raw Be::Var pointer.
+   *
+   * @adapted Returns the portable field value instead of Carbon's raw Be::Var pointer.
    * @returns {*} Live destination value, or null.
    */
 
@@ -252,7 +265,8 @@ export class Tr2ExternalParameter extends IInitialize
   /**
    * The cached schema field metadata plus the component offset, or null while
    * invalid; stands in for Carbon's Be::VarEntry pointer.
-   * Adapted: Returns CjsSchema field metadata plus the component offset instead of Carbon's Be::VarEntry pointer.
+   *
+   * @adapted Returns CjsSchema field metadata plus the component offset instead of Carbon's Be::VarEntry pointer.
    * @returns {object|null} Portable field metadata and component offset.
    */
 
@@ -265,7 +279,8 @@ export class Tr2ExternalParameter extends IInitialize
   /**
    * Creates a TriValueBinding already pointed at this parameter's destination
    * endpoint, leaving the source for the caller to set.
-   * Adapted: Constructs the maintained portable TriValueBinding rather than a native Blue instance.
+   *
+   * @adapted Constructs the maintained portable TriValueBinding rather than a native Blue instance.
    * @returns {TriValueBinding} Binding with its destination assigned.
    */
 

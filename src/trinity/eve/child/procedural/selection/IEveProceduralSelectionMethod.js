@@ -10,30 +10,54 @@ import { meta } from "#schema";
 export class IEveProceduralSelectionMethod extends IRoot
 {
 
-  /** Updates the procedural selection method during the asynchronous phase. */
+  /**
+   * Updates the procedural selection method during the asynchronous phase.
+   *
+   * @abstract
+   */
   @be.abstract
   UpdateAsyncronous(_updateContext) {}
 
-  /** Reports whether the selected child changed. */
+  /**
+   * Reports whether the selected child changed.
+   *
+   * @abstract
+   */
   @be.abstract
   IsSelectedChildModified() {}
 
-  /** Returns the volumes used to visualize this selection method. */
+  /**
+   * Returns the volumes used to visualize this selection method.
+   *
+   * @abstract
+   */
   @be.abstract
   GetDebugVolumes(_out) {}
 
-  /** Returns the currently selected child reference. */
+  /**
+   * Returns the currently selected child reference.
+   *
+   * @abstract
+   */
   @be.abstract
   GetSelectedChild() {}
 
-  /** Accepts an optional procedural-selection variable. */
+  /**
+   * Accepts an optional procedural-selection variable.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetProceduralMethodVariable(_name, _value)
   {
   }
 
-  /** Returns Carbon's default procedural-selection variable result. */
+  /**
+   * Returns Carbon's default procedural-selection variable result.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProceduralMethodVariable(_name)

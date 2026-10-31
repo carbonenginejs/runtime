@@ -37,9 +37,9 @@ export class EvePlanet extends EveEffectRoot2
    * A planet lights its neighbours with its own radius, albedo and emissive
    * colour (EvePlanet.cpp:34-37); unregistering is EveEffectRoot2's, by the
    * same translation view.
-   * Adapted: Carbon passes the radius as a pointer the manager reads live;
-   * a getter supplies the current value at every source refresh.
    *
+   * @adapted Carbon passes the radius as a pointer the manager reads live;
+   *   a getter supplies the current value at every source refresh.
    * @param {import("../../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
    */
@@ -94,7 +94,11 @@ export class EvePlanet extends EveEffectRoot2
   @type.float32
   radius = 1;
 
-  /** Stores the world-to-render scale used by Carbon's planet render path. */
+  /**
+   * Stores the world-to-render scale used by Carbon's planet render path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetRenderScale(value)
@@ -102,7 +106,11 @@ export class EvePlanet extends EveEffectRoot2
     this._renderScale = value;
   }
 
-  /** Writes the render-scaled world-space bounds of the planet sphere. */
+  /**
+   * Writes the render-scaled world-space bounds of the planet sphere.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWorldBoundingBox(min, max)
@@ -119,7 +127,11 @@ export class EvePlanet extends EveEffectRoot2
     return true;
   }
 
-  /** Reports whether the planet radius can currently supply a bounding box. */
+  /**
+   * Reports whether the planet radius can currently supply a bounding box.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsBoundingBoxReady()
@@ -127,14 +139,18 @@ export class EvePlanet extends EveEffectRoot2
     return this.radius > 0;
   }
 
-  /** Carbon EvePlanet::UpdateZOnlyVisibility (EvePlanet.cpp:133-139): forward
+  /**
+   * Carbon EvePlanet::UpdateZOnlyVisibility (EvePlanet.cpp:133-139): forward
    * to the z-only child mesh with the UNSCALED protected world transform (NOT
    * the CalculatePlanetScaleTransform result - the depth-prepass proxy lives
    * in true world units, matching UpdateEffectChildren cpp:60-65) and the
    * current planet LOD. No
    * gates whatsoever - the display / LOD-HIGH gates live downstream in
    * GetZOnlyRenderables (cpp:205-213). Scene call site:
-   * EveSpaceScene.cpp:1458-1460 / EveSpaceScene.js UpdateVisibility. */
+   * EveSpaceScene.cpp:1458-1460 / EveSpaceScene.js UpdateVisibility.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   UpdateZOnlyVisibility(updateContext)
@@ -150,6 +166,8 @@ export class EvePlanet extends EveEffectRoot2
    * Updates surface children in planet space and the depth proxy in world space
    * (EvePlanet.cpp:43-65). The depth proxy deliberately updates sync before async;
    * the surface children use the opposite order, exactly as Carbon does.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -174,8 +192,9 @@ export class EvePlanet extends EveEffectRoot2
   /**
    * Evaluates the ball plus authored translation/rotation, then the children,
    * curve sets, controllers and sun audio (EvePlanet.cpp:68-107).
-   * Adapted: curve outputs are out-last and the explicit context carries renderer
-   * state to curve sets; JavaScript runs the native work sequentially.
+   *
+   * @adapted curve outputs are out-last and the explicit context carries renderer
+   *   state to curve sets; JavaScript runs the native work sequentially.
    */
   @meta.adapted
 
@@ -201,8 +220,9 @@ export class EvePlanet extends EveEffectRoot2
 
   /**
    * Applies Carbon's world * ScalingMatrix(1/renderScale) (cpp:110-114).
-   * Adapted: gl-matrix reverses the operands, including the translation scale;
-   * the caller owns the output matrix instead of receiving a C++ value.
+   *
+   * @adapted gl-matrix reverses the operands, including the translation scale;
+   *   the caller owns the output matrix instead of receiving a C++ value.
    */
   @meta.adapted
 
@@ -219,6 +239,8 @@ export class EvePlanet extends EveEffectRoot2
    * Estimates size and visits children under the scaled transform (cpp:117-130).
    * As in Carbon, size uses the renderer projection, while child culling uses
    * the planet frustum.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -240,7 +262,11 @@ export class EvePlanet extends EveEffectRoot2
     }
   }
 
-  /** Distance from the renderer's view, then the pixel estimate (EvePlanet.cpp:184-191). */
+  /**
+   * Distance from the renderer's view, then the pixel estimate (EvePlanet.cpp:184-191).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _EstimatePixelDiameterPos(center, tanFOV, scale)
@@ -248,7 +274,11 @@ export class EvePlanet extends EveEffectRoot2
     return this._EstimatePixelDiameterDist(vec3.distance(center, Tr2Renderer.GetViewPosition()), tanFOV, scale);
   }
 
-  /** Pixel diameter over the renderer's viewport; preserves both epsilon tests (cpp:202-221). */
+  /**
+   * Pixel diameter over the renderer's viewport; preserves both epsilon tests (cpp:202-221).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _EstimatePixelDiameterDist(distance, tanFOV, scale)
@@ -260,7 +290,11 @@ export class EvePlanet extends EveEffectRoot2
     return radius / distance * halfWidthProjection * 2;
   }
 
-  /** Surface drawing requires HIGH LOD and strictly more than minScreenSize (cpp:243-263). */
+  /**
+   * Surface drawing requires HIGH LOD and strictly more than minScreenSize (cpp:243-263).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetRenderables(renderables)
@@ -273,7 +307,11 @@ export class EvePlanet extends EveEffectRoot2
     return renderables;
   }
 
-  /** The depth proxy has display/HIGH gates but no pixel-size gate (cpp:224-241). */
+  /**
+   * The depth proxy has display/HIGH gates but no pixel-size gate (cpp:224-241).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetZOnlyRenderables(renderables)
@@ -285,7 +323,11 @@ export class EvePlanet extends EveEffectRoot2
     return renderables;
   }
 
-  /** Returns the last visibility estimate (cpp:265-268). */
+  /**
+   * Returns the last visibility estimate (cpp:265-268).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetEstimatedPixelDiameter()
@@ -293,7 +335,11 @@ export class EvePlanet extends EveEffectRoot2
     return this.estimatedPixelDiameter;
   }
 
-  /** Returns the ball identity used to recognize the scene sun (cpp:270-273). */
+  /**
+   * Returns the ball identity used to recognize the scene sun (cpp:270-273).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetTranslationCurve()
@@ -301,7 +347,11 @@ export class EvePlanet extends EveEffectRoot2
     return this.translationCurve;
   }
 
-  /** Applies the previous visibility estimate, preserving Carbon's frame ordering (cpp:275-291). */
+  /**
+   * Applies the previous visibility estimate, preserving Carbon's frame ordering (cpp:275-291).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   UpdateLOD()
@@ -310,7 +360,11 @@ export class EvePlanet extends EveEffectRoot2
     this._SetLod(this.estimatedPixelDiameter > this.minScreenSize ? Tr2Lod.TR2_LOD_HIGH : Tr2Lod.TR2_LOD_LOW);
   }
 
-  /** Propagates LOD to surface children and the depth proxy (cpp:293-307). */
+  /**
+   * Propagates LOD to surface children and the depth proxy (cpp:293-307).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _SetLod(lod)
@@ -320,7 +374,11 @@ export class EvePlanet extends EveEffectRoot2
     if (this.zOnlyModel) this.zOnlyModel.ChangeLOD(lod);
   }
 
-  /** Returns the authored rotation, not the ball-composed root rotation (cpp:147-150). */
+  /**
+   * Returns the authored rotation, not the ball-composed root rotation (cpp:147-150).
+   *
+   * @adapted
+   */
   @meta.adapted
 
   GetWorldRotation(out) // alloc: optional output is a caller-owned return value.
@@ -329,7 +387,11 @@ export class EvePlanet extends EveEffectRoot2
     return quat.copy(out, this.rotation);
   }
 
-  /** The planet radius is independent of the effect-root bounding sphere (cpp:353-356). */
+  /**
+   * The planet radius is independent of the effect-root bounding sphere (cpp:353-356).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetRadius()
@@ -337,7 +399,11 @@ export class EvePlanet extends EveEffectRoot2
     return this.radius;
   }
 
-  /** Planets expose one target point (cpp:315-318). */
+  /**
+   * Planets expose one target point (cpp:315-318).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetDamageLocatorCount()
@@ -345,7 +411,11 @@ export class EvePlanet extends EveEffectRoot2
     return 1;
   }
 
-  /** Out-last JS target point: world translation or local zero (cpp:327-331). */
+  /**
+   * Out-last JS target point: world translation or local zero (cpp:327-331).
+   *
+   * @adapted
+   */
   @meta.adapted
 
   GetDamageLocatorPosition(_index, inWorldSpace, out)
@@ -355,7 +425,11 @@ export class EvePlanet extends EveEffectRoot2
     return true;
   }
 
-  /** Out-last JS miss position is always the planet center (cpp:341-344). */
+  /**
+   * Out-last JS miss position is always the planet center (cpp:341-344).
+   *
+   * @adapted
+   */
   @meta.adapted
 
   GetMissPosition(_hit, _source, out) // alloc: optional output is a caller-owned return value.
@@ -363,7 +437,11 @@ export class EvePlanet extends EveEffectRoot2
     return this.GetWorldPosition(out);
   }
 
-  /** Native planet impact creation returns zero (cpp:359-362). */
+  /**
+   * Native planet impact creation returns zero (cpp:359-362).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
@@ -371,7 +449,11 @@ export class EvePlanet extends EveEffectRoot2
     return 0;
   }
 
-  /** A planet never supplies an impact position (cpp:371-374). */
+  /**
+   * A planet never supplies an impact position (cpp:371-374).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetImpactPosition(_locator, _posPrev, _posNow, _epsilon, _out)

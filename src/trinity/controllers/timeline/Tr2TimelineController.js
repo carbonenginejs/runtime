@@ -94,6 +94,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Links actions, variables, and event handlers to an owner.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -126,6 +128,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Unlinks runtime children and clears owner state.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -158,6 +162,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Checks whether this timeline is linked.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -168,6 +174,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Starts actions already active at the current time.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -191,6 +199,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Stops currently active actions and resets timeline time.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -217,8 +227,8 @@ export class Tr2TimelineController extends EveThrottleable
    * TimeAsFloat, and toggles action activity; updateables receive Blue's
    * actual and frame times in ticks (`Tr2TimelineController.cpp:171-235`).
    *
-   * Adapted: the action range toggling runs through `_SetTime`, and the
-   * controller mutex and stats scopes are omitted (one JavaScript thread).
+   * @adapted the action range toggling runs through `_SetTime`, and the
+   *   controller mutex and stats scopes are omitted (one JavaScript thread).
    */
 
   @meta.adapted
@@ -251,6 +261,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Sets a named variable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -261,6 +273,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Handles a named event.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -281,6 +295,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Gets the linked owner.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -292,9 +308,9 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Invokes callbacks registered for a name.
    *
-   * Adapted: Invokes stored JavaScript functions and reports exceptions through
-   * CcpLog, preserving Carbon's continuation after a failed callback.
-   * Returns whether a matching callback was invoked; native returns void.
+   * @adapted Invokes stored JavaScript functions and reports exceptions through
+   *   CcpLog, preserving Carbon's continuation after a failed callback.
+   *   Returns whether a matching callback was invoked; native returns void.
    */
 
   @meta.adapted
@@ -326,6 +342,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Registers an updateable object.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -336,6 +354,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Unregisters an updateable object.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -346,6 +366,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Gets named roots for controller binding paths.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -367,6 +389,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Gets a float variable by name.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -377,6 +401,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Appends expression metadata for variables.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -395,6 +421,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Gets expression variable metadata.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -405,6 +433,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Gets expression variable data.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -415,6 +445,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Ensures the expression temporary arena is large enough.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -428,6 +460,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Gets the expression temporary arena.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -439,7 +473,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Rebases action sim time.
    * Source: trinity/trinity/Controllers/Tr2TimelineController.cpp:366-375
-   * Adapted: JavaScript numeric timestamps represent native Be::Time values.
+   *
+   * @adapted JavaScript numeric timestamps represent native Be::Time values.
    */
 
   @meta.adapted
@@ -455,6 +490,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Gets action count.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -466,8 +503,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets an action by index (Tr2TimelineController.cpp:382-390).
    *
-   * Adapted: Carbon's output reference comes back as the return value.
-   *
+   * @adapted Carbon's output reference comes back as the return value.
    * @param {number} index Action index.
    * @returns {ITr2ControllerAction} The action.
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
@@ -487,8 +523,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Gets the timeline start time in seconds of the action at an index
    * (Tr2TimelineController.cpp:392-400).
    *
-   * Adapted: Carbon's output reference comes back as the return value.
-   *
+   * @adapted Carbon's output reference comes back as the return value.
    * @param {number} index Action index.
    * @returns {number} Start time.
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
@@ -508,8 +543,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Gets the timeline end time in seconds of the action at an index
    * (Tr2TimelineController.cpp:402-410).
    *
-   * Adapted: Carbon's output reference comes back as the return value.
-   *
+   * @adapted Carbon's output reference comes back as the return value.
    * @param {number} index Action index.
    * @returns {number} End time.
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
@@ -529,8 +563,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Gets the track the action at an index belongs to
    * (Tr2TimelineController.cpp:412-420).
    *
-   * Adapted: Carbon's output reference comes back as the return value.
-   *
+   * @adapted Carbon's output reference comes back as the return value.
    * @param {number} index Action index.
    * @returns {number} Track ID.
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
@@ -551,8 +584,7 @@ export class Tr2TimelineController extends EveThrottleable
    * when the edit changes whether it covers the current time
    * (Tr2TimelineController.cpp:422-447).
    *
-   * Adapted: no controller mutex; JavaScript runs actions on one thread.
-   *
+   * @adapted no controller mutex; JavaScript runs actions on one thread.
    * @param {number} index Action index.
    * @param {number} startTime New start time.
    * @returns {void}
@@ -591,8 +623,7 @@ export class Tr2TimelineController extends EveThrottleable
    * the edit changes whether it covers the current time
    * (Tr2TimelineController.cpp:449-473).
    *
-   * Adapted: no controller mutex; JavaScript runs actions on one thread.
-   *
+   * @adapted no controller mutex; JavaScript runs actions on one thread.
    * @param {number} index Action index.
    * @param {number} endTime New end time.
    * @returns {void}
@@ -631,8 +662,7 @@ export class Tr2TimelineController extends EveThrottleable
    * changes whether its track is enabled while the action covers the current
    * time (Tr2TimelineController.cpp:475-502).
    *
-   * Adapted: no controller mutex; JavaScript runs actions on one thread.
-   *
+   * @adapted no controller mutex; JavaScript runs actions on one thread.
    * @param {number} index Action index.
    * @param {number} trackID New track ID.
    * @returns {void}
@@ -667,7 +697,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Appends the action, links it when owned, then appends its timeline entry.
    * Starts it immediately when playback covers its enabled range.
    *
-   * Adapted: Stores a Tr2TimelineEntry object in place of Carbon's value struct.
+   * @adapted Stores a Tr2TimelineEntry object in place of Carbon's value struct.
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
@@ -697,8 +727,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Removes an action and its entry, stopping and unlinking only when owned
    * (Tr2TimelineController.cpp:530-553).
    *
-   * Adapted: no controller mutex; JavaScript runs actions on one thread.
-   *
+   * @adapted no controller mutex; JavaScript runs actions on one thread.
    * @param {number} index Action index.
    * @returns {void}
    * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
@@ -728,6 +757,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Checks whether the action's track is enabled
    * (Tr2TimelineController.cpp:555-558). Carbon indexes m_entries unchecked.
    *
+   * @implemented
    * @param {number} index Action index.
    * @returns {boolean} Whether the entry's track is enabled.
    * @throws {RangeError} When no entry exists at index (ruling 11).
@@ -741,6 +771,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Checks whether a track is enabled.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -751,6 +783,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Enables or disables a track.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -787,6 +821,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Registers a callback.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -800,6 +836,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Clears callbacks.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -810,6 +848,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Gets current timeline time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -820,6 +860,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Sets current timeline time and toggles action activity.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -869,6 +911,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Pauses time progression.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -879,6 +923,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Resumes time progression.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -889,6 +935,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Relinks to the current owner.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented

@@ -97,6 +97,7 @@ export class Tr2DrawUPHelper
   /**
    * Drops every scratch buffer and rewinds the ring.
    *
+   * @adapted
    * @returns {void}
    */
   Destroy()
@@ -118,6 +119,7 @@ export class Tr2DrawUPHelper
   /**
    * Draws non-indexed from caller memory.
    *
+   * @adapted
    * @param {number} topology A `Topology` value; the context's bound topology.
    * @param {number} primitiveCount Primitives to draw.
    * @param {ArrayBufferView} vertexStreamZeroData The vertices.
@@ -150,6 +152,7 @@ export class Tr2DrawUPHelper
   /**
    * Draws indexed from caller memory.
    *
+   * @adapted
    * @param {number} topology A `Topology` value; the context's bound topology.
    * @param {number} numVertices Vertices the index data spans.
    * @param {number} primitiveCount Primitives to draw.
@@ -234,6 +237,8 @@ export class Tr2DrawUPHelper
   /**
    * `FillUPVertexBuffer`: grows the slot if needed, then copies the vertices in.
    *
+   * @adapted
+   * @renamed FillUPVertexBuffer
    * @param {number} vertexCount Vertices to copy.
    * @param {ArrayBufferView} vertexStreamZeroData The vertices.
    * @param {number} vertexStreamZeroStride Bytes per vertex.
@@ -282,6 +287,8 @@ export class Tr2DrawUPHelper
   /**
    * `FillUPIndexBuffer`: grows the slot if needed, then copies the indices in.
    *
+   * @adapted
+   * @renamed FillUPIndexBuffer
    * @param {number} indexCount Indices to copy.
    * @param {Uint16Array|Uint32Array} indices The indices.
    * @param {number} bytesPerIndex Index width in bytes.

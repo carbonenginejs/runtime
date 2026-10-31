@@ -26,6 +26,8 @@ export class ITr2DebugRenderer2 extends IRoot
    * Tests whether an option is enabled for an owner.
    * Carbon's HasOption<T> forwards owner->GetRawRoot() to this pure IRoot query;
    * in JavaScript the object is its own root, so the two are one method.
+   *
+   * @abstract
    * @param {object} _owner The object being queried.
    * @param {string} _option The option name.
    * @returns {boolean} Whether the option is enabled.
@@ -34,6 +36,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Carbon's `IsSelected( IRoot* owner )` (h:143).
+   *
+   * @abstract
    * @param {object} _owner The object being queried.
    * @returns {boolean} Whether the object is selected.
    */
@@ -41,6 +45,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Carbon's `IsSelected( Tr2DebugObjectReference owner )` (h:144).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner The object and area being queried.
    * @returns {boolean} Whether the referenced area is selected.
    */
@@ -48,6 +54,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a line between the supplied endpoints (h:146).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _from First endpoint.
    * @param {Float32Array} _to Second endpoint.
@@ -58,6 +66,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a triangle with a normal per vertex (h:147).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _vertex1
    * @param {Float32Array} _normal1
@@ -72,6 +82,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a triangle with one normal for the face (h:148).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _vertex1
    * @param {Float32Array} _vertex2
@@ -84,6 +96,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws an untransformed box (h:150).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _min
    * @param {Float32Array} _max
@@ -95,6 +109,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a box under a transform (h:151).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform
    * @param {Float32Array} _min
@@ -107,6 +123,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a sphere given as a Vector4, centre then radius (h:153).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _sphere
    * @param {number} _segments
@@ -118,6 +136,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a sphere from a centre and radius (h:154).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _center
    * @param {number} _radius
@@ -130,6 +150,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a unit sphere under a transform (h:155).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform
    * @param {number} _segments
@@ -141,6 +163,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a sphere of a radius under a transform (h:156).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform
    * @param {number} _radius
@@ -153,6 +177,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a sphere of a centre and radius under a transform (h:157).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform
    * @param {Float32Array} _center
@@ -166,6 +192,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a cylinder of a radius and height under a transform (h:159).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform
    * @param {number} _radius
@@ -179,6 +207,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a cylinder between two cap centres (h:160).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _cap0
    * @param {Float32Array} _cap1
@@ -192,6 +222,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a cylinder between two cap centres under a transform (h:161).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform
    * @param {Float32Array} _cap0
@@ -206,6 +238,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a cone of a base radius and height under a transform (h:163).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform
    * @param {number} _radius
@@ -219,6 +253,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a cone from a base centre to a focal point (h:164).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _base
    * @param {Float32Array} _focal
@@ -232,6 +268,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a cone of a height and opening angle under a transform (h:166).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform
    * @param {number} _height
@@ -246,6 +284,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a capsule of a radius and height under a transform (h:168).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform
    * @param {number} _radius
@@ -259,6 +299,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a capsule between two cap centres (h:169).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _cap0
    * @param {Float32Array} _cap1
@@ -272,6 +314,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws an arrow from start to end (h:171).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _start Arrow start.
    * @param {Float32Array} _end Arrow end.
@@ -286,6 +330,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws an arrow with a pointer at each end (h:172).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _start Arrow start.
    * @param {Float32Array} _end Arrow end.
@@ -300,6 +346,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a spherical arrow in the supplied direction (h:174).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _center Sphere center.
    * @param {Float32Array} _direction Arrow direction.
@@ -313,6 +361,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws the transformed axes; Carbon supplies no color argument here (h:176).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform Axis transform.
    * @param {number} _effect An Effect value.
@@ -322,6 +372,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws a transformed extrusion from the caller's vertex and normal sequences (h:178).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform Shape transform.
    * @param {object} _vertices Native Vector2 sequence.
@@ -336,6 +388,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws text using the native format-string/variadic contract, without an owner argument (h:180).
+   *
+   * @abstract
    * @param {number} _font Native TriDebugFont value.
    * @param {Float32Array} _position Text position.
    * @param {Float32Array} _color Text color.
@@ -349,6 +403,8 @@ export class ITr2DebugRenderer2 extends IRoot
    * An option's color (h:182). Carbon writes it to an output parameter and
    * returns whether one was set; the output becomes the return value
    * (skill rule 11), null when none is set.
+   *
+   * @abstract
    * @param {string} _option The option name.
    * @returns {Float32Array|null} The color.
    */
@@ -356,6 +412,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Sets the color associated with an option (h:183).
+   *
+   * @abstract
    * @param {string} _option The option name, first as in Carbon.
    * @param {Float32Array} _color Input color.
    * @returns {void}
@@ -364,6 +422,8 @@ export class ITr2DebugRenderer2 extends IRoot
 
   /**
    * Draws an audio-speaker marker (h:185).
+   *
+   * @abstract
    * @param {Tr2DebugObjectReference} _owner
    * @param {Float32Array} _transform Marker transform.
    * @param {number} _size Marker size.

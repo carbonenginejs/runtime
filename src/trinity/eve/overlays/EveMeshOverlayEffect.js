@@ -79,8 +79,8 @@ export class EveMeshOverlayEffect extends IRoot
    * Returns the effect list for a batch type, or null when the overlay is hidden
    * or the batch type has no list of its own.
    *
-   * Adapted: Carbon reports success through a bool out-parameter; JavaScript returns null
-   * for unsupported or hidden batches.
+   * @adapted Carbon reports success through a bool out-parameter; JavaScript returns null
+   *   for unsupported or hidden batches.
    */
 
   @meta.adapted
@@ -102,6 +102,8 @@ export class EveMeshOverlayEffect extends IRoot
   /**
    * Reports whether the overlay applies to the opaque batch alone or to all
    * batches, given the batch type being queried.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -115,6 +117,8 @@ export class EveMeshOverlayEffect extends IRoot
   /**
    * Reports whether the overlay contributes any transparent effects, which
    * decides whether it needs a transparent pass.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -123,7 +127,11 @@ export class EveMeshOverlayEffect extends IRoot
     return this.transparentEffects.length > 0;
   }
 
-  /** Sets a shader option on every effect across all five batch lists. */
+  /**
+   * Sets a shader option on every effect across all five batch lists.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetShaderOption(name, value)
@@ -138,7 +146,7 @@ export class EveMeshOverlayEffect extends IRoot
    * Links each controller that is not already linked to this overlay so it can
    * resolve the overlay's variables; always succeeds.
    *
-   * Adapted: Blue root locking is represented by the hydrated JavaScript object identity.
+   * @adapted Blue root locking is represented by the hydrated JavaScript object identity.
    */
 
   @meta.adapted
@@ -156,8 +164,8 @@ export class EveMeshOverlayEffect extends IRoot
    * controllers, unlinks removed ones and unlinks all of them on unload start;
    * loading events and notifications for any other list are ignored.
    *
-   * Adapted: Plain JavaScript arrays do not raise Blue IList notifications; callers forward
-   * the equivalent event explicitly.
+   * @adapted Plain JavaScript arrays do not raise Blue IList notifications; callers forward
+   *   the equivalent event explicitly.
    */
 
   @meta.adapted
@@ -179,7 +187,11 @@ export class EveMeshOverlayEffect extends IRoot
     }
   }
 
-  /** Forwards a named variable value to every controller. */
+  /**
+   * Forwards a named variable value to every controller.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetControllerVariable(name, value)
@@ -187,7 +199,11 @@ export class EveMeshOverlayEffect extends IRoot
     for (const controller of this.controllers) controller?.SetVariable(name, value);
   }
 
-  /** Forwards a named event to every controller. */
+  /**
+   * Forwards a named event to every controller.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HandleControllerEvent(name)
@@ -195,7 +211,11 @@ export class EveMeshOverlayEffect extends IRoot
     for (const controller of this.controllers) controller?.HandleEvent(name);
   }
 
-  /** Starts every controller attached to the overlay. */
+  /**
+   * Starts every controller attached to the overlay.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StartControllers()
@@ -207,6 +227,8 @@ export class EveMeshOverlayEffect extends IRoot
    * Plays the overlay's curve set when its name matches: a named time range
    * plays that range, otherwise the range is reset and the set plays from the
    * start; a name that does not match is ignored.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -225,6 +247,8 @@ export class EveMeshOverlayEffect extends IRoot
   /**
    * Stops the overlay's curve set when its name matches, and does nothing
    * otherwise.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -236,6 +260,8 @@ export class EveMeshOverlayEffect extends IRoot
   /**
    * Returns the longest curve duration in the named curve set, or 0 when the
    * name does not match the overlay's set.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -249,6 +275,8 @@ export class EveMeshOverlayEffect extends IRoot
   /**
    * Returns the duration of a named time range within the named curve set, or 0
    * when either name does not match.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -263,6 +291,8 @@ export class EveMeshOverlayEffect extends IRoot
    * Advances the curve set with the supplied real and simulation times and steps
    * every controller, matching Carbon's fixed 0.5 controller step; skipped
    * entirely when updates are disabled or no curve set is assigned.
+   *
+   * @implemented
    */
 
   @meta.implemented

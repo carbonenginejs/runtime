@@ -18,6 +18,7 @@ export class Tr2TexturePipelineStepLoad extends IRoot
   /**
    * Carbon GetResourceDependencies (cpp:9-12): this step needs its own path.
    *
+   * @implemented
    * @param {Set<string>} [resources] Caller-owned; allocated when omitted.
    * @returns {Set<string>} The set.
    */
@@ -30,6 +31,7 @@ export class Tr2TexturePipelineStepLoad extends IRoot
   /**
    * Carbon Execute (cpp:14-30): copy the named input into the pipeline bitmap.
    *
+   * @implemented
    * @param {import("#imageio").HostBitmap} bitmap The pipeline's bitmap.
    * @param {Map<string, import("#imageio").HostBitmap>} inputs Loaded inputs by path.
    * @returns {boolean} Whether the step succeeded.

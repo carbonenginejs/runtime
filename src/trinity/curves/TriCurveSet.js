@@ -117,6 +117,8 @@ export class TriCurveSet extends IInitialize
   /**
    * Carbon's Update( Be::Time realTime, Be::Time simTime ) (TriCurveSet.cpp:51-64):
    * converts the clock selected by useRealTime to seconds and updates at it.
+   *
+   * @implemented
    * @param {number} realTime Real-time Blue 100ns ticks.
    * @param {number} simTime Simulation time in Blue 100ns ticks.
    * @returns {void}
@@ -129,6 +131,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Applies sim-clock rebasing to pending playback times.
+   *
+   * @implemented
    * @param {number} oldTime Previous simulation time in Blue ticks.
    * @param {number} newTime New simulation time in Blue ticks.
    * @returns {void}
@@ -152,6 +156,8 @@ export class TriCurveSet extends IInitialize
    * not the method Python reaches as `Update`: Carbon's exposure maps that name
    * to UpdateWithCurrentTime (TriCurveSet_Blue.cpp:100-103), and JavaScript keeps
    * the C++ names, so a script-style caller uses UpdateWithCurrentTime.
+   *
+   * @implemented
    * @param {number} time Source seconds before optional driver conversion.
    * @returns {void}
    */
@@ -195,6 +201,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Applies all curves at the current scaled time, then copies bindings.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -213,6 +221,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Applies all curves and bindings at an explicit scaled time.
+   *
+   * @implemented
    * @param {number} time Scaled sample time in seconds.
    * @returns {void}
    */
@@ -226,7 +236,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Starts playback on load when configured.
-   * Adapted: repeated reader/copy initialization acquires at most one OS subscription; Dispose releases that owner because JavaScript has no deterministic destructor. The current OS retains listeners but does not dispatch rebases.
+   *
+   * @adapted repeated reader/copy initialization acquires at most one OS subscription; Dispose releases that owner because JavaScript has no deterministic destructor. The current OS retains listeners but does not dispatch rebases.
    * @returns {boolean} True after playback initialization.
    */
 
@@ -249,6 +260,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Plays from the start.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -260,6 +273,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Plays a named range if present.
+   *
+   * @implemented
    * @param {string} name Authored range name.
    * @returns {void}
    */
@@ -278,6 +293,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Starts playback from a scaled-time offset.
+   *
+   * @implemented
    * @param {number} time Initial scaled sample time in seconds.
    * @returns {void}
    */
@@ -299,6 +316,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Stops playback.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -310,6 +329,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Stops playback after the next update.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -321,6 +342,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Stops playback after the supplied number of seconds.
+   *
+   * @implemented
    * @param {number} seconds Delay measured on the source timeline.
    * @returns {void}
    */
@@ -335,12 +358,12 @@ export class TriCurveSet extends IInitialize
    * Stops playback after the supplied seconds and invokes a callback
    * (`TriCurveSet.cpp:246-250`).
    *
-   * Adapted: Carbon copies a BlueScriptCallback into its value member. The
-   * argument is adapted once through CjsScriptCallback.from (a function, a
-   * CjsScriptCallback, or a Call/CallVoid host object; null stores an invalid
-   * callback) and held in a fresh CjsScriptCallback, so the stored slot is a
-   * copy: destroying it later leaves the caller's own callback valid, as
-   * destroying Carbon's copy does.
+   * @adapted Carbon copies a BlueScriptCallback into its value member. The
+   *   argument is adapted once through CjsScriptCallback.from (a function, a
+   *   CjsScriptCallback, or a Call/CallVoid host object; null stores an invalid
+   *   callback) and held in a fresh CjsScriptCallback, so the stored slot is a
+   *   copy: destroying it later leaves the caller's own callback valid, as
+   *   destroying Carbon's copy does.
    * @param {number} seconds Delay measured on the source timeline.
    * @param {CjsScriptCallback|Function|object|null} callback Callback copied into the owned slot.
    * @returns {void}
@@ -355,6 +378,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets the time scale.
+   *
+   * @implemented
    * @returns {number} Authored time multiplier.
    */
 
@@ -366,6 +391,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets the current scaled time.
+   *
+   * @implemented
    * @returns {number} Current sample time in seconds.
    */
 
@@ -377,6 +404,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Sets the authored curve-set name.
+   *
+   * @implemented
    * @param {string} name Authored curve-set name.
    * @returns {void}
    */
@@ -389,6 +418,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets the authored curve-set name.
+   *
+   * @implemented
    * @returns {string} Authored curve-set name.
    */
 
@@ -400,6 +431,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets the number of curves.
+   *
+   * @implemented
    * @returns {number} Number of stored functions.
    */
 
@@ -411,6 +444,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets a curve by index.
+   *
+   * @implemented
    * @param {number} index Stored function index.
    * @returns {ITriFunction} Stored function.
    */
@@ -423,6 +458,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Adds a curve function.
+   *
+   * @implemented
    * @param {ITriFunction} curve Function to append.
    * @returns {void}
    */
@@ -435,6 +472,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets the number of bindings.
+   *
+   * @implemented
    * @returns {number} Number of stored bindings.
    */
 
@@ -446,6 +485,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets a binding by index.
+   *
+   * @implemented
    * @param {number} index Stored binding index.
    * @returns {ITr2ValueBinding} Stored binding.
    */
@@ -458,6 +499,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Adds a value binding.
+   *
+   * @implemented
    * @param {ITr2ValueBinding} binding Binding to append.
    * @returns {void}
    */
@@ -470,7 +513,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets the longest duration exposed through a native duration interface.
-   * Adapted: native BlueCastPtr checks the exact exposure table, with ITriDuration before ITriCurveLength; JavaScript keeps the same object identity for either interface.
+   *
+   * @adapted native BlueCastPtr checks the exact exposure table, with ITriDuration before ITriCurveLength; JavaScript keeps the same object identity for either interface.
    * @returns {number} Greatest reported duration, or zero.
    */
   @be.mapMethodAndWrap()
@@ -493,6 +537,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets the duration of a named time range.
+   *
+   * @implemented
    * @param {string} rangeName Authored interval name.
    * @returns {number} End minus start, or zero when absent.
    */
@@ -506,6 +552,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets whether playback is active.
+   *
+   * @implemented
    * @returns {boolean} Whether playback is active.
    */
 
@@ -524,6 +572,8 @@ export class TriCurveSet extends IInitialize
    * Carbon quirk (CE-51), reproduced: the raw Be::Time tick count is cast to double and
    * passed to the seconds overload, so the set is sampled 10^7 times too far
    * along.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap("Update")
@@ -535,6 +585,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Sets a temporary scaled-time range.
+   *
+   * @implemented
    * @param {number} timeMin First scaled-time endpoint.
    * @param {number} timeMax Second scaled-time endpoint.
    * @param {boolean} [looped=true] Whether the interval wraps.
@@ -552,6 +604,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Clears the temporary scaled-time range.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -565,6 +619,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets whether a temporary scaled-time range is active.
+   *
+   * @implemented
    * @returns {boolean} Whether an interval is active.
    */
   @be.mapMethodAndWrap()
@@ -576,6 +632,8 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Gets the active temporary scaled-time range.
+   *
+   * @implemented
    * @returns {Array<number>} New pair of active interval endpoints.
    */
   @be.mapMethodAndWrap()

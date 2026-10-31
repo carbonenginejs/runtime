@@ -8,6 +8,8 @@ export class ITr2SoundEmitterOwner extends IRoot
 {
   /**
    * Finds a named audio emitter.
+   *
+   * @abstract
    * @param {string} _name The emitter name.
    * @returns {object|null} The named ITr2AudEmitter, or null when absent.
    */
@@ -16,6 +18,8 @@ export class ITr2SoundEmitterOwner extends IRoot
 
   /**
    * Leaves observer attachment to owners that override this native default.
+   *
+   * @adapted
    * @param {object} _observer The TriObserverLocal supplied by the caller.
    * @returns {void}
    */

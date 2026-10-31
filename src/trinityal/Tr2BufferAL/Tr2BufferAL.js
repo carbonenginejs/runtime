@@ -21,7 +21,11 @@ export class Tr2BufferAL
     if (this._buffer) this._buffer.owners += 1;
   }
 
-  /** Creates a fresh implementation, preserving existing copies. Context allocation replaces compile-time backend selection. */
+  /**
+   * Creates a fresh implementation, preserving existing copies. Context allocation replaces compile-time backend selection.
+   *
+   * @adapted
+   */
   @meta.adapted
   Create(description, initialData, renderContext)
   {
@@ -32,98 +36,155 @@ export class Tr2BufferAL
     return result;
   }
 
-  /** Reports whether this value references valid backend storage. */
+  /**
+   * Reports whether this value references valid backend storage.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsValid()
   {
     return this._buffer !== null && this._buffer.implementation.IsValid();
   }
 
-  /** Returns the backend memory class, or managed for an uncreated value. */
+  /**
+   * Returns the backend memory class, or managed for an uncreated value.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMemoryClass()
   {
     return this._buffer ? this._buffer.implementation.GetMemoryClass() : Tr2ALMemoryType.AL_MEMORY_MANAGED;
   }
 
-  /** Returns the native description, including its empty-value defaults. */
+  /**
+   * Returns the native description, including its empty-value defaults.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetDesc()
   {
     return this._buffer ? this._buffer.implementation.GetDesc() : emptyDescription;
   }
 
-  /** Returns the description size in bytes. */
+  /**
+   * Returns the description size in bytes.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetSize()
   {
     return this.GetDesc().count * this.GetDesc().stride;
   }
 
-  /** Compares shared implementation identity; JavaScript has no overloadable equality operator. */
+  /**
+   * Compares shared implementation identity; JavaScript has no overloadable equality operator.
+   *
+   * @adapted
+   * @renamed operator==
+   */
   @meta.adapted
   Equals(other)
   {
     return this._buffer === other._buffer;
   }
 
-  /** Forwards MapForReading to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards MapForReading to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   MapForReading(renderContext)
   {
     return this._buffer ? this._buffer.implementation.MapForReading(renderContext) : { result: ALResult.E_INVALIDCALL, data: null };
   }
 
-  /** Forwards Carbon's offset/size MapForReading to the implementation. */
+  /**
+   * Forwards Carbon's offset/size MapForReading to the implementation.
+   *
+   * @implemented
+   */
   @meta.implemented
   MapForReading__OffsetSize(renderContext, offset, size)
   {
     return this._buffer ? this._buffer.implementation.MapForReading__OffsetSize(renderContext, offset, size) : { result: ALResult.E_INVALIDCALL, data: null };
   }
 
-  /** Forwards UnmapForReading to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards UnmapForReading to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   UnmapForReading(renderContext)
   {
     return this._buffer ? this._buffer.implementation.UnmapForReading(renderContext) : undefined;
   }
 
-  /** Forwards MapForWriting to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards MapForWriting to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   MapForWriting(renderContext)
   {
     return this._buffer ? this._buffer.implementation.MapForWriting(renderContext) : { result: ALResult.E_INVALIDCALL, data: null };
   }
 
-  /** Forwards UnmapForWriting to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards UnmapForWriting to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   UnmapForWriting(renderContext)
   {
     return this._buffer ? this._buffer.implementation.UnmapForWriting(renderContext) : undefined;
   }
 
-  /** Forwards UpdateBuffer to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards UpdateBuffer to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateBuffer(offset, size, data, renderContext)
   {
     return this._buffer ? this._buffer.implementation.UpdateBuffer(offset, size, data, renderContext) : ALResult.E_INVALIDCALL;
   }
 
-  /** Forwards GetSrvIndexInHeap to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards GetSrvIndexInHeap to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetSrvIndexInHeap()
   {
     return this._buffer ? this._buffer.implementation.GetSrvIndexInHeap() : 0xffffffff;
   }
 
-  /** Forwards GetUavIndexInHeap to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards GetUavIndexInHeap to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetUavIndexInHeap()
   {
     return this._buffer ? this._buffer.implementation.GetUavIndexInHeap() : 0xffffffff;
   }
 
-  /** Names valid storage; invalid values and absent names retain Carbon’s errors. */
+  /**
+   * Names valid storage; invalid values and absent names retain Carbon’s errors.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetName(name)
   {
@@ -132,7 +193,11 @@ export class Tr2BufferAL
     return this._buffer.implementation.SetName(name);
   }
 
-  /** Returns the borrowed backend implementation for backend-only operations. */
+  /**
+   * Returns the borrowed backend implementation for backend-only operations.
+   *
+   * @implemented
+   */
   @meta.implemented
   TrinityALImpl_GetObject()
   {

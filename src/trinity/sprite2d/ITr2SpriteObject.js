@@ -3,7 +3,11 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/ITr2SpriteObject.h
 import { meta } from "#schema";
 
-/** Native IRoot-shaped abstract contract shared by Sprite2D objects. */
+/**
+ * Native IRoot-shaped abstract contract shared by Sprite2D objects.
+ *
+ * @abstract
+ */
 @be.interface("ITr2SpriteObject")
 @be.inherit(IRoot)
 @be.abstract
@@ -11,6 +15,8 @@ export class ITr2SpriteObject extends IRoot
 {
   /**
    * Required native GatherSprites contract.
+   *
+   * @abstract
    * @param {object} _renderer Sprite scene renderer.
    * @returns {void}
    */
@@ -19,6 +25,8 @@ export class ITr2SpriteObject extends IRoot
 
   /**
    * Required native PickPoint contract.
+   *
+   * @abstract
    * @param {number} _x Horizontal coordinate.
    * @param {number} _y Vertical coordinate.
    * @param {object} _renderer Sprite scene renderer.
@@ -29,6 +37,8 @@ export class ITr2SpriteObject extends IRoot
 
   /**
    * Required native SetParent contract.
+   *
+   * @abstract
    * @param {ITr2SpriteObject|null} _parent New parent.
    * @returns {void}
    */
@@ -37,6 +47,8 @@ export class ITr2SpriteObject extends IRoot
 
   /**
    * Required native SetDirty contract.
+   *
+   * @abstract
    * @returns {void}
    */
   @meta.abstract
@@ -44,6 +56,8 @@ export class ITr2SpriteObject extends IRoot
 
   /**
    * Required native SetChildDirty contract.
+   *
+   * @abstract
    * @param {ITr2SpriteObject|null} _child Changed child.
    * @returns {void}
    */
@@ -52,6 +66,8 @@ export class ITr2SpriteObject extends IRoot
 
   /**
    * Required native IsAuxMouseover contract.
+   *
+   * @abstract
    * @returns {boolean}
    */
   @meta.abstract

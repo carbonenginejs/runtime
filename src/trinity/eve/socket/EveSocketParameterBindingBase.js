@@ -4,7 +4,11 @@ import { exposure as be } from "#be";
 import { meta, type, blue } from "#schema";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
-/** Provides named typed socket parameters with external-value binding, default capture, and propagation hooks. */
+/**
+ * Provides named typed socket parameters with external-value binding, default capture, and propagation hooks.
+ *
+ * @abstract
+ */
 @be.define("EveSocketParameterBindingBase")
 @be.abstract
 export class EveSocketParameterBindingBase extends IEveSocketParameter
@@ -37,7 +41,11 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
     this.name = String(name ?? "");
   }
 
-  /** Drops every value binding, leaving the current value in place. */
+  /**
+   * Drops every value binding, leaving the current value in place.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ClearBindings()
@@ -51,6 +59,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    * Carbon takes the parameter by reference and uses the created binding
    * unchecked (EveSocketParameter.cpp:29-52).
    *
+   * @implemented
    * @returns {boolean} True when the binding was created and stored.
    */
 
@@ -66,11 +75,19 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
     return true;
   }
 
-  /** Required hook where a typed subclass records the external parameter's current value as a restore default. */
+  /**
+   * Required hook where a typed subclass records the external parameter's current value as a restore default.
+   *
+   * @abstract
+   */
   @meta.abstract
   ExtractDefault(_externalParameter) {}
 
-  /** Reports whether anything is bound to this parameter. */
+  /**
+   * Reports whether anything is bound to this parameter.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Used()
@@ -78,7 +95,11 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
     return this.bindings.length !== 0;
   }
 
-  /** Pushes the current value out through every binding. */
+  /**
+   * Pushes the current value out through every binding.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Propagate()

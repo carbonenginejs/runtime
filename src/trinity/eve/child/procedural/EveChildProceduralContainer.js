@@ -98,7 +98,11 @@ export class EveChildProceduralContainer extends EveChildTransform
   @type.object.ref("IEveProceduralSelectionMethod")
   selectionMethod = null;
 
-  /** Carbon EveChildProceduralContainer::Initialize (cpp:29-32). */
+  /**
+   * Carbon EveChildProceduralContainer::Initialize (cpp:29-32).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -110,6 +114,7 @@ export class EveChildProceduralContainer extends EveChildTransform
    * Carbon EveChildProceduralContainer::OnModified (cpp:306-313): a display
    * change re-registers with the scene component registry.
    *
+   * @implemented
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
@@ -124,22 +129,34 @@ export class EveChildProceduralContainer extends EveChildTransform
     return true;
   }
 
-  /** Carbon EveChildProceduralContainer::OnListModified (cpp:34-36) is an
-   * intentional no-op. */
+  /**
+   * Carbon EveChildProceduralContainer::OnListModified (cpp:34-36) is an
+   * intentional no-op.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnListModified(_event = 0, _key = 0, _key2 = 0, _value = null, _list = null)
   {
   }
 
-  /** Carbon method GetName (cpp:19-22). */
+  /**
+   * Carbon method GetName (cpp:19-22).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetName()
   {
     return this.name;
   }
 
-  /** Carbon method SetName (cpp:24-27). */
+  /**
+   * Carbon method SetName (cpp:24-27).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetName(name)
   {
@@ -153,6 +170,8 @@ export class EveChildProceduralContainer extends EveChildTransform
    * the old object leaves the component registry and the child hierarchy,
    * the new one joins both. The only caller checks the selection method first
    * (cpp:94-97).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -188,6 +207,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   /**
    * Carbon EveChildProceduralContainer::RegisterWithQuadRenderer (cpp:62-68):
    * forwards to the selected object.
+   *
+   * @implemented
    * @param {Tr2QuadRenderer} quadRenderer
    */
 
@@ -203,6 +224,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   /**
    * Carbon EveChildProceduralContainer::AddQuadsToQuadRenderer (cpp:70-81):
    * forwards to the selected object while displayed.
+   *
+   * @implemented
    * @param {TriFrustum} frustum
    * @param {Tr2QuadRenderer} quadRenderer
    */
@@ -224,6 +247,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   /**
    * Carbon EveChildProceduralContainer::SetOwner (cpp:386-396): a change of
    * owner also reaches the selected object.
+   *
+   * @implemented
    * @param {IEveSpaceObject2|null} owner
    */
 
@@ -243,6 +268,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   /**
    * Carbon EveChildProceduralContainer::SetPartTag (cpp:398-408): a change of
    * part tag also reaches the selected object.
+   *
+   * @implemented
    * @param {number} tag
    */
 
@@ -259,7 +286,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     }
   }
 
-  /** Carbon method GetMethodVariableName (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetMethodVariableName (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetMethodVariableName()
@@ -267,7 +298,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     return this.selectionMethod ? this.selectionMethod.GetProceduralMethodVariable() : "methodUnassigned";
   }
 
-  /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
@@ -275,7 +310,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     this.selectedObject?.HandleControllerEvent(name);
   }
 
-  /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
@@ -283,7 +322,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     this.selectedObject?.SetControllerVariable(name, value);
   }
 
-  /** Carbon method SetProceduralContainerVariable (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetProceduralContainerVariable (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetProceduralContainerVariable(name, value)
@@ -294,7 +337,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     if (this.selectionMethod) this.selectionMethod.SetProceduralMethodVariable(key, next);
   }
 
-  /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method StartControllers (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
@@ -307,6 +354,8 @@ export class EveChildProceduralContainer extends EveChildTransform
    * UpdateSyncronous, cpp:91-107): rebase the params onto this container's
    * world transform, tick the selected child, then reconfigure when the
    * selection method reports a change.
+   *
+   * @implemented
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params
    */
@@ -334,6 +383,8 @@ export class EveChildProceduralContainer extends EveChildTransform
    * composition lives in EveChildTransform.UpdateTransform as
    * mat4.multiply(world, parent, local)), fold the transform modifiers, then
    * fan out to the selected child and the selection method.
+   *
+   * @implemented
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params - localToWorldTransform + boneCount/bones
    * @returns {Float32Array} worldTransform
@@ -363,9 +414,13 @@ export class EveChildProceduralContainer extends EveChildTransform
     return this.worldTransform;
   }
 
-  /** Carbon EveChildProceduralContainer::UpdateVisibility (cpp:38-49): gate on
+  /**
+   * Carbon EveChildProceduralContainer::UpdateVisibility (cpp:38-49): gate on
    * display, then forward the unchanged parent transform/LOD to the selected
-   * child. */
+   * child.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
@@ -378,7 +433,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     this.selectedObject?.UpdateVisibility(updateContext, parentTransform, parentLod);
   }
 
-  /** Carbon EveChildProceduralContainer::GetRenderables (cpp:51-57). */
+  /**
+   * Carbon EveChildProceduralContainer::GetRenderables (cpp:51-57).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(out)
@@ -390,11 +449,15 @@ export class EveChildProceduralContainer extends EveChildTransform
     return out;
   }
 
-  /** Carbon EveChildProceduralContainer::GetBoundingSphere (cpp:59-69): the
+  /**
+   * Carbon EveChildProceduralContainer::GetBoundingSphere (cpp:59-69): the
    * selected child's sphere or nothing. The child sphere is a per-call local
    * rather than module scratch because procedural containers nest through
    * their selected children; this is a bounds query, not the per-frame hot
-   * path. */
+   * path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -410,6 +473,8 @@ export class EveChildProceduralContainer extends EveChildTransform
 
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildProceduralContainer.cpp:181-184): copies the world transform into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -420,7 +485,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     return mat4.copy(out, this.worldTransform);
   }
 
-  /** Carbon EveChildProceduralContainer::ChangeLOD (cpp:186-192). */
+  /**
+   * Carbon EveChildProceduralContainer::ChangeLOD (cpp:186-192).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ChangeLOD(lod)
@@ -428,7 +497,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     if (this.selectedObject) this.selectedObject.ChangeLOD(lod);
   }
 
-  /** Carbon EveChildProceduralContainer::PlayCurveSet (cpp:187-193): the selected child, when it owns curve sets. */
+  /**
+   * Carbon EveChildProceduralContainer::PlayCurveSet (cpp:187-193): the selected child, when it owns curve sets.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
@@ -437,7 +510,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     if (owner) owner.PlayCurveSet(name, rangeName);
   }
 
-  /** Carbon EveChildProceduralContainer::StopCurveSet (cpp:218-224). */
+  /**
+   * Carbon EveChildProceduralContainer::StopCurveSet (cpp:218-224).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopCurveSet(name)
@@ -446,7 +523,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     if (owner) owner.StopCurveSet(name);
   }
 
-  /** Carbon EveChildProceduralContainer::UpdateCurveSet (cpp:226-232). */
+  /**
+   * Carbon EveChildProceduralContainer::UpdateCurveSet (cpp:226-232).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateCurveSet(name, time)
@@ -455,7 +536,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     if (owner) owner.UpdateCurveSet(name, time);
   }
 
-  /** Carbon EveChildProceduralContainer::GetCurveSetDuration (cpp:234-244). */
+  /**
+   * Carbon EveChildProceduralContainer::GetCurveSetDuration (cpp:234-244).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCurveSetDuration(name)
@@ -464,7 +549,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     return owner ? Math.max(0, owner.GetCurveSetDuration(name)) : 0;
   }
 
-  /** Carbon EveChildProceduralContainer::GetRangeDuration (cpp:246-256). */
+  /**
+   * Carbon EveChildProceduralContainer::GetRangeDuration (cpp:246-256).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRangeDuration(name, rangeName)
@@ -473,7 +562,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     return owner ? Math.max(0, owner.GetRangeDuration(name, rangeName)) : 0;
   }
 
-  /** Carbon EveChildProceduralContainer::PlayAllCurveSets (cpp:202-208). */
+  /**
+   * Carbon EveChildProceduralContainer::PlayAllCurveSets (cpp:202-208).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayAllCurveSets()
@@ -482,7 +575,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     if (owner) owner.PlayAllCurveSets();
   }
 
-  /** Carbon EveChildProceduralContainer::StopAllCurveSets (cpp:210-216). */
+  /**
+   * Carbon EveChildProceduralContainer::StopAllCurveSets (cpp:210-216).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopAllCurveSets()
@@ -491,7 +588,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     if (owner) owner.StopAllCurveSets();
   }
 
-  /** Carbon EveChildProceduralContainer::Setup (cpp:258-261). */
+  /**
+   * Carbon EveChildProceduralContainer::Setup (cpp:258-261).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
@@ -499,8 +600,12 @@ export class EveChildProceduralContainer extends EveChildTransform
     return super.Setup(scale, rotation, translation, lowestLodVisible);
   }
 
-  /** Carbon EveChildProceduralContainer::FindSoundEmitter (cpp:287-298): the
-   * selected child through Carbon's ITr2SoundEmitterOwner dynamic_cast. */
+  /**
+   * Carbon EveChildProceduralContainer::FindSoundEmitter (cpp:287-298): the
+   * selected child through Carbon's ITr2SoundEmitterOwner dynamic_cast.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   FindSoundEmitter(name)
@@ -509,8 +614,12 @@ export class EveChildProceduralContainer extends EveChildTransform
     return owner ? owner.FindSoundEmitter(name) : null;
   }
 
-  /** Carbon EveChildProceduralContainer::AddTransformModifier
-   * (cpp:300-303). */
+  /**
+   * Carbon EveChildProceduralContainer::AddTransformModifier
+   * (cpp:300-303).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddTransformModifier(modifier)
@@ -518,7 +627,11 @@ export class EveChildProceduralContainer extends EveChildTransform
     this.transformModifiers.push(modifier);
   }
 
-  /** Carbon EveChildProceduralContainer::SetShaderOption (cpp:305-311). */
+  /**
+   * Carbon EveChildProceduralContainer::SetShaderOption (cpp:305-311).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetShaderOption(name, value)
@@ -526,8 +639,12 @@ export class EveChildProceduralContainer extends EveChildTransform
     if (this.selectedObject) this.selectedObject.SetShaderOption(name, value);
   }
 
-  /** Carbon EveChildProceduralContainer::SetInheritProperties (cpp:346-356):
-   * the IEveInheritPropertiesOwner BlueCast is the instanceof gate. */
+  /**
+   * Carbon EveChildProceduralContainer::SetInheritProperties (cpp:346-356):
+   * the IEveInheritPropertiesOwner BlueCast is the instanceof gate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetInheritProperties(colorSet)
@@ -535,8 +652,12 @@ export class EveChildProceduralContainer extends EveChildTransform
     if (CjsSchema.cast(this.selectedObject, IEveInheritPropertiesOwner)) this.selectedObject.SetInheritProperties(colorSet);
   }
 
-  /** Carbon EveChildProceduralContainer::RegisterComponents (cpp:322-333):
-   * forward-only to the selected object. Gate m_display. */
+  /**
+   * Carbon EveChildProceduralContainer::RegisterComponents (cpp:322-333):
+   * forward-only to the selected object. Gate m_display.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -548,8 +669,12 @@ export class EveChildProceduralContainer extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildProceduralContainer::UnRegisterComponents (cpp:334-344):
-   * forwards to the selected object; no display re-check. */
+  /**
+   * Carbon EveChildProceduralContainer::UnRegisterComponents (cpp:334-344):
+   * forwards to the selected object; no display re-check.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()

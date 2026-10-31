@@ -8,6 +8,8 @@ export class ITr2SkinnedObject extends IRoot
 {
   /**
    * Returns the object's scaling vector.
+   *
+   * @abstract
    * @returns {ArrayLike<number>} Three-component scaling supplied by the object.
    */
   @meta.abstract
@@ -15,6 +17,8 @@ export class ITr2SkinnedObject extends IRoot
 
   /**
    * Returns the object's rotation quaternion.
+   *
+   * @abstract
    * @returns {ArrayLike<number>} Four-component rotation supplied by the object.
    */
   @meta.abstract
@@ -22,6 +26,8 @@ export class ITr2SkinnedObject extends IRoot
 
   /**
    * Returns the object's position vector.
+   *
+   * @abstract
    * @returns {ArrayLike<number>} Three-component position supplied by the object.
    */
   @meta.abstract

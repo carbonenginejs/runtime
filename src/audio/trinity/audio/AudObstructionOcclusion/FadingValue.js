@@ -17,14 +17,22 @@ export class FadingValue
 
   targetValue = 0;
 
-  /** Clamps and stores the next fade target. */
+  /**
+   * Clamps and stores the next fade target.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetTarget(target)
   {
     this.targetValue = ClampUnit(target);
   }
 
-  /** Advances linearly by one clock delta and reports a live-value change. */
+  /**
+   * Advances linearly by one clock delta and reports a live-value change.
+   *
+   * @adapted
+   */
   @meta.adapted
   Advance(deltaSeconds, fadeRate)
   {
@@ -52,7 +60,11 @@ export class FadingValue
     return this.currentValue !== previous;
   }
 
-  /** Applies the target immediately for a newly tracked emitter. */
+  /**
+   * Applies the target immediately for a newly tracked emitter.
+   *
+   * @adapted
+   */
   @meta.adapted
   SnapToTarget()
   {

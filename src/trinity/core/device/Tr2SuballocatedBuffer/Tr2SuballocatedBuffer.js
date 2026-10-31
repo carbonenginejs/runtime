@@ -67,10 +67,10 @@ export class Tr2SuballocatedBuffer
    * Reserves `count` elements and uploads them, reusing freed ranges first.
    *
    * Source: trinity/trinity/Tr2SuballocatedBuffer.cpp:24-64.
-   * Adapted: each physical block has its own allocator; alignment is the LCM
-   * of stride and four for WebGPU writes. Failure frees the explicit JS handle
-   * that a C++ Allocation destructor would release on unwinding.
    *
+   * @adapted each physical block has its own allocator; alignment is the LCM
+   *   of stride and four for WebGPU writes. Failure frees the explicit JS handle
+   *   that a C++ Allocation destructor would release on unwinding.
    * @param {number} stride Bytes per element.
    * @param {number} count Elements.
    * @param {ArrayBufferView|null} data The bytes, or null to reserve only.
@@ -131,8 +131,9 @@ export class Tr2SuballocatedBuffer
   /**
    * Returns a registered allocation's reserved range and detaches its owner.
    * Source: trinity/trinity/Tr2SuballocatedBuffer.cpp:66-84.
-   * Adapted: select the allocation's physical-block allocator and clear its
-   * direct buffer reference, which Carbon obtains through m_parent instead.
+   *
+   * @adapted select the allocation's physical-block allocator and clear its
+   *   direct buffer reference, which Carbon obtains through m_parent instead.
    */
   Free(allocation)
   {
@@ -166,7 +167,11 @@ export class Tr2SuballocatedBuffer
     return true;
   }
 
-  /** The most recent block; adapted from Carbon's single shared buffer. */
+  /**
+   * The most recent block; adapted from Carbon's single shared buffer.
+   *
+   * @adapted
+   */
   GetBuffer()
   {
     return this._blocks[this._blocks.length - 1] ?? null;
@@ -181,7 +186,8 @@ export class Tr2SuballocatedBuffer
   /**
    * Releases all blocks and allocations only for managed-memory storage.
    * Source: trinity/trinity/Tr2SuballocatedBuffer.cpp:86-102.
-   * Adapted: Destroy replaces C++ AL destruction across the physical blocks.
+   *
+   * @adapted Destroy replaces C++ AL destruction across the physical blocks.
    */
   ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
@@ -194,8 +200,9 @@ export class Tr2SuballocatedBuffer
 
   /**
    * Source: trinity/trinity/Tr2SuballocatedBuffer.cpp:103-121 (OnPrepareResources).
-   * Adapted: Carbon recreates its one buffer at the allocator's size; blocks
-   * here are made on demand by Allocate, so there is nothing to create.
+   *
+   * @adapted Carbon recreates its one buffer at the allocator's size; blocks
+   *   here are made on demand by Allocate, so there is nothing to create.
    * @returns {boolean} Always true.
    */
   PrepareResources()

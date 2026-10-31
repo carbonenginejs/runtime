@@ -157,6 +157,7 @@ export class BitmapDimensions
   /**
    * Width of mip zero.
    *
+   * @implemented
    * @returns {number} Width in pixels.
    */
   GetWidth()
@@ -167,6 +168,7 @@ export class BitmapDimensions
   /**
    * Height of mip zero.
    *
+   * @implemented
    * @returns {number} Height in pixels.
    */
   GetHeight()
@@ -177,6 +179,7 @@ export class BitmapDimensions
   /**
    * Volume depth.
    *
+   * @implemented
    * @returns {number} Depth in slices.
    */
   GetDepth()
@@ -187,6 +190,7 @@ export class BitmapDimensions
   /**
    * The pixel format.
    *
+   * @implemented
    * @returns {number} A `PixelFormat` value.
    */
   GetFormat()
@@ -197,6 +201,7 @@ export class BitmapDimensions
   /**
    * The texture type.
    *
+   * @implemented
    * @returns {number} A `TextureType` value.
    */
   GetType()
@@ -207,6 +212,7 @@ export class BitmapDimensions
   /**
    * Slices in the array.
    *
+   * @implemented
    * @returns {number} Array size.
    */
   GetArraySize()
@@ -217,6 +223,7 @@ export class BitmapDimensions
   /**
    * The DECLARED mip count, which may be zero.
    *
+   * @implemented
    * @returns {number} Mip levels as declared.
    */
   GetMipCount()
@@ -230,6 +237,7 @@ export class BitmapDimensions
    * A declared zero means "as many as the size allows", so this counts them
    * rather than reporting nothing.
    *
+   * @implemented
    * @returns {number} Mip levels.
    */
   GetTrueMipCount()
@@ -252,6 +260,7 @@ export class BitmapDimensions
   /**
    * Whether the format stores blocks rather than pixels.
    *
+   * @implemented
    * @returns {boolean} True for the BC family.
    */
   IsCompressed()
@@ -262,6 +271,7 @@ export class BitmapDimensions
   /**
    * Carbon's `HasMipmap`: anything but exactly one level.
    *
+   * @implemented
    * @returns {boolean} True when the texture is mipped.
    */
   HasMipmap()
@@ -274,6 +284,7 @@ export class BitmapDimensions
    *
    * A compressed mip rounds up to a whole block and never falls below four.
    *
+   * @implemented
    * @param {number} level Mip level.
    * @returns {number} Width, or zero past the end of the chain.
    */
@@ -289,6 +300,7 @@ export class BitmapDimensions
   /**
    * Height of one mip, in pixels. Rounds the same way as `GetMipWidth`.
    *
+   * @implemented
    * @param {number} level Mip level.
    * @returns {number} Height, or zero past the end of the chain.
    */
@@ -304,6 +316,7 @@ export class BitmapDimensions
   /**
    * Depth of one mip. Only a volume texture has more than one.
    *
+   * @implemented
    * @param {number} level Mip level.
    * @returns {number} Depth, or zero past the end of the chain.
    */
@@ -322,6 +335,7 @@ export class BitmapDimensions
    * For a compressed format a "row" is a row of BLOCKS, so the width is
    * divided by four before the block size is applied.
    *
+   * @implemented
    * @param {number} level Mip level.
    * @returns {number} Pitch in bytes.
    */
@@ -337,6 +351,7 @@ export class BitmapDimensions
   /**
    * Bytes in one mip.
    *
+   * @implemented
    * @param {number} level Mip level.
    * @returns {number} Size in bytes.
    */
@@ -352,6 +367,7 @@ export class BitmapDimensions
   /**
    * Rows to copy for a mip: block rows when compressed, pixel rows otherwise.
    *
+   * @implemented
    * @param {number} level Mip level.
    * @returns {number} Row count.
    */
@@ -371,6 +387,7 @@ export class BitmapDimensions
    * dimensions are what a caller still reads back. Transcribed rather than
    * tidied - a port that also zeroed them would answer differently.
    *
+   * @implemented
    * @returns {void}
    */
   Destroy()

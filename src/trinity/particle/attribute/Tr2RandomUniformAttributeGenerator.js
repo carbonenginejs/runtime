@@ -52,6 +52,8 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
    * Carbon MAP_PROPERTY_READONLY "name" over GetName
    * (Tr2RandomUniformAttributeGenerator_Blue.cpp:16): the element name composed of type and
    * customName.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.string
@@ -65,6 +67,8 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
    * Carbon MAP_PROPERTY_READONLY "dimension" over GetDimension
    * (Tr2RandomUniformAttributeGenerator_Blue.cpp:27): the bound element's dimension, or 0 when
    * unbound.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.uint32
@@ -76,6 +80,8 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Resolves the target element by semantic type or custom name, marking the generator valid only when it resolves.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -90,6 +96,8 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Writes a per-component uniformly random value between the configured bounds into the particle's element slot.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -109,6 +117,8 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * The bound element's component count, or zero when unbound.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -119,6 +129,8 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * The bound element's custom name, or its semantic type name.
+   *
+   * @implemented
    */
 
   @meta.implemented

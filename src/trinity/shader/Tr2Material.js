@@ -572,6 +572,8 @@ export class Tr2Material extends IRoot
 
   /**
    * Carbon's CompatibleWithGdr(): the cached material-wide flag (Tr2Material.cpp:493).
+   *
+   * @implemented
    * @returns {boolean}
    */
   @meta.implemented
@@ -585,6 +587,8 @@ export class Tr2Material extends IRoot
    * Carbon's CompatibleWithGdr( techniqueName ): whether every pass of that
    * technique is compatible; false without a shader or for an unknown name
    * (Tr2Material.cpp:498).
+   *
+   * @implemented
    * @param {string} techniqueName Technique name.
    * @returns {boolean}
    */

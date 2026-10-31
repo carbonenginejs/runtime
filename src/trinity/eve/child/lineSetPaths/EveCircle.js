@@ -141,7 +141,11 @@ export class EveCircle extends IEveLineSetPath
 
   _regeneratePoints = true;
 
-  /** Marks the point chain dirty so the first update regenerates it. */
+  /**
+   * Marks the point chain dirty so the first update regenerates it.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -153,6 +157,8 @@ export class EveCircle extends IEveLineSetPath
   /**
    * Clamps completeness to 0..2 and numSegments to 1..128, wraps startPoint into
    * one turn, then marks the point chain dirty.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -169,6 +175,8 @@ export class EveCircle extends IEveLineSetPath
    * Advances the scroll animation value by movementSpeed times the frame delta
    * (wrapped into 0..1) and, when the points are dirty, regenerates them and the
    * bounding sphere; returns whether a regeneration ran.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -189,6 +197,8 @@ export class EveCircle extends IEveLineSetPath
 
   /**
    * Samples the ring into the point chain across the arc selected by completeness and startPoint, rotated by the animation value, with circleDistort applied as a per-quadrant Y offset; also refreshes the world transform. Does nothing when fewer than two segments are requested.
+   *
+   * @adapted
    * @param {Float32Array} [parentTransform] - a non-identity matrix is used and cached, so later identity calls reuse the last real parent transform
    */
 
@@ -230,7 +240,11 @@ export class EveCircle extends IEveLineSetPath
     this._regeneratePoints = false;
   }
 
-  /** Number of generated points; zero until GeneratePoints has run. */
+  /**
+   * Number of generated points; zero until GeneratePoints has run.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetPointCount()
@@ -240,6 +254,8 @@ export class EveCircle extends IEveLineSetPath
 
   /**
    * Sets the local bounding sphere to the origin with radius circleRadius + lineWidth + meshSize.
+   *
+   * @adapted
    * @param {Number} [meshSize] - a non-zero value is remembered and reused on later zero-argument calls
    */
 
@@ -259,6 +275,8 @@ export class EveCircle extends IEveLineSetPath
 
   /**
    * Returns the cached bounding sphere moved through the path's local transform.
+   *
+   * @adapted
    * @param {Float32Array} out - caller-owned
    * @returns {Float32Array} out
    */
@@ -273,6 +291,8 @@ export class EveCircle extends IEveLineSetPath
    * Tests the bounding sphere, placed by the local transform under the given
    * system location, against the frustum and stores the result in isVisible; a
    * non-displayed path returns early and keeps its previous flag.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -293,6 +313,8 @@ export class EveCircle extends IEveLineSetPath
    * Emits one straight line per segment into the line set (regenerating dirty
    * points first), optionally animated at scrollSpeed; the wrap-around segment
    * closing the ring is skipped unless completeness is exactly 1.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -331,6 +353,8 @@ export class EveCircle extends IEveLineSetPath
    * advanced for every point, including invisible zero-scale records. Matrix
    * products reverse Carbon's row-vector operands; packing transposes once.
    * JS scalar intermediates are not claimed SIMD/libm byte-identical.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -387,7 +411,11 @@ export class EveCircle extends IEveLineSetPath
     }
   }
 
-  /** Carbon declares no circle-specific debug options (cpp:269-271). */
+  /**
+   * Carbon declares no circle-specific debug options (cpp:269-271).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetDebugOptions(_options)
@@ -399,6 +427,8 @@ export class EveCircle extends IEveLineSetPath
    * option, the bounding sphere (with "Bounding Sphere") and a small sphere on
    * every generated point, placed by the local transform under the system
    * location.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} systemLocation
    */

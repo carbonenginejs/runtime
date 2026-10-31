@@ -5,15 +5,24 @@ import { IRoot } from "./IRoot.js";
 // every hook as "not handled", which is what Carbon's own classes do when no Python bridge is present.
 import { CjsSchema, meta } from "#schema";
 
-/** `IPythonMethods` - Python attribute, assignment and repr hooks. */
+/**
+ * `IPythonMethods` - Python attribute, assignment and repr hooks.
+ *
+ * @abstract
+ */
 export class IPythonMethods extends IRoot
 {
-  /** `Destroy` - releases the Python-side wrapper. */
+  /**
+   * `Destroy` - releases the Python-side wrapper.
+   *
+   * @abstract
+   */
   Destroy() {}
 
   /**
    * `GetAttr` - the Python attribute `name`.
    *
+   * @abstract
    * @param {string} name The attribute name.
    * @returns {*} The value, or null when not handled.
    */
@@ -22,6 +31,7 @@ export class IPythonMethods extends IRoot
   /**
    * `SetAttr` - assigns the Python attribute `name`.
    *
+   * @abstract
    * @param {string} name The attribute name.
    * @param {*} value The value.
    * @returns {boolean} True when handled.
@@ -31,6 +41,7 @@ export class IPythonMethods extends IRoot
   /**
    * `Repr` - the Python repr.
    *
+   * @abstract
    * @returns {string|null} The text, or null when not handled.
    */
   Repr() {}

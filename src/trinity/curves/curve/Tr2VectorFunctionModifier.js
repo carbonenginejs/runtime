@@ -56,6 +56,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   /**
    * Copies the offset, rotated by the renderer's inverse view when it is in
    * view space (cpp:133-141). The returned Vector3 is written into `out`.
+   *
+   * @implemented
    * @param {Float32Array} out Destination vector; defaults to shared scratch.
    * @returns {Float32Array} The destination.
    */
@@ -79,6 +81,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 
   /**
    * Adds the offset before scaling the position in place (cpp:126-131).
+   *
+   * @implemented
    * @param {Float32Array} inOut Position to transform.
    * @returns {Float32Array} The position buffer.
    */
@@ -95,6 +99,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   /**
    * Carbon's Update(double) is deprecated: it asserts in debug builds and returns the output untouched
    * (Tr2VectorFunctionModifier.cpp). Update__Ticks is the working overload.
+   *
+   * @implemented
    * @param {number} _time Unused seconds.
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
@@ -109,6 +115,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   /**
    * Carbon's GetValueAt(double) is deprecated: it asserts in debug builds and returns the output untouched
    * (Tr2VectorFunctionModifier.cpp). GetValueAt__Ticks is the working overload.
+   *
+   * @implemented
    * @param {number} _time Unused seconds.
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
@@ -123,6 +131,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   /**
    * Carbon's GetValueDotAt(double) is deprecated: it asserts in debug builds and returns the output untouched
    * (Tr2VectorFunctionModifier.cpp). GetValueDotAt__Ticks is the working overload.
+   *
+   * @implemented
    * @param {number} _time Unused seconds.
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
@@ -137,6 +147,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   /**
    * Carbon's GetValueDoubleDotAt(double) is deprecated: it asserts in debug builds and returns the output untouched
    * (Tr2VectorFunctionModifier.cpp). GetValueDoubleDotAt__Ticks is the working overload.
+   *
+   * @implemented
    * @param {number} _time Unused seconds.
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
@@ -151,6 +163,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   /**
    * Carbon's Update(Be::Time): the ball's tick update, or its interpolated system position, then offset and scale
    * (cpp:35-52). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @implemented
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} inOut Destination position.
    * @returns {Float32Array} The destination.
@@ -169,6 +183,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   /**
    * Carbon's GetValueAt(Be::Time): the ball's tick sample, or its interpolated system position, then offset and
    * scale (cpp:60-76). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @implemented
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} inOut Destination position.
    * @returns {Float32Array} The destination.
@@ -186,6 +202,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 
   /**
    * Carbon's GetValueDotAt(Be::Time): the ball's velocity scaled, only when a ball is attached (cpp:85-93). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} inOut Destination velocity.
    * @returns {Float32Array} The destination.
@@ -204,6 +222,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   /**
    * Carbon's GetValueDoubleDotAt(Be::Time): the ball's acceleration scaled, only when a ball is attached
    * (cpp:101-109). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} inOut Destination acceleration.
    * @returns {Float32Array} The destination.
@@ -222,6 +242,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   /**
    * Forwards the interpolated position without applying offset or scale.
    * JavaScript places the time argument before the output buffer.
+   *
+   * @adapted
    * @param {number} time Time forwarded unchanged.
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The destination.
@@ -239,6 +261,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 
   /**
    * Retains the native empty curve-set update (Tr2VectorFunctionModifier.h:19-22).
+   *
+   * @adapted
    * @param {number} _time Unused time.
    * @returns {void}
    */

@@ -58,47 +58,91 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   @type.object.ref("Tr2VariableStore")
   variableStore = null;
 
-  /** m_currentPosition (Vector3): the last position SetPosition applied (Tr2IntSkinnedObject.h:116). */
+  /**
+   * m_currentPosition (Vector3): the last position SetPosition applied (Tr2IntSkinnedObject.h:116).
+   *
+   * @implemented
+   */
   @meta.implemented
   _currentPosition = vec3.fromValues(0, 0, 0);
 
-  /** m_currentScaling (Vector3): the last scaling SetScaling applied (Tr2IntSkinnedObject.h:117). */
+  /**
+   * m_currentScaling (Vector3): the last scaling SetScaling applied (Tr2IntSkinnedObject.h:117).
+   *
+   * @implemented
+   */
   @meta.implemented
   _currentScaling = vec3.fromValues(1, 1, 1);
 
-  /** m_currentRotation (Quaternion): the last rotation SetRotation applied (Tr2IntSkinnedObject.h:118). */
+  /**
+   * m_currentRotation (Quaternion): the last rotation SetRotation applied (Tr2IntSkinnedObject.h:118).
+   *
+   * @implemented
+   */
   @meta.implemented
   _currentRotation = quat.fromValues(0, 0, 0, 1);
 
-  /** m_positionSet (bool) (Tr2IntSkinnedObject.h:119). */
+  /**
+   * m_positionSet (bool) (Tr2IntSkinnedObject.h:119).
+   *
+   * @implemented
+   */
   @meta.implemented
   _positionSet = false;
 
-  /** m_scalingSet (bool) (Tr2IntSkinnedObject.h:120). */
+  /**
+   * m_scalingSet (bool) (Tr2IntSkinnedObject.h:120).
+   *
+   * @implemented
+   */
   @meta.implemented
   _scalingSet = false;
 
-  /** m_rotationSet (bool) (Tr2IntSkinnedObject.h:121). */
+  /**
+   * m_rotationSet (bool) (Tr2IntSkinnedObject.h:121).
+   *
+   * @implemented
+   */
   @meta.implemented
   _rotationSet = false;
 
-  /** m_isInApexScene (bool) (Tr2IntSkinnedObject.h:124). */
+  /**
+   * m_isInApexScene (bool) (Tr2IntSkinnedObject.h:124).
+   *
+   * @implemented
+   */
   @meta.implemented
   _isInApexScene = false;
 
-  /** m_lightSet (Tr2InteriorLightSet): the lights on this avatar (Tr2IntSkinnedObject.h:114). */
+  /**
+   * m_lightSet (Tr2InteriorLightSet): the lights on this avatar (Tr2IntSkinnedObject.h:114).
+   *
+   * @implemented
+   */
   @meta.implemented
   _lightSet = new Tr2InteriorLightSet();
 
-  /** m_cellReflectionMaps[2] (TriTextureResPtr): the current and previous per-cell reflection maps (Tr2IntSkinnedObject.h:132). */
+  /**
+   * m_cellReflectionMaps[2] (TriTextureResPtr): the current and previous per-cell reflection maps (Tr2IntSkinnedObject.h:132).
+   *
+   * @implemented
+   */
   @meta.implemented
   _cellReflectionMaps = [ null, null ];
 
-  /** m_cellReflectionTime (float): seconds since the last per-cell reflection map change (Tr2IntSkinnedObject.h:134). */
+  /**
+   * m_cellReflectionTime (float): seconds since the last per-cell reflection map change (Tr2IntSkinnedObject.h:134).
+   *
+   * @implemented
+   */
   @meta.implemented
   _cellReflectionTime = 0;
 
-  /** m_previousUpdateTime (Be::Time): the time of the previous PostPhysicsUpdate, in Blue ticks (Tr2IntSkinnedObject.h:136). */
+  /**
+   * m_previousUpdateTime (Be::Time): the time of the previous PostPhysicsUpdate, in Blue ticks (Tr2IntSkinnedObject.h:136).
+   *
+   * @implemented
+   */
   @meta.implemented
   _previousUpdateTime = 0;
 
@@ -121,11 +165,19 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
     this.variableStore.RegisterVariableInternal("CellReflectionInterpolation", TriVariableContentType.TRIVARIABLE_FLOAT, 0);
   }
 
-  /** Scratch for the transform decompositions in SetRotation and SetScaling. */
+  /**
+   * Scratch for the transform decompositions in SetRotation and SetScaling.
+   *
+   * @adapted
+   */
   @meta.adapted
   static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(), quat_0: quat.create(), quat_1: quat.create(), mat4_0: mat4.create() };
 
-  /** Carbon GetPerObjectData (h:75, cpp:173-180): display-gated local lighting. */
+  /**
+   * Carbon GetPerObjectData (h:75, cpp:173-180): display-gated local lighting.
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   GetPerObjectData(accumulator)
@@ -135,7 +187,11 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
       : null;
   }
 
-  /** Carbon per-instance override (h:56-59, cpp:387-398), independent of display. */
+  /**
+   * Carbon per-instance override (h:56-59, cpp:387-398), independent of display.
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   GetPerObjectDataWithPerInstanceLighting(accumulator, lightSet, objectToWorldMatrix)
@@ -145,9 +201,10 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 
   /**
    * Carbon GetPerObjectDataGpuSkinning (h:126-129, cpp:315-349).
-   * Adapted: the existing per-object allocator leases the uploadable RawData,
-   * removing the native stack-struct memcpy. Explicit zeroing preserves memset,
-   * including unused light slots and non-identity unused spotlight matrices.
+   *
+   * @adapted the existing per-object allocator leases the uploadable RawData,
+   *   removing the native stack-struct memcpy. Explicit zeroing preserves memset,
+   *   including unused light slots and non-identity unused spotlight matrices.
    */
   @blue.method
   @meta.adapted
@@ -167,13 +224,14 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 
   /**
    * Carbon GetBatches (h:76, cpp:184-302), including interior transparent depth.
-   * Adapted: uses the shared lazy geometry allocator and JS area objects in
-   * place of native arena allocations. Scratch bounds start at zero rather
-   * than retaining a previous object's data if a producer has no valid bounds.
-   * Each area's data also copies the object's user data, as Carbon's objectId
-   * picking revision did (92483097^, cpp:272): our objectId picking reads it
-   * (Tr2RenderContext.eveSpacePickingFramework), so without it every skinned
-   * object picked as candidate 0.
+   *
+   * @adapted uses the shared lazy geometry allocator and JS area objects in
+   *   place of native arena allocations. Scratch bounds start at zero rather
+   *   than retaining a previous object's data if a producer has no valid bounds.
+   *   Each area's data also copies the object's user data, as Carbon's objectId
+   *   picking revision did (92483097^, cpp:272): our objectId picking reads it
+   *   (Tr2RenderContext.eveSpacePickingFramework), so without it every skinned
+   *   object picked as candidate 0.
    */
   @blue.method
   @meta.adapted
@@ -245,8 +303,8 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   /**
    * Carbon IInitialize hook populates the owner's LOD proxies.
    *
-   * Adapted: JS exposes the native protected LOD member as lod; the owner model accessors
-   * alias its proxy storage.
+   * @adapted JS exposes the native protected LOD member as lod; the owner model accessors
+   *   alias its proxy storage.
    */
 
   @meta.adapted
@@ -258,6 +316,8 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 
   /**
    * Carbon INotify hook delegates to Tr2SkinnedObject and accepts all changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -274,6 +334,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Not implemented: Carbon's body only forwards to Tr2SkinnedObject::PrePhysicsUpdate
    * (Tr2SkinnedObject.cpp), which Tr2SkinnedObject does not carry yet.
    *
+   * @notImplemented
    * @param {number} _time Blue time in ticks.
    * @returns {void}
    */
@@ -290,6 +351,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * which Tr2SkinnedObject does not carry yet; the reflection-variable republish that follows
    * (cpp:77-81) cannot run ahead of it and is written when the base lands.
    *
+   * @notImplemented
    * @param {number} _time Blue time in ticks.
    * @param {object|null} _apexScene Physics scene.
    * @returns {void}
@@ -304,6 +366,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Carbon: Tr2IntSkinnedObject::AddReflectionMap (Tr2IntSkinnedObject.cpp:90-116), protected.
    * Adds a per-cell reflection map to the current pair and restarts the transition.
    *
+   * @implemented
    * @param {object|null} texture The per-cell reflection map; null is ignored.
    * @returns {void}
    */
@@ -346,6 +409,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * map the pair is rotated (second takes the first, first takes the texture) and the
    * transition restarts (cpp:130-135).
    *
+   * @implemented
    * @param {object|null} texture The per-cell reflection map; null is ignored.
    * @returns {void}
    */
@@ -371,9 +435,10 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Carbon GetWorldBoundingBox (h:92, cpp:138-148), using all eight corners as
    * Utilities/BoundingBox.cpp:211-265 does. A single matrix has the same byte
    * layout in the row-vector donor and column-vector runtime convention.
-   * Adapted: one retained vec3 scratch replaces the temporary corner array.
-   * Matrix_inline.h:560-576 TransformCoord requires float32 intermediates and
-   * a zero result when homogeneous W is zero; gl-matrix's W fallback differs.
+   *
+   * @adapted one retained vec3 scratch replaces the temporary corner array.
+   *   Matrix_inline.h:560-576 TransformCoord requires float32 intermediates and
+   *   a zero result when homogeneous W is zero; gl-matrix's W fallback differs.
    * @param {vec3} min Receives the world minimum.
    * @param {vec3} max Receives the world maximum.
    * @returns {boolean} Whether local bounds were available.
@@ -424,7 +489,11 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
     return true;
   }
 
-  /** Carbon IsBoundingBoxReady (h:93, cpp:150-154): query the world box. */
+  /**
+   * Carbon IsBoundingBoxReady (h:93, cpp:150-154): query the world box.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsBoundingBoxReady()
   {
@@ -436,6 +505,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Carbon: Tr2IntSkinnedObject::AddToApexScene (Tr2IntSkinnedObject.cpp:156-162).
    * Only records membership; the physics scene argument is unused, as in Carbon.
    *
+   * @implemented
    * @param {object|null} _apexScene Unused physics scene.
    * @returns {void}
    */
@@ -452,6 +522,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Carbon: Tr2IntSkinnedObject::RemoveFromApexScene (Tr2IntSkinnedObject.cpp:164-171).
    * Carbon's body tests the membership flag and does nothing in either case.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -466,6 +537,8 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Carbon: Tr2IntSkinnedObject::AddToScene (Tr2IntSkinnedObject.cpp:354-364).
    *
    * Requires available bounds before adding the object to the physics scene.
+   *
+   * @implemented
    * @param {object|null} apexScene Physics scene.
    * @returns {boolean} Whether the object was ready to enter the scene.
    */
@@ -482,6 +555,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Carbon: Tr2IntSkinnedObject::RemoveFromScene (Tr2IntSkinnedObject.cpp:367-371).
    * Leaves the physics scene.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -494,6 +568,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   /**
    * Carbon: Tr2IntSkinnedObject::GetID (Tr2IntSkinnedObject.h:80-83), ITr2Pickable.
    *
+   * @implemented
    * @param {number} _areaId Unused.
    * @returns {Tr2IntSkinnedObject} This object (Carbon's GetRawRoot()).
    */
@@ -511,6 +586,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * not against the transform, so a transform changed any other way does not make an equal
    * position write again.
    *
+   * @implemented
    * @param {vec3} pos The position.
    * @returns {void}
    */
@@ -534,6 +610,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * unless the same rotation was already applied (the same last-applied comparison as
    * SetPosition).
    *
+   * @implemented
    * @param {quat} rotQuat The rotation.
    * @returns {void}
    */
@@ -558,6 +635,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * unless the same scaling was already applied (the same last-applied comparison as
    * SetPosition).
    *
+   * @implemented
    * @param {vec3} scaleVec The scaling.
    * @returns {void}
    */
@@ -586,6 +664,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * vector and a local up vector (cpp:481-482) are never used. Float arithmetic follows the
    * donor's float literals.
    *
+   * @implemented
    * @param {vec3} front The front vector.
    * @param {vec3} _top Unused.
    * @param {vec3} pos The position.
@@ -628,6 +707,8 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Carbon: Tr2IntSkinnedObject::IsInFrustum (Tr2IntSkinnedObject.cpp:491-500), ITr2InteriorCullable.
    *
    * Tests the world box, writing the current transform only when a box exists.
+   *
+   * @implemented
    * @param {TriFrustum} frustum The frustum to test against.
    * @param {mat4} objectToWorld Receives the transform.
    * @returns {boolean} Whether the box is visible.
@@ -646,6 +727,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Carbon: Tr2IntSkinnedObject::GetPickingBatches (Tr2IntSkinnedObject.cpp:502-517), ITr2Pickable.
    * Gathers native skinned area batches for each requested pick category.
    *
+   * @implemented
    * @param {object} batches The batch accumulator.
    * @param {number} pickTypes A Tr2PickType bit mask.
    * @param {object} perObjectData The object's per-object data.
@@ -669,7 +751,11 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
     }
   }
 
-  /** Carbon override delegates LOD selection to Tr2SkinnedObject. */
+  /**
+   * Carbon override delegates LOD selection to Tr2SkinnedObject.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetLOD(frustum)

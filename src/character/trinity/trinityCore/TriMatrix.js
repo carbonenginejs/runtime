@@ -39,7 +39,11 @@ export class TriMatrix extends IRoot
    */
   _matrix = mat4.create();
 
-  /** IPythonMethods::Destroy (IPythonMethods.h:14): there is no Python wrapper to release. */
+  /**
+   * IPythonMethods::Destroy (IPythonMethods.h:14): there is no Python wrapper to release.
+   *
+   * @notSupported
+   */
   @meta.notSupported
   Destroy()
   {
@@ -47,6 +51,8 @@ export class TriMatrix extends IRoot
 
   /**
    * IPythonMethods::GetAttr (IPythonMethods.h:17): there is no Python host, so no attribute is handled.
+   *
+   * @notSupported
    * @param {string} name The attribute name.
    * @returns {null} Not handled.
    */
@@ -58,6 +64,8 @@ export class TriMatrix extends IRoot
 
   /**
    * IPythonMethods::SetAttr (IPythonMethods.h:22): there is no Python host, so no assignment is handled.
+   *
+   * @notSupported
    * @param {string} name The attribute name.
    * @param {*} value The value.
    * @returns {boolean} False: not handled.
@@ -70,6 +78,8 @@ export class TriMatrix extends IRoot
 
   /**
    * IPythonMethods::Repr (IPythonMethods.h:26): there is no Python host, so no repr is supplied.
+   *
+   * @notSupported
    * @returns {null} Not handled.
    */
   @meta.notSupported
@@ -80,6 +90,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon GetMatrix (TriMatrix.cpp:160-163): the matrix storage itself.
+   *
+   * @implemented
    * @returns {mat4} The stored matrix.
    */
   @meta.implemented
@@ -91,6 +103,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon CopyMatrix (TriMatrix.cpp:165-170).
+   *
+   * @implemented
    * @param {mat4} out Receives the matrix.
    * @returns {mat4} out
    * Carbon declaration: TriMatrix::CopyMatrix (trinity/trinity/Include/TriMatrix.h:54).
@@ -103,6 +117,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon SetMatrix.
+   *
+   * @implemented
    * @param {mat4} m The matrix to copy in.
    * Carbon declaration: TriMatrix::SetMatrix (trinity/trinity/Include/TriMatrix.h:49).
    */
@@ -114,6 +130,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon SetPivots: the sixteen elements in `_11 .. _44` order.
+   *
+   * @implemented
    * @param {...number} elements The elements.
    * Carbon declaration: TriMatrix::SetPivots (trinity/trinity/Include/TriMatrix.h:31).
    */
@@ -125,6 +143,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon Determinant (TriMatrix.cpp:172-175).
+   *
+   * @implemented
    * @returns {number} The determinant.
    */
   @be.mapMethodAndWrap()
@@ -134,7 +154,11 @@ export class TriMatrix extends IRoot
     return mat4.determinant(this._matrix);
   }
 
-  /** Carbon Identity (TriMatrix.cpp:177-180). */
+  /**
+   * Carbon Identity (TriMatrix.cpp:177-180).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Identity()
@@ -144,6 +168,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon Inverse (TriMatrix.cpp:182-187): inverts in place and returns the determinant.
+   *
+   * @implemented
    * @returns {number} The determinant of the matrix before inversion.
    */
   @be.mapMethodAndWrap()
@@ -158,6 +184,8 @@ export class TriMatrix extends IRoot
   /**
    * Carbon LookAtRH (TriMatrix.cpp:189-195, math LookAtMatrix): a right-handed view
    * matrix, element for element gl-matrix's lookAt.
+   *
+   * @implemented
    * @param {vec3} eye Eye position.
    * @param {vec3} at Target position.
    * @param {vec3} up Up direction.
@@ -171,6 +199,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon Multiply (TriMatrix.cpp:197-201): `this = this * other`, this applied first.
+   *
+   * @implemented
    * @param {TriMatrix} other The matrix applied after this one.
    */
   @be.mapMethodAndWrap()
@@ -182,6 +212,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon RotationAxis (TriMatrix.cpp:203-208).
+   *
+   * @implemented
    * @param {vec3} axis Rotation axis; normalized as Carbon does.
    * @param {number} angle Angle in radians.
    */
@@ -194,6 +226,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon RotationQuaternion (TriMatrix.cpp:210-214).
+   *
+   * @implemented
    * @param {quat} rotation The rotation.
    */
   @be.mapMethodAndWrap()
@@ -205,6 +239,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon RotationX (TriMatrix.cpp:216-220).
+   *
+   * @implemented
    * @param {number} angle Angle in radians.
    */
   @be.mapMethodAndWrap()
@@ -216,6 +252,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon RotationY (TriMatrix.cpp:222-226).
+   *
+   * @implemented
    * @param {number} angle Angle in radians.
    */
   @be.mapMethodAndWrap()
@@ -227,6 +265,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon RotationYawPitchRoll (TriMatrix.cpp:228-234).
+   *
+   * @implemented
    * @param {number} yaw Yaw in radians.
    * @param {number} pitch Pitch in radians.
    * @param {number} roll Roll in radians.
@@ -240,6 +280,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon RotationZ (TriMatrix.cpp:236-240).
+   *
+   * @implemented
    * @param {number} angle Angle in radians.
    */
   @be.mapMethodAndWrap()
@@ -251,6 +293,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon Scaling (TriMatrix.cpp:242-248).
+   *
+   * @implemented
    * @param {number} sx X scale.
    * @param {number} sy Y scale.
    * @param {number} sz Z scale.
@@ -266,6 +310,8 @@ export class TriMatrix extends IRoot
    * Carbon Transformation (TriMatrix.cpp:250-266, math Matrix.cpp:66-143): the product
    * `T(-scalingCenter) * inverse(Rs) * S * Rs * T(scalingCenter - rotationCenter) * R
    * * T(rotationCenter + translation)`, each factor applied before the next.
+   *
+   * @implemented
    * @param {vec3} scalingCenter Centre of scaling.
    * @param {quat} scalingRotation Orientation of the scaling axes.
    * @param {vec3} scaling Scale.
@@ -299,6 +345,8 @@ export class TriMatrix extends IRoot
 
   /**
    * Carbon Translation (TriMatrix.cpp:268-274).
+   *
+   * @implemented
    * @param {number} x X translation.
    * @param {number} y Y translation.
    * @param {number} z Z translation.
@@ -310,7 +358,11 @@ export class TriMatrix extends IRoot
     mat4.fromTranslation(this._matrix, [ x, y, z ]);
   }
 
-  /** Carbon Transpose (TriMatrix.cpp:276-279). */
+  /**
+   * Carbon Transpose (TriMatrix.cpp:276-279).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Transpose()

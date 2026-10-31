@@ -13,6 +13,8 @@ import { meta, type } from "#schema";
  * persist. What `unused` and `precompileHint` mean is not established.
  *
  * Data only.
+ *
+ * @adapted
  */
 @meta.define("Tr2ShaderPermuteTag")
 @meta.adapted

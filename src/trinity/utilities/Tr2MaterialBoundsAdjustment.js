@@ -60,6 +60,8 @@ export class Tr2MaterialBoundsAdjustment
    * displacement is accounted for, written into `out`. The optional output
    * buffer replaces the native box value return. The existing JavaScript
    * empty-box early return is retained, including when rotation is enabled.
+   *
+   * @adapted
    */
   @meta.adapted
   AdjustBounds(box, out)

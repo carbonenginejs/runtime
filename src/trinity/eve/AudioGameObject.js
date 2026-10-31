@@ -95,7 +95,11 @@ export class AudioGameObject extends IRoot
     return true;
   }
 
-  /** Post-hydration hook; runs Initialize. */
+  /**
+   * Post-hydration hook; runs Initialize.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   __init__()
@@ -103,7 +107,11 @@ export class AudioGameObject extends IRoot
     return this.Initialize();
   }
 
-  /** The emitter this object drives, or null before Initialize has run. */
+  /**
+   * The emitter this object drives, or null before Initialize has run.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetAudioEmitter()
@@ -114,6 +122,8 @@ export class AudioGameObject extends IRoot
   /**
    * Renames the underlying emitter without touching this object's own name
    * field.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -125,6 +135,8 @@ export class AudioGameObject extends IRoot
   /**
    * Sends a named event to the emitter and returns the identifier it hands back,
    * or 0 when there is no emitter or no event name.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -178,7 +190,11 @@ export class AudioGameObject extends IRoot
   {
   }
 
-  /** IEveSpaceObject2 hook; an audio object contributes no renderables. */
+  /**
+   * IEveSpaceObject2 hook; an audio object contributes no renderables.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetRenderables__Impostors(_renderables, _impostors)
@@ -264,6 +280,8 @@ export class AudioGameObject extends IRoot
    * AudioGameObject.h:63): brings the world transform up to t, then takes the
    * translation of the authored rotation and translation composed with that
    * world transform.
+   *
+   * @implemented
    * @param {vec3} position - receives the world-space model centre
    * @param {number} t - the time to update to, in Blue ticks
    * @returns {vec3} position
@@ -286,6 +304,8 @@ export class AudioGameObject extends IRoot
    * AudioGameObject.h:64): the translation of the authored rotation and
    * translation composed with the last world transform, without advancing the
    * curves.
+   *
+   * @implemented
    * @param {vec3} position - receives the world-space model centre
    * @returns {vec3} position
    */
@@ -304,6 +324,8 @@ export class AudioGameObject extends IRoot
    * Carbon AudioGameObject::GetDebugOptions (AudioGameObject.cpp:173-181):
    * "Audio Speaker", then whatever the emitter offers when it is
    * debug-renderable.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -327,6 +349,8 @@ export class AudioGameObject extends IRoot
    *
    * Carbon also builds RotationMatrix( m_rotation ) and takes its Z axis
    * (cpp:187-188) but never reads either; those dead locals are not ported.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -355,6 +379,8 @@ export class AudioGameObject extends IRoot
    * IEveSpaceObject2 hook (AudioGameObject.cpp:91-93): an audio game object is
    * not rendered, so it contributes nothing to a child's per-object records and
    * Carbon's body is empty. Present so a child parented to one can call it.
+   *
+   * @adapted
    */
 
   @meta.adapted

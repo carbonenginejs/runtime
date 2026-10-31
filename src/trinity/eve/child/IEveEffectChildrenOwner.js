@@ -9,6 +9,8 @@ export class IEveEffectChildrenOwner extends IRoot
 {
   /**
    * Finds an effect child by name.
+   *
+   * @abstract
    * @param {string} _name The child's name.
    * @returns {object|null} The EveSpaceObjectChild, or null when absent.
    */
@@ -17,6 +19,8 @@ export class IEveEffectChildrenOwner extends IRoot
 
   /**
    * Adds a child to the effect children list.
+   *
+   * @abstract
    * @param {object} _child The EveSpaceObjectChild to add.
    * @returns {void}
    */
@@ -25,6 +29,8 @@ export class IEveEffectChildrenOwner extends IRoot
 
   /**
    * Removes a child from the effect children list.
+   *
+   * @abstract
    * @param {object} _child The EveSpaceObjectChild to remove.
    * @returns {void}
    */

@@ -105,6 +105,8 @@ export class EveUpdateContext
 
   /**
    * Current frame time in raw 100ns ticks (Carbon EveUpdateContext::GetTime).
+   *
+   * @implemented
    * @returns {Number}
    */
   @meta.implemented
@@ -116,6 +118,8 @@ export class EveUpdateContext
   /**
    * Shifts the current time into lastTime and stores the new raw tick timestamp
    * (Carbon EveUpdateContext::SetTime).
+   *
+   * @implemented
    * @param {Number} time Frame timestamp in 100ns ticks.
    */
   @meta.implemented
@@ -129,6 +133,8 @@ export class EveUpdateContext
    * Seconds elapsed since the previous frame, computed on demand as Carbon does
    * (EveUpdateContext.h:51-58). The tick difference is narrowed to float seconds
    * through TimeAsFloat; the result is zero while the previous timestamp is zero.
+   *
+   * @implemented
    * @returns {Number}
    */
   @meta.implemented
@@ -145,6 +151,8 @@ export class EveUpdateContext
    * (origin still at the Infinity sentinel). Per our out-last convention its
    * reference-point read is
    * GetReferencePoint(time, outVector3d) (Carbon passes the out pointer first).
+   *
+   * @adapted
    * @param {Object|null} ballpark
    */
   @meta.adapted
@@ -178,6 +186,8 @@ export class EveUpdateContext
   /**
    * World origin, or (0,0,0) while still uninitialized (Carbon
    * EveUpdateContext::GetOrigin).
+   *
+   * @adapted
    * @returns {Float64Array}
    */
   @meta.adapted
@@ -190,6 +200,8 @@ export class EveUpdateContext
   /**
    * Float32 origin shift for the current frame (Carbon
    * EveUpdateContext::GetOriginShift).
+   *
+   * @implemented
    * @returns {Float32Array}
    */
   @meta.implemented
@@ -201,6 +213,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetDataTextureManager (h:61-64).
+   *
+   * @implemented
    * @returns {Object|null}
    */
   @meta.implemented
@@ -211,6 +225,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::SetDataTextureManager (h:65-68).
+   *
+   * @implemented
    * @param {Object|null} manager
    */
   @meta.implemented
@@ -221,6 +237,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetGpuParticleSystem (h:70-73).
+   *
+   * @implemented
    * @returns {Object|null}
    */
   @meta.implemented
@@ -233,6 +251,8 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::SetGpuParticleSystem (h:74-77).
    * Shared assignment never destroys the old system; JS callers explicitly Destroy
    * only when its final owner releases it, replacing Carbon shared-pointer destruction.
+   *
+   * @adapted
    * @param {Object|null} ps
    */
   @meta.adapted
@@ -243,6 +263,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetBallpark (h:79-82) - stamped by UpdateOrigin.
+   *
+   * @implemented
    * @returns {Object|null}
    */
   @meta.implemented
@@ -253,6 +275,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::SetTaskGroup (h:116-119).
+   *
+   * @implemented
    * @param {Object|null} taskGroup
    */
   @meta.implemented
@@ -263,6 +287,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetTaskGroup (h:121-124).
+   *
+   * @implemented
    * @returns {Object|null}
    */
   @meta.implemented
@@ -273,6 +299,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::SetVisibilityThreshold (h:126-129).
+   *
+   * @implemented
    * @param {Number} visibilityThreshold
    */
   @meta.implemented
@@ -283,6 +311,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetVisibilityThreshold (h:131-134).
+   *
+   * @implemented
    * @returns {Number}
    */
   @meta.implemented
@@ -293,6 +323,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::SetHighDetailThreshold (h:136-139).
+   *
+   * @implemented
    * @param {Number} highDetailThreshold
    */
   @meta.implemented
@@ -303,6 +335,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetHighDetailThreshold (h:141-144).
+   *
+   * @implemented
    * @returns {Number}
    */
   @meta.implemented
@@ -313,6 +347,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::SetMediumDetailThreshold (h:146-149).
+   *
+   * @implemented
    * @param {Number} mediumDetailThreshold
    */
   @meta.implemented
@@ -323,6 +359,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetMediumDetailThreshold (h:151-154).
+   *
+   * @implemented
    * @returns {Number}
    */
   @meta.implemented
@@ -333,6 +371,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::SetLowDetailThreshold (h:156-159).
+   *
+   * @implemented
    * @param {Number} lowDetailThreshold
    */
   @meta.implemented
@@ -343,6 +383,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetLowDetailThreshold (h:161-164).
+   *
+   * @implemented
    * @returns {Number}
    */
   @meta.implemented
@@ -354,6 +396,8 @@ export class EveUpdateContext
   /**
    * Carbon EveUpdateContext::SetLodFactor (h:166-170) - maintains the
    * invariant invLodFactor = 1 / lodFactor (no zero guard, matching Carbon).
+   *
+   * @implemented
    * @param {Number} lodFactor
    */
   @meta.implemented
@@ -365,6 +409,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetLodFactor (h:172-175).
+   *
+   * @implemented
    * @returns {Number}
    */
   @meta.implemented
@@ -375,6 +421,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetInvLodFactor (h:177-180).
+   *
+   * @implemented
    * @returns {Number}
    */
   @meta.implemented
@@ -386,6 +434,8 @@ export class EveUpdateContext
   /**
    * Carbon EveUpdateContext::SetFrustum (h:182-185): takes the frustum by
    * value and assigns it into the context's own (ruling 16).
+   *
+   * @implemented
    * @param {TriFrustum} frustum
    */
   @meta.implemented
@@ -396,6 +446,8 @@ export class EveUpdateContext
 
   /**
    * Carbon EveUpdateContext::GetFrustum (h:187-190).
+   *
+   * @implemented
    * @returns {TriFrustum}
    */
   @meta.implemented

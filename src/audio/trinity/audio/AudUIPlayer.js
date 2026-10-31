@@ -10,7 +10,11 @@ export const UI_GAME_OBJ_ID = 2;
 
 const FLOAT_MAX = 3.4028234663852886e38;
 
-/** Provides the fixed Carbon UI emitter with dialogue position and completion callbacks. */
+/**
+ * Provides the fixed Carbon UI emitter with dialogue position and completion callbacks.
+ *
+ * @abstract
+ */
 @be.define("AudUIPlayer")
 @be.exposureChainTo(AudEmitter)
 @be.abstract
@@ -45,7 +49,11 @@ export class AudUIPlayer extends AudEmitter
     this.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
   }
 
-  /** The UI player has no world placement. Source: AudUIPlayer.cpp:20-23 (commit 2756050). */
+  /**
+   * The UI player has no world placement. Source: AudUIPlayer.cpp:20-23 (commit 2756050).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasUsableWorldPosition()
@@ -56,10 +64,9 @@ export class AudUIPlayer extends AudEmitter
   /**
    * Returns the backend play position in milliseconds, or -1 when unavailable.
    *
-   * Adapted: The injected backend returns the position directly instead of Wwise's
-   * result code and output parameter (audio/src/AudUIPlayer.cpp:76-89). A disabled
-   * manager or absent backend also returns -1.
-   *
+   * @adapted The injected backend returns the position directly instead of Wwise's
+   *   result code and output parameter (audio/src/AudUIPlayer.cpp:76-89). A disabled
+   *   manager or absent backend also returns -1.
    * @param {number} playingID Event playing identifier.
    * @returns {number} Elapsed milliseconds, or -1.
    */
@@ -75,7 +82,11 @@ export class AudUIPlayer extends AudEmitter
     return backend ? backend.GetSourcePlayPosition(playingID) : -1;
   }
 
-  /** Carbon method PostDialogueEvent (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method PostDialogueEvent (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   PostDialogueEvent(eventName)
@@ -86,18 +97,17 @@ export class AudUIPlayer extends AudEmitter
   /**
    * Posts an event and captures its completion callback by playing ID.
    *
-   * Adapted: Carbon retains one callback event name and reads the current callback
-   * at dispatch (audio/src/AudUIPlayer.cpp:33-48,100-133). JavaScript captures the
-   * callback and posted name for each playing ID, so overlapping requests and
-   * callback replacement do not change earlier registrations. The posted name is
-   * read directly from PostEvent's playing-event record; an authored-name fallback
-   * would conceal a missing record and lose the event prefix. A missing callback
-   * returns zero without Carbon's error log.
-   *
    * The native prefix quirk prepares the name twice (AudUIPlayer.cpp:37-40 and
    * AudGameObjResource.cpp:184,610-619); this implementation prepares it only
    * through PostEvent and therefore does not reproduce that quirk.
    *
+   * @adapted Carbon retains one callback event name and reads the current callback
+   *   at dispatch (audio/src/AudUIPlayer.cpp:33-48,100-133). JavaScript captures the
+   *   callback and posted name for each playing ID, so overlapping requests and
+   *   callback replacement do not change earlier registrations. The posted name is
+   *   read directly from PostEvent's playing-event record; an authored-name fallback
+   *   would conceal a missing record and lose the event prefix. A missing callback
+   *   returns zero without Carbon's error log.
    * @param {string} name Event name.
    * @returns {number} Playing identifier, or zero when not posted.
    */
@@ -124,11 +134,10 @@ export class AudUIPlayer extends AudEmitter
   /**
    * Removes the completion registration, runs base bookkeeping, and schedules its callback.
    *
-   * Adapted: A playing ID replaces Wwise's callback-info structure. Carbon queues
-   * a main-thread callback that reads the player's current callback and event name;
-   * JavaScript queues a microtask with this playing ID's captured registration
-   * (audio/src/AudUIPlayer.cpp:100-133).
-   *
+   * @adapted A playing ID replaces Wwise's callback-info structure. Carbon queues
+   *   a main-thread callback that reads the player's current callback and event name;
+   *   JavaScript queues a microtask with this playing ID's captured registration
+   *   (audio/src/AudUIPlayer.cpp:100-133).
    * @param {number} playingID Completed event identifier.
    * @returns {void}
    */

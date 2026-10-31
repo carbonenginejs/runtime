@@ -32,6 +32,7 @@ export class Tr2LineGraph extends IRoot
   /**
    * Carbon: Tr2LineGraph::GetName (Tr2LineGraph.cpp:323-326).
    *
+   * @implemented
    * @returns {string} The graph's name.
    */
   @meta.implemented
@@ -45,6 +46,7 @@ export class Tr2LineGraph extends IRoot
    * reference to m_color; JavaScript has no const reference, so the colour is copied into
    * the caller's vector.
    *
+   * @adapted
    * @param {vec4} out Receives the colour.
    * @returns {vec4} out
    */
@@ -57,6 +59,7 @@ export class Tr2LineGraph extends IRoot
   /**
    * Carbon: Tr2LineGraph::SetColor (Tr2LineGraph.cpp:318-321).
    *
+   * @implemented
    * @param {vec4} val The colour to copy in.
    * @returns {void}
    */
@@ -76,6 +79,7 @@ export class Tr2LineGraph extends IRoot
    * (LINEGRAPH_EFFECT_PATH); none of that device path is ported for this class, and
    * Tr2LineGraph is not registered as a Tr2DeviceResource.
    *
+   * @notImplemented
    * @returns {boolean} Never returns.
    */
   @meta.notImplemented
@@ -90,6 +94,7 @@ export class Tr2LineGraph extends IRoot
    * Not implemented: it drops the vertex buffer and declaration that OnPrepareResources
    * would have made (see _OnPrepareResources).
    *
+   * @notImplemented
    * @param {number} _storage A TriStorage value.
    * @returns {void}
    */
@@ -106,6 +111,7 @@ export class Tr2LineGraph extends IRoot
    * line vertices, Tr2Renderer::PrintfImmediate for the marker labels (unported), and the
    * effect's ApplyAllStateForPass / ApplyMaterialDataForPass with a line-list draw.
    *
+   * @notImplemented
    * @param {number} _scale The vertical scale.
    * @param {object} _renderContext The Tr2RenderContext.
    * @returns {void}
@@ -116,7 +122,11 @@ export class Tr2LineGraph extends IRoot
     throw new Error("Tr2LineGraph.Render requires the unported line-graph device path and Tr2Renderer.PrintfImmediate.");
   }
 
-  /** Carbon method AddMarker (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddMarker (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddMarker(name)
@@ -134,7 +144,11 @@ export class Tr2LineGraph extends IRoot
     });
   }
 
-  /** Carbon method GetStatsHistory (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetStatsHistory (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetStatsHistory()
@@ -142,7 +156,11 @@ export class Tr2LineGraph extends IRoot
     return this.#data.slice(this.#currentIndex).concat(this.#data.slice(0, this.#currentIndex));
   }
 
-  /** Carbon method SetSize (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetSize (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   SetSize(size)
@@ -159,7 +177,11 @@ export class Tr2LineGraph extends IRoot
     this.#currentIndex = 0;
   }
 
-  /** Adds a sample through Carbon's ICcpStatisticsAccumulator interface. */
+  /**
+   * Adds a sample through Carbon's ICcpStatisticsAccumulator interface.
+   *
+   * @adapted
+   */
   @meta.adapted
   Add(value)
   {
@@ -176,6 +198,8 @@ export class Tr2LineGraph extends IRoot
 
   /**
    * The number of samples the history retains.
+   *
+   * @implemented
    */
   @meta.implemented
   GetSize()
@@ -185,6 +209,8 @@ export class Tr2LineGraph extends IRoot
 
   /**
    * The largest sample currently in the history.
+   *
+   * @implemented
    */
   @meta.implemented
   GetMaxValue()

@@ -47,6 +47,8 @@ export class Tr2MaterialStageInput
 
   /**
    * Allocates the CPU-side constant mirror rounded up to a 16-byte multiple and marks it dirty; a zero size clears the mirror instead. No GPU buffer is created.
+   *
+   * @adapted
    * @param size requested mirror size in bytes
    */
   @meta.adapted
@@ -60,6 +62,8 @@ export class Tr2MaterialStageInput
 
   /**
    * Replaces the constant mirror with a copy of already-built buffer contents and clears the dirty flag; a zero size clears the mirror instead.
+   *
+   * @adapted
    * @param size byte count to copy, defaulting to the contents' own byte length
    */
   @meta.adapted

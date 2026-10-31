@@ -48,6 +48,8 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
   /**
    * Drops both batch vectors and resets user data and rendering mode to their
    * defaults.
+   *
+   * @implemented
    */
   Clear()
   {
@@ -70,6 +72,8 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
    * indexed) to the GDPR vector; the batch's rendering mode is overwritten with
    * the accumulator's and ownership passes here, so the caller must not reuse
    * the batch. Returns whether it was accepted.
+   *
+   * @adapted
    */
   Commit(batch)
   {
@@ -97,6 +101,8 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
    * Folds another accumulator's batches into this one and clears the source; the
    * source's GDPR batches land in the plain vector when this accumulator does
    * not allow GDPR.
+   *
+   * @implemented
    */
   TransferFrom(source)
   {
@@ -116,13 +122,21 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
     source.Clear();
   }
 
-  /** The live GDPR-eligible batch vector, not a copy. */
+  /**
+   * The live GDPR-eligible batch vector, not a copy.
+   *
+   * @implemented
+   */
   GetGdprBatches()
   {
     return this.gdprBatches;
   }
 
-  /** The live plain batch vector, not a copy. */
+  /**
+   * The live plain batch vector, not a copy.
+   *
+   * @implemented
+   */
   GetBatches()
   {
     return this.batches;
@@ -136,6 +150,8 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
    * Sorts and group-counts the collected batches: a no-op for the
    * order-preserving key generator, a full bin partition of both vectors for
    * GDPR-enabled ones, and a plain comparator sort otherwise.
+   *
+   * @adapted
    */
   Finalize()
   {
@@ -158,7 +174,11 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
     });
   }
 
-  /** Total batches across both vectors. */
+  /**
+   * Total batches across both vectors.
+   *
+   * @implemented
+   */
   GetBatchCount()
   {
     return this.gdprBatches.length + this.batches.length;
@@ -167,6 +187,8 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
   /**
    * Whether the batches are effect-sorted, so consecutive batches can share one
    * state-set, rather than order-preserving.
+   *
+   * @implemented
    */
   IsChainedByEffect()
   {

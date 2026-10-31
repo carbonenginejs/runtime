@@ -17,7 +17,11 @@ export class Tr2VisibilityResults extends IRoot
   // Carbon's m_events is private transient execution state, not Blue data.
   #events = [];
 
-  /** Adds the value-like visibility event emitted by a visibility executor. */
+  /**
+   * Adds the value-like visibility event emitted by a visibility executor.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   AddVisibilityEvent(event)
@@ -25,7 +29,11 @@ export class Tr2VisibilityResults extends IRoot
     this.#events.push(event);
   }
 
-  /** Returns a detached container view of the current visibility events. */
+  /**
+   * Returns a detached container view of the current visibility events.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetEvents()
@@ -33,7 +41,11 @@ export class Tr2VisibilityResults extends IRoot
     return this.#events.slice();
   }
 
-  /** Clears the result set. */
+  /**
+   * Clears the result set.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Clear()
@@ -41,7 +53,11 @@ export class Tr2VisibilityResults extends IRoot
     this.#events.length = 0;
   }
 
-  /** Gets the number of visibility events in the result set. */
+  /**
+   * Gets the number of visibility events in the result set.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetNumVisibilityEvents()

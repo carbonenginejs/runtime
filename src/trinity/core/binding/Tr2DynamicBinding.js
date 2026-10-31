@@ -60,6 +60,8 @@ export class Tr2DynamicBinding extends INotify
 
   /**
    * Native readonly endpoint validity property.
+   *
+   * @implemented
    * @returns {boolean} Whether the endpoint is alive.
    */
   @be.mapPropertyReadOnly()
@@ -114,6 +116,8 @@ export class Tr2DynamicBinding extends INotify
 
   /**
    * Native readonly endpoint validity property.
+   *
+   * @implemented
    * @returns {boolean} Whether the endpoint is alive.
    */
   @be.mapPropertyReadOnly()
@@ -166,17 +170,16 @@ export class Tr2DynamicBinding extends INotify
    * Carbon's destructor (Tr2DynamicBinding.cpp:185-190): unregisters from sim-time
    * rebasing, drops the owner and unlinks.
    *
-   * Adapted: JavaScript has no deterministic destructor, so the holder that
-   * abandons a binding calls this; until then the OS keeps it registered.
-   * Carbon's registry is a non-owning std::vector<ISimTimeRebaseNotify*>
-   * (BlueOS.h:169) while CjsBlueOS holds a strong array, the same shape as
-   * TriDevice's resource registry; which owners call Destruct is pending the
-   * open teardown ruling (operator, with TriDevice's registry and plan Q4).
-   *
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    *
+   * @adapted JavaScript has no deterministic destructor, so the holder that
+   *   abandons a binding calls this; until then the OS keeps it registered.
+   *   Carbon's registry is a non-owning std::vector<ISimTimeRebaseNotify*>
+   *   (BlueOS.h:169) while CjsBlueOS holds a strong array, the same shape as
+   *   TriDevice's resource registry; which owners call Destruct is pending the
+   *   open teardown ruling (operator, with TriDevice's registry and plan Q4).
    * @returns {void}
    */
   @meta.adapted
@@ -200,8 +203,9 @@ export class Tr2DynamicBinding extends INotify
    * BeOS->GetCurrentFrameTime(), plus TimeFromMS(bindingDelay)
    * (Tr2DynamicBinding.cpp:229-251). Carbon quirk, kept: Unlink has just zeroed
    * m_bindingTime, so its `m_bindingTime == 0` test always passes.
-   * Adapted: Resolves Carbon Blue paths through the portable JavaScript graph,
-   * and returns whether both endpoints resolved where native Link is void.
+   *
+   * @adapted Resolves Carbon Blue paths through the portable JavaScript graph,
+   *   and returns whether both endpoints resolved where native Link is void.
    * @returns {boolean} Binding result.
    */
 
@@ -244,7 +248,8 @@ export class Tr2DynamicBinding extends INotify
   /**
    * Tears down the binding, clears both endpoint references and validity flags
    * and resets the pending binding time.
-   * Adapted: Explicitly detaches the held JavaScript binding destination before dropping it, replacing native reference-counted cleanup.
+   *
+   * @adapted Explicitly detaches the held JavaScript binding destination before dropping it, replacing native reference-counted cleanup.
    * @returns {void} No return value.
    */
 
@@ -263,7 +268,8 @@ export class Tr2DynamicBinding extends INotify
   /**
    * Sets the object whose GetParameterMap supplies the roots that Link resolves
    * paths against; without it Link always fails.
-   * Adapted: Normalizes a nullish JavaScript owner to the native null-owner state.
+   *
+   * @adapted Normalizes a nullish JavaScript owner to the native null-owner state.
    * @param {object|null} owner Owner supplying GetParameterMap.
    * @returns {void} No return value.
    */
@@ -277,7 +283,8 @@ export class Tr2DynamicBinding extends INotify
   /**
    * Copies the bound value once the binding time is reached
    * (Tr2DynamicBinding.cpp:221-227).
-   * Adapted: returns the copy result where native Update is void.
+   *
+   * @adapted returns the copy result where native Update is void.
    * @param {number} time Frame time (Be::Time, Blue 100ns ticks).
    * @returns {boolean} Binding result.
    */
@@ -295,6 +302,8 @@ export class Tr2DynamicBinding extends INotify
   /**
    * Shifts the pending binding time by the clock delta, so rebasing the
    * simulation clock neither skips nor stalls the delay (Tr2DynamicBinding.cpp:206-209).
+   *
+   * @implemented
    * @param {number} oldTime Old simulation time (Be::Time, Blue 100ns ticks).
    * @param {number} newTime New simulation time (Be::Time, Blue 100ns ticks).
    * @returns {void} No return value.
@@ -309,6 +318,8 @@ export class Tr2DynamicBinding extends INotify
   /**
    * Re-checks that the weakly held destination is still alive and refreshes the
    * read-only flag.
+   *
+   * @implemented
    * @returns {boolean} Binding result.
    */
 
@@ -322,6 +333,8 @@ export class Tr2DynamicBinding extends INotify
   /**
    * Re-checks that the weakly held source is still alive and refreshes the
    * read-only flag.
+   *
+   * @implemented
    * @returns {boolean} Binding result.
    */
 
@@ -334,6 +347,8 @@ export class Tr2DynamicBinding extends INotify
 
   /**
    * Relinks on notification when an owner is present; otherwise unlinks.
+   *
+   * @implemented
    * @param {string|null} propertyName Changed member name.
    * @returns {boolean} Binding result.
    */

@@ -72,9 +72,8 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * returns the count written - a string path with no sink behind it fails
    * exactly as Carbon's failed stream open does.
    *
-   * Adapted: Carbon opens a Blue ResFile stream from a path; the runtime has no file layer,
-   * so the caller supplies the write sink.
-   *
+   * @adapted Carbon opens a Blue ResFile stream from a path; the runtime has no file layer,
+   *   so the caller supplies the write sink.
    * @param {{Write(bytes: Uint8Array): number}} output The write sink.
    * @param {number} width
    * @param {number} height
@@ -126,7 +125,11 @@ export class Tr2StreamingBitmapSaver extends IRoot
     return ALResult.S_OK;
   }
 
-  /** Carbon IsSaving (cpp:282-284): whether an output stream is open. */
+  /**
+   * Carbon IsSaving (cpp:282-284): whether an output stream is open.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsSaving()
@@ -134,7 +137,11 @@ export class Tr2StreamingBitmapSaver extends IRoot
     return this.#output !== null;
   }
 
-  /** Carbon HasStartedBatch (cpp:294-296): whether a batch is in flight. */
+  /**
+   * Carbon HasStartedBatch (cpp:294-296): whether a batch is in flight.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasStartedBatch()
@@ -145,6 +152,8 @@ export class Tr2StreamingBitmapSaver extends IRoot
   /**
    * hasStartedBatch (MAP_PROPERTY_READONLY): Carbon's property over HasStartedBatch, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2StreamingBitmapSaver_Blue.cpp:43).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -153,7 +162,11 @@ export class Tr2StreamingBitmapSaver extends IRoot
     return this.HasStartedBatch();
   }
 
-  /** Carbon method CopyFromRenderTargetRegion (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method CopyFromRenderTargetRegion (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   CopyFromRenderTargetRegion(...args)
@@ -161,7 +174,11 @@ export class Tr2StreamingBitmapSaver extends IRoot
     throw new Error("Tr2StreamingBitmapSaver.CopyFromRenderTargetRegion is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon EndSaving closes and pads the stream; unported with the batch pair. */
+  /**
+   * Carbon EndSaving closes and pads the stream; unported with the batch pair.
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   EndSaving(...args)
@@ -169,7 +186,11 @@ export class Tr2StreamingBitmapSaver extends IRoot
     throw new Error("Tr2StreamingBitmapSaver.EndSaving is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method FlushBatch (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method FlushBatch (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   FlushBatch(...args)
@@ -177,7 +198,11 @@ export class Tr2StreamingBitmapSaver extends IRoot
     throw new Error("Tr2StreamingBitmapSaver.FlushBatch is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method StartBatch (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method StartBatch (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   StartBatch(...args)

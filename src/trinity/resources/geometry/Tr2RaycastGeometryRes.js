@@ -19,6 +19,8 @@ export class Tr2RaycastGeometryRes extends BlueAsyncRes
    * load-bearing - DoLoad validates the count against the CMF's mesh count
    * and each index against that mesh's LOD count, failing the load otherwise
    * (cpp:110-124), so the indices must be set before the load runs.
+   *
+   * @implemented
    */
   SetLodIndices(lodIndices)
   {
@@ -29,6 +31,8 @@ export class Tr2RaycastGeometryRes extends BlueAsyncRes
    * Carbon GetBVH (TriGeometryRes.cpp:83-86): the CPU bounding-volume
    * hierarchy DoLoad built, by mutable reference. Null until this runtime
    * grows the BVH type; the accessor is the contract callers hold.
+   *
+   * @adapted
    */
   GetBVH()
   {
@@ -39,6 +43,7 @@ export class Tr2RaycastGeometryRes extends BlueAsyncRes
    * Carbon: Tr2RaycastGeometryRes::DoPrepare (TriGeometryRes.cpp:130-133): nothing to
    * prepare. The BVH DoLoad builds is the whole resource; no device object is made.
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
   _DoPrepare()
@@ -48,6 +53,9 @@ export class Tr2RaycastGeometryRes extends BlueAsyncRes
 
   /**
    * Attaches the resident geometry that answers this raycast session.
+   *
+   * @cjs
+   * @implemented
    * @param {object} source Canonical geometry projection retained for CPU ray tests.
    */
   SetSource(source)

@@ -26,6 +26,8 @@ export class Tr2DeviceResource
    * Carbon's constructor (cpp:6-9): registers with the device. Resolve its class
    * at call time because TriDevice imports the resource families which compose
    * this base; eagerly importing TriDevice creates an ESM initialization cycle.
+   *
+   * @adapted
    */
   constructor()
   {
@@ -36,8 +38,8 @@ export class Tr2DeviceResource
    * Carbon GetDescription (h:28-33, TRINITYDEV): the resource's description
    * for device diagnostics.
    *
-   * Adapted: returned rather than written to an output string, as the other
-   * resource descriptions are (TriDebugResourceHelper.GetDescription).
+   * @adapted returned rather than written to an output string, as the other
+   *   resource descriptions are (TriDebugResourceHelper.GetDescription).
    * @returns {string} "<Unknown>" unless a resource says otherwise.
    */
 
@@ -50,6 +52,8 @@ export class Tr2DeviceResource
    * Carbon ReleaseResources (h:40-45): the device asks the resource to drop
    * what the storage flags name - TRISTORAGE_ALL before the device itself is
    * released, TRISTORAGE_VIDEOMEMORY before a reset.
+   *
+   * @abstract
    * @param {number} _s TriStorageFlags.
    */
 
@@ -62,6 +66,8 @@ export class Tr2DeviceResource
    * objects through OnPrepareResources, but only while resource creation is
    * allowed - nothing is created in the middle of an attempted reset, and
    * that counts as success.
+   *
+   * @implemented
    * @returns {boolean} False when OnPrepareResources fails.
    */
 
@@ -81,6 +87,8 @@ export class Tr2DeviceResource
    * Carbon OnPrepareResources (h:47-62): creates only the device objects that
    * are missing, since a release may have dropped only some of them. Called
    * from PrepareResources, never directly.
+   *
+   * @abstract
    * @returns {boolean} Whether preparation succeeded.
    */
 
@@ -96,6 +104,8 @@ export class Tr2DeviceResource
    *
    * Runtime-resource stores this value but does not inspect GPU APIs.
    *
+   * @cjs
+   * @adapted
    * @param {string} key
    * @param {*} value
    * @returns {Tr2DeviceResource}
@@ -111,6 +121,8 @@ export class Tr2DeviceResource
   /**
    * Get an opaque engine-owned resource object.
    *
+   * @cjs
+   * @adapted
    * @param {string} key
    * @returns {*}
    */
@@ -123,6 +135,8 @@ export class Tr2DeviceResource
   /**
    * Returns true when an adapter resource exists for the given key.
    *
+   * @cjs
+   * @adapted
    * @param {string} key
    * @returns {boolean}
    */
@@ -135,6 +149,8 @@ export class Tr2DeviceResource
   /**
    * Remove an adapter resource and optionally call its destroy/dispose method.
    *
+   * @cjs
+   * @adapted
    * @param {string} key
    * @param {object} options
    * @returns {Tr2DeviceResource}
@@ -166,6 +182,8 @@ export class Tr2DeviceResource
    * Destroy, Dispose, destroy, or dispose member and calls it when callable.
    * Passing destroy: false removes the slots without calling teardown.
    *
+   * @cjs
+   * @adapted
    * @param {object} [options={}] Adapter teardown options.
    * @param {boolean} [options.destroy=true] Whether to call registered teardown.
    * @returns {Tr2DeviceResource} This resource after removing the slots.

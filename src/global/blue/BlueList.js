@@ -53,7 +53,10 @@ export class BlueList extends Array
     this._listOps = listOps;
   }
 
-  /** @returns {number} The number of stored items. */
+  /**
+   * @implemented
+   * @returns {number} The number of stored items.
+   */
   GetSize()
   {
     return this.length;
@@ -61,8 +64,9 @@ export class BlueList extends Array
 
   /**
    * Writes the native ListInfo facts without replacing the output record.
-   * Adapted: iid is a constructor identity and clsid is the explicit optional
-   * class name; JavaScript record names omit the native m prefix.
+   *
+   * @adapted iid is a constructor identity and clsid is the explicit optional
+   *   class name; JavaScript record names omit the native m prefix.
    * @param {object} info Caller-owned output record.
    * @returns {void}
    */
@@ -76,8 +80,9 @@ export class BlueList extends Array
 
   /**
    * Inserts a typed item, then notifies with its actual index.
-   * Adapted: exact mapped identities replace native QI pointer conversion.
-   * Non-integer keys are rejected rather than coerced into native ssize_t.
+   *
+   * @adapted exact mapped identities replace native QI pointer conversion.
+   *   Non-integer keys are rejected rather than coerced into native ssize_t.
    * @param {number} key Insertion index, or -1 for the old list length.
    * @param {object} value Non-null item exposing the element interface.
    * @returns {boolean} False leaves the list unchanged.
@@ -95,7 +100,8 @@ export class BlueList extends Array
   /**
    * Appends a typed item, then reports the post-insert size as the event key.
    * This native quirk differs from Insert(-1) (BlueListUtil.h:610-615).
-   * Adapted: mapped constructor identities replace native QI pointer conversion.
+   *
+   * @adapted mapped constructor identities replace native QI pointer conversion.
    * @param {object} value Non-null item exposing the element interface.
    * @returns {boolean} False leaves the list unchanged.
    */
@@ -111,7 +117,8 @@ export class BlueList extends Array
    * Removes an item after selecting it, or sends UNLOADSTART before clearing.
    * Empty clears and null entries do not notify; clear emits no REMOVED events.
    * Keys failing RangeCheck return false without mutation (BlueListUtil.h:643-646).
-   * Adapted: JavaScript references replace native Unlock calls.
+   *
+   * @adapted JavaScript references replace native Unlock calls.
    * @param {number} key Item index or -1 to clear.
    * @returns {boolean} Whether the index was valid.
    */
@@ -135,6 +142,8 @@ export class BlueList extends Array
    * Reads an item, or null when the key fails RangeCheck (BlueListUtil.h:670-678).
    * RangeCheck admits -1, which then reaches vector::at and throws; here that
    * is the RangeError from At. Raw JS holes represent null storage.
+   *
+   * @adapted
    * @param {number} key Item index.
    * @returns {object|null} Item or null.
    * @throws {RangeError} For -1, as vector::at throws std::out_of_range.
@@ -151,7 +160,8 @@ export class BlueList extends Array
    * RangeCheck on a nonzero keyFrom, then the interface query, each returning -1.
    * RangeCheck admits -1, and Carbon then iterates from begin() - 1 unchecked;
    * that start throws a RangeError here (ruling 11).
-   * Adapted: mapped identities replace QI.
+   *
+   * @adapted mapped identities replace QI.
    * @param {object} value Item to find.
    * @param {number} [keyFrom=0] First index to search.
    * @returns {number} Index or -1.
@@ -171,6 +181,8 @@ export class BlueList extends Array
    * Swaps items and sends SWAPPED, including when both indexes are equal.
    * Keys failing RangeCheck return false (BlueListUtil.h:714-735). RangeCheck
    * admits -1, which then reaches vector::at and throws before any write.
+   *
+   * @adapted
    * @param {number} key1 First index.
    * @param {number} key2 Second index.
    * @returns {boolean} Whether both indexes passed RangeCheck.
@@ -194,6 +206,8 @@ export class BlueList extends Array
    * (BlueListUtil.h:739-768). RangeCheck admits -1, which then reaches
    * vector::at and throws: before any write for from, and after the items
    * above it have shifted for to, exactly as Carbon's loop does.
+   *
+   * @adapted
    * @param {number} from Original index.
    * @param {number} to Destination index.
    * @returns {boolean} Whether both indexes passed RangeCheck.
@@ -215,8 +229,9 @@ export class BlueList extends Array
 
   /**
    * Sorts without notification, passing the opaque context to every comparison.
-   * Adapted: Carbon's boolean less-than predicate becomes Array.sort's numeric
-   * comparator; equivalent elements use JavaScript's stable ordering.
+   *
+   * @adapted Carbon's boolean less-than predicate becomes Array.sort's numeric
+   *   comparator; equivalent elements use JavaScript's stable ordering.
    * @param {Function} compare Called as (context, a, b), returning whether a < b.
    * @param {*} context Caller-owned comparison context.
    * @returns {void}
@@ -228,8 +243,9 @@ export class BlueList extends Array
 
   /**
    * Replaces the list's one observer without sending an event.
-   * Adapted: C++ accepts an IListNotify pointer; JS checks nominal composition,
-   * independently of the observer's exposed QueryInterface table.
+   *
+   * @adapted C++ accepts an IListNotify pointer; JS checks nominal composition,
+   *   independently of the observer's exposed QueryInterface table.
    * @param {IListNotify|null} notify Observer or null.
    * @returns {void}
    */
@@ -242,8 +258,9 @@ export class BlueList extends Array
 
   /**
    * Returns borrowed storage and a snapshot of its size.
-   * Adapted: the native pointer/size pair is a named JavaScript record; items is
-   * this same array and raw mutations do not emit list notifications.
+   *
+   * @adapted the native pointer/size pair is a named JavaScript record; items is
+   *   this same array and raw mutations do not emit list notifications.
    * @returns {{items: BlueList, size: number}} Borrowed storage and captured size.
    */
   GetAllItems()
@@ -251,7 +268,10 @@ export class BlueList extends Array
     return { items: this, size: this.length };
   }
 
-  /** @returns {boolean} Whether clearing succeeded. */
+  /**
+   * @implemented
+   * @returns {boolean} Whether clearing succeeded.
+   */
   Clear()
   {
     return this.Remove(-1);
@@ -261,6 +281,8 @@ export class BlueList extends Array
    * Removes first, then inserts the replacement, as native Replace does.
    * Native quirk: an invalid replacement can therefore leave the old item
    * removed (BlueListUtil.h:273-278); it is not an atomic operation.
+   *
+   * @implemented
    * @param {number} key Item index.
    * @param {object} value Replacement item.
    * @returns {boolean} Whether removal and insertion both succeeded.
@@ -273,8 +295,9 @@ export class BlueList extends Array
 
   /**
    * Clears then shares the items from a list of the same configured type.
-   * Adapted: JS references replace native Lock calls; generic-template equality
-   * is checked explicitly. No per-item insertion or LOADFINISHED event is sent.
+   *
+   * @adapted JS references replace native Lock calls; generic-template equality
+   *   is checked explicitly. No per-item insertion or LOADFINISHED event is sent.
    * @param {BlueList} other Source list with identical template facts.
    * @returns {void}
    */
@@ -291,11 +314,12 @@ export class BlueList extends Array
    * A null copy result or rejected copied type leaves the copied prefix without
    * LOADFINISHED. Nonempty success
    * sends exactly one LOADFINISHED on the destination; empty success sends none.
-   * Adapted: CopyTo returns the copied object or null rather than bool plus an
-   * IRoot out-pointer. Constructor/configuration equality replaces a C++ template
-   * cast. An outer Copier.CopyTo call owns memoization and recursive topology.
-   * Raw nulls or holes violate the typed-list invariant and can throw through
-   * Copier; exceptions propagate without LOADFINISHED or a rollback guarantee.
+   *
+   * @adapted CopyTo returns the copied object or null rather than bool plus an
+   *   IRoot out-pointer. Constructor/configuration equality replaces a C++ template
+   *   cast. An outer Copier.CopyTo call owns memoization and recursive topology.
+   *   Raw nulls or holes violate the typed-list invariant and can throw through
+   *   Copier; exceptions propagate without LOADFINISHED or a rollback guarantee.
    * @param {BlueList} other Existing destination with identical template facts.
    * @param {ICopier} copier Copier running the outer operation.
    * @returns {boolean} Whether all items copied and exposed the required type.

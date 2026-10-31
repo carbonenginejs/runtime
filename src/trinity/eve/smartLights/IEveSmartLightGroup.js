@@ -13,46 +13,84 @@ import { meta } from "#schema";
 export class IEveSmartLightGroup extends IRoot
 {
 
-  /** Carbon's empty default (h:11). @param {Float32Array} _color */
+  /**
+   * Carbon's empty default (h:11). @param {Float32Array} _color
+   *
+   * @adapted
+   */
   @meta.adapted
   SetColor(_color) {}
 
-  /** Carbon's empty default (h:12). */
+  /**
+   * Carbon's empty default (h:12).
+   *
+   * @adapted
+   */
   @meta.adapted
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer) {}
 
-  /** Carbon's empty default (h:13). @param {Array} _renderables */
+  /**
+   * Carbon's empty default (h:13). @param {Array} _renderables
+   *
+   * @adapted
+   */
   @meta.adapted
   GetRenderables(_renderables) {}
 
   /**
    * Carbon's empty default (h:14). The distribution overload of
    * UpdateSyncronous, named as the groups split it (rule 11).
+   *
+   * @adapted
    */
   @meta.adapted
   UpdateSyncronous__Distribution(_updateContext, _params, _distribution) {}
 
-  /** Carbon's empty default (h:15); the distribution overload (rule 11). */
+  /**
+   * Carbon's empty default (h:15); the distribution overload (rule 11).
+   *
+   * @adapted
+   */
   @meta.adapted
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution) {}
 
-  /** Carbon's empty default (h:16). */
+  /**
+   * Carbon's empty default (h:16).
+   *
+   * @adapted
+   */
   @meta.adapted
   SetControllerVariable(_name, _value) {}
 
-  /** Carbon's empty default (h:17). */
+  /**
+   * Carbon's empty default (h:17).
+   *
+   * @adapted
+   */
   @meta.adapted
   SetInheritProperties(_colorSet) {}
 
-  /** Carbon's empty default (h:18). */
+  /**
+   * Carbon's empty default (h:18).
+   *
+   * @adapted
+   */
   @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod) {}
 
-  /** Carbon's empty default (h:19). */
+  /**
+   * Carbon's empty default (h:19).
+   *
+   * @adapted
+   */
   @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer) {}
 
-  /** Carbon's empty default (h:20). */
+  /**
+   * Carbon's empty default (h:20).
+   *
+   * @adapted
+   */
   @meta.adapted
   RenderDebugInfo(_renderer, _placements, _size) {}
 }

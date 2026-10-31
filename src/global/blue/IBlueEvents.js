@@ -22,6 +22,7 @@ export class IBlueEvents
   /**
    * `OnTick` - one pump cycle.
    *
+   * @abstract
    * @param {number} _realTime Time since the client started, in 100ns ticks.
    * @param {number} _simTime The same, slowed under load to manage it.
    * @param {*} _cookie Whatever the registrant passed to RegisterForTicks.

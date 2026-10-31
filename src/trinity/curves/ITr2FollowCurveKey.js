@@ -15,6 +15,8 @@ export class ITr2FollowCurveKey extends IRoot
 {
   /**
    * Gets the key position.
+   *
+   * @abstract
    * @param {Float32Array} _out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
@@ -25,6 +27,8 @@ export class ITr2FollowCurveKey extends IRoot
 
   /**
    * Gets the key time.
+   *
+   * @abstract
    * @returns {number} The concrete key value.
    */
   @be.abstract
@@ -34,6 +38,8 @@ export class ITr2FollowCurveKey extends IRoot
 
   /**
    * Gets the native segment interpolation enum.
+   *
+   * @abstract
    * @returns {number} The concrete key value.
    */
   @be.abstract
@@ -43,6 +49,8 @@ export class ITr2FollowCurveKey extends IRoot
 
   /**
    * Gets the incoming tangent.
+   *
+   * @abstract
    * @param {Float32Array} _out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
@@ -53,6 +61,8 @@ export class ITr2FollowCurveKey extends IRoot
 
   /**
    * Gets the outgoing tangent.
+   *
+   * @abstract
    * @param {Float32Array} _out Destination vector.
    * @returns {Float32Array} The destination vector.
    */

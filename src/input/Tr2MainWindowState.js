@@ -104,7 +104,11 @@ export class Tr2MainWindowState extends IRoot
             this.presentInterval !== other.presentInterval;
     }
 
-    /** Returns the Carbon-style human-readable state description. */
+    /**
+     * Returns the Carbon-style human-readable state description.
+     *
+     * @renamed ToString
+     */
     __str__()
     {
         let result = `${windowModeName(this.windowMode)} on adapter ${this.adapter} ${this.width}x${this.height}, present interval ${presentIntervalName(this.presentInterval)}`;

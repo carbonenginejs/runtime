@@ -72,10 +72,9 @@ export class Tr2VertexLayoutAL
    * why the stub impl's "stored before checked" oddity never reaches a caller
    * through the handle.
    *
-   * Adapted: the render context allocates the implementation instead of a
-   * compile-time platform include. The previous share is released explicitly
-   * because JavaScript has no shared_ptr; existing copies keep it alive.
-   *
+   * @adapted the render context allocates the implementation instead of a
+   *   compile-time platform include. The previous share is released explicitly
+   *   because JavaScript has no shared_ptr; existing copies keep it alive.
    * @param {object} definition A `Tr2VertexDefinition`, or its element list.
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
@@ -95,6 +94,7 @@ export class Tr2VertexLayoutAL
   /**
    * Whether the implementation exists (`Tr2VertexLayoutAL.cpp:32-35`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -106,8 +106,8 @@ export class Tr2VertexLayoutAL
   /**
    * Compares implementation identity (`Tr2VertexLayoutAL.cpp:37-40`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2VertexLayoutAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -120,6 +120,7 @@ export class Tr2VertexLayoutAL
   /**
    * The implementation's memory class (`Tr2VertexLayoutAL.cpp:42-45`).
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.implemented
@@ -132,6 +133,7 @@ export class Tr2VertexLayoutAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2VertexLayoutAL.cpp:47-58`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

@@ -6,11 +6,16 @@ import { CjsSchema, meta } from "#schema";
 /** Native IRoot-derived typed object-list contract, represented as a plain JS interface. */
 export class IList extends IRoot
 {
-  /** @returns {number} The number of items. */
+  /**
+   * @abstract
+   * @returns {number} The number of items.
+   */
   GetSize() {}
 
   /**
    * Writes the list's type, operation and observer information.
+   *
+   * @abstract
    * @param {object} _info Caller-owned output record.
    * @returns {void}
    */
@@ -18,6 +23,8 @@ export class IList extends IRoot
 
   /**
    * Inserts a correctly typed item; key -1 appends it.
+   *
+   * @abstract
    * @param {number} _key Insertion index or -1.
    * @param {object} _value Non-null item exposing the declared element interface.
    * @returns {boolean} Whether the insertion succeeded.
@@ -26,6 +33,8 @@ export class IList extends IRoot
 
   /**
    * Removes one item, or all items when key is -1.
+   *
+   * @abstract
    * @param {number} _key Item index or -1.
    * @returns {boolean} Whether removal succeeded.
    */
@@ -33,6 +42,8 @@ export class IList extends IRoot
 
   /**
    * Appends a correctly typed item.
+   *
+   * @abstract
    * @param {object} _value Non-null item exposing the declared element interface.
    * @returns {boolean} Whether insertion succeeded.
    */
@@ -40,6 +51,8 @@ export class IList extends IRoot
 
   /**
    * Returns one item or null for an invalid index.
+   *
+   * @abstract
    * @param {number} _key Item index.
    * @returns {object|null} The item.
    */
@@ -47,6 +60,8 @@ export class IList extends IRoot
 
   /**
    * Finds an item by identity, beginning at the supplied index.
+   *
+   * @abstract
    * @param {object} _value Item to find.
    * @param {number} [_keyFrom=0] First index to examine.
    * @returns {number} Its index or -1.
@@ -55,6 +70,8 @@ export class IList extends IRoot
 
   /**
    * Swaps two items.
+   *
+   * @abstract
    * @param {number} _key1 First index.
    * @param {number} _key2 Second index.
    * @returns {boolean} Whether the swap succeeded.
@@ -63,6 +80,8 @@ export class IList extends IRoot
 
   /**
    * Sorts using Carbon's context-first boolean less-than comparison.
+   *
+   * @abstract
    * @param {Function} _compare Called as (context, a, b).
    * @param {*} _context Opaque comparison context.
    * @returns {void}
@@ -71,6 +90,8 @@ export class IList extends IRoot
 
   /**
    * Replaces the one observer, or clears it with null.
+   *
+   * @abstract
    * @param {IListNotify|null} _notify Observer.
    * @returns {void}
    */
@@ -78,13 +99,18 @@ export class IList extends IRoot
 
   /**
    * Moves an item to another existing index.
+   *
+   * @abstract
    * @param {number} _from Original index.
    * @param {number} _to Destination index.
    * @returns {boolean} Whether the move succeeded.
    */
   Move(_from, _to) {}
 
-  /** @returns {{items: object[]|null, size: number}} Borrowed item storage and its current size. */
+  /**
+   * @abstract
+   * @returns {{items: object[]|null, size: number}} Borrowed item storage and its current size.
+   */
   GetAllItems() {}
 
   /** Native list-operation metadata; the concrete BlueList methods do not enforce these flags. */

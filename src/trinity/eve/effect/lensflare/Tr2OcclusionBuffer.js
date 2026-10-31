@@ -69,6 +69,7 @@ export class Tr2OcclusionBuffer
    * none is free, queued for Clear. Carbon returns a shared_ptr whose deleter
    * gives the slot back; JS has no RAII, so the holder calls DestroyOffset.
    *
+   * @adapted
    * @returns {number|null} The slot base, or null when none could be made.
    */
   @meta.adapted
@@ -88,6 +89,7 @@ export class Tr2OcclusionBuffer
    * CopyCounters over every slot. Queued slots are only forgotten once every
    * Clear dispatched, so a frame whose compute is not ready retries.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The context to dispatch on.
    * @returns {void}
    */
@@ -115,6 +117,7 @@ export class Tr2OcclusionBuffer
    * Carbon DestroyOffset (cpp:70-74), the shared_ptr deleter: the slot goes
    * back on the free list.
    *
+   * @adapted
    * @param {number|null} offset A slot base from AllocateOffset.
    * @returns {void}
    */
@@ -124,7 +127,11 @@ export class Tr2OcclusionBuffer
     if (offset !== null && offset !== undefined) this.free.push(offset);
   }
 
-  /** Carbon OnPrepareResources (cpp:76-79): nothing to prepare; answers true. */
+  /**
+   * Carbon OnPrepareResources (cpp:76-79): nothing to prepare; answers true.
+   *
+   * @implemented
+   */
   @meta.implemented
   OnPrepareResources()
   {
@@ -135,6 +142,7 @@ export class Tr2OcclusionBuffer
    * Carbon ReleaseResources (cpp:81-91): on managed-memory loss every slot is
    * requeued for Clear.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -151,12 +159,11 @@ export class Tr2OcclusionBuffer
    * Both the creation and the copy run on the main-thread render context, as
    * Carbon's do (Tr2GpuBuffer.cpp:164 inside Create; EveOccluder.cpp:114).
    *
-   * Adapted: the old buffer is an explicit AL copy destroyed once copied,
-   * because JS has no value-member destructor; Tr2GpuBuffer.Create still takes
-   * the context as an added argument, so the main-thread context its Carbon
-   * CreateBuffer reaches itself is handed to it; the copy goes through the AL
-   * the context composes (renderContextAL.js) where Carbon's context IS the AL.
-   *
+   * @adapted the old buffer is an explicit AL copy destroyed once copied,
+   *   because JS has no value-member destructor; Tr2GpuBuffer.Create still takes
+   *   the context as an added argument, so the main-thread context its Carbon
+   *   CreateBuffer reaches itself is handed to it; the copy goes through the AL
+   *   the context composes (renderContextAL.js) where Carbon's context IS the AL.
    * @returns {void}
    */
   @meta.adapted
@@ -202,7 +209,11 @@ export class Tr2OcclusionBuffer
     instance.size = 0;
   }
 
-  /** Carbon GetInstance (cpp:59-63). */
+  /**
+   * Carbon GetInstance (cpp:59-63).
+   *
+   * @implemented
+   */
   @meta.implemented
   static getInstance()
   {
@@ -214,6 +225,7 @@ export class Tr2OcclusionBuffer
    * Carbon GetOccluderOffset (cpp:65-68): occluder `index`'s counter pair in
    * a slot, or 0 with no slot.
    *
+   * @implemented
    * @param {number|null} offset A slot base.
    * @param {number} index The occluder index, 0-3.
    * @returns {number} The element index.

@@ -19,7 +19,11 @@ export class TriStepSetDepthStencil extends TriRenderStep
   @type.object.ref("Tr2DepthStencil")
   depthStencil = null;
 
-  /** Stores the depth-stencil to bind. */
+  /**
+   * Stores the depth-stencil to bind.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(depthStencil = null)
@@ -30,6 +34,8 @@ export class TriStepSetDepthStencil extends TriRenderStep
   /**
    * Binds the depth-stencil, including null to unbind; an explicit false from
    * the render context is RS_FAILED.
+   *
+   * @implemented
    */
 
   @meta.implemented

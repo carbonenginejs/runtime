@@ -24,6 +24,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
 
   /**
    * m_value [PERSISTONLY]: the persisted row reads and writes the scalar in `#valueRef[0]`; `value` is the property over GetValue / SetValue.
+   *
+   * @implemented
    */
   @be.mapAttribute(be.PERSISTONLY, "value")
   @meta.implemented
@@ -33,6 +35,7 @@ export class Tr2FloatParameter extends ITriEffectParameter
     return this.#valueRef[0];
   }
 
+  /** @implemented */
   @meta.implemented
   set _value(value)
   {
@@ -52,7 +55,11 @@ export class Tr2FloatParameter extends ITriEffectParameter
   #bindings = [];
   #reroutedValue = null;
 
-  /** The shader constant name this value binds to; empty until authored. */
+  /**
+   * The shader constant name this value binds to; empty until authored.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -60,7 +67,11 @@ export class Tr2FloatParameter extends ITriEffectParameter
     return this.name;
   }
 
-  /** Content hash: value bytes then name (Carbon hashes the interned name pointer). */
+  /**
+   * Content hash: value bytes then name (Carbon hashes the interned name pointer).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
@@ -71,6 +82,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
   /**
    * Reads back through the reroute destination when one is set, so the result
    * reflects writes made by whoever owns that destination.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -85,6 +98,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
 
   /**
    * Coerces to a number and writes through to the reroute destination when one is set.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -100,6 +115,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
   /**
    * value (MAP_PROPERTY): Carbon's property over GetValue/SetValue, which the macro calls.
    * Carbon: MAP_PROPERTY (trinity/trinity/Shader/Parameter/Tr2FloatParameter_Blue.cpp:21).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -108,13 +125,18 @@ export class Tr2FloatParameter extends ITriEffectParameter
     return this.GetValue();
   }
 
+  /** @implemented */
   @meta.implemented
   set value(value)
   {
     this.SetValue(value);
   }
 
-  /** Whether reads and writes currently go through an external destination. */
+  /**
+   * Whether reads and writes currently go through an external destination.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsRerouted()
@@ -124,6 +146,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
 
   /**
    * Points the parameter at an external float view and seeds it with the current value; a target under 4 bytes clears the reroute instead. Bindings are notified of the effective destination either way.
+   *
+   * @adapted
    * @param size destination capacity in bytes
    */
 
@@ -149,6 +173,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
   /**
    * The float view an upload should read - the reroute target, or the parameter's
    * own storage (Carbon's &m_value) - with its 4-byte size.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -163,6 +189,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
   /**
    * Adds a binding to be notified whenever the destination is repointed;
    * duplicates are ignored.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -172,7 +200,11 @@ export class Tr2FloatParameter extends ITriEffectParameter
     this.#bindings.push(binding);
   }
 
-  /** Stops notifying a binding; unknown bindings are ignored. */
+  /**
+   * Stops notifying a binding; unknown bindings are ignored.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UnregisterBinding(binding)
@@ -189,6 +221,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * Records whether the shader reflects a constant of this name and drops a
    * stale reroute when the shader is gone; reflection metadata only, no GPU
    * handle.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -204,6 +238,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
 
   /**
    * Syncs any reroute destination with the current value; always returns true.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -220,6 +256,8 @@ export class Tr2FloatParameter extends ITriEffectParameter
    * Writes the reroute destination's value, or the parameter's own, into the caller's float view
    * (Tr2FloatParameter.cpp:35-46).
    * Carbon declaration: Tr2FloatParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/Tr2FloatParameter.h:31).
+   *
+   * @adapted
    */
   @meta.adapted
   CopyValueToEffect(_inputType, out)

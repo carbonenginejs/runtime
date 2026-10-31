@@ -169,7 +169,11 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     TriDevice.UnregisterResource(this);
   }
 
-  /** Sets the effect that draws the haze volumes. */
+  /**
+   * Sets the effect that draws the haze volumes.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Setup(effect)
@@ -177,7 +181,11 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     this.effect = effect ?? null;
   }
 
-  /** Carbon Initialize (cpp:77-82): the device half, then the bounds. */
+  /**
+   * Carbon Initialize (cpp:77-82): the device half, then the bounds.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -190,6 +198,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /**
    * Carbon Rebuild (cpp:298-303): release and prepare the device half again,
    * then the bounds.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -205,8 +215,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon ReleaseResources (cpp:105-109): forgets the vertex declaration and
    * frees the vertex range back to the shared buffer.
    *
-   * Adapted: the allocation's own parent stands in for g_sharedBuffer, since
-   * the shared buffer here is per render context (TriGeometryResAllocations).
+   * @adapted the allocation's own parent stands in for g_sharedBuffer, since
+   *   the shared buffer here is per render context (TriGeometryResAllocations).
    */
 
   @meta.adapted
@@ -222,6 +232,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * local transform and inverse as rows, its haze data and colour, the corner
    * index and bone index - into the shared buffer, and quad-list indices for
    * all of them.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -286,6 +298,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /**
    * Carbon GetBatches (cpp:254-292): one additive batch of all the boxes,
    * indexed as quads, never in a reflection.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -314,6 +328,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /**
    * Carbon CreateBoundingBox (EveHazeSet.cpp:245-248): one delegation to the
    * shared item-set helper, always skinned.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -322,9 +338,13 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, true, this.hazes);
   }
 
-  /** Carbon EveHazeSet::UpdateVisibility (cpp:208-218). Unlike the other sets
+  /**
+   * Carbon EveHazeSet::UpdateVisibility (cpp:208-218). Unlike the other sets
    * this one has no GetAabb of its own and never gates the bone count, because
-   * its bounds are always built skinned. */
+   * its bounds are always built skinned.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
@@ -348,6 +368,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /**
    * Appends an authored haze item; the bounds only pick it up on the next
    * Rebuild.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -358,6 +380,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   /**
    * Carbon EveHazeSet::GetDebugOptions (cpp:319-323).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -379,6 +403,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    *
    * "Haze Sets Lights" draws each light twice, inner then outer radius, owned
    * by the light's haze.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentTransform
    * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
@@ -468,6 +494,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   /**
    * Sets a shader option on the haze effect, doing nothing when no effect is attached.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -482,6 +510,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /**
    * Converts a SOF-authored light description into an EveHazeSetLight and
    * appends it to the set.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -490,8 +520,12 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     this.lights.push(EveHazeSetLight.FromSOF(light));
   }
 
-  /** Carbon EveHazeSet::RegisterComponents (cpp:394-401): LightOwner when
-   * lights are authored. */
+  /**
+   * Carbon EveHazeSet::RegisterComponents (cpp:394-401): LightOwner when
+   * lights are authored.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -503,16 +537,18 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     }
   }
 
-  /** Carbon EveHazeSet::UpdateLights (cpp:219-239): the shared packed-set
+  /**
+   * Carbon EveHazeSet::UpdateLights (cpp:219-239): the shared packed-set
    * bone pattern (boneIndex >= 0; column-stride Float4x3 unpack; 4th
    * column zeroed, [15] = 1; boneMatrix *= parentTransform - Carbon
    * row-vector, bone FIRST: gl operands SWAP; else copy the parent). Stamps
    * BOTH activationStrength and boosterGain (cpp:237-238).
    *
-   * Adapted: Carbon skips bone 0 here (EveHazeSet.cpp:223; CE-27), so a light on binding 0
-   * gets only the parent transform. Binding 0 is a mesh bone binding and can
-   * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
-   * Normal2Warp - so ours applies bone 0 like any other. */
+   * @adapted Carbon skips bone 0 here (EveHazeSet.cpp:223; CE-27), so a light on binding 0
+   *   gets only the parent transform. Binding 0 is a mesh bone binding and can
+   *   be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
+   *   Normal2Warp - so ours applies bone 0 like any other.
+   */
 
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, boosterGain = 0)
@@ -539,12 +575,13 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     this._boosterGain = Number(boosterGain) || 0;
   }
 
-  /** Carbon EveHazeSet::GetLights (cpp:403-418): parentBrightness is set
+  /**
+   * Carbon EveHazeSet::GetLights (cpp:403-418): parentBrightness is set
    * INSIDE the loop (cpp:409) because boosterGainInfluence lights multiply
    * it by the booster gain (cpp:410-413); point conversion on the bone
    * matrix; no blink/fade, no gates.
    *
-   * Adapted: Profile-index packing is by-reference per lightConversion.js conventions.
+   * @adapted Profile-index packing is by-reference per lightConversion.js conventions.
    */
 
   @meta.adapted

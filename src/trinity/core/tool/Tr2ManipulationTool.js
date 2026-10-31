@@ -34,7 +34,11 @@ export class Tr2ManipulationTool extends IRoot
   @type.list("Tr2PrimitiveSet")
   primitives = [];
 
-  /** m_pythonUserData (PyObject*) [READWRITE] */
+  /**
+   * m_pythonUserData (PyObject*) [READWRITE]
+   *
+   * @adapted
+   */
   @be.mapAttribute(be.READWRITE)
   /** Carbon: m_pythonUserData (trinity/trinity/Tr2ManipulationTool.h:59).
    * Adapted: Python values use ordinary JavaScript values; they are not IRoot objects.
@@ -59,7 +63,11 @@ export class Tr2ManipulationTool extends IRoot
   @type.mat4
   worldTransform = mat4.create();
 
-  /** Carbon method SetMoveCallback (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetMoveCallback (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   SetMoveCallback(callback)
@@ -67,7 +75,11 @@ export class Tr2ManipulationTool extends IRoot
     this.moveCallback = CjsScriptCallback.from(callback);
   }
 
-  /** Carbon method SelectAxis (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SelectAxis (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   SelectAxis(axisName)
@@ -95,7 +107,11 @@ export class Tr2ManipulationTool extends IRoot
     }
   }
 
-  /** Carbon method Init (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Init (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Init(initialTransform)
@@ -108,6 +124,7 @@ export class Tr2ManipulationTool extends IRoot
    * each row of the local transform normalised. Row r maps to gl-matrix
    * indices [(r-1)*4 .. (r-1)*4+2].
    *
+   * @implemented
    * @param {Float32Array} outX Caller-owned.
    * @param {Float32Array} outY
    * @param {Float32Array} outZ
@@ -129,20 +146,33 @@ export class Tr2ManipulationTool extends IRoot
    * Carbon's `Update()` takes nothing; every caller and implementer passes the
    * frame context standing in for Carbon's renderer globals.
    *
+   * @abstract
    * @param {object} _context The frame context.
    */
   @meta.abstract
   Update(_context) {}
 
-  /** Required guide-geometry construction contract (Tr2ManipulationTool.h:38). */
+  /**
+   * Required guide-geometry construction contract (Tr2ManipulationTool.h:38).
+   *
+   * @abstract
+   */
   @meta.abstract
   GenLineSets() {}
 
-  /** Required primitive-colour reset contract (Tr2ManipulationTool.h:39). */
+  /**
+   * Required primitive-colour reset contract (Tr2ManipulationTool.h:39).
+   *
+   * @abstract
+   */
   @meta.abstract
   ResetPrimitiveColors() {}
 
-  /** Required visible-primitive collection contract (Tr2ManipulationTool.h:40). */
+  /**
+   * Required visible-primitive collection contract (Tr2ManipulationTool.h:40).
+   *
+   * @abstract
+   */
   @meta.abstract
   GetPrimitivesToRender() {}
 
@@ -151,6 +181,7 @@ export class Tr2ManipulationTool extends IRoot
    * mouseYDelta, Tr2Viewport& viewport, Matrix& viewMatrix, Matrix&
    * projectionMatrix )` (Tr2ManipulationTool.h:41), exposed through PyMove.
    *
+   * @abstract
    * @param {number} _mouseX Cursor x.
    * @param {number} _mouseY Cursor y.
    * @param {number} _mouseXDelta Cursor x movement.
@@ -163,7 +194,11 @@ export class Tr2ManipulationTool extends IRoot
   @be.abstract
   Move(_mouseX, _mouseY, _mouseXDelta, _mouseYDelta, _viewport, _viewMatrix, _projectionMatrix) {}
 
-  /** Invokes Carbon's move veto callback with current and proposed transforms. */
+  /**
+   * Invokes Carbon's move veto callback with current and proposed transforms.
+   *
+   * @adapted
+   */
   @meta.adapted
   OnMoveCallback(currentTransform, nextTransform)
   {
@@ -174,7 +209,11 @@ export class Tr2ManipulationTool extends IRoot
     return this.moveCallback.Call(currentTransform, nextTransform) !== false;
   }
 
-  /** Native axis-compatible plane with the largest ray/normal dot product. */
+  /**
+   * Native axis-compatible plane with the largest ray/normal dot product.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetDesiredPlaneNormal(ray, view)
   {
@@ -185,7 +224,11 @@ export class Tr2ManipulationTool extends IRoot
     return vec3.fromValues(view[2], view[6], view[10]); // alloc: returned plane normal belongs to the caller.
   }
 
-  /** Native projected drag between two intersections on the same plane. */
+  /**
+   * Native projected drag between two intersections on the same plane.
+   *
+   * @adapted
+   */
   @meta.adapted
   MovePointOnPlane(x1, y1, x2, y2, point, normal, viewport, view, projection)
   {
@@ -196,7 +239,11 @@ export class Tr2ManipulationTool extends IRoot
     return vec3.subtract(end, end, start);
   }
 
-  /** Native parallel-ray behavior returns the start point. */
+  /**
+   * Native parallel-ray behavior returns the start point.
+   *
+   * @adapted
+   */
   @meta.adapted
   RayToPlaneIntersection(start, direction, point, normal)
   {
@@ -206,7 +253,11 @@ export class Tr2ManipulationTool extends IRoot
     return vec3.scaleAndAdd(vec3.create(), start, direction, t); // alloc: returned intersection belongs to the caller.
   }
 
-  /** Native quadratic intersection, including tangent and behind-camera roots. */
+  /**
+   * Native quadratic intersection, including tangent and behind-camera roots.
+   *
+   * @adapted
+   */
   @meta.adapted
   RayToSphereIntersection(center, radius, start, ray, out)
   {
@@ -227,7 +278,11 @@ export class Tr2ManipulationTool extends IRoot
     }
   }
 
-  /** Tool pixels divide by width/height; scene picking uses width/height minus one. */
+  /**
+   * Tool pixels divide by width/height; scene picking uses width/height minus one.
+   *
+   * @adapted
+   */
   @meta.adapted
   ScreenCoordinatesToRay(x, y, viewport, view, projection)
   {
@@ -263,7 +318,11 @@ export class Tr2ManipulationTool extends IRoot
     }
   }
 
-  /** Native projection with viewport offsets, returning its Vector2 output. */
+  /**
+   * Native projection with viewport offsets, returning its Vector2 output.
+   *
+   * @adapted
+   */
   @meta.adapted
   PointToScreenCoordinates(point, viewport, view, projection)
   {
@@ -282,7 +341,11 @@ export class Tr2ManipulationTool extends IRoot
     }
   }
 
-  /** Native triangular prism used to make a line pickable. */
+  /**
+   * Native triangular prism used to make a line pickable.
+   *
+   * @adapted
+   */
   @meta.adapted
   static getTrianglesAroundLine(start, end, radius)
   {
@@ -322,7 +385,11 @@ export class Tr2ManipulationTool extends IRoot
     }
   }
 
-  /** Native Y-aligned capped cone triangles, retaining winding. */
+  /**
+   * Native Y-aligned capped cone triangles, retaining winding.
+   *
+   * @adapted
+   */
   @meta.adapted
   static getConeTriangles(height, width, subdivisions)
   {
@@ -336,7 +403,11 @@ export class Tr2ManipulationTool extends IRoot
     return result;
   }
 
-  /** Native box vertex order and winding. */
+  /**
+   * Native box vertex order and winding.
+   *
+   * @adapted
+   */
   @meta.adapted
   static getBoxTriangles(min, max)
   {
@@ -345,7 +416,11 @@ export class Tr2ManipulationTool extends IRoot
     return [d, max, e, d, e, f, f, e, min, min, e, b, min, b, a, a, b, c, a, c, max, a, max, d, d, min, a, d, f, min, max, c, b, max, b, e];
   }
 
-  /** Native circle fan anchored on its circumference, including degenerate ends. */
+  /**
+   * Native circle fan anchored on its circumference, including degenerate ends.
+   *
+   * @adapted
+   */
   @meta.adapted
   static getCircleTriangles(radius, subdivisions)
   {
@@ -354,7 +429,11 @@ export class Tr2ManipulationTool extends IRoot
     return result;
   }
 
-  /** Native XY-plane circle as endpoint pairs. */
+  /**
+   * Native XY-plane circle as endpoint pairs.
+   *
+   * @adapted
+   */
   @meta.adapted
   static getCirclePoints(radius, subdivisions)
   {
@@ -371,6 +450,8 @@ export class Tr2ManipulationTool extends IRoot
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   @meta.adapted
   Destruct()

@@ -21,6 +21,8 @@ export class Tr2PostProcess extends IRoot
 
   /**
    * Accepts the authored stage graph; Carbon performs no additional setup.
+   *
+   * @implemented
    */
 
   @meta.implemented

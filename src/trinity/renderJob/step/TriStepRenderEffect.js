@@ -33,7 +33,11 @@ export class TriStepRenderEffect extends TriRenderStep
   @type.vec2
   tlTexCoord = vec2.create();
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(effect = null, shaderBuffer = null)
@@ -54,6 +58,8 @@ export class TriStepRenderEffect extends TriRenderStep
    * THE ORDER IS CARBON'S AND IT MATTERS: the buffer is applied BEFORE the
    * draw, because the draw runs every pass of the effect and each pass reads
    * whatever the buffer bound.
+   *
+   * @adapted
    */
 
   @meta.adapted

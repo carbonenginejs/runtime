@@ -70,7 +70,7 @@ export class EveMultiEffect extends IRoot
    * each parameter slot's bound object and each curve set's root under their own
    * names, plus Owner for the effect itself (EveMultiEffect.cpp:31-47).
    *
-   * Adapted: Carbon's unordered_map is a prototype-free object, and a curve set is its own raw root.
+   * @adapted Carbon's unordered_map is a prototype-free object, and a curve set is its own raw root.
    */
 
   @meta.adapted
@@ -92,6 +92,8 @@ export class EveMultiEffect extends IRoot
   /**
    * Carbon method Rebind (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS; EveMultiEffect.cpp:49-67): links and primes every
    * binding, then links the controllers to this effect unless only the bindings were asked for.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
@@ -111,6 +113,8 @@ export class EveMultiEffect extends IRoot
   /**
    * Carbon Initialize (EveMultiEffect.cpp:69-82): takes ownership of the parameter slots and dynamic bindings, then
    * links the bindings and controllers.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -126,6 +130,8 @@ export class EveMultiEffect extends IRoot
    * Carbon OnListModified (EveMultiEffect.cpp:84-154): the IList ownership callbacks for the parameters, bindings and
    * controllers lists - assigning or clearing owners, linking or unlinking controllers, unlinking all of them on
    * unload - then a rebind. Each value is cast to its list's type, as Carbon's BlueCastPtr does.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -157,7 +163,11 @@ export class EveMultiEffect extends IRoot
     this.Rebind();
   }
 
-  /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
@@ -165,7 +175,11 @@ export class EveMultiEffect extends IRoot
     for (const controller of this.controllers) controller.HandleEvent(name);
   }
 
-  /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
@@ -173,7 +187,11 @@ export class EveMultiEffect extends IRoot
     for (const controller of this.controllers) controller.SetVariable(name, value);
   }
 
-  /** Carbon method SetParameter (MAP_METHOD_AND_WRAP; EveMultiEffect.cpp:156-169): binds the first slot of that name. */
+  /**
+   * Carbon method SetParameter (MAP_METHOD_AND_WRAP; EveMultiEffect.cpp:156-169): binds the first slot of that name.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetParameter(parameterName, object)
@@ -190,7 +208,11 @@ export class EveMultiEffect extends IRoot
     return false;
   }
 
-  /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method StartControllers (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
@@ -198,7 +220,11 @@ export class EveMultiEffect extends IRoot
     for (const controller of this.controllers) controller.Start();
   }
 
-  /** First parameter slot with the given name, or null. */
+  /**
+   * First parameter slot with the given name, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterByName(parameterName)
@@ -208,6 +234,8 @@ export class EveMultiEffect extends IRoot
 
   /**
    * Fills out with Owner followed by each parameter slot's bound object, so a slot named Owner overrides the effect itself.
+   *
+   * @adapted
    * @param {Object|Map} out - caller-owned map, mutated in place
    * @returns {Object|Map} out
    *
@@ -228,6 +256,8 @@ export class EveMultiEffect extends IRoot
   /**
    * Plays every curve set with the given name, over a named time range when one
    * is given, otherwise from the start with the range reset.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -245,7 +275,11 @@ export class EveMultiEffect extends IRoot
     }
   }
 
-  /** Stops every curve set with the given name. */
+  /**
+   * Stops every curve set with the given name.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopCurveSet(name)
@@ -260,6 +294,8 @@ export class EveMultiEffect extends IRoot
    * Carbon EveMultiEffect::UpdateCurveSet (EveMultiEffect.cpp:253-262): advances
    * every curve set with the given name to an explicit time on both clocks,
    * bypassing the effect's own update pass.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -274,6 +310,8 @@ export class EveMultiEffect extends IRoot
   /**
    * Longest duration among the curve sets with the given name, or 0 when there
    * is no such set.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -293,6 +331,8 @@ export class EveMultiEffect extends IRoot
   /**
    * Longest duration of a named time range among the curve sets with the given
    * name, or 0 when there is no such range.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -312,6 +352,8 @@ export class EveMultiEffect extends IRoot
   /**
    * Advances the curve sets, controllers and bindings for the frame; the effect
    * has no geometry, so this is its only update phase.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -326,6 +368,8 @@ export class EveMultiEffect extends IRoot
   /**
    * IEveSpaceObject2 asynchronous phase; the effect does all of its work
    * synchronously.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -333,7 +377,11 @@ export class EveMultiEffect extends IRoot
   {
   }
 
-  /** IEveSpaceObject2 hook; the effect has nothing of its own to cull. */
+  /**
+   * IEveSpaceObject2 hook; the effect has nothing of its own to cull.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform)
@@ -343,6 +391,8 @@ export class EveMultiEffect extends IRoot
   /**
    * IEveSpaceObject2 hook; the effect contributes no renderables - it animates
    * objects that are collected by their own owners.
+   *
+   * @adapted
    */
   @meta.adapted
 
@@ -350,7 +400,11 @@ export class EveMultiEffect extends IRoot
   {
   }
 
-  /** The effect has no spatial extent, so it never reports a bounding sphere. */
+  /**
+   * The effect has no spatial extent, so it never reports a bounding sphere.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
@@ -361,6 +415,8 @@ export class EveMultiEffect extends IRoot
   /**
    * IEveSpaceObject2 hook; the effect contributes no per-object values of its
    * own.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -371,6 +427,8 @@ export class EveMultiEffect extends IRoot
   /**
    * IEveSpaceObject2 hook with nothing to advance: a multi-effect has no model
    * centre, so the call is a no-op.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -381,6 +439,8 @@ export class EveMultiEffect extends IRoot
   /**
    * IEveSpaceObject2 hook that leaves the caller position untouched, since a
    * multi-effect has no model centre to report.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -388,7 +448,11 @@ export class EveMultiEffect extends IRoot
   {
   }
 
-  /** The effect has no local geometry, so it never reports a bounding box. */
+  /**
+   * The effect has no local geometry, so it never reports a bounding box.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
@@ -399,6 +463,8 @@ export class EveMultiEffect extends IRoot
   /**
    * IEveSpaceObject2 hook; the effect has no placement of its own, so the
    * caller's matrix is left as it was.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -409,6 +475,8 @@ export class EveMultiEffect extends IRoot
   /**
    * IEveSpaceObject2 hook with nothing to register, since a multi-effect owns no
    * quads.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -419,6 +487,8 @@ export class EveMultiEffect extends IRoot
   /**
    * IEveSpaceObject2 hook with nothing to submit: a multi-effect contributes no
    * quads for the frustum.
+   *
+   * @adapted
    */
 
   @meta.adapted

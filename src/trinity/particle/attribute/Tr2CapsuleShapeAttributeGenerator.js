@@ -112,6 +112,8 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
    * Carbon MAP_PROPERTY_READONLY "name" over GetName
    * (Tr2CapsuleShapeAttributeGenerator_Blue.cpp:15): the elements the generator
    * writes. Carbon's description reuses the element-name wording.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.string
@@ -124,6 +126,8 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Resolves the position element, and the velocity element when velocity control is enabled, marking the generator valid only when both required elements resolve.
    * Carbon declaration: Tr2CapsuleShapeAttributeGenerator::Bind (trinity/trinity/Particle/Tr2CapsuleShapeAttributeGenerator.h:27).
+   *
+   * @implemented
    */
   @meta.implemented
   Bind(particleSystem, boundElements)
@@ -149,6 +153,8 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
    * Samples a random cone direction and capsule interpolation point to write one particle's velocity and position offset from the parent transform.
    *
    * Uses the shared particle RNG for capsule sampling and interpolation.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -206,6 +212,8 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * A label saying whether the generator controls position only, or position and velocity.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -217,6 +225,8 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Copies the given start and end positions and rotations into the capsule endpoints.
    * Carbon declaration: Tr2CapsuleShapeAttributeGenerator::SetPositions (trinity/trinity/Particle/Tr2CapsuleShapeAttributeGenerator.h:31).
+   *
+   * @implemented
    */
   @meta.implemented
   SetPositions(startPosition, startRotation, endPosition, endRotation)

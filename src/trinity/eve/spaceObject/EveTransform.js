@@ -193,6 +193,8 @@ export class EveTransform extends Tr2Transform
   /**
    * Adopts an authored meshLod as the node's mesh when no mesh was set, so a
    * graph that only authored the LOD mesh still renders.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -208,6 +210,8 @@ export class EveTransform extends Tr2Transform
 
   /**
    * Rebuilds the local matrix from rotation, translation and scaling and composes it with the parent to refresh worldTransform, keeping the previous world transform for motion vectors, then pushes the new transform to the particle systems and observers (EveTransform.cpp:162-176).
+   *
+   * @implemented
    * @param {TriFrustum} frustum The update context's frustum.
    * @param {mat4} [parentTransform] The parent's world transform.
    * @returns {mat4} The node's live worldTransform, valid until the next update.
@@ -225,6 +229,8 @@ export class EveTransform extends Tr2Transform
   /**
    * Carbon's `Update( const EveUpdateContext& )` (EveTransform.h:55): runs the
    * synchronous pass then the asynchronous pass, in Carbon's order.
+   *
+   * @implemented
    * @param {EveUpdateContext} context
    */
 
@@ -241,6 +247,8 @@ export class EveTransform extends Tr2Transform
    * `Update( Be::Time )`, kept by `using Tr2Transform::Update` (h:143). A
    * number is a Be::Time and goes to Update__Time; anything else is the update
    * context.
+   *
+   * @implemented
    * @param {number|EveUpdateContext} timeOrContext
    */
 
@@ -257,6 +265,8 @@ export class EveTransform extends Tr2Transform
   /**
    * Does nothing: EveTransform performs all of its per-frame work in
    * UpdateAsyncronous.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -274,9 +284,9 @@ export class EveTransform extends Tr2Transform
    * world transform and particle systems against identity, both with the
    * context's GPU particle system and origin shift.
    *
-   * Adapted: the emitter and system argument records are the JavaScript mirror
-   * of Carbon's ITr2GenericEmitter::UpdateArguments, one reused static object
-   * each, rather than stack-constructed structures (cpp:145, 153).
+   * @adapted the emitter and system argument records are the JavaScript mirror
+   *   of Carbon's ITr2GenericEmitter::UpdateArguments, one reused static object
+   *   each, rather than stack-constructed structures (cpp:145, 153).
    */
 
   @meta.adapted
@@ -324,6 +334,8 @@ export class EveTransform extends Tr2Transform
 
   /**
    * Refreshes the world transform, then derives visibility and LOD from the mesh bounding sphere: the sphere is frustum-tested and its on-screen size in pixels is compared against the context's medium and low detail thresholds for the LOD level and against visibilityThreshold for visibility; a node with no mesh is always visible, any particle system forces high LOD, and children's LOD levels are merged in.
+   *
+   * @implemented
    * @returns {boolean} Whether this node itself is visible.
    */
 
@@ -365,7 +377,11 @@ export class EveTransform extends Tr2Transform
     return this._isVisible;
   }
 
-  /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
+  /**
+   * Carbon's GetRenderables( renderables ): forwards with no impostor manager.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(out)
@@ -377,6 +393,8 @@ export class EveTransform extends Tr2Transform
    * Sorts the particle systems, appends this node when it is visible and has a
    * mesh, then recurses into the children; nothing is appended while display is
    * off.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -397,6 +415,8 @@ export class EveTransform extends Tr2Transform
 
   /**
    * Allocates an EveBasicPerObjectData record from the accumulator and fills it with the world, previous-world and inverse-world matrices, patching the first all-zero basis of a singular world matrix with a 0.1 diagonal before inverting, as Carbon does.
+   *
+   * @adapted
    * @returns {object} The allocated record, owned by the accumulator.
    *
    * Adapted: Trinity allocates the catalogued record and encodes its matrix
@@ -444,6 +464,7 @@ export class EveTransform extends Tr2Transform
    * Inherited by `EveMissileWarhead` and `EveRootTransform`, which is how
    * Carbon gives them a pickable surface without declaring one.
    *
+   * @implemented
    * @param {Object} batches - the picking accumulator
    * @param {Number} pickTypes - a Tr2PickType mask
    * @param {Object} perObjectData - this transform's per-object record
@@ -474,6 +495,8 @@ export class EveTransform extends Tr2Transform
   /**
    * Carbon EveTransform::GetID (EveTransform.h:83-86): a picked area resolves
    * to this transform, so the area index is deliberately ignored.
+   *
+   * @implemented
    * @param {Number} [_areaID] - the picked area, unused by this class
    * @returns {EveTransform} this
    */
@@ -484,7 +507,11 @@ export class EveTransform extends Tr2Transform
     return this;
   }
 
-  /** Writes the override bounds, or the displayed mesh's local bounds when no override exists. */
+  /**
+   * Writes the override bounds, or the displayed mesh's local bounds when no override exists.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalBoundingBox(min, max)
@@ -498,7 +525,11 @@ export class EveTransform extends Tr2Transform
     return this.mesh ? this.mesh.GetBoundingBox(min, max) : false;
   }
 
-  /** Writes the direct local bounds transformed by the current world matrix. */
+  /**
+   * Writes the direct local bounds transformed by the current world matrix.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWorldBoundingBox(min, max)
@@ -512,7 +543,11 @@ export class EveTransform extends Tr2Transform
     return true;
   }
 
-  /** Reports whether override or mesh bounds are currently available. */
+  /**
+   * Reports whether override or mesh bounds are currently available.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsBoundingBoxReady()
@@ -522,6 +557,8 @@ export class EveTransform extends Tr2Transform
 
   /**
    * Writes the world-space bounding sphere, taken from the override bounds when they differ and otherwise from the mesh bounding box, and unions in the children's spheres when a query is passed.
+   *
+   * @implemented
    * @param {vec4} out Caller-owned sphere; left untouched when no source produced one.
    * @returns {boolean} Whether a sphere was written.
    */
@@ -559,6 +596,8 @@ export class EveTransform extends Tr2Transform
 
   /**
    * Writes the world translation into a caller-owned vector.
+   *
+   * @implemented
    * @param {Float32Array} out Caller-owned position.
    * @returns {Float32Array} out
    */
@@ -572,6 +611,8 @@ export class EveTransform extends Tr2Transform
   /**
    * Returns the node's local rotation quaternion; called without an out
    * parameter it returns the live field rather than a copy.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -583,6 +624,8 @@ export class EveTransform extends Tr2Transform
   /**
    * Carbon EveTransform::GetDebugOptions (EveTransform.cpp:178-193): the three
    * transform options, then each observer's, then the mesh's.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -622,6 +665,8 @@ export class EveTransform extends Tr2Transform
    *
    * The text goes through renderer.DrawText as Carbon's does; the renderer
    * decides whether it can draw it.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -715,7 +760,11 @@ export class EveTransform extends Tr2Transform
     }
   }
 
-  /** Returns the LOD level chosen by the last visibility pass. */
+  /**
+   * Returns the LOD level chosen by the last visibility pass.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLODLevel()
@@ -723,7 +772,11 @@ export class EveTransform extends Tr2Transform
     return this.lodLevel;
   }
 
-  /** Turns rendering of this node and its subtree on or off. */
+  /**
+   * Turns rendering of this node and its subtree on or off.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetDisplay(value)
@@ -731,7 +784,11 @@ export class EveTransform extends Tr2Transform
     this.display = !!value;
   }
 
-  /** Starts playback on every curve set on this node. */
+  /**
+   * Starts playback on every curve set on this node.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayCurveSets()
@@ -742,6 +799,8 @@ export class EveTransform extends Tr2Transform
   /**
    * Starts every curve set carrying the given name, playing a named time range
    * when one is supplied and otherwise resetting to the full range first.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -762,7 +821,11 @@ export class EveTransform extends Tr2Transform
     }
   }
 
-  /** Stops every curve set carrying the given name. */
+  /**
+   * Stops every curve set carrying the given name.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopCurveSet(name)
@@ -773,6 +836,8 @@ export class EveTransform extends Tr2Transform
   /**
    * Returns the longest curve duration across the curve sets carrying the given
    * name, or 0 when none match.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -786,6 +851,8 @@ export class EveTransform extends Tr2Transform
   /**
    * Returns the longest duration of a named time range across the curve sets
    * carrying the given name, or 0 when none match.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -800,6 +867,8 @@ export class EveTransform extends Tr2Transform
    * Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/EveTransform.cpp:434-441).
    * Adapts the native time constructor with the existing context fields and SetTime;
    * the context's JS default LOD factors are zero, while that native constructor sets one.
+   *
+   * @adapted
    */
   @meta.adapted
   UpdateModelCenterWorldPosition(position, t)
@@ -812,14 +881,22 @@ export class EveTransform extends Tr2Transform
     mat4.getTranslation(position, this.worldTransform);
   }
 
-  /** Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/EveTransform.cpp:453-456). Copies the current translation without updating. */
+  /**
+   * Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/EveTransform.cpp:453-456). Copies the current translation without updating.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetModelCenterWorldPosition(position)
   {
     mat4.getTranslation(position, this.worldTransform);
   }
 
-  /** Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/EveTransform.h:65-68). Copies the world matrix into caller storage. */
+  /**
+   * Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/EveTransform.h:65-68). Copies the world matrix into caller storage.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {

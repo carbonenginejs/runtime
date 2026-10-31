@@ -112,6 +112,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * - With an effect below TR2_SFX_ONE_TEXTURE and no primary texture, Carbon dereferences a
    *   null `m_texturePrimary` (cpp:107); this throws a TypeError at the same point (bug, CE-162).
    *
+   * @implemented
    * @param {Tr2Sprite2dScene} renderer Scene gathering this frame.
    * @returns {void}
    */
@@ -189,6 +190,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * Carbon Tr2Sprite2dFrame::PickPoint (Tr2Sprite2dFrame.cpp:181-200): a rectangle test with
    * radius 0, then the optional picking mask in local space.
    *
+   * @implemented
    * @param {number} x Screen x.
    * @param {number} y Screen y.
    * @param {Tr2Sprite2dScene} renderer Scene supplying the active transform and clip.
@@ -216,6 +218,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * Carbon Tr2Sprite2dFrame::GetVertexCount (Tr2Sprite2dFrame.cpp:202-205): always three
    * segments, displayed or not.
    *
+   * @implemented
    * @returns {number} 48.
    */
   @meta.implemented
@@ -235,6 +238,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * coordinate sets get `0`, `cornerSize / srcWidth`, `1 - cornerSize / srcWidth`, `1` (and the
    * same in v); z is 0 and the colour is white.
    *
+   * @implemented
    * @param {Tr2Sprite2dVertexBase[]} v Sixteen destination vertices.
    * @param {number} srcWidth Source width in texels.
    * @param {number} srcHeight Source height in texels.

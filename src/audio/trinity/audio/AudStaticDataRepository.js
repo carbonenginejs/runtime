@@ -34,12 +34,11 @@ export class AudStaticDataRepository extends IRoot
    * sections are warned about and skipped; processing object input still marks
    * initialization complete.
    *
-   * Adapted: JavaScript object or Map sections replace Python dictionaries
-   * (audio/src/AudStaticDataRepository.cpp:181-304). Records use JavaScript numeric,
-   * truth-value and string coercion rather than the donor's Python type checks.
-   * List fields accept arrays only; missing lists become empty arrays. An absent
-   * or non-object top-level input warns and leaves existing state unchanged.
-   *
+   * @adapted JavaScript object or Map sections replace Python dictionaries
+   *   (audio/src/AudStaticDataRepository.cpp:181-304). Records use JavaScript numeric,
+   *   truth-value and string coercion rather than the donor's Python type checks.
+   *   List fields accept arrays only; missing lists become empty arrays. An absent
+   *   or non-object top-level input warns and leaves existing state unchanged.
    * @param {object} audioMetadata Metadata containing Events, SoundBanks and WemFileIDs sections.
    * @returns {void}
    */
@@ -88,6 +87,7 @@ export class AudStaticDataRepository extends IRoot
   /**
    * Whether object input has completed initialization.
    *
+   * @implemented
    * @returns {boolean} Whether initialization completed.
    */
 
@@ -101,7 +101,11 @@ export class AudStaticDataRepository extends IRoot
   // accessor below is GetAttribute over GetData. The mutex is single-threaded
   // JS's no-op, and C++ pointer-to-member projection is a keyed read.
 
-  /** Carbon GetData<DataType> (h:68-78): the named record, or null. */
+  /**
+   * Carbon GetData<DataType> (h:68-78): the named record, or null.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   _GetData(map, name)
@@ -109,8 +113,12 @@ export class AudStaticDataRepository extends IRoot
     return map.get(String(name)) ?? null;
   }
 
-  /** Carbon GetAttribute<DataType, AttrType> (h:82-91): one field of the
-   *  named record, or the default when the record is absent. */
+  /**
+   * Carbon GetAttribute<DataType, AttrType> (h:82-91): one field of the
+   *  named record, or the default when the record is absent.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   _GetAttribute(map, name, attribute, defaultValue)
@@ -122,6 +130,7 @@ export class AudStaticDataRepository extends IRoot
   /**
    * Returns the event uint32 ID, or zero when unknown.
    *
+   * @implemented
    * @param {string} eventName Event name.
    * @returns {number} Event ID or zero.
    */
@@ -135,9 +144,8 @@ export class AudStaticDataRepository extends IRoot
   /**
    * Returns the squared maximum attenuation radius, or zero for an unknown event.
    *
-   * Adapted: JavaScript multiplies Number values without Carbon's float32
-   * narrowing of the radius and result (audio/src/AudStaticDataRepository.cpp:106-116).
-   *
+   * @adapted JavaScript multiplies Number values without Carbon's float32
+   *   narrowing of the radius and result (audio/src/AudStaticDataRepository.cpp:106-116).
    * @param {string} eventName Event name.
    * @returns {number} Squared attenuation radius.
    */
@@ -156,6 +164,7 @@ export class AudStaticDataRepository extends IRoot
   /**
    * Returns the authored loop flag, or false when unknown.
    *
+   * @implemented
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event loops.
    */
@@ -169,6 +178,7 @@ export class AudStaticDataRepository extends IRoot
   /**
    * Returns the authored 2D flag, or false when unknown.
    *
+   * @implemented
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event is 2D.
    */
@@ -182,6 +192,7 @@ export class AudStaticDataRepository extends IRoot
   /**
    * Returns the authored vital flag, or false when unknown.
    *
+   * @implemented
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event is vital.
    */
@@ -195,6 +206,7 @@ export class AudStaticDataRepository extends IRoot
   /**
    * Checks whether the second event appears in the first event's stop list.
    *
+   * @implemented
    * @param {string} eventPotentiallyStopped Event whose stop list is queried.
    * @param {string} eventPotentiallyStopping Potential stopping event.
    * @returns {boolean} Whether the second event stops the first; false if the first is unknown.
@@ -210,6 +222,7 @@ export class AudStaticDataRepository extends IRoot
   /**
    * Returns the essential flag for a numeric WEM ID, or false when unknown.
    *
+   * @implemented
    * @param {number} sourceID WEM source ID.
    * @returns {boolean} Whether the source is essential.
    */
@@ -223,6 +236,7 @@ export class AudStaticDataRepository extends IRoot
   /**
    * Returns the essential flag for a sound bank, or false when unknown.
    *
+   * @implemented
    * @param {string} soundBankName Sound-bank name.
    * @returns {boolean} Whether the bank is essential.
    */
@@ -237,6 +251,7 @@ export class AudStaticDataRepository extends IRoot
    * Returns the retained bank array, or a shared frozen empty array when unknown.
    * Callers must not mutate the returned array.
    *
+   * @implemented
    * @param {string} eventName Event name.
    * @returns {ReadonlyArray<string>} Required sound-bank names.
    */

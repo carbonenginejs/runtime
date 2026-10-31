@@ -58,7 +58,11 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   @type.float32
   seed_temp = -1;
 
-  /** Carbon EveProceduralMethodThresholds::Initialize (cpp:20-24). */
+  /**
+   * Carbon EveProceduralMethodThresholds::Initialize (cpp:20-24).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -67,8 +71,12 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     return true;
   }
 
-  /** Carbon EveProceduralMethodThresholds::OnModified (cpp:26-34): a seed
-   * change reselects. */
+  /**
+   * Carbon EveProceduralMethodThresholds::OnModified (cpp:26-34): a seed
+   * change reselects.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(value = null)
@@ -81,8 +89,12 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     return true;
   }
 
-  /** Carbon EveProceduralMethodThresholds::OnListModified (cpp:36-42): a
-   * non-loading change to the parameter list re-sorts. */
+  /**
+   * Carbon EveProceduralMethodThresholds::OnListModified (cpp:36-42): a
+   * non-loading change to the parameter list re-sorts.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
@@ -93,10 +105,14 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     }
   }
 
-  /** Carbon EveProceduralMethodThresholds::SelectParameter (cpp:44-63): the
+  /**
+   * Carbon EveProceduralMethodThresholds::SelectParameter (cpp:44-63): the
    * first threshold at or above the seed wins (the list is sorted ascending);
    * a changed index flags the selected child as modified. Carbon leaves the
-   * index untouched when the seed exceeds every threshold. */
+   * index untouched when the seed exceeds every threshold.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SelectParameter()
@@ -118,9 +134,13 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     }
   }
 
-  /** Carbon EveProceduralMethodThresholds::SortParameters (cpp:74-82):
+  /**
+   * Carbon EveProceduralMethodThresholds::SortParameters (cpp:74-82):
    * ascending threshold sort (JS Array.sort is stable, matching std::sort's
-   * observable order for distinct thresholds). */
+   * observable order for distinct thresholds).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SortParameters()
@@ -133,8 +153,12 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     this.parameters.sort(EveProceduralMethodThresholds._SelectiveParameterCompare);
   }
 
-  /** Carbon EveProceduralMethodThresholds::IsSelectedChildModified
-   * (cpp:84-87). */
+  /**
+   * Carbon EveProceduralMethodThresholds::IsSelectedChildModified
+   * (cpp:84-87).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsSelectedChildModified()
@@ -142,10 +166,14 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     return this._selectedChildModified;
   }
 
-  /** Carbon EveProceduralMethodThresholds::GetSelectedChild (cpp:89-109):
+  /**
+   * Carbon EveProceduralMethodThresholds::GetSelectedChild (cpp:89-109):
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
-   * path. */
+   * path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSelectedChild()
@@ -170,9 +198,13 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     return null;
   }
 
-  /** Carbon EveProceduralMethodThresholds::UpdateAsyncronous (cpp:111-127):
+  /**
+   * Carbon EveProceduralMethodThresholds::UpdateAsyncronous (cpp:111-127):
    * re-sort and reselect once any parameter reports itself modified, clearing
-   * the flags on the way. */
+   * the flags on the way.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
@@ -193,7 +225,11 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     }
   }
 
-  /** Carbon returns the owned volume vector by reference (cpp:129-132). */
+  /**
+   * Carbon returns the owned volume vector by reference (cpp:129-132).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDebugVolumes()
@@ -201,9 +237,13 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     return this.debugVolumes;
   }
 
-  /** Carbon EveProceduralMethodThresholds::SetProceduralMethodVariable
+  /**
+   * Carbon EveProceduralMethodThresholds::SetProceduralMethodVariable
    * (cpp:134-144): only the named threshold attribute is accepted; a changed
-   * value reselects. */
+   * value reselects.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetProceduralMethodVariable(name, value)

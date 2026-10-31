@@ -59,6 +59,8 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * Sorts the pooled placements by their distance along the plane normal and
    * normalizes those distances into the 0..1 sweep order the update walks, then
    * restarts.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -90,6 +92,8 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
   /**
    * Rewinds the sweep to its first placement, or its last when the animation is
    * reversed, and clears the play time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -103,6 +107,8 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * Advances the play time and triggers every placement the sweeping plane has
    * passed, each subject to triggerChance, ending once the sorted order is
    * exhausted or the play duration elapses.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -156,7 +162,11 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
     }
   }
 
-  /** Ignores controller variables; the sweep is purely time-driven. */
+  /**
+   * Ignores controller variables; the sweep is purely time-driven.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetControllerVariable(_name, _value)
   {

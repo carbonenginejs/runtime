@@ -55,6 +55,8 @@ export class TriViewport extends IRoot
    * defaulting to a 1x1 viewport over the full zero-to-one depth range.
    * JavaScript default arguments replace the native optional Python wrapper;
    * direct field assignments preserve the existing JavaScript number adapter.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
@@ -68,7 +70,11 @@ export class TriViewport extends IRoot
     this.maxZ = maxZ;
   }
 
-  /** Pixel width divided by pixel height; a zero height is not guarded against. */
+  /**
+   * Pixel width divided by pixel height; a zero height is not guarded against.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetAspectRatio()

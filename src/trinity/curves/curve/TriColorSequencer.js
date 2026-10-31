@@ -82,6 +82,8 @@ export class TriColorSequencer extends ITriColorFunction
   /**
    * Updates the cached result of the child color functions.
    * Samples into invocation-local output before committing the cache through Update.
+   *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -103,6 +105,8 @@ export class TriColorSequencer extends ITriColorFunction
   /**
    * Updates the cached result and copies it into `out`.
    * JavaScript retains seconds-first/output-last calls and existing sampling math.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -120,6 +124,8 @@ export class TriColorSequencer extends ITriColorFunction
    * Combines child colors using Carbon's multiply or add operation.
    * Carbon: TriColorSequencer::GetValueAt (trinity/trinity/TriSequencer.cpp:364-372): routes on the operator.
    * JavaScript retains seconds-first/output-last calls.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -139,6 +145,8 @@ export class TriColorSequencer extends ITriColorFunction
    * Multiplies the children's colors, starting from opaque white.
    * Carbon: TriColorSequencer::GetValueAtMult(Color*, double) (trinity/trinity/TriSequencer.cpp:374-390).
    * JavaScript retains seconds-first/output-last calls.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -161,6 +169,8 @@ export class TriColorSequencer extends ITriColorFunction
    * Carbon: TriColorSequencer::GetValueAtAdd(Color*, double) (trinity/trinity/TriSequencer.cpp:392-406).
    * Quirk (TriSequencer.cpp:396): the double overload seeds the sum with opaque white where the Be::Time overload (TriSequencer.cpp:353) seeds zero; reproduced, so an additive sequencer sampled in seconds is offset by white. TriCurveSet drives UpdateValue(double), so this is the path real assets take.
    * JavaScript retains seconds-first/output-last calls.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -180,6 +190,8 @@ export class TriColorSequencer extends ITriColorFunction
 
   /**
    * Carbon's Update(Be::Time) (TriSequencer.cpp:303-310): samples the tick overload and caches it. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
@@ -194,6 +206,8 @@ export class TriColorSequencer extends ITriColorFunction
 
   /**
    * Carbon's GetValueAt(Be::Time) (TriSequencer.cpp:322-330): routes on the operator. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
@@ -212,6 +226,8 @@ export class TriColorSequencer extends ITriColorFunction
   /**
    * Multiplies the children's colors sampled through their Be::Time overloads, starting from opaque white.
    * Carbon: TriColorSequencer::GetValueAtMult(Color*, Be::Time) (trinity/trinity/TriSequencer.cpp:332-347).
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
@@ -232,6 +248,8 @@ export class TriColorSequencer extends ITriColorFunction
   /**
    * Adds the children's colors sampled through their Be::Time overloads, starting from zero (the double overload starts from white; see _GetValueAtAdd).
    * Carbon: TriColorSequencer::GetValueAtAdd(Color*, Be::Time) (trinity/trinity/TriSequencer.cpp:349-362).
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
@@ -252,6 +270,8 @@ export class TriColorSequencer extends ITriColorFunction
   /**
    * Gets the longest duration exposed by a child function.
    * JavaScript queries exact native ITriDuration before ITriCurveLength; an advertised method is required.
+   *
+   * @adapted
    * @returns {number} Greatest child duration.
    */
 

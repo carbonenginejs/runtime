@@ -66,6 +66,7 @@ export class CjsTextureArrayBridge
    * The merged texture resource. Re-resolved when a member's path changed: a
    * different string is a different cached texture, and nothing is mutated.
    *
+   * @implemented
    * @returns {object|null} The resource, or null while a member has no path.
    */
   GetResource()

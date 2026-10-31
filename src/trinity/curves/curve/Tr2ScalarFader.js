@@ -50,6 +50,8 @@ export class Tr2ScalarFader extends IRoot
 
   /**
    * Advances the native fade branches using the required EveUpdateContext clock.
+   *
+   * @implemented
    * @param {EveUpdateContext} updateContext Update context supplying GetDeltaT().
    * @returns {void}
    */
@@ -83,6 +85,8 @@ export class Tr2ScalarFader extends IRoot
 
   /**
    * Starts a fade-in or fade-out over the supplied duration.
+   *
+   * @implemented
    * @param {boolean} isFadeIn Whether to fade toward one.
    * @param {number} fadeLength Fade duration in seconds.
    * @returns {void}
@@ -101,6 +105,8 @@ export class Tr2ScalarFader extends IRoot
 
   /**
    * Checks whether the fader is inactive and contributes no value.
+   *
+   * @implemented
    * @returns {boolean}
    */
 
@@ -112,6 +118,8 @@ export class Tr2ScalarFader extends IRoot
 
   /**
    * Gets the current linear fade value.
+   *
+   * @implemented
    * @returns {number}
    */
 
@@ -123,6 +131,8 @@ export class Tr2ScalarFader extends IRoot
 
   /**
    * Checks whether the kick-in envelope is inactive or at its start.
+   *
+   * @implemented
    * @returns {boolean}
    */
 
@@ -134,6 +144,8 @@ export class Tr2ScalarFader extends IRoot
 
   /**
    * Gets Carbon's non-linear kick-in envelope value.
+   *
+   * @implemented
    * @returns {number}
    */
 

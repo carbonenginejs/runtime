@@ -267,6 +267,7 @@ export class Tr2PointLight extends Tr2Light
    * overwrites its 3x4 part (the stored transform is not updated), and the
    * result is followed by the world matrix.
    *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldMatrix The owner's world matrix.
    * @param {Float32Array|null} [bones] Packed Float4x3 bone matrices.

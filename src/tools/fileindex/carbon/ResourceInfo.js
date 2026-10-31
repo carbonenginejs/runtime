@@ -100,55 +100,91 @@ export class ResourceInfo
         else this._prefix.Reset();
     }
 
-    /** `TypeId` - the type name this class reads and writes. */
+    /**
+     * `TypeId` - the type name this class reads and writes.
+     *
+     * @implemented
+     */
     static typeId()
     {
         return "Resource";
     }
 
-    /** `GetRelativePath` - the relative path into `out.value`; RESOURCE_VALUE_NOT_SET when unset. */
+    /**
+     * `GetRelativePath` - the relative path into `out.value`; RESOURCE_VALUE_NOT_SET when unset.
+     *
+     * @adapted
+     */
     GetRelativePath(out)
     {
         return this._Read(this._relativePath, out);
     }
 
-    /** `GetType` - the type name into `out.value`. */
+    /**
+     * `GetType` - the type name into `out.value`.
+     *
+     * @adapted
+     */
     GetType(out)
     {
         return this._Read(this._type, out);
     }
 
-    /** `GetChecksum` - the checksum into `out.value`. */
+    /**
+     * `GetChecksum` - the checksum into `out.value`.
+     *
+     * @adapted
+     */
     GetChecksum(out)
     {
         return this._Read(this._checksum, out);
     }
 
-    /** `GetPrefix` - the prefix into `out.value`. */
+    /**
+     * `GetPrefix` - the prefix into `out.value`.
+     *
+     * @adapted
+     */
     GetPrefix(out)
     {
         return this._Read(this._prefix, out);
     }
 
-    /** `GetBinaryOperation` - the binary operation into `out.value`. */
+    /**
+     * `GetBinaryOperation` - the binary operation into `out.value`.
+     *
+     * @adapted
+     */
     GetBinaryOperation(out)
     {
         return this._Read(this._binaryOperation, out);
     }
 
-    /** `GetCompressedSize` - the compressed size (BigInt) into `out.value`. */
+    /**
+     * `GetCompressedSize` - the compressed size (BigInt) into `out.value`.
+     *
+     * @adapted
+     */
     GetCompressedSize(out)
     {
         return this._Read(this._compressedSize, out);
     }
 
-    /** `GetUncompressedSize` - the uncompressed size (BigInt) into `out.value`. */
+    /**
+     * `GetUncompressedSize` - the uncompressed size (BigInt) into `out.value`.
+     *
+     * @adapted
+     */
     GetUncompressedSize(out)
     {
         return this._Read(this._uncompressedSize, out);
     }
 
-    /** `GetLocation` - the stored location's text into `out.value`. */
+    /**
+     * `GetLocation` - the stored location's text into `out.value`.
+     *
+     * @adapted
+     */
     GetLocation(out)
     {
         if (!this._location.HasValue()) return new Result(ResultType.RESOURCE_VALUE_NOT_SET);
@@ -156,19 +192,31 @@ export class ResourceInfo
         return new Result();
     }
 
-    /** `SetRelativePath` - sets the path; the location is not recomputed, as in Carbon. */
+    /**
+     * `SetRelativePath` - sets the path; the location is not recomputed, as in Carbon.
+     *
+     * @implemented
+     */
     SetRelativePath(value)
     {
         this._relativePath._value = value;
     }
 
-    /** `SetCompressedSize`. */
+    /**
+     * `SetCompressedSize`.
+     *
+     * @implemented
+     */
     SetCompressedSize(value)
     {
         this._compressedSize._value = BigInt(value);
     }
 
-    /** `SetUncompressedSize`. */
+    /**
+     * `SetUncompressedSize`.
+     *
+     * @implemented
+     */
     SetUncompressedSize(value)
     {
         this._uncompressedSize._value = BigInt(value);
@@ -177,6 +225,8 @@ export class ResourceInfo
     /**
      * `SetDataChecksum` - sets the checksum and recomputes the location
      * (ResourceInfo.cpp:1272-1277). Carbon ignores UpdateLocation's result.
+     *
+     * @implemented
      */
     SetDataChecksum(value)
     {
@@ -190,6 +240,8 @@ export class ResourceInfo
      *
      * Quirk, reproduced: the prefix is not part of the path it hashes, so a
      * prefixed resource gets a different location from the one a build writes.
+     *
+     * @implemented
      */
     UpdateLocation()
     {
@@ -206,6 +258,9 @@ export class ResourceInfo
     /**
      * `operator==` - the same relative path; data is not compared
      * (ResourceInfo.cpp:1037-1049). Paths compare as `std::filesystem::path`.
+     *
+     * @adapted
+     * @renamed operator==
      */
     Equals(other)
     {
@@ -220,6 +275,9 @@ export class ResourceInfo
      *
      * Quirk, reproduced: with neither path set, the answer is false; with only
      * this one unset it is true; with only the other unset it is also true.
+     *
+     * @adapted
+     * @renamed operator<
      */
     LessThan(other)
     {
@@ -236,6 +294,8 @@ export class ResourceInfo
      * Quirk, reproduced: an unset binary operation returns SUCCESS
      * immediately, so nothing after it would run. It is the last field, so
      * nothing is skipped today.
+     *
+     * @implemented
      */
     SetParametersFromResource(other, documentVersion)
     {
@@ -295,6 +355,8 @@ export class ResourceInfo
      * `ExportToCsv` - `prefix:/path,location,checksum,uncompressed,compressed`
      * and `,operation` when set (ResourceInfo.cpp:1290-1360). Backslashes in the
      * path become slashes. The document version is not consulted, as in Carbon.
+     *
+     * @adapted
      */
     ExportToCsv(out, _documentVersion)
     {
@@ -323,6 +385,7 @@ export class ResourceInfo
      * MALFORMED_RESOURCE_INPUT; a missing binary operation or compressed size
      * is unset; a missing prefix leaves the prefix as it was.
      *
+     * @adapted
      * @param {Object<string, string>} resource Wire tag to scalar source text.
      * @param {import('./VersionInternal.js').VersionInternal} documentVersion The group's document version, unclamped, as Carbon passes it.
      * @returns {Result} The result.
@@ -377,6 +440,7 @@ export class ResourceInfo
      * UncompressedSize, then CompressedSize, BinaryOperation and Prefix when
      * set (ResourceInfo.cpp:1164-1266).
      *
+     * @adapted
      * @param {Object<string, unknown>} out Wire tag to value, filled in emit order.
      * @param {import('./VersionInternal.js').VersionInternal} documentVersion Output document version.
      * @returns {Result} The result.
@@ -429,115 +493,191 @@ export class ResourceInfo
         return new Result();
     }
 
-    /** `GetDataStream` - not ported: needs Carbon's streams and CDN access. */
+    /**
+     * `GetDataStream` - not ported: needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     GetDataStream()
     {
         throw new Error("ResourceInfo.GetDataStream is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `GetData` - not ported: needs Carbon's streams and CDN access. */
+    /**
+     * `GetData` - not ported: needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     GetData()
     {
         throw new Error("ResourceInfo.GetData is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `PutDataStream` - not ported: needs Carbon's streams and CDN access. */
+    /**
+     * `PutDataStream` - not ported: needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     PutDataStream()
     {
         throw new Error("ResourceInfo.PutDataStream is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `PutData` - not ported: needs Carbon's streams and CDN access. */
+    /**
+     * `PutData` - not ported: needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     PutData()
     {
         throw new Error("ResourceInfo.PutData is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `SetParametersFromData` - not ported: needs hashing and compression of file contents. */
+    /**
+     * `SetParametersFromData` - not ported: needs hashing and compression of file contents.
+     *
+     * @notImplemented
+     */
     SetParametersFromData()
     {
         throw new Error("ResourceInfo.SetParametersFromData is not implemented: it needs hashing and compression of file contents.");
     }
 
-    /** `SetParametersFromSourceStream` - not ported: needs hashing and compression of file contents. */
+    /**
+     * `SetParametersFromSourceStream` - not ported: needs hashing and compression of file contents.
+     *
+     * @notImplemented
+     */
     SetParametersFromSourceStream()
     {
         throw new Error("ResourceInfo.SetParametersFromSourceStream is not implemented: it needs hashing and compression of file contents.");
     }
 
-    /** `GetDataLocalRelative` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `GetDataLocalRelative` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     GetDataLocalRelative()
     {
         throw new Error("ResourceInfo.GetDataLocalRelative is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `GetDataLocalCdn` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `GetDataLocalCdn` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     GetDataLocalCdn()
     {
         throw new Error("ResourceInfo.GetDataLocalCdn is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `GetDataRemoteCdn` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `GetDataRemoteCdn` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     GetDataRemoteCdn()
     {
         throw new Error("ResourceInfo.GetDataRemoteCdn is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `GetDataStreamLocalRelative` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `GetDataStreamLocalRelative` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     GetDataStreamLocalRelative()
     {
         throw new Error("ResourceInfo.GetDataStreamLocalRelative is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `GetDataStreamLocalCdn` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `GetDataStreamLocalCdn` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     GetDataStreamLocalCdn()
     {
         throw new Error("ResourceInfo.GetDataStreamLocalCdn is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `GetDataStreamRemoteCdn` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `GetDataStreamRemoteCdn` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     GetDataStreamRemoteCdn()
     {
         throw new Error("ResourceInfo.GetDataStreamRemoteCdn is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `PutDataLocalRelative` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `PutDataLocalRelative` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     PutDataLocalRelative()
     {
         throw new Error("ResourceInfo.PutDataLocalRelative is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `PutDataLocalCdn` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `PutDataLocalCdn` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     PutDataLocalCdn()
     {
         throw new Error("ResourceInfo.PutDataLocalCdn is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `PutDataStreamLocalRelative` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `PutDataStreamLocalRelative` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     PutDataStreamLocalRelative()
     {
         throw new Error("ResourceInfo.PutDataStreamLocalRelative is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `PutDataStreamLocalCdn` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `PutDataStreamLocalCdn` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     PutDataStreamLocalCdn()
     {
         throw new Error("ResourceInfo.PutDataStreamLocalCdn is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `PutDataStreamRemoteCdn` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `PutDataStreamRemoteCdn` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     PutDataStreamRemoteCdn()
     {
         throw new Error("ResourceInfo.PutDataStreamRemoteCdn is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `PutDataRemoteCdn` - not ported: it needs Carbon's streams and CDN access. */
+    /**
+     * `PutDataRemoteCdn` - not ported: it needs Carbon's streams and CDN access.
+     *
+     * @notImplemented
+     */
     PutDataRemoteCdn()
     {
         throw new Error("ResourceInfo.PutDataRemoteCdn is not implemented: it needs Carbon's streams and CDN access.");
     }
 
-    /** `GetDestinationPath` - not ported: needs Carbon's destination settings. */
+    /**
+     * `GetDestinationPath` - not ported: needs Carbon's destination settings.
+     *
+     * @notImplemented
+     */
     GetDestinationPath()
     {
         throw new Error("ResourceInfo.GetDestinationPath is not implemented: it needs Carbon's destination settings.");

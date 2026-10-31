@@ -62,6 +62,8 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
   /**
    * Sets the behaviour name and renames the owned magnitude curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:504-507
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -78,7 +80,8 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * the camera-to-interest distance when scaleByView is set, then mapped onto
    * the camera's right, up and forward axes.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:510-530
-   * Adapted: gl-matrix writes the output vector; existing noise and allocated phase replace native noise and pointer-derived phase.
+   *
+   * @adapted gl-matrix writes the output vector; existing noise and allocated phase replace native noise and pointer-derived phase.
    */
 
   @meta.adapted

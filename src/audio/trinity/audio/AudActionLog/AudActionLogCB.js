@@ -32,6 +32,7 @@ export class AudActionLogCB extends IAudActionLog
    * function is wrapped at the boundary (CjsScriptCallback.from), anything else
    * throws, and undefined also unregisters the callback.
    *
+   * @adapted
    * @param {Function|CjsScriptCallback|null|undefined} callback Record recipient.
    * @returns {void}
    * @throws {TypeError} If the callback cannot be invoked.
@@ -47,8 +48,8 @@ export class AudActionLogCB extends IAudActionLog
    * Queues one event-post record.
    *
    * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
-   * Adapted: the JavaScript queue has no native mutex.
    *
+   * @adapted the JavaScript queue has no native mutex.
    * @param {number} emitterID Emitter identifier.
    * @param {number} playID Playing identifier.
    * @param {number} eventID Event identifier.
@@ -66,8 +67,8 @@ export class AudActionLogCB extends IAudActionLog
    * Queues one action on a playing event.
    *
    * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
-   * Adapted: the JavaScript queue has no native mutex.
    *
+   * @adapted the JavaScript queue has no native mutex.
    * @param {number} emitterID Emitter identifier.
    * @param {number} playID Playing identifier.
    * @param {string} action Action name.
@@ -84,8 +85,8 @@ export class AudActionLogCB extends IAudActionLog
    * Queues one emitter switch change.
    *
    * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
-   * Adapted: the JavaScript queue has no native mutex.
    *
+   * @adapted the JavaScript queue has no native mutex.
    * @param {number} emitterID Emitter identifier.
    * @param {string} group Switch group.
    * @param {string} state Selected state.
@@ -102,8 +103,8 @@ export class AudActionLogCB extends IAudActionLog
    * Queues one global state change.
    *
    * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
-   * Adapted: the JavaScript queue has no native mutex.
    *
+   * @adapted the JavaScript queue has no native mutex.
    * @param {string} group State group.
    * @param {string} state Selected state.
    * @returns {void}
@@ -119,8 +120,8 @@ export class AudActionLogCB extends IAudActionLog
    * Queues one real-time parameter change.
    *
    * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
-   * Adapted: the JavaScript queue has no native mutex.
    *
+   * @adapted the JavaScript queue has no native mutex.
    * @param {number} emitterID Emitter identifier.
    * @param {string} name Parameter name.
    * @param {number} value Parameter value.
@@ -137,11 +138,10 @@ export class AudActionLogCB extends IAudActionLog
   /**
    * Delivers queued records in order while a callback remains registered.
    *
-   * Adapted: JavaScript callbacks receive arrays instead of Python tuples and
-   * exceptions propagate. A throwing callback leaves its record at the queue
-   * head; Carbon does not branch on callback status and removes that record
-   * (audio/src/AudActionLog.cpp:118-129). No callback leaves records queued.
-   *
+   * @adapted JavaScript callbacks receive arrays instead of Python tuples and
+   *   exceptions propagate. A throwing callback leaves its record at the queue
+   *   head; Carbon does not branch on callback status and removes that record
+   *   (audio/src/AudActionLog.cpp:118-129). No callback leaves records queued.
    * @returns {void}
    * @throws {*} Propagates callback exceptions without removing the current record.
    */

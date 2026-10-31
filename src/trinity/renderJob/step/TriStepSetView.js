@@ -27,7 +27,11 @@ export class TriStepSetView extends TriRenderStep
   @type.object.ref("EveCamera")
   camera = null;
 
-  /** Stores the view and camera the step chooses between at execution time. */
+  /**
+   * Stores the view and camera the step chooses between at execution time.
+   *
+   * @adapted
+   */
   @meta.adapted
   __init__(view = null, camera = null)
   {
@@ -37,6 +41,8 @@ export class TriStepSetView extends TriRenderStep
   /**
    * Replaces both operands; either may be null, and the view takes precedence
    * when both are set.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.adapted
@@ -51,6 +57,8 @@ export class TriStepSetView extends TriRenderStep
    * otherwise updates the camera using the render context viewport's aspect
    * ratio (1 when the viewport is missing or has no height) and sets the
    * resulting view matrix (TriStepSetView.cpp:21-33).
+   *
+   * @implemented
    */
 
   @meta.implemented

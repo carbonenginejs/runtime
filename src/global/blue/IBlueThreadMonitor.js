@@ -27,6 +27,7 @@ export class IBlueThreadMonitor extends IRoot
   /**
    * `SetThreadStatus` - sets the calling thread's status.
    *
+   * @abstract
    * @param {number} _status `BTS_*` status.
    * @returns {number} The previous status.
    */

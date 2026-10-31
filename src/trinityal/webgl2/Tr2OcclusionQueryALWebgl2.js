@@ -48,6 +48,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Creates the query (`Tr2OcclusionQueryALDx11.cpp:21-33`).
    *
+   * @implemented
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
@@ -70,6 +71,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
    * Begins counting (`:53-65`). Refused while another occlusion query is
    * active, which WebGL2 does not allow; see the head comment.
    *
+   * @adapted
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
@@ -91,6 +93,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Ends counting (`:71-83`).
    *
+   * @adapted
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
@@ -114,6 +117,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
    * `S_FALSE` while it is not yet available, whatever the wait mode. See the
    * head comment.
    *
+   * @adapted
    * @param {object} renderContext The context.
    * @param {number} [_waitMode] A `WaitMode`; WebGL2 cannot wait.
    * @returns {{result: number, count: number}} dx11's out argument comes back here.
@@ -141,7 +145,11 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
     this._gl = null;
   }
 
-  /** Releases the query and leaves the device-resource registry. */
+  /**
+   * Releases the query and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -151,6 +159,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the query was created.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -161,6 +170,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this query occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -171,6 +181,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the query for the device-resource registry, with dx11's keys.
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -182,6 +193,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the query. WebGL has no debug names, so it is kept for `Describe`.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

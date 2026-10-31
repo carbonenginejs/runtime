@@ -7,11 +7,19 @@ import { IRoot } from "#blue/IRoot";
 @be.inherit(IRoot)
 export class ITr2Audio extends IRoot
 {
-  /** Updates the source and destination world positions. */
+  /**
+   * Updates the source and destination world positions.
+   *
+   * @abstract
+   */
   @be.abstract
   Update(sourcePosition, destPosition) {}
 
-  /** Returns the named emitter, or null when no emitter matches. */
+  /**
+   * Returns the named emitter, or null when no emitter matches.
+   *
+   * @abstract
+   */
   @be.abstract
   FindEmitterByName(name) {}
 }

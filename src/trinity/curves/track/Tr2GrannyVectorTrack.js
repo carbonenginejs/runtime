@@ -24,6 +24,8 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 
   /**
    * Checks whether vector track handles are ready.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -34,6 +36,8 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 
   /**
    * Clears vector track handles.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -44,6 +48,8 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 
   /**
    * Applies vector track handles.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -68,6 +74,8 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
    * Updates sampled vector value. A keyframed curve is read with Carbon's own
    * GetKeyFrameAtT, anything else with the Granny evaluator stand-in
    * (Tr2GrannyVectorTrack.cpp:21-32).
+   *
+   * @adapted
    */
 
   @meta.adapted

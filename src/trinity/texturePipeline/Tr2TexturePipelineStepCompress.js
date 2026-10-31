@@ -42,6 +42,7 @@ export class Tr2TexturePipelineStepCompress extends IRoot
    * Carbon's ITr2TexturePipelineStep default (ITr2TexturePipelineStep.h:21):
    * this step names no resources.
    *
+   * @implemented
    * @param {Set<string>} [resources] Caller-owned; allocated when omitted.
    * @returns {Set<string>} The set, unchanged.
    */
@@ -60,6 +61,7 @@ export class Tr2TexturePipelineStepCompress extends IRoot
    * Carbon's unused channel-weight fields remain persisted; squish uses its
    * uniform metric and default range-fit quality.
    *
+   * @adapted
    * @param {import("#imageio").HostBitmap} bitmap The pipeline's bitmap.
    * @param {Map} inputs Pipeline inputs (unused by this step).
    * @param {object} params Pipeline dimensions (unused by this step).

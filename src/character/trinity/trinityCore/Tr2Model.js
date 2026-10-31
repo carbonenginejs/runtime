@@ -32,7 +32,11 @@ export class Tr2Model extends IRoot
   /** Scratch is used only inside this model, never across another model call. */
   static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create() };
 
-  /** Returns the authored mesh count. */
+  /**
+   * Returns the authored mesh count.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetNumOfMeshes()
@@ -40,7 +44,11 @@ export class Tr2Model extends IRoot
     return this.meshes.length;
   }
 
-  /** Returns the mesh at the requested index. */
+  /**
+   * Returns the mesh at the requested index.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMesh(index)
@@ -48,7 +56,11 @@ export class Tr2Model extends IRoot
     return this.meshes[index];
   }
 
-  /** Returns the live mesh collection. */
+  /**
+   * Returns the live mesh collection.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMeshes()
@@ -56,7 +68,11 @@ export class Tr2Model extends IRoot
     return this.meshes;
   }
 
-  /** Appends a mesh to the authored collection. */
+  /**
+   * Appends a mesh to the authored collection.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddMesh(mesh)
@@ -64,7 +80,11 @@ export class Tr2Model extends IRoot
     this.meshes.push(mesh);
   }
 
-  /** Includes hidden meshes, matching Carbon's area-list test. */
+  /**
+   * Includes hidden meshes, matching Carbon's area-list test.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparency()
@@ -72,7 +92,11 @@ export class Tr2Model extends IRoot
     return this.meshes.some(mesh => mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length !== 0);
   }
 
-  /** Reports pending preparation in any mesh. */
+  /**
+   * Reports pending preparation in any mesh.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsLoading()
@@ -80,7 +104,11 @@ export class Tr2Model extends IRoot
     return this.meshes.some(mesh => mesh.IsLoading());
   }
 
-  /** Copies aggregate bounds only when every mesh has finished and has bounds. */
+  /**
+   * Copies aggregate bounds only when every mesh has finished and has bounds.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingBox(min, max)
@@ -103,8 +131,9 @@ export class Tr2Model extends IRoot
 
   /**
    * Returns bounds of any available meshes, unlike the all-ready resource API.
-   * Adapted: the Blue pair becomes an array of vectors, and the native error
-   * result becomes an exception when no mesh supplies bounds.
+   *
+   * @adapted the Blue pair becomes an array of vectors, and the native error
+   *   result becomes an exception when no mesh supplies bounds.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -127,9 +156,10 @@ export class Tr2Model extends IRoot
 
   /**
    * Submits authored order except transparent meshes, sorted farthest first.
-   * Adapted: JS batches own their references so Carbon's accumulator matrix
-   * allocation is unnecessary.
-   * Carbon declaration: Tr2Model::GetBatches (trinity/trinity/Tr2Model.h:26).
+   *
+   * @adapted JS batches own their references so Carbon's accumulator matrix
+   *   allocation is unnecessary.
+   *   Carbon declaration: Tr2Model::GetBatches (trinity/trinity/Tr2Model.h:26).
    */
   @meta.adapted
   GetBatches(batches, batchType, matrix, data)
@@ -168,9 +198,10 @@ export class Tr2Model extends IRoot
 
   /**
    * Uses Carbon's integer-zero LOD overload and shared mesh batch construction.
-   * Adapted: AL allocations are lazy in JavaScript, so the shared geometry owner
-   * realizes the selected LOD here before applying the native allocation gate.
-   * Carbon declaration: Tr2Model::GetBatchesFromMesh (trinity/trinity/Tr2Model.h:63).
+   *
+   * @adapted AL allocations are lazy in JavaScript, so the shared geometry owner
+   *   realizes the selected LOD here before applying the native allocation gate.
+   *   Carbon declaration: Tr2Model::GetBatchesFromMesh (trinity/trinity/Tr2Model.h:63).
    */
   @meta.adapted
   GetBatchesFromMesh(mesh, batchType, batches, matrix, data)

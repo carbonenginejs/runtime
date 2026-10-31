@@ -128,6 +128,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 
   /**
    * Live binding validity: OWNER is valid; CHILD requires a cached destination.
+   *
+   * @implemented
    * @returns {boolean} Whether the binding is valid without resolving it.
    */
   @be.mapPropertyReadOnly()
@@ -144,8 +146,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 
   /**
    * Links the destination when this action does not use delayed binding.
-   * Adapted: preserves the flattened JavaScript destination/cache adapter
-   * instead of Carbon's embedded Tr2BindingPoint.
+   *
+   * @adapted preserves the flattened JavaScript destination/cache adapter
+   *   instead of Carbon's embedded Tr2BindingPoint.
    */
 
   @meta.adapted
@@ -160,6 +163,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 
   /**
    * Clears the resolved destination.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -171,11 +176,12 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 
   /**
    * Starts or queues a mesh animation.
-   * Adapted: preserves structural owner/controller lookup and legacy animation
-   * dispatch alternatives. ITr2GrannyAnimationOwner and the native controller's
-   * AddAnimationLayerWithTrackMask are not implemented by the shared JS domain.
-   * Native Start only rebinds delayed destinations; this adapter retains lazy
-   * resolution and optional linked-controller invocation.
+   *
+   * @adapted preserves structural owner/controller lookup and legacy animation
+   *   dispatch alternatives. ITr2GrannyAnimationOwner and the native controller's
+   *   AddAnimationLayerWithTrackMask are not implemented by the shared JS domain.
+   *   Native Start only rebinds delayed destinations; this adapter retains lazy
+   *   resolution and optional linked-controller invocation.
    */
 
   @meta.adapted
@@ -211,10 +217,11 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 
   /**
    * Stops or queues a stop for the mesh animation.
-   * Adapted: retains structural animation lookup, legacy stop alternatives,
-   * lazy destination resolution and optional linked-controller invocation.
-   * Native Stop observes the already-bound child and does not rebind it. A
-   * returned animation layer supplies its required ClearAnimations/EndAnimation.
+   *
+   * @adapted retains structural animation lookup, legacy stop alternatives,
+   *   lazy destination resolution and optional linked-controller invocation.
+   *   Native Stop observes the already-bound child and does not rebind it. A
+   *   returned animation layer supplies its required ClearAnimations/EndAnimation.
    */
 
   @meta.adapted
@@ -264,6 +271,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 
   /**
    * Relinks after authored destination changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -280,8 +289,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 
   /**
    * Resolves and caches the destination object, returning it.
-   * Adapted: stores the JavaScript resolved object instead of the native embedded
-   * binding. OWNER also retains this adapter's resolution rather than unlinking.
+   *
+   * @adapted stores the JavaScript resolved object instead of the native embedded
+   *   binding. OWNER also retains this adapter's resolution rather than unlinking.
    */
 
   @meta.adapted
@@ -295,8 +305,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Gets the object whose animation controller is driven: the controller owner
    * for destinationType OWNER, otherwise the cached resolved destination,
    * re-resolved when it is missing or binding is delayed.
-   * Adapted: preserves lazy resolution and explicit controller selection; native
-   * GetDestination only observes its linked controller or cached child.
+   *
+   * @adapted preserves lazy resolution and explicit controller selection; native
+   *   GetDestination only observes its linked controller or cached child.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -313,7 +324,11 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
     return this._resolvedDestination;
   }
 
-  /** Reports whether a nonempty binding path defers destination resolution. */
+  /**
+   * Reports whether a nonempty binding path defers destination resolution.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasDelayedBinding()
@@ -324,8 +339,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   /**
    * Checks whether a destination is reachable; destinationType OWNER is always
    * considered valid.
-   * Adapted: the legacy method may resolve the child; the native READ property
-   * above observes only the cached destination and never triggers binding.
+   *
+   * @adapted the legacy method may resolve the child; the native READ property
+   *   above observes only the cached destination and never triggers binding.
    */
 
   @meta.adapted

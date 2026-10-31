@@ -284,6 +284,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon HasOption (cpp:147-155): the owner's own options when it has any,
    * else the defaults.
+   *
+   * @implemented
    * @param {object} owner
    * @param {string} option
    * @returns {boolean}
@@ -303,6 +305,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon IsSelected( IRoot* owner ) (cpp:157-160): the owner converts to
    * the area-0 reference.
+   *
+   * @implemented
    * @param {object} owner
    * @returns {boolean}
    */
@@ -315,6 +319,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon IsSelected( Tr2DebugObjectReference owner ) (cpp:162-165).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @returns {boolean}
    */
@@ -340,6 +346,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon DrawLine (cpp:167-175): a new owner offset when the owner changes,
    * then the two endpoints.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} from
    * @param {vec3} to
@@ -362,6 +370,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawTriangle with a normal per vertex (cpp:177-194).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} vertex1
    * @param {vec3} normal1
@@ -388,6 +398,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawTriangle with one face normal (cpp:196-205).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} vertex1
    * @param {vec3} vertex2
@@ -403,6 +415,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawBox( min, max ) (cpp:208-211): the transformed box under identity.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} min
    * @param {vec3} max
@@ -420,6 +434,8 @@ export class Tr2DebugRenderer
    * Carbon DrawBox( transform, min, max ) (cpp:213-276): twelve edges for
    * Wireframe, twelve triangles otherwise - with the transformed axis normals
    * for Lit and zero normals for Solid.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {vec3} min
@@ -496,6 +512,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawSphere( Vector4 sphere ) (cpp:278-281).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec4} sphere Centre, then radius.
    * @param {number} segments
@@ -511,6 +529,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawSphere( center, radius ) (cpp:283-286).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} center
    * @param {number} radius
@@ -527,6 +547,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawSphere( transform ) (cpp:288-291): the unit sphere.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {number} segments
@@ -542,6 +564,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawSphere( transform, radius ) (cpp:293-296).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {number} radius
@@ -561,6 +585,8 @@ export class Tr2DebugRenderer
    * of segments / 2 rings by segments slices, at least 4 segments - two edges
    * per cell for Wireframe, two triangles per cell otherwise, with the
    * transformed unit normals for Lit and zero normals for Solid.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {vec3} center
@@ -623,6 +649,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon DrawCylinder( transform, radius, height ) (cpp:383-388): a
    * four-point profile extruded around the Y axis.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {number} radius
@@ -642,6 +670,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawCylinder( cap0, cap1, radius ) (cpp:390-393).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} cap0
    * @param {vec3} cap1
@@ -659,6 +689,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawCylinder( transform, cap0, cap1, radius ) (cpp:395-400).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {vec3} cap0
@@ -679,6 +711,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawCone( transform, radius, height ) (cpp:402-409).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {number} radius
@@ -699,6 +733,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawCone( base, focal, radius ) (cpp:411-416).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} base
    * @param {vec3} focal
@@ -719,6 +755,8 @@ export class Tr2DebugRenderer
    * Carbon DrawCone( transform, height, angle, segments, coneSegments )
    * (cpp:418-443): a spherical-cap cone opening by angle, tip at the origin,
    * pointing down -Z before the transform.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {number} height
@@ -759,6 +797,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon DrawCapsule( transform, radius, height ) (cpp:445-479): two
    * quarter-circle caps joined by the straight side, at least 3 segments.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {number} radius
@@ -805,6 +845,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawCapsule( cap0, cap1, radius ) (cpp:481-485).
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} cap0
    * @param {vec3} cap1
@@ -825,6 +867,8 @@ export class Tr2DebugRenderer
    * Carbon DrawArrow (cpp:487-536): with no radius, a head of
    * length * pointerLength plus a line for the shaft; otherwise a solid shaft
    * and head in one profile.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} start
    * @param {vec3} end
@@ -881,6 +925,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon DrawDoubleArrow (cpp:538-604): DrawArrow with a head at each end.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} start
    * @param {vec3} end
@@ -950,6 +996,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon DrawSphereArrow (cpp:606-658): a sphere profile that runs into an
    * arrow head along the direction, at least 3 segments.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {vec3} center
    * @param {vec3} direction
@@ -1017,6 +1065,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon DrawAxis (cpp:660-665): red, green and blue arrows along the
    * transform's X, Y and Z rows.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {number} effect An Effect value.
@@ -1038,6 +1088,8 @@ export class Tr2DebugRenderer
    * Carbon DrawExtrusionShape (cpp:667-720): sweeps a 2D profile (x along
    * the Y axis, y as the distance from it) around Y in segments steps, at
    * least 3. Each profile edge j uses normals 2j and 2j + 1 for Lit.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {number[][]} vertices Profile points.
@@ -1106,6 +1158,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon DrawAudioSpeaker (cpp:967-1027): a narrow-to-wide cone and three
    * arcs of sound waves in front of it, at least 3 segments.
+   *
+   * @implemented
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} transform
    * @param {number} size
@@ -1172,6 +1226,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon BeginRender (cpp:819-825): call every frame before any Draw
    * method; drops last frame's primitives.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1187,6 +1243,8 @@ export class Tr2DebugRenderer
    * Carbon EndRender (cpp:827-876): call every frame after all Draw methods.
    * Draws and clears the queued debug text first, then uploads the lines, then the triangles, through the ring vertex buffer and
    * draws each with every pass of DebugPrimitive.fx under alpha blending.
+   *
+   * @implemented
    * @param {Tr2RenderContext} renderContext
    */
 
@@ -1253,6 +1311,8 @@ export class Tr2DebugRenderer
    * between 0 and 1; the int32_t casts truncate toward zero. The variadic
    * arguments arrive as a rest array, which Vprintf takes in place of the
    * va_list.
+   *
+   * @implemented
    * @param {number} font A TriDebugFont value.
    * @param {vec3} pos World position.
    * @param {Float32Array} color RGBA colour.
@@ -1285,6 +1345,8 @@ export class Tr2DebugRenderer
    *
    * Not supported: JavaScript objects have no address to encode into the
    * picking target.
+   *
+   * @notImplemented
    */
 
   @meta.notImplemented
@@ -1296,6 +1358,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon SetSelectedObjects (cpp:878-888): (object, sub-object id) pairs;
    * null objects are skipped.
+   *
+   * @implemented
    * @param {Array<[object, number]>} objects
    */
   @be.mapMethodAndWrap()
@@ -1321,6 +1385,8 @@ export class Tr2DebugRenderer
   /**
    * Carbon SetOptions (cpp:890-906): an empty list removes the owner's
    * options, so it falls back to the defaults.
+   *
+   * @implemented
    * @param {object} owner
    * @param {string[]} options
    */
@@ -1341,6 +1407,8 @@ export class Tr2DebugRenderer
    * Carbon GetColorForOption (cpp:908-917), with its output parameter as the
    * return value (skill rule 11), which is also what the exposed
    * PyGetColorForOption returns (cpp:925-941).
+   *
+   * @implemented
    * @param {string} option
    * @returns {Float32Array|null} A copy of the colour, or null when none is set.
    */
@@ -1354,6 +1422,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon SetColorForOption (cpp:919-923).
+   *
+   * @implemented
    * @param {string} option
    * @param {Float32Array} color
    */
@@ -1366,6 +1436,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon GetOptions (cpp:943-952): the owner's own options, if any.
+   *
+   * @implemented
    * @param {object} owner
    * @returns {string[]}
    */
@@ -1379,6 +1451,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon SetDefaultOptions (cpp:954-958).
+   *
+   * @implemented
    * @param {string[]} options
    */
   @be.mapMethodAndWrap()
@@ -1390,6 +1464,8 @@ export class Tr2DebugRenderer
 
   /**
    * Carbon GetDefaultOptions (cpp:960-965).
+   *
+   * @implemented
    * @returns {string[]}
    */
   @be.mapMethodAndWrap()

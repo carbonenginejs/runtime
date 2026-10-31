@@ -46,9 +46,8 @@ export class Tr2SwapChain extends IRoot
    * do not have. It is passed instead, as `Tr2Blitter.PrepareResources` already
    * does.
    *
-   * Adapted: Carbon reaches the main-thread render context through a macro over process-wide
-   * state; the context is an argument here, as it is for Tr2Blitter.
-   *
+   * @adapted Carbon reaches the main-thread render context through a macro over process-wide
+   *   state; the context is an argument here, as it is for Tr2Blitter.
    * @param {number|object} windowHandle The window to present into.
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Whether the chain came up.
@@ -66,6 +65,7 @@ export class Tr2SwapChain extends IRoot
    * Carbon's `Tr2DeviceResource::PrepareResources` half; see `Tr2Blitter` for
    * why the split is kept rather than collapsed.
    *
+   * @implemented
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Whether the chain came up.
    */
@@ -79,8 +79,7 @@ export class Tr2SwapChain extends IRoot
    * Creates the AL swap chain and refreshes the mirrored dimensions.
    * Carbon OnPrepareResources (Tr2SwapChain.cpp:29-48).
    *
-   * Adapted: Omits Carbon's depth-stencil creation and back-buffer attachment.
-   *
+   * @adapted Omits Carbon's depth-stencil creation and back-buffer attachment.
    * @param {Tr2RenderContext} renderContext The context to create against.
    * @returns {boolean} Whether the AL chain came up.
    */
@@ -101,6 +100,7 @@ export class Tr2SwapChain extends IRoot
    * because it inherits `Tr2RenderContextAL`; we compose, so the AL is taken out
    * of it here.
    *
+   * @implemented
    * @param {object} renderContext The context presenting the frame.
    * @returns {boolean} Carbon's `SUCCEEDED( m_swapChain.Present(...) )`.
    */
@@ -114,6 +114,7 @@ export class Tr2SwapChain extends IRoot
   /**
    * Width of the back buffer, from the AL rather than from the mirror.
    *
+   * @implemented
    * @returns {number} Width in pixels.
    */
 
@@ -126,6 +127,7 @@ export class Tr2SwapChain extends IRoot
   /**
    * Height of the back buffer, from the AL rather than from the mirror.
    *
+   * @implemented
    * @returns {number} Height in pixels.
    */
 
@@ -138,6 +140,8 @@ export class Tr2SwapChain extends IRoot
   /**
    * width (MAP_PROPERTY_READONLY): Carbon's property over GetWidth, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2SwapChain_Blue.cpp:18).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -149,6 +153,8 @@ export class Tr2SwapChain extends IRoot
   /**
    * height (MAP_PROPERTY_READONLY): Carbon's property over GetHeight, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2SwapChain_Blue.cpp:19).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -162,6 +168,7 @@ export class Tr2SwapChain extends IRoot
    * (`Tr2SwapChain.cpp:24-27`): the value returns to the null implementation,
    * so the member is still callable afterwards.
    *
+   * @implemented
    * @param {number} _storage Carbon's `TriStorage` mask; every AL surface here
    *   belongs to video memory, so there is nothing to select between.
    */

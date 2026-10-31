@@ -47,6 +47,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * query here; a sync object exists only once put, so WebGL2 creates nothing
    * until `PutFence`.
    *
+   * @adapted
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
@@ -67,6 +68,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * Puts the fence into the command stream (`:43-54`), replacing any earlier
    * one, as ending a D3D query again re-issues it.
    *
+   * @adapted
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
@@ -91,6 +93,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * Whether the GPU has passed the fence (`:56-69`), without flushing. A
    * fence never put has nothing outstanding and answers true.
    *
+   * @adapted
    * @param {object} renderContext The context.
    * @returns {{result: number, isReached: boolean}} dx11's out argument comes back here.
    */
@@ -113,6 +116,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * a sync object; this finishes the context, which is the same wait taken
    * over every command rather than up to the fence. See the head comment.
    *
+   * @adapted
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
@@ -144,7 +148,11 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
     this._gl = null;
   }
 
-  /** Releases the fence and leaves the device-resource registry. */
+  /**
+   * Releases the fence and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -154,6 +162,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the fence was created.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -164,6 +173,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this fence occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -174,6 +184,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the fence for the device-resource registry, with dx11's keys.
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -185,6 +196,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the fence. WebGL has no debug names, so it is kept for `Describe`.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

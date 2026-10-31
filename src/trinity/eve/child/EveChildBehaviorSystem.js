@@ -157,21 +157,33 @@ export class EveChildBehaviorSystem extends EveChildTransform
     TriDevice.UnregisterResource(this);
   }
 
-  /** Carbon's device-release override is empty (EveChildBehaviorSystem.h). */
+  /**
+   * Carbon's device-release override is empty (EveChildBehaviorSystem.h).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources()
   {
   }
 
-  /** Carbon Tr2DeviceResource::PrepareResources resource-creation guard. */
+  /**
+   * Carbon Tr2DeviceResource::PrepareResources resource-creation guard.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
-  /** Replaces the two native AL values, then allocates their current count. */
+  /**
+   * Replaces the two native AL values, then allocates their current count.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   OnPrepareResources()
@@ -182,8 +194,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return this._shipInstanceBuffer.IsValid() && this._boosterInstanceBuffer.IsValid();
   }
 
-  /** Carbon EveChildBehaviorSystem.cpp:88-184: wire groups, tunnels and registry membership.
+  /**
+   * Carbon EveChildBehaviorSystem.cpp:88-184: wire groups, tunnels and registry membership.
    * Carbon declaration: EveChildBehaviorSystem::OnListModified (trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.h:60).
+   *
+   * @implemented
    */
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
@@ -224,7 +239,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildBehaviorSystem::Initialize (cpp:67-77). */
+  /**
+   * Carbon EveChildBehaviorSystem::Initialize (cpp:67-77).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -239,7 +258,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return true;
   }
 
-  /** Carbon EveChildBehaviorSystem::OnModified (cpp:79-86): a display change re-registers the components. */
+  /**
+   * Carbon EveChildBehaviorSystem::OnModified (cpp:79-86): a display change re-registers the components.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(value = null)
@@ -256,6 +279,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * agents (Carbon PassInVertexesToBehaviorGroups, cpp:233-242). Carbon also
    * runs this from the Blue list notify; the JS port runs it from the first
    * UpdateSyncronous, matching Carbon's deferred-initialization comment.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -272,6 +297,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
   /**
    * Hands every spline tunnel group the system tunnel-registry callback
    * (Carbon PassInTunnelFunctionsToBehaviorGroups, cpp:246-254).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -288,6 +315,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Sync-side frame update (Carbon UpdateSyncronous, cpp:258-283): late
    * callback wiring, per-group vertex-declaration refresh,
    * group sync updates, then the agent simulation step.
+   *
+   * @implemented
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {Object} params - EveChildUpdateParams
    */
@@ -323,6 +352,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Per-frame async update (Carbon UpdateAsyncronous, cpp:582-616): rebuild
    * the world transform from the parent, refresh the persistent VS/PS records,
    * then fan out to the groups.
+   *
+   * @adapted
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {Object} params - EveChildUpdateParams (localToWorldTransform)
    */
@@ -383,7 +414,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return this.worldTransform;
   }
 
-  /** Carbon EveChildBehaviorSystem::UpdateVisibility (cpp:655-666). */
+  /**
+   * Carbon EveChildBehaviorSystem::UpdateVisibility (cpp:655-666).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform = null, _parentLod = null)
@@ -402,6 +437,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
   /**
    * Publishes the updated system, fills both AL streams, then its PlayFX
    * renderables (Carbon GetRenderables). Mapping remains on the render thread.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -428,27 +465,43 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return renderables;
   }
 
-  /** Carbon returns true without writing the sphere (cpp:668-671). */
+  /**
+   * Carbon returns true without writing the sphere (cpp:668-671).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetBoundingSphere(_sphere = null, _query = 0)
   {
     return true;
   }
 
-  /** Carbon's body is empty (EveChildBehaviorSystem.cpp:664-666): the argument is left as it was. */
+  /**
+   * Carbon's body is empty (EveChildBehaviorSystem.cpp:664-666): the argument is left as it was.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetLocalToWorldTransform(_transform = null)
   {
   }
 
-  /** Carbon's body is empty (cpp:682-684). */
+  /**
+   * Carbon's body is empty (cpp:682-684).
+   *
+   * @adapted
+   */
   @meta.adapted
   ChangeLOD(_lod)
   {
   }
 
-  /** Forwards to the base transform setup (cpp:623-626). */
+  /**
+   * Forwards to the base transform setup (cpp:623-626).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
@@ -460,8 +513,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Carbon EveChildBehaviorSystem::RegisterComponents (cpp:686-700): each behavior group registers while displayed.
    * Every group is an EveEntity, so Carbon's BlueCastPtr to one always succeeds.
    *
-   * Adapted: Carbon multiple-inherits EveEntity per concrete child; here it is the child root's base, so the class
-   * inherits GetComponentRegistry. Without a registry nothing registers.
+   * @adapted Carbon multiple-inherits EveEntity per concrete child; here it is the child root's base, so the class
+   *   inherits GetComponentRegistry. Without a registry nothing registers.
    */
 
   @meta.adapted
@@ -486,7 +539,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   /**
    * Carbon EveChildBehaviorSystem::UnRegisterComponents (cpp:702-711).
    *
-   * Adapted: as RegisterComponents, the registry comes from the inherited EveEntity base.
+   * @adapted as RegisterComponents, the registry comes from the inherited EveEntity base.
    */
 
   @meta.adapted
@@ -503,7 +556,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildBehaviorSystem::RegisterWithQuadRenderer (cpp:713-719). */
+  /**
+   * Carbon EveChildBehaviorSystem::RegisterWithQuadRenderer (cpp:713-719).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -514,7 +571,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildBehaviorSystem::AddQuadsToQuadRenderer (cpp:721-732). */
+  /**
+   * Carbon EveChildBehaviorSystem::AddQuadsToQuadRenderer (cpp:721-732).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
@@ -530,7 +591,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildBehaviorSystem::GetWorldTransform (cpp:734-737). */
+  /**
+   * Carbon EveChildBehaviorSystem::GetWorldTransform (cpp:734-737).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWorldTransform()
@@ -542,6 +607,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Allocates the ship and booster streams after agent-count changes (Carbon
    * ChangeBufferInstanceCount). AL descriptions replace the native overload.
    * Before device creation the requested count is retained for prepare.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -564,6 +631,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Carbon EveChildBehaviorSystem::GetDebugOptions (cpp:472-480): its own
    * "SplineTunnels" option, then every behavior group's. Carbon does not ask
    * the spline tunnel groups for theirs.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -582,6 +651,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Carbon EveChildBehaviorSystem::RenderDebugInfo (cpp:482-496): every
    * behavior group under the world transform, then, with "SplineTunnels",
    * every spline tunnel group under the same transform.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -602,7 +673,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildBehaviorSystem::GetTunnels (cpp:498-501). */
+  /**
+   * Carbon EveChildBehaviorSystem::GetTunnels (cpp:498-501).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetTunnels()
@@ -610,7 +685,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return this._tunnels;
   }
 
-  /** Carbon EveChildBehaviorSystem::GetSplineTunnels (cpp:503-506). */
+  /**
+   * Carbon EveChildBehaviorSystem::GetSplineTunnels (cpp:503-506).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSplineTunnels()
@@ -623,8 +702,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * sequential IDs, then resets the behavior groups (Carbon
    * UpdateTunnelRegistry, cpp:508-527).
    *
-   * Adapted: Carbon copies each SplineTunnel by value into m_tunnels; here the tunnel records are shared, so the
-   * reassigned IDs stay visible to their groups.
+   * @adapted Carbon copies each SplineTunnel by value into m_tunnels; here the tunnel records are shared, so the
+   *   reassigned IDs stay visible to their groups.
    */
 
   @meta.adapted
@@ -656,6 +735,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *
    * Not implemented: the name is carried so the declaration is present; there
    * is no Carbon body to port, so a call throws.
+   *
+   * @notImplemented
    * @returns {boolean}
    */
   @meta.notImplemented
@@ -664,7 +745,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     throw new Error("EveChildBehaviorSystem.IsInstanceDataReady is declared by Carbon (EveChildBehaviorSystem.h:95) but has no Carbon body.");
   }
 
-  /** Carbon EveChildBehaviorSystem::GetInstanceBufferCount (cpp:206-209). */
+  /**
+   * Carbon EveChildBehaviorSystem::GetInstanceBufferCount (cpp:206-209).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetInstanceBufferCount()
@@ -681,6 +766,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *
    * Not implemented: the name is carried so the declaration is present; there
    * is no Carbon body to port, so a call throws.
+   *
+   * @notImplemented
    * @param {number} _bufferIndex The instance buffer.
    * @returns {number}
    */
@@ -690,7 +777,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     throw new Error("EveChildBehaviorSystem.GetInstanceBufferVertexDeclaration is declared by Carbon (EveChildBehaviorSystem.h:97) but has no Carbon body.");
   }
 
-  /** Carbon EveChildBehaviorSystem::GetInstanceBufferVertexCount (cpp:221-229). */
+  /**
+   * Carbon EveChildBehaviorSystem::GetInstanceBufferVertexCount (cpp:221-229).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetInstanceBufferVertexCount(_bufferIndex = 0)
@@ -703,7 +794,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return size;
   }
 
-  /** Carbon EveChildBehaviorSystem::GetInstanceBufferBoundingBox (cpp:673-676). */
+  /**
+   * Carbon EveChildBehaviorSystem::GetInstanceBufferBoundingBox (cpp:673-676).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetInstanceBufferBoundingBox(_bufferIndex, _minBounds, _maxBounds)
@@ -711,7 +806,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return false;
   }
 
-  /** Carbon EveChildBehaviorSystem::HasTransparentBatches (cpp:424-441). */
+  /**
+   * Carbon EveChildBehaviorSystem::HasTransparentBatches (cpp:424-441).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -730,7 +829,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return false;
   }
 
-  /** No transparency, no sorting (cpp:447-450). */
+  /**
+   * No transparency, no sorting (cpp:447-450).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -738,7 +841,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return 0;
   }
 
-  /** Carbon GetBatches: hide unready systems and mesh groups fully at sprite LOD. */
+  /**
+   * Carbon GetBatches: hide unready systems and mesh groups fully at sprite LOD.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason = 0)
@@ -755,8 +862,9 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
   /**
    * Carbon GetGroupBatches binds the group's mesh and the shared ship stream.
-   * Adapted: realize cold geometry through Trinity's existing allocation seam
-   * before binding; a deferred geometry descriptor would overwrite instancing.
+   *
+   * @adapted realize cold geometry through Trinity's existing allocation seam
+   *   before binding; a deferred geometry descriptor would overwrite instancing.
    */
 
   @meta.adapted
@@ -793,7 +901,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
     }
   }
 
-  /** Carbon GetGroupBoosterBatches submits boosters only to the additive pass. */
+  /**
+   * Carbon GetGroupBoosterBatches submits boosters only to the additive pass.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetGroupBoosterBatches(batches, batchType, perObjectData, group)
@@ -810,6 +922,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
   /**
    * Carbon EveChildBehaviorSystem::GetPerObjectData (cpp:456-468): a handle
    * over this system PERSISTENT record pair.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -821,7 +935,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   /**
    * Carbon method GetVertexElementAddedThroughCode (MAP_METHOD_AND_WRAP).
    *
-   * Adapted: returns Carbon's numeric Tr2VertexDefinition usage/index pairs rather than a renderer declaration.
+   * @adapted returns Carbon's numeric Tr2VertexDefinition usage/index pairs rather than a renderer declaration.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -847,6 +961,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Carbon UpdateBuffer maps both streams and writes groups in instance order.
    * Float views and offsets replace native byte-pointer arithmetic; finally
    * blocks preserve the native scope-exit unmaps, including packing failures.
+   *
+   * @adapted
    */
 
   @meta.adapted

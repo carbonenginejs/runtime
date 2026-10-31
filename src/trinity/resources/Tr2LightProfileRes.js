@@ -99,6 +99,8 @@ export class Tr2LightProfileRes extends BlueAsyncRes
   /**
    * Carbon DoLoad (Tr2LightProfileRes.cpp:64-92). The configured browser reader
    * returns a DDS bitmap or an IES bake; this resource owns the resulting strip.
+   *
+   * @adapted
    * @returns {Promise<number>} Native LoadingResult.
    */
   async _DoLoad()
@@ -168,6 +170,7 @@ export class Tr2LightProfileRes extends BlueAsyncRes
    * (matching the proven ccpwgl port): the consumer maps negative to the
    * biased 0, and an unloaded profile can never alias slot 0.
    *
+   * @adapted
    * @returns {number} Slice index, or -1.
    */
   GetTextureIndex()
@@ -179,6 +182,7 @@ export class Tr2LightProfileRes extends BlueAsyncRes
   /**
    * Carbon `IsMemoryUsageKnown` (Tr2LightProfileRes.cpp:53-56): known once loaded.
    *
+   * @implemented
    * @returns {boolean}
    */
   IsMemoryUsageKnown()
@@ -190,9 +194,8 @@ export class Tr2LightProfileRes extends BlueAsyncRes
    * Carbon `GetMemoryUsage` (Tr2LightProfileRes.cpp:58-61): `PROFILE_LIGHTMAP_SIZE`
    * once good, otherwise 0.
    *
-   * Adapted: asks `IsPrepared`, because `IsGood` here also renews the
-   * resource, which would take it back out of the cache that is asking.
-   *
+   * @adapted asks `IsPrepared`, because `IsGood` here also renews the
+   *   resource, which would take it back out of the cache that is asking.
    * @returns {number} Bytes.
    */
   GetMemoryUsage()
@@ -207,10 +210,9 @@ export class Tr2LightProfileRes extends BlueAsyncRes
    * Carbon: Tr2LightProfileRes::DoPrepare (Tr2LightProfileRes.cpp:95-99), protected:
    * `m_element = Tr2LightManager::GetLightProfileArray().AddElement( m_bitmap )`.
    *
-   * Adapted: the resource layer cannot import trinity, so the array slice is acquired
-   * by the first pack (Tr2LightManager._ProfileSlot), which hands it back through
-   * RegisterProfileElement; nothing is left to prepare here.
-   *
+   * @adapted the resource layer cannot import trinity, so the array slice is acquired
+   *   by the first pack (Tr2LightManager._ProfileSlot), which hands it back through
+   *   RegisterProfileElement; nothing is left to prepare here.
    * @returns {boolean} Always true, as Carbon's.
    */
   _DoPrepare()
@@ -224,9 +226,8 @@ export class Tr2LightProfileRes extends BlueAsyncRes
    * Carbon: Tr2LightProfileRes::ParseIes() (Tr2LightProfileRes.cpp:101-107), private:
    * reads the whole `m_dataStream` and forwards it with `m_bitmap`.
    *
-   * Adapted: the loader here owns the stream and hands decoded bytes to the resource,
-   * so the contents arrive as an argument, as in Tr2EffectRes.DoLoad.
-   *
+   * @adapted the loader here owns the stream and hands decoded bytes to the resource,
+   *   so the contents arrive as an argument, as in Tr2EffectRes.DoLoad.
    * @param {string} contents The IES file text.
    * @returns {boolean} Whether the contents parsed.
    */
@@ -243,12 +244,11 @@ export class Tr2LightProfileRes extends BlueAsyncRes
    * 1024-texel cosine-uniform strip, the half-quantised mip chain) is
    * `CjsIESFormat`'s `lightProfile` output, ported from this function.
    *
-   * Adapted: Carbon reads with an `istringstream`, which accepts any run of tokens and
-   * leaves unread fields at zero. The format reader is strict (TILT=NONE, finite
-   * numbers, complete tables, no trailing data), so some files Carbon would half-read
-   * answer false here. Its TypeError becomes the false Carbon answers when the TILT line
-   * is missing or not NONE.
-   *
+   * @adapted Carbon reads with an `istringstream`, which accepts any run of tokens and
+   *   leaves unread fields at zero. The format reader is strict (TILT=NONE, finite
+   *   numbers, complete tables, no trailing data), so some files Carbon would half-read
+   *   answer false here. Its TypeError becomes the false Carbon answers when the TILT line
+   *   is missing or not NONE.
    * @param {string} contents The IES file text.
    * @param {HostBitmap} bitmap Receives the baked 1024x1 R16_FLOAT bitmap on success.
    * @returns {boolean} Whether the contents parsed.
@@ -278,13 +278,12 @@ export class Tr2LightProfileRes extends BlueAsyncRes
    * (Tr2LightProfileRes_Blue.cpp:19-23, MAP_FUNCTION_AND_WRAP, which the decorators
    * have no spelling for).
    *
-   * Adapted: a Promise, because the read is asynchronous where
-   * `BePaths->GetFileContentsWithYield` yields the tasklet. The output pointer is the
-   * return value; a BlueStdResult failure is the rejection, with `code` set to
-   * BLUE_STD_RESULT_VALUE_ERROR (not an .ies path), BLUE_STD_RESULT_IO_ERROR (no file)
-   * or BLUE_STD_RESULT_RUNTIME_ERROR (parse failure). Tr2HostBitmap lives in trinity,
-   * which this layer cannot import; the HostBitmap it derives from is returned.
-   *
+   * @adapted a Promise, because the read is asynchronous where
+   *   `BePaths->GetFileContentsWithYield` yields the tasklet. The output pointer is the
+   *   return value; a BlueStdResult failure is the rejection, with `code` set to
+   *   BLUE_STD_RESULT_VALUE_ERROR (not an .ies path), BLUE_STD_RESULT_IO_ERROR (no file)
+   *   or BLUE_STD_RESULT_RUNTIME_ERROR (parse failure). Tr2HostBitmap lives in trinity,
+   *   which this layer cannot import; the HostBitmap it derives from is returned.
    * @param {string} path Path of the .ies file.
    * @returns {Promise<HostBitmap>} The baked bitmap.
    */
@@ -322,16 +321,15 @@ export class Tr2LightProfileRes extends BlueAsyncRes
    * (0, 0.7, 0.98), sampling the strip by the cosine of the angle below the light, and
    * writes the gamma-encoded grey into a B8G8R8X8 bitmap.
    *
-   * Adapted: a Promise (the file read is asynchronous); the output pointer is the return
-   * value and a BlueStdResult failure is the rejection with its `code`
-   * (IO_ERROR, RUNTIME_ERROR, VALUE_ERROR). Tr2HostBitmap lives in trinity, so the
-   * HostBitmap it derives from is returned. Carbon computes in float; this runs in
-   * double precision, so a pixel on a rounding edge can differ by one level.
-   *
    * Carbon quirk (cpp:288-292): the out-of-memory test is `!bitmap` on the smart pointer
    * just created, which is never null, so a failed Create is not reported and the pixel
    * loop would write through a null buffer. A failed Create throws on that write here.
    *
+   * @adapted a Promise (the file read is asynchronous); the output pointer is the return
+   *   value and a BlueStdResult failure is the rejection with its `code`
+   *   (IO_ERROR, RUNTIME_ERROR, VALUE_ERROR). Tr2HostBitmap lives in trinity, so the
+   *   HostBitmap it derives from is returned. Carbon computes in float; this runs in
+   *   double precision, so a pixel on a rounding edge can differ by one level.
    * @param {number} width Thumbnail width.
    * @param {number} height Thumbnail height.
    * @returns {Promise<HostBitmap>} The thumbnail.
@@ -454,8 +452,9 @@ export class Tr2LightProfileRes extends BlueAsyncRes
 
   /**
    * Release the native element and bitmap at final JS teardown.
-   * Adapted: explicit JS teardown replaces native destruction; the existing
-   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   *
+   * @adapted explicit JS teardown replaces native destruction; the existing
+   *   MotherLode switches keep CPU data and opaque adapter cleanup independent.
    * @param {object} [options={}] Existing MotherLode cleanup policy.
    * @param {boolean} [options.releasePayload=true] Release owned family data.
    * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.

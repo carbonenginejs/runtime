@@ -57,7 +57,11 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
     this.Init(this.localTransform);
   }
 
-  /** Native initialization separates the tool's scale from its display transform. */
+  /**
+   * Native initialization separates the tool's scale from its display transform.
+   *
+   * @adapted
+   */
   @meta.adapted
   Init(transform)
   {
@@ -86,7 +90,11 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
     }
   }
 
-  /** Native projected drag; scale callbacks carry scaling matrices, not object transforms. */
+  /**
+   * Native projected drag; scale callbacks carry scaling matrices, not object transforms.
+   *
+   * @adapted
+   */
   @meta.adapted
   Move(_mouseX, _mouseY, dx, dy, viewport, view, projection)
   {
@@ -180,7 +188,11 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
     }
   }
 
-  /** Native primitive transforms and guide refresh. */
+  /**
+   * Native primitive transforms and guide refresh.
+   *
+   * @adapted
+   */
   @meta.adapted
   Update(context)
   {
@@ -197,7 +209,11 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
     }
   }
 
-  /** Native guides connect each transformed box's centre of mass. */
+  /**
+   * Native guides connect each transformed box's centre of mass.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateLines()
   {
@@ -212,7 +228,11 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
     }
   }
 
-  /** Native axis boxes, centre box and unpickable guide lines. */
+  /**
+   * Native axis boxes, centre box and unpickable guide lines.
+   *
+   * @adapted
+   */
   @meta.adapted
   GenLineSets()
   {
@@ -254,7 +274,11 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
-  /** Carbon method ResetPrimitives (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ResetPrimitives (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ResetPrimitives()
@@ -274,8 +298,8 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   /**
    * Returns the full tool, or the captured axis, guide and centre primitives.
    *
-   * Adapted: JavaScript returns a fresh array instead of Carbon's reused private
-   * visible-object vector.
+   * @adapted JavaScript returns a fresh array instead of Carbon's reused private
+   *   visible-object vector.
    */
 
   @meta.adapted
@@ -291,7 +315,11 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
       || primitive.name === `_${this.selectedAxis}`);
   }
 
-  /** Restores Carbon's authored axis and centre colours. */
+  /**
+   * Restores Carbon's authored axis and centre colours.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ResetPrimitiveColors()

@@ -56,6 +56,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * their action. Notifications for another list or another event are ignored.
    * Native BlueCastPtr accepts only the exposed action interface identity.
    *
+   * @implemented
    * @param {number} event Carbon list event flags, masked with BELIST_EVENTMASK.
    * @param {number} [_key=0] Unused list notification key.
    * @param {number} [_key2=0] Unused secondary notification key.
@@ -92,6 +93,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * Unlinks the previous action bindings first, retains the controller, then
    * links each action in list order. Action errors propagate without rollback.
    *
+   * @implemented
    * @param {ITr2ActionController} controller Controller used to resolve bindings.
    * @returns {void}
    */
@@ -114,6 +116,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * reference: subsequent insert notifications can still link new actions, and
    * repeated calls invoke Unlink on the actions again.
    *
+   * @implemented
    * @returns {void}
    */
 
@@ -133,6 +136,7 @@ export class Tr2ControllerEventHandler extends IListNotify
   /**
    * Gets the authored handler name.
    *
+   * @implemented
    * @returns {string} Name compared with incoming controller event names.
    */
 
@@ -149,6 +153,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * propagates immediately; remaining calls, including Stop calls, are skipped.
    * The caller is responsible for deciding whether the controller is playing.
    *
+   * @implemented
    * @param {ITr2ActionController} controller Controller passed to Start and Stop.
    * @returns {void}
    */

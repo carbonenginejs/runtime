@@ -416,6 +416,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Releases, resizes and re-prepares the atlas (`Tr2TextureAtlas.cpp:38-47`).
    *
+   * @implemented
    * @param {number} fmt A `PixelFormat` value.
    * @param {number} width Atlas width.
    * @param {number} height Atlas height.
@@ -437,6 +438,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * `Tr2DeviceResource::PrepareResources` (`Tr2DeviceResource.cpp:21-33`):
    * prepares only while resource creation is allowed.
    *
+   * @implemented
    * @returns {boolean} False only when preparation was attempted and failed.
    */
   @meta.implemented
@@ -453,6 +455,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Drops the AL texture and every free and pending area
    * (`Tr2TextureAtlas.cpp:49-69`). Areas held by textures stay with them.
    *
+   * @implemented
    * @param {number} s A `TriStorageFlags` mask.
    * @returns {void}
    */
@@ -476,6 +479,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * succeeds, then makes the whole atlas one free area
    * (`Tr2TextureAtlas.cpp:72-128`).
    *
+   * @implemented
    * @returns {boolean} False when the atlas shrank to nothing.
    */
   @meta.implemented
@@ -524,6 +528,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * (`Tr2TextureAtlas.cpp:131-178`). Called by `Tr2AtlasTexture`'s load path,
    * which reads `tex._loadedBitmap`.
    *
+   * @implemented
    * @param {Tr2AtlasTexture} tex The texture being prepared.
    * @returns {boolean} False when it does not belong in, or does not fit, the atlas.
    */
@@ -566,6 +571,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Registers a texture that lives inside the atlas (`Tr2TextureAtlas.cpp:181-184`).
    *
+   * @implemented
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {void}
    */
@@ -579,6 +585,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Registers a texture that lives outside the atlas; it may be pulled in when
    * space opens (`Tr2TextureAtlas.cpp:188-192`).
    *
+   * @implemented
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {void}
    */
@@ -592,6 +599,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Unregisters a texture and returns its area (`Tr2TextureAtlas.cpp:194-219`).
    * With `optimizeOnRemoval` the freed space is offered to the outsiders.
    *
+   * @implemented
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {void}
    */
@@ -634,6 +642,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *   behaviour) when the erased area was last. Here the skip is reproduced
    *   and the end case ends the inner loop.
    *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -828,6 +837,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * As in Carbon, fewer than two free areas returns before the
    * "optimization warranted" state is cleared.
    *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -947,6 +957,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Merges `area2` into `area1` when they share a full edge
    * (`Tr2TextureAtlas.cpp:633-686`). Carbon declares it and nothing calls it.
    *
+   * @implemented
    * @param {Tr2TextureAtlasArea} area1 The area that grows.
    * @param {Tr2TextureAtlasArea} area2 The area merged into it.
    * @returns {boolean} True when the areas were adjacent and merged.
@@ -1003,6 +1014,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * The GC sweep `_ReclaimCollectedTextures` (ours) runs right after Carbon's
    * pending-free release, so collected textures' space is offered here.
    *
+   * @implemented
    * @param {number} width Requested width, margins included.
    * @param {number} height Requested height, margins included.
    * @returns {Tr2TextureAtlasArea|null} The allocated area, removed from the free list.
@@ -1151,6 +1163,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Returns the atlas pixel format (`Tr2TextureAtlas.cpp:862-865`).
    *
+   * @implemented
    * @returns {number} A `PixelFormat` value.
    */
   @meta.implemented
@@ -1169,6 +1182,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * a `width x height` block at texel (0, 0), over whatever textures live
    * there. Reproduced.
    *
+   * @implemented
    * @param {Tr2TextureAtlasArea|null} area The area.
    * @returns {void}
    */
@@ -1244,6 +1258,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Returns the atlas AL texture; every in-atlas texture returns this same
    * value (`Tr2TextureAtlas.cpp:947-950`).
    *
+   * @implemented
    * @returns {Tr2TextureAL} The atlas texture.
    */
   @meta.implemented
@@ -1257,6 +1272,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * when the atlas texture changes. Listeners register an owner and an
    * unbound method; the event holds owners weakly.
    *
+   * @implemented
    * @returns {Tr2Event} m_onTextureChange.
    */
   @meta.implemented
@@ -1279,6 +1295,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Number of textures in the atlas (`Tr2TextureAtlas.cpp:957-960`). Entries
    * whose texture has been collected but not yet reclaimed are not counted.
    *
+   * @adapted
    * @returns {number} The count.
    */
   @meta.adapted
@@ -1293,6 +1310,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Number of outsiders (`Tr2TextureAtlas.cpp:962-965`). Collected entries are
    * not counted, as for `GetTexturesInAtlasCount`.
    *
+   * @adapted
    * @returns {number} The count.
    */
   @meta.adapted
@@ -1316,6 +1334,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Iteration order: Carbon copies a `std::set` ordered by pointer address;
    * JS has no addresses, so registration order is used.
    *
+   * @implemented
    * @param {boolean} [optimiseInsertion] Sort smallest area first.
    * @returns {void}
    */
@@ -1383,6 +1402,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * bug, CE-148 (:1064-1071): the mapped source pitch is ignored; `AddMargin`
    * assumes a tight pitch.
    *
+   * @implemented
    * @param {Tr2AtlasTexture} tex The texture, already holding its area.
    * @returns {boolean} True when the copy succeeded.
    */
@@ -1439,6 +1459,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * between `S_OK` (no outsiders allowed), `E_DEVICELOST` and a creation
    * failure is not reported.
    *
+   * @adapted
    * @param {number} width Texture width.
    * @param {number} height Texture height.
    * @param {number} [type] A `Tr2TextureAtlas.AtlasTextureType` value.
@@ -1521,6 +1542,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Live textures in the atlas (Python-only `GetTexturesInAtlas`,
    * `Tr2TextureAtlas.cpp:1167-1179`).
    *
+   * @adapted
    * @returns {Tr2AtlasTexture[]} The textures.
    */
   @meta.adapted
@@ -1538,6 +1560,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Live outsiders (`Tr2TextureAtlas.cpp:1181-1193`).
    *
+   * @adapted
    * @returns {Tr2AtlasTexture[]} The textures.
    */
   @be.mapMethodAndWrap()
@@ -1556,6 +1579,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Returns the margin around each texture (`Tr2TextureAtlas.h:82-85`).
    *
+   * @implemented
    * @returns {number} Margin in pixels.
    */
   @meta.implemented
@@ -1567,6 +1591,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Returns the atlas width (`Tr2TextureAtlas.h:74-77`).
    *
+   * @implemented
    * @returns {number} Width in pixels.
    */
   @meta.implemented
@@ -1578,6 +1603,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Returns the atlas height (`Tr2TextureAtlas.h:78-81`).
    *
+   * @implemented
    * @returns {number} Height in pixels.
    */
   @meta.implemented
@@ -1589,6 +1615,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Sets the margin (`Tr2TextureAtlas.cpp:1196-1199`).
    *
+   * @implemented
    * @param {number} margin Margin in pixels.
    * @returns {void}
    */
@@ -1601,6 +1628,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Sets `paintEmptyAreas` (`Tr2TextureAtlas.cpp:1201-1204`).
    *
+   * @implemented
    * @param {boolean} paintEmptyAreas Whether to paint empty areas.
    * @returns {void}
    */
@@ -1614,6 +1642,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Sets whether textures that do not fit become outsiders
    * (`Tr2TextureAtlas.cpp:1206-1209`).
    *
+   * @implemented
    * @param {boolean} createOutsiders Whether to create outsiders.
    * @returns {void}
    */
@@ -1627,6 +1656,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Sets the largest texture area accepted into the atlas
    * (`Tr2TextureAtlas.cpp:1211-1214`).
    *
+   * @implemented
    * @param {number} maxTextureArea Area in texels.
    * @returns {void}
    */
@@ -1640,6 +1670,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Copies of the free rectangles, pending ones included
    * (`Tr2TextureAtlas.cpp:1216-1228`).
    *
+   * @implemented
    * @returns {Array<{left: number, top: number, right: number, bottom: number}>} The rectangles.
    */
   @meta.implemented
@@ -1655,6 +1686,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Copies of the rectangles used by textures in the atlas
    * (`Tr2TextureAtlas.cpp:1230-1245`). Collected textures are skipped.
    *
+   * @implemented
    * @returns {Array<{left: number, top: number, right: number, bottom: number}>} The rectangles.
    */
   @meta.implemented
@@ -1674,6 +1706,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Recomputes the largest free width and height (`Tr2TextureAtlas.cpp:1248-1260`).
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1693,6 +1726,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Moves a texture out of the atlas into its own AL texture
    * (`Tr2TextureAtlas.cpp:1262-1285`).
    *
+   * @implemented
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {boolean} True when it was ejected.
    */
@@ -1721,6 +1755,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * the pending area is finally freed (`FreeArea`, :1417-1435, does not count
    * texels), so `GetFreeTexels` under-reports after every eject. Reproduced.
    *
+   * @implemented
    * @param {Tr2AtlasTexture} tex The texture.
    * @returns {boolean} True when the copy succeeded.
    */
@@ -1799,6 +1834,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * can be handed out twice. `m_freeTexels` and the free maxima are also not
    * reset. Reproduced.
    *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -1833,6 +1869,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Frees the parked areas whose frame the device has finished rendering
    * (`Tr2TextureAtlas.cpp:1393-1415`).
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1915,6 +1952,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * (`Tr2TextureAtlas.cpp:1417-1435`). More than 32 frees since the last
    * collapse makes a collapse "warranted".
    *
+   * @implemented
    * @param {Tr2TextureAtlasArea|null} area The area.
    * @returns {void}
    */
@@ -1939,6 +1977,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Whether a size is too large to atlas (`Tr2TextureAtlas.cpp:1437-1446`).
    *
+   * @implemented
    * @param {number} width Width.
    * @param {number} height Height.
    * @returns {boolean} True above `_maxTextureArea` texels.
@@ -1953,6 +1992,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Box-filters dirty regions down the mip chain (`Tr2TextureAtlas.cpp:1449-1553`).
    * Carbon never sets `m_hasMipMaps`, so this returns at once there too.
    *
+   * @implemented
    * @param {object} renderContext The render context.
    * @returns {void}
    */
@@ -2052,6 +2092,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * Records a region whose lower mips need rebuilding
    * (`Tr2TextureAtlas.cpp:1555-1559`).
    *
+   * @implemented
    * @param {{left: number, top: number, right: number, bottom: number}} rect The region.
    * @returns {void}
    */
@@ -2067,6 +2108,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * the `Tr2TextureAL` value itself is passed and compared by shared
    * implementation identity.
    *
+   * @adapted
    * @param {number} type A `Tr2RenderContextEnum::ObjectType` value.
    * @param {Tr2TextureAL} object The AL object.
    * @returns {boolean} True when it is the atlas texture.
@@ -2086,6 +2128,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Atlases are never multisampled (`Tr2TextureAtlas.cpp:1582-1585`).
    *
+   * @implemented
    * @returns {number} 1.
    */
   @meta.implemented
@@ -2097,6 +2140,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Atlases are never multisampled (`Tr2TextureAtlas.cpp:1587-1590`).
    *
+   * @implemented
    * @returns {number} 0.
    */
   @meta.implemented
@@ -2108,6 +2152,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * How many texels are not assigned to a texture (`Tr2TextureAtlas.h:117-120`).
    *
+   * @implemented
    * @returns {number} Free texels.
    */
   @be.mapMethodAndWrap()
@@ -2120,6 +2165,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Fraction of the atlas that is unused (`Tr2TextureAtlas.h:121-124`).
    *
+   * @implemented
    * @returns {number} Free texels over total texels, as a float.
    */
   @be.mapMethodAndWrap()
@@ -2132,6 +2178,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Width of the largest free area, as last cached (`Tr2TextureAtlas.h:125-128`).
    *
+   * @implemented
    * @returns {number} Width.
    */
   @be.mapMethodAndWrap()
@@ -2144,6 +2191,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /**
    * Height of the largest free area, as last cached (`Tr2TextureAtlas.h:129-132`).
    *
+   * @implemented
    * @returns {number} Height.
    */
   @be.mapMethodAndWrap()

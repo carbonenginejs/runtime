@@ -30,7 +30,11 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
   @type.object.ref("ITriVectorFunction")
   scaleCurve = null;
 
-  /** Reports a transform effect whenever a non-zero scale factor is authored. */
+  /**
+   * Reports a transform effect whenever a non-zero scale factor is authored.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AffectsTransform()
@@ -41,6 +45,7 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
   /**
    * Scales a placement by the size of the parent space object: the parent's bounding-sphere radius either samples scaleCurve or, without a curve, forms a scaleFactor-shaped ratio against authoredForBoundingRadius, and the result multiplies into the placement's additional scale rather than replacing it. Does nothing when the update params carry no space-object parent.
    *
+   * @adapted
    * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
    */
 

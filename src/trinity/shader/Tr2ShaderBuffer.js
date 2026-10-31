@@ -26,7 +26,11 @@ export class Tr2ShaderBuffer extends IRoot
 
   shaderType = ShaderType.PIXEL_SHADER;
 
-  /** Carbon method SetData -> SetDataFromScript (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetData -> SetDataFromScript (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetData(data, size = data?.byteLength ?? data?.length ?? 0)
@@ -55,6 +59,8 @@ export class Tr2ShaderBuffer extends IRoot
   /**
    * Carbon ApplyBuffer (Tr2ShaderBuffer.cpp:25-28): fill the context-owned
    * stage buffer and bind it at that stage's per-object register.
+   *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The context receiving the data.
    * @returns {boolean} Whether the upload and binding succeeded.
    */

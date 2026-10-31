@@ -108,7 +108,11 @@ export class FollowASpline extends IRoot
 
   _returnForces = [];
 
-  /** Carbon FollowASpline::GetProcessPriority (cpp:32-35). */
+  /**
+   * Carbon FollowASpline::GetProcessPriority (cpp:32-35).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -116,7 +120,11 @@ export class FollowASpline extends IRoot
     return this.behaviorPriority;
   }
 
-  /** Carbon FollowASpline::OnModified (cpp:26-30). */
+  /**
+   * Carbon FollowASpline::OnModified (cpp:26-30).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_value = null)
@@ -131,6 +139,8 @@ export class FollowASpline extends IRoot
    * branches are textually identical - each hands the group a bound
    * UpdateTunnelRegistry callback with debug colour 0xff5555aa. One body
    * here; the duplication is the donor's, not three behaviours.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -152,8 +162,8 @@ export class FollowASpline extends IRoot
   /**
    * Per-agent scratch record count (Carbon sizeof(FollowASplineData)).
    *
-   * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
-   * value means 'has scratch'.
+   * @adapted Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
+   *   value means 'has scratch'.
    */
 
   @meta.adapted
@@ -165,7 +175,7 @@ export class FollowASpline extends IRoot
   /**
    * Fresh per-agent scratch record (Carbon FollowASplineData placement init).
    *
-   * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
+   * @adapted Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
    */
 
   @meta.adapted
@@ -181,6 +191,8 @@ export class FollowASpline extends IRoot
    * Pulls unassigned agents into tunnel entrances, steers locked agents along
    * their tunnel points, and replays cached pull forces on skip frames
    * (Carbon CalculateBehavior, cpp:201-293).
+   *
+   * @adapted
    * @param {Array} agents - DroneAgent records
    * @param {Array} scratchData - per-agent FollowASplineData records
    * @param {Number} _deltaTime
@@ -320,6 +332,8 @@ export class FollowASpline extends IRoot
    * Carbon UpdateTunnelRegistry (cpp:319-335): clear the private list,
    * flatten every group's tunnels into it, and raise the reassign flag so
    * ReassignTunnelIDsAndAddSystemTunnels renumbers on the next tick.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("remapTunnels")
   @meta.implemented
@@ -333,7 +347,11 @@ export class FollowASpline extends IRoot
     this.shouldReassignTunnelIDs = true;
   }
 
-  /** Blue exposure "remapTunnels" of UpdateTunnelRegistry (FollowASpline_Blue.cpp:37). */
+  /**
+   * Blue exposure "remapTunnels" of UpdateTunnelRegistry (FollowASpline_Blue.cpp:37).
+   *
+   * @adapted
+   */
   @meta.adapted
   remapTunnels()
   {
@@ -570,6 +588,8 @@ export class FollowASpline extends IRoot
 
   /**
    * Carbon FollowASpline::GetDebugOptions (cpp:372-375).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -584,6 +604,8 @@ export class FollowASpline extends IRoot
    * every collected target point, then each spline tunnel group's own debug
    * geometry. Carbon's trailing `return;` closes the block and changes
    * nothing, so it is not repeated.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation Places the target points in world space.

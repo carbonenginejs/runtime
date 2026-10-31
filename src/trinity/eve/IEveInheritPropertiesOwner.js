@@ -26,6 +26,7 @@ export class IEveInheritPropertiesOwner extends IRoot
    * THE ONLY METHOD, AND CARBON MAKES IT PURE VIRTUAL: an owner exists
    * precisely to accept the colours, so there is no sensible default.
    *
+   * @abstract
    * @param {Array} _colorSet The inherited colour properties.
    */
   SetInheritProperties(_colorSet)

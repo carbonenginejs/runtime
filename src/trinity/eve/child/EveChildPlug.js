@@ -70,7 +70,11 @@ export class EveChildPlug extends EveChildTransform
   @type.list("ITr2Controller")
   controllers = [];
 
-  /** Registers hydrated children and links hydrated controllers. */
+  /**
+   * Registers hydrated children and links hydrated controllers.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -87,6 +91,7 @@ export class EveChildPlug extends EveChildTransform
    * Carbon EveChildPlug::OnModified (EveChildPlug.cpp:111-118): a display change
    * re-registers with the scene component registry.
    *
+   * @implemented
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
@@ -109,6 +114,8 @@ export class EveChildPlug extends EveChildTransform
    * remove, unlink every one on unload. Objects go through the shared
    * child-registration helper and, while this plug is in a registry, register
    * or unregister as entities.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -175,8 +182,8 @@ export class EveChildPlug extends EveChildTransform
    * Appends one plugged child. The registration and the variable replay are the
    * INSERTED arm's, reached through the managed mutation.
    *
-   * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
-   * through the shared child service rather than the list driving it.
+   * @adapted A JavaScript array has no notify slot, so the owner drives the notification
+   *   through the shared child service rather than the list driving it.
    */
 
   @meta.adapted
@@ -189,8 +196,8 @@ export class EveChildPlug extends EveChildTransform
   /**
    * Removes one plugged child; the unregistration is the REMOVED arm's.
    *
-   * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
-   * through the shared child service rather than the list driving it.
+   * @adapted A JavaScript array has no notify slot, so the owner drives the notification
+   *   through the shared child service rather than the list driving it.
    */
 
   @meta.adapted
@@ -199,7 +206,11 @@ export class EveChildPlug extends EveChildTransform
     return removeChild(this, "objects", child, { listNotify: this });
   }
 
-  /** Propagates the owning space object through the plugged subtree. */
+  /**
+   * Propagates the owning space object through the plugged subtree.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetOwner(owner)
@@ -209,7 +220,11 @@ export class EveChildPlug extends EveChildTransform
     for (const child of this.objects) child.SetOwner(owner);
   }
 
-  /** Propagates a modular part tag through the plugged subtree. */
+  /**
+   * Propagates a modular part tag through the plugged subtree.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetPartTag(tag)
@@ -220,7 +235,11 @@ export class EveChildPlug extends EveChildTransform
     for (const child of this.objects) child.SetPartTag(next);
   }
 
-  /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
@@ -228,7 +247,11 @@ export class EveChildPlug extends EveChildTransform
     for (const controller of this.controllers) controller?.HandleEvent(name);
   }
 
-  /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
@@ -240,7 +263,11 @@ export class EveChildPlug extends EveChildTransform
     for (const object of this.objects) object?.SetControllerVariable(key, next);
   }
 
-  /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method StartControllers (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
@@ -248,7 +275,11 @@ export class EveChildPlug extends EveChildTransform
     for (const controller of this.controllers) controller?.Start();
   }
 
-  /** Carbon EveChildPlug::PlayAllCurveSets (cpp:272-281): forwards to the curve-set-owning objects. */
+  /**
+   * Carbon EveChildPlug::PlayAllCurveSets (cpp:272-281): forwards to the curve-set-owning objects.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayAllCurveSets()
@@ -260,7 +291,11 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildPlug::StopAllCurveSets (cpp:283-292). */
+  /**
+   * Carbon EveChildPlug::StopAllCurveSets (cpp:283-292).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopAllCurveSets()
@@ -272,7 +307,11 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildPlug::PlayCurveSet (cpp:294-303). */
+  /**
+   * Carbon EveChildPlug::PlayCurveSet (cpp:294-303).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
@@ -284,7 +323,11 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildPlug::StopCurveSet (cpp:305-314). */
+  /**
+   * Carbon EveChildPlug::StopCurveSet (cpp:305-314).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopCurveSet(name)
@@ -296,7 +339,11 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildPlug::UpdateCurveSet (cpp:316-325). */
+  /**
+   * Carbon EveChildPlug::UpdateCurveSet (cpp:316-325).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateCurveSet(name, time)
@@ -308,7 +355,11 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildPlug::GetCurveSetDuration (cpp:327-339): the longest over the curve-set-owning objects. */
+  /**
+   * Carbon EveChildPlug::GetCurveSetDuration (cpp:327-339): the longest over the curve-set-owning objects.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCurveSetDuration(name)
@@ -322,7 +373,11 @@ export class EveChildPlug extends EveChildTransform
     return duration;
   }
 
-  /** Carbon EveChildPlug::GetRangeDuration (cpp:341-353): the longest over the curve-set-owning objects. */
+  /**
+   * Carbon EveChildPlug::GetRangeDuration (cpp:341-353): the longest over the curve-set-owning objects.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRangeDuration(name, rangeName)
@@ -336,8 +391,12 @@ export class EveChildPlug extends EveChildTransform
     return duration;
   }
 
-  /** Carbon EveChildPlug::RegisterComponents (cpp:122-135): forward-only to
-   * the plugged objects. Gate m_display. */
+  /**
+   * Carbon EveChildPlug::RegisterComponents (cpp:122-135): forward-only to
+   * the plugged objects. Gate m_display.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -352,8 +411,12 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildPlug::UnRegisterComponents (cpp:141-154): forwards to the
-   * plugged objects; no display re-check. */
+  /**
+   * Carbon EveChildPlug::UnRegisterComponents (cpp:141-154): forwards to the
+   * plugged objects; no display re-check.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -368,7 +431,11 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
-  /** Carbon GetEffectChildByName (EveChildPlug.cpp:422-433): the first object with that name. */
+  /**
+   * Carbon GetEffectChildByName (EveChildPlug.cpp:422-433): the first object with that name.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetEffectChildByName(name)
@@ -382,6 +449,8 @@ export class EveChildPlug extends EveChildTransform
   /**
    * Carbon EveChildPlug::SetShaderOption (cpp:263-270): forwards to every
    * child object.
+   *
+   * @implemented
    * @param {string} name
    * @param {string} value
    */
@@ -397,6 +466,8 @@ export class EveChildPlug extends EveChildTransform
   /**
    * Carbon EveChildPlug::GetDebugOptions (cpp:359-368): each debug-renderable
    * child's options.
+   *
+   * @implemented
    * @param {Set<string>} options
    */
   @meta.implemented
@@ -415,6 +486,8 @@ export class EveChildPlug extends EveChildTransform
   /**
    * Carbon EveChildPlug::RenderDebugInfo (cpp:370-383): each debug-renderable
    * child draws, unless the plug is hidden.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
   @meta.implemented
@@ -434,7 +507,11 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildPlug::FindSoundEmitter (cpp:486-500): the first child emitter of that name. */
+  /**
+   * Carbon EveChildPlug::FindSoundEmitter (cpp:486-500): the first child emitter of that name.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   FindSoundEmitter(name)

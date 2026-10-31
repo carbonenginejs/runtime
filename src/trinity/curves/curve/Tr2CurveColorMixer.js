@@ -108,6 +108,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
 
   /**
    * Updates both native color caches.
+   *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -123,6 +125,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * Converts `input`'s RGB from sRGB to linear into `out` and copies alpha
    * (Carbon cpp:72-79). Carbon's header comment calls this linear to sRGB; the
    * body is the sRGB-to-linear decode.
+   *
+   * @implemented
    * @param {Float32Array} input Source colour.
    * @param {Float32Array} out Destination colour; may be `input`.
    * @returns {void}
@@ -139,6 +143,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
   /**
    * One sRGB channel to linear (Carbon cpp:81-89). num.linearFromSRGB is the
    * same piecewise curve, with the divisions folded into constants.
+   *
+   * @implemented
    * @param {number} x sRGB channel value.
    * @returns {number} Linear channel value.
    */
@@ -151,6 +157,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
   /**
    * Updates the mixed color cache without refreshing convertedLinearValue.
    * JavaScript uses seconds-first/output-last calls instead of native overloads.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -166,6 +174,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
   /**
    * Samples the existing saturation and brightness algorithm into the output.
    * JavaScript uses seconds-first/output-last calls; native tick overloads are not dispatched.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -194,6 +204,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
 
   /**
    * Returns the native zero mixer duration.
+   *
+   * @implemented
    * @returns {number} Duration in seconds.
    */
 
@@ -205,6 +217,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
 
   /**
    * Samples into a caller-owned destination instead of returning a native value.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.

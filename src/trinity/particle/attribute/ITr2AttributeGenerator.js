@@ -10,11 +10,19 @@ import { blue } from "#schema";
 export class ITr2AttributeGenerator extends IRoot
 {
 
-  /** Binds this generator to a particle-system declaration. */
+  /**
+   * Binds this generator to a particle-system declaration.
+   *
+   * @abstract
+   */
   @be.abstract
   Bind(_particleSystem, _boundElements) {}
 
-  /** Writes this generator's attribute values for one particle. */
+  /**
+   * Writes this generator's attribute values for one particle.
+   *
+   * @abstract
+   */
   @be.abstract
   Generate(_position, _velocity, _index) {}
 

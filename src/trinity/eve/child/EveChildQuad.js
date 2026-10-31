@@ -139,6 +139,8 @@ export class EveChildQuad extends EveChildTransform
   /**
    * Caches the effect key and rebuilds static local transforms
    * (EveChildQuad.cpp:53-65).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -160,6 +162,8 @@ export class EveChildQuad extends EveChildTransform
 
   /**
    * The quad's name.
+   *
+   * @implemented
    */
   @meta.implemented
   GetName()
@@ -169,6 +173,8 @@ export class EveChildQuad extends EveChildTransform
 
   /**
    * Sets the quad's name, coercing the value to a string.
+   *
+   * @implemented
    */
   @meta.implemented
   SetName(name)
@@ -176,7 +182,11 @@ export class EveChildQuad extends EveChildTransform
     this.name = String(name ?? "");
   }
 
-  /** Forwards to the base transform setup (EveChildQuad.cpp:82-85). */
+  /**
+   * Forwards to the base transform setup (EveChildQuad.cpp:82-85).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
@@ -184,7 +194,11 @@ export class EveChildQuad extends EveChildTransform
     return super.Setup(scale, rotation, translation, lowestLodVisible);
   }
 
-  /** Registers the effect bucket with a quad renderer (EveChildQuad.cpp:87-93). */
+  /**
+   * Registers the effect bucket with a quad renderer (EveChildQuad.cpp:87-93).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -202,10 +216,11 @@ export class EveChildQuad extends EveChildTransform
     }
   }
 
-  /** Submits the current instance record when visible (EveChildQuad.cpp:95-101).
+  /**
+   * Submits the current instance record when visible (EveChildQuad.cpp:95-101).
    *
-   * Adapted: Trinity packs Carbon's mixed float32/float16 record into terminal
-   * bytes before direct submission to the injected renderer.
+   * @adapted Trinity packs Carbon's mixed float32/float16 record into terminal
+   *   bytes before direct submission to the injected renderer.
    */
 
   @meta.adapted
@@ -217,7 +232,11 @@ export class EveChildQuad extends EveChildTransform
     }
   }
 
-  /** Quads render through the quad renderer, never as renderables (EveChildQuad.cpp:103-105). */
+  /**
+   * Quads render through the quad renderer, never as renderables (EveChildQuad.cpp:103-105).
+   *
+   * @adapted
+   */
   @meta.adapted
   GetRenderables(renderables)
   {
@@ -227,6 +246,8 @@ export class EveChildQuad extends EveChildTransform
   /**
    * Unit quad bound: sphere (0,0,0,sqrt(2)) transformed by the world transform
    * (EveChildQuad.cpp:107-112).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -239,6 +260,8 @@ export class EveChildQuad extends EveChildTransform
 
   /**
    * Always false: a quad renders only through the quad renderer, never as a transparent batch.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -247,7 +270,11 @@ export class EveChildQuad extends EveChildTransform
     return false;
   }
 
-  /** Carbon's batch hook is empty - quads only draw through the quad renderer (EveChildQuad.cpp:119-121). */
+  /**
+   * Carbon's batch hook is empty - quads only draw through the quad renderer (EveChildQuad.cpp:119-121).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetBatches(_batches, _batchType, _perObjectData, _reason)
@@ -255,7 +282,11 @@ export class EveChildQuad extends EveChildTransform
     return false;
   }
 
-  /** Distance from the view position to the world translation (EveChildQuad.cpp:123-128). */
+  /**
+   * Distance from the view position to the world translation (EveChildQuad.cpp:123-128).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -270,6 +301,8 @@ export class EveChildQuad extends EveChildTransform
   /**
    * Edit-mode effect-key refresh (EveChildQuad.cpp:131-149): when the effect
    * hash changes the quad re-registers its renderer bucket.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -300,6 +333,8 @@ export class EveChildQuad extends EveChildTransform
    * (_11,_21,_31,_41 / _12,_22,_32,_42 / _13,_23,_33,_43), which on the shared
    * D3D-row-major / GL-column-major byte layout is the column-stride pattern
    * (m[0],m[4],m[8],m[12]) etc. - matching the Carbon Float4x3 packing rule.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -323,6 +358,8 @@ export class EveChildQuad extends EveChildTransform
   /**
    * Frustum/screen-size visibility for the unit quad bound
    * (EveChildQuad.cpp:173-196).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -352,6 +389,8 @@ export class EveChildQuad extends EveChildTransform
 
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildQuad.cpp:198-201): copies the world transform into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -362,13 +401,21 @@ export class EveChildQuad extends EveChildTransform
     return mat4.copy(out, this.worldTransform);
   }
 
-  /** Carbon declares ChangeLOD inline empty (EveChildQuad.h:40). */
+  /**
+   * Carbon declares ChangeLOD inline empty (EveChildQuad.h:40).
+   *
+   * @adapted
+   */
   @meta.adapted
   ChangeLOD(_lod)
   {
   }
 
-  /** Quads carry no per-object data (EveChildQuad.cpp:203-206). */
+  /**
+   * Quads carry no per-object data (EveChildQuad.cpp:203-206).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPerObjectData(_accumulator)
@@ -382,9 +429,9 @@ export class EveChildQuad extends EveChildTransform
    * half4 color and a half2 brightness. Element records mirror the Carbon
    * Tr2VertexDefinition::Add(type, usage, usageIndex, stream, stepRate) calls.
    *
-   * Adapted: Tr2VertexDefinition is a native layout builder; the same elements
-   * are published as a frozen descriptor list though the draw itself is not
-   * ported yet.
+   * @adapted Tr2VertexDefinition is a native layout builder; the same elements
+   *   are published as a frozen descriptor list though the draw itself is not
+   *   ported yet.
    */
 
   @meta.adapted

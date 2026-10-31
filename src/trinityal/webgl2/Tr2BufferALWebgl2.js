@@ -151,6 +151,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * what it refuses, with one refusal of its own: `UNORDERED_ACCESS`, which
    * WebGL2 cannot provide.
    *
+   * @adapted
    * @param {Tr2BufferDescriptionAL} desc The buffer description.
    * @param {ArrayBufferView|null} initialData Initial contents, if any.
    * @param {object} renderContext The context to create against.
@@ -273,7 +274,11 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
     this._target = 0;
   }
 
-  /** Releases the buffer and leaves the device-resource registry. */
+  /**
+   * Releases the buffer and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -283,6 +288,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the buffer exists on the device.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -293,6 +299,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this buffer occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -303,6 +310,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * The buffer description.
    *
+   * @implemented
    * @returns {Tr2BufferDescriptionAL} The description.
    */
   GetDesc()
@@ -324,6 +332,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Carbon's MapForReading( data, renderContext ): maps the whole buffer.
    *
+   * @adapted
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
@@ -337,6 +346,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * Carbon's MapForReading( data, offset, size, renderContext ): maps a byte
    * range; an empty or out-of-range span is E_INVALIDARG.
    *
+   * @adapted
    * @param {object} renderContext The context to map against.
    * @param {number} offset Byte offset of the range.
    * @param {number} size Bytes in the range.
@@ -394,6 +404,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * one to the whole buffer rather than to `size`, so a later whole read reuses
    * it. The staging copy is CPU memory here: `getBufferSubData` reads into it.
    *
+   * @adapted
    * @param {number} size Bytes the read needs.
    * @param {object} _renderContext The context the read is made against.
    * @returns {number} An `ALResult` value.
@@ -411,6 +422,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * Ends a read mapping. As dx11 does, the staging copy is let go unless the
    * buffer is read often.
    *
+   * @implemented
    * @param {object} renderContext The context the map was made against.
    */
   UnmapForReading(renderContext)
@@ -429,6 +441,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * dynamic mapping, `WRITE` the write-lock copy. WebGL2 cannot map device
    * memory, so both get `_writeLockMemory` and the upload happens at unmap.
    *
+   * @adapted
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
@@ -454,6 +467,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * on. With it, and for `WRITE`, it is `bufferSubData` over the old storage,
    * dx11's `WRITE_NO_OVERWRITE` and `UpdateSubresource`.
    *
+   * @adapted
    * @param {object} renderContext The context the map was made against.
    */
   @meta.adapted
@@ -488,6 +502,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * is mapped, copied into and unmapped; a `WRITE` buffer takes a boxed
    * `UpdateSubresource`, which is `bufferSubData` at the offset.
    *
+   * @implemented
    * @param {number} offset Byte offset of the range.
    * @param {number} size Bytes in the range.
    * @param {ArrayBufferView} data The bytes.
@@ -535,6 +550,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Where the shader-resource view sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index"; dx11 has no heap either.
    */
   GetSrvIndexInHeap()
@@ -545,6 +561,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Where the unordered-access view sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index".
    */
   GetUavIndexInHeap()
@@ -556,6 +573,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * Describes the buffer for the device-resource registry, with dx11's keys
    * (`Tr2BufferALDx11.cpp:455-465`).
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -576,6 +594,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * Names the buffer. WebGL has no debug names, so the name is kept for
    * `Describe` only.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
@@ -589,6 +608,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * The native buffer, dx11's `GetGpuResource` returning the
    * `ID3D11Buffer`; here the `WebGLBuffer`.
    *
+   * @implemented
    * @returns {WebGLBuffer|null} The buffer.
    */
   GetGpuResource()

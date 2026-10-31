@@ -250,8 +250,8 @@ export class Tr2VolumetricsRenderer
    * `PriorityBlend.accumulate`. With `logBlending`, thickness is blended in
    * log space and converted back (cpp:341-395).
    *
-   * Adapted: each attribute is selected by an accessor function where Carbon's
-   * FROXEL_ACCUMULATE macro passes a member pointer.
+   * @adapted each attribute is selected by an accessor function where Carbon's
+   *   FROXEL_ACCUMULATE macro passes a member pointer.
    */
 
   @meta.adapted
@@ -297,7 +297,11 @@ export class Tr2VolumetricsRenderer
     }
   }
 
-  /** Reports whether the blended fog thickness is strictly positive. */
+  /**
+   * Reports whether the blended fog thickness is strictly positive.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasFog()
@@ -309,7 +313,7 @@ export class Tr2VolumetricsRenderer
    * Writes the FroxelPerFrameData fields (cpp:1044-1069). A reflection probe's fog is scaled by the blended
    * reflectionIntensity, clamped to 0..1; every other view's by 1.
    *
-   * Adapted: Carbon fills an inline constant struct; this writes the same fields through the per-frame RawData layout.
+   * @adapted Carbon fills an inline constant struct; this writes the same fields through the per-frame RawData layout.
    * @param {RawData} out The per-frame record.
    * @returns {RawData} out
    */
@@ -336,6 +340,8 @@ export class Tr2VolumetricsRenderer
   /**
    * Marks whether the fog is being rendered for a reflection probe (h:112-115); PopulatePerFrameData then scales it
    * by the blended reflectionIntensity.
+   *
+   * @implemented
    * @param {boolean} isReflectionProbe Whether a reflection probe is rendering.
    */
   @meta.implemented
@@ -345,7 +351,11 @@ export class Tr2VolumetricsRenderer
     this._isReflectionProbe = isReflectionProbe;
   }
 
-  /** Applies Carbon's four quality presets. */
+  /**
+   * Applies Carbon's four quality presets.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetQuality(quality)
@@ -379,8 +389,8 @@ export class Tr2VolumetricsRenderer
   /**
    * Copies the two planet spheres used by the fog shader (cpp:1099-1106).
    *
-   * Adapted: Carbon asserts a two-sphere span and copies it whole; this throws a RangeError for any other count and
-   * copies the two vec4 records.
+   * @adapted Carbon asserts a two-sphere span and copies it whole; this throws a RangeError for any other count and
+   *   copies the two vec4 records.
    */
 
   @meta.adapted
@@ -394,7 +404,11 @@ export class Tr2VolumetricsRenderer
     vec4.copy(this._planets[1], planets[1]);
   }
 
-  /** Stores the sun angle consumed by later fog constant production. */
+  /**
+   * Stores the sun angle consumed by later fog constant production.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetSunAngle(angle)
@@ -405,10 +419,11 @@ export class Tr2VolumetricsRenderer
   /**
    * Carbon Tr2VolumetricsRenderer.cpp:152-340: update one cloud lightmap, render
    * four depth slices, optionally blur and composite over the saved target.
-   * Adapted: pool descriptions combine the native overload arguments, and
-   * explicit Free calls replace scope-bound pool handles. JS shader failures
-   * throw, so finally also restores native target stacks and borrowed bindings.
-   * Carbon declaration: Tr2VolumetricsRenderer::RenderVolumetrics (trinity/trinity/Tr2VolumetricsRenderer.h:68).
+   *
+   * @adapted pool descriptions combine the native overload arguments, and
+   *   explicit Free calls replace scope-bound pool handles. JS shader failures
+   *   throw, so finally also restores native target stacks and borrowed bindings.
+   *   Carbon declaration: Tr2VolumetricsRenderer::RenderVolumetrics (trinity/trinity/Tr2VolumetricsRenderer.h:68).
    */
   @meta.adapted
   RenderVolumetrics(registry, frustum, sceneDepth, froxelFog, sunDirection,
@@ -530,7 +545,11 @@ export class Tr2VolumetricsRenderer
     }
   }
 
-  /** Native four transparent slices (cpp:125-150); options combine the pool overloads. */
+  /**
+   * Native four transparent slices (cpp:125-150); options combine the pool overloads.
+   *
+   * @adapted
+   */
   @meta.adapted
 
 
@@ -546,6 +565,8 @@ export class Tr2VolumetricsRenderer
    * Renders the scene view's froxel fog into a 3D froxel texture and composites it over the current target, returning
    * the froxels; with the fog off it returns the empty fog texture (cpp:491-514). The scene view's resources filter
    * temporally.
+   *
+   * @implemented
    * @returns {object} The froxel texture, or the empty fog texture.
    */
   @meta.implemented
@@ -563,6 +584,8 @@ export class Tr2VolumetricsRenderer
    * Renders the fog into a reflection map (cpp:516-533): the same froxel passes with the reflection resources, which
    * do not filter temporally, no shadows, no origin shift, and this frame's view and projection standing in for last
    * frame's. With the fog off it returns the empty fog texture.
+   *
+   * @implemented
    * @returns {object} The froxel texture, or the empty fog texture.
    * Carbon declaration: Tr2VolumetricsRenderer::RenderFogIntoReflectionMap (trinity/trinity/Tr2VolumetricsRenderer.h:99).
    */
@@ -576,7 +599,11 @@ export class Tr2VolumetricsRenderer
     return fog;
   }
 
-  /** Native transparent 3D fog texel (cpp:536-553). */
+  /**
+   * Native transparent 3D fog texel (cpp:536-553).
+   *
+   * @implemented
+   */
   @meta.implemented
 
 
@@ -603,13 +630,13 @@ export class Tr2VolumetricsRenderer
    * - raymarches them front to back;
    * - applies them over the scene with one alpha-blended screen quad.
    *
-   * Adapted:
-   * - **Raytraced shadows.** The raytraced-shadow branch needs DispatchRays, which no JavaScript backend provides;
+   * @adapted - **Raytraced shadows.** The raytraced-shadow branch needs DispatchRays, which no JavaScript backend provides;
    *   no scene passes raytracing geometry to it, and choosing that branch throws.
-   * - **Constants.** They are filled into a FogPerObjectData record and copied into the locked buffer as bytes, so
+   *   - **Constants.** They are filled into a FogPerObjectData record and copied into the locked buffer as bytes, so
    *   the bit-field light words arrive intact.
-   * - **Pool handles.** They are released explicitly; the froxel handle is returned to the caller, who releases it.
-   * - **GPU regions.** Carbon's GPU regions are not ported.
+   *   - **Pool handles.** They are released explicitly; the froxel handle is returned to the caller, who releases it.
+   *   - **GPU regions.** Carbon's GPU regions are not ported.
+   * @renamed RenderFog
    * @param {Tr2VolumetricsRendererFogViewDependentResources} resources The view's froxel effects and temporal state.
    * @returns {GpuResourceHandle|null} The froxel texture; null where Carbon returns an empty texture.
    */
@@ -779,6 +806,8 @@ export class Tr2VolumetricsRenderer
    * UpdateMieEnvironmentMap blends towards the environment each frame, with golden-ratio jitter and a blend weight
    * that settles as the directionality holds steady. Otherwise it is a black 1² cube. A size change recreates the map
    * and restarts the blend.
+   *
+   * @implemented
    * @param {object} renderContext The frame's Tr2RenderContext.
    */
 
@@ -864,8 +893,8 @@ export class Tr2VolumetricsRenderer
    * Matrix4dMultiply( r, m0, m1 ) is m0 * m1 (TriMath.cpp:825-835). Matrices are logical; the record transposes them.
    * The cascade matrices are kept logical by Tr2ShadowMap, where Carbon stores them transposed and transposes back.
    *
-   * Adapted: Carbon's GetLightData( index ) returns one light's PerLightData; this copies the light's 12 words from
-   * the light manager's packed buffer, whose index is the record index.
+   * @adapted Carbon's GetLightData( index ) returns one light's PerLightData; this copies the light's 12 words from
+   *   the light manager's packed buffer, whose index is the record index.
    * @param {RawData} data The FogPerObjectData record.
    * @param {Tr2ShadowMap|null} cascadedShadowMap The scene's cascades, or null for no shadows.
    * Carbon declaration: Tr2VolumetricsRenderer::UpdatePerObjectData (trinity/trinity/Tr2VolumetricsRenderer.h:287).
@@ -1076,6 +1105,8 @@ export class Tr2VolumetricsRenderer
    * Carbon takes no arguments here and registers on the global store
    * (`Tr2VolumetricsRenderer.cpp`, one line). The port had grown a
    * `renderContext` parameter that existed only to reach an executor.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1086,8 +1117,9 @@ export class Tr2VolumetricsRenderer
 
   /**
    * Carbon shadow batches and target stack (Tr2VolumetricsRenderer.cpp:1115-1145).
-   * Adapted: finally restores native stacks when a JavaScript shader draw throws.
-   * Carbon declaration: Tr2VolumetricsRenderer::RenderShadows (trinity/trinity/Tr2VolumetricsRenderer.h:120).
+   *
+   * @adapted finally restores native stacks when a JavaScript shader draw throws.
+   *   Carbon declaration: Tr2VolumetricsRenderer::RenderShadows (trinity/trinity/Tr2VolumetricsRenderer.h:120).
    */
   @meta.adapted
   RenderShadows(registry, shadowMap, renderContext)

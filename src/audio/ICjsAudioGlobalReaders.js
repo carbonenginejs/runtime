@@ -15,6 +15,7 @@ export class ICjsAudioGlobalReaders
     /**
      * A global RTPC's value.
      *
+     * @abstract
      * @param {string|number} _name - RTPC name or id.
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number|null} The value, or null when it is unset.
@@ -24,6 +25,7 @@ export class ICjsAudioGlobalReaders
     /**
      * AudioContext times after `_from` at which a global RTPC transition changes slope.
      *
+     * @abstract
      * @param {number} _from - AudioContext time.
      * @returns {number[]}
      */
@@ -32,6 +34,7 @@ export class ICjsAudioGlobalReaders
     /**
      * A global State group's weighted states, mid-transition included.
      *
+     * @abstract
      * @param {string|number} _group - State group name or id.
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {Array<{ state: string|number, weight: number }>}
@@ -41,6 +44,7 @@ export class ICjsAudioGlobalReaders
     /**
      * AudioContext times after `_from` at which a global State transition changes slope.
      *
+     * @abstract
      * @param {number} _from - AudioContext time.
      * @returns {number[]}
      */

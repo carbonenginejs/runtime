@@ -27,6 +27,7 @@ export class IBlueCallbackMan extends IRoot
    * `Add` - queues a callback with its context; urgent entries run before
    * regular ones.
    *
+   * @abstract
    * @param {Function|string} _callback The callback, or its registered name on worker threads.
    * @param {*} _context Passed to the callback.
    * @param {number} _flags `BCBF_*` flags.
@@ -39,60 +40,115 @@ export class IBlueCallbackMan extends IRoot
    * `Cancel` - removes a queued entry; for one in progress, waits for it to
    * finish and discards its outcome.
    *
+   * @abstract
    * @param {number} _id Entry id from `Add`.
    * @returns {Promise<void>} Settles once the entry is no longer running.
    */
   Cancel(_id) {}
 
-  /** `Run` - starts the manager's own threads, which process entries until stopped. */
+  /**
+   * `Run` - starts the manager's own threads, which process entries until stopped.
+   *
+   * @abstract
+   */
   Run() {}
 
-  /** `Pause` - stops the own threads taking new entries until resumed. */
+  /**
+   * `Pause` - stops the own threads taking new entries until resumed.
+   *
+   * @abstract
+   */
   Pause() {}
 
-  /** `Resume` - undoes one `Pause`. */
+  /**
+   * `Resume` - undoes one `Pause`.
+   *
+   * @abstract
+   */
   Resume() {}
 
-  /** `IsPaused` - whether a pause is in effect. */
+  /**
+   * `IsPaused` - whether a pause is in effect.
+   *
+   * @abstract
+   */
   IsPaused() {}
 
-  /** `Throttle` - called in the run loop; a subclass overrides it to pause when needed. */
+  /**
+   * `Throttle` - called in the run loop; a subclass overrides it to pause when needed.
+   *
+   * @abstract
+   */
   Throttle() {}
 
-  /** `Unthrottle` - called regularly to resume a manager paused by `Throttle`. */
+  /**
+   * `Unthrottle` - called regularly to resume a manager paused by `Throttle`.
+   *
+   * @abstract
+   */
   Unthrottle() {}
 
-  /** `Stop` - stops the own threads started by `Run`. */
+  /**
+   * `Stop` - stops the own threads started by `Run`.
+   *
+   * @abstract
+   */
   Stop() {}
 
   /**
    * `Update` - processes the next entry on the calling thread.
    *
+   * @abstract
    * @returns {boolean} Whether an entry was processed.
    */
   Update() {}
 
-  /** `IsEmpty` - whether no entry is queued or in progress. */
+  /**
+   * `IsEmpty` - whether no entry is queued or in progress.
+   *
+   * @abstract
+   */
   IsEmpty() {}
 
-  /** `GetNextId` - the id the next `Add` will hand out. */
+  /**
+   * `GetNextId` - the id the next `Add` will hand out.
+   *
+   * @abstract
+   */
   GetNextId() {}
 
-  /** `GetSize` - entries queued or in progress. */
+  /**
+   * `GetSize` - entries queued or in progress.
+   *
+   * @abstract
+   */
   GetSize() {}
 
-  /** `GetTimeInQueueMax` - the longest any entry waited, in seconds, since the last reset. */
+  /**
+   * `GetTimeInQueueMax` - the longest any entry waited, in seconds, since the last reset.
+   *
+   * @abstract
+   */
   GetTimeInQueueMax() {}
 
-  /** `GetTimeInQueueAverage` - the average wait, in seconds, since the last reset. */
+  /**
+   * `GetTimeInQueueAverage` - the average wait, in seconds, since the last reset.
+   *
+   * @abstract
+   */
   GetTimeInQueueAverage() {}
 
-  /** `ResetQueueStats` - resets the wait statistics. */
+  /**
+   * `ResetQueueStats` - resets the wait statistics.
+   *
+   * @abstract
+   */
   ResetQueueStats() {}
 
   /**
    * `SetPriority` - the priority of the own threads.
    *
+   * @abstract
    * @param {number} _priority `CCP_THREAD_PRIORITY_*`, -2 to 2.
    */
   SetPriority(_priority) {}
@@ -100,6 +156,7 @@ export class IBlueCallbackMan extends IRoot
   /**
    * `SetThreadCount` - how many threads `Run` creates.
    *
+   * @abstract
    * @param {number} _count Thread count.
    */
   SetThreadCount(_count) {}
@@ -107,6 +164,7 @@ export class IBlueCallbackMan extends IRoot
   /**
    * `SetName` - the manager's name, for debugging and profiling.
    *
+   * @abstract
    * @param {string} _name Name.
    */
   SetName(_name) {}

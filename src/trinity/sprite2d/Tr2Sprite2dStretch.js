@@ -131,6 +131,7 @@ export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
    * - With an effect below TR2_SFX_ONE_TEXTURE and no primary texture, Carbon dereferences a
    *   null `m_texturePrimary` (cpp:73); this throws a TypeError at the same point (bug, CE-162).
    *
+   * @implemented
    * @param {Tr2Sprite2dScene} renderer Scene gathering this sprite.
    * @returns {void}
    */
@@ -208,6 +209,7 @@ export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
    * the hit test uses radius -1, the scene's inscribed-ellipse test; with a mask, the rectangle
    * and then the mask.
    *
+   * @implemented
    * @param {number} x Screen x.
    * @param {number} y Screen y.
    * @param {Tr2Sprite2dScene} renderer Scene supplying the active transform and clip.
@@ -234,6 +236,7 @@ export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
   /**
    * Carbon Tr2Sprite2dStretch::GetVertexCount (Tr2Sprite2dStretch.cpp:161-169).
    *
+   * @implemented
    * @returns {number} 0 when hidden, otherwise 24.
    */
   @meta.implemented
@@ -256,6 +259,7 @@ export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
    * 2 * offset * scale.x` but `scaledHeight = displayHeight * scale.y - offset * scale.y`. u is
    * `0`, `leftEdgeSize / srcWidth`, `1 - rightEdgeSize / srcWidth`, `1`; v is 0 or 1.
    *
+   * @implemented
    * @param {Tr2Sprite2dVertexBase[]} v Eight destination vertices.
    * @param {number} srcWidth Source width in texels.
    * @param {ArrayLike<number>} vertOffset Offset added to every position.

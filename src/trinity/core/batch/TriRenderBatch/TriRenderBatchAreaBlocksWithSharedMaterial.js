@@ -31,13 +31,21 @@ export class TriRenderBatchAreaBlocksWithSharedMaterial extends TriRenderBatchAr
     super();
   }
 
-  /** Compacts the owned block vector into minimal contiguous runs. */
+  /**
+   * Compacts the owned block vector into minimal contiguous runs.
+   *
+   * @implemented
+   */
   Optimize()
   {
     TriRenderBatchAreaBlock.Optimize(this.areaBlockVector);
   }
 
-  /** Empties the block vector while keeping the shared material bound. */
+  /**
+   * Empties the block vector while keeping the shared material bound.
+   *
+   * @implemented
+   */
   Clear()
   {
     this.areaBlockVector.length = 0;

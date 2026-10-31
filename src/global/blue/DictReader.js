@@ -138,6 +138,7 @@ export class DictReader extends IRootReaderBase
   /**
    * Builds an object from a dictionary (`CreateObject`, DictReader.cpp:17-32).
    *
+   * @adapted
    * @param {object} source A values bag.
    * @param {Function|null} [Constructor] The class to build when the bag names none.
    * @returns {object} The new object.
@@ -218,6 +219,8 @@ export class DictReader extends IRootReaderBase
    * Builds the object the current source describes (`CreateObjectInternal`,
    * :34-90): the class the bag names, else the declared one; members read, then
    * `Initialize`.
+   *
+   * @adapted
    */
   _CreateObjectInternal(Declared)
   {
@@ -302,13 +305,12 @@ export class DictReader extends IRootReaderBase
   /**
    * Releases an object whose population threw before anything held it.
    *
-   * Adapted: Carbon populates a new object through a local smart pointer
-   * (`CreateObjectInternal`, DictReader.cpp:34-90), so a thrown read unwinds
-   * that pointer and runs the destructor. JavaScript has no final-release
-   * destructor, so the reader calls the object's own `Destruct` before
-   * rethrowing; members it already filled, notify targets included, go with
-   * it. A class without `Destruct` owns nothing to release.
-   *
+   * @adapted Carbon populates a new object through a local smart pointer
+   *   (`CreateObjectInternal`, DictReader.cpp:34-90), so a thrown read unwinds
+   *   that pointer and runs the destructor. JavaScript has no final-release
+   *   destructor, so the reader calls the object's own `Destruct` before
+   *   rethrowing; members it already filled, notify targets included, go with
+   *   it. A class without `Destruct` owns nothing to release.
    * @param {object} instance The object the failed read constructed.
    */
   _ReleaseUnassigned(instance)
@@ -320,6 +322,7 @@ export class DictReader extends IRootReaderBase
    * Reads every key of the current source into the object (`ReadMembers`,
    * :147-186), skipping the reserved keys.
    *
+   * @adapted
    * @param {object} instance The object.
    * @param {object|null} notify The INotify to tell, or null.
    * @param {Function|null} [onWrite=null] Optional successful-write observer.
@@ -372,9 +375,10 @@ export class DictReader extends IRootReaderBase
 
   /**
    * Reads dictionary structure records using this operation's anchor table.
-   * Adapted: our _id/_ref values can name a packed Carbon struct by its fields.
-   * Resolve those fields before initialization, copying into distinct retained
-   * slots rather than turning BlueStructureList storage into object pointers.
+   *
+   * @adapted our _id/_ref values can name a packed Carbon struct by its fields.
+   *   Resolve those fields before initialization, copying into distinct retained
+   *   slots rather than turning BlueStructureList storage into object pointers.
    * @param {object} instance List owner.
    * @param {object} field Structure-list declaration.
    * @param {object|null} [notify=null] Native member notification target.
@@ -476,6 +480,7 @@ export class DictReader extends IRootReaderBase
    * Reads an object's metadata dictionary into `BeObjectMetadata`
    * (`ReadMetadata`, :188-213): string keys to string values.
    *
+   * @adapted
    * @param {object} owner The object.
    * @param {object} metadata The dictionary.
    */
@@ -510,7 +515,11 @@ export class DictReader extends IRootReaderBase
     return IsReference(this._currentSource);
   }
 
-  /** `ReadValue`: the current source value, as the member's kind normalizes it. */
+  /**
+   * `ReadValue`: the current source value, as the member's kind normalizes it.
+   *
+   * @adapted
+   */
   ReadValue()
   {
     return this._currentSource;
@@ -584,6 +593,7 @@ export class DictReader extends IRootReaderBase
    * null, an anchored object, a live object assigned as a reference, or a new
    * object from a dictionary.
    *
+   * @adapted
    * @param {object} instance Destination object.
    * @param {object} field Selected reference declaration.
    * @param {object|null} [notification=null] Mapped declared-read notification to send after a deferred write.
@@ -647,6 +657,7 @@ export class DictReader extends IRootReaderBase
    * An embedded object member read into the object it holds (`ReadIRoot`,
    * :92-145). A live object of the member's class is copied by its values.
    *
+   * @adapted
    * @returns {boolean} Whether the member changed.
    */
   ReadIRoot(current, field)
@@ -710,6 +721,7 @@ export class DictReader extends IRootReaderBase
    * Builds the object the current source describes for a member or list item
    * (`ReadIRootClass`, :329-352).
    *
+   * @adapted
    * @param {object|null} field The member, whose declared class is the fallback.
    * @param {string|null} [itemClassName] A list's declared item class.
    * @returns {object} The new object.
@@ -731,6 +743,7 @@ export class DictReader extends IRootReaderBase
    * callbacks after references and new dependencies are ready. Construction
    * retains raw population followed by Initialize. Null entries remain valid.
    *
+   * @adapted
    * @returns {boolean} Whether the list changed.
    */
   ReadList(instance, field)
@@ -964,16 +977,17 @@ export class DictReader extends IRootReaderBase
    * Populates an existing mapped IList (DictReader.cpp:427-475).
    * Remove precedes observer capture/muting; Append rejection is ignored; every
    * successful load, including an empty one, sends one LOADFINISHED.
-   * Adapted: deferred references stage outside the typed list and append in
-   * source order. Observer restoration in finally is JS operation cleanup for
-   * this deferred path, not native exception parity or a rollback guarantee.
-   * Deferred loads owned by this reader complete after anchor finalization;
-   * externally owned contexts complete when this list's references settle.
-   * A new population cancels the pending population of that exact destination,
-   * including one started by another reader sharing an import context.
-   * Failures at this reader's boundaries cancel its pending list writes. A
-   * caller-owned importContext failure outside this reader is not observable;
-   * its owner retains responsibility for abandoning that external operation.
+   *
+   * @adapted deferred references stage outside the typed list and append in
+   *   source order. Observer restoration in finally is JS operation cleanup for
+   *   this deferred path, not native exception parity or a rollback guarantee.
+   *   Deferred loads owned by this reader complete after anchor finalization;
+   *   externally owned contexts complete when this list's references settle.
+   *   A new population cancels the pending population of that exact destination,
+   *   including one started by another reader sharing an import context.
+   *   Failures at this reader's boundaries cancel its pending list writes. A
+   *   caller-owned importContext failure outside this reader is not observable;
+   *   its owner retains responsibility for abandoning that external operation.
    * @param {IList} list Existing configured destination.
    * @param {object} field Selected list declaration.
    * @param {*} source Incoming array.
@@ -1355,7 +1369,11 @@ export class DictReader extends IRootReaderBase
     return false;
   }
 
-  /** `CleanupAfterCreate` (:600-605). */
+  /**
+   * `CleanupAfterCreate` (:600-605).
+   *
+   * @adapted
+   */
   _CleanupAfterCreate()
   {
     this._listEdits = [];
@@ -1374,6 +1392,7 @@ export class DictReader extends IRootReaderBase
   /**
    * A dictionary carries no binary blocks (DictReader.cpp:718-721).
    *
+   * @implemented
    * @throws {IRootReaderException} Always.
    */
   ReadBinaryBlock(_instance, _propertyName)
@@ -1381,7 +1400,11 @@ export class DictReader extends IRootReaderBase
     this._ThrowError("DictReader does not support binary blocks");
   }
 
-  /** `ThrowError` (:584-598): the message, prefixed with the member path. */
+  /**
+   * `ThrowError` (:584-598): the message, prefixed with the member path.
+   *
+   * @adapted
+   */
   _ThrowError(message)
   {
     const path = this._contextStack.map(entry => `\t${entry}\n`).join("");

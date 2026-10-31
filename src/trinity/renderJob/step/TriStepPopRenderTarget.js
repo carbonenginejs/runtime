@@ -19,7 +19,11 @@ export class TriStepPopRenderTarget extends TriRenderStep
   @type.uint32
   slot = 0;
 
-  /** Stores the render-target slot to pop. */
+  /**
+   * Stores the render-target slot to pop.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(slot = 0)
@@ -30,6 +34,8 @@ export class TriStepPopRenderTarget extends TriRenderStep
   /**
    * Pops the recorded slot; the matching push must occur earlier in the same job
    * or the job's stack guard reports an underflow.
+   *
+   * @implemented
    */
 
   @meta.implemented

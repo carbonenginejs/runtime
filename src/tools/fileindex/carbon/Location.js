@@ -24,13 +24,12 @@ export class Location
      * location from the FNV-1 hash of `prefix:/` plus the path's generic
      * (slash-separated) form, and the data checksum.
      *
-     * Adapted: a path holding a non-ASCII character throws, through fnv164,
-     * rather than being hashed. Carbon hashes the bytes of `generic_string()`
-     * (ResourceTools::GenerateFowlerNollVoChecksum,
-     * resources/tools/src/ResourceTools.cpp:69-97), and on Windows those are in
-     * the process code page, which a browser cannot know. A wrong location is
-     * worse than an error. Resource paths in shipped indexes are ASCII.
-     *
+     * @adapted a path holding a non-ASCII character throws, through fnv164,
+     *   rather than being hashed. Carbon hashes the bytes of `generic_string()`
+     *   (ResourceTools::GenerateFowlerNollVoChecksum,
+     *   resources/tools/src/ResourceTools.cpp:69-97), and on Windows those are in
+     *   the process code page, which a browser cannot know. A wrong location is
+     *   worse than an error. Resource paths in shipped indexes are ASCII.
      * @param {string} relativePath Relative path; backslashes become slashes, as `generic_string()` does.
      * @param {string} dataChecksum Data checksum text.
      * @param {string} [prefix] Prefix without its `:/`.
@@ -47,6 +46,7 @@ export class Location
     /**
      * Native stored location.
      *
+     * @implemented
      * @returns {string} Formatted value using native field or path spelling.
      */
     ToString()
@@ -57,6 +57,7 @@ export class Location
     /**
      * Native shard/path-hash/data-hash layout.
      *
+     * @implemented
      * @param {string} relativePathChecksum Hexadecimal hash of the logical path.
      * @param {string} dataChecksum Content checksum text.
      * @returns {string} Formatted value using native field or path spelling.

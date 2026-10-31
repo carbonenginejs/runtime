@@ -44,6 +44,8 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
   /**
    * Sets the behaviour name and renames the owned scale curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:119-122
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -57,6 +59,8 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
    * Returns the authored value, scaled by the scale curve at normalized timeline
    * time when one is set, and returned as-is when it is not.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:125-134
+   *
+   * @implemented
    */
 
   @meta.implemented

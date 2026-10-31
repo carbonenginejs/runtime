@@ -35,6 +35,8 @@ export class Tr2DebugColor
   /**
    * Brightens a packed color by 0.7 per RGB channel, clamped at one, leaving
    * alpha alone (ITr2DebugRenderer2.h:49-56; the same arithmetic).
+   *
+   * @implemented
    * @param {number} color Packed ARGB word.
    * @returns {number} Packed ARGB word.
    */

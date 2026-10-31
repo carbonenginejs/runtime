@@ -74,7 +74,11 @@ export class EveSOFDataMgr extends IRoot
     return this;
   }
 
-  /** Loads an EveSOFData graph through the configured synchronous loader. */
+  /**
+   * Loads an EveSOFData graph through the configured synchronous loader.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   LoadData(filePath)
@@ -113,12 +117,12 @@ export class EveSOFDataMgr extends IRoot
    * `SetData` (EveSOFDataMgr.cpp:514-589) - rebuilds the manager's lookup
    * tables from a hydrated EveSOFData graph.
    *
-   * Adapted: Carbon prepares every record here (`LoadHullData` and the rest,
-   * `GenerateHullData` per hull, :645-1203). Ours stores each record by name and
-   * prepares it on its first request (`GetHullData` and the rest), keeping the
-   * result: a page that builds a dozen ships should not prepare thousands of
-   * records. Generic data is still prepared here, as every build reads it.
-   * Callers get the same prepared records as before.
+   * @adapted Carbon prepares every record here (`LoadHullData` and the rest,
+   *   `GenerateHullData` per hull, :645-1203). Ours stores each record by name and
+   *   prepares it on its first request (`GetHullData` and the rest), keeping the
+   *   result: a page that builds a dozen ships should not prepare thousands of
+   *   records. Generic data is still prepared here, as every build reads it.
+   *   Callers get the same prepared records as before.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -139,7 +143,11 @@ export class EveSOFDataMgr extends IRoot
     return true;
   }
 
-  /** Tests the exact hull key in the manager's normalized projection table. */
+  /**
+   * Tests the exact hull key in the manager's normalized projection table.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HasHullData(name)
@@ -151,8 +159,8 @@ export class EveSOFDataMgr extends IRoot
    * Returns the normalized hull projection for an exact key, or null when
    * absent.
    *
-   * Adapted: the record is prepared on its first request and the result kept
-   * (see `SetData`); Carbon prepared it at load.
+   * @adapted the record is prepared on its first request and the result kept
+   *   (see `SetData`); Carbon prepared it at load.
    */
 
   @meta.adapted
@@ -161,7 +169,11 @@ export class EveSOFDataMgr extends IRoot
     return getProjection(this._hullData.get(String(name)));
   }
 
-  /** Tests the exact faction key in the manager's normalized projection table. */
+  /**
+   * Tests the exact faction key in the manager's normalized projection table.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HasFactionData(name)
@@ -173,8 +185,8 @@ export class EveSOFDataMgr extends IRoot
    * Returns the normalized faction projection for an exact key, or null when
    * absent.
    *
-   * Adapted: the record is prepared on its first request and the result kept
-   * (see `SetData`); Carbon prepared it at load.
+   * @adapted the record is prepared on its first request and the result kept
+   *   (see `SetData`); Carbon prepared it at load.
    */
 
   @meta.adapted
@@ -183,7 +195,11 @@ export class EveSOFDataMgr extends IRoot
     return getProjection(this._factionData.get(String(name)));
   }
 
-  /** Tests the exact race key in the manager's normalized projection table. */
+  /**
+   * Tests the exact race key in the manager's normalized projection table.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HasRaceData(name)
@@ -195,8 +211,8 @@ export class EveSOFDataMgr extends IRoot
    * Returns the normalized race projection for an exact key, or null when
    * absent.
    *
-   * Adapted: the record is prepared on its first request and the result kept
-   * (see `SetData`); Carbon prepared it at load.
+   * @adapted the record is prepared on its first request and the result kept
+   *   (see `SetData`); Carbon prepared it at load.
    */
 
   @meta.adapted
@@ -205,7 +221,11 @@ export class EveSOFDataMgr extends IRoot
     return getProjection(this._raceData.get(String(name)));
   }
 
-  /** Tests the exact material key in the manager's normalized projection table. */
+  /**
+   * Tests the exact material key in the manager's normalized projection table.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HasMaterialData(name)
@@ -217,8 +237,8 @@ export class EveSOFDataMgr extends IRoot
    * Returns the normalized material projection for an exact key, or null when
    * absent.
    *
-   * Adapted: the record is prepared on its first request and the result kept
-   * (see `SetData`); Carbon prepared it at load.
+   * @adapted the record is prepared on its first request and the result kept
+   *   (see `SetData`); Carbon prepared it at load.
    */
 
   @meta.adapted
@@ -227,7 +247,11 @@ export class EveSOFDataMgr extends IRoot
     return getProjection(this._materialData.get(String(name)));
   }
 
-  /** Tests the exact pattern key in the manager's normalized projection table. */
+  /**
+   * Tests the exact pattern key in the manager's normalized projection table.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HasPatternData(name)
@@ -239,8 +263,8 @@ export class EveSOFDataMgr extends IRoot
    * Returns the normalized pattern projection for an exact key, or null when
    * absent.
    *
-   * Adapted: the record is prepared on its first request and the result kept
-   * (see `SetData`); Carbon prepared it at load.
+   * @adapted the record is prepared on its first request and the result kept
+   *   (see `SetData`); Carbon prepared it at load.
    */
 
   @meta.adapted
@@ -249,7 +273,11 @@ export class EveSOFDataMgr extends IRoot
     return getProjection(this._patternData.get(String(name)));
   }
 
-  /** Tests the exact layout key in the manager's normalized projection table. */
+  /**
+   * Tests the exact layout key in the manager's normalized projection table.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasLayoutData(name)
@@ -260,8 +288,8 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Carbon's GetLayoutData( name ) (EveSOFDataMgr.cpp:321): one layout, or null.
    *
-   * Adapted: the record is prepared on its first request and the result kept
-   * (see `SetData`); Carbon prepared it at load.
+   * @adapted the record is prepared on its first request and the result kept
+   *   (see `SetData`); Carbon prepared it at load.
    */
 
   @meta.adapted
@@ -274,6 +302,8 @@ export class EveSOFDataMgr extends IRoot
    * Carbon's GetLayoutData( std::vector<std::string>& names )
    * (EveSOFDataMgr.cpp:335): the named layouts in request order, skipping
    * missing names and keeping duplicates.
+   *
+   * @implemented
    * @param {string[]} names
    * @returns {object[]}
    */
@@ -292,6 +322,8 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Exposes the current normalized generic projection used by DNA and SOF
    * assembly.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -400,6 +432,8 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Normalizes a supplied hull graph and stores its projection under the
    * requested key.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -445,6 +479,8 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Normalizes a supplied faction graph and stores its projection under the
    * requested key.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -456,6 +492,8 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Normalizes a supplied race graph and stores its projection under the
    * requested key.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -467,6 +505,8 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Normalizes a supplied material graph and stores its projection under the
    * requested key.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -478,6 +518,8 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Rejects a missing value, otherwise normalizes and replaces the keyed pattern
    * projection.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -490,6 +532,8 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Rejects a missing value, otherwise normalizes and replaces the keyed layout
    * projection.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -502,6 +546,8 @@ export class EveSOFDataMgr extends IRoot
   /**
    * Rejects a missing value, otherwise replaces the manager's normalized generic
    * projection.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented

@@ -108,7 +108,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
   _noiseTexture = null;
   /**
    * Carbon Tr2InteriorScene.cpp:229-284 updates lights and dynamic membership.
-   * Adapted: array identity search replaces FindKey; JS has no QI reference unlock.
+   *
+   * @adapted array identity search replaces FindKey; JS has no QI reference unlock.
    */
 
   @meta.adapted
@@ -312,9 +313,9 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * (Tr2InteriorScene_Blue.cpp:413, MAP_METHOD_AND_WRAP_OPTIONAL_ARGS): a
    * PICK_OBJECT pick through ITr2PickableScene::PickObject.
    *
-   * Adapted: awaited, because the browser reads the pick buffer back
-   * asynchronously (ITr2PickableScene.PickObject).
-   *
+   * @adapted awaited, because the browser reads the pick buffer back
+   *   asynchronously (ITr2PickableScene.PickObject).
+   * @renamed PickObjectOnly
    * @param {number} x Pixel column in the viewport.
    * @param {number} y Pixel row in the viewport.
    * @param {TriProjection} projection The camera projection.
@@ -337,7 +338,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * Carbon AddDynamic (h:113, cpp:970-992): add a unique dynamic and retain
    * unavailable members in the pending-load list. The Blue list observer also
    * calls AddToScene, as native OnListModified does; do not suppress that call.
-   * Adapted: validate the JS interface argument before the native typed call.
+   *
+   * @adapted validate the JS interface argument before the native typed call.
    * @param {ITr2InteriorDynamic|null} dynamic Dynamic object to attach.
    * @returns {void}
    */
@@ -367,6 +369,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * refresh shadow targets even when it was already present. Blue-list insertion
    * also invokes SetupShadowMaps through the native observer. Adapted: validate
    * the JS argument against Blue-list interface admission before side effects.
+   *
+   * @adapted
    * @param {ITr2InteriorLight|null} lightSource Light to attach.
    * @returns {void}
    */
@@ -392,8 +396,7 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * [meshID, areaID] from the packed area (low eight bits the area from 1, rebased to 0); PICK_POSITION
    * to the world point; PICK_UV to the texture coordinate.
    *
-   * Adapted: awaited, as `PickObject` is, and a Map in place of the Python dict.
-   *
+   * @adapted awaited, as `PickObject` is, and a Map in place of the Python dict.
    * @param {number} x Pixel column in the viewport.
    * @param {number} y Pixel row in the viewport.
    * @param {TriProjection} projection The camera projection.
@@ -421,7 +424,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
     return out;
   }
 
-  /** Carbon method PickObjectAndArea -> PyPickObjectAndArea (MAP_METHOD). */
+  /**
+   * Carbon method PickObjectAndArea -> PyPickObjectAndArea (MAP_METHOD).
+   *
+   * @notImplemented
+   */
   @be.mapMethod()
   @meta.notImplemented
   PickObjectAndArea(...args)
@@ -429,7 +436,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
     throw new Error("Tr2InteriorScene.PickObjectAndArea is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method PickPointAndObject -> PyInteriorPickPointAndObject (MAP_METHOD). */
+  /**
+   * Carbon method PickPointAndObject -> PyInteriorPickPointAndObject (MAP_METHOD).
+   *
+   * @notImplemented
+   */
   @be.mapMethod()
   @meta.notImplemented
   PickPointAndObject(...args)
@@ -442,8 +453,7 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * (Tr2InteriorScene.h:253-260; Tr2InteriorScene_Blue.cpp:425-426): a PICK_UV
    * pick through ITr2PickableScene::PickObject.
    *
-   * Adapted: awaited, as `PickObject` is.
-   *
+   * @adapted awaited, as `PickObject` is.
    * @param {number} x Pixel column in the viewport.
    * @param {number} y Pixel row in the viewport.
    * @param {TriProjection} projection The camera projection.
@@ -465,6 +475,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * and projection, then the projection narrowed to the picked pixel - for an
    * orthographic camera a one-pixel off-centre box, otherwise scaled so the
    * viewport covers one pixel and translated to centre on the pick ray.
+   *
+   * @implemented
    * @param {number} fx Pick position in projection space, x.
    * @param {number} fy Pick position in projection space, y.
    * @param {TriProjection} projection The camera projection.
@@ -497,14 +509,13 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * objects a picking visibility query finds, at the current field of view
    * and aspect.
    *
-   * Adapted: every pick runs the query. Carbon returns a non-empty list from
-   * an earlier query as it is (cpp:1207-1213; the list is cleared only by the
-   * fov overload, cpp:1233), so every pick after the first reuses the first
-   * pick's candidates, culled to that pick's view: an object added later, or
-   * outside the first pick's view, is never a candidate, and a removed one
-   * stays in the list. Carbon defect CE-227; fixed here at the operator's
-   * direction (2026-10-27), for character swaps and a moving camera.
-   *
+   * @adapted every pick runs the query. Carbon returns a non-empty list from
+   *   an earlier query as it is (cpp:1207-1213; the list is cleared only by the
+   *   fov overload, cpp:1233), so every pick after the first reuses the first
+   *   pick's candidates, culled to that pick's view: an object added later, or
+   *   outside the first pick's view, is never a candidate, and a removed one
+   *   stays in the list. Carbon defect CE-227; fixed here at the operator's
+   *   direction (2026-10-27), for character swaps and a moving camera.
    * @param {vec3} dirWorld The pick ray's world direction.
    * @param {Tr2RenderContext} [_context] The base class's context argument, unused here.
    * @returns {object[]} The renderables to pick among.
@@ -525,6 +536,7 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * with PerspectiveFovMatrix (mat4.perspectiveFovCarbon). Its TriFrustum
    * fields are set and then unused (cpp:1219-1224), so none is built here.
    *
+   * @implemented
    * @param {vec3} dirWorld The pick ray's world direction.
    * @param {number} fov Vertical field of view, radians.
    * @param {number} aspect Width over height.
@@ -548,6 +560,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
   /**
    * Carbon SetPerFrameDataForPicking (h:220, cpp:1240-1250): populates and
    * binds the per-frame pixel and vertex shader data for the picking pass.
+   *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The context the pick renders on.
    * @returns {void}
    */
@@ -563,6 +577,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
   /**
    * Carbon GetOpaquePickingBatchAccumulator (h:222, cpp:1318-1321).
+   *
+   * @implemented
    * @returns {TriRenderBatchAccumulator} The scene's opaque picking batches.
    */
   @meta.implemented
@@ -573,6 +589,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
   /**
    * Carbon GetPickingBatchAccumulator (h:223, cpp:1323-1326).
+   *
+   * @implemented
    * @returns {TriRenderBatchAccumulator} The scene's picking-area batches.
    */
   @meta.implemented
@@ -583,6 +601,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
   /**
    * Carbon RenderPickingAreasForComponents (h:225-228): picking areas always draw.
+   *
+   * @implemented
    * @param {number} _pass The pass's PickComponent bits.
    * @returns {boolean} Always true.
    */
@@ -594,6 +614,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
   /**
    * Carbon GetPickBuffer (h:229-232).
+   *
+   * @implemented
    * @returns {Tr2PickBuffer} The scene's one-pixel float pick target.
    */
   @meta.implemented
@@ -606,9 +628,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * Carbon GetRequiredPasses (h:233, cpp:1342-1355): object, area, position
    * and UV together take two passes (UV second); anything else takes one.
    *
-   * Adapted: returns the passes' PickComponent masks, where Carbon writes them
-   * to an output array and returns the count (as Tr2PrimitiveScene's port does).
-   *
+   * @adapted returns the passes' PickComponent masks, where Carbon writes them
+   *   to an output array and returns the count (as Tr2PrimitiveScene's port does).
    * @param {number} requestedComponents The requested PickComponent bits.
    * @returns {number[]} The PickComponent bits each pass renders.
    */
@@ -627,9 +648,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * depth (when position was asked for too) or the area id in green; otherwise
    * green is the area id and red the depth.
    *
-   * Adapted: reads the four little-endian floats from the mapped bytes, where
-   * Carbon casts the pixel pointer.
-   *
+   * @adapted reads the four little-endian floats from the mapped bytes, where
+   *   Carbon casts the pixel pointer.
    * @param {Uint8Array} data The pixel's 16 bytes: blue, green, red, alpha floats.
    * @param {number} pass The pass's PickComponent bits.
    * @param {object} results Receives objectId, areaId, depth and uv.
@@ -660,6 +680,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
   /**
    * Carbon RebuildSceneData (h:106, cpp:1402-1422): rebuild dynamic membership
    * and its unique pending-load set without replacing the authored list.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -678,6 +700,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
   /**
    * Carbon RemoveDynamic (h:115, cpp:1004-1022): remove scene membership and
    * pending load. Blue-list removal also delivers the native observer callback.
+   *
+   * @implemented
    * @param {ITr2InteriorDynamic|null} dynamic Dynamic object to remove.
    * @returns {void}
    */
@@ -702,6 +726,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
   /**
    * Carbon RemoveLightSource (h:111, cpp:941-962): remove a present light and
    * refresh shadow targets, including the Blue-list observer's own refresh.
+   *
+   * @implemented
    * @param {ITr2InteriorLight|null} lightSource Light to detach.
    * @returns {void}
    */
@@ -724,7 +750,12 @@ export class Tr2InteriorScene extends ITr2PickableScene
     this.SetupShadowMaps();
   }
 
-  /** Carbon method UpdateScene -> UpdateSceneFromScript (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method UpdateScene -> UpdateSceneFromScript (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   * @renamed UpdateSceneFromScript
+   */
   @meta.renamed("UpdateSceneFromScript")
   @meta.notImplemented
   UpdateScene(...args)
@@ -742,7 +773,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
    */
   _perFrameVSBuffer = new Tr2ConstantBufferAL();
 
-  /** Carbon Render (h:76, cpp:488-500): forward, debug, then clear active lights. */
+  /**
+   * Carbon Render (h:76, cpp:488-500): forward, debug, then clear active lights.
+   *
+   * @implemented
+   */
   @meta.implemented
   Render(renderContext)
   {
@@ -751,7 +786,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
     this._activeLightSet.Clear();
   }
 
-  /** Carbon RenderPass (h:81, cpp:885-898) only renders the main pass. */
+  /**
+   * Carbon RenderPass (h:81, cpp:885-898) only renders the main pass.
+   *
+   * @implemented
+   */
   @meta.implemented
   RenderPass(pass, renderContext)
   {
@@ -759,14 +798,22 @@ export class Tr2InteriorScene extends ITr2PickableScene
     return ITr2MultiPassScene.RenderPassResult.PASS_RESULT_OK;
   }
 
-  /** Carbon SetRenderBackgroundCubeMap (h:104, cpp:901-904). */
+  /**
+   * Carbon SetRenderBackgroundCubeMap (h:104, cpp:901-904).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetRenderBackgroundCubeMap(renderBackgroundCubeMap)
   {
     this._renderBackgroundCubeMap = renderBackgroundCubeMap;
   }
 
-  /** Carbon VisibilityQuery (h:83, cpp:511-560): choose LOD before culling. */
+  /**
+   * Carbon VisibilityQuery (h:83, cpp:511-560): choose LOD before culling.
+   *
+   * @implemented
+   */
   @meta.implemented
   VisibilityQuery(results, renderContext)
   {
@@ -792,7 +839,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
     this._ResolveVisibility(Tr2Renderer.GetViewTransform(), Tr2Renderer.GetProjectionTransform(), true);
   }
 
-  /** Carbon ResolveVisibility (h:144, cpp:562-585); maxDepth is unused natively. */
+  /**
+   * Carbon ResolveVisibility (h:144, cpp:562-585); maxDepth is unused natively.
+   *
+   * @implemented
+   */
   @meta.implemented
   _ResolveVisibility(view, projection, _maxDepth)
   {
@@ -807,7 +858,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
       if (light.IsInFrustum(frustum_1, mat4_1)) this._OnInstanceVisible(light, mat4_1);
   }
 
-  /** Carbon OnQueryBegin (h:128, cpp:1030-1039). */
+  /**
+   * Carbon OnQueryBegin (h:128, cpp:1030-1039).
+   *
+   * @implemented
+   */
   @meta.implemented
   _OnQueryBegin()
   {
@@ -817,7 +872,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
       this.visibilityResults.AddVisibilityEvent(event);
   }
 
-  /** Carbon OnInstanceVisible (h:129, cpp:1041-1061), copying the native matrix value. */
+  /**
+   * Carbon OnInstanceVisible (h:129, cpp:1041-1061), copying the native matrix value.
+   *
+   * @implemented
+   */
   @meta.implemented
   _OnInstanceVisible(cullable, objectToWorld)
   {
@@ -834,7 +893,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
     }
   }
 
-  /** Carbon DoQueryBegin (h:135, cpp:1077-1090) includes every scene light. */
+  /**
+   * Carbon DoQueryBegin (h:135, cpp:1077-1090) includes every scene light.
+   *
+   * @implemented
+   */
   @meta.implemented
   _DoQueryBegin(_event)
   {
@@ -844,7 +907,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
     for (const light of this.lights) this._activeLightSet.AddLight(light, vec3_1);
   }
 
-  /** Carbon DoInstanceVisible (h:137, cpp:1104-1132): opaque, decal, then blend. */
+  /**
+   * Carbon DoInstanceVisible (h:137, cpp:1104-1132): opaque, decal, then blend.
+   *
+   * @implemented
+   */
   @meta.implemented
   _DoInstanceVisible(event)
   {
@@ -866,7 +933,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
     renderable.GetBatches(batches, TriBatchType.TRIBATCHTYPE_TRANSPARENT, data);
   }
 
-  /** Carbon GatherFullForwardBatches (h:140, cpp:1144-1171). */
+  /**
+   * Carbon GatherFullForwardBatches (h:140, cpp:1144-1171).
+   *
+   * @implemented
+   */
   @meta.implemented
   _GatherFullForwardBatches(results)
   {
@@ -878,14 +949,22 @@ export class Tr2InteriorScene extends ITr2PickableScene
     }
   }
 
-  /** Carbon ConstructKey (h:241, cpp:1252-1259); BigInt retains all 64 bits. */
+  /**
+   * Carbon ConstructKey (h:241, cpp:1252-1259); BigInt retains all 64 bits.
+   *
+   * @adapted
+   */
   @meta.adapted
   _ConstructKey(objectGroup, batchGroup)
   {
     return BigInt.asIntN(64, (BigInt(objectGroup >>> 0) << 48n) | (BigInt(batchGroup) << 32n));
   }
 
-  /** Carbon PopulatePerFrameVSData (h:245, cpp:1261-1271). */
+  /**
+   * Carbon PopulatePerFrameVSData (h:245, cpp:1261-1271).
+   *
+   * @implemented
+   */
   @meta.implemented
   _PopulatePerFrameVSData(data)
   {
@@ -895,8 +974,9 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
   /**
    * Carbon PopulatePerFramePSData (h:244, cpp:1273-1318).
-   * Adapted: gl-matrix reverses composition; the ESM exposes target dimensions
-   * as fields. Viewport arithmetic rounds at native float operation boundaries.
+   *
+   * @adapted gl-matrix reverses composition; the ESM exposes target dimensions
+   *   as fields. Viewport arithmetic rounds at native float operation boundaries.
    */
   @meta.adapted
   _PopulatePerFramePSData(data, renderContext)
@@ -935,8 +1015,9 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
   /**
    * Carbon RenderFullForward (h:146, cpp:587-658).
-   * Adapted: the allocator belongs to the active JS context, so bind it here.
-   * Profiling markers are omitted; shadows retain their explicit unported gate.
+   *
+   * @adapted the allocator belongs to the active JS context, so bind it here.
+   *   Profiling markers are omitted; shadows retain their explicit unported gate.
    */
   @meta.adapted
   _RenderFullForward(renderContext)
@@ -980,12 +1061,12 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * SpotlightShadow{i}; the light keeps its view-projection for the avatar
    * shaders (Tr2InteriorLightSet copies it into spotLights[i]).
    *
-   * Adapted: Carbon's interior targets clear to depth 1 and test forward; the
-   * state manager's inverted depth test is turned off for the pass and
-   * restored after. The per-frame VS matrices come from the renderer's
-   * transforms, which hold the light's here, so Carbon's explicit
-   * ViewMat/ProjectionMat/ViewProjectionMat assignments (cpp:774-777) are the
-   * values _PopulatePerFrameVSData already writes.
+   * @adapted Carbon's interior targets clear to depth 1 and test forward; the
+   *   state manager's inverted depth test is turned off for the pass and
+   *   restored after. The per-frame VS matrices come from the renderer's
+   *   transforms, which hold the light's here, so Carbon's explicit
+   *   ViewMat/ProjectionMat/ViewProjectionMat assignments (cpp:774-777) are the
+   *   values _PopulatePerFrameVSData already writes.
    * @param {Tr2RenderContext} renderContext The frame's context.
    */
   @meta.adapted
@@ -1084,6 +1165,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * Carbon MaximizeShadowMapUsage (h:150, cpp:300-397): with exactly one
    * character in the scene, narrows the light's projection to the screen-space
    * box of the character's clipped bounds, so the shadow map covers only it.
+   *
+   * @implemented
    * @param {TriProjection} projection The light's projection, narrowed in place.
    * @param {TriView} view The light's view.
    * @param {TriFrustum} frustum The camera frustum the bounds are clipped to.
@@ -1139,7 +1222,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
     projection.CustomProjection(mat4.multiply(fit, fit, fitProjection));
   }
 
-  /** Carbon RenderGeometry (h:222, cpp:811-829) submits through the normal context. */
+  /**
+   * Carbon RenderGeometry (h:222, cpp:811-829) submits through the normal context.
+   *
+   * @implemented
+   */
   @meta.implemented
   _RenderGeometry(overrideEffect, renderContext)
   {
@@ -1157,6 +1244,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * allocating shadow targets (cpp:181-185). Adapted: constructor acquisition
    * moves to Initialize so browser hosts can install their resource handlers
    * before any request; the four variables retain the normal loading handle.
+   *
+   * @adapted
    * @returns {boolean} Whether initialization was accepted.
    */
   @meta.adapted
@@ -1173,6 +1262,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
   /**
    * Applies the native background and shadow member branches. JS coalesces
    * changed names, so a size/count batch rebuilds once using both final values.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1187,6 +1278,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * Acquires a shared texture through the installed or supplied resource host.
    * An empty native path clears the pointer; JS omits that request because its
    * resource manager rejects empty paths. The background effect is unchanged.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -1204,6 +1297,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * lights. Shared Trinity wrappers realize them through the injected context;
    * JS explicitly destroys replaced wrappers instead of releasing BluePtrs.
    * Carbon ignores Create results here; failed wrappers remain visibly invalid.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1238,6 +1333,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    *
    * Carbon's row-vector `view * projection` is gl-matrix's
    * `multiply(projection, view)`.
+   *
+   * @implemented
    * @param {Tr2RenderContext} renderContext
    */
   @meta.implemented
@@ -1307,6 +1404,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * `( Tr2RenderContext& )` (h:77) and ITr2DebugRenderable's
    * `( ITr2DebugRenderer2& )` (h:92). Routes by an exact cast of the
    * argument and throws when it is neither (rule 11).
+   *
+   * @implemented
    * @param {Tr2RenderContext|ITr2DebugRenderer2} contextOrRenderer
    */
 
@@ -1326,6 +1425,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
   /**
    * Carbon GetDebugOptions (Tr2InteriorScene.cpp:1428-1431).
+   *
+   * @implemented
    * @param {Set<string>} options
    */
 
@@ -1342,6 +1443,8 @@ export class Tr2InteriorScene extends ITr2PickableScene
    * left edge, the viewport pushed around the tiles (cpp:1437-1447).
    * Carbon's DrawTexture( renderContext, texture ) with its default
    * coordinates and point filter is Tr2Renderer.drawTexture with no options.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
   @meta.implemented

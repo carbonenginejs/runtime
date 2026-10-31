@@ -101,16 +101,16 @@ export class TriGeometryRes extends BlueAsyncRes
 {
   /**
    * Carbon: TriGeometryRes::CreateLodFromCMFMesh (trinity/trinity/Resources/TriGeometryRes.cpp:2019-2140).
-   * Adapted: our worker payload is deinterleaved; repack it and align the stride
-   * for WebGPU before the existing allocation path consumes it.
-   * Packs one LOD of a decoded mesh into interleaved vertex bytes and an index
-   * buffer.
-   *
    * Channels and index groups are taken from the LOD when it carries its own and
    * from the mesh otherwise, because a single-LOD payload keeps them only on the
    * mesh. The declaration is always the mesh's: a LOD varies which triangles it
    * draws, not what a vertex is.
    *
+   * @cjs
+   * @adapted our worker payload is deinterleaved; repack it and align the stride
+   *   for WebGPU before the existing allocation path consumes it.
+   *   Packs one LOD of a decoded mesh into interleaved vertex bytes and an index
+   *   buffer.
    * @param {object} mesh Decoded mesh carrying `decl` and channels.
    * @param {number} [lodIndex] Which LOD to pack.
    * @returns {{decl: Array<object>, vertex: object, index: object|null}}
@@ -135,11 +135,12 @@ export class TriGeometryRes extends BlueAsyncRes
 
   /**
    * Carbon: TriGeometryRes::CreateLodFromCMFMesh (trinity/trinity/Resources/TriGeometryRes.cpp:2055-2076).
-   * Adapted: our deinterleaved payload needs packing before native-style buffer allocation.
-   * Packs one LOD's index buffer alone, from the same LOD-then-mesh sources
-   * packLodGeometry uses; the wireframe edge build reads it without repacking
-   * the vertices.
    *
+   * @cjs
+   * @adapted our deinterleaved payload needs packing before native-style buffer allocation.
+   *   Packs one LOD's index buffer alone, from the same LOD-then-mesh sources
+   *   packLodGeometry uses; the wireframe edge build reads it without repacking
+   *   the vertices.
    * @param {object} mesh Decoded mesh.
    * @param {number} [lodIndex] Which LOD to pack.
    * @returns {{bytes: Uint8Array, format: string, count: number}|null} Null when the LOD has no indices.
@@ -183,6 +184,8 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Carbon SetupMeshes (TriGeometryRes.cpp:855-1019). Adapted: the registered
    * reader already projects CMF channels, so retain those owned mesh records.
+   *
+   * @adapted
    * @param {object} payload Decoded CMF data.
    * @returns {boolean} Whether the mesh records were installed.
    */
@@ -223,8 +226,9 @@ export class TriGeometryRes extends BlueAsyncRes
 
   /**
    * Explicitly release the LOD allocations owned by Carbon's resource destructor.
-   * Adapted: explicit JS teardown replaces native destruction; the existing
-   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   *
+   * @adapted explicit JS teardown replaces native destruction; the existing
+   *   MotherLode switches keep CPU data and opaque adapter cleanup independent.
    * @param {object} [options={}] Existing MotherLode cleanup policy.
    * @param {boolean} [options.releasePayload=true] Release owned family data.
    * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
@@ -261,6 +265,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Carbon `IsMemoryUsageKnown` (TriGeometryRes.cpp:1835-1838): known once loaded.
    *
+   * @implemented
    * @returns {boolean}
    */
   IsMemoryUsageKnown()
@@ -271,9 +276,8 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Carbon `GetMemoryUsage` (TriGeometryRes.cpp:1840-1843): `m_memoryUse`.
    *
-   * Adapted: Carbon builds every LOD's buffers while preparing; they are built
-   * here when a LOD is first drawn, so the figure counts the LODs drawn so far.
-   *
+   * @adapted Carbon builds every LOD's buffers while preparing; they are built
+   *   here when a LOD is first drawn, so the figure counts the LODs drawn so far.
    * @returns {number} Bytes.
    */
   GetMemoryUsage()
@@ -284,6 +288,8 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Carbon ReadGrannyFile (TriGeometryRes.cpp:1245-1299). Adapted: preserve the
    * decoded Granny graph and project shared CMF channels for the JS mesh path.
+   *
+   * @adapted
    * @param {object|ArrayBufferView} bytes Decoded Granny graph or its bytes.
    * @returns {boolean} Whether meshes and skeletons were installed.
    */
@@ -301,6 +307,8 @@ export class TriGeometryRes extends BlueAsyncRes
 
   /**
    * Carbon ReadCMFFile (TriGeometryRes.cpp:1224-1242), using the JS CMF reader.
+   *
+   * @adapted
    * @param {object|ArrayBufferView} bytes Decoded CMF data or its bytes.
    * @returns {boolean} Whether meshes and skeletons were installed.
    */
@@ -316,9 +324,8 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * The granny file this resource was read from, or null for a CMF source.
    *
-   * Adapted: Carbon `GetGrannyInfo` (cpp:242-252) answers the file info of m_pGrannyFile;
-   * here that is the gr2 reader's output, kept whole.
-   *
+   * @adapted Carbon `GetGrannyInfo` (cpp:242-252) answers the file info of m_pGrannyFile;
+   *   here that is the gr2 reader's output, kept whole.
    * @returns {object|null} The gr2 read.
    */
   GetGrannyInfo()
@@ -326,7 +333,12 @@ export class TriGeometryRes extends BlueAsyncRes
     return this._grannyFile;
   }
 
-  /** Drops the kept granny file; the resource reads as CMF again, Carbon's default. */
+  /**
+   * Drops the kept granny file; the resource reads as CMF again, Carbon's default.
+   *
+   * @cjs
+   * @implemented
+   */
   _ForgetGrannyFile()
   {
     this._useCMF = true;
@@ -337,6 +349,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Get mesh count from the CPU geometry payload.
    *
+   * @adapted
    * @returns {number}
    */
   GetMeshCount()
@@ -347,6 +360,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Get animation count from the CPU geometry payload.
    *
+   * @adapted
    * @returns {number}
    */
   GetAnimationCount()
@@ -357,6 +371,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Get skeleton count from the CPU geometry payload.
    *
+   * @adapted
    * @returns {number}
    */
   GetSkeletonCount()
@@ -367,6 +382,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Get one resource-owned skeleton from the CPU geometry payload.
    *
+   * @adapted
    * @param {number} skeletonIndex
    * @returns {*}
    */
@@ -385,6 +401,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Get mesh area count from a CPU geometry payload mesh.
    *
+   * @adapted
    * @param {number} meshIndex
    * @returns {number}
    */
@@ -396,6 +413,8 @@ export class TriGeometryRes extends BlueAsyncRes
 
   /**
    * Returns one decoded CPU mesh record, or null when the index is absent.
+   *
+   * @adapted
    * @param {number} meshIndex Mesh index within the retained projection.
    * @returns {object|null} Mesh data, or null when absent.
    */
@@ -404,7 +423,11 @@ export class TriGeometryRes extends BlueAsyncRes
     return this._cmfData?.meshes?.[meshIndex] ?? null;
   }
 
-  /** Returns the decoded CMF-shaped payload used by Carbon mesh consumers. */
+  /**
+   * Returns the decoded CMF-shaped payload used by Carbon mesh consumers.
+   *
+   * @adapted
+   */
   GetCMFData()
   {
     return this._cmfData;
@@ -417,6 +440,7 @@ export class TriGeometryRes extends BlueAsyncRes
    * sets - by file type, not by payload shape. Every payload here is CMF-shaped,
    * a granny one included, so the shape cannot answer it.
    *
+   * @adapted
    * @returns {boolean} True unless ReadGrannyFile loaded it.
    */
   IsUsingCMF()
@@ -434,6 +458,7 @@ export class TriGeometryRes extends BlueAsyncRes
    * The LOD index this mesh should be drawn at for a screen size, or -1 when the
    * mesh does not exist.
    *
+   * @adapted
    * @param {number} meshIndex
    * @param {number} screenSize
    * @returns {number}
@@ -473,6 +498,7 @@ export class TriGeometryRes extends BlueAsyncRes
    * The LOD data this mesh should be drawn at for a screen size, or null when
    * the mesh has no LODs.
    *
+   * @adapted
    * @param {number} meshIndex
    * @param {number} screenSize
    * @returns {object|null}
@@ -486,6 +512,7 @@ export class TriGeometryRes extends BlueAsyncRes
    * The LOD data at an explicit index, or null when the mesh or index does not
    * exist (Carbon TriGeometryRes.cpp:281-292).
    *
+   * @adapted
    * @param {number} meshIndex
    * @param {number} lodIndex
    * @returns {object|null}
@@ -507,6 +534,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Get mesh name from a CPU geometry payload.
    *
+   * @adapted
    * @param {number} meshIndex
    * @returns {string}
    */
@@ -518,6 +546,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Get mesh area name from a CPU geometry payload.
    *
+   * @adapted
    * @param {number} meshIndex
    * @param {number} areaIndex
    * @returns {string}
@@ -534,12 +563,11 @@ export class TriGeometryRes extends BlueAsyncRes
    * TriGeometryRes.h:293). Exposed as "GetAreaBoundingBox"
    * (TriGeometryRes_Blue.cpp:83-88, MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Carbon fills `bounds` (a `std::pair<Vector3, Vector3>`) and returns a
-   * `Be::Result`; the pair is the return value and a failed result is thrown
-   * as an `Error` with Carbon's message. Area `areaIx` of the first LOD is read
-   * from the payload (cpp:2884). A payload area that holds no bounds yields
-   * zeros, as an unfilled `Vector3` member does.
-   *
+   * @adapted Carbon fills `bounds` (a `std::pair<Vector3, Vector3>`) and returns a
+   *   `Be::Result`; the pair is the return value and a failed result is thrown
+   *   as an `Error` with Carbon's message. Area `areaIx` of the first LOD is read
+   *   from the payload (cpp:2884). A payload area that holds no bounds yields
+   *   zeros, as an unfilled `Vector3` member does.
    * @param {number} meshIx Mesh index.
    * @param {number} areaIx Area index.
    * @returns {Array<number[]>} `[min, max]`, each a three-element array.
@@ -563,12 +591,11 @@ export class TriGeometryRes extends BlueAsyncRes
    * TriGeometryRes.h:326). Exposed as "GetBoundingBox"
    * (TriGeometryRes_Blue.cpp:90-94, MAP_METHOD_AND_WRAP).
    *
-   * Adapted: the `std::pair<Vector3, Vector3>` out parameter is the return
-   * value and a failed `Be::Result` is thrown as an `Error` with Carbon's
-   * message. A payload mesh that holds no bounds yields zeros, as an unfilled
-   * `Vector3` member does. Unlike `GetBoundingBox` it never falls back to the
-   * payload's own bounds.
-   *
+   * @adapted the `std::pair<Vector3, Vector3>` out parameter is the return
+   *   value and a failed `Be::Result` is thrown as an `Error` with Carbon's
+   *   message. A payload mesh that holds no bounds yields zeros, as an unfilled
+   *   `Vector3` member does. Unlike `GetBoundingBox` it never falls back to the
+   *   payload's own bounds.
    * @param {number} meshIx Mesh index.
    * @returns {Array<number[]>} `[min, max]`, each a three-element array.
    * @throws {Error} "Mesh index out of bounds" or "Invalid mesh".
@@ -591,11 +618,10 @@ export class TriGeometryRes extends BlueAsyncRes
    * TriGeometryRes.h:329). Exposed as "GetBoundingSphere"
    * (TriGeometryRes_Blue.cpp:95-99, MAP_METHOD_AND_WRAP).
    *
-   * Adapted: the `std::pair<Vector3, float>` out parameter is the return value
-   * and a failed `Be::Result` is thrown as an `Error` with Carbon's message.
-   * A mesh holding no sphere yields zeros, as a granny mesh does until
-   * `RecalculateBoundingSphere` (cpp:1019-1020).
-   *
+   * @adapted the `std::pair<Vector3, float>` out parameter is the return value
+   *   and a failed `Be::Result` is thrown as an `Error` with Carbon's message.
+   *   A mesh holding no sphere yields zeros, as a granny mesh does until
+   *   `RecalculateBoundingSphere` (cpp:1019-1020).
    * @param {number} meshIx Mesh index.
    * @returns {Array} `[center, radius]`: a three-element array and a number.
    * @throws {Error} "Mesh index out of range" or "Invalid mesh".
@@ -615,6 +641,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Get area bounding box from geometry payload data.
    *
+   * @adapted
    * @param {number} meshIndex
    * @param {number} areaIndex
    * @param {ArrayLike<number>|null} outMin
@@ -630,6 +657,8 @@ export class TriGeometryRes extends BlueAsyncRes
 
   /**
    * Get mesh bounding box from geometry payload data.
+   *
+   * @adapted
    * @param {number} meshIndex
    * @param {ArrayLike<number>|null} outMin
    * @param {ArrayLike<number>|null} outMax
@@ -645,6 +674,8 @@ export class TriGeometryRes extends BlueAsyncRes
 
   /**
    * Get mesh bounding sphere from geometry payload data.
+   *
+   * @adapted
    * @param {number} meshIndex
    * @param {ArrayLike<number>|null} out
    * @returns {*|boolean}
@@ -670,6 +701,7 @@ export class TriGeometryRes extends BlueAsyncRes
    * Carbon stores the same matrix bytes as gl-matrix; transforming one point
    * therefore uses the ordinary column-vector index layout.
    *
+   * @adapted
    * @param {number} meshIndex
    * @param {ArrayLike<number>} transform
    * @returns {{min: number[], max: number[]}|null}
@@ -712,6 +744,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Recalculate bounding sphere data from canonical CPU vertex positions.
    *
+   * @adapted
    * @returns {boolean}
    */
   RecalculateBoundingSphere()
@@ -744,6 +777,7 @@ export class TriGeometryRes extends BlueAsyncRes
    * the base owns bounded same-handle recovery from PURGED/FAILED. A prepared
    * handle is not force-refetched here; an explicit native Reload refills the same handle.
    *
+   * @adapted
    * @param {object} [options={}] Resource activity options.
    * @returns {boolean} Whether recovery started.
    */
@@ -759,15 +793,14 @@ export class TriGeometryRes extends BlueAsyncRes
    * TriGeometryRes.h:319). Exposed as "GetIntersectionPointNormalBone"
    * (TriGeometryRes_Blue.cpp:133-138, MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Carbon returns the nested pair `(hit, (boneIndex, (position,
-   * normal)))` built from `GetIntersectionPoints`; this returns the same facts
-   * as one object, the shape the CPU intersection already produces (`hit`,
-   * `boneIndex`, `position`, `normal`, with `point`, `unnormalizedNormal`,
-   * `distance`, `meshIndex` and `areaIndex` beside them). It intersects the
-   * resident CPU meshes directly, which is Carbon's legacy fallback
-   * (cpp:1635-1638), not the BVH of a prepared ray caster, and throws when no
-   * CPU geometry is resident.
-   *
+   * @adapted Carbon returns the nested pair `(hit, (boneIndex, (position,
+   *   normal)))` built from `GetIntersectionPoints`; this returns the same facts
+   *   as one object, the shape the CPU intersection already produces (`hit`,
+   *   `boneIndex`, `position`, `normal`, with `point`, `unnormalizedNormal`,
+   *   `distance`, `meshIndex` and `areaIndex` beside them). It intersects the
+   *   resident CPU meshes directly, which is Carbon's legacy fallback
+   *   (cpp:1635-1638), not the BVH of a prepared ray caster, and throws when no
+   *   CPU geometry is resident.
    * @param {ArrayLike<number>} position Ray origin.
    * @param {ArrayLike<number>} direction Ray direction.
    * @returns {object} The hit; `hit` is false with a zero position and normal and bone -1 on a miss.
@@ -794,6 +827,7 @@ export class TriGeometryRes extends BlueAsyncRes
    * Carbon's "legacy behavior" value (cpp:1523); Carbon's cast of the signed
    * index to unsigned (cpp:1527-1529) is not needed, since -1 stays -1.
    *
+   * @adapted
    * @param {ArrayLike<number>} position Ray origin.
    * @param {ArrayLike<number>} direction Ray direction.
    * @param {number} areaIndex The mesh area index; -1 for all areas.
@@ -814,7 +848,11 @@ export class TriGeometryRes extends BlueAsyncRes
     );
   }
 
-  /** Opens one borrowed CPU-raycast session over the resident geometry. */
+  /**
+   * Opens one borrowed CPU-raycast session over the resident geometry.
+   *
+   * @adapted
+   */
   PrepareRayCaster()
   {
     this._raycastUsers++;
@@ -831,7 +869,11 @@ export class TriGeometryRes extends BlueAsyncRes
     }
   }
 
-  /** Closes exactly one raycast session and drops the derived acceleration resource at zero. */
+  /**
+   * Closes exactly one raycast session and drops the derived acceleration resource at zero.
+   *
+   * @adapted
+   */
   ResetRayCaster()
   {
     if (this._raycastUsers === 0)
@@ -846,13 +888,21 @@ export class TriGeometryRes extends BlueAsyncRes
     }
   }
 
-  /** Reports whether the reference-counted CPU raycast resource is ready. */
+  /**
+   * Reports whether the reference-counted CPU raycast resource is ready.
+   *
+   * @adapted
+   */
   IsRayCasterReady()
   {
     return this._raycastGeometry !== null;
   }
 
-  /** Reports whether the current raycast preparation session failed. */
+  /**
+   * Reports whether the current raycast preparation session failed.
+   *
+   * @adapted
+   */
   HasRayCasterPreparationFailed()
   {
     // cpp:1597-1603. A release destroys the derived geometry without touching
@@ -869,6 +919,7 @@ export class TriGeometryRes extends BlueAsyncRes
    * cpp:1560-1567. Carbon ignores the session count here; an open session
    * discovers the loss through HasRayCasterPreparationFailed.
    *
+   * @adapted
    * @returns {TriGeometryRes} This resource.
    */
   DestroyRayCaster()
@@ -881,6 +932,8 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Carbon ReleaseResources (TriGeometryRes.cpp:496-509). Explicit JS teardown
    * replaces the mesh allocation destructors; device release is not cache purge.
+   *
+   * @adapted
    * @param {number} [storage] Native storage mask.
    * @returns {TriGeometryRes} This resource.
    */
@@ -894,7 +947,11 @@ export class TriGeometryRes extends BlueAsyncRes
     return this;
   }
 
-  /** Public Carbon query; requires a matching active raycast session. */
+  /**
+   * Public Carbon query; requires a matching active raycast session.
+   *
+   * @adapted
+   */
   GetIntersectionPoints(position, direction, result, areaIndex = -1, rayLength = Infinity)
   {
     if (!this._raycastGeometry)
@@ -955,6 +1012,8 @@ export class TriGeometryRes extends BlueAsyncRes
    * exist a query degrades to bounds or sphere and reports which produced it.
    * What it must never do again is report absence as a miss.
    *
+   * @cjs
+   * @implemented
    * @returns {Array<*>} Canonical CPU meshes.
    * @throws {Error} When the CPU geometry is not resident.
    */
@@ -975,6 +1034,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Get vertex element descriptors for a mesh.
    *
+   * @adapted
    * @param {number} meshIndex
    * @returns {Array<*>}
    */
@@ -989,7 +1049,11 @@ export class TriGeometryRes extends BlueAsyncRes
     return mesh?.decl || mesh?.vertexElements || [];
   }
 
-  /** Returns IsGood, as Carbon's ITr2InstanceData readiness does (cpp:2769-2772). */
+  /**
+   * Returns IsGood, as Carbon's ITr2InstanceData readiness does (cpp:2769-2772).
+   *
+   * @implemented
+   */
   IsInstanceDataReady()
   {
     return this.IsGood();
@@ -997,8 +1061,9 @@ export class TriGeometryRes extends BlueAsyncRes
 
   /**
    * Returns the selected LOD's vertex allocation as an instance stream (cpp:2774-2788).
-   * Adapted: a plain record avoids a resource-to-Trinity import. Null is the
-   * uninitialized AL buffer; before lazy preparation the stream is empty.
+   *
+   * @adapted a plain record avoids a resource-to-Trinity import. Null is the
+   *   uninitialized AL buffer; before lazy preparation the stream is empty.
    * @param {number} bufferIndex Mesh index.
    * @param {number} screenSize Projected size for LOD selection.
    * @returns {object} Buffer, byte offset, byte stride and vertex count.
@@ -1015,8 +1080,9 @@ export class TriGeometryRes extends BlueAsyncRes
 
   /**
    * Returns the prepared mesh declaration or Carbon's ~0u sentinel (cpp:2799-2806).
-   * Adapted: the Trinity allocation helper installs the handle on first use;
-   * the resource layer cannot import Tr2EffectStateManager to name the sentinel.
+   *
+   * @adapted the Trinity allocation helper installs the handle on first use;
+   *   the resource layer cannot import Tr2EffectStateManager to name the sentinel.
    * @param {number} bufferIndex Mesh index.
    * @returns {number} Vertex declaration handle.
    */
@@ -1027,8 +1093,9 @@ export class TriGeometryRes extends BlueAsyncRes
 
   /**
    * Returns mesh-local bounds or Carbon's empty box (cpp:2808-2817).
-   * Adapted: decoded bounds become the existing JS min/max pair; an absent
-   * mesh never borrows the whole resource's bounds.
+   *
+   * @adapted decoded bounds become the existing JS min/max pair; an absent
+   *   mesh never borrows the whole resource's bounds.
    * @param {number} bufferIndex Mesh index.
    * @returns {object} Detached min/max vectors.
    */
@@ -1044,6 +1111,7 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Saving belongs to the selected geometry format writer and destination.
    *
+   * @notSupported
    * @throws {Error}
    */
   SaveMesh()
@@ -1654,6 +1722,8 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Carbon SetupSkeletons (TriGeometryRes.cpp:1187-1242). The JS format reader
    * already constructs the joint records retained with the mesh projection.
+   *
+   * @adapted
    * @param {object} data Decoded CMF records.
    */
   SetupSkeletons(data)
@@ -1661,7 +1731,11 @@ export class TriGeometryRes extends BlueAsyncRes
     if (this._cmfData) this._cmfData.skeletons = data.skeletons || [];
   }
 
-  /** Decode the native file, or the existing dynamic single-mesh projection. */
+  /**
+   * Decode the native file, or the existing dynamic single-mesh projection.
+   *
+   * @adapted
+   */
   async _DoLoad()
   {
     let data;
@@ -1699,7 +1773,11 @@ export class TriGeometryRes extends BlueAsyncRes
     return loaded ? BlueAsyncRes.LoadingResult.LR_SUCCESS : BlueAsyncRes.LoadingResult.LR_FAILED;
   }
 
-  /** Carbon DoPrepare; device allocations are deferred to the first draw in JS. */
+  /**
+   * Carbon DoPrepare; device allocations are deferred to the first draw in JS.
+   *
+   * @adapted
+   */
   _DoPrepare()
   {
     return this._cmfData !== null;
@@ -1708,6 +1786,8 @@ export class TriGeometryRes extends BlueAsyncRes
   /**
    * Carbon PrepareFromGrannyRes (TriGeometryRes.cpp:1301-1344). JS baking mutates
    * projected channels, so clone them before installing independently owned meshes.
+   *
+   * @adapted
    * @param {TriGrannyRes} resource Source Granny resource.
    */
   PrepareFromGrannyRes(resource)
@@ -1724,7 +1804,11 @@ export class TriGeometryRes extends BlueAsyncRes
   /** Opaque browser device allocations, supplied by Tr2DeviceResource. */
   __adapterResources = null;
 
-  /** The existing dynamic mesh path reads its named source, preserving native attempt cancellation. */
+  /**
+   * The existing dynamic mesh path reads its named source, preserving native attempt cancellation.
+   *
+   * @adapted
+   */
   async _DoOpenStream()
   {
     if (!this.GetPath().startsWith(MeshPrefix))

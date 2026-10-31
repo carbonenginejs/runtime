@@ -103,7 +103,11 @@ export class TriTextureParameter extends ITriEffectTextureParameter
 
   _textureLodEnabled = false;
 
-  /** The shader resource name this texture binds to. */
+  /**
+   * The shader resource name this texture binds to.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -111,7 +115,11 @@ export class TriTextureParameter extends ITriEffectTextureParameter
     return this.name;
   }
 
-  /** Content hash: resource path (when set) then name. */
+  /**
+   * Content hash: resource path (when set) then name.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
@@ -127,6 +135,7 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * Carbon's SetParameterName (TriTextureParameter.cpp:33-36): assigns the
    * name and nothing else.
    *
+   * @implemented
    * @param {string} name The parameter name.
    */
 
@@ -140,6 +149,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * Carbon GetResourcePath (TriTextureParameter.cpp:110-118): the path of the
    * texture in use, which may be the low-res stand-in, or "" when that texture
    * is not a resource (a render target, say) or there is none.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -154,6 +165,7 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * authored path is empty or different, stores it and calls OnModified, which
    * drops the attached texture and asks for the new one.
    *
+   * @implemented
    * @param {string} resourcePath The authored texture path.
    */
 
@@ -170,6 +182,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * Attaches a resolved texture provider, discards any low-res stand-in,
    * re-resolves effect handles against the cached shader and notifies owning
    * materials.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -187,8 +201,11 @@ export class TriTextureParameter extends ITriEffectTextureParameter
     this.OnTextureChanged();
   }
 
-  /** Copies a dynamically assigned provider, as TriTextureParameter.cpp:295-308.
+  /**
+   * Copies a dynamically assigned provider, as TriTextureParameter.cpp:295-308.
    * Carbon declaration: TriTextureParameter::AssignTo (trinity/trinity/Shader/Parameter/TriTextureParameter.h:74).
+   *
+   * @implemented
    */
   @meta.implemented
   AssignTo(other, _copier)
@@ -204,6 +221,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * Carbon asks whether the authored resource has its texture, which it
    * creates in DoPrepare. Ours is created at first bind, which never happens
    * while the stand-in is the one bound, so readiness is asked as IsPrepared.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -230,6 +249,7 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * `flags` is Carbon's `ResourceFlags`, which a mapped resource stores in
    * `registerCount` — for a resource that field is a flag word, not a count.
    *
+   * @implemented
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -312,6 +332,7 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * Carbon `TriTextureParameter::ApplyUav` (same file). No colour space: a UAV
    * is written, not sampled, so there is no transfer function to apply.
    *
+   * @implemented
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -326,7 +347,11 @@ export class TriTextureParameter extends ITriEffectTextureParameter
     return resourceDesc.SetUav__TextureAL(stage, registerIndex, resource ? resource.GetTexture() : null, this.uavMipLevel);
   }
 
-  /** Always true - a texture swap must dirty the owning materials' resource sets. */
+  /**
+   * Always true - a texture swap must dirty the owning materials' resource sets.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SupportsDirtyNotification()
@@ -336,6 +361,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
 
   /**
    * Turns on screen-size-driven mip selection and stores the density scales; Carbon's spelling of the method name is kept.
+   *
+   * @adapted
    * @param uvDensityScale five scales: the world-position scale first, then the four UV-set scales
    */
 
@@ -350,7 +377,11 @@ export class TriTextureParameter extends ITriEffectTextureParameter
     this.uvDensityScale3 = Number(uvDensityScale[4] ?? 0);
   }
 
-  /** Turns mip selection off, so UsedWithScreenSize then always requests LOD 0. */
+  /**
+   * Turns mip selection off, so UsedWithScreenSize then always requests LOD 0.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   DisableTextureLoding()
@@ -360,6 +391,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
 
   /**
    * Carbon TriTextureParameter::UsedWithScreenSize (cpp:53-97): takes the largest resolution demanded by the world-position and per-UV-set densities, compares it against the texture's native resolution, and asks the resource for the resulting mip level.
+   *
+   * @adapted
    * @returns {number} the requested LOD, 0 when LOD is disabled or no density applies
    */
 
@@ -408,6 +441,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * Carbon OnModified (TriTextureParameter.cpp:140-159): drops the texture
    * subscriptions and resources on every notification, then reinitializes
    * and rebuilds effect handles.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -427,6 +462,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * authored path through the resource manager. When the authored file is not
    * local but its `<base>_lowdetail<ext>` sibling is, the sibling is fetched
    * too and renders until the authored one is ready (see GetResource).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -472,12 +509,12 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * texture unless its BindlessHandleType annotation names another type, in
    * the colour space its Tr2sRGB annotation gives.
    *
-   * Adapted: no GPU binding is cached. Carbon's CacheTexture picks the texture
-   * or `Tr2Renderer::GetFallbackTexture(m_resourceType)` here (cpp:367-381);
-   * ours realizes the texture at bind, and an empty binding takes the backend's
-   * dummy of the declared view dimension. Carbon asserts in debug builds when a
-   * bindless constant has no BindlessHandleType (cpp:351); release keeps 2D,
-   * and so does this.
+   * @adapted no GPU binding is cached. Carbon's CacheTexture picks the texture
+   *   or `Tr2Renderer::GetFallbackTexture(m_resourceType)` here (cpp:367-381);
+   *   ours realizes the texture at bind, and an empty binding takes the backend's
+   *   dummy of the declared view dimension. Carbon asserts in debug builds when a
+   *   bindless constant has no BindlessHandleType (cpp:351); release keeps 2D,
+   *   and so does this.
    */
 
   @meta.adapted
@@ -522,6 +559,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
   /**
    * Registers a material to be notified when the texture changes; duplicates are
    * ignored.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -536,6 +575,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
   /**
    * Stops notifying a material; the material reference is dropped, not the
    * texture.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -557,6 +598,9 @@ export class TriTextureParameter extends ITriEffectTextureParameter
    * (TriTextureParameter.cpp:40, :112, :237): a provider need not be a cached
    * resource - a `Tr2TextureReference` is not one - and then there is nothing
    * to renew.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -571,6 +615,8 @@ export class TriTextureParameter extends ITriEffectTextureParameter
   /**
    * Tells every owning material that its resource sets and constant buffers are
    * stale.
+   *
+   * @adapted
    */
 
   @meta.adapted

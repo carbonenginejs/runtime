@@ -71,6 +71,8 @@ export class EveTurretTarget extends IRoot
   /**
    * The targetable record this tracker is following, or null when it has no
    * target.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -84,6 +86,8 @@ export class EveTurretTarget extends IRoot
    * IWorldPosition (Carbon EveTurretTarget.cpp:69-79); a change to a different
    * object seeds the position blend so tracking eases off the previous target.
    * Null clears the target (cpp:62-67). Returns whether the object was accepted.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -109,7 +113,11 @@ export class EveTurretTarget extends IRoot
     return true;
   }
 
-  /** The damage locator index currently being fired at, or -1 when not firing. */
+  /**
+   * The damage locator index currently being fired at, or -1 when not firing.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocator()
@@ -121,6 +129,8 @@ export class EveTurretTarget extends IRoot
    * Smooths the aim over locator changes instead of snapping (Carbon
    * EveTurretTarget.cpp:104-111): firing at or leaving a locator seeds the
    * position blend from the current tracking position.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -137,6 +147,8 @@ export class EveTurretTarget extends IRoot
    *
    * Random draws delegate to the matching generator in global/math/random.js.
    * Vector outputs use the org-standard out-last convention.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -179,6 +191,8 @@ export class EveTurretTarget extends IRoot
   /**
    * Ends firing: clears the locator, the position blend, the current miss state
    * and every queued shot result.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -206,7 +220,7 @@ export class EveTurretTarget extends IRoot
    * target's world position beyond one AU; the target's centre; or the target's
    * shield-ellipsoid intercept, falling back to the damage locator from inside it.
    *
-   * Adapted: Targetable output parameters use CarbonEngineJS's out-last calling convention.
+   * @adapted Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
 
   @meta.adapted
@@ -243,7 +257,7 @@ export class EveTurretTarget extends IRoot
    * previous target. Returns the live position buffer, valid until the next
    * Update.
    *
-   * Adapted: Targetable output parameters use CarbonEngineJS's out-last calling convention.
+   * @adapted Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
 
   @meta.adapted
@@ -296,6 +310,8 @@ export class EveTurretTarget extends IRoot
    * The point the turrets aim at - the miss point when the last shot missed,
    * otherwise the blended target position. Copies into out when one is given,
    * otherwise returns the live buffer.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -308,6 +324,8 @@ export class EveTurretTarget extends IRoot
    * The point the firing effect terminates at - the miss point when the last
    * shot missed, otherwise the resolved impact point. Copies into out when one
    * is given, otherwise returns the live buffer.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -321,7 +339,7 @@ export class EveTurretTarget extends IRoot
    * position written into out; -1 when there is no target or the locator has no
    * position.
    *
-   * Adapted: Targetable output parameters use CarbonEngineJS's out-last calling convention.
+   * @adapted Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
 
   @meta.adapted
@@ -338,7 +356,7 @@ export class EveTurretTarget extends IRoot
    * A locator drawn from the target's 'good' set, falling back to the closest
    * one, with its world position written into out; -1 when neither resolves.
    *
-   * Adapted: Targetable output parameters use CarbonEngineJS's out-last calling convention.
+   * @adapted Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
 
   @meta.adapted
@@ -357,6 +375,8 @@ export class EveTurretTarget extends IRoot
    * Sets how misses and impacts are handled: laser versus projectile miss
    * behaviour, the impact size (zero suppresses impacts entirely) and the
    * impact-position behaviour.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -370,6 +390,8 @@ export class EveTurretTarget extends IRoot
   /**
    * Sets only the impact configuration, leaving miss behaviour untouched
    * (Carbon EveTurretTarget.cpp:371-375, split out for EveChildTurret).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -382,6 +404,8 @@ export class EveTurretTarget extends IRoot
   /**
    * Takes the next queued shot result and makes it the current miss state; an
    * empty queue counts as a hit.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -394,6 +418,8 @@ export class EveTurretTarget extends IRoot
   /**
    * Whether the most recently popped shot result was a miss, which is what
    * selects the miss position for tracking and targeting.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -404,6 +430,8 @@ export class EveTurretTarget extends IRoot
 
   /**
    * Queues a hit/miss result for a future shot and stamps the shot time; the queue keeps at most four entries, dropping the oldest.
+   *
+   * @implemented
    * @param {boolean} missed Whether that shot will miss.
    * The shot time is TimeAsDouble( BeOS->GetActualTime() ), read here as Carbon reads it (EveTurretTarget.cpp:404-414).
    */
@@ -416,7 +444,11 @@ export class EveTurretTarget extends IRoot
     while (this._missQueue.length > 4) this._missQueue.shift();
   }
 
-  /** The timestamp stamped by the most recent SetShotMissed, in seconds. */
+  /**
+   * The timestamp stamped by the most recent SetShotMissed, in seconds.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetLastShotTime()
@@ -424,7 +456,11 @@ export class EveTurretTarget extends IRoot
     return this._lastShotTime;
   }
 
-  /** The number of queued shot results not yet popped. */
+  /**
+   * The number of queued shot results not yet popped.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   MissQueueSize()
@@ -432,7 +468,11 @@ export class EveTurretTarget extends IRoot
     return this._missQueue.length;
   }
 
-  /** The maximum firing-time variance between turrets (Carbon EveTurretTarget.h:62-65). */
+  /**
+   * The maximum firing-time variance between turrets (Carbon EveTurretTarget.h:62-65).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetShotTimeVariance()
@@ -443,6 +483,8 @@ export class EveTurretTarget extends IRoot
   /**
    * The target's radius, which scales the firing effect; -1 when there is no
    * target.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -455,6 +497,8 @@ export class EveTurretTarget extends IRoot
   /**
    * The surface the target currently presents - shield, armor or hull -
    * IMPACT_INVALID when the target does not report one.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -467,6 +511,8 @@ export class EveTurretTarget extends IRoot
   /**
    * Whether the firing effect should draw its impact end: false only when the
    * shot missed and projectile miss behaviour is set.
+   *
+   * @implemented
    */
 
   @meta.implemented

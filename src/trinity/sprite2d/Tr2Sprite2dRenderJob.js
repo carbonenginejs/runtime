@@ -16,7 +16,11 @@ import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 {
 
-  /** Carbon method GatherSprites. */
+  /**
+   * Carbon method GatherSprites.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GatherSprites(renderer)
@@ -27,7 +31,11 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
     }
   }
 
-  /** Carbon method PickPoint. */
+  /**
+   * Carbon method PickPoint.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PickPoint(x, y, renderer)
@@ -63,7 +71,11 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
     return this;
   }
 
-  /** Carbon method GetVertexCount. */
+  /**
+   * Carbon method GetVertexCount.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetVertexCount()

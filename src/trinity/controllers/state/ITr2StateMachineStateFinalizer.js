@@ -18,6 +18,7 @@ export class ITr2StateMachineStateFinalizer extends IRoot
   /**
    * Attaches this finalizer to the controller whose state it gates.
    *
+   * @adapted
    * @param {object} _controller The owning controller.
    */
 
@@ -26,7 +27,11 @@ export class ITr2StateMachineStateFinalizer extends IRoot
   {
   }
 
-  /** Detaches this finalizer, dropping every reference to the controller. */
+  /**
+   * Detaches this finalizer, dropping every reference to the controller.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Unlink()
@@ -39,6 +44,7 @@ export class ITr2StateMachineStateFinalizer extends IRoot
    * THE ONE METHOD CARBON MAKES PURE VIRTUAL: a finalizer exists precisely to
    * answer this, so there is no sensible default.
    *
+   * @abstract
    * @param {object} _controller The owning controller.
    * @returns {boolean} Whether the state machine may leave the current state.
    */

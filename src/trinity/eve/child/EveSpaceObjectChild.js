@@ -41,6 +41,8 @@ export function EveCollectAreas(type, mesh, areaPool)
  * EveChildGeometry (EveSpaceObjectChild.h:17-50). Their current JavaScript
  * producers in EveChildMesh, EveChildInstancedMeshes and EveCollectAreas emit
  * plain records; no nominal class declarations exist for those three structs.
+ *
+ * @abstract
  */
 @be.define("EveSpaceObjectChild")
 @be.abstract
@@ -204,7 +206,11 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
     this.partTag = Number(tag) >>> 0;
   }
 
-  /** Returns the owning space object. */
+  /**
+   * Returns the owning space object.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetOwner()
@@ -219,7 +225,11 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
     this._owner = owner ?? null;
   }
 
-  /** Returns the parent child node. */
+  /**
+   * Returns the parent child node.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetParent()
@@ -254,6 +264,8 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   /**
    * Returns the damage overlay of one part of this child, or null while the
    * part has none (Carbon EveSpaceObjectChild.cpp:138-141 base default).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -262,7 +274,11 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
     return null;
   }
 
-  /** Creates the damage overlay of one part (Carbon cpp:143-145 base no-op). */
+  /**
+   * Creates the damage overlay of one part (Carbon cpp:143-145 base no-op).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CreatePartDamageOverlay(_partTag)
@@ -272,6 +288,8 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   /**
    * Returns the armour damage shader of one part, or null when the child has
    * none (Carbon cpp:147-150 base default).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -283,6 +301,8 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   /**
    * Writes the animated child-local pose of one of a part's damage locators;
    * the base child owns none, so nothing is written (Carbon cpp:152-155).
+   *
+   * @implemented
    */
 
   @meta.implemented

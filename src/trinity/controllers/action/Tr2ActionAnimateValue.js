@@ -64,7 +64,11 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   @type.boolean
   delayBinding = false;
 
-  /** Live native READ property reporting the current binding. */
+  /**
+   * Live native READ property reporting the current binding.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
@@ -73,7 +77,11 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
     return this.IsBindingValid();
   }
 
-  /** Live native READ property observing retained compilation without compiling. */
+  /**
+   * Live native READ property observing retained compilation without compiling.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
@@ -88,8 +96,9 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Links the destination and compiles the value expression.
-   * Adapted: retains the shared AST compiler and flattened binding adapter
-   * instead of native bytecode and embedded binding-point storage.
+   *
+   * @adapted retains the shared AST compiler and flattened binding adapter
+   *   instead of native bytecode and embedded binding-point storage.
    */
 
   @meta.adapted
@@ -105,8 +114,9 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Clears the binding and evaluation state; Stop owns update unregistration.
-   * Adapted: resets the shared AST runtime record, including its times; native
-   * clears the evaluator/controller while retaining the two time fields.
+   *
+   * @adapted resets the shared AST runtime record, including its times; native
+   *   clears the evaluator/controller while retaining the two time fields.
    */
 
   @meta.adapted
@@ -118,10 +128,11 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Starts updating the destination value.
-   * Adapted: retains optional linked-controller invocation, rebinding invalid
-   * destinations, replacing the evaluation controller and setting lastTime.
-   * Native Start only rebinds delayed destinations and sets startTime before
-   * registering; those existing non-update adapter differences remain deferred.
+   *
+   * @adapted retains optional linked-controller invocation, rebinding invalid
+   *   destinations, replacing the evaluation controller and setting lastTime.
+   *   Native Start only rebinds delayed destinations and sets startTime before
+   *   registering; those existing non-update adapter differences remain deferred.
    */
 
   @meta.adapted
@@ -148,8 +159,9 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Stops updating the destination value.
-   * Adapted: retains optional linked-controller invocation and unlinked no-op;
-   * native requires a controller reference and directly unregisters the action.
+   *
+   * @adapted retains optional linked-controller invocation and unlinked no-op;
+   *   native requires a controller reference and directly unregisters the action.
    */
 
   @meta.adapted
@@ -160,6 +172,8 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Rebases stored simulation time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -171,9 +185,10 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Evaluates and writes the animated value.
-   * Adapted: evaluates retained AST state instead of native bytecode. Failed
-   * evaluation skips the write; binding write errors remain observable. Updates
-   * never recompile unnotified source edits (native cpp:90-104).
+   *
+   * @adapted evaluates retained AST state instead of native bytecode. Failed
+   *   evaluation skips the write; binding write errors remain observable. Updates
+   *   never recompile unnotified source edits (native cpp:90-104).
    */
 
   @meta.adapted
@@ -207,9 +222,9 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   /**
    * Carbon OnModified (Tr2ActionAnimateValue.cpp:106-124).
    *
-   * Adapted: on a value change Carbon calls m_evaluator.SetExpr with the
-   * controller and its extra functions; ours drops the compiled program and
-   * recompiles through CjsControllerExpressionProgram with a Curve function.
+   * @adapted on a value change Carbon calls m_evaluator.SetExpr with the
+   *   controller and its extra functions; ours drops the compiled program and
+   *   recompiles through CjsControllerExpressionProgram with a Curve function.
    */
 
   @meta.adapted
@@ -230,6 +245,8 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Checks whether the binding currently resolves.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -240,8 +257,9 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Checks whether the value expression compiles.
-   * Adapted: retains compile-on-query behavior; native observes its retained
-   * evaluator without compiling. Queries can therefore adopt unnotified edits.
+   *
+   * @adapted retains compile-on-query behavior; native observes its retained
+   *   evaluator without compiling. Queries can therefore adopt unnotified edits.
    */
   @legacyBlue.method
   @meta.adapted
@@ -256,6 +274,8 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * IsExpressionValid(attrName), which cannot share one C++ function, so
    * this forward takes and discards the attribute name. Same forward here
    * for nominal parity.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("IsExpressionValid")
   @meta.implemented
@@ -266,8 +286,9 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Gets a curve value for the expression helper.
-   * Adapted: retains shared JS curve-shape coercion and fallback behavior;
-   * native calls ITriScalarFunction.GetValueAt directly, returning zero if null.
+   *
+   * @adapted retains shared JS curve-shape coercion and fallback behavior;
+   *   native calls ITriScalarFunction.GetValueAt directly, returning zero if null.
    */
 
   @meta.adapted
@@ -278,6 +299,8 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Carbon GetDestination (Tr2ActionAnimateValue.cpp:145-148): the binding's bound object.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -288,8 +311,9 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Gets expression term metadata.
-   * Adapted: shared AST term records replace native evaluator metadata; a
-   * linked controller supplies its required GetExpressionTermInfo operation.
+   *
+   * @adapted shared AST term records replace native evaluator metadata; a
+   *   linked controller supplies its required GetExpressionTermInfo operation.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -305,9 +329,10 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Evaluates an arbitrary expression.
-   * Adapted: retains numeric zero for invalid/NaN results and optional unlinked
-   * context instead of native BlueStdResult failures. Native typed error and
-   * float32 evaluation parity remain outside this class-removal batch.
+   *
+   * @adapted retains numeric zero for invalid/NaN results and optional unlinked
+   *   context instead of native BlueStdResult failures. Native typed error and
+   *   float32 evaluation parity remain outside this class-removal batch.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -362,6 +387,8 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 
   /**
    * Carbon LinkDestination (Tr2ActionAnimateValue.cpp:168-171): link against the controller's roots.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -373,6 +400,8 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   /**
    * Checks whether binding is deferred to Start, which requires both the
    * delayBinding flag and an authored path.
+   *
+   * @implemented
    */
 
   @meta.implemented

@@ -52,6 +52,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
   /**
    * Advances the cached quaternion using the existing seconds-based curve contract.
    *
+   * @implemented
    * @param {number} time Source time in seconds.
    * @returns {void}
    */
@@ -67,9 +68,9 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 
   /**
    * Updates the cached value and copies it into caller-owned storage.
-   * Adapted: JavaScript retains time-first seconds and an output buffer instead
-   * of Carbon's output-first Be::Time/double overloads.
    *
+   * @adapted JavaScript retains time-first seconds and an output buffer instead
+   *   of Carbon's output-first Be::Time/double overloads.
    * @param {number} time Source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
@@ -84,9 +85,9 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 
   /**
    * Samples into caller-owned storage without changing the cached value.
-   * Adapted: JavaScript retains time-first seconds and an output buffer instead
-   * of Carbon's output-first Be::Time/double overloads.
    *
+   * @adapted JavaScript retains time-first seconds and an output buffer instead
+   *   of Carbon's output-first Be::Time/double overloads.
    * @param {number} time Source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
@@ -100,6 +101,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
   /**
    * Leaves the caller's derivative output unchanged, as Carbon does.
    *
+   * @adapted
    * @param {number} _time Unused source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
@@ -114,6 +116,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
   /**
    * Leaves the caller's second-derivative output unchanged, as Carbon does.
    *
+   * @adapted
    * @param {number} _time Unused source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
@@ -128,6 +131,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
   /**
    * Gets the longest scalar component duration.
    *
+   * @implemented
    * @returns {number} Duration in seconds.
    */
 
@@ -139,8 +143,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 
   /**
    * Samples the quaternion at the supplied time.
-   * Adapted: writes caller-owned storage instead of returning a native value copy.
    *
+   * @adapted writes caller-owned storage instead of returning a native value copy.
    * @param {number} time Source time in seconds.
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
@@ -154,10 +158,10 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 
   /**
    * Adds matching keys to the three scalar components.
-   * Adapted: optional arrays represent native Optional<Vector3> values. The
-   * existing behavior ignores a right tangent when no left tangent is supplied
-   * (Carbon quirk, Tr2CurveEulerRotation.cpp:98-99); no key algorithm changes.
    *
+   * @adapted optional arrays represent native Optional<Vector3> values. The
+   *   existing behavior ignores a right tangent when no left tangent is supplied
+   *   (Carbon quirk, Tr2CurveEulerRotation.cpp:98-99); no key algorithm changes.
    * @param {number} time Key time in seconds.
    * @param {Float32Array|number[]} value Yaw, pitch and roll in radians.
    * @param {number} [interpolation=Tr2CurveInterpolation.HERMITE] Segment interpolation.
@@ -179,6 +183,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
   /**
    * Sets both extrapolation modes on all scalar components.
    *
+   * @implemented
    * @param {number} extrapolation Native extrapolation enum value.
    * @returns {void}
    */

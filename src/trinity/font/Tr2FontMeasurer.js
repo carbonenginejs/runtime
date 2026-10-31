@@ -148,7 +148,11 @@ export class Tr2FontMeasurer extends IRoot
     this._SetColor(value);
   }
 
-  /** Selects the CSS family for subsequently added text. */
+  /**
+   * Selects the CSS family for subsequently added text.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   SetFont(value)
@@ -159,7 +163,11 @@ export class Tr2FontMeasurer extends IRoot
     this._currentAscender = this._currentDescender = 0;
   }
 
-  /** Returns the selected CSS family. */
+  /**
+   * Returns the selected CSS family.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFont()
@@ -167,7 +175,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._font;
   }
 
-  /** Selects the pixel size for subsequently added text. */
+  /**
+   * Selects the pixel size for subsequently added text.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFontSize(value)
@@ -178,7 +190,11 @@ export class Tr2FontMeasurer extends IRoot
     this._currentAscender = this._currentDescender = 0;
   }
 
-  /** Returns the selected pixel size. */
+  /**
+   * Returns the selected pixel size.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFontSize()
@@ -186,7 +202,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._fontSize;
   }
 
-  /** Carbon `GetColor` (protected, Tr2FontMeasurer.h:142): the native signed packed color. */
+  /**
+   * Carbon `GetColor` (protected, Tr2FontMeasurer.h:142): the native signed packed color.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _GetColor()
@@ -194,7 +214,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._color | 0;
   }
 
-  /** Carbon `SetColor` (protected, Tr2FontMeasurer.h:143): the packed color for subsequently added segments. */
+  /**
+   * Carbon `SetColor` (protected, Tr2FontMeasurer.h:143): the packed color for subsequently added segments.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _SetColor(value)
@@ -236,19 +260,18 @@ export class Tr2FontMeasurer extends IRoot
    * that fails (a size of 0 or less, say) counts as no glyph, as Carbon's
    * FTC_SBitCache_Lookup error does.
    *
-   * Adapted: JS Unicode code points replace native wchar_t units. A face
-   * parsed from font bytes reports a missing character as glyph 0, so the
-   * per-character fallback runs as Carbon's does. A CSS face reports no
-   * missing glyphs: within it every character has a glyph, and the browser
-   * itself falls back per glyph through the CSS family list
-   * (Tr2FontManager._SetFont). Underline thickness and offset use pixel-size
-   * estimates, as browser fonts expose no underline metrics.
-   *
    * Carbon bug CE-129, Tr2FontMeasurer.cpp:243-244: Carbon shifts the face's
    * font-unit underline metrics by 6 as if they were 26.6 pixels, so its
    * underline does not scale with size. Fixed, operator ruling 2026-10-13:
    * the size-scaled estimate is used.
    *
+   * @adapted JS Unicode code points replace native wchar_t units. A face
+   *   parsed from font bytes reports a missing character as glyph 0, so the
+   *   per-character fallback runs as Carbon's does. A CSS face reports no
+   *   missing glyphs: within it every character has a glyph, and the browser
+   *   itself falls back per glyph through the CSS family list
+   *   (Tr2FontManager._SetFont). Underline thickness and offset use pixel-size
+   *   estimates, as browser fonts expose no underline metrics.
    * @param {string} text Text to add.
    * @returns {number} Number of characters added.
    */
@@ -342,6 +365,8 @@ export class Tr2FontMeasurer extends IRoot
    * One glyph's sbit, or null when the lookup fails: Carbon's AddText treats
    * an FTC_SBitCache_Lookup error as no glyph (Tr2FontMeasurer.cpp:279-284).
    *
+   * @cjs
+   * @implemented
    * @param {number} face Face ID.
    * @param {number} size Pixel size.
    * @param {number} glyphIndex Glyph index.
@@ -362,7 +387,11 @@ export class Tr2FontMeasurer extends IRoot
     }
   }
 
-  /** Commits pending segments with a placement offset and notifies text sprites. */
+  /**
+   * Commits pending segments with a placement offset and notifies text sprites.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   CommitText(shiftX, shiftY)
@@ -378,7 +407,11 @@ export class Tr2FontMeasurer extends IRoot
     this._NotifyListenersOfChange();
   }
 
-  /** Cancels only the latest uncommitted segment and restores its starting cursor. */
+  /**
+   * Cancels only the latest uncommitted segment and restores its starting cursor.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   CancelLastText()
@@ -387,7 +420,11 @@ export class Tr2FontMeasurer extends IRoot
     if (segment) this.cursorX = segment.prevCursorX;
   }
 
-  /** Returns whether committed segments exist, including empty segments. */
+  /**
+   * Returns whether committed segments exist, including empty segments.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HasCommittedText()
@@ -395,7 +432,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._committedRenderData.length !== 0;
   }
 
-  /** Returns whether pending segments exist. */
+  /**
+   * Returns whether pending segments exist.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   HasUncommittedText()
@@ -403,7 +444,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._renderData.length !== 0;
   }
 
-  /** Clears segments and cursor/metric state, retaining font settings. */
+  /**
+   * Clears segments and cursor/metric state, retaining font settings.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Reset()
@@ -415,7 +460,11 @@ export class Tr2FontMeasurer extends IRoot
     this._NotifyListenersOfChange();
   }
 
-  /** Native single-line index lookup, including its behavior in spacing gaps. */
+  /**
+   * Native single-line index lookup, including its behavior in spacing gaps.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetIndexAtPos(x)
@@ -433,7 +482,11 @@ export class Tr2FontMeasurer extends IRoot
     return index;
   }
 
-  /** Native width lookup sums advances, deliberately excluding letter spacing. */
+  /**
+   * Native width lookup sums advances, deliberately excluding letter spacing.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetWidthAtIndex(index)
@@ -450,7 +503,11 @@ export class Tr2FontMeasurer extends IRoot
     return width;
   }
 
-  /** Returns the native pre-preparation sprite vertex budget. */
+  /**
+   * Returns the native pre-preparation sprite vertex budget.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetVertexCount()
@@ -461,7 +518,11 @@ export class Tr2FontMeasurer extends IRoot
     return count * 4;
   }
 
-  /** Registers a text-sprite invalidation listener. */
+  /**
+   * Registers a text-sprite invalidation listener.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   RegisterForChangeNotification(target)
@@ -469,7 +530,11 @@ export class Tr2FontMeasurer extends IRoot
     this._changeListeners.add(target);
   }
 
-  /** Removes a text-sprite invalidation listener. */
+  /**
+   * Removes a text-sprite invalidation listener.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   UnregisterForChangeNotification(target)
@@ -477,7 +542,11 @@ export class Tr2FontMeasurer extends IRoot
     this._changeListeners.delete(target);
   }
 
-  /** Notifies each native font-measurer target. */
+  /**
+   * Notifies each native font-measurer target.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _NotifyListenersOfChange()
@@ -487,7 +556,8 @@ export class Tr2FontMeasurer extends IRoot
 
   /**
    * Renders committed browser coverage with native top-down overwrite semantics.
-   * Adapted: writable byte views replace raw pointers; only grayscale browser sbits exist.
+   *
+   * @adapted writable byte views replace raw pointers; only grayscale browser sbits exist.
    */
   @meta.adapted
 
@@ -523,7 +593,11 @@ export class Tr2FontMeasurer extends IRoot
     }
   }
 
-  /** Renders committed text into a valid four-byte host bitmap. */
+  /**
+   * Renders committed text into a valid four-byte host bitmap.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   DrawToHostBitmap(bitmap)
@@ -532,7 +606,11 @@ export class Tr2FontMeasurer extends IRoot
     this._DrawToBuffer(bitmap.GetWidth(), bitmap.GetHeight(), bitmap.GetRawData(), bitmap.GetPitch());
   }
 
-  /** Writes to a mapped texture and always releases the mapping. */
+  /**
+   * Writes to a mapped texture and always releases the mapping.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   DrawToTexture(resource)
@@ -547,7 +625,11 @@ export class Tr2FontMeasurer extends IRoot
     finally { texture.UnmapForWriting(context); }
   }
 
-  /** Draws through the native atlas lock contract, expressed as a JS result record. */
+  /**
+   * Draws through the native atlas lock contract, expressed as a JS result record.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   DrawToAtlasTexture(texture)
@@ -574,7 +656,11 @@ export class Tr2FontMeasurer extends IRoot
     this.SetFadeLeftStart(value);
   }
 
-  /** Reads the fade boundary. */
+  /**
+   * Reads the fade boundary.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFadeLeftStart()
@@ -582,7 +668,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._fadeLeftStart;
   }
 
-  /** Changes the fade boundary and invalidates text sprites. */
+  /**
+   * Changes the fade boundary and invalidates text sprites.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFadeLeftStart(value)
@@ -606,7 +696,11 @@ export class Tr2FontMeasurer extends IRoot
     this.SetFadeLeftEnd(value);
   }
 
-  /** Reads the fade boundary. */
+  /**
+   * Reads the fade boundary.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFadeLeftEnd()
@@ -614,7 +708,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._fadeLeftEnd;
   }
 
-  /** Changes the fade boundary and invalidates text sprites. */
+  /**
+   * Changes the fade boundary and invalidates text sprites.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFadeLeftEnd(value)
@@ -638,7 +736,11 @@ export class Tr2FontMeasurer extends IRoot
     this.SetFadeRightStart(value);
   }
 
-  /** Reads the fade boundary. */
+  /**
+   * Reads the fade boundary.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFadeRightStart()
@@ -646,7 +748,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._fadeRightStart;
   }
 
-  /** Changes the fade boundary and invalidates text sprites. */
+  /**
+   * Changes the fade boundary and invalidates text sprites.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFadeRightStart(value)
@@ -670,7 +776,11 @@ export class Tr2FontMeasurer extends IRoot
     this.SetFadeRightEnd(value);
   }
 
-  /** Reads the fade boundary. */
+  /**
+   * Reads the fade boundary.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFadeRightEnd()
@@ -678,7 +788,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._fadeRightEnd;
   }
 
-  /** Changes the fade boundary and invalidates text sprites. */
+  /**
+   * Changes the fade boundary and invalidates text sprites.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFadeRightEnd(value)
@@ -702,7 +816,11 @@ export class Tr2FontMeasurer extends IRoot
     this.SetFadeTopStart(value);
   }
 
-  /** Reads the fade boundary. */
+  /**
+   * Reads the fade boundary.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFadeTopStart()
@@ -710,7 +828,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._fadeTopStart;
   }
 
-  /** Changes the fade boundary and invalidates text sprites. */
+  /**
+   * Changes the fade boundary and invalidates text sprites.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFadeTopStart(value)
@@ -734,7 +856,11 @@ export class Tr2FontMeasurer extends IRoot
     this.SetFadeTopEnd(value);
   }
 
-  /** Reads the fade boundary. */
+  /**
+   * Reads the fade boundary.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFadeTopEnd()
@@ -742,7 +868,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._fadeTopEnd;
   }
 
-  /** Changes the fade boundary and invalidates text sprites. */
+  /**
+   * Changes the fade boundary and invalidates text sprites.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFadeTopEnd(value)
@@ -766,7 +896,11 @@ export class Tr2FontMeasurer extends IRoot
     this.SetFadeBottomStart(value);
   }
 
-  /** Reads the fade boundary. */
+  /**
+   * Reads the fade boundary.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFadeBottomStart()
@@ -774,7 +908,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._fadeBottomStart;
   }
 
-  /** Changes the fade boundary and invalidates text sprites. */
+  /**
+   * Changes the fade boundary and invalidates text sprites.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFadeBottomStart(value)
@@ -798,7 +936,11 @@ export class Tr2FontMeasurer extends IRoot
     this.SetFadeBottomEnd(value);
   }
 
-  /** Reads the fade boundary. */
+  /**
+   * Reads the fade boundary.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFadeBottomEnd()
@@ -806,7 +948,11 @@ export class Tr2FontMeasurer extends IRoot
     return this._fadeBottomEnd;
   }
 
-  /** Changes the fade boundary and invalidates text sprites. */
+  /**
+   * Changes the fade boundary and invalidates text sprites.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFadeBottomEnd(value)
@@ -815,7 +961,11 @@ export class Tr2FontMeasurer extends IRoot
     this._NotifyListenersOfChange();
   }
 
-  /** Computes native horizontal edge fading, including the left-start exception. */
+  /**
+   * Computes native horizontal edge fading, including the left-start exception.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _CalcAlphaForHorizontal(x)
@@ -828,7 +978,11 @@ export class Tr2FontMeasurer extends IRoot
     return 1;
   }
 
-  /** Computes native vertical edge fading. */
+  /**
+   * Computes native vertical edge fading.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _CalcAlphaForVertical(y)
@@ -844,7 +998,11 @@ export class Tr2FontMeasurer extends IRoot
   _indices = null;
   _drawCalls = [];
 
-  /** Releases prepared geometry and each committed glyph's atlas reference. */
+  /**
+   * Releases prepared geometry and each committed glyph's atlas reference.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   ClearSprites()
@@ -859,8 +1017,9 @@ export class Tr2FontMeasurer extends IRoot
 
   /**
    * Builds Carbon's glyph quads, texture runs, shadow pass and segment underlines.
-   * Adapted: arrays replace native pointer ranges; uninitialized unused attributes
-   * remain zero. Atlas identity still determines draw-call boundaries.
+   *
+   * @adapted arrays replace native pointer ranges; uninitialized unused attributes
+   *   remain zero. Atlas identity still determines draw-call boundaries.
    */
   @meta.adapted
 
@@ -962,9 +1121,8 @@ export class Tr2FontMeasurer extends IRoot
    * scrambled glyphs there, which nothing can rely on. Fixed, operator ruling
    * 2026-10-13: each run is rebased on its own.
    *
-   * Adapted: array slices replace pointer ranges, and a renderer that cannot
-   * fit one quad throws instead of looping.
-   *
+   * @adapted array slices replace pointer ranges, and a renderer that cannot
+   *   fit one quad throws instead of looping.
    * @param {object} renderer The Tr2Sprite2dScene.
    * @returns {void}
    */
@@ -993,9 +1151,8 @@ export class Tr2FontMeasurer extends IRoot
    * `vertexOffset` so they index the batch's own vertices; the batch at sprite
    * 0 uses the indices as they are.
    *
-   * Adapted: returns a new array, where Carbon writes into a caller-owned
-   * buffer or returns a pointer into `m_indices`.
-   *
+   * @adapted returns a new array, where Carbon writes into a caller-owned
+   *   buffer or returns a pointer into `m_indices`.
    * @param {number} startSprite First sprite of the batch.
    * @param {number} indexCount Indices in the batch.
    * @param {number} vertexOffset Subtracted from each index.

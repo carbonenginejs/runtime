@@ -101,7 +101,11 @@ export class EveTacticalOverlay
     this._RegisterVariables();
   }
 
-  /** Attaches the owned variable store to every authored effect. */
+  /**
+   * Attaches the owned variable store to every authored effect.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -114,6 +118,8 @@ export class EveTacticalOverlay
 
   /**
    * Reattaches only effect references that changed since the prior settle.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -128,8 +134,8 @@ export class EveTacticalOverlay
   /**
    * Samples the root and every owned track object, then refreshes effect variables.
    *
-   * Adapted: Carbon vector-function output pointers use the runtime's established
-   * time-first, out-last JavaScript contract.
+   * @adapted Carbon vector-function output pointers use the runtime's established
+   *   time-first, out-last JavaScript contract.
    */
 
   @meta.adapted
@@ -148,7 +154,11 @@ export class EveTacticalOverlay
     this._RegisterVariables();
   }
 
-  /** Carbon's asynchronous overlay update is intentionally empty. */
+  /**
+   * Carbon's asynchronous overlay update is intentionally empty.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateAsyncronous(_updateContext)
@@ -158,8 +168,8 @@ export class EveTacticalOverlay
   /**
    * Rebuilds the flat CPU instance records for this frame.
    *
-   * Adapted: Carbon's typed vertex vectors are represented by flat Float32Array-compatible
-   * number buffers consumed by Tr2QuadRenderer.
+   * @adapted Carbon's typed vertex vectors are represented by flat Float32Array-compatible
+   *   number buffers consumed by Tr2QuadRenderer.
    */
 
   @meta.adapted
@@ -314,14 +324,22 @@ export class EveTacticalOverlay
     this.requestedSegmentsLast = requestedSegments;
   }
 
-  /** Carbon's tactical overlay has no ordinary renderable children. */
+  /**
+   * Carbon's tactical overlay has no ordinary renderable children.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   GetRenderables__Impostors(_renderables, _impostors)
   {
   }
 
-  /** The overlay supplies no spatial bounds. */
+  /**
+   * The overlay supplies no spatial bounds.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(_sphere, _query)
@@ -329,7 +347,11 @@ export class EveTacticalOverlay
     return false;
   }
 
-  /** The overlay's model center is always the world origin. */
+  /**
+   * The overlay's model center is always the world origin.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateModelCenterWorldPosition(out, _time)
@@ -337,7 +359,11 @@ export class EveTacticalOverlay
     vec3.set(out, 0, 0, 0);
   }
 
-  /** The overlay's model center is always the world origin. */
+  /**
+   * The overlay's model center is always the world origin.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetModelCenterWorldPosition(out)
@@ -345,7 +371,11 @@ export class EveTacticalOverlay
     vec3.set(out, 0, 0, 0);
   }
 
-  /** The overlay supplies no local box. */
+  /**
+   * The overlay supplies no local box.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
@@ -353,7 +383,11 @@ export class EveTacticalOverlay
     return false;
   }
 
-  /** The overlay has no authored object transform. */
+  /**
+   * The overlay has no authored object transform.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalToWorldTransform(out)
@@ -364,8 +398,8 @@ export class EveTacticalOverlay
   /**
    * Registers the three exact instance layouts with the shared quad renderer.
    *
-   * Adapted: Carbon combines an effect content hash with its native pointer; JavaScript
-   * combines it with a stable WeakMap identity.
+   * @adapted Carbon combines an effect content hash with its native pointer; JavaScript
+   *   combines it with a stable WeakMap identity.
    */
 
   @meta.adapted
@@ -409,7 +443,11 @@ export class EveTacticalOverlay
     }
   }
 
-  /** Adds all three instance streams once their effect registrations exist. */
+  /**
+   * Adds all three instance streams once their effect registrations exist.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)

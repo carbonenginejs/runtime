@@ -24,7 +24,11 @@ export class StatusSettings
 
     _lastUpdate = new StatusUpdate();
 
-    /** `SetCallbackSettings` - copies the settings, as Carbon assigns the struct (StatusSettings.cpp:22-25). */
+    /**
+     * `SetCallbackSettings` - copies the settings, as Carbon assigns the struct (StatusSettings.cpp:22-25).
+     *
+     * @implemented
+     */
     SetCallbackSettings(callbackSettings)
     {
         this._callbackSettings = StatusSettings._Copy(callbackSettings);
@@ -38,6 +42,8 @@ export class StatusSettings
      * Quirk, reproduced: this tests `nesting <= verbosity` while Update skips
      * `nesting >= verbosity`, so at exactly the verbosity level a scope says it
      * wants updates and then reports none.
+     *
+     * @implemented
      */
     RequiresStatusUpdates()
     {
@@ -48,6 +54,8 @@ export class StatusSettings
     /**
      * `Update` (StatusSettings.cpp:27-58): records and reports an update, and
      * starts a nested scope when one is given. Progress values are float32.
+     *
+     * @implemented
      */
     Update(statusProgressType, progress, percentageSizeOfJob, info, nestedStatusSettingsOut = null)
     {
@@ -72,7 +80,11 @@ export class StatusSettings
         }
     }
 
-    /** `CalculateOverallProgress` (StatusSettings.cpp:67-93): this scope's progress scaled through its parents. */
+    /**
+     * `CalculateOverallProgress` (StatusSettings.cpp:67-93): this scope's progress scaled through its parents.
+     *
+     * @implemented
+     */
     CalculateOverallProgress()
     {
         const own = this._lastUpdate;
@@ -83,7 +95,11 @@ export class StatusSettings
         return new StatusReturn(parent.progress + scaledProgress, scaledScale);
     }
 
-    /** Carbon's destructor (StatusSettings.cpp:15-21): reports the end unless progress reached 100. */
+    /**
+     * Carbon's destructor (StatusSettings.cpp:15-21): reports the end unless progress reached 100.
+     *
+     * @adapted
+     */
     Dispose()
     {
         if (this._lastUpdate.progress < 100) this.Update(StatusProgressType.END, 100, 0, "Process complete.");

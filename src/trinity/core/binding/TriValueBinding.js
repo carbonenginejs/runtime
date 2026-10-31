@@ -27,6 +27,8 @@ export class TriValueBinding extends INotify
 
   /**
    * Native readonly validity property.
+   *
+   * @implemented
    * @returns {boolean} Whether a copy plan exists.
    */
   @be.mapPropertyReadOnly()
@@ -61,6 +63,8 @@ export class TriValueBinding extends INotify
 
   /**
    * Reads the current source endpoint, resolving a weak reference when used.
+   *
+   * @implemented
    * @returns {object|null} Binding result.
    */
   @be.mapProperty()
@@ -73,6 +77,8 @@ export class TriValueBinding extends INotify
 
   /**
    * Replaces the source endpoint through its binding setter.
+   *
+   * @implemented
    * @param {*} value Incoming value.
    * @returns {void} No return value.
    */
@@ -104,6 +110,8 @@ export class TriValueBinding extends INotify
   /**
    * Reads the current destination endpoint, resolving a weak reference when
    * used.
+   *
+   * @implemented
    * @returns {object|null} Binding result.
    */
   @be.mapProperty()
@@ -116,6 +124,8 @@ export class TriValueBinding extends INotify
 
   /**
    * Replaces the destination endpoint through its binding setter.
+   *
+   * @implemented
    * @param {*} value Incoming value.
    * @returns {void} No return value.
    */
@@ -191,8 +201,9 @@ export class TriValueBinding extends INotify
    * destination is registered with and its rerouted buffer cached when it is
    * large enough for the plan.
    * Source: trinity/trinity/TriValueBinding.cpp:406-432
-   * Adapted: GetDestination returns the native pointer and size as a JavaScript record.
-   * Adapted: Resolves Blue field metadata through JavaScript properties and supports the portable runtime's numeric, vector, boolean, and callback value families.
+   *
+   * @adapted GetDestination returns the native pointer and size as a JavaScript record.
+   *   Adapted: Resolves Blue field metadata through JavaScript properties and supports the portable runtime's numeric, vector, boolean, and callback value families.
    * @returns {void} No return value.
    */
 
@@ -264,7 +275,8 @@ export class TriValueBinding extends INotify
    * buffer when one is installed and notifying the destination when its field
    * declares notify; returns whether any value actually changed.
    * Source: trinity/trinity/TriValueBinding.cpp:44-64
-   * Adapted: Copies portable JavaScript values instead of invoking Carbon's native typed copy-function table; scalar reroute records synchronize the exposed value property.
+   *
+   * @adapted Copies portable JavaScript values instead of invoking Carbon's native typed copy-function table; scalar reroute records synchronize the exposed value property.
    * @returns {boolean} Binding result.
    */
 
@@ -305,6 +317,8 @@ export class TriValueBinding extends INotify
 
   /**
    * Re-resolves the endpoints and copy plan after any field change.
+   *
+   * @implemented
    * @param {string|null} [_value] Changed member name.
    * @returns {boolean} Binding result.
    */
@@ -318,6 +332,8 @@ export class TriValueBinding extends INotify
 
   /**
    * The destination attribute string, including any .x/.r component suffix.
+   *
+   * @implemented
    * @returns {string} Binding result.
    */
 
@@ -330,7 +346,8 @@ export class TriValueBinding extends INotify
   /**
    * Rebinds the source endpoint, drops weak and reroute state, and leaves the
    * binding invalid until the next Initialize.
-   * Adapted: Normalizes JavaScript endpoint inputs, detaches any cached reroute and invalidates the copy plan; native SetSource only assigns its endpoint fields.
+   *
+   * @adapted Normalizes JavaScript endpoint inputs, detaches any cached reroute and invalidates the copy plan; native SetSource only assigns its endpoint fields.
    * @param {string} sourceAttribute Source member name with an optional component.
    * @param {object|null} sourceObject Source endpoint.
    * @returns {void} No return value.
@@ -352,7 +369,8 @@ export class TriValueBinding extends INotify
   /**
    * Rebinds the destination endpoint, unregistering from any reroutable
    * destination, and leaves the binding invalid until the next Initialize.
-   * Adapted: Normalizes JavaScript endpoint inputs, detaches any cached reroute and invalidates the copy plan; native SetDestination only assigns its endpoint fields.
+   *
+   * @adapted Normalizes JavaScript endpoint inputs, detaches any cached reroute and invalidates the copy plan; native SetDestination only assigns its endpoint fields.
    * @param {string} destinationAttribute Destination member name with an optional component.
    * @param {object|null} destinationObject Destination endpoint.
    * @returns {void} No return value.
@@ -373,7 +391,8 @@ export class TriValueBinding extends INotify
 
   /**
    * Sets the multiplier applied to the source value before the offset is added.
-   * Adapted: Normalizes the JavaScript argument to a number before assigning the native float multiplier.
+   *
+   * @adapted Normalizes the JavaScript argument to a number before assigning the native float multiplier.
    * @param {number} scale Source multiplier.
    * @returns {void} No return value.
    */
@@ -388,7 +407,8 @@ export class TriValueBinding extends INotify
    * Binds both endpoints through WeakRef so the binding keeps neither object
    * alive, sets the scale and four-component offset, then initializes and
    * returns whether the result is valid.
-   * Adapted: Uses WeakRef for Carbon's BlueWeakRef endpoints and returns validity as a JavaScript convenience.
+   *
+   * @adapted Uses WeakRef for Carbon's BlueWeakRef endpoints and returns validity as a JavaScript convenience.
    * @param {*} source Source value or endpoint.
    * @param {string} sourceAttribute Source member name with an optional component.
    * @param {*} destination Destination storage or endpoint.
@@ -426,6 +446,8 @@ export class TriValueBinding extends INotify
 
   /**
    * Whether the last Initialize produced a usable copy plan.
+   *
+   * @implemented
    * @returns {boolean} Binding result.
    */
 
@@ -438,6 +460,8 @@ export class TriValueBinding extends INotify
   /**
    * Dereferences the source endpoint, honouring weak mode; null once a weakly
    * held source has been collected.
+   *
+   * @implemented
    * @returns {object|null} Binding result.
    */
 
@@ -450,6 +474,8 @@ export class TriValueBinding extends INotify
   /**
    * Dereferences the destination endpoint, honouring weak mode; null once a
    * weakly held destination has been collected.
+   *
+   * @implemented
    * @returns {object|null} Binding result.
    */
 
@@ -461,6 +487,8 @@ export class TriValueBinding extends INotify
 
   /**
    * Carbon's second name for GetCurrentSourceObject.
+   *
+   * @implemented
    * @returns {object|null} Binding result.
    */
 
@@ -473,7 +501,8 @@ export class TriValueBinding extends INotify
   /**
    * Rebinds the source object in place - weakly when the binding is weak - and
    * re-initializes, keeping the attribute names.
-   * Adapted: Keeps the portable WeakRef or strong endpoint representation, normalizes nullish inputs, and rebuilds the copy plan.
+   *
+   * @adapted Keeps the portable WeakRef or strong endpoint representation, normalizes nullish inputs, and rebuilds the copy plan.
    * @param {object|null} sourceObject Source endpoint.
    * @returns {void} No return value.
    */
@@ -496,6 +525,8 @@ export class TriValueBinding extends INotify
 
   /**
    * Carbon's second name for GetCurrentDestinationObject.
+   *
+   * @implemented
    * @returns {object|null} Binding result.
    */
 
@@ -508,7 +539,8 @@ export class TriValueBinding extends INotify
   /**
    * Rebinds the destination object in place - weakly when the binding is weak -
    * unregistering from any previous reroutable destination, and re-initializes.
-   * Adapted: Keeps the portable WeakRef or strong endpoint representation, normalizes nullish inputs, detaches the old reroute and rebuilds the copy plan.
+   *
+   * @adapted Keeps the portable WeakRef or strong endpoint representation, normalizes nullish inputs, detaches the old reroute and rebuilds the copy plan.
    * @param {object|null} destinationObject Destination endpoint.
    * @returns {void} No return value.
    */
@@ -534,7 +566,8 @@ export class TriValueBinding extends INotify
   /**
    * Installs the buffer an ITriReroutable destination wants written instead of
    * its own field; null restores direct field writes.
-   * Adapted: Swaps the portable array or scalar-holder destination supplied by ITriReroutable instead of Carbon's raw byte pointer.
+   *
+   * @adapted Swaps the portable array or scalar-holder destination supplied by ITriReroutable instead of Carbon's raw byte pointer.
    * @param {*} destination Destination storage or endpoint.
    * @returns {void} No return value.
    */

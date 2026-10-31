@@ -15,18 +15,33 @@ import { CjsSchema, meta } from "#schema";
 /** `IBluePaths` - search paths, resolution, existence and streams, per blue/include/IBluePaths.h. */
 export class IBluePaths extends IRoot
 {
-  /** `InitializeStdAppPaths` - install the standard application search paths. */
+  /**
+   * `InitializeStdAppPaths` - install the standard application search paths.
+   *
+   * @abstract
+   */
   InitializeStdAppPaths() {}
 
-  /** `SetSearchPath` - bind a search-path key to a location. */
+  /**
+   * `SetSearchPath` - bind a search-path key to a location.
+   *
+   * @renamed SetSearchPathW
+   * @abstract
+   */
   SetSearchPath(_key, _value) {}
 
-  /** `GetSearchPath` - the location bound to a search-path key. */
+  /**
+   * `GetSearchPath` - the location bound to a search-path key.
+   *
+   * @renamed GetSearchPathW
+   * @abstract
+   */
   GetSearchPath(_key) {}
 
   /**
    * `ResolvePathW` - a res path resolved through the search paths.
    *
+   * @abstract
    * @param {string} _path Res path.
    * @returns {string} The resolved path.
    */
@@ -35,6 +50,7 @@ export class IBluePaths extends IRoot
   /**
    * `ResolvePathForWritingW` - a res path resolved to where a write may go.
    *
+   * @abstract
    * @param {string} _path Res path.
    * @returns {string} The resolved path.
    */
@@ -44,37 +60,75 @@ export class IBluePaths extends IRoot
    * `ResolvePathToRootW` - a file-system path resolved back to a res path
    * under one named root.
    *
+   * @abstract
    * @param {string} _root Root key.
    * @param {string} _path File-system path.
    * @returns {string} The res path, or an empty string.
    */
   ResolvePathToRootW(_root, _path) {}
 
-  /** `GetExpandedSearchPaths` - every location a search-path key expands to. */
+  /**
+   * `GetExpandedSearchPaths` - every location a search-path key expands to.
+   *
+   * @abstract
+   */
   GetExpandedSearchPaths(_key) {}
 
-  /** `GetDirectoryContents` - what a directory holds. */
+  /**
+   * `GetDirectoryContents` - what a directory holds.
+   *
+   * @abstract
+   */
   GetDirectoryContents(_directory) {}
 
-  /** `IsDirectory` - whether a path is a directory. */
+  /**
+   * `IsDirectory` - whether a path is a directory.
+   *
+   * @abstract
+   */
   IsDirectory(_path) {}
 
-  /** `FileExists` - whether a file is reachable at all, including a black file standing in for a red one. */
+  /**
+   * `FileExists` - whether a file is reachable at all, including a black file standing in for a red one.
+   *
+   * @abstract
+   */
   FileExists(_path) {}
 
-  /** `FileExistsLocally` - whether a file is on the local machine, rather than in a stuff file or a remote cache. */
+  /**
+   * `FileExistsLocally` - whether a file is on the local machine, rather than in a stuff file or a remote cache.
+   *
+   * @abstract
+   */
   FileExistsLocally(_path) {}
 
-  /** `FileNeedsDownload` - whether reaching a file would require a download. */
+  /**
+   * `FileNeedsDownload` - whether reaching a file would require a download.
+   *
+   * @abstract
+   */
   FileNeedsDownload(_path) {}
 
-  /** `GetStreamFromPath` - a stream over the file at a res path. */
+  /**
+   * `GetStreamFromPath` - a stream over the file at a res path.
+   *
+   * @renamed GetStreamFromPathW
+   * @abstract
+   */
   GetStreamFromPath(_path) {}
 
-  /** `GetFileContentsWithYield` - the contents of a file, yielding while it is read. */
+  /**
+   * `GetFileContentsWithYield` - the contents of a file, yielding while it is read.
+   *
+   * @abstract
+   */
   GetFileContentsWithYield(_path) {}
 
-  /** `LogPaths` - write the current search paths to the log. */
+  /**
+   * `LogPaths` - write the current search paths to the log.
+   *
+   * @abstract
+   */
   LogPaths() {}
 }
 

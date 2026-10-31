@@ -38,6 +38,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
   /**
    * Reports whether the elapsed blend time has passed the configured transition
    * time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -50,6 +52,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * Starts the blend from zero and scrubs the target camera back to minus the
    * transition time, so its own timeline reaches zero exactly as the blend
    * finishes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -68,6 +72,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * Advances the blend clock and drives the transition camera externally with
    * the source and target transforms interpolated by the transition curve,
    * clamped to 0..1; a zero transition time jumps straight to the target.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -94,6 +100,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
   /**
    * Returns the blend duration in seconds; the backing field keeps Carbon's
    * misspelled attribute name "tansitionTime" so persisted data round-trips.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -105,6 +113,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
   /**
    * Sets the blend duration in seconds; the camera system calls this before
    * playing the transition.
+   *
+   * @implemented
    */
 
   @meta.implemented

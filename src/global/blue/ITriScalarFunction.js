@@ -14,6 +14,8 @@ export class ITriScalarFunction extends ITriFunction
   /**
    * Updates and returns the current scalar value.
    * Native signatures: float Update(Be::Time time) = 0; float Update(double time) = 0.
+   *
+   * @abstract
    * @param {number|bigint} _time Native Be::Time or double argument; the concrete implementation owns its representation.
    * @returns {number} Native float value.
    */
@@ -24,6 +26,8 @@ export class ITriScalarFunction extends ITriFunction
   /**
    * Evaluates the scalar without changing the function's internal state.
    * Native signatures: float GetValueAt(Be::Time time) = 0; float GetValueAt(double time) = 0.
+   *
+   * @abstract
    * @param {number|bigint} _time Native Be::Time or double argument; the concrete implementation owns its representation.
    * @returns {number} Native float value.
    */
@@ -34,6 +38,8 @@ export class ITriScalarFunction extends ITriFunction
   /**
    * Scales the function's time coordinates.
    * Native signature: void ScaleTime(float s) = 0.
+   *
+   * @abstract
    * @param {number} _s Native float scale.
    * @returns {void}
    */
@@ -46,6 +52,8 @@ export class ITriScalarFunction extends ITriFunction
    * seconds overload, as Carbon's curves do; a class whose Be::Time body differs overrides it.
    * JavaScript cannot overload on argument type: Be::Time and double are both Numbers here
    * (blue/include/ITriFunction.h:65-124), so Carbon's Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The Update result.
    */
@@ -59,6 +67,8 @@ export class ITriScalarFunction extends ITriFunction
    * seconds overload, as Carbon's curves do; a class whose Be::Time body differs overrides it.
    * JavaScript cannot overload on argument type: Be::Time and double are both Numbers here
    * (blue/include/ITriFunction.h:65-124), so Carbon's Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The GetValueAt result.
    */

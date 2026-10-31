@@ -165,6 +165,8 @@ export class TriEventCurve extends ITriFunction
   /**
    * Advances event time, preserving the existing JavaScript callback-queue adaptation.
    * JavaScript retains numeric seconds, cursor indices and the class-local post-update queue; native uses device callbacks and key lifetimes.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -205,6 +207,8 @@ export class TriEventCurve extends ITriFunction
   /**
    * Sorts hydrated keys using the retained JavaScript helper.
    * The helper resets an empty track length to zero, unlike the native empty-list branch.
+   *
+   * @adapted
    * @returns {boolean} True.
    */
   @meta.adapted
@@ -216,6 +220,8 @@ export class TriEventCurve extends ITriFunction
 
   /**
    * Returns the cached track length.
+   *
+   * @implemented
    * @returns {number} Duration in seconds.
    */
   @meta.implemented
@@ -227,6 +233,8 @@ export class TriEventCurve extends ITriFunction
   /**
    * Sorts constructor-owned keys in place and resets the cursor.
    * Native declares Sort without a donor body; this retained JavaScript helper also resets empty length to zero.
+   *
+   * @adapted
    * @returns {void}
    */
   @meta.adapted
@@ -239,6 +247,8 @@ export class TriEventCurve extends ITriFunction
 
   /**
    * Creates and inserts a named event key.
+   *
+   * @implemented
    * @param {number} time Key time in seconds.
    * @param {string} eventName Event name.
    * @returns {void}
@@ -258,6 +268,8 @@ export class TriEventCurve extends ITriFunction
    * Carbon: AddCallableKey (trinity/trinity/Curves/TriEventCurve.cpp:147-159).
    * Normalize arguments before storage, as Carbon does when creating its tuple.
    * JavaScript functions and argument arrays replace Python objects; omitted arguments remain an empty array.
+   *
+   * @adapted
    * @param {number} time Key time in seconds.
    * @param {Function} callable Function to queue.
    * @param {*} args Callable arguments.
@@ -277,6 +289,8 @@ export class TriEventCurve extends ITriFunction
   /**
    * Inserts a key into the owned typed list and refreshes ordering.
    * JavaScript retains plain-record adoption before native list insertion.
+   *
+   * @adapted
    * @param {TriEventKey|object} key Key or compatible record.
    * @returns {void}
    */
@@ -290,6 +304,8 @@ export class TriEventCurve extends ITriFunction
   /**
    * Removes an in-range key and refreshes ordering.
    * JavaScript retains range checks and empty-length reset through Sort.
+   *
+   * @adapted
    * @param {number} index Key index.
    * @returns {void}
    */
@@ -306,6 +322,8 @@ export class TriEventCurve extends ITriFunction
 
   /**
    * Returns the number of event keys.
+   *
+   * @implemented
    * @returns {number}
    */
   @be.mapMethodAndWrap()
@@ -317,6 +335,8 @@ export class TriEventCurve extends ITriFunction
 
   /**
    * Returns a key time or zero outside the list.
+   *
+   * @implemented
    * @param {number} index Key index.
    * @returns {number}
    */
@@ -329,6 +349,8 @@ export class TriEventCurve extends ITriFunction
 
   /**
    * Returns a key string or an empty string outside the list.
+   *
+   * @implemented
    * @param {number} index Key index.
    * @returns {string}
    */
@@ -342,6 +364,8 @@ export class TriEventCurve extends ITriFunction
   /**
    * Sets an in-range key time and reorders the list.
    * JavaScript retains Sort cursor reset; the native setter does not reset its iterator.
+   *
+   * @adapted
    * @param {number} index Key index.
    * @param {number} time Time in seconds.
    * @returns {void}
@@ -360,6 +384,8 @@ export class TriEventCurve extends ITriFunction
   /**
    * Sets an in-range key event string.
    * JavaScript retains nullish-value coercion to an empty string.
+   *
+   * @adapted
    * @param {number} index Key index.
    * @param {string|null} value Event name.
    * @returns {void}
@@ -376,6 +402,8 @@ export class TriEventCurve extends ITriFunction
 
   /**
    * Returns a JavaScript callable instead of a Python object.
+   *
+   * @adapted
    * @param {number} index Key index.
    * @returns {Function|null}
    */
@@ -388,6 +416,8 @@ export class TriEventCurve extends ITriFunction
 
   /**
    * Returns JavaScript arguments instead of a Python tuple.
+   *
+   * @adapted
    * @param {number} index Key index.
    * @returns {*}
    */

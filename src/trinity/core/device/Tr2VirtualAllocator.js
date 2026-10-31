@@ -43,7 +43,11 @@ export class Tr2VirtualAllocator
     while (this._currentSize < initialSize) this.Expand();
   }
 
-  /** Exposes the lowest reserved block, or returns false at the maximum size. */
+  /**
+   * Exposes the lowest reserved block, or returns false at the maximum size.
+   *
+   * @implemented
+   */
   Expand()
   {
     if (this._reservedBlocks.length === 0) return false;
@@ -55,10 +59,10 @@ export class Tr2VirtualAllocator
 
   /**
    * Allocate a range and fill Carbon's VirtualAllocation output record.
-   * Adapted: best-fit free spans replace VMA MIN_MEMORY; VMA's internal tie
-   * ordering is not reproduced. Non-power-of-two alignments reserve Carbon's
-   * extra alignment-minus-one bytes before manually aligning the result.
    *
+   * @adapted best-fit free spans replace VMA MIN_MEMORY; VMA's internal tie
+   *   ordering is not reproduced. Non-power-of-two alignments reserve Carbon's
+   *   extra alignment-minus-one bytes before manually aligning the result.
    * @param {number} size Requested bytes, excluding padding.
    * @param {number} alignment Required byte alignment.
    * @param {object} result Output with allocation, offset and size.
@@ -106,7 +110,8 @@ export class Tr2VirtualAllocator
 
   /**
    * Reclaim the complete reserved span and subtract its requested byte count.
-   * Adapted: coalescing adjacent JavaScript spans replaces vmaVirtualFree.
+   *
+   * @adapted coalescing adjacent JavaScript spans replaces vmaVirtualFree.
    */
   Free(allocation)
   {
@@ -130,25 +135,41 @@ export class Tr2VirtualAllocator
     this._allocatedMemory -= allocation.size;
   }
 
-  /** Bytes exposed by each successful Expand. */
+  /**
+   * Bytes exposed by each successful Expand.
+   *
+   * @implemented
+   */
   GetBlockSize()
   {
     return this._blockSize;
   }
 
-  /** Maximum virtual address-space size. */
+  /**
+   * Maximum virtual address-space size.
+   *
+   * @implemented
+   */
   GetMaxSize()
   {
     return this._maxSize;
   }
 
-  /** Currently exposed capacity, including free spans. */
+  /**
+   * Currently exposed capacity, including free spans.
+   *
+   * @implemented
+   */
   GetCurrentSize()
   {
     return this._currentSize;
   }
 
-  /** Requested bytes held by clients, excluding padding and reserved blocks. */
+  /**
+   * Requested bytes held by clients, excluding padding and reserved blocks.
+   *
+   * @implemented
+   */
   GetAllocatedMemory()
   {
     return this._allocatedMemory - this._reservedBlocks.length * this._blockSize;

@@ -104,6 +104,8 @@ export class Tr2PostProcess2 extends IRoot
   /**
    * Returns the -1 mip LOD bias temporal anti-aliasing requires when TAA is
    * active, and 0 otherwise.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -114,6 +116,8 @@ export class Tr2PostProcess2 extends IRoot
 
   /**
    * Collects the LUT effects with a positive influence - the single lut slot first, then the list - sorted by ascending influence. Carbon's misspelling of the name is preserved.
+   *
+   * @implemented
    * @param {Array} container caller-owned array, cleared and refilled in place
    * @returns {Array} the same container, left untouched when the quality setting is below LOW
    */
@@ -135,6 +139,8 @@ export class Tr2PostProcess2 extends IRoot
   /**
    * Appends a LUT effect to the list; a nullish argument is stored as an
    * explicit null entry.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -143,7 +149,11 @@ export class Tr2PostProcess2 extends IRoot
     this.luts.push(effect ?? null);
   }
 
-  /** Empties the LUT list in place, leaving the single lut slot alone. */
+  /**
+   * Empties the LUT list in place, leaving the single lut slot alone.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ClearLuts()

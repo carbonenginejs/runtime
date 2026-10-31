@@ -44,6 +44,7 @@ export class ITr2Controller extends IRoot
    * The owner guarantees Link runs before any other method on the controller,
    * which is why the rest may assume an owner without checking for one.
    *
+   * @adapted
    * @param {object} _owner The object being controlled.
    */
 
@@ -55,6 +56,7 @@ export class ITr2Controller extends IRoot
   /**
    * Detaches this controller, dropping every reference to the owner.
    *
+   * @adapted
    * @param {number} [_reason] An `UnlinkReason`; DELETING means the owner is going away.
    */
 
@@ -70,19 +72,28 @@ export class ITr2Controller extends IRoot
    * answering false would let an owner silently skip a linked controller, and
    * answering true would let it drive an unlinked one.
    *
+   * @abstract
    * @returns {boolean} Whether Link has run without a matching Unlink.
    */
   @meta.abstract
   IsLinked() {}
 
-  /** Begins controlling the owner. */
+  /**
+   * Begins controlling the owner.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Start()
   {
   }
 
-  /** Stops controlling the owner. */
+  /**
+   * Stops controlling the owner.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Stop()
@@ -92,6 +103,7 @@ export class ITr2Controller extends IRoot
   /**
    * Runs one frame's control, between Start and Stop.
    *
+   * @adapted
    * @param {number} _normalizedUpdateFrequency Carbon's normalised frame delta.
    */
 
@@ -103,6 +115,7 @@ export class ITr2Controller extends IRoot
   /**
    * Sets one named controller variable.
    *
+   * @adapted
    * @param {string} _name The variable's name.
    * @param {number} _value Its new value.
    */
@@ -115,6 +128,7 @@ export class ITr2Controller extends IRoot
   /**
    * Handles one instantaneous named event.
    *
+   * @adapted
    * @param {string} _eventName The event's name.
    */
 

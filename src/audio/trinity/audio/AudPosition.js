@@ -24,10 +24,9 @@ export class AudPosition extends IBluePlacementObserver
   /**
    * Copies the placement vectors into the retained position record.
    *
-   * Adapted: JavaScript vectors represent the native AkSoundPosition fields
-   * assigned by AudPosition::UpdatePlacement (audio/src/AudPosition.cpp:16-18).
-   * Components are copied unchanged; this method does not convert handedness.
-   *
+   * @adapted JavaScript vectors represent the native AkSoundPosition fields
+   *   assigned by AudPosition::UpdatePlacement (audio/src/AudPosition.cpp:16-18).
+   *   Components are copied unchanged; this method does not convert handedness.
    * @param {ArrayLike<number>} front Forward direction.
    * @param {ArrayLike<number>} top Up direction.
    * @param {ArrayLike<number>} position Position.
@@ -47,6 +46,7 @@ export class AudPosition extends IBluePlacementObserver
    *
    * Matches AudPosition::OnModified (audio/src/AudPosition.cpp:21-24).
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
 

@@ -60,19 +60,32 @@ export class ResourceGroupImpl
         this._totalResourcesSizeUncompressed._value = 0n;
     }
 
-    /** `TypeId`. */
+    /**
+     * `TypeId`.
+     *
+     * @implemented
+     * @renamed TypeId
+     */
     static typeId()
     {
         return "ResourceGroup";
     }
 
-    /** `GetType`. */
+    /**
+     * `GetType`.
+     *
+     * @implemented
+     */
     GetType()
     {
         return ResourceGroupImpl.typeId();
     }
 
-    /** `GetSize` - the number of resources held, duplicates included. */
+    /**
+     * `GetSize` - the number of resources held, duplicates included.
+     *
+     * @implemented
+     */
     GetSize()
     {
         return this._resourcesParameter.length;
@@ -92,6 +105,8 @@ export class ResourceGroupImpl
      * the compressed total is unset, and adding a resource that has a
      * compressed size reads it anyway, which throws `bad_optional_access`
      * (CE-40).
+     *
+     * @implemented
      */
     AddResource(resource)
     {
@@ -108,7 +123,11 @@ export class ResourceGroupImpl
         return new Result();
     }
 
-    /** `ImportFromData` - CSV or YAML text, by document type (ResourceGroupImpl.cpp:1178-1203). */
+    /**
+     * `ImportFromData` - CSV or YAML text, by document type (ResourceGroupImpl.cpp:1178-1203).
+     *
+     * @implemented
+     */
     ImportFromData(data, status = new StatusSettings(), documentType = ResourceGroupImpl.DocumentType.YAML)
     {
         if (documentType === ResourceGroupImpl.DocumentType.CSV) return this.ImportFromCSV(data, status);
@@ -120,10 +139,10 @@ export class ResourceGroupImpl
      * `ImportFromCSV` (ResourceGroupImpl.cpp:1322-1463): each non-empty line
      * becomes a resource, and the group becomes document version 0.1.0.
      *
-     * Adapted: the columns are split by CjsResFileIndexFormat.readRow, whose
-     * JSDoc lists Carbon's column rules; where it throws, Carbon returns
-     * MALFORMED_RESOURCE_INPUT. The ResourceInfo constructor then leaves a zero
-     * compressed size and a zero operation unset, as in Carbon.
+     * @adapted the columns are split by CjsResFileIndexFormat.readRow, whose
+     *   JSDoc lists Carbon's column rules; where it throws, Carbon returns
+     *   MALFORMED_RESOURCE_INPUT. The ResourceInfo constructor then leaves a zero
+     *   compressed size and a zero operation unset, as in Carbon.
      */
     ImportFromCSV(data, status = new StatusSettings())
     {
@@ -170,9 +189,9 @@ export class ResourceGroupImpl
      * `ImportFromYamlString` (ResourceGroupImpl.cpp:1551-1563). A parse error is
      * FAILED_TO_PARSE_YAML.
      *
-     * Adapted: parsed with YAML's failsafe schema, so every scalar stays its
-     * source text, as yaml-cpp nodes do until `as<T>()` converts them. A
-     * checksum of `0123` stays `0123`.
+     * @adapted parsed with YAML's failsafe schema, so every scalar stays its
+     *   source text, as yaml-cpp nodes do until `as<T>()` converts them. A
+     *   checksum of `0123` stays `0123`.
      */
     ImportFromYamlString(data, status = new StatusSettings())
     {
@@ -202,6 +221,8 @@ export class ResourceGroupImpl
      *
      * Quirk, reproduced: the clamped version the warning computes is never
      * used. Resources are read against the document's own version.
+     *
+     * @adapted
      */
     ImportFromYaml(document, status = new StatusSettings())
     {
@@ -264,6 +285,7 @@ export class ResourceGroupImpl
      * MALFORMED_RESOURCE with Carbon's message. It is read against the group's
      * unclamped document version, as Carbon passes it.
      *
+     * @adapted
      * @throws {Error} For a type Carbon knows and this port does not: the bundle and patch resource classes.
      */
     CreateResourceFromYaml(node, out)
@@ -283,25 +305,41 @@ export class ResourceGroupImpl
         return new Result();
     }
 
-    /** `ImportGroupSpecialisedYaml` - a plain group reads no fields of its own. */
+    /**
+     * `ImportGroupSpecialisedYaml` - a plain group reads no fields of its own.
+     *
+     * @implemented
+     */
     ImportGroupSpecialisedYaml(_document)
     {
         return new Result();
     }
 
-    /** `ExportGroupSpecialisedYaml` - a plain group writes no fields of its own. */
+    /**
+     * `ExportGroupSpecialisedYaml` - a plain group writes no fields of its own.
+     *
+     * @implemented
+     */
     ExportGroupSpecialisedYaml(_out, _version)
     {
         return new Result();
     }
 
-    /** `GetGroupSpecificResourcesToBundle` - a plain group adds none. */
+    /**
+     * `GetGroupSpecificResourcesToBundle` - a plain group adds none.
+     *
+     * @implemented
+     */
     GetGroupSpecificResourcesToBundle(_out)
     {
         return new Result();
     }
 
-    /** `ExportToData` - the group as YAML text (ResourceGroupImpl.cpp:1310-1320). */
+    /**
+     * `ExportToData` - the group as YAML text (ResourceGroupImpl.cpp:1310-1320).
+     *
+     * @implemented
+     */
     ExportToData(out, status = new StatusSettings(), version = new VersionInternal(S_DOCUMENT_VERSION))
     {
         return this.ExportYaml(version, out, status);
@@ -313,8 +351,8 @@ export class ResourceGroupImpl
      * version and to Carbon's current one. TotalResourcesSizeCompressed is
      * written only when set.
      *
-     * Adapted: the header and resources are built as an object in Carbon's
-     * emit order and serialized by the `yaml` package.
+     * @adapted the header and resources are built as an object in Carbon's
+     *   emit order and serialized by the `yaml` package.
      */
     ExportYaml(version, out, status = new StatusSettings())
     {
@@ -354,6 +392,8 @@ export class ResourceGroupImpl
      *
      * Quirk, reproduced: Carbon sorts the group's own list by relative path
      * inside this const method, so exporting reorders the group.
+     *
+     * @adapted
      */
     ExportCsv(version, out, status = new StatusSettings())
     {
@@ -374,6 +414,8 @@ export class ResourceGroupImpl
      * `Merge` (ResourceGroupImpl.cpp:3071-3136): `std::set_union` of the two
      * sorted lists, taking the incoming group's resource where both have the
      * path, each copied into the merged group.
+     *
+     * @implemented
      */
     Merge(params, status = new StatusSettings())
     {
@@ -414,6 +456,7 @@ export class ResourceGroupImpl
      * `CreateResourceFromResource` (ResourceGroupImpl.cpp:1465-1532): a copy
      * through SetParametersFromResource at the group's version.
      *
+     * @adapted
      * @throws {Error} For the patch and bundle resource types, which are not ported.
      */
     CreateResourceFromResource(resource, out)
@@ -431,12 +474,12 @@ export class ResourceGroupImpl
      * changed since the other group go to `additions`, and paths it has that
      * this does not go to `subtractions`.
      *
-     * Adapted: one walk over the two sorted lists, where Carbon runs `Diff`
-     * (set_difference, set_intersection and lower_bound over whole resources,
-     * cpp:3227-3425) and then collates. The lists agree while each path is
-     * unique. They differ when a group holds a path twice, where Carbon's
-     * lower_bound always pairs with the first copy. They also differ on a
-     * checksum error, where this has already filled `subtractions`.
+     * @adapted one walk over the two sorted lists, where Carbon runs `Diff`
+     *   (set_difference, set_intersection and lower_bound over whole resources,
+     *   cpp:3227-3425) and then collates. The lists agree while each path is
+     *   unique. They differ when a group holds a path twice, where Carbon's
+     *   lower_bound always pairs with the first copy. They also differ on a
+     *   checksum error, where this has already filled `subtractions`.
      */
     DiffChangesAsLists(params, status = new StatusSettings())
     {
@@ -478,6 +521,8 @@ export class ResourceGroupImpl
      * Quirk, reproduced: the count is decremented before the sizes are read,
      * so a resource without a compressed size leaves the count one lower and
      * the resource still in the group.
+     *
+     * @implemented
      */
     RemoveResource(resource)
     {
@@ -500,6 +545,8 @@ export class ResourceGroupImpl
     /**
      * `RemoveResources` (ResourceGroupImpl.cpp:2948-3000): removes each listed
      * path; a missing one is an error only when `errorIfResourceNotFound`.
+     *
+     * @implemented
      */
     RemoveResources(params, status = new StatusSettings())
     {
@@ -514,7 +561,11 @@ export class ResourceGroupImpl
         return new Result();
     }
 
-    /** `GetLargestResourceSize` (ResourceGroupImpl.cpp:3002-3025): the largest uncompressed size into `out.value`. */
+    /**
+     * `GetLargestResourceSize` (ResourceGroupImpl.cpp:3002-3025): the largest uncompressed size into `out.value`.
+     *
+     * @adapted
+     */
     GetLargestResourceSize(out)
     {
         out.value = 0n;
@@ -532,11 +583,10 @@ export class ResourceGroupImpl
      * `ImportFromFile` (ResourceGroupImpl.cpp:1205-1264): `.txt` is CSV;
      * `.yml`, `.yaml` and no extension are YAML.
      *
-     * Adapted: asynchronous, reading through the host's injected
-     * `params.read(filename)`, which returns text or UTF-8 bytes. Bytes are
-     * decoded strictly: invalid UTF-8 is FAILED_TO_OPEN_FILE, not replacement
-     * characters.
-     *
+     * @adapted asynchronous, reading through the host's injected
+     *   `params.read(filename)`, which returns text or UTF-8 bytes. Bytes are
+     *   decoded strictly: invalid UTF-8 is FAILED_TO_OPEN_FILE, not replacement
+     *   characters.
      * @throws {TypeError} When no reader was injected.
      */
     async ImportFromFile(params, status = new StatusSettings())
@@ -576,9 +626,8 @@ export class ResourceGroupImpl
      * `ExportToFile` (ResourceGroupImpl.cpp:1266-1308): CSV for version 0.0.x,
      * YAML otherwise.
      *
-     * Adapted: asynchronous, writing through the host's injected
-     * `params.write(filename, text)`; a throw or `false` is FAILED_TO_SAVE_FILE.
-     *
+     * @adapted asynchronous, writing through the host's injected
+     *   `params.write(filename, text)`; a throw or `false` is FAILED_TO_SAVE_FILE.
      * @throws {TypeError} When no writer was injected.
      */
     async ExportToFile(params, status = new StatusSettings())
@@ -618,37 +667,62 @@ export class ResourceGroupImpl
         return a.LessThan(b) ? -1 : b.LessThan(a) ? 1 : 0;
     }
 
-    /** `CreateFromDirectory` - not ported: needs a file system to walk and file hashing. */
+    /**
+     * `CreateFromDirectory` - not ported: needs a file system to walk and file hashing.
+     *
+     * @notImplemented
+     */
     CreateFromDirectory()
     {
         throw new Error("ResourceGroupImpl.CreateFromDirectory is not implemented: it needs a file system to walk and file hashing.");
     }
 
-    /** `CreateBundle` - not ported: needs chunking and compression. */
+    /**
+     * `CreateBundle` - not ported: needs chunking and compression.
+     *
+     * @notImplemented
+     */
     CreateBundle()
     {
         throw new Error("ResourceGroupImpl.CreateBundle is not implemented: it needs chunking and compression.");
     }
 
-    /** `ConstructPatchResourceInfo` - not ported: the patch resource classes are not ported. */
+    /**
+     * `ConstructPatchResourceInfo` - not ported: the patch resource classes are not ported.
+     *
+     * @notImplemented
+     */
     ConstructPatchResourceInfo()
     {
         throw new Error("ResourceGroupImpl.ConstructPatchResourceInfo is not implemented: the patch resource classes are not ported.");
     }
 
-    /** `CreatePatch` - not ported: needs binary diffing. */
+    /**
+     * `CreatePatch` - not ported: needs binary diffing.
+     *
+     * @notImplemented
+     */
     CreatePatch()
     {
         throw new Error("ResourceGroupImpl.CreatePatch is not implemented: it needs binary diffing.");
     }
 
-    /** `Diff` - not ported; DiffChangesAsLists walks the lists itself. */
+    /**
+     * `Diff` - not ported; DiffChangesAsLists walks the lists itself.
+     *
+     * @notImplemented
+     */
     Diff()
     {
         throw new Error("ResourceGroupImpl.Diff is not implemented; DiffChangesAsLists walks the lists itself.");
     }
 
-    /** `CreateFromFilter` - not ported: ResourceFilter is not ported. */
+    /**
+     * `CreateFromFilter` - not ported: ResourceFilter is not ported.
+     *
+     * @notImplemented
+     * @renamed CreateFromFilter
+     */
     static createFromFilter()
     {
         throw new Error("ResourceGroupImpl.createFromFilter is not implemented: ResourceFilter is not ported.");

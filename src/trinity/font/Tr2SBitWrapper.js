@@ -69,7 +69,11 @@ export class Tr2SBitWrapper extends IRoot
    */
   fontSize = 12;
 
-  /** Blue "xOffset" [READ] (Tr2Sbit_Blue.cpp:23-26): GetXOffset. @returns {number} Bitmap left offset. */
+  /**
+   * Blue "xOffset" [READ] (Tr2Sbit_Blue.cpp:23-26): GetXOffset. @returns {number} Bitmap left offset.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
@@ -78,7 +82,11 @@ export class Tr2SBitWrapper extends IRoot
     return this.GetXOffset();
   }
 
-  /** Blue "yOffset" [READ] (Tr2Sbit_Blue.cpp:28-31): GetYOffset. @returns {number} Bitmap top offset. */
+  /**
+   * Blue "yOffset" [READ] (Tr2Sbit_Blue.cpp:28-31): GetYOffset. @returns {number} Bitmap top offset.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
@@ -87,7 +95,11 @@ export class Tr2SBitWrapper extends IRoot
     return this.GetYOffset();
   }
 
-  /** Blue "width" [READ] (Tr2Sbit_Blue.cpp:33-36): GetWidth. @returns {number} Bitmap width. */
+  /**
+   * Blue "width" [READ] (Tr2Sbit_Blue.cpp:33-36): GetWidth. @returns {number} Bitmap width.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
@@ -96,7 +108,11 @@ export class Tr2SBitWrapper extends IRoot
     return this.GetWidth();
   }
 
-  /** Blue "height" [READ] (Tr2Sbit_Blue.cpp:38-41): GetHeight. @returns {number} Bitmap height. */
+  /**
+   * Blue "height" [READ] (Tr2Sbit_Blue.cpp:38-41): GetHeight. @returns {number} Bitmap height.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
@@ -105,7 +121,11 @@ export class Tr2SBitWrapper extends IRoot
     return this.GetHeight();
   }
 
-  /** Blue "xadvance" [READ] (Tr2Sbit_Blue.cpp:43-47): GetXAdvance. @returns {number} Horizontal advance. */
+  /**
+   * Blue "xadvance" [READ] (Tr2Sbit_Blue.cpp:43-47): GetXAdvance. @returns {number} Horizontal advance.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
@@ -114,7 +134,11 @@ export class Tr2SBitWrapper extends IRoot
     return this.GetXAdvance();
   }
 
-  /** Blue "yadvance" [READ] (Tr2Sbit_Blue.cpp:49-53): GetYAdvance. @returns {number} Vertical advance. */
+  /**
+   * Blue "yadvance" [READ] (Tr2Sbit_Blue.cpp:49-53): GetYAdvance. @returns {number} Vertical advance.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
@@ -123,42 +147,66 @@ export class Tr2SBitWrapper extends IRoot
     return this.GetYAdvance();
   }
 
-  /** Returns the cached glyph width. */
+  /**
+   * Returns the cached glyph width.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWidth()
   {
     return this.sbit.width;
   }
 
-  /** Returns the cached glyph height. */
+  /**
+   * Returns the cached glyph height.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetHeight()
   {
     return this.sbit.height;
   }
 
-  /** Returns the cached glyph left. */
+  /**
+   * Returns the cached glyph left.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetXOffset()
   {
     return this.sbit.left;
   }
 
-  /** Returns the cached glyph top. */
+  /**
+   * Returns the cached glyph top.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetYOffset()
   {
     return this.sbit.top;
   }
 
-  /** Returns the cached glyph xadvance. */
+  /**
+   * Returns the cached glyph xadvance.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetXAdvance()
   {
     return this.sbit.xadvance;
   }
 
-  /** Returns the cached glyph yadvance. */
+  /**
+   * Returns the cached glyph yadvance.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetYAdvance()
   {
@@ -167,7 +215,8 @@ export class Tr2SBitWrapper extends IRoot
 
   /**
    * Copies browser grayscale coverage with Carbon's clipped, bottom-origin placement.
-   * Adapted: typed byte views replace the Python writable-buffer interface.
+   *
+   * @adapted typed byte views replace the Python writable-buffer interface.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -184,9 +233,8 @@ export class Tr2SBitWrapper extends IRoot
    * bottom-origin RGBA buffer, clipped, colour alpha modulated by coverage,
    * blended over the destination.
    *
-   * Adapted: a static here, as the casing rule names it; only the 8-bit
-   * grayscale branch, since browser sbits are never 1-bit.
-   *
+   * @adapted a static here, as the casing rule names it; only the 8-bit
+   *   grayscale branch, since browser sbits are never 1-bit.
    * @param {Uint8Array} bytes Destination RGBA bytes.
    * @param {number} dWidth Destination width in pixels.
    * @param {number} dHeight Destination height in pixels.
@@ -221,8 +269,7 @@ export class Tr2SBitWrapper extends IRoot
    * defined Tr2FontMeasurer.cpp:1569-1600): blends a solid underline of the
    * given width and thickness into a bottom-origin RGBA buffer, clipped.
    *
-   * Adapted: a static here, as the casing rule names it.
-   *
+   * @adapted a static here, as the casing rule names it.
    * @param {Uint8Array} bytes Destination RGBA bytes.
    * @param {number} dWidth Destination width in pixels.
    * @param {number} dHeight Destination height in pixels.
@@ -256,15 +303,14 @@ export class Tr2SBitWrapper extends IRoot
 
   /**
    * Draws the glyph and underline with native blending and extra spacing.
-   * Adapted: browsers expose no underline metrics; use the same pixel-size
-   * estimate as Tr2FontMeasurer, instead of claiming FreeType equivalence.
-   *
    * Carbon bug CE-129, Tr2SBit.cpp:80-81: Carbon shifts the FT_Face
    * underline_position/underline_thickness by 6 as if they were 26.6 pixels,
    * but they are font units, so its underline offset and thickness do not
    * scale with the font size. Fixed, operator ruling 2026-10-13: the
    * underline is estimated from the pixel size, which scales.
    *
+   * @adapted browsers expose no underline metrics; use the same pixel-size
+   *   estimate as Tr2FontMeasurer, instead of claiming FreeType equivalence.
    * @param {ArrayBuffer|ArrayBufferView} buffer Destination RGBA bytes.
    * @param {number} width Destination width in pixels.
    * @param {number} height Destination height in pixels.

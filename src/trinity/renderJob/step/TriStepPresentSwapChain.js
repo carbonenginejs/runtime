@@ -19,7 +19,11 @@ export class TriStepPresentSwapChain extends TriRenderStep
   @type.object.ref("Tr2SwapChain")
   swapChain = null;
 
-  /** Stores the swap chain to present. */
+  /**
+   * Stores the swap chain to present.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(swapChain = null)
@@ -33,6 +37,8 @@ export class TriStepPresentSwapChain extends TriRenderStep
    * Carbon calls `m_swapChain->Present( renderContext )` (`cpp:12-15`). Until
    * 2026-09-09 this called `renderContext.PresentSwapChain(...)`, a method
    * Carbon does not have, which reached an AL present that ignored the argument.
+   *
+   * @implemented
    */
 
   @meta.implemented

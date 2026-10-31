@@ -47,7 +47,11 @@ export class Range extends IRoot
 
   _sliderRangeMax = 0;
 
-  /** Moves the range while preserving both distances from its center. */
+  /**
+   * Moves the range while preserving both distances from its center.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetCenterPoint(value)
@@ -58,7 +62,11 @@ export class Range extends IRoot
     this._maxRange += delta;
   }
 
-  /** Configures the symmetric range and its slider bounds. */
+  /**
+   * Configures the symmetric range and its slider bounds.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Setup(rangeCenterPoint, rangeDeltaFromCenter, sliderMin, sliderMax)
@@ -70,7 +78,11 @@ export class Range extends IRoot
     this._sliderRangeMax = sliderMax;
   }
 
-  /** Sets the lower range point and mirrors it when uniform. */
+  /**
+   * Sets the lower range point and mirrors it when uniform.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetMinRangePoint(value)
@@ -82,7 +94,11 @@ export class Range extends IRoot
     }
   }
 
-  /** Sets the upper range point and mirrors it when uniform. */
+  /**
+   * Sets the upper range point and mirrors it when uniform.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetMaxRangePoint(value)
@@ -94,7 +110,11 @@ export class Range extends IRoot
     }
   }
 
-  /** Returns the point both range points are measured from. */
+  /**
+   * Returns the point both range points are measured from.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCenterPoint()
@@ -102,7 +122,11 @@ export class Range extends IRoot
     return this.centerPoint;
   }
 
-  /** Preserves Carbon's exact lower-bound comparison behavior. */
+  /**
+   * Preserves Carbon's exact lower-bound comparison behavior.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetMinRangePoint()
@@ -113,6 +137,8 @@ export class Range extends IRoot
   /**
    * minRangePoint (MAP_PROPERTY_READONLY): Carbon's property over GetMinRangePoint, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Utilities/Range_Blue.cpp:16).
+   *
+   * @adapted
    */
   @be.mapPropertyReadOnly()
   @meta.adapted
@@ -124,6 +150,8 @@ export class Range extends IRoot
   /**
    * Returns the upper range point after Carbon's clamp, which is a min against
    * the slider maximum, not a max (Range.cpp:68-71).
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -135,6 +163,8 @@ export class Range extends IRoot
   /**
    * maxRangePoint (MAP_PROPERTY_READONLY): Carbon's property over GetMaxRangePoint, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Utilities/Range_Blue.cpp:17).
+   *
+   * @adapted
    */
   @be.mapPropertyReadOnly()
   @meta.adapted
@@ -146,6 +176,8 @@ export class Range extends IRoot
   /**
    * Flips symmetric mode, and when turning it on collapses both sides to the
    * smaller of the two distances from the center.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -161,6 +193,8 @@ export class Range extends IRoot
   /**
    * Sets symmetric mode, fixing up the range points immediately when enabling
    * it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -176,6 +210,8 @@ export class Range extends IRoot
   /**
    * Makes the range symmetric by adopting the smaller of the two distances from
    * the center on both sides, so uniformity narrows rather than widens.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -191,6 +227,8 @@ export class Range extends IRoot
   /**
    * Reports whether the two range points are being kept symmetric about the
    * center.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -202,6 +240,8 @@ export class Range extends IRoot
   /**
    * Sets the lower slider bound the exposed range points are clamped against,
    * and re-clamps them.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -213,6 +253,8 @@ export class Range extends IRoot
   /**
    * Sets the upper slider bound the exposed range points are clamped against,
    * and re-clamps them.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -221,7 +263,11 @@ export class Range extends IRoot
     this._sliderRangeMax = value;
   }
 
-  /** Returns the lower slider bound used when clamping the exposed range points. */
+  /**
+   * Returns the lower slider bound used when clamping the exposed range points.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSliderMin()
@@ -229,7 +275,11 @@ export class Range extends IRoot
     return this._sliderRangeMin;
   }
 
-  /** Returns the upper slider bound used when clamping the exposed range points. */
+  /**
+   * Returns the upper slider bound used when clamping the exposed range points.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSliderMax()

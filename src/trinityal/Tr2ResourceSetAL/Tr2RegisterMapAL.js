@@ -59,7 +59,8 @@ export class Tr2RegisterMapAL
   /**
    * Carbon's operator==; a struct method uses lower camel case.
    *
-   * Adapted: JavaScript spells the C++ equality operator as a method.
+   * @adapted JavaScript spells the C++ equality operator as a method.
+   * @renamed operator==
    */
   @meta.adapted
   equals(other)

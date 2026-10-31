@@ -73,7 +73,11 @@ export class Tr2DirectInstanceData
     TriDevice.UnregisterResource(this);
   }
 
-  /** Resets AL ownership explicitly in place of C++ RAII assignment (cpp:25-29). */
+  /**
+   * Resets AL ownership explicitly in place of C++ RAII assignment (cpp:25-29).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources()
@@ -82,7 +86,11 @@ export class Tr2DirectInstanceData
     this._vertexBuffer.Destroy();
   }
 
-  /** Inherited Tr2DeviceResource.cpp:21-32 reset guard. */
+  /**
+   * Inherited Tr2DeviceResource.cpp:21-32 reset guard.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
@@ -93,6 +101,8 @@ export class Tr2DirectInstanceData
   /**
    * Recreates the buffer and declaration (cpp:39-65). JavaScript supplies an
    * AL description object instead of the native stride/count overload.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -115,7 +125,11 @@ export class Tr2DirectInstanceData
     return true;
   }
 
-  /** Both a declaration and a valid AL allocation are required (cpp:74-77). */
+  /**
+   * Both a declaration and a valid AL allocation are required (cpp:74-77).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsInstanceDataReady()
@@ -123,7 +137,11 @@ export class Tr2DirectInstanceData
     return this._vertexDeclaration !== Tr2EffectStateManager.Unknown && this._vertexBuffer.IsValid();
   }
 
-  /** Returns the borrowed AL buffer and current row geometry (cpp:88-93). */
+  /**
+   * Returns the borrowed AL buffer and current row geometry (cpp:88-93).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
@@ -131,7 +149,11 @@ export class Tr2DirectInstanceData
     return { buffer: this._vertexBuffer, offset: 0, stride: this._stride, count: this.count };
   }
 
-  /** The sole stream's declaration handle; buffer index is unused (cpp:103-106). */
+  /**
+   * The sole stream's declaration handle; buffer index is unused (cpp:103-106).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
@@ -142,6 +164,8 @@ export class Tr2DirectInstanceData
   /**
    * Maps count rows for writing, growing only when required (cpp:168-204).
    * The AL returns a byte view instead of Carbon's output pointer and HRESULT.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -161,7 +185,11 @@ export class Tr2DirectInstanceData
     return Failed(mapping.result) ? null : mapping.data;
   }
 
-  /** Publishes writes by unmapping the valid buffer (cpp:211-221). */
+  /**
+   * Publishes writes by unmapping the valid buffer (cpp:211-221).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateData()
@@ -170,7 +198,11 @@ export class Tr2DirectInstanceData
     this._vertexBuffer.UnmapForWriting(Tr2RenderContext_GetMainThreadRenderContext());
   }
 
-  /** Explicit AL release replaces C++ RAII; layout survives (cpp:236-240). */
+  /**
+   * Explicit AL release replaces C++ RAII; layout survives (cpp:236-240).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   DestroyData()
@@ -183,6 +215,8 @@ export class Tr2DirectInstanceData
    * Assigns the CPU-side instance bounds without realizing a GPU buffer.
    * Accepts the JavaScript `{ min, max }` box representation; a two-vector
    * form is retained for consistency with `Tr2RuntimeInstanceData`.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -198,7 +232,11 @@ export class Tr2DirectInstanceData
     vec3.copy(this.aabbMax, max);
   }
 
-  /** Number of instances in the GPU-side buffer. */
+  /**
+   * Number of instances in the GPU-side buffer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCount()
@@ -209,6 +247,8 @@ export class Tr2DirectInstanceData
   /**
    * Byte stride of one instance, computed by SetLayout as the largest offset
    * plus element size in the layout.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -221,6 +261,8 @@ export class Tr2DirectInstanceData
    * Discards rows and interns a stream-zero layout (cpp:130-150). JS accepts
    * the existing element-array form as well as Tr2VertexDefinition; explicit
    * byteSize descriptors retain their existing representation.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -251,7 +293,11 @@ export class Tr2DirectInstanceData
     this._vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(this._layout);
   }
 
-  /** The owned vertex definition recorded by SetLayout. */
+  /**
+   * The owned vertex definition recorded by SetLayout.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLayout()
@@ -262,6 +308,8 @@ export class Tr2DirectInstanceData
   /**
    * A detached copy of the recorded bounds; the buffer index is ignored because
    * only one stream is modelled.
+   *
+   * @implemented
    */
 
   @meta.implemented

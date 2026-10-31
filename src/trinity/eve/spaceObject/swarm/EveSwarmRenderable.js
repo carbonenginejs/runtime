@@ -61,6 +61,8 @@ export class EveSwarmRenderable extends EveEntity
   /**
    * Carbon InitializeRenderable (EveSwarm.cpp:109-113): binds this fighter to the swarm that owns it and the mesh it
    * draws with; RemoveSwarmer passes null for both.
+   *
+   * @implemented
    * @param {EveSwarm|null} owner - the owning swarm; also this renderable's pick ID
    * @param {Tr2MeshBase|null} mesh - the shared fighter mesh
    */
@@ -76,6 +78,8 @@ export class EveSwarmRenderable extends EveEntity
    * Carbon EveSwarmRenderable::SetWorldTransform (EveSwarm.cpp:115-125): the
    * OUTGOING transform becomes worldTransformLast, then the new one is stamped
    * into both records.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -90,6 +94,8 @@ export class EveSwarmRenderable extends EveEntity
 
   /**
    * This fighter's world placement, as last set by SetWorldTransform.
+   *
+   * @implemented
    * @returns {Float32Array} the live logical transform, not a copy
    */
   @meta.implemented
@@ -99,7 +105,11 @@ export class EveSwarmRenderable extends EveEntity
     return this.worldTransform;
   }
 
-  /** Carbon EveSwarm.cpp:132: the booster glow rides in shipData.x. */
+  /**
+   * Carbon EveSwarm.cpp:132: the booster glow rides in shipData.x.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetBoosterIntensity(intensity)
@@ -112,6 +122,8 @@ export class EveSwarmRenderable extends EveEntity
    * Carbon EveSwarmRenderable::SetShaderData (EveSwarm.cpp:135-152): copies the
    * hull values a swarm ship shares with its owner. shipData.x is NOT copied -
    * it is this renderable own booster glow.
+   *
+   * @implemented
    * @param {RawData} vsData - the owner EveSpaceObjectVSData record
    * @param {RawData} psData - the owner EveSpaceObjectPSData record
    */
@@ -144,6 +156,8 @@ export class EveSwarmRenderable extends EveEntity
   /**
    * Carbon InitDecals (EveSwarm.cpp:154-164): appends this fighter's own copy of each of the squad's decals, so a
    * decal animating on one ship does not move on the rest.
+   *
+   * @implemented
    * @param {EveSpaceObjectDecal[]} decals - the owner's authored decals
    */
   @meta.implemented
@@ -160,6 +174,8 @@ export class EveSwarmRenderable extends EveEntity
 
   /**
    * Carbon PushDecals (EveSwarm.cpp:166-180): this fighter's decal renderables against the shared mesh's geometry.
+   *
+   * @implemented
    * @param {ITr2Renderable[]} renderables - the frame's renderable list
    * @param {number} screensize - the owner's mesh screen size
    */
@@ -180,6 +196,8 @@ export class EveSwarmRenderable extends EveEntity
   /**
    * Carbon UpdateDecalVisibility (EveSwarm.cpp:182-202): this fighter's decals are placed at its own transform, with
    * the owner's bone palette when its animation is initialised.
+   *
+   * @implemented
    * @param {EveUpdateContext} updateContext - the frame's update context
    * @param {IEveSpaceObject2ParentData} pd - the owner's parent data; its transform is overwritten
    * @param {Tr2GrannyAnimation|null} animationUpdater - the owner's animation
@@ -205,6 +223,8 @@ export class EveSwarmRenderable extends EveEntity
 
   /**
    * Carbon GetPickingBatches (EveSwarm.cpp:215-230): the mesh's picking, opaque, or transparent and additive areas.
+   *
+   * @implemented
    * @param {ITriRenderBatchAccumulator} batches - the accumulator
    * @param {number} pickTypes - Tr2PickType bits
    * @param {Tr2PerObjectData} perObjectData - this fighter's per-object data
@@ -230,6 +250,8 @@ export class EveSwarmRenderable extends EveEntity
 
   /**
    * The pick identity of this fighter, which Carbon reports as its owning swarm.
+   *
+   * @implemented
    * @returns {Object} the owner, or null before InitializeRenderable
    */
   @meta.implemented
@@ -241,6 +263,8 @@ export class EveSwarmRenderable extends EveEntity
 
   /**
    * Forwards an authored shader option to the fighter mesh, if one is bound.
+   *
+   * @adapted
    * @param {String} name - option name
    * @param {String|Number} value - option value
    */
@@ -259,8 +283,8 @@ export class EveSwarmRenderable extends EveEntity
    * mesh areas directly and transparent areas back-to-front by their
    * world-space bounding-box centres.
    *
-   * Adapted: the transparent sort is written out here rather than through Carbon's
-   * GetSortedBatchesFromMeshAreaVector. Returns whether a batch was committed.
+   * @adapted the transparent sort is written out here rather than through Carbon's
+   *   GetSortedBatchesFromMeshAreaVector. Returns whether a batch was committed.
    */
 
   @meta.adapted
@@ -320,7 +344,11 @@ export class EveSwarmRenderable extends EveEntity
     return committed;
   }
 
-  /** Carbon reports whether the shared fighter mesh has transparent areas. */
+  /**
+   * Carbon reports whether the shared fighter mesh has transparent areas.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -331,6 +359,8 @@ export class EveSwarmRenderable extends EveEntity
 
   /**
    * Carbon GetSortValue (EveSwarm.cpp:54-59): distance from the view position to this fighter's translation.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -348,7 +378,7 @@ export class EveSwarmRenderable extends EveEntity
    * Carbon EveSwarmRenderable::RegisterComponents (EveSwarm.cpp:306-313): unconditional ShadowCaster leaf
    * self-registration.
    *
-   * Adapted: Carbon's RegisterComponent<IEveShadowCaster> template becomes the registry's explicit component type.
+   * @adapted Carbon's RegisterComponent<IEveShadowCaster> template becomes the registry's explicit component type.
    */
   @meta.adapted
 
@@ -361,7 +391,8 @@ export class EveSwarmRenderable extends EveEntity
     }
   }
 
-  /** Carbon EveSwarmRenderable::IsCastingShadow (EveSwarm.cpp:242-267): the
+  /**
+   * Carbon EveSwarmRenderable::IsCastingShadow (EveSwarm.cpp:242-267): the
    * owner/reflection early-outs do NOT write the out-param (the scene hoists
    * the float outside its caster loop, so a stale previous value survives -
    * contract); the cull sphere is the OWNER's squad-wide sphere
@@ -371,7 +402,7 @@ export class EveSwarmRenderable extends EveEntity
    * casts volumetric/spot shadows (whose call sites ignore the return and
    * re-check > 5 themselves) but not cascades.
    *
-   * Adapted: Carbon's float& out-param becomes the optional trailing length-1 array; which paths write it is kept.
+   * @adapted Carbon's float& out-param becomes the optional trailing length-1 array; which paths write it is kept.
    */
   @meta.adapted
 
@@ -411,7 +442,8 @@ export class EveSwarmRenderable extends EveEntity
     return sizeInShadow > 15;
   }
 
-  /** Carbon EveSwarmRenderable::GetShadowBatches (EveSwarm.cpp:269-298): the
+  /**
+   * Carbon EveSwarmRenderable::GetShadowBatches (EveSwarm.cpp:269-298): the
    * mesh's OPAQUE areas only, per displayed area via CreateGeometryBatch -
    * exactly Tr2MeshBase.GetBatches restricted to OPAQUE (no per-area
    * IsCastingShadows filter; area display double-checked in Carbon). QUIRK:
@@ -419,8 +451,8 @@ export class EveSwarmRenderable extends EveEntity
    * (GetMeshLod( meshIx, shadowPixelSize ), cpp:282), passed as the mesh's
    * batch screen size.
    *
-   * Adapted: the geometry IsGood and GetMeshLod steps (cpp:276-286) run inside Tr2MeshBase.GetBatches rather than
-   * here, as for EveChildMesh. Returns whether any batch was committed; Carbon returns void.
+   * @adapted the geometry IsGood and GetMeshLod steps (cpp:276-286) run inside Tr2MeshBase.GetBatches rather than
+   *   here, as for EveChildMesh. Returns whether any batch was committed; Carbon returns void.
    */
   @meta.adapted
 
@@ -437,6 +469,8 @@ export class EveSwarmRenderable extends EveEntity
    * Carbon EveSwarmRenderable::GetPerObjectData (EveSwarm.cpp:61-71): a handle
    * over the two PERSISTENT records this class maintains through
    * SetWorldTransform and SetShaderData. No early-outs, unlike the turret gates.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -448,8 +482,12 @@ export class EveSwarmRenderable extends EveEntity
     return data;
   }
 
-  /** Carbon EveSwarmRenderable::GetShadowPerObjectData (EveSwarm.cpp:300-303):
-   * pure forward to GetPerObjectData. */
+  /**
+   * Carbon EveSwarmRenderable::GetShadowPerObjectData (EveSwarm.cpp:300-303):
+   * pure forward to GetPerObjectData.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetShadowPerObjectData(accumulator = null)

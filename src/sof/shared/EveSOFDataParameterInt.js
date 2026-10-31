@@ -24,7 +24,11 @@ export class EveSOFDataParameterInt extends EveSOFDataParameter
   @type.int32
   value = 0;
 
-  /** Returns a new vector containing the numeric value in all four components. */
+  /**
+   * Returns a new vector containing the numeric value in all four components.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetValue()

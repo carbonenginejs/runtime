@@ -30,6 +30,8 @@ export class EveInstancedMeshManagerInstanceFlags
 
   /**
    * Carbon AddBatchType (cpp:1002-1005): sets bit `1 << type`.
+   *
+   * @implemented
    * @param {number} type A TriBatchType value.
    */
   @meta.implemented
@@ -40,6 +42,8 @@ export class EveInstancedMeshManagerInstanceFlags
 
   /**
    * Carbon SetCastsShadow (cpp:1007-1017): sets or clears CASTS_SHADOW.
+   *
+   * @implemented
    * @param {boolean} castsShadow
    */
   @meta.implemented
@@ -57,6 +61,8 @@ export class EveInstancedMeshManagerInstanceFlags
 
   /**
    * Carbon GetCastsShadow (cpp:1019-1022).
+   *
+   * @implemented
    * @returns {boolean}
    */
   @meta.implemented
@@ -67,6 +73,8 @@ export class EveInstancedMeshManagerInstanceFlags
 
   /**
    * Carbon SetRenderInReflections (cpp:1024-1034): sets or clears RENDER_IN_REFLECTION.
+   *
+   * @implemented
    * @param {boolean} renderInReflections
    */
   @meta.implemented
@@ -86,6 +94,8 @@ export class EveInstancedMeshManagerInstanceFlags
    * Carbon MatchesFilter (cpp:1036-1042): true when this group carries at
    * least one of the filter's batch-type bits AND every one of the filter's
    * render-pass bits (shadow, reflection).
+   *
+   * @implemented
    * @param {EveInstancedMeshManagerInstanceFlags} filter
    * @returns {boolean}
    */
@@ -101,6 +111,8 @@ export class EveInstancedMeshManagerInstanceFlags
 
   /**
    * Carbon's `operator==` (cpp:1044-1047), which JavaScript cannot overload.
+   *
+   * @renamed operator==
    * @param {EveInstancedMeshManagerInstanceFlags} other
    * @returns {boolean}
    */
@@ -112,6 +124,8 @@ export class EveInstancedMeshManagerInstanceFlags
 
   /**
    * Carbon's `operator!=` (cpp:1049-1052), defined separately from `operator==`.
+   *
+   * @renamed operator!=
    * @param {EveInstancedMeshManagerInstanceFlags} other
    * @returns {boolean}
    */

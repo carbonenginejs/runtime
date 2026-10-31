@@ -33,6 +33,8 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
   /**
    * Restarts the burst timer; the placement pool is not sorted or otherwise used
    * by this spawner.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -44,6 +46,8 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
   /**
    * Rearms the spawner by clearing the timer, allowing the one-shot burst to
    * fire again.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -56,6 +60,8 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
    * Waits out the initial delay, then spawns a `completeness` fraction of the
    * currently free placements plus the extra per-burst triggers in one go, and
    * disarms itself until restarted.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -79,7 +85,11 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
     this._localTimer = -1;
   }
 
-  /** Ignores controller variables; the burst is purely time-driven. */
+  /**
+   * Ignores controller variables; the burst is purely time-driven.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetControllerVariable(_name, _value)
   {

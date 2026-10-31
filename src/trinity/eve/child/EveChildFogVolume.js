@@ -229,6 +229,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Recomputes the local bounding sphere as the union of the child volumes'
    * spheres, skipping volumes with a missing centre or a non-finite/negative
    * radius; returns whether any volume contributed.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -256,6 +258,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   /**
    * The authored name, persisted with the volume and used to identify it in the
    * parent graph.
+   *
+   * @implemented
    */
   @meta.implemented
   GetName()
@@ -263,7 +267,11 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     return this.name;
   }
 
-  /** Sets the authored volume name, coercing nullish to the empty string. */
+  /**
+   * Sets the authored volume name, coercing nullish to the empty string.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetName(name)
   {
@@ -282,7 +290,11 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     return true;
   }
 
-  /** No-op: a fog volume carries no sync-side frame work. */
+  /**
+   * No-op: a fog volume carries no sync-side frame work.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateSyncronous(_updateContext, _params)
   {
@@ -292,6 +304,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Carbon UpdateTransformFromParent (EveChildFogVolume.cpp:124-129): the fog
    * volume ignores its own local offset chain and adopts the parent's world
    * matrix verbatim - the override that makes fog volumes track parents.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -307,6 +321,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * is inside the bounding sphere, the strongest volume intensity there
    * (short-circuiting at 1) is scaled by the authored intensity - a camera
    * outside leaves the intensity at zero.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -340,6 +356,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Carbon's body is empty; the JavaScript child contract must return the
    * transform because owned parent/FX consumers use this method as their
    * nominal transform boundary.
+   *
+   * @adapted
    * @param {Float32Array} out - caller-owned
    * @returns {Float32Array} out
    */
@@ -380,6 +398,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
 
   /**
    * Carbon EveChildFogVolume::GetDebugOptions (cpp:158-162).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -394,6 +414,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Carbon EveChildFogVolume::RenderDebugInfo (cpp:164-178): every volume
    * under the world transform with "Volumes", then the bounding sphere placed
    * at its centre under the world transform with "Bounding Sphere".
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -422,8 +444,12 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     }
   }
 
-  /** Carbon EveChildFogVolume::RegisterComponents (cpp:71-74): unconditional
-   * FroxelFogSettings leaf self-registration. */
+  /**
+   * Carbon EveChildFogVolume::RegisterComponents (cpp:71-74): unconditional
+   * FroxelFogSettings leaf self-registration.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -440,6 +466,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * FroxelFogSettings component. Reached from EveEntity::UnRegister
    * (EveEntity.cpp:81-94) after UnRegisterAllComponents has already removed
    * it, so there the removal finds nothing; Carbon does it anyway.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -452,6 +480,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Returns this child's stable contribution record. Values are refreshed in
    * place so per-frame fog blending neither allocates nor loses Carbon's
    * `fogNoiseMovementSpeed` and derived `logThickness` attributes.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -487,19 +517,31 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     return out;
   }
 
-  /** No-op: a fog volume is not renderable and keeps no visibility state. */
+  /**
+   * No-op: a fog volume is not renderable and keeps no visibility state.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
-  /** No-op: a fog volume contributes settings, never renderables. */
+  /**
+   * No-op: a fog volume contributes settings, never renderables.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetRenderables(_renderables)
   {
   }
 
-  /** No-op: a fog volume has no LOD levels. */
+  /**
+   * No-op: a fog volume has no LOD levels.
+   *
+   * @implemented
+   */
   @meta.implemented
   ChangeLOD(_lod)
   {

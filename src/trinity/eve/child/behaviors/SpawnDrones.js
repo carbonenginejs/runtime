@@ -93,6 +93,7 @@ export class SpawnDrones extends IRoot
    *
    * Random draws delegate to the matching generator in global/math/random.js.
    *
+   * @adapted
    * @param {Object} group - owning BehaviorGroup
    */
 
@@ -166,6 +167,7 @@ export class SpawnDrones extends IRoot
    * Random draws delegate to the matching generator in global/math/random.js.
    * scheduling is ported verbatim.
    *
+   * @adapted
    * @param {Array} _agents - DroneAgent records (unused)
    * @param {Array|null} _scratchData - unused (no scratch)
    * @param {Number} deltaTime
@@ -226,7 +228,11 @@ export class SpawnDrones extends IRoot
     return NO_FORCES;
   }
 
-  /** Carbon method gridToggleReset -> GridToggleReset (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method gridToggleReset -> GridToggleReset (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   gridToggleReset()

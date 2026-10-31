@@ -30,6 +30,7 @@ export class Tr2ParticleElementData
    * and the COUNT buffer sentinel.
    * Carbon Invalid (Tr2ParticleElementDeclaration.h:82-90).
    *
+   * @implemented
    * @returns {Tr2ParticleElementData} The invalid descriptor.
    */
   @meta.implemented

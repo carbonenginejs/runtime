@@ -52,10 +52,9 @@ export class EveOccluder extends IRoot
    * The sprites' shader (lensflareoccluder) adds each covered pixel, and each
    * pixel with nothing in front, into the two counters at the slot.
    *
-   * Adapted: the accumulator's pool allocator is bound per call from the
-   * render context (Carbon's constructor takes Tr2Renderer's, cpp:136-137).
-   * The two globals are Carbon's float overload, so their type is stated.
-   *
+   * @adapted the accumulator's pool allocator is bound per call from the
+   *   render context (Carbon's constructor takes Tr2Renderer's, cpp:136-137).
+   *   The two globals are Carbon's float overload, so their type is stated.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {EveUpdateContext} updateContext The scene's update context.
    * @param {Float32Array} transform The lensflare's transform.

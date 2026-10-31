@@ -45,9 +45,8 @@ export class BlueRttiType
    * in that order without replacing a name already present, so a derived
    * class's entry wins. Hidden members are left out, as in Carbon.
    *
-   * Adapted: parent rows the class hides with `hideInherited` are left out
-   * too (ours, see ClassInfo), and no offsets are kept (see the class).
-   *
+   * @adapted parent rows the class hides with `hideInherited` are left out
+   *   too (ours, see ClassInfo), and no offsets are kept (see the class).
    * @param {import("./ClassInfo.js").ClassInfo} ci The class.
    */
   Init(ci)
@@ -82,9 +81,8 @@ export class BlueRttiType
   /**
    * `GetMethodsAsList()` (BlueClasses.cpp:191-207): the names of every method.
    *
-   * Adapted: Carbon builds a Python list under `BLUE_WITH_PYTHON`; JavaScript
-   * stands in for Python (decorator-upgrade.md § 00), so this is an array.
-   *
+   * @adapted Carbon builds a Python list under `BLUE_WITH_PYTHON`; JavaScript
+   *   stands in for Python (decorator-upgrade.md § 00), so this is an array.
    * @returns {string[]} Method names.
    */
   GetMethodsAsList()
@@ -97,6 +95,7 @@ export class BlueRttiType
   /**
    * `FindAttribute( const char* name )` (BlueClasses.cpp:209-218).
    *
+   * @implemented
    * @param {string} name Exposed name.
    * @returns {object|null} The member or property, or null.
    */
@@ -108,6 +107,7 @@ export class BlueRttiType
   /**
    * `FindMethod( const char* name )` (BlueClasses.cpp:220-229): any entry, member or method.
    *
+   * @implemented
    * @param {string} name Exposed name.
    * @returns {object|null} The entry, or null.
    */

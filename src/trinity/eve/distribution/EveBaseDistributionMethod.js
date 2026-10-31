@@ -90,21 +90,33 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   @type.list("IEveDistributionSpawner")
   spawnTriggers = [];
 
-  /** Carbon method AddEntity -> AddEntities (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddEntity -> AddEntities (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @meta.implemented
   AddEntity(howMany = 1)
   {
     this.AddEntities(howMany);
   }
 
-  /** Carbon method Restart -> RestartDistribution (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Restart -> RestartDistribution (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @meta.implemented
   Restart()
   {
     this.RestartDistribution();
   }
 
-  /** Rebuilds the authored placement pool from every Carbon placement generator. */
+  /**
+   * Rebuilds the authored placement pool from every Carbon placement generator.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   RegeneratePlacementData()
@@ -130,6 +142,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * Returns how many entities are currently live, not how many placements the
    * generators authored.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -141,6 +155,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * Returns the live list of spawned placements; entries are mutated in place
    * each update and removed as entities are killed.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -152,6 +168,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * Returns a copy of the mean initial-plus-additional translation of the live
    * placements, recomputed on every synchronous update.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -164,6 +182,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Reports whether any lifetime modifier affects the transform, in which case
    * the per-entity additional transform is cleared and re-accumulated every
    * update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -172,7 +192,11 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     return this._resetTransformOnUpdate;
   }
 
-  /** Brings the distribution into its start state by running a full restart. */
+  /**
+   * Brings the distribution into its start state by running a full restart.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -185,6 +209,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Restarts the distribution when the placement generator or spawner list
    * changes, and re-evaluates dynamic movement when the lifetime modifier list
    * changes.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -204,6 +230,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Drops every live entity, regenerates the placement pool from the generators,
    * resets each spawner against the new pool and clears the play time and spawn
    * counter.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("Restart")
   @meta.implemented
@@ -226,6 +254,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * Advances the distribution one frame: honours any generator's regeneration request, ages the live placements by the playtime-scaled delta, applies bone transforms and lifetime modifiers, recomputes the placement centre and finally ticks the spawners.
    *
+   * @adapted
    * @param params Supplies the bone array and the space-object parent read by the bone transform and the lifetime modifiers.
    */
 
@@ -309,6 +338,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * No asynchronous work; the distribution is driven entirely from the
    * synchronous update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -319,6 +350,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * Spawns entities on randomly chosen free placements, capped by the free
    * placement count, each taking the next unique entity id.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("AddEntity")
   @meta.implemented
@@ -341,6 +374,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * Spawns one entity on the pooled placement with the given unique id, starting that placement's re-trigger timeout and moving it out of the free partition.
    *
+   * @adapted
    * @returns {number} The index the placement ends up at, or -1 when nothing is free, the id is unknown, or the placement is still timing out.
    */
 
@@ -376,7 +410,11 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     return entityIndex;
   }
 
-  /** Returns how many pooled placements are currently free to be triggered. */
+  /**
+   * Returns how many pooled placements are currently free to be triggered.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFreePlacementCount()
@@ -387,6 +425,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * Returns the unique id of the free placement whose initial translation is
    * nearest the given position, or -1 when none are free.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -414,6 +454,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * Returns the pooled placement carrying this unique id, or null when the id is
    * unknown; this is the pool entry itself, not a copy.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -428,6 +470,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   /**
    * Forwards a named controller value to every spawner so controller-driven
    * triggers can react to it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -589,6 +633,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Rebuilds the matrix of the pooled placement a live entity came from, with
    * the spawn modifiers reapplied, returning identity when that origin placement
    * no longer exists.
+   *
+   * @renamed GetInitialPlacementMatrixForPlacement
    */
 
   @meta.renamed("GetInitialPlacementMatrixForPlacement")

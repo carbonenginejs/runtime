@@ -26,6 +26,8 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 
   /**
    * Checks whether event track handles are ready.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -36,6 +38,8 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 
   /**
    * Clears event track handles.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -48,6 +52,8 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 
   /**
    * Applies event track handles.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -66,6 +72,8 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 
   /**
    * Emits resource events when available.
+   *
+   * @adapted
    */
 
   @meta.adapted

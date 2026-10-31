@@ -20,7 +20,11 @@ export class TriStepPushRenderTarget extends TriRenderStep
   @type.object.ref("Tr2RenderTarget")
   renderTarget = null;
 
-  /** Stores the render target and the slot it is pushed for. */
+  /**
+   * Stores the render target and the slot it is pushed for.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(renderTarget = null, slot = 0)
@@ -32,6 +36,8 @@ export class TriStepPushRenderTarget extends TriRenderStep
   /**
    * Pushes the render target for its slot; every push needs a matching
    * TriStepPopRenderTarget in the same job or the job's stack guard unwinds it.
+   *
+   * @implemented
    */
 
   @meta.implemented

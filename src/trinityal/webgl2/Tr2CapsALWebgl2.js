@@ -70,6 +70,7 @@ export class Tr2CapsALWebgl2
    * WebGL2 samples half-float textures in core but renders into them only
    * with a colour-buffer extension, so the device is asked.
    *
+   * @adapted
    * @returns {boolean} Whether half-float render targets work.
    */
   @meta.adapted
@@ -84,6 +85,7 @@ export class Tr2CapsALWebgl2
   /**
    * Whether a shader can read a buffer resource: yes, through a data texture.
    *
+   * @implemented
    * @returns {boolean} True.
    */
   SupportsGpuBuffer()
@@ -95,6 +97,7 @@ export class Tr2CapsALWebgl2
    * Whether a swap chain can exist apart from the device's own. dx11 says
    * yes; a WebGL2 context draws to the one canvas it was created on.
    *
+   * @adapted
    * @returns {boolean} False.
    */
   @meta.adapted
@@ -106,6 +109,7 @@ export class Tr2CapsALWebgl2
   /**
    * Whether a vertex shader can sample a texture; WebGL2 guarantees 16 units.
    *
+   * @implemented
    * @returns {boolean} True.
    */
   SupportsVertexShaderTextures()
@@ -116,6 +120,7 @@ export class Tr2CapsALWebgl2
   /**
    * Whether the display can refresh at a variable rate.
    *
+   * @implemented
    * @returns {boolean} False.
    */
   SupportsVariableRefreshRate()
@@ -126,6 +131,7 @@ export class Tr2CapsALWebgl2
   /**
    * Whether hardware ray tracing is available.
    *
+   * @implemented
    * @returns {boolean} False.
    */
   SupportsRaytracing()

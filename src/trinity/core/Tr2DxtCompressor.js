@@ -23,6 +23,8 @@ export class Tr2DxtCompressor
      * Carbon's realtime encoder is id Software LGPL code; all native RT modes
      * therefore call the MIT libsquish port, with the required channel transforms.
      * Original exported function spelling is retained on the approved facade.
+     *
+     * @adapted
      */
     static Tr2DxtCompressSurface(format, input, width, height, output, outputPitch, cancel = false, quality = 2)
     {
@@ -46,6 +48,8 @@ export class Tr2DxtCompressor
      * uninitialized success value. All failure paths keep output unchanged.
      * Carbon's id Software LGPL realtime encoder is replaced by MIT libsquish.
      * Worker construction options are the existing resource-loader injection.
+     *
+     * @adapted
      */
     static async Tr2DxtCompressSurfaceAsync(format, input, width, height, output, outputPitch, control, quality = -1, options = {})
     {

@@ -48,6 +48,8 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
 
   /**
    * Resolves the target element by semantic type or custom name, marking the constraint valid only when it resolves.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -62,6 +64,8 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
 
   /**
    * Rescales and offsets every alive particle's bound element by the configured factor and value.
+   *
+   * @implemented
    */
 
   @meta.implemented

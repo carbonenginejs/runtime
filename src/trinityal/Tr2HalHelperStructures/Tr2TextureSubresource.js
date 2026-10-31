@@ -95,6 +95,7 @@ export class Tr2TextureSubresource
   /**
    * Width of the box.
    *
+   * @implemented
    * @returns {number} Width in pixels.
    */
   GetWidth()
@@ -105,6 +106,7 @@ export class Tr2TextureSubresource
   /**
    * Height of the box.
    *
+   * @implemented
    * @returns {number} Height in pixels.
    */
   GetHeight()
@@ -115,6 +117,7 @@ export class Tr2TextureSubresource
   /**
    * Depth of the box.
    *
+   * @implemented
    * @returns {number} Depth in slices.
    */
   GetDepth()
@@ -125,6 +128,7 @@ export class Tr2TextureSubresource
   /**
    * Mip levels in the range.
    *
+   * @implemented
    * @returns {number} Level count.
    */
   GetMipCount()
@@ -135,6 +139,7 @@ export class Tr2TextureSubresource
   /**
    * Slices in the range.
    *
+   * @implemented
    * @returns {number} Face count.
    */
   GetFaceCount()
@@ -148,6 +153,7 @@ export class Tr2TextureSubresource
    * An untouched box is all ones, which means "the whole mip". This is the
    * test the rest of the type turns on.
    *
+   * @implemented
    * @returns {boolean} True when any coordinate was set.
    */
   HasBox()
@@ -165,6 +171,7 @@ export class Tr2TextureSubresource
   /**
    * Whether the range names exactly one face and one mip level.
    *
+   * @implemented
    * @returns {boolean} True for a single subresource.
    */
   IsSingleSubresource()
@@ -175,6 +182,7 @@ export class Tr2TextureSubresource
   /**
    * Sets the box from six coordinates: left, top, front, right, bottom, back.
    *
+   * @implemented
    * @param {number[]} ltfrbb The six coordinates, in that order.
    * @returns {Tr2TextureSubresource} This region, for chaining.
    */
@@ -195,6 +203,7 @@ export class Tr2TextureSubresource
   /**
    * Sets the box from a rectangle, spanning one slice in depth.
    *
+   * @implemented
    * @param {number} left Left edge.
    * @param {number} top Top edge.
    * @param {number} right One past the right edge.
@@ -209,6 +218,7 @@ export class Tr2TextureSubresource
   /**
    * Clamps the range to a texture, filling in a box if there was none.
    *
+   * @implemented
    * @param {import("#imageio").BitmapDimensions} texture The texture to clamp against.
    */
   ClampToTexture(texture)
@@ -258,6 +268,7 @@ export class Tr2TextureSubresource
   /**
    * Whether the range covers the entire texture.
    *
+   * @implemented
    * @param {import("#imageio").BitmapDimensions} texture The texture to check against.
    * @returns {boolean} True when nothing is left out.
    */
@@ -287,6 +298,7 @@ export class Tr2TextureSubresource
   /**
    * Whether the range fits inside a texture.
    *
+   * @implemented
    * @param {import("#imageio").BitmapDimensions} bitmap The texture to check against.
    * @returns {boolean} True when it fits.
    */
@@ -313,6 +325,7 @@ export class Tr2TextureSubresource
   /**
    * Whether the range is self-consistent: non-empty in every dimension.
    *
+   * @implemented
    * @returns {boolean} True when valid.
    */
   IsValid()
@@ -330,6 +343,8 @@ export class Tr2TextureSubresource
   /**
    * Whether two ranges name the same region.
    *
+   * @implemented
+   * @renamed operator==
    * @param {Tr2TextureSubresource} other The region to compare with.
    * @returns {boolean} True when they match.
    */

@@ -9,6 +9,7 @@ export class ITr2Pickable extends IRoot
    * Carbon's pure virtual `IRoot* GetID( uint16_t areaId )` (ITr2Renderable.h:91):
    * the root object a hit on an area represents.
    *
+   * @abstract
    * @param {number} _areaId The picked area.
    * @returns {object|null} The represented object.
    */
@@ -19,6 +20,7 @@ export class ITr2Pickable extends IRoot
    * batches, Tr2PickTypes pickTypes, const Tr2PerObjectData* perObjectData )`
    * (ITr2Renderable.h:92): the geometry taking part in a pick pass.
    *
+   * @abstract
    * @param {ITriRenderBatchAccumulator} _batches Receives the batches.
    * @param {number} _pickTypes Requested pick types.
    * @param {object} _perObjectData The object's per-object data.

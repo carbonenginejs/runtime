@@ -68,7 +68,11 @@ export class Inertia extends IRoot
 
   _returnForces = [];
 
-  /** Carbon Inertia::GetProcessPriority (cpp:20-23). */
+  /**
+   * Carbon Inertia::GetProcessPriority (cpp:20-23).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -79,8 +83,8 @@ export class Inertia extends IRoot
   /**
    * Per-agent scratch record count (Carbon sizeof(InertiaData)).
    *
-   * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per
-   * agent, so any non-zero value means 'has scratch'.
+   * @adapted Carbon returns a byte size; the JS port models scratch as one plain record per
+   *   agent, so any non-zero value means 'has scratch'.
    */
 
   @meta.adapted
@@ -92,8 +96,8 @@ export class Inertia extends IRoot
   /**
    * Fresh per-agent scratch record (Carbon InertiaData placement init).
    *
-   * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh
-   * record instead.
+   * @adapted Carbon initializes caller-provided raw memory; the JS port returns the fresh
+   *   record instead.
    */
 
   @meta.adapted
@@ -110,10 +114,9 @@ export class Inertia extends IRoot
    * limited angular speed and blends its magnitude by the agent's remaining
    * headroom (Carbon CalculateBehavior, cpp:35-82).
    *
-   * Adapted: Carbon pushes the adjusted acceleration into the debug vector unconditionally;
-   * the JS port collects it only when group.collectForces is set to keep the per-agent loop
-   * allocation-free.
-   *
+   * @adapted Carbon pushes the adjusted acceleration into the debug vector unconditionally;
+   *   the JS port collects it only when group.collectForces is set to keep the per-agent loop
+   *   allocation-free.
    * @param {Array} agents - DroneAgent records
    * @param {Array} scratchData - per-agent InertiaData records
    * @param {Number} deltaTime
@@ -190,6 +193,8 @@ export class Inertia extends IRoot
   /**
    * Carbon Inertia::RenderDebugInfo (cpp:84-86): an empty override; Inertia
    * draws nothing and declares no GetDebugOptions, so it keeps IBehavior's.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} _renderer
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} _parentWorldLocation

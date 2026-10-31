@@ -79,6 +79,7 @@ export class CjsWebgpuConstantBufferAL
   /**
    * Creates the buffer.
    *
+   * @adapted
    * @param {number} size Bytes requested.
    * @param {number} usage A `Tr2ConstantUsageAL`.
    * @param {ArrayBufferView|null} initialData Initial contents, if any.
@@ -114,6 +115,7 @@ export class CjsWebgpuConstantBufferAL
   /**
    * Hands back the shadow to write into, and invalidates the token.
    *
+   * @adapted
    * @param {object} [_renderContext] Unused.
    * @returns {{result: number, data: Uint8Array|null}} The shadow.
    */
@@ -130,6 +132,7 @@ export class CjsWebgpuConstantBufferAL
    * Carbon's is a no-op on Metal and a token bump on DX12; the upload waits
    * for the bind.
    *
+   * @adapted
    * @returns {number} `S_OK`.
    */
   Unlock(_renderContext)
@@ -145,10 +148,9 @@ export class CjsWebgpuConstantBufferAL
    * and the buffer records itself on the work queue only when it has storage;
    * the upload itself happens when the draw emits its bindings.
    *
-   * Adapted: Metal's work queue keeps `m_constantBuffers`; ours is the render
-   * context's `_constantBuffers`, written here as Metal's impl writes its
-   * queue, by friend access.
-   *
+   * @adapted Metal's work queue keeps `m_constantBuffers`; ours is the render
+   *   context's `_constantBuffers`, written here as Metal's impl writes its
+   *   queue, by friend access.
    * @param {number} shaderType A `ShaderType`.
    * @param {number} constantIndex The constant-buffer register.
    * @param {object} renderContext The render context to bind on.
@@ -166,19 +168,31 @@ export class CjsWebgpuConstantBufferAL
     return ALResult.S_OK;
   }
 
-  /** Whether the buffer has a shadow copy, which `Create` gives it. */
+  /**
+   * Whether the buffer has a shadow copy, which `Create` gives it.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._shadowCopy.length !== 0;
   }
 
-  /** The requested size, as Carbon's `GetSize` reports it. */
+  /**
+   * The requested size, as Carbon's `GetSize` reports it.
+   *
+   * @implemented
+   */
   GetSize()
   {
     return this._size;
   }
 
-  /** Releases the shadow copy and its arena token, leaving the buffer invalid. */
+  /**
+   * Releases the shadow copy and its arena token, leaving the buffer invalid.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._shadowCopy = new Uint8Array(0);
@@ -187,7 +201,11 @@ export class CjsWebgpuConstantBufferAL
     this._id = 0;
   }
 
-  /** Where the buffer lives, which is managed memory, not the device. */
+  /**
+   * Where the buffer lives, which is managed memory, not the device.
+   *
+   * @implemented
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;
@@ -196,6 +214,7 @@ export class CjsWebgpuConstantBufferAL
   /**
    * Fills in a device-resource description.
    *
+   * @adapted
    * @param {object} description The description to fill.
    * @returns {object} The description, filled.
    */
@@ -212,6 +231,7 @@ export class CjsWebgpuConstantBufferAL
   /**
    * Nothing device-side carries a label; the arena pages are shared.
    *
+   * @adapted
    * @returns {number} `S_OK`.
    */
   SetName(_name)

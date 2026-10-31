@@ -12,6 +12,7 @@ export class IBlueObjectProxy extends IRoot
   /**
    * `SetBuilder` - who builds the object, and the marker that names it.
    *
+   * @abstract
    * @param {import("./IBlueObjectBuilder.js").IBlueObjectBuilder|null} _builder The builder.
    * @param {number} _objectMarker Marker passed back to the builder.
    * @returns {void}
@@ -21,6 +22,7 @@ export class IBlueObjectProxy extends IRoot
   /**
    * `GetObject` - the object, reloaded or built first if needed.
    *
+   * @abstract
    * @returns {object|null} The object, or null when there is none and no builder.
    */
   GetObject() {}
@@ -28,6 +30,7 @@ export class IBlueObjectProxy extends IRoot
   /**
    * `IsResident` - whether the proxy holds an object.
    *
+   * @abstract
    * @returns {boolean} True while an object is held.
    */
   IsResident() {}
@@ -36,6 +39,7 @@ export class IBlueObjectProxy extends IRoot
    * `Freeze` - build the object now and let go of the builder, so the object
    * is never unloaded.
    *
+   * @abstract
    * @returns {void}
    */
   Freeze() {}
@@ -43,6 +47,7 @@ export class IBlueObjectProxy extends IRoot
   /**
    * `ClearObject` - drop the object, telling the builder.
    *
+   * @abstract
    * @returns {void}
    */
   ClearObject() {}
@@ -50,6 +55,7 @@ export class IBlueObjectProxy extends IRoot
   /**
    * `Update` - unload the object after `timeout` of disuse.
    *
+   * @abstract
    * @param {number} _time Simulation time in Blue ticks.
    * @param {number} _timeout Disuse period in Blue ticks; zero never unloads.
    * @returns {boolean} True when the object was unloaded by this call.
@@ -59,6 +65,7 @@ export class IBlueObjectProxy extends IRoot
   /**
    * `SetObject` - hold this object and let go of the builder.
    *
+   * @abstract
    * @param {object|null} _obj The object.
    * @returns {void}
    */
@@ -68,6 +75,7 @@ export class IBlueObjectProxy extends IRoot
    * `SetObjectFromBuilder` - replace the object without notifying the builder
    * or letting go of it.
    *
+   * @abstract
    * @param {object|null} _obj The object.
    * @returns {void}
    */
@@ -77,6 +85,7 @@ export class IBlueObjectProxy extends IRoot
    * `SetTemporary` - mark the held object as a temporary placeholder, even
    * though IsResident may be true.
    *
+   * @abstract
    * @param {boolean} _isTemporary Whether the object is a placeholder.
    * @returns {void}
    */
@@ -85,6 +94,7 @@ export class IBlueObjectProxy extends IRoot
   /**
    * `IsTemporary` - whether the held object is a temporary placeholder.
    *
+   * @abstract
    * @returns {boolean} True for a placeholder.
    */
   IsTemporary() {}
@@ -92,6 +102,7 @@ export class IBlueObjectProxy extends IRoot
   /**
    * `OnSelected` - the proxy's object is in use, as the active level of detail.
    *
+   * @abstract
    * @returns {void}
    */
   OnSelected() {}

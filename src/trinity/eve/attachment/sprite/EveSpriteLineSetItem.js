@@ -102,6 +102,8 @@ export class EveSpriteLineSetItem extends IRoot
    * Fills the caller-owned out box with the run's bounds: for a circle, a box
    * around the position at the larger of the two radii; for a line, a box
    * centred on the run covering its full spaced length.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -119,7 +121,11 @@ export class EveSpriteLineSetItem extends IRoot
     return box3.fromPositionRadius(out, center, distance * 0.5);
   }
 
-  /** The parent bone this sprite run rides. */
+  /**
+   * The parent bone this sprite run rides.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoneIndex()
@@ -131,6 +137,8 @@ export class EveSpriteLineSetItem extends IRoot
    * Expands the run into its individual sprite positions in parent space -
    * stepped around the rotated ellipse for a circle, or spaced along the rotated
    * X axis for a line - as freshly allocated vectors.
+   *
+   * @adapted
    */
 
   @meta.adapted

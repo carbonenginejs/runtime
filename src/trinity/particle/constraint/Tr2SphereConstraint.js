@@ -19,8 +19,11 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 {
 
-  /** Carbon Tr2SphereConstraint.cpp:68-80 prepares newly inserted collision emitters.
+  /**
+   * Carbon Tr2SphereConstraint.cpp:68-80 prepares newly inserted collision emitters.
    * Carbon declaration: Tr2SphereConstraint::OnListModified (trinity/trinity/Particle/Tr2SphereConstraint.h:42).
+   *
+   * @implemented
    */
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
@@ -125,6 +128,8 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 
   /**
    * Propagates the thread-safe flag to the on-collision emitters.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -139,6 +144,8 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 
   /**
    * Resolves the position, velocity and radius elements and binds the attached generators, marking the constraint valid only when all of them resolve.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -175,7 +182,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * nor enter the swept test still fall through to it, and that control flow
    * is preserved.
    *
-   * Adapted: Runs single-threaded against CPU element views, using the shared particle RNG.
+   * @adapted Runs single-threaded against CPU element views, using the shared particle RNG.
    */
 
   @meta.adapted
@@ -267,6 +274,8 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * Carbon Tr2SphereConstraint::RenderDebugInfo (Particle/Tr2SphereConstraint.cpp:330-336):
    * nothing while invalid; otherwise the constraint sphere as a 20-segment
    * wireframe in 0xffff4444.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.

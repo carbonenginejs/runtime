@@ -85,7 +85,11 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   @type.list("TriTorque")
   states = [];
 
-  /** Sorts torque keys, resets the sampling cursor and propagates initial states. */
+  /**
+   * Sorts torque keys, resets the sampling cursor and propagates initial states.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   Sort()
@@ -133,6 +137,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * the list. The JS helper returns the cursor (native returns void) and
    * handles an empty list with -1; native callers guard before invoking Seek.
    * Carbon declaration: TriRigidOrientation::Seek (trinity/trinity/TriRigidOrientation.h:108).
+   *
+   * @adapted
    */
   @meta.adapted
   Seek(time)
@@ -167,6 +173,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * The orientation at a time measured from the start, written into `out`;
    * before the first key it is the retained value. Time first and output last, as the rest of the curve family;
    * GetValueAt__Ticks is the Be::Time overload.
+   *
+   * @adapted
    */
   @meta.adapted
   GetValueAt(time, out)
@@ -199,6 +207,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   /**
    * The angular velocity at a time measured from the start, written into
    * `out`; before the first key it is zero.
+   *
+   * @adapted
    */
   @meta.adapted
   GetValueDotAt(time, out)
@@ -223,6 +233,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   /**
    * Samples the orientation at a time and retains it as the current value,
    * which is what a curve consumer reads back.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -236,6 +248,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * Samples and retains orientation for the curve-set update interface.
    * Reuses value as the ignored output instead of native stack-local storage.
    *
+   * @adapted
    * @param {number} time Seconds relative to the curve start.
    * @returns {void}
    */
@@ -248,6 +261,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
 
   /**
    * Carbon's GetValueAt(Be::Time): samples at the ticks since start, in seconds (cpp:55-60). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Caller-owned quaternion.
    * @returns {Float32Array} out
@@ -261,6 +276,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
 
   /**
    * Carbon's Update(Be::Time): samples the Be::Time overload into the retained value (cpp:37-43). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Caller-owned quaternion.
    * @returns {Float32Array} out
@@ -276,6 +293,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   /**
    * Carbon's Vector3 GetValueDotAt(Be::Time): the angular velocity at the ticks since start, in seconds
    * (cpp:91-96). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Caller-owned vector.
    * @returns {Float32Array} out

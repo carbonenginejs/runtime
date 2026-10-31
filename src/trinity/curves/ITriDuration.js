@@ -14,6 +14,8 @@ export class ITriDuration extends IRoot
   /**
    * Returns the curve's start time.
    * Native signature: Be::Time Start() = 0.
+   *
+   * @abstract
    * @returns {number|bigint} The concrete implementation's native Be::Time representation.
    */
   Start()
@@ -23,6 +25,8 @@ export class ITriDuration extends IRoot
   /**
    * Sets the curve's start time.
    * Native signature: void SetStartTime(Be::Time startTime) = 0.
+   *
+   * @abstract
    * @param {number|bigint} _startTime The concrete implementation's native Be::Time representation.
    * @returns {void}
    */
@@ -33,6 +37,8 @@ export class ITriDuration extends IRoot
   /**
    * Sorts curve data; Carbon notes that scaling time does not re-sort it.
    * Native signature: void Sort() = 0.
+   *
+   * @abstract
    * @returns {void}
    */
   Sort()
@@ -42,6 +48,8 @@ export class ITriDuration extends IRoot
   /**
    * Scales curve time coordinates.
    * Native signature: void ScaleTime(float s) = 0.
+   *
+   * @abstract
    * @param {number} _s Native float scale.
    * @returns {void}
    */
@@ -52,6 +60,8 @@ export class ITriDuration extends IRoot
   /**
    * Reverses the curve.
    * Native signature: void Reverse() = 0.
+   *
+   * @abstract
    * @returns {void}
    */
   Reverse()
@@ -61,6 +71,8 @@ export class ITriDuration extends IRoot
   /**
    * Scales curve values.
    * Native signature: void ScaleValue(float s) = 0.
+   *
+   * @abstract
    * @param {number} _s Native float scale.
    * @returns {void}
    */
@@ -71,6 +83,8 @@ export class ITriDuration extends IRoot
   /**
    * Returns the curve's length.
    * Native signature: float Length() = 0.
+   *
+   * @abstract
    * @returns {number} Native float length.
    */
   Length()
@@ -80,6 +94,8 @@ export class ITriDuration extends IRoot
   /**
    * Returns the curve's extrapolation mode.
    * Native signature: TRIEXTRAPOLATION Extrapolation() = 0.
+   *
+   * @abstract
    * @returns {number} Native TRIEXTRAPOLATION value.
    */
   Extrapolation()

@@ -13,6 +13,7 @@ export class ICacheable extends IRoot
    * `IsMemoryUsageKnown` - whether `GetMemoryUsage` can be asked yet. An
    * asynchronously loaded resource does not know until its load has finished.
    *
+   * @abstract
    * @returns {boolean}
    */
   IsMemoryUsageKnown() {}
@@ -21,6 +22,7 @@ export class ICacheable extends IRoot
    * `GetMemoryUsage` - the object's memory use in bytes. Once
    * `IsMemoryUsageKnown` returns true, this should not change.
    *
+   * @abstract
    * @returns {number}
    */
   GetMemoryUsage() {}

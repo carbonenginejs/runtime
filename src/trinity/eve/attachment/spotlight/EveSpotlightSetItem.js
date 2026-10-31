@@ -62,8 +62,8 @@ export class EveSpotlightSetItem extends IRoot
    * Fills the caller-owned out box with the spotlight's unit box transformed by
    * its authored placement matrix.
    *
-   * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
-   * box3.
+   * @adapted Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
+   *   box3.
    */
 
   @meta.adapted
@@ -72,7 +72,11 @@ export class EveSpotlightSetItem extends IRoot
     return box3.transformMat4(out, EveSpotlightSetItem._bounds, this.transform);
   }
 
-  /** The parent bone this spotlight rides. */
+  /**
+   * The parent bone this spotlight rides.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoneIndex()

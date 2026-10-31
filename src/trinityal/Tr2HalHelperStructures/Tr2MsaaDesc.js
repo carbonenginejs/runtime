@@ -36,6 +36,8 @@ export class Tr2MsaaDesc
    * Carbon clamps both sample counts to at least one before comparing, so a
    * zero and a one are the same description.
    *
+   * @implemented
+   * @renamed operator==
    * @param {Tr2MsaaDesc} other The description to compare with.
    * @returns {boolean} True when they match.
    */

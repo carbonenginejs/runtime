@@ -239,6 +239,8 @@ export class Tr2LightManager
   /**
    * Carbon Tr2LightManager::AreLightFlagsValid (cpp:677-680): a light must
    * affect surfaces or particles to exist at all.
+   *
+   * @implemented
    */
   @meta.implemented
   static areLightFlagsValid(flags)
@@ -254,6 +256,8 @@ export class Tr2LightManager
    * with actualTextureSize taken from the atlas quality - multiple scenes
    * may request different qualities in one frame and the texture must fit
    * the largest.
+   *
+   * @implemented
    */
   @meta.implemented
   SetShadowQuality(quality, frameCounter = 0)
@@ -292,7 +296,11 @@ export class Tr2LightManager
       calculateShadowMapAtlasSettings(this._shadowMap.qualityUsedByAtlas).size;
   }
 
-  /** Carbon GetShadowMapAtlasSettings (cpp:708-711). */
+  /**
+   * Carbon GetShadowMapAtlasSettings (cpp:708-711).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetShadowMapAtlasSettings()
   {
@@ -303,6 +311,7 @@ export class Tr2LightManager
    * Carbon GetUnpackedShadowMapData (cpp:810-815): the packed 10-bit
    * offsets/scale back into texels via the entry-min-size shift.
    *
+   * @implemented
    * @param {object} record A light record carrying the packed fields.
    * @param {object} out Receives scale/offsetX/offsetY.
    * @returns {object} out
@@ -324,6 +333,8 @@ export class Tr2LightManager
    *
    * Without a render context (a CPU-only caller) the index clear is skipped;
    * there is no buffer to clear then.
+   *
+   * @implemented
    */
   @meta.implemented
   Clear(renderContext = null)
@@ -340,14 +351,22 @@ export class Tr2LightManager
     this._shadowMap.atlasNodes.push({ children: [ -1, -1 ], lightIndex: -1, x: 0, y: 0, width: size, height: size });
   }
 
-  /** Carbon SetFrustum (cpp:244-247). */
+  /**
+   * Carbon SetFrustum (cpp:244-247).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetFrustum(frustum)
   {
     this._frustum = frustum ?? null;
   }
 
-  /** Carbon AdjustLightCutoff (cpp:249-252): the cull threshold is 7px * lodFactor. */
+  /**
+   * Carbon AdjustLightCutoff (cpp:249-252): the cull threshold is 7px * lodFactor.
+   *
+   * @implemented
+   */
   @meta.implemented
   AdjustLightCutoff(lodFactor)
   {
@@ -361,6 +380,8 @@ export class Tr2LightManager
    * supply. The direction default is (1,0,0), never zero - a zero direction
    * is a legal bit pattern the shader normalises into NaN (contract §"third
    * texel").
+   *
+   * @implemented
    */
   @meta.implemented
   AddPointLight(position, radius, color, innerRadius = 0, flags = Tr2LightManager.FLAG_DEFAULT)
@@ -398,6 +419,8 @@ export class Tr2LightManager
    * reference, cpp:359-365; always taken under the shipping pin). The stored
    * record is a by-value copy: every producer reuses a static scratch record,
    * exactly as Carbon's std::vector push copies.
+   *
+   * @implemented
    */
   @meta.implemented
   AddLight(record)
@@ -449,6 +472,8 @@ export class Tr2LightManager
    * useDynamicLightsShadows setting Carbon ships false), then the packed
    * buffer: byte layout per the contract, profile slots biased by one into
    * flag bits 4-15, the shadow union in word 11.
+   *
+   * @implemented
    */
   @meta.implemented
   ResolveLightData()
@@ -547,6 +572,8 @@ export class Tr2LightManager
    * cube-cross, spots a square. Successful entries pack their offsets and
    * scale in entry-min-size units into the record's 10-bit fields; failures
    * zero them.
+   *
+   * @adapted
    */
   _CreateShadowMapAtlas(numShadowCastingLights, lightTuples)
   {
@@ -614,6 +641,8 @@ export class Tr2LightManager
    * entry min size, insert from the root, and report position ONLY on
    * success - the out object is untouched on failure, exactly as Carbon
    * leaves its out-references.
+   *
+   * @adapted
    */
   _GetShadowMapAtlasEntry(lightIndex, width, height, out)
   {
@@ -636,6 +665,8 @@ export class Tr2LightManager
    * child, then second), reject occupied or too-small leaves, claim exact
    * fits, otherwise split along the larger remainder axis and recurse into
    * the first child.
+   *
+   * @implemented
    */
   _InsertAtlasNode(atlasNodes, nodeId, lightIndex, width, height)
   {
@@ -699,28 +730,44 @@ export class Tr2LightManager
     return this._InsertAtlasNode(atlasNodes, node.children[0], lightIndex, width, height);
   }
 
-  /** Carbon GetCurrentSpaceSceneShadowQuality (cpp:713-716): a bare field read; every record producer asks it before building. */
+  /**
+   * Carbon GetCurrentSpaceSceneShadowQuality (cpp:713-716): a bare field read; every record producer asks it before building.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCurrentSpaceSceneShadowQuality()
   {
     return this._currentSpaceSceneShadowQuality;
   }
 
-  /** Carbon GetLightData (cpp:695-698): the frame's resolved records, borrowed. */
+  /**
+   * Carbon GetLightData (cpp:695-698): the frame's resolved records, borrowed.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLightData()
   {
     return this._records;
   }
 
-  /** Carbon GetVolumetricLights (cpp:707-710): indices into GetLightData, borrowed. */
+  /**
+   * Carbon GetVolumetricLights (cpp:707-710): indices into GetLightData, borrowed.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetVolumetricLights()
   {
     return this._volumetricLights;
   }
 
-  /** Carbon GetShadowCastingLights (cpp:688-691): empty under the shipping pin, kept for signature parity. */
+  /**
+   * Carbon GetShadowCastingLights (cpp:688-691): empty under the shipping pin, kept for signature parity.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetShadowCastingLights()
   {
@@ -804,7 +851,11 @@ export class Tr2LightManager
     return this;
   }
 
-  /** Carbon GetOrCreateInstance (cpp:192-200): the process-wide manager. */
+  /**
+   * Carbon GetOrCreateInstance (cpp:192-200): the process-wide manager.
+   *
+   * @implemented
+   */
   @meta.implemented
   static getOrCreateInstance(effectPath)
   {
@@ -812,7 +863,11 @@ export class Tr2LightManager
     return Tr2LightManager._instance;
   }
 
-  /** Carbon GetInstance (cpp:202-205): the manager, or null when none exists. */
+  /**
+   * Carbon GetInstance (cpp:202-205): the manager, or null when none exists.
+   *
+   * @implemented
+   */
   @meta.implemented
   static getInstance()
   {
@@ -824,10 +879,10 @@ export class Tr2LightManager
    * (cpp:174-190) republishes empty buffers, so the globals stop naming this
    * manager's.
    *
-   * Adapted: JavaScript has no destructor, so the manager unregisters from
-   * the device and resets the variable store here. ResetVariableStore's
-   * LightProfileArray and ShadowMapAtlas re-registrations are not made; the
-   * manager does not publish either.
+   * @adapted JavaScript has no destructor, so the manager unregisters from
+   *   the device and resets the variable store here. ResetVariableStore's
+   *   LightProfileArray and ShadowMapAtlas re-registrations are not made; the
+   *   manager does not publish either.
    */
   @meta.adapted
   static deleteInstance()
@@ -845,7 +900,11 @@ export class Tr2LightManager
 
   static scratch = { words4_0: new Uint32Array(4) };
 
-  /** Carbon SetVariableStore (cpp:214-218): the globals name this manager's buffers. */
+  /**
+   * Carbon SetVariableStore (cpp:214-218): the globals name this manager's buffers.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetVariableStore()
   {
@@ -853,7 +912,11 @@ export class Tr2LightManager
     this._indexBufferVariable?.SetValue(this._indexBuffer);
   }
 
-  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
+  /**
+   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32).
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
@@ -870,6 +933,7 @@ export class Tr2LightManager
    * constants; the effect is pointed at all three buffers, its depth map
    * left empty until a dispatch sets it.
    *
+   * @implemented
    * @returns {boolean} True.
    */
   @meta.implemented
@@ -896,6 +960,7 @@ export class Tr2LightManager
    * Carbon ReleaseResources (cpp:641-655): only the per-frame constants are
    * released, when their memory class is; the buffers and the effect stay.
    *
+   * @implemented
    * @param {number} storage The TriStorage classes being released.
    */
   @meta.implemented
@@ -909,6 +974,7 @@ export class Tr2LightManager
    * Carbon ClearLightIndices (cpp:370-378): the index buffer cleared to zero
    * as a UAV, so every tile head reads "no lights".
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The context to clear through.
    * @returns {boolean} Whether the clear succeeded, or there was no buffer.
    */
@@ -926,6 +992,7 @@ export class Tr2LightManager
    * Carbon UpdateLightBuffer (cpp:380-399): grows the light buffer to the
    * frame's light count, then uploads the packed records.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The context to write through.
    * @returns {boolean} Whether the upload succeeded.
    */
@@ -949,6 +1016,7 @@ export class Tr2LightManager
    * Carbon UpdateLists (cpp:622-639): the globals name the buffers, then the
    * lists are built - or cleared when there are no lights or the build fails.
    *
+   * @implemented
    * @param {object} depthMap The scene depth, the render target's size.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {boolean} Whether the lists were built.
@@ -977,6 +1045,7 @@ export class Tr2LightManager
    * The tile count follows the render target's size, as Carbon's does. The
    * depth map is bound for the dispatch only.
    *
+   * @implemented
    * @param {Tr2TextureAL} depthMap The scene depth.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {boolean} Whether both dispatches ran.
@@ -1113,6 +1182,9 @@ export class Tr2LightManager
    * (resource cannot import trinity), so the manager performs it at the
    * first pack instead; same array, same first-fit slot, one seam later.
    * The profile is Carbon's m_lightProfile, a Tr2LightProfileRes.
+   *
+   * @cjs
+   * @adapted
    * @param {Tr2LightProfileRes|null} profile Resource bound to this light.
    * @returns {number} Packed profile slot, or zero while unavailable.
    */
@@ -1152,6 +1224,7 @@ export class Tr2LightManager
    * abstraction layer's job; consumers poll GetRevision or subscribe via
    * OnTextureChange.
    *
+   * @implemented
    * @returns {Tr2TextureArray} The shared profile array.
    */
   static getLightProfileArray()

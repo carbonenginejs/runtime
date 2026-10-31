@@ -178,14 +178,22 @@ export class Tr2CurveLineSet
     TriDevice.UnregisterResource(this);
   }
 
-  /** Inherited Tr2DeviceResource.cpp:21-32 creation guard. */
+  /**
+   * Inherited Tr2DeviceResource.cpp:21-32 creation guard.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
-  /** Explicit AL release replaces assigning the native empty buffer value. */
+  /**
+   * Explicit AL release replaces assigning the native empty buffer value.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   ReleaseResources()
@@ -194,7 +202,11 @@ export class Tr2CurveLineSet
     this._vertexBuffer.Destroy();
   }
 
-  /** Registers Carbon's 80-byte LineVertex declaration, then fills the stream. */
+  /**
+   * Registers Carbon's 80-byte LineVertex declaration, then fills the stream.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnPrepareResources()
@@ -217,7 +229,11 @@ export class Tr2CurveLineSet
     return this.FillVertexBuffer();
   }
 
-  /** Only the mapped width factor requires a vertex refill (cpp:50-58). */
+  /**
+   * Only the mapped width factor requires a vertex refill (cpp:50-58).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(name)
@@ -226,7 +242,11 @@ export class Tr2CurveLineSet
     return true;
   }
 
-  /** Counts all live segments while retaining stable line identifiers. */
+  /**
+   * Counts all live segments while retaining stable line identifiers.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetNumOfLines()
@@ -302,7 +322,11 @@ export class Tr2CurveLineSet
   @type.object.ref("Tr2Material")
   pickEffect = null;
 
-  /** Carbon method AddCurvedLineCrt (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method AddCurvedLineCrt (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddCurvedLineCrt(position1, color1, position2, color2, middle, width, segments = 20)
@@ -319,7 +343,11 @@ export class Tr2CurveLineSet
     ));
   }
 
-  /** Carbon method AddCurvedLineSph (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddCurvedLineSph (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   AddCurvedLineSph(position1, color1, position2, color2, center, middle, width)
@@ -334,7 +362,11 @@ export class Tr2CurveLineSet
     );
   }
 
-  /** Carbon method AddSpheredLineCrt (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddSpheredLineCrt (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   AddSpheredLineCrt(position1, color1, position2, color2, center, width)
@@ -351,7 +383,11 @@ export class Tr2CurveLineSet
     ));
   }
 
-  /** Carbon method AddSpheredLineSph (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddSpheredLineSph (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   AddSpheredLineSph(position1, color1, position2, color2, center, width)
@@ -366,7 +402,11 @@ export class Tr2CurveLineSet
     );
   }
 
-  /** Carbon method AddStraightLine (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddStraightLine (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   AddStraightLine(position1, color1, position2, color2, width)
@@ -383,7 +423,11 @@ export class Tr2CurveLineSet
     ));
   }
 
-  /** Carbon method ChangeLineIntermediateSph (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChangeLineIntermediateSph (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineIntermediateSph(id, intermediatePosition, center)
@@ -391,7 +435,11 @@ export class Tr2CurveLineSet
     this.ChangeLineIntermediateCrt(id, sphericalToCartesian(intermediatePosition, center));
   }
 
-  /** Carbon method ChangeLineIntermediateCrt (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChangeLineIntermediateCrt (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineIntermediateCrt(id, intermediatePosition)
@@ -402,7 +450,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Carbon method ChangeLinePositionSph (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChangeLinePositionSph (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLinePositionSph(id, position1, position2, center)
@@ -410,7 +462,11 @@ export class Tr2CurveLineSet
     this.ChangeLinePositionCrt(id, sphericalToCartesian(position1, center), sphericalToCartesian(position2, center));
   }
 
-  /** Carbon method ChangeLinePositionCrt (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChangeLinePositionCrt (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLinePositionCrt(id, position1, position2)
@@ -422,7 +478,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Carbon method ChangeLineAnimation (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChangeLineAnimation (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineAnimation(id, color, speed, scale)
@@ -435,7 +495,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Carbon method ChangeLineMultiColor (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChangeLineMultiColor (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineMultiColor(id, color, border)
@@ -447,7 +511,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Carbon method ChangeLineSegmentation (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChangeLineSegmentation (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineSegmentation(id, numOfSegments)
@@ -458,7 +526,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Carbon method ChangeLineColor (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChangeLineColor (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineColor(id, color1, color2)
@@ -470,7 +542,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Carbon method ChangeLineWidth (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ChangeLineWidth (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineWidth(id, width)
@@ -481,7 +557,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Carbon method ClearLines (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ClearLines (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearLines()
@@ -490,7 +570,11 @@ export class Tr2CurveLineSet
     this.emptyLineID.length = 0;
   }
 
-  /** Carbon method RemoveLine (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method RemoveLine (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   RemoveLine(id)
@@ -502,7 +586,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Native submission intentionally reports success even when filling fails. */
+  /**
+   * Native submission intentionally reports success even when filling fails.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SubmitChanges()
@@ -517,6 +605,8 @@ export class Tr2CurveLineSet
    * The existing TriPoolAllocator only leases named RawData structs; reusable
    * bytes on this owner replace its native untyped allocation. Unused capacity
    * retains earlier bytes (initially zero), rather than unspecified pool memory.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -647,6 +737,8 @@ export class Tr2CurveLineSet
    * Writes native LineVertex records; a DataView and byte offset replace the
    * LineVertex pointer. Integer color words and float stores retain the layout.
    * Carbon declaration: Tr2CurveLineSet::WriteLineVerticesToBuffer (trinity/trinity/Tr2CurveLineSet.h:180).
+   *
+   * @adapted
    */
   @meta.adapted
   WriteLineVerticesToBuffer(pos1, col1, length1, pos2, col2, length2, posPrev, posNext, lineID, buffer, offset = 0)
@@ -681,6 +773,8 @@ export class Tr2CurveLineSet
   /**
    * Uses the shared CRT stream. DataView replaces the native pointer; the native
    * unwritten nextLineDir bytes are zeroed deterministically.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -711,7 +805,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Carbon's line sets participate in transparent sorting. */
+  /**
+   * Carbon's line sets participate in transparent sorting.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -719,7 +817,11 @@ export class Tr2CurveLineSet
     return true;
   }
 
-  /** Collects transparent, additive, or picking lines through the native gates. */
+  /**
+   * Collects transparent, additive, or picking lines through the native gates.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason)
@@ -740,6 +842,8 @@ export class Tr2CurveLineSet
    * Submits the native non-indexed triangle batch. Renderer camera state lives
    * on the main context in JS. Native cpp:1117 uses the LOCAL sphere center for
    * packed depth, unlike GetSortValue's transformed center; preserve that quirk.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -762,7 +866,11 @@ export class Tr2CurveLineSet
     accumulator.Commit(batch);
   }
 
-  /** Assigns the native line material without refilling the vertex stream. */
+  /**
+   * Assigns the native line material without refilling the vertex stream.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetLineEffect(effect)
@@ -770,7 +878,11 @@ export class Tr2CurveLineSet
     this.lineEffect = effect;
   }
 
-  /** Assigns the native picking material without refilling the vertex stream. */
+  /**
+   * Assigns the native picking material without refilling the vertex stream.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetPickEffect(effect)
@@ -778,7 +890,11 @@ export class Tr2CurveLineSet
     this.pickEffect = effect;
   }
 
-  /** Distance from the transformed local bound to the renderer's view (cpp:648-657). */
+  /**
+   * Distance from the transformed local bound to the renderer's view (cpp:648-657).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -795,7 +911,11 @@ export class Tr2CurveLineSet
     return Math.sqrt(dx * dx + dy * dy + dz * dz) + this.depthOffset;
   }
 
-  /** Carbon's base intentionally supplies no scene-specific constants. */
+  /**
+   * Carbon's base intentionally supplies no scene-specific constants.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPerObjectData(_accumulator)
@@ -803,7 +923,11 @@ export class Tr2CurveLineSet
     return null;
   }
 
-  /** Carbon ITr2Pickable identity for every line primitive. */
+  /**
+   * Carbon ITr2Pickable identity for every line primitive.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetID(_areaId)
@@ -811,7 +935,11 @@ export class Tr2CurveLineSet
     return this;
   }
 
-  /** Dispatches the selected pick categories through the same batch contract. */
+  /**
+   * Dispatches the selected pick categories through the same batch contract.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
@@ -831,7 +959,11 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Sets Carbon's additive-pass selector. */
+  /**
+   * Sets Carbon's additive-pass selector.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetAdditiveFlag(value)
@@ -839,7 +971,11 @@ export class Tr2CurveLineSet
     this.additive = !!value;
   }
 
-  /** Sets Carbon's dynamic CPU-update policy. */
+  /**
+   * Sets Carbon's dynamic CPU-update policy.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetDynamicFlag(value)

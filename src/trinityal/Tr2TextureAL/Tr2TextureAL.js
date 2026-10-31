@@ -30,6 +30,7 @@ export class Tr2TextureAL
    * full overload with an empty multisample description, no CPU usage and no
    * initial data (Tr2TextureAL.cpp:63-66).
    *
+   * @implemented
    * @param {BitmapDimensions} desc The texture description.
    * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
    * @param {object} renderContext The context to create against.
@@ -46,6 +47,7 @@ export class Tr2TextureAL
    * the full overload with no CPU usage and no initial data
    * (Tr2TextureAL.cpp:68-71).
    *
+   * @implemented
    * @param {BitmapDimensions} desc The texture description.
    * @param {Tr2MsaaDesc} msaa The multisample description.
    * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
@@ -63,6 +65,7 @@ export class Tr2TextureAL
    * (Tr2TextureAL.h:52): the full overload with an empty multisample
    * description and no CPU usage (Tr2TextureAL.cpp:73-76).
    *
+   * @implemented
    * @param {BitmapDimensions} desc The texture description.
    * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
    * @param {Tr2SubresourceData[]|null} initialData Initial subresource data, indexed `mip + layer * mipCount`.
@@ -80,6 +83,7 @@ export class Tr2TextureAL
    * (Tr2TextureAL.h:53): the full overload with an empty multisample
    * description and no initial data (Tr2TextureAL.cpp:78-81).
    *
+   * @implemented
    * @param {BitmapDimensions} desc The texture description.
    * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
    * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
@@ -97,6 +101,7 @@ export class Tr2TextureAL
    * (Tr2TextureAL.h:54): the full overload with an empty multisample
    * description (Tr2TextureAL.cpp:83-86).
    *
+   * @implemented
    * @param {BitmapDimensions} desc The texture description.
    * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
    * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
@@ -116,11 +121,10 @@ export class Tr2TextureAL
    * other five overloads forward to. Creates a fresh implementation and leaves
    * this value empty when the backend refuses.
    *
-   * Adapted: the render context allocates the backend implementation instead
-   * of a compile-time platform include, and this value's previous share is
-   * released explicitly because JavaScript has no shared_ptr; existing copies
-   * keep the old implementation alive.
-   *
+   * @adapted the render context allocates the backend implementation instead
+   *   of a compile-time platform include, and this value's previous share is
+   *   released explicitly because JavaScript has no shared_ptr; existing copies
+   *   keep the old implementation alive.
    * @param {BitmapDimensions} desc The texture description.
    * @param {Tr2MsaaDesc} msaa The multisample description.
    * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
@@ -139,7 +143,11 @@ export class Tr2TextureAL
     return result;
   }
 
-  /** Shared external textures are unsupported by the current JS backends; failure resets this value. */
+  /**
+   * Shared external textures are unsupported by the current JS backends; failure resets this value.
+   *
+   * @notSupported
+   */
   @meta.notSupported
   OpenShared(_handle, _gpuUsage, _renderContext)
   {
@@ -154,119 +162,188 @@ export class Tr2TextureAL
     return implementation ? implementation.RequestAverageColor() : null;
   }
 
-  /** Reports whether this value references valid backend storage. */
+  /**
+   * Reports whether this value references valid backend storage.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsValid()
   {
     return this._texture !== null && this._texture.implementation.IsValid();
   }
 
-  /** Returns the backend memory class, or managed for an uncreated value. */
+  /**
+   * Returns the backend memory class, or managed for an uncreated value.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMemoryClass()
   {
     return this._texture ? this._texture.implementation.GetMemoryClass() : Tr2ALMemoryType.AL_MEMORY_MANAGED;
   }
 
-  /** Returns the native description, including its empty-value defaults. */
+  /**
+   * Returns the native description, including its empty-value defaults.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetDesc()
   {
     return this._texture ? this._texture.implementation.GetDesc() : emptyDescription;
   }
 
-  /** Returns the native multisample description. */
+  /**
+   * Returns the native multisample description.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMsaaDesc()
   {
     return this._texture ? this._texture.implementation.GetMsaaDesc() : emptyMsaa;
   }
 
-  /** Returns the native usage flags. */
+  /**
+   * Returns the native usage flags.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetGpuUsage()
   {
     return this._texture ? this._texture.implementation.GetGpuUsage() : 0;
   }
 
-  /** Returns the native usage flags. */
+  /**
+   * Returns the native usage flags.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCpuUsage()
   {
     return this._texture ? this._texture.implementation.GetCpuUsage() : 0;
   }
 
-  /** Returns the corresponding native texture dimension. */
+  /**
+   * Returns the corresponding native texture dimension.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWidth()
   {
     return this.GetDesc().GetWidth();
   }
 
-  /** Returns the corresponding native texture dimension. */
+  /**
+   * Returns the corresponding native texture dimension.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetHeight()
   {
     return this.GetDesc().GetHeight();
   }
 
-  /** Returns the corresponding native texture dimension. */
+  /**
+   * Returns the corresponding native texture dimension.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetDepth()
   {
     return this.GetDesc().GetDepth();
   }
 
-  /** Returns the corresponding native texture dimension. */
+  /**
+   * Returns the corresponding native texture dimension.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMipCount()
   {
     return this.GetDesc().GetMipCount();
   }
 
-  /** Returns the corresponding native texture dimension. */
+  /**
+   * Returns the corresponding native texture dimension.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetTrueMipCount()
   {
     return this.GetDesc().GetTrueMipCount();
   }
 
-  /** Returns the corresponding native texture dimension. */
+  /**
+   * Returns the corresponding native texture dimension.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetFormat()
   {
     return this.GetDesc().GetFormat();
   }
 
-  /** Returns the corresponding native texture dimension. */
+  /**
+   * Returns the corresponding native texture dimension.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetType()
   {
     return this.GetDesc().GetType();
   }
 
-  /** Returns the corresponding native texture dimension. */
+  /**
+   * Returns the corresponding native texture dimension.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetArraySize()
   {
     return this.GetDesc().GetArraySize();
   }
 
-  /** Returns the byte size of a mip level. */
+  /**
+   * Returns the byte size of a mip level.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMipSize(mip)
   {
     return this.GetDesc().GetMipSize(mip);
   }
 
-  /** Compares shared implementation identity; JavaScript has no overloadable equality operator. */
+  /**
+   * Compares shared implementation identity; JavaScript has no overloadable equality operator.
+   *
+   * @adapted
+   * @renamed operator==
+   */
   @meta.adapted
   Equals(other)
   {
     return this._texture === other._texture;
   }
 
-  /** Creates an independently owned snapshot, retaining native empty-value semantics. */
+  /**
+   * Creates an independently owned snapshot, retaining native empty-value semantics.
+   *
+   * @adapted
+   */
   @meta.adapted
   CreateReadback(region, renderContext)
   {
@@ -274,42 +351,66 @@ export class Tr2TextureAL
       ? this._texture.implementation.CreateReadback(region, renderContext) : null });
   }
 
-  /** Forwards the current native mapping signature and preserves the empty-value result. */
+  /**
+   * Forwards the current native mapping signature and preserves the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   MapForReading(region, renderContext)
   {
     return this._texture ? this._texture.implementation.MapForReading(region, renderContext) : { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
   }
 
-  /** Forwards UnmapForReading to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards UnmapForReading to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   UnmapForReading(renderContext)
   {
     return this._texture ? this._texture.implementation.UnmapForReading(renderContext) : undefined;
   }
 
-  /** Forwards MapForWriting to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards MapForWriting to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   MapForWriting(region, renderContext)
   {
     return this._texture ? this._texture.implementation.MapForWriting(region, renderContext) : { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
   }
 
-  /** Forwards UnmapForWriting to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards UnmapForWriting to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   UnmapForWriting(renderContext)
   {
     return this._texture ? this._texture.implementation.UnmapForWriting(renderContext) : undefined;
   }
 
-  /** Forwards UpdateSubresource to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards UpdateSubresource to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateSubresource(region, source, pitch, slicePitch, renderContext)
   {
     return this._texture ? this._texture.implementation.UpdateSubresource(region, source, pitch, slicePitch, renderContext) : ALResult.E_INVALIDCALL;
   }
 
-  /** Forwards CopySubresourceRegion to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards CopySubresourceRegion to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   CopySubresourceRegion(destinationRegion, source, sourceRegion, renderContext)
   {
@@ -318,7 +419,11 @@ export class Tr2TextureAL
     return this._texture.implementation.CopySubresourceRegion(destinationRegion, source.TrinityALImpl_GetObject(), sourceRegion, renderContext);
   }
 
-  /** Forwards Resolve to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards Resolve to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   Resolve(destination, renderContext)
   {
@@ -331,28 +436,44 @@ export class Tr2TextureAL
     return this._texture.implementation.Resolve(destination.TrinityALImpl_GetObject(), renderContext);
   }
 
-  /** Forwards GetSharedHandle to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards GetSharedHandle to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetSharedHandle()
   {
     return this._texture ? this._texture.implementation.GetSharedHandle() : 0;
   }
 
-  /** Forwards GetSrvIndexInHeap to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards GetSrvIndexInHeap to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetSrvIndexInHeap(colorSpace = 0)
   {
     return this._texture ? this._texture.implementation.GetSrvIndexInHeap(colorSpace) : 0xffffffff;
   }
 
-  /** Forwards GetUavIndexInHeap to the implementation, preserving the empty-value result. */
+  /**
+   * Forwards GetUavIndexInHeap to the implementation, preserving the empty-value result.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetUavIndexInHeap(mip)
   {
     return this._texture ? this._texture.implementation.GetUavIndexInHeap(mip) : 0xffffffff;
   }
 
-  /** Generates mips with Carbon’s validity, mip-count and BGR-format gates. */
+  /**
+   * Generates mips with Carbon’s validity, mip-count and BGR-format gates.
+   *
+   * @implemented
+   */
   @meta.implemented
   GenerateMipMaps(renderContext)
   {
@@ -362,7 +483,11 @@ export class Tr2TextureAL
     return this._texture.implementation.GenerateMipMaps(renderContext);
   }
 
-  /** Names valid storage; invalid values and absent names retain Carbon’s errors. */
+  /**
+   * Names valid storage; invalid values and absent names retain Carbon’s errors.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetName(name)
   {
@@ -371,14 +496,22 @@ export class Tr2TextureAL
     return this._texture.implementation.SetName(name);
   }
 
-  /** Returns the backend name for valid storage. */
+  /**
+   * Returns the backend name for valid storage.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetName()
   {
     return this.IsValid() ? this._texture.implementation.GetName() : null;
   }
 
-  /** Returns the borrowed backend implementation for backend-only operations. */
+  /**
+   * Returns the borrowed backend implementation for backend-only operations.
+   *
+   * @implemented
+   */
   @meta.implemented
   TrinityALImpl_GetObject()
   {

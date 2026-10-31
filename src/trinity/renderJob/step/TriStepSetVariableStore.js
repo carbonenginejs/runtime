@@ -27,7 +27,11 @@ export class TriStepSetVariableStore extends TriRenderStep
   @type.rawStruct("TriVariableValue")
   value = null;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(name = undefined, value = undefined)
@@ -38,6 +42,8 @@ export class TriStepSetVariableStore extends TriRenderStep
 
   /**
    * Sets the name of the variable this step writes.
+   *
+   * @implemented
    */
   @meta.implemented
   SetName(name)
@@ -47,6 +53,8 @@ export class TriStepSetVariableStore extends TriRenderStep
 
   /**
    * The value this step writes into the variable store.
+   *
+   * @adapted
    */
   @meta.adapted
   GetValue()
@@ -59,6 +67,8 @@ export class TriStepSetVariableStore extends TriRenderStep
   /**
    * Sets the value this step writes, copying array and typed-array values so a
    * later mutation by the caller cannot change what the step publishes.
+   *
+   * @adapted
    */
   @meta.adapted
   SetValue(value)
@@ -69,6 +79,8 @@ export class TriStepSetVariableStore extends TriRenderStep
   /**
    * Registers the named value on the global variable store, so shaders reading
    * that variable see it from this point in the job order onward.
+   *
+   * @adapted
    */
   @meta.adapted
   Execute(_realTime, _simTime, _renderContext)

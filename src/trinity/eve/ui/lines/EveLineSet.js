@@ -125,6 +125,8 @@ export class EveLineSet
   /**
    * Carbon Initialize (cpp:35-42): seeds the line capacity at 100 and prepares the resources. Carbon also reserves
    * the line vector; a JavaScript array needs no reserve.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -135,7 +137,11 @@ export class EveLineSet
     return true;
   }
 
-  /** Carbon ReleaseResources (cpp:45-50). Adapted: the buffer is destroyed explicitly. */
+  /**
+   * Carbon ReleaseResources (cpp:45-50). Adapted: the buffer is destroyed explicitly.
+   *
+   * @adapted
+   */
   @meta.adapted
 
   ReleaseResources(_storage)
@@ -161,7 +167,7 @@ export class EveLineSet
    * Carbon OnPrepareResources (cpp:52-96): interns the position and colour declaration, creates a vertex buffer of
    * maxCurrentLineCount lines on first need, and uploads the current lines.
    *
-   * Adapted: the AL description replaces the native stride/count overload.
+   * @adapted the AL description replaces the native stride/count overload.
    */
   @meta.adapted
 
@@ -189,6 +195,8 @@ export class EveLineSet
   /**
    * Carbon UpdateSyncronous (cpp:97-114): samples the position and rotation curves, then m_worldTransform =
    * TransformationMatrix( scaling, rotation, translation ), which is gl's fromRotationTranslationScale( r, t, s ).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -205,14 +213,22 @@ export class EveLineSet
     mat4.fromRotationTranslationScale(this.worldTransform, quat_0, vec3_0, this.scaling);
   }
 
-  /** Carbon UpdateAsyncronous (cpp:117-119): nothing to do. */
+  /**
+   * Carbon UpdateAsyncronous (cpp:117-119): nothing to do.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
-  /** Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123). */
+  /**
+   * Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update__UpdateContext(updateContext)
@@ -220,7 +236,11 @@ export class EveLineSet
     this.UpdateSyncronous(updateContext);
   }
 
-  /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
+  /**
+   * Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(updateContext)
@@ -228,21 +248,33 @@ export class EveLineSet
     return this.Update__UpdateContext(updateContext);
   }
 
-  /** Carbon UpdateViewDependentData (cpp:130-132): nothing to do. */
+  /**
+   * Carbon UpdateViewDependentData (cpp:130-132): nothing to do.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateViewDependentData(_frustum, _parentTransform)
   {
   }
 
-  /** Carbon UpdateVisibility (cpp:134-136): nothing to do; a line set is never culled. */
+  /**
+   * Carbon UpdateVisibility (cpp:134-136): nothing to do; a line set is never culled.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform)
   {
   }
 
-  /** Carbon's GetRenderables( renderables, impostors ) (cpp:138-146): the set itself while displayed. */
+  /**
+   * Carbon's GetRenderables( renderables, impostors ) (cpp:138-146): the set itself while displayed.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetRenderables__Impostors(out, _impostors = null)
@@ -252,7 +284,11 @@ export class EveLineSet
     return out;
   }
 
-  /** Carbon's GetRenderables( renderables ) (cpp:148-151): forwards with no impostor manager. */
+  /**
+   * Carbon's GetRenderables( renderables ) (cpp:148-151): forwards with no impostor manager.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(out)
@@ -260,7 +296,11 @@ export class EveLineSet
     return this.GetRenderables__Impostors(out, null);
   }
 
-  /** Carbon GetBoundingSphere (cpp:153-157): the sphere SubmitChanges last built; always valid. */
+  /**
+   * Carbon GetBoundingSphere (cpp:153-157): the sphere SubmitChanges last built; always valid.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -269,7 +309,11 @@ export class EveLineSet
     return true;
   }
 
-  /** Carbon AddLine (cpp:233-244): appends a line without submitting it, and returns its index. */
+  /**
+   * Carbon AddLine (cpp:233-244): appends a line without submitting it, and returns its index.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddLine(position1, color1, position2, color2)
@@ -283,7 +327,11 @@ export class EveLineSet
     return this.lines.length - 1;
   }
 
-  /** Carbon ChangeLineColor (cpp:305-313): an out-of-range id is ignored. */
+  /**
+   * Carbon ChangeLineColor (cpp:305-313): an out-of-range id is ignored.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ChangeLineColor(id, color1, color2)
@@ -296,7 +344,11 @@ export class EveLineSet
     }
   }
 
-  /** Carbon ChangeLine (cpp:293-303): an out-of-range id is ignored. */
+  /**
+   * Carbon ChangeLine (cpp:293-303): an out-of-range id is ignored.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ChangeLine(id, position1, color1, position2, color2)
@@ -311,7 +363,11 @@ export class EveLineSet
     }
   }
 
-  /** Carbon ChangeLinePosition (cpp:315-323): an out-of-range id is ignored. */
+  /**
+   * Carbon ChangeLinePosition (cpp:315-323): an out-of-range id is ignored.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ChangeLinePosition(id, position1, position2)
@@ -324,7 +380,11 @@ export class EveLineSet
     }
   }
 
-  /** Carbon ClearLines (cpp:325-327): needs SubmitChanges to take effect. */
+  /**
+   * Carbon ClearLines (cpp:325-327): needs SubmitChanges to take effect.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearLines()
@@ -332,7 +392,11 @@ export class EveLineSet
     this.lines.length = 0;
   }
 
-  /** Carbon RemoveLine (cpp:285-291): an out-of-range id is ignored; later ids shift down. */
+  /**
+   * Carbon RemoveLine (cpp:285-291): an out-of-range id is ignored; later ids shift down.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   RemoveLine(id)
@@ -344,8 +408,8 @@ export class EveLineSet
    * Carbon SubmitChanges (cpp:246-283): grows the buffer when the lines outgrow it, prepares the resources, uploads
    * the lines, and rebuilds the bounding sphere from their end points.
    *
-   * Adapted: Carbon grows to the line vector's capacity, which its allocator chooses; a JavaScript array has none, so
-   * the buffer grows to the line count.
+   * @adapted Carbon grows to the line vector's capacity, which its allocator chooses; a JavaScript array has none, so
+   *   the buffer grows to the line count.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -377,7 +441,11 @@ export class EveLineSet
     return true;
   }
 
-  /** Carbon EveLineSet::HasTransparentBatches is always true (cpp:161-164). */
+  /**
+   * Carbon EveLineSet::HasTransparentBatches is always true (cpp:161-164).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -388,6 +456,8 @@ export class EveLineSet
   /**
    * Carbon GetBatches (cpp:166-201): transparent when renderTransparent, otherwise additive; while displayed, with a
    * vertex buffer and a declaration, one line-list draw of the submitted lines' vertices.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -412,6 +482,8 @@ export class EveLineSet
 
   /**
    * Carbon GetSortValue (cpp:203-208): the distance from the view position to the world translation.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -435,6 +507,8 @@ export class EveLineSet
    * each of its buffers; the lease here creates the buffers in those named
    * layouts, so the writes below land where the copy would have put them.
    * SetAndTranspose is Carbon's `Transpose( m_worldTransform )`.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -481,33 +555,53 @@ export class EveLineSet
     return definition;
   }
 
-  /** Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/UI/EveLineSet.h:61-63). Leaves position untouched. */
+  /**
+   * Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/UI/EveLineSet.h:61-63). Leaves position untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateModelCenterWorldPosition(position, t)
   {
   }
 
-  /** Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/UI/EveLineSet.h:64-66). Leaves position untouched. */
+  /**
+   * Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/UI/EveLineSet.h:64-66). Leaves position untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetModelCenterWorldPosition(position)
   {
   }
 
-  /** Carbon: GetLocalBoundingBox (trinity/trinity/Eve/UI/EveLineSet.h:67-70). No local box; leaves outputs untouched. */
+  /**
+   * Carbon: GetLocalBoundingBox (trinity/trinity/Eve/UI/EveLineSet.h:67-70). No local box; leaves outputs untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     return false;
   }
 
-  /** Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/UI/EveLineSet.h:71-74). Writes identity into caller storage. */
+  /**
+   * Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/UI/EveLineSet.h:71-74). Writes identity into caller storage.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     mat4.identity(transform);
   }
 
-  /** Carbon: GetLODLevel (trinity/trinity/Eve/UI/EveLineSet.h:92-95). Always returns high LOD. */
+  /**
+   * Carbon: GetLODLevel (trinity/trinity/Eve/UI/EveLineSet.h:92-95). Always returns high LOD.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLODLevel()
   {

@@ -21,6 +21,8 @@ export class ITr2PostProcessOwner extends IRoot
   /**
    * Carbon's pure virtual `Tr2PostProcessAttributes*
    * GetPostProcessAttributes()` (h:12).
+   *
+   * @abstract
    * @returns {Tr2PostProcessAttributes|null} The owner's attributes.
    */
   @be.abstract

@@ -35,8 +35,9 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
 
   /**
    * Spawns particles on the configured emitter.
-   * Adapted: a fresh JavaScript update-arguments object represents the native
-   * temporary value; the emitter owns all particle allocation and algorithms.
+   *
+   * @adapted a fresh JavaScript update-arguments object represents the native
+   *   temporary value; the emitter owns all particle allocation and algorithms.
    */
 
   @meta.adapted

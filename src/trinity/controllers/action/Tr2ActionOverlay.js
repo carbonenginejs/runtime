@@ -88,8 +88,8 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * multi-effect or a stretch; then load the overlay and rebind a redirected
    * owner.
    *
-   * Adapted: the load is asynchronous (see LoadOverlay), so a redirected
-   * owner is rebound once it settles.
+   * @adapted the load is asynchronous (see LoadOverlay), so a redirected
+   *   owner is rebound once it settles.
    */
 
   @meta.adapted
@@ -114,7 +114,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Carbon Stop (Tr2ActionOverlay.cpp:77-121): with removeOnStop, remove the
    * overlay from the owner Start would resolve.
    *
-   * Adapted: also discards a load still in flight.
+   * @adapted also discards a load still in flight.
    */
 
   @meta.adapted
@@ -135,10 +135,9 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * and given or stripped of "_skinned" to match the owner, loaded as an
    * EveMeshOverlayEffect, named, added and started.
    *
-   * Adapted: Carbon loads synchronously as an urgent load; the JS resource
-   * manager resolves asynchronously, so the overlay is added when the file
-   * arrives, and a Stop or a newer Start before then discards it.
-   *
+   * @adapted Carbon loads synchronously as an urgent load; the JS resource
+   *   manager resolves asynchronously, so the overlay is added when the file
+   *   arrives, and a Stop or a newer Start before then discards it.
    * @param {object} owner The EveSpaceObject2.
    * @returns {Promise<void>|null} The pending load, or null when none started.
    */

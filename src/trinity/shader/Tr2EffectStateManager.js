@@ -478,6 +478,7 @@ export class Tr2EffectStateManager
    * stage type is a different entry, and so is the same body with different
    * samplers.
    *
+   * @adapted
    * @param {number} stageType Carbon shader stage type.
    * @param {Uint8Array} bytecode Compiled stage body.
    * @param {object} [signature] Stage signature; only `samplers` participates.
@@ -524,6 +525,7 @@ export class Tr2EffectStateManager
    * `[vs, ps]` and `[ps, vs]` are two programs. Carbon's caller fills the array
    * in the effect file's stage order, not by stage type.
    *
+   * @adapted
    * @param {number[]} shaderHandles Handles from `registerShader`.
    * @returns {number} Stable handle, or `Unknown` for an empty or stale list.
    */
@@ -564,6 +566,7 @@ export class Tr2EffectStateManager
    * that authors a state at its default value is a distinct setup there even
    * though it draws identically.
    *
+   * @adapted
    * @param {object} pass Reflected pass carrying `renderStateValues`.
    * @returns {number} Stable handle. This one never fails.
    */
@@ -680,6 +683,7 @@ export class Tr2EffectStateManager
    * producers; isSameDefinition compares the ledger only when both sides
    * carry one. Revisit if CarbonVertexElements ever normalises type names.
    *
+   * @adapted
    * @param {Array|Tr2VertexDefinition} elements A definition or plain element list.
    * @returns {number} Stable handle.
    */
@@ -711,6 +715,7 @@ export class Tr2EffectStateManager
    * copies the definition into an out parameter and returns a bool; returning
    * the interned identity or null is the same contract without the copy.
    *
+   * @adapted
    * @param {number} handle Vertex-declaration handle.
    * @returns {Array|Tr2VertexDefinition|null} The interned declaration.
    */
@@ -886,11 +891,10 @@ export class Tr2EffectStateManager
    * constructor, as Tr2RenderContextBase's does (Tr2RenderContext.cpp:110-112),
    * so the variable exists before any effect maps its constants.
    *
-   * Adapted: there is no JS `Tr2Variable` wrapper, so Carbon's
-   * `m_viewportSizeVar.Register( name, value )` registers through the global
-   * store and keeps the store's variable; a variable already reserved under the
-   * name is the one returned.
-   *
+   * @adapted there is no JS `Tr2Variable` wrapper, so Carbon's
+   *   `m_viewportSizeVar.Register( name, value )` registers through the global
+   *   store and keeps the store's variable; a variable already reserved under the
+   *   name is the one returned.
    * @returns {void}
    */
   @meta.adapted
@@ -959,12 +963,11 @@ export class Tr2EffectStateManager
    * redundancy cache, clear the shared shader, program and render-state tables,
    * and drop the per-object constant buffers.
    *
-   * Adapted: the shared tables are the static `releaseDeviceResources`, which
-   * also destroys the shaders and programs every context realized for them;
-   * the layouts realized for this context are dropped too
-   * (`ReleaseRealizedObjects`), and the per-object constant buffers are held
-   * on the render context, so they are destroyed there.
-   *
+   * @adapted the shared tables are the static `releaseDeviceResources`, which
+   *   also destroys the shaders and programs every context realized for them;
+   *   the layouts realized for this context are dropped too
+   *   (`ReleaseRealizedObjects`), and the per-object constant buffers are held
+   *   on the render context, so they are destroyed there.
    * @param {number} s A `TriStorage` mask.
    * @returns {void}
    */
@@ -992,6 +995,7 @@ export class Tr2EffectStateManager
    * the context and not the texture: "don't use rt.GetWidth/Height, rt may be
    * nullRT".
    *
+   * @adapted
    * @param {number} index Target slot.
    * @param {object|null} renderTarget The target.
    * @param {boolean} [updateViewport] Whether slot zero moves the viewport.
@@ -1015,6 +1019,7 @@ export class Tr2EffectStateManager
    * Carbon's PushRenderTarget( slot ) (cpp:1043): saves the target bound to a
    * slot and binds nothing, so it can be safely changed later.
    *
+   * @adapted
    * @param {number} [slot] Target slot.
    * @returns {boolean} True.
    */
@@ -1031,6 +1036,7 @@ export class Tr2EffectStateManager
    * argument that binds an EMPTY texture and so clears the slot
    * (`Tr2ShadowMap.cpp:238`, commented "empty texture").
    *
+   * @adapted
    * @param {object|null} renderTarget The target to bind after saving.
    * @param {number} [slot] Target slot.
    * @returns {boolean} True.
@@ -1048,6 +1054,7 @@ export class Tr2EffectStateManager
    * as the first argument is the slot-only overload, anything else (null
    * included) is the texture overload. Engine code calls the specific names.
    *
+   * @adapted
    * @returns {boolean} True.
    */
   @meta.adapted
@@ -1061,6 +1068,7 @@ export class Tr2EffectStateManager
   /**
    * Restores the target saved for a slot and refreshes the viewport.
    *
+   * @adapted
    * @param {number} [slot] Target slot.
    * @returns {boolean} False when nothing was saved.
    */
@@ -1077,6 +1085,7 @@ export class Tr2EffectStateManager
   /**
    * Binds the depth-stencil surface.
    *
+   * @implemented
    * @param {object|null} depthStencil The surface, or null to unbind.
    * @returns {boolean} Whether the bind was accepted.
    */
@@ -1090,6 +1099,7 @@ export class Tr2EffectStateManager
    * Carbon's PushDepthStencilBuffer() (h:149): saves the bound depth-stencil
    * and binds nothing (`TriStepPushDepthStencil.cpp:44`).
    *
+   * @adapted
    * @returns {boolean} True.
    */
   @meta.adapted
@@ -1104,6 +1114,7 @@ export class Tr2EffectStateManager
    * depth-stencil, then binds ds; null, an explicitly EMPTY texture, unbinds
    * (`TriStepPushDepthStencil.cpp:48`).
    *
+   * @adapted
    * @param {object|null} depthStencil The surface to bind after saving.
    * @returns {boolean} True.
    */
@@ -1120,6 +1131,7 @@ export class Tr2EffectStateManager
    * save-only overload, anything else (null included) the texture overload.
    * Engine code calls the specific names.
    *
+   * @adapted
    * @returns {boolean} True.
    */
   @meta.adapted
@@ -1133,6 +1145,7 @@ export class Tr2EffectStateManager
   /**
    * Restores the saved depth-stencil.
    *
+   * @adapted
    * @returns {boolean} False when nothing was saved.
    */
   @meta.adapted
@@ -1159,6 +1172,7 @@ export class Tr2EffectStateManager
   /**
    * The viewport as authored, which is not necessarily the one being drawn.
    *
+   * @implemented
    * @returns {object|null} The authored viewport, or null before one is set.
    */
   @meta.implemented
@@ -1170,6 +1184,7 @@ export class Tr2EffectStateManager
   /**
    * The viewport actually handed to the backend, clipped to the render target.
    *
+   * @implemented
    * @returns {object|null} The device viewport, or null before one is set.
    */
   @meta.implemented
@@ -1181,6 +1196,7 @@ export class Tr2EffectStateManager
   /**
    * Sets the authored viewport and derives the device one.
    *
+   * @adapted
    * @param {object} viewport `{ x, y, width, height, minZ, maxZ }`.
    * @returns {void}
    */
@@ -1202,6 +1218,7 @@ export class Tr2EffectStateManager
   /**
    * Sets the authored viewport to the whole render target.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1223,6 +1240,7 @@ export class Tr2EffectStateManager
    * Clips the authored viewport to the render target and hands it to the
    * backend.
    *
+   * @adapted
    * @returns {void}
    */
   @meta.adapted
@@ -1275,6 +1293,7 @@ export class Tr2EffectStateManager
    * `SetupViewport`, and does NOT push to the backend: the target bind that
    * called this carries the viewport with it (cpp:1193-1214).
    *
+   * @implemented
    * @param {number} width Render target width.
    * @param {number} height Render target height.
    * @returns {void}
@@ -1295,6 +1314,7 @@ export class Tr2EffectStateManager
   /**
    * Saves the authored viewport.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1308,6 +1328,7 @@ export class Tr2EffectStateManager
   /**
    * Restores the last saved viewport, deriving the device one again.
    *
+   * @adapted
    * @returns {boolean} False when nothing was saved.
    */
   @meta.adapted
@@ -1380,6 +1401,7 @@ export class Tr2EffectStateManager
    * previous span left behind; the reflection path, which draws into a
    * mirrored cube face, passes `CULLMODE_NONE` (`EveSpaceScene.cpp:1933`).
    *
+   * @adapted
    * @param {number} [cullMode] A `CullMode` member.
    * @returns {void}
    */
@@ -1402,6 +1424,7 @@ export class Tr2EffectStateManager
   /**
    * Ends the span. The overrides survive it, as they do in Carbon.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -1428,6 +1451,7 @@ export class Tr2EffectStateManager
    * (cpp:834-856). It is a per-manager setting rather than authored per pass,
    * because the same registered setup is drawn both ways.
    *
+   * @adapted
    * @param {boolean} inverted
    * @returns {void}
    */
@@ -1438,6 +1462,7 @@ export class Tr2EffectStateManager
   }
 
   /**
+   * @adapted
    * @returns {boolean} Whether the depth comparison is reversed.
    */
   @meta.adapted
@@ -1450,6 +1475,7 @@ export class Tr2EffectStateManager
    * Draws this span mirrored, swapping the two winding orders and leaving NONE
    * alone (cpp:815-827).
    *
+   * @adapted
    * @param {boolean} inverted
    * @returns {void}
    */
@@ -1460,6 +1486,7 @@ export class Tr2EffectStateManager
   }
 
   /**
+   * @adapted
    * @returns {boolean} Whether the winding order is mirrored.
    */
   @meta.adapted
@@ -1487,6 +1514,7 @@ export class Tr2EffectStateManager
    * and a backend that cannot honour it must REFUSE rather than draw solid.
    * A toggle that silently does nothing is the thing this must not become.
    *
+   * @adapted
    * @param {boolean} enabled Whether to draw wireframe.
    * @returns {boolean} The flag as stored.
    */
@@ -1540,6 +1568,7 @@ export class Tr2EffectStateManager
    * the current setup to UNKNOWN, so the next ApplyRenderStates cannot be
    * filtered out.
    *
+   * @adapted
    * @param {number} renderingMode A `RenderingMode` member.
    * @returns {boolean} Whether the mode carries states to apply.
    */
@@ -1577,6 +1606,7 @@ export class Tr2EffectStateManager
    * pipeline missing most of its state, which is why the order is transcribed
    * rather than simplified.
    *
+   * @adapted
    * @param {number} handle Render-state handle.
    * @returns {boolean} False when the handle is already current in a managed span.
    */
@@ -1627,6 +1657,7 @@ export class Tr2EffectStateManager
    * because WebGPU has no `glPolygonMode` - so the flag reaches a backend that
    * says it cannot honour it, rather than being quietly dropped.
    *
+   * @adapted
    * @param {number} handle Render-state handle.
    * @returns {boolean} Whether a setup reached the backend.
    */
@@ -1702,6 +1733,7 @@ export class Tr2EffectStateManager
    * and this keeps that asymmetry: outside a span nothing tracks the device, so
    * recording a value there would let the next span's first bind be skipped.
    *
+   * @adapted
    * @param {number} handle Shader-program handle.
    * @returns {boolean}
    */
@@ -1746,6 +1778,7 @@ export class Tr2EffectStateManager
    * `Tr2ResourceSetAL::Create` (`Tr2Material.cpp:232-234`). Public for the
    * same caller here.
    *
+   * @adapted
    * @param {number} handle A shader-program handle.
    * @returns {object|null} The realized program, or null when a stage refused.
    */
@@ -1809,6 +1842,7 @@ export class Tr2EffectStateManager
   /**
    * Whether this vertex declaration needs binding.
    *
+   * @adapted
    * @param {number} handle Vertex-declaration handle.
    * @returns {boolean}
    */
@@ -1895,6 +1929,7 @@ export class Tr2EffectStateManager
    * Carbon's suballocated-buffer overload just unpacks the allocation and calls
    * this, so it is not a second method here.
    *
+   * @adapted
    * @param {number} stream The stream index.
    * @param {object} buffer A `Tr2BufferAL`.
    * @param {number} offset Byte offset into the buffer.
@@ -1931,6 +1966,7 @@ export class Tr2EffectStateManager
    * Carbon's one-argument ApplyIndexBuffer( indices ) (Tr2EffectStateManager.cpp:951-954):
    * binds the buffer with the stride its own description carries.
    *
+   * @adapted
    * @param {object} indices A `Tr2BufferAL`.
    * @returns {boolean} False when the bind was filtered out as redundant.
    */
@@ -1950,6 +1986,7 @@ export class Tr2EffectStateManager
    * description. It warns and carries on there; here it fails, because a bind
    * that cannot be right should not reach a device.
    *
+   * @adapted
    * @param {object} indices A `Tr2BufferAL`.
    * @param {number} stride Bytes per index.
    * @returns {boolean} False when the bind was filtered out as redundant.

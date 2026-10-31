@@ -126,7 +126,11 @@ export class EveDamageOverlay extends IRoot
 
   static _locatorPosition = vec3.create();
 
-  /** Initializes the damage-overlay state. */
+  /**
+   * Initializes the damage-overlay state.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -134,7 +138,11 @@ export class EveDamageOverlay extends IRoot
     return true;
   }
 
-  /** Sets the deterministic seed used to choose damage locators. */
+  /**
+   * Sets the deterministic seed used to choose damage locators.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetSeed(seed)
@@ -142,7 +150,11 @@ export class EveDamageOverlay extends IRoot
     this.seed = Number(seed) >>> 0;
   }
 
-  /** Sets the number of damage locators owned by the target. */
+  /**
+   * Sets the number of damage locators owned by the target.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetDamageLocatorCount(count)
@@ -154,6 +166,8 @@ export class EveDamageOverlay extends IRoot
   /**
    * Replaces the per-locator enabled mask (cpp:74-87). Carbon keeps the enabled indices; this keeps their
    * complement, the indices the filter switches off. Locators past the filter's end stay enabled.
+   *
+   * @adapted
    * @param {Array<boolean>} enabled Per-locator flags.
    */
 
@@ -336,7 +350,11 @@ export class EveDamageOverlay extends IRoot
     return this.armorImpactLifeTime;
   }
 
-  /** Copies the last shield, armour and hull values into a caller-owned vector (Carbon returns it by value, cpp:209). */
+  /**
+   * Copies the last shield, armour and hull values into a caller-owned vector (Carbon returns it by value, cpp:209).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   GetLastDamageState(out)
@@ -365,7 +383,11 @@ export class EveDamageOverlay extends IRoot
     return this._armorImpacts;
   }
 
-  /** Allocates the next impact identifier from the shared or local source. */
+  /**
+   * Allocates the next impact identifier from the shared or local source.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AllocateImpactIndex()
@@ -375,7 +397,11 @@ export class EveDamageOverlay extends IRoot
       : this.impactDataNextIdx++;
   }
 
-  /** Advances armour impacts, faders, priorities and data-texture rows. */
+  /**
+   * Advances armour impacts, faders, priorities and data-texture rows.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateAsyncronous(updateContext, ownerInfo, minTexelRows, hasExternalActivity)
@@ -433,7 +459,11 @@ export class EveDamageOverlay extends IRoot
     }
   }
 
-  /** Publishes the current damage block during the synchronous update. */
+  /**
+   * Publishes the current damage block during the synchronous update.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext)
@@ -441,7 +471,11 @@ export class EveDamageOverlay extends IRoot
     this.UpdateBlockData(updateContext.GetDataTextureManager(), this.HasGeneralActivity());
   }
 
-  /** Requests or releases this overlay's shared data-texture block. */
+  /**
+   * Requests or releases this overlay's shared data-texture block.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UpdateBlockData(dataTextureManager, hasActivity)
@@ -479,7 +513,11 @@ export class EveDamageOverlay extends IRoot
     return this.HasHullActivity() || this.HasArmorActivity();
   }
 
-  /** Calculates the current hull-flicker activation strength. */
+  /**
+   * Calculates the current hull-flicker activation strength.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetActivationStrength(updateContext)
@@ -492,7 +530,11 @@ export class EveDamageOverlay extends IRoot
     return 1;
   }
 
-  /** Starts or stops a named armour or hull fader. */
+  /**
+   * Starts or stops a named armour or hull fader.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ToggleEffect(name, on, duration)
@@ -506,7 +548,11 @@ export class EveDamageOverlay extends IRoot
     return true;
   }
 
-  /** Applies shield, armour and hull state and optionally creates armour impacts. */
+  /**
+   * Applies shield, armour and hull state and optionally creates armour impacts.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetDamageState(shield, armor, hull, createArmorImpacts = false)
@@ -554,7 +600,11 @@ export class EveDamageOverlay extends IRoot
     vec3.set(this._lastDamageState, shield, armor, hull);
   }
 
-  /** Removes every live armour impact. */
+  /**
+   * Removes every live armour impact.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Clear()
@@ -562,7 +612,11 @@ export class EveDamageOverlay extends IRoot
     this._armorImpacts.clear();
   }
 
-  /** Creates or enlarges an armour impact at a damage locator. */
+  /**
+   * Creates or enlarges an armour impact at a damage locator.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   CreateImpact(damageLocatorIndex, size, spawnEffects = false)
@@ -584,7 +638,11 @@ export class EveDamageOverlay extends IRoot
     return impactIndex;
   }
 
-  /** Reports whether an armour impact identifier is live. */
+  /**
+   * Reports whether an armour impact identifier is live.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasImpact(impactIndex)
@@ -592,7 +650,11 @@ export class EveDamageOverlay extends IRoot
     return this._armorImpacts.has(Number(impactIndex) | 0);
   }
 
-  /** Returns the active armour-damage material for the decal pass. */
+  /**
+   * Returns the active armour-damage material for the decal pass.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetArmorDamageShader(batchType)

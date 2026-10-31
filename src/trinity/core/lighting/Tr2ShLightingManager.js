@@ -153,6 +153,8 @@ export class Tr2ShLightingManager extends IRoot
    * and reads them on every pass, so the values must stay live here too: pass
    * the caller's own vectors rather than copies, and a length-1 array or a
    * getter for the radius.
+   *
+   * @implemented
    * @param {Float32Array} position - the sphere centre, read live
    * @param {Number|Array|Function} radius - the sphere radius, read live
    * @param {Float32Array} albedo - reflected colour
@@ -171,6 +173,8 @@ export class Tr2ShLightingManager extends IRoot
   /**
    * Removes the source registered with this exact position vector; Carbon keys
    * the erase on the pointer, so identity is the match here too.
+   *
+   * @implemented
    * @param {Float32Array} position - the vector passed to the register call
    * @returns {Boolean} false when no source holds that vector
    */
@@ -191,6 +195,8 @@ export class Tr2ShLightingManager extends IRoot
 
   /**
    * Sets the primary light and rebuilds the processed source run (cpp:396-403).
+   *
+   * @implemented
    * @param {Float32Array} direction - primary light direction, normalized here
    * @param {Float32Array} color - primary light colour
    * @returns {Boolean} true
@@ -211,6 +217,8 @@ export class Tr2ShLightingManager extends IRoot
    * lights (cpp:355-394). A sphere with a non-positive radius contributes
    * nothing and is skipped; a point light contributes emissive only, and is
    * never culled by the caller's cutoff radius.
+   *
+   * @implemented
    * @returns {Number} the processed source count
    */
 
@@ -266,6 +274,8 @@ export class Tr2ShLightingManager extends IRoot
 
   /**
    * Evaluates the packed coefficients for one receiver (cpp:405-419).
+   *
+   * @implemented
    * @param {Float32Array} position - receiver position
    * @param {Number} intensity - overall scale, usually a distance fade
    * @param {Number} cutoffRadius - spheres smaller than this are skipped
@@ -285,6 +295,8 @@ export class Tr2ShLightingManager extends IRoot
    * Carbon CalculateSecondaryLighting<Order> (private, cpp:305-352), adapted: the template order is the `order` argument. Accumulates every
    * visible source's contribution into `order * order` RGB coefficients, then
    * normalizes and packs them.
+   *
+   * @adapted
    * @param {Float32Array} position - receiver position
    * @param {Number} intensity - overall scale
    * @param {Number} cutoffRadius - sphere cull radius

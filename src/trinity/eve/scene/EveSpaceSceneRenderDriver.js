@@ -177,6 +177,8 @@ export class EveSpaceSceneRenderDriver
   /**
    * Carbon MAP_PROPERTY "scene" over GetScene/SetScene
    * (EveSpaceSceneRenderDriver_Blue.cpp:78-82): the scene to render.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.rootRef("EveSpaceScene")
@@ -186,7 +188,11 @@ export class EveSpaceSceneRenderDriver
     return this.GetScene();
   }
 
-  /** Assigns the scene through Carbon's SetScene. */
+  /**
+   * Assigns the scene through Carbon's SetScene.
+   *
+   * @implemented
+   */
   @meta.implemented
   set scene(value)
   {
@@ -197,6 +203,8 @@ export class EveSpaceSceneRenderDriver
    * Carbon MAP_PROPERTY "debugMode" over GetDebugMode/SetDebugMode
    * (EveSpaceSceneRenderDriver_Blue.cpp:263-267): in debug mode the pool
    * stops sharing temporary GPU resources.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.boolean
@@ -206,7 +214,11 @@ export class EveSpaceSceneRenderDriver
     return this.GetDebugMode();
   }
 
-  /** Toggles the pool's debug mode through Carbon's SetDebugMode. */
+  /**
+   * Toggles the pool's debug mode through Carbon's SetDebugMode.
+   *
+   * @implemented
+   */
   @meta.implemented
   set debugMode(value)
   {
@@ -330,13 +342,12 @@ export class EveSpaceSceneRenderDriver
    * MAP_METHOD_AND_WRAP at _Blue.cpp:258-261): every temp texture the pool
    * holds, each wrapped in a new Tr2TextureReference. For debugging.
    *
-   * Adapted: Carbon copy-assigns the AL value through the reference
-   * GetTexture returns (`*texRef->GetTexture() = tex`). JavaScript cannot
-   * assign through a returned reference, so the reference's by-value
-   * `texture` member is replaced with a copy of the pool's value, which is
-   * what the assignment leaves behind. The pool's out-vector is its return
-   * value.
-   *
+   * @adapted Carbon copy-assigns the AL value through the reference
+   *   GetTexture returns (`*texRef->GetTexture() = tex`). JavaScript cannot
+   *   assign through a returned reference, so the reference's by-value
+   *   `texture` member is replaced with a copy of the pool's value, which is
+   *   what the assignment leaves behind. The pool's out-vector is its return
+   *   value.
    * @returns {Tr2TextureReference[]} One reference per pooled temp texture.
    */
   @be.mapMethodAndWrap()
@@ -359,12 +370,11 @@ export class EveSpaceSceneRenderDriver
    * Carbon SetSettings (EveSpaceSceneRenderDriver.h:81-84): replaces
    * m_settings whole.
    *
-   * Adapted: this driver keeps m_settings' members flat on itself, as the
-   * driver attributes Carbon's Blue map makes of them
-   * (EveSpaceSceneRenderDriver_Blue.cpp:148-231), so the record is copied
-   * member by member in Carbon's declaration order (h:56-70). The colour is
-   * copied by value, as Carbon's struct assignment does.
-   *
+   * @adapted this driver keeps m_settings' members flat on itself, as the
+   *   driver attributes Carbon's Blue map makes of them
+   *   (EveSpaceSceneRenderDriver_Blue.cpp:148-231), so the record is copied
+   *   member by member in Carbon's declaration order (h:56-70). The colour is
+   *   copied by value, as Carbon's struct assignment does.
    * @param {EveSpaceSceneRenderDriverSettings} settings The settings to render with.
    * @returns {void}
    */
@@ -393,6 +403,7 @@ export class EveSpaceSceneRenderDriver
    * Carbon SetDebugMode (EveSpaceSceneRenderDriver.cpp:742-748): forwards to
    * the pool only when the mode changes.
    *
+   * @implemented
    * @param {boolean} enable Whether temporary GPU resources stop being shared.
    * @returns {void}
    */
@@ -409,6 +420,7 @@ export class EveSpaceSceneRenderDriver
   /**
    * Carbon GetDebugMode (EveSpaceSceneRenderDriver.cpp:750-753).
    *
+   * @implemented
    * @returns {boolean} The pool's debug mode.
    */
 
@@ -421,6 +433,7 @@ export class EveSpaceSceneRenderDriver
   /**
    * Carbon GetScene (EveSpaceSceneRenderDriver.cpp:755-758).
    *
+   * @implemented
    * @returns {EveSpaceScene|null} The scene this driver renders.
    */
 
@@ -434,6 +447,7 @@ export class EveSpaceSceneRenderDriver
    * Carbon SetScene (EveSpaceSceneRenderDriver.cpp:760-767): assigns the
    * scene unless it is already the one held.
    *
+   * @implemented
    * @param {EveSpaceScene|null} scene The scene to render.
    * @returns {void}
    */
@@ -458,6 +472,7 @@ export class EveSpaceSceneRenderDriver
    * EveSpaceScene's ReleaseResources tests it, so a TRISTORAGE_VIDEOMEMORY
    * release before a device reset keeps the upscaling context.
    *
+   * @implemented
    * @param {number} s TriStorageFlags.
    * @returns {void}
    */
@@ -476,6 +491,7 @@ export class EveSpaceSceneRenderDriver
    * Carbon OnPrepareResources (EveSpaceSceneRenderDriver.cpp:176-179): the
    * driver creates nothing eagerly.
    *
+   * @implemented
    * @returns {boolean} True.
    */
 
@@ -494,6 +510,7 @@ export class EveSpaceSceneRenderDriver
    * AL, and every backend's CreateUpscalingContext returns null, so no
    * context reaches this today; the body is Carbon's for when one does.
    *
+   * @implemented
    * @param {object|null} context A Tr2UpscalingContextAL, or null.
    * @returns {void}
    */
@@ -513,16 +530,15 @@ export class EveSpaceSceneRenderDriver
    * with upscaling enabled, (re)creates the context whenever the display
    * size differs from the context's; with it disabled, deletes any context.
    *
-   * Adapted: Carbon's Tr2RenderContext is its AL context, so the AL calls go
-   * through GetRenderContextAL(). Tr2UpscalingContextAL's out-parameter
-   * GetDisplayDimensions becomes a returned { width, height }.
-   *
    * Waiting: Tr2UpscalingAL::UpscalingContextParams (Tr2UpscalingAL.h:110-121,
    * constructor Tr2UpscalingAL.cpp:89-97) and Tr2UpscalingContextAL
    * (Tr2UpscalingAL.h:166-190) are not in the AL. The params are written as
    * a record of Carbon's members, and the AL's CreateUpscalingContext returns
    * null on every backend, so `_upscalingContext` stays null.
    *
+   * @adapted Carbon's Tr2RenderContext is its AL context, so the AL calls go
+   *   through GetRenderContextAL(). Tr2UpscalingContextAL's out-parameter
+   *   GetDisplayDimensions becomes a returned { width, height }.
    * @param {TextureSize2D} displaySize The destination size.
    * @returns {void}
    */
@@ -566,10 +582,9 @@ export class EveSpaceSceneRenderDriver
    * Carbon's private GetRenderSize (EveSpaceSceneRenderDriver.cpp:393-402):
    * the upscaling context's render size, or the display size without one.
    *
-   * Adapted: Tr2UpscalingContextAL's out-parameter GetRenderDimensions
-   * becomes a returned { width, height }. Waiting: that class is not in the
-   * AL (Tr2UpscalingAL.h:174), so today this is always the display size.
-   *
+   * @adapted Tr2UpscalingContextAL's out-parameter GetRenderDimensions
+   *   becomes a returned { width, height }. Waiting: that class is not in the
+   *   AL (Tr2UpscalingAL.h:174), so today this is always the display size.
    * @param {TextureSize2D} displaySize The destination size.
    * @returns {TextureSize2D} The size the scene renders at.
    */
@@ -741,8 +756,9 @@ export class EveSpaceSceneRenderDriver
    * (EveSpaceSceneRenderDriver.cpp:299-345). The upscaler is set up against
    * the display size first, and the children validate at the render size it
    * gives (cpp:321-324).
-   * Adapted: destination spans contain JS dimension records. Named outputs
-   * are not ported, so Carbon's output-name check (cpp:346-356) is absent.
+   *
+   * @adapted destination spans contain JS dimension records. Named outputs
+   *   are not ported, so Carbon's output-name check (cpp:346-356) is absent.
    * @param {Array<object>} destinationDimensions Destination descriptions.
    * @param {Array<string>} _outputs Named outputs, not yet supported.
    * @param {number} realTime Real time in Blue ticks.
@@ -790,14 +806,14 @@ export class EveSpaceSceneRenderDriver
    * Rendering-disabled is not a no-op in Carbon either: the scene still
    * updates, so simulation keeps running while nothing is drawn (cpp:408-419).
    *
-   * Adapted: the scene's CPU gather is split across driver and scene methods;
-   * named outputs and 3D UI remain unported. A null destination is retained
-   * only for isolated legacy tests. JS returns a submission boolean.
-   *
    * Waiting: Carbon brackets eleven sections with TimeSection over m_timers
    * (cpp:72-114, 478-612). Tr2ProfileTimer (Tr2ProfileTimer.h:7-41) is not
    * ported, and the render-job step hands this driver no root timer, so the
    * sections are not timed; see EveSpaceSceneRenderDriverTimers.
+   *
+   * @adapted the scene's CPU gather is split across driver and scene methods;
+   *   named outputs and 3D UI remain unported. A null destination is retained
+   *   only for isolated legacy tests. JS returns a submission boolean.
    * @returns {boolean} Whether anything was submitted.
    */
 
@@ -1035,6 +1051,7 @@ export class EveSpaceSceneRenderDriver
    * Carbon's anonymous-namespace GetEmptySSAO (cpp:40-46): a persistent white
    * 1x1 RGBA8, "no occlusion", for frames without an SSAO pass.
    *
+   * @implemented
    * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
    * @returns {GpuResourceHandle} The texture.
    */
@@ -1091,8 +1108,9 @@ export class EveSpaceSceneRenderDriver
    * pass runs. They land on `offscreen` so the post process receives them and
    * an early exit frees them.
    *
-   * Adapted: BeginRender's CPU gather is split with the scene and native
-   * RenderMainPass batches are submitted here through the JS batch manager.
+   * @cjs
+   * @adapted BeginRender's CPU gather is split with the scene and native
+   *   RenderMainPass batches are submitted here through the JS batch manager.
    * @param {object} renderContext Recording render context.
    * @param {object|null} offscreen The scene's borrowed targets, if any.
    * @returns {boolean} Whether anything was submitted.
@@ -1524,10 +1542,9 @@ export class EveSpaceSceneRenderDriver
    * Carbon's GetVelocityMapIfNeeded (cpp:653-670): an R16G16_FLOAT map while
    * anti-aliasing is on, under a temporal upscaler, or when forced.
    *
-   * Adapted: Carbon reads the upscaling info from the main-thread render
-   * context's AL, as here; it also allocates the map for a named render-job
-   * output, which does not exist here.
-   *
+   * @adapted Carbon reads the upscaling info from the main-thread render
+   *   context's AL, as here; it also allocates the map for a named render-job
+   *   output, which does not exist here.
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
@@ -1548,11 +1565,10 @@ export class EveSpaceSceneRenderDriver
    * Carbon's GetCustomStencilMapIfNeeded (cpp:687-700): a target in
    * customStencilFormat whenever that format is not PIXEL_FORMAT_UNKNOWN.
    *
-   * Adapted: Carbon also allocates it for a named "CustomStencilMap"
-   * render-job output; none exists here. That Carbon branch requests the
-   * target even when customStencilFormat is PIXEL_FORMAT_UNKNOWN
-   * (cpp:690-692, CE-186).
-   *
+   * @adapted Carbon also allocates it for a named "CustomStencilMap"
+   *   render-job output; none exists here. That Carbon branch requests the
+   *   target even when customStencilFormat is PIXEL_FORMAT_UNKNOWN
+   *   (cpp:690-692, CE-186).
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
@@ -1570,11 +1586,10 @@ export class EveSpaceSceneRenderDriver
    * colour under an upscaling context, at anti-aliasing Medium and above, or
    * when forced.
    *
-   * Adapted: Carbon also allocates it for a named output and a frame with
-   * SSSSS opaque batches; neither exists here. Carbon's named-output branch
-   * looks up "OpaqueColorMap" (cpp:704), a name Validate never accepts
-   * (cpp:346-355), so it cannot fire (CE-185).
-   *
+   * @adapted Carbon also allocates it for a named output and a frame with
+   *   SSSSS opaque batches; neither exists here. Carbon's named-output branch
+   *   looks up "OpaqueColorMap" (cpp:704), a name Validate never accepts
+   *   (cpp:346-355), so it cannot fire (CE-185).
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The copy, or null.
    */
@@ -1821,8 +1836,8 @@ export class EveSpaceSceneRenderDriver
    * Carbon UpdateGpuParticleSystem (EveSpaceSceneRenderDriver.cpp:634-642):
    * after the scene update, the per-frame data the particle kernels read, then
    * the particle system's update at the scene's tick time (cpp:640).
-   * Adapted: Carbon's GPU region is not ported.
    *
+   * @adapted Carbon's GPU region is not ported.
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {void}
    */

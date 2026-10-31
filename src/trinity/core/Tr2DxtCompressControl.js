@@ -11,7 +11,11 @@ export class Tr2DxtCompressControl
     /** Browser replacement for the native scheduled task id. */
     _abortController = null;
 
-    /** Abort the owned worker; a browser AbortController replaces TaskSystem.CancelTask. */
+    /**
+     * Abort the owned worker; a browser AbortController replaces TaskSystem.CancelTask.
+     *
+     * @adapted
+     */
     Cancel()
     {
         this._cancel = true;
@@ -19,19 +23,31 @@ export class Tr2DxtCompressControl
         this._isDone = true;
     }
 
-    /** Whether the task completed or was canceled (cpp:960-963). */
+    /**
+     * Whether the task completed or was canceled (cpp:960-963).
+     *
+     * @implemented
+     */
     IsDone()
     {
         return this._isDone;
     }
 
-    /** Return the native cancellation flag (cpp:968-971). */
+    /**
+     * Return the native cancellation flag (cpp:968-971).
+     *
+     * @implemented
+     */
     IsCanceling()
     {
         return this._cancel;
     }
 
-    /** Mark the task completed (cpp:974-977). */
+    /**
+     * Mark the task completed (cpp:974-977).
+     *
+     * @implemented
+     */
     Done()
     {
         this._isDone = true;

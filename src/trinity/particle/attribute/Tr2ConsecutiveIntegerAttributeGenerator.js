@@ -53,6 +53,8 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    * Carbon MAP_PROPERTY_READONLY "name" over GetName
    * (Tr2ConsecutiveIntegerAttributeGenerator_Blue.cpp:16): the element name composed of type and
    * customName.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.string
@@ -66,6 +68,8 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    * Carbon MAP_PROPERTY_READONLY "dimension" over GetDimension
    * (Tr2ConsecutiveIntegerAttributeGenerator_Blue.cpp:27): the bound element's dimension, or 0 when
    * unbound.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.uint32
@@ -77,6 +81,8 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
 
   /**
    * Resolves the target element by semantic type or custom name, marking the generator valid only when it resolves.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -91,6 +97,8 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
 
   /**
    * Advances and wraps a per-component running counter and writes it into the particle's element slot.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -113,6 +121,8 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
 
   /**
    * The bound element's component count, or zero when unbound.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -123,6 +133,8 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
 
   /**
    * The bound element's custom name, or its semantic type name.
+   *
+   * @implemented
    */
 
   @meta.implemented

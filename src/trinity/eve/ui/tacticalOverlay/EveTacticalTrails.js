@@ -95,7 +95,11 @@ export class EveTacticalTrails
     TriDevice.RegisterResource(this);
   }
 
-  /** Carbon ReleaseResources (cpp:73-76): drops the interned declaration; the buffer is kept. */
+  /**
+   * Carbon ReleaseResources (cpp:73-76): drops the interned declaration; the buffer is kept.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseResources(_storage)
@@ -103,7 +107,11 @@ export class EveTacticalTrails
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
   }
 
-  /** Carbon OnPrepareResources (cpp:78-81): nothing to prepare; the buffer is built on demand. */
+  /**
+   * Carbon OnPrepareResources (cpp:78-81): nothing to prepare; the buffer is built on demand.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   OnPrepareResources()
@@ -128,6 +136,8 @@ export class EveTacticalTrails
   /**
    * Carbon RegisterObject (cpp:84-102): tracks a ball that will leave a trail as it moves. A null object or one
    * already tracked is logged and ignored. The ball is held weakly, as Carbon's BlueWeakRef holds it.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -147,7 +157,11 @@ export class EveTacticalTrails
     this.trackedObjects.push({ ball: new WeakRef(object), positions: [] });
   }
 
-  /** Carbon UnregisterObject (cpp:104-111): stops tracking a ball; its trail fades out first. */
+  /**
+   * Carbon UnregisterObject (cpp:104-111): stops tracking a ball; its trail fades out first.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   UnregisterObject(object)
@@ -162,6 +176,8 @@ export class EveTacticalTrails
    * adds a control point: a new one when the path bends by more than a metre from the last segment's line, turns
    * back, or the last segment is over 10 km long; otherwise it moves the last point. Finally it samples the ego ball
    * and rebuilds the vertices.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -231,6 +247,8 @@ export class EveTacticalTrails
    * precision, then stored as floats; each point fades as TimeAsFloat( now - time ) / fadeOutTime, and the final
    * segment's third point is extrapolated as pos2 + (pos2 - pos1). The records go into the vertex buffer, which grows
    * to max(1024, 2x need) vertices when short; a failed map zeroes the segment count.
+   *
+   * @implemented
    * @param {number} now Scene time in Blue ticks.
    */
   @meta.implemented
@@ -302,21 +320,33 @@ export class EveTacticalTrails
     }
   }
 
-  /** Carbon UpdateAsyncronous (cpp:261-263): nothing to do. */
+  /**
+   * Carbon UpdateAsyncronous (cpp:261-263): nothing to do.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
-  /** Carbon UpdateVisibility (cpp:265-267): nothing to do; the trails are never culled. */
+  /**
+   * Carbon UpdateVisibility (cpp:265-267): nothing to do; the trails are never culled.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform)
   {
   }
 
-  /** Carbon's GetRenderables( renderables, impostors ) (cpp:269-272): always the trails themselves. */
+  /**
+   * Carbon's GetRenderables( renderables, impostors ) (cpp:269-272): always the trails themselves.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetRenderables__Impostors(out, _impostors = null)
@@ -325,7 +355,11 @@ export class EveTacticalTrails
     return out;
   }
 
-  /** Carbon GetBoundingSphere (cpp:274-277): the trails have none. */
+  /**
+   * Carbon GetBoundingSphere (cpp:274-277): the trails have none.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
@@ -333,7 +367,11 @@ export class EveTacticalTrails
     return false;
   }
 
-  /** Carbon UpdateModelCenterWorldPosition (cpp:279-282): the origin. */
+  /**
+   * Carbon UpdateModelCenterWorldPosition (cpp:279-282): the origin.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateModelCenterWorldPosition(position, _time)
@@ -341,7 +379,11 @@ export class EveTacticalTrails
     vec3.set(position, 0, 0, 0);
   }
 
-  /** Carbon GetModelCenterWorldPosition (cpp:284-287): the origin. */
+  /**
+   * Carbon GetModelCenterWorldPosition (cpp:284-287): the origin.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetModelCenterWorldPosition(position)
@@ -349,7 +391,11 @@ export class EveTacticalTrails
     vec3.set(position, 0, 0, 0);
   }
 
-  /** Carbon GetLocalBoundingBox (cpp:289-292): the trails have none. */
+  /**
+   * Carbon GetLocalBoundingBox (cpp:289-292): the trails have none.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
@@ -357,7 +403,11 @@ export class EveTacticalTrails
     return false;
   }
 
-  /** Carbon GetLocalToWorldTransform (cpp:294-297): the identity. */
+  /**
+   * Carbon GetLocalToWorldTransform (cpp:294-297): the identity.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocalToWorldTransform(transform)
@@ -368,6 +418,8 @@ export class EveTacticalTrails
   /**
    * Carbon GetBatches (cpp:299-317): transparent only; with segments, a vertex buffer and a declaration, one draw of
    * twelve vertices per segment under RM_ALPHA.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -385,7 +437,11 @@ export class EveTacticalTrails
     batches.Commit(batch);
   }
 
-  /** Carbon EveTacticalTrails::HasTransparentBatches is always true (cpp:319-322). */
+  /**
+   * Carbon EveTacticalTrails::HasTransparentBatches is always true (cpp:319-322).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -393,7 +449,11 @@ export class EveTacticalTrails
     return true;
   }
 
-  /** Carbon EveTacticalTrails::GetSortValue is zero (cpp:324-327). */
+  /**
+   * Carbon EveTacticalTrails::GetSortValue is zero (cpp:324-327).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -401,7 +461,11 @@ export class EveTacticalTrails
     return 0;
   }
 
-  /** Carbon EveTacticalTrails::GetPerObjectData returns null (cpp:329-332). */
+  /**
+   * Carbon EveTacticalTrails::GetPerObjectData returns null (cpp:329-332).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPerObjectData(_accumulator)

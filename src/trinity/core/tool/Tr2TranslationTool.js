@@ -32,7 +32,11 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
     this.SelectAxis("w");
   }
 
-  /** Native projected incremental movement along the selected local basis. */
+  /**
+   * Native projected incremental movement along the selected local basis.
+   *
+   * @adapted
+   */
   @meta.adapted
   Move(_x, _y, dx, dy, viewport, view, projection)
   {
@@ -62,7 +66,11 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
     }
   }
 
-  /** Native callback veto and world/local transform propagation. */
+  /**
+   * Native callback veto and world/local transform propagation.
+   *
+   * @adapted
+   */
   @meta.adapted
   Update(context)
   {
@@ -98,7 +106,11 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
     }
   }
 
-  /** Carbon's three cones, axis lines and view-oriented centre ring. */
+  /**
+   * Carbon's three cones, axis lines and view-oriented centre ring.
+   *
+   * @adapted
+   */
   @meta.adapted
   GenLineSets()
   {
@@ -173,8 +185,8 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
   /**
    * Returns the full tool, or the captured axis and centre primitive.
    *
-   * Adapted: JavaScript returns a fresh array instead of Carbon's reused private
-   * visible-object vector.
+   * @adapted JavaScript returns a fresh array instead of Carbon's reused private
+   *   visible-object vector.
    */
 
   @meta.adapted
@@ -188,7 +200,11 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
       primitive.name === "w" || primitive.name === this.selectedAxis);
   }
 
-  /** Restores Carbon's authored axis and centre colours. */
+  /**
+   * Restores Carbon's authored axis and centre colours.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ResetPrimitiveColors()

@@ -38,6 +38,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * The object this controller was linked to.
    *
+   * @abstract
    * @returns {object} The owner.
    */
   @meta.abstract
@@ -46,6 +47,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * Delivers a named callback to the controller.
    *
+   * @abstract
    * @param {string} _callbackName The callback's name.
    */
   @meta.abstract
@@ -54,6 +56,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * Registers an object to be updated whenever this controller updates.
    *
+   * @abstract
    * @param {object} _updateable The object to update.
    */
   @meta.abstract
@@ -62,6 +65,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * Stops updating a previously registered object.
    *
+   * @abstract
    * @param {object} _updateable The object to stop updating.
    */
   @meta.abstract
@@ -70,6 +74,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * The named root objects a dynamic binding path may start from.
    *
+   * @abstract
    * @returns {Array} Name and root pairs.
    */
   @meta.abstract
@@ -81,6 +86,7 @@ export class ITr2ActionController extends ITr2Controller
    * Carbon returns an optional, so a missing name is ABSENT rather than zero -
    * a distinction an expression needs, since zero is a legitimate value.
    *
+   * @abstract
    * @param {string} _name The variable's name.
    * @returns {number|null} Its value, or null when there is no such variable.
    */
@@ -90,6 +96,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * Adds the functions and variables this controller offers to expressions.
    *
+   * @abstract
    * @param {Array} _out Term info collected from every contributor.
    */
   @meta.abstract
@@ -98,6 +105,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * The layout of this controller's variable buffer.
    *
+   * @abstract
    * @returns {Array} The variable view.
    */
   @meta.abstract
@@ -106,6 +114,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * The buffer the variable view describes.
    *
+   * @abstract
    * @returns {object} The variable buffer.
    */
   @meta.abstract
@@ -114,6 +123,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * Grows the scratch arena expressions evaluate into.
    *
+   * @abstract
    * @param {number} _size Bytes required.
    */
   @meta.abstract
@@ -122,6 +132,7 @@ export class ITr2ActionController extends ITr2Controller
   /**
    * The scratch arena expressions evaluate into.
    *
+   * @abstract
    * @returns {object} The arena.
    */
   @meta.abstract

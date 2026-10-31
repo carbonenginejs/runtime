@@ -47,31 +47,66 @@ const MemoryType = Object.freeze({
  * One resource's contribution to the estimated GPU memory totals.
  *
  * Carbon: Tr2MemoryCounterAL (trinity/trinityal/Tr2MemoryCounterAL.h:7)
+ *
+ * @adapted
  */
 export class Tr2MemoryCounterAL
 {
-  /** Registered name; `constructor.name` does not survive minification. */
+  /**
+   * Registered name; `constructor.name` does not survive minification.
+   *
+   * @cjs
+   * @implemented
+   */
   static className = "Tr2MemoryCounterAL";
 
-  /** `Tr2MemoryCounterAL::MemoryType`. */
+  /**
+   * `Tr2MemoryCounterAL::MemoryType`.
+   *
+   * @implemented
+   */
   static MemoryType = MemoryType;
 
-  /** gpuMemoryTotalEst: "Trinity/AL/gpuMemoryEst/total" (`Tr2MemoryCounterAL.cpp:6`). */
+  /**
+   * gpuMemoryTotalEst: "Trinity/AL/gpuMemoryEst/total" (`Tr2MemoryCounterAL.cpp:6`).
+   *
+   * @adapted
+   */
   static gpuMemoryTotalEst = 0;
 
-  /** gpuMemoryBufferEst: "Trinity/AL/gpuMemoryEst/buffers" (`Tr2MemoryCounterAL.cpp:7`). */
+  /**
+   * gpuMemoryBufferEst: "Trinity/AL/gpuMemoryEst/buffers" (`Tr2MemoryCounterAL.cpp:7`).
+   *
+   * @adapted
+   */
   static gpuMemoryBufferEst = 0;
 
-  /** gpuMemoryTextureEst: "Trinity/AL/gpuMemoryEst/textures" (`Tr2MemoryCounterAL.cpp:8`). */
+  /**
+   * gpuMemoryTextureEst: "Trinity/AL/gpuMemoryEst/textures" (`Tr2MemoryCounterAL.cpp:8`).
+   *
+   * @adapted
+   */
   static gpuMemoryTextureEst = 0;
 
-  /** gpuMemoryOtherEst: "Trinity/AL/gpuMemoryEst/other" (`Tr2MemoryCounterAL.cpp:9`). */
+  /**
+   * gpuMemoryOtherEst: "Trinity/AL/gpuMemoryEst/other" (`Tr2MemoryCounterAL.cpp:9`).
+   *
+   * @adapted
+   */
   static gpuMemoryOtherEst = 0;
 
-  /** m_memoryType */
+  /**
+   * m_memoryType
+   *
+   * @implemented
+   */
   _memoryType = MemoryType.SYSTEM_MEMORY;
 
-  /** m_size */
+  /**
+   * m_size
+   *
+   * @implemented
+   */
   _size = 0;
 
   /**
@@ -91,6 +126,7 @@ export class Tr2MemoryCounterAL
    * Like the C++ move constructor this does NOT touch the totals: the bytes the
    * source already counted are simply now this counter's to release.
    *
+   * @adapted
    * @param {Tr2MemoryCounterAL} other The counter to take from.
    * @returns {Tr2MemoryCounterAL} The new counter.
    */
@@ -110,8 +146,8 @@ export class Tr2MemoryCounterAL
    *
    * Carbon: Tr2MemoryCounterAL::~Tr2MemoryCounterAL (trinity/trinityal/Tr2MemoryCounterAL.cpp:25-28)
    *
-   * Adapted: JavaScript has no deterministic destructor; the owner calls this
-   * when it releases the resource.
+   * @adapted JavaScript has no deterministic destructor; the owner calls this
+   *   when it releases the resource.
    */
   Destruct()
   {
@@ -123,8 +159,7 @@ export class Tr2MemoryCounterAL
    *
    * Carbon: Tr2MemoryCounterAL::operator=( Tr2MemoryCounterAL&& ) (trinity/trinityal/Tr2MemoryCounterAL.cpp:30-42)
    *
-   * Adapted: JavaScript cannot overload `=`.
-   *
+   * @adapted JavaScript cannot overload `=`.
    * @param {Tr2MemoryCounterAL} other The counter to take from.
    * @returns {Tr2MemoryCounterAL} This counter.
    */
@@ -147,10 +182,9 @@ export class Tr2MemoryCounterAL
    *
    * Carbon: Tr2MemoryCounterAL::Set (trinity/trinityal/Tr2MemoryCounterAL.cpp:44-83)
    *
-   * Adapted: C++ picks the overload from the static type. Here the second
-   * argument is a Number exactly when it is a size, so the route is an exact
-   * check; engine code calls `Set__Size` or `Set__Bitmap`.
-   *
+   * @adapted C++ picks the overload from the static type. Here the second
+   *   argument is a Number exactly when it is a size, so the route is an exact
+   *   check; engine code calls `Set__Size` or `Set__Bitmap`.
    * @param {number} memoryType A `MemoryType` value.
    * @param {number|object} sizeOrBitmap Bytes, or a `Tr2BitmapDimensions`.
    * @param {Tr2MsaaDesc} [msaa] The multisample description, with a bitmap.
@@ -167,6 +201,7 @@ export class Tr2MemoryCounterAL
    *
    * Carbon: Tr2MemoryCounterAL::Set( MemoryType, size_t ) (trinity/trinityal/Tr2MemoryCounterAL.cpp:44-55)
    *
+   * @implemented
    * @param {number} memoryType A `MemoryType` value.
    * @param {number} size Bytes.
    */
@@ -186,6 +221,7 @@ export class Tr2MemoryCounterAL
    *
    * Carbon: Tr2MemoryCounterAL::Set( MemoryType, const Tr2BitmapDimensions&, const Tr2MsaaDesc& ) (trinity/trinityal/Tr2MemoryCounterAL.cpp:71-83)
    *
+   * @implemented
    * @param {number} memoryType A `MemoryType` value.
    * @param {object} bitmap A `Tr2BitmapDimensions`.
    * @param {Tr2MsaaDesc} [msaa] The multisample description; one sample by default.
@@ -211,6 +247,7 @@ export class Tr2MemoryCounterAL
    *
    * Carbon: Tr2MemoryCounterAL::Grow (trinity/trinityal/Tr2MemoryCounterAL.cpp:57-61)
    *
+   * @implemented
    * @param {number} size Bytes to add.
    */
   Grow(size)
@@ -229,6 +266,7 @@ export class Tr2MemoryCounterAL
    * subtraction wraps. JavaScript has no unsigned wrap here, so the size goes
    * negative instead; nothing is clamped.
    *
+   * @adapted
    * @param {number} size Bytes to remove.
    */
   Shrink(size)
@@ -241,6 +279,8 @@ export class Tr2MemoryCounterAL
    * Gives back everything this counter holds.
    *
    * Carbon: Tr2MemoryCounterAL::Reset (trinity/trinityal/Tr2MemoryCounterAL.cpp:85-93)
+   *
+   * @implemented
    */
   Reset()
   {
@@ -255,6 +295,7 @@ export class Tr2MemoryCounterAL
    *
    * Carbon: Tr2MemoryCounterAL::UpdateCounters (trinity/trinityal/Tr2MemoryCounterAL.cpp:95-114)
    *
+   * @adapted
    * @param {number} inc The signed change in bytes.
    */
   _UpdateCounters(inc)

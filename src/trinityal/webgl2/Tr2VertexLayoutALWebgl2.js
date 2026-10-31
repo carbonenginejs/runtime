@@ -103,6 +103,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Converts a vertex definition's items (`Tr2VertexLayoutALDx11.cpp:78-99`).
    *
+   * @adapted
    * @param {object} definition A `Tr2VertexDefinition`, or a plain item array.
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
@@ -146,6 +147,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
    * WebGL2 has none, so the plan becomes current and the render context
    * applies it against its bound streams at the draw.
    *
+   * @adapted
    * @param {import("./Tr2ShaderALWebgl2.js").Tr2ShaderALWebgl2} vertexShader The vertex stage.
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
@@ -190,7 +192,11 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
     this._gl = null;
   }
 
-  /** Releases the layout and leaves the device-resource registry. */
+  /**
+   * Releases the layout and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -200,6 +206,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the layout holds a definition.
    *
+   * @implemented
    * @returns {boolean} True once created with items.
    */
   IsValid()
@@ -210,6 +217,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this layout occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -220,6 +228,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the layout for the device-resource registry, with dx11's key.
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -230,6 +239,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the layout. WebGL has no debug names, so it is kept for `Describe`.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

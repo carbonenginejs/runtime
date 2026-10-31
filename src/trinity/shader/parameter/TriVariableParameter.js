@@ -52,6 +52,8 @@ export class TriVariableParameter extends ITriEffectParameter
   /**
    * The shader constant or resource name the variable's value is uploaded to;
    * distinct from variableName, which names the store entry.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -60,7 +62,11 @@ export class TriVariableParameter extends ITriEffectParameter
     return this.name;
   }
 
-  /** Content hash: name only - the variable's value comes from the store. */
+  /**
+   * Content hash: name only - the variable's value comes from the store.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
@@ -70,6 +76,8 @@ export class TriVariableParameter extends ITriEffectParameter
 
   /**
    * Resolves variableName against a store and caches the variable object; an empty variableName clears the binding. Always returns true.
+   *
+   * @adapted
    * @param variableStore store to bind against; null keeps the store supplied by an earlier call
    */
 
@@ -94,6 +102,8 @@ export class TriVariableParameter extends ITriEffectParameter
   /**
    * Consumes the two dirty flags: `variable` re-resolves the store binding,
    * `effectHandles` re-resolves usage against the cached shader.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -114,6 +124,8 @@ export class TriVariableParameter extends ITriEffectParameter
    * Records usage by looking the name up as a shader resource when the bound
    * variable is a texture or buffer type and as a shader constant otherwise; an
    * unbound variable always counts as unused.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -139,6 +151,8 @@ export class TriVariableParameter extends ITriEffectParameter
    * Delegates the write to the bound variable, so the store owns the value; does
    * nothing when no variable is bound.
    * Carbon declaration: TriVariableParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/TriVariableParameter.h:48).
+   *
+   * @adapted
    */
   @meta.adapted
   CopyValueToEffect(inputType, dest, size, renderContext)
@@ -159,6 +173,7 @@ export class TriVariableParameter extends ITriEffectParameter
    * value. An unbound parameter binds nothing, which is the one case Carbon's
    * switch answers false for too.
    *
+   * @adapted
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -175,8 +190,8 @@ export class TriVariableParameter extends ITriEffectParameter
   /**
    * Delegates the unordered-access binding to the bound variable, or writes an
    * empty texture binding when absent (TriVariableParameter.cpp:72-83).
-   * Adapted: null represents the native empty Tr2TextureAL in JS AL records.
    *
+   * @adapted null represents the native empty Tr2TextureAL in JS AL records.
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -194,6 +209,8 @@ export class TriVariableParameter extends ITriEffectParameter
   /**
    * The bound variable's type tag, which decides whether the name binds as a
    * resource or a constant; `invalid` when nothing is bound.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -205,6 +222,8 @@ export class TriVariableParameter extends ITriEffectParameter
   /**
    * variableType (MAP_PROPERTY_READONLY): Carbon's property over GetVariableType, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Shader/Parameter/TriVariableParameter_Blue.cpp:29).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented

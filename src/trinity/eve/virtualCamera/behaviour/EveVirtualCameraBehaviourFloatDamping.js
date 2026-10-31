@@ -37,6 +37,8 @@ export class EveVirtualCameraBehaviourFloatDamping extends EveVirtualCameraBehav
    * incoming value and returns the difference, so the accumulated result lands
    * on the smoothed value; the first update (local time at or below zero) only
    * seeds the retained value and contributes nothing.
+   *
+   * @implemented
    */
 
   @meta.implemented

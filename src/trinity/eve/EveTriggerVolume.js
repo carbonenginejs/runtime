@@ -123,6 +123,8 @@ export class EveTriggerVolume extends IRoot
   /**
    * Sets the callable invoked on enter/exit transitions as
    * callback(name, entered); pass null to clear it.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -142,7 +144,11 @@ export class EveTriggerVolume extends IRoot
     return this._lastCallbackError;
   }
 
-  /** Invokes the stored callback, isolating the update loop from callback errors. */
+  /**
+   * Invokes the stored callback, isolating the update loop from callback errors.
+   *
+   * @adapted
+   */
   @meta.adapted
   _InvokeCallback(entered)
   {
@@ -165,6 +171,8 @@ export class EveTriggerVolume extends IRoot
    * Rebuilds the world transform from the position and rotation curves
    * (Carbon EveTriggerVolume.cpp:71-95): row-vector
    * RotationMatrix * TranslationMatrix = rotate about the origin, then place.
+   *
+   * @implemented
    */
   @meta.implemented
   _UpdateWorldTransform(time)
@@ -181,6 +189,8 @@ export class EveTriggerVolume extends IRoot
    * Recomputes the broad-phase bounding sphere from the volume list (Carbon
    * EveTriggerVolume.cpp:21-53): volumes with no usable sphere are skipped,
    * contained spheres collapse, and the merge grows the enclosing sphere.
+   *
+   * @implemented
    */
   @meta.implemented
   _RebuildBoundingSphere()
@@ -228,6 +238,8 @@ export class EveTriggerVolume extends IRoot
   /**
    * Returns the highest intensity any volume in the list gives the
    * object-space position, exiting early at 1 (Carbon cpp:109-122).
+   *
+   * @implemented
    */
   @meta.implemented
   static _GetMaxIntensity(volumes, position)
@@ -245,6 +257,8 @@ export class EveTriggerVolume extends IRoot
    * Evaluates whether the tracked position is inside the volumes and fires
    * the callback on transitions (Carbon cpp:124-158). The intensity resets
    * to 0 every call; the callback fires only on threshold-crossing edges.
+   *
+   * @adapted
    */
   @meta.adapted
   _UpdateTriggerState(time)
@@ -285,7 +299,11 @@ export class EveTriggerVolume extends IRoot
     }
   }
 
-  /** Advances the transform, the bounding sphere and the trigger state every sync update. */
+  /**
+   * Advances the transform, the bounding sphere and the trigger state every sync update.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateSyncronous(updateContext = null)
   {
@@ -295,19 +313,31 @@ export class EveTriggerVolume extends IRoot
     this._UpdateTriggerState(time);
   }
 
-  /** Carbon's async update is empty (cpp:160-162). */
+  /**
+   * Carbon's async update is empty (cpp:160-162).
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateAsyncronous(_updateContext = null)
   {
   }
 
-  /** Carbon's visibility update is empty (cpp:164-166). */
+  /**
+   * Carbon's visibility update is empty (cpp:164-166).
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateVisibility(_updateContext = null, _parentTransform = null)
   {
   }
 
-  /** The trigger volume renders nothing (cpp:168-170). */
+  /**
+   * The trigger volume renders nothing (cpp:168-170).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetRenderables__Impostors(_renderables, _impostors)
   {
@@ -316,6 +346,8 @@ export class EveTriggerVolume extends IRoot
   /**
    * Writes the world-space bounding sphere, its radius floored at 1 so the
    * object stays pickable (Carbon cpp:172-177); always reports true.
+   *
+   * @implemented
    */
   @meta.implemented
   GetBoundingSphere(sphere, _query = 0)
@@ -327,7 +359,11 @@ export class EveTriggerVolume extends IRoot
     return true;
   }
 
-  /** Refreshes the world transform at a time and writes the model centre (cpp:179-183). */
+  /**
+   * Refreshes the world transform at a time and writes the model centre (cpp:179-183).
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateModelCenterWorldPosition(position, time = 0)
   {
@@ -335,7 +371,11 @@ export class EveTriggerVolume extends IRoot
     return this.GetModelCenterWorldPosition(position);
   }
 
-  /** Writes the bounding-sphere centre in world space (cpp:185-188). */
+  /**
+   * Writes the bounding-sphere centre in world space (cpp:185-188).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetModelCenterWorldPosition(position)
   {
@@ -345,6 +385,8 @@ export class EveTriggerVolume extends IRoot
   /**
    * Writes the local bounding box, falling back to a unit box when no volumes
    * are set up yet so the object stays pickable (cpp:190-199); always true.
+   *
+   * @implemented
    */
   @meta.implemented
   GetLocalBoundingBox(min, max)
@@ -361,14 +403,22 @@ export class EveTriggerVolume extends IRoot
     return true;
   }
 
-  /** Writes the current world transform (cpp:201-204). */
+  /**
+   * Writes the current world transform (cpp:201-204).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     return mat4.copy(transform, this._worldTransform);
   }
 
-  /** The world translation of the trigger volume (cpp:206-209). */
+  /**
+   * The world translation of the trigger volume (cpp:206-209).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWorldPosition(out)
   {
@@ -376,7 +426,11 @@ export class EveTriggerVolume extends IRoot
       this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
   }
 
-  /** The normalized world rotation of the trigger volume (cpp:211-214). */
+  /**
+   * The normalized world rotation of the trigger volume (cpp:211-214).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWorldRotation(out)
   {
@@ -384,7 +438,11 @@ export class EveTriggerVolume extends IRoot
     return quat.normalize(out, out);
   }
 
-  /** Primes the transform at time 0 and builds the initial bounding sphere (cpp:216-221). */
+  /**
+   * Primes the transform at time 0 and builds the initial bounding sphere (cpp:216-221).
+   *
+   * @implemented
+   */
   @meta.implemented
   Initialize()
   {
@@ -395,6 +453,8 @@ export class EveTriggerVolume extends IRoot
 
   /**
    * Carbon EveTriggerVolume::GetDebugOptions (EveTriggerVolume.cpp:223-228).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
   @meta.implemented
@@ -420,6 +480,8 @@ export class EveTriggerVolume extends IRoot
    * (Sphere_inline.h:9-13); this class carries that as
    * _boundingSphereInitialized beside a radius of 0, so the radius passed is
    * -1 while the flag is clear, as Carbon passes it.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
   @meta.implemented
@@ -468,6 +530,9 @@ export class EveTriggerVolume extends IRoot
   /**
    * Whether the tracked position currently counts as inside; mirrors the
    * READ-only Blue attribute for programmatic consumers.
+   *
+   * @cjs
+   * @implemented
    */
   @meta.cjs
     @meta.implemented

@@ -44,6 +44,7 @@ export class EveThrottleable extends IRoot
    * also picks the next update time from the detail level, so callers must
    * not call this more than once per intended update.
    *
+   * @implemented
    * @param {number} [normalizedUpdateFrequency=0.5] 0..1 detail level between the min and max frequency.
    * @returns {boolean} True to skip this update.
    */

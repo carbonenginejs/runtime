@@ -12,7 +12,11 @@ import { vec3 } from "#math/vec3";
 export class Tr2BoundingLineSet extends Tr2LineSet
 {
 
-  /** Carbon Tr2BoundingLineSet.cpp:15: rebuild bounds, then apply base notifications. */
+  /**
+   * Carbon Tr2BoundingLineSet.cpp:15: rebuild bounds, then apply base notifications.
+   *
+   * @implemented
+   */
   @meta.implemented
   OnModified(names)
   {
@@ -36,7 +40,11 @@ export class Tr2BoundingLineSet extends Tr2LineSet
   @type.vec3
   minBounds = vec3.create();
 
-  /** Carbon method UpdateBounds (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method UpdateBounds (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   UpdateBounds(min, max)
@@ -52,6 +60,8 @@ export class Tr2BoundingLineSet extends Tr2LineSet
 
   /**
    * Appends the twelve edges of an axis-aligned box (private Carbon AddBox, Tr2BoundingLineSet.cpp:41-64).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -71,6 +81,8 @@ export class Tr2BoundingLineSet extends Tr2LineSet
 
   /**
    * Appends the box's triangles so it can be picked as a solid volume (private Carbon AddPickingBox, cpp:66-87).
+   *
+   * @implemented
    */
 
   @meta.implemented

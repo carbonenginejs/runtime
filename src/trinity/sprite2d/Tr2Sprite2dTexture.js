@@ -88,6 +88,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   /**
    * Carbon RegisterForChangeNotification (Tr2Sprite2dTexture.cpp:283-286).
    *
+   * @implemented
    * @param {ITr2Sprite2dTextureNotifyTarget} target The listener.
    * @returns {void}
    */
@@ -102,6 +103,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * Carbon UnregisterForChangeNotification (Tr2Sprite2dTexture.cpp:288-291);
    * set erasure ignores an absent registration.
    *
+   * @implemented
    * @param {ITr2Sprite2dTextureNotifyTarget} target The listener.
    * @returns {void}
    */
@@ -112,7 +114,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._changeListeners.delete(target);
   }
 
-  /** Every mapped transform edit invalidates listeners, regardless of its name. */
+  /**
+   * Every mapped transform edit invalidates listeners, regardless of its name.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_name)
@@ -121,7 +127,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return true;
   }
 
-  /** Forwards the native atlas-change callback through the same invalidation. */
+  /**
+   * Forwards the native atlas-change callback through the same invalidation.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AtlasTextureChanged(_texture)
@@ -133,6 +143,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * Carbon protected SetDirty (Tr2Sprite2dTexture.h:83-84, cpp:299-305):
    * calls Sprite2dTextureChanged on each registered target with this texture.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -166,7 +177,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._changeListeners.clear();
   }
 
-  /** Initializes the authored resource path; directly supplied atlas textures need no load. */
+  /**
+   * Initializes the authored resource path; directly supplied atlas textures need no load.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -175,7 +190,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return true;
   }
 
-  /** Returns the authored resource path, cleared by direct atlas assignment. */
+  /**
+   * Returns the authored resource path, cleared by direct atlas assignment.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetResPath()
@@ -186,6 +205,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   /**
    * Native acquisition requires the atlas modifier and a live Tr2AtlasTexture
    * resource owner. Neither is implemented; a plain texture is not a substitute.
+   *
+   * @notImplemented
    */
 
   @meta.notImplemented
@@ -194,7 +215,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     throw new Error("Tr2Sprite2dTexture.SetResPath requires the unported atlas resource acquisition path.");
   }
 
-  /** Returns the supplied native atlas texture. */
+  /**
+   * Returns the supplied native atlas texture.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAtlasTexture()
@@ -202,7 +227,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return this._atlasTexture;
   }
 
-  /** Replaces the atlas listener, clears the path, and notifies texture users. */
+  /**
+   * Replaces the atlas listener, clears the path, and notifies texture users.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetAtlasTexture(texture)
@@ -214,7 +243,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._SetDirty();
   }
 
-  /** Applies native texture, optional window, transform, and tile settings in order. */
+  /**
+   * Applies native texture, optional window, transform, and tile settings in order.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Apply(renderer, index)
@@ -225,7 +258,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     renderer.SetTileMode(this._settings);
   }
 
-  /** Zero rectangles and exact full-texture rectangles need no texture window. */
+  /**
+   * Zero rectangles and exact full-texture rectangles need no texture window.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CheckTextureWindow()
@@ -248,6 +285,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * Recomputes the native centered 2D transform into retained storage.
    * Carbon Matrix.cpp:147-220 applies m1..m7 in row-vector order; gl's
    * post-multiplies are reversed here, m7 through m1, without per-call vectors.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -269,7 +308,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return out;
   }
 
-  /** Reads the native repeat bits shifted down by one. */
+  /**
+   * Reads the native repeat bits shifted down by one.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetTextureRepeatMode()
@@ -280,6 +323,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   /**
    * Preserves the native quirk: cpp:238-243 writes the input without shifting,
    * although GetTextureRepeatMode shifts its result. Other bits are retained.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -290,7 +335,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._SetDirty();
   }
 
-  /** Returns the native source-rectangle x value. */
+  /**
+   * Returns the native source-rectangle x value.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSrcX()
@@ -298,7 +347,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return this._srcX;
   }
 
-  /** Updates the native source rectangle and invalidates texture listeners. */
+  /**
+   * Updates the native source rectangle and invalidates texture listeners.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetSrcX(value)
@@ -308,7 +361,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._SetDirty();
   }
 
-  /** Returns the native source-rectangle y value. */
+  /**
+   * Returns the native source-rectangle y value.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSrcY()
@@ -316,7 +373,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return this._srcY;
   }
 
-  /** Updates the native source rectangle and invalidates texture listeners. */
+  /**
+   * Updates the native source rectangle and invalidates texture listeners.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetSrcY(value)
@@ -326,7 +387,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._SetDirty();
   }
 
-  /** Returns the native source-rectangle width value. */
+  /**
+   * Returns the native source-rectangle width value.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSrcWidth()
@@ -334,7 +399,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return this._srcWidth;
   }
 
-  /** Updates the native source rectangle and invalidates texture listeners. */
+  /**
+   * Updates the native source rectangle and invalidates texture listeners.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetSrcWidth(value)
@@ -344,7 +413,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._SetDirty();
   }
 
-  /** Returns the native source-rectangle height value. */
+  /**
+   * Returns the native source-rectangle height value.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSrcHeight()
@@ -352,7 +425,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return this._srcHeight;
   }
 
-  /** Updates the native source rectangle and invalidates texture listeners. */
+  /**
+   * Updates the native source rectangle and invalidates texture listeners.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetSrcHeight(value)
@@ -362,7 +439,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._SetDirty();
   }
 
-  /** Delegates native width to the atlas texture when present. */
+  /**
+   * Delegates native width to the atlas texture when present.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWidth()
@@ -370,7 +451,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return this._atlasTexture ? this._atlasTexture.GetWidth() : 0;
   }
 
-  /** Delegates native height to the atlas texture when present. */
+  /**
+   * Delegates native height to the atlas texture when present.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHeight()
@@ -378,7 +463,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return this._atlasTexture ? this._atlasTexture.GetHeight() : 0;
   }
 
-  /** Delegates native isloading to the atlas texture when present. */
+  /**
+   * Delegates native isloading to the atlas texture when present.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsLoading()
@@ -386,7 +475,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return this._atlasTexture ? this._atlasTexture.IsLoading() : false;
   }
 
-  /** Delegates native isgood to the atlas texture when present. */
+  /**
+   * Delegates native isgood to the atlas texture when present.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsGood()
@@ -394,7 +487,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return this._atlasTexture ? this._atlasTexture.IsGood() : false;
   }
 
-  /** Reads the native tile-x bit. */
+  /**
+   * Reads the native tile-x bit.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetTileX()
@@ -402,7 +499,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return (this._settings & Tr2Sprite2dTextureSettings.S2D_TS_TILE_X) !== 0;
   }
 
-  /** Changes only the tile-x bit and notifies listeners. */
+  /**
+   * Changes only the tile-x bit and notifies listeners.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetTileX(value)
@@ -412,7 +513,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._SetDirty();
   }
 
-  /** Reads the native tile-y bit. */
+  /**
+   * Reads the native tile-y bit.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetTileY()
@@ -420,7 +525,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     return (this._settings & Tr2Sprite2dTextureSettings.S2D_TS_TILE_Y) !== 0;
   }
 
-  /** Changes only the tile-y bit and notifies listeners. */
+  /**
+   * Changes only the tile-y bit and notifies listeners.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetTileY(value)

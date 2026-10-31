@@ -188,6 +188,7 @@ export class CjsMotherLode
    * Activate resource registration without changing existing entries.
    * Repeated calls are idempotent.
    *
+   * @adapted
    * @returns {CjsMotherLode} This registry.
    */
   Startup()
@@ -201,6 +202,7 @@ export class CjsMotherLode
    * Default cleanup destroys attached adapter allocations and releases CPU
    * payloads. Repeated calls are idempotent after a successful cleanup.
    *
+   * @adapted
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy applied to every entry.
    * @returns {CjsMotherLode} This inactive registry.
    * @throws {AggregateError} If cleanup fails for one or more entries; registration is still stopped.
@@ -236,6 +238,7 @@ export class CjsMotherLode
    * leaves the previous resource registered and the supplied resource owned by
    * its caller.
    *
+   * @adapted
    * @param {string} key Canonical resolved key.
    * @param {object|Function} resource Resource object.
    * @param {CjsMotherLodeInsertOptions} [insertOptions={}] Insertion options.
@@ -284,6 +287,7 @@ export class CjsMotherLode
    * Test a canonical identity without loading or renewing its activity.
    * Supplying `variant` retains compatibility with the former path-first API.
    *
+   * @adapted
    * @param {string} key Canonical resolved key, or normalized source path with `variant`.
    * @param {string} [variant] Optional promised-output variant.
    * @returns {boolean} Whether the resolved identity is registered.
@@ -298,6 +302,7 @@ export class CjsMotherLode
    * Return a canonical resource without loading or renewing its activity.
    * Supplying `variant` retains compatibility with the former path-first API.
    *
+   * @adapted
    * @param {string} key Canonical resolved key, or normalized source path with `variant`.
    * @param {string} [variant] Optional promised-output variant.
    * @returns {object|Function|null} Registered resource, or `null` when absent.
@@ -313,6 +318,7 @@ export class CjsMotherLode
    *
    * `Delete(path, variant)` remains accepted for compatibility.
    *
+   * @adapted
    * @param {string} key Canonical resolved key, or normalized source path with a variant.
    * @param {string|CjsMotherLodeMutationOptions} [variantOrOptions] Compatibility variant or cleanup policy.
    * @param {CjsMotherLodeMutationOptions} [maybeOptions] Cleanup policy when a variant is supplied.
@@ -364,6 +370,7 @@ export class CjsMotherLode
    * Deterministically remove and clean every owned identity while preserving
    * the registry's active/inactive lifecycle state.
    *
+   * @adapted
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for removed resources.
    * @returns {CjsMotherLode} This empty registry.
    * @throws {AggregateError} If cleanup fails for one or more removed resources.
@@ -380,6 +387,7 @@ export class CjsMotherLode
    * Remove every cached entry, pending ones included (`MotherLode::ClearCached`,
    * MotherLode.cpp:433-449).
    *
+   * @adapted
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for removed cache entries.
    * @returns {number} Number of entries removed before cleanup.
    * @throws {AggregateError} If cleanup fails for one or more removed resources.
@@ -570,6 +578,8 @@ export class CjsMotherLode
    * canonical and reports a contextual error after all candidates are visited.
    * Successful candidates are still purged when another candidate fails.
    *
+   * @cjs
+   * @implemented
    * @param {CjsMotherLodePurgeOptions} [options={}] Explicit sweep point, inactivity limits, and cleanup policy.
    * @returns {CjsMotherLodePurgeResult} Counts and affected canonical keys.
    * @throws {TypeError} If the sweep point, limits, or cleanup policy are invalid.
@@ -694,6 +704,8 @@ export class CjsMotherLode
    * is marked `PURGED` by default; nothing is fetched or rebuilt. Explicit
    * cleanup overrides retain their documented ownership.
    *
+   * @adapted
+   * @renamed Housekeeping
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for dropped identities.
    * @returns {CjsMotherLodeCacheTrimResult} Byte totals and affected canonical keys.
    * @throws {TypeError} If cleanup options are invalid.
@@ -786,6 +798,8 @@ export class CjsMotherLode
    * its class maps `ICacheable`. A known size is counted now; an unknown one
    * leaves the entry pending until `TrimCache` can ask again.
    *
+   * @adapted
+   * @renamed WeakRefNotify
    * @param {object} record Internal ownership record that just expired.
    * @returns {boolean} Whether the entry was cached; false means drop it.
    * @throws {TypeError} If the resource reports an invalid size.
@@ -834,6 +848,7 @@ export class CjsMotherLode
   /**
    * Drops one cached entry: `CCP_DELETE value` in Housekeeping.
    *
+   * @adapted
    * @param {object} record Cached record.
    * @param {CjsMotherLodeMutationOptions} policy Cleanup policy.
    * @param {string[]} evictedKeys Receives the key on success.
@@ -875,6 +890,7 @@ export class CjsMotherLode
    * everything cached is dropped. The new budget remains installed if partial
    * cleanup fails.
    *
+   * @adapted
    * @param {number} bytes Non-negative safe-integer byte budget.
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for entries displaced by the smaller budget.
    * @returns {CjsMotherLode} This registry.
@@ -893,6 +909,7 @@ export class CjsMotherLode
   /**
    * Return the configured cache byte budget.
    *
+   * @adapted
    * @returns {number} Non-negative safe-integer byte budget.
    */
   GetCacheSize()
@@ -903,6 +920,7 @@ export class CjsMotherLode
   /**
    * Return an immutable snapshot of canonical identity keys.
    *
+   * @adapted
    * @returns {readonly string[]} Canonical keys in insertion order.
    */
   GetKeys()
@@ -913,6 +931,7 @@ export class CjsMotherLode
   /**
    * Return an immutable snapshot of canonical resources.
    *
+   * @adapted
    * @returns {readonly (object|Function)[]} Resources in insertion order.
    */
   GetValues()
@@ -923,6 +942,7 @@ export class CjsMotherLode
   /**
    * Return the number of canonical identities currently registered.
    *
+   * @adapted
    * @returns {number} Registry entry count.
    */
   GetSize()
@@ -935,6 +955,7 @@ export class CjsMotherLode
    * Byte totals include only caller-supplied estimates and do not measure
    * JavaScript reachability or trigger cache policy.
    *
+   * @adapted
    * @returns {CjsMotherLodeStats} Current identity, activity, state, and byte totals.
    */
   GetStats()
@@ -1117,6 +1138,9 @@ export class CjsMotherLode
 
   /**
    * Clean one record, preserving the existing contextual error contract.
+   *
+   * @cjs
+   * @implemented
    * @param {object} record Removed cache record.
    * @param {object} options Existing cleanup, adapter and payload switches.
    * @param {string} operation Operation name for contextual cleanup errors.
@@ -1136,6 +1160,9 @@ export class CjsMotherLode
 
   /**
    * Clean every removed record and report failures without skipping later entries.
+   *
+   * @cjs
+   * @implemented
    * @param {object[]} records Removed cache records.
    * @param {object} options Existing cleanup, adapter and payload switches.
    * @param {string} operation Operation name for contextual cleanup errors.

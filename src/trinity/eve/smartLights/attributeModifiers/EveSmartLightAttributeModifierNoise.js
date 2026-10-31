@@ -35,6 +35,8 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
   /**
    * Advances the crossfade state machine by the frame delta
    * (EveSmartLightAttributeModifierNoise.cpp:14-17).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -48,6 +50,8 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
    * (EveSmartLightAttributeModifierNoise.cpp:19-30), sampled at Blue's frame time
    * in seconds, read here as Carbon reads TimeAsDouble( BeOS->GetCurrentFrameTime() ).
    * PerlinNoise1D(x, 2, 2, n) maps to the shared perlin1DCarbon port.
+   *
+   * @implemented
    */
 
   @meta.implemented

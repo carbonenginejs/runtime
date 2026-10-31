@@ -139,6 +139,7 @@ export class Tr2TextureArray extends IRoot
      * the array's texture changes. Listeners register an owner and an unbound
      * method; the event holds owners weakly.
      *
+     * @implemented
      * @returns {Tr2Event} m_onTextureChange.
      */
     @meta.implemented

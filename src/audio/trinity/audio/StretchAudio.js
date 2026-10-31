@@ -69,7 +69,11 @@ export class StretchAudio extends IStretchAudio
 
   _top = vec3.fromValues(0, 0, 1);
 
-  /** Carbon method Initialize: create the three named emitters when absent. */
+  /**
+   * Carbon method Initialize: create the three named emitters when absent.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -92,7 +96,11 @@ export class StretchAudio extends IStretchAudio
     return true;
   }
 
-  /** Carbon method Start: outburst on source, impact on dest, (shot-missed then) stretch on mid. */
+  /**
+   * Carbon method Start: outburst on source, impact on dest, (shot-missed then) stretch on mid.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Start()
@@ -109,7 +117,11 @@ export class StretchAudio extends IStretchAudio
     }
   }
 
-  /** Carbon method Stop: StopAll on each emitter. */
+  /**
+   * Carbon method Stop: StopAll on each emitter.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Stop()
@@ -119,7 +131,11 @@ export class StretchAudio extends IStretchAudio
     this.stretchEmitter?.StopAll();
   }
 
-  /** Carbon method Update: position source/dest, project the listener onto the segment for the mid emitter. Events fire only in Start/Stop. */
+  /**
+   * Carbon method Update: position source/dest, project the listener onto the segment for the mid emitter. Events fire only in Start/Stop.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(sourcePosition, destPosition)
@@ -187,7 +203,11 @@ export class StretchAudio extends IStretchAudio
 
   // t = dot(L-S, D-S) / |D-S|^2 clamped to [0,1]; degenerate segment
   // (|D-S|^2 < 1e-6) returns the source; no listener returns (0,0,0).
-  /** Carbon method ProjectListenerOntoSegment. */
+  /**
+   * Carbon method ProjectListenerOntoSegment.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ProjectListenerOntoSegment(sourcePosition, destPosition)
@@ -217,7 +237,11 @@ export class StretchAudio extends IStretchAudio
     return [sourcePosition[0] + t * segX, sourcePosition[1] + t * segY, sourcePosition[2] + t * segZ];
   }
 
-  /** Carbon method SetShotMissed. */
+  /**
+   * Carbon method SetShotMissed.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetShotMissed(missed)
@@ -225,7 +249,11 @@ export class StretchAudio extends IStretchAudio
     this._shotMissed = !!missed;
   }
 
-  /** Carbon method FindEmitterByName: source, then dest, then stretch; first name match or null. */
+  /**
+   * Carbon method FindEmitterByName: source, then dest, then stretch; first name match or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   FindEmitterByName(name)
@@ -246,6 +274,7 @@ export class StretchAudio extends IStretchAudio
    * order, for their debug options; an emitter that is unset or does not implement
    * ITr2DebugRenderable is skipped (each is a `dynamic_cast`).
    *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
   @meta.implemented
@@ -263,6 +292,7 @@ export class StretchAudio extends IStretchAudio
    * StretchAudio.h:47). Draws the source, destination and stretch emitters' debug info,
    * in that order, skipping an emitter that is unset or not ITr2DebugRenderable.
    *
+   * @implemented
    * @param {object} renderer The ITr2DebugRenderer2 to draw with.
    */
   @meta.implemented

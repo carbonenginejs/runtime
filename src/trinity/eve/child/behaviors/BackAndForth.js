@@ -124,7 +124,11 @@ export class BackAndForth extends IRoot
   // Debug arrival point (Carbon m_arrivalPoint).
   _arrivalPoint = vec3.create();
 
-  /** Carbon BackAndForth::GetProcessPriority (cpp:31-34). */
+  /**
+   * Carbon BackAndForth::GetProcessPriority (cpp:31-34).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -132,7 +136,11 @@ export class BackAndForth extends IRoot
     return this.behaviorPriority;
   }
 
-  /** Carbon BackAndForth::GetBehaviorName (cpp:36-39). */
+  /**
+   * Carbon BackAndForth::GetBehaviorName (cpp:36-39).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBehaviorName()
@@ -143,8 +151,8 @@ export class BackAndForth extends IRoot
   /**
    * Per-agent scratch record count (Carbon sizeof(BackAndForthData)).
    *
-   * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
-   * value means 'has scratch'.
+   * @adapted Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
+   *   value means 'has scratch'.
    */
 
   @meta.adapted
@@ -156,7 +164,7 @@ export class BackAndForth extends IRoot
   /**
    * Fresh per-agent scratch record (Carbon BackAndForthData placement init).
    *
-   * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
+   * @adapted Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
    */
 
   @meta.adapted
@@ -177,6 +185,8 @@ export class BackAndForth extends IRoot
    * Shuttles each agent between its seek/deliver (or parent/target) locators
    * with arrival slow-down, facing snap, and PlayFX triggering (Carbon
    * CalculateBehavior, cpp:51-194).
+   *
+   * @adapted
    * @param {Array} agents - DroneAgent records
    * @param {Array} scratchData - per-agent BackAndForthData records
    * @param {Number} deltaTime
@@ -337,6 +347,8 @@ export class BackAndForth extends IRoot
 
   /**
    * Carbon BackAndForth::GetDebugOptions (cpp:196-200).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -352,6 +364,8 @@ export class BackAndForth extends IRoot
    * every locator the behavior shuttles between (its own sets, or the
    * parent's or target's named set), then the arrival spheres around the
    * target points.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation Places the locators in world space.
@@ -499,7 +513,11 @@ export class BackAndForth extends IRoot
     }
   }
 
-  /** Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   AddLocatorSet()
@@ -511,7 +529,11 @@ export class BackAndForth extends IRoot
     this.locatorSet.push(seek, deliver);
   }
 
-  /** Carbon BackAndForth::SetParent (cpp:348-354). */
+  /**
+   * Carbon BackAndForth::SetParent (cpp:348-354).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetParent(parent)
@@ -540,6 +562,8 @@ export class BackAndForth extends IRoot
    * Carbon GetParentLocatorPosition (BackAndForth.cpp:356-363): null-guard
    * the parent, then the world position and direction of its indexed locator
    * from the behaviour's named set, into the caller's two out-vectors.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -548,7 +572,11 @@ export class BackAndForth extends IRoot
     this._ReadOwnerLocator(this.parent, locatorIndex, outPosition, outDirection);
   }
 
-  /** Carbon GetTargetLocatorPosition (cpp:365-372): the target twin. */
+  /**
+   * Carbon GetTargetLocatorPosition (cpp:365-372): the target twin.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetTargetLocatorPosition(locatorIndex, outPosition, outDirection)

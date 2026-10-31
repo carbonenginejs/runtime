@@ -27,6 +27,8 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * Constructing with no arguments selects push-current mode, meaning re-push
    * whatever is bound at execution time; passing an argument - including null -
    * pushes that value instead.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
@@ -41,6 +43,8 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * the authored surface first, else the current one when pushCurrent, else an
    * empty texture. A false from the texture push is RS_FAILED. Every push needs
    * a matching pop in the same job or the job's stack guard unwinds it.
+   *
+   * @implemented
    */
 
   @meta.implemented

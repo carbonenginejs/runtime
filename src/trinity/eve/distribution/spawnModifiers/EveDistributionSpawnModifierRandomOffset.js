@@ -46,6 +46,8 @@ export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSp
   /**
    * Reseeds the random stream from the wall clock, so offsets differ between
    * runs unless consistentRandom pins them to the placement id.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -59,6 +61,8 @@ export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSp
    * Adds a random offset between minOffset and maxOffset - drawn per axis, or
    * with one shared factor when uniformOffset is set - to the placement's
    * initial translation, rotated into the placement's initial orientation first.
+   *
+   * @adapted
    */
 
   @meta.adapted

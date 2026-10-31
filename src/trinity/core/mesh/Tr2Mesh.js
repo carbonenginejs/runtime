@@ -66,10 +66,10 @@ export class Tr2Mesh extends Tr2MeshBase
 
 
   /**
-   * Adapted: Carbon's fence covers all earlier manager jobs through preparation.
-   * JavaScript has no queue-wide fence; this owner observes completion of its
-   * selected request, including failure, and retains completion across purges.
-   * Low-detail fallback precedes the native fence; the primary request follows.
+   * @adapted Carbon's fence covers all earlier manager jobs through preparation.
+   *   JavaScript has no queue-wide fence; this owner observes completion of its
+   *   selected request, including failure, and retains completion across purges.
+   *   Low-detail fallback precedes the native fence; the primary request follows.
    */
 
   @meta.adapted
@@ -78,7 +78,11 @@ export class Tr2Mesh extends Tr2MeshBase
     return !this._loadFenceReached;
   }
 
-  /** Carbon Initialize (cpp:28-36): load the geometry unless the load is deferred. */
+  /**
+   * Carbon Initialize (cpp:28-36): load the geometry unless the load is deferred.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -94,6 +98,8 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon InitializeGeometryResource (cpp:107-138): fetch the authored path
    * through the resource manager and bind the result. Adapted: resource-local
    * completion substitutes for Carbon's queue-wide load/prepare fence.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -158,6 +164,8 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon OnModified (cpp:38-58): three arms, dispatched on which member
    * changed - the path refetches, clearing the defer flag starts the load a
    * deferred mesh skipped, and the mesh index rebuilds the morph targets.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -181,6 +189,8 @@ export class Tr2Mesh extends Tr2MeshBase
   /**
    * Carbon SetMeshResPath (cpp:99-105): assign, then fire the notification by
    * hand - "this will automatically be triggered when set through python".
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -196,6 +206,8 @@ export class Tr2Mesh extends Tr2MeshBase
    * new one, attach to it with AddNotifyTarget, whose contract is that an
    * already-prepared resource calls back immediately (BlueAsyncRes.cpp:274-276),
    * so a resource that is already good rebuilds here rather than on a later frame.
+   *
+   * @implemented
    */
   @meta.implemented
   SetGeometryRes(resource)
@@ -219,8 +231,8 @@ export class Tr2Mesh extends Tr2MeshBase
    * re-cache the bounds and the morph targets when the resource that finished
    * is one of ours, and drop the low-detail stand-in once the real one arrives.
    *
-   * Adapted: Bounds are computed on demand by Tr2MeshBase.GetBounds rather than cached, so
-   * Carbon's CacheBounds call has nothing to refresh.
+   * @adapted Bounds are computed on demand by Tr2MeshBase.GetBounds rather than cached, so
+   *   Carbon's CacheBounds call has nothing to refresh.
    */
 
   @meta.adapted
@@ -241,6 +253,8 @@ export class Tr2Mesh extends Tr2MeshBase
   /**
    * Carbon SetLowResGeometryRes (cpp:76-90): the same detach/bind/attach as
    * SetGeometryRes, for the stand-in shown while the authored mesh loads.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -256,7 +270,11 @@ export class Tr2Mesh extends Tr2MeshBase
     if (next) next.AddNotifyTarget(this);
   }
 
-  /** Carbon ReleaseCachedData (cpp:198-200): nothing cached to drop. */
+  /**
+   * Carbon ReleaseCachedData (cpp:198-200): nothing cached to drop.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseCachedData(_resource)
@@ -267,6 +285,8 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon: PySetGeometryRes (trinity/trinity/Tr2Mesh.cpp:202-206).
    * Binding a resource by hand clears
    * the authored path first, so the next notification does not refetch it.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("SetGeometryRes")
   @meta.implemented
@@ -280,10 +300,10 @@ export class Tr2Mesh extends Tr2MeshBase
    * Checks primary liveness before selecting the low-detail stand-in
    * (Tr2Mesh.cpp:213-219).
    *
-   * Adapted: while the primary is pending or reviving from a purge, the mesh
-   * re-registers as its notify target, because the resource released it when it
-   * last completed (`BlueAsyncRes.AddNotifyTarget`). A failed primary is not
-   * re-registered, or it would call back every frame.
+   * @adapted while the primary is pending or reviving from a purge, the mesh
+   *   re-registers as its notify target, because the resource released it when it
+   *   last completed (`BlueAsyncRes.AddNotifyTarget`). A failed primary is not
+   *   re-registered, or it would call back every frame.
    */
 
   @meta.adapted
@@ -294,7 +314,11 @@ export class Tr2Mesh extends Tr2MeshBase
     return this.lowResGeometry ?? geometry;
   }
 
-  /** Returns the authored geometry resource path. */
+  /**
+   * Returns the authored geometry resource path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMeshResPath()
@@ -305,6 +329,8 @@ export class Tr2Mesh extends Tr2MeshBase
   /**
    * Reads the selected geometry resource path, including the low-detail stand-in.
    * Source: trinity/trinity/Tr2MeshBase.cpp:425-434
+   *
+   * @implemented
    */
   @meta.implemented
   GetGeometryResPath()
@@ -314,7 +340,11 @@ export class Tr2Mesh extends Tr2MeshBase
     return resource.GetPath();
   }
 
-  /** The fixed number of mesh-area lists a mesh carries (14). */
+  /**
+   * The fixed number of mesh-area lists a mesh carries (14).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetAreasCount()
@@ -322,7 +352,11 @@ export class Tr2Mesh extends Tr2MeshBase
     return 14;
   }
 
-  /** Rebuilds indexed morph state from LOD-0 target names while preserving matching serialized weights. */
+  /**
+   * Rebuilds indexed morph state from LOD-0 target names while preserving matching serialized weights.
+   *
+   * @adapted
+   */
   @meta.adapted
   InitializeMorphTargets()
   {
@@ -379,7 +413,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon GetMorphTargetNames (Tr2Mesh.cpp:225-242): LOD 0's morph target names, as the geometry resource stored
    * them at load (less the exporter's "Shape" suffix).
    *
-   * Adapted: an empty list stands for Carbon's nullptr when there is no geometry or LOD.
+   * @adapted an empty list stands for Carbon's nullptr when there is no geometry or LOD.
    * @returns {string[]} the live list
    */
 
@@ -392,6 +426,8 @@ export class Tr2Mesh extends Tr2MeshBase
 
   /**
    * Carbon IsBakedMorph (Tr2Mesh.cpp:244-259): LOD 0's baked flag for one morph target.
+   *
+   * @implemented
    * @param {number} index
    * @returns {boolean}
    */
@@ -402,7 +438,11 @@ export class Tr2Mesh extends Tr2MeshBase
     return lod ? lod.isBakedMorphTarget[index] : false;
   }
 
-  /** Sets one exact named morph target weight without clamping. */
+  /**
+   * Sets one exact named morph target weight without clamping.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetMorphTargetWeight(name, value)
@@ -426,7 +466,11 @@ export class Tr2Mesh extends Tr2MeshBase
     return true;
   }
 
-  /** Returns one exact named morph target weight, or the native zero fallback. */
+  /**
+   * Returns one exact named morph target weight, or the native zero fallback.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMorphTargetWeight(name)
@@ -437,6 +481,8 @@ export class Tr2Mesh extends Tr2MeshBase
   /**
    * Carbon SetBakedMorphTarget (Tr2Mesh.cpp:291-312): sets LOD 0's baked flag for the target with this exact name.
    * The flag lives on the shared geometry, so every mesh drawing that LOD sees it.
+   *
+   * @implemented
    * @param {string} name
    * @param {boolean} isBaked
    */
@@ -459,6 +505,8 @@ export class Tr2Mesh extends Tr2MeshBase
 
   /**
    * Carbon GetBakedMorphTarget (Tr2Mesh.cpp:314-335): LOD 0's baked flag for the target with this exact name.
+   *
+   * @implemented
    * @param {string} name
    * @returns {boolean}
    */
@@ -478,6 +526,8 @@ export class Tr2Mesh extends Tr2MeshBase
 
   /**
    * Carbon GetAllBakedMorphTargetStates (Tr2Mesh.cpp:337-352): LOD 0's baked flags.
+   *
+   * @implemented
    * @returns {boolean[]|null} the live list, or null without geometry or LOD
    */
   @meta.implemented
@@ -494,7 +544,11 @@ export class Tr2Mesh extends Tr2MeshBase
     return geometry ? geometry.GetMeshLod__LodIndex(this.meshIndex, 0) : null;
   }
 
-  /** Returns detached indexed morph state in exact target-name order. */
+  /**
+   * Returns detached indexed morph state in exact target-name order.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetMorphAnimations()
   {
@@ -504,7 +558,11 @@ export class Tr2Mesh extends Tr2MeshBase
   /** Distinguishes an older one-shot wait when a mesh rebinds the same handle. */
   _loadFenceGeneration = 0;
 
-  /** Carbon destructor (Tr2Mesh.cpp:14-22): detach both geometry subscriptions. */
+  /**
+   * Carbon destructor (Tr2Mesh.cpp:14-22): detach both geometry subscriptions.
+   *
+   * @adapted
+   */
   @meta.adapted
   Destruct()
   {

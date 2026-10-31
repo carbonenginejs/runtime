@@ -32,6 +32,8 @@ function GetTextureSize(desc)
  * Carbon also accounts for device memory in this class. CarbonEngineJS keeps
  * device allocation and budget policy in engine packages, so this runtime
  * class owns only deterministic resource membership.
+ *
+ * @abstract
  */
 export class Tr2TextureLodManager extends IRoot
 {
@@ -72,6 +74,8 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * s_gpuMemoryBudget (Tr2TextureLodManager.cpp:15), TRI_REGISTER_SETTING "textureLodGpuBudget"
    * (cpp:32): the GPU texture memory, in bytes, above which textures are trimmed.
+   *
+   * @implemented
    */
   @meta.setting("textureLodGpuBudget")
   @meta.implemented
@@ -80,6 +84,8 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * s_cpuMemoryBudget (Tr2TextureLodManager.cpp:16), TRI_REGISTER_SETTING "textureLodCpuBudget"
    * (cpp:33): the CPU texture memory, in bytes, above which textures are trimmed.
+   *
+   * @implemented
    */
   @meta.setting("textureLodCpuBudget")
   @meta.implemented
@@ -88,6 +94,8 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * s_lodChanges (Tr2TextureLodManager.cpp:17), TRI_REGISTER_SETTING "textureLodChanges"
    * (cpp:34): the LOD changes OnTick applies per tick for textures cached in RAM.
+   *
+   * @implemented
    */
   @meta.setting("textureLodChanges")
   @meta.implemented
@@ -96,12 +104,18 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * s_loadRequests (Tr2TextureLodManager.cpp:18), TRI_REGISTER_SETTING "textureLoadRequests"
    * (cpp:35): the load requests OnTick issues per tick for textures not cached in RAM.
+   *
+   * @implemented
    */
   @meta.setting("textureLoadRequests")
   @meta.implemented
   static textureLoadRequests = 2;
 
-  /** The singleton Instance() creates (Tr2TextureLodManager.cpp:60, function-local static). */
+  /**
+   * The singleton Instance() creates (Tr2TextureLodManager.cpp:60, function-local static).
+   *
+   * @adapted
+   */
   @meta.adapted
   static _instance = null;
 
@@ -123,6 +137,7 @@ export class Tr2TextureLodManager extends IRoot
    * Carbon: Tr2TextureLodManager::Instance (Tr2TextureLodManager.cpp:58-62). The process-wide
    * manager, created on first use and registered for ticks.
    *
+   * @adapted
    * @returns {Tr2TextureLodManager} The manager.
    */
   static Instance()
@@ -145,6 +160,7 @@ export class Tr2TextureLodManager extends IRoot
    * TriTextureRes.ProcessLodRequest, which TriTextureRes does not carry yet. The loop is
    * Carbon's and is empty while nothing is registered.
    *
+   * @notImplemented
    * @param {number} _realTime Real time in ticks.
    * @param {number} _simTime Simulation time in ticks.
    * @param {*} _cookie The registration cookie.
@@ -216,6 +232,7 @@ export class Tr2TextureLodManager extends IRoot
    * Carbon: Tr2TextureLodManager::CanUploadToGpu (Tr2TextureLodManager.cpp:139-142).
    * Always true; the description is not consulted.
    *
+   * @implemented
    * @param {object} _desc A Tr2BitmapDimensions.
    * @returns {boolean} True.
    */
@@ -227,6 +244,7 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * Carbon: Tr2TextureLodManager::NeedToTrimGpuTexture (Tr2TextureLodManager.cpp:144-147).
    *
+   * @implemented
    * @returns {boolean} Whether the tracked GPU texture memory is over the textureLodGpuBudget.
    */
   NeedToTrimGpuTexture()
@@ -237,6 +255,7 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * Carbon: Tr2TextureLodManager::NeedToTrimCpuTexture (Tr2TextureLodManager.cpp:149-152).
    *
+   * @implemented
    * @returns {boolean} Whether the tracked CPU texture memory is over the textureLodCpuBudget.
    */
   NeedToTrimCpuTexture()
@@ -248,9 +267,8 @@ export class Tr2TextureLodManager extends IRoot
    * Carbon: Tr2TextureLodManager::GpuTextureCreated (Tr2TextureLodManager.cpp:154-160).
    * Adds the texture's size to the tracked GPU memory.
    *
-   * Adapted: the Trinity/TextureLod/GpuSize and UploadSize statistics (CCP_STATS_SET / ADD)
-   * are not ported; statistics have no JavaScript home yet.
-   *
+   * @adapted the Trinity/TextureLod/GpuSize and UploadSize statistics (CCP_STATS_SET / ADD)
+   *   are not ported; statistics have no JavaScript home yet.
    * @param {object} desc A Tr2BitmapDimensions.
    * @returns {void}
    */
@@ -265,8 +283,7 @@ export class Tr2TextureLodManager extends IRoot
    * Takes the texture's size off the tracked GPU memory, wrapping at 32 bits as Carbon's
    * unsigned addition of the negated size does.
    *
-   * Adapted: the Trinity/TextureLod/GpuSize statistic is not ported.
-   *
+   * @adapted the Trinity/TextureLod/GpuSize statistic is not ported.
    * @param {object} desc A Tr2BitmapDimensions.
    * @returns {void}
    */
@@ -279,8 +296,7 @@ export class Tr2TextureLodManager extends IRoot
    * Carbon: Tr2TextureLodManager::CpuTextureCreated (Tr2TextureLodManager.cpp:168-172).
    * Adds the texture's size to the tracked CPU memory.
    *
-   * Adapted: the Trinity/TextureLod/CpuSize statistic is not ported.
-   *
+   * @adapted the Trinity/TextureLod/CpuSize statistic is not ported.
    * @param {object} desc A Tr2BitmapDimensions.
    * @returns {void}
    */
@@ -293,8 +309,7 @@ export class Tr2TextureLodManager extends IRoot
    * Carbon: Tr2TextureLodManager::CpuTextureDestroyed (Tr2TextureLodManager.cpp:174-178).
    * Takes the texture's size off the tracked CPU memory, wrapping at 32 bits.
    *
-   * Adapted: the Trinity/TextureLod/CpuSize statistic is not ported.
-   *
+   * @adapted the Trinity/TextureLod/CpuSize statistic is not ported.
    * @param {object} desc A Tr2BitmapDimensions.
    * @returns {void}
    */
@@ -310,6 +325,7 @@ export class Tr2TextureLodManager extends IRoot
    * Quirk, reproduced: nothing in Carbon ever writes m_currentStats, so every field is zero
    * for the life of the process (the memory totals live in m_gpuMemorySize / m_cpuMemorySize).
    *
+   * @implemented
    * @returns {{gpuMemoryUsed: number, gpuMemoryAllocated: number, cpuMemoryUsed: number, cpuMemoryAllocated: number, gpuUploadSize: number}} The stats, by value.
    */
   GetStats()
@@ -322,6 +338,7 @@ export class Tr2TextureLodManager extends IRoot
    * On a change, reloads every managed texture whose path ends in ".vta" (longer than four
    * characters).
    *
+   * @implemented
    * @param {boolean} setting Whether to use the _lowdetail VTA file versions.
    * @returns {void}
    */
@@ -344,6 +361,7 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * Carbon: Tr2TextureLodManager::GetUseLowResVtaFilesSetting (Tr2TextureLodManager.cpp:214-217).
    *
+   * @implemented
    * @returns {boolean} Whether the _lowdetail VTA file versions are in use.
    */
   GetUseLowResVtaFilesSetting()
@@ -351,7 +369,11 @@ export class Tr2TextureLodManager extends IRoot
     return this.lowDetailVtaFiles;
   }
 
-  /** Blue MAP_PROPERTY "useLowResVtaFiles" (Tr2TextureLodManager_Blue.cpp). */
+  /**
+   * Blue MAP_PROPERTY "useLowResVtaFiles" (Tr2TextureLodManager_Blue.cpp).
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @meta.implemented
   get useLowResVtaFiles()
@@ -359,7 +381,11 @@ export class Tr2TextureLodManager extends IRoot
     return this.GetUseLowResVtaFilesSetting();
   }
 
-  /** Delegates the Blue "useLowResVtaFiles" setter. */
+  /**
+   * Delegates the Blue "useLowResVtaFiles" setter.
+   *
+   * @implemented
+   */
   @meta.implemented
   set useLowResVtaFiles(value)
   {
@@ -370,6 +396,7 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * Append one texture to the managed list in registration order.
    *
+   * @implemented
    * @param {object} texture Texture resource.
    * @returns {Tr2TextureLodManager} This manager.
    */
@@ -386,6 +413,7 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * Remove a registered texture.
    *
+   * @implemented
    * @param {object} texture Texture resource.
    * @returns {Tr2TextureLodManager} This manager.
    */
@@ -398,6 +426,7 @@ export class Tr2TextureLodManager extends IRoot
   /**
    * Return a snapshot of registered texture resources.
    *
+   * @implemented
    * @returns {object[]} Registered textures in Carbon registration order.
    */
   GetManagedTextures()

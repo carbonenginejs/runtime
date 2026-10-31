@@ -147,7 +147,11 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
     this.z = component;
   }
 
-  /** The shader constant name this value binds to; empty until authored. */
+  /**
+   * The shader constant name this value binds to; empty until authored.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -155,7 +159,11 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
     return this.name;
   }
 
-  /** Content hash: authored value bytes then name. */
+  /**
+   * Content hash: authored value bytes then name.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
@@ -174,8 +182,8 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * Refreshes from the reroute destination when one is set, then copies the
    * components into `out`, allocating only when the caller supplies nothing.
    *
-   * Adapted: Carbon returns a const reference to its own value; JavaScript cannot express
-   * that, so this copies rather than exposing internal state.
+   * @adapted Carbon returns a const reference to its own value; JavaScript cannot express
+   *   that, so this copies rather than exposing internal state.
    */
 
   @meta.adapted
@@ -205,6 +213,8 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
   /**
    * Copies three components in, refreshes the linear mirror and writes through
    * to the reroute destination when one is set.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -228,6 +238,8 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * Whether reads and writes go through an external destination; an sRGB
    * constant is never rerouted, because its value must be gamma-converted before
    * upload.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -238,6 +250,8 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
 
   /**
    * Points the parameter at an external destination and seeds it with the current value; a target smaller than 12 bytes, not writable as three components, or belonging to an sRGB constant clears the reroute instead. Registered bindings are notified of the effective destination either way.
+   *
+   * @adapted
    * @param size destination capacity in bytes, not components
    */
 
@@ -268,6 +282,8 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * The array an upload should read - the reroute target when set, otherwise the
    * parameter's own value - paired with its 12-byte size. The array is borrowed,
    * not copied.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -282,6 +298,8 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
   /**
    * Adds a binding to be notified whenever the destination is repointed;
    * duplicates are ignored.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -291,7 +309,11 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
     this.#bindings.push(binding);
   }
 
-  /** Stops notifying a binding; unknown bindings are ignored. */
+  /**
+   * Stops notifying a binding; unknown bindings are ignored.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   UnregisterBinding(binding)
@@ -308,6 +330,8 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * Re-resolves usage and the sRGB flag from the shader's reflected constant,
    * dropping the reroute when the shader is gone or the constant turns out to be
    * sRGB. Reads reflection metadata only; no GPU handle is bound.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -334,6 +358,8 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
   /**
    * Seeds an existing reroute destination with the current value and refreshes
    * the linear mirror; always returns true.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -355,6 +381,8 @@ export class Tr2Vector3Parameter extends ITriEffectParameter
    * destination: the authored value while rerouted, otherwise the
    * gamma-converted linear mirror for an sRGB constant.
    * Carbon declaration: Tr2Vector3Parameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/Tr2Vector3Parameter.h:41).
+   *
+   * @adapted
    */
   @meta.adapted
   CopyValueToEffect(_inputType, out)

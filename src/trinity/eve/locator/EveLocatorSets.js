@@ -78,6 +78,8 @@ export class EveLocatorSets extends IRoot
   /**
    * Shifts the position of every locator in the set by an offset, doing nothing
    * for a zero offset.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -96,6 +98,8 @@ export class EveLocatorSets extends IRoot
   /**
    * Appends copies of the given locators, so the set never aliases the caller's
    * records.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -110,6 +114,8 @@ export class EveLocatorSets extends IRoot
   /**
    * Reports whether the set carries exactly this name; set lookups are an exact
    * string match.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -118,7 +124,11 @@ export class EveLocatorSets extends IRoot
     return this.name === String(name);
   }
 
-  /** Returns the set's live locator list, not a copy. */
+  /**
+   * Returns the set's live locator list, not a copy.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLocators()
@@ -126,7 +136,11 @@ export class EveLocatorSets extends IRoot
     return this.locators;
   }
 
-  /** Returns the name callers look this set up by. */
+  /**
+   * Returns the name callers look this set up by.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -134,7 +148,11 @@ export class EveLocatorSets extends IRoot
     return this.name;
   }
 
-  /** Sets the name callers look this set up by, coercing the value to a string. */
+  /**
+   * Sets the name callers look this set up by, coercing the value to a string.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetName(name)
@@ -145,6 +163,8 @@ export class EveLocatorSets extends IRoot
   /**
    * Replaces both the set name and its whole locator list with copies of the
    * given locators.
+   *
+   * @adapted
    */
 
   @meta.adapted

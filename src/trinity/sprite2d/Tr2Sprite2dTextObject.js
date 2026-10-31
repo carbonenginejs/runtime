@@ -88,7 +88,11 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
     this.spriteEffect = Tr2SpriteObjectEffect.TR2_SFX_FONT;
   }
 
-  /** Changes the measurer subscription and invalidates geometry. */
+  /**
+   * Changes the measurer subscription and invalidates geometry.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetFontMeasurer(value)
@@ -100,7 +104,11 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
     this.SetDirty();
   }
 
-  /** Returns the subscribed measurer. */
+  /**
+   * Returns the subscribed measurer.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetFontMeasurer()
@@ -108,7 +116,11 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
     return this._fontMeasurer;
   }
 
-  /** Invalidates cached geometry after a measurer edit. */
+  /**
+   * Invalidates cached geometry after a measurer edit.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   FontMeasurerChanged(_source)
@@ -116,7 +128,11 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
     this.SetDirty();
   }
 
-  /** Prepares dirty text then submits it within its native shadow-expanded clip. */
+  /**
+   * Prepares dirty text then submits it within its native shadow-expanded clip.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GatherSprites(renderer)
@@ -139,7 +155,11 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
     finally { renderer.PopClipRectangle(); }
   }
 
-  /** Includes auxiliary labels in picking even when normal picking is disabled. */
+  /**
+   * Includes auxiliary labels in picking even when normal picking is disabled.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PickPoint(x, y, renderer)
@@ -149,7 +169,11 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
     return renderer.IsInside([x, y], [this.displayX, this.displayY], this.displayWidth, this.displayHeight, this.pickRadius) ? this : null;
   }
 
-  /** Reports a tooltip-only hit target. */
+  /**
+   * Reports a tooltip-only hit target.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   IsAuxMouseover()
@@ -157,7 +181,11 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
     return this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON && this.hasAuxiliaryTooltip;
   }
 
-  /** Returns the attached measurer's vertex budget. */
+  /**
+   * Returns the attached measurer's vertex budget.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetVertexCount()
@@ -165,7 +193,11 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
     return this.display && this._fontMeasurer ? this._fontMeasurer.GetVertexCount() : 0;
   }
 
-  /** Invalidates geometry and drops cached atlas references. */
+  /**
+   * Invalidates geometry and drops cached atlas references.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   ReleaseResources(_storage)
@@ -174,7 +206,11 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
     if (this._fontMeasurer) this._fontMeasurer.ClearSprites();
   }
 
-  /** Native preparation has no extra resources of its own. */
+  /**
+   * Native preparation has no extra resources of its own.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _OnPrepareResources()

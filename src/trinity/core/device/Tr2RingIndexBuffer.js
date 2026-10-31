@@ -16,7 +16,11 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
   @type.uint32
   _indexSize = 4;
 
-  /** Carbon Create (cpp:440-447). */
+  /**
+   * Carbon Create (cpp:440-447).
+   *
+   * @implemented
+   */
   @meta.implemented
   Create(numberOfIndices, indexSize)
   {
@@ -27,7 +31,11 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
     return this.PrepareResources();
   }
 
-  /** Carbon CreateBuffer (cpp:458-468). */
+  /**
+   * Carbon CreateBuffer (cpp:458-468).
+   *
+   * @implemented
+   */
   @meta.implemented
   CreateBuffer(size)
   {

@@ -23,6 +23,8 @@ export class EveInstancedMeshManagerPickingPerObjectData extends Tr2PerObjectDat
   /**
    * Carbon's empty override (cpp:25-27). The base throws, because nothing
    * else on this path draws indirectly; this one must not.
+   *
+   * @implemented
    * @param {object} _writer
    * @param {object} _renderContext
    */

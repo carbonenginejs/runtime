@@ -48,8 +48,8 @@ export class EveTacticalOverlayTrackObject extends IRoot
    * position and the curve derivative as the tracked velocity; does nothing when
    * no curve is assigned.
    *
-   * Adapted: Carbon vector functions use output pointers; runtime curves use the established
-   * time-first, out-last calling convention.
+   * @adapted Carbon vector functions use output pointers; runtime curves use the established
+   *   time-first, out-last calling convention.
    */
 
   @meta.adapted
@@ -64,8 +64,8 @@ export class EveTacticalOverlayTrackObject extends IRoot
   /**
    * Copies the velocity sampled by the last UpdatePosition into out.
    *
-   * Adapted: Carbon returns Vector3 by value; JavaScript follows the runtime vector
-   * out-parameter convention.
+   * @adapted Carbon returns Vector3 by value; JavaScript follows the runtime vector
+   *   out-parameter convention.
    */
 
   @meta.adapted
@@ -77,8 +77,8 @@ export class EveTacticalOverlayTrackObject extends IRoot
   /**
    * Copies the tracked position into out.
    *
-   * Adapted: Carbon returns Vector3 by value; JavaScript follows the runtime vector
-   * out-parameter convention.
+   * @adapted Carbon returns Vector3 by value; JavaScript follows the runtime vector
+   *   out-parameter convention.
    */
 
   @meta.adapted
@@ -87,7 +87,11 @@ export class EveTacticalOverlayTrackObject extends IRoot
     return vec3.copy(out, this.position);
   }
 
-  /** Returns the authored radius the overlay sizes this object's marker from. */
+  /**
+   * Returns the authored radius the overlay sizes this object's marker from.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRadius()
@@ -98,6 +102,8 @@ export class EveTacticalOverlayTrackObject extends IRoot
   /**
    * Reports whether the object is flagged as aggressive, which the overlay uses
    * to choose its presentation.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -106,7 +112,11 @@ export class EveTacticalOverlayTrackObject extends IRoot
     return this.isAggressive;
   }
 
-  /** Reports whether the overlay should draw this object's velocity indicator. */
+  /**
+   * Reports whether the overlay should draw this object's velocity indicator.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ShowVelocity()

@@ -64,7 +64,11 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
   @type.list("EveSprite2dBracket")
   brackets = [];
 
-  /** Carbon submits its own buffers directly rather than joining sprite vertices. */
+  /**
+   * Carbon submits its own buffers directly rather than joining sprite vertices.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetVertexCount()
@@ -77,8 +81,12 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
   _bracketCountInBuffers = 0;
   _textureWindow = vec4.create();
 
-  /** Native atlas batch. DataView replaces writes through C++ vertex pointers.
-   * Resource release is explicit until Tr2DeviceResource registration is ported. */
+  /**
+   * Native atlas batch. DataView replaces writes through C++ vertex pointers.
+   * Resource release is explicit until Tr2DeviceResource registration is ported.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GatherSprites(renderer)
@@ -186,7 +194,11 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
     renderer.RenderTriangleVerts__Tr2BufferAL(this._vertexBuffer, visible * 4, this._indexBuffer, visible * 6);
   }
 
-  /** Native device-resource release; callers also use this for explicit teardown. */
+  /**
+   * Native device-resource release; callers also use this for explicit teardown.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   ReleaseResources(_storage)
@@ -196,7 +208,11 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
     this._bracketCountInBuffers = 0;
   }
 
-  /** Native resource preparation requires no additional work. */
+  /**
+   * Native resource preparation requires no additional work.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   OnPrepareResources()
@@ -204,7 +220,11 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
     return true;
   }
 
-  /** Carbon's bracket renderer is deliberately not point-pickable. */
+  /**
+   * Carbon's bracket renderer is deliberately not point-pickable.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PickPoint(_x, _y, _renderer)

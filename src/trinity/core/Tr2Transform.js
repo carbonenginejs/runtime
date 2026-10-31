@@ -83,6 +83,8 @@ export class Tr2Transform extends IRoot
   /**
    * Carbon's Update( Be::Time ) (Tr2Transform.cpp:29-40): while update is
    * enabled, advances every curve set at the Blue ticks converted to seconds.
+   *
+   * @implemented
    * @param {number} time Blue 100ns ticks.
    */
 
@@ -103,6 +105,8 @@ export class Tr2Transform extends IRoot
   /**
    * Carbon's Update( Be::Time ) under its bare name (rule 11). EveTransform
    * overrides this to route between its two overloads.
+   *
+   * @implemented
    * @param {number} time Blue 100ns ticks.
    */
 
@@ -118,6 +122,7 @@ export class Tr2Transform extends IRoot
    * Carbon's parameter and, as there, unread; matrix products reverse for
    * gl-matrix semantics.
    *
+   * @implemented
    * @param {TriFrustum} _frustum The update context's frustum.
    * @param {mat4} [parentTransform] The parent's world transform.
    * @returns {mat4} The world transform.
@@ -188,7 +193,11 @@ export class Tr2Transform extends IRoot
     return this.worldTransform;
   }
 
-  /** Copies a new authored scale into the stable schema vector. */
+  /**
+   * Copies a new authored scale into the stable schema vector.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetScaling(value)
@@ -196,7 +205,11 @@ export class Tr2Transform extends IRoot
     vec3.copy(this.scaling, value);
   }
 
-  /** Copies a new authored rotation into the stable schema quaternion. */
+  /**
+   * Copies a new authored rotation into the stable schema quaternion.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetRotation(value)
@@ -204,7 +217,11 @@ export class Tr2Transform extends IRoot
     quat.copy(this.rotation, value);
   }
 
-  /** Copies a new authored translation into the stable schema vector. */
+  /**
+   * Copies a new authored translation into the stable schema vector.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetTranslation(value)
@@ -212,7 +229,11 @@ export class Tr2Transform extends IRoot
     vec3.copy(this.translation, value);
   }
 
-  /** Carbon's default ITr2Renderable visibility contract. */
+  /**
+   * Carbon's default ITr2Renderable visibility contract.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsVisible(_updateContext)
   {
@@ -225,13 +246,18 @@ export class Tr2Transform extends IRoot
    * (ITr2Renderable.h:56), left unimplemented by Tr2Transform
    * (Tr2Transform.h:68).
    *
+   * @abstract
    * @param {ITriRenderBatchAccumulator} _accumulator The accumulator.
    * @returns {Tr2PerObjectData|null} The object's per-object data.
    */
   @be.abstract
   GetPerObjectData(_accumulator) {}
 
-  /** Returns whether the displayed mesh has transparent areas. */
+  /**
+   * Returns whether the displayed mesh has transparent areas.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -246,8 +272,8 @@ export class Tr2Transform extends IRoot
   /**
    * Delegates the requested area vector to the authored mesh.
    *
-   * Adapted: Returns whether JavaScript mesh delegation committed a batch; Carbon's void
-   * method exposes no result.
+   * @adapted Returns whether JavaScript mesh delegation committed a batch; Carbon's void
+   *   method exposes no result.
    */
 
   @meta.adapted
@@ -264,7 +290,11 @@ export class Tr2Transform extends IRoot
     return false;
   }
 
-  /** Returns camera distance times the authored sort multiplier (Tr2Transform.cpp:271-276). */
+  /**
+   * Returns camera distance times the authored sort multiplier (Tr2Transform.cpp:271-276).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -276,7 +306,11 @@ export class Tr2Transform extends IRoot
     return Math.hypot(dx, dy, dz) * this.sortValueMultiplier;
   }
 
-  /** Returns the authored mesh reference. */
+  /**
+   * Returns the authored mesh reference.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMesh()

@@ -31,6 +31,8 @@ export class EveChildModifierHaloInverted extends IEveChildTransformModifier
    * clamp(dot(normalize(d), -transformZ), 0), then
    * return scalingTransform * alignMat * transform. Despite the class name it is
    * NOT a subclass of Halo - it is its own modifier over DistanceBase.
+   *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused

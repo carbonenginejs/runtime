@@ -119,6 +119,8 @@ export class LightData
    * Carbon's implicit LightData copy assignment, which JavaScript cannot
    * overload: every member copied, vectors into this record's own storage
    * (Tr2Light.h:27-58).
+   *
+   * @renamed operator=
    * @param {LightData} other
    * @returns {LightData} this
    */
@@ -160,16 +162,14 @@ export class LightData
    *   distance; the shadow and volumetric flags follow castsShadows,
    *   shadowQuality and isVolumetric.
    *
-   * Adapted:
-   * - Carbon returns the record by value. Every caller converts lights in a
+   * @adapted - Carbon returns the record by value. Every caller converts lights in a
    *   per-frame loop and hands the record straight to the light manager, which
    *   copies it, so the record is written into `out` (ruling 16's
    *   established out-form) rather than allocated per light.
-   * - Carbon narrows innerRadius, the direction and the angles to Float_16 and
+   *   - Carbon narrows innerRadius, the direction and the angles to Float_16 and
    *   packs profileIndex << 4 into the flags (cpp:50-52). Here they stay float
    *   and the profile stays on the record, which is what Tr2LightManager reads
    *   today; the packing waits on the light manager's port.
-   *
    * @param {mat4} transform
    * @param {LightFeatures} features
    * @param {number} shadowQuality A ShadowQuality value.
@@ -229,7 +229,7 @@ export class LightData
    * conversion, then the cosines of the cone angles and 1/tan of the outer
    * angle - Infinity at outerAngle 0, as Carbon ships it.
    *
-   * Adapted: the out-form and float storage of AsPerPointLightData.
+   * @adapted the out-form and float storage of AsPerPointLightData.
    * @param {mat4} transform
    * @param {LightFeatures} features
    * @param {number} shadowQuality A ShadowQuality value.

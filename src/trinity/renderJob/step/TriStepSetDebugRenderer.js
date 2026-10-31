@@ -16,7 +16,11 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   @type.object.ref("ITr2DebugRenderer")
   renderer = null;
 
-  /** Carbon method __init__ -> SetDebugRenderer (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> SetDebugRenderer (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @meta.implemented
   __init__(renderer = null)
   {
@@ -25,6 +29,8 @@ export class TriStepSetDebugRenderer extends TriRenderStep
 
   /**
    * Binds the debug renderer this step installs; null detaches it.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.implemented
@@ -35,6 +41,8 @@ export class TriStepSetDebugRenderer extends TriRenderStep
 
   /**
    * Installs the bound debug renderer on the render context.
+   *
+   * @adapted
    */
 
   @meta.adapted

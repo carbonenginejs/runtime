@@ -36,7 +36,11 @@ blueEnums.Create("trinity.Tr2GpuBufferFlags", CreationFlags, {
 export class Tr2GpuBuffer extends IRoot
 {
 
-  /** Carbon Tr2GpuBuffer.cpp: create from persisted parameters on the ambient context. */
+  /**
+   * Carbon Tr2GpuBuffer.cpp: create from persisted parameters on the ambient context.
+   *
+   * @implemented
+   */
   @meta.implemented
   Initialize()
   {
@@ -44,7 +48,11 @@ export class Tr2GpuBuffer extends IRoot
     return true;
   }
 
-  /** Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules. */
+  /**
+   * Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules.
+   *
+   * @implemented
+   */
   @meta.implemented
   OnModified(_names)
   {
@@ -86,6 +94,8 @@ export class Tr2GpuBuffer extends IRoot
   /**
    * Sets the debug label, coercing null to an empty string; Carbon keeps this
    * private with no getter, so the paired GetName is a JS addition.
+   *
+   * @implemented
    */
   @meta.implemented
   SetName(name)
@@ -111,6 +121,7 @@ export class Tr2GpuBuffer extends IRoot
    * here holds its frame's context, which is the one the backend lives on,
    * so it is passed down as that macro's own header asks.
    *
+   * @adapted
    * @param {number} count Element count.
    * @param {number} format A `PixelFormat`.
    * @param {number} creationFlags `Tr2GpuBuffer.CreationFlags` bits.
@@ -131,6 +142,7 @@ export class Tr2GpuBuffer extends IRoot
    * when GPU-writable, CPU WRITE when CPU-writable, DRAW_INDIRECT_ARGS for
    * indirect draws; CPU READ always. A zero count or unknown format refuses.
    *
+   * @adapted
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
@@ -166,6 +178,8 @@ export class Tr2GpuBuffer extends IRoot
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   @meta.adapted
   Destruct()
@@ -179,6 +193,7 @@ export class Tr2GpuBuffer extends IRoot
    * variable binds through. Carbon returns its member, invalid until created;
    * here that is null, which the backend binds as its null buffer.
    *
+   * @implemented
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
@@ -188,7 +203,11 @@ export class Tr2GpuBuffer extends IRoot
     return this.#buffer;
   }
 
-  /** Carbon IsValid (cpp:130-133). */
+  /**
+   * Carbon IsValid (cpp:130-133).
+   *
+   * @implemented
+   */
   @meta.implemented
   IsValid()
   {
@@ -198,6 +217,8 @@ export class Tr2GpuBuffer extends IRoot
   /**
    * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2GpuBuffer_Blue.cpp:104).
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @meta.implemented
@@ -206,14 +227,22 @@ export class Tr2GpuBuffer extends IRoot
     return this.IsValid();
   }
 
-  /** Carbon GetCount (cpp:190-193): the created buffer's element count. */
+  /**
+   * Carbon GetCount (cpp:190-193): the created buffer's element count.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCount()
   {
     return this.#buffer ? this.#buffer.GetDesc().count : 0;
   }
 
-  /** Carbon method __init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.notImplemented
   __init__(...args)
@@ -221,7 +250,11 @@ export class Tr2GpuBuffer extends IRoot
     throw new Error("Tr2GpuBuffer.__init__ is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method DebugGetData -> PyGetData (MAP_METHOD). */
+  /**
+   * Carbon method DebugGetData -> PyGetData (MAP_METHOD).
+   *
+   * @notImplemented
+   */
   @be.mapMethod()
   @meta.notImplemented
   DebugGetData(...args)

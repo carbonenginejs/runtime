@@ -67,8 +67,8 @@ export class EveChildLink extends EveChildMesh
    * Resolves the link direction and distance from the parent's model center to
    * the target function (EveChildLink.cpp:40-68).
    *
-   * Adapted: Omits the base EveChildMesh::UpdateSyncronous call; only link
-   * targeting runs here.
+   * @adapted Omits the base EveChildMesh::UpdateSyncronous call; only link
+   *   targeting runs here.
    */
 
   @meta.adapted
@@ -102,8 +102,8 @@ export class EveChildLink extends EveChildMesh
    * (EveChildLink.cpp:74-152). Replaces (does not call) the EveChildMesh
    * async update, as Carbon does.
    *
-   * Adapted: Per-object GPU buffer invalidation (cpp:143-144) is not ported
-   * yet; the vs/ps records are the backend-neutral value classes.
+   * @adapted Per-object GPU buffer invalidation (cpp:143-144) is not ported
+   *   yet; the vs/ps records are the backend-neutral value classes.
    */
 
   @meta.adapted
@@ -196,6 +196,8 @@ export class EveChildLink extends EveChildMesh
   /**
    * HOTFIX visibility from Carbon: never LOD out the tethering effect - a
    * present mesh is always visible (EveChildLink.cpp:154-169).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -216,6 +218,8 @@ export class EveChildLink extends EveChildMesh
   /**
    * Sphere at the center of the link: (direction, 1) * distance / 2
    * transformed by the world matrix (EveChildLink.cpp:171-178).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -233,7 +237,11 @@ export class EveChildLink extends EveChildMesh
     return true;
   }
 
-  /** Links never cast shadows (EveChildLink.cpp:180-183). */
+  /**
+   * Links never cast shadows (EveChildLink.cpp:180-183).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsCastingShadow__ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
@@ -243,6 +251,8 @@ export class EveChildLink extends EveChildMesh
 
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildLink.cpp:189-192): copies the world transform into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */

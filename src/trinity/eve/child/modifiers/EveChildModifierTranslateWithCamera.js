@@ -25,6 +25,7 @@ export class EveChildModifierTranslateWithCamera extends IEveChildTransformModif
    * with the view position, otherwise the view position is added (Carbon
    * EveChildModifierTranslateWithCamera.cpp).
    *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [_bones] - Carbon signature parity, unused

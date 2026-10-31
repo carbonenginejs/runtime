@@ -42,9 +42,9 @@ export class Obb
   /**
    * Builds the world-space box and optionally shrinks it against six frustum planes.
    *
-   * Adapted: Retains the optional-null frustum and affine local-to-world JS adapter:
-   * transformMat4 divides by w, while native Transform takes xyz directly; affine inputs
-   * have w=1.
+   * @adapted Retains the optional-null frustum and affine local-to-world JS adapter:
+   *   transformMat4 divides by w, while native Transform takes xyz directly; affine inputs
+   *   have w=1.
    */
   @meta.adapted
   CreateClippedWorldBoundingObb(localMin, localMax, localToWorld, frustum = null)
@@ -125,8 +125,8 @@ export class Obb
   /**
    * Returns one of Carbon's eight signed corner combinations.
    *
-   * Adapted: Carbon asserts the 0..7 range; JavaScript reports the same contract with
-   * RangeError.
+   * @adapted Carbon asserts the 0..7 range; JavaScript reports the same contract with
+   *   RangeError.
    */
   @meta.adapted
   GetPoint(index)
@@ -142,9 +142,9 @@ export class Obb
   /**
    * Computes the axis-aligned bounds after applying one logical transform.
    *
-   * Adapted: Retains transformMat4's w || 1 denominator fallback; native TransformCoord
-   * returns zero xyz for w=0. Number/Float32Array precision also follows the existing JS
-   * math path.
+   * @adapted Retains transformMat4's w || 1 denominator fallback; native TransformCoord
+   *   returns zero xyz for w=0. Number/Float32Array precision also follows the existing JS
+   *   math path.
    */
   @meta.adapted
   ComputeAABB(min, max, transform)

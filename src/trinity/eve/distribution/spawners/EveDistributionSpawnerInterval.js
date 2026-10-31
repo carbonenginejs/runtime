@@ -45,7 +45,11 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   @type.float32
   delayBeforeInitialSpawn = 0;
 
-  /** Restarts the interval timer; the placement pool is not used by this spawner. */
+  /**
+   * Restarts the interval timer; the placement pool is not used by this spawner.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Reset(_placements)
@@ -57,6 +61,8 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * Rearms the interval and clears the repeat count, optionally starting at a
    * random point inside one interval and backing the timer off by the initial
    * spawn delay.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -71,6 +77,8 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * Spawns one entity each time the timer passes the repeat delay, up to
    * numberOfRepeats (unlimited when it is zero), reseeding the timer with a
    * randomized interval delta.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -91,7 +99,11 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
     }
   }
 
-  /** Ignores controller variables; the interval is purely time-driven. */
+  /**
+   * Ignores controller variables; the interval is purely time-driven.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetControllerVariable(_name, _value)
   {

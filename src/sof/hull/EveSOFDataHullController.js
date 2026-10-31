@@ -29,6 +29,8 @@ export class EveSOFDataHullController extends IRoot
    * Carbon MAP_PROPERTY_READONLY "name" over GetName
    * (EveSOFData_Blue.cpp:902): the controller path's basename without its extension. Carbon persists no name for
    * this class; the getter derives it.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.string

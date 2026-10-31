@@ -8,38 +8,63 @@ import { meta } from "#schema";
  */
 export class IPrioritizedObject
 {
-  /** @returns {number} The Wwise game-object identifier. */
+  /**
+   * @abstract
+   * @returns {number} The Wwise game-object identifier.
+   */
   @meta.abstract
   GetID() {}
 
-  /** @returns {Float32Array} The object's three-component world position. */
+  /**
+   * @abstract
+   * @returns {Float32Array} The object's three-component world position.
+   */
   @meta.abstract
   GetPosition() {}
 
-  /** @param {number} _distanceSq Squared distance to the listener. */
+  /**
+   * @abstract
+   * @param {number} _distanceSq Squared distance to the listener.
+   */
   @meta.abstract
   SetDistanceSqFromListener(distanceSq) {}
 
   /**
    * Recalculates the object's priority weight.
+   *
+   * @abstract
    * @param {number} _now Monotonic milliseconds, adapting Carbon's steady-clock time point.
    */
   @meta.abstract
   CalculateCullingWeight(now) {}
 
-  /** @returns {number} The last calculated culling weight. */
+  /**
+   * @abstract
+   * @returns {number} The last calculated culling weight.
+   */
   @meta.abstract
   GetCullingWeight() {}
 
-  /** @returns {boolean} Whether the object is currently culled. */
+  /**
+   * @abstract
+   * @returns {boolean} Whether the object is currently culled.
+   */
   @meta.abstract
   IsCulled() {}
 
-  /** Activates this object for audio playback. */
+  /**
+   * Activates this object for audio playback.
+   *
+   * @abstract
+   */
   @meta.abstract
   Wake() {}
 
-  /** Deactivates this object for audio playback. */
+  /**
+   * Deactivates this object for audio playback.
+   *
+   * @abstract
+   */
   @meta.abstract
   Cull() {}
 }

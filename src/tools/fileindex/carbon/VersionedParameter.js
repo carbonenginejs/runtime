@@ -25,13 +25,21 @@ export class VersionedParameter
         this._tag = ParameterInfo.getParameterInfo(parameter).tag;
     }
 
-    /** `IsParameterExpectedInDocumentVersion` - whether this field is in a document of that version. */
+    /**
+     * `IsParameterExpectedInDocumentVersion` - whether this field is in a document of that version.
+     *
+     * @implemented
+     */
     IsParameterExpectedInDocumentVersion(documentVersion)
     {
         return ParameterInfo.isParameterExpected(this._parameter, this._context, documentVersion);
     }
 
-    /** `GetTag` - the field's wire tag. */
+    /**
+     * `GetTag` - the field's wire tag.
+     *
+     * @implemented
+     */
     GetTag()
     {
         return this._tag;

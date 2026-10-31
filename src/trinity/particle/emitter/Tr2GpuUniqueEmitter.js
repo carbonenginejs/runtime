@@ -53,7 +53,11 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
     this._id = 0x100000000 + Tr2GpuUniqueEmitter._nextID++ * 256 + 128;
   }
 
-  /** Retains the constructor's unique identity when parameters change. */
+  /**
+   * Retains the constructor's unique identity when parameters change.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GenerateID()
@@ -71,6 +75,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * Updates the world attractor, temporarily scales native structs, and runs
    * shared emission (cpp:18-53). Module scratch replaces C++ stack copies;
    * the schema's local attractor and other authored values remain unchanged.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -104,6 +110,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * Carbon's point SpawnParticles overload (cpp:55-120); the start/end
    * overload is SpawnParticles__StartEnd. Scaling uses reusable value copies.
    * As in Carbon, spawning does not update the attractor's world position.
+   *
+   * @adapted
    */
   @meta.adapted
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
@@ -131,6 +139,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * Scales Carbon's segment overload (cpp:88-120) with separate scratch from
    * shared spawning. The renamed entry remains available to existing callers.
    * Formerly SpawnParticlesSegment.
+   *
+   * @adapted
    */
   @meta.adapted
   SpawnParticles__StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)

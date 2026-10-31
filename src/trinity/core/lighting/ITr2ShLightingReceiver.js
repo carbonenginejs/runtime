@@ -14,6 +14,7 @@ export class ITr2ShLightingReceiver extends IRoot
   /**
    * Refreshes this object's SH lighting from the manager.
    *
+   * @abstract
    * @param {import("./Tr2ShLightingManager.js").Tr2ShLightingManager} _manager The scene's manager.
    * @param {object} _updateContext The frame's EveUpdateContext.
    */
@@ -22,7 +23,11 @@ export class ITr2ShLightingReceiver extends IRoot
   {
   }
 
-  /** Drops this object's SH lighting. */
+  /**
+   * Drops this object's SH lighting.
+   *
+   * @abstract
+   */
   @be.abstract
   ClearShLighting()
   {

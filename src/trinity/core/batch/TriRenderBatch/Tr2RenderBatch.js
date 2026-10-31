@@ -166,6 +166,8 @@ export class Tr2RenderBatch
    * material itself when no shader-state interface is resolved yet; that key is
    * both the validity test and the primary bin/sort key, so effect-equal batches
    * still group together.
+   *
+   * @adapted
    */
   SetMaterial(material)
   {
@@ -178,7 +180,11 @@ export class Tr2RenderBatch
     this.shader = material ? material.GetShaderStateInterface() : null;
   }
 
-  /** Sets the outermost sort key; lower priorities sort first. */
+  /**
+   * Sets the outermost sort key; lower priorities sort first.
+   *
+   * @implemented
+   */
   SetPriority(priority)
   {
     this.priority = priority >>> 0;
@@ -189,6 +195,8 @@ export class Tr2RenderBatch
   /**
    * Binds one vertex stream and an index buffer with their strides, clearing the
    * second stream.
+   *
+   * @implemented
    */
   SetGeometry(vertexDeclaration, vertexBuffer, vertexStride, indexBuffer, indexStride)
   {
@@ -206,6 +214,8 @@ export class Tr2RenderBatch
    * allocation's buffer and stride (Carbon's mesh path). Named after the
    * allocation parameters that replace vb/stride/ib (docs 22d1237); formerly
    * SetGeometryFromAllocations.
+   *
+   * @implemented
    */
   SetGeometry__Allocation(vertexDeclaration, vertexAllocation, indexAllocation)
   {
@@ -222,6 +232,8 @@ export class Tr2RenderBatch
    * Carbon's SetGeometry( vertexDecl, vb1, vb2, ib ) (h:70): the second
    * allocation becomes vertex stream 1. Named for what it adds to
    * SetGeometry__Allocation; formerly SetGeometryFromAllocations2.
+   *
+   * @implemented
    */
   SetGeometry__AllocationSecondStream(vertexDeclaration, vertexAllocation1, vertexAllocation2, indexAllocation)
   {
@@ -257,13 +269,19 @@ export class Tr2RenderBatch
   /**
    * Sets the vertex-declaration key, which participates in both binning and
    * sorting.
+   *
+   * @implemented
    */
   SetVertexDeclaration(vertexDeclaration)
   {
     this.vertexDeclaration = vertexDeclaration >>> 0;
   }
 
-  /** Binds one vertex stream slot and its stride. */
+  /**
+   * Binds one vertex stream slot and its stride.
+   *
+   * @adapted
+   */
   SetStreamSource(index, vertexBuffer, vertexStride)
   {
     this.vertexStreams[index] = vertexBuffer ?? null;
@@ -276,6 +294,9 @@ export class Tr2RenderBatch
   /**
    * Binds the index buffer and its stride; Carbon spells this SetInidices, a
    * typo corrected here because both producer and consumer are ours.
+   *
+   * @adapted
+   * @renamed SetInidices
    */
   SetIndices(indexBuffer, indexStride)
   {
@@ -286,6 +307,8 @@ export class Tr2RenderBatch
   /**
    * Sets the primitive topology; only TRIANGLELIST batches are eligible for GDPR
    * binning.
+   *
+   * @implemented
    */
   SetTopology(topology)
   {
@@ -295,13 +318,19 @@ export class Tr2RenderBatch
   /**
    * References the per-object payload the engine binds when dispatching this
    * batch; the batch borrows it and does not own it.
+   *
+   * @implemented
    */
   SetPerObjectData(objectData)
   {
     this.objectData = objectData ?? null;
   }
 
-  /** Records the indexed instanced draw arguments verbatim. */
+  /**
+   * Records the indexed instanced draw arguments verbatim.
+   *
+   * @implemented
+   */
   SetDrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation)
   {
     this.indexCountPerInstance = indexCountPerInstance >>> 0;
@@ -318,6 +347,8 @@ export class Tr2RenderBatch
    * Records a non-indexed instanced draw, reusing indexCountPerInstance for the
    * vertex count and startIndexLocation for the start vertex; baseVertexLocation
    * is left untouched.
+   *
+   * @implemented
    */
   SetDrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation)
   {
@@ -330,6 +361,8 @@ export class Tr2RenderBatch
   /**
    * Sets the batch's rendering mode; note that Commit overwrites it with the
    * accumulator's own mode.
+   *
+   * @implemented
    */
   SetRenderingMode(mode)
   {
@@ -338,6 +371,8 @@ export class Tr2RenderBatch
 
   /**
    * Carbon's SetPickingData( pickingData ) (TriRenderBatch.cpp:169).
+   *
+   * @implemented
    * @param {number} pickingData uint32 picking value.
    */
   SetPickingData(pickingData)
@@ -349,6 +384,8 @@ export class Tr2RenderBatch
    * Carbon's SetPickingData( meshIndex, areaIndex ) (TriRenderBatch.cpp:174):
    * the mesh index shifted above the low byte of the area index. Named by the
    * parameters that replace pickingData (docs 22d1237).
+   *
+   * @implemented
    * @param {number} meshIndex
    * @param {number} areaIndex
    */
@@ -364,6 +401,8 @@ export class Tr2RenderBatch
   /**
    * A batch is valid only once it has a shader, that is once SetMaterial
    * received a material; invalid batches are dropped silently at Commit.
+   *
+   * @implemented
    */
   IsValid()
   {

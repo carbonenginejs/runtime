@@ -74,7 +74,11 @@ const INT_MAX = 0x7fffffff;
  * @property {number} memoryUsage Bytes held by the sbit's coverage buffer.
  */
 
-/** Tracks font-loading policy together with the glyph-cache memory budget and occupancy. */
+/**
+ * Tracks font-loading policy together with the glyph-cache memory budget and occupancy.
+ *
+ * @abstract
+ */
 @be.define("Tr2FontManager")
 @legacyBlue.inherit(IRoot, IBlueEvents)
 @be.abstract
@@ -84,6 +88,8 @@ export class Tr2FontManager extends IRoot
   /**
    * m_glyphCacheBudget (size_t) [READWRITE], default 512 KiB (Tr2FontManager.cpp:101).
    * Browser meaning: the byte budget of the CPU sbit cache (see TrimGlyphCache).
+   *
+   * @adapted
    */
   @be.mapAttribute(be.READWRITE)
   @type.uint64
@@ -94,6 +100,8 @@ export class Tr2FontManager extends IRoot
    * m_loadflag (int) [READWRITE]. The value is stored and has no effect:
    * CFF glyphs are always hinted as with Carbon's default, FT_LOAD_DEFAULT,
    * and Canvas2D has no equivalent of the other flags.
+   *
+   * @adapted
    */
   @be.mapAttribute(be.READWRITE)
   @type.int32
@@ -103,6 +111,8 @@ export class Tr2FontManager extends IRoot
   /**
    * m_totalGlyphsCachedSize (size_t) [READ].
    * Browser meaning: bytes held by the CPU sbit cache (see TrimGlyphCache).
+   *
+   * @adapted
    */
   @be.mapAttribute(be.READ)
   @type.uint64
@@ -114,6 +124,7 @@ export class Tr2FontManager extends IRoot
    * registers it for Blue ticks, so OnTick trims the glyph cache every frame.
    * Browser resources (the Canvas2D context) are acquired lazily.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -130,10 +141,9 @@ export class Tr2FontManager extends IRoot
    * Carbon `Shutdown` (Tr2FontManager.cpp:76-84): unregisters the tick and
    * drops the singleton.
    *
-   * Adapted: Carbon's destructor tears down FreeType (`FTC_Manager_Done`,
-   * cpp:133-137); here clearing the CPU sbit cache stands in for it, because
-   * JS has no destructor and the browser owns the font engine.
-   *
+   * @adapted Carbon's destructor tears down FreeType (`FTC_Manager_Done`,
+   *   cpp:133-137); here clearing the CPU sbit cache stands in for it, because
+   *   JS has no destructor and the browser owns the font engine.
    * @returns {void}
    */
   @meta.adapted
@@ -220,8 +230,7 @@ export class Tr2FontManager extends IRoot
    * Carbon `GetFaceID` (Tr2FontManager.cpp:152-171): a stable ID per font name,
    * starting at 1 because of the reserved "dummy" entry.
    *
-   * Adapted: face IDs refer to browser font families rather than FreeType faces.
-   *
+   * @adapted face IDs refer to browser font families rather than FreeType faces.
    * @param {string} font Font name: a res path or a CSS family.
    * @returns {number} The face ID.
    */
@@ -316,9 +325,8 @@ export class Tr2FontManager extends IRoot
    * Carbon `LookupFace` (Tr2FontManager.cpp:183-194): the face for an ID, or
    * none when its file never loaded.
    *
-   * Adapted: there is no FreeType face; the family name stands in for it, and
-   * `null` for Carbon's null `FT_Face`.
-   *
+   * @adapted there is no FreeType face; the family name stands in for it, and
+   *   `null` for Carbon's null `FT_Face`.
    * @param {number} faceID Face ID.
    * @returns {string|null} The family, or null.
    */
@@ -329,7 +337,11 @@ export class Tr2FontManager extends IRoot
     return this._IsValidFace(faceID) ? this._reverseFaceMap[faceID] : null;
   }
 
-  /** Carbon `GetLoadFlag` (Tr2FontManager.h:84-87). @returns {number} The load flag. */
+  /**
+   * Carbon `GetLoadFlag` (Tr2FontManager.h:84-87). @returns {number} The load flag.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetLoadFlag()
@@ -379,10 +391,9 @@ export class Tr2FontManager extends IRoot
    * A parsed face answers from its Unicode cmap, as FreeType does: 0 for a
    * character it lacks, -1 when it has no Unicode charmap.
    *
-   * Adapted: a face loaded from a CSS source has no font data, and the
-   * browser exposes neither glyph IDs nor missing glyphs, so the code point
-   * stands in for the index there. Code point 0 reads as Carbon's "no glyph".
-   *
+   * @adapted a face loaded from a CSS source has no font data, and the
+   *   browser exposes neither glyph IDs nor missing glyphs, so the code point
+   *   stands in for the index there. Code point 0 reads as Carbon's "no glyph".
    * @param {number} faceID Face ID.
    * @param {number} charCode Unicode code point.
    * @returns {number} Glyph index, or -1.
@@ -412,6 +423,7 @@ export class Tr2FontManager extends IRoot
    * Carbon logs "trinity.fontMan.LookupGlyphIndex - no font given, using
    * fallback font" for the empty name; there is no log here.
    *
+   * @implemented
    * @param {string} faceName Font name, or "" for the fallback font.
    * @param {number} charCode Unicode code point.
    * @returns {[number, number]} The face ID and glyph index that were used.
@@ -444,15 +456,14 @@ export class Tr2FontManager extends IRoot
    * lookup makes the size the face's current one, as FTC_Manager_LookupSize
    * activates it.
    *
-   * Adapted: only ascender, descender and height are produced. For a CSS
-   * face, browser font-box metrics replace FT_Size_Metrics, and `height` is
-   * ascent plus descent (no line gap), where FreeType's is the
-   * baseline-to-baseline distance. The height (or width when height is 0)
-   * picks the pixel size.
-   * A size of 0 or less returns zeroed metrics, as Carbon does when
-   * FTC_Manager_LookupSize fails; whether FreeType itself fails there or
-   * clamps the size is not verified (FreeType is not part of the Carbon source).
-   *
+   * @adapted only ascender, descender and height are produced. For a CSS
+   *   face, browser font-box metrics replace FT_Size_Metrics, and `height` is
+   *   ascent plus descent (no line gap), where FreeType's is the
+   *   baseline-to-baseline distance. The height (or width when height is 0)
+   *   picks the pixel size.
+   *   A size of 0 or less returns zeroed metrics, as Carbon does when
+   *   FTC_Manager_LookupSize fails; whether FreeType itself fails there or
+   *   clamps the size is not verified (FreeType is not part of the Carbon source).
    * @param {number} faceID Face ID.
    * @param {number} width Pixel width.
    * @param {number} height Pixel height.
@@ -481,8 +492,7 @@ export class Tr2FontManager extends IRoot
    * Carbon `LookupMetricsFromScript` (Tr2FontManager.cpp:224-228), Blue name
    * "LookupMetrics": pixel ascender and descender.
    *
-   * Adapted: returns a two-element array for Carbon's `std::pair`.
-   *
+   * @adapted returns a two-element array for Carbon's `std::pair`.
    * @param {number} faceID Face ID.
    * @param {number} width Pixel width.
    * @param {number} height Pixel height.
@@ -505,11 +515,10 @@ export class Tr2FontManager extends IRoot
    * table at the face's current size; before any size is set, FreeType's
    * unsized face scales every value to 0.
    *
-   * Adapted: for a CSS face, approximated as the difference between the
-   * browser-shaped pair advance and the two single advances, at the size last
-   * set for this face. Ours: before any size has been set on a CSS face,
-   * 12 px is used, because Canvas2D needs a size.
-   *
+   * @adapted for a CSS face, approximated as the difference between the
+   *   browser-shaped pair advance and the two single advances, at the size last
+   *   set for this face. Ours: before any size has been set on a CSS face,
+   *   12 px is used, because Canvas2D needs a size.
    * @param {number} faceID Face ID.
    * @param {number} leftIndex Left glyph index (a code point for a CSS face).
    * @param {number} rightIndex Right glyph index (a code point for a CSS face).
@@ -540,6 +549,7 @@ export class Tr2FontManager extends IRoot
    * kerning value (and -1 for small negative ones). Reproduced here on the
    * Blue-exposed method only; LookupKerningXP, the engine path, stays in pixels.
    *
+   * @implemented
    * @param {number} faceID Face ID.
    * @param {number} charCode1 Left glyph index.
    * @param {number} charCode2 Right glyph index.
@@ -564,20 +574,19 @@ export class Tr2FontManager extends IRoot
    * glyph too large for the cache's 8-bit fields comes back unavailable:
    * width 255, height 0, no pixels (ftcsbits.c, ftc_snode_load).
    *
-   * Adapted: the coverage is the browser's anti-aliased fill, not FreeType's
-   * rasterizer. TrueType glyphs and CSS faces are drawn by Canvas2D from their
-   * character, so their bounds and advances follow browser metrics, not
-   * FreeType hinting; a TrueType glyph no character maps to has no pixels and
-   * its hmtx advance. The wrapper is returned, and Carbon's failed
-   * `Be::Result` is thrown, as it is for a size of 0 or less. A cache hit
-   * refreshes the entry's frame stamp; trimming happens in OnTick.
-   *
    * Browser text gamma: text Canvas2D draws already carries the browser's
    * text gamma, where FreeType's coverage is linear. Sprite2D's
    * FONT_GAMMACORRECT (on by default) corrects linear coverage, so such text
    * reads as bold unless the scene sets `gammaCorrectText = false`. Filled
    * CFF outlines are linear. Registered in non-carbon-extensions.md.
    *
+   * @adapted the coverage is the browser's anti-aliased fill, not FreeType's
+   *   rasterizer. TrueType glyphs and CSS faces are drawn by Canvas2D from their
+   *   character, so their bounds and advances follow browser metrics, not
+   *   FreeType hinting; a TrueType glyph no character maps to has no pixels and
+   *   its hmtx advance. The wrapper is returned, and Carbon's failed
+   *   `Be::Result` is thrown, as it is for a size of 0 or less. A cache hit
+   *   refreshes the entry's frame stamp; trimming happens in OnTick.
    * @param {number} faceID Face ID.
    * @param {number} width Pixel width.
    * @param {number} height Pixel height.
@@ -764,9 +773,8 @@ export class Tr2FontManager extends IRoot
   /**
    * Carbon `ClearCachedGlyphs` (Tr2FontManager.cpp:621-629).
    *
-   * Adapted: Carbon releases idle glyph atlas textures; this releases the CPU
-   * sbit cache. Existing wrappers keep their bitmaps.
-   *
+   * @adapted Carbon releases idle glyph atlas textures; this releases the CPU
+   *   sbit cache. Existing wrappers keep their bitmaps.
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -783,18 +791,17 @@ export class Tr2FontManager extends IRoot
    * otherwise entries are sorted by frame age and deleted oldest first until
    * the total falls strictly below the budget.
    *
-   * Adapted: Carbon's cache holds idle glyph atlas textures that `WeakRefNotify`
-   * resurrects as they die (cpp:560-583). JS cannot observe an object about to
-   * be collected, nor resurrect it, so that cache cannot exist. The cached
-   * objects here are the CPU sbits instead, and `glyphCacheBudget` and
-   * `totalGlyphsCachedSize` measure their coverage bytes. Two differences
-   * follow. Carbon's budget covers only idle glyphs and never evicts one in
-   * use; this one counts and evicts every cached sbit, because JS cannot tell
-   * the two apart. And Carbon counts atlas texture memory, this coverage
-   * bytes. An evicted sbit still in use stays with its wrappers, a later
-   * lookup rasterizes it again, and the glyph's atlas texture, keyed by glyph
-   * rather than by sbit, is reused while it is alive.
-   *
+   * @adapted Carbon's cache holds idle glyph atlas textures that `WeakRefNotify`
+   *   resurrects as they die (cpp:560-583). JS cannot observe an object about to
+   *   be collected, nor resurrect it, so that cache cannot exist. The cached
+   *   objects here are the CPU sbits instead, and `glyphCacheBudget` and
+   *   `totalGlyphsCachedSize` measure their coverage bytes. Two differences
+   *   follow. Carbon's budget covers only idle glyphs and never evicts one in
+   *   use; this one counts and evicts every cached sbit, because JS cannot tell
+   *   the two apart. And Carbon counts atlas texture memory, this coverage
+   *   bytes. An evicted sbit still in use stays with its wrappers, a later
+   *   lookup rasterizes it again, and the glyph's atlas texture, keyed by glyph
+   *   rather than by sbit, is reused while it is alive.
    * @param {number} cacheSize Budget in bytes.
    * @returns {void}
    */
@@ -829,6 +836,7 @@ export class Tr2FontManager extends IRoot
    * Carbon `OnTick` (Tr2FontManager.cpp:695-698), IBlueEvents: trims the
    * glyph cache to its budget once per Blue tick.
    *
+   * @implemented
    * @param {number} _realTime Real time, unused.
    * @param {number} _simTime Simulation time, unused.
    * @param {*} _cookie Registration cookie, unused.
@@ -845,9 +853,8 @@ export class Tr2FontManager extends IRoot
    * Carbon `PyClearBuffer` (Tr2FontManager_Blue.cpp:28-75), Blue "ClearBuffer":
    * fills a rectangular 32-bit buffer with one value.
    *
-   * Adapted: a typed array or view replaces the Python writable buffer, and
-   * integer dimensions are validated.
-   *
+   * @adapted a typed array or view replaces the Python writable buffer, and
+   *   integer dimensions are validated.
    * @param {ArrayBuffer|ArrayBufferView} buffer Destination.
    * @param {number} width Width in pixels.
    * @param {number} height Height in pixels.
@@ -887,11 +894,10 @@ export class Tr2FontManager extends IRoot
    * grayscale coverage once as `0x00ffffff | gray << 24`, plus one transparent
    * row for the drop shadow.
    *
-   * Adapted: one WeakMap of WeakRefs replaces Carbon's in-use/cached map pair,
-   * since JS cannot resurrect a dying texture; the mono `format == 1` branch is
-   * absent because browser sbits are always 8-bit. Returns the texture or null
-   * instead of bool plus out pointer.
-   *
+   * @adapted one WeakMap of WeakRefs replaces Carbon's in-use/cached map pair,
+   *   since JS cannot resurrect a dying texture; the mono `format == 1` branch is
+   *   absent because browser sbits are always 8-bit. Returns the texture or null
+   *   instead of bool plus out pointer.
    * @param {object} sbit The sbit record.
    * @returns {object|null} The glyph's atlas texture, or null.
    */
@@ -935,10 +941,9 @@ export class Tr2FontManager extends IRoot
    * Carbon `GetNumGlyphsInUse` (Tr2FontManager.cpp:611-614), Blue
    * "numGlyphsInUse": glyphs with an atlas texture.
    *
-   * Adapted: counts the textures not yet collected. JS cannot observe the
-   * moment a texture's last user lets go, so an unused texture counts until
-   * the collector reclaims it.
-   *
+   * @adapted counts the textures not yet collected. JS cannot observe the
+   *   moment a texture's last user lets go, so an unused texture counts until
+   *   the collector reclaims it.
    * @returns {number} Glyphs in use.
    */
   @meta.adapted
@@ -954,8 +959,7 @@ export class Tr2FontManager extends IRoot
    * Carbon `GetNumGlyphsCached` (Tr2FontManager.cpp:616-619), Blue
    * "numGlyphsCached".
    *
-   * Adapted: the CPU sbit cache's entries (see TrimGlyphCache).
-   *
+   * @adapted the CPU sbit cache's entries (see TrimGlyphCache).
    * @returns {number} Glyphs cached.
    */
   @meta.adapted
@@ -965,7 +969,11 @@ export class Tr2FontManager extends IRoot
     return this._glyphs.size;
   }
 
-  /** Blue "numGlyphsInUse" [READ] (Tr2FontManager_Blue.cpp:154-157). */
+  /**
+   * Blue "numGlyphsInUse" [READ] (Tr2FontManager_Blue.cpp:154-157).
+   *
+   * @adapted
+   */
   @be.mapPropertyReadOnly()
   @type.int32
   @meta.adapted
@@ -974,7 +982,11 @@ export class Tr2FontManager extends IRoot
     return this.GetNumGlyphsInUse();
   }
 
-  /** Blue "numGlyphsCached" [READ] (Tr2FontManager_Blue.cpp:159-162). */
+  /**
+   * Blue "numGlyphsCached" [READ] (Tr2FontManager_Blue.cpp:159-162).
+   *
+   * @adapted
+   */
   @be.mapPropertyReadOnly()
   @type.int32
   @meta.adapted
@@ -987,9 +999,8 @@ export class Tr2FontManager extends IRoot
    * Carbon `ReleaseResources` (Tr2FontManager.cpp:585-604), ITriDeviceResource:
    * for managed memory, forgets every glyph texture and the glyph cache.
    *
-   * Adapted: dropping the weak texture references stands in for Carbon's
-   * WeakRefUnregister, and the CPU sbit cache for its cached textures.
-   *
+   * @adapted dropping the weak texture references stands in for Carbon's
+   *   WeakRefUnregister, and the CPU sbit cache for its cached textures.
    * @param {number} storage `TriStorageFlags` bits.
    * @returns {void}
    */
@@ -1011,6 +1022,7 @@ export class Tr2FontManager extends IRoot
    * browser opens a face when LoadFont registers its family with the page's
    * FontFaceSet.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @meta.notImplemented
@@ -1028,6 +1040,7 @@ export class Tr2FontManager extends IRoot
    * Not implemented: a browser cannot read a file synchronously, and has no
    * FreeType. LoadFont is the asynchronous equivalent, given the bytes.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @meta.notImplemented
@@ -1043,6 +1056,7 @@ export class Tr2FontManager extends IRoot
    * Not implemented: there is no FreeType in the browser; Canvas2D draws the
    * glyphs and this class keeps its own sbit cache.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @meta.notImplemented
@@ -1057,6 +1071,7 @@ export class Tr2FontManager extends IRoot
    *
    * Not implemented: no FreeType; LookupGlyphIndex answers from the code point.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @meta.notImplemented
@@ -1072,6 +1087,7 @@ export class Tr2FontManager extends IRoot
    * Not implemented: no FreeType; LookupSBit keeps its own cache (see
    * TrimGlyphCache).
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @meta.notImplemented
@@ -1081,7 +1097,11 @@ export class Tr2FontManager extends IRoot
     throw new Error("Tr2FontManager.GetSbitCache is not implemented: no FreeType sbit cache in the browser.");
   }
 
-  /** Carbon `OnPrepareResources` (Tr2FontManager.cpp:606-609): nothing to prepare. */
+  /**
+   * Carbon `OnPrepareResources` (Tr2FontManager.cpp:606-609): nothing to prepare.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _OnPrepareResources()
@@ -1097,6 +1117,7 @@ export class Tr2FontManager extends IRoot
    * nor resurrect it, so there is no idle texture cache to move it into (see
    * TrimGlyphCache).
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @meta.notImplemented

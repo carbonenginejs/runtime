@@ -62,13 +62,12 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
    * Carbon ~Tr2Sprite2dContainer: releases the cached display list, then the base
    * destructor detaches the children.
    *
-   * Adapted: JS has no destructors, so the destructor bodies run from an explicit
-   * Destruct, derived first and then the base, as C++ orders them.
-   *
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    *
+   * @adapted JS has no destructors, so the destructor bodies run from an explicit
+   *   Destruct, derived first and then the base, as C++ orders them.
    * @returns {void}
    */
   @meta.adapted
@@ -80,7 +79,11 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
     super.Destruct();
   }
 
-  /** Applies Carbon's dirty/clean-frame cache policy before gathering or replaying. */
+  /**
+   * Applies Carbon's dirty/clean-frame cache policy before gathering or replaying.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GatherSprites(renderer)
@@ -143,7 +146,11 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
     }
   }
 
-  /** Traverses nested content with translation, depth, opacity and optional clipping. */
+  /**
+   * Traverses nested content with translation, depth, opacity and optional clipping.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _GatherSpritesHelper(renderer)
@@ -176,7 +183,11 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
     if (this.absoluteCoordinates) renderer.PopTransformAbsolute();
   }
 
-  /** Picks visible children through native bounds, mask and clipping gates. */
+  /**
+   * Picks visible children through native bounds, mask and clipping gates.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   PickPoint(x, y, renderer)

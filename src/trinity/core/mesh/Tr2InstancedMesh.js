@@ -62,7 +62,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @type.vec3
   minBounds = vec3.create();
 
-  /** m_instanceGeometryResource [PERSISTONLY]: the assigned provider; GetInstanceGeometryResource prefers the loaded one. */
+  /**
+   * m_instanceGeometryResource [PERSISTONLY]: the assigned provider; GetInstanceGeometryResource prefers the loaded one.
+   *
+   * @implemented
+   */
   @be.mapAttribute(be.PERSISTONLY, "instanceGeometryResource")
   @meta.implemented
   @type.object.ref("ITr2InstanceData")
@@ -100,7 +104,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     TriDevice.UnregisterResource(this);
   }
 
-  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
+  /**
+   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32).
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
@@ -108,7 +116,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return true;
   }
 
-  /** Loads the instance path before base geometry (Tr2InstancedMesh.cpp:57-69). */
+  /**
+   * Loads the instance path before base geometry (Tr2InstancedMesh.cpp:57-69).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -120,7 +132,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return super.Initialize();
   }
 
-  /** Resource path the instance data is loaded from. */
+  /**
+   * Resource path the instance data is loaded from.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetInstanceMeshResPath()
@@ -128,7 +144,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return this.instanceGeometryResPath;
   }
 
-  /** Sets the instance-data resource path; schedules the instanceBuffer rebuild. */
+  /**
+   * Sets the instance-data resource path; schedules the instanceBuffer rebuild.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetInstanceMeshResPath(path)
@@ -137,7 +157,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     this.OnModified("instanceGeometryResPath");
   }
 
-  /** Index of the instance buffer within the instance geometry resource. */
+  /**
+   * Index of the instance buffer within the instance geometry resource.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetInstanceMeshIndex()
@@ -148,6 +172,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /**
    * The bound instance-data provider (an ITr2InstanceData), or null when none is
    * set.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -156,7 +182,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return this._loadedGeometryResource ?? this._instanceGeometryResource;
   }
 
-  /** Binds the instance provider and rebuilds declarations (cpp:198-208). */
+  /**
+   * Binds the instance provider and rebuilds declarations (cpp:198-208).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetInstanceGeometryRes(resource)
@@ -170,6 +200,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /**
    * instanceGeometryResource (MAP_PROPERTY): Carbon's property over GetInstanceGeometryResource/SetInstanceGeometryRes, which the macro calls.
    * Carbon: MAP_PROPERTY (trinity/trinity/Tr2InstancedMesh_Blue.cpp:29).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @meta.implemented
@@ -178,13 +210,18 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return this.GetInstanceGeometryResource();
   }
 
+  /** @implemented */
   @meta.implemented
   set instanceGeometryResource(value)
   {
     this.SetInstanceGeometryRes(value);
   }
 
-  /** Invalidates both cached declarations (Tr2InstancedMesh.cpp:78-82). */
+  /**
+   * Invalidates both cached declarations (Tr2InstancedMesh.cpp:78-82).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseResources()
@@ -193,7 +230,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     this._instanceDeclaration = Tr2EffectStateManager.Unknown;
   }
 
-  /** Recreates declarations when the device can prepare resources (cpp:89-93). */
+  /**
+   * Recreates declarations when the device can prepare resources (cpp:89-93).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnPrepareResources()
@@ -202,7 +243,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return true;
   }
 
-  /** Rebuilds the declaration before the base geometry caches (cpp:160-164). */
+  /**
+   * Rebuilds the declaration before the base geometry caches (cpp:160-164).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RebuildCachedData(resource)
@@ -214,6 +259,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /**
    * Loads changed instance paths, releases deferred loading and refreshes
    * declarations (Tr2InstancedMesh.cpp:105-138).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -238,14 +285,15 @@ export class Tr2InstancedMesh extends Tr2Mesh
 
   /**
    * Collects indexed instance batches (Tr2InstancedMesh.cpp:219-311).
-   * Adapted: the resource layer cannot access the AL, so cold LOD allocations
-   * are made here through the ambient context before binding both streams.
-   * Carbon prepares at resource load; our resource layer cannot import Trinity,
-   * so preparation happens at first use, including assigned geometry providers.
-   * Deferring to SubmitGeometry would clear stream1 and reset instance count.
-   * JS accepts a batch type or area list and returns whether it committed any
-   * batch; Carbon returns void. The retired Mac NVIDIA driver flag has no JS
-   * backend equivalent.
+   *
+   * @adapted the resource layer cannot access the AL, so cold LOD allocations
+   *   are made here through the ambient context before binding both streams.
+   *   Carbon prepares at resource load; our resource layer cannot import Trinity,
+   *   so preparation happens at first use, including assigned geometry providers.
+   *   Deferring to SubmitGeometry would clear stream1 and reset instance count.
+   *   JS accepts a batch type or area list and returns whether it committed any
+   *   batch; Carbon returns void. The retired Mac NVIDIA driver flag has no JS
+   *   backend equivalent.
    * @param {object} batches Destination accumulator.
    * @param {number|Array} areas Batch type or mesh areas.
    * @param {object|null} data Per-object data.
@@ -308,6 +356,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * representation is retained rather than inventing a numeric offset ledger.
    * Carbon prepares at resource load; our resource layer cannot import Trinity,
    * so preparation happens at first use, for loaded and assigned providers.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -340,7 +390,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     this._vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(merged);
   }
 
-  /** Returns the combined declaration handle (Tr2InstancedMesh.cpp:531-534). */
+  /**
+   * Returns the combined declaration handle (Tr2InstancedMesh.cpp:531-534).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetVertexDeclaration()
@@ -351,6 +405,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /**
    * Sets the static bounds used when boundsMethod is STATIC; a missing vector is
    * treated as the origin.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -363,6 +419,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /**
    * Switches to DYNAMIC bounds, where the instance stream's box is expanded by a
    * fixed instance size in world units.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -375,6 +433,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /**
    * Switches to DYNAMIC_SCALED bounds, where the instance stream's box is
    * expanded by maxScale multiplied by the mesh geometry's own radius.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -389,6 +449,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * expanded by the instance size (scaled by the geometry radius under
    * DYNAMIC_SCALED); a zero box when no instance bounds are available. Always a
    * freshly allocated pair.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -438,7 +500,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
       !this.GetInstanceGeometryResource().IsInstanceDataReady();
   }
 
-  /** Overrides Tr2MeshBase - instanced areas share the whole-mesh bounds. */
+  /**
+   * Overrides Tr2MeshBase - instanced areas share the whole-mesh bounds.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAreaBounds(_areaIndex, _boneTransforms)
@@ -446,7 +512,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return this.GetBounds();
   }
 
-  /** Bounding box of a single instance - the mesh's own geometry bounds. */
+  /**
+   * Bounding box of a single instance - the mesh's own geometry bounds.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetInstanceBounds()
@@ -469,6 +539,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * bounds by the instance size and clamps the point into the result.
    * Returns null for the STATIC bounds method, matching Carbon's empty
    * sphere.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -503,6 +575,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Carbon Tr2InstancedMesh::GetDebugOptions (Tr2InstancedMesh.cpp:520-523;
    * Tr2InstancedMesh.h:99). Overrides Tr2MeshBase's and, as Carbon's does, does
    * not offer the base "Mesh Bounds" option.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -525,11 +599,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Carbon quirk (cpp:541): the eye-outside test compares the WORLD view
    * position against the mesh-space bounds; reproduced.
    *
-   * Adapted: Carbon skips the dynamic drawing when GetBounds returns an
-   * uninitialised box (AxisAlignedBox_inline.h:43-51). This class's GetBounds
-   * returns a zero box in that case instead, so the zero box is drawn here
-   * where Carbon draws nothing. Carbon's Tr2Renderer::GetViewPosition static
-   * is read from the main-thread render context, which holds it in this port.
+   * @adapted Carbon skips the dynamic drawing when GetBounds returns an
+   *   uninitialised box (AxisAlignedBox_inline.h:43-51). This class's GetBounds
+   *   returns a zero box in that case instead, so the zero box is drawn here
+   *   where Carbon draws nothing. Carbon's Tr2Renderer::GetViewPosition static
+   *   is read from the main-thread render context, which holds it in this port.
    * @param {mat4} worldTransform
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4[]|null} [_boneTransforms]

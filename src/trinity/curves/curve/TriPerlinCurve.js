@@ -95,7 +95,11 @@ export class TriPerlinCurve extends ITriScalarFunction
   _start = 0;
   _startOffset = TriPerlinCurve._nextStartOffset();
 
-  /** Updates the cached value for the supplied time. */
+  /**
+   * Updates the cached value for the supplied time.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateValue(time)
@@ -106,6 +110,8 @@ export class TriPerlinCurve extends ITriScalarFunction
   /**
    * Updates and returns the cached value, skipping the noise evaluation when the
    * time is unchanged since the last call. This is the native double-seconds overload; Update__Ticks is the Be::Time one.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -123,9 +129,10 @@ export class TriPerlinCurve extends ITriScalarFunction
    * Samples the noise at a time and maps it to [offset, offset + scale]; the
    * per-instance random phase is replaced by a fixed offset when
    * expressionCurveFakeRandom is set, so editor previews are deterministic.
-   * Adapted: JavaScript Number seconds follows the native double overload; GetValueAt__Ticks is the Be::Time overload
-   * with its first-call origin. Existing
-   * noise arithmetic retains JS precision rather than native float rounding.
+   *
+   * @adapted JavaScript Number seconds follows the native double overload; GetValueAt__Ticks is the Be::Time overload
+   *   with its first-call origin. Existing
+   *   noise arithmetic retains JS precision rather than native float rounding.
    */
   @meta.adapted
   GetValueAt(time)
@@ -147,6 +154,8 @@ export class TriPerlinCurve extends ITriScalarFunction
   /**
    * Carbon's Update(Be::Time) (TriSequencer.cpp:440-452): caches on the tick time in seconds and samples the Be::Time
    * overload. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The cached value.
    */
@@ -165,6 +174,8 @@ export class TriPerlinCurve extends ITriScalarFunction
   /**
    * Carbon's GetValueAt(Be::Time) (cpp:468-486): latches the first sample as the origin, then samples the noise at the
    * elapsed seconds, which the double overload takes as given. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The sampled value.
    */
@@ -175,8 +186,11 @@ export class TriPerlinCurve extends ITriScalarFunction
     return this.GetValueAt(CcpTime.timeAsDouble(time) - this._start);
   }
 
-  /** Carbon's implementation changes output amplitude despite the historical name.
+  /**
+   * Carbon's implementation changes output amplitude despite the historical name.
    * Carbon declaration: TriPerlinCurve::ScaleTime (trinity/trinity/TriSequencer.h:212).
+   *
+   * @implemented
    */
   @meta.implemented
   ScaleTime(scale)
@@ -198,6 +212,9 @@ export class TriPerlinCurve extends ITriScalarFunction
    * Draws the next per-instance noise phase from Carbon's shared
    * linear-congruential TriRand state, reproducing its 32-bit integer truncation
    * so offsets match that sequence. The state is shared with other TriRand callers, as in Carbon.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted

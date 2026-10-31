@@ -7,6 +7,8 @@ export class ITr2TextureProvider extends IRoot
 {
   /**
    * Returns the provider's borrowed AL texture.
+   *
+   * @abstract
    * @returns {object|null} Texture value supplied by the implementation.
    */
   @meta.abstract
@@ -15,6 +17,8 @@ export class ITr2TextureProvider extends IRoot
   /**
    * Returns the provider's texture-change event (ITr2TextureProvider.h:16),
    * a Tr2Event broadcast with no arguments.
+   *
+   * @abstract
    * @returns {import("./Tr2Event.js").Tr2Event} The provider's m_onTextureChange.
    */
   @meta.abstract

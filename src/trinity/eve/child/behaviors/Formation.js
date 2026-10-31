@@ -107,7 +107,11 @@ export class Formation extends IRoot
 
   _stubbornnessCounter = 0;
 
-  /** Carbon Formation::GetProcessPriority (cpp:43-46). */
+  /**
+   * Carbon Formation::GetProcessPriority (cpp:43-46).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -115,7 +119,11 @@ export class Formation extends IRoot
     return this.behaviorPriority;
   }
 
-  /** Carbon Formation::GetBehaviorName (cpp:48-51). */
+  /**
+   * Carbon Formation::GetBehaviorName (cpp:48-51).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBehaviorName()
@@ -126,8 +134,8 @@ export class Formation extends IRoot
   /**
    * Per-agent scratch record count (Carbon sizeof(FormationData)).
    *
-   * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per
-   * agent, so any non-zero value means 'has scratch'.
+   * @adapted Carbon returns a byte size; the JS port models scratch as one plain record per
+   *   agent, so any non-zero value means 'has scratch'.
    */
 
   @meta.adapted
@@ -139,8 +147,8 @@ export class Formation extends IRoot
   /**
    * Fresh per-agent scratch record (Carbon FormationData placement init).
    *
-   * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh
-   * record instead.
+   * @adapted Carbon initializes caller-provided raw memory; the JS port returns the fresh
+   *   record instead.
    */
 
   @meta.adapted
@@ -151,7 +159,11 @@ export class Formation extends IRoot
     };
   }
 
-  /** Carbon Formation::InFormation (cpp:53-56). */
+  /**
+   * Carbon Formation::InFormation (cpp:53-56).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   InFormation()
@@ -159,7 +171,11 @@ export class Formation extends IRoot
     return this.inFormation;
   }
 
-  /** Carbon Formation::Reset (cpp:261-264). */
+  /**
+   * Carbon Formation::Reset (cpp:261-264).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Reset()
@@ -172,6 +188,8 @@ export class Formation extends IRoot
    * agreeing on a direction, forms/breaks the grid accordingly, and drives
    * agents to their assigned slots while formed (Carbon CalculateBehavior,
    * cpp:58-125).
+   *
+   * @implemented
    * @param {Array} agents - DroneAgent records
    * @param {Array} scratchData - per-agent FormationData records
    * @param {Number} deltaTime
@@ -447,6 +465,8 @@ export class Formation extends IRoot
   // (Carbon calculateFormationInertia, cpp:296-325). Adapted: an empty grid divides by one where Carbon divides by zero.
   /**
    * Limits the formation's turn rate by rotating its acceleration toward the previous frame's direction, rotating the slot grid with it.
+   *
+   * @adapted
    */
   @meta.adapted
   _CalculateFormationInertia(acceleration, deltaTime)
@@ -521,6 +541,8 @@ export class Formation extends IRoot
 
   /**
    * Carbon Formation::GetDebugOptions (cpp:349-352).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -534,6 +556,8 @@ export class Formation extends IRoot
    * Carbon Formation::RenderDebugInfo (cpp:354-367): while the formation is
    * forming, a sphere at its centre, one 100 units along its last
    * acceleration direction, and one at every grid slot.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation Places the formation in world space.

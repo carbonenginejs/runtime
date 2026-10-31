@@ -39,6 +39,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
   /**
    * Creates the swap chain and its back buffer.
    *
+   * @implemented
    * @param {object} windowHandle The window to present into; ignored here.
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
@@ -62,7 +63,11 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
     );
   }
 
-  /** Releases the back buffer and leaves the device-resource registry. */
+  /**
+   * Releases the back buffer and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._backBuffer.Destroy();
@@ -73,6 +78,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
   /**
    * Whether the chain can be presented.
    *
+   * @implemented
    * @returns {boolean} The back buffer's validity.
    */
   IsValid()
@@ -93,6 +99,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
   /**
    * Presents the back buffer. There is nothing to show, but the frame ended.
    *
+   * @implemented
    * @param {object} _renderContext The context presenting the frame; Carbon
    *   takes it (`Tr2SwapChainALStub.cpp:41`) and names no parameter, because
    *   the stub has nothing to present into.
@@ -106,6 +113,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
   /**
    * Back buffer width.
    *
+   * @implemented
    * @returns {number} Width in pixels.
    */
   GetWidth()
@@ -116,6 +124,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
   /**
    * Back buffer height.
    *
+   * @implemented
    * @returns {number} Height in pixels.
    */
   GetHeight()
@@ -129,6 +138,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
    * VIDEO, not managed - the one AL resource that says so, because a swap
    * chain's surfaces belong to the display rather than to the device heap.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -145,6 +155,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -154,6 +165,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
   /**
    * Names the chain for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */

@@ -30,7 +30,9 @@ export class EveChildCloud2PerObjectData extends Tr2PerObjectData
     return [this.data];
   }
 
-  /** Adapted: RawData replaces the native struct; native stage masks and buffers are retained. */
+  /**
+   * @adapted RawData replaces the native struct; native stage masks and buffers are retained.
+   */
   @meta.adapted
   SetPerObjectDataToDevice(buffers, mask, context)
   {
@@ -44,7 +46,11 @@ export class EveChildCloud2PerObjectData extends Tr2PerObjectData
     return uploaded;
   }
 
-  /** The native indirect writer is still unported; direct draws use the method above. */
+  /**
+   * The native indirect writer is still unported; direct draws use the method above.
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   ApplyConstantBuffers()
   {

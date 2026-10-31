@@ -37,6 +37,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   /**
    * Appends one placement per locator of the parent space object's named locator set, copying position, direction, scale and bone index; appends nothing until an update has resolved that set.
    *
+   * @adapted
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
@@ -69,6 +70,8 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   /**
    * Reports whether a locator set has just been resolved from the parent and the
    * pool therefore needs rebuilding.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -81,6 +84,8 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Resolves the named locator set from the space-object parent carried by the
    * update params, re-resolving whenever the parent or the set name changes, and
    * requests regeneration once locators are found.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -111,6 +116,8 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   /**
    * Invalidates the resolved locator set after an authored change so the next
    * update re-reads it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -124,8 +131,8 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Invalidates the resolved locator set so the next update re-reads it from the
    * parent.
    *
-   * Adapted: JavaScript retains explicit invalidation state in place of native
-   * structure-list notifier ownership.
+   * @adapted JavaScript retains explicit invalidation state in place of native
+   *   structure-list notifier ownership.
    */
 
   @meta.adapted

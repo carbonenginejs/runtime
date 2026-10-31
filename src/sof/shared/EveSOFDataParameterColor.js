@@ -24,7 +24,11 @@ export class EveSOFDataParameterColor extends EveSOFDataParameter
   @type.color
   value = vec4.create();
 
-  /** Returns a copy of the four-component color value. */
+  /**
+   * Returns a copy of the four-component color value.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetValue()

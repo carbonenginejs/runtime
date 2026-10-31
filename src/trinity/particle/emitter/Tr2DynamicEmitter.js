@@ -66,6 +66,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * Carbon MAP_PROPERTY_READONLY "emittedParticles" over
    * GetEmittedParticleCount (Tr2DynamicEmitter_Blue.cpp:22): the particles
    * emitted since the last reset.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.uint32
@@ -78,8 +80,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * Carbon method Rebind (MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Browser attribute generators bind directly to the CPU particle-system adapter
-   * rather than native declaration pointers.
+   * @adapted Browser attribute generators bind directly to the CPU particle-system adapter
+   *   rather than native declaration pointers.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -109,7 +111,11 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
     return true;
   }
 
-  /** Carbon method UpdateSimulation (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method UpdateSimulation (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   UpdateSimulation(dt)
@@ -121,6 +127,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * ITr2GenericEmitter.Update (Tr2DynamicEmitter.cpp:109-123): clamp the frame
    * delta (TimeAsFloat of the Be::Time tick difference) to 0.3s and spawn at the
    * constant rate scaled by the LOD emit-count factor.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -142,6 +150,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 
   /**
    * Rebinds the attribute generators against the particle system, re-propagating the thread-safe flag when it was already set.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -161,6 +171,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /** INotify.OnModified (Tr2DynamicEmitter.cpp:63-74): rebind on particle-system changes. */
   /**
    * Rebinds the attribute generators and re-propagates the thread-safe flag whenever the particle-system reference changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -180,8 +192,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * ITr2GenericEmitter.SetThreadSafeFlag (Tr2DynamicEmitter.cpp:81-88).
    *
-   * Adapted: JavaScript updates are single-threaded; the flag is retained and propagated
-   * only for Carbon contract parity.
+   * @adapted JavaScript updates are single-threaded; the flag is retained and propagated
+   *   only for Carbon contract parity.
    */
 
   @meta.adapted
@@ -194,6 +206,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * Carbon's SpawnParticles( arguments, position, velocity, rateModifier )
    * (Tr2DynamicEmitter.cpp:150).
+   *
+   * @implemented
    * @param {ITr2GenericEmitterUpdateArguments} arguments_
    * @param {vec3|null} [position]
    * @param {vec3|null} [velocity]
@@ -250,6 +264,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * velocityStart, velocityEnd, deltaTime ) (Tr2DynamicEmitter.cpp:213-221):
    * forwards the end-of-frame values, passing deltaTime as the rate modifier as
    * Carbon does.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -261,6 +277,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * Carbon IsValid (Tr2DynamicEmitter.cpp:97-100): whether the emitter bound
    * to its particle system on the last Rebind.
+   *
+   * @implemented
    * @returns {boolean}
    */
 
@@ -272,6 +290,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 
   /**
    * The running count of particles emitted since the last reset.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -282,6 +302,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 
   /**
    * Resets the running emitted-particle count to zero.
+   *
+   * @implemented
    */
 
   @meta.implemented

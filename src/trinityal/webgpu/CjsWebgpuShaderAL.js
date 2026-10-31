@@ -227,6 +227,7 @@ export class CjsWebgpuShaderAL
   /**
    * Compiles the shader.
    *
+   * @adapted
    * @param {number} type A Carbon `ShaderType` value.
    * @param {ArrayBufferView|string} bytecode WGSL source.
    * @param {object|null} signature The reflected signature.
@@ -327,25 +328,39 @@ export class CjsWebgpuShaderAL
    * (`Tr2ShaderALStub.cpp:48-51`) - both halves, on every backend. Testing the
    * module alone accepted a shader with no stage, which a program would then
    * link and resolve `GetModuleFor` against.
+   *
+   * @implemented
    */
   IsValid()
   {
     return this._module !== null && this._type !== ShaderType.INVALID_SHADER;
   }
 
-  /** The stage this shader was created for. */
+  /**
+   * The stage this shader was created for.
+   *
+   * @implemented
+   */
   GetType()
   {
     return this._type;
   }
 
-  /** The WGSL this was compiled from, as bytes, matching the stub's contract. */
+  /**
+   * The WGSL this was compiled from, as bytes, matching the stub's contract.
+   *
+   * @adapted
+   */
   GetBytecode()
   {
     return new TextEncoder().encode(this._source);
   }
 
-  /** The reflected signature. */
+  /**
+   * The reflected signature.
+   *
+   * @implemented
+   */
   GetSignature()
   {
     return this._signature;
@@ -357,7 +372,11 @@ export class CjsWebgpuShaderAL
     return this._module;
   }
 
-  /** Releases the module. */
+  /**
+   * Releases the module.
+   *
+   * @implemented
+   */
   Destroy()
   {
     // A GPUShaderModule has no destroy(); it is released when nothing
@@ -379,6 +398,7 @@ export class CjsWebgpuShaderAL
    * The shader stays INVALID, which is the point: the pipeline must name the
    * stage, and nothing must try to reference a module for it.
    *
+   * @implemented
    * @param {number} type The pipeline stage.
    */
   SetNullShaderType(type)
@@ -389,6 +409,7 @@ export class CjsWebgpuShaderAL
   /**
    * Which memory class this shader occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -399,6 +420,7 @@ export class CjsWebgpuShaderAL
   /**
    * Fills in a device-resource description.
    *
+   * @adapted
    * @param {object} description The description to fill.
    * @returns {object} The description, filled.
    */
@@ -417,6 +439,7 @@ export class CjsWebgpuShaderAL
    * `GPUShaderModule` carries a writable `label`, and it is what a WebGPU
    * compilation error quotes - so unlike the stub this keeps the name.
    *
+   * @adapted
    * @param {string} name The name to attach.
    * @returns {number} An `ALResult` value.
    */

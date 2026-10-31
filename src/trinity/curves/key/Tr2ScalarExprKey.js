@@ -150,10 +150,9 @@ export class Tr2ScalarExprKey extends IInitialize
   /**
    * Regenerates the key's random constant without evaluating its expressions.
    *
-   * Adapted: Carbon first compiles and retains four expression programs
-   * (Tr2ScalarExprKeyCurve.cpp:109-116). JavaScript defers compilation until
-   * evaluation and does not report compilation failures during initialization.
-   *
+   * @adapted Carbon first compiles and retains four expression programs
+   *   (Tr2ScalarExprKeyCurve.cpp:109-116). JavaScript defers compilation until
+   *   evaluation and does not report compilation failures during initialization.
    * @returns {boolean} True.
    */
 
@@ -169,10 +168,9 @@ export class Tr2ScalarExprKey extends IInitialize
    *
    * Carbon OnModified (Tr2ScalarExprKeyCurve.cpp:129-179).
    *
-   * Adapted: Carbon recompiles only the changed expression and evaluates the
-   * retained programs; ours compiles each expression on every evaluation, so
-   * the changed property is not needed. The values are the same.
-   *
+   * @adapted Carbon recompiles only the changed expression and evaluates the
+   *   retained programs; ours compiles each expression on every evaluation, so
+   *   the changed property is not needed. The values are the same.
    * @param {string} propertyName Modified property name; unused.
    * @returns {boolean} True after evaluation completes.
    */
@@ -194,6 +192,7 @@ export class Tr2ScalarExprKey extends IInitialize
    * Uses Carbon's CRT rand()/RAND_MAX quotient, including its inclusive endpoint.
    * Range arithmetic remains JavaScript Number arithmetic.
    *
+   * @adapted
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -206,11 +205,10 @@ export class Tr2ScalarExprKey extends IInitialize
   /**
    * Updates previous-key context and evaluates the four expressions from one snapshot.
    *
-   * Adapted: Programs are compiled on evaluation instead of retained; a
-   * compile failure keeps the field's previous value, as Carbon's skipped
-   * invalid program does. Missing previous-key
-   * context supplies zero time and value, as in Carbon.
-   *
+   * @adapted Programs are compiled on evaluation instead of retained; a
+   *   compile failure keeps the field's previous value, as Carbon's skipped
+   *   invalid program does. Missing previous-key
+   *   context supplies zero time and value, as in Carbon.
    * @param {Tr2ScalarExprKey|null} previousKey Previous key, or null for the first key.
    * @returns {void}
    */
@@ -267,14 +265,13 @@ export class Tr2ScalarExprKey extends IInitialize
    * expression clears the program; a failed parse leaves the program as it was (ccpparser.cpp:51-54 returns before
    * BuildCode touches it).
    *
-   * Adapted: Carbon's CcpParser::Program& parser output is the return value, with the caller passing the current
-   * program (parser) back in so a failed parse can hand it back unchanged. Carbon retains one program per
-   * expression member (m_timeParser and its siblings) and compiles when an expression changes (Initialize,
-   * OnModified); this class compiles per Evaluate call, so every caller passes null. The variable table is
-   * _expressionVariables, the functions are SCALAR_EXPR_KEY_FUNCTIONS, and the constants come from the expression
-   * runtime. Not ported: the CCP_LOGERR for a failed parse (cpp:220), which per-call compilation would repeat on
-   * every frame, and the shared temp-arena resize (cpp:223-231), which the AST walker has no use for.
-   *
+   * @adapted Carbon's CcpParser::Program& parser output is the return value, with the caller passing the current
+   *   program (parser) back in so a failed parse can hand it back unchanged. Carbon retains one program per
+   *   expression member (m_timeParser and its siblings) and compiles when an expression changes (Initialize,
+   *   OnModified); this class compiles per Evaluate call, so every caller passes null. The variable table is
+   *   _expressionVariables, the functions are SCALAR_EXPR_KEY_FUNCTIONS, and the constants come from the expression
+   *   runtime. Not ported: the CCP_LOGERR for a failed parse (cpp:220), which per-call compilation would repeat on
+   *   every frame, and the shared temp-arena resize (cpp:223-231), which the AST walker has no use for.
    * @param {CjsControllerExpressionProgram|null} parser The current program, handed back when the parse fails.
    * @param {string} expression Expression source.
    * @returns {CjsControllerExpressionProgram|null} The compiled program, null for an empty expression, or the passed program when the parse fails.

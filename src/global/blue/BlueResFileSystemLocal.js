@@ -35,16 +35,33 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
   /** Ours: a disk read produces bytes (see IBlueResFileSystem.js). */
   static forms = [ BlueResFileSystemForm.BYTES ];
 
-  /** `FileExists` - whether a search path holds the file (cpp). */
+  /**
+   * `FileExists` - whether a search path holds the file (cpp).
+   *
+   * @notImplemented
+   */
   FileExists(_filename) { return noDisk("FileExists"); }
 
-  /** `IsDirectory` - whether a search path holds a directory at the path. */
+  /**
+   * `IsDirectory` - whether a search path holds a directory at the path.
+   *
+   * @notImplemented
+   */
   IsDirectory(_dir) { return noDisk("IsDirectory"); }
 
-  /** `GetDirectoryContents` - adds the entries every search path holds for the directory. */
+  /**
+   * `GetDirectoryContents` - adds the entries every search path holds for the directory.
+   *
+   * @notImplemented
+   */
   GetDirectoryContents(_dir, _results) { return noDisk("GetDirectoryContents"); }
 
-  /** `GetStreamFromPathW` - the file's bytes from the first search path that holds it. */
+  /**
+   * `GetStreamFromPathW` - the file's bytes from the first search path that holds it.
+   *
+   * @notImplemented
+   * @renamed GetStreamFromPathW
+   */
   async GetStreamFromPath(_resPath, _request) { return noDisk("GetStreamFromPath"); }
 
   /**
@@ -54,6 +71,7 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
    * whether it did; the output parameter is the return value here, and
    * `null` is Carbon's false.
    *
+   * @notImplemented
    * @param {string} _path Res path.
    * @returns {string|null} The absolute disk path, or `null`.
    */
@@ -63,6 +81,7 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
    * `ResolvePath` - the disk path of the file, or an empty string when
    * `ResolvePathW` finds none.
    *
+   * @implemented
    * @param {string} path Res path.
    * @returns {string} The absolute disk path, or `""`.
    */
@@ -73,10 +92,18 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
     return result === null ? "" : result;
   }
 
-  /** `Initialize` - records the initial working directory and sets the default search paths. */
+  /**
+   * `Initialize` - records the initial working directory and sets the default search paths.
+   *
+   * @notImplemented
+   */
   Initialize(_initialPath) { return noDisk("Initialize"); }
 
-  /** `InitializeStdAppPaths` - ensures the standard app paths exist, with defaults. */
+  /**
+   * `InitializeStdAppPaths` - ensures the standard app paths exist, with defaults.
+   *
+   * @notImplemented
+   */
   InitializeStdAppPaths() { return noDisk("InitializeStdAppPaths"); }
 
   /**
@@ -87,12 +114,11 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
    * blue/src/BlueResFileSystemLocal.h:30). Exposed as "SetSearchPath"
    * (blue/src/BlueResFileSystemLocal_Blue.cpp:28-35, MAP_METHOD_AND_WRAP).
    *
-   * Not supported: A browser has no disk, so a host must implement it (see the head of this file). `const char*` and `const wchar_t*` are both JS
-   * strings, so this returns the `SetSearchPath` call. Carbon returns a
-   * `Be::Result`; a host reports its failure ("Search paths contain a
-   * circular reference", "Unexpected error during search path expansion")
-   * by throwing an `Error` with that message.
-   *
+   * @notSupported A browser has no disk, so a host must implement it (see the head of this file). `const char*` and `const wchar_t*` are both JS
+   *   strings, so this returns the `SetSearchPath` call. Carbon returns a
+   *   `Be::Result`; a host reports its failure ("Search paths contain a
+   *   circular reference", "Unexpected error during search path expansion")
+   *   by throwing an `Error` with that message.
    * @param {string} key Path prefix.
    * @param {string} value Semicolon separated list of paths or prefixes.
    * @returns {void}
@@ -102,7 +128,12 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
     return this.SetSearchPath(key, value);
   }
 
-  /** `SetSearchPath` - the body of `SetSearchPathW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method. */
+  /**
+   * `SetSearchPath` - the body of `SetSearchPathW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method.
+   *
+   * @cjs
+   * @notSupported
+   */
   SetSearchPath(_key, _value) { return noDisk("SetSearchPath"); }
 
   /**
@@ -112,12 +143,11 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
    * blue/src/BlueResFileSystemLocal.h:31). Exposed as "GetSearchPath"
    * (blue/src/BlueResFileSystemLocal_Blue.cpp:37-44, MAP_METHOD_AND_WRAP).
    *
-   * Not supported: A browser has no disk, so a host must implement it (see the head of this file). Both string kinds are JS strings, so this returns
-   * the `GetSearchPath` call. Quirk, for a host to reproduce (cpp:206):
-   * Carbon reads `m_searchPaths[key]` with the key as given, not lower-cased
-   * as `SetSearchPathW` stores it, and `operator[]` inserts an empty entry for
-   * an unknown key.
-   *
+   * @notSupported A browser has no disk, so a host must implement it (see the head of this file). Both string kinds are JS strings, so this returns
+   *   the `GetSearchPath` call. Quirk, for a host to reproduce (cpp:206):
+   *   Carbon reads `m_searchPaths[key]` with the key as given, not lower-cased
+   *   as `SetSearchPathW` stores it, and `operator[]` inserts an empty entry for
+   *   an unknown key.
    * @param {string} key Path prefix.
    * @returns {string} The value associated with the key.
    */
@@ -126,10 +156,19 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
     return this.GetSearchPath(key);
   }
 
-  /** `GetSearchPath` - the body of `GetSearchPathW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method. */
+  /**
+   * `GetSearchPath` - the body of `GetSearchPathW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method.
+   *
+   * @cjs
+   * @notSupported
+   */
   GetSearchPath(_key) { return noDisk("GetSearchPath"); }
 
-  /** `ClearSearchPaths` - removes every search path. */
+  /**
+   * `ClearSearchPaths` - removes every search path.
+   *
+   * @notImplemented
+   */
   ClearSearchPaths() { return noDisk("ClearSearchPaths"); }
 
   /**
@@ -141,9 +180,8 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
    * blue/src/BlueResFileSystemLocal.h:34). Exposed as "ResolvePathForWriting"
    * (blue/src/BlueResFileSystemLocal_Blue.cpp:62-72, MAP_METHOD_AND_WRAP).
    *
-   * Not supported: A browser has no disk, so a host must implement it (see the head of this file). Both string kinds are JS strings, so this returns
-   * the `ResolvePathForWriting` call.
-   *
+   * @notSupported A browser has no disk, so a host must implement it (see the head of this file). Both string kinds are JS strings, so this returns
+   *   the `ResolvePathForWriting` call.
    * @param {string} path Res path.
    * @returns {string} Path usable for the underlying file system.
    */
@@ -152,7 +190,12 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
     return this.ResolvePathForWriting(path);
   }
 
-  /** `ResolvePathForWriting` - the body of `ResolvePathForWritingW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method. */
+  /**
+   * `ResolvePathForWriting` - the body of `ResolvePathForWritingW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method.
+   *
+   * @cjs
+   * @notSupported
+   */
   ResolvePathForWriting(_path) { return noDisk("ResolvePathForWriting"); }
 
   /**
@@ -164,13 +207,12 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
    * blue/src/BlueResFileSystemLocal.h:35). Exposed as "ResolvePathToRoot"
    * (blue/src/BlueResFileSystemLocal_Blue.cpp:74-82, MAP_METHOD_AND_WRAP).
    *
-   * Not supported: A browser has no disk, so a host must implement it (see the head of this file). Both string kinds are JS strings, so this returns
-   * the `ResolvePathToRoot` call. Quirk, for a host to reproduce (cpp:28-35,
-   * 338): `AreStringsEqualIgnoringCase` is a prefix test under MSVC
-   * (`_wcsnicmp` over `a.size()` characters) but a whole-string test
-   * elsewhere (`wcscasecmp`), so the same call matches a path under a
-   * search-path folder on one and only the folder itself on the other.
-   *
+   * @notSupported A browser has no disk, so a host must implement it (see the head of this file). Both string kinds are JS strings, so this returns
+   *   the `ResolvePathToRoot` call. Quirk, for a host to reproduce (cpp:28-35,
+   *   338): `AreStringsEqualIgnoringCase` is a prefix test under MSVC
+   *   (`_wcsnicmp` over `a.size()` characters) but a whole-string test
+   *   elsewhere (`wcscasecmp`), so the same call matches a path under a
+   *   search-path folder on one and only the folder itself on the other.
    * @param {string} root Path prefix.
    * @param {string} path Physical file path.
    * @returns {string} A path based on the given root, or `""`.
@@ -180,12 +222,18 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
     return this.ResolvePathToRoot(root, path);
   }
 
-  /** `ResolvePathToRoot` - the body of `ResolvePathToRootW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method. */
+  /**
+   * `ResolvePathToRoot` - the body of `ResolvePathToRootW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method.
+   *
+   * @cjs
+   * @notSupported
+   */
   ResolvePathToRoot(_root, _path) { return noDisk("ResolvePathToRoot"); }
 
   /**
    * `GetExpandedSearchPaths()` - every protocol's expanded search path.
    *
+   * @notImplemented
    * @returns {Map<string, string[]>} Expanded folders by lower-case protocol.
    */
   GetExpandedSearchPaths() { return noDisk("GetExpandedSearchPaths"); }
@@ -195,33 +243,49 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
    * path. Carbon appends it to the caller's `paths` output parameter; the
    * output parameter is the return value here, a new array.
    *
+   * @notImplemented
    * @param {string} _key Protocol, compared lower-case.
    * @returns {string[]} The protocol's expanded folders; empty when it has none.
    */
   GetExpandedSearchPaths__Key(_key) { return noDisk("GetExpandedSearchPaths__Key"); }
 
-  /** `LogPaths` - writes the search paths to the log. */
+  /**
+   * `LogPaths` - writes the search paths to the log.
+   *
+   * @notImplemented
+   */
   LogPaths() { return noDisk("LogPaths"); }
 
-  /** `GetInitialWorkingDirectory` - the working directory when the file system was initialized. */
+  /**
+   * `GetInitialWorkingDirectory` - the working directory when the file system was initialized.
+   *
+   * @notImplemented
+   */
   GetInitialWorkingDirectory() { return noDisk("GetInitialWorkingDirectory"); }
 
   /**
    * initialWorkingDirectory (MAP_PROPERTY_READONLY): Carbon's property over GetInitialWorkingDirectory, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (blue/src/BlueResFileSystemLocal_Blue.cpp:14).
+   *
+   * @notImplemented
    */
   get initialWorkingDirectory()
   {
     return this.GetInitialWorkingDirectory();
   }
 
-  /** `GetAllSearchPaths` - every protocol's search path as set. */
+  /**
+   * `GetAllSearchPaths` - every protocol's search path as set.
+   *
+   * @notImplemented
+   */
   GetAllSearchPaths() { return noDisk("GetAllSearchPaths"); }
 
   /**
    * `GetExpandedSearchPathsAsDict` (Blue name `GetExpandedSearchPaths`) -
    * every protocol's expanded search path, for script.
    *
+   * @implemented
    * @returns {Map<string, string[]>} Expanded folders by lower-case protocol.
    */
   GetExpandedSearchPathsAsDict()
@@ -230,7 +294,11 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
     return this.GetExpandedSearchPaths();
   }
 
-  /** `ListDirFromScript` (Blue name `listdir`) - a directory's entries, for script. */
+  /**
+   * `ListDirFromScript` (Blue name `listdir`) - a directory's entries, for script.
+   *
+   * @notImplemented
+   */
   ListDirFromScript(_dir) { return noDisk("ListDirFromScript"); }
 }
 

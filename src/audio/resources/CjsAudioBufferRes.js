@@ -50,6 +50,8 @@ export class CjsAudioBufferRes extends BlueAsyncRes
      *
      * The returned view may retain a complete bank buffer. Public media reads
      * should use CjsAudioRes.GetBytes(), which copies only the requested window.
+     *
+     * @implemented
      * @param {object} [options={}] Set reload to explicitly refresh the physical source.
      * @returns {Promise<Uint8Array>} Borrowed byte view; callers must pin its owner while using it.
      */
@@ -67,6 +69,8 @@ export class CjsAudioBufferRes extends BlueAsyncRes
 
     /**
      * Returns a detached copy of the complete physical source.
+     *
+     * @implemented
      * @param {object} [options={}] Physical source read/reload options.
      * @returns {Promise<ArrayBuffer>} Detached copy, safe after the backing resource is released.
      */
@@ -127,6 +131,8 @@ export class CjsAudioBufferRes extends BlueAsyncRes
 
     /**
      * Adopt the audio reader's bytes after cancellation checks.
+     *
+     * @adapted
      * @returns {Promise<number>} Native success code after adopting the physical bytes.
      */
     async _DoLoad()
@@ -138,6 +144,8 @@ export class CjsAudioBufferRes extends BlueAsyncRes
 
     /**
      * Audio decoding is performed by its consuming playback layer.
+     *
+     * @adapted
      * @returns {boolean} Whether physical bytes are resident.
      */
     _DoPrepare()
@@ -147,8 +155,9 @@ export class CjsAudioBufferRes extends BlueAsyncRes
 
     /**
      * Release the physical byte window at final teardown.
-     * Adapted: explicit JS teardown replaces native destruction; the existing
-     * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+     *
+     * @adapted explicit JS teardown replaces native destruction; the existing
+     *   MotherLode switches keep CPU data and opaque adapter cleanup independent.
      * @param {object} [options={}] Existing MotherLode cleanup policy.
      * @param {boolean} [options.releasePayload=true] Release owned family data.
      * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.

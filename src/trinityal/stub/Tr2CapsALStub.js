@@ -45,6 +45,7 @@ export class Tr2CapsALStub
   /**
    * Whether half-precision floats are available.
    *
+   * @implemented
    * @returns {boolean} True.
    */
   SupportsFloat16()
@@ -55,6 +56,7 @@ export class Tr2CapsALStub
   /**
    * Whether a shader can read a buffer resource.
    *
+   * @implemented
    * @returns {boolean} False; the stub has no buffer views.
    */
   SupportsGpuBuffer()
@@ -65,6 +67,7 @@ export class Tr2CapsALStub
   /**
    * Whether a swap chain can exist apart from the device's own.
    *
+   * @implemented
    * @returns {boolean} True.
    */
   SupportsStandaloneSwapChain()
@@ -75,6 +78,7 @@ export class Tr2CapsALStub
   /**
    * Whether a vertex shader can sample a texture.
    *
+   * @implemented
    * @returns {boolean} True.
    */
   SupportsVertexShaderTextures()
@@ -85,6 +89,7 @@ export class Tr2CapsALStub
   /**
    * Whether the display can refresh at a variable rate.
    *
+   * @implemented
    * @returns {boolean} False.
    */
   SupportsVariableRefreshRate()
@@ -95,6 +100,7 @@ export class Tr2CapsALStub
   /**
    * Whether hardware ray tracing is available.
    *
+   * @implemented
    * @returns {boolean} False; Carbon's stub fails every ray-tracing path.
    */
   SupportsRaytracing()

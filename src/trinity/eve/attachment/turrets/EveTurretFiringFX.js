@@ -336,6 +336,8 @@ export class EveTurretFiringFX extends EveEntity
    * Allocates the twelve per-muzzle records and resolves the firing duration,
    * preferring a non-negative firingDurationOverride and otherwise the longest
    * stretch-element curve.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -356,6 +358,8 @@ export class EveTurretFiringFX extends EveEntity
    * stretch elements settle into their stopped state before the effect is
    * discarded. JS stamps the fresh context with the unchanged Blue ticks and
    * restores the native time-taking constructor's LOD defaults.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -373,6 +377,8 @@ export class EveTurretFiringFX extends EveEntity
    * Recomputes the firing duration after a property change, taking the override
    * when it is non-negative and the longest element curve otherwise.
    * JS identifies the changed native member by its exposed name.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -389,6 +395,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Registers inserted or removed firing elements after a live stretch-list mutation.
    * Loading events are ignored; the list owner dispatches notifications after mutation.
+   *
+   * @adapted
    * @param {number} event Native BLUELISTEVENT flags.
    * @param {number} _key Changed index.
    * @param {number} _key2 Secondary index.
@@ -411,6 +419,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Binds a muzzle slot to a parent bone id; a muzzle id outside the
    * twelve-muzzle range is ignored rather than reported.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -423,6 +433,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Copies a world muzzle transform into a muzzle slot; a muzzle id outside the
    * twelve-muzzle range is ignored rather than reported.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -448,6 +460,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Sets the world point every stretch element extends towards, which is the
    * impact end of the shot.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -461,6 +475,8 @@ export class EveTurretFiringFX extends EveEntity
    * maxScale by where the target radius falls in the minRadius..maxRadius band,
    * and hands the raw radius to the destination observer as an audio attenuation
    * factor; does nothing unless scaleEffectTarget is authored.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -488,6 +504,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Restarts a looping burst by telling every stretch element to move again,
    * without resetting the per-muzzle delays that PrepareFiring establishes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -507,6 +525,8 @@ export class EveTurretFiringFX extends EveEntity
 
   /**
    * Arms the muzzles for a burst: selected muzzles start after delay plus their authored constant delay, every other muzzle is pushed out of reach with a maximal delay.
+   *
+   * @implemented
    * @param {number} delay Common start delay added to each muzzle's authored constant delay.
    * @param {number} [muzzleID] First muzzle of the firing group; INVALID_INDEX arms every muzzle.
    * @param {number} [muzzleCount] Number of consecutive muzzles in the group.
@@ -535,6 +555,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * The longest curve duration across the stretch elements, which is what the
    * firing duration falls back to when no override is authored.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -551,6 +573,8 @@ export class EveTurretFiringFX extends EveEntity
 
   /**
    * Averages the translation of every started muzzle transform, which is the point the shot is heard and seen to leave from.
+   *
+   * @implemented
    * @param {vec3} out Caller-owned vector filled with the averaged position.
    * @returns {boolean} False when the effect is not firing or no muzzle has started, in which case out is left untouched.
    */
@@ -578,6 +602,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * The firing duration in force: the override when non-negative, otherwise the
    * duration resolved at Initialize.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -589,6 +615,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * The authored offset into the burst at which the shot is considered to land,
    * used to time the target's impact.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -600,6 +628,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * The name of the bone muzzle locators are resolved under, Pos_Fire unless
    * authored otherwise.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -612,6 +642,8 @@ export class EveTurretFiringFX extends EveEntity
    * Starts one muzzle: its stretch element begins firing, the start curve set
    * plays backdated by the muzzle's remaining delay and the stop curve set is
    * halted; returns false when the muzzle has no record or no element.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -632,6 +664,8 @@ export class EveTurretFiringFX extends EveEntity
    * Stops every stretch element, clears all per-muzzle timers, halts the start
    * curve set and plays the stop curve set; does nothing when the effect is not
    * firing.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -654,6 +688,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Whether any muzzle has run its delay down but not yet started, and is still
    * inside the firing duration or belongs to a looping effect.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -669,6 +705,8 @@ export class EveTurretFiringFX extends EveEntity
    * delay expired, pushes the muzzle and end transforms into their stretch
    * elements, then updates the active curve set and both observers; returns
    * whether a muzzle started firing on this call. JS executes the task phase serially.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -720,6 +758,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Runs the synchronous element update for every muzzle still inside the firing
    * duration, or for all of them when the effect loops. JS executes the task phase serially.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -751,6 +791,8 @@ export class EveTurretFiringFX extends EveEntity
    * without using a valid bone transform, merges them by shifting the set's intensity onto
    * the first element as the muzzle cluster shrinks below the frustum's LOD
    * angle; gated on display and isFiring.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -789,6 +831,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Appends the renderables of every started element still inside the firing
    * duration to out; gated on display and isFiring. JS returns the caller's output array.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -805,7 +849,11 @@ export class EveTurretFiringFX extends EveEntity
     return out;
   }
 
-  /** Registers every stretch with the quad renderer (cpp:771-777). */
+  /**
+   * Registers every stretch with the quad renderer (cpp:771-777).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -813,7 +861,11 @@ export class EveTurretFiringFX extends EveEntity
     for (const stretch of this.stretch) stretch.RegisterWithQuadRenderer(quadRenderer);
   }
 
-  /** Collects stretch quads only while displayed and firing (cpp:780-792). */
+  /**
+   * Collects stretch quads only while displayed and firing (cpp:780-792).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
@@ -834,6 +886,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * The number of muzzles the effect drives, which is the number of authored
    * stretch elements rather than the twelve-muzzle maximum.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -845,6 +899,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * The parent bone id bound to a muzzle slot, or INVALID_INDEX when the muzzle
    * rides a supplied transform instead of a bone.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -858,6 +914,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Whether the burst repeats instead of ending when the firing duration
    * elapses.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -869,6 +927,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Sets whether the stretch elements draw their destination end, which is the
    * impact on the target.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -877,7 +937,11 @@ export class EveTurretFiringFX extends EveEntity
     this._displayDestObject = !!display;
   }
 
-  /** Whether the stretch elements draw their destination end. */
+  /**
+   * Whether the stretch elements draw their destination end.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDisplayDestObject()
@@ -888,6 +952,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Sets whether the stretch elements draw their source end, which is the muzzle
    * flash.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -896,7 +962,11 @@ export class EveTurretFiringFX extends EveEntity
     this._displaySourceObject = !!display;
   }
 
-  /** Whether the stretch elements draw their source end. */
+  /**
+   * Whether the stretch elements draw their source end.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDisplaySourceObject()
@@ -904,7 +974,11 @@ export class EveTurretFiringFX extends EveEntity
     return this._displaySourceObject;
   }
 
-  /** Forwards a named variable to stretches exposing Carbon's controller-owner interface. */
+  /**
+   * Forwards a named variable to stretches exposing Carbon's controller-owner interface.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetControllerVariable(name, value)
@@ -918,7 +992,11 @@ export class EveTurretFiringFX extends EveEntity
     }
   }
 
-  /** Forwards a named event to stretches exposing Carbon's controller-owner interface. */
+  /**
+   * Forwards a named event to stretches exposing Carbon's controller-owner interface.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HandleControllerEvent(name)
@@ -932,7 +1010,11 @@ export class EveTurretFiringFX extends EveEntity
     }
   }
 
-  /** Starts controllers on stretches exposing Carbon's controller-owner interface. */
+  /**
+   * Starts controllers on stretches exposing Carbon's controller-owner interface.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StartControllers()
@@ -950,6 +1032,8 @@ export class EveTurretFiringFX extends EveEntity
    * Carbon EveTurretFiringFX::GetDebugOptions (cpp:862-881): forwards to every
    * debug-renderable stretch element, then to the source and destination
    * observers.
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -980,6 +1064,8 @@ export class EveTurretFiringFX extends EveEntity
    * Carbon EveTurretFiringFX::RenderDebugInfo (cpp:883-902): forwards to every
    * debug-renderable stretch element, then to the source and destination
    * observers.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -1006,8 +1092,12 @@ export class EveTurretFiringFX extends EveEntity
     }
   }
 
-  /** Carbon EveTurretFiringFX::RegisterComponents (cpp:739-752): forwards the
-   * stretch elements. Gate m_display && m_isFiring. */
+  /**
+   * Carbon EveTurretFiringFX::RegisterComponents (cpp:739-752): forwards the
+   * stretch elements. Gate m_display && m_isFiring.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -1022,8 +1112,12 @@ export class EveTurretFiringFX extends EveEntity
     }
   }
 
-  /** Carbon EveTurretFiringFX::UnRegisterComponents (cpp:755-768): forwards
-   * the stretch elements; no display/isFiring re-check. */
+  /**
+   * Carbon EveTurretFiringFX::UnRegisterComponents (cpp:755-768): forwards
+   * the stretch elements; no display/isFiring re-check.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -1043,6 +1137,8 @@ export class EveTurretFiringFX extends EveEntity
    * matching Impact_On switch value to the destination observer's audio emitter;
    * anything other than armor or hull is sent as Shield, including
    * IMPACT_INVALID. JS resolves the nominal emitter type through Audio registration.
+   *
+   * @adapted
    */
 
   @meta.adapted

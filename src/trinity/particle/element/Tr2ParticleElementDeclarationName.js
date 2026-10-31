@@ -45,7 +45,11 @@ export class Tr2ParticleElementDeclarationName
     return out;
   }
 
-  /** Carbon operator== - CUSTOM elements also compare their names. */
+  /**
+   * Carbon operator== - CUSTOM elements also compare their names.
+   *
+   * @renamed operator==
+   */
   @meta.renamed("operator==")
   Equals(other)
   {
@@ -56,7 +60,11 @@ export class Tr2ParticleElementDeclarationName
     return this.type !== Tr2ParticleElementDeclarationName.Type.CUSTOM || this.name === other.name;
   }
 
-  /** Carbon operator< - map-key ordering (type, then name for CUSTOM pairs). */
+  /**
+   * Carbon operator< - map-key ordering (type, then name for CUSTOM pairs).
+   *
+   * @renamed operator<
+   */
   @meta.renamed("operator<")
   Compare(other)
   {

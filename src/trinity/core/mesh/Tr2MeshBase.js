@@ -147,7 +147,11 @@ export class Tr2MeshBase
     for (const property of Tr2MeshBase._observedAreaProperties) this[property].SetNotify(this);
   }
 
-  /** Whether this mesh participates in rendering. */
+  /**
+   * Whether this mesh participates in rendering.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDisplay()
@@ -155,7 +159,11 @@ export class Tr2MeshBase
     return this.display;
   }
 
-  /** Index of this mesh inside its geometry resource. */
+  /**
+   * Index of this mesh inside its geometry resource.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMeshIndex()
@@ -165,6 +173,8 @@ export class Tr2MeshBase
 
   /**
    * Carbon Tr2MeshBase::FindJoint (Tr2MeshBase.cpp:120-133): the index of name in the first numBones of boneList.
+   *
+   * @implemented
    * @param {string[]|null} boneList
    * @param {number} numBones
    * @param {string|null} name
@@ -191,9 +201,9 @@ export class Tr2MeshBase
    * boneList; a joint the rig lacks falls back through its render-rig parents until one is found. Every area then
    * shares the mapping and its joint count.
    *
-   * Adapted: renderRig is the decoded payload skeleton, { name, bones: [names], parents }, so Carbon's
-   * renderRig->FindJoint and m_joints[i].m_parentJoint / m_name read bones.indexOf, parents[i] and bones[i]; the mesh's
-   * m_jointBindings are the payload mesh's boneBindings. Carbon's CCP_LOGWARN on an unknown joint is not reproduced.
+   * @adapted renderRig is the decoded payload skeleton, { name, bones: [names], parents }, so Carbon's
+   *   renderRig->FindJoint and m_joints[i].m_parentJoint / m_name read bones.indexOf, parents[i] and bones[i]; the mesh's
+   *   m_jointBindings are the payload mesh's boneBindings. Carbon's CCP_LOGWARN on an unknown joint is not reproduced.
    * @param {string[]} boneList - the animation rig's bone names
    * @param {number} numBones
    * @param {object} renderRig - the geometry resource's skeleton
@@ -277,11 +287,11 @@ export class Tr2MeshBase
    * Otherwise, and when no binding applies, the geometry's box. Both then take Carbon's AdjustBounds: the
    * material-driven local scale, displacement and vertex-rotation expansion.
    *
-   * Adapted: Carbon returns its cached box; here the box is read from the geometry, and null when there is none.
-   * Bone transforms are mat4s whose memory matches Carbon's row-vector Matrix, so rows 0-2 are elements 0-2, 4-6
-   * and 8-10 and the translation is 12-14. The payload's boneBindings carry the joint OBB as bounds or
-   * minBounds/maxBounds. Morph growth reads the LOD's morphTargetDeformationAmounts, which Carbon fills at load
-   * (TriGeometryRes.cpp:2134, 2293) and our decoders do not yet produce.
+   * @adapted Carbon returns its cached box; here the box is read from the geometry, and null when there is none.
+   *   Bone transforms are mat4s whose memory matches Carbon's row-vector Matrix, so rows 0-2 are elements 0-2, 4-6
+   *   and 8-10 and the translation is 12-14. The payload's boneBindings carry the joint OBB as bounds or
+   *   minBounds/maxBounds. Morph growth reads the LOD's morphTargetDeformationAmounts, which Carbon fills at load
+   *   (TriGeometryRes.cpp:2134, 2293) and our decoders do not yet produce.
    * @param {mat4[]|null} [boneTransforms]
    * @param {ArrayLike<number>|null} [meshBindingIndices] - each binding's index into boneTransforms
    * @param {number} [boneCount]
@@ -387,7 +397,11 @@ export class Tr2MeshBase
     return true;
   }
 
-  /** Writes the adjusted mesh bounds into caller-owned minimum and maximum vectors. */
+  /**
+   * Writes the adjusted mesh bounds into caller-owned minimum and maximum vectors.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingBox(min, max)
@@ -409,6 +423,7 @@ export class Tr2MeshBase
    * mesh, so this throws rather than returning null: returning null would let
    * a subclass that forgot it draw nothing, silently.
    *
+   * @abstract
    * @returns {object} The geometry resource.
    */
   @be.abstract
@@ -417,6 +432,8 @@ export class Tr2MeshBase
   /**
    * The live area list for a TriBatchType, or null for a non-integer or unmapped
    * type.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -434,6 +451,8 @@ export class Tr2MeshBase
    * the same for every area at once, which is what a read and a teardown
    * produce.
    * Carbon declaration: Tr2MeshBase::OnListModified (trinity/trinity/Tr2MeshBase.h:83).
+   *
+   * @implemented
    */
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
@@ -474,6 +493,8 @@ export class Tr2MeshBase
   /**
    * Appends an area to the list for a batch type; returns false when that type
    * has no list. The area's record of this mesh is the INSERTED arm's.
+   *
+   * @implemented
    */
   @meta.implemented
   AddArea(areaType, area)
@@ -486,6 +507,8 @@ export class Tr2MeshBase
   /**
    * Removes an area from the list for a batch type; the area forgets this mesh
    * in the REMOVED arm.
+   *
+   * @implemented
    */
   @meta.implemented
   RemoveArea(areaType, area)
@@ -498,6 +521,8 @@ export class Tr2MeshBase
 
   /**
    * Carbon Tr2MeshBase::GetDebugOptions (Tr2MeshBase.cpp:540-543).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -513,9 +538,9 @@ export class Tr2MeshBase
    * skinning state as a wireframe box under worldTransform, coloured
    * Tr2DebugColor( 0xffaa8800, 0x22aa8800 ).
    *
-   * Adapted: Carbon's GetBounds always returns a box; ours returns null when
-   * the mesh has no geometry resource or the geometry has no bounding box for
-   * this mesh (see GetBounds), and then nothing is drawn.
+   * @adapted Carbon's GetBounds always returns a box; ours returns null when
+   *   the mesh has no geometry resource or the geometry has no bounding box for
+   *   this mesh (see GetBounds), and then nothing is drawn.
    * @param {mat4} worldTransform
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4[]|null} [boneTransforms]
@@ -549,6 +574,8 @@ export class Tr2MeshBase
   /**
    * Every area of every batch type, in batch-type order, as one newly allocated
    * array.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -566,6 +593,8 @@ export class Tr2MeshBase
    *
    * Callers pass a screen size already scaled by the LOD factor
    * (EveSpaceObject2, EveTransform, EveChildMesh, BehaviorGroup).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -599,7 +628,8 @@ export class Tr2MeshBase
   /**
    * Sets a shader option on every non-null area material.
    * Source: trinity/trinity/Tr2MeshBase.cpp:521-538
-   * Adapted: returns whether any material was updated; Carbon returns void.
+   *
+   * @adapted returns whether any material was updated; Carbon returns void.
    */
 
   @meta.adapted
@@ -620,6 +650,8 @@ export class Tr2MeshBase
    * The vertex-displacement bounds adjustment consumers apply to this mesh: max
    * local scale, max local displacement and whether the material rotates
    * vertices.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -635,6 +667,8 @@ export class Tr2MeshBase
   /**
    * Stores the bounds adjustment, coercing missing or non-numeric entries to
    * zero and false.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -647,7 +681,11 @@ export class Tr2MeshBase
     return true;
   }
 
-  /** Empty at this level; Tr2Mesh overrides it with the real geometry path. */
+  /**
+   * Empty at this level; Tr2Mesh overrides it with the real geometry path.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   GetGeometryResPath()
@@ -667,8 +705,8 @@ export class Tr2MeshBase
    * transform can drive the mesh directly; returns whether any batch was
    * committed (a JS addition, Carbon returns void).
    *
-   * Adapted: Emits descriptor batches; resolving geometry buffers and final draw args at dispatch is not ported yet.
-   * Carbon declaration: Tr2MeshBase::GetBatches (trinity/trinity/Tr2MeshBase.h:33).
+   * @adapted Emits descriptor batches; resolving geometry buffers and final draw args at dispatch is not ported yet.
+   *   Carbon declaration: Tr2MeshBase::GetBatches (trinity/trinity/Tr2MeshBase.h:33).
    */
   @meta.adapted
   GetBatches(accumulator, areas, perObjectData, screenSize = Infinity, reverseWinding = false)
@@ -706,8 +744,8 @@ export class Tr2MeshBase
    * descriptor; returns null for a hidden or material-less area, where Carbon
    * returns an invalid batch.
    *
-   * Adapted: Emits a geometry source descriptor; creating the Tr2BufferAL allocations Carbon makes here is not ported
-   * yet.
+   * @adapted Emits a geometry source descriptor; creating the Tr2BufferAL allocations Carbon makes here is not ported
+   *   yet.
    */
   @meta.adapted
   CreateGeometryBatch(geometry, area, perObjectData, reverseWinding = false, lod = null)
@@ -783,6 +821,8 @@ export class Tr2MeshBase
    * Appends one clamped (startIndex, count) block per area of the requested type
    * to the caller's collector, skipping non-shadow-casting OPAQUE areas as
    * Carbon does because overlay rendering over build effects misbehaves.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -809,7 +849,7 @@ export class Tr2MeshBase
    * non-shadow-casting OPAQUE and DECAL areas, and faithfully reproduces
    * Carbon's asymmetry by not clamping negative index or count.
    *
-   * Adapted: Material grouping uses reference identity in place of Carbon's effect hash values.
+   * @adapted Material grouping uses reference identity in place of Carbon's effect hash values.
    */
 
   @meta.adapted

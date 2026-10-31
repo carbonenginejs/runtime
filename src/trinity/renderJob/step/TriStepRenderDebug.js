@@ -27,7 +27,11 @@ export class TriStepRenderDebug extends TriRenderStep
   @type.boolean
   autoClear = true;
 
-  /** Carbon method Clear (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Clear (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Clear()
@@ -37,7 +41,11 @@ export class TriStepRenderDebug extends TriRenderStep
     this.text3d.length = 0;
   }
 
-  /** Carbon method DrawBox (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method DrawBox (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   DrawBox(min, max, color = 0xffffffff)
@@ -45,7 +53,11 @@ export class TriStepRenderDebug extends TriRenderStep
     this.lineSet.AddBox(min, max, color);
   }
 
-  /** Carbon method DrawCapsule (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method DrawCapsule (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   DrawCapsule(start, end, radius, segments, color = 0xffffffff)
@@ -55,7 +67,11 @@ export class TriStepRenderDebug extends TriRenderStep
     this.lineSet.AddSphere(end, radius, segments, color);
   }
 
-  /** Carbon method DrawCone (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method DrawCone (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   DrawCone(start, end, radius, segments, color = 0xffffffff)
@@ -63,7 +79,11 @@ export class TriStepRenderDebug extends TriRenderStep
     this.lineSet.AddCone(start, end, radius, segments, color);
   }
 
-  /** Carbon method DrawCylinder (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method DrawCylinder (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   DrawCylinder(start, end, radius, segments, color = 0xffffffff)
@@ -71,7 +91,11 @@ export class TriStepRenderDebug extends TriRenderStep
     this.lineSet.AddCylinder(start, end, radius, segments, color);
   }
 
-  /** Carbon method DrawLine -> PyDrawLine (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method DrawLine -> PyDrawLine (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   DrawLine(from, fromColor, to, toColor)
@@ -79,7 +103,11 @@ export class TriStepRenderDebug extends TriRenderStep
     this.lineSet.Add(from, fromColor, to, toColor);
   }
 
-  /** Carbon method DrawSphere (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method DrawSphere (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   DrawSphere(center, radius, segments, color = 0xffffffff)
@@ -87,7 +115,11 @@ export class TriStepRenderDebug extends TriRenderStep
     this.lineSet.AddSphere(center, radius, segments, color);
   }
 
-  /** Carbon method Print3D (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Print3D (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   Print3D(position, color, message)
@@ -95,7 +127,11 @@ export class TriStepRenderDebug extends TriRenderStep
     this.text3d.push({ position: vec3.clone(position), color: Number(color) >>> 0, message: String(message) });
   }
 
-  /** Carbon method Print2D (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Print2D (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   Print2D(x, y, color, message)
@@ -103,7 +139,11 @@ export class TriStepRenderDebug extends TriRenderStep
     this.text2d.push({ x: Number(x) | 0, y: Number(y) | 0, width: 1024, height: 512, format: 0, color: Number(color) >>> 0, message: String(message) });
   }
 
-  /** Carbon method Print2Df (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Print2Df (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   Print2Df(x, y, width, height, format, color, message)
@@ -115,6 +155,8 @@ export class TriStepRenderDebug extends TriRenderStep
    * Draws the accumulated debug lines and text, then clears them for the next
    * frame. Not ported: Carbon draws through its debug resource helper and
    * fonts (TriStepRenderDebug.cpp:57-64).
+   *
+   * @notImplemented
    */
 
   @meta.notImplemented

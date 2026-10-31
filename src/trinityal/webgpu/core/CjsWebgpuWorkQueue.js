@@ -135,6 +135,7 @@ export class CjsWebgpuWorkQueue
    * Returns its transitions like every other verb here, so a caller drains one
    * list per call and never carries events into the next one.
    *
+   * @adapted
    * @returns {object[]} The transitions this required.
    */
   BeginFrame()
@@ -155,6 +156,7 @@ export class CjsWebgpuWorkQueue
    * Closes any encoder and commits. Carbon's `EndFrame` plus
    * `CommitCommandBuffer`.
    *
+   * @adapted
    * @returns {object[]} The transitions this required, in order.
    */
   EndFrame()
@@ -180,6 +182,7 @@ export class CjsWebgpuWorkQueue
    * no DONT_CARE load action, so an unused pass preserves those attachments
    * instead of realizing their discard as a destructive clear.
    *
+   * @adapted
    * @param {object[]} colors `Tr2ColorAttachment`s, in slot order.
    * @param {object} [depth] A `Tr2DepthAttachment`.
    */
@@ -202,6 +205,7 @@ export class CjsWebgpuWorkQueue
    * Carbon flushes rather than discards, for the reason above
    * (`MetalWorkQueue.mm:3293-3300`).
    *
+   * @adapted
    * @returns {object[]} The transitions this required.
    */
   EndRenderPassHint()
@@ -223,6 +227,7 @@ export class CjsWebgpuWorkQueue
    * (`_FlushOutstandingOperations`), so a clear never lands on the targets
    * bound after it: that is the difference from a hint.
    *
+   * @adapted
    * @param {object[]} colors `Tr2ColorAttachment`s for the bound slots, in order.
    * @param {object|null} depth A `Tr2DepthAttachment`, or null.
    * @returns {object[]} The transitions this required.
@@ -242,6 +247,8 @@ export class CjsWebgpuWorkQueue
    * ends the open encoder, then runs a pending clear in a pass of its own
    * over the current attachments. A pending hint is set aside for that pass
    * and stays pending, as Metal backs it up and restores it.
+   *
+   * @adapted
    */
   _FlushOutstandingOperations()
   {
@@ -257,7 +264,11 @@ export class CjsWebgpuWorkQueue
     this._pendingRenderPassHint = hint;
   }
 
-  /** Carbon's `EndCurrentRenderPass`. @returns {object[]} The transitions. */
+  /**
+   * Carbon's `EndCurrentRenderPass`. @returns {object[]} The transitions.
+   *
+   * @adapted
+   */
   EndCurrentRenderPass()
   {
     if (this._currentEncoderType === EncoderType.RENDER) this._ReleaseEncoder();
@@ -268,6 +279,7 @@ export class CjsWebgpuWorkQueue
   /**
    * Makes an encoder of the given type current, as `SetCurrentEncoder` does.
    *
+   * @adapted
    * @param {string} encoderType An `EncoderType` other than NONE.
    * @returns {object[]} The transitions this required, in order.
    */
@@ -322,6 +334,7 @@ export class CjsWebgpuWorkQueue
    * encoder: the open pass ends first, so the chain is encoded in order with
    * the work around it.
    *
+   * @adapted
    * @param {GPUTexture} texture The texture.
    * @param {CjsWebgpuMipGenerator} generator The context's generator.
    * @returns {object[]} The transitions this required.
@@ -345,6 +358,7 @@ export class CjsWebgpuWorkQueue
    * command encoder itself, so the open pass is released first, as
    * `GenerateMipMaps` does.
    *
+   * @adapted
    * @param {GPUTexture} source The texture to read.
    * @param {number} sourceSlice The source array layer.
    * @param {number} sourceMip The source mip level.
@@ -379,6 +393,8 @@ export class CjsWebgpuWorkQueue
    * Carbon MetalWorkQueue::CopyTextureToMTLBuffer, with a GPUBuffer replacing
    * MTLBuffer. The device supplies an encoder when called between frames.
    * Waiting is owned by Tr2ReadbackALWebgpu because WebGPU cannot block.
+   *
+   * @adapted
    */
   CopyTextureToMTLBuffer(texture, destBuffer, bytesPerRow, bytesPerSlice, origin, size, mipLevel, waitForData, device)
   {
@@ -400,6 +416,7 @@ export class CjsWebgpuWorkQueue
    * `CopyTextureToTexture` does. Only zero is expressible; Metal's other
    * values go through a compute shader this queue does not have.
    *
+   * @adapted
    * @param {GPUBuffer} buffer The buffer to zero, whole.
    * @returns {object[]} The transitions this required.
    */
@@ -456,6 +473,8 @@ export class CjsWebgpuWorkQueue
    * encoder is current: Metal's `DispatchThreadgroups`, which binds the
    * pending pipeline and bind groups first.
    *
+   * @adapted
+   * @renamed Dispatch
    * @param {number} x Thread groups along x.
    * @param {number} y Thread groups along y.
    * @param {number} z Thread groups along z.
@@ -476,6 +495,8 @@ export class CjsWebgpuWorkQueue
    * WebGPU's `dispatchWorkgroupsIndirect`. The buffer holds three u32 group
    * counts at `offset`, D3D's `D3D11_DISPATCH_INDIRECT_ARGS` layout.
    *
+   * @adapted
+   * @renamed Dispatch
    * @param {object} indirectBuffer A `GPUBuffer` with INDIRECT usage.
    * @param {number} offset Byte offset of the arguments, a multiple of 4.
    * @returns {object[]} The transitions this required.
@@ -493,6 +514,7 @@ export class CjsWebgpuWorkQueue
    * Metal's `EmitComputeEncoderState`: opens the compute encoder if another is
    * current, records the event, and binds the pending pipeline and bind groups.
    *
+   * @adapted
    * @param {object} event The dispatch event to record.
    * @returns {object|null} The live compute pass, or null when recording only.
    */
@@ -534,6 +556,7 @@ export class CjsWebgpuWorkQueue
    *    caller has not said the previous contents are worthless, so discarding
    *    them would lose whatever is already there.
    *
+   * @adapted
    * @param {object|null} texture The target, or null to detach.
    * @param {number} [index] The slot.
    * @param {number} [slice] The array slice or cube face.
@@ -559,6 +582,8 @@ export class CjsWebgpuWorkQueue
   /**
    * Attaches the depth-stencil target, with the same three behaviours.
    *
+   * @adapted
+   * @renamed SetDepthStencilAttachment
    * @param {object|null} texture The depth target, or null to detach.
    * @returns {object[]} The transitions this required.
    */
@@ -596,6 +621,7 @@ export class CjsWebgpuWorkQueue
    * is to validate arguments and convert primitive counts, and the work
    * queue's job is to have somewhere to put the result.
    *
+   * @adapted
    * @param {number} indexCount Indices this draw reads.
    * @param {number} instanceCount Instances to draw.
    * @param {number} startIndex First index.
@@ -631,6 +657,8 @@ export class CjsWebgpuWorkQueue
    * WebGPU's `drawIndexedIndirect`. The buffer holds five u32 words at
    * `offset`, D3D's `D3D11_DRAW_INDEXED_INSTANCED_INDIRECT_ARGS` layout.
    *
+   * @adapted
+   * @renamed DrawIndexedPrimitives
    * @param {object} indirectBuffer A `GPUBuffer` with INDIRECT usage.
    * @param {number} offset Byte offset of the arguments, a multiple of 4.
    * @returns {object[]} The transitions this required, in order.
@@ -672,6 +700,7 @@ export class CjsWebgpuWorkQueue
    * Metal's `SetViewport` (`MetalWorkQueue.mm:2166-2171`): held until the next
    * draw, like the bindings above.
    *
+   * @adapted
    * @param {number} originX Left edge, in pixels.
    * @param {number} originY Top edge, in pixels.
    * @param {number} width Width, in pixels.
@@ -729,7 +758,11 @@ export class CjsWebgpuWorkQueue
     this._pending.indexBuffer = { buffer, format, offset };
   }
 
-  /** Metal's `EmitRenderEncoderState`: bind what differs from the encoder's. */
+  /**
+   * Metal's `EmitRenderEncoderState`: bind what differs from the encoder's.
+   *
+   * @adapted
+   */
   _EmitRenderEncoderState(indexed)
   {
     const pass = this._renderPass;
@@ -822,6 +855,7 @@ export class CjsWebgpuWorkQueue
   /**
    * Records a non-indexed draw, opening a render encoder if none is current.
    *
+   * @adapted
    * @param {number} vertexCount Vertices this draw reads.
    * @param {number} instanceCount Instances to draw.
    * @param {number} startVertex First vertex.
@@ -856,6 +890,8 @@ export class CjsWebgpuWorkQueue
    * instance count, first vertex, first instance), D3D's
    * `D3D11_DRAW_INSTANCED_INDIRECT_ARGS` layout.
    *
+   * @adapted
+   * @renamed DrawPrimitives
    * @param {object} indirectBuffer A `GPUBuffer` with INDIRECT usage.
    * @param {number} offset Byte offset of the arguments, a multiple of 4.
    * @returns {object[]} The transitions this required, in order.
@@ -950,6 +986,7 @@ export class CjsWebgpuWorkQueue
    * is then refused has still opened its pass - which is why a marker pushed
    * after a refused draw lands on a pass encoder.
    *
+   * @adapted
    * @returns {object[]} The transitions this required, in order.
    */
   GetRenderEncoder()
@@ -1015,7 +1052,11 @@ export class CjsWebgpuWorkQueue
     }
   }
 
-  /** Carbon's `ReleaseEncoder( true )`. */
+  /**
+   * Carbon's `ReleaseEncoder( true )`.
+   *
+   * @adapted
+   */
   _ReleaseEncoder()
   {
     if (this._currentEncoderType === EncoderType.NONE) return;

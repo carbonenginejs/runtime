@@ -9,10 +9,18 @@ import { CjsSchema, blue, meta } from "../schema/index.js";
 export class ITr2BoundingBox extends IRoot
 {
 
-    /** Writes the current world-space minimum and maximum bounds. */
+    /**
+     * Writes the current world-space minimum and maximum bounds.
+     *
+     * @abstract
+     */
     GetWorldBoundingBox(_minBounds, _maxBounds) {}
 
-    /** Reports whether the provider can currently answer a bounds query. */
+    /**
+     * Reports whether the provider can currently answer a bounds query.
+     *
+     * @abstract
+     */
     IsBoundingBoxReady() {}
 }
 

@@ -36,7 +36,8 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /**
    * Carbon GetBatches (h:36, cpp:107-137), preserving authored mesh traversal.
-   * Adapted: no arena copy of the matrix is needed; the native helper never reads it.
+   *
+   * @adapted no arena copy of the matrix is needed; the native helper never reads it.
    */
   @legacyBlue.method
   @meta.adapted
@@ -52,11 +53,12 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /**
    * Carbon's private GetBatchesForArea (h:104, cpp:32-105).
-   * Adapted: geometry allocation uses the existing lazy Trinity owner, as in
-   * Tr2Model; JS constructs area objects instead of leasing native arena memory.
-   * Each area's data also copies the skinned data's user data, as Carbon's
-   * objectId picking revision did (92483097^, Tr2SkinnedModel.cpp:75), which our
-   * objectId picking reads (Tr2RenderContext.eveSpacePickingFramework).
+   *
+   * @adapted geometry allocation uses the existing lazy Trinity owner, as in
+   *   Tr2Model; JS constructs area objects instead of leasing native arena memory.
+   *   Each area's data also copies the skinned data's user data, as Carbon's
+   *   objectId picking revision did (92483097^, Tr2SkinnedModel.cpp:75), which our
+   *   objectId picking reads (Tr2RenderContext.eveSpacePickingFramework).
    */
   @legacyBlue.method
   @meta.adapted
@@ -138,7 +140,11 @@ export class Tr2SkinnedModel extends Tr2Model
   @type.vec3
   skinScale = vec3.fromValues(1, 1, 1);
 
-  /** Carbon OnModified (Tr2SkinnedModel.cpp:226-238): a new geometry path or skeleton name re-initialises. */
+  /**
+   * Carbon OnModified (Tr2SkinnedModel.cpp:226-238): a new geometry path or skeleton name re-initialises.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(propertyName)
@@ -158,6 +164,8 @@ export class Tr2SkinnedModel extends Tr2Model
    * Carbon Initialize (Tr2SkinnedModel.cpp:202-223): resets the skeleton and bindings, then acquires the geometry
    * resource and becomes its notify target, so RebuildCachedData selects the skeleton once it is prepared (at once
    * when it already is).
+   *
+   * @implemented
    * @returns {boolean} true
    */
 
@@ -187,8 +195,11 @@ export class Tr2SkinnedModel extends Tr2Model
     return true;
   }
 
-  /** Carbon OnListModified (Tr2SkinnedModel.cpp:276-283): an inserted mesh triggers rebinding.
+  /**
+   * Carbon OnListModified (Tr2SkinnedModel.cpp:276-283): an inserted mesh triggers rebinding.
    * Carbon declaration: Tr2SkinnedModel::OnListModified (trinity/trinity/Tr2SkinnedModel.h:60).
+   *
+   * @implemented
    */
   @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
@@ -201,7 +212,11 @@ export class Tr2SkinnedModel extends Tr2Model
     }
   }
 
-  /** Carbon ReleaseCachedData (Tr2SkinnedModel.cpp:240-243): forgets the selected skeleton. */
+  /**
+   * Carbon ReleaseCachedData (Tr2SkinnedModel.cpp:240-243): forgets the selected skeleton.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseCachedData(_resource = null)
@@ -211,6 +226,8 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /**
    * Carbon RebuildCachedData (Tr2SkinnedModel.cpp:245-262): selects the first skeleton named skeletonName.
+   *
+   * @implemented
    * @param {TriGeometryRes|null} [_resource] - the notifying resource; the model reads its own geometryRes
    */
 
@@ -235,6 +252,8 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /**
    * Carbon GetSkeleton (Tr2SkinnedModel.cpp:264-272).
+   *
+   * @implemented
    * @returns {object|null} the selected payload skeleton, or null when none is selected
    */
 
@@ -252,6 +271,8 @@ export class Tr2SkinnedModel extends Tr2Model
   /**
    * Carbon BindToRig (Tr2SkinnedModel.cpp:159-195): binds every mesh to boneList against the selected skeleton,
    * once per bone list unless forced or a mesh was not yet bound.
+   *
+   * @implemented
    * @param {string[]|null} boneList - the animation rig's bone names; null clears the binding
    * @param {number} numBones
    * @param {boolean} forceRebind
@@ -293,7 +314,11 @@ export class Tr2SkinnedModel extends Tr2Model
     this._numBones = numBones;
   }
 
-  /** Carbon ResetBindings (Tr2SkinnedModel.cpp:197-200). */
+  /**
+   * Carbon ResetBindings (Tr2SkinnedModel.cpp:197-200).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap("ResetAnimationBindings")
   @meta.implemented
   ResetBindings()
@@ -301,7 +326,12 @@ export class Tr2SkinnedModel extends Tr2Model
     this._areAllMeshesBound = false;
   }
 
-  /** Carbon method ResetAnimationBindings -> ResetBindings (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ResetAnimationBindings -> ResetBindings (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   * @renamed ResetBindings
+   */
   @meta.renamed("ResetBindings")
   @meta.implemented
   ResetAnimationBindings()
@@ -309,7 +339,11 @@ export class Tr2SkinnedModel extends Tr2Model
     this.ResetBindings();
   }
 
-  /** Carbon SetGeometryResPath (Tr2SkinnedModel.h:72-75): sets the path without re-initialising. */
+  /**
+   * Carbon SetGeometryResPath (Tr2SkinnedModel.h:72-75): sets the path without re-initialising.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetGeometryResPath(path)
@@ -317,7 +351,11 @@ export class Tr2SkinnedModel extends Tr2Model
     this.geometryResPath = path;
   }
 
-  /** Carbon GetGeometryResPath (Tr2SkinnedModel.h:76-79). */
+  /**
+   * Carbon GetGeometryResPath (Tr2SkinnedModel.h:76-79).
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetGeometryResPath()
@@ -325,7 +363,11 @@ export class Tr2SkinnedModel extends Tr2Model
     return this.geometryResPath;
   }
 
-  /** Carbon SetSkeletonName (Tr2SkinnedModel.h:80-83): sets the name without re-initialising. */
+  /**
+   * Carbon SetSkeletonName (Tr2SkinnedModel.h:80-83): sets the name without re-initialising.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetSkeletonName(name)
@@ -336,6 +378,8 @@ export class Tr2SkinnedModel extends Tr2Model
   /**
    * Carbon GetDynamicBoundingBox (Tr2SkinnedModel.cpp:285-299): the union of every mesh's skinned bounds under the
    * bone transforms.
+   *
+   * @implemented
    * @param {mat4[]} boneTransforms - the animation's bone transforms
    * @param {vec3} minBounds - receives the minimum
    * @param {vec3} maxBounds - receives the maximum
@@ -366,7 +410,11 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
 
-  /** Carbon destructor (Tr2SkinnedModel.cpp:23-28): release the geometry target. */
+  /**
+   * Carbon destructor (Tr2SkinnedModel.cpp:23-28): release the geometry target.
+   *
+   * @adapted
+   */
   @meta.adapted
   Destruct()
   {

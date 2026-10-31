@@ -23,98 +23,154 @@ export class TriVector
   @type.unknown
   z = null;
 
-  /** Carbon method TransformCoord -> PyTransformCoord (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method TransformCoord -> PyTransformCoord (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   TransformCoord(...args)
   {
     throw new Error("TriVector.TransformCoord is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method TransformNormal -> PyTransformNormal (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method TransformNormal -> PyTransformNormal (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   TransformNormal(...args)
   {
     throw new Error("TriVector.TransformNormal is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Lerp -> PyLerp (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Lerp -> PyLerp (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Lerp(...args)
   {
     throw new Error("TriVector.Lerp is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Maximize -> PyMaximize (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Maximize -> PyMaximize (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Maximize(...args)
   {
     throw new Error("TriVector.Maximize is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Minimize -> PyMinimize (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Minimize -> PyMinimize (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Minimize(...args)
   {
     throw new Error("TriVector.Minimize is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Subtract -> PySubtract (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Subtract -> PySubtract (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Subtract(...args)
   {
     throw new Error("TriVector.Subtract is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Project -> PyProject (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Project -> PyProject (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Project(...args)
   {
     throw new Error("TriVector.Project is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Unproject -> PyUnproject (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Unproject -> PyUnproject (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Unproject(...args)
   {
     throw new Error("TriVector.Unproject is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method __init__ -> SetXYZ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> SetXYZ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   __init__(...args)
   {
     throw new Error("TriVector.__init__ is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Add -> PyAdd (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Add -> PyAdd (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Add(...args)
   {
     throw new Error("TriVector.Add is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Cross -> PyCross (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Cross -> PyCross (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Cross(...args)
   {
     throw new Error("TriVector.Cross is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Dot -> PyDot (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Dot -> PyDot (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Dot(...args)
   {
     throw new Error("TriVector.Dot is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method DotProduct -> PyDotProduct (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method DotProduct -> PyDotProduct (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   DotProduct(...args)
   {
     throw new Error("TriVector.DotProduct is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Normalize (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Normalize (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   Normalize(...args)
@@ -122,7 +178,11 @@ export class TriVector
     throw new Error("TriVector.Normalize is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Length (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Length (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   Length(...args)
@@ -130,7 +190,11 @@ export class TriVector
     throw new Error("TriVector.Length is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method LengthSq (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method LengthSq (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   LengthSq(...args)
@@ -138,28 +202,44 @@ export class TriVector
     throw new Error("TriVector.LengthSq is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Scale (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Scale (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Scale(...args)
   {
     throw new Error("TriVector.Scale is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetXYZ (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetXYZ (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   SetXYZ(...args)
   {
     throw new Error("TriVector.SetXYZ is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetCrossProduct -> PySetCrossProduct (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetCrossProduct -> PySetCrossProduct (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   SetCrossProduct(...args)
   {
     throw new Error("TriVector.SetCrossProduct is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method TransformQuaternion -> PyTransformQuaternion (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method TransformQuaternion -> PyTransformQuaternion (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   TransformQuaternion(...args)
   {

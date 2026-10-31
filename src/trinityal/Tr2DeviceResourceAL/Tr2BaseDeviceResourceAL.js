@@ -70,6 +70,7 @@ export class Tr2BaseDeviceResourceAL
    * Whether this resource still holds anything. Carbon's pure virtual
    * (Tr2DeviceResourceAL.h:28).
    *
+   * @abstract
    * @returns {boolean} True when live.
    */
   @meta.abstract
@@ -79,6 +80,7 @@ export class Tr2BaseDeviceResourceAL
    * Which memory class this resource occupies. Carbon's pure virtual
    * (Tr2DeviceResourceAL.h:29).
    *
+   * @abstract
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.abstract
@@ -92,9 +94,8 @@ export class Tr2BaseDeviceResourceAL
    * (`Tr2PipelineStatsQueryALStub.cpp:65-68`) - so an unoverridden description
    * is faithful rather than lazy, and that one override is faithful too.
    *
-   * Adapted: The empty concrete stub descriptions share this inherited implementation
-   * instead of repeating it on each backend class.
-   *
+   * @adapted The empty concrete stub descriptions share this inherited implementation
+   *   instead of repeating it on each backend class.
    * @param {object} _description Accumulator, keyed by name.
    */
   @meta.adapted
@@ -108,8 +109,8 @@ export class Tr2BaseDeviceResourceAL
    * Unregistering here rather than in a finaliser is what makes the release
    * path deterministic; see the head comment.
    *
-   * Adapted: JavaScript has no deterministic destructor; the existing registry unregisters
-   * at explicit Destroy. Recreating that object does not re-register it.
+   * @adapted JavaScript has no deterministic destructor; the existing registry unregisters
+   *   at explicit Destroy. Recreating that object does not re-register it.
    */
   @meta.adapted
   Destroy()
@@ -130,6 +131,7 @@ export class Tr2BaseDeviceResourceAL
   /**
    * Runs an operation over every live resource.
    *
+   * @adapted
    * @param {Function} operation Called with each resource.
    */
   static EnumerateResources(operation)

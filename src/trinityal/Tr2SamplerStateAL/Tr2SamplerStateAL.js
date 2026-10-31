@@ -65,10 +65,9 @@ export class Tr2SamplerStateAL
    * refused create leaves this value as it was, as `Tr2ObjectFactory::Get`
    * returns before assigning.
    *
-   * Adapted: the render context's `CreateSamplerState(description, true)`
-   * stands in for `renderContext.m_samplerStateFactory.Get`, because the
-   * context is where JavaScript selects the backend.
-   *
+   * @adapted the render context's `CreateSamplerState(description, true)`
+   *   stands in for `renderContext.m_samplerStateFactory.Get`, because the
+   *   context is where JavaScript selects the backend.
    * @param {object} description A `Tr2SamplerDescription`.
    * @param {object} renderContext The context whose factory answers.
    * @returns {number} An `ALResult` value.
@@ -86,6 +85,7 @@ export class Tr2SamplerStateAL
   /**
    * Where the sampler sits in the descriptor heap (`Tr2SamplerStateAL.cpp:30-33`).
    *
+   * @implemented
    * @returns {number} The index, or Carbon's "no index".
    */
   @meta.implemented
@@ -97,6 +97,7 @@ export class Tr2SamplerStateAL
   /**
    * Whether the implementation exists on the device (`Tr2SamplerStateAL.cpp:35-38`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -108,6 +109,7 @@ export class Tr2SamplerStateAL
   /**
    * The implementation's memory class (`Tr2SamplerStateAL.cpp:40-43`).
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.implemented
@@ -119,8 +121,8 @@ export class Tr2SamplerStateAL
   /**
    * Compares implementation identity (`Tr2SamplerStateAL.cpp:45-48`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2SamplerStateAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -134,6 +136,7 @@ export class Tr2SamplerStateAL
    * The shared backend implementation, for the resource set that binds it
    * (`Tr2SamplerStateAL.cpp:50-53`); `nullSampler` when uncreated.
    *
+   * @implemented
    * @returns {object} The implementation.
    */
   @meta.implemented
@@ -146,6 +149,7 @@ export class Tr2SamplerStateAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2SamplerStateAL.cpp:55-66`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

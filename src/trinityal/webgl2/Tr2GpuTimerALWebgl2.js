@@ -59,6 +59,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Creates the timer (`Tr2GpuTimerALDx11.cpp:22-49`).
    *
+   * @adapted
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
@@ -88,6 +89,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    * Starts timing (`:65-75`). False when not ready, or while another timer
    * is running; see the head comment.
    *
+   * @adapted
    * @param {object} _renderContext The context.
    * @returns {boolean} Whether timing started.
    */
@@ -108,6 +110,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Stops timing (`:77-86`).
    *
+   * @adapted
    * @param {object} _renderContext The context.
    */
   @meta.adapted
@@ -124,6 +127,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    * arrived (`:88-145`). A disjoint period discards the measurement and keeps
    * the previous time, as dx11 does; -1 until a time has arrived.
    *
+   * @adapted
    * @param {object} _renderContext The context.
    * @returns {number} The time in seconds.
    */
@@ -154,7 +158,11 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
     this._lastTime = -1;
   }
 
-  /** Releases the timer and leaves the device-resource registry. */
+  /**
+   * Releases the timer and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -164,6 +172,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the timer was created.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -174,6 +183,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this timer occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -184,6 +194,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the timer for the device-resource registry, with dx11's keys.
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -195,6 +206,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the timer. WebGL has no debug names, so it is kept for `Describe`.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

@@ -31,6 +31,8 @@ export class YamlWriter extends IRootWriter
    * Emits UTF-8 through IBlueStream.Write. Adapted: yaml emits one buffered
    * string rather than calling a native output callback for each chunk.
    * Carbon's Result<void> success is represented by undefined.
+   *
+   * @adapted
    * @param {object} root Root object.
    * @param {object} stream Host IBlueStream-shaped sink with Write(bytes, size).
    * @returns {void}
@@ -53,6 +55,8 @@ export class YamlWriter extends IRootWriter
   /**
    * Returns the C++ output string. Adapted: yaml owns AST nodes rather than
    * libyaml events; its flow wrapping and escaping may differ from libyaml.
+   *
+   * @adapted
    * @param {object} root Root object.
    * @returns {string} Red text.
    */
@@ -103,8 +107,10 @@ export class YamlWriter extends IRootWriter
 
   /**
    * Dispatches the base's JS type descriptors to Carbon's distinct primitives.
-   * Adapted: schema descriptors replace Be::VARTYPE and storage-pointer casts.
-   * Generic records are retained for existing rawStruct schema declarations.
+   *
+   * @cjs
+   * @adapted schema descriptors replace Be::VARTYPE and storage-pointer casts.
+   *   Generic records are retained for existing rawStruct schema declarations.
    * @param {*} value Declared value.
    * @param {object|null} type Schema descriptor.
    * @returns {void}
@@ -179,47 +185,91 @@ export class YamlWriter extends IRootWriter
     this._AddMappingEndEvent();
   }
 
-  /** Writes an unquoted member name; yaml may quote syntactically ambiguous names. */
+  /**
+   * Writes an unquoted member name; yaml may quote syntactically ambiguous names.
+   *
+   * @adapted
+   */
 
   _WriteMemberName(key) { this._AddScalarEvent(key); }
 
-  /** Emits a signed byte after C++ argument conversion. */
+  /**
+   * Emits a signed byte after C++ argument conversion.
+   *
+   * @implemented
+   */
 
   _WriteInt8(value) { this._WriteInt32((Number(value) << 24) >> 24); }
 
-  /** Emits a signed short after C++ argument conversion. */
+  /**
+   * Emits a signed short after C++ argument conversion.
+   *
+   * @implemented
+   */
 
   _WriteInt16(value) { this._WriteInt32((Number(value) << 16) >> 16); }
 
-  /** Emits signed decimal int32. */
+  /**
+   * Emits signed decimal int32.
+   *
+   * @implemented
+   */
 
   _WriteInt32(value) { this._AddScalarEvent(Number(value) | 0); }
 
-  /** Emits unsigned decimal uint32. */
+  /**
+   * Emits unsigned decimal uint32.
+   *
+   * @implemented
+   */
 
   _WriteUInt32(value) { this._AddScalarEvent(Number(value) >>> 0); }
 
-  /** BigInt replaces native int64 storage without passing through Number. */
+  /**
+   * BigInt replaces native int64 storage without passing through Number.
+   *
+   * @adapted
+   */
 
   _WriteInt64(value) { this._AddScalarEvent(BigInt.asIntN(64, BigInt(value))); }
 
-  /** BigInt replaces native uint64 storage without passing through Number. */
+  /**
+   * BigInt replaces native uint64 storage without passing through Number.
+   *
+   * @adapted
+   */
 
   _WriteUInt64(value) { this._AddScalarEvent(BigInt.asUintN(64, BigInt(value))); }
 
-  /** Emits %.7f, retaining one fraction digit; BigInt arithmetic replaces printf. */
+  /**
+   * Emits %.7f, retaining one fraction digit; BigInt arithmetic replaces printf.
+   *
+   * @adapted
+   */
 
   _WriteFloat(value) { this._AddScalarEvent(Math.fround(value), "number", Fixed(Math.fround(value), 7)); }
 
-  /** Emits %.12f, retaining one fraction digit; BigInt arithmetic replaces printf. */
+  /**
+   * Emits %.12f, retaining one fraction digit; BigInt arithmetic replaces printf.
+   *
+   * @adapted
+   */
 
   _WriteDouble(value) { this._AddScalarEvent(value, "number", Fixed(value, 12)); }
 
-  /** JS strings already hold Unicode; output is quoted and non-ASCII escaped. */
+  /**
+   * JS strings already hold Unicode; output is quoted and non-ASCII escaped.
+   *
+   * @adapted
+   */
 
   _WriteChar(value) { this._AddScalarEvent(String(value).split("\0", 1)[0], "quoted"); }
 
-  /** A native null wide pointer becomes null; JS strings replace wchar_t storage. */
+  /**
+   * A native null wide pointer becomes null; JS strings replace wchar_t storage.
+   *
+   * @adapted
+   */
 
   _WriteWChar(value)
   {
@@ -232,6 +282,8 @@ export class YamlWriter extends IRootWriter
    * of C++ output pointers. Base64 bytes stay one scalar, as Carbon emits them.
    * A one-byte block cannot form a yaml AST: report that native malformed-event
    * bug as an error instead of silently producing a repaired block.
+   *
+   * @adapted
    */
 
   _WriteBinaryBlock(persist, propertyName)
@@ -258,7 +310,11 @@ export class YamlWriter extends IRootWriter
     finally { persist.ReleaseWriteBuffer(buffer); }
   }
 
-  /** Begins a block sequence using an AST node in place of a sequence-start event. */
+  /**
+   * Begins a block sequence using an AST node in place of a sequence-start event.
+   *
+   * @adapted
+   */
 
   _WriteVectorBegin(_size)
   {
@@ -267,11 +323,19 @@ export class YamlWriter extends IRootWriter
     this._events.push({ node, key: null });
   }
 
-  /** Ends the current sequence; AST ownership replaces the native end event. */
+  /**
+   * Ends the current sequence; AST ownership replaces the native end event.
+   *
+   * @adapted
+   */
 
   _WriteVectorEnd(_size) { this._events.pop(); }
 
-  /** Flow scalar sequence, with each value rounded as a native float. */
+  /**
+   * Flow scalar sequence, with each value rounded as a native float.
+   *
+   * @adapted
+   */
 
   _WriteFloatArray(values, numValues)
   {
@@ -281,7 +345,11 @@ export class YamlWriter extends IRootWriter
     this._WriteVectorEnd(numValues);
   }
 
-  /** Emits rows without allocating numeric scratch; JS indexes replace pointer increments. */
+  /**
+   * Emits rows without allocating numeric scratch; JS indexes replace pointer increments.
+   *
+   * @adapted
+   */
 
   _WriteFloatMatrix(values, numRows, numColumns)
   {
@@ -296,7 +364,11 @@ export class YamlWriter extends IRootWriter
     this._WriteVectorEnd(numRows);
   }
 
-  /** Native %g six-significant-digit spelling for packed FLOAT32x4 values. */
+  /**
+   * Native %g six-significant-digit spelling for packed FLOAT32x4 values.
+   *
+   * @adapted
+   */
 
   _WriteFloatSequence(values, count)
   {
@@ -313,8 +385,9 @@ export class YamlWriter extends IRootWriter
   /**
    * Records a mapping before its children. Shared base helpers own reference
    * bookkeeping and the type/metadata header, also used by DictWriter.
-   * Adapted: metadata output is restricted to YAML_WRITER_METADATA_KEYS to
-   * avoid publishing machine-identifying authoring paths.
+   *
+   * @adapted metadata output is restricted to YAML_WRITER_METADATA_KEYS to
+   *   avoid publishing machine-identifying authoring paths.
    */
 
   _WriteIRoot__Reference(instance, defaultInstance)
@@ -344,7 +417,11 @@ export class YamlWriter extends IRootWriter
     this._AddMappingEndEvent();
   }
 
-  /** JS object identity replaces QueryInterface(IRoot); anchors are retrofitted on second sight. */
+  /**
+   * JS object identity replaces QueryInterface(IRoot); anchors are retrofitted on second sight.
+   *
+   * @adapted
+   */
 
   _WriteIRoot__Pointer(instance)
   {
@@ -362,6 +439,8 @@ export class YamlWriter extends IRootWriter
    * Emits BlueStructureDefinition and rows. Adapted: schema layouts and record
    * fields replace native byte offsets; offsets/type codes remain on the wire.
    * Only layouts supported by the runtime's meta.struct can be instantiated.
+   *
+   * @adapted
    */
 
   _WriteStructureList(list, type)
@@ -398,7 +477,11 @@ export class YamlWriter extends IRootWriter
     this._AddMappingEndEvent();
   }
 
-  /** Releases AST and reference state; garbage collection replaces event deletion. */
+  /**
+   * Releases AST and reference state; garbage collection replaces event deletion.
+   *
+   * @adapted
+   */
 
   _Cleanup()
   {
@@ -411,7 +494,11 @@ export class YamlWriter extends IRootWriter
     this._readOnlyDepth = 0;
   }
 
-  /** Appends a node; AST parent/key state replaces libyaml's event stream. */
+  /**
+   * Appends a node; AST parent/key state replaces libyaml's event stream.
+   *
+   * @adapted
+   */
 
   _AddEvent(node)
   {
@@ -427,7 +514,11 @@ export class YamlWriter extends IRootWriter
     return node;
   }
 
-  /** Scalar AST node; custom formats preserve printf lexemes and forced quoting. */
+  /**
+   * Scalar AST node; custom formats preserve printf lexemes and forced quoting.
+   *
+   * @adapted
+   */
 
   _AddScalarEvent(value, style = "plain", source = null)
   {
@@ -442,7 +533,11 @@ export class YamlWriter extends IRootWriter
     return this._AddEvent(node);
   }
 
-  /** Begins a block mapping; AST node replaces the native event pointer. */
+  /**
+   * Begins a block mapping; AST node replaces the native event pointer.
+   *
+   * @adapted
+   */
 
   _AddMappingStartEvent()
   {
@@ -451,23 +546,43 @@ export class YamlWriter extends IRootWriter
     return node;
   }
 
-  /** Ends a mapping; AST ownership replaces the native event. */
+  /**
+   * Ends a mapping; AST ownership replaces the native event.
+   *
+   * @adapted
+   */
 
   _AddMappingEndEvent() { this._events.pop(); }
 
-  /** Emits an alias AST node in place of a native alias event. */
+  /**
+   * Emits an alias AST node in place of a native alias event.
+   *
+   * @adapted
+   */
 
   _AddAliasEvent(anchor) { this._AddEvent(new Alias(anchor)); }
 
-  /** Routes the native callback shape to the member using a JS receiver. */
+  /**
+   * Routes the native callback shape to the member using a JS receiver.
+   *
+   * @adapted
+   */
 
   static _writeToStreamStatic(data, buffer, size) { return data._WriteToStream(buffer, size); }
 
-  /** The host supplies IBlueStream.Write; no filesystem policy is introduced. */
+  /**
+   * The host supplies IBlueStream.Write; no filesystem policy is introduced.
+   *
+   * @adapted
+   */
 
   _WriteToStream(buffer, size) { return Number(this._dataStream.Write(buffer, size) === size); }
 
-  /** Logs through the runtime's Carbon logging port; filenames are not held by this base yet. */
+  /**
+   * Logs through the runtime's Carbon logging port; filenames are not held by this base yet.
+   *
+   * @adapted
+   */
 
   _ReportError(message) { CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "%s", message); }
 }

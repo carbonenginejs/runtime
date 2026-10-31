@@ -9,7 +9,11 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
-/** Shared Sprite2D container state and child-parent propagation. */
+/**
+ * Shared Sprite2D container state and child-parent propagation.
+ *
+ * @abstract
+ */
 @be.define("Tr2Sprite2dContainerBase")
 @be.inherit(IListNotify)
 @be.mapInterface(ITr2SpriteObject)
@@ -31,6 +35,7 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
    * Carbon SetChildDirty (Tr2Sprite2dContainer.cpp:35-42): marks this
    * container dirty and passes the change up to its parent.
    *
+   * @implemented
    * @param {ITr2SpriteObject} _child The child that changed.
    * @returns {void}
    */
@@ -49,15 +54,14 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
    * Carbon ~Tr2Sprite2dContainerBase (Tr2Sprite2dContainer.cpp:18-34): detaches
    * every background item, then every child, by setting its parent to null.
    *
-   * Adapted: JS has no destructors and Carbon has no other teardown path for
-   * this class, so the destructor body runs from an explicit Destruct, the
-   * name this package uses for destructor stand-ins. A subclass Destruct must
-   * call this one, as a C++ derived destructor runs its base destructor.
-   *
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    *
+   * @adapted JS has no destructors and Carbon has no other teardown path for
+   *   this class, so the destructor body runs from an explicit Destruct, the
+   *   name this package uses for destructor stand-ins. A subclass Destruct must
+   *   call this one, as a C++ derived destructor runs its base destructor.
    * @returns {void}
    */
   @meta.adapted
@@ -74,8 +78,11 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
     }
   }
 
-  /** Carbon IList notification callback.
+  /**
+   * Carbon IList notification callback.
    * Carbon declaration: Tr2Sprite2dContainerBase::OnListModified (trinity/trinity/Sprite2d/Tr2Sprite2dContainer.h:28).
+   *
+   * @implemented
    */
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)

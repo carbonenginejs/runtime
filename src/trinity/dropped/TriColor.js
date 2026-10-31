@@ -27,56 +27,88 @@ export class TriColor
   @type.float32
   a = 0;
 
-  /** Carbon method __init__ -> Py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> Py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   __init__(...args)
   {
     throw new Error("TriColor.__init__ is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetRGB -> PySetRGB (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method SetRGB -> PySetRGB (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   SetRGB(...args)
   {
     throw new Error("TriColor.SetRGB is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetHSV -> PySetHSV (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method SetHSV -> PySetHSV (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   SetHSV(...args)
   {
     throw new Error("TriColor.SetHSV is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetVector -> PySetVector (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method SetVector -> PySetVector (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   SetVector(...args)
   {
     throw new Error("TriColor.SetVector is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method FromInt -> PyFromInt (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method FromInt -> PyFromInt (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   FromInt(...args)
   {
     throw new Error("TriColor.FromInt is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method AsInt -> PyAsInt (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AsInt -> PyAsInt (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   AsInt(...args)
   {
     throw new Error("TriColor.AsInt is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method GetHSV -> PyGetHSV (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetHSV -> PyGetHSV (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   GetHSV(...args)
   {
     throw new Error("TriColor.GetHSV is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Scale (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Scale (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Scale(...args)
   {

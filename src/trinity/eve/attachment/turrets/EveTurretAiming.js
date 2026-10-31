@@ -83,7 +83,11 @@ export class EveTurretAiming
     SYSBONE_MAX: 15
   });
 
-  /** The skeleton bone name for a system bone, "invalid" out of range. */
+  /**
+   * The skeleton bone name for a system bone, "invalid" out of range.
+   *
+   * @implemented
+   */
   @meta.implemented
   static getSystemBoneName(bone)
   {
@@ -100,6 +104,7 @@ export class EveTurretAiming
    * elevate about +X, and the height bone extends along +Y by the clamped
    * normalized target height. `position` and `rotation` mutate in place.
    *
+   * @implemented
    * @param {Number} bone - a SystemBones value
    * @param {Float32Array} target - target position in turret space
    * @param {Float32Array|null} localTransform - the bone's world-of-pose
@@ -168,6 +173,8 @@ export class EveTurretAiming
    * degree offset, then the influence. When the bone's pose-world transform
    * is supplied and the target sits behind the bone along its arm, the
    * angle flips through pi. `rotation` mutates in place.
+   *
+   * @implemented
    */
   @meta.implemented
   CalcTransformForPitchBone(target, minPitch, maxPitch, boneIndex, localTransform, trackingInfluence, rotation)
@@ -209,7 +216,11 @@ export class EveTurretAiming
     quat.multiply(rotation, DELTA_SCRATCH, rotation);
   }
 
-  /** The pitch factor for a bone; bones without a tuning member use 1 (cpp:148-165). */
+  /**
+   * The pitch factor for a bone; bones without a tuning member use 1 (cpp:148-165).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetBonePitchFactor(boneIndex)
   {
@@ -231,7 +242,11 @@ export class EveTurretAiming
     }
   }
 
-  /** The pitch offset in degrees for a bone; bones without a tuning member use 0 (cpp:167-183). */
+  /**
+   * The pitch offset in degrees for a bone; bones without a tuning member use 0 (cpp:167-183).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetBonePitchOffset(boneIndex)
   {

@@ -140,6 +140,8 @@ export class EveChildEffectPropagator extends EveChildContainer
    * Carbon MAP_PROPERTY "effect" over GetEffect/SetEffect
    * (EveChildEffectPropagator_Blue.cpp:38): the setter moves component and
    * child registration to the replacement container.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.rootRef("EveChildInstanceContainer")
@@ -149,7 +151,11 @@ export class EveChildEffectPropagator extends EveChildContainer
     return this.GetEffect();
   }
 
-  /** Re-registers the propagated effect container with the child hierarchy. */
+  /**
+   * Re-registers the propagated effect container with the child hierarchy.
+   *
+   * @implemented
+   */
   @meta.implemented
   set effect(value)
   {
@@ -281,8 +287,12 @@ export class EveChildEffectPropagator extends EveChildContainer
 
   _delayTimer = 0;
 
-  /** Carbon EveChildEffectPropagator::Play (cpp:101-113): reset via Stop, then
-   * arm playback; without an effect the propagator never starts. */
+  /**
+   * Carbon EveChildEffectPropagator::Play (cpp:101-113): reset via Stop, then
+   * arm playback; without an effect the propagator never starts.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Play()
@@ -299,7 +309,11 @@ export class EveChildEffectPropagator extends EveChildContainer
     this._delayTimer = this.stopToClearDelay;
   }
 
-  /** Carbon EveChildEffectPropagator::Stop (cpp:119-129). */
+  /**
+   * Carbon EveChildEffectPropagator::Stop (cpp:119-129).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Stop()
@@ -315,7 +329,11 @@ export class EveChildEffectPropagator extends EveChildContainer
     }
   }
 
-  /** Carbon EveChildEffectPropagator::Initialize (cpp:131-138). */
+  /**
+   * Carbon EveChildEffectPropagator::Initialize (cpp:131-138).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -324,10 +342,14 @@ export class EveChildEffectPropagator extends EveChildContainer
     return super.Initialize();
   }
 
-  /** Carbon EveChildEffectPropagator::OnModified (cpp:61-95): edit-mode lock
+  /**
+   * Carbon EveChildEffectPropagator::OnModified (cpp:61-95): edit-mode lock
    * on effect changes, clamps for completeness/randScaleMin/randScaleMax, and
    * the playTime re-anchor on frequency changes. The value argument follows
-   * the repo's OnModified duck (field name or field value). */
+   * the repo's OnModified duck (field name or field value).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(value = null)
@@ -363,10 +385,14 @@ export class EveChildEffectPropagator extends EveChildContainer
     return super.OnModified(value);
   }
 
-  /** Carbon EveChildEffectPropagator::ManageTriggers (cpp:140-167): fire an
+  /**
+   * Carbon EveChildEffectPropagator::ManageTriggers (cpp:140-167): fire an
    * instance for every processed locator the growing trigger sphere has
    * swallowed; the list is distance-sorted so the scan stops at the first
-   * locator still outside. */
+   * locator still outside.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ManageTriggers()
@@ -407,6 +433,8 @@ export class EveChildEffectPropagator extends EveChildContainer
    * tick to the effect container, then advance the active trigger method.
    * Carbon deliberately does NOT call the EveChildContainer base here - the
    * effect container replaces the child fan-out.
+   *
+   * @implemented
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params
    */
@@ -470,10 +498,14 @@ export class EveChildEffectPropagator extends EveChildContainer
     }
   }
 
-  /** Carbon EveChildEffectPropagator::UpdateTriggerCurve (cpp:233-273):
+  /**
+   * Carbon EveChildEffectPropagator::UpdateTriggerCurve (cpp:233-273):
    * advance playTime, let the trigger sphere fire instances, then handle the
    * end of the curve (skip cleanup, delayed replay with re-randomized locator
-   * sizes, or stop). */
+   * sizes, or stop).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateTriggerCurve(updateContext)
@@ -518,10 +550,14 @@ export class EveChildEffectPropagator extends EveChildContainer
     }
   }
 
-  /** Carbon EveChildEffectPropagator::UpdateTriggerInterval (cpp:275-317):
+  /**
+   * Carbon EveChildEffectPropagator::UpdateTriggerInterval (cpp:275-317):
    * frequency-paced spawning from smart-random locators with a spawn cap,
    * plus paced deletion of expired instances (PopFront) until the loop
-   * drains. */
+   * drains.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateTriggerInterval(updateContext)
@@ -574,12 +610,15 @@ export class EveChildEffectPropagator extends EveChildContainer
     }
   }
 
-  /** Carbon EveChildEffectPropagator::GetSmartRandomLocatorIndex
+  /**
+   * Carbon EveChildEffectPropagator::GetSmartRandomLocatorIndex
    * (cpp:319-351): rejection-sample a locator index not in the recent-trigger
    * history, with Carbon's early exit when the history covers the set or the
    * spawn rate saturates 75% of the locators.
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -620,6 +659,8 @@ export class EveChildEffectPropagator extends EveChildContainer
    * EveChildContainer base (which rebuilds the world transform - the Carbon
    * row-vector local * parent composition lives in
    * EveChildTransform.UpdateTransform as mat4.multiply(world, parent, local)).
+   *
+   * @implemented
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params
    * @returns {Float32Array} worldTransform
@@ -638,8 +679,12 @@ export class EveChildEffectPropagator extends EveChildContainer
     return super.UpdateAsyncronous(updateContext, params);
   }
 
-  /** Carbon EveChildEffectPropagator::UpdateVisibility (cpp:389-395): the
-   * effect container alone receives the visibility tick (no base fan-out). */
+  /**
+   * Carbon EveChildEffectPropagator::UpdateVisibility (cpp:389-395): the
+   * effect container alone receives the visibility tick (no base fan-out).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
@@ -647,9 +692,13 @@ export class EveChildEffectPropagator extends EveChildContainer
     if (this._effect) this._effect.UpdateVisibility(updateContext, parentTransform, parentLod);
   }
 
-  /** Carbon EveChildEffectPropagator::GetRenderables (cpp:397-408): nothing
+  /**
+   * Carbon EveChildEffectPropagator::GetRenderables (cpp:397-408): nothing
    * renders until the first trigger fired; then the effect container
-   * contributes its instances. */
+   * contributes its instances.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(out)
@@ -663,8 +712,12 @@ export class EveChildEffectPropagator extends EveChildContainer
     return out;
   }
 
-  /** Carbon EveChildEffectPropagator::AddQuadsToQuadRenderer (cpp:370-381):
-   * only the propagated effect adds quads, not the container's objects. */
+  /**
+   * Carbon EveChildEffectPropagator::AddQuadsToQuadRenderer (cpp:370-381):
+   * only the propagated effect adds quads, not the container's objects.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
@@ -676,7 +729,11 @@ export class EveChildEffectPropagator extends EveChildContainer
     if (this._effect) this._effect.AddQuadsToQuadRenderer(frustum, quadRenderer);
   }
 
-  /** Carbon EveChildEffectPropagator::RegisterWithQuadRenderer (cpp:383-389). */
+  /**
+   * Carbon EveChildEffectPropagator::RegisterWithQuadRenderer (cpp:383-389).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -684,11 +741,14 @@ export class EveChildEffectPropagator extends EveChildContainer
     if (this._effect) this._effect.RegisterWithQuadRenderer(quadRenderer);
   }
 
-  /** Carbon EveChildEffectPropagator::ProcessLocalLocators (cpp:410-438):
+  /**
+   * Carbon EveChildEffectPropagator::ProcessLocalLocators (cpp:410-438):
    * sample the owned locator set through the completeness gate; the trigger
    * sphere scalar becomes twice the farthest locator distance.
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -725,7 +785,8 @@ export class EveChildEffectPropagator extends EveChildContainer
     this.triggerSphereScalarMulti = Math.sqrt(this.triggerSphereScalarMulti) * 2;
   }
 
-  /** Carbon EveChildEffectPropagator::ProcessRefLocators (cpp:440-478): pull
+  /**
+   * Carbon EveChildEffectPropagator::ProcessRefLocators (cpp:440-478): pull
    * the named locator set (default "damage") from the space-object parent and
    * scale the trigger sphere by the parent's bounding-sphere radius.
    *
@@ -734,6 +795,8 @@ export class EveChildEffectPropagator extends EveChildContainer
    * while the hull animates (CE-171); ours keeps it, and CreateInstance attaches
    * the instance to that bone, as the instance container's own locator path
    * does (EveChildInstanceContainer.cpp:211, :265-273).
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -780,12 +843,15 @@ export class EveChildEffectPropagator extends EveChildContainer
     }
   }
 
-  /** Carbon EveChildEffectPropagator::ProcessRandomSpreadLocators
+  /**
+   * Carbon EveChildEffectPropagator::ProcessRandomSpreadLocators
    * (cpp:480-506): uniform points on the unit sphere pushed out by a
    * closeness-biased distance inside [minRangeThreshold, range]; the packed
    * direction quaternion comes from TriQuaternionDirVector.
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -826,9 +892,13 @@ export class EveChildEffectPropagator extends EveChildContainer
     this.triggerSphereScalarMulti = this.range;
   }
 
-  /** Carbon EveChildEffectPropagator::ProcessLocators (cpp:513-540): rebuild
+  /**
+   * Carbon EveChildEffectPropagator::ProcessLocators (cpp:513-540): rebuild
    * the processed-locator list for the selected propagation type, stop when
-   * nothing survived the completeness gate, then distance-sort. */
+   * nothing survived the completeness gate, then distance-sort.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ProcessLocators(parent = null)
@@ -859,10 +929,13 @@ export class EveChildEffectPropagator extends EveChildContainer
     this.DistanceSortLocators();
   }
 
-  /** Carbon EveChildEffectPropagator::RecalculateLocatorSizes (cpp:542-549):
+  /**
+   * Carbon EveChildEffectPropagator::RecalculateLocatorSizes (cpp:542-549):
    * re-randomize the per-locator scale for a delayed replay.
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -876,9 +949,13 @@ export class EveChildEffectPropagator extends EveChildContainer
     }
   }
 
-  /** Carbon EveChildEffectPropagator::DistanceSortLocators (cpp:556-564):
+  /**
+   * Carbon EveChildEffectPropagator::DistanceSortLocators (cpp:556-564):
    * squared distance of every locator to the scaled trigger-sphere center,
-   * then an ascending sort so ManageTriggers can early-out. */
+   * then an ascending sort so ManageTriggers can early-out.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   DistanceSortLocators()
@@ -894,7 +971,11 @@ export class EveChildEffectPropagator extends EveChildContainer
     this._processedTransforms.sort(SortByCircleDist);
   }
 
-  /** Carbon EveChildEffectPropagator::GetEffect (cpp:642-645). */
+  /**
+   * Carbon EveChildEffectPropagator::GetEffect (cpp:642-645).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetEffect()
@@ -902,9 +983,13 @@ export class EveChildEffectPropagator extends EveChildContainer
     return this._effect;
   }
 
-  /** Carbon EveChildEffectPropagator::SetEffect (cpp:647-658): unregisters
+  /**
+   * Carbon EveChildEffectPropagator::SetEffect (cpp:647-658): unregisters
    * the current effect from both the component registry and child hierarchy,
-   * installs the replacement, then registers it with both owners. */
+   * installs the replacement, then registers it with both owners.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetEffect(effect)
@@ -916,8 +1001,12 @@ export class EveChildEffectPropagator extends EveChildContainer
     this.RegisterComponents();
   }
 
-  /** Carbon EveChildEffectPropagator::SetControllerVariable (cpp:656-662):
-   * the effect container alone receives the variable (no base fan-out). */
+  /**
+   * Carbon EveChildEffectPropagator::SetControllerVariable (cpp:656-662):
+   * the effect container alone receives the variable (no base fan-out).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetControllerVariable(name, value)
@@ -925,7 +1014,11 @@ export class EveChildEffectPropagator extends EveChildContainer
     if (this._effect) this._effect.SetControllerVariable(String(name ?? ""), Number(value));
   }
 
-  /** Carbon EveChildEffectPropagator::RegisterComponents (cpp:45-51). */
+  /**
+   * Carbon EveChildEffectPropagator::RegisterComponents (cpp:45-51).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -936,7 +1029,11 @@ export class EveChildEffectPropagator extends EveChildContainer
     }
   }
 
-  /** Carbon EveChildEffectPropagator::UnRegisterComponents (cpp:53-59). */
+  /**
+   * Carbon EveChildEffectPropagator::UnRegisterComponents (cpp:53-59).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()

@@ -149,8 +149,8 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   /**
    * Carbon method Refresh (MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Browser attribute generators bind to the CPU particle-system declaration while
-   * retaining Carbon's shared element-claim validation.
+   * @adapted Browser attribute generators bind to the CPU particle-system declaration while
+   *   retaining Carbon's shared element-claim validation.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -211,7 +211,11 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     return this.CheckBinding();
   }
 
-  /** Carbon EveChildParticleSphere::CheckBinding (cpp:233-240): binds on first use. */
+  /**
+   * Carbon EveChildParticleSphere::CheckBinding (cpp:233-240): binds on first use.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CheckBinding()
@@ -222,7 +226,8 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
 
   /**
    * Carbon EveChildParticleSphere::GetRenderables (cpp:72-79): sorts and publishes once updated; no frustum gate.
-   * Adapted: returns the caller-owned array, as the sibling EveChildParticleSystem does.
+   *
+   * @adapted returns the caller-owned array, as the sibling EveChildParticleSystem does.
    */
 
   @meta.adapted
@@ -236,7 +241,11 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     return renderables;
   }
 
-  /** Carbon EveChildParticleSphere::UpdateVisibility (cpp:82-90): view-dependent particle data only while the sphere is in view. */
+  /**
+   * Carbon EveChildParticleSphere::UpdateVisibility (cpp:82-90): view-dependent particle data only while the sphere is in view.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
@@ -248,7 +257,11 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     }
   }
 
-  /** Carbon EveChildParticleSphere::GetBoundingSphere (cpp:93-97). */
+  /**
+   * Carbon EveChildParticleSphere::GetBoundingSphere (cpp:93-97).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
@@ -257,7 +270,11 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     return true;
   }
 
-  /** Carbon EveChildParticleSphere::UpdateSyncronous (cpp:100-112): binds, then reads the ego velocity from the ballpark. */
+  /**
+   * Carbon EveChildParticleSphere::UpdateSyncronous (cpp:100-112): binds, then reads the ego velocity from the ballpark.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext, _params)
@@ -272,6 +289,8 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   /**
    * Carbon EveChildParticleSphere::UpdateAsyncronous (cpp:115-127): the sphere follows the parent's translation only,
    * never its rotation or scale.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -287,6 +306,8 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
 
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildParticleSphere.cpp:130-133): copies the world transform into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -297,14 +318,22 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     return mat4.copy(out, this._worldTransform);
   }
 
-  /** Carbon EveChildParticleSphere::Setup (cpp:136-138) is empty. */
+  /**
+   * Carbon EveChildParticleSphere::Setup (cpp:136-138) is empty.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Setup(_scale = null, _rotation = null, _translation = null, _lowestLodVisible = null)
   {
   }
 
-  /** Carbon EveChildParticleSphere::GetBatches (cpp:141-152). */
+  /**
+   * Carbon EveChildParticleSphere::GetBatches (cpp:141-152).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
@@ -314,7 +343,11 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     if (areas) this.mesh.GetBatches(batches, areas, perObjectData);
   }
 
-  /** Carbon EveChildParticleSphere::HasTransparentBatches (cpp:155-163). */
+  /**
+   * Carbon EveChildParticleSphere::HasTransparentBatches (cpp:155-163).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -323,7 +356,11 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     return this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length > 0;
   }
 
-  /** Carbon EveChildParticleSphere::GetSortValue (cpp:166-169). */
+  /**
+   * Carbon EveChildParticleSphere::GetSortValue (cpp:166-169).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -334,6 +371,8 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   /**
    * Carbon EveChildParticleSphere::GetPerObjectData (cpp:172-186): the vertex record holds the transposed world matrix
    * and the untransposed inverse, which the shader's row-major read sees as the inverse transpose.
+   *
+   * @implemented
    */
 
   @meta.implemented

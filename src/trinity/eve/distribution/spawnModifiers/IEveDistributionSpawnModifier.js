@@ -10,7 +10,11 @@ import { blue } from "#schema";
 export class IEveDistributionSpawnModifier extends IRoot
 {
 
-  /** Applies this modifier to one newly spawned placement. */
+  /**
+   * Applies this modifier to one newly spawned placement.
+   *
+   * @abstract
+   */
   @be.abstract
   ProcessSpawnModifier(_placement, _context) {}
 

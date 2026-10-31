@@ -14,6 +14,8 @@ export class IRenderCallback
   /**
    * Submits this object's geometry on the context, after the pass state and
    * material data are applied.
+   *
+   * @abstract
    * @param {object} _renderContext The `Tr2RenderContext` to draw on.
    * @returns {void}
    */

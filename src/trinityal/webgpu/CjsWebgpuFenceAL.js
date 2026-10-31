@@ -35,6 +35,7 @@ export class CjsWebgpuFenceAL
   /**
    * Metal's `Create` (`mm:19-28`).
    *
+   * @implemented
    * @param {object} renderContext The primary context, Trinity's or the AL.
    * @returns {number} An `ALResult`.
    */
@@ -48,13 +49,20 @@ export class CjsWebgpuFenceAL
     return ALResult.S_OK;
   }
 
-  /** Metal's `Destroy` (`mm:30-33`). */
+  /**
+   * Metal's `Destroy` (`mm:30-33`).
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._isValid = false;
   }
 
-  /** @returns {boolean} Whether the fence was created. */
+  /**
+   * @implemented
+   * @returns {boolean} Whether the fence was created.
+   */
   IsValid()
   {
     return this._isValid;
@@ -63,6 +71,7 @@ export class CjsWebgpuFenceAL
   /**
    * Metal's `PutFence` (`mm:40-51`): remembers the frame being recorded.
    *
+   * @implemented
    * @param {object} renderContext The context recording the frame.
    * @returns {number} An `ALResult`.
    */
@@ -82,11 +91,10 @@ export class CjsWebgpuFenceAL
    * Metal's `IsReached` (`mm:53-64`). Carbon's out-parameter is returned in
    * the stub's `{ result, isReached }` shape.
    *
-   * Adapted: Metal compares against frames the GPU has COMPLETED; ours are
-   * frames SUBMITTED (GetRenderedFrameNumber), because WebGPU reports
-   * completion only through a promise. A later writeBuffer is ordered after
-   * every earlier submit, so a submitted frame's region is safe to rewrite.
-   *
+   * @adapted Metal compares against frames the GPU has COMPLETED; ours are
+   *   frames SUBMITTED (GetRenderedFrameNumber), because WebGPU reports
+   *   completion only through a promise. A later writeBuffer is ordered after
+   *   every earlier submit, so a submitted frame's region is safe to rewrite.
    * @param {object} renderContext The context whose frames are counted.
    * @returns {{result: number, isReached: boolean}} The answer.
    */
@@ -102,6 +110,7 @@ export class CjsWebgpuFenceAL
   /**
    * Metal's `Wait` (`mm:66-69`), which refuses: nothing can block for the GPU.
    *
+   * @implemented
    * @returns {number} `E_FAIL`.
    */
   Wait()
@@ -112,6 +121,7 @@ export class CjsWebgpuFenceAL
   /**
    * Metal's `Describe` (`mm:71-75`): the type and the name.
    *
+   * @adapted
    * @param {object} description The description to fill.
    * @returns {object} The description, filled.
    */
@@ -125,7 +135,10 @@ export class CjsWebgpuFenceAL
     return description;
   }
 
-  /** @returns {number} A `Tr2ALMemoryType`. */
+  /**
+   * @implemented
+   * @returns {number} A `Tr2ALMemoryType`.
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_VIDEO;
@@ -134,6 +147,7 @@ export class CjsWebgpuFenceAL
   /**
    * Metal's `SetName` (`mm:77-81`).
    *
+   * @implemented
    * @param {string} name A debugger name.
    * @returns {number} An `ALResult`.
    */

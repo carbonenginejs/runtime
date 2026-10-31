@@ -282,7 +282,7 @@ export function run(argv)
     const oracleDir=args.get("--oracle");
     if(!oracleDir)throw new Error("Pass --oracle <preparation data directory> containing carbon-exposure.json and carbon-headers.json.");
     const read=name=>JSON.parse(fs.readFileSync(path.join(oracleDir,name),"utf8"));
-    const findings=auditDecorators(inventoryRuntime(root),read("carbon-exposure.json"),read("carbon-headers.json"),args.has("--choosers")?JSON.parse(fs.readFileSync(args.get("--choosers"),"utf8")):{});
+    const findings=auditDecorators(inventoryRuntime(root,{markers:args.get("--markers")??"both"}),read("carbon-exposure.json"),read("carbon-headers.json"),args.has("--choosers")?JSON.parse(fs.readFileSync(args.get("--choosers"),"utf8")):{});
     const baselinePath=path.join(root,"scripts/baselines/decorator-target.json");
     let previous=fs.existsSync(baselinePath)?JSON.parse(fs.readFileSync(baselinePath,"utf8")):null;
     if(args.has("--write-baseline"))

@@ -114,9 +114,10 @@ export class Tr2DistanceTracker extends ITriFunction
 
   /**
    * Updates source and target positions, then recalculates distance.
-   * Adapted: the vector-function contract writes into an output buffer passed
-   * after time; a reusable vector replaces the native stack temporary. Direction
-   * is used as authored, without normalization or a zero-vector special case.
+   *
+   * @adapted the vector-function contract writes into an output buffer passed
+   *   after time; a reusable vector replaces the native stack temporary. Direction
+   *   is used as authored, without normalization or a zero-vector special case.
    * @param {number} time Sampling time in seconds.
    * @returns {void}
    */
@@ -154,6 +155,8 @@ export class Tr2DistanceTracker extends ITriFunction
    * Refreshes the value at Blue's current frame time after a notification.
    * Only sourceObject and targetObject have native NOTIFY flags; explicit calls
    * still recompute regardless of the supplied member name, as Carbon does.
+   *
+   * @implemented
    * @param {string|null} [_value=null] Unused notified member identity.
    * @returns {boolean} True after updating the stored value.
    */

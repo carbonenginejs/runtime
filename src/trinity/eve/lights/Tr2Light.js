@@ -18,6 +18,8 @@ import { LightFeatures } from "./LightFeatures.js";
  * Base scene light: holds the authored light attributes, resolves its bone
  * transform, and submits a converted point or spot record to the light manager
  * each frame.
+ *
+ * @abstract
  */
 @be.define("Tr2Light")
 @legacyBlue.inherit(IInitialize, INotify)
@@ -90,6 +92,7 @@ export class Tr2Light
    * Carbon's SetLightData (Tr2Light.cpp:93-96): `m_lightData = baseData`, a
    * copy of the whole record.
    *
+   * @implemented
    * @param {LightData} lightData The light data to copy.
    */
 
@@ -102,6 +105,8 @@ export class Tr2Light
   /**
    * Sets the parent brightness factor, which scales the authored brightness only
    * when the light record is built for submission.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -113,6 +118,7 @@ export class Tr2Light
   /**
    * Carbon's ChangeLightColor (Tr2Light.cpp:114-117): assigns the LightData colour.
    *
+   * @implemented
    * @param {Float32Array|number[]} value The new colour.
    */
 
@@ -126,6 +132,7 @@ export class Tr2Light
    * Carbon's GetLightData (Tr2Light.h:98): the stored `m_lightData`, by
    * reference.
    *
+   * @implemented
    * @returns {LightData}
    */
 
@@ -138,6 +145,8 @@ export class Tr2Light
   /**
    * Returns the parent brightness factor applied at submission time, not the
    * authored brightness.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -146,12 +155,16 @@ export class Tr2Light
     return this.brightnessMultiplier;
   }
 
-  /** Carbon Tr2Light::SetBoneMatrix (Tr2Light.cpp:98-106): only when
+  /**
+   * Carbon Tr2Light::SetBoneMatrix (Tr2Light.cpp:98-106): only when
    * 0 <= boneIndex < boneCount (note >= 0, unlike the packed sets' > 0 -
    * bone 0 CAN drive a Tr2Light) - the Float4x3 bone is unpacked over an
    * identity (column-stride, MatrixUtils.cpp:81-96). QUIRK: on a non-match
    * the previous boneTransform STAYS (sticky, identity initially) - it is
-   * not reset per call. `bones` is a flat Float32Array, stride 12. */
+   * not reset per call. `bones` is a flat Float32Array, stride 12.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetBoneMatrix(bones, boneCount)
@@ -190,6 +203,8 @@ export class Tr2Light
    * saturation it stores "is not read anywhere else in the port yet". It
    * cannot be ported until `TriTextureRes.GetAverageColor` is, which Carbon
    * declares and we do not. Registered rather than guessed at.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -201,9 +216,9 @@ export class Tr2Light
    * Updates dynamic light data and submits a transformed point or spot light
    * when its flags are valid.
    *
-   * Adapted: The profile-index flag packing and half-float narrowing are renderer-backend
-   * concerns (record carries the profile by reference); the Perlin brightness flicker awaits
-   * the frame-clock seam (see lightConversion.js).
+   * @adapted The profile-index flag packing and half-float narrowing are renderer-backend
+   *   concerns (record carries the profile by reference); the Perlin brightness flicker awaits
+   *   the frame-clock seam (see lightConversion.js).
    */
   @meta.adapted
 
@@ -256,8 +271,8 @@ export class Tr2Light
    * unused by every Carbon consumer of this method (EveChildCloud2's light
    * block takes GetXYZ).
    *
-   * Adapted: The Perlin noise flicker (cpp:157-161) reads the global frame clock (BeOS
-   * GetCurrentFrameTime) - an engine seam; the base brightness is used until it lands.
+   * @adapted The Perlin noise flicker (cpp:157-161) reads the global frame clock (BeOS
+   *   GetCurrentFrameTime) - an engine seam; the base brightness is used until it lands.
    */
 
   @meta.adapted
@@ -273,7 +288,11 @@ export class Tr2Light
     return out;
   }
 
-  /** Carbon Initialize (Tr2Light.cpp:165-174): resolve the authored profile path. */
+  /**
+   * Carbon Initialize (Tr2Light.cpp:165-174): resolve the authored profile path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -285,6 +304,8 @@ export class Tr2Light
   /**
    * Carbon OnModified (Tr2Light.cpp:177-189): a lightProfilePath change
    * re-resolves the profile.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -318,6 +339,7 @@ export class Tr2Light
    * markers. Ported as the same empty body so the debug traversal can call it
    * unconditionally.
    *
+   * @adapted
    * @param {ITr2DebugRenderer2} _renderer The debug renderer.
    * @param {mat4} _worldMatrix The owner's world matrix.
    * @param {Float32Array|null} [_bones] Packed Float4x3 bone matrices.

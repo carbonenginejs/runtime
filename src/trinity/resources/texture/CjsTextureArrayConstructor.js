@@ -43,6 +43,8 @@ export class CjsTextureArrayConstructor extends IBlueDynamicResourceConstructor
 
   /**
    * Build the native texture handle, retaining its recipe for same-handle reload.
+   *
+   * @implemented
    * @param {string} query Authored dynamic texture recipe after its registered prefix.
    * @returns {TriTextureRes} Initialized texture with a recipe retained for same-handle reload.
    */

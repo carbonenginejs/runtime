@@ -20,6 +20,8 @@ import { meta, type } from "#schema";
  * bits, and every tag a key sets has a true predicate.
  *
  * Data only.
+ *
+ * @adapted
  */
 @meta.define("Tr2HighLevelShader")
 @meta.adapted

@@ -15,6 +15,7 @@ export class ITr2SecondaryLightSource extends IRoot
   /**
    * Adds this object to the manager's secondary light sources.
    *
+   * @abstract
    * @param {import("./Tr2ShLightingManager.js").Tr2ShLightingManager} _manager The scene's manager.
    */
   @be.abstract
@@ -25,6 +26,7 @@ export class ITr2SecondaryLightSource extends IRoot
   /**
    * Removes this object from the manager's secondary light sources.
    *
+   * @abstract
    * @param {import("./Tr2ShLightingManager.js").Tr2ShLightingManager} _manager The scene's manager.
    */
   @be.abstract

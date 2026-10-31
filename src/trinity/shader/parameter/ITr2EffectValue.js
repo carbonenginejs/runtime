@@ -36,6 +36,8 @@ export class ITr2EffectValue extends IRoot
 {
   /**
    * Native default leaves the effect constant storage untouched.
+   *
+   * @adapted
    * @param {number} _inputType Shader stage.
    * @param {*} _destination Constant storage.
    * @param {number} _size Available bytes.
@@ -49,6 +51,8 @@ export class ITr2EffectValue extends IRoot
 
   /**
    * Native default supplies no shader resource.
+   *
+   * @implemented
    * @param {object} _resourceDesc Resource-set description.
    * @param {number} _stage Shader stage.
    * @param {number} _registerIndex Destination register.
@@ -63,6 +67,8 @@ export class ITr2EffectValue extends IRoot
 
   /**
    * Native default supplies no unordered-access resource.
+   *
+   * @implemented
    * @param {object} _resourceDesc Resource-set description.
    * @param {number} _stage Shader stage.
    * @param {number} _registerIndex Destination register.
@@ -76,6 +82,8 @@ export class ITr2EffectValue extends IRoot
 
   /**
    * Native default contributes no bindless texture.
+   *
+   * @adapted
    * @param {object} _usedTextures Bindless texture collection.
    * @returns {void} No operation.
    */

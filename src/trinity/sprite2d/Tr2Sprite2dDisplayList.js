@@ -22,7 +22,11 @@ export class Tr2Sprite2dDisplayList
     this._owner = owner;
   }
 
-  /** Native release drops geometry and dirties the owner for recapture. */
+  /**
+   * Native release drops geometry and dirties the owner for recapture.
+   *
+   * @implemented
+   */
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -41,6 +45,7 @@ export class Tr2Sprite2dDisplayList
    * the base dispatches by name, so a `_` rename would break dispatch; the `_`
    * rule covers private methods that are not overrides.
    *
+   * @implemented
    * @returns {boolean} Always true, as Carbon returns.
    */
   @meta.implemented

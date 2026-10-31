@@ -66,6 +66,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   /**
    * Updates the cached quaternion through the required child Update method when present.
    * Uses the native double-time path; a missing child leaves the cache unchanged.
+   *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -82,6 +84,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   /**
    * Updates the cache and copies the quaternion into the output buffer.
    * JavaScript retains the native double-time path with seconds first and output last; Update__Ticks is the Be::Time overload.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -104,6 +108,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   /**
    * Samples the child in local time, or copies the authored fallback value.
    * JavaScript retains the native double-time path with seconds first and output last.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -122,6 +128,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   /**
    * Writes the native identity quaternion derivative.
    * JavaScript combines the native overloads as time-first/output-last calls.
+   *
+   * @adapted
    * @param {number} _time Time in seconds.
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
@@ -136,6 +144,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   /**
    * Writes the native identity second derivative.
    * JavaScript combines native overloads as time-first/output-last calls.
+   *
+   * @adapted
    * @param {number} _time Unused time.
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
@@ -150,6 +160,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   /**
    * Chooses a random local offset within the supplied radius.
    * Uses the native CRT rand()/modulo tick arithmetic; the offset is stored in ticks.
+   *
+   * @adapted
    * @param {number} range Radius in seconds; zero or omission selects 60.
    * @returns {void}
    */
@@ -164,6 +176,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
 
   /**
    * Sets the divisor used for local curve time.
+   *
+   * @implemented
    * @param {number} scale Time divisor.
    * @returns {void}
    */
@@ -176,6 +190,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
 
   /**
    * Clears the retained start timestamp.
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -187,6 +203,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
 
   /**
    * Computes the native private double-time local value.
+   *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {number} Scaled time in seconds.
    */
@@ -200,6 +218,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   /**
    * Carbon's GetLocalTime(Be::Time): ticks since the latched start plus the offset, in scaled seconds (Tr2RotationAdapter.cpp:145-148).
    * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} Local time in seconds.
    */
@@ -212,6 +232,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   /**
    * Carbon's Update(Be::Time): latches the start on first use, then updates from local time.
    * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -234,6 +256,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   /**
    * Carbon's GetValueAt(Be::Time): latches the start on first use and samples the child at local time.
    * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.

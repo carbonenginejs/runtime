@@ -216,7 +216,11 @@ export class Tr2PostProcessRenderer extends IRoot
 
   _bokehFrameCounter = 0;
 
-  /** Returns the active Carbon post-process quality. */
+  /**
+   * Returns the active Carbon post-process quality.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPostProcessingQuality()
@@ -224,7 +228,11 @@ export class Tr2PostProcessRenderer extends IRoot
     return this.quality;
   }
 
-  /** Selects the active Carbon post-process quality. */
+  /**
+   * Selects the active Carbon post-process quality.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetPostProcessingQuality(quality)
@@ -237,12 +245,11 @@ export class Tr2PostProcessRenderer extends IRoot
    * `destination` (cpp:648-849). Every step Carbon gates on an effect of the
    * scene's post process is gated the same way.
    *
-   * Adapted: Carbon reaches the blitter through the static Tr2Renderer; ours
-   * is an instance, so the renderer is passed in, as for Tr2Denoiser. Carbon's
-   * pool handles release themselves when overwritten or out of scope; here
-   * each is freed explicitly at the same point. The upscaling query goes to
-   * the render context's AL, which Carbon's Tr2RenderContext inherits.
-   *
+   * @adapted Carbon reaches the blitter through the static Tr2Renderer; ours
+   *   is an instance, so the renderer is passed in, as for Tr2Denoiser. Carbon's
+   *   pool handles release themselves when overwritten or out of scope; here
+   *   each is freed explicitly at the same point. The upscaling query goes to
+   *   the render context's AL, which Carbon's Tr2RenderContext inherits.
    * @param {object} destination The back buffer or target texture.
    * @param {GpuResourceHandle} sourceBuffer The scene colour, owned from here on.
    * @param {GpuResourceHandle|null} depthMap The scene depth.
@@ -460,6 +467,7 @@ export class Tr2PostProcessRenderer extends IRoot
   /**
    * Carbon SetupExposureConversion (cpp:851-857).
    *
+   * @implemented
    * @param {boolean} enable Whether exposure conversion runs.
    * @param {number} middleValue The exposure middle value.
    * @returns {void}
@@ -475,6 +483,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * AMD CAS sharpening (cpp:859-891): a compute pass into a UAV-compatible copy,
    * or the input unchanged when the upscaler already sharpens.
    *
+   * @implemented
    * @param {boolean} enable Whether to sharpen.
    * @param {GpuResourceHandle} input The texture to sharpen.
    * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
@@ -524,6 +533,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * Tonemapping (cpp:1531-1583): stamps every effect of the post process onto
    * the tonemapping shader, picks the method, and draws it into `dest`.
    *
+   * @adapted
    * @param {object} dest The texture to render into.
    * @param {Tr2PostProcess2|null} postprocess The active post process.
    * @param {Tr2RenderContext} renderContext The context to render with.
@@ -574,6 +584,7 @@ export class Tr2PostProcessRenderer extends IRoot
   /**
    * A post process's own generic effect over the scene (cpp:1585-1596).
    *
+   * @adapted
    * @returns {void}
    */
 
@@ -598,6 +609,7 @@ export class Tr2PostProcessRenderer extends IRoot
   /**
    * Film grain over the final image (cpp:1392-1404).
    *
+   * @adapted
    * @returns {void}
    */
 
@@ -620,6 +632,7 @@ export class Tr2PostProcessRenderer extends IRoot
   /**
    * Signal loss over the final image (cpp:1173-1179).
    *
+   * @adapted
    * @returns {void}
    */
 
@@ -634,6 +647,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * The dynamic exposure debug overlay (cpp:1243-1285). With the debug off
    * this drops the debug shader, which is all Carbon does then.
    *
+   * @implemented
    * @returns {void}
    */
 
@@ -652,6 +666,7 @@ export class Tr2PostProcessRenderer extends IRoot
   /**
    * The persistent 8 x R32_FLOAT exposure buffer (cpp:1700-1706).
    *
+   * @implemented
    * @param {Tr2GpuResourcePool} gpuResourcePool The pool.
    * @returns {GpuResourceHandle} The buffer.
    */
@@ -674,6 +689,7 @@ export class Tr2PostProcessRenderer extends IRoot
   /**
    * The persistent 4 x 4 black texture (cpp:1708-1713).
    *
+   * @implemented
    * @param {Tr2GpuResourcePool} gpuResourcePool The pool.
    * @returns {GpuResourceHandle} The texture.
    */
@@ -694,6 +710,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * Takes ownership of `src` and frees it after the first pass, as Carbon's
    * `src = {}` does (cpp:940).
    *
+   * @adapted
    * @param {GpuResourceHandle} src The texture to blur, owned from here on.
    * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
    * @param {Tr2RenderContext} renderContext The context to render with.
@@ -784,6 +801,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * FillAndSetConstants into `m_bloomConstantBuffer` at the per-object PS
    * register; so do these.
    *
+   * @adapted
    * @param {GpuResourceHandle} dest The scene colour to bloom (not consumed).
    * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
    * @param {Tr2RenderContext} renderContext The context to render with.
@@ -966,8 +984,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * God rays (cpp:1146-1171): half-resolution depth, the rays drawn into a
    * cleared half-resolution target, then added onto `dest`.
    *
-   * Adapted: the renderer is passed in for the blitter, as in Execute.
-   *
+   * @adapted the renderer is passed in for the blitter, as in Execute.
    * @param {object} dest The colour texture the rays are added to.
    * @param {object} depth The scene depth.
    * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
@@ -1023,6 +1040,7 @@ export class Tr2PostProcessRenderer extends IRoot
   /**
    * Half-resolution R32_FLOAT depth (cpp:948-954).
    *
+   * @adapted
    * @param {object} depth The scene depth.
    * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
    * @param {Tr2RenderContext} renderContext The context to render with.
@@ -1060,6 +1078,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * exposure buffer towards the target at the increase/decrease speeds.
    * Tonemapping (and exposure-dependent bloom) read that buffer.
    *
+   * @adapted
    * @param {object} source The scene colour texture.
    * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
    * @param {Tr2RenderContext} renderContext The context to render with.
@@ -1142,8 +1161,11 @@ export class Tr2PostProcessRenderer extends IRoot
     return histogram;
   }
 
-  /** Carbon RenderUpscaling (cpp:1287-1390).
+  /**
+   * Carbon RenderUpscaling (cpp:1287-1390).
    * Carbon declaration: Tr2PostProcessRenderer::RenderUpscaling (trinity/trinity/PostProcess/Tr2PostProcessRenderer.h:213).
+   *
+   * @notImplemented
    */
   @meta.notImplemented
   RenderUpscaling()
@@ -1155,8 +1177,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * Environment fog (cpp:1406-1433): the fog colour at half resolution,
    * blurred, then composited over `dest` with the scene colour as the original.
    *
-   * Adapted: the renderer is passed in for the blitter, as in Execute.
-   *
+   * @adapted the renderer is passed in for the blitter, as in Execute.
    * @param {object} dest The colour texture fog is composited into.
    * @param {object} source The scene colour before post-processing.
    * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
@@ -1220,11 +1241,6 @@ export class Tr2PostProcessRenderer extends IRoot
    * Temporal anti-aliasing (cpp:1435-1529): the current frame blended into a
    * ping-ponged persistent accumulator, then copied back into `dest`.
    *
-   * Adapted: the renderer is passed in for the blitter, as in Execute. The
-   * cooldown map's initial ClearUav of a texture is refused by the WebGPU AL,
-   * which does not change the result: WebGPU creates textures zeroed, the
-   * value Carbon clears to.
-   *
    * Adapted: without dynamic exposure Carbon binds `Tr2BufferAL{}` to
    * "Exposure" (cpp:1516, 1526), and C++ picks the BUFFER overload from that
    * type, so the slot it makes is a buffer slot. A JS null carries no type, and
@@ -1238,6 +1254,10 @@ export class Tr2PostProcessRenderer extends IRoot
    * AL buffer that `IsBufferAL` routes by its type, and neither backend exposes
    * one neutrally yet.
    *
+   * @adapted the renderer is passed in for the blitter, as in Execute. The
+   *   cooldown map's initial ClearUav of a texture is refused by the WebGPU AL,
+   *   which does not change the result: WebGPU creates textures zeroed, the
+   *   value Carbon clears to.
    * @param {object} dest The scene colour, blended and written back.
    * @param {object|null} velocity The velocity map.
    * @param {object|null} opaqueColor The opaque colour copy; null at TAA low.
@@ -1341,8 +1361,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * maximum when the foreground blurs too, then either the TAA-friendly bokeh
    * and a copy back, or the bokeh blend and fill.
    *
-   * Adapted: the renderer is passed in for the blitter, as in Execute.
-   *
+   * @adapted the renderer is passed in for the blitter, as in Execute.
    * @param {object} dest The colour texture to blur.
    * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
    * @param {Tr2RenderContext} renderContext The context to render with.

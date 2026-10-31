@@ -48,7 +48,11 @@ export class AudObstructionOcclusion
     this._now = now;
   }
 
-  /** Advances every fade and sends changed awake-emitter values. */
+  /**
+   * Advances every fade and sends changed awake-emitter values.
+   *
+   * @adapted
+   */
   @meta.adapted
   Update(backend)
   {
@@ -108,7 +112,11 @@ export class AudObstructionOcclusion
     }
   }
 
-  /** Sets the obstruction and occlusion targets for a registered emitter. */
+  /**
+   * Sets the obstruction and occlusion targets for a registered emitter.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetObstructionOcclusion(emitterID, obstruction, occlusion)
   {
@@ -143,7 +151,11 @@ export class AudObstructionOcclusion
     return true;
   }
 
-  /** Maps caller-supplied blockage to Carbon's acoustics-aware targets. */
+  /**
+   * Maps caller-supplied blockage to Carbon's acoustics-aware targets.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
@@ -157,21 +169,33 @@ export class AudObstructionOcclusion
     );
   }
 
-  /** Returns the live, mid-fade occlusion value for one emitter. */
+  /**
+   * Returns the live, mid-fade occlusion value for one emitter.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetEmitterOcclusion(emitterID)
   {
     return this._emitters.get(emitterID)?.occlusion.currentValue ?? 0;
   }
 
-  /** Drops one emitter immediately when its game object is unregistered. */
+  /**
+   * Drops one emitter immediately when its game object is unregistered.
+   *
+   * @adapted
+   */
   @meta.adapted
   RemoveEmitter(emitterID)
   {
     this._emitters.delete(emitterID);
   }
 
-  /** Forgets every emitter and resets the fade clock. */
+  /**
+   * Forgets every emitter and resets the fade clock.
+   *
+   * @adapted
+   */
   @meta.adapted
   Reset()
   {
@@ -180,7 +204,11 @@ export class AudObstructionOcclusion
     this._lastUpdateTime = 0;
   }
 
-  /** Fades every tracked emitter back to clear. */
+  /**
+   * Fades every tracked emitter back to clear.
+   *
+   * @adapted
+   */
   @meta.adapted
   ClearAll()
   {
@@ -191,14 +219,22 @@ export class AudObstructionOcclusion
     }
   }
 
-  /** Returns whether new caller-supplied targets are accepted. */
+  /**
+   * Returns whether new caller-supplied targets are accepted.
+   *
+   * @adapted
+   */
   @meta.adapted
   IsEnabled()
   {
     return this._enabled;
   }
 
-  /** Enables target input or fades every existing target to clear. */
+  /**
+   * Enables target input or fades every existing target to clear.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetEnabled(value)
   {
@@ -215,21 +251,34 @@ export class AudObstructionOcclusion
     }
   }
 
-  /** Returns the linear fade speed in value units per second. */
+  /**
+   * Returns the linear fade speed in value units per second.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetFadeRate()
   {
     return this._fadeRate;
   }
 
-  /** Stores Carbon's nonnegative linear fade speed. */
+  /**
+   * Stores Carbon's nonnegative linear fade speed.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetFadeRate(value)
   {
     this._fadeRate = Math.max(0, Number(value));
   }
 
-  /** Delivers one live value to the installed ICjsWwiseSoundEngine backend, if any. */
+  /**
+   * Delivers one live value to the installed ICjsWwiseSoundEngine backend, if any.
+   *
+   * @adapted
+   * @renamed SendToWwise
+   */
   @meta.renamed("SendToWwise")
   @meta.adapted
   _SendToBackend(backend, emitterID, state)

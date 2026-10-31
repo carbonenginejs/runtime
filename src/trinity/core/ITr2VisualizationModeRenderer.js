@@ -8,6 +8,8 @@ export class ITr2VisualizationModeRenderer extends IRoot
   /**
    * Selects the renderer-specific visualization mode
    * (ITr2VisualizationModeRenderer.h:27).
+   *
+   * @abstract
    * @param {number} _visualizationMode Renderer-specific mode value.
    * @returns {void}
    */

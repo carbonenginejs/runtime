@@ -64,6 +64,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Carbon MAP_PROPERTY "volume" over GetVolume/SetVolume
    * (EveDistributionPlacementGeneratorVolume_Blue.cpp:19): the setter moves
    * the change subscription to the replacement volume.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.rootRef("IEveVolume")
@@ -73,7 +75,11 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
     return this.GetVolume();
   }
 
-  /** Moves the regeneration subscription to the replacement volume. */
+  /**
+   * Moves the regeneration subscription to the replacement volume.
+   *
+   * @implemented
+   */
   @meta.implemented
   set volume(value)
   {
@@ -83,6 +89,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   /**
    * Appends one placement per point sampled from the assigned volume, translated by the volume's bounding-sphere centre and oriented so +Y points along the sampled radial direction; appends nothing when no volume is assigned.
    *
+   * @adapted
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
@@ -118,7 +125,11 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
     this._isRequestingRegeneration = false;
   }
 
-  /** Carbon GetVolume (EveDistributionPlacementGeneratorVolume.cpp:21). */
+  /**
+   * Carbon GetVolume (EveDistributionPlacementGeneratorVolume.cpp:21).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetVolume()
@@ -129,6 +140,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   /**
    * Carbon SetVolume (cpp:26): the ORDERED swap - the old volume is
    * unsubscribed before the new one subscribes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -143,6 +156,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   /**
    * Carbon AddVolumeCallbacks (cpp:76): subscribe RequestRegeneration to the
    * assigned volume and keep the token. Also runs from Initialize (cpp:98).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -159,6 +174,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Carbon RemoveVolumeCallbacks (cpp:85): unsubscribe when a token is held.
    * The donor does NOT zero the token afterwards; callers that need a fresh
    * token zero it themselves, exactly as SetVolume above does.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -170,7 +187,11 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
     }
   }
 
-  /** Marks the placement pool as stale so the owning distribution rebuilds it. */
+  /**
+   * Marks the placement pool as stale so the owning distribution rebuilds it.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RequestRegeneration()
@@ -181,6 +202,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   /**
    * Reports whether the pool is stale; the owning distribution restarts while
    * this is true, and it clears once new placements are generated.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -189,7 +212,11 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
     return this._isRequestingRegeneration;
   }
 
-  /** Carbon Initialize (cpp:98-102): subscribe to the assigned volume's changes. */
+  /**
+   * Carbon Initialize (cpp:98-102): subscribe to the assigned volume's changes.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -198,7 +225,11 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
     return true;
   }
 
-  /** Carbon OnModified (cpp:106-110): any authored change requests regeneration. */
+  /**
+   * Carbon OnModified (cpp:106-110): any authored change requests regeneration.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(_value = null)

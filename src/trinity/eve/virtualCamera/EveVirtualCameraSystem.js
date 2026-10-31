@@ -54,6 +54,8 @@ export class EveVirtualCameraSystem
   /**
    * Reports the system ready; the port has no device state to acquire, so this
    * always succeeds.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -65,6 +67,8 @@ export class EveVirtualCameraSystem
   /**
    * Returns the camera the scene should render from: the transition's camera
    * while a transition is running, otherwise the main camera.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -76,6 +80,8 @@ export class EveVirtualCameraSystem
   /**
    * Registers a camera for updating and name lookup, refusing the external
    * camera and duplicates; returns whether it was added.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -92,6 +98,8 @@ export class EveVirtualCameraSystem
   /**
    * Returns the camera control has been handed to, ignoring any transition
    * currently blending towards it.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -104,6 +112,8 @@ export class EveVirtualCameraSystem
    * Finds a registered camera by name, also matching the external camera, and
    * returns null when nothing matches.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp:68-85
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -119,6 +129,8 @@ export class EveVirtualCameraSystem
   /**
    * Hands control to a camera immediately through a cut transition; does nothing
    * when the camera is null or already the main camera.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -133,6 +145,8 @@ export class EveVirtualCameraSystem
   /**
    * Hands control to a camera through a lerp transition lasting transitionTime
    * seconds; does nothing when the camera is null or already the main camera.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -149,6 +163,8 @@ export class EveVirtualCameraSystem
   /**
    * Reports whether the currently rendering camera is the external one, meaning
    * the host application is driving the view rather than an authored camera.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -159,6 +175,8 @@ export class EveVirtualCameraSystem
 
   /**
    * Advances every registered camera, the external camera and any running transition, clearing the transition once it completes.
+   *
+   * @adapted
    * @param {Number} simTime Absolute simulation time; the delta is derived from the previous call, and the first call produces a zero delta
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp:133-160
    * Adapted: simulation time remains JavaScript seconds. Reject nonfinite or non-number
@@ -194,6 +212,8 @@ export class EveVirtualCameraSystem
   /**
    * Carbon's SetMainCamera( camera ) (EveVirtualCameraSystem.cpp:87): drops any
    * running transition, makes the camera the main one and registers it.
+   *
+   * @implemented
    * @param {EveVirtualCamera} camera
    */
 
@@ -209,6 +229,8 @@ export class EveVirtualCameraSystem
    * Carbon's SetMainCamera( camera, transition ) (EveVirtualCameraSystem.cpp:94):
    * switches the main camera, then wires the transition from the previous main
    * camera to the new one and plays it.
+   *
+   * @implemented
    * @param {EveVirtualCamera} camera
    * @param {EveVirtualCameraTransitionBase} transition
    */

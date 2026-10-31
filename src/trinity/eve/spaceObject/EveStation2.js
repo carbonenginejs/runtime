@@ -21,6 +21,8 @@ export class EveStation2 extends EveSpaceObject2
   /**
    * Applies station activation after the base damage-overlay contribution.
    * Carbon EveStation2.cpp:32-37; the base refreshes the value every frame.
+   *
+   * @implemented
    * @param {EveUpdateContext} updateContext Scene update context.
    * @returns {void}
    */

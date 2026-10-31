@@ -191,21 +191,33 @@ export class EveSmartLightPointLight extends EveEntity
 
   /** Last lightProfilePath the settle hook applied (JS-only change detection). */
 
-  /** IEveSmartLightGroup default: point-light groups have no async work. */
+  /**
+   * IEveSmartLightGroup default: point-light groups have no async work.
+   *
+   * @adapted
+   */
   @meta.adapted
   @legacyBlue.method
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 
-  /** IEveSmartLightGroup default: light-manager visibility is handled later. */
+  /**
+   * IEveSmartLightGroup default: light-manager visibility is handled later.
+   *
+   * @adapted
+   */
   @legacyBlue.method
   @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
-  /** IEveSmartLightGroup default: point lights are components, not renderables. */
+  /**
+   * IEveSmartLightGroup default: point lights are components, not renderables.
+   *
+   * @adapted
+   */
   @legacyBlue.method
   @meta.adapted
   GetRenderables(renderables)
@@ -213,14 +225,22 @@ export class EveSmartLightPointLight extends EveEntity
     return renderables;
   }
 
-  /** IEveSmartLightGroup default: point lights contribute no quads. */
+  /**
+   * IEveSmartLightGroup default: point lights contribute no quads.
+   *
+   * @adapted
+   */
   @legacyBlue.method
   @meta.adapted
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
 
-  /** IEveSmartLightGroup default: point lights register no quad effect. */
+  /**
+   * IEveSmartLightGroup default: point lights register no quad effect.
+   *
+   * @adapted
+   */
   @legacyBlue.method
   @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
@@ -230,8 +250,8 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface through the shared resolveGroupColor helper.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface through the shared resolveGroupColor helper.
    */
   @meta.adapted
   GetGroupColor()
@@ -248,8 +268,8 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface.
    */
   @meta.adapted
   SetColor(color)
@@ -261,8 +281,8 @@ export class EveSmartLightPointLight extends EveEntity
    * Stores the inherited faction color set and fans it out to the attribute
    * modifiers (Carbon base EveSmartLightBaseGroup.cpp:30-41).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface.
    */
   @meta.adapted
   SetInheritProperties(colorSet)
@@ -281,8 +301,8 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * Fans a controller variable out to the attribute modifiers (Carbon base EveSmartLightBaseGroup.cpp:60-66).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface.
    */
   @meta.adapted
   SetControllerVariable(name, value)
@@ -297,8 +317,8 @@ export class EveSmartLightPointLight extends EveEntity
    * Newly inserted attribute modifiers inherit the parent color set (Carbon
    * base EveSmartLightBaseGroup.cpp:16-28).
    *
-   * Adapted: The secondary base's list handling lives on this class and receives the Blue
-   * list event, inserted value and owning array explicitly.
+   * @adapted The secondary base's list handling lives on this class and receives the Blue
+   *   list event, inserted value and owning array explicitly.
    */
   @meta.adapted
   OnListModified(event, _key, _key2, value, list)
@@ -314,7 +334,11 @@ export class EveSmartLightPointLight extends EveEntity
     }
   }
 
-  /** Carbon Initialize (EveSmartLightPointLight.cpp:18-27): resolve the profile. */
+  /**
+   * Carbon Initialize (EveSmartLightPointLight.cpp:18-27): resolve the profile.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -343,6 +367,8 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * A lightProfilePath edit re-resolves the profile
    * (EveSmartLightPointLight.cpp:29-41).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -355,6 +381,8 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * Captures the frame state and updates the attribute modifiers with full
    * strength (EveSmartLightPointLight.cpp:43-54).
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -374,9 +402,9 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * Registers this entity as a light owner (EveSmartLightPointLight.cpp:56-63).
    *
-   * Adapted: Carbon's RegisterComponent<ITr2LightOwner> template is expressed as the
-   * registry's explicit component-name signature (verbatim "LightOwner",
-   * Lights/ITr2LightOwner.h:18).
+   * @adapted Carbon's RegisterComponent<ITr2LightOwner> template is expressed as the
+   *   registry's explicit component-name signature (verbatim "LightOwner",
+   *   Lights/ITr2LightOwner.h:18).
    */
 
   @meta.adapted
@@ -399,8 +427,8 @@ export class EveSmartLightPointLight extends EveEntity
    * The record is scratch - the manager must copy, as Carbon's
    * Tr2LightManager::AddLight copies PerLightData by value.
    *
-   * Adapted: Physical per-light packing (half words, profile-index flag bits) moves to the
-   * renderer backend; Trinity submits the typed CPU record per placement.
+   * @adapted Physical per-light packing (half words, profile-index flag bits) moves to the
+   *   renderer backend; Trinity submits the typed CPU record per placement.
    */
 
   @meta.adapted
@@ -511,6 +539,7 @@ export class EveSmartLightPointLight extends EveEntity
    * is the group colour * brightness at alpha 0.03, zero-fail-selected
    * 1.5x + alpha 0.01.
    *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {Array<object>} placements Placement data with identifiers.
    * @param {number} size Number of placements to draw.

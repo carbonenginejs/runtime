@@ -23,6 +23,7 @@ export class Tr2TexturePipelineStepLimitSize extends IRoot
    * Carbon's ITr2TexturePipelineStep default (ITr2TexturePipelineStep.h:21):
    * this step names no resources.
    *
+   * @implemented
    * @param {Set<string>} [resources] Caller-owned; allocated when omitted.
    * @returns {Set<string>} The set, unchanged.
    */
@@ -34,6 +35,7 @@ export class Tr2TexturePipelineStepLimitSize extends IRoot
   /**
    * Carbon Execute (cpp:24-31): the step's own limits, not the pipeline's.
    *
+   * @implemented
    * @param {import("#imageio").HostBitmap} bitmap The pipeline's bitmap.
    * @returns {boolean} Whether the step succeeded.
    */
@@ -54,9 +56,8 @@ export class Tr2TexturePipelineStepLimitSize extends IRoot
    * generated first, the count is `GetTrueMipCount() - mip`, and the copy runs
    * to `mip + mipCount` (Carbon imageio issue 1).
    *
-   * Adapted: Carbon's LimitSize returns an all-zero texture for single-mip input and leaves
-   * the last level zeroed for a full chain (issue 1); fixed here.
-   *
+   * @adapted Carbon's LimitSize returns an all-zero texture for single-mip input and leaves
+   *   the last level zeroed for a full chain (issue 1); fixed here.
    * @param {import("#imageio").HostBitmap} bitmap Bitmap to shrink in place.
    * @param {number} maxWidth Width limit, 0 for none.
    * @param {number} maxHeight Height limit, 0 for none.

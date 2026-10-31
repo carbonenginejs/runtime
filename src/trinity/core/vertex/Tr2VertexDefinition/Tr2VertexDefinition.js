@@ -36,7 +36,11 @@ export class Tr2VertexDefinition
   /** Carbon m_nextOffset[OFFSET_COUNT] (h:153-159): per-stream offset ledger. */
   nextOffset = [ 0, 0, 0, 0 ];
 
-  /** Carbon empty() (h:145-148). */
+  /**
+   * Carbon empty() (h:145-148).
+   *
+   * @implemented
+   */
   empty()
   {
     return this.items.length === 0;
@@ -48,6 +52,7 @@ export class Tr2VertexDefinition
    * always a bool that indicates if the added item is coming from instanced
    * data" - Carbon's own words.
    *
+   * @adapted
    * @param {string} type Data type name, e.g. "FLOAT32_3", "UBYTE_4_NORM".
    * @param {string|number} usage Usage name or Tr2VertexUsageCode ordinal.
    * @param {number} [usageIndex]
@@ -71,6 +76,8 @@ export class Tr2VertexDefinition
 
   /**
    * Carbon Find( usage ) (h:171): the first item with the usage; null when absent.
+   *
+   * @adapted
    */
   Find(usage)
   {
@@ -89,6 +96,8 @@ export class Tr2VertexDefinition
    * Carbon Find( usage, usageIndex ) (h:174), split from Find by its extra
    * parameter: the first item with the usage and
    * usage index; null when absent.
+   *
+   * @adapted
    */
   Find__UsageIndex(usage, usageIndex)
   {
@@ -103,14 +112,24 @@ export class Tr2VertexDefinition
     return null;
   }
 
-  /** Carbon GetDataTypeSizeInMembers (h:183-186), from the type NAME. */
+  /**
+   * Carbon GetDataTypeSizeInMembers (h:183-186), from the type NAME.
+   *
+   * @adapted
+   * @renamed GetDataTypeSizeInMembers
+   */
   static getDataTypeSizeInMembers(type)
   {
     const match = /_([1-4])(?:_NORM)?$/.exec(String(type));
     return match ? Number(match[1]) : 0;
   }
 
-  /** Carbon GetDataTypeSizeInBytes (h:188-205), from the type NAME. */
+  /**
+   * Carbon GetDataTypeSizeInBytes (h:188-205), from the type NAME.
+   *
+   * @adapted
+   * @renamed GetDataTypeSizeInBytes
+   */
   static getDataTypeSizeInBytes(type)
   {
     const base = DATA_TYPE_BASE_BYTES[String(type).split("_")[0]];
@@ -245,6 +264,9 @@ export class Tr2VertexDefinition
    * the ledger participates only when both sides carry one, because a plain
    * payload element list has no ledger to compare (Carbon always has both,
    * so comparing what exists is the faithful subset).
+   *
+   * @adapted
+   * @renamed operator==
    */
   static isSameDefinition(firstDefinition, secondDefinition)
   {

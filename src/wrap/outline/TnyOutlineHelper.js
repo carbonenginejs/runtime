@@ -107,7 +107,12 @@ export class TnyOutlineHelper extends ITr2RenderNode
     });
   }
 
-  /** Acquires only through Blue; the application supplies resource routing. */
+  /**
+   * Acquires only through Blue; the application supplies resource routing.
+   *
+   * @cjs
+   * @implemented
+   */
   async _LoadEffects()
   {
     await Promise.all(Object.entries(EFFECTS).map(async ([name, path]) =>

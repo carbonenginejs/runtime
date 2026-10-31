@@ -18,6 +18,8 @@ export class EveLODHelper
    * Whether an object at this detail level is due for an update given the
    * seconds since its last one; unspecified and low update once a second, medium
    * ten times a second, and higher levels every frame.
+   *
+   * @implemented
    */
   @meta.implemented
   static ShouldUpdate(lod, timeSinceUpdate)
@@ -37,6 +39,8 @@ export class EveLODHelper
   /**
    * Carbon's MergeLOD( lod0, lod1 ) (EveLODHelper.h:62): the higher of two
    * detail levels, treating unspecified as no opinion.
+   *
+   * @implemented
    * @param {Number} lod0
    * @param {Number} lod1
    * @returns {Number}
@@ -57,6 +61,8 @@ export class EveLODHelper
    * named by the parameters that replace lod1: an invisible sphere yields
    * unspecified, and a visible one is classified by its on-screen pixel size
    * against the context's low and medium detail thresholds, then merged.
+   *
+   * @implemented
    * @param {Number} lod0
    * @param {Float32Array} sphere - packed (x, y, z, radius)
    * @param {EveUpdateContext} updateContext

@@ -36,6 +36,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Carbon MAP_PROPERTY "element" over GetElement/SetElement
    * (EveFiringEffectElementContainer_Blue.cpp:27-31): the setter moves
    * component registration to the replacement.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.rootRef("IEveFiringEffectElement")
@@ -45,7 +47,11 @@ export class EveFiringEffectElementContainer extends EveEntity
     return this.GetElement();
   }
 
-  /** Moves component registration to the replacement element. */
+  /**
+   * Moves component registration to the replacement element.
+   *
+   * @implemented
+   */
   @meta.implemented
   set element(value)
   {
@@ -56,6 +62,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Carbon MAP_PROPERTY "active" over GetActive/SetActive
    * (EveFiringEffectElementContainer_Blue.cpp:33-37): setting it starts or
    * stops the element when the state changes.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.boolean
@@ -65,7 +73,11 @@ export class EveFiringEffectElementContainer extends EveEntity
     return this.GetActive();
   }
 
-  /** Starts or stops firing when the requested state differs. */
+  /**
+   * Starts or stops firing when the requested state differs.
+   *
+   * @implemented
+   */
   @meta.implemented
   set active(value)
   {
@@ -111,8 +123,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * destination scale and endpoint display flags - into the wrapped element,
    * then updates the element, but only while the container is firing.
    *
-   * Adapted: The browser runtime drives the nominal firing-element contract synchronously
-   * instead of Carbon task dispatch.
+   * @adapted The browser runtime drives the nominal firing-element contract synchronously
+   *   instead of Carbon task dispatch.
    */
   @meta.adapted
   UpdateSynchronous(context)
@@ -140,8 +152,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * The wrapped element is driven entirely from the synchronous phase, so this
    * only reports success.
    *
-   * Adapted: The element is updated in the synchronous phase; this asynchronous entry point
-   * only reports success.
+   * @adapted The element is updated in the synchronous phase; this asynchronous entry point
+   *   only reports success.
    */
   @meta.adapted
   UpdateAsynchronous(context)
@@ -164,7 +176,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Forwards the parent placement to the wrapped element under the container's
    * own display flag.
    *
-   * Adapted: Visibility is graph-owned; the renderer consumes the collected element later.
+   * @adapted Visibility is graph-owned; the renderer consumes the collected element later.
    */
 
   @meta.adapted
@@ -176,8 +188,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   /**
    * Appends the wrapped element's renderables to out while the container is displayed.
    *
-   * Adapted: Renderable collection is backend-neutral and does not build the batch yet.
-   *
+   * @adapted Renderable collection is backend-neutral and does not build the batch yet.
    * @returns {Array} out
    */
   @meta.adapted
@@ -192,6 +203,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Starts the wrapped element firing with no delay and marks the container
    * active, which is what enables the per-frame element update; without an
    * element nothing changes (Carbon cpp:83-90).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -208,6 +221,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Stops the wrapped element and clears the active flag, halting the per-frame
    * element update while still pushing endpoint state; without an element
    * nothing changes (Carbon cpp:92-99).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -223,6 +238,8 @@ export class EveFiringEffectElementContainer extends EveEntity
   /**
    * Toggles firing through StartFiring/StopFiring, ignoring a request that
    * matches the current state so a repeated true does not restart the effect.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -233,7 +250,11 @@ export class EveFiringEffectElementContainer extends EveEntity
     else this.StopFiring();
   }
 
-  /** Whether the container is currently firing. */
+  /**
+   * Whether the container is currently firing.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetActive()
@@ -245,6 +266,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Replaces the wrapped firing-effect element, moving its component
    * registration from the old element to the new one; the container's active
    * state is not reapplied to the new element (Carbon cpp:121-133).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -256,7 +279,11 @@ export class EveFiringEffectElementContainer extends EveEntity
     CjsSchema.cast(this._element, EveEntity)?.Register(registry);
   }
 
-  /** The wrapped firing-effect element, or null. */
+  /**
+   * The wrapped firing-effect element, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetElement()
@@ -269,6 +296,9 @@ export class EveFiringEffectElementContainer extends EveEntity
    * whole, with its translation mirrored into source - or a source position;
    * which one was given is latched in useSourceTransform and applied on the next
    * synchronous update.
+   *
+   * @cjs
+   * @implemented
    */
   @meta.cjs
     @meta.implemented
@@ -291,6 +321,9 @@ export class EveFiringEffectElementContainer extends EveEntity
   /**
    * Records the destination-end scale forwarded to the element on the next
    * synchronous update.
+   *
+   * @cjs
+   * @implemented
    */
   @meta.cjs
     @meta.implemented
@@ -302,6 +335,9 @@ export class EveFiringEffectElementContainer extends EveEntity
   /**
    * Records which endpoints the element should draw; forwarded on the next
    * synchronous update.
+   *
+   * @cjs
+   * @implemented
    */
   @meta.cjs
     @meta.implemented
@@ -314,6 +350,9 @@ export class EveFiringEffectElementContainer extends EveEntity
   /**
    * Shows or hides the container, gating visibility and renderable collection
    * but not the endpoint state push.
+   *
+   * @cjs
+   * @implemented
    */
   @meta.cjs
     @meta.implemented
@@ -325,6 +364,9 @@ export class EveFiringEffectElementContainer extends EveEntity
   /**
    * Curve duration reported by the wrapped element, or 0 when there is no
    * element.
+   *
+   * @cjs
+   * @implemented
    */
   @meta.cjs
     @meta.implemented
@@ -333,9 +375,13 @@ export class EveFiringEffectElementContainer extends EveEntity
     return this._element ? Number(this._element.GetCurveDuration()) : 0;
   }
 
-  /** Carbon EveFiringEffectElementContainer::RegisterComponents
+  /**
+   * Carbon EveFiringEffectElementContainer::RegisterComponents
    * (cpp:140-146): forwards the wrapped element (no gates; EveEntity.Register
-   * tolerates a null registry). */
+   * tolerates a null registry).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -343,8 +389,12 @@ export class EveFiringEffectElementContainer extends EveEntity
     this._element?.Register(this.GetComponentRegistry());
   }
 
-  /** Carbon EveFiringEffectElementContainer::UnRegisterComponents
-   * (cpp:148-154): forwards the wrapped element. */
+  /**
+   * Carbon EveFiringEffectElementContainer::UnRegisterComponents
+   * (cpp:148-154): forwards the wrapped element.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -352,33 +402,53 @@ export class EveFiringEffectElementContainer extends EveEntity
     this._element?.UnRegister(this.GetComponentRegistry());
   }
 
-  /** Carbon: GetBoundingSphere (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:60-63). No bounds; leaves the output untouched. */
+  /**
+   * Carbon: GetBoundingSphere (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:60-63). No bounds; leaves the output untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
     return false;
   }
 
-  /** Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:65-67). Intentionally leaves position untouched. */
+  /**
+   * Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:65-67). Intentionally leaves position untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateModelCenterWorldPosition(position, t)
   {
   }
 
-  /** Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:69-71). Intentionally leaves position untouched. */
+  /**
+   * Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:69-71). Intentionally leaves position untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetModelCenterWorldPosition(position)
   {
   }
 
-  /** Carbon: GetLocalBoundingBox (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:73-76). No bounds; leaves both outputs untouched. */
+  /**
+   * Carbon: GetLocalBoundingBox (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:73-76). No bounds; leaves both outputs untouched.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     return false;
   }
 
-  /** Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:78-81). Writes identity into caller storage. */
+  /**
+   * Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:78-81). Writes identity into caller storage.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {

@@ -23,6 +23,8 @@ export class SplineTunnelPoint
   /**
    * Carbon's friend `operator==` (SplineTunnelGroup.h:15-18), which
    * JavaScript cannot overload: exact comparison of every member.
+   *
+   * @renamed operator==
    * @param {SplineTunnelPoint} other
    * @returns {boolean}
    */
@@ -36,6 +38,8 @@ export class SplineTunnelPoint
 
   /**
    * Carbon's friend `operator!=` (SplineTunnelGroup.h:20-23).
+   *
+   * @renamed operator!=
    * @param {SplineTunnelPoint} other
    * @returns {boolean}
    */

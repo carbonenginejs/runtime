@@ -17,7 +17,11 @@ export class Tr2ParticleDragForce extends ITr2ParticleForce
   @type.float32
   drag = 0.1;
 
-  /** Carbon's drag force is proportional and opposite to velocity. */
+  /**
+   * Carbon's drag force is proportional and opposite to velocity.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetForce(_position, velocity, _dt, _mass, out)
@@ -28,6 +32,8 @@ export class Tr2ParticleDragForce extends ITr2ParticleForce
   /**
    * Nothing to advance per frame: drag is computed from each particle's current
    * velocity.
+   *
+   * @adapted
    */
 
   @meta.adapted

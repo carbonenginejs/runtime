@@ -30,19 +30,38 @@ import { CjsSchema, meta } from "#schema";
  * A scratch block standing in for locked device memory.
  *
  * Carbon: Tr2LockGuard (trinity/trinityal/Tr2LockGuard.h:7)
+ *
+ * @adapted
  */
 export class Tr2LockGuard
 {
-  /** Registered name; `constructor.name` does not survive minification. */
+  /**
+   * Registered name; `constructor.name` does not survive minification.
+   *
+   * @cjs
+   * @implemented
+   */
   static className = "Tr2LockGuard";
 
-  /** m_originalMemory: the real memory, written on unlock. */
+  /**
+   * m_originalMemory: the real memory, written on unlock.
+   *
+   * @implemented
+   */
   _originalMemory = null;
 
-  /** m_memory: the scratch block handed to the caller. */
+  /**
+   * m_memory: the scratch block handed to the caller.
+   *
+   * @implemented
+   */
   _memory = null;
 
-  /** m_size */
+  /**
+   * m_size
+   *
+   * @implemented
+   */
   _size = 0;
 
   /**
@@ -59,8 +78,8 @@ export class Tr2LockGuard
    *
    * Carbon: Tr2LockGuard::~Tr2LockGuard (trinity/trinityal/Tr2LockGuard.cpp:13-16)
    *
-   * Adapted: JavaScript has no deterministic destructor; the owner calls this
-   * when it releases the resource.
+   * @adapted JavaScript has no deterministic destructor; the owner calls this
+   *   when it releases the resource.
    */
   Destruct()
   {
@@ -77,6 +96,7 @@ export class Tr2LockGuard
    * again (the C++ warns, then frees and reallocates); a zero size still
    * produces an (empty) block.
    *
+   * @adapted
    * @param {number} size Bytes.
    * @param {Uint8Array} originalMemory The real memory written on unlock.
    */
@@ -95,6 +115,8 @@ export class Tr2LockGuard
    * Nothing locked, or no real memory to write to, returns without doing
    * anything (the C++ warns); in the second case the scratch is kept, as in
    * Carbon.
+   *
+   * @adapted
    */
   Unlock()
   {
@@ -112,6 +134,7 @@ export class Tr2LockGuard
    *
    * Carbon: Tr2LockGuard::GetMemory (trinity/trinityal/Tr2LockGuard.cpp:72-75)
    *
+   * @implemented
    * @returns {Uint8Array|null} The scratch block.
    */
   GetMemory()

@@ -36,6 +36,8 @@ export class TriShadowFrustum
    * Carbon TriShadowFrustum::IsVisible (h:116-121) - the shadow frustum's own
    * sphere test; Carbon leaves camera-based culling as a TODO ("do something
    * smart to cull the shadowcasting sphere using the camera frustum").
+   *
+   * @implemented
    * @param {Object} _camera - TriFrustum duck (unused, Carbon parity)
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Boolean}
@@ -48,6 +50,8 @@ export class TriShadowFrustum
 
   /**
    * Carbon TriShadowFrustum::GetSizeInShadow (h:122-125).
+   *
+   * @implemented
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Number}
    */
@@ -60,6 +64,8 @@ export class TriShadowFrustum
   /**
    * Carbon TriShadowFrustum::GetEyePos (h:126-129) - the shadow frustum's
    * m_viewPos.
+   *
+   * @implemented
    * @returns {Float32Array}
    */
   @meta.implemented
@@ -71,6 +77,8 @@ export class TriShadowFrustum
   /**
    * Carbon TriShadowFrustum::SphereTest (h:131-134) - delegates to the shadow
    * frustum's six-plane classification (camera unused, Carbon parity).
+   *
+   * @implemented
    * @param {Object} _camera - TriFrustum duck (unused)
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult

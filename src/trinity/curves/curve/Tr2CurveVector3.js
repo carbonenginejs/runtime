@@ -67,6 +67,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
   /**
    * Updates the cached vector value by updating each scalar component curve.
    *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -82,6 +83,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
   /**
    * Gets the longest scalar component curve length.
    *
+   * @implemented
    * @returns {number} Longest scalar component length.
    */
 
@@ -94,6 +96,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
   /**
    * Gets the vector value at `time` into `out`.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
@@ -110,6 +113,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * Native right-tangent selection is gated by left-tangent presence. JavaScript
    * also treats a missing right array as zero; right-only input remains ignored.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} value Authored component values.
    * @param {number} [interpolation = Tr2CurveInterpolation.HERMITE] Interpolation for the following segment.
@@ -131,6 +135,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
   /**
    * Sets extrapolation on all scalar component curves.
    *
+   * @implemented
    * @param {number} extrapolation Before and after extrapolation mode.
    * @returns {void}
    */
@@ -146,6 +151,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
   /**
    * Updates the cached value and copies it into `out`.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
@@ -161,6 +167,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
   /**
    * Gets the vector value at `time` into `out`.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
@@ -177,6 +184,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
   /**
    * Native derivative operation leaves the supplied output unchanged.
    *
+   * @adapted
    * @param {number} _time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
@@ -191,6 +199,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
   /**
    * Native second derivative leaves the supplied output unchanged.
    *
+   * @adapted
    * @param {number} _time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
@@ -205,6 +214,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
   /**
    * Native position interpolation leaves the supplied output unchanged.
    *
+   * @adapted
    * @param {number} _time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.

@@ -58,7 +58,11 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   @type.boolean
   delayBinding = false;
 
-  /** Live native READ property; does not compile the expression. */
+  /**
+   * Live native READ property; does not compile the expression.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
@@ -67,7 +71,11 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
     return this.IsExpressionValid();
   }
 
-  /** Live native READ property; does not resolve a destination. */
+  /**
+   * Live native READ property; does not resolve a destination.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
@@ -87,9 +95,9 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Links the destination when this action does not use delayed binding.
    *
-   * Adapted: The existing JS binding adapter resolves the destination; an AST
-   * program replaces native bytecode and is retained until a value notification,
-   * relink or unlink.
+   * @adapted The existing JS binding adapter resolves the destination; an AST
+   *   program replaces native bytecode and is retained until a value notification,
+   *   relink or unlink.
    */
 
   @meta.adapted
@@ -105,6 +113,8 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
 
   /**
    * Unlinks the destination binding.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -121,11 +131,11 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Evaluates the retained value expression and writes a successful result.
    *
-   * Adapted: Uses the AST compiled for the linked controller; Start's controller
-   * is used only for destination binding. Evaluation failures skip the write,
-   * while successful NaN and infinity results are preserved as in native code.
-   * The existing no-argument/unlinked JavaScript convenience remains; Carbon
-   * requires an invocation controller reference.
+   * @adapted Uses the AST compiled for the linked controller; Start's controller
+   *   is used only for destination binding. Evaluation failures skip the write,
+   *   while successful NaN and infinity results are preserved as in native code.
+   *   The existing no-argument/unlinked JavaScript convenience remains; Carbon
+   *   requires an invocation controller reference.
    */
 
   @meta.adapted
@@ -153,6 +163,8 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
 
   /**
    * Relinks or recompiles when authored fields change.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -173,6 +185,8 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
 
   /**
    * Checks whether the binding currently resolves.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -183,6 +197,8 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
 
   /**
    * Reports retained compilation validity without compiling or rebinding.
+   *
+   * @implemented
    */
   @meta.implemented
   IsExpressionValid()
@@ -194,6 +210,8 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * Carbon's Blue arity adapter (the same property/method name-collision
    * forward all four action classes carry): takes and discards the
    * attribute name. Same forward here for nominal parity.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("IsExpressionValid")
   @meta.implemented
@@ -202,7 +220,11 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
     return this.IsExpressionValid();
   }
 
-  /** Carbon GetDestination (Tr2ActionSetValue.cpp:81-84): the binding's bound object. */
+  /**
+   * Carbon GetDestination (Tr2ActionSetValue.cpp:81-84): the binding's bound object.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetDestination()
@@ -212,8 +234,9 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
 
   /**
    * Gets expression term metadata from the linked controller.
-   * Adapted: shared AST term records replace native evaluator term metadata;
-   * a linked controller supplies its required GetExpressionTermInfo operation.
+   *
+   * @adapted shared AST term records replace native evaluator term metadata;
+   *   a linked controller supplies its required GetExpressionTermInfo operation.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -228,10 +251,9 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Evaluates an expression against this action's linked controller.
    *
-   * Adapted: Returns a number and throws typed JS errors instead of BlueStdResult
-   * and an output argument. The shared AST parser still differs from native
-   * variable binding, arithmetic and float32 evaluation; this is a lifecycle port.
-   *
+   * @adapted Returns a number and throws typed JS errors instead of BlueStdResult
+   *   and an output argument. The shared AST parser still differs from native
+   *   variable binding, arithmetic and float32 evaluation; this is a lifecycle port.
    * @param {string} expression Source text.
    * @returns {number} Successful result, including nonfinite values.
    * @throws {CjsControllerExpressionCompileError} If parsing fails.
@@ -338,7 +360,11 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
     return this._bindingPoint;
   }
 
-  /** Carbon LinkDestination (Tr2ActionSetValue.cpp:103-106): link against the controller's roots. */
+  /**
+   * Carbon LinkDestination (Tr2ActionSetValue.cpp:103-106): link against the controller's roots.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   LinkDestination(controller = this._controller)
@@ -349,6 +375,8 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Checks whether binding is deferred to Start, which requires both the
    * delayBinding flag and an authored path.
+   *
+   * @implemented
    */
 
   @meta.implemented

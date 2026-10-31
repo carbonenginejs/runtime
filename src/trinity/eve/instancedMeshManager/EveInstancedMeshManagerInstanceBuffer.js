@@ -56,13 +56,13 @@ export class EveInstancedMeshManagerInstanceBuffer
    * into the last region when that one is this frame's and ends where the
    * span starts.
    *
-   * Adapted: Carbon's `Create( 4, newCount, ... )` stride overload is reached
-   * through `Create( description )` with `Tr2BufferDescriptionAL.create__Stride`,
-   * because our Tr2BufferAL ports only the description overload. The map's
-   * result is read from the returned record, where Carbon fills an
-   * out-parameter and ignores the result; a failed map leaves `data` null
-   * where Carbon would hand out `nullptr + offset`. `data` is a subarray view
-   * of the mapping (allocation per call) standing in for pointer arithmetic.
+   * @adapted Carbon's `Create( 4, newCount, ... )` stride overload is reached
+   *   through `Create( description )` with `Tr2BufferDescriptionAL.create__Stride`,
+   *   because our Tr2BufferAL ports only the description overload. The map's
+   *   result is read from the returned record, where Carbon fills an
+   *   out-parameter and ignores the result; a failed map leaves `data` null
+   *   where Carbon would hand out `nullptr + offset`. `data` is a subarray view
+   *   of the mapping (allocation per call) standing in for pointer arithmetic.
    * @param {number} count Bytes wanted.
    * @returns {EveInstancedMeshManagerInstanceBufferAllocation}
    */
@@ -123,7 +123,7 @@ export class EveInstancedMeshManagerInstanceBuffer
    * exactly is refused there, while the non-wrapped test (`endOffset >=
    * offset + count`) accepts an exact fit.
    *
-   * Adapted: `std::optional<uint32_t>` is a number or `null`.
+   * @adapted `std::optional<uint32_t>` is a number or `null`.
    * @param {number} count Bytes wanted (Carbon's header names it minSize).
    * @returns {number|null} The byte offset, or null when nothing fits.
    */
@@ -171,6 +171,8 @@ export class EveInstancedMeshManagerInstanceBuffer
   /**
    * Carbon DoneCopying (cpp:473-487): unmaps the current buffer if mapped,
    * then every retired buffer that was retired while mapped.
+   *
+   * @implemented
    */
   @meta.implemented
   DoneCopying()
@@ -193,10 +195,10 @@ export class EveInstancedMeshManagerInstanceBuffer
    * Carbon TrimRegions (cpp:489-502): drops the leading regions whose frame
    * has rendered, then releases every retired buffer.
    *
-   * Adapted: clearing Carbon's vector of unique_ptrs destroys the buffers;
-   * JavaScript has no destructors, so each retired buffer is destroyed
-   * explicitly. The first retirement pushes Carbon's empty unique_ptr, which
-   * is null here and has nothing to destroy.
+   * @adapted clearing Carbon's vector of unique_ptrs destroys the buffers;
+   *   JavaScript has no destructors, so each retired buffer is destroyed
+   *   explicitly. The first retirement pushes Carbon's empty unique_ptr, which
+   *   is null here and has nothing to destroy.
    * @param {number} renderedFrame The last frame the device has finished.
    */
   @meta.adapted
@@ -225,6 +227,8 @@ export class EveInstancedMeshManagerInstanceBuffer
 
   /**
    * Carbon GetSize (cpp:504-507): the current buffer's size in bytes, 0 without one.
+   *
+   * @implemented
    * @returns {number}
    */
   @meta.implemented

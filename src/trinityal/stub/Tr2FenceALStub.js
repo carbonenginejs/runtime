@@ -37,6 +37,7 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
   /**
    * Creates the fence.
    *
+   * @implemented
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult`.
    */
@@ -49,7 +50,11 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** Releases the fence and drops any outstanding marker. */
+  /**
+   * Releases the fence and drops any outstanding marker.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._isValid = false;
@@ -57,7 +62,10 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
     super.Destroy();
   }
 
-  /** @returns {boolean} Whether the fence was created. */
+  /**
+   * @implemented
+   * @returns {boolean} Whether the fence was created.
+   */
   IsValid()
   {
     return this._isValid;
@@ -71,6 +79,7 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
    * before waiting on the first means the caller has lost track of which point
    * it is waiting for.
    *
+   * @implemented
    * @returns {number} An `ALResult`.
    */
   PutFence()
@@ -89,6 +98,7 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
    * A stub device finishes instantly, so this is true whenever no marker is
    * outstanding.
    *
+   * @adapted
    * @returns {object} `{ result, isReached }`.
    */
   IsReached()
@@ -105,6 +115,7 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
    * nothing to wait for and a caller that thinks otherwise has mispaired its
    * calls.
    *
+   * @implemented
    * @returns {number} An `ALResult`.
    */
   Wait()
@@ -117,7 +128,10 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** @returns {number} A `Tr2ALMemoryType`. */
+  /**
+   * @implemented
+   * @returns {number} A `Tr2ALMemoryType`.
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_VIDEO;
@@ -133,6 +147,7 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -142,6 +157,7 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
   /**
    * Names the fence for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name
    *   (`Tr2FenceALStub.cpp:85-88`).

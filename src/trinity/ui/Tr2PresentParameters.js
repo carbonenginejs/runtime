@@ -22,6 +22,7 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
    * Be::READWRITE) (Tr2PresentParameters_Blue.cpp:13): an attribute over this
    * accessor onto the nested AL record.
    *
+   * @adapted
    * @returns {number} Back-buffer pixel width.
    */
   @be.mapAttribute(be.READWRITE)
@@ -32,7 +33,11 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
     return this.mode.width;
   }
 
-  /** Writes mode.width. @param {number} value Back-buffer pixel width. */
+  /**
+   * Writes mode.width. @param {number} value Back-buffer pixel width.
+   *
+   * @adapted
+   */
   @meta.adapted
   set backBufferWidth(value)
   {
@@ -44,6 +49,7 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
    * Be::READWRITE) (Tr2PresentParameters_Blue.cpp:18): an attribute over this
    * accessor onto the nested AL record.
    *
+   * @adapted
    * @returns {number} Back-buffer pixel height.
    */
   @be.mapAttribute(be.READWRITE)
@@ -54,7 +60,11 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
     return this.mode.height;
   }
 
-  /** Writes mode.height. @param {number} value Back-buffer pixel height. */
+  /**
+   * Writes mode.height. @param {number} value Back-buffer pixel height.
+   *
+   * @adapted
+   */
   @meta.adapted
   set backBufferHeight(value)
   {

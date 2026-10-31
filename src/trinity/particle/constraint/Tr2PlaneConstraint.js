@@ -117,6 +117,8 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 
   /**
    * Normalises the constraint plane and propagates the thread-safe flag to the on-collision emitters.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -132,6 +134,8 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 
   /**
    * Renormalises the cached plane whenever the plane property changes.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -144,8 +148,11 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
     return true;
   }
 
-  /** Disables multithreaded updates on emitters inserted outside loading.
+  /**
+   * Disables multithreaded updates on emitters inserted outside loading.
    * Carbon declaration: Tr2PlaneConstraint::OnListModified (trinity/trinity/Particle/Tr2PlaneConstraint.h:47).
+   *
+   * @implemented
    */
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
@@ -161,6 +168,8 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 
   /**
    * Resolves the position, velocity and radius elements and binds the attached generators, marking the constraint valid only when all of them resolve.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -191,6 +200,8 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 
   /**
    * Pushes particles that crossed the plane back to its surface, reflects their velocity with elasticity, friction and noise, and fires the generators and on-collision emitters.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -258,6 +269,8 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    * CcpMath::AxisAlignedBox::Center/Size do (AxisAlignedBox_inline.h:63-71),
    * not through box3.getCenter/getSize, which return zero for an inverted box
    * where Carbon does not check.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} aabb The particle system's bounds, packed min/max.

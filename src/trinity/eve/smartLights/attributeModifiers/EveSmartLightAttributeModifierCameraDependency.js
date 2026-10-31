@@ -124,6 +124,8 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * Advances only this modifier's crossfade - Carbon deliberately does NOT
    * update the child modifiers here
    * (EveSmartLightAttributeModifierCameraDependency.cpp:31-34).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -135,6 +137,8 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   /**
    * Scales the child modifiers by the camera-dependent activation value
    * (EveSmartLightAttributeModifierCameraDependency.cpp:106-117).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -156,6 +160,8 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * Product of the enabled camera amplitudes, remapped into the
    * [minimumActivation, maximumActivation] range
    * (EveSmartLightAttributeModifierCameraDependency.cpp:95-104).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -199,6 +205,8 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   /**
    * Camera look-at cone amplitude
    * (EveSmartLightAttributeModifierCameraDependency.cpp:52-72).
+   *
+   * @implemented
    */
 
   @meta.implemented

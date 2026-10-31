@@ -72,7 +72,11 @@ export class Wander extends IRoot
 
   _returnForces = [];
 
-  /** Carbon Wander::GetProcessPriority (cpp:23-26). */
+  /**
+   * Carbon Wander::GetProcessPriority (cpp:23-26).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetProcessPriority()
@@ -84,10 +88,9 @@ export class Wander extends IRoot
    * Adds a per-agent Perlin wander force seeded from lifetime + id (Carbon
    * CalculateBehavior, cpp:28-52; PerlinNoise1D maps to perlin1DCarbon).
    *
-   * Adapted: Carbon pushes a debug force pair for every agent unconditionally; the JS port
-   * collects them only when group.collectForces is set to keep the per-agent loop
-   * allocation-free.
-   *
+   * @adapted Carbon pushes a debug force pair for every agent unconditionally; the JS port
+   *   collects them only when group.collectForces is set to keep the per-agent loop
+   *   allocation-free.
    * @param {Array} agents - DroneAgent records
    * @param {Array|null} _scratchData - unused (no scratch)
    * @param {Number} _deltaTime

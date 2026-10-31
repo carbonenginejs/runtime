@@ -41,7 +41,11 @@ export class EveLensflare
     this.controllers.SetNotify(this);
   }
 
-  /** Links loaded controllers once (EveLensflare.cpp:78-88). */
+  /**
+   * Links loaded controllers once (EveLensflare.cpp:78-88).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -53,7 +57,11 @@ export class EveLensflare
     return true;
   }
 
-  /** Native controller insertion, removal and unload (cpp:91-122). */
+  /**
+   * Native controller insertion, removal and unload (cpp:91-122).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
@@ -85,7 +93,11 @@ export class EveLensflare
     }
   }
 
-  /** Plays all matching curve sets, with an optional named range (cpp:414-431). */
+  /**
+   * Plays all matching curve sets, with an optional named range (cpp:414-431).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
@@ -102,7 +114,11 @@ export class EveLensflare
     }
   }
 
-  /** Stops all matching curve sets (cpp:433-442). */
+  /**
+   * Stops all matching curve sets (cpp:433-442).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StopCurveSet(name)
@@ -110,7 +126,11 @@ export class EveLensflare
     for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Stop();
   }
 
-  /** Supplies the same time to both native clock inputs (cpp:444-453). */
+  /**
+   * Supplies the same time to both native clock inputs (cpp:444-453).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateCurveSet(name, time)
@@ -118,7 +138,11 @@ export class EveLensflare
     for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Update__RealTimeSimTime(time, time);
   }
 
-  /** Longest duration among matching curve sets (cpp:455-466). */
+  /**
+   * Longest duration among matching curve sets (cpp:455-466).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetCurveSetDuration(name)
@@ -131,7 +155,11 @@ export class EveLensflare
     return duration;
   }
 
-  /** Longest named-range duration among matching curve sets (cpp:468-479). */
+  /**
+   * Longest named-range duration among matching curve sets (cpp:468-479).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRangeDuration(name, rangeName)
@@ -287,7 +315,8 @@ export class EveLensflare
    * PrepareRender, forwarded to the flare children as their parent. */
   transform = mat4.create();
 
-  /** Carbon EveLensflare::Update (EveLensflare.cpp:145-182): position from the
+  /**
+   * Carbon EveLensflare::Update (EveLensflare.cpp:145-182): position from the
    * translation curve, the sun-size curve of very old magic numbers
    * (1.5 / ln(d_AU + 2.71), 0.1495978707e12 metres per AU; no curve means
    * sunSize 1, not the constructed 0), then curve sets and controllers.
@@ -296,7 +325,10 @@ export class EveLensflare
    * indices GetPerObjectData ships: the flare mesh reads those, but the god
    * rays read this GLOBAL, and until 2026-09-26 it was never written. The curve is
    * called out-last (Update(simTime, position)) per the org convention -
-   * Carbon's is out-first. */
+   * Carbon's is out-first.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(realTime, simTime)
@@ -331,7 +363,8 @@ export class EveLensflare
     }
   }
 
-  /** Carbon EveLensflare::UpdateVisibility (EveLensflare.cpp:298-311): the
+  /**
+   * Carbon EveLensflare::UpdateVisibility (EveLensflare.cpp:298-311): the
    * viewDir dot test - visible iff dot(frustum.viewDir, direction) >= 0
    * (a sun exactly perpendicular to the view IS visible), then every flare
    * child updates its visibility under this lensflare's transform. NO display
@@ -339,7 +372,10 @@ export class EveLensflare
    * ONE-FRAME LATENCY is contract: within a Carbon frame this runs before
    * PrepareRender, so the dot uses the PREVIOUS frame's direction and
    * forwards the previous frame's transform - do not "fix" the order. Scene
-   * call site: EveSpaceScene.cpp:1462-1466 (sequential, single-lensflare). */
+   * call site: EveSpaceScene.cpp:1462-1466 (sequential, single-lensflare).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext)
@@ -360,6 +396,7 @@ export class EveLensflare
    * visibility 1.0 - then runs each foreground occluder's query into its
    * counters, with fog weight 1.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {EveUpdateContext} updateContext The occluders' context.
    * @returns {void}
@@ -386,6 +423,7 @@ export class EveLensflare
    * then the background occluders. Carbon calls it from the background pass,
    * only for scenes with planets (EveSpaceScene.cpp:2153-2170). Fog weight 0.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {EveUpdateContext} updateContext The occluders' context.
    * @returns {void}
@@ -408,7 +446,11 @@ export class EveLensflare
     }
   }
 
-  /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
@@ -426,6 +468,8 @@ export class EveLensflare
    * and StartControllers, both of which were ported; this one was not, and the
    * hedge at every call site meant a lens flare silently ignored every
    * controller event rather than failing.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -435,7 +479,11 @@ export class EveLensflare
     for (const controller of this.controllers) controller.HandleEvent(key);
   }
 
-  /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method StartControllers (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
@@ -455,6 +503,7 @@ export class EveLensflare
    * gl-matrix `transformMat4` over the same bytes. The view is the
    * Tr2Renderer::GetViewTransform static (cpp:229).
    *
+   * @implemented
    * @param {TriFrustum} frustum This frame's frustum.
    * @returns {void}
    */
@@ -499,6 +548,7 @@ export class EveLensflare
    * Carbon GetRenderables (cpp:278-296): nothing unless displayed and visible;
    * each flare child's renderables, then this lensflare itself for its mesh.
    *
+   * @implemented
    * @param {TriFrustum} _frustum This frame's frustum (unused, as in Carbon).
    * @param {Array} renderables Out: the renderables.
    * @returns {Array} `renderables`.
@@ -514,7 +564,11 @@ export class EveLensflare
     return renderables;
   }
 
-  /** Carbon EveLensflare::GetBatches delegates the selected mesh areas (cpp:381-387). */
+  /**
+   * Carbon EveLensflare::GetBatches delegates the selected mesh areas (cpp:381-387).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
@@ -525,7 +579,11 @@ export class EveLensflare
     }
   }
 
-  /** Carbon EveLensflare::HasTransparentBatches is always false (cpp:389-392). */
+  /**
+   * Carbon EveLensflare::HasTransparentBatches is always false (cpp:389-392).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -533,7 +591,11 @@ export class EveLensflare
     return false;
   }
 
-  /** Carbon EveLensflare::GetSortValue is the constant one (cpp:394-397). */
+  /**
+   * Carbon EveLensflare::GetSortValue is the constant one (cpp:394-397).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -541,12 +603,16 @@ export class EveLensflare
     return 1;
   }
 
-  /** Carbon EveLensflare::GetPerObjectData (cpp:399-410): directionScale =
+  /**
+   * Carbon EveLensflare::GetPerObjectData (cpp:399-410): directionScale =
    * (direction, sunSize); indices[0]/[1] from the optional occlusion offsets
    * (null uploads 0). indices[2] and [3] are NEVER written in Carbon - the
    * per-element writes keep that arena-garbage parity. The struct registers
    * with stages ["vs", "ps"]: one payload, same bytes bound to both slots
-   * (cpp:24-38). */
+   * (cpp:24-38).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPerObjectData(accumulator)
@@ -571,6 +637,7 @@ export class EveLensflare
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    *
+   * @adapted
    * @returns {void}
    */
   @meta.adapted

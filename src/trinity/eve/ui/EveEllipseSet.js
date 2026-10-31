@@ -178,10 +178,9 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon ReleaseResources (EveEllipseSet.cpp:78-85): drops both buffers and
    * the declaration handle, and marks the geometry for rebuild.
    *
-   * Adapted: Carbon assigns an empty Tr2BufferAL value, which releases this
-   * reference; Tr2BufferAL.Destroy is that release, because JavaScript has no
-   * deterministic value destruction.
-   *
+   * @adapted Carbon assigns an empty Tr2BufferAL value, which releases this
+   *   reference; Tr2BufferAL.Destroy is that release, because JavaScript has no
+   *   deterministic value destruction.
    * @param {number} _s TriStorageFlags; Carbon releases everything regardless.
    * @returns {void}
    */
@@ -227,6 +226,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon declares it private; Tr2DeviceResource.PrepareResources calls it by
    * this name, so it keeps the public spelling.
    *
+   * @implemented
    * @returns {boolean} Whether the declaration handle is valid.
    */
 
@@ -250,9 +250,8 @@ export class EveEllipseSet extends EveChildTransform
    * Appends an ellipse, binds its dirty callback and marks ribbon geometry for rebuild.
    * Carbon AddEllipse (EveEllipseSet.cpp:112-128).
    *
-   * Adapted: A JavaScript callback replaces the native dirty-flag pointer. Construction
-   * uses new rather than the Blue factory's boolean failure result.
-   *
+   * @adapted A JavaScript callback replaces the native dirty-flag pointer. Construction
+   *   uses new rather than the Blue factory's boolean failure result.
    * @param {vec3} center Centre in local space.
    * @param {number} semiMajor Semi-major axis length.
    * @param {number} semiMinor Semi-minor axis length.
@@ -282,11 +281,10 @@ export class EveEllipseSet extends EveChildTransform
    * `ellipseRibbonEffectPath` setting names one, creates the ribbon effect
    * from that path. An assigned effect is kept.
    *
-   * Adapted: also rebinds the persisted definitions' dirty callbacks. Carbon
-   * binds them on the list's BELIST_LOADFINISHED (cpp:157-163); a hydrated
-   * JavaScript array may arrive without that event, and the callbacks are
-   * what stand in for the native dirty-flag pointer.
-   *
+   * @adapted also rebinds the persisted definitions' dirty callbacks. Carbon
+   *   binds them on the list's BELIST_LOADFINISHED (cpp:157-163); a hydrated
+   *   JavaScript array may arrive without that event, and the callbacks are
+   *   what stand in for the native dirty-flag pointer.
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -311,9 +309,8 @@ export class EveEllipseSet extends EveChildTransform
    * Unbinds ellipse dirty callbacks, empties the set and invalidates its geometry.
    * Carbon ClearEllipses (EveEllipseSet.cpp:102-110).
    *
-   * Adapted: JavaScript callbacks replace the native dirty-flag pointer. Every
-   * owned definition must provide SetDirtyFlag, as in Carbon.
-   *
+   * @adapted JavaScript callbacks replace the native dirty-flag pointer. Every
+   *   owned definition must provide SetDirtyFlag, as in Carbon.
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -332,6 +329,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon OnModified (EveEllipseSet.cpp:183-187): any notifying member - the
    * segment count - marks the ribbon geometry for rebuild.
    *
+   * @implemented
    * @param {*} [_value] The modified member.
    * @returns {boolean} Always true.
    */
@@ -346,9 +344,8 @@ export class EveEllipseSet extends EveChildTransform
   /**
    * Binds or releases definition callbacks after a list mutation.
    *
-   * Adapted: JavaScript represents the owner's dirty-flag pointer with a callback; list
-   * event ordering follows Carbon.
-   *
+   * @adapted JavaScript represents the owner's dirty-flag pointer with a callback; list
+   *   event ordering follows Carbon.
    * @param {number} event BLUELISTEVENT flags.
    * @param {number} _key
    * @param {number} _key2
@@ -394,6 +391,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon UpdateSyncronous (EveEllipseSet.cpp:200-207): prepares the
    * declaration if a release dropped it, then rebuilds stale geometry.
    *
+   * @implemented
    * @param {EveUpdateContext} updateContext The frame context.
    * @param {EveChildUpdateParams} _params Unused, as in Carbon.
    * @returns {void}
@@ -413,6 +411,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon UpdateAsyncronous (EveEllipseSet.cpp:209-212): places the set under
    * its parent.
    *
+   * @implemented
    * @param {EveUpdateContext} _updateContext Unused, as in Carbon.
    * @param {EveChildUpdateParams} params Carries the parent's local-to-world transform.
    * @returns {void}
@@ -429,6 +428,7 @@ export class EveEllipseSet extends EveChildTransform
    * displayed, holding geometry, and the parent's LOD is at least
    * lowestLodVisible.
    *
+   * @implemented
    * @param {EveUpdateContext} _updateContext Unused, as in Carbon.
    * @param {mat4} _parentTransform Unused, as in Carbon.
    * @param {number} parentLod The parent's Tr2Lod.
@@ -454,6 +454,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon GetRenderables (EveEllipseSet.cpp:364-370): the set itself while
    * visible with geometry.
    *
+   * @implemented
    * @param {ITr2Renderable[]} renderables Receives the set.
    * @returns {void}
    */
@@ -474,6 +475,7 @@ export class EveEllipseSet extends EveChildTransform
    * by the longest basis row (gl flat [0..2], [4..6], [8..10]). One matrix
    * applied, no composition, so no operand swap.
    *
+   * @implemented
    * @param {vec4} sphere Receives the world sphere (x, y, z, radius).
    * @param {number} [_query] BoundingSphereQuery; unused, as in Carbon.
    * @returns {boolean} Always true.
@@ -496,6 +498,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon GetLocalToWorldTransform (EveEllipseSet.cpp:379-382): the world
    * transform. Carbon writes a Matrix reference; the copy is also returned.
    *
+   * @implemented
    * @param {mat4} transform Receives the transform.
    * @returns {mat4} transform
    */
@@ -510,6 +513,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon Setup (EveEllipseSet.cpp:384-391): the base transform setup, then
    * remembers the lowest LOD it is visible at.
    *
+   * @implemented
    * @param {vec3|null} scale
    * @param {quat|null} rotation
    * @param {vec3|null} translation
@@ -531,6 +535,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon GetID (EveEllipseSet.cpp:393-396): GetRawRoot(), the set itself,
    * for every area.
    *
+   * @implemented
    * @param {number} _areaId Unused, as in Carbon.
    * @returns {EveEllipseSet} this
    */
@@ -547,6 +552,7 @@ export class EveEllipseSet extends EveChildTransform
    * both buffers, indices and a declaration - commits the ribbon in the
    * picking pass and the transparent pass, with the same effect in both.
    *
+   * @implemented
    * @param {ITriRenderBatchAccumulator} accumulator Receives the batch.
    * @param {number} batchType A TriBatchType.
    * @param {Tr2PerObjectData|null} perObjectData The set's per-object data.
@@ -591,6 +597,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon GetPickingBatches (EveEllipseSet.cpp:448-458): the picking-pass
    * batches, when picking is enabled and the pick asks for picking geometry.
    *
+   * @implemented
    * @param {ITriRenderBatchAccumulator} batches Receives the batch.
    * @param {number} pickTypes Tr2PickType flags.
    * @param {Tr2PerObjectData|null} perObjectData The set's per-object data.
@@ -614,6 +621,7 @@ export class EveEllipseSet extends EveChildTransform
   /**
    * Carbon HasTransparentBatches (EveEllipseSet.cpp:460-463): while displayed.
    *
+   * @implemented
    * @returns {boolean}
    */
 
@@ -627,6 +635,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon GetSortValue (EveEllipseSet.cpp:465-471): the distance from the
    * view position to the world-space sphere centre, plus depthOffset.
    *
+   * @implemented
    * @returns {number}
    */
 
@@ -650,6 +659,7 @@ export class EveEllipseSet extends EveChildTransform
    * SetAndTranspose is that transpose; Carbon's zero-initialised stack
    * structs are the lease's fresh buffers.
    *
+   * @implemented
    * @param {ITriRenderBatchAccumulator} accumulator Leases the data.
    * @returns {Tr2PerObjectDataStandard}
    */
@@ -672,10 +682,9 @@ export class EveEllipseSet extends EveChildTransform
    * over the frustum radius, clamped to [0, 1] and inverted into 28 bits;
    * the arithmetic is Carbon's float.
    *
-   * Adapted: Carbon reads Tr2Renderer's frustum-radius and view-position
-   * statics; they live on the main-thread render context here
-   * (Tr2RenderContext.js head).
-   *
+   * @adapted Carbon reads Tr2Renderer's frustum-radius and view-position
+   *   statics; they live on the main-thread render context here
+   *   (Tr2RenderContext.js head).
    * @param {ITriRenderBatchAccumulator} accumulator Receives the batch.
    * @param {Tr2PerObjectData} perObjectData The set's per-object data.
    * @param {Tr2Effect} effect The material.
@@ -715,6 +724,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon MarkGeometryDirty (EveEllipseSet.cpp:178-181): flags the ribbon
    * geometry as stale so the next UpdateSyncronous rebuilds it.
    *
+   * @implemented
    * @returns {void}
    */
 
@@ -729,6 +739,7 @@ export class EveEllipseSet extends EveChildTransform
    * displayed and dirty. A rebuild that fails on a GPU buffer leaves the flag
    * set, so the next frame retries.
    *
+   * @implemented
    * @param {EveUpdateContext} updateContext The frame context.
    * @returns {void}
    */
@@ -757,12 +768,11 @@ export class EveEllipseSet extends EveChildTransform
    * and segment i joins its pair to segment i + 1's (wrapping) as triangles
    * (curLeft, nextLeft, curRight) and (curRight, nextLeft, nextRight).
    *
-   * Adapted: Carbon stages vertices and indices in the renderer's frame pool
-   * allocator and returns when it cannot allocate; here they are typed arrays,
-   * which cannot fail that way. Scalar steps (segment angle, cosines, clamps)
-   * are rounded to float as Carbon's are; the vector sums are evaluated in
-   * double and rounded once, when stored into the float vertex array.
-   *
+   * @adapted Carbon stages vertices and indices in the renderer's frame pool
+   *   allocator and returns when it cannot allocate; here they are typed arrays,
+   *   which cannot fail that way. Scalar steps (segment angle, cosines, clamps)
+   *   are rounded to float as Carbon's are; the vector sums are evaluated in
+   *   double and rounded once, when stored into the float vertex array.
    * @param {EveUpdateContext} _updateContext Unused, as in Carbon.
    * @returns {void}
    */
@@ -933,6 +943,7 @@ export class EveEllipseSet extends EveChildTransform
    * as these do. Carbon's `CCP_ASSERT( lenSq > 0.f )` (cpp:43) is a debug
    * assertion and is not ported.
    *
+   * @implemented
    * @param {vec3} planeNormal The orbit plane's normal; need not be unit.
    * @param {vec3} basisU Receives the first in-plane axis.
    * @param {vec3} basisV Receives the second in-plane axis.
@@ -968,6 +979,7 @@ export class EveEllipseSet extends EveChildTransform
    * + basisV sin(phi), then outV = normalize( outU x n ). Rotation degrees
    * match the Python client's atan2( maj . basis_v, maj . basis_u ).
    *
+   * @implemented
    * @param {EveEllipseDefinition} spec The ellipse.
    * @param {vec3} outU Receives the semi-major axis direction.
    * @param {vec3} outV Receives the semi-minor axis direction.

@@ -142,8 +142,9 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * The Python instance's saved state, Carbon's custom binary block "state"
    * (Tr2ActionPython_Blue.cpp:22). Readers hand its bytes to
    * AllocateReadBuffer and SetBufferAndSize.
-   * Not supported: the state belongs to a Python object, and the browser runs
-   * no Python; a JavaScript host receives the bytes through OnLoad as they are.
+   *
+   * @notSupported the state belongs to a Python object, and the browser runs
+   *   no Python; a JavaScript host receives the bytes through OnLoad as they are.
    * @type {Uint8Array}
    */
   @legacyBlue.persistOnly
@@ -172,8 +173,9 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   /**
    * Initializes the host-provided action instance.
-   * Adapted: lazily invokes the registered JS factory and loads nonempty stored
-   * state. Native Initialize instantiates Python but has no ordinary state field.
+   *
+   * @adapted lazily invokes the registered JS factory and loads nonempty stored
+   *   state. Native Initialize instantiates Python but has no ordinary state field.
    * @returns {boolean} True after successful initialization.
    */
 
@@ -188,6 +190,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Carbon OnModified (Tr2ActionPython.cpp:52-77): a module or class change
    * stops and unlinks the action, instantiates the new class, then relinks and
    * restarts it. Queued work keeps its old host.
+   *
+   * @implemented
    * @param {string} propertyName Modified authored member name.
    * @returns {boolean} True after successful notification.
    */
@@ -223,7 +227,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   /**
    * Links this action to a controller and notifies the host instance.
-   * Adapted: first use may create/load the host.
+   *
+   * @adapted first use may create/load the host.
    * @param {ITr2ActionController} controller The linked controller.
    */
 
@@ -238,8 +243,9 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   /**
    * Unlinks this action and notifies the host instance.
-   * Adapted: clears linkage before invoking the optional JS hook; host errors
-   * propagate instead of native BlueScriptCallback exception handling.
+   *
+   * @adapted clears linkage before invoking the optional JS hook; host errors
+   *   propagate instead of native BlueScriptCallback exception handling.
    */
 
   @meta.adapted
@@ -254,9 +260,10 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Starts the action and registers for updates when the host instance supports
    * them. The host OnStart is queued on the main-thread queue, and the previous
    * times are Blue's actual and frame times in ticks (Tr2ActionPython.cpp:98-114).
-   * Adapted: optional linked-controller invocation and lazy host creation are
-   * retained. The queued closure captures the selected hook, not the mutable
-   * callback table. Host errors can abort the queue's current batch.
+   *
+   * @adapted optional linked-controller invocation and lazy host creation are
+   *   retained. The queued closure captures the selected hook, not the mutable
+   *   callback table. Host errors can abort the queue's current batch.
    * @param {ITr2ActionController} [controller] Invoking or linked controller.
    */
 
@@ -290,8 +297,9 @@ export class Tr2ActionPython extends ITr2ControllerAction
   /**
    * Stops the action and unregisters updates; the host OnStop is queued on the
    * main-thread queue (Tr2ActionPython.cpp:116-127).
-   * Adapted: optional linked-controller invocation and captured JS host instance
-   * are retained; host errors propagate from the queue instead of native reporting.
+   *
+   * @adapted optional linked-controller invocation and captured JS host instance
+   *   are retained; host errors propagate from the queue instead of native reporting.
    * @param {ITr2ActionController} [controller] Invoking or linked controller.
    */
 
@@ -320,8 +328,9 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Queues the host OnUpdate with the real and simulation deltas since the
    * previous update, converted from Blue ticks with TimeAsFloat
    * (Tr2ActionPython.cpp:129-141).
-   * Adapted: no linked controller/update hook means no work. The queued
-   * closure captures the selected hook; errors propagate from the queue.
+   *
+   * @adapted no linked controller/update hook means no work. The queued
+   *   closure captures the selected hook; errors propagate from the queue.
    * @param {number} realTime Actual time in Blue ticks.
    * @param {number} simTime Simulation time in Blue ticks.
    */
@@ -348,7 +357,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   /**
    * Gets the cached JS-side host instance without creating it.
-   * Adapted: returns a JavaScript host object instead of native BluePy.
+   *
+   * @adapted returns a JavaScript host object instead of native BluePy.
    * @returns {object|null} The cached host instance.
    */
   @be.mapMethodAndWrap()
@@ -360,9 +370,10 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   /**
    * Gets custom persisted host state.
-   * Adapted: returns owned bytes instead of native pointer/size output arguments
-   * and updates the JS state cache. Optional OnSave is invoked only here;
-   * conversion accepts the documented JS inputs and errors propagate.
+   *
+   * @adapted returns owned bytes instead of native pointer/size output arguments
+   *   and updates the JS state cache. Optional OnSave is invoked only here;
+   *   conversion accepts the documented JS inputs and errors propagate.
    * @param {string} [_memberName="state"] Ignored native member selector.
    * @returns {Uint8Array|null} Copied host bytes, or null.
    */
@@ -380,7 +391,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   /**
    * Releases a custom persistence buffer.
-   * Adapted: JavaScript owns the returned byte buffer; no delete[] is required.
+   *
+   * @adapted JavaScript owns the returned byte buffer; no delete[] is required.
    * @param {Uint8Array} _buffer Caller-owned buffer.
    */
 
@@ -391,7 +403,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   /**
    * Allocates a custom persistence read buffer.
-   * Adapted: a Uint8Array replaces native new uint8_t[].
+   *
+   * @adapted a Uint8Array replaces native new uint8_t[].
    * @param {string} _memberName Ignored native member selector.
    * @param {number} bufferSize Requested byte count.
    * @returns {Uint8Array} New zero-filled read buffer.
@@ -405,8 +418,9 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   /**
    * Applies custom persisted host state.
-   * Adapted: copies into ordinary JS state and uses the existing lazy OnLoad
-   * path. Empty state is retained without invoking OnLoad, unlike native.
+   *
+   * @adapted copies into ordinary JS state and uses the existing lazy OnLoad
+   *   path. Empty state is retained without invoking OnLoad, unlike native.
    * @param {string} _memberName Ignored native member selector.
    * @param {Uint8Array} buffer Input bytes.
    * @param {number} [bufferSize=buffer.byteLength] Number of bytes to copy.
@@ -448,7 +462,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * (`PyCallable_Check`, cpp:167); the host is a caller-supplied object, so
    * that test is Carbon's, not a hedge on a method of ours. Bound here because
    * a BlueScriptCallback carries its instance.
-   * Adapted: the registered JS factory replaces the Python import.
+   *
+   * @adapted the registered JS factory replaces the Python import.
    */
   @meta.adapted
   _InstantiateObject()

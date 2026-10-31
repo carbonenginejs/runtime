@@ -16,6 +16,7 @@ export class Tr2TexturePipelineStepGenerateMips extends IRoot
    * Carbon's ITr2TexturePipelineStep default (ITr2TexturePipelineStep.h:21):
    * this step names no resources.
    *
+   * @implemented
    * @param {Set<string>} [resources] Caller-owned; allocated when omitted.
    * @returns {Set<string>} The set, unchanged.
    */
@@ -27,6 +28,7 @@ export class Tr2TexturePipelineStepGenerateMips extends IRoot
   /**
    * Carbon Execute (cpp:9-15): generate the bitmap's full mip chain.
    *
+   * @implemented
    * @param {import("#imageio").HostBitmap} bitmap The pipeline's bitmap.
    * @returns {boolean} Whether the step succeeded.
    */

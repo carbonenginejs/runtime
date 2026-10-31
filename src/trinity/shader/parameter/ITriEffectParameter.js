@@ -27,13 +27,25 @@ import { CjsSchema, meta } from "#schema";
 export class ITriEffectParameter extends IRoot
 {
 
-  /** The authored parameter name the effect binds by. */
+  /**
+   * The authored parameter name the effect binds by.
+   *
+   * @abstract
+   */
   GetParameterName() {}
 
-  /** Re-resolves this parameter's handles against a shader's reflection. */
+  /**
+   * Re-resolves this parameter's handles against a shader's reflection.
+   *
+   * @abstract
+   */
   RebuildEffectHandles(_effectRes) {}
 
-  /** Folds this parameter's content into a running FNV1 hash. */
+  /**
+   * Folds this parameter's content into a running FNV1 hash.
+   *
+   * @abstract
+   */
   GetHashValue(_startingHash) {}
 
   /**
@@ -41,6 +53,8 @@ export class ITriEffectParameter extends IRoot
    *
    * DEFAULTED, not pure, in the donor (ITriEffectParameter.h:19-22): most
    * parameters do not notify, and the ones that do say so.
+   *
+   * @implemented
    */
   SupportsDirtyNotification()
   {

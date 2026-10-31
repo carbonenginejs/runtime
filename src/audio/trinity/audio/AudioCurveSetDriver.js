@@ -33,7 +33,11 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   @type.wstring
   _audioParameterName = "";
 
-  /** Live parameter name; assigning it transfers the monitored registration. */
+  /**
+   * Live parameter name; assigning it transfers the monitored registration.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.wstring
   @meta.implemented
@@ -42,7 +46,10 @@ export class AudioCurveSetDriver extends ICurveSetDriver
     return this.GetAudioParameterName();
   }
 
-  /** @param {string} name Global audio parameter name. */
+  /**
+   * @implemented
+   * @param {string} name Global audio parameter name.
+   */
   @meta.implemented
   set audioParameterName(name)
   {
@@ -54,7 +61,11 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   @type.float32
   audioParameterValue = 0;
 
-  /** Whether the current manager and monitored parameter can drive the curve set. */
+  /**
+   * Whether the current manager and monitored parameter can drive the curve set.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
@@ -80,9 +91,9 @@ export class AudioCurveSetDriver extends ICurveSetDriver
 
   /**
    * Samples the manager's cached parameter record, then the fallback if invalid.
-   * Adapted: a null manager is the silent headless state; native assumes one here.
-   * A missing record retains the cached value and existence flag, as in Carbon.
    *
+   * @adapted a null manager is the silent headless state; native assumes one here.
+   *   A missing record retains the cached value and existence flag, as in Carbon.
    * @param {number} time Time forwarded unchanged to the fallback function.
    * @returns {number} Fallback sample or cached audio parameter value.
    */
@@ -104,7 +115,10 @@ export class AudioCurveSetDriver extends ICurveSetDriver
     return this.audioParameterValue;
   }
 
-  /** @returns {boolean} Whether audio is enabled and the named parameter exists. */
+  /**
+   * @implemented
+   * @returns {boolean} Whether audio is enabled and the named parameter exists.
+   */
 
   @meta.implemented
   IsValid()
@@ -113,7 +127,10 @@ export class AudioCurveSetDriver extends ICurveSetDriver
     return manager !== null && manager.enabled && this._audioParameterName !== "" && this._audioParameterExists;
   }
 
-  /** @returns {string} The stored global audio parameter name. */
+  /**
+   * @implemented
+   * @returns {string} The stored global audio parameter name.
+   */
 
   @meta.implemented
   GetAudioParameterName()
@@ -123,12 +140,12 @@ export class AudioCurveSetDriver extends ICurveSetDriver
 
   /**
    * Acquires one watcher once the manager can register it.
-   * Adapted: no manager or an uninitialized manager defers registration; the
-   * audio system retries on enable. Repeated initialization owns one watcher,
-   * unlike Carbon's repeated increments, to support reader plus system adoption.
-   * A copy into an existing driver may replace stored data without its live
-   * setter; release any differently named watcher before acquiring that data.
    *
+   * @adapted no manager or an uninitialized manager defers registration; the
+   *   audio system retries on enable. Repeated initialization owns one watcher,
+   *   unlike Carbon's repeated increments, to support reader plus system adoption.
+   *   A copy into an existing driver may replace stored data without its live
+   *   setter; release any differently named watcher before acquiring that data.
    * @returns {boolean} Always true; a silent uncomposed driver remains usable.
    */
 
@@ -154,10 +171,10 @@ export class AudioCurveSetDriver extends ICurveSetDriver
 
   /**
    * Releases the old watcher and acquires the new parameter when a manager is ready.
-   * Adapted: releases through the original owner, tolerates the null headless
-   * manager, and leaves empty names unregistered. Carbon uses the global manager
-   * unconditionally and its destructor supplies release instead of Dispose.
    *
+   * @adapted releases through the original owner, tolerates the null headless
+   *   manager, and leaves empty names unregistered. Carbon uses the global manager
+   *   unconditionally and its destructor supplies release instead of Dispose.
    * @param {string} name New global parameter name; an empty string detaches it.
    * @returns {void}
    */

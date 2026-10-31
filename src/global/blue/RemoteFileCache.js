@@ -144,10 +144,9 @@ export class RemoteFileCache
    * the copy in the cache folder when there is one and caching it when there
    * is not (cpp:48-91).
    *
-   * Adapted: asynchronous, and the index text is decoded as UTF-8 where Carbon
-   * reads bytes. Carbon caches the downloaded index without checking it; so
-   * does this.
-   *
+   * @adapted asynchronous, and the index text is decoded as UTF-8 where Carbon
+   *   reads bytes. Carbon caches the downloaded index without checking it; so
+   *   does this.
    * @param {string} index Index file name.
    * @returns {Promise<boolean>} Whether an index was added.
    */
@@ -176,6 +175,7 @@ export class RemoteFileCache
   /**
    * `AddFileIndex` - adds an index from its text.
    *
+   * @implemented
    * @param {string} fileIndex Index contents.
    */
   AddFileIndex(fileIndex)
@@ -183,19 +183,31 @@ export class RemoteFileCache
     this._AddFileIndexImpl(fileIndex);
   }
 
-  /** `SetCacheFolder` - sets the folder downloaded files are cached in. */
+  /**
+   * `SetCacheFolder` - sets the folder downloaded files are cached in.
+   *
+   * @implemented
+   */
   SetCacheFolder(folderName)
   {
     this.cacheFolder = folderName;
   }
 
-  /** `SetServer` - sets the server files are downloaded from. */
+  /**
+   * `SetServer` - sets the server files are downloaded from.
+   *
+   * @implemented
+   */
   SetServer(url)
   {
     this.server = url;
   }
 
-  /** `SetPrefix` - sets the prefix added to file names requested from the server. */
+  /**
+   * `SetPrefix` - sets the prefix added to file names requested from the server.
+   *
+   * @implemented
+   */
   SetPrefix(prefix)
   {
     this.prefix = prefix;
@@ -215,6 +227,7 @@ export class RemoteFileCache
    * rejecting with Carbon's failure message where Carbon returns a
    * `Be::Result` beside an out-stream (the out-stream is the return value).
    *
+   * @adapted
    * @param {string} resPath Res path.
    * @returns {Promise<Uint8Array>} The file's bytes.
    * @throws {Error} See `GetStreamFromPath`.
@@ -231,14 +244,14 @@ export class RemoteFileCache
    *
    * Carbon: RemoteFileCache::GetStreamFromPathW (blue/src/RemoteFileCache.cpp:108-227).
    *
-   * Adapted: asynchronous, returning the bytes and rejecting with Carbon's
-   * failure message where Carbon returns a `Be::Result` beside an out-stream.
-   *
    * Quirk, reproduced (cpp:158-196): the count of sequential primary-server
    * failures resets only when a download fails with no backup server set -
    * never on a success - so with a backup server it counts every failure
    * since start, sequential or not.
    *
+   * @cjs
+   * @adapted asynchronous, returning the bytes and rejecting with Carbon's
+   *   failure message where Carbon returns a `Be::Result` beside an out-stream.
    * @param {string} resPath Res path.
    * @returns {Promise<Uint8Array>} The file's bytes.
    * @throws {Error} "File does not exist on remote server", "Size does not match
@@ -320,6 +333,8 @@ export class RemoteFileCache
   /**
    * `FileExists` - whether the index lists the file, so it can be had
    * (cpp:285-288). Says nothing about whether its bytes are here.
+   *
+   * @implemented
    */
   FileExists(resPath)
   {
@@ -330,10 +345,10 @@ export class RemoteFileCache
    * `IsCachedLocally` - whether the file's bytes are in the cache folder
    * (cpp:290-293).
    *
-   * Adapted: asks the local file system directly, where Carbon asks
-   * `BePaths->FileExistsLocally`. The answer is the same: a cache-folder name
-   * is never in an index, so Carbon's paths service falls through to its local
-   * file system.
+   * @adapted asks the local file system directly, where Carbon asks
+   *   `BePaths->FileExistsLocally`. The answer is the same: a cache-folder name
+   *   is never in an index, so Carbon's paths service falls through to its local
+   *   file system.
    */
   IsCachedLocally(resPath)
   {
@@ -343,6 +358,8 @@ export class RemoteFileCache
   /**
    * `GetLocallyCachedName` - where the file's bytes are cached, or the path
    * itself when the index does not list it (cpp:295-309).
+   *
+   * @implemented
    */
   GetLocallyCachedName(resPath)
   {
@@ -351,7 +368,11 @@ export class RemoteFileCache
     return `${this.cacheFolder}/${info.cachedName}`;
   }
 
-  /** `IsDirectory` - whether any listed path is under this one (cpp:470-485). */
+  /**
+   * `IsDirectory` - whether any listed path is under this one (cpp:470-485).
+   *
+   * @implemented
+   */
   IsDirectory(resPath)
   {
     let validatedPath = normalizeResPath(resPath);
@@ -364,10 +385,9 @@ export class RemoteFileCache
    * `ListDir` - a directory's files and folders, folders without their
    * trailing slash (cpp:421-456).
    *
-   * Adapted: returns the names, and throws Carbon's failure message, where
-   * Carbon fills a list and returns a `Be::Result`. Sorted as `std::set`
-   * orders them.
-   *
+   * @adapted returns the names, and throws Carbon's failure message, where
+   *   Carbon fills a list and returns a `Be::Result`. Sorted as `std::set`
+   *   orders them.
    * @param {string} resPath Res path of the directory.
    * @returns {string[]} Entry names.
    * @throws {Error} "Not a valid res path" or "Directory not found".
@@ -393,6 +413,7 @@ export class RemoteFileCache
    * `RegisterOnServerFailedCallback` - called with `("Primary"|"Backup",
    * resPath, server)` when a download fails and a backup server is set.
    *
+   * @implemented
    * @param {((which: string, resPath: string, server: string) => void)|null} callback Callback.
    */
   RegisterOnServerFailedCallback(callback)
@@ -404,10 +425,9 @@ export class RemoteFileCache
    * `CreateFileStreamForCachedFile` - the cached bytes, verified against
    * `checksum` unless it is empty (cpp:253-283).
    *
-   * Adapted: one read, where Carbon retries opening five times, 10 ms apart,
-   * against another process still writing. A host store writes atomically, so
-   * a file that exists is complete.
-   *
+   * @adapted one read, where Carbon retries opening five times, 10 ms apart,
+   *   against another process still writing. A host store writes atomically, so
+   *   a file that exists is complete.
    * @returns {Promise<Uint8Array|null>} The bytes, or `null` when the file cannot be read.
    * @throws {Error} "File is corrupt" when the checksum does not match.
    */
@@ -421,7 +441,11 @@ export class RemoteFileCache
     return bytes;
   }
 
-  /** `GetFileInfo` - the index entry for a res path, after normalizing it (cpp:311-326). */
+  /**
+   * `GetFileInfo` - the index entry for a res path, after normalizing it (cpp:311-326).
+   *
+   * @adapted
+   */
   _GetFileInfo(resPath)
   {
     const validatedPath = normalizeResPath(resPath);
@@ -437,6 +461,8 @@ export class RemoteFileCache
    * index must already hold normalized paths; a `\r` is kept on the last
    * column read; and a line with fewer than four columns wraps back to its
    * start, because `npos + 1` is 0 - `a,b` reads checksum `a` and size `b`.
+   *
+   * @adapted
    */
   _AddFileIndexImpl(contents)
   {
@@ -468,6 +494,8 @@ export class RemoteFileCache
   /**
    * `AddResPathToFolderIndex` - records each folder of a path with the entry
    * under it; folder entries keep their trailing slash (cpp:389-419).
+   *
+   * @adapted
    */
   _AddResPathToFolderIndex(resPath)
   {
@@ -493,8 +521,8 @@ export class RemoteFileCache
    * `CacheContentsOfRemoteStream` - stores downloaded bytes under their cached
    * name, unless something already has (cpp:503-583).
    *
-   * Adapted: the host's `WriteFile` does Carbon's write-to-`.tmp`-then-rename,
-   * and reports whether it stored the bytes.
+   * @adapted the host's `WriteFile` does Carbon's write-to-`.tmp`-then-rename,
+   *   and reports whether it stored the bytes.
    */
   async _CacheContentsOfRemoteStream(bytes, cachedName, _resPath)
   {
@@ -506,7 +534,11 @@ export class RemoteFileCache
     }
   }
 
-  /** `TryDownload` - the bytes at `server + prefix + filename`, or `null` (cpp:600-607). */
+  /**
+   * `TryDownload` - the bytes at `server + prefix + filename`, or `null` (cpp:600-607).
+   *
+   * @adapted
+   */
   _TryDownload(server, filename, _expectedSize, _resPath)
   {
     return this._OpenRemote(server + this.prefix + filename);

@@ -17,6 +17,7 @@ export class DocumentParameter extends VersionedParameter
     /**
      * `GetValue` - the value, as `std::optional::value()` returns it.
      *
+     * @implemented
      * @throws {Error} "bad optional access" when unset, as `std::bad_optional_access`.
      */
     GetValue()
@@ -25,13 +26,21 @@ export class DocumentParameter extends VersionedParameter
         return this._value;
     }
 
-    /** `HasValue` - whether the value is set. */
+    /**
+     * `HasValue` - whether the value is set.
+     *
+     * @implemented
+     */
     HasValue()
     {
         return this._value !== undefined;
     }
 
-    /** `Reset` - unsets the value. */
+    /**
+     * `Reset` - unsets the value.
+     *
+     * @implemented
+     */
     Reset()
     {
         this._value = undefined;

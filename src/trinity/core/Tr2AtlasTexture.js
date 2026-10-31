@@ -191,6 +191,7 @@ export class Tr2AtlasTexture extends IRoot
    * Returns the AL texture to draw from: the atlas's when in the atlas, else
    * its own, else the texture resource's (`Tr2AtlasTexture.cpp:45-64`).
    *
+   * @implemented
    * @returns {Tr2TextureAL|null} The texture, or null.
    */
   @meta.implemented
@@ -209,6 +210,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns the render target, if any (`Tr2AtlasTexture.cpp:73-76`).
    *
+   * @implemented
    * @returns {Tr2TextureAL|null} The render target.
    */
   @meta.implemented
@@ -221,6 +223,7 @@ export class Tr2AtlasTexture extends IRoot
    * Attaches a render target and makes it the whole texture
    * (`Tr2AtlasTexture.cpp:78-97`).
    *
+   * @implemented
    * @param {Tr2TextureAL|null} rt The render target.
    * @returns {void}
    */
@@ -249,6 +252,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Copies the cached texture window `(u, v, du, dv)` (`Tr2AtlasTexture.cpp:99-102`).
    *
+   * @implemented
    * @param {Float32Array|number[]} tw Receives the window.
    * @returns {void}
    */
@@ -264,6 +268,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Caches the window of the whole texture (`Tr2AtlasTexture.cpp:104-107`).
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -276,6 +281,7 @@ export class Tr2AtlasTexture extends IRoot
    * Texture coordinates of a sub-rectangle; zero size means the whole texture
    * (`Tr2AtlasTexture.cpp:109-137`).
    *
+   * @implemented
    * @param {Float32Array|number[]} tw Receives `(u, v, du, dv)`.
    * @param {number} rectX Left, in texture pixels.
    * @param {number} rectY Top, in texture pixels.
@@ -322,6 +328,7 @@ export class Tr2AtlasTexture extends IRoot
    * finds no texture and returns without unmapping. Reproduced; only the
    * warning is effective.
    *
+   * @adapted
    * @returns {void}
    */
   @meta.adapted
@@ -343,6 +350,7 @@ export class Tr2AtlasTexture extends IRoot
    *
    * Not implemented: it needs the `BlueAsyncRes` load path, see `DoLoad`.
    *
+   * @notImplemented
    * @returns {boolean} Never returns.
    */
   @meta.notImplemented
@@ -360,6 +368,7 @@ export class Tr2AtlasTexture extends IRoot
    * reclamation never frees it a second time. `CancelPendingLoad` is skipped:
    * no load can be pending until the load path is ported.
    *
+   * @adapted
    * @param {number} s A `TriStorageFlags` mask.
    * @returns {void}
    */
@@ -396,6 +405,7 @@ export class Tr2AtlasTexture extends IRoot
    * asynchronous, so the read moves into a loader as it does for
    * `Tr2ImageRes`. The atlas side (`Tr2TextureAtlas._DoPrepare`) is ported.
    *
+   * @notImplemented
    * @returns {number} Never returns.
    */
   @meta.notImplemented
@@ -408,6 +418,7 @@ export class Tr2AtlasTexture extends IRoot
    * Places the loaded bitmap in an atlas or a texture of its own
    * (`Tr2AtlasTexture.cpp:207-268`). Not implemented; see `DoLoad`.
    *
+   * @notImplemented
    * @returns {boolean} Never returns.
    */
   @meta.notImplemented
@@ -419,6 +430,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns the left offset in the AL texture (`Tr2AtlasTexture.cpp:270-273`).
    *
+   * @implemented
    * @returns {number} X.
    */
   @meta.implemented
@@ -430,6 +442,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns the top offset in the AL texture (`Tr2AtlasTexture.cpp:275-278`).
    *
+   * @implemented
    * @returns {number} Y.
    */
   @meta.implemented
@@ -441,6 +454,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns the width (`Tr2AtlasTexture.cpp:280-283`).
    *
+   * @implemented
    * @returns {number} Width.
    */
   @meta.implemented
@@ -452,6 +466,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns `1 / width` (`Tr2AtlasTexture.cpp:285-288`).
    *
+   * @implemented
    * @returns {number} The reciprocal.
    */
   @meta.implemented
@@ -463,6 +478,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns the height (`Tr2AtlasTexture.cpp:290-293`).
    *
+   * @implemented
    * @returns {number} Height.
    */
   @meta.implemented
@@ -474,6 +490,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns `1 / height` (`Tr2AtlasTexture.cpp:295-298`).
    *
+   * @implemented
    * @returns {number} The reciprocal.
    */
   @meta.implemented
@@ -485,6 +502,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns the width of the AL texture this lives in (`Tr2AtlasTexture.cpp:300-303`).
    *
+   * @implemented
    * @returns {number} Width.
    */
   @meta.implemented
@@ -496,6 +514,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns the height of the AL texture this lives in (`Tr2AtlasTexture.cpp:305-308`).
    *
+   * @implemented
    * @returns {number} Height.
    */
   @meta.implemented
@@ -511,6 +530,7 @@ export class Tr2AtlasTexture extends IRoot
    * parameters; JS has none, so the AL mapping record is returned on success
    * and null on failure.
    *
+   * @adapted
    * @returns {{result: number, data: Uint8Array, pitch: number}|null} The mapping, or null.
    */
   @be.mapMethod()
@@ -551,6 +571,7 @@ export class Tr2AtlasTexture extends IRoot
    * is `LockBuffer`. Returns the mapping with `margin` added, or null; JS has
    * no reference parameters.
    *
+   * @adapted
    * @returns {{result: number, data: Uint8Array, pitch: number, margin: number}|null} The mapping, or null.
    */
   @be.mapMethod()
@@ -588,6 +609,7 @@ export class Tr2AtlasTexture extends IRoot
    * Unmaps a rectangle mapped by `LockBuffer`, marks the texture good and
    * notifies listeners (`Tr2AtlasTexture.cpp:392-423`).
    *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -619,6 +641,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Whether `GetMemoryUsage` is meaningful (`Tr2AtlasTexture.cpp:425-428`).
    *
+   * @implemented
    * @returns {boolean} True unless loading.
    */
   @meta.implemented
@@ -630,6 +653,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Estimated memory use in bytes (`Tr2AtlasTexture.cpp:430-433`).
    *
+   * @implemented
    * @returns {number} Bytes.
    */
   @meta.implemented
@@ -642,6 +666,7 @@ export class Tr2AtlasTexture extends IRoot
    * Updates the non-zero reciprocals (`Tr2AtlasTexture.cpp:435-453`). Carbon
    * stores them as float.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -656,6 +681,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Recomputes reciprocals and window, then notifies (`Tr2AtlasTexture.cpp:455-461`).
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -670,6 +696,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Adds a change listener (`Tr2AtlasTexture.cpp:463-466`).
    *
+   * @implemented
    * @param {{AtlasTextureChanged: Function}} p The listener.
    * @returns {void}
    */
@@ -682,6 +709,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Removes a change listener (`Tr2AtlasTexture.cpp:468-471`).
    *
+   * @implemented
    * @param {{AtlasTextureChanged: Function}} p The listener.
    * @returns {void}
    */
@@ -695,6 +723,7 @@ export class Tr2AtlasTexture extends IRoot
    * Makes the texture a permanent outsider, ejecting it from its atlas
    * (`Tr2AtlasTexture.cpp:473-484`).
    *
+   * @implemented
    * @param {boolean} b Stand-alone.
    * @returns {void}
    */
@@ -712,6 +741,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Whether the texture is a permanent outsider (`Tr2AtlasTexture.cpp:486-489`).
    *
+   * @implemented
    * @returns {boolean} Stand-alone.
    */
   @meta.implemented
@@ -723,6 +753,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Calls every listener's `AtlasTextureChanged` (`Tr2AtlasTexture.cpp:491-497`).
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -734,6 +765,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Chooses the atlas to load into, once (`Tr2AtlasTexture.cpp:499-506`).
    *
+   * @implemented
    * @param {import("./Tr2TextureAtlas.js").Tr2TextureAtlas} atlas The atlas.
    * @returns {void}
    */
@@ -748,6 +780,7 @@ export class Tr2AtlasTexture extends IRoot
    * Uses a texture resource directly, for dynamic textures
    * (`Tr2AtlasTexture.cpp:508-525`).
    *
+   * @implemented
    * @param {object} p A `TriTextureRes`.
    * @returns {void}
    */
@@ -772,6 +805,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * Returns the texture resource (`Tr2AtlasTexture.cpp:527-530`).
    *
+   * @implemented
    * @returns {object|null} The texture resource.
    */
   @meta.implemented
@@ -783,6 +817,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * BlueAsyncRes `IsGood`.
    *
+   * @implemented
    * @returns {boolean} Whether the texture holds valid pixels.
    */
   @meta.implemented
@@ -794,6 +829,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * BlueAsyncRes `IsPrepared`.
    *
+   * @implemented
    * @returns {boolean} Whether the texture is prepared.
    */
   @meta.implemented
@@ -805,6 +841,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * BlueAsyncRes `IsLoading`. Always false until the load path is ported.
    *
+   * @implemented
    * @returns {boolean} Whether a load is in flight.
    */
   @meta.implemented
@@ -816,6 +853,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * IBlueResource::Initialize, which BlueAsyncRes supplies (IBlueResource.h:14). The atlas texture's path is set by its owner.
    *
+   * @notImplemented
    * @param {string} name The resource path.
    * @param {string} ext The extension.
    */
@@ -828,6 +866,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * IBlueResource::GetPath, which BlueAsyncRes supplies (IBlueResource.h:16).
    *
+   * @notImplemented
    * @returns {string} The resource path.
    */
   @meta.notImplemented
@@ -839,6 +878,7 @@ export class Tr2AtlasTexture extends IRoot
   /**
    * IBlueResource::GetExt, which BlueAsyncRes supplies (IBlueResource.h:17).
    *
+   * @notImplemented
    * @returns {string} The resource extension.
    */
   @meta.notImplemented

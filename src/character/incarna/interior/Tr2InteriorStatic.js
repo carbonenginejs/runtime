@@ -37,6 +37,8 @@ import { Tr2ShaderMaterial } from "../shader/Tr2ShaderMaterial.js";
  * current Carbon still has. Each method's JSDoc says where it differs.
  *
  * Modelled on: Tr2InteriorPlaceable (trinity/trinity/Interior/Tr2InteriorPlaceable.cpp:64-650)
+ *
+ * @adapted
  */
 @meta.define("Tr2InteriorStatic")
 @meta.adapted
@@ -88,10 +90,9 @@ export class Tr2InteriorStatic extends IRoot
    * Carbon's do: their areas hold Tr2Effects (`trinity/trinity/Tr2MeshArea.h:77`).
    * Every area list is visited through `GetAreas`.
    *
-   * Adapted: Tr2InteriorPlaceable's Initialize loads its placeable resource
-   * (cpp:276-280); a static holds its meshes, so it converts their materials
-   * instead.
-   *
+   * @adapted Tr2InteriorPlaceable's Initialize loads its placeable resource
+   *   (cpp:276-280); a static holds its meshes, so it converts their materials
+   *   instead.
    * @returns {boolean} true.
    */
   @meta.adapted
@@ -114,9 +115,8 @@ export class Tr2InteriorStatic extends IRoot
   /**
    * Writes the union of the meshes' bounds, in the piece's own space.
    *
-   * Adapted: Tr2InteriorPlaceable asks its WodPlaceableRes (cpp:80-95); a
-   * static owns its meshes, so it asks them. False until every mesh has bounds.
-   *
+   * @adapted Tr2InteriorPlaceable asks its WodPlaceableRes (cpp:80-95); a
+   *   static owns its meshes, so it asks them. False until every mesh has bounds.
    * @param {vec3} min Receives the minimum corner.
    * @param {vec3} max Receives the maximum corner.
    * @returns {boolean} Whether the bounds are known.
@@ -142,6 +142,7 @@ export class Tr2InteriorStatic extends IRoot
    * Writes the world bounds: the local box's eight corners through `transform`.
    * Tr2InteriorPlaceable does the same (cpp:125-136).
    *
+   * @implemented
    * @param {vec3} min Receives the minimum corner.
    * @param {vec3} max Receives the maximum corner.
    * @returns {boolean} Whether the bounds are known.
@@ -176,6 +177,7 @@ export class Tr2InteriorStatic extends IRoot
    * Whether every mesh has bounds. Tr2InteriorPlaceable asks whether its
    * resource is ready (cpp:138-141).
    *
+   * @implemented
    * @returns {boolean} Whether a bounds query can be answered.
    */
   @meta.implemented
@@ -189,6 +191,7 @@ export class Tr2InteriorStatic extends IRoot
    * Tests the world box against the frustum and writes `transform`, as
    * Tr2InteriorPlaceable does (cpp:625-634).
    *
+   * @implemented
    * @param {object} frustum The TriFrustum to test against.
    * @param {mat4} objectToWorld Receives the piece's transform.
    * @returns {boolean} Whether the piece is visible.
@@ -206,10 +209,9 @@ export class Tr2InteriorStatic extends IRoot
   /**
    * Reports whether the bounds are ready, which is what the scene waits on.
    *
-   * Adapted: Tr2InteriorPlaceable also rebuilds the volume it uses to find its
-   * cells (cpp:64-74); Incarna's cells are not ported, so there is nothing to
-   * rebuild.
-   *
+   * @adapted Tr2InteriorPlaceable also rebuilds the volume it uses to find its
+   *   cells (cpp:64-74); Incarna's cells are not ported, so there is nothing to
+   *   rebuild.
    * @param {object|null} _apexScene The physics scene; unused.
    * @returns {boolean} Whether the piece is ready to draw.
    */
@@ -219,13 +221,21 @@ export class Tr2InteriorStatic extends IRoot
     return this.IsBoundingBoxReady();
   }
 
-  /** Nothing to release, as for Tr2InteriorPlaceable (cpp:76-78). */
+  /**
+   * Nothing to release, as for Tr2InteriorPlaceable (cpp:76-78).
+   *
+   * @implemented
+   */
   @meta.implemented
   RemoveFromScene()
   {
   }
 
-  /** No physics, as for Tr2InteriorPlaceable (cpp:143-145). */
+  /**
+   * No physics, as for Tr2InteriorPlaceable (cpp:143-145).
+   *
+   * @implemented
+   */
   @meta.implemented
   PrePhysicsUpdate(_time)
   {
@@ -234,13 +244,19 @@ export class Tr2InteriorStatic extends IRoot
   /**
    * Nothing to update. Tr2InteriorPlaceable updates its resource's curve sets
    * here (cpp:147-158); a static has none.
+   *
+   * @implemented
    */
   @meta.implemented
   PostPhysicsUpdate(_time, _apexScene)
   {
   }
 
-  /** No levels of detail, as for Tr2InteriorPlaceable (cpp:231-234). */
+  /**
+   * No levels of detail, as for Tr2InteriorPlaceable (cpp:231-234).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetLOD(_frustum)
   {
@@ -249,6 +265,7 @@ export class Tr2InteriorStatic extends IRoot
   /**
    * Whether any mesh has transparent areas.
    *
+   * @implemented
    * @returns {boolean} Whether a transparent pass has work.
    */
   @meta.implemented
@@ -261,6 +278,7 @@ export class Tr2InteriorStatic extends IRoot
    * Not implemented: Tr2InteriorPlaceable returns its camera distance
    * (cpp:378-381), and nothing on the interior path asks a static for it yet.
    *
+   * @notImplemented
    * @returns {number} Never returns.
    */
   @meta.notImplemented
@@ -272,9 +290,8 @@ export class Tr2InteriorStatic extends IRoot
   /**
    * Per-object data with no lights.
    *
-   * Adapted: Tr2InteriorPlaceable passes its own light set (cpp:383-386); a
-   * static has none. The scene path uses the per-instance form below.
-   *
+   * @adapted Tr2InteriorPlaceable passes its own light set (cpp:383-386); a
+   *   static has none. The scene path uses the per-instance form below.
    * @param {object} accumulator The batch accumulator that leases the data.
    * @returns {Tr2PerObjectDataStandard} The leased data.
    */
@@ -288,6 +305,7 @@ export class Tr2InteriorStatic extends IRoot
    * Per-object data lit by the scene's light set, as Tr2InteriorPlaceable
    * (cpp:527-536).
    *
+   * @implemented
    * @param {object} accumulator The batch accumulator that leases the data.
    * @param {object|null} lightSet The Tr2InteriorLightSet lighting the piece.
    * @param {mat4} objectToWorldMatrix The piece's transform.
@@ -304,6 +322,7 @@ export class Tr2InteriorStatic extends IRoot
    * interior lights, both buffers zeroed first, as Tr2InteriorPlaceable
    * (cpp:551-585).
    *
+   * @implemented
    * @param {object} accumulator The batch accumulator that leases the data.
    * @param {object|null} lightSet The lights, or null for none.
    * @param {mat4} objectToWorldMatrix The piece's transform.
@@ -333,6 +352,7 @@ export class Tr2InteriorStatic extends IRoot
    * area's depth uses its mesh's bounds, because Tr2Mesh.GetAreaBounds, which
    * Carbon uses, is not ported.
    *
+   * @adapted
    * @param {object} batches The batch accumulator.
    * @param {number} batchType A TriBatchType.
    * @param {object} perObjectData This piece's per-object data.
@@ -378,9 +398,8 @@ export class Tr2InteriorStatic extends IRoot
    * camera to the mesh's centre over the frustum radius, as
    * Tr2InteriorPlaceable computes it (cpp:342-358), without its depth offset.
    *
-   * Adapted: the mesh's centre stands in for the area's, which needs
-   * Tr2Mesh.GetAreaBounds.
-   *
+   * @adapted the mesh's centre stands in for the area's, which needs
+   *   Tr2Mesh.GetAreaBounds.
    * @param {object} mesh The Tr2Mesh whose areas are being drawn.
    * @returns {number} The unsigned depth key.
    */
@@ -402,6 +421,7 @@ export class Tr2InteriorStatic extends IRoot
   /**
    * This piece, for picking. Tr2InteriorPlaceable returns its raw root (h:99-102).
    *
+   * @implemented
    * @param {number} _areaId The picked area; unused.
    * @returns {Tr2InteriorStatic} This piece.
    */
@@ -415,6 +435,7 @@ export class Tr2InteriorStatic extends IRoot
    * Gathers batches for each requested pick category, as Tr2InteriorPlaceable
    * (cpp:636-651).
    *
+   * @implemented
    * @param {object} batches The batch accumulator.
    * @param {number} pickTypes A Tr2PickType bit mask.
    * @param {object} perObjectData This piece's per-object data.

@@ -353,6 +353,8 @@ export class EveSpaceScene
    * GetShLightingManager/SetShLightingManager (EveSpaceScene_Blue.cpp:169-173):
    * the setter moves the planets' and objects' secondary light sources to the
    * new manager.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.rootRef("Tr2ShLightingManager")
@@ -362,7 +364,11 @@ export class EveSpaceScene
     return this.GetShLightingManager();
   }
 
-  /** Re-registers the scene's secondary light sources with the replacement manager. */
+  /**
+   * Re-registers the scene's secondary light sources with the replacement manager.
+   *
+   * @implemented
+   */
   @meta.implemented
   set shLightingManager(value)
   {
@@ -402,6 +408,8 @@ export class EveSpaceScene
    * Carbon MAP_PROPERTY_READONLY "cameraAttachments" over GetCameraAttachments
    * (EveSpaceScene_Blue.cpp:164-167): the effect children of the camera
    * attachment parent.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.list("IEveSpaceObjectChild")
@@ -687,6 +695,8 @@ export class EveSpaceScene
    * IsShadowsInReflectionsEnabled/EnableShadowsInReflections
    * (EveSpaceScene_Blue.cpp:532-537): whether reflections own a cascaded
    * shadow map (used only while shadows are enabled).
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.boolean
@@ -696,7 +706,11 @@ export class EveSpaceScene
     return this.IsShadowsInReflectionsEnabled();
   }
 
-  /** Creates or drops the reflection shadow map. */
+  /**
+   * Creates or drops the reflection shadow map.
+   *
+   * @implemented
+   */
   @meta.implemented
   set shadowsInReflections(value)
   {
@@ -707,6 +721,8 @@ export class EveSpaceScene
    * Carbon MAP_PROPERTY_READONLY "quadRenderer" over GetQuadRenderer
    * (EveSpaceScene_Blue.cpp:448-451): the shared quad renderer that batches
    * space object attachments.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.rootRef("Tr2QuadRenderer")
@@ -780,6 +796,7 @@ export class EveSpaceScene
   /**
    * Carbon GetGpuParticleSystem (EveSpaceScene.h:522-525).
    *
+   * @implemented
    * @returns {object|null} The Tr2GpuParticleSystem, or null.
    */
 
@@ -794,6 +811,7 @@ export class EveSpaceScene
    * Shared assignment never destroys the old system; JS callers explicitly Destruct
    * only when its final owner releases it, replacing Carbon shared-pointer destruction.
    *
+   * @adapted
    * @param {object|null} ps The Tr2GpuParticleSystem, or null.
    */
 
@@ -907,6 +925,8 @@ export class EveSpaceScene
    * Adapted - deferred vs Carbon: the recording-frame dedup fast path,
    * frustum/threshold/LOD/raytracing stamping (now the driver's job via
    * StampFrameContext, called BEFORE Update), and main-thread action flush (N/A).
+   *
+   * @adapted
    * @param {Number} realTime
    * @param {Number} simTime
    */
@@ -1009,7 +1029,11 @@ export class EveSpaceScene
     this.updateTime = simTime;
   }
 
-  /** Immediate pick, awaitable because WebGPU cannot block on readback. */
+  /**
+   * Immediate pick, awaitable because WebGPU cannot block on readback.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   async PickObject(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
@@ -1018,7 +1042,11 @@ export class EveSpaceScene
     return result ? result[0] : null;
   }
 
-  /** Carbon method PickAsyncObject (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method PickAsyncObject (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   PickAsyncObject(listener, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
@@ -1027,7 +1055,11 @@ export class EveSpaceScene
     return this.PerformPicking(listener, false, x, y, projection, view, viewport, pickTypes)[0];
   }
 
-  /** Carbon method PickObjectAndAreaID -> PyPickObjectAndAreaID (MAP_METHOD). */
+  /**
+   * Carbon method PickObjectAndAreaID -> PyPickObjectAndAreaID (MAP_METHOD).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   async PickObjectAndAreaID(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
@@ -1036,7 +1068,11 @@ export class EveSpaceScene
     return result ? result.slice(0, 2) : null;
   }
 
-  /** Owns a fresh listener, so an immediate call can never return an earlier hit. */
+  /**
+   * Owns a fresh listener, so an immediate call can never return an earlier hit.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   async PickObjectAndExtraData(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
@@ -1053,7 +1089,11 @@ export class EveSpaceScene
     }
   }
 
-  /** Native polling: submit this pixel and return the latest completed result. */
+  /**
+   * Native polling: submit this pixel and return the latest completed result.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   PickAsyncObjectAndExtraData(listener, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
@@ -1081,6 +1121,8 @@ export class EveSpaceScene
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   @meta.adapted
   Destruct()
@@ -1108,6 +1150,8 @@ export class EveSpaceScene
   /**
    * Carbon ReleaseResources (EveSpaceScene.cpp:327-346): clears both env-map
    * variables, and on a full release drops the per-frame constant buffers.
+   *
+   * @implemented
    * @param {number} s TriStorageFlags.
    */
 
@@ -1135,6 +1179,8 @@ export class EveSpaceScene
   /**
    * Carbon OnPrepareResources (EveSpaceScene.cpp:432-440): the 1x1 picking
    * target and its depth buffer.
+   *
+   * @implemented
    * @returns {boolean} False when either cannot be created.
    */
 
@@ -1162,6 +1208,8 @@ export class EveSpaceScene
   /**
    * Clears environment publications (EveSpaceScene.cpp:3018-3026). The native
    * shared-index and baked-morph handles are not owned by this scene port.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -1176,6 +1224,7 @@ export class EveSpaceScene
   /**
    * Carbon GetShLightingManager (EveSpaceScene.cpp:3368-3371).
    *
+   * @implemented
    * @returns {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager|null} The scene's SH lighting manager, or null.
    */
   @meta.implemented
@@ -1189,6 +1238,7 @@ export class EveSpaceScene
    * planets' and objects' secondary light sources from the old manager and
    * clears the objects' SH lighting, then registers them with the new one.
    *
+   * @implemented
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager|null} manager The replacement manager, or null.
    * @returns {void}
    */
@@ -1240,6 +1290,8 @@ export class EveSpaceScene
    * them only through the readback framework (EveInstancedMeshManager.h:100,
    * 279), and the pre-92483097 manager bodies are not ported. The debug renderer's
    * Pick entry is an explicit unported obligation, not silently skipped.
+   *
+   * @adapted
    */
   @meta.adapted
   PerformPicking__ObjectId(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
@@ -1330,6 +1382,7 @@ export class EveSpaceScene
    * Carbon's file-static CreatePickingFrustum (EveSpaceScene.cpp:134-146): the
    * renderer's view and projection over a one-pixel viewport.
    *
+   * @implemented
    * @returns {TriFrustum} The picking frustum.
    */
   @meta.implemented
@@ -1347,10 +1400,10 @@ export class EveSpaceScene
    * Instanced meshes come from the manager's GetPickingBatches (cpp:3643-3661).
    * Skinned, interior and debug-renderer picking remain separate ports.
    *
-   * Adapted: Carbon gathers the instanced batches before it checks the pick
-   * buffers; here they are gathered once the buffers exist, inside the block
-   * whose finally clears the picking accumulator, so a failed pick cannot
-   * leave them queued for the next one.
+   * @adapted Carbon gathers the instanced batches before it checks the pick
+   *   buffers; here they are gathered once the buffers exist, inside the block
+   *   whose finally clears the picking accumulator, so a failed pick cannot
+   *   leave them queued for the next one.
    */
   @meta.adapted
   PerformPicking__Pointer(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
@@ -1513,6 +1566,8 @@ export class EveSpaceScene
    * and projection on the renderer, the projection scaled so one pixel covers
    * the viewport and centred on the pick point, then the pick's per-frame
    * records.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -1538,7 +1593,11 @@ export class EveSpaceScene
     this._FillAndSetPerFrameConstants(perFrameVS, perFramePS, renderContext);
   }
 
-  /** Native one-pixel frustum visibility gather, with the previous frustum restored. */
+  /**
+   * Native one-pixel frustum visibility gather, with the previous frustum restored.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetPickingObjectsToRender(renderContext)
@@ -1576,6 +1635,7 @@ export class EveSpaceScene
    * DIRECTION a screen pixel points along - the pick ray with nothing to hit,
    * which is what a click on empty space resolves to. Pure math, no readback.
    *
+   * @implemented
    * @param {Number} x - screen x, in pixels
    * @param {Number} y - screen y, in pixels
    * @param {Float32Array} projection - the projection matrix
@@ -1713,8 +1773,8 @@ export class EveSpaceScene
    * ties at exactly equal weight (string paths / bools / DoF shape) could
    * differ from C++.
    *
-   * Adapted: the debug payload is a plain object, null while the
-   * enablePostProcessDebugging setting is off.
+   * @adapted the debug payload is a plain object, null while the
+   *   enablePostProcessDebugging setting is off.
    */
 
   @meta.adapted
@@ -1792,8 +1852,12 @@ export class EveSpaceScene
     }
   }
 
-  /** Carbon method GetPostProcess (EveSpaceScene.cpp:420-427): the combined
-   * post-process, or null while the scene is not displayed. */
+  /**
+   * Carbon method GetPostProcess (EveSpaceScene.cpp:420-427): the combined
+   * post-process, or null while the scene is not displayed.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPostProcess()
@@ -1923,9 +1987,8 @@ export class EveSpaceScene
    * FinalizeBatches), and over a parallel range; the JS pass is sequential
    * because the receivers write only their own records and share no state.
    *
-   * Adapted: Carbon's Tr2ParallelFor becomes a sequential pass; the receivers touch only
-   * their own per-object records.
-   *
+   * @adapted Carbon's Tr2ParallelFor becomes a sequential pass; the receivers touch only
+   *   their own per-object records.
    * @param {Array} objects - scene objects and the camera attachment parent
    * @returns {Number} how many receivers were updated
    * Carbon declaration: EveSpaceScene::UpdateShLighting (trinity/trinity/Eve/EveSpaceScene.h:600).
@@ -1982,6 +2045,7 @@ export class EveSpaceScene
    * foreground occlusion queries, then the occlusion buffer's per-frame
    * compute - unconditionally, as Carbon runs it with no lensflares too.
    *
+   * @implemented
    * @param {object} _depthMap The scene depth; unused by Carbon's body too.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
@@ -1994,14 +2058,22 @@ export class EveSpaceScene
     Tr2OcclusionBuffer.getInstance().ProcessBuffer(renderContext);
   }
 
-  /** Native scene Render entry point is intentionally empty (EveSpaceScene.cpp:2950). */
+  /**
+   * Native scene Render entry point is intentionally empty (EveSpaceScene.cpp:2950).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Render(_renderContext)
   {
   }
 
-  /** Scene debugging requires the pending debug renderer and global flush port. */
+  /**
+   * Scene debugging requires the pending debug renderer and global flush port.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   RenderDebugInfo(_renderContext)
@@ -2012,6 +2084,8 @@ export class EveSpaceScene
 
   /**
    * Updates only the notified scene property (EveSpaceScene.cpp:3279-3366).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -2123,6 +2197,7 @@ export class EveSpaceScene
    * name is published through its own Tr2TextureReference, as the driver
    * publishes DepthMap.
    *
+   * @adapted
    * @param {object} shadowResources Carbon's EveSpaceScene::ShadowResources:
    *   `shadowMap`, `cascadedShadowDepth`, `pointLightShadowMap` and
    *   `pointLightShadowDepth`, each a GpuResourceHandle, empty when absent.
@@ -2185,10 +2260,9 @@ export class EveSpaceScene
   /**
    * Loads the nebula/reflection and registers initial scene objects (cpp:3207-3263).
    *
-   * Adapted: the optional render context supports the probe validity query;
-   * Carbon obtains its main-thread context internally. BoneTransforms is
-   * already registered at construction, before any object effect can map it.
-   *
+   * @adapted the optional render context supports the probe validity query;
+   *   Carbon obtains its main-thread context internally. BoneTransforms is
+   *   already registered at construction, before any object effect can map it.
    * @param {Tr2RenderContext} [renderContext] The frame's context.
    * @returns {boolean} True.
    */
@@ -2260,6 +2334,7 @@ export class EveSpaceScene
    * Carbon UpdateVariableStore's environment-map half (cpp:2984-2993): the
    * nebula and the reflection go through the global store each frame.
    *
+   * @adapted
    * @returns {void}
    */
 
@@ -2341,9 +2416,8 @@ export class EveSpaceScene
    * `m_projection * m_jitterMatrix` is row-vector, so gl-matrix multiplies the
    * other way round: the offset is applied after the projection.
    *
-   * Adapted: Carbon's first branch takes a temporal upscaler's jitter
-   * (cpp:1257-1264). No upscaler is ported, so it is absent.
-   *
+   * @adapted Carbon's first branch takes a temporal upscaler's jitter
+   *   (cpp:1257-1264). No upscaler is ported, so it is absent.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
@@ -2383,10 +2457,9 @@ export class EveSpaceScene
    *   which the per-frame vertex block hands the velocity shaders;
    * - the instanced mesh manager's ReportUsedScreenSizes (cpp:2896).
    *
-   * Adapted: the rest of Carbon's EndRender (the secondary transparent and
-   * additive gathers, batch clearing, the variable store) belongs to passes
-   * this runtime's driver does not run yet.
-   *
+   * @adapted the rest of Carbon's EndRender (the secondary transparent and
+   *   additive gathers, batch clearing, the variable store) belongs to passes
+   *   this runtime's driver does not run yet.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
@@ -2436,6 +2509,7 @@ export class EveSpaceScene
    * the frame, then the renderer merges and uploads them. Carbon runs the adds
    * in parallel; here they run in order.
    *
+   * @implemented
    * @param {object} frustum The frame's frustum.
    * @param {Array<object>} objects The objects to add quads from.
    * @param {Tr2RenderContext} renderContext The frame's context.
@@ -2451,7 +2525,11 @@ export class EveSpaceScene
     quadRenderer.BeginRendering(renderContext);
   }
 
-  /** Carbon GetQuadRenderer (cpp:1765-1768): the shared quad renderer. */
+  /**
+   * Carbon GetQuadRenderer (cpp:1765-1768): the shared quad renderer.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetQuadRenderer()
   {
@@ -2462,6 +2540,7 @@ export class EveSpaceScene
    * Carbon GetCameraAttachments (protected, EveSpaceScene.cpp:304-307): the
    * camera attachment parent's effect-child list, as the list's own root.
    *
+   * @implemented
    * @returns {Array} The camera attachment parent's effect children.
    */
   @meta.implemented
@@ -2480,6 +2559,7 @@ export class EveSpaceScene
    * per-object data and batches into the accumulator, then RenderBatch. No
    * pool allocator, no draw, as in Carbon.
    *
+   * @implemented
    * @param {Array} renderables The renderables to draw.
    * @param {object} batch The accumulator to gather into.
    * @param {number} batchType The TriBatchType to gather.
@@ -2514,6 +2594,7 @@ export class EveSpaceScene
    * overlay - and clear. VM_NONE has no effect, so its replacement draw is the
    * ordinary one.
    *
+   * @implemented
    * @param {object} batch The accumulator to draw.
    * @param {number} rm The RenderingMode.
    * @param {Tr2RenderContext} renderContext The frame's context.
@@ -2548,11 +2629,10 @@ export class EveSpaceScene
    * loaded, if already written this frame), and the pass marks it dirty for
    * the main pass.
    *
-   * Adapted: the renderer is an added argument, as for RenderShadows, because
-   * DrawCameraSpaceScreenQuad is an instance method here where Carbon's is a
-   * static. Carbon clears the velocity map with an explicit Clear after its
-   * pass hint; here the hint's CLEAR does it, as in our main pass. Planet LOD and visibility preserve Carbon's order (cpp:2023-2048).
-   *
+   * @adapted the renderer is an added argument, as for RenderShadows, because
+   *   DrawCameraSpaceScreenQuad is an instance method here where Carbon's is a
+   *   static. Carbon clears the velocity map with an explicit Clear after its
+   *   pass hint; here the hint's CLEAR does it, as in our main pass. Planet LOD and visibility preserve Carbon's order (cpp:2023-2048).
    * @param {object|null} depthMap The scene depth.
    * @param {object|null} distortionMap The distortion map, if distortion is on.
    * @param {object|null} velocityMap The velocity map, if one is rendered.
@@ -2647,11 +2727,10 @@ export class EveSpaceScene
    * from the camera, with a perspective that just fits its sphere, then its
    * opaque, transparent and additive batches are drawn.
    *
-   * Adapted: the batches go through the scene's secondary accumulators (the
-   * driver owns the primary gather here), cleared after each object; Carbon
-   * locks the saved DepthMap provider while it is swapped out, which a JS
-   * reference does not need.
-   *
+   * @adapted the batches go through the scene's secondary accumulators (the
+   *   driver owns the primary gather here), cleared after each object; Carbon
+   *   locks the saved DepthMap provider while it is swapped out, which a JS
+   *   reference does not need.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
@@ -2759,7 +2838,11 @@ export class EveSpaceScene
     eyePosition: vec3.create(), target: vec3.create(), view: mat4.create(), projection: mat4.create()
   };
 
-  /** Carbon HasReflectionProbe (cpp:4106-4109). */
+  /**
+   * Carbon HasReflectionProbe (cpp:4106-4109).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasReflectionProbe()
@@ -2767,7 +2850,11 @@ export class EveSpaceScene
     return !!this.reflectionProbe && this.reflectionProbe.IsValid();
   }
 
-  /** Carbon EnableShadowsInReflections (cpp:4154-4168): a 512 cascaded map for reflections, or none. */
+  /**
+   * Carbon EnableShadowsInReflections (cpp:4154-4168): a 512 cascaded map for reflections, or none.
+   *
+   * @implemented
+   */
   @meta.implemented
   EnableShadowsInReflections(enable)
   {
@@ -2785,7 +2872,11 @@ export class EveSpaceScene
     }
   }
 
-  /** Carbon IsShadowsInReflectionsEnabled (cpp:4170-4173). */
+  /**
+   * Carbon IsShadowsInReflectionsEnabled (cpp:4170-4173).
+   *
+   * @implemented
+   */
   @meta.implemented
   IsShadowsInReflectionsEnabled()
   {
@@ -2801,14 +2892,12 @@ export class EveSpaceScene
    * planet-scale frustum), ULTRA lens flares, then the visible dynamic objects
    * with depth, optional reflection shadows, fog and transparency.
    *
-   * Adapted:
-   * - `renderer` is passed in, as RenderBackgroundPassObjects and
+   * @adapted - `renderer` is passed in, as RenderBackgroundPassObjects and
    *   SetupCascadedShadows take it here.
-   * - Raytraced shadows are unported, so the RAYTRACED quality
+   *   - Raytraced shadows are unported, so the RAYTRACED quality
    *   draws no reflection shadows (Carbon's m_rtManager is absent).
-   * - Carbon locks the saved DepthMap provider while it is swapped out; a JS
+   *   - Carbon locks the saved DepthMap provider while it is swapped out; a JS
    *   reference needs no lock.
-   *
    * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {Tr2Renderer} renderer The renderer that draws screen quads.
@@ -3008,11 +3097,10 @@ export class EveSpaceScene
    * tunnel. For a reflection render the nebula intensity is swapped for the
    * background reflection intensity around the draw.
    *
-   * Adapted: the nebula, seeded starfield and planets are ported. Background objects
-   * and the warp tunnel each log
-   * a warning once when the scene has them, rather than being skipped
-   * silently, so this never reports distortion batches yet.
-   *
+   * @adapted the nebula, seeded starfield and planets are ported. Background objects
+   *   and the warp tunnel each log
+   *   a warning once when the scene has them, rather than being skipped
+   *   silently, so this never reports distortion batches yet.
    * @param {object|null} depthMap The scene depth.
    * @param {object|null} distortionMap The distortion map.
    * @param {Tr2RenderContext} renderContext The frame's context.
@@ -3088,7 +3176,8 @@ export class EveSpaceScene
 
   /**
    * Scales view translation only (EveSpaceScene.cpp:3908-3915).
-   * Adapted: the output is caller-owned instead of returned by value.
+   *
+   * @adapted the output is caller-owned instead of returned by value.
    */
 
   @meta.adapted
@@ -3104,6 +3193,8 @@ export class EveSpaceScene
   /**
    * Updates planet children with the scaled camera required by child modifiers
    * (cpp:3828-3841).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -3128,6 +3219,8 @@ export class EveSpaceScene
   /**
    * Collects native opaque/decal/additive/depth batches plus the transparency list
    * (cpp:856-876,956-981). Adapted: no parallel tasks; the context carries the pool.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -3146,7 +3239,11 @@ export class EveSpaceScene
     }
   }
 
-  /** Stable front-to-back sort, visited backwards, as cpp:838-852. */
+  /**
+   * Stable front-to-back sort, visited backwards, as cpp:838-852.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   PrepareTransparentBatch(transparent, batches, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
@@ -3160,7 +3257,11 @@ export class EveSpaceScene
     }
   }
 
-  /** Finalizes every accumulator in the native BatchMap (cpp:2974-2982). */
+  /**
+   * Finalizes every accumulator in the native BatchMap (cpp:2974-2982).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   FinalizeBatches(batches)
@@ -3168,7 +3269,11 @@ export class EveSpaceScene
     for (const batch of batches.values()) batch.Finalize();
   }
 
-  /** Clears every accumulator in the native BatchMap (cpp:2960-2966). */
+  /**
+   * Clears every accumulator in the native BatchMap (cpp:2960-2966).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ClearBatches(batches)
@@ -3179,6 +3284,8 @@ export class EveSpaceScene
   /**
    * Carbon RenderOpaqueBatches (cpp:1130-1156): opaque then decal batches,
    * through the current visualizer as RenderBatch does.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -3209,6 +3316,8 @@ export class EveSpaceScene
   /**
    * Carbon RenderTransparentBatches (cpp:1163-1185): transparent then
    * additive batches, through the current visualizer as RenderBatch does.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -3238,9 +3347,10 @@ export class EveSpaceScene
 
   /**
    * Draws celestials at scale 1e6 with clips 0.01..1e5 (cpp:3844-3906).
-   * Adapted: renderer globals are the supplied context; try/finally implements
-   * native scope guards. The background caller queries occlusion before clearing
-   * this pass's depth. Per-frame constants are refilled for both camera spaces.
+   *
+   * @adapted renderer globals are the supplied context; try/finally implements
+   *   native scope guards. The background caller queries occlusion before clearing
+   *   this pass's depth. Per-frame constants are refilled for both camera spaces.
    */
 
   @meta.adapted
@@ -3334,13 +3444,12 @@ export class EveSpaceScene
    * no normal map, colour slot 0 is unbound for the pass rather than left on
    * the scene colour.
    *
-   * Adapted. The batches come in as `batchMap`: Carbon draws its own
-   * m_primaryBatches, and the gather that fills them is the driver's here.
-   * Not ported, each a later insertion at its place in this order: the
-   * mesh-morph update before the pass (cpp:2212-2228; nothing registers an
-   * ITr2MeshMorph). The sun angle and planet shadow casters follow the pass
-   * (cpp:2328-2355).
-   *
+   * @adapted The batches come in as `batchMap`: Carbon draws its own
+   *   m_primaryBatches, and the gather that fills them is the driver's here.
+   *   Not ported, each a later insertion at its place in this order: the
+   *   mesh-morph update before the pass (cpp:2212-2228; nothing registers an
+   *   ITr2MeshMorph). The sun angle and planet shadow casters follow the pass
+   *   (cpp:2328-2355).
    * @param {object} depthMap The scene depth; the caller has bound it.
    * @param {object|null} normalMap The normal map, or null.
    * @param {object|null} customStencil The custom stencil target, or null.
@@ -3478,6 +3587,8 @@ export class EveSpaceScene
    * mesh's pixel constants before the shadow resolve reads its planet spheres.
    * Even a scene with no planets must bind two zero-radius spheres; otherwise
    * a hull's translated world matrix is interpreted as a pair of planets.
+   *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The shadow pass context.
    */
   @meta.implemented
@@ -3494,6 +3605,8 @@ export class EveSpaceScene
   /**
    * Selects the largest on-screen planets, excluding the sun and bodies behind it
    * (cpp:3930-3980). Adapted: caller-owned vec4 values represent native spheres.
+   *
+   * @adapted
    */
   @meta.adapted
   SetupPlanetsAsShadowCaster__Planets(planets, maxPlanets)
@@ -3540,6 +3653,7 @@ export class EveSpaceScene
    * 0x7f), the "no offset" value the Distortion.fx apply reads. The caller
    * holds the depth read-only, as Carbon's whole colour pass does.
    *
+   * @implemented
    * @param {object} batches The frame's batch map.
    * @param {object} distortionMap The B8G8R8A8 target.
    * @param {object|null} depthMap The scene depth, or null.
@@ -3595,13 +3709,12 @@ export class EveSpaceScene
    * map at LOW or HIGH shadow quality, then the point and spot light shadow
    * atlas.
    *
-   * Adapted: the renderer is passed in for the resolve's blitter, as
-   * `Tr2ShadowMap.DrawToShadowMapResult` takes it. Two branches wait on
-   * subsystems that are not ported, each marked at its site: the raytraced
-   * branch (no Tr2RaytracingManager), and the light atlas pass, which needs
-   * the light manager's GetShadowMapAtlas. The atlas pass's per-light work,
-   * RenderShadowMapForLight and its helpers, is ported.
-   *
+   * @adapted the renderer is passed in for the resolve's blitter, as
+   *   `Tr2ShadowMap.DrawToShadowMapResult` takes it. Two branches wait on
+   *   subsystems that are not ported, each marked at its site: the raytraced
+   *   branch (no Tr2RaytracingManager), and the light atlas pass, which needs
+   *   the light manager's GetShadowMapAtlas. The atlas pass's per-light work,
+   *   RenderShadowMapForLight and its helpers, is ported.
    * @param {object} depthMap The scene depth.
    * @param {object|null} normalMap The depth pass's normal map (the raytraced branch reads it).
    * @param {object} gpuResourcePool The driver's pool.
@@ -3655,11 +3768,10 @@ export class EveSpaceScene
    * resolves the atlas against the scene depth into a screen-space shadow
    * factor.
    *
-   * Adapted: Carbon reads the camera off Tr2Renderer's statics, which the
-   * render context holds here, and finds casters and gathers batches in
-   * parallel, which runs in order here. Not ported, each a later insertion:
-   * the instanced mesh manager's shadow batches and planets as shadow casters.
-   *
+   * @adapted Carbon reads the camera off Tr2Renderer's statics, which the
+   *   render context holds here, and finds casters and gathers batches in
+   *   parallel, which runs in order here. Not ported, each a later insertion:
+   *   the instanced mesh manager's shadow batches and planets as shadow casters.
    * @param {number} renderReason A `Tr2RenderReason`.
    * @param {Tr2ShadowMap} shadowMap The scene's cascaded shadow map.
    * @param {TriFrustum} viewFrustum The camera frustum.
@@ -3838,12 +3950,11 @@ export class EveSpaceScene
    * Its only Carbon caller is RenderShadows' raytraced branch (cpp:2658),
    * which waits on Tr2RaytracingManager, so nothing calls it yet.
    *
-   * Adapted: the shadow camera is a plain record with
-   * ITr2VolumetricRenderable::ShadowInfo's fields (ITr2VolumetricRenderable.h:37-43),
-   * whose members start null where Carbon default-constructs them. The
-   * renderable assigns all four (EveChildCloud2.cpp:903-906), and allocating
-   * defaults it replaces would be per-frame garbage.
-   *
+   * @adapted the shadow camera is a plain record with
+   *   ITr2VolumetricRenderable::ShadowInfo's fields (ITr2VolumetricRenderable.h:37-43),
+   *   whose members start null where Carbon default-constructs them. The
+   *   renderable assigns all four (EveChildCloud2.cpp:903-906), and allocating
+   *   defaults it replaces would be per-frame garbage.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
@@ -3874,14 +3985,13 @@ export class EveSpaceScene
    * The cloud's PrepareCloudShadowMap pushed the target, depth-stencil and
    * viewport this pops.
    *
-   * Adapted: Carbon reads the camera off Tr2Renderer's statics, which the
-   * render context holds here, as SetupCascadedShadows does; the aspect ratio
-   * is Tr2Renderer's `_22 / _11` of the projection (Tr2Renderer.cpp:80). The
-   * accumulator draws from the context's pool allocator, where Carbon gives
-   * it its own (cpp:245-250). Carbon fills a fresh PerFrameVSData of which it
-   * sets only ViewProjectionMat; ours reuses the cascades' record, which sets
-   * the same one field.
-   *
+   * @adapted Carbon reads the camera off Tr2Renderer's statics, which the
+   *   render context holds here, as SetupCascadedShadows does; the aspect ratio
+   *   is Tr2Renderer's `_22 / _11` of the projection (Tr2Renderer.cpp:80). The
+   *   accumulator draws from the context's pool allocator, where Carbon gives
+   *   it its own (cpp:245-250). Carbon fills a fresh PerFrameVSData of which it
+   *   sets only ViewProjectionMat; ours reuses the cascades' record, which sets
+   *   the same one field.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {object} cloudShadowInformation ITr2VolumetricRenderable::ShadowInfo:
    *   `{ shadowFrustum, lightViewProj, aabbMax, shadowMapSize }`.
@@ -4003,6 +4113,7 @@ export class EveSpaceScene
    * target bind in this file. Carbon's CR only reports a failed clear, so the
    * result is ignored as in a release build.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {object} shadowMap The light shadow atlas.
    * @returns {boolean} True, as Carbon's.
@@ -4030,13 +4141,12 @@ export class EveSpaceScene
    * shadow atlas, with their "DynamicLightShadow" technique. Point lights
    * call it once per cube face.
    *
-   * Adapted: the accumulator draws from the context's pool allocator, where
-   * Carbon gives it its own (cpp:245-250). Carbon builds a temporary
-   * `TriShadowFrustum( shadowFrustum )` for every caster (cpp:2534); each is
-   * a copy of the same frustum, so one built before the loop is the same
-   * value. The per-frame record is the cascades', as in
-   * RenderIntoCloudShadowMap.
-   *
+   * @adapted the accumulator draws from the context's pool allocator, where
+   *   Carbon gives it its own (cpp:245-250). Carbon builds a temporary
+   *   `TriShadowFrustum( shadowFrustum )` for every caster (cpp:2534); each is
+   *   a copy of the same frustum, so one built before the loop is the same
+   *   value. The per-frame record is the cascades', as in
+   *   RenderIntoCloudShadowMap.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {Array<IEveShadowCaster>} shadowCasters The registry's shadow casters.
    * @param {number} shadowMapScale The cell's size in texels.
@@ -4151,6 +4261,7 @@ export class EveSpaceScene
    * carries Carbon's PerLightData fields. The 10-bit cell fields are unpacked
    * by the light manager's GetUnpackedShadowMapData.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {Array<IEveShadowCaster>} shadowCasters The registry's shadow casters.
    * @param {object} lightData The light's record.
@@ -4207,6 +4318,7 @@ export class EveSpaceScene
    * unbinds the atlas PrepareShadowMapForLights bound and rebinds the scene's
    * per-frame data, which the light passes replaced.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
@@ -4229,9 +4341,8 @@ export class EveSpaceScene
    * radius and far plane a thousandth of it, looking along the light's
    * direction.
    *
-   * Adapted: Carbon's two output references become one record, filled and
-   * returned, as a C++ output pointer becomes the return value here.
-   *
+   * @adapted Carbon's two output references become one record, filled and
+   *   returned, as a C++ output pointer becomes the return value here.
    * @param {object} lightData The light's record.
    * @param {{projection: mat4, view: mat4}} out Receives the matrices.
    * @returns {{projection: mat4, view: mat4}} out
@@ -4265,8 +4376,9 @@ export class EveSpaceScene
 
   /**
    * Carbon scene fog/cloud ordering (EveSpaceScene.cpp:2437-2477).
-   * Adapted: context transforms replace the renderer's pending view statics;
-   * returned pool handles require explicit release by the caller.
+   *
+   * @adapted context transforms replace the renderer's pending view statics;
+   *   returned pool handles require explicit release by the caller.
    */
 
   @meta.adapted
@@ -4305,6 +4417,7 @@ export class EveSpaceScene
    * blocks and binds them. The render driver runs it before the GPU particle
    * update, whose kernels read the per-frame data.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The context to bind on.
    * @returns {void}
    */
@@ -4329,6 +4442,7 @@ export class EveSpaceScene
    * The buffers are by-value members, sized by FillAndSetConstants as
    * Carbon's are.
    *
+   * @implemented
    * @param {Tr2RenderContext} renderContext The context to bind on.
    * @returns {void}
    */
@@ -4378,9 +4492,8 @@ export class EveSpaceScene
    *
    * Carbon's PopulatePerFrameVSData( data, renderContext ) (cpp:3029).
    *
-   * Adapted: Tr2Renderer view statics and the ESM's render-target/viewport sizes are read
-   * through _EngineFrameState.
-   *
+   * @adapted Tr2Renderer view statics and the ESM's render-target/viewport sizes are read
+   *   through _EngineFrameState.
    * @param {Object} data - the per-frame VS record to fill (Carbon m_perFrameVS,
    *   or a local one as the shadow pass uses, cpp:760-769)
    * @param {Object} renderContext - the frame's Tr2RenderContext
@@ -4470,9 +4583,8 @@ export class EveSpaceScene
    * rendering, light manager, gather, raytraced shadows, UpdateVariableStore,
    * light gather) still runs in EveSpaceSceneRenderDriver._RenderMainPass.
    *
-   * Adapted: Only the tail of Carbon's BeginRender has moved here; the rest is still in the
-   * render driver.
-   *
+   * @adapted Only the tail of Carbon's BeginRender has moved here; the rest is still in the
+   *   render driver.
    * @param {boolean} _enableDistortion - Carbon's gather flag; the gather is
    *   not in this part yet
    * @param {Object} renderContext - the frame's Tr2RenderContext
@@ -4512,6 +4624,7 @@ export class EveSpaceScene
    * Carbon's PopulatePerFramePSData( data, renderContext ) (cpp:3084): fills
    * data with the scene's own cascaded shadow map.
    *
+   * @implemented
    * @param {Object} data - the per-frame PS record to fill (Carbon m_perFramePS)
    * @param {Object} renderContext - the frame's Tr2RenderContext
    * @returns {Object} data
@@ -4535,9 +4648,8 @@ export class EveSpaceScene
    * disabled, so stale cascade bytes are not consumed until a map is supplied
    * again.
    *
-   * Adapted: Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the
-   * upscaler's mip bias are read through _EngineFrameState.
-   *
+   * @adapted Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the
+   *   upscaler's mip bias are read through _EngineFrameState.
    * @param {Object} data - the per-frame PS record to fill
    * @param {Tr2ShadowMap|null} shadowMap - null disables cascade packing
    * @param {Object} renderContext - the frame's Tr2RenderContext
@@ -4732,6 +4844,7 @@ export class EveSpaceScene
    * a plain array push raises none, and ReregisterEntities joins such late
    * objects instead.
    *
+   * @implemented
    * @param {number} event A BLUELISTEVENT value.
    * @param {number} _key Index of the change.
    * @param {number} _key2 Second index (swap/move).
@@ -4790,10 +4903,9 @@ export class EveSpaceScene
    * Re-registers the scene entities and their quad effects with the live registry.
    * Carbon ReregisterEntities (EveSpaceScene.cpp:4112-4137).
    *
-   * Adapted: Does nothing after the registry has been cleared. Plain-array insertion
-   * has no Blue list event, so late objects also register their quad effects here;
-   * Carbon performs that registration in OnListModified (cpp:3471-3475).
-   *
+   * @adapted Does nothing after the registry has been cleared. Plain-array insertion
+   *   has no Blue list event, so late objects also register their quad effects here;
+   *   Carbon performs that registration in OnListModified (cpp:3471-3475).
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -4824,12 +4936,16 @@ export class EveSpaceScene
     }
   }
 
-  /** Carbon method ClearComponentRegistry (EveSpaceScene.cpp:4091-4099, called
+  /**
+   * Carbon method ClearComponentRegistry (EveSpaceScene.cpp:4091-4099, called
    * from the destructor cpp:322). Entity component-state is deliberately NOT
    * cleared beyond what Clear() does - either the scene is being destroyed
    * (entities go too) or entities move to another scene and re-register there.
    * The JS registry Clear() additionally detaches entity.registry when it
-   * points at this registry - strictly more hygienic than Carbon; kept. */
+   * points at this registry - strictly more hygienic than Carbon; kept.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ClearComponentRegistry()
@@ -4838,7 +4954,11 @@ export class EveSpaceScene
     this.componentRegistry = null;
   }
 
-  /** Carbon method GetPostProcessDebug (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetPostProcessDebug (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   GetPostProcessDebug()
@@ -4846,7 +4966,11 @@ export class EveSpaceScene
     return this.postProcessDebug;
   }
 
-  /** Carbon method UpdateScene -> UpdateSceneFromScript (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method UpdateScene -> UpdateSceneFromScript (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   UpdateScene(time)

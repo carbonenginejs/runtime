@@ -28,7 +28,11 @@ export class TriStepResolve extends TriRenderStep
   @type.object.ref("Tr2RenderTarget")
   destination = null;
 
-  /** Stores the resolve operands in Carbon's destination-first argument order. */
+  /**
+   * Stores the resolve operands in Carbon's destination-first argument order.
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(destination = null, source = null)
@@ -41,6 +45,8 @@ export class TriStepResolve extends TriRenderStep
    * Carbon Execute (TriStepResolve.cpp:13-33): resolve the source's texture
    * into the destination's and, when asked, regenerate the destination's mips.
    * Missing or invalid operands are a no-op; a failed resolve is RS_FAILED.
+   *
+   * @implemented
    */
 
   @meta.implemented

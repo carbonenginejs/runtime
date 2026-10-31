@@ -43,7 +43,11 @@ export class SoundPrioritization
 
   _audioCullingEnabled = true;
 
-  /** Carbon method RegisterGameObject: listener recognized by its fixed id. */
+  /**
+   * Carbon method RegisterGameObject: listener recognized by its fixed id.
+   *
+   * @implemented
+   */
   @meta.implemented
   RegisterGameObject(object)
   {
@@ -58,7 +62,11 @@ export class SoundPrioritization
     }
   }
 
-  /** Carbon method UnregisterGameObject (by id). */
+  /**
+   * Carbon method UnregisterGameObject (by id).
+   *
+   * @implemented
+   */
   @meta.implemented
   UnregisterGameObject(objectID)
   {
@@ -71,7 +79,11 @@ export class SoundPrioritization
 
   // Carbon quirk preserved: the strict `>` keeps maxAwakeGameObjects + 1
   // objects awake (SoundPrioritization.cpp:146-171). Do not "fix".
-  /** Carbon method CullAudio: distance + weight every object, sort ascending, wake the top set. */
+  /**
+   * Carbon method CullAudio: distance + weight every object, sort ascending, wake the top set.
+   *
+   * @implemented
+   */
   @meta.implemented
   CullAudio(now)
   {
@@ -114,21 +126,34 @@ export class SoundPrioritization
     }
   }
 
-  /** Carbon method ResetCullingSettings: restore constructor defaults. */
+  /**
+   * Carbon method ResetCullingSettings: restore constructor defaults.
+   *
+   * @implemented
+   */
   @meta.implemented
   ResetCullingSettings()
   {
     this._settings = DefaultSettings();
   }
 
-  /** Carbon method GetAudioCullingEnabled. */
+  /**
+   * Carbon method GetAudioCullingEnabled.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetAudioCullingEnabled()
   {
     return this._audioCullingEnabled;
   }
 
-  /** Carbon method SetAudioCullingEnabled. */
+  /**
+   * Carbon method SetAudioCullingEnabled.
+   *
+   * @cjs
+   * @implemented
+   */
   @meta.cjs
     @meta.implemented
   SetAudioCullingEnabled(enabled)
@@ -136,7 +161,11 @@ export class SoundPrioritization
     this._audioCullingEnabled = !!enabled;
   }
 
-  /** Carbon method EnableAudioCulling. */
+  /**
+   * Carbon method EnableAudioCulling.
+   *
+   * @implemented
+   */
   @meta.implemented
   EnableAudioCulling()
   {
@@ -147,6 +176,7 @@ export class SoundPrioritization
    * Wakes every culled registered object before disabling prioritization.
    * Carbon DisableAudioCulling (SoundPrioritization.cpp:180-194).
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -164,140 +194,220 @@ export class SoundPrioritization
 
   // Carbon asymmetry preserved: weight getters return weightMultiplier x the
   // stored raw field; setters store raw (SoundPrioritization.cpp:228-296).
-  /** Carbon method GetMaxAwakeGameObjects (plain, no multiply). */
+  /**
+   * Carbon method GetMaxAwakeGameObjects (plain, no multiply).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMaxAwakeGameObjects()
   {
     return this._settings.maxAwakeGameObjects;
   }
 
-  /** Carbon method SetMaxAwakeGameObjects. */
+  /**
+   * Carbon method SetMaxAwakeGameObjects.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetMaxAwakeGameObjects(value)
   {
     this._settings.maxAwakeGameObjects = value;
   }
 
-  /** Carbon method GetOneShotWindow (ms, plain). */
+  /**
+   * Carbon method GetOneShotWindow (ms, plain).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetOneShotWindow()
   {
     return this._settings.oneShotWindow;
   }
 
-  /** Carbon method SetOneShotWindow. */
+  /**
+   * Carbon method SetOneShotWindow.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetOneShotWindow(value)
   {
     this._settings.oneShotWindow = value;
   }
 
-  /** Carbon method GetWeightMultiplier (plain). */
+  /**
+   * Carbon method GetWeightMultiplier (plain).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWeightMultiplier()
   {
     return this._settings.weightMultiplier;
   }
 
-  /** Carbon method SetWeightMultiplier. */
+  /**
+   * Carbon method SetWeightMultiplier.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetWeightMultiplier(value)
   {
     this._settings.weightMultiplier = value;
   }
 
-  /** Carbon method GetPlayingVitalSoundWeight (multiplied). */
+  /**
+   * Carbon method GetPlayingVitalSoundWeight (multiplied).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetPlayingVitalSoundWeight()
   {
     return this._settings.weightMultiplier * this._settings.playingVitalSoundWeight;
   }
 
-  /** Carbon method SetPlayingVitalSoundWeight (raw). */
+  /**
+   * Carbon method SetPlayingVitalSoundWeight (raw).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetPlayingVitalSoundWeight(value)
   {
     this._settings.playingVitalSoundWeight = value;
   }
 
-  /** Carbon method GetPlaying2DWeight (multiplied). */
+  /**
+   * Carbon method GetPlaying2DWeight (multiplied).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetPlaying2DWeight()
   {
     return this._settings.weightMultiplier * this._settings.playing2DWeight;
   }
 
-  /** Carbon method SetPlaying2DWeight (raw). */
+  /**
+   * Carbon method SetPlaying2DWeight (raw).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetPlaying2DWeight(value)
   {
     this._settings.playing2DWeight = value;
   }
 
-  /** Carbon method GetRangeWeight (multiplied). */
+  /**
+   * Carbon method GetRangeWeight (multiplied).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetRangeWeight()
   {
     return this._settings.weightMultiplier * this._settings.rangeWeight;
   }
 
-  /** Carbon method SetRangeWeight (raw). */
+  /**
+   * Carbon method SetRangeWeight (raw).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetRangeWeight(value)
   {
     this._settings.rangeWeight = value;
   }
 
-  /** Carbon method GetPlayingEventsWeight (multiplied activeSoundsWeight). */
+  /**
+   * Carbon method GetPlayingEventsWeight (multiplied activeSoundsWeight).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetPlayingEventsWeight()
   {
     return this._settings.weightMultiplier * this._settings.activeSoundsWeight;
   }
 
-  /** Carbon method SetPlayingEventsWeight (raw). */
+  /**
+   * Carbon method SetPlayingEventsWeight (raw).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetPlayingEventsWeight(value)
   {
     this._settings.activeSoundsWeight = value;
   }
 
-  /** Carbon method GetWaitingOneShotWeight (multiplied). */
+  /**
+   * Carbon method GetWaitingOneShotWeight (multiplied).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWaitingOneShotWeight()
   {
     return this._settings.weightMultiplier * this._settings.waitingOneShotWeight;
   }
 
-  /** Carbon method SetWaitingOneShotWeight (raw). */
+  /**
+   * Carbon method SetWaitingOneShotWeight (raw).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetWaitingOneShotWeight(value)
   {
     this._settings.waitingOneShotWeight = value;
   }
 
-  /** Carbon method GetVisibleWeight (multiplied). */
+  /**
+   * Carbon method GetVisibleWeight (multiplied).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetVisibleWeight()
   {
     return this._settings.weightMultiplier * this._settings.visibleWeight;
   }
 
-  /** Carbon method SetVisibleWeight (raw). */
+  /**
+   * Carbon method SetVisibleWeight (raw).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetVisibleWeight(value)
   {
     this._settings.visibleWeight = value;
   }
 
-  /** Carbon method GetUsedEmitterWeight (multiplied). */
+  /**
+   * Carbon method GetUsedEmitterWeight (multiplied).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetUsedEmitterWeight()
   {
     return this._settings.weightMultiplier * this._settings.usedEmitterWeight;
   }
 
-  /** Carbon method SetUsedEmitterWeight (raw). */
+  /**
+   * Carbon method SetUsedEmitterWeight (raw).
+   *
+   * @implemented
+   */
   @meta.implemented
   SetUsedEmitterWeight(value)
   {
@@ -307,8 +417,8 @@ export class SoundPrioritization
   /**
    * Carbon method GetPrioritizedAudioObjects: defensive current-order snapshot.
    *
-   * Adapted: Carbon returns a const vector reference; CarbonEngineJS returns a defensive
-   * array.
+   * @adapted Carbon returns a const vector reference; CarbonEngineJS returns a defensive
+   *   array.
    */
   @meta.adapted
   GetPrioritizedAudioObjects()
@@ -316,7 +426,11 @@ export class SoundPrioritization
     return this._gameObjects.slice();
   }
 
-  /** Carbon method ForEachAwakeAudioObject: visits every non-culled tracked object. Source: SoundPrioritization.h:264-274 (commit c9b986d). */
+  /**
+   * Carbon method ForEachAwakeAudioObject: visits every non-culled tracked object. Source: SoundPrioritization.h:264-274 (commit c9b986d).
+   *
+   * @implemented
+   */
   @meta.implemented
   ForEachAwakeAudioObject(visitor)
   {
@@ -329,7 +443,11 @@ export class SoundPrioritization
     }
   }
 
-  /** Carbon static CalculateObjectWeight: lower weight = higher priority; pure subtraction, no clamps. */
+  /**
+   * Carbon static CalculateObjectWeight: lower weight = higher priority; pure subtraction, no clamps.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   static calculateObjectWeight(distanceSq, isMuted, isInRange, isUsed, isVisible, isPlaying2D, isPlayingVital,

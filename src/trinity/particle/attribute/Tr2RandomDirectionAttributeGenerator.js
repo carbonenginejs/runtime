@@ -39,6 +39,8 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
    * Carbon MAP_PROPERTY_READONLY "name" over GetName
    * (Tr2RandomDirectionAttributeGenerator_Blue.cpp:16): the element name composed of type and
    * customName.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.string
@@ -52,6 +54,8 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
    * Carbon MAP_PROPERTY_READONLY "dimension" over GetDimension
    * (Tr2RandomDirectionAttributeGenerator_Blue.cpp:25): the bound element's dimension, or 0 when
    * unbound.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.uint32
@@ -63,6 +67,8 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Resolves the target element by semantic type or custom name, marking the generator valid only when it resolves.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -79,6 +85,8 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
    * Writes a random unit vector, sized to the bound element's dimension, into the particle's element slot.
    *
    * Uses the shared particle RNG with rejection-free normalize-or-fallback sampling.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -117,6 +125,8 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * The bound element's component count, or zero when unbound.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -127,6 +137,8 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * The bound element's custom name, or its semantic type name.
+   *
+   * @implemented
    */
 
   @meta.implemented

@@ -31,7 +31,11 @@ export class AudActionRecordExecuteActionOnPlayingID extends AudActionRecord
     this.action = String(action);
   }
 
-  /** Returns Carbon's Python-bridge tuple as a JavaScript array. */
+  /**
+   * Returns Carbon's Python-bridge tuple as a JavaScript array.
+   *
+   * @adapted
+   */
   ToPyObject()
   {
     return [ "AudActionRecordExecuteActionOnPlayingID", this.time, this.emitterID, this.playID, this.action ];

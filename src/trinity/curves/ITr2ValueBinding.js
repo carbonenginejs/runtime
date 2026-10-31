@@ -12,6 +12,8 @@ export class ITr2ValueBinding extends IRoot
   /**
    * Copies the bound value to its destination.
    * Native signature: void CopyValue() = 0.
+   *
+   * @abstract
    * @returns {void}
    */
   CopyValue()

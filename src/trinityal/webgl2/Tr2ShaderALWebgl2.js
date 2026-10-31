@@ -94,6 +94,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
    * stage it has no counterpart for, and a backend block that is not WebGL2's.
    * An empty shader answers `E_OUTOFMEMORY`, as Carbon's stub does.
    *
+   * @adapted
    * @param {number} type A `ShaderType` value.
    * @param {ArrayBufferView|string} bytecode GLSL source.
    * @param {object|null} signature The reflected signature.
@@ -157,7 +158,11 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** Carbon's `ReleaseShader`: deletes the stage object and invalidates the type. */
+  /**
+   * Carbon's `ReleaseShader`: deletes the stage object and invalidates the type.
+   *
+   * @implemented
+   */
   ReleaseShader()
   {
     if (this._gl && this._shader) this._gl.deleteShader(this._shader);
@@ -166,7 +171,11 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
     this._type = ShaderType.INVALID_SHADER;
   }
 
-  /** Releases the shader and leaves the device-resource registry. */
+  /**
+   * Releases the shader and leaves the device-resource registry.
+   *
+   * @adapted
+   */
   Destroy()
   {
     if (this.IsValid()) this.ReleaseShader();
@@ -179,6 +188,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the shader compiled.
    *
+   * @implemented
    * @returns {boolean} True when it holds a stage.
    */
   IsValid()
@@ -189,6 +199,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
   /**
    * The pipeline stage.
    *
+   * @implemented
    * @returns {number} A `ShaderType` value.
    */
   GetType()
@@ -199,6 +210,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
   /**
    * The stored bytecode, GLSL text as UTF-8 bytes.
    *
+   * @adapted
    * @returns {{result: number, bytecode: Uint8Array|null}} The bytecode.
    */
   GetBytecode()
@@ -210,6 +222,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
   /**
    * The shader signature.
    *
+   * @implemented
    * @returns {object|null} The signature given at creation.
    */
   GetSignature()
@@ -220,6 +233,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this shader occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -230,6 +244,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the shader for the device-resource registry.
    *
+   * @adapted
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -241,6 +256,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the shader. WebGL has no debug names, so it is kept for `Describe`.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

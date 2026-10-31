@@ -32,7 +32,11 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
   @type.float32
   scalingFactor = 1;
 
-  /** Live native READ property; samples the currently linked controller. */
+  /**
+   * Live native READ property; samples the currently linked controller.
+   *
+   * @implemented
+   */
   @be.mapPropertyReadOnly()
   @type.float32
   @meta.implemented
@@ -44,7 +48,10 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
   /** m_controller: non-owning controller pointer established by Link. */
   _controller = null;
 
-  /** @param {ITr2ActionController} controller Controller supplying the multiplier. */
+  /**
+   * @implemented
+   * @param {ITr2ActionController} controller Controller supplying the multiplier.
+   */
 
   @meta.implemented
   Link(controller)
@@ -52,7 +59,11 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
     this._controller = controller;
   }
 
-  /** Releases the linked controller pointer. */
+  /**
+   * Releases the linked controller pointer.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Unlink()
@@ -64,6 +75,8 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * Finds an emitter on the invoking controller owner, then applies linked scaling.
    * The invocation controller chooses the target; Link chooses the variable source
    * (Tr2ActionSetAttenuationScaling.cpp:28-37,53-77).
+   *
+   * @implemented
    * @param {ITr2ActionController} controller The invoking controller.
    */
 
@@ -78,7 +91,8 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
 
   /**
    * Starts manually without changing state-machine state.
-   * Adapted: JavaScript TypeError represents native PyErr_SetString for null.
+   *
+   * @adapted JavaScript TypeError represents native PyErr_SetString for null.
    * @param {ITr2ActionController} controller The invoking controller.
    */
   @be.mapMethodAndWrap()
@@ -90,8 +104,9 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
 
   /**
    * Returns the authored factor times a nonzero linked controller variable.
-   * Adapted: the controller's undefined value represents native optional absence.
-   * Native zero means no multiplier; negative and nonfinite values are not clamped.
+   *
+   * @adapted the controller's undefined value represents native optional absence.
+   *   Native zero means no multiplier; negative and nonfinite values are not clamped.
    * @returns {number} The attenuation scaling factor.
    */
 

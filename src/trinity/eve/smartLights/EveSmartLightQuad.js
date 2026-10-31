@@ -126,8 +126,8 @@ export class EveSmartLightQuad extends EveChildTransform
   /**
    * Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface through the shared resolveGroupColor helper.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface through the shared resolveGroupColor helper.
    */
   @meta.adapted
   GetGroupColor()
@@ -144,8 +144,8 @@ export class EveSmartLightQuad extends EveChildTransform
   /**
    * Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface.
    */
   @meta.adapted
   SetColor(color)
@@ -157,8 +157,8 @@ export class EveSmartLightQuad extends EveChildTransform
    * Stores the inherited faction color set and fans it out to the attribute
    * modifiers (Carbon base EveSmartLightBaseGroup.cpp:30-41).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface.
    */
   @meta.adapted
   SetInheritProperties(colorSet)
@@ -177,8 +177,8 @@ export class EveSmartLightQuad extends EveChildTransform
   /**
    * Fans a controller variable out to the attribute modifiers (Carbon base EveSmartLightBaseGroup.cpp:60-66).
    *
-   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
-   * base-group surface.
+   * @adapted Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   *   base-group surface.
    */
   @meta.adapted
   SetControllerVariable(name, value)
@@ -193,8 +193,8 @@ export class EveSmartLightQuad extends EveChildTransform
    * Newly inserted attribute modifiers inherit the parent color set (Carbon
    * base EveSmartLightBaseGroup.cpp:16-28).
    *
-   * Adapted: The secondary base's list handling lives on this class and receives the Blue
-   * list event, inserted value and owning array explicitly.
+   * @adapted The secondary base's list handling lives on this class and receives the Blue
+   *   list event, inserted value and owning array explicitly.
    */
   @meta.adapted
   OnListModified(event, _key, _key2, value, list)
@@ -212,6 +212,8 @@ export class EveSmartLightQuad extends EveChildTransform
 
   /**
    * softQuad edits swap the flare-quad effect path (EveSmartLightQuad.cpp:36-54).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -226,8 +228,8 @@ export class EveSmartLightQuad extends EveChildTransform
    * constructor, EveSmartLightQuad.cpp:10-34) and caches the effect key
    * (EveSmartLightQuad.cpp:56-65).
    *
-   * Adapted: Caches the effect key here; registration with the supplied quad renderer occurs
-   * through RegisterWithQuadRenderer.
+   * @adapted Caches the effect key here; registration with the supplied quad renderer occurs
+   *   through RegisterWithQuadRenderer.
    */
 
   @meta.adapted
@@ -245,8 +247,8 @@ export class EveSmartLightQuad extends EveChildTransform
   /**
    * Registers the effect bucket with a quad renderer (EveSmartLightQuad.cpp:68-71).
    *
-   * Adapted: Uses the supplied quad renderer rather than Carbon's singleton, with
-   * EveChildQuad's shared vertex definition.
+   * @adapted Uses the supplied quad renderer rather than Carbon's singleton, with
+   *   EveChildQuad's shared vertex definition.
    */
 
   @meta.adapted
@@ -270,6 +272,8 @@ export class EveSmartLightQuad extends EveChildTransform
    * Carbon re-registers through the shared Tr2QuadRenderer singleton when the
    * effect key changes in edit mode (cpp:77-90). EveUpdateContext has no
    * GetQuadRenderer contract.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -304,6 +308,8 @@ export class EveSmartLightQuad extends EveChildTransform
    * Rebuilds the world transform against the nearest parent's local-to-world
    * matrix (EveSmartLightQuad.cpp:100-114); the child parent wins over the
    * space object parent.
+   *
+   * @implemented
    */
   @meta.implemented
 
@@ -329,8 +335,8 @@ export class EveSmartLightQuad extends EveChildTransform
    * (m[0],m[4],m[8],m[12]) etc. The mixed float32/float16 record is packed
    * into terminal bytes here before the quad renderer copies it.
    *
-   * Adapted: Packs each logical instance into the JavaScript byte buffer and submits it
-   * through the supplied quad renderer.
+   * @adapted Packs each logical instance into the JavaScript byte buffer and submits it
+   *   through the supplied quad renderer.
    */
 
   @meta.adapted

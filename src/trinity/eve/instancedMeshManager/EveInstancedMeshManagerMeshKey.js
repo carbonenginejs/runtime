@@ -61,6 +61,8 @@ export class EveInstancedMeshManagerMeshKey
    * Carbon's `operator==` (h:179-188), which JavaScript cannot overload:
    * geometry identity, batch type, mesh, area range, winding and material
    * hash. Not combinedVertexDeclaration and not isDynamic.
+   *
+   * @renamed operator==
    * @param {EveInstancedMeshManagerMeshKey} other
    * @returns {boolean}
    */

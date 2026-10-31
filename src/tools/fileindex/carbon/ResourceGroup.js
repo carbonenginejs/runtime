@@ -24,6 +24,7 @@ export class ResourceGroup
     /**
      * Native merge facade; explicit finally replaces status-scope destruction.
      *
+     * @implemented
      * @param {import('./ResourceGroupMergeParams.js').ResourceGroupMergeParams} params Caller-owned operation parameters.
      * @returns {import('./Result.js').Result} Native success or failure result; output references may be mutated.
      */
@@ -35,6 +36,7 @@ export class ResourceGroup
     /**
      * Native diff facade; explicit finally replaces status-scope destruction.
      *
+     * @implemented
      * @param {import('./ResourceGroupDiffAgainstGroupParams.js').ResourceGroupDiffAgainstGroupParams} params Caller-owned operation parameters.
      * @returns {import('./Result.js').Result} Native success or failure result; output references may be mutated.
      */
@@ -46,6 +48,7 @@ export class ResourceGroup
     /**
      * Native removal facade; explicit finally replaces status-scope destruction.
      *
+     * @implemented
      * @param {import('./ResourceGroupRemoveResourcesParams.js').ResourceGroupRemoveResourcesParams} params Caller-owned operation parameters.
      * @returns {import('./Result.js').Result} Native success or failure result; output references may be mutated.
      */
@@ -72,13 +75,21 @@ export class ResourceGroup
         finally { status.Dispose(); }
     }
 
-    /** `CreateBundle` - not ported: it needs chunking and compression. */
+    /**
+     * `CreateBundle` - not ported: it needs chunking and compression.
+     *
+     * @notImplemented
+     */
     CreateBundle()
     {
         throw new Error("ResourceGroup.CreateBundle is not implemented: it needs chunking and compression.");
     }
 
-    /** `CreatePatch` - not ported: it needs binary diffing. */
+    /**
+     * `CreatePatch` - not ported: it needs binary diffing.
+     *
+     * @notImplemented
+     */
     CreatePatch()
     {
         throw new Error("ResourceGroup.CreatePatch is not implemented: it needs binary diffing.");
@@ -87,6 +98,7 @@ export class ResourceGroup
     /**
      * Native import facade, awaiting the caller's injected reader before ending progress.
      *
+     * @adapted
      * @param {import('./ResourceGroupImportFromFileParams.js').ResourceGroupImportFromFileParams} params Caller-owned operation parameters.
      * @returns {Promise<import('./Result.js').Result>} Native success or failure result; output references may be mutated.
      * @throws {TypeError} If the required reader or writer was not injected.
@@ -99,6 +111,7 @@ export class ResourceGroup
     /**
      * Native export facade, awaiting the caller's injected writer before ending progress.
      *
+     * @adapted
      * @param {import('./ResourceGroupExportToFileParams.js').ResourceGroupExportToFileParams} params Caller-owned operation parameters.
      * @returns {Promise<import('./Result.js').Result>} Native success or failure result; output references may be mutated.
      * @throws {TypeError} If the required reader or writer was not injected.
@@ -125,13 +138,21 @@ export class ResourceGroup
         finally { status.Dispose(); }
     }
 
-    /** `CreateFromDirectory` - not ported: it needs a file system to walk and file hashing. */
+    /**
+     * `CreateFromDirectory` - not ported: it needs a file system to walk and file hashing.
+     *
+     * @notImplemented
+     */
     CreateFromDirectory()
     {
         throw new Error("ResourceGroup.CreateFromDirectory is not implemented: it needs a file system to walk and file hashing.");
     }
 
-    /** `CreateFromFilter` - not ported: ResourceFilter is not ported. */
+    /**
+     * `CreateFromFilter` - not ported: ResourceFilter is not ported.
+     *
+     * @notImplemented
+     */
     static createFromFilter()
     {
         throw new Error("ResourceGroup.createFromFilter is not implemented: ResourceFilter is not ported.");

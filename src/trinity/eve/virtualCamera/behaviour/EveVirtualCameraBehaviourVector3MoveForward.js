@@ -45,6 +45,8 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
   /**
    * Sets the behaviour name and renames the owned scale curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:425-428
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -54,7 +56,11 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
     this.scaleCurve.SetName(`${this.name} - Scale Curve`);
   }
 
-  /** Returns the camera's forward direction scaled by the current distance. */
+  /**
+   * Returns the camera's forward direction scaled by the current distance.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out)
@@ -67,6 +73,8 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
    * curve at normalized timeline time, multiplied by the anchor radius when
    * proportional is set so the move scales with the anchored object's size.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:436-447
+   *
+   * @implemented
    */
   @meta.implemented
 

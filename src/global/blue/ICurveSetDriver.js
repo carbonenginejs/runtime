@@ -12,6 +12,8 @@ export class ICurveSetDriver extends IRoot
   /**
    * Returns the curve-set time selected by the concrete driver.
    * Native signature: double GetCurveSetTime(double time) = 0.
+   *
+   * @abstract
    * @param {number} _time The caller's time, represented by Carbon as a double.
    * @returns {number} The driven time, represented by Carbon as a double.
    */

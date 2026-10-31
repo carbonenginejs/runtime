@@ -112,6 +112,8 @@ export class EveVirtualCamera extends IRoot
    * Carbon MAP_PROPERTY_READONLY "forward" over GetViewDirection
    * (EveVirtualCamera_Blue.cpp:29): the unit direction towards the point of
    * interest.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.vec3
@@ -124,6 +126,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Carbon MAP_PROPERTY_READONLY "right" over GetRightDirection
    * (EveVirtualCamera_Blue.cpp:30): the unit right direction.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.vec3
@@ -136,6 +140,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Carbon MAP_PROPERTY_READONLY "up" over GetUpDirection
    * (EveVirtualCamera_Blue.cpp:31): the roll-adjusted unit up direction.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.vec3
@@ -148,6 +154,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Builds a D3D-handed look-at view matrix from the current position, point of
    * interest and roll-adjusted up direction.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -158,6 +166,8 @@ export class EveVirtualCamera extends IRoot
 
   /**
    * Builds a zero-to-one depth perspective projection from the camera's field of view and the supplied framing values.
+   *
+   * @adapted
    * @param {Number} aspectRatio
    * @param {Number} frontClip Near plane distance
    * @param {Number} backClip Far plane distance
@@ -174,6 +184,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Returns the normalized direction from the camera position towards its point
    * of interest.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -185,6 +197,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Returns the view direction, as a virtual camera always faces its point of
    * interest.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -197,6 +211,8 @@ export class EveVirtualCamera extends IRoot
    * Returns the up vector obtained by orthogonalizing world up against the view
    * direction and then rotating it about the view axis by the roll angle, which
    * is authored in degrees.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -209,7 +225,11 @@ export class EveVirtualCamera extends IRoot
     return vec3.normalize(out, vec3.transformQuat(out, out, rotation));
   }
 
-  /** Returns the normalized cross product of the forward and up directions. */
+  /**
+   * Returns the normalized cross product of the forward and up directions.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetRightDirection(out)
@@ -223,6 +243,8 @@ export class EveVirtualCamera extends IRoot
    * interest, field of view and roll from their behaviour lists; each value is
    * written back only when its behaviour list is non-empty, so an unauthored
    * channel keeps whatever was set externally.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -258,7 +280,11 @@ export class EveVirtualCamera extends IRoot
     }
   }
 
-  /** Starts the local timeline advancing on subsequent updates. */
+  /**
+   * Starts the local timeline advancing on subsequent updates.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Play()
@@ -269,6 +295,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Freezes the local timeline without resetting it, so updates leave the
    * evaluated transform where it is.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -277,7 +305,11 @@ export class EveVirtualCamera extends IRoot
     this.running = false;
   }
 
-  /** Rewinds the local timeline to zero and stops it advancing. */
+  /**
+   * Rewinds the local timeline to zero and stops it advancing.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Stop()
@@ -286,7 +318,11 @@ export class EveVirtualCamera extends IRoot
     this.running = false;
   }
 
-  /** Rewinds the local timeline to zero, leaving the running state alone. */
+  /**
+   * Rewinds the local timeline to zero, leaving the running state alone.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Reset()
@@ -296,6 +332,8 @@ export class EveVirtualCamera extends IRoot
 
   /**
    * Scrubs the camera to an absolute local time by replaying Update in fixed 1/60s steps so that stateful behaviours see a plausible history; the step count is capped at 20 and the step size grows to cover longer jumps. The camera is forced running for the scrub and its previous running state is restored afterwards.
+   *
+   * @adapted
    * @param {Number} time Target local elapsed time in seconds; may be negative
    */
   @be.mapMethodAndWrap()
@@ -327,6 +365,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Copies field of view, roll, position and point of interest from another
    * camera, leaving behaviours, name and timeline untouched.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -341,6 +381,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Writes a transform supplied from outside directly onto the camera, used to
    * drive it from a host application or a transition instead of from behaviours.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -352,7 +394,11 @@ export class EveVirtualCamera extends IRoot
     this.roll = roll;
   }
 
-  /** Returns the camera name used to look it up in the camera system. */
+  /**
+   * Returns the camera name used to look it up in the camera system.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -360,7 +406,11 @@ export class EveVirtualCamera extends IRoot
     return this.name;
   }
 
-  /** Sets the camera name, coercing the argument to a string. */
+  /**
+   * Sets the camera name, coercing the argument to a string.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetName(name)
@@ -371,6 +421,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Returns the timeline length in seconds that behaviours divide local elapsed
    * time by to get their normalized curve time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -382,6 +434,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Sets the timeline length in seconds; a length of zero makes behaviours treat
    * their normalized time as zero.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -390,7 +444,11 @@ export class EveVirtualCamera extends IRoot
     this.animationTimelineLength = value;
   }
 
-  /** Returns the vertical field of view in radians. */
+  /**
+   * Returns the vertical field of view in radians.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFov()
@@ -401,6 +459,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Sets the vertical field of view in radians; field-of-view behaviours
    * overwrite it on the next update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -409,7 +469,11 @@ export class EveVirtualCamera extends IRoot
     this.fov = value;
   }
 
-  /** Returns the roll about the view axis in degrees. */
+  /**
+   * Returns the roll about the view axis in degrees.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRoll()
@@ -420,6 +484,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Sets the roll about the view axis in degrees; roll behaviours overwrite it
    * on the next update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -428,7 +494,11 @@ export class EveVirtualCamera extends IRoot
     this.roll = value;
   }
 
-  /** Copies the world-space camera position into out. */
+  /**
+   * Copies the world-space camera position into out.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetPosition(out)
@@ -439,6 +509,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Copies a world-space position into the camera, preserving the identity of
    * the backing vector.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -447,7 +519,11 @@ export class EveVirtualCamera extends IRoot
     vec3.copy(this.position, value);
   }
 
-  /** Copies the world-space point the camera looks at into out. */
+  /**
+   * Copies the world-space point the camera looks at into out.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetPointOfInterest(out)
@@ -458,6 +534,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Copies a world-space look-at point into the camera, preserving the identity
    * of the backing vector.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -469,6 +547,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Appends a vector3 behaviour whose returned offset is accumulated into the
    * camera position, starting from the position anchor centre.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -480,6 +560,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Appends a vector3 behaviour whose returned offset is accumulated into the
    * point of interest, starting from the point-of-interest anchor centre.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -491,6 +573,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Appends a float behaviour whose returned delta is accumulated into the field
    * of view, which restarts from 1 radian each update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -502,6 +586,8 @@ export class EveVirtualCamera extends IRoot
   /**
    * Appends a float behaviour whose returned delta is accumulated into the roll,
    * which restarts from 0 degrees each update.
+   *
+   * @implemented
    */
 
   @meta.implemented

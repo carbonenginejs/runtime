@@ -64,7 +64,11 @@ export class EveSphereVolume extends IEveVolume
 
   _nextCallbackId = 1;
 
-  /** Returns a fresh sphere centred on the volume position with its outer radius. */
+  /**
+   * Returns a fresh sphere centred on the volume position with its outer radius.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetBoundingSphere()
@@ -79,6 +83,8 @@ export class EveSphereVolume extends IEveVolume
    * Returns the falloff weight for a point given in the volume's own space: 1
    * within the inner radius, 0 past the outer radius, and a ramp that is linear
    * in squared distance between them.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -102,6 +108,7 @@ export class EveSphereVolume extends IEveVolume
   /**
    * Appends random points expressed relative to the sphere centre rather than offset by its position, spread in direction uniformly over the sphere and in distance between the inner and outer radius as shaped by fallOffFactor.
    *
+   * @adapted
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Keeps every point outside the inner radius.
    */
@@ -148,6 +155,8 @@ export class EveSphereVolume extends IEveVolume
   /**
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -158,7 +167,11 @@ export class EveSphereVolume extends IEveVolume
     return id;
   }
 
-  /** Drops a change callback by the id RegisterForChanges returned. */
+  /**
+   * Drops a change callback by the id RegisterForChanges returned.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnregisterForChanges(callbackId)
@@ -169,6 +182,8 @@ export class EveSphereVolume extends IEveVolume
   /**
    * Clamps the radii so the outer radius stays non-negative and never smaller
    * than the inner one, then notifies every registered listener.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -207,6 +222,7 @@ export class EveSphereVolume extends IEveVolume
    * TranslationMatrix( m_outerSphere.center + m_innerSphere.center ) is the
    * translation to position here.
    *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} parentTransform The parent's world transform.
    * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).

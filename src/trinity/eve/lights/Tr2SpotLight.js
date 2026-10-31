@@ -306,6 +306,7 @@ export class Tr2SpotLight extends Tr2Light
    * overwrites its 3x4 part (the stored transform is not updated). Angles are
    * authored in degrees and converted to radians in float.
    *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldMatrix The owner's world matrix.
    * @param {Float32Array|null} [bones] Packed Float4x3 bone matrices.

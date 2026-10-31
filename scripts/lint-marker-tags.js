@@ -5,18 +5,22 @@
 //   @implemented, @adapted, @noop, @notSupported, @renamed, @cjs, @abstract, @notImplemented, @notUsed
 //
 // It fails on a tag that is not in the set but is within two edits of one, or equal to one ignoring case
-// (`@implmented`, `@Adapted`, `@not_supported`), and on `@renamed` without the Carbon name it stands for. It reports,
-// without failing, `@adapted` and `@notSupported` tags that carry no reason on their line: the reason belongs there,
-// and the count may only shrink once the markers have moved.
+// (`@implmented`, `@Adapted`, `@not_supported`), and on `@renamed` without the Carbon name it stands for.
 //
-// Usage: node scripts/lint-marker-tags.js [--list]
-import { readFile, readdir } from "node:fs/promises";
+// `@adapted` and `@notSupported` tags that carry no reason on their line are counted per file against
+// scripts/marker-tags-baseline.json, which may only shrink (as the decorator audit's states do): a file over its count
+// fails. Most date from the move to tags, which carried over only the reasons the JSDoc already gave.
+//
+// Usage: node scripts/lint-marker-tags.js [--list] [--write-baseline]
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { MARKER_TAGS } from "./lib/decorator-target-inventory.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const list = process.argv.includes("--list");
+const writeBaseline = process.argv.includes("--write-baseline");
+const baselineFile = path.join(root, "scripts", "marker-tags-baseline.json");
 const KNOWN = new Set(MARKER_TAGS);
 const FOLDED = new Map(MARKER_TAGS.map(tag => [ Fold(tag), tag ]));
 const NEEDS_REASON = new Set([ "adapted", "notSupported" ]);
@@ -99,7 +103,25 @@ for (const file of (await SourceFiles(path.join(root, "src"))).sort())
   }
 }
 
+const counts = {};
+for (const line of unreasoned)
+{
+  const file = line.slice(0, line.indexOf(":"));
+  counts[file] = (counts[file] ?? 0) + 1;
+}
+if (writeBaseline)
+{
+  const sorted = Object.fromEntries(Object.entries(counts).sort(([ a ], [ b ]) => a < b ? -1 : 1));
+  await writeFile(baselineFile, `${JSON.stringify({ unreasoned: sorted }, null, 2)}\n`);
+  console.log(`marker-tags baseline written: ${unreasoned.length} unreasoned tags in ${Object.keys(sorted).length} files`);
+}
+const baseline = writeBaseline ? { unreasoned: counts } : JSON.parse(await readFile(baselineFile, "utf8"));
+for (const [ file, found ] of Object.entries(counts))
+{
+  const allowed = baseline.unreasoned?.[file] ?? 0;
+  if (found > allowed) errors.push(`${file}: ${found} @adapted/@notSupported tag(s) without a reason on the line, baseline ${allowed}. Give the reason on the tag's line.`);
+}
 if (list) for (const line of unreasoned) console.log(line);
-console.log(`Marker tags: ${errors.length} error(s); ${unreasoned.length} @adapted/@notSupported tag(s) without a reason on the line (reported, not failed).`);
+console.log(`Marker tags: ${errors.length} error(s); ${unreasoned.length} @adapted/@notSupported tag(s) without a reason on the line (baseline may only shrink).`);
 for (const line of errors) console.error(line);
 process.exitCode = errors.length ? 1 : 0;

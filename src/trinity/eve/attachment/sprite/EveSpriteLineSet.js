@@ -103,7 +103,11 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * NOT 1: packed-set lights are BLACK until UpdateLights runs). */
   _activationStrength = 0;
 
-  /** Carbon Rebuild (cpp:74-78): the packed sprites, then the bounds. */
+  /**
+   * Carbon Rebuild (cpp:74-78): the packed sprites, then the bounds.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Rebuild()
@@ -119,6 +123,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * stepping by blinkPhaseShift along the line, the warp colour the line's
    * colour, activation 1 - and mirrored with its bone index.
    *
+   * @implemented
    * @returns {boolean} True.
    */
 
@@ -162,7 +167,11 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     return true;
   }
 
-  /** Carbon RegisterWithQuadRenderer (cpp:186-190): additive, one quad per sprite. */
+  /**
+   * Carbon RegisterWithQuadRenderer (cpp:186-190): additive, one quad per sprite.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -174,6 +183,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Carbon AddToQuadRenderer (cpp:192-239): sprite positions into world space,
    * through their bone when skinned and the bone exists; activation stamped
    * unscaled (unlike EveSpriteSet, no intensity).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -219,6 +230,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   /**
    * Runs the first Rebuild so the set has bounds before its first visibility
    * test.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -228,8 +241,12 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     return true;
   }
 
-  /** Carbon EveSpriteLineSet::GetAabb (cpp:177-180): the item-set bounds, with the bone
-   * list forwarded only when the set is skinned. */
+  /**
+   * Carbon EveSpriteLineSet::GetAabb (cpp:177-180): the item-set bounds, with the bone
+   * list forwarded only when the set is skinned.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
@@ -243,9 +260,13 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     );
   }
 
-  /** Carbon EveSpriteLineSet::UpdateVisibility (cpp:140-150): an uninitialized set is
+  /**
+   * Carbon EveSpriteLineSet::UpdateVisibility (cpp:140-150): an uninitialized set is
    * NOT visible; otherwise the bounds move into world space and take the
-   * frustum box test. No LOD and no display gate. */
+   * frustum box test. No LOD and no display gate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
@@ -260,7 +281,11 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     return updateContext.GetFrustum().IsBoxVisible(aabb);
   }
 
-  /** Sets the drawing effect and the skinned flag in one call. */
+  /**
+   * Sets the drawing effect and the skinned flag in one call.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Setup(effect, isSkinned)
@@ -272,6 +297,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   /**
    * Appends an authored sprite line item; the bounds only pick it up on the next
    * Rebuild.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -282,6 +309,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   /**
    * Sets a shader option on the sprite line effect, doing nothing when no effect is attached.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -295,6 +324,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   /**
    * Carbon EveSpriteLineSet::GetDebugOptions (cpp:249-253).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -316,6 +347,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    *
    * "Sprite Line Sets Lights" draws each light twice, inner then outer radius
    * scaled by the light's current blink, owned by the light's line.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentTransform
    * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
@@ -424,6 +457,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   /**
    * Converts a SOF-authored light description into an EveSpriteLight and appends
    * it to the set.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -432,8 +467,12 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     this.lights.push(EveSpriteLight.FromSOF(light));
   }
 
-  /** Carbon EveSpriteLineSet::RegisterComponents (cpp:349-356): LightOwner
-   * when lights are authored. */
+  /**
+   * Carbon EveSpriteLineSet::RegisterComponents (cpp:349-356): LightOwner
+   * when lights are authored.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -445,16 +484,18 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     }
   }
 
-  /** Carbon EveSpriteLineSet::UpdateLights (cpp:152-171): byte-identical to
+  /**
+   * Carbon EveSpriteLineSet::UpdateLights (cpp:152-171): byte-identical to
    * EveSpriteSet's - boneIndex >= 0 (-1 is no bone), column-stride Float4x3 unpack, 4th column zeroed with [15] = 1,
    * then boneMatrix *= parentTransform - Carbon row-vector, bone FIRST: the
    * gl-matrix operands SWAP; else boneMatrix = parentTransform. Stamps the
    * activation strength (boosterGain unused).
    *
-   * Adapted: Carbon skips bone 0 here (EveSpriteLineSet.cpp:156; CE-27), so a light on binding 0
-   * gets only the parent transform. Binding 0 is a mesh bone binding and can
-   * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
-   * Normal2Warp - so ours applies bone 0 like any other. */
+   * @adapted Carbon skips bone 0 here (EveSpriteLineSet.cpp:156; CE-27), so a light on binding 0
+   *   gets only the parent transform. Binding 0 is a mesh bone binding and can
+   *   be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
+   *   Normal2Warp - so ours applies bone 0 like any other.
+   */
 
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
@@ -480,12 +521,13 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     this._activationStrength = Number(activationStrength) || 0;
   }
 
-  /** Carbon EveSpriteLineSet::GetLights (cpp:358-373): byte-identical to
+  /**
+   * Carbon EveSpriteLineSet::GetLights (cpp:358-373): byte-identical to
    * EveSpriteSet's (shared EveSpriteLight items) - point conversion on the
    * bone matrix, Blink scales radius + innerRadius after conversion, no
    * gates.
    *
-   * Adapted: Profile-index packing is by-reference per lightConversion.js.
+   * @adapted Profile-index packing is by-reference per lightConversion.js.
    */
 
   @meta.adapted

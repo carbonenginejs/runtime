@@ -16,7 +16,11 @@ import { meta } from "#schema";
 // (Sprite2d/Tr2Sprite2dTextObject.h:17).
 import { blue } from "#schema";
 
-/** Receives change notifications from a font measurer it registered with. */
+/**
+ * Receives change notifications from a font measurer it registered with.
+ *
+ * @abstract
+ */
 @meta.carbon("ITr2FontMeasurerNotifyTarget")
 @be.abstract
 export class ITr2FontMeasurerNotifyTarget
@@ -25,6 +29,7 @@ export class ITr2FontMeasurerNotifyTarget
    * Carbon pure virtual `FontMeasurerChanged`: the measurer's text changed in
    * a way that invalidates whatever was built from it.
    *
+   * @abstract
    * @param {import("./Tr2FontMeasurer.js").Tr2FontMeasurer} _measurer The measurer that changed.
    * @returns {void}
    */

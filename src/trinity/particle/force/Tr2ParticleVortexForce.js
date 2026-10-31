@@ -43,7 +43,11 @@ export class Tr2ParticleVortexForce extends ITr2ParticleForce
   @type.vec3
   position = vec3.create();
 
-  /** Applies Carbon's normalized tangential vortex force. */
+  /**
+   * Applies Carbon's normalized tangential vortex force.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out)
@@ -70,6 +74,8 @@ export class Tr2ParticleVortexForce extends ITr2ParticleForce
   /**
    * Nothing to advance per frame: the vortex is fully described by its axis,
    * position and magnitude.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -82,6 +88,8 @@ export class Tr2ParticleVortexForce extends ITr2ParticleForce
    * in the frame whose Z is the vortex axis at the vortex position, a line
    * along Z from -20 to 20 and a 16-segment circle of radius 20 in the XY
    * plane, all in 0xffaaaa00.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.

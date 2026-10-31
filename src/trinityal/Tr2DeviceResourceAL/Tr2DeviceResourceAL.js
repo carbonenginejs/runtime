@@ -13,13 +13,19 @@ export class Tr2DeviceResourceAL extends Tr2BaseDeviceResourceAL
   /** Registered name; `constructor.name` does not survive minification. */
   static className = "Tr2DeviceResourceAL";
 
-  /** @returns {boolean} Whether the concrete resource is valid. */
+  /**
+   * @implemented
+   * @returns {boolean} Whether the concrete resource is valid.
+   */
   IsResourceValid()
   {
     return this.IsValid();
   }
 
-  /** @returns {number} The concrete resource's Tr2ALMemoryType. */
+  /**
+   * @implemented
+   * @returns {number} The concrete resource's Tr2ALMemoryType.
+   */
   GetResourceMemoryClass()
   {
     return this.GetMemoryClass();

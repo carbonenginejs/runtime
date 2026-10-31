@@ -14,6 +14,7 @@ export class ICopierCustomAssignment extends IRoot
    * `AssignTo` - copy this object's unexposed state onto `other`, which is
    * guaranteed to be the same class.
    *
+   * @abstract
    * @param {object} _other The destination, already member-copied.
    * @param {ICopier} _copier The copier running this copy, for nested objects.
    * @returns {boolean} False to fail the copy.

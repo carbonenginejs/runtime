@@ -6,7 +6,11 @@ import { meta, type } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 
-/** Adds primary and secondary texture bindings to the shared 2D sprite render state. */
+/**
+ * Adds primary and secondary texture bindings to the shared 2D sprite render state.
+ *
+ * @abstract
+ */
 @be.define("Tr2TexturedSpriteObject")
 @be.exposureChainTo(Tr2SpriteObject)
 @be.inherit(ITr2Sprite2dTextureNotifyTarget)
@@ -47,7 +51,11 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
   /** Secondary texture and its native change subscription. @type {ITr2Sprite2dTexture|null} */
   _textureSecondary = null;
 
-  /** Invalidates prepared vertices after a texture changes. */
+  /**
+   * Invalidates prepared vertices after a texture changes.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   Sprite2dTextureChanged(_texture)
@@ -55,7 +63,11 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
     this.SetDirty();
   }
 
-  /** Replaces the primary subscription and invalidates prepared vertices. */
+  /**
+   * Replaces the primary subscription and invalidates prepared vertices.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetTexturePrimary(texture)
@@ -68,7 +80,11 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
     this.SetDirty();
   }
 
-  /** Returns the current primary texture. */
+  /**
+   * Returns the current primary texture.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetTexturePrimary()
@@ -76,7 +92,11 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
     return this._texturePrimary;
   }
 
-  /** Replaces the secondary subscription and invalidates prepared vertices. */
+  /**
+   * Replaces the secondary subscription and invalidates prepared vertices.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetTextureSecondary(texture)
@@ -89,7 +109,11 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
     this.SetDirty();
   }
 
-  /** Returns the current secondary texture. */
+  /**
+   * Returns the current secondary texture.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetTextureSecondary()
@@ -97,7 +121,11 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
     return this._textureSecondary;
   }
 
-  /** Validates required textures and applies their current renderer settings. */
+  /**
+   * Validates required textures and applies their current renderer settings.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _ValidateAndSetTextures(renderer)
@@ -118,7 +146,11 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
     return true;
   }
 
-  /** Reapplies bindings for vertices already validated while dirty. */
+  /**
+   * Reapplies bindings for vertices already validated while dirty.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _SetValidatedTextures(renderer)

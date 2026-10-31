@@ -22,14 +22,22 @@ export class GrannyBoneOffset extends IInitialize
   /** Runtime rig-order references into the offset map; not exposed. */
   _riggedTransforms = [];
 
-  /** Nothing to prepare; always succeeds. */
+  /**
+   * Nothing to prepare; always succeeds.
+   *
+   * @implemented
+   */
   @meta.implemented
   Initialize()
   {
     return true;
   }
 
-  /** Whether any bone offset has been set. */
+  /**
+   * Whether any bone offset has been set.
+   *
+   * @implemented
+   */
   @meta.implemented
   HaveTransforms()
   {
@@ -39,6 +47,8 @@ export class GrannyBoneOffset extends IInitialize
   /**
    * True when offsets exist but the cached rig binding does not cover the given
    * bone count, so BindToRig must run again.
+   *
+   * @implemented
    */
   @meta.implemented
   NeedRebind(numBones)
@@ -49,6 +59,8 @@ export class GrannyBoneOffset extends IInitialize
   /**
    * Drops the joint-order cache, forcing the next BindToRig to rebuild it; the
    * named offsets are kept.
+   *
+   * @implemented
    */
   @meta.implemented
   ClearRigBindings()
@@ -56,7 +68,11 @@ export class GrannyBoneOffset extends IInitialize
     this._riggedTransforms.length = 0;
   }
 
-  /** Drops every named bone offset along with the rig binding. */
+  /**
+   * Drops every named bone offset along with the rig binding.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ClearTransforms()
@@ -70,6 +86,8 @@ export class GrannyBoneOffset extends IInitialize
    * discarding any translation previously set for that bone, and invalidates the
    * rig binding. JavaScript string coercion and falsy-name rejection preserve
    * the existing name adapter; gl-matrix stores the native quaternion layout.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -85,6 +103,8 @@ export class GrannyBoneOffset extends IInitialize
    * Sets a bone's offset translation in place, keeping any rotation already
    * stored for it, and invalidates the rig binding. The existing JavaScript
    * adapter coerces truthy names to strings and rejects falsy names.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -105,6 +125,8 @@ export class GrannyBoneOffset extends IInitialize
    * joint; bones with no offset get a null slot. The existing JavaScript array
    * adapter defaults the count and rebuilds all slots, unlike native resize
    * which can retain unmatched slots when rebinding an unchanged size.
+   *
+   * @adapted
    */
   @meta.adapted
   BindToRig(bones, numBones = bones?.length ?? 0)
@@ -120,6 +142,8 @@ export class GrannyBoneOffset extends IInitialize
    * offset. Carbon's row-vector `(offset * bone) * parent` becomes `parent *
    * (bone * offset)` here, and the translation is added component-wise rather
    * than transformed.
+   *
+   * @adapted
    */
   @meta.adapted
   Apply(out, joint, boneMatrix, parentMatrix)
@@ -143,6 +167,8 @@ export class GrannyBoneOffset extends IInitialize
    * offset rotation composed first, translation added - and returns false when
    * that joint has no offset. JavaScript treats an absent/out-of-range slot
    * as unbound and uses gl-matrix decomposition and reversed composition.
+   *
+   * @adapted
    */
   @meta.adapted
   ApplyToLocal(joint, rotation, position)

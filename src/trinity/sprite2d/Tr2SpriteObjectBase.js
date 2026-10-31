@@ -15,6 +15,8 @@ import { blue, INotify } from "#blue";
  * Parent and auxiliary links are non-owning in declaration traversal but remain
  * ordinary JavaScript references; native destructor detach assertions have no
  * deterministic destruction counterpart here.
+ *
+ * @abstract
  */
 @be.define("Tr2SpriteObjectBase")
 @legacyBlue.inherit(INotify)
@@ -28,6 +30,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * Required ITr2SpriteObject traversal contract, Carbon's pure virtual
    * `GatherSprites( Tr2Sprite2dScene* renderer )` (ITr2SpriteObject.h:13).
    *
+   * @abstract
    * @param {Tr2Sprite2dScene} _renderer The scene gathering sprites.
    */
   @legacyBlue.abstract
@@ -38,6 +41,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * `PickPoint( float x, float y, Tr2Sprite2dScene* renderer )`
    * (ITr2SpriteObject.h:14).
    *
+   * @abstract
    * @param {number} _x Point x.
    * @param {number} _y Point y.
    * @param {Tr2Sprite2dScene} _renderer The scene being picked.
@@ -46,7 +50,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   @legacyBlue.abstract
   PickPoint(_x, _y, _renderer) {}
 
-  /** Carbon method GetDisplay.
+  /**
+   * Carbon method GetDisplay.
+   *
+   * @implemented
    * @returns {boolean} Whether the sprite is displayed.
    */
 
@@ -59,9 +66,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /**
    * Carbon method SetDisplay.
    *
-   * Adapted: Retains JavaScript boolean coercion before native change detection and dirty
-   * propagation.
-   *
+   * @adapted Retains JavaScript boolean coercion before native change detection and dirty
+   *   propagation.
    * @param {boolean} value Display state.
    * @returns {void}
    */
@@ -77,7 +83,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     }
   }
 
-  /** Carbon method GetDisplayX.
+  /**
+   * Carbon method GetDisplayX.
+   *
+   * @implemented
    * @returns {number} Display x.
    */
 
@@ -90,9 +99,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /**
    * Carbon method SetDisplayX.
    *
-   * Adapted: Retains Number coercion through the shared scalar helper before native change
-   * detection.
-   *
+   * @adapted Retains Number coercion through the shared scalar helper before native change
+   *   detection.
    * @param {number} value Display x.
    * @returns {void}
    */
@@ -103,7 +111,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     this._SetDisplayValue("displayX", value);
   }
 
-  /** Carbon method GetDisplayY.
+  /**
+   * Carbon method GetDisplayY.
+   *
+   * @implemented
    * @returns {number} Display y.
    */
 
@@ -116,9 +127,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /**
    * Carbon method SetDisplayY.
    *
-   * Adapted: Retains Number coercion through the shared scalar helper before native change
-   * detection.
-   *
+   * @adapted Retains Number coercion through the shared scalar helper before native change
+   *   detection.
    * @param {number} value Display y.
    * @returns {void}
    */
@@ -129,7 +139,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     this._SetDisplayValue("displayY", value);
   }
 
-  /** Carbon method GetDisplayWidth.
+  /**
+   * Carbon method GetDisplayWidth.
+   *
+   * @implemented
    * @returns {number} Display width.
    */
 
@@ -142,9 +155,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /**
    * Carbon method SetDisplayWidth.
    *
-   * Adapted: Retains Number coercion through the shared scalar helper before native change
-   * detection.
-   *
+   * @adapted Retains Number coercion through the shared scalar helper before native change
+   *   detection.
    * @param {number} value Display width.
    * @returns {void}
    */
@@ -155,7 +167,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     this._SetDisplayValue("displayWidth", value);
   }
 
-  /** Carbon method GetDisplayHeight.
+  /**
+   * Carbon method GetDisplayHeight.
+   *
+   * @implemented
    * @returns {number} Display height.
    */
 
@@ -168,9 +183,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /**
    * Carbon method SetDisplayHeight.
    *
-   * Adapted: Retains Number coercion through the shared scalar helper before native change
-   * detection.
-   *
+   * @adapted Retains Number coercion through the shared scalar helper before native change
+   *   detection.
    * @param {number} value Display height.
    * @returns {void}
    */
@@ -181,7 +195,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     this._SetDisplayValue("displayHeight", value);
   }
 
-  /** Carbon method SetParent.
+  /**
+   * Carbon method SetParent.
+   *
+   * @implemented
    * @param {ITr2SpriteObject|null} parent New parent.
    * @returns {void}
    */
@@ -193,7 +210,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     this.SetDirty();
   }
 
-  /** Carbon method SetDirty (MAP_METHOD_AND_WRAP).
+  /**
+   * Carbon method SetDirty (MAP_METHOD_AND_WRAP).
+   *
+   * @implemented
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -207,7 +227,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     }
   }
 
-  /** Carbon's base container notification is intentionally a no-op.
+  /**
+   * Carbon's base container notification is intentionally a no-op.
+   *
+   * @adapted
    * @param {ITr2SpriteObject|null} _child Changed child.
    * @returns {void}
    */
@@ -217,7 +240,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   {
   }
 
-  /** Carbon's base object is never an auxiliary mouse-over result.
+  /**
+   * Carbon's base object is never an auxiliary mouse-over result.
+   *
+   * @implemented
    * @returns {boolean} Always false for the base object.
    */
 
@@ -227,7 +253,10 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     return false;
   }
 
-  /** Carbon INotify callback.
+  /**
+   * Carbon INotify callback.
+   *
+   * @implemented
    * @param {string|null} _value Changed declaration name.
    * @returns {boolean} Always true.
    */

@@ -38,6 +38,8 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
   /**
    * Toggles the bucket, resetting the children only on an actual state change
    * (EveSmartLightAttributeModifierBucket.cpp:13-21).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -55,6 +57,8 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * Bucket override: resetting play time cascades to the children instead of
    * touching the bucket's own timers
    * (EveSmartLightAttributeModifierBucket.cpp:23-26).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -63,7 +67,11 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
     this.ResetChildren(active);
   }
 
-  /** Fans the inherited color set out to the child modifiers (EveSmartLightAttributeModifierBucket.cpp:28-34). */
+  /**
+   * Fans the inherited color set out to the child modifiers (EveSmartLightAttributeModifierBucket.cpp:28-34).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetInheritProperties(colorSet)
@@ -77,6 +85,8 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
   /**
    * Advances the bucket's crossfade, then updates the children with the
    * compounded multiplier (EveSmartLightAttributeModifierBucket.cpp:36-45).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -94,6 +104,8 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
   /**
    * Runs the child modifiers with the bucket's per-placement activation
    * strength folded in (EveSmartLightAttributeModifierBucket.cpp:47-55).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -112,6 +124,8 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * parent request and the bucket state agree
    * (EveSmartLightAttributeModifierBucket.cpp:57-67). Carbon BlueCasts to
    * EveSmartLightBaseAttributeModifier; the JS children share that nominal base.
+   *
+   * @implemented
    */
 
   @meta.implemented

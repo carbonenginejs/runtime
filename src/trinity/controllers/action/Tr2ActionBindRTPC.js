@@ -60,6 +60,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Live readonly validity of the retained AST evaluator, without recompilation.
+   *
+   * @adapted
    * @returns {boolean} Whether a valid compiled expression is retained.
    */
   @be.mapPropertyReadOnly()
@@ -78,7 +80,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Links and compiles the RTPC value expression.
-   * Adapted: a CSP-safe AST program replaces native parser bytecode.
+   *
+   * @adapted a CSP-safe AST program replaces native parser bytecode.
    */
 
   @meta.adapted
@@ -90,8 +93,9 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Clears runtime expression state.
-   * Adapted: the existing JS cache reset also resets timestamps; native clears
-   * only its controller and evaluator. The emitter remains retained in both.
+   *
+   * @adapted the existing JS cache reset also resets timestamps; native clears
+   *   only its controller and evaluator. The emitter remains retained in both.
    */
 
   @meta.adapted
@@ -102,9 +106,10 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Starts RTPC updates.
-   * Adapted: retains optional-controller and owner lookup helpers, updates the
-   * JS controller/last time, and resolves or clears the target before registering.
-   * Native registers first and retains an old target if lookup finds none.
+   *
+   * @adapted retains optional-controller and owner lookup helpers, updates the
+   *   JS controller/last time, and resolves or clears the target before registering.
+   *   Native registers first and retains an old target if lookup finds none.
    */
 
   @meta.adapted
@@ -123,7 +128,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Starts manually with an explicit controller.
-   * Adapted: JavaScript TypeError represents native Python null-argument errors.
+   *
+   * @adapted JavaScript TypeError represents native Python null-argument errors.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -134,7 +140,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Stops RTPC updates.
-   * Adapted: the omitted-controller JS convenience uses the current link, if any.
+   *
+   * @adapted the omitted-controller JS convenience uses the current link, if any.
    */
 
   @meta.adapted
@@ -145,7 +152,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Stops manually with an explicit controller.
-   * Adapted: JavaScript TypeError represents native Python null-argument errors.
+   *
+   * @adapted JavaScript TypeError represents native Python null-argument errors.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -156,9 +164,10 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Evaluates the retained program each tick and updates the target RTPC.
-   * Adapted: the CSP-safe AST context replaces native ExtraBuffer/bytecode.
-   * Evaluation failures skip the target; successful NaN/Infinity are preserved.
-   * Required target errors remain visible outside the evaluator failure boundary.
+   *
+   * @adapted the CSP-safe AST context replaces native ExtraBuffer/bytecode.
+   *   Evaluation failures skip the target; successful NaN/Infinity are preserved.
+   *   Required target errors remain visible outside the evaluator failure boundary.
    */
 
   @meta.adapted
@@ -185,6 +194,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Recompiles when the authored value receives its notification.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -200,8 +211,9 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Checks whether the expression compiles.
-   * Adapted: retains the JS explicit lazy-compilation helper. The live property
-   * observes the retained program without compiling.
+   *
+   * @adapted retains the JS explicit lazy-compilation helper. The live property
+   *   observes the retained program without compiling.
    */
   @legacyBlue.method
   @meta.adapted
@@ -215,6 +227,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * property/method name-collision forward all four action classes carry):
    * takes and discards the attribute name. Same forward here for nominal
    * parity.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("IsExpressionValid")
   @meta.implemented
@@ -226,6 +240,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
   /**
    * Gets a curve value for expression helpers.
    * Returns zero for no curve; a present ITriScalarFunction supplies GetValueAt.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -236,7 +252,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Gets expression term metadata from the linked controller.
-   * Adapted: shared AST term records replace native Tr2ExpressionTermInfo objects.
+   *
+   * @adapted shared AST term records replace native Tr2ExpressionTermInfo objects.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -252,8 +269,9 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Evaluates an expression against this action's controller context.
-   * Adapted: retains JS unlinked evaluation and zero fallback for invalid syntax
-   * rather than native BlueStdResult error returns.
+   *
+   * @adapted retains JS unlinked evaluation and zero fallback for invalid syntax
+   *   rather than native BlueStdResult error returns.
    */
   @be.mapMethodAndWrap()
   @meta.adapted

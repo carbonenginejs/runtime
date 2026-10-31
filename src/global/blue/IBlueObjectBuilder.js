@@ -19,6 +19,7 @@ export class IBlueObjectBuilder extends IRoot
    * `CreateObjectWithYield` - create the object from its marker; may yield the
    * calling tasklet.
    *
+   * @abstract
    * @param {number} _objectMarker Marker the proxy was given in SetBuilder.
    * @param {object} _callingProxy The proxy asking.
    * @returns {object|null} The new object, or null; GetErrorMessage then says why.
@@ -28,6 +29,7 @@ export class IBlueObjectBuilder extends IRoot
   /**
    * `CreateObject` - create the object from its marker, without yielding.
    *
+   * @abstract
    * @param {number} _objectMarker Marker the proxy was given in SetBuilder.
    * @param {object} _callingProxy The proxy asking.
    * @returns {object|null} The new object, or null; GetErrorMessage then says why.
@@ -38,6 +40,7 @@ export class IBlueObjectBuilder extends IRoot
    * `OnObjectDestroyed` - the proxy is about to drop the object this builder
    * made, so an asynchronous build for it can stop. Empty in Carbon.
    *
+   * @implemented
    * @param {number} _objectMarker Marker of the object being dropped.
    * @param {object} _callingProxy The proxy dropping it.
    * @returns {void}
@@ -48,6 +51,7 @@ export class IBlueObjectBuilder extends IRoot
    * `OnSelected` - the proxy's object is now the active level of detail. Empty
    * in Carbon.
    *
+   * @implemented
    * @param {number} _objectMarker Marker of the selected object.
    * @param {object} _callingProxy The proxy that was selected.
    * @returns {void}
@@ -59,6 +63,7 @@ export class IBlueObjectBuilder extends IRoot
    *
    * Adapted: Carbon writes into a `std::string&`; JavaScript returns the text.
    *
+   * @abstract
    * @returns {string} The error message.
    */
   GetErrorMessage() {}

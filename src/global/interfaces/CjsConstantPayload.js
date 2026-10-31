@@ -12,6 +12,7 @@ export class CjsConstantPayload
     /**
      * Gets the terminal packed data without reinterpreting its layout.
      *
+     * @abstract
      * @returns {ArrayBufferView} Packed constant data.
      */
     GetData() {}
@@ -19,6 +20,7 @@ export class CjsConstantPayload
     /**
      * Checks whether the payload has changed since its last successful upload.
      *
+     * @abstract
      * @returns {boolean} True when the terminal data needs uploading.
      */
     IsDirty() {}
@@ -26,6 +28,7 @@ export class CjsConstantPayload
     /**
      * Marks the current terminal data as successfully uploaded.
      *
+     * @abstract
      * @returns {CjsConstantPayload} This payload.
      */
     ClearDirty() {}

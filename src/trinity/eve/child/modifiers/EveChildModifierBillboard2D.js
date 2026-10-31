@@ -17,6 +17,8 @@ export class EveChildModifierBillboard2D extends IEveChildTransformModifier
    * Screen-aligned billboard. Reproduces
    * EveChildModifierBillboard2D::ApplyTransform (Carbon), which forwards to the
    * shared Billboard2D helper.
+   *
+   * @implemented
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused

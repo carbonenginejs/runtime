@@ -76,7 +76,11 @@ export class EveLocalPositionCurve extends ITriVectorFunction
 
   _impactEffectIndex = -1;
 
-  /** Post-construction hook that selects the behaviour, defaulting to POS_NONE. */
+  /**
+   * Post-construction hook that selects the behaviour, defaulting to POS_NONE.
+   *
+   * @implemented
+   */
   @legacyBlue.method
   @meta.implemented
   __init__(behavior = EveLocalPositionCurve.LocalPositionBehavior.POS_NONE)
@@ -87,6 +91,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   /**
    * Selects which of the LocalPositionBehavior calculations this curve
    * evaluates.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.implemented
@@ -98,6 +104,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   /**
    * Carbon's Update(double) is a no-op returning its input (EveLocalPositionCurve.cpp:302-305); Update__Ticks is the
    * overload that evaluates behaviours.
+   *
+   * @implemented
    * @param {number} _time Unused seconds.
    * @param {Float32Array} out Caller-owned vec3, returned unchanged.
    * @returns {Float32Array} out
@@ -112,6 +120,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   /**
    * Carbon's Update(Be::Time) (cpp:269-300): evaluates the selected behaviour. Under POS_NONE the incoming out is
    * stored as the curve's value and returned unchanged. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
@@ -146,6 +156,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
 
   /**
    * Carbon's GetValueAt(double) (cpp:316-322): copies the last stored value without re-evaluating.
+   *
+   * @implemented
    * @param {number} _time Unused seconds.
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
@@ -160,6 +172,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   /**
    * Carbon's GetValueAt(Be::Time) (cpp:307-314): seeds out with the last stored value and re-evaluates the behaviour.
    * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
@@ -181,8 +195,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * evaluates nothing. Ported as the no-op Carbon's overload resolution
    * actually produces.
    *
-   * Adapted: Carbon's call resolves to its no-op double Update overload; forwarding to the collapsed dispatching
-   * Update would be more active than the donor.
+   * @adapted Carbon's call resolves to its no-op double Update overload; forwarding to the collapsed dispatching
+   *   Update would be more active than the donor.
    */
 
   @meta.adapted
@@ -193,6 +207,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   /**
    * The first derivative is undefined for a locator-driven curve; out is
    * returned untouched.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -204,6 +220,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   /**
    * The second derivative is undefined for a locator-driven curve; out is
    * returned untouched.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -214,6 +232,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
 
   /**
    * Widens the last computed value into a double-precision three-element buffer for the camera-relative path; it does not re-evaluate the behaviour.
+   *
+   * @adapted
    * @param {Float64Array} out - caller-owned
    * @returns {Float64Array} out
    *

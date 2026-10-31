@@ -52,6 +52,8 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   /**
    * Reseeds the random stream from the wall clock, so scales differ between runs
    * unless consistentRandom pins them to the placement id.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -65,6 +67,8 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
    * Draws a random scale between minScale and maxScale - per axis, or with one
    * shared factor when uniformScale is set - and either replaces the placement's
    * initial scale or multiplies into it.
+   *
+   * @adapted
    */
 
   @meta.adapted

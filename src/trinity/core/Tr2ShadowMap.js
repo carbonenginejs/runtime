@@ -243,8 +243,8 @@ export class Tr2ShadowMap
   /**
    * Applies the atlas element size/count and the one-way denoiser disable.
    *
-   * Adapted: The fixed PerSplitData arrays make split counts above Carbon's 16-slot capacity
-   * fail immediately instead of corrupting adjacent native memory.
+   * @adapted The fixed PerSplitData arrays make split counts above Carbon's 16-slot capacity
+   *   fail immediately instead of corrupting adjacent native memory.
    */
 
   @meta.adapted
@@ -273,6 +273,8 @@ export class Tr2ShadowMap
    * Carbon OnModified (Tr2ShadowMap.cpp:66-93): a debug-colour change sets the
    * shadow effect's debug option; a split-mode change applies the static splits
    * or resets the dynamic clip range; every notification refreshes the split count.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -298,7 +300,11 @@ export class Tr2ShadowMap
     return true;
   }
 
-  /** Changes whether an existing denoiser should be used for future results. */
+  /**
+   * Changes whether an existing denoiser should be used for future results.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ShouldUseDenoiser(value)
@@ -317,7 +323,11 @@ export class Tr2ShadowMap
     return this._useDenoiser;
   }
 
-  /** Recomputes geometric dynamic split endpoints when the clip range changes. */
+  /**
+   * Recomputes geometric dynamic split endpoints when the clip range changes.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSplitValues(nearClip, farClip)
@@ -339,8 +349,8 @@ export class Tr2ShadowMap
    * Transforms the D3D clip cube through projection inverse, inverse view and
    * light view, returning its light-space bounds and writing all eight corners.
    *
-   * Adapted: The caller supplies owned JS output containers; matrix bytes stay in logical
-   * gl-matrix form and are never pre-transposed.
+   * @adapted The caller supplies owned JS output containers; matrix bytes stay in logical
+   *   gl-matrix form and are never pre-transposed.
    */
 
   @meta.adapted
@@ -390,9 +400,9 @@ export class Tr2ShadowMap
    * The returned object is an allocation-free borrowed view for this split and
    * is overwritten the next time the same split index is prepared.
    *
-   * Adapted: Carbon stores Transpose(lightViewProjection) and returns SplitSetup by value;
-   * Trinity stores the logical matrix for RawData's terminal transpose and reuses one
-   * allocation-free result per split.
+   * @adapted Carbon stores Transpose(lightViewProjection) and returns SplitSetup by value;
+   *   Trinity stores the logical matrix for RawData's terminal transpose and reuses one
+   *   allocation-free result per split.
    */
 
   @meta.adapted
@@ -478,6 +488,7 @@ export class Tr2ShadowMap
   /**
    * Allocates the cascaded depth surface and makes it the render target.
    *
+   * @implemented
    * @param {object} gpuResourcePool The pool to borrow the surface from.
    * @param {object} renderContext The context to set state on.
    * @returns {object|null} The borrowed depth texture, or null when the pool
@@ -521,6 +532,7 @@ export class Tr2ShadowMap
    * second, which is why the row index is `splitIndex % 8` and the y offset is
    * either zero or one cell down.
    *
+   * @implemented
    * @param {object} renderContext The context to set the viewport on.
    * @param {number} splitIndex Which cascade split.
    */
@@ -544,6 +556,7 @@ export class Tr2ShadowMap
   /**
    * Unwinds everything `PrepareShadowRendering` pushed, in reverse.
    *
+   * @implemented
    * @param {object} renderContext The context to restore.
    */
 
@@ -578,9 +591,8 @@ export class Tr2ShadowMap
    * `cascadeEffect` is Carbon's `m_shadowEffect` under our name - same
    * ShadowDepth.fx path, same two parameters (`cpp:39-42`).
    *
-   * Adapted: Carbon reaches the blitter and the reversed-depth projection through static
-   * Tr2Renderer; ours are an instance and the render context, so the renderer is passed in.
-   *
+   * @adapted Carbon reaches the blitter and the reversed-depth projection through static
+   *   Tr2Renderer; ours are an instance and the render context, so the renderer is passed in.
    * @param {object} renderContext The context to draw against.
    * @param {object} gpuResourcePool The pool to borrow the result target from.
    * @param {object} depthMap The scene depth.
@@ -635,7 +647,11 @@ export class Tr2ShadowMap
     }
   }
 
-  /** Returns the number of active cascade splits. */
+  /**
+   * Returns the number of active cascade splits.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetShadowSplitCount()
@@ -643,7 +659,11 @@ export class Tr2ShadowMap
     return this.splitCount;
   }
 
-  /** Returns the square pixel size of one atlas cell. */
+  /**
+   * Returns the square pixel size of one atlas cell.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetShadowMapSize()
@@ -684,7 +704,11 @@ export class Tr2ShadowMap
     return this.perSplitData;
   }
 
-  /** Returns the logical effect used to resolve the screen-space shadow mask. */
+  /**
+   * Returns the logical effect used to resolve the screen-space shadow mask.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetShadowEffect()
@@ -692,7 +716,11 @@ export class Tr2ShadowMap
     return this.cascadeEffect;
   }
 
-  /** Reports whether cascade-debug colouring is enabled. */
+  /**
+   * Reports whether cascade-debug colouring is enabled.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDebugSplitValue()
@@ -700,7 +728,11 @@ export class Tr2ShadowMap
     return this.debugColorSplit;
   }
 
-  /** Returns Carbon's packed debug colour for a cascade colour index. */
+  /**
+   * Returns Carbon's packed debug colour for a cascade colour index.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDebugColors(switchCase)

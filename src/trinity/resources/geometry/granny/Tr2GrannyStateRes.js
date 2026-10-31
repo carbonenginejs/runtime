@@ -44,6 +44,8 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
   /**
    * Carbon DoLoad (Tr2GrannyStateRes.cpp:47-76), through the configured GSF reader.
    * Browser decoding completes before replacing the owning resource's state graph.
+   *
+   * @adapted
    * @returns {Promise<number>} Native LoadingResult.
    */
   async _DoLoad()
@@ -74,25 +76,44 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
     return BlueAsyncRes.LoadingResult.LR_SUCCESS;
   }
 
-  /** The authored animation state graph. */
+  /**
+   * The authored animation state graph.
+   *
+   * @cjs
+   * @implemented
+   */
   GetStateMachine()
   {
     return this._gStateFile?.stateMachine ?? null;
   }
 
-  /** Named slots the state machine binds clips into. */
+  /**
+   * Named slots the state machine binds clips into.
+   *
+   * @cjs
+   * @implemented
+   */
   GetAnimationSlots()
   {
     return this._gStateFile?.animationSlots ?? [];
   }
 
-  /** Animation sets, each naming external `.gr2` clips. */
+  /**
+   * Animation sets, each naming external `.gr2` clips.
+   *
+   * @cjs
+   * @implemented
+   */
   GetAnimationSets()
   {
     return this._gStateFile?.animationSets ?? [];
   }
 
-  /** Which model in the referenced geometry this graph drives, and its retarget source. */
+  /**
+   * Which model in the referenced geometry this graph drives, and its retarget source.
+   *
+   * @adapted
+   */
   GetCharacterInfo()
   {
     return this._gStateFile?.character ?? null;
@@ -108,6 +129,7 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
    * (`Tr2GrannyStateRes.cpp:80-103`), which is ported here rather than
    * reinvented.
    *
+   * @adapted
    * @returns {string[]} Resolved animation resource paths.
    */
   GetGStateAnimFileRefPaths()
@@ -191,6 +213,7 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
    * clip whose file has not arrived. A GSF that references nothing is fully
    * loaded once its own document is present, not before.
    *
+   * @adapted
    * @returns {boolean}
    */
   IsFullyLoaded()
@@ -203,6 +226,7 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
   /**
    * Carbon `IsMemoryUsageKnown` (Tr2GrannyStateRes.cpp:32-35): known once loaded.
    *
+   * @implemented
    * @returns {boolean}
    */
   IsMemoryUsageKnown()
@@ -214,9 +238,8 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
    * Carbon `GetMemoryUsage` (Tr2GrannyStateRes.cpp:37-47): the file's size plus
    * the character-file pointer while a file is held, otherwise 1024.
    *
-   * Adapted: a document decoded elsewhere arrives without its file, so it
-   * reports the 1024 Carbon reports with no file.
-   *
+   * @adapted a document decoded elsewhere arrives without its file, so it
+   *   reports the 1024 Carbon reports with no file.
    * @returns {number} Bytes.
    */
   GetMemoryUsage()
@@ -231,8 +254,9 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
 
   /**
    * Explicitly drop owned state and animation references at JS teardown.
-   * Adapted: explicit JS teardown replaces native destruction; the existing
-   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   *
+   * @adapted explicit JS teardown replaces native destruction; the existing
+   *   MotherLode switches keep CPU data and opaque adapter cleanup independent.
    * @param {object} [options={}] Existing MotherLode cleanup policy.
    * @param {boolean} [options.releasePayload=true] Release owned family data.
    * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
@@ -250,6 +274,8 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
    * Carbon DoPrepare (Tr2GrannyStateRes.cpp:164-168) reports success after
    * starting animation acquisition. Adapted: GState SDK binding is not ported;
    * the existing explicit animation-resource map remains the binding input.
+   *
+   * @adapted
    * @returns {boolean} The decoded state file is ready for its consumer.
    */
   _DoPrepare()

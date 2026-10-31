@@ -54,7 +54,11 @@ export class EvePendingPickingReadback
     this.pickedY = pickedY >>> 0;
   }
 
-  /** Replaces native root pointers with a one-based retained index and sequence. */
+  /**
+   * Replaces native root pointers with a one-based retained index and sequence.
+   *
+   * @adapted
+   */
   @meta.adapted
   RetainObject(object)
   {
@@ -62,7 +66,11 @@ export class EvePendingPickingReadback
     return (BigInt(this.sequence) << 32n) | BigInt(this.blueObjects.length);
   }
 
-  /** Validates both identity words against this request before returning a root. */
+  /**
+   * Validates both identity words against this request before returning a root.
+   *
+   * @adapted
+   */
   @meta.adapted
   DecodeResult(data)
   {
@@ -75,7 +83,11 @@ export class EvePendingPickingReadback
     return [object, words.getUint32(8, true), words.getUint32(12, true)];
   }
 
-  /** Pre-92483097 EvePicking.cpp: snapshot now; browser synchronization is awaited by the scene. */
+  /**
+   * Pre-92483097 EvePicking.cpp: snapshot now; browser synchronization is awaited by the scene.
+   *
+   * @adapted
+   */
   @meta.adapted
   MapMain(_synchronize, context)
   {
@@ -83,7 +95,11 @@ export class EvePendingPickingReadback
     this.readback = this.mainPickBuffer.CreateReadback(context);
   }
 
-  /** Pre-92483097 EvePicking.cpp: independent float debug-result snapshot. */
+  /**
+   * Pre-92483097 EvePicking.cpp: independent float debug-result snapshot.
+   *
+   * @adapted
+   */
   @meta.adapted
   MapDebug(_synchronize, context)
   {
@@ -96,7 +112,8 @@ export class EvePendingPickingReadback
    * precedence; main BGRA bytes encode two uint16 values with minus-one
    * offsets. Async instance hits retain Carbon's zero instance index and owner
    * index in the high word. A supplied manager owns immediate instance lookup.
-   * Adapted: return the shared JS result tuple; buffers are browser snapshots.
+   *
+   * @adapted return the shared JS result tuple; buffers are browser snapshots.
    */
   @meta.adapted
   DecodeResult__ObjectId(main, debug, immediate, instancedMeshManager)
@@ -137,7 +154,11 @@ export class EvePendingPickingReadback
     return [object, area, 0];
   }
 
-  /** Pre-92483097 Unmap: snapshot release replaces the native borrowed-map lifetime. */
+  /**
+   * Pre-92483097 Unmap: snapshot release replaces the native borrowed-map lifetime.
+   *
+   * @adapted
+   */
   @meta.adapted
   Unmap(_context)
   {
@@ -151,6 +172,8 @@ export class EvePendingPickingReadback
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   @meta.adapted
   Destruct()

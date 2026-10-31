@@ -16,7 +16,11 @@ export class TriStepPythonCB extends TriRenderStep
   @type.rawStruct("BlueScriptCallback")
   callback = null;
 
-  /** Carbon method __init__ -> SetCallback (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> SetCallback (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @adapted
+   */
   @meta.adapted
   __init__(callback = null)
   {
@@ -26,6 +30,8 @@ export class TriStepPythonCB extends TriRenderStep
   /**
    * Carbon method SetCallback (MAP_METHOD_AND_WRAP): stores the script
    * callback, wrapping a function at the boundary (CjsScriptCallback.from).
+   *
+   * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs("__init__")
   @be.mapMethodAndWrap()
@@ -37,6 +43,8 @@ export class TriStepPythonCB extends TriRenderStep
 
   /**
    * Invokes the host callback and reports the step complete.
+   *
+   * @adapted
    */
 
   @meta.adapted

@@ -73,7 +73,11 @@ export class Tr2EffectPassParameters
   // States: AddUsedResource and AddReroutable are Tr2Material.cpp:136-146. AllocateConstantMirror and GetSharedConstantBuffer forward as cpp:148-156 do,
   // adapted: the stage array grows on demand and a bad index clamps to 0 where Carbon indexes a fixed array by shader type.
 
-  /** Records a resource this pass binds and marks the used-texture list stale. */
+  /**
+   * Records a resource this pass binds and marks the used-texture list stale.
+   *
+   * @implemented
+   */
   @meta.implemented
   AddUsedResource(resource)
   {
@@ -84,6 +88,8 @@ export class Tr2EffectPassParameters
   /**
    * Records a parameter whose value destination has been rerouted into this
    * pass's storage.
+   *
+   * @implemented
    */
   @meta.implemented
   AddReroutable(reroutable)
@@ -93,6 +99,8 @@ export class Tr2EffectPassParameters
 
   /**
    * Allocates the CPU-side constant mirror for one shader stage of this pass.
+   *
+   * @adapted
    * @param type stage index into stageInput
    * @param size mirror size in bytes, rounded up to 16 by the stage
    */
@@ -104,6 +112,8 @@ export class Tr2EffectPassParameters
 
   /**
    * Fills one stage's constant mirror from already-built shared buffer contents and clears that stage's dirty flag.
+   *
+   * @adapted
    * @param type stage index into stageInput
    */
   @meta.adapted

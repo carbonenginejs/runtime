@@ -29,6 +29,8 @@ export class EveDistributionModifierProcessLifetime extends IEveDistributionModi
   /**
    * Reports no transform effect, so this modifier alone never forces the
    * distribution into its per-frame transform reset.
+   *
+   * @implemented
    */
   @meta.implemented
   AffectsTransform()
@@ -40,6 +42,8 @@ export class EveDistributionModifierProcessLifetime extends IEveDistributionModi
    * Returns the authored kill event once a placement's accumulated lifetime
    * passes lifetimeDuration, and DO_NOTHING otherwise or when no positive
    * duration is authored.
+   *
+   * @implemented
    */
 
   @meta.implemented

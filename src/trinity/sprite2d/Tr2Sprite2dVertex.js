@@ -33,8 +33,9 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
 
   /**
    * Carbon method GetTexCoord (MAP_METHOD_AND_WRAP; Tr2Sprite2dPolygon.cpp:187-191).
-   * Adapted: Carbon only `CCP_ASSERT( i < 2 )`s and reads out of bounds in release builds; JS cannot reproduce
-   * that undefined read, so it throws as the debug assert does.
+   *
+   * @adapted Carbon only `CCP_ASSERT( i < 2 )`s and reads out of bounds in release builds; JS cannot reproduce
+   *   that undefined read, so it throws as the debug assert does.
    * @param {number} i Texture coordinate index, 0 or 1.
    * @returns {Float32Array} A copy of the coordinate.
    */
@@ -47,7 +48,8 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
 
   /**
    * Carbon method SetTexCoord (MAP_METHOD_AND_WRAP; Tr2Sprite2dPolygon.cpp:182-186).
-   * Adapted: as GetTexCoord, an index of 2 or more throws instead of writing out of bounds.
+   *
+   * @adapted as GetTexCoord, an index of 2 or more throws instead of writing out of bounds.
    * @param {number} i Texture coordinate index, 0 or 1.
    * @param {Float32Array|number[]} uv New coordinate.
    * @returns {void}
@@ -61,6 +63,8 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
 
   /**
    * Carbon Tr2Sprite2dVertex::SetColor (Tr2Sprite2dPolygon.cpp:193-196).
+   *
+   * @implemented
    * @param {Float32Array|number[]} c New RGBA colour.
    * @returns {void}
    */
@@ -73,6 +77,8 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
 
   /**
    * Carbon Tr2Sprite2dVertex::GetColor (Tr2Sprite2dPolygon.cpp:197-200).
+   *
+   * @implemented
    * @returns {Float32Array} A copy of the colour.
    */
   @meta.implemented

@@ -6,14 +6,22 @@ import { meta } from "#schema";
 @meta.carbon("DefaultKeyGenerator")
 export class DefaultKeyGenerator
 {
-  /** Carbon's unsorted comparator never requests a reorder. */
+  /**
+   * Carbon's unsorted comparator never requests a reorder.
+   *
+   * @implemented
+   */
   @meta.implemented
   static Less(_batch1, _batch2)
   {
     return false;
   }
 
-  /** Selects the unsorted accumulator path. */
+  /**
+   * Selects the unsorted accumulator path.
+   *
+   * @implemented
+   */
   @meta.implemented
   static GetSortType()
   {

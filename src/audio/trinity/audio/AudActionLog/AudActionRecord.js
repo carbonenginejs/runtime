@@ -9,7 +9,11 @@ import { CjsSchema, meta } from "#schema";
 export class AudActionRecord
 {
 
-  /** Carbon's Python bridge returns a tuple; JavaScript uses the equivalent array. */
+  /**
+   * Carbon's Python bridge returns a tuple; JavaScript uses the equivalent array.
+   *
+   * @notImplemented
+   */
   ToPyObject()
   {
     return [];

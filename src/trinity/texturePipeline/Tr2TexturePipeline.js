@@ -45,6 +45,7 @@ export class Tr2TexturePipeline extends IRoot
    * `std::vector`. `GetResourceDependencies` already returns that sorted list here, so
    * this returns its call.
    *
+   * @adapted
    * @returns {string[]} Resource dependency paths, sorted.
    */
   GetResourceDependenciesFromScript()
@@ -72,6 +73,7 @@ export class Tr2TexturePipeline extends IRoot
    * Carbon's "out of memory" results (cpp:68, 82) are an unregistered `Tr2HostBitmap`. `Execute` here stops at the first
    * failing step (its own divergence, marked there).
    *
+   * @adapted
    * @param {number} [maxWidth=0] Max resulting texture width; 0 for none.
    * @param {number} [maxHeight=0] Max resulting texture height; 0 for none.
    * @returns {Promise<object>} The resulting `Tr2HostBitmap`.
@@ -114,9 +116,8 @@ export class Tr2TexturePipeline extends IRoot
    * leaves the following steps working on an empty bitmap (Carbon imageio
    * issue 19).
    *
-   * Adapted: Carbon ignores each step's result and runs the next one regardless; ours stops
-   * on the first failure (issue 19).
-   *
+   * @adapted Carbon ignores each step's result and runs the next one regardless; ours stops
+   *   on the first failure (issue 19).
    * @param {import("#imageio").HostBitmap} result Bitmap to fill; destroyed first.
    * @param {Map<string, import("#imageio").HostBitmap>} inputs Loaded inputs by path.
    * @param {Tr2TexturePipelineParams} params Caller size limits.
@@ -151,9 +152,8 @@ export class Tr2TexturePipeline extends IRoot
   /**
    * Carbon GetResourceDependencies (cpp:15-22): every path the steps need.
    *
-   * Adapted: Carbon fills a caller-owned set; ours returns the paths sorted, for a stable
-   * load order.
-   *
+   * @adapted Carbon fills a caller-owned set; ours returns the paths sorted, for a stable
+   *   load order.
    * @returns {string[]} Resource dependency paths.
    */
   GetResourceDependencies()

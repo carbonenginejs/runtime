@@ -79,6 +79,8 @@ export class Tr2StaticEmitter extends IRoot
 
   /**
    * Carbon Spawn (Tr2StaticEmitter.cpp:314-317): spawns again on the next update.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -97,13 +99,12 @@ export class Tr2StaticEmitter extends IRoot
    * BITANGENT, CUSTOM from TEXCOORD at its usage index); an element with no
    * source is zero-filled.
    *
-   * Adapted: Carbon reads the CMF vertex buffer (or Granny's vertex data) and
-   * converts Float16 components itself. Ours reads the mesh's decoded
-   * channels, which the format has already converted to floats, and still
-   * refuses a vertex element that is neither Float32 nor Float16. An element
-   * longer than its vertex channel is zero-filled past the channel, where
-   * Carbon would read on into the next vertex element.
-   *
+   * @adapted Carbon reads the CMF vertex buffer (or Granny's vertex data) and
+   *   converts Float16 components itself. Ours reads the mesh's decoded
+   *   channels, which the format has already converted to floats, and still
+   *   refuses a vertex element that is neither Float32 nor Float16. An element
+   *   longer than its vertex channel is zero-filled past the channel, where
+   *   Carbon would read on into the next vertex element.
    * @returns {void}
    */
   @be.mapMethodAndWrap("ForceSpawn")
@@ -154,6 +155,7 @@ export class Tr2StaticEmitter extends IRoot
    * IInitialize.Initialize (Tr2StaticEmitter.cpp:35-48): starts loading the
    * geometry and propagates the thread-safe flag.
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
 
@@ -172,6 +174,7 @@ export class Tr2StaticEmitter extends IRoot
    * INotify.OnModified (Tr2StaticEmitter.cpp:60-76): a new geometry path
    * starts loading it; a new particle system takes the thread-safe flag.
    *
+   * @implemented
    * @param {string|null} [propertyName=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
@@ -194,8 +197,8 @@ export class Tr2StaticEmitter extends IRoot
   /**
    * Marks the emitter thread-safe and propagates the flag to its particle system.
    *
-   * Adapted: JavaScript updates are single-threaded; the flag is retained and propagated
-   * only for Carbon contract parity.
+   * @adapted JavaScript updates are single-threaded; the flag is retained and propagated
+   *   only for Carbon contract parity.
    */
 
   @meta.adapted
@@ -208,13 +211,19 @@ export class Tr2StaticEmitter extends IRoot
   /**
    * Both Carbon SpawnParticles overloads are empty for the static emitter -
    * it only spawns once from Update (Tr2StaticEmitter.cpp:293-308).
+   *
+   * @adapted
    */
   @meta.adapted
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
   }
 
-  /** Carbon's start/end SpawnParticles overload; empty, as above. */
+  /**
+   * Carbon's start/end SpawnParticles overload; empty, as above.
+   *
+   * @adapted
+   */
   @meta.adapted
   SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
@@ -223,6 +232,7 @@ export class Tr2StaticEmitter extends IRoot
   /**
    * ITr2GenericEmitter.Update (Tr2StaticEmitter.cpp:274-280): spawns once.
    *
+   * @implemented
    * @returns {void}
    */
 

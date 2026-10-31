@@ -25,6 +25,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * and outgoing secant slopes; a zero-length interval on either side
    * contributes a slope of 0.
    *
+   * @adapted
    * @param {number} prevTime Curve parameter.
    * @param {number} prevValue Curve parameter.
    * @param {number} time Time in seconds.
@@ -55,6 +56,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * curve does not overshoot, and otherwise damping the through-slope by how
    * close the key sits to its neighbours.
    *
+   * @adapted
    * @param {number} prevTime Curve parameter.
    * @param {number} prevValue Curve parameter.
    * @param {number} _time Time in seconds.
@@ -85,6 +87,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * left key; Hermite tangents are authored per unit time and scaled by the
    * segment length here.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Tr2CurveScalarKey} k0 Segment start key.
    * @param {Tr2CurveScalarKey} k1 Segment end key.
@@ -118,6 +121,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * 0 and Hermite segments report the cubic derivative rescaled back to
    * per-unit-time.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Tr2CurveScalarKey} k0 Segment start key.
    * @param {Tr2CurveScalarKey} k1 Segment end key.
@@ -268,6 +272,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Updates the cached scalar value for the supplied time.
    *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -281,6 +286,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Updates and returns the cached scalar value for the supplied time.
    *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
@@ -295,6 +301,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Gets the scalar value at the supplied time.
    *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
@@ -307,6 +314,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Sets the curve time scale used by `GetScaledTime`.
    *
+   * @implemented
    * @param {number} scale Curve parameter.
    * @returns {void}
    */
@@ -320,6 +328,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Gets the last authored key time, or zero for an empty curve.
    *
+   * @implemented
    * @returns {number} The curve result.
    */
 
@@ -332,6 +341,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Gets the authored curve name.
    *
+   * @implemented
    * @returns {string} The curve result.
    */
 
@@ -344,6 +354,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Sets the authored curve name.
    *
+   * @implemented
    * @param {string} name Authored curve name.
    * @returns {void}
    */
@@ -357,6 +368,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Evaluates the scalar curve with Carbon extrapolation and interpolation rules.
    *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
@@ -400,6 +412,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Evaluates the scalar tangent with Carbon extrapolation and interpolation rules.
    *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
@@ -443,6 +456,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Carbon-compatible alias for `GetTangent`.
    *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
@@ -455,6 +469,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Gets the last cached value.
    *
+   * @implemented
    * @returns {number} The curve result.
    */
 
@@ -467,6 +482,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Gets the time offset applied by `GetScaledTime`.
    *
+   * @implemented
    * @returns {number} The curve result.
    */
   @be.mapMethodAndWrap()
@@ -479,6 +495,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Sets the time offset applied by `GetScaledTime`.
    *
+   * @implemented
    * @param {number} timeOffset Curve parameter.
    * @returns {void}
    */
@@ -492,6 +509,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Gets the time scale applied by `GetScaledTime`.
    *
+   * @implemented
    * @returns {number} The curve result.
    */
   @be.mapMethodAndWrap()
@@ -504,6 +522,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Sets the time scale applied by `GetScaledTime`.
    *
+   * @implemented
    * @param {number} timeScale Curve parameter.
    * @returns {void}
    */
@@ -517,6 +536,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Checks whether the curve has no authored keys.
    *
+   * @implemented
    * @returns {boolean} Whether the curve has no keys.
    */
 
@@ -529,6 +549,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Sorts keys and recomputes automatic tangents after key edits.
    *
+   * @adapted
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -578,6 +599,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Adds a scalar key and refreshes key ordering and derived tangents.
    *
+   * @implemented
    * @param {number} time Time in seconds.
    * @param {number} value Curve parameter.
    * @param {number} [interpolation = Tr2CurveInterpolation.HERMITE] Curve parameter.
@@ -605,6 +627,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Sets both before and after extrapolation modes.
    *
+   * @implemented
    * @param {number} extrapolation Curve parameter.
    * @returns {void}
    */
@@ -618,6 +641,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Gets the mutable key list.
    *
+   * @implemented
    * @returns {Tr2CurveScalarKey[]} The curve result.
    */
 
@@ -630,6 +654,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Applies a compact curve definition and refreshes derived key state.
    *
+   * @adapted
    * @param {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} definition Authored key range and extrapolation.
    * @returns {void}
    */
@@ -659,6 +684,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Gets a compact curve definition using the current key list.
    *
+   * @adapted
    * @returns {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} The curve result.
    */
 
@@ -676,6 +702,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Samples the curve into numeric storage with Carbon Float_16 rounding.
    *
+   * @adapted
    * @param {{width: number, stride: number, data: Float32Array|number[]}} destination Raster output and stride.
    * @returns {void}
    */
@@ -705,6 +732,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Converts caller time into the authored key range according to extrapolation.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
@@ -792,6 +820,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * One-shot static rasterization helper for compact curve definitions.
    *
+   * @adapted
    * @param {{width: number, stride: number, data: Float32Array|number[]}} destination Raster output and stride.
    * @param {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} definition Authored key range and extrapolation.
    * @returns {void}

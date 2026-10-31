@@ -68,6 +68,8 @@ export class EveProjectBracket extends IRoot
    * CjsScriptCallback at the call, which takes exactly a function or a
    * CjsScriptCallback; Carbon's optional global debug-text side effect is not
    * ported yet (Waiting: g_debugRenderer).
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -211,8 +213,8 @@ export class EveProjectBracket extends IRoot
   /**
    * Applies one visibility transition to both owned bracket representations.
    *
-   * Adapted: the callback member is wrapped as a CjsScriptCallback at the
-   * call, which takes exactly a function or a CjsScriptCallback.
+   * @adapted the callback member is wrapped as a CjsScriptCallback at the
+   *   call, which takes exactly a function or a CjsScriptCallback.
    */
 
   @meta.adapted

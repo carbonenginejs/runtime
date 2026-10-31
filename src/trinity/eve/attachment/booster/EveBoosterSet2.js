@@ -375,9 +375,9 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Carbon Initialize (cpp:654-658) prepares the device resources.
    *
-   * Adapted: a set whose boosters arrived as records rather than through Add
-   * derives what Add derives from them: the flares, the bounding sphere and
-   * the max size. Every renderable instance is bound back to this set.
+   * @adapted a set whose boosters arrived as records rather than through Add
+   *   derives what Add derives from them: the flares, the bounding sphere and
+   *   the max size. Every renderable instance is bound back to this set.
    */
 
   @meta.adapted
@@ -396,8 +396,8 @@ export class EveBoosterSet2 extends EveEntity
    * Carbon EveBoosterSet2::ReleaseResources (cpp:891-895): frees the instance
    * range back to the shared buffer and forgets the vertex declaration.
    *
-   * Adapted: the allocation's own parent stands in for g_sharedBuffer, since
-   * the shared buffer here is per render context (TriGeometryResAllocations).
+   * @adapted the allocation's own parent stands in for g_sharedBuffer, since
+   *   the shared buffer here is per render context (TriGeometryResAllocations).
    */
 
   @meta.adapted
@@ -411,6 +411,8 @@ export class EveBoosterSet2 extends EveEntity
    * Carbon EveBoosterSet2::OnPrepareResources (cpp:902-950): the instanced
    * vertex declaration, the box or star by shader model, and the instance
    * buffer.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -436,9 +438,9 @@ export class EveBoosterSet2 extends EveEntity
    * wavePhase, atlasIndex0, atlasIndex1. Carbon's Matrix and gl-matrix share
    * the byte layout, so the transform copies straight across.
    *
-   * Adapted: the allocation's own parent stands in for g_sharedBuffer (see
-   * ReleaseResources), and Allocate returns a new Allocation rather than
-   * filling m_instanceBuffer in place.
+   * @adapted the allocation's own parent stands in for g_sharedBuffer (see
+   *   ReleaseResources), and Allocate returns a new Allocation rather than
+   *   filling m_instanceBuffer in place.
    */
 
   @meta.adapted
@@ -492,6 +494,8 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Carbon OnModified (cpp:660-685): a flare member rebuilds the flares, and
    * staticTrailLength respaces the static trail offsets; both only with glows.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -523,6 +527,8 @@ export class EveBoosterSet2 extends EveEntity
    * Resizes the renderable instance list - one instance per ship drawing this
    * booster set - keeping at least one, and rebinds every instance; returns the
    * resulting count.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -551,6 +557,8 @@ export class EveBoosterSet2 extends EveEntity
    * Updates one renderable instance from the parent's transform, speed,
    * acceleration and rotation, creating the first instance when the set has
    * none; returns false when boosterInstance is out of range.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -587,6 +595,8 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Advances every instance's trail spline and then the trail set itself;
    * returns false when no trail set is attached.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -610,6 +620,8 @@ export class EveBoosterSet2 extends EveEntity
    * Carbon Clear (cpp:748-767): drops the boosters, their glows and trails and
    * the bounding sphere, and releases the device resources. Carbon leaves the
    * max size as it was.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -630,6 +642,8 @@ export class EveBoosterSet2 extends EveEntity
    * hasTrail (offset back half a unit along the booster axis), and grows the
    * bounding sphere and max size. Throws a TypeError when localMatrix is not
    * sixteen values.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -713,6 +727,8 @@ export class EveBoosterSet2 extends EveEntity
    * Sets the whole flare description in one call: glow and halo scales with
    * their normal and warp colours, plus the always-on flag.
    * Carbon declaration: EveBoosterSet2::SetData (trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h:240).
+   *
+   * @implemented
    */
   @meta.implemented
   SetData(
@@ -741,6 +757,8 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Sets the whole booster point-light description in one call: light offset,
    * flicker amplitude and frequency, and the normal and warp radius and colour.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -758,6 +776,8 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Sets the near and far booster effects; the renderable's boosterHighLod flag
    * picks between them at draw time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -770,6 +790,8 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Attaches the sprite set that the per-booster flares are added to; without
    * one no flares are created.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -781,6 +803,8 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Attaches the trails set that per-booster trails are added to; without one no
    * trails are created.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -792,6 +816,8 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Carbon's GetBoosterIntensity(): the mean intensity across every renderable
    * instance; zero when the set has none (EveBoosterSet2.cpp:1048).
+   *
+   * @implemented
    * @returns {number}
    */
 
@@ -810,6 +836,8 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Carbon's GetBoosterIntensity( int index ): one renderable instance's
    * intensity, zero when the index is out of range (EveBoosterSet2.cpp:1067).
+   *
+   * @implemented
    * @param {number} index Renderable instance index.
    * @returns {number}
    */
@@ -830,6 +858,8 @@ export class EveBoosterSet2 extends EveEntity
    * transform, owned by the set with the booster's index as the area; the
    * instance's trails box, untransformed; then the glow sprite set's own debug
    * drawing at the instance's parent transform, with no bones.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    */
 
@@ -868,14 +898,15 @@ export class EveBoosterSet2 extends EveEntity
     }
   }
 
-  /** The union of every renderable's world bounding sphere. Carbon has no
+  /**
+   * The union of every renderable's world bounding sphere. Carbon has no
    * set-level equivalent (each renderable answers for itself); `out` is
    * required so a caller can keep its own scratch. An empty set leaves `out`
    * empty (sph3 radius -1) rather than reporting a zero-radius sphere at the
    * origin.
    *
-   * Adapted: Carbon EveBoosterSet2.cpp:1115–1124 aggregates renderable spheres; JS writes the result to the caller's
-   * output array.
+   * @adapted Carbon EveBoosterSet2.cpp:1115–1124 aggregates renderable spheres; JS writes the result to the caller's
+   *   output array.
    */
 
   @meta.adapted
@@ -897,6 +928,9 @@ export class EveBoosterSet2 extends EveEntity
    * The derived runtime boosters as deep copies - transform, functionality,
    * light position, radius and phase, and atlas indices - safe for an
    * adapter to keep.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -919,7 +953,7 @@ export class EveBoosterSet2 extends EveEntity
    * m_glowsVisible is a whole-set flag, not per booster. Booster glows are placed by each renderable's parent
    * transform (its locator), not a bone, so no bone palette is passed (cpp:1001).
    *
-   * Adapted: returns m_glowsVisible; Carbon returns void.
+   * @adapted returns m_glowsVisible; Carbon returns void.
    * @returns {boolean} whether a glow is on screen
    */
 
@@ -950,6 +984,8 @@ export class EveBoosterSet2 extends EveEntity
 
   /**
    * Carbon EveBoosterSet2::RegisterWithQuadRenderer (EveBoosterSet2.cpp:1132-1138): registers the glow sprites.
+   *
+   * @implemented
    * @param {Tr2QuadRenderer} quadRenderer
    */
   @meta.implemented
@@ -966,6 +1002,8 @@ export class EveBoosterSet2 extends EveEntity
    * Carbon EveBoosterSet2::AddToQuadRenderer (EveBoosterSet2.cpp:1147-1160): one glow per booster instance, at its
    * own parent transform and intensity, while the glows are on screen and the instance passed flare LOD (or flare
    * LOD is off). Carbon does not read world: each instance carries its own transform.
+   *
+   * @implemented
    * @param {Tr2QuadRenderer} quadRenderer
    * @param {mat4} _world - the parent's world transform
    */
@@ -987,9 +1025,13 @@ export class EveBoosterSet2 extends EveEntity
     }
   }
 
-  /** Carbon EveBoosterSet2::GetRenderables (cpp:1130-1145): gated on display
+  /**
+   * Carbon EveBoosterSet2::GetRenderables (cpp:1130-1145): gated on display
    * AND on the set owning an effect, then delegated to each renderable's own
-   * visibility. */
+   * visibility.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(out)
@@ -1005,8 +1047,12 @@ export class EveBoosterSet2 extends EveEntity
     return out;
   }
 
-  /** Carbon EveBoosterSet2::RegisterComponents (cpp:1272-1279): unconditional
-   * LightOwner leaf self-registration. */
+  /**
+   * Carbon EveBoosterSet2::RegisterComponents (cpp:1272-1279): unconditional
+   * LightOwner leaf self-registration.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -1018,7 +1064,8 @@ export class EveBoosterSet2 extends EveEntity
     }
   }
 
-  /** Carbon EveBoosterSet2::GetLights (cpp:1287-1319): NO display gate
+  /**
+   * Carbon EveBoosterSet2::GetLights (cpp:1287-1319): NO display gate
    * (registration is unconditional too) - the effective gates are both light
    * radii <= 0 (cpp:1289) and per-renderable overallIntensity <= 0
    * (cpp:1296). Per renderable: warp blend of radius factor and color
@@ -1032,6 +1079,8 @@ export class EveBoosterSet2 extends EveEntity
    * FLAG_DEFAULT - manager-side).
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    */
 
   @meta.adapted

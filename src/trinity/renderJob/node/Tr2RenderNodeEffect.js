@@ -46,8 +46,8 @@ export class Tr2RenderNodeEffect extends IRoot
   /**
    * Carbon Tr2RenderNodeEffect::Validate (cpp:15-46).
    *
-   * Adapted: Tr2BitmapDimensions spans are represented by JavaScript arrays of value
-   * records.
+   * @adapted Tr2BitmapDimensions spans are represented by JavaScript arrays of value
+   *   records.
    */
 
   @meta.adapted
@@ -87,7 +87,11 @@ export class Tr2RenderNodeEffect extends IRoot
     return true;
   }
 
-  /** Carbon method AddSource (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method AddSource (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddSource(name, source, outputName = "")

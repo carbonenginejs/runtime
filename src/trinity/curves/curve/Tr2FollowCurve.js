@@ -95,7 +95,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
 
   /**
    * Updates the cached vector value for the supplied time.
-   * Adapted: the existing JS vector output buffer replaces native value assignment.
+   *
+   * @adapted the existing JS vector output buffer replaces native value assignment.
    */
 
   @meta.adapted
@@ -109,7 +110,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * (Tr2FollowCurve.cpp:117-122). The Be::Time overload is the inherited
    * `Update__Ticks`, which converts with TimeAsDouble and calls this, as Carbon's
    * does (cpp:110-115).
-   * Adapted: JS time-first/output-last arguments, output returned.
+   *
+   * @adapted JS time-first/output-last arguments, output returned.
    */
 
   @meta.adapted
@@ -123,7 +125,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Carbon's GetValueAt(double): the vector value at `time` seconds into `out`
    * (cpp:129-133). The Be::Time overload is the inherited `GetValueAt__Ticks`,
    * which converts with TimeAsDouble and calls this, as Carbon's does (cpp:124-127).
-   * Adapted: JS time-first/output-last arguments, output returned.
+   *
+   * @adapted JS time-first/output-last arguments, output returned.
    */
 
   @meta.adapted
@@ -134,6 +137,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
 
   /**
    * Native first-derivative no-op leaves output untouched; JS keeps time first.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -144,6 +149,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
 
   /**
    * Native second-derivative no-op leaves output untouched; JS keeps time first.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -156,6 +163,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Native interpolated-position no-op leaves output untouched; JS keeps time first.
    * Carbon declares only the Be::Time overload (Tr2FollowCurve.h:34, cpp:155-158), so
    * the bare name takes Blue 100ns ticks.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -166,8 +175,9 @@ export class Tr2FollowCurve extends ITriVectorFunction
 
   /**
    * Gets the vector value at `time` into `out`.
-   * Adapted: retains JS time-first/output-last arguments, numeric seconds and
-   * caller-owned vectors instead of native overloads/value returns.
+   *
+   * @adapted retains JS time-first/output-last arguments, numeric seconds and
+   *   caller-owned vectors instead of native overloads/value returns.
    */
 
   @meta.adapted
@@ -207,6 +217,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
 
   /**
    * Handles a Carbon list-modified notification.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -226,8 +238,9 @@ export class Tr2FollowCurve extends ITriVectorFunction
 
   /**
    * Evaluates the native key segment into `out`.
-   * Adapted: caller-owned vectors and JS Number arithmetic replace native vector
-   * returns/float temporaries; direct key contract calls remain required.
+   *
+   * @adapted caller-owned vectors and JS Number arithmetic replace native vector
+   *   returns/float temporaries; direct key contract calls remain required.
    */
 
   @meta.adapted

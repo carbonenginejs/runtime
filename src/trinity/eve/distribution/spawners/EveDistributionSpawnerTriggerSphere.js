@@ -58,6 +58,8 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
    * Sorts the pooled placements by their distance from the sphere offset and
    * normalizes those distances into the 0..1 expansion order the update walks,
    * then restarts.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -88,6 +90,8 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
   /**
    * Rewinds the expansion to its first placement, or its last when the animation
    * is reversed, and clears the play time.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -101,6 +105,8 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
    * Advances the play time and triggers every placement the expanding sphere has
    * reached, each subject to triggerChance, ending once the sorted order is
    * exhausted or the play duration elapses.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -154,7 +160,11 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
     }
   }
 
-  /** Ignores controller variables; the expansion is purely time-driven. */
+  /**
+   * Ignores controller variables; the expansion is purely time-driven.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetControllerVariable(_name, _value)
   {

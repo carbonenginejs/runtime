@@ -74,12 +74,15 @@ export class Tr2RuntimeInstanceData
   layout = [];
 
 
+  /** @cjs */
   @meta.cjs
   @meta.mapAttribute(meta.NOTIFY | meta.PERSIST)
   @type.array("unknown")
   rows = [];
 
-  /** Adapted: Carbon declares m_explicitBoundingBox (trinity/trinity/Tr2RuntimeInstanceData.h:109) but does not expose it; exposed here for the values interface. */
+  /**
+   * @adapted Carbon declares m_explicitBoundingBox (trinity/trinity/Tr2RuntimeInstanceData.h:109) but does not expose it; exposed here for the values interface.
+   */
   @meta.mapAttribute(meta.PERSIST)
   @meta.adapted
   @type.boolean
@@ -94,8 +97,7 @@ export class Tr2RuntimeInstanceData
    * Minimum corner of the instance-data bounding box.
    * Carbon aabbMin (Tr2RuntimeInstanceData_Blue.cpp:517).
    *
-   * Adapted: Persisted by the JavaScript values format; Carbon exposes this field read-only.
-   *
+   * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec3}
    */
   @meta.adapted
@@ -108,8 +110,7 @@ export class Tr2RuntimeInstanceData
    * Maximum corner of the instance-data bounding box.
    * Carbon aabbMax (Tr2RuntimeInstanceData_Blue.cpp:519).
    *
-   * Adapted: Persisted by the JavaScript values format; Carbon exposes this field read-only.
-   *
+   * @adapted Persisted by the JavaScript values format; Carbon exposes this field read-only.
    * @type {vec3}
    */
   @meta.adapted
@@ -155,7 +156,11 @@ export class Tr2RuntimeInstanceData
     TriDevice.UnregisterResource(this);
   }
 
-  /** Releases the borrowed allocator range and declaration; CPU rows survive. */
+  /**
+   * Releases the borrowed allocator range and declaration; CPU rows survive.
+   *
+   * @adapted
+   */
   @meta.adapted
   ReleaseResources()
   {
@@ -163,14 +168,22 @@ export class Tr2RuntimeInstanceData
     this.#vertexDeclaration = Tr2EffectStateManager.Unknown;
   }
 
-  /** Inherited Tr2DeviceResource.cpp:21-32 creation guard. */
+  /**
+   * Inherited Tr2DeviceResource.cpp:21-32 creation guard.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
-  /** Allocates the native shared stream and interns its layout (cpp:210-231). */
+  /**
+   * Allocates the native shared stream and interns its layout (cpp:210-231).
+   *
+   * @adapted
+   */
   @meta.adapted
   OnPrepareResources()
   {
@@ -219,6 +232,8 @@ export class Tr2RuntimeInstanceData
   /**
    * Repacks the CPU buffer from the persisted layout and rows, then publishes
    * it.
+   *
+   * @adapted
    */
   @meta.adapted
   Initialize()
@@ -247,6 +262,8 @@ export class Tr2RuntimeInstanceData
   /**
    * Replaces the element layout and discards every existing row - a layout must
    * be set before any SetData.
+   *
+   * @adapted
    */
   @be.mapMethod()
   @meta.adapted
@@ -260,6 +277,8 @@ export class Tr2RuntimeInstanceData
   /**
    * Replaces all instance rows and repacks the byte buffer; throws when no
    * layout has been set.
+   *
+   * @adapted
    */
   @be.mapMethod()
   @meta.adapted
@@ -272,6 +291,8 @@ export class Tr2RuntimeInstanceData
   /**
    * A detached copy of one instance row, with its component arrays cloned so the
    * caller cannot alias stored data.
+   *
+   * @implemented
    */
   @be.mapMethod()
   @meta.implemented
@@ -284,6 +305,8 @@ export class Tr2RuntimeInstanceData
   /**
    * Validates one instance row against the layout, stores it and rewrites its
    * bytes in place, marking the data dirty.
+   *
+   * @adapted
    */
   @be.mapMethod()
   @meta.adapted
@@ -297,7 +320,11 @@ export class Tr2RuntimeInstanceData
     this.#dirty = true;
   }
 
-  /** A detached copy of one element of one instance row. */
+  /**
+   * A detached copy of one element of one instance row.
+   *
+   * @implemented
+   */
   @be.mapMethod()
   @meta.implemented
   GetItemElement(index, elementIndex)
@@ -310,6 +337,8 @@ export class Tr2RuntimeInstanceData
   /**
    * Validates and stores a single element of one row, patching only that
    * element's bytes in the packed buffer.
+   *
+   * @adapted
    */
   @be.mapMethod()
   @meta.adapted
@@ -331,6 +360,8 @@ export class Tr2RuntimeInstanceData
   /**
    * Publishes pending bytes to the shared AL allocation (cpp:442-458).
    * The JS dirty/revision counters also track publication before device setup.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -359,6 +390,8 @@ export class Tr2RuntimeInstanceData
    * components; returns false without touching it when the box was set
    * explicitly, and zeroes the box when there is no such element or no
    * instances.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -397,6 +430,8 @@ export class Tr2RuntimeInstanceData
   /**
    * Sets the box explicitly from either a { min, max } object or two vectors,
    * and latches explicitBoundingBox so UpdateBoundingBox stops recomputing it.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -415,6 +450,8 @@ export class Tr2RuntimeInstanceData
 
   /**
    * Reads the bounding box; the values are copied into the caller's vectors when both are supplied, otherwise a freshly cloned pair is returned.
+   *
+   * @implemented
    * @param {vec3} [minBounds] Caller-owned destination for the minimum.
    * @param {vec3} [maxBounds] Caller-owned destination for the maximum.
    * @returns {boolean|{min: vec3, max: vec3}} True when written into the out vectors, otherwise a new { min, max } pair.
@@ -437,6 +474,8 @@ export class Tr2RuntimeInstanceData
   /**
    * The bounding box of the single CPU instance buffer; the buffer index is
    * ignored because only one stream exists.
+   *
+   * @implemented
    */
   @meta.implemented
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
@@ -444,14 +483,22 @@ export class Tr2RuntimeInstanceData
     return this.GetBoundingBox();
   }
 
-  /** Number of packed instance rows. */
+  /**
+   * Number of packed instance rows.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCount()
   {
     return this.count;
   }
 
-  /** Byte size of one packed row, summed from the element layout. */
+  /**
+   * Byte size of one packed row, summed from the element layout.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetStride()
   {
@@ -461,6 +508,8 @@ export class Tr2RuntimeInstanceData
   /**
    * The frozen normalized element descriptors, each carrying usage, type,
    * component count, byte size and byte offset.
+   *
+   * @implemented
    */
   @meta.implemented
   GetLayout()
@@ -471,6 +520,8 @@ export class Tr2RuntimeInstanceData
   /**
    * A copy of the packed instance bytes, or null when no rows are set; the
    * caller owns the returned array.
+   *
+   * @adapted
    */
   @meta.adapted
   GetData()
@@ -478,7 +529,11 @@ export class Tr2RuntimeInstanceData
     return this.#data ? new Uint8Array(this.#data) : null;
   }
 
-  /** Both a declaration and a valid allocation are required (cpp:239-242). */
+  /**
+   * Both a declaration and a valid allocation are required (cpp:239-242).
+   *
+   * @implemented
+   */
   @meta.implemented
   IsInstanceDataReady()
   {
@@ -486,7 +541,11 @@ export class Tr2RuntimeInstanceData
       this.#allocation !== null && this.#allocation.IsValid();
   }
 
-  /** Borrowed AL buffer and physical row slice (cpp:244-250). */
+  /**
+   * Borrowed AL buffer and physical row slice (cpp:244-250).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
@@ -497,14 +556,22 @@ export class Tr2RuntimeInstanceData
     return this.#instanceData;
   }
 
-  /** The registered instance-stream declaration handle (cpp:260-263). */
+  /**
+   * The registered instance-stream declaration handle (cpp:260-263).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
     return this.#vertexDeclaration;
   }
 
-  /** Borrowed instance AL buffer (cpp:278-281). */
+  /**
+   * Borrowed instance AL buffer (cpp:278-281).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetGpuBuffer(_bufferIndex = 0)
   {
@@ -514,6 +581,8 @@ export class Tr2RuntimeInstanceData
   /**
    * Drops every row and the packed buffer while keeping the layout, and marks
    * the data dirty.
+   *
+   * @adapted
    */
   @meta.adapted
   @meta.invalidates("#dirty")
@@ -531,8 +600,8 @@ export class Tr2RuntimeInstanceData
    * Replaces the target particle system with particles decoded from the CPU
    * instance rows.
    *
-   * Adapted: Maps Carbon vertex semantics into the maintained CPU particle-system
-   * declaration without GPU buffers.
+   * @adapted Maps Carbon vertex semantics into the maintained CPU particle-system
+   *   declaration without GPU buffers.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -596,6 +665,8 @@ export class Tr2RuntimeInstanceData
   /**
    * Implements ITr2GenericEmitter. Does nothing as this emitter only emits
    * particles on demand (Spawn).
+   *
+   * @implemented
    */
   @meta.implemented
   Update(_arguments)
@@ -605,13 +676,19 @@ export class Tr2RuntimeInstanceData
   /**
    * Implements ITr2GenericEmitter. Does nothing as this emitter only emits
    * particles on demand (Spawn); both Carbon overloads are deliberate no-ops.
+   *
+   * @implemented
    */
   @meta.implemented
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
   }
 
-  /** Carbon's start/end SpawnParticles overload; also a deliberate no-op. */
+  /**
+   * Carbon's start/end SpawnParticles overload; also a deliberate no-op.
+   *
+   * @implemented
+   */
   @meta.implemented
   SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
@@ -620,13 +697,19 @@ export class Tr2RuntimeInstanceData
   /**
    * Implements ITr2GenericEmitter. Nothing to prepare - this emitter never
    * spawns from the threaded particle update.
+   *
+   * @implemented
    */
   @meta.implemented
   SetThreadSafeFlag()
   {
   }
 
-  /** Carbon's CMF writer requires the native resource-path and file encoder. */
+  /**
+   * Carbon's CMF writer requires the native resource-path and file encoder.
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   SaveToCMF(...args)
@@ -634,7 +717,11 @@ export class Tr2RuntimeInstanceData
     throw new Error("Tr2RuntimeInstanceData.SaveToCMF is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon's Granny writer requires the native Granny SDK and filesystem. */
+  /**
+   * Carbon's Granny writer requires the native Granny SDK and filesystem.
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   SaveToGranny(...args)

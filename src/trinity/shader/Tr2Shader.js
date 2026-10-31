@@ -22,8 +22,8 @@ export class Tr2Shader extends IRoot
    * Index of the named technique; 0 for Carbon's empty-string any-technique
    * sentinel and -1 when the shader has no techniques or the name is unknown.
    *
-   * Adapted: Carbon returns success through a bool plus output index; CarbonEngineJS returns
-   * the index directly or -1 while preserving exact name lookup.
+   * @adapted Carbon returns success through a bool plus output index; CarbonEngineJS returns
+   *   the index directly or -1 while preserving exact name lookup.
    */
   GetTechniqueIndex(name = "Main")
   {
@@ -42,8 +42,8 @@ export class Tr2Shader extends IRoot
   /**
    * Number of passes in a technique; 0 for an unknown index.
    *
-   * Adapted: Carbon assumes an already-validated technique index; CarbonEngineJS safely
-   * returns zero for an unavailable index.
+   * @adapted Carbon assumes an already-validated technique index; CarbonEngineJS safely
+   *   returns zero for an unavailable index.
    */
   GetPassCount(techniqueIndex = 0)
   {
@@ -53,6 +53,8 @@ export class Tr2Shader extends IRoot
   /**
    * The reflected constant of this name from any stage of any pass, or null;
    * the description is metadata, not a bound GPU slot.
+   *
+   * @implemented
    */
   GetConstant(name)
   {
@@ -62,6 +64,8 @@ export class Tr2Shader extends IRoot
   /**
    * The reflected resource of this name, searching stage resources before
    * UAVs; null when neither has it.
+   *
+   * @implemented
    */
   GetResource(name)
   {
@@ -87,6 +91,8 @@ export class Tr2Shader extends IRoot
   /**
    * The annotation set authored for a parameter name, or null; the shape
    * depends on the reflection source.
+   *
+   * @implemented
    */
   GetParameterAnnotations(parameterName)
   {
@@ -96,19 +102,31 @@ export class Tr2Shader extends IRoot
     );
   }
 
-  /** The packed draw-sort key; 0 until ProcessEffect runs with registered stage handles. */
+  /**
+   * The packed draw-sort key; 0 until ProcessEffect runs with registered stage handles.
+   *
+   * @implemented
+   */
   GetSortValue()
   {
     return this.sortValue;
   }
 
-  /** The reflected effect description, by reference rather than copy. */
+  /**
+   * The reflected effect description, by reference rather than copy.
+   *
+   * @implemented
+   */
   GetEffectDescription()
   {
     return this.effect;
   }
 
-  /** The same object GetEffectDescription returns. */
+  /**
+   * The same object GetEffectDescription returns.
+   *
+   * @implemented
+   */
   GetEffect()
   {
     return this.effect;
@@ -117,8 +135,8 @@ export class Tr2Shader extends IRoot
   /**
    * The technique's bitmask of shader stages, or 0 for an unknown index.
    *
-   * Adapted: Carbon assumes an already-validated technique index; CarbonEngineJS safely
-   * returns zero for an unavailable index.
+   * @adapted Carbon assumes an already-validated technique index; CarbonEngineJS safely
+   *   returns zero for an unavailable index.
    */
   GetShaderTypeMask(techniqueIndex = 0)
   {
@@ -146,6 +164,7 @@ export class Tr2Shader extends IRoot
    * every call short-circuited to nothing while the method still returned
    * true. The optional chain is what hid it.
    *
+   * @adapted
    * @param {number} techniqueIndex Technique index.
    * @param {number} passIndex Pass index within the technique.
    * @param {object} renderContext The context whose state manager to bind on.
@@ -173,6 +192,7 @@ export class Tr2Shader extends IRoot
    * integer-handle reasoning as `ApplyAllStateForPass` applies: no device object is
    * created or held here.
    *
+   * @implemented
    * @param {number} techniqueIndex Technique index.
    * @param {number} passIndex Pass index within the technique.
    * @param {object} renderContext The context whose state manager to bind on.
@@ -198,6 +218,7 @@ export class Tr2Shader extends IRoot
    * Not implemented: `RegisterShaderProgramOverride` is absent from our
    * Tr2EffectStateManager (see its head comment), so there is nothing to combine with.
    *
+   * @notImplemented
    * @param {number} _techniqueIndex Technique index.
    * @param {number} _passIndex Pass index within the technique.
    * @param {Tr2Shader} _overrideShader The shader whose program overrides.
@@ -216,9 +237,9 @@ export class Tr2Shader extends IRoot
    * until shader registration assigns them; that is a missing table, not a
    * consequence of the graph being device-free.
    *
-   * Adapted: Carbon packs renderer handles assigned while reading; here registration happens
-   * at prepare, so the sort key stays zero until the shader-registration tables assign stage
-   * handles. The difference is timing and table ownership, not device-freeness.
+   * @adapted Carbon packs renderer handles assigned while reading; here registration happens
+   *   at prepare, so the sort key stays zero until the shader-registration tables assign stage
+   *   handles. The difference is timing and table ownership, not device-freeness.
    */
   ProcessEffect()
   {
@@ -253,7 +274,11 @@ export class Tr2Shader extends IRoot
     ) >>> 0;
   }
 
-  /** Whether this shader accesses vertex buffers in RT shadow mode. */
+  /**
+   * Whether this shader accesses vertex buffers in RT shadow mode.
+   *
+   * @implemented
+   */
   HasVertexBufferAccessInRtShadow()
   {
     return this.hasVertexBufferAccessInRtShadow;

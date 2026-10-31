@@ -9,13 +9,19 @@ export class IEveSpaceObjectAttachmentOwner extends IRoot
 
   /**
    * Adds one attachment (h:10).
+   *
+   * @abstract
    * @param {IEveSpaceObjectAttachment} _attachment
    */
   AddAttachment(_attachment)
   {
   }
 
-  /** Removes every attachment (h:11). */
+  /**
+   * Removes every attachment (h:11).
+   *
+   * @abstract
+   */
   ClearAttachments()
   {
   }

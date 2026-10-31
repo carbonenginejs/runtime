@@ -81,7 +81,8 @@ export class Tr2StateMachine
    * Removal restarts even when the removed state was not current or the machine
    * is unlinked; removing the start state retains that current-state reference.
    * Unload, load, move and swap events do not change linkage (cpp:35-69).
-   * Adapted: exact mapped constructor identity represents native BlueCastPtr.
+   *
+   * @adapted exact mapped constructor identity represents native BlueCastPtr.
    * @param {number} event List event flags.
    * @param {number} [_key=0] Unused first key.
    * @param {number} [_key2=0] Unused second key.
@@ -124,6 +125,8 @@ export class Tr2StateMachine
 
   /**
    * Relinks the start state after it is modified.
+   *
+   * @implemented
    * @param {string} propertyName Exposed member name.
    * @returns {boolean} True after the notification is handled.
    */
@@ -137,6 +140,8 @@ export class Tr2StateMachine
 
   /**
    * Rebases runtime timestamps and action simulation time.
+   *
+   * @adapted
    * @param {number} oldTime Previous simulation time in Blue ticks.
    * @param {number} newTime Replacement simulation time in Blue ticks.
    * @returns {void}
@@ -156,6 +161,8 @@ export class Tr2StateMachine
 
   /**
    * Links all states to a controller.
+   *
+   * @implemented
    * @param {Tr2Controller} controller Controller owning this machine.
    * @returns {void}
    */
@@ -173,6 +180,8 @@ export class Tr2StateMachine
 
   /**
    * Unlinks all states from the current controller.
+   *
+   * @implemented
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
@@ -197,7 +206,8 @@ export class Tr2StateMachine
 
   /**
    * Starts at the configured start state and follows immediate transitions.
-   * Adapted: BigInt preserves the native all-bits uint64 dirty mask.
+   *
+   * @adapted BigInt preserves the native all-bits uint64 dirty mask.
    * @returns {void}
    */
 
@@ -222,6 +232,8 @@ export class Tr2StateMachine
 
   /**
    * Stops the current state.
+   *
+   * @implemented
    * @returns {void}
    */
 
@@ -239,7 +251,8 @@ export class Tr2StateMachine
 
   /**
    * Updates the current state.
-   * Adapted: BigInt carries the native uint64 dirty-variable mask.
+   *
+   * @adapted BigInt carries the native uint64 dirty-variable mask.
    * @param {bigint} [dirtyVariables=0n] Variables changed by the controller.
    * @returns {void}
    */
@@ -255,6 +268,8 @@ export class Tr2StateMachine
 
   /**
    * Gets the linked controller.
+   *
+   * @implemented
    * @returns {Tr2Controller|null} Linked controller, or null while unlinked.
    */
 
@@ -285,6 +300,8 @@ export class Tr2StateMachine
 
   /**
    * Gets a state by authored name.
+   *
+   * @implemented
    * @param {string} name Authored state name.
    * @returns {Tr2StateMachineState|null} Matching state, or null when absent.
    */
@@ -298,6 +315,8 @@ export class Tr2StateMachine
   /**
    * Gets seconds since this state machine started: the Blue frame-time
    * difference in ticks, converted with TimeAsFloat (`Tr2StateMachine.cpp:206-209`).
+   *
+   * @implemented
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
 
@@ -309,6 +328,8 @@ export class Tr2StateMachine
 
   /**
    * Gets seconds since the current state started (`Tr2StateMachine.cpp:211-214`).
+   *
+   * @implemented
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
 
@@ -331,8 +352,9 @@ export class Tr2StateMachine
    * Advances through as many immediately-satisfied transitions as the current
    * state chain produces, resetting the state start time on each hop; after 10
    * hops it counts revisits and bails out after 20 to break a transition cycle.
-   * Adapted: native FollowTransitions retains its private JavaScript name;
-   * BigInt carries the all-bits mask and JavaScript references hold seen states.
+   *
+   * @adapted native FollowTransitions retains its private JavaScript name;
+   *   BigInt carries the all-bits mask and JavaScript references hold seen states.
    * @param {bigint} dirtyVariables Variables changed for the first transition.
    * @returns {void}
    */

@@ -67,6 +67,7 @@ export class ParameterInfo
      * Carbon's is a namespace function over `s_paramToInfo`, filled by each
      * record's constructor; here the table is a static built once.
      *
+     * @adapted
      * @param {number} parameter `Parameter`.
      * @returns {ParameterInfo|null} The record, or `null` where Carbon's map yields a null pointer.
      */
@@ -80,6 +81,7 @@ export class ParameterInfo
      * carries the parameter at this document version, introduced `<=` version
      * `<` deprecated, using VersionInternal's own `<=` and `>`.
      *
+     * @adapted
      * @param {number} parameter `Parameter`.
      * @param {string} context Construct name.
      * @param {VersionInternal} version Document version.
@@ -106,6 +108,7 @@ export class ParameterInfo
      * expected and not optional; where not expected, required only if no
      * context introduced it in a newer minor version of the same major.
      *
+     * @adapted
      * @param {number} parameter `Parameter`.
      * @param {string} context Construct name.
      * @param {VersionInternal} version Document version.

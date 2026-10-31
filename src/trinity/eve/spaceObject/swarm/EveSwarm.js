@@ -257,10 +257,14 @@ export class EveSwarm extends EveShip2
   /** m_worldAcceleration: the change in world velocity over the last UpdateWorldTransform. */
   _worldAcceleration = vec3.create();
 
-  /** Carbon EveSwarm::RegisterComponents (EveSwarm.cpp:1000-1017): base
+  /**
+   * Carbon EveSwarm::RegisterComponents (EveSwarm.cpp:1000-1017): base
    * registration "to register all the turrets and things", then
    * UnRegisterAllComponents(this) because the swarm itself is container-only,
-   * then forwards the per-swarmer renderables. */
+   * then forwards the per-swarmer renderables.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -277,8 +281,12 @@ export class EveSwarm extends EveShip2
     }
   }
 
-  /** Carbon EveSwarm::UnRegisterComponents (EveSwarm.cpp:1019-1030): base,
-   * then forwards the renderables. */
+  /**
+   * Carbon EveSwarm::UnRegisterComponents (EveSwarm.cpp:1019-1030): base,
+   * then forwards the renderables.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -298,7 +306,7 @@ export class EveSwarm extends EveShip2
    * Carbon GetObserverTransform (EveSwarm.cpp:347-352): the world transform moved to the model centre, for audio
    * observers. Row-vector worldTransform * translation adds the offset to the translation row.
    *
-   * Adapted: Carbon returns the Matrix by value; it is written to the caller-owned out, which is returned.
+   * @adapted Carbon returns the Matrix by value; it is written to the caller-owned out, which is returned.
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -316,6 +324,8 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon GetTurretTransform (EveSwarm.cpp:358-365): a turret set rides the fighter its swarm ID names, or the
    * swarm's own transform when there is no such fighter.
+   *
+   * @implemented
    * @param {number} swarmID - the turret set's GetSwarmID()
    * @returns {mat4} the live transform, not a copy
    */
@@ -330,7 +340,11 @@ export class EveSwarm extends EveShip2
     return this.renderables[swarmID].GetWorldTransform();
   }
 
-  /** Carbon RebuildCachedData (EveSwarm.cpp:371-378): the base, then every fighter rebinds to the rebuilt mesh. */
+  /**
+   * Carbon RebuildCachedData (EveSwarm.cpp:371-378): the base, then every fighter rebinds to the rebuilt mesh.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RebuildCachedData(asyncRes)
@@ -342,7 +356,11 @@ export class EveSwarm extends EveShip2
     }
   }
 
-  /** Carbon UpdateSyncronous (EveSwarm.cpp:384-391): the swarm steps before the ship. */
+  /**
+   * Carbon UpdateSyncronous (EveSwarm.cpp:384-391): the swarm steps before the ship.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext)
@@ -357,6 +375,8 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon UpdateWorldTransform (EveSwarm.cpp:397-402): the base, recording the change in world velocity. A repeat
    * call at the same time leaves the velocity alone, so it records zero, as in Carbon.
+   *
+   * @implemented
    * @param {number} time - Blue ticks
    * @returns {boolean} the base's result
    */
@@ -376,8 +396,8 @@ export class EveSwarm extends EveShip2
    * Carbon UpdateOrientation (EveSwarm.cpp:408-424): faces the vehicle along its velocity, rolled into its sideways
    * acceleration, turning at agility per second.
    *
-   * Adapted: gl-matrix's slerp switches to linear interpolation below 1 - dot = 1e-6 where Carbon's Slerp
-   * (Quaternion_inline.h:244-266) switches at 0.001; the two agree to float precision in that band.
+   * @adapted gl-matrix's slerp switches to linear interpolation below 1 - dot = 1e-6 where Carbon's Slerp
+   *   (Quaternion_inline.h:244-266) switches at 0.001; the two agree to float precision in that band.
    * @param {SwarmVehicle} vehicle
    * @param {number} timeDiff - seconds
    */
@@ -407,7 +427,7 @@ export class EveSwarm extends EveShip2
    * Carbon UpdateTurretsAsyncronous (EveSwarm.cpp:427-443): each turret set's parent data carries the transform of
    * the fighter it rides.
    *
-   * Adapted: EveMobile's reusable parent-data record is refilled per set instead of a fresh zeroed stack record.
+   * @adapted EveMobile's reusable parent-data record is refilled per set instead of a fresh zeroed stack record.
    */
 
   @meta.adapted
@@ -432,6 +452,8 @@ export class EveSwarm extends EveShip2
    * Carbon UpdateAsyncronous (EveSwarm.cpp:449-494): without swarming, fighter 0 sits at the swarm's transform with
    * the ship's boosters; with it, each fighter takes its vehicle's rotation and position, and drives its own booster
    * instance. Then the base update, whose UpdateBoosters call this class leaves empty.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -485,6 +507,8 @@ export class EveSwarm extends EveShip2
 
   /**
    * Carbon UpdateBoosters (EveSwarm.h:261-263): empty. UpdateAsyncronous drives the boosters per fighter instead.
+   *
+   * @implemented
    * @param {EveUpdateContext} _updateContext
    */
 
@@ -501,6 +525,8 @@ export class EveSwarm extends EveShip2
    *
    * Carbon quirk, kept in behaviour: with no vehicles Carbon still reads m_vehicles[0] for the formation direction,
    * out of bounds; here that direction is left zero, which no force calculation reads when there are no vehicles.
+   *
+   * @adapted
    * @param {number} t - Blue ticks
    */
   @meta.adapted
@@ -668,6 +694,8 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon RegisterWithQuadRenderer (EveSwarm.cpp:651-661): the attachments' sprites and spotlights, then the booster
    * glows. Carbon does not call the base, so turret quads are not registered.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -687,6 +715,8 @@ export class EveSwarm extends EveShip2
    * Carbon AddQuadsToQuadRenderer (EveSwarm.cpp:669-687): every attachment once per fighter, at that fighter's
    * transform, at full activation and booster gain; then the booster glows, whose instances carry their own
    * fighters' transforms, so the world passed is the identity.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -712,6 +742,8 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon PushRenderables (EveSwarm.cpp:741-752): each fighter and its decals while the mesh is visible. The swarm
    * itself and its children are not pushed.
+   *
+   * @implemented
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
   @meta.implemented
@@ -728,7 +760,11 @@ export class EveSwarm extends EveShip2
     }
   }
 
-  /** Carbon UpdateVisibility (EveSwarm.cpp:754-770): the base, then each fighter places its own decals. */
+  /**
+   * Carbon UpdateVisibility (EveSwarm.cpp:754-770): the base, then each fighter places its own decals.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
@@ -748,6 +784,8 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon EstimatePixelDiameter (EveSwarm.cpp:774-783): the squad sphere's size on screen, divided by the square
    * root of the fighter count while swarming, roughly one fighter's share.
+   *
+   * @implemented
    * @returns {number} the estimate
    */
 
@@ -764,7 +802,11 @@ export class EveSwarm extends EveShip2
     return this.estimatedPixelDiameter;
   }
 
-  /** Carbon UpdateWorldBounds (EveSwarm.cpp:787-795): the squad box's sphere, grown by the model's own radius. */
+  /**
+   * Carbon UpdateWorldBounds (EveSwarm.cpp:787-795): the squad box's sphere, grown by the model's own radius.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateWorldBounds()
@@ -777,12 +819,16 @@ export class EveSwarm extends EveShip2
     this._boundingSphereWorldRadius = vec4_0[3] + this.modelScale * this.boundingSphereRadius;
   }
 
-  /** Carbon EveSwarm::GetBoundingSphere (EveSwarm.cpp:801-808): sphere from
+  /**
+   * Carbon EveSwarm::GetBoundingSphere (EveSwarm.cpp:801-808): sphere from
    * the squad bounds box (BoundingSphereFromBox, Utilities/BoundingSphere.cpp:
    * 182-197 - center (min+max)/2, radius |min-max|/2), with the EveShip2
    * sphere's RADIUS added on top (the ship sphere's center is discarded).
    * Always returns true. Feeds EveSwarmRenderable.IsCastingShadow's
-   * squad-radius-at-the-fighter cull sphere. */
+   * squad-radius-at-the-fighter cull sphere.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(sphere, query = 0)
@@ -798,6 +844,8 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon UpdateModelCenterWorldPosition (EveSwarm.cpp:816-827): while swarming, steps the swarm to t and answers
    * the squad box's centre; otherwise the base.
+   *
+   * @implemented
    * @param {vec3} position - receives the world-space centre
    * @param {number} t - Blue ticks
    */
@@ -817,7 +865,11 @@ export class EveSwarm extends EveShip2
     }
   }
 
-  /** Carbon GetModelCenterWorldPosition (EveSwarm.cpp:833-843): the squad box's centre while swarming. */
+  /**
+   * Carbon GetModelCenterWorldPosition (EveSwarm.cpp:833-843): the squad box's centre while swarming.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetModelCenterWorldPosition(out)
@@ -837,6 +889,8 @@ export class EveSwarm extends EveShip2
    * Carbon GetLocalBoundingBox (EveSwarm.cpp:849-877): the mesh box, grown to its bounding sphere's cube and offset by
    * the squad bounds, relative to the ball while swarming. Carbon does not call the base, so turret bounds are not
    * included.
+   *
+   * @implemented
    * @param {vec3} min - receives the box minimum
    * @param {vec3} max - receives the box maximum
    * @returns {boolean} true
@@ -879,7 +933,11 @@ export class EveSwarm extends EveShip2
     return true;
   }
 
-  /** Carbon Initialize (EveSwarm.cpp:883-891): the base, then the persisted count of fighters is created. */
+  /**
+   * Carbon Initialize (EveSwarm.cpp:883-891): the base, then the persisted count of fighters is created.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -892,7 +950,11 @@ export class EveSwarm extends EveShip2
     return true;
   }
 
-  /** Carbon OnModified (EveSwarm.cpp:897-906): the base, then debugShowForces resizes the force record. */
+  /**
+   * Carbon OnModified (EveSwarm.cpp:897-906): the base, then debugShowForces resizes the force record.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(propertyName = null)
@@ -908,6 +970,8 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon AddSwarmer (EveSwarm.cpp:912-940): a new fighter on the shared mesh with its own decals, registered with
    * the component registry, and a vehicle at the ball's position.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -949,6 +1013,8 @@ export class EveSwarm extends EveShip2
    * vehicle one slot later than before.
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    * @returns {vec3} the removed vehicle's position
    */
   @be.mapMethodAndWrap()
@@ -994,6 +1060,8 @@ export class EveSwarm extends EveShip2
    * the count.
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    * @param {number} count
    */
   @be.mapMethodAndWrap()
@@ -1017,6 +1085,8 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon EnableSwarming (EveSwarm.cpp:1037-1052): without swarming the squad collapses to one neutral fighter that
    * behaves as a normal space object.
+   *
+   * @implemented
    * @param {boolean} enable
    */
   @be.mapMethodAndWrap()
@@ -1042,6 +1112,8 @@ export class EveSwarm extends EveShip2
    * Carbon PickFiringOrigin (EveSwarm.cpp:1058-1061): picks the fighter firing effects start from.
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -1052,6 +1124,8 @@ export class EveSwarm extends EveShip2
 
   /**
    * Carbon EnableSwarmForceDebug (EveSwarm.cpp:1067-1079): one force record per vehicle while enabled.
+   *
+   * @implemented
    * @param {boolean} enable
    */
   @meta.implemented
@@ -1076,6 +1150,8 @@ export class EveSwarm extends EveShip2
    * TARGET swarmer's - impacts land on the vehicle being shot, not on the
    * invisible aggregate hull. Row-vector renderableWorld * invWorld maps to
    * gl multiply(out, inverseWorldTransform, renderableWorld).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1100,7 +1176,7 @@ export class EveSwarm extends EveShip2
    *
    * Carbon bug, kept: in world space the locator's DIRECTION is transformed as a point (cpp:1116), not its position.
    *
-   * Adapted: arguments follow EveSpaceObject2's output-last order.
+   * @adapted arguments follow EveSpaceObject2's output-last order.
    * @param {number} index - damage locator index
    * @param {boolean} inWorldSpace
    * @param {vec3} out - receives the position
@@ -1154,7 +1230,7 @@ export class EveSwarm extends EveShip2
    * Carbon CalculateForces (EveSwarm.cpp:1142-1190): the sum of every behaviour's weighted force on vehicle i0.
    * Formation places vehicle 0 ahead and the rest in a V behind it, odd indices to one side, even to the other.
    *
-   * Adapted: the force is written to out, which is returned.
+   * @adapted the force is written to out, which is returned.
    * @returns {vec3} out
    */
   @meta.adapted
@@ -1229,7 +1305,7 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon Calculate_Cohesion (EveSwarm.cpp:1196-1199): the vector from p0 to p1.
    *
-   * Adapted: written to out, which is returned.
+   * @adapted written to out, which is returned.
    * @returns {vec3} out
    */
   @meta.adapted
@@ -1244,6 +1320,8 @@ export class EveSwarm extends EveShip2
    * strong; a random nudge when they coincide.
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    * @returns {vec3} out
    */
   @meta.adapted
@@ -1270,6 +1348,8 @@ export class EveSwarm extends EveShip2
    * the target itself when it is not moving).
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    * @returns {vec3} out
    */
   @meta.adapted

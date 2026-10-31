@@ -12,7 +12,11 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 @meta.carbon("Tr2RingVertexBuffer")
 export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
 {
-  /** Carbon Create (cpp:395-400). */
+  /**
+   * Carbon Create (cpp:395-400).
+   *
+   * @implemented
+   */
   @meta.implemented
   Create(bufferSize)
   {
@@ -22,7 +26,11 @@ export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
     return this.PrepareResources();
   }
 
-  /** Carbon CreateBuffer (cpp:411-421): a stride-1 WRITE_OFTEN vertex buffer. */
+  /**
+   * Carbon CreateBuffer (cpp:411-421): a stride-1 WRITE_OFTEN vertex buffer.
+   *
+   * @implemented
+   */
   @meta.implemented
   CreateBuffer(size)
   {

@@ -83,6 +83,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 
   /**
    * Updates the cached value for the supplied time.
+   *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -96,6 +98,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
   /**
    * Updates the cache and copies it into the caller-owned output.
    * JavaScript combines native time overloads with seconds first and output last.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -112,7 +116,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * Carbon's GetValueAt(double): samples into the caller-owned output without updating the cache
    * (Tr2QuaternionLerpCurve.cpp:62-80). The blend delta is the seconds time less TimeAsDouble(m_start), narrowed to
    * float, and both children sample at the seconds time.
-   * Adapted: the output is the last argument and is returned, rather than Carbon's leading pointer.
+   *
+   * @adapted the output is the last argument and is returned, rather than Carbon's leading pointer.
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -134,6 +139,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
   /**
    * Carbon's Update(Be::Time): samples through the Be::Time GetValueAt into the cache (Tr2QuaternionLerpCurve.cpp:21-28).
    * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -149,6 +156,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * Carbon's GetValueAt(Be::Time): the blend delta is TimeAsFloat(now - m_start), both in ticks, and both children
    * sample through their Be::Time overloads (cpp:41-59).
    * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   *
+   * @adapted
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -169,6 +178,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 
   /**
    * Retains the native no-op first derivative, leaving output unchanged.
+   *
+   * @adapted
    * @param {number} _time Unused time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
@@ -181,6 +192,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 
   /**
    * Retains the native no-op second derivative, leaving output unchanged.
+   *
+   * @adapted
    * @param {number} _time Unused time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
@@ -193,6 +206,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 
   /**
    * Gets the authored blend duration.
+   *
+   * @implemented
    * @returns {number} Duration in seconds.
    */
 

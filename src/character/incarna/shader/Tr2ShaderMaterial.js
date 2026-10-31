@@ -32,6 +32,8 @@ const libraryLoads = new WeakMap();
  * `Tr2MeshArea.effect`, which current Carbon declares as `Tr2EffectPtr`
  * (`trinity/trinity/Tr2MeshArea.h:77`); the Black reader assigns the class the
  * file names.
+ *
+ * @adapted
  */
 @meta.define("Tr2ShaderMaterial")
 @meta.adapted
@@ -68,10 +70,9 @@ export class Tr2ShaderMaterial extends IRoot
   /**
    * Always false: a material is drawn only as the Tr2Effect it becomes.
    *
-   * Adapted: the batch path asks an area's effect `IsGood()` before drawing it.
-   * Answering false makes an area that still holds this material, such as one
-   * read without initializing, skip cleanly instead of failing mid-render.
-   *
+   * @adapted the batch path asks an area's effect `IsGood()` before drawing it.
+   *   Answering false makes an area that still holds this material, such as one
+   *   read without initializing, skip cleanly instead of failing mid-render.
    * @returns {boolean} false.
    */
   @meta.adapted
@@ -93,6 +94,7 @@ export class Tr2ShaderMaterial extends IRoot
    * (`trinity/trinity/Resources/Tr2EffectRes.cpp:232-234`), and that row is
    * what the effect draws.
    *
+   * @implemented
    * @returns {Tr2Effect} The effect, its path still unset.
    */
   @meta.implemented
@@ -117,13 +119,12 @@ export class Tr2ShaderMaterial extends IRoot
    * `compiledEffectPath` gives the compiled container. The name alone is not
    * enough, since IncarnaSimple_Shadow's source is IncarnaDetailed_Shadow.fx.
    *
-   * Adapted: the library loads asynchronously. Once `loadShaderLibrary` has
-   * loaded it for the resource manager, the path is set before this returns, so
-   * `CreateEffect` gives an effect that has it; until then the path arrives
-   * after the effect exists. A library that fails to load, or a shader it
-   * lacks, leaves the effect without a path; it never draws, and the failure is
-   * logged.
-   *
+   * @adapted the library loads asynchronously. Once `loadShaderLibrary` has
+   *   loaded it for the resource manager, the path is set before this returns, so
+   *   `CreateEffect` gives an effect that has it; until then the path arrives
+   *   after the effect exists. A library that fails to load, or a shader it
+   *   lacks, leaves the effect without a path; it never draws, and the failure is
+   *   logged.
    * @param {Tr2Effect} effect The effect from `CreateEffect`.
    * @returns {Promise<void>} Settles once the path is set or the failure logged.
    */
@@ -161,6 +162,7 @@ export class Tr2ShaderMaterial extends IRoot
    * in `graphics/shaders/visualizers/`. The dx11 container is named because a
    * translation made in memory keeps its source path (operator, 2026-10-25).
    *
+   * @implemented
    * @param {string} shaderPath A Tr2HighLevelShader's `shaderPath`.
    * @returns {string} The compiled container's path.
    */
@@ -178,6 +180,7 @@ export class Tr2ShaderMaterial extends IRoot
    * that needs loaded statics to hold their effects' paths awaits this first.
    * A failed load is not kept, so a later call tries again.
    *
+   * @implemented
    * @param {object} resourceManager The `CjsBlueResMan` to load through.
    * @returns {Promise<Tr2ShaderManager>} The library.
    * @throws {TypeError} When the file is not a Tr2ShaderManager.

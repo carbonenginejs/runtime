@@ -6,7 +6,11 @@ import { meta } from "#schema";
 export class CjsEveChildResourceLoader
 {
 
-  /** Resolves one child resource path for its owning graph object. */
+  /**
+   * Resolves one child resource path for its owning graph object.
+   *
+   * @abstract
+   */
   @meta.abstract
   LoadChild(_resourcePath, _owner) {}
 

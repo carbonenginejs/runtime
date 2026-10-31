@@ -209,6 +209,8 @@ export class Tr2GpuSharedEmitter extends IRoot
 
   /**
    * Hashes the native parameter bytes and selects the shared parameter ID.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -224,8 +226,8 @@ export class Tr2GpuSharedEmitter extends IRoot
    * Carbon OnModified (Tr2GpuSharedEmitter.cpp:41-46): rehashes the parameters
    * and regenerates the shared ID.
    *
-   * Adapted: the Blue members are separate JS fields, so they are first copied
-   * into the packed parameter block Carbon maps them onto directly.
+   * @adapted the Blue members are separate JS fields, so they are first copied
+   *   into the packed parameter block Carbon maps them onto directly.
    */
 
   @meta.adapted
@@ -240,6 +242,8 @@ export class Tr2GpuSharedEmitter extends IRoot
   /**
    * Turns emission on or off; disabling also clears the spawn-time cursor so
    * re-enabling restarts timing instead of catching up on the idle interval.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -249,7 +253,12 @@ export class Tr2GpuSharedEmitter extends IRoot
     if (!this._enabled) this._previousTime = -1;
   }
 
-  /** Reports whether this emitter is currently emitting. */
+  /**
+   * Reports whether this emitter is currently emitting.
+   *
+   * @cjs
+   * @adapted
+   */
 
   @meta.cjs
     @meta.adapted
@@ -258,7 +267,11 @@ export class Tr2GpuSharedEmitter extends IRoot
     return this._enabled;
   }
 
-  /** Sets the emission cone axis in place, treating a missing value as zero. */
+  /**
+   * Sets the emission cone axis in place, treating a missing value as zero.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetDirection(value)
@@ -266,7 +279,11 @@ export class Tr2GpuSharedEmitter extends IRoot
     vec3.copy(this.direction, value || Tr2GpuSharedEmitter._zero3);
   }
 
-  /** Sets the emitter origin in place, treating a missing value as zero. */
+  /**
+   * Sets the emitter origin in place, treating a missing value as zero.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetPosition(value)
@@ -277,7 +294,8 @@ export class Tr2GpuSharedEmitter extends IRoot
   /**
    * Advances the emitter's clock and motion history (cpp:110-147); the frame
    * delta is TimeAsFloat of the Be::Time tick difference.
-   * Adapted: authored schema fields are projected onto the native structs at entry.
+   *
+   * @adapted authored schema fields are projected onto the native structs at entry.
    */
 
   @meta.adapted
@@ -327,6 +345,8 @@ export class Tr2GpuSharedEmitter extends IRoot
    * Carbon's point SpawnParticles overload (cpp:149-162); the start/end
    * overload is SpawnParticles__StartEnd. A reusable value copy preserves the
    * continuous emitter's direction history.
+   *
+   * @adapted
    */
   @meta.adapted
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
@@ -339,6 +359,8 @@ export class Tr2GpuSharedEmitter extends IRoot
    * Emits along a segment (Tr2GpuSharedEmitter.cpp:165-191). The distinct name
    * also exposes Carbon's second overload explicitly for existing JS callers.
    * Formerly SpawnParticlesSegment.
+   *
+   * @adapted
    */
   @meta.adapted
   SpawnParticles__StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
@@ -386,7 +408,11 @@ export class Tr2GpuSharedEmitter extends IRoot
       startVelocity, endVelocity, this._carryOver, Math.min(deltaTime, MAXIMUM_FRAME_TIME));
   }
 
-  /** Carbon's protected SpawnParticles overload, with a distinct JS name. */
+  /**
+   * Carbon's protected SpawnParticles overload, with a distinct JS name.
+   *
+   * @adapted
+   */
   @meta.adapted
   _SpawnParticles(emitter, arguments_, positionStart, positionEnd, velocityStart, velocityEnd, carryOverCount, deltaTime)
   {
@@ -412,6 +438,8 @@ export class Tr2GpuSharedEmitter extends IRoot
   /**
    * Emits one scaled burst (cpp:236-276). Reusable scratch replaces native
    * stack value copies; the supplied velocity is already in world coordinates.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -446,7 +474,11 @@ export class Tr2GpuSharedEmitter extends IRoot
     arguments_.system.Emit(emitter, id, hash, params);
   }
 
-  /** Selects the parameter-sharing ID from the current native-byte hash. */
+  /**
+   * Selects the parameter-sharing ID from the current native-byte hash.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GenerateID()
@@ -458,6 +490,8 @@ export class Tr2GpuSharedEmitter extends IRoot
    * Carbon's 64-bit-host mask, including its byte-count shift quirk:
    * cpp:74 uses sizeof(uintptr_t)-1, so the cleared bit is 7, not 63.
    * JS hashes are uint32; the unused high native bits are zero.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -466,7 +500,11 @@ export class Tr2GpuSharedEmitter extends IRoot
     return (hash & ~128) >>> 0;
   }
 
-  /** Hashes the current CPU parameters without changing the stable ID. */
+  /**
+   * Hashes the current CPU parameters without changing the stable ID.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateHash()
@@ -479,6 +517,8 @@ export class Tr2GpuSharedEmitter extends IRoot
    * little-endian bytes before Carbon's signed-byte FNV-1. JavaScript has no
    * native struct memory to hash; integer fields retain their uint32 bit patterns.
    * All bytes in the module scratch buffer are overwritten before each hash.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -551,6 +591,8 @@ export class Tr2GpuSharedEmitter extends IRoot
 
   /**
    * Projects Carbon's emitter and particle-parameter structs onto the schema-backed fields in one event-free write, then copies native runtime structs and hashes them once.
+   *
+   * @adapted
    * @param {object} emitterData emission shape and speed range; missing members fall back to the current values
    * @param {object} paramsData per-particle parameters; colors may be supplied either as a colors array or as color0..color3
    * attractorStrength is only forwarded on subclasses that declare it.
@@ -613,7 +655,11 @@ export class Tr2GpuSharedEmitter extends IRoot
     this.GenerateID();
   }
 
-  /** Carbon's GPU emitter thread-safety hook is intentionally empty. */
+  /**
+   * Carbon's GPU emitter thread-safety hook is intentionally empty.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   SetThreadSafeFlag()

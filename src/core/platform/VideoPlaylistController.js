@@ -69,7 +69,11 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
   /** Decoding and GPU realization are shared even when the manager sees different query strings. */
   IsCacheable() { return true; }
 
-  /** Return the shared opaque-black placeholder and start playback once, when configured by the host. */
+  /**
+   * Return the shared opaque-black placeholder and start playback once, when configured by the host.
+   *
+   * @adapted
+   */
   GetResource(_query)
   {
     if (this._texture) return this._texture;
@@ -179,6 +183,8 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
    * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
+   * @adapted
    */
   Destruct()
   {

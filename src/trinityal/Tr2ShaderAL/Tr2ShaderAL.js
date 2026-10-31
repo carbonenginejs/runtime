@@ -92,10 +92,9 @@ export class Tr2ShaderAL
    * implementation replaces this value's; a failure leaves it on the null
    * implementation.
    *
-   * Adapted: the render context allocates the implementation instead of a
-   * compile-time platform include. The previous share is released explicitly
-   * because JavaScript has no shared_ptr; existing copies keep it alive.
-   *
+   * @adapted the render context allocates the implementation instead of a
+   *   compile-time platform include. The previous share is released explicitly
+   *   because JavaScript has no shared_ptr; existing copies keep it alive.
    * @param {number} shaderType A `ShaderType`.
    * @param {ArrayBufferView|string} bytecode The stage's bytecode.
    * @param {object|null} signature The reflected signature.
@@ -118,6 +117,7 @@ export class Tr2ShaderAL
   /**
    * Whether the implementation is usable (`Tr2ShaderAL.cpp:158-161`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -129,6 +129,7 @@ export class Tr2ShaderAL
   /**
    * The pipeline stage (`Tr2ShaderAL.cpp:163-166`).
    *
+   * @implemented
    * @returns {number} A `ShaderType`; `INVALID_SHADER` when uncreated.
    */
   @meta.implemented
@@ -140,9 +141,8 @@ export class Tr2ShaderAL
   /**
    * The stored bytecode (`Tr2ShaderAL.cpp:168-171`).
    *
-   * Adapted: Carbon's `Tr2ShaderBytecodeAL&` output becomes the returned
-   * `bytecode`.
-   *
+   * @adapted Carbon's `Tr2ShaderBytecodeAL&` output becomes the returned
+   *   `bytecode`.
    * @returns {{result: number, bytecode: ArrayBufferView|null}} The bytecode.
    */
   @meta.adapted
@@ -154,6 +154,7 @@ export class Tr2ShaderAL
   /**
    * The signature given at creation (`Tr2ShaderAL.cpp:173-176`).
    *
+   * @implemented
    * @returns {object|null} The signature.
    */
   @meta.implemented
@@ -165,8 +166,8 @@ export class Tr2ShaderAL
   /**
    * Compares implementation identity (`Tr2ShaderAL.cpp:178-181`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2ShaderAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -179,8 +180,8 @@ export class Tr2ShaderAL
   /**
    * Compares implementation identity, negated (`Tr2ShaderAL.cpp:183-186`).
    *
-   * Adapted: JavaScript has no overloadable inequality operator.
-   *
+   * @adapted JavaScript has no overloadable inequality operator.
+   * @renamed operator!=
    * @param {Tr2ShaderAL} other The value to compare.
    * @returns {boolean} Whether the two hold different implementations.
    */
@@ -194,6 +195,7 @@ export class Tr2ShaderAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2ShaderAL.cpp:188-199`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
@@ -209,6 +211,7 @@ export class Tr2ShaderAL
    * The shared backend implementation (`Tr2ShaderAL.cpp:201-204`); the null
    * implementation when uncreated, as Carbon returns `NullShader().get()`.
    *
+   * @implemented
    * @returns {object} The implementation.
    */
   @meta.implemented

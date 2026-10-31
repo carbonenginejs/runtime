@@ -27,7 +27,11 @@ export class Tr2Sprite2dDisplayListEntry
   uiTransformsCb = null;
   _transposedTransforms = new Float32Array(32 * 16); // alloc: per-instance packed matrix palette, not a vector
 
-  /** Native transpose/upload/draw; typed arrays replace the native stack matrix array. */
+  /**
+   * Native transpose/upload/draw; typed arrays replace the native stack matrix array.
+   *
+   * @adapted
+   */
   @meta.adapted
   SubmitGeometry(context)
   {

@@ -148,6 +148,9 @@ export class EveBoosterSet2Renderable
   /**
    * Binds this instance to the booster set whose booster records, colours
    * and light data it draws.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -161,6 +164,8 @@ export class EveBoosterSet2Renderable
    * acceleration along its backward axis, each low-pass filtered against the
    * previous frame and the result clamped to 2; an always-on set returns its
    * authored intensity instead.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -194,6 +199,8 @@ export class EveBoosterSet2Renderable
    * Takes the parent transform, speed and rotation for the frame - deriving
    * speed from the transform delta when the set is not destiny-driven - and
    * recomputes the overall intensity, which it returns.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -229,6 +236,8 @@ export class EveBoosterSet2Renderable
    * intensity, fading in above the minimum length and back out approaching the
    * maximum, with nothing drawn outside that band; an always-on set is pinned to
    * full intensity.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -281,6 +290,9 @@ export class EveBoosterSet2Renderable
    * A freshly allocated snapshot of the trail spline: control positions carrying
    * their normalized segment lengths, control normals carrying their length
    * factors, plus total length, intensity and world bounds.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -306,7 +318,11 @@ export class EveBoosterSet2Renderable
     };
   }
 
-  /** The overall booster intensity computed by the last Update. */
+  /**
+   * The overall booster intensity computed by the last Update.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetIntensity()
@@ -314,8 +330,12 @@ export class EveBoosterSet2Renderable
     return this.overallIntensity;
   }
 
-  /** Carbon EveBoosterSet2Renderable::HasTransparentBatches is always false
-   * (additive batches only, via the instanced geometry provider). */
+  /**
+   * Carbon EveBoosterSet2Renderable::HasTransparentBatches is always false
+   * (additive batches only, via the instanced geometry provider).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -323,7 +343,11 @@ export class EveBoosterSet2Renderable
     return false;
   }
 
-  /** Carbon EveBoosterSet2Renderable::GetSortValue is the constant one. */
+  /**
+   * Carbon EveBoosterSet2Renderable::GetSortValue is the constant one.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -336,6 +360,8 @@ export class EveBoosterSet2Renderable
    * EveBoosterSet2.cpp:174-240): additive only; the set's box or star on
    * stream 0, its instance buffer on stream 1, the shared quad-list index
    * buffer, 3 * 2 * planes indices per booster instance.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -402,13 +428,17 @@ export class EveBoosterSet2Renderable
   /** EVE_BOOSTER_PLANES_COUNT (EveBoosterSet2.cpp:27), indexed by EveBoosterSet2.Shape. */
   static _planesCount = [ 4, 6 ];
 
-  /** Carbon EveBoosterSet2Renderable::GetPerObjectData (cpp:260-289): the
+  /**
+   * Carbon EveBoosterSet2Renderable::GetPerObjectData (cpp:260-289): the
    * EveBoosterSetPerObjectData composite - a VertexShaderData + PixelShaderData
    * pair uploaded as TWO constant buffers (cpp:1325-1329). Here that is two
    * Allocs returned as a { vs, ps } record. Set(MATRIX) performs Carbon's
    * `Transpose(m_parentTransform)`; both 5-slot trail arrays are fully
    * written, exactly as Carbon's loop. The padding scalars are never written
-   * (Carbon leaves them uninitialized). */
+   * (Carbon leaves them uninitialized).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPerObjectData(accumulator)
@@ -441,7 +471,8 @@ export class EveBoosterSet2Renderable
     return { vs, ps };
   }
 
-  /** Carbon EveBoosterSet2Renderable::UpdateVisibility (cpp:307-337). Three
+  /**
+   * Carbon EveBoosterSet2Renderable::UpdateVisibility (cpp:307-337). Three
    * independent gates, all off the SAME bounding-sphere radius:
    * - boosters: `2 * pixelSize(sphere)`; HIGH lod above `medium * 1.5`, drawn at
    *   all above `low`. `boosterHighLod` picks the effect at batch time
@@ -454,7 +485,10 @@ export class EveBoosterSet2Renderable
    *
    * The sphere is passed as a packed vec4, which is Carbon's `Vector4*` overload
    * and therefore the DEPTH pixel-size formula, not the Est one.
-   * No lodFactor is applied anywhere here; Carbon does not apply one either. */
+   * No lodFactor is applied anywhere here; Carbon does not apply one either.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext)
@@ -502,8 +536,12 @@ export class EveBoosterSet2Renderable
     return this.isVisible;
   }
 
-  /** Carbon EveBoosterSet2Renderable::GetRenderables (cpp:349-356): submits
-   * itself only when UpdateVisibility left it visible. */
+  /**
+   * Carbon EveBoosterSet2Renderable::GetRenderables (cpp:349-356): submits
+   * itself only when UpdateVisibility left it visible.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRenderables(out)
@@ -521,8 +559,9 @@ export class EveBoosterSet2Renderable
    * booster light position by it (cpp:1305/1314). Returns the live buffer;
    * read-only by convention.
    *
-   * Adapted: Exposes the stored parent transform through an accessor where Carbon reads the
-   * member directly.
+   * @cjs
+   * @adapted Exposes the stored parent transform through an accessor where Carbon reads the
+   *   member directly.
    */
   @meta.cjs
     @meta.adapted
@@ -531,14 +570,18 @@ export class EveBoosterSet2Renderable
     return this._parentTransform;
   }
 
-  /** Carbon EveBoosterSet2Renderable::GetBoundingSphere (cpp:295-303): the
+  /**
+   * Carbon EveBoosterSet2Renderable::GetBoundingSphere (cpp:295-303): the
    * authored sphere pushed back half a radius to cover the exhaust glow, its
    * centre transformed into world space, and its radius DOUBLED. The radius is
    * set outright rather than run through sph3.transformMat4, because Carbon
    * transforms only the centre (TransformCoord) and never scales w.
    *
    * `out` is required, as in Carbon (`Vector4&`) - this is called per frame and
-   * must not allocate. */
+   * must not allocate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoundingSphere(out)

@@ -105,6 +105,7 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
    * `(d.y, -d.x)`. TR2_SFX_FILL_AA widens each half width by 2 and stores the anti-aliasing
    * parameters in the second texture coordinate.
    *
+   * @implemented
    * @param {Tr2Sprite2dScene} renderer Scene gathering this line.
    * @returns {void}
    */
@@ -196,6 +197,7 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
    * Carbon Tr2Sprite2dLine::PickPoint (Tr2Sprite2dLine.cpp:159-163) is an unimplemented
    * `// TODO` that returns NULL, so a line is never picked.
    *
+   * @implemented
    * @param {number} _x Screen x.
    * @param {number} _y Screen y.
    * @param {Tr2Sprite2dScene} _renderer Scene supplying the active transform.
@@ -211,6 +213,7 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
   /**
    * Carbon Tr2Sprite2dLine::GetVertexCount (Tr2Sprite2dLine.cpp:165-168).
    *
+   * @implemented
    * @returns {number} 4.
    */
   @meta.implemented

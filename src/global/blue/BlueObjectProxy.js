@@ -111,6 +111,8 @@ export class BlueObjectProxy extends IBlueObjectProxy
    * `OnObjectInvalidated` - tells the builder the held object is about to
    * change (cpp:22-28). Protected in Carbon.
    *
+   * @implemented
+   * @renamed OnObjectInvalidated
    * @returns {void}
    */
   _OnObjectInvalidated()
@@ -125,6 +127,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
    * `SetBuilder` - who builds the object, and its marker (cpp:30-36). The
    * previous builder is told first.
    *
+   * @implemented
    * @param {import("./IBlueObjectBuilder.js").IBlueObjectBuilder|null} builder The builder.
    * @param {number} objectMarker Marker passed back to the builder.
    * @returns {void}
@@ -141,6 +144,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
    * `GetObject` - reloads an unloaded object, asks the builder for a missing
    * one, and stamps the real time of use (cpp:38-60).
    *
+   * @implemented
    * @returns {object|null} The object, or null when there is none and no builder.
    */
   GetObject()
@@ -165,6 +169,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
   /**
    * `ClearObject` - drops the object, telling the builder (cpp:62-66).
    *
+   * @implemented
    * @returns {void}
    */
   ClearObject()
@@ -178,6 +183,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
    * longer than `timeout` (cpp:68-104). Nothing happens without an object, a
    * timeout or a builder to make it again.
    *
+   * @implemented
    * @param {number} _time Simulation time in Blue ticks; unused, as in Carbon.
    * @param {number} timeout Disuse period in Blue ticks; zero never unloads.
    * @returns {boolean} True when this call unloaded the object.
@@ -218,6 +224,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
    * `IsResident` - whether an object is held (cpp:106-109). An unloaded
    * IUnloadable object is still held.
    *
+   * @implemented
    * @returns {boolean} True while an object is held.
    */
   IsResident()
@@ -228,6 +235,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
   /**
    * `SetTemporary` (cpp:111-114).
    *
+   * @implemented
    * @param {boolean} isTemporary Whether the held object is a placeholder.
    * @returns {void}
    */
@@ -239,6 +247,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
   /**
    * `IsTemporary` (cpp:116-119).
    *
+   * @implemented
    * @returns {boolean} Whether the held object is a placeholder.
    */
   IsTemporary()
@@ -250,6 +259,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
    * `OnSelected` - tells the builder its object is the active level of
    * detail (cpp:121-127).
    *
+   * @implemented
    * @returns {void}
    */
   OnSelected()
@@ -263,6 +273,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
   /**
    * `SetObject` - holds this object and lets go of the builder (cpp:129-134).
    *
+   * @implemented
    * @param {object|null} obj The object.
    * @returns {void}
    */
@@ -277,6 +288,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
    * `SetObjectFromBuilder` - replaces the object without notifying the builder
    * or letting go of it (cpp:136-139).
    *
+   * @implemented
    * @param {object|null} obj The object.
    * @returns {void}
    */
@@ -289,6 +301,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
    * `Freeze` - builds the object if missing, then lets go of the builder so it
    * is never unloaded (cpp:141-150).
    *
+   * @implemented
    * @returns {void}
    */
   Freeze()

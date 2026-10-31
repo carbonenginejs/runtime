@@ -55,6 +55,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
   /**
    * Plays the configured curve set on a curve-set-owning controller owner and optionally tracks its range iterations
    * (`Tr2ActionPlayCurveSet.cpp:21-36`). The start time is Blue's per-frame time in ticks, as Carbon's BeOS clock is.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -78,6 +80,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 
   /**
    * Unregisters updates and stops the configured curve set on a curve-set-owning owner (`Tr2ActionPlayCurveSet.cpp:38-45`).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -93,6 +97,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 
   /**
    * Rebases the sync-to-range time cursor.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -107,6 +113,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * Iteration conversion truncates toward zero, including before the start time
    * (`Tr2ActionPlayCurveSet.cpp:53-67`). Blue's frame time is held for the whole
    * frame, so a probe in the frame the action started returns true.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -129,6 +137,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
   /**
    * Records the frame clock for synced transitions, ignoring the update arguments
    * (`Tr2ActionPlayCurveSet.cpp:69-72`).
+   *
+   * @implemented
    */
 
   @meta.implemented

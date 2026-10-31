@@ -17,6 +17,7 @@ export class ISimTimeRebaseNotify
   /**
    * `OnSimClockRebase` - the simulation clock moved from one value to another.
    *
+   * @abstract
    * @param {number} _oldTime The simulation time before the move, in 100ns ticks.
    * @param {number} _newTime The simulation time after it.
    */

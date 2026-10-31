@@ -77,7 +77,12 @@ export class TriTextureRes extends BlueAsyncRes
     ctr: "declared by Carbon, not routed here: dynamic constructors supply LoadPipeline's object"
   };
 
-  /** Our asynchronous ImageIO decode bridge uses Carbon's BeCallbackMan worker owner. */
+  /**
+   * Our asynchronous ImageIO decode bridge uses Carbon's BeCallbackMan worker owner.
+   *
+   * @cjs
+   * @adapted
+   */
   @meta.cjs
   @meta.adapted
   static async _decodeImageBitmap(Format, bytes, context)
@@ -100,8 +105,10 @@ export class TriTextureRes extends BlueAsyncRes
 
   /**
    * Carbon: Tr2ImageRes::DoLoad (trinity/trinity/Resources/Tr2ImageRes.cpp:39-52).
-   * Adapted: PNG/VTA and worker decoding may await; finish the bitmap in LOADING
-   * before synchronous publication. Shared by textures, raw images and light profiles.
+   *
+   * @cjs
+   * @adapted PNG/VTA and worker decoding may await; finish the bitmap in LOADING
+   *   before synchronous publication. Shared by textures, raw images and light profiles.
    * @param {Uint8Array|ArrayBuffer} bytes Image bytes.
    * @param {object} context Resource manager's load context.
    * @param {object} [compression] Optional backend compression policy.
@@ -161,7 +168,12 @@ export class TriTextureRes extends BlueAsyncRes
     return bitmap;
   }
 
-  /** Our worker-format membership check keeps non-worker ImageIO handlers local. */
+  /**
+   * Our worker-format membership check keeps non-worker ImageIO handlers local.
+   *
+   * @cjs
+   * @implemented
+   */
   @meta.cjs
   @meta.implemented
   static _isDecodedImage(Format)
@@ -173,6 +185,9 @@ export class TriTextureRes extends BlueAsyncRes
    * Optional load extension; complete output and diagnostics publish together.
    * A compression, or a failed one, is also logged on trinity's Main channel,
    * where texture loading logs (a skip is only recorded in the diagnostic).
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
   @meta.adapted
@@ -248,6 +263,8 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Carbon Initialize (TriTextureRes.cpp:223-236): procedural colors are built
    * directly; other paths use BlueAsyncRes. GPU creation is deferred in JS.
+   *
+   * @adapted
    * @param {string} path Resource path.
    * @param {string} [ext=""] Native factory suffix.
    * @returns {TriTextureRes} This resource.
@@ -272,6 +289,9 @@ export class TriTextureRes extends BlueAsyncRes
 
   /**
    * Carbon procedural rasterization, with deferred browser GPU allocation.
+   *
+   * @cjs
+   * @implemented
    * @param {(path: string) => HostBitmap|null} rasterize Existing procedural path decoder.
    * @returns {void}
    */
@@ -317,10 +337,10 @@ export class TriTextureRes extends BlueAsyncRes
    * The live texture, or null while there is none - Carbon returns nullptr
    * until the load finishes and the parameter substitutes the fallback
    * (`TriTextureRes.cpp:394-405`).
-   * Adapted: obtaining the live texture renews the JS cache lease. Carbon's
-   * caller holds a reference-counted resource; our time-based cache needs this
-   * use signal, including when a runtime parameter skips repeated realization.
    *
+   * @adapted obtaining the live texture renews the JS cache lease. Carbon's
+   *   caller holds a reference-counted resource; our time-based cache needs this
+   *   use signal, including when a runtime parameter skips repeated realization.
    * @returns {object|null} A `Tr2TextureAL`.
    */
   GetTexture() {
@@ -340,10 +360,9 @@ export class TriTextureRes extends BlueAsyncRes
    *
    * Fires m_onTextureChange every time, as Carbon does (`:1175`, `:1194`).
    *
-   * Adapted: Carbon also copies the texture's dimensions onto the resource and sets
-   * prepared/good; the payload already carries the dimensions here, and the resource
-   * manager owns the state.
-   *
+   * @adapted Carbon also copies the texture's dimensions onto the resource and sets
+   *   prepared/good; the payload already carries the dimensions here, and the resource
+   *   manager owns the state.
    * @param {object|null} texture A `Tr2TextureAL`, or null to drop it.
    * @returns {TriTextureRes} This resource.
    */
@@ -358,6 +377,7 @@ export class TriTextureRes extends BlueAsyncRes
    * the texture changes. Listeners register an owner and an unbound method;
    * the event holds owners weakly.
    *
+   * @implemented
    * @returns {Tr2Event} m_onTextureChange.
    */
   OnTextureChange() {
@@ -368,6 +388,8 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Carbon's pipeline completion, adapted to await browser inputs. Preserve the
    * native quirk: a failed Execute still prepares a good, empty texture.
+   *
+   * @adapted
    * @param {Tr2TexturePipeline} pipeline Recipe supplied by a dynamic constructor.
    * @param {CjsBlueResMan} resourceManager Global manager used by existing callers.
    * @param {string} [ex="raw"] Input image factory suffix.
@@ -419,6 +441,9 @@ export class TriTextureRes extends BlueAsyncRes
 
   /**
    * Adopt ImageIO cutout metadata read by Carbon's DoPrepare.
+   *
+   * @cjs
+   * @implemented
    * @param {object|null} cutout Decoded ImageIO cutout metadata.
    */
   SetCutout(cutout)
@@ -450,6 +475,7 @@ export class TriTextureRes extends BlueAsyncRes
    * `ITriTextureRes::IsValid`, which Carbon's TriTextureRes answers with
    * `IsGood()` (`TriTextureRes.h:65-68`).
    *
+   * @implemented
    * @returns {boolean} Whether the resource loaded.
    */
   IsValid() {
@@ -460,6 +486,7 @@ export class TriTextureRes extends BlueAsyncRes
    * `ITriTextureRes::GetWidth`. Carbon's resource IS its Tr2BitmapDimensions
    * (`TriTextureRes.h:46-49`); ours keeps them on the loaded bitmap.
    *
+   * @adapted
    * @returns {number} Width of mip zero, or 0 before load.
    */
   GetWidth() {
@@ -469,6 +496,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * `ITriTextureRes::GetHeight` (`TriTextureRes.h:50-53`).
    *
+   * @adapted
    * @returns {number} Height of mip zero, or 0 before load.
    */
   GetHeight() {
@@ -478,6 +506,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * `ITriTextureRes::GetMipLevelCount` (`TriTextureRes.h:54-57`).
    *
+   * @adapted
    * @returns {number} Mip count, or 0 before load.
    */
   GetMipLevelCount() {
@@ -487,6 +516,8 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Carbon CreateFromHostBitmap (TriTextureRes.cpp:960-978). Browser GPU creation
    * is deferred until bind; the resource owns the bitmap and native ready flags.
+   *
+   * @adapted
    * @param {HostBitmap|null} bitmap Decoded image.
    * @returns {boolean} Whether a valid bitmap was adopted.
    */
@@ -521,6 +552,8 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Carbon DoLoad (TriTextureRes.cpp:583-641). Browser image decoding may await
    * a worker; the manager rejects cancelled attempts before adoption.
+   *
+   * @adapted
    * @returns {Promise<number>} Native LoadingResult.
    */
   async _DoLoad()
@@ -535,6 +568,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return the number of mip levels known to this texture resource.
    *
+   * @adapted
    * @returns {number}
    */
   GetMipCount() {
@@ -546,6 +580,7 @@ export class TriTextureRes extends BlueAsyncRes
    * video source (`TriTextureRes.h:61-64`, `m_averageColor`). Banners, planes,
    * screens and textured lights take their light colour from it.
    *
+   * @implemented
    * @returns {number[]} `[r, g, b, a]`, zero until something sets it.
    */
   GetAverageColor() {
@@ -555,6 +590,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return the multisample type for this texture.
    *
+   * @implemented
    * @returns {number}
    */
   GetMsaaType() {
@@ -566,6 +602,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return the multisample quality for this texture.
    *
+   * @implemented
    * @returns {number}
    */
   GetMsaaQuality() {
@@ -577,6 +614,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return true if this texture has received LOD requests.
    *
+   * @adapted
    * @returns {boolean}
    */
   HadLodRequests() {
@@ -610,6 +648,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return the shader-resource-view heap index when a backend owns one.
    *
+   * @notSupported
    * @returns {number}
    */
   GetSrvIndexInHeap() {
@@ -619,6 +658,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Save this texture asynchronously.
    *
+   * @notSupported
    * @param {string} path
    * @returns {boolean}
    */
@@ -633,6 +673,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Save this texture synchronously.
    *
+   * @notSupported
    * @param {string} path
    * @returns {boolean}
    */
@@ -647,6 +688,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return true if an asynchronous save is active.
    *
+   * @adapted
    * @returns {boolean}
    */
   IsSaving() {
@@ -656,6 +698,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return true if the asynchronous save operation has completed.
    *
+   * @adapted
    * @returns {boolean}
    */
   IsSaveCompleted() {
@@ -665,6 +708,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return true if the asynchronous save operation succeeded.
    *
+   * @adapted
    * @returns {boolean}
    */
   IsSaveSucceeded() {
@@ -674,6 +718,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Wait for an asynchronous save operation.
    *
+   * @adapted
    * @returns {boolean}
    */
   WaitForSave() {
@@ -683,6 +728,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Device texture allocation belongs to engine-gpu.
    *
+   * @notSupported
    * @throws {Error}
    */
   CreateEmptyTexture() {
@@ -697,13 +743,12 @@ export class TriTextureRes extends BlueAsyncRes
    * TriTextureRes.h:79). Exposed as "SetFromRenderTarget"
    * (TriTextureRes_Blue.cpp:253-258, MAP_METHOD_AND_WRAP).
    *
-   * Adapted: Carbon holds the render target in a counted pointer and registers
-   * `OnWrappedRenderTargetChanged` on its event; the event holds the owner
-   * weakly here, and the resource holds the render target in
-   * `wrappedRenderTarget`. The own texture is dropped through
-   * `_DestroyOwnTexture`, which does not yet notify the texture LOD manager
-   * (`lodEnabled` is never set here, so the case cannot arise).
-   *
+   * @adapted Carbon holds the render target in a counted pointer and registers
+   *   `OnWrappedRenderTargetChanged` on its event; the event holds the owner
+   *   weakly here, and the resource holds the render target in
+   *   `wrappedRenderTarget`. The own texture is dropped through
+   *   `_DestroyOwnTexture`, which does not yet notify the texture LOD manager
+   *   (`lodEnabled` is never set here, so the case cannot arise).
    * @param {Tr2RenderTarget|null} renderTarget The render target to view, or null to unwrap.
    * @returns {boolean} Always true, as Carbon returns.
    */
@@ -741,6 +786,8 @@ export class TriTextureRes extends BlueAsyncRes
    * (`GpuTextureDestroyed`, `CpuTextureDestroyed`, cpp:1226-1239), which are not
    * ported, so that case throws. Adapted: an explicit Destroy replaces the
    * owned value's C++ destructor.
+   *
+   * @notImplemented
    */
   _DestroyOwnTexture() {
     if (this.lodEnabled)
@@ -753,7 +800,11 @@ export class TriTextureRes extends BlueAsyncRes
     this.SetTexture(null);
   }
 
-  /** OnWrappedRenderTargetChanged (cpp:1266-1269): the wrapped render target's texture changed, so this one's did. */
+  /**
+   * OnWrappedRenderTargetChanged (cpp:1266-1269): the wrapped render target's texture changed, so this one's did.
+   *
+   * @implemented
+   */
   _OnWrappedRenderTargetChanged() {
     this._onTextureChange.Broadcast();
   }
@@ -761,6 +812,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Create a texture copy from a render target.
    *
+   * @notSupported
    * @throws {Error}
    */
   CreateAndCopyFromRenderTarget() {
@@ -770,6 +822,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Create this texture from another texture resource.
    *
+   * @notSupported
    * @throws {Error}
    */
   CreateFromTexture() {
@@ -779,6 +832,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return true if this texture owns a backend allocation object.
    *
+   * @adapted
    * @param {string|number} type
    * @param {string|number} object
    * @returns {boolean}
@@ -790,6 +844,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return an engine-owned texture pipeline object when attached.
    *
+   * @adapted
    * @returns {*}
    */
   GetPipeline() {
@@ -799,6 +854,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Return memory size for the original non-LODed texture.
    *
+   * @adapted
    * @returns {number}
    */
   GetOriginalMemoryUsage() {
@@ -810,6 +866,7 @@ export class TriTextureRes extends BlueAsyncRes
    * `SetAverageColor` (`TriTextureRes.cpp:862-865`), also the hook a video
    * source pushes each frame's average through (`VideoPlayer.cpp:179`).
    *
+   * @adapted
    * @param {number} red
    * @param {number} green
    * @param {number} blue
@@ -824,6 +881,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Update a texture subresource.
    *
+   * @notSupported
    * @throws {Error}
    */
   UpdateSubresource() {
@@ -833,6 +891,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Resource preparation does not decide device upload policy.
    *
+   * @adapted
    * @returns {boolean}
    */
   PrepareResources() {
@@ -843,10 +902,10 @@ export class TriTextureRes extends BlueAsyncRes
    * Release the texture for Carbon's requested storage classes, keeping its bitmap.
    *
    * Source: trinity/trinity/Resources/TriTextureRes.cpp:356-392.
-   * Adapted: explicit Destroy replaces the owned AL value's C++ destructor;
-   * load cancellation remains manager-owned and UNLOADED combines good/prepared.
-   * Asynchronous saves are not implemented here.
    *
+   * @adapted explicit Destroy replaces the owned AL value's C++ destructor;
+   *   load cancellation remains manager-owned and UNLOADED combines good/prepared.
+   *   Asynchronous saves are not implemented here.
    * @param {number} [storage=TriStorageFlags.TRISTORAGE_ALL] Carbon's TriStorage mask.
    * @returns {TriTextureRes} This resource.
    */
@@ -882,8 +941,9 @@ export class TriTextureRes extends BlueAsyncRes
 
   /**
    * Full JS teardown releases the video owner and decoded bitmap as well as device allocations.
-   * Adapted: explicit JS teardown replaces native destruction; the existing
-   * MotherLode switches keep CPU data and opaque adapter cleanup independent.
+   *
+   * @adapted explicit JS teardown replaces native destruction; the existing
+   *   MotherLode switches keep CPU data and opaque adapter cleanup independent.
    * @param {object} [options={}] Existing MotherLode cleanup policy.
    * @param {boolean} [options.releasePayload=true] Release owned family data.
    * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
@@ -904,6 +964,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Carbon `IsMemoryUsageKnown` (TriTextureRes.cpp:431-434): known once loaded.
    *
+   * @implemented
    * @returns {boolean}
    */
   IsMemoryUsageKnown() {
@@ -913,6 +974,7 @@ export class TriTextureRes extends BlueAsyncRes
   /**
    * Carbon `GetMemoryUsage` (TriTextureRes.cpp:436-439): `m_memoryUse`.
    *
+   * @implemented
    * @returns {number} Bytes.
    */
   GetMemoryUsage() {
@@ -923,10 +985,9 @@ export class TriTextureRes extends BlueAsyncRes
    * Carbon's memory estimate for the resource cache (TriTextureRes.cpp:1182-1189):
    * every mip's size, times the array size.
    *
-   * Adapted: Carbon takes it from the texture when `SetTexture` installs one.
-   * The texture here is made at first bind, so the estimate comes from the
-   * bitmap it is made from, whose dimensions it copies.
-   *
+   * @adapted Carbon takes it from the texture when `SetTexture` installs one.
+   *   The texture here is made at first bind, so the estimate comes from the
+   *   bitmap it is made from, whose dimensions it copies.
    * @param {import("#imageio").HostBitmap} bitmap The adopted bitmap.
    * @returns {number} Bytes.
    */
@@ -938,7 +999,11 @@ export class TriTextureRes extends BlueAsyncRes
   }
 
 
-  /** Carbon DoPrepare, adapted to defer device creation until the first bind. */
+  /**
+   * Carbon DoPrepare, adapted to defer device creation until the first bind.
+   *
+   * @adapted
+   */
   _DoPrepare()
   {
     return this.CreateFromHostBitmap(this.loadedBitmap);

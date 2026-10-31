@@ -27,84 +27,132 @@ export class TriQuaternion
   @type.unknown
   w = null;
 
-  /** Carbon method __init__ -> Py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> Py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   __init__(...args)
   {
     throw new Error("TriQuaternion.__init__ is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method GetYawPitchRoll -> PyGetYawPitchRoll (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetYawPitchRoll -> PyGetYawPitchRoll (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   GetYawPitchRoll(...args)
   {
     throw new Error("TriQuaternion.GetYawPitchRoll is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Identity -> PyIdentity (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Identity -> PyIdentity (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Identity(...args)
   {
     throw new Error("TriQuaternion.Identity is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Multiply -> PyMultiply (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Multiply -> PyMultiply (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Multiply(...args)
   {
     throw new Error("TriQuaternion.Multiply is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Normalize -> PyNormalize (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Normalize -> PyNormalize (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Normalize(...args)
   {
     throw new Error("TriQuaternion.Normalize is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Length -> PyLength (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Length -> PyLength (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Length(...args)
   {
     throw new Error("TriQuaternion.Length is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Scale -> PyScale (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Scale -> PyScale (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   Scale(...args)
   {
     throw new Error("TriQuaternion.Scale is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetRotationAxis -> PySetRotationAxis (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetRotationAxis -> PySetRotationAxis (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   SetRotationAxis(...args)
   {
     throw new Error("TriQuaternion.SetRotationAxis is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method RotationAxis -> PyRotationAxis (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method RotationAxis -> PyRotationAxis (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   RotationAxis(...args)
   {
     throw new Error("TriQuaternion.RotationAxis is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetYawPitchRoll (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetYawPitchRoll (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   SetYawPitchRoll(...args)
   {
     throw new Error("TriQuaternion.SetYawPitchRoll is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetIdentity (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetIdentity (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   SetIdentity(...args)
   {
     throw new Error("TriQuaternion.SetIdentity is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetXYZW (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetXYZW (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @meta.notImplemented
   SetXYZW(...args)
   {

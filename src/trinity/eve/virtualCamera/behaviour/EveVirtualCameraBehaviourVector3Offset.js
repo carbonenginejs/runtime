@@ -45,6 +45,8 @@ export class EveVirtualCameraBehaviourVector3Offset extends EveVirtualCameraBeha
    * Returns the authored offset, yawed into the anchor's heading unless world is
    * set and multiplied by the anchor radius when proportional is set; it ignores
    * time and delta time entirely.
+   *
+   * @adapted
    */
 
   @meta.adapted

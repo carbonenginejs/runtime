@@ -9,6 +9,8 @@ export class ITr2GrannyAnimationOwner extends IRoot
 
   /**
    * The owned animation controller (h:34).
+   *
+   * @abstract
    * @returns {Tr2GrannyAnimation|null}
    */
   GetAnimationController()

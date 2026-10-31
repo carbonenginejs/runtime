@@ -15,6 +15,8 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 /**
  * Base for the virtual camera behaviours that contribute a world-space vector3
  * offset to a camera's position or point of interest each update.
+ *
+ * @abstract
  */
 @be.define("EveVirtualCameraBehaviourVector3Base")
 @be.inherit(INotify)
@@ -33,7 +35,11 @@ export class EveVirtualCameraBehaviourVector3Base extends IRoot
   @type.string
   name = "";
 
-  /** Returns the authored behaviour name shown in tooling. */
+  /**
+   * Returns the authored behaviour name shown in tooling.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -44,6 +50,8 @@ export class EveVirtualCameraBehaviourVector3Base extends IRoot
   /**
    * Sets the behaviour name, coercing to a string; subclasses override this to
    * rename the curves they own alongside it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -55,6 +63,8 @@ export class EveVirtualCameraBehaviourVector3Base extends IRoot
   /**
    * Re-applies the current name after a field change, which propagates it to any
    * owned curves through the subclass SetName override.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -64,7 +74,11 @@ export class EveVirtualCameraBehaviourVector3Base extends IRoot
     return true;
   }
 
-  /** Reports whether the camera should evaluate this behaviour this update. */
+  /**
+   * Reports whether the camera should evaluate this behaviour this update.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsActive()

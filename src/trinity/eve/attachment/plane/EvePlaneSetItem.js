@@ -85,8 +85,8 @@ export class EvePlaneSetItem extends IRoot
    * Fills the caller-owned out box with the plane's unit box transformed by its
    * rotation, position and scaling.
    *
-   * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
-   * box3.
+   * @adapted Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
+   *   box3.
    */
 
   @meta.adapted
@@ -102,7 +102,11 @@ export class EvePlaneSetItem extends IRoot
     return box3.transformMat4(out, EvePlaneSetItem._bounds, transform);
   }
 
-  /** The parent bone this plane rides. */
+  /**
+   * The parent bone this plane rides.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetBoneIndex()

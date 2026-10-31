@@ -313,6 +313,8 @@ export class TriPoolAllocator
    * cursor, grows through GetMoreSystemMemory on overflow, and accrues
    * m_totalBytesAllocated for Clear's resize policy. The returned RawData
    * view has declared defaults applied and is valid until the next Clear().
+   *
+   * @adapted
    */
   Allocate(name)
   {
@@ -365,6 +367,8 @@ export class TriPoolAllocator
    * buffer (and therefore last frame's stale bytes); after a resize the next
    * Allocate sees fresh zeroed memory. Both are "allocator garbage" under
    * the write-what-you-rely-on contract - Carbon behaves identically.
+   *
+   * @implemented
    */
   Clear()
   {
@@ -398,6 +402,8 @@ export class TriPoolAllocator
    * active pool to the overflow list and allocate whole chunk-size multiples
    * until the request fits. JS allocation does not fail, so Carbon's
    * null-pool arm has nothing to port.
+   *
+   * @adapted
    */
   _GetMoreSystemMemory(strideFloats)
   {

@@ -128,6 +128,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   /**
    * Drops every sprite and every light; the bounds only follow on the next
    * Rebuild.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -137,7 +139,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     this.lights.length = 0;
   }
 
-  /** Carbon EveSpriteSet::UpdateLights (cpp:142-161): per light - only
+  /**
+   * Carbon EveSpriteSet::UpdateLights (cpp:142-161): per light - only
    * boneIndex >= 0 takes the bone path (as Tr2Light::SetBoneMatrix's >= 0;
    * -1 is no bone): the Float4x3 bone is
    * unpacked column-stride, the 4th column zeroed with [15] = 1, then
@@ -145,10 +148,11 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * gl-matrix operands SWAP; otherwise boneMatrix = parentTransform. Stamps
    * the activation strength (boosterGain is accepted but unused by sprites).
    *
-   * Adapted: Carbon skips bone 0 here (EveSpriteSet.cpp:146; CE-27), so a light on binding 0
-   * gets only the parent transform. Binding 0 is a mesh bone binding and can
-   * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
-   * Normal2Warp - so ours applies bone 0 like any other. */
+   * @adapted Carbon skips bone 0 here (EveSpriteSet.cpp:146; CE-27), so a light on binding 0
+   *   gets only the parent transform. Binding 0 is a mesh bone binding and can
+   *   be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
+   *   Normal2Warp - so ours applies bone 0 like any other.
+   */
 
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
@@ -177,6 +181,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   /**
    * Carbon's Add( EveSpriteSetItemPtr newItem ) (EveSpriteSet.h:80): appends a
    * ready-made item. Adapted: returns the item, which Carbon's void does not.
+   *
+   * @adapted
    * @param {EveSpriteSetItem} newItem
    * @returns {EveSpriteSetItem}
    */
@@ -192,6 +198,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * Carbon's Add( pos, scale, color, warpColor ) (EveSpriteSet.h:79): a
    * non-blinking sprite of one scale. Named after scale, the parameter that
    * carries its meaning (docs 22d1237). Adapted: returns the new item.
+   *
+   * @adapted
    * @returns {EveSpriteSetItem}
    */
   @meta.adapted
@@ -204,6 +212,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * Carbon's Add( pos, blinkRate, blinkPhase, minScale, maxScale, falloff,
    * color, warpColor ) (EveSpriteSet.h:78): a blinking sprite. Named after the
    * blink parameters that carry its meaning. Adapted: returns the new item.
+   *
+   * @adapted
    * @returns {EveSpriteSetItem}
    */
   @meta.adapted
@@ -229,7 +239,11 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     return item;
   }
 
-  /** The live sprite item list, not a copy. */
+  /**
+   * The live sprite item list, not a copy.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSprites()
@@ -237,7 +251,11 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     return this.sprites;
   }
 
-  /** The authored set name, which SOF uses to match this set to its DNA entry. */
+  /**
+   * The authored set name, which SOF uses to match this set to its DNA entry.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -245,7 +263,11 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     return this.name;
   }
 
-  /** Sets the authored set name, coercing null or undefined to an empty string. */
+  /**
+   * Sets the authored set name, coercing null or undefined to an empty string.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetName(name)
@@ -253,7 +275,11 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     this.name = String(name ?? "");
   }
 
-  /** The effect that draws the sprites. */
+  /**
+   * The effect that draws the sprites.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetEffect()
@@ -261,7 +287,11 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     return this.effect;
   }
 
-  /** Sets the effect that draws the sprites. */
+  /**
+   * Sets the effect that draws the sprites.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetEffect(effect)
@@ -272,6 +302,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   /**
    * Sets whether the sprites ride skeleton bones, which is what decides if
    * GetAabb consults the caller's bone list at all.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -283,6 +315,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   /**
    * Recomputes the static and per-bone bounds from the authored sprites and
    * marks the packed geometry stale.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -347,6 +381,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * idempotent-by-key, so an effect-option change needs the key refreshed
    * (Rebuild does) and this called again - exactly Carbon's SetShaderOption
    * flow (cpp:430-438), whose singleton reach is not ported yet here.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -371,6 +407,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * and hand the exact bytes to the quad renderer. boosterGain is accepted
    * and unused, as in Carbon.
    *
+   * @implemented
    * @param {object} quadRenderer Tr2QuadRenderer.
    * @param {Float32Array} parentTransform World matrix.
    * @param {number} activation Activation strength.
@@ -425,6 +462,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * overwrite both colours' alpha bytes with the gains. The overwrites are
    * DESTRUCTIVE in the shared persistent buffer, exactly as Carbon's: a set
    * serves either path each frame, and whichever runs repacks it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -482,8 +521,12 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     this._poolView.setFloat32(base + 8, position[2], true);
   }
 
-  /** Carbon EveSpriteSet::GetAabb (cpp:163-166): the item-set bounds, with the
-   * bone list forwarded only when the set is skinned. */
+  /**
+   * Carbon EveSpriteSet::GetAabb (cpp:163-166): the item-set bounds, with the
+   * bone list forwarded only when the set is skinned.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
@@ -497,10 +540,14 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     );
   }
 
-  /** Carbon EveSpriteSet::UpdateVisibility (cpp:130-140): an uninitialized set
+  /**
+   * Carbon EveSpriteSet::UpdateVisibility (cpp:130-140): an uninitialized set
    * is NOT visible; otherwise its bounds move into world space and take the
    * frustum box test. No LOD and no display gate - Carbon tests display at draw
-   * time, not here. */
+   * time, not here.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
@@ -518,6 +565,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   /**
    * Runs the first Rebuild so the set has bounds before its first visibility
    * test.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -530,6 +579,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   /**
    * Converts a SOF-authored light description into an EveSpriteLight and appends
    * it to the set.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -538,8 +589,12 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     this.lights.push(EveSpriteLight.FromSOF(light));
   }
 
-  /** Carbon EveSpriteSet::RegisterComponents (cpp:445-452): LightOwner when
-   * lights are authored. */
+  /**
+   * Carbon EveSpriteSet::RegisterComponents (cpp:445-452): LightOwner when
+   * lights are authored.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -551,7 +606,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     }
   }
 
-  /** Carbon EveSpriteSet::GetLights (cpp:454-469): parentBrightness =
+  /**
+   * Carbon EveSpriteSet::GetLights (cpp:454-469): parentBrightness =
    * activationStrength once before the loop; per light the point conversion
    * on the bone matrix, then Blink scales BOTH radius and innerRadius AFTER
    * conversion (cpp:464-466). No gates - registration covers presence. The
@@ -559,7 +615,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * +1, unlike Tr2Light::AddLight - the asymmetry is moot by-reference but
    * recorded).
    *
-   * Adapted: Profile-index packing is by-reference per lightConversion.js.
+   * @adapted Profile-index packing is by-reference per lightConversion.js.
    */
 
   @meta.adapted
@@ -587,6 +643,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
 
   /**
    * Carbon EveSpriteSet::GetDebugOptions (cpp:345-350).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -610,6 +668,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * "Sprite Sets Bounds" draws the item-set box in the parent space, and
    * "Sprite Sets Lights" draws each light twice, inner then outer radius
    * scaled by the light's current blink, owned by the light's sprite.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentTransform
    * @param {Float32Array|null} bones Packed Float4x3 bone matrices.

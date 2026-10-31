@@ -48,37 +48,61 @@ export class Tr2SuballocatedBufferAllocation
 
   _parent = null;
 
-  /** The block's `Tr2BufferAL`. */
+  /**
+   * The block's `Tr2BufferAL`.
+   *
+   * @adapted
+   */
   GetBuffer()
   {
     return this._buffer;
   }
 
-  /** The allocation's first byte within that block. */
+  /**
+   * The allocation's first byte within that block.
+   *
+   * @implemented
+   */
   GetOffset()
   {
     return this._offset;
   }
 
-  /** The allocation's size in bytes. */
+  /**
+   * The allocation's size in bytes.
+   *
+   * @implemented
+   */
   GetSize()
   {
     return this._size;
   }
 
-  /** Bytes per element, which `GetStartIndex` divides by. */
+  /**
+   * Bytes per element, which `GetStartIndex` divides by.
+   *
+   * @implemented
+   */
   GetStride()
   {
     return this._stride;
   }
 
-  /** `m_offset / m_stride`: the first element, which the draw arguments add. */
+  /**
+   * `m_offset / m_stride`: the first element, which the draw arguments add.
+   *
+   * @adapted
+   */
   GetStartIndex()
   {
     return this._stride ? Math.floor(this._offset / this._stride) : 0;
   }
 
-  /** Whether the allocation still has its parent (Tr2SuballocatedBuffer.cpp:217-220). */
+  /**
+   * Whether the allocation still has its parent (Tr2SuballocatedBuffer.cpp:217-220).
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._parent !== null;
@@ -87,6 +111,7 @@ export class Tr2SuballocatedBufferAllocation
   /**
    * Rewrites the allocation, whole or in part.
    *
+   * @adapted
    * @param {ArrayBufferView} data The bytes.
    * @param {object} renderContext The context to update through.
    * @param {number} [offset] Byte offset within the allocation.

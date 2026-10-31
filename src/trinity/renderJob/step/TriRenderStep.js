@@ -8,6 +8,8 @@ import { meta, type } from "#schema";
 /**
  * Base of every render-job step: an enable flag, a name, and the
  * begin/execute/end contract the owning job drives.
+ *
+ * @abstract
  */
 @be.define("TriRenderStep")
 @be.inherit(IRoot)
@@ -38,6 +40,8 @@ export class TriRenderStep extends IRoot
   /**
    * Reports whether the owning job should run this step; disabled steps are
    * skipped without advancing any state.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -49,6 +53,8 @@ export class TriRenderStep extends IRoot
   /**
    * Hook the owning job calls before Execute; the base step does nothing, and
    * subclasses use it to set up state that EndExecute tears down.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -60,6 +66,8 @@ export class TriRenderStep extends IRoot
    * Performs this step's work. Carbon declares this method pure virtual, so a
    * concrete step that omits it is an incomplete implementation and fails
    * loudly when executed.
+   *
+   * @abstract
   */
   @meta.abstract
   Execute(_realTime, _simTime, _context) {}
@@ -71,6 +79,7 @@ export class TriRenderStep extends IRoot
    * Not implemented: Carbon forwards to the step's embedded Tr2ProfileTimer m_timer
    * (Tr2ProfileTimer.h:7-41), which is not ported; no timer state exists on this class.
    *
+   * @notImplemented
    * @returns {boolean} Never returns.
    */
   @meta.notImplemented
@@ -86,6 +95,7 @@ export class TriRenderStep extends IRoot
    * Not implemented: Carbon forwards to the step's embedded Tr2ProfileTimer m_timer
    * (Tr2ProfileTimer.h:7-41), which is not ported; no timer state exists on this class.
    *
+   * @notImplemented
    * @param {boolean} _value Whether to capture.
    * @returns {void} Never returns.
    */
@@ -102,6 +112,7 @@ export class TriRenderStep extends IRoot
    * Not implemented: Carbon forwards to the step's embedded Tr2ProfileTimer m_timer
    * (Tr2ProfileTimer.h:7-41), which is not ported; no timer state exists on this class.
    *
+   * @notImplemented
    * @returns {boolean} Never returns.
    */
   @meta.notImplemented
@@ -117,6 +128,7 @@ export class TriRenderStep extends IRoot
    * Not implemented: Carbon forwards to the step's embedded Tr2ProfileTimer m_timer
    * (Tr2ProfileTimer.h:7-41), which is not ported; no timer state exists on this class.
    *
+   * @notImplemented
    * @param {boolean} _value Whether to capture.
    * @returns {void} Never returns.
    */
@@ -133,6 +145,7 @@ export class TriRenderStep extends IRoot
    * Not implemented: Carbon forwards to the step's embedded Tr2ProfileTimer m_timer
    * (Tr2ProfileTimer.h:7-41), which is not ported; no timer state exists on this class.
    *
+   * @notImplemented
    * @returns {number} Never returns.
    */
   @meta.notImplemented
@@ -148,6 +161,7 @@ export class TriRenderStep extends IRoot
    * Not implemented: Carbon forwards to the step's embedded Tr2ProfileTimer m_timer
    * (Tr2ProfileTimer.h:7-41), which is not ported; no timer state exists on this class.
    *
+   * @notImplemented
    * @returns {number} Never returns.
    */
   @meta.notImplemented
@@ -163,6 +177,7 @@ export class TriRenderStep extends IRoot
    * Not implemented: Carbon forwards to the step's embedded Tr2ProfileTimer m_timer
    * (Tr2ProfileTimer.h:7-41), which is not ported; no timer state exists on this class.
    *
+   * @notImplemented
    * @returns {string} Never returns.
    */
   @meta.notImplemented
@@ -178,6 +193,7 @@ export class TriRenderStep extends IRoot
    * Not implemented: Carbon forwards to the step's embedded Tr2ProfileTimer m_timer
    * (Tr2ProfileTimer.h:7-41), which is not ported; no timer state exists on this class.
    *
+   * @notImplemented
    * @param {string} _value The statistics entry name.
    * @returns {void} Never returns.
    */
@@ -190,6 +206,8 @@ export class TriRenderStep extends IRoot
   /**
    * Hook the owning job calls after Execute, including when Execute threw; the
    * base step does nothing.
+   *
+   * @adapted
    */
 
   @meta.adapted

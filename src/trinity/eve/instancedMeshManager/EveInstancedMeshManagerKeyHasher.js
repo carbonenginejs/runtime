@@ -39,8 +39,9 @@ export class EveInstancedMeshManagerKeyHasher
   /**
    * Carbon's `operator()` (h:253-257): the key's map identity.
    *
-   * Adapted: returns a string standing for both Carbon's hash and its
-   * equality, for the reason in the class description.
+   * @adapted returns a string standing for both Carbon's hash and its
+   *   equality, for the reason in the class description.
+   * @renamed operator()
    * @param {EveInstancedMeshManagerMeshKey} k The key.
    * @returns {string} The key's identity in m_meshInstances.
    */

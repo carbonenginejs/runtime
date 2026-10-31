@@ -7,16 +7,32 @@ import { CjsSchema, meta } from "#schema";
 export class ITr2InstanceData extends IRoot
 {
 
-  /** Whether the provider's instance stream is ready for batch collection. */
+  /**
+   * Whether the provider's instance stream is ready for batch collection.
+   *
+   * @abstract
+   */
   IsInstanceDataReady() {}
 
-  /** Returns one realized instance-buffer slice for a screen-size selection. */
+  /**
+   * Returns one realized instance-buffer slice for a screen-size selection.
+   *
+   * @abstract
+   */
   GetInstanceData(_bufferIndex, _screenSize) {}
 
-  /** Returns the vertex declaration for one instance buffer. */
+  /**
+   * Returns the vertex declaration for one instance buffer.
+   *
+   * @abstract
+   */
   GetInstanceBufferVertexDeclaration(_bufferIndex) {}
 
-  /** Returns the local bounding box represented by one instance buffer. */
+  /**
+   * Returns the local bounding box represented by one instance buffer.
+   *
+   * @abstract
+   */
   GetInstanceBufferBoundingBox(_bufferIndex) {}
 }
 

@@ -10,46 +10,84 @@ import { EveChildTransform } from "../EveChildTransform.js";
 export class IEveLineSetPath extends EveChildTransform
 {
 
-  /** Updates the authored line path for the current child context. */
+  /**
+   * Updates the authored line path for the current child context.
+   *
+   * @abstract
+   */
   @be.abstract
   Update(_updateContext, _params) {}
 
   /**
    * Writes instance transforms to a mutable { view: DataView, offset: bytes }
    * cursor. The cursor replaces Carbon's advancing uint8_t*&; stride is bytes.
+   *
+   * @abstract
    */
   @be.abstract
   UpdateBuffer(_renderContext, _cursor, _transform, _stride) {}
 
-  /** Regenerates the path points beneath the supplied transform. */
+  /**
+   * Regenerates the path points beneath the supplied transform.
+   *
+   * @abstract
+   */
   @be.abstract
   GeneratePoints(_transform) {}
 
-  /** Returns the number of generated points in the path. */
+  /**
+   * Returns the number of generated points in the path.
+   *
+   * @abstract
+   */
   @be.abstract
   GetPointCount() {}
 
-  /** Adds this path's lines to a maintained curve-line set. */
+  /**
+   * Adds this path's lines to a maintained curve-line set.
+   *
+   * @abstract
+   */
   @be.abstract
   AddLinesToSet(_lineSet, _color, _animationColor, _scrollSpeed) {}
 
-  /** Recalculates the path's bounding sphere. */
+  /**
+   * Recalculates the path's bounding sphere.
+   *
+   * @abstract
+   */
   @be.abstract
   CalculateBoundingSphere(_radius = 0, _updateLines = true) {}
 
-  /** Writes the path's current bounding sphere. */
+  /**
+   * Writes the path's current bounding sphere.
+   *
+   * @abstract
+   */
   @be.abstract
   GetBoundingSphere(_out) {}
 
-  /** Updates path visibility for the current frustum and LOD. */
+  /**
+   * Updates path visibility for the current frustum and LOD.
+   *
+   * @abstract
+   */
   @be.abstract
   UpdateVisibility(_frustum, _lod, _parentTransform) {}
 
-  /** Adds line-path debug controls. */
+  /**
+   * Adds line-path debug controls.
+   *
+   * @abstract
+   */
   @be.abstract
   GetDebugOptions(_options) {}
 
-  /** Renders line-path debug information. */
+  /**
+   * Renders line-path debug information.
+   *
+   * @abstract
+   */
   @be.abstract
   RenderDebugInfo(_renderer, _parentTransform) {}
 

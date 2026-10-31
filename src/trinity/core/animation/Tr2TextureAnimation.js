@@ -66,7 +66,7 @@ export class Tr2TextureAnimation extends IRoot
   /**
    * Starts loading the authored VTA.
    *
-   * Adapted: Schedules promise-based reads and decoding instead of native queues.
+   * @adapted Schedules promise-based reads and decoding instead of native queues.
    * @returns {boolean} True; asynchronous failures are reported by the load task.
    */
 
@@ -79,6 +79,8 @@ export class Tr2TextureAnimation extends IRoot
 
   /**
    * Reloads after a notification, matching Carbon's unconditional reload hook.
+   *
+   * @implemented
    * @returns {boolean} True.
    */
 
@@ -92,11 +94,11 @@ export class Tr2TextureAnimation extends IRoot
   /**
    * Cancels the previous load, drops the grid textures and reads the current path.
    *
-   * Adapted: The shared resource manager supplies bytes through its injected
-   * sources; CjsVtaFormat streams decoded frames. No filesystem access is owned
-   * here. Like Carbon's `m_grids.clear()` (Tr2TextureAnimation.cpp:258) the
-   * textures are only released, never destroyed: a realized resource set may
-   * still bind one, since the parameter invalidates only on an `animation` edit.
+   * @adapted The shared resource manager supplies bytes through its injected
+   *   sources; CjsVtaFormat streams decoded frames. No filesystem access is owned
+   *   here. Like Carbon's `m_grids.clear()` (Tr2TextureAnimation.cpp:258) the
+   *   textures are only released, never destroyed: a realized resource set may
+   *   still bind one, since the parameter invalidates only on an `animation` edit.
    * @returns {Promise<boolean>} Whether the initial frame decoded successfully.
    */
 
@@ -115,10 +117,10 @@ export class Tr2TextureAnimation extends IRoot
   /**
    * Captures the request's path and state, marking its decoded frame unavailable.
    *
-   * Adapted: A JavaScript record replaces the native shared-state request object.
-   * Carbon swaps `.vta` for `_lowdetail.vta` here when the LOD manager's low-res
-   * VTA setting is on (Tr2TextureAnimation.cpp:286-291); that swap is not done,
-   * because files are always fetched and never limited to a local low-detail install.
+   * @adapted A JavaScript record replaces the native shared-state request object.
+   *   Carbon swaps `.vta` for `_lowdetail.vta` here when the LOD manager's low-res
+   *   VTA setting is on (Tr2TextureAnimation.cpp:286-291); that swap is not done,
+   *   because files are always fetched and never limited to a local low-detail install.
    * @returns {object} Request record.
    */
 
@@ -132,9 +134,9 @@ export class Tr2TextureAnimation extends IRoot
   /**
    * Realizes frame zero and advances at most one ready frame per call.
    *
-   * Adapted: Uses the ambient render context and asynchronous format iterator.
-   * The strict time > 1 threshold, remainder, pause and restart ordering match
-   * Carbon. Texture identity stays stable across frame uploads.
+   * @adapted Uses the ambient render context and asynchronous format iterator.
+   *   The strict time > 1 threshold, remainder, pause and restart ordering match
+   *   Carbon. Texture identity stays stable across frame uploads.
    * @param {number} dt Elapsed seconds.
    * @returns {void}
    */
@@ -223,7 +225,7 @@ export class Tr2TextureAnimation extends IRoot
   /**
    * Uploads the decoded frame to each existing volume texture.
    *
-   * Adapted: Calls the active AL backend through the ambient render context.
+   * @adapted Calls the active AL backend through the ambient render context.
    * @returns {void}
    */
 
@@ -246,8 +248,8 @@ export class Tr2TextureAnimation extends IRoot
   /**
    * Schedules frame zero once the pending decode finishes.
    *
-   * Adapted: Promises replace native worker tasks. Legacy SetChannels attachments
-   * retain their synchronous Restart/Reset adapter behavior when no VTA is loaded.
+   * @adapted Promises replace native worker tasks. Legacy SetChannels attachments
+   *   retain their synchronous Restart/Reset adapter behavior when no VTA is loaded.
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -283,7 +285,7 @@ export class Tr2TextureAnimation extends IRoot
   /**
    * Returns names of realized channels in file order.
    *
-   * Adapted: Returns a JavaScript array instead of a vector of shared strings.
+   * @adapted Returns a JavaScript array instead of a vector of shared strings.
    * @returns {string[]} Channel names.
    */
   @be.mapMethodAndWrap()
@@ -296,7 +298,7 @@ export class Tr2TextureAnimation extends IRoot
   /**
    * Returns the current channel texture, or null if it is unavailable.
    *
-   * Adapted: Returns the live AL object instead of a native shared-handle copy.
+   * @adapted Returns the live AL object instead of a native shared-handle copy.
    * @param {string} channel Channel name.
    * @returns {object|null} Texture handle.
    */
@@ -312,7 +314,10 @@ export class Tr2TextureAnimation extends IRoot
     return value?.texture ?? value ?? null;
   }
 
-  /** @returns {boolean} Whether the owner should advance only when rendered. */
+  /**
+   * @implemented
+   * @returns {boolean} Whether the owner should advance only when rendered.
+   */
 
   @meta.implemented
   UpdateOnlyWhenRendered()
@@ -396,7 +401,8 @@ export class Tr2TextureAnimation extends IRoot
 
   /**
    * Loads cached source bytes, then decodes frame zero.
-   * Adapted: The resource manager and DecompressionStream replace native IO tasks.
+   *
+   * @adapted The resource manager and DecompressionStream replace native IO tasks.
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Completion of the first decode.
    */
@@ -413,7 +419,8 @@ export class Tr2TextureAnimation extends IRoot
 
   /**
    * Creates fresh grid decoders and prepares frame zero.
-   * Adapted: Uses the format's asynchronous frame iterator.
+   *
+   * @adapted Uses the format's asynchronous frame iterator.
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
@@ -428,7 +435,8 @@ export class Tr2TextureAnimation extends IRoot
 
   /**
    * Prepares the next frame, restarting the delta chain at end of file.
-   * Adapted: Uses promise completion instead of an atomic worker-ready flag.
+   *
+   * @adapted Uses promise completion instead of an atomic worker-ready flag.
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
@@ -453,7 +461,8 @@ export class Tr2TextureAnimation extends IRoot
 
   /**
    * Rewinds the format decoder and prepares frame zero.
-   * Adapted: Recreates the asynchronous iterator instead of native decoder reset.
+   *
+   * @adapted Recreates the asynchronous iterator instead of native decoder reset.
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */

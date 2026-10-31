@@ -19,6 +19,8 @@ export class TriStepRemoteSync extends TriRenderStep
   /**
    * Blue's initializer: stores the identifier of the synchronization event the step would wait on (TriStepRemoteSync.cpp:48-51).
    * The platform limit, a Windows event primitive a browser does not have, belongs to `Execute`.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
@@ -27,7 +29,11 @@ export class TriStepRemoteSync extends TriRenderStep
     this.SetId(id);
   }
 
-  /** Returns the synchronization event identifier, -1 when none was set (TriStepRemoteSync.h:23-26). */
+  /**
+   * Returns the synchronization event identifier, -1 when none was set (TriStepRemoteSync.h:23-26).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetId()
   {
@@ -37,6 +43,8 @@ export class TriStepRemoteSync extends TriRenderStep
   /**
    * Sets the synchronization event identifier (TriStepRemoteSync.h:27-30). Adapted: Carbon's parameter is an `int`, so a JavaScript
    * value that is not an integer is refused with a TypeError.
+   *
+   * @adapted
    */
   @meta.adapted
   SetId(id)
@@ -52,6 +60,8 @@ export class TriStepRemoteSync extends TriRenderStep
    * Always reports RS_FAILED: the named process-wide event Carbon waits on
    * cannot be opened from a browser, so the step refuses rather than claiming
    * synchronization happened.
+   *
+   * @adapted
    */
   @meta.adapted
   Execute(_realTime, _simTime, _renderContext)

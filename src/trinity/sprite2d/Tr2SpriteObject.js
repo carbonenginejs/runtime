@@ -11,6 +11,8 @@ import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from
 /**
  * Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites.
  * Carbon declares a protected `ValidateAndSetTextures` here (Tr2SpriteObject.h:100) but defines only Tr2TexturedSpriteObject's (Tr2SpriteObject.cpp:294), so it has no port on this class.
+ *
+ * @abstract
  */
 @be.define("Tr2SpriteObject")
 @be.exposureChainTo(Tr2SpriteObjectBase)
@@ -113,7 +115,11 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
   static Tr2SpriteTarget = Tr2SpriteTarget;
 
 
-  /** Sets the regular draw state for this sprite. */
+  /**
+   * Sets the regular draw state for this sprite.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _SetRegularRenderState(renderer)
@@ -125,7 +131,11 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
     renderer.SetDepth(this.depth);
   }
 
-  /** Sets additive glow state without mutating the authored tint. */
+  /**
+   * Sets additive glow state without mutating the authored tint.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _SetGlowRenderState(renderer)
@@ -144,7 +154,11 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
     finally { vec4.unalloc(tint); }
   }
 
-  /** Sets shadow state, combining shadow and sprite opacity. */
+  /**
+   * Sets shadow state, combining shadow and sprite opacity.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _SetShadowRenderState(renderer)
@@ -163,7 +177,11 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
     finally { vec4.unalloc(tint); }
   }
 
-  /** Supplies the outline tint and alpha threshold. */
+  /**
+   * Supplies the outline tint and alpha threshold.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   _SetOutlineRenderState(renderer)
@@ -179,7 +197,11 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
     finally { vec4.unalloc(tint); }
   }
 
-  /** Returns the native color value by copy. */
+  /**
+   * Returns the native color value by copy.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   GetColor()
@@ -187,7 +209,11 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
     return vec4.clone(this.color); // alloc: native value return belongs to the caller
   }
 
-  /** Copies a changed color and invalidates ancestors. */
+  /**
+   * Copies a changed color and invalidates ancestors.
+   *
+   * @implemented
+   */
   @meta.implemented
 
   SetColor(value)

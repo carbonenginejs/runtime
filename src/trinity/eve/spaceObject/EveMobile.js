@@ -50,6 +50,8 @@ export class EveMobile extends EveSpaceObject2
   /**
    * Runs the base initialization, then seeds the turret locator counters from
    * the current locators and binds every turret set to them.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -65,6 +67,8 @@ export class EveMobile extends EveSpaceObject2
    * Carbon EveMobile.cpp:206-211 prepares the base damage activation, then
    * multiplies shipData.y by the authored activationStrength. Recomputing the
    * base first prevents repeated frames from compounding the multiplication.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -78,6 +82,8 @@ export class EveMobile extends EveSpaceObject2
    * Forwards base list notification, then rebuilds and transfers mapped turret
    * registration on live insertion/removal; unload unregisters mapped entities.
    * Carbon EveMobile.cpp:56-100 keeps insertion independent of display.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -105,8 +111,12 @@ export class EveMobile extends EveSpaceObject2
     }
   }
 
-  /** Carbon EveMobile::RegisterComponents (cpp:109-120): base registration,
-   * then forwards the turret sets. Gate m_display. */
+  /**
+   * Carbon EveMobile::RegisterComponents (cpp:109-120): base registration,
+   * then forwards the turret sets. Gate m_display.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -122,8 +132,12 @@ export class EveMobile extends EveSpaceObject2
     }
   }
 
-  /** Carbon EveMobile::UnRegisterComponents (cpp:126-138): base, then forwards
-   * the turret sets without re-checking display. */
+  /**
+   * Carbon EveMobile::UnRegisterComponents (cpp:126-138): base, then forwards
+   * the turret sets without re-checking display.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UnRegisterComponents()
@@ -142,6 +156,8 @@ export class EveMobile extends EveSpaceObject2
   /**
    * Returns the locator index a turret slot was bound to, or 0 when the set or
    * slot has no binding.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -154,8 +170,9 @@ export class EveMobile extends EveSpaceObject2
   /**
    * Counts authored locator prefixes, then resolves exact suffixes through the
    * base locator contract with animated joints preferred (EveMobile.cpp:480-595).
-   * Adapted: an index holder and caller-owned matrix replace native out pointers;
-   * the existing JS return reports completion.
+   *
+   * @adapted an index holder and caller-owned matrix replace native out pointers;
+   *   the existing JS return reports completion.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -227,6 +244,8 @@ export class EveMobile extends EveSpaceObject2
    * Counts consecutive named slots in authored locators and animation bones.
    * Carbon EveMobile.cpp:326-443 accepts a-only layouts and checks matching a/b
    * bitsets when b exists; trailing name text after a/b is accepted.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -258,6 +277,8 @@ export class EveMobile extends EveSpaceObject2
   /**
    * Returns how many turret sets were past the targeting state at the last
    * synchronous update.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -269,8 +290,9 @@ export class EveMobile extends EveSpaceObject2
   /**
    * Advances the hull first, then publishes each animated joint placement
    * before updating its turret set (EveMobile.cpp:154-199).
-   * Adapted: base typed locator lookup copies into a reusable output matrix
-   * and the existing JS update returns completion.
+   *
+   * @adapted base typed locator lookup copies into a reusable output matrix
+   *   and the existing JS update returns completion.
    */
 
   @meta.adapted
@@ -301,7 +323,11 @@ export class EveMobile extends EveSpaceObject2
     return true;
   }
 
-  /** Runs the base asynchronous update and then the turret sets. */
+  /**
+   * Runs the base asynchronous update and then the turret sets.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateAsyncronous(context)
@@ -314,6 +340,8 @@ export class EveMobile extends EveSpaceObject2
    * Passes Carbon's hull transform, ship data and clipping fields to every
    * turret set (EveMobile.cpp:213-231). JS retains the native stack record for
    * reuse; GetTurretTransform(0) supplies the same placement to all sets.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -334,6 +362,8 @@ export class EveMobile extends EveSpaceObject2
   /**
    * Runs the base visibility pass and, while display is on, forwards visibility
    * to the turret sets.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -349,6 +379,8 @@ export class EveMobile extends EveSpaceObject2
    * Appends the base renderables followed by every turret set's renderables;
    * nothing is appended while display is off. Adapted: the existing base
    * accepts one output array; native impostor output remains unported.
+   *
+   * @adapted
    */
   @meta.adapted
 
@@ -364,6 +396,8 @@ export class EveMobile extends EveSpaceObject2
    * Returns the hull's local bounding box grown to contain every turret set's
    * box. Adapted: with out parameters it fills them and returns true; without it
    * returns a { min, max } object.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -385,7 +419,11 @@ export class EveMobile extends EveSpaceObject2
     return returnObject ? { min: outMin, max: outMax } : true;
   }
 
-  /** Sets a controller variable on the hull and forwards it to every turret set. */
+  /**
+   * Sets a controller variable on the hull and forwards it to every turret set.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetControllerVariable(name, value)
@@ -394,7 +432,11 @@ export class EveMobile extends EveSpaceObject2
     for (const turretSet of this.turretSets) turretSet.SetControllerVariable(name, value);
   }
 
-  /** Raises a controller event on the hull and forwards it to every turret set. */
+  /**
+   * Raises a controller event on the hull and forwards it to every turret set.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HandleControllerEvent(name)
@@ -403,7 +445,11 @@ export class EveMobile extends EveSpaceObject2
     for (const turretSet of this.turretSets) turretSet.HandleControllerEvent(name);
   }
 
-  /** Starts the hull's controllers and every turret set's controllers. */
+  /**
+   * Starts the hull's controllers and every turret set's controllers.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   StartControllers()
@@ -415,6 +461,8 @@ export class EveMobile extends EveSpaceObject2
   /**
    * Children, turret sets and boosters are shown only while activation strength
    * is above 0.5.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -423,7 +471,11 @@ export class EveMobile extends EveSpaceObject2
     return this.activationStrength > 0.5;
   }
 
-  /** Forwards shader options to the hull and every turret (EveMobile.cpp:238-245). */
+  /**
+   * Forwards shader options to the hull and every turret (EveMobile.cpp:238-245).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetShaderOption(name, value)
@@ -432,7 +484,11 @@ export class EveMobile extends EveSpaceObject2
     for (const turretSet of this.turretSets) turretSet.SetShaderOption(name, value);
   }
 
-  /** Registers hull content and every turret's quad content (EveMobile.cpp:681-688). */
+  /**
+   * Registers hull content and every turret's quad content (EveMobile.cpp:681-688).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -441,7 +497,11 @@ export class EveMobile extends EveSpaceObject2
     for (const turretSet of this.turretSets) turretSet.RegisterWithQuadRenderer(quadRenderer);
   }
 
-  /** Collects hull and turret quad content (EveMobile.cpp:690-697). */
+  /**
+   * Collects hull and turret quad content (EveMobile.cpp:690-697).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
@@ -453,6 +513,8 @@ export class EveMobile extends EveSpaceObject2
   /**
    * Returns the parent transform turret sets are placed against - the live hull
    * world transform, regardless of swarm index.
+   *
+   * @implemented
    */
 
   @meta.implemented

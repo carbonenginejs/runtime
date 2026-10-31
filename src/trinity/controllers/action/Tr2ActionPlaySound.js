@@ -40,12 +40,13 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
 
   /**
    * Plays a sound event on the resolved audio emitter.
-   * Adapted: retains the existing structural owner/target lookup instead of
-   * native EveMultiEffect, IEveEffectChildrenOwner and ITr2SoundEmitterOwner
-   * casts. IEveEffectChildrenOwner has no shared JS contract yet; this batch
-   * does not invent one. A returned emitter must implement SendEvent. JavaScript
-   * strings replace the native narrow-to-wide conversion, and absent owners
-   * remain silent rather than emitting the native diagnostic.
+   *
+   * @adapted retains the existing structural owner/target lookup instead of
+   *   native EveMultiEffect, IEveEffectChildrenOwner and ITr2SoundEmitterOwner
+   *   casts. IEveEffectChildrenOwner has no shared JS contract yet; this batch
+   *   does not invent one. A returned emitter must implement SendEvent. JavaScript
+   *   strings replace the native narrow-to-wide conversion, and absent owners
+   *   remain silent rather than emitting the native diagnostic.
    */
 
   @meta.adapted
@@ -62,9 +63,10 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
 
   /**
    * Starts manually with an explicit controller.
-   * Adapted: preserves the existing non-null action-controller adapter, including
-   * timeline controllers. Native BluePythonCast accepts Tr2Controller specifically
-   * (Tr2ActionPlaySound.cpp:52-61); narrowing this entry point is deferred.
+   *
+   * @adapted preserves the existing non-null action-controller adapter, including
+   *   timeline controllers. Native BluePythonCast accepts Tr2Controller specifically
+   *   (Tr2ActionPlaySound.cpp:52-61); narrowing this entry point is deferred.
    */
   @be.mapMethodAndWrap()
   @meta.adapted

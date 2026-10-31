@@ -30,6 +30,8 @@ export class TriStepSetRenderState extends TriRenderStep
   /**
    * Accepts either no arguments or both a state and a value; supplying only one
    * of the pair throws.
+   *
+   * @adapted
    */
   @be.mapMethod()
   @meta.adapted
@@ -61,6 +63,8 @@ export class TriStepSetRenderState extends TriRenderStep
   /**
    * Forwards the state/value pair to the render context, which owns the mapping onto
    * real pipeline state.
+   *
+   * @implemented
    */
 
   @meta.implemented

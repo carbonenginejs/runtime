@@ -39,7 +39,11 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
 
   _materials = [];
 
-  /** The shader resource name the animated texture binds to. */
+  /**
+   * The shader resource name the animated texture binds to.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -47,7 +51,11 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
     return this.name;
   }
 
-  /** Content hash: the animation object's identity (Carbon hashes its pointer). */
+  /**
+   * Content hash: the animation object's identity (Carbon hashes its pointer).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
@@ -57,6 +65,8 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
 
   /**
    * Invalidates each registered material's resource sets on an animation edit.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -74,6 +84,8 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * Caches the reflected resource type for this name when the shader exposes
    * one, and leaves the previous type in place otherwise; no GPU binding is
    * created.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -92,10 +104,9 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    *
    * Carbon `Tr2TextureAnimationParameter::CopyToResourceSet`.
    *
-   * Adapted: Uses the runtime texture interface. When no animation is attached,
-   * the native renderer fallback texture is still missing, so this binds null.
-   * This changes missing-texture rendering and remains an implementation gap.
-   *
+   * @adapted Uses the runtime texture interface. When no animation is attached,
+   *   the native renderer fallback texture is still missing, so this binds null.
+   *   This changes missing-texture rendering and remains an implementation gap.
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
@@ -117,6 +128,7 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
    * Always false, and Carbon's is too: an animated texture is sampled, never
    * written, so it has no unordered-access binding.
    *
+   * @implemented
    * @returns {boolean} False, always.
    * Carbon declaration: Tr2TextureAnimationParameter::ApplyUav (trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h:25).
    */
@@ -128,6 +140,8 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
 
   /**
    * Registers one material occurrence for animation-reference invalidation.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -138,6 +152,8 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
 
   /**
    * Removes the first matching material registration, retaining duplicates.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -153,6 +169,8 @@ export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
   /**
    * The animation's texture for this parameter's channel, or null when no
    * animation is attached.
+   *
+   * @adapted
    */
 
   @meta.adapted

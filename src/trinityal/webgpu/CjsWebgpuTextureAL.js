@@ -139,12 +139,12 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 
   /**
    * Creates the texture and uploads its initial data.
-   * Adapted: core WebGPU lacks rg8unorm storage, so StorageFormatFor widens
-   * that UAV format to rgba8unorm, retaining its 8-bit normalized precision.
-   * The Carbon description stays unchanged; that adaptation needs no optional
-   * feature. Native BC DDS uploads require enabled BC features; unsupported
-   * content throws because this path has no decoded fallback.
    *
+   * @adapted core WebGPU lacks rg8unorm storage, so StorageFormatFor widens
+   *   that UAV format to rgba8unorm, retaining its 8-bit normalized precision.
+   *   The Carbon description stays unchanged; that adaptation needs no optional
+   *   feature. Native BC DDS uploads require enabled BC features; unsupported
+   *   content throws because this path has no decoded fallback.
    * @param {object} desc A `Tr2BitmapDimensions`.
    * @param {Tr2MsaaDesc} msaa Multisample description.
    * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
@@ -363,6 +363,9 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * R8 VTA stays one byte per voxel. Dawn's upload rows may be padded to 256
    * bytes; refuse a whole-mip staging footprint beyond the negotiated buffer
    * ceiling before writeTexture can poison subsequent command submissions.
+   *
+   * @cjs
+   * @adapted
    */
   @meta.cjs
     @meta.adapted
@@ -526,38 +529,62 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     return this._texture;
   }
 
-  /** Whether the texture holds a `GPUTexture`. */
+  /**
+   * Whether the texture holds a `GPUTexture`.
+   *
+   * @adapted
+   */
   IsValid()
   {
     return this._texture !== null && (this._videoGeneration == null
       || (this._webgpu.IsReady() && this._videoGeneration === this._webgpu.GetGeneration()));
   }
 
-  /** Shared textures need a native handle WebGPU does not expose; always fails. */
+  /**
+   * Shared textures need a native handle WebGPU does not expose; always fails.
+   *
+   * @implemented
+   */
   OpenShared()
   {
     return ALResult.E_FAIL;
   }
 
-  /** The `Tr2BitmapDimensions` this texture was created from, or null. */
+  /**
+   * The `Tr2BitmapDimensions` this texture was created from, or null.
+   *
+   * @implemented
+   */
   GetDesc()
   {
     return this._desc;
   }
 
-  /** The multisample description; this backend creates single-sampled textures. */
+  /**
+   * The multisample description; this backend creates single-sampled textures.
+   *
+   * @implemented
+   */
   GetMsaaDesc()
   {
     return this._msaa;
   }
 
-  /** The `Tr2GpuUsage` flags it was created with. */
+  /**
+   * The `Tr2GpuUsage` flags it was created with.
+   *
+   * @implemented
+   */
   GetGpuUsage()
   {
     return this._gpuUsage;
   }
 
-  /** The `Tr2CpuUsage` flags it was created with. */
+  /**
+   * The `Tr2CpuUsage` flags it was created with.
+   *
+   * @implemented
+   */
   GetCpuUsage()
   {
     return this._cpuUsage;
@@ -626,6 +653,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * Native texture snapshots use WebGPU staging buffers. The copy is ordered
    * after pending draws; byte rows are padded to WebGPU's 256-byte alignment.
    * Compressed, depth, volume, or physically substituted formats are unsupported.
+   *
+   * @adapted
    */
   @meta.adapted
   CreateReadback(region, renderContext)
@@ -661,6 +690,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /**
    * WebGPU cannot block on mapping. The immediate mapping awaits its own copy;
    * the returned bytes are detached from staging storage before it is released.
+   *
+   * @adapted
    */
   @meta.adapted
   async MapForReading(region, renderContext)
@@ -678,7 +709,11 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     }
   }
 
-  /** Mapping returns an owned CPU copy; no backend mapping remains to release. */
+  /**
+   * Mapping returns an owned CPU copy; no backend mapping remains to release.
+   *
+   * @adapted
+   */
   UnmapForReading(_renderContext)
   {
     return ALResult.S_OK;
@@ -702,6 +737,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * that rectangle, preserving all neighbouring atlas texels. Compressed
    * boxes remain unsupported, matching the native DX11 mapping restriction.
    *
+   * @adapted
    * @param {object} region A `Tr2TextureSubresource`.
    * @param {object} renderContext The render context, Trinity's or the AL.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
@@ -740,6 +776,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * one slice (`pitch * height`); `UpdateSubresource` uploads the mip's full
    * depth from the whole mapping.
    *
+   * @adapted
    * @param {object} renderContext The render context, Trinity's or the AL.
    * @returns {number} An `ALResult` value.
    */
@@ -763,6 +800,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /**
    * Replaces one mip of one slice, Carbon's `UpdateSubresource`.
    *
+   * @adapted
    * @param {object} region A `Tr2TextureSubresource` naming one mip and slice.
    * Browser adaptation: external images copy into reusable storage with straight
    * sRGB bytes, leaving transfer functions to ordinary shader-resource views.
@@ -814,6 +852,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * (`Tr2TextureALMetal.mm:744-791`): validate, crop both regions against their
    * textures, then one work-queue copy per slice and mip.
    *
+   * @implemented
    * @param {Tr2TextureSubresource} destSubresource The region to write.
    * @param {CjsWebgpuTextureAL} source The texture to read.
    * @param {Tr2TextureSubresource} sourceSubresource The region to read.
@@ -864,6 +903,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * generator of its own, so the context's CjsWebgpuMipGenerator stands in for
    * Metal's blit encoder.
    *
+   * @implemented
    * @param {object} renderContext The context whose work queue encodes it.
    * @returns {number} An `ALResult` value.
    */
@@ -887,6 +927,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * `Tr2TextureALDx11.cpp:1183-1186`); this backend has no multisampled
    * textures, so the multisample arm fails.
    *
+   * @adapted
    * @param {CjsWebgpuTextureAL} destination The texture to resolve into.
    * @param {object} renderContext The context whose work queue records it.
    * @returns {number} An `ALResult` value.
@@ -901,19 +942,31 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     return ALResult.E_FAIL;
   }
 
-  /** The native shared handle, which WebGPU does not expose. */
+  /**
+   * The native shared handle, which WebGPU does not expose.
+   *
+   * @notSupported
+   */
   GetSharedHandle()
   {
     return null;
   }
 
-  /** The descriptor-heap slot, which only the D3D12 backend has. */
+  /**
+   * The descriptor-heap slot, which only the D3D12 backend has.
+   *
+   * @adapted
+   */
   GetSrvIndexInHeap()
   {
     return NO_HEAP_INDEX;
   }
 
-  /** The descriptor-heap slot, which only the D3D12 backend has. */
+  /**
+   * The descriptor-heap slot, which only the D3D12 backend has.
+   *
+   * @adapted
+   */
   GetUavIndexInHeap()
   {
     return NO_HEAP_INDEX;
@@ -928,7 +981,11 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     return this._videoSampler.Request() ?? Promise.resolve(null);
   }
 
-  /** Releases this implementation and unregisters its final owner. */
+  /**
+   * Releases this implementation and unregisters its final owner.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -964,7 +1021,11 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     this._cpuUsage = Tr2CpuUsage.NONE;
   }
 
-  /** Where the texture lives, which for this backend is always video memory. */
+  /**
+   * Where the texture lives, which for this backend is always video memory.
+   *
+   * @adapted
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_VIDEO;
@@ -973,6 +1034,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /**
    * Fills in what this AL knows for a memory report.
    *
+   * @adapted
    * @param {object} description The description to fill in.
    * @returns {object} The same description.
    */
@@ -988,6 +1050,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /**
    * Names the texture, which reaches the `GPUTexture` label for debugging.
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
@@ -1000,7 +1063,11 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** The name given by `SetName`. */
+  /**
+   * The name given by `SetName`.
+   *
+   * @implemented
+   */
   GetName()
   {
     return this._name;

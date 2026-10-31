@@ -35,6 +35,8 @@ export class TriFrustumOrtho
    * Carbon's implicit copy assignment (TriFrustumOrtho.h:9-27 declares no
    * operator=, so its three members are copied), which JavaScript cannot
    * overload.
+   *
+   * @renamed operator=
    * @param {TriFrustumOrtho} other
    * @returns {TriFrustumOrtho} this
    */
@@ -49,6 +51,8 @@ export class TriFrustumOrtho
   /**
    * Carbon TriFrustumOrtho::DeriveFrustum (cpp:13-18) - copies the view matrix
    * and view-space bounds.
+   *
+   * @implemented
    * @param {Float32Array} view
    * @param {Float32Array} minBounds
    * @param {Float32Array} maxBounds
@@ -63,6 +67,8 @@ export class TriFrustumOrtho
   /**
    * Carbon's IsSphereVisibleAndInsideNearPlane( const Vector4* sphere ) (cpp:20):
    * the packed (x, y, z, radius) form.
+   *
+   * @implemented
    * @param {Float32Array} sphere - packed (x, y, z, radius)
    * @returns {Boolean}
    */
@@ -75,6 +81,8 @@ export class TriFrustumOrtho
    * Carbon's IsSphereVisibleAndInsideNearPlane( center, radius ) (cpp:20-61):
    * a sphere fully beyond the far bound (z - radius > boundsMax.z) is rejected,
    * then a squared-distance sphere-vs-AABB test in view space.
+   *
+   * @implemented
    * @param {Float32Array} worldCenter
    * @param {Number} radius
    * @returns {Boolean}
@@ -110,6 +118,8 @@ export class TriFrustumOrtho
   /**
    * Carbon TriFrustumOrtho::IsSphereVisibleIgnoreFarPlane (cpp:63-93) - same
    * squared-distance test but the +z (far) bound never rejects.
+   *
+   * @adapted
    * @param {Float32Array} sphereOrCenter - packed (x, y, z, radius) or center
    * @param {Number} [radius]
    * @returns {Boolean}
@@ -143,6 +153,8 @@ export class TriFrustumOrtho
    * squared distance (far bound ignored) exceeds radius^2; Inside when the
    * sphere clears every bound by at least the radius (the far-bound lane is
    * substituted with the radius, so it always passes); Intersect otherwise.
+   *
+   * @adapted
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult
    */
@@ -182,6 +194,8 @@ export class TriFrustumOrtho
    * Carbon TriFrustumOrtho::GetPixelSize (cpp:137-150) - shadow-map pixel
    * coverage of a packed sphere: diameter over the larger relative frustum
    * extent, scaled by the texture size.
+   *
+   * @implemented
    * @param {Float32Array} sphere - packed (x, y, z, radius)
    * @param {Number} textureSize
    * @returns {Number}
@@ -200,6 +214,8 @@ export class TriFrustumOrtho
   /**
    * Carbon TriFrustumOrtho::GetEyePos (cpp:152-155) - the view matrix
    * translation (m_view.GetTranslation(), flat 12..14).
+   *
+   * @implemented
    * @returns {Float32Array}
    */
   GetEyePos()

@@ -48,6 +48,8 @@ export class Tr2PyValueBinding extends INotify
    * Marks the binding valid only when both objects are present and both
    * attribute names are non-empty; no type checking is performed.
    * Native private helper; deliberately does not expose IInitialize.
+   *
+   * @implemented
    * @returns {void}
    */
 
@@ -64,6 +66,8 @@ export class Tr2PyValueBinding extends INotify
 
   /**
    * Re-validates the binding after any field change.
+   *
+   * @implemented
    * @param {string|null} [_value=null] Changed member name.
    * @returns {boolean} True after revalidation.
    */
@@ -78,7 +82,8 @@ export class Tr2PyValueBinding extends INotify
   /**
    * Assigns the source attribute onto the destination attribute; does nothing
    * when the binding is invalid or the source does not carry the attribute.
-   * Adapted: Copies JavaScript object attributes in place of Carbon's Python C-API get/set calls.
+   *
+   * @adapted Copies JavaScript object attributes in place of Carbon's Python C-API get/set calls.
    * @returns {void}
    */
 

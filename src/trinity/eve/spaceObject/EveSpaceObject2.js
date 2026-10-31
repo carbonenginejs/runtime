@@ -84,6 +84,8 @@ const BOUNDING_CENTER_SCRATCH = vec3.create();
  * attachments, lights, effect children, overlay effects, impact overlay and
  * controllers - together with the curve-driven world transform, visibility, LOD
  * and batch submission that drive them each frame.
+ *
+ * @abstract
  */
 @be.define("EveSpaceObject2")
 @be.mapInterface(EveEntity)
@@ -523,7 +525,8 @@ export class EveSpaceObject2 extends EveEntity
    * .y activation strength, .z dirt level, .w bounding-sphere radius
    * (PrepareShaderData, cpp:734-744). .x is authored elsewhere and left alone.
    * Packed ship values supplied to the vertex and pixel shader records.
-   * Adapted: Carbon declares m_spaceObjectShipData (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:625) but does not expose it; exposed here for the values interface.
+   *
+   * @adapted Carbon declares m_spaceObjectShipData (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:625) but does not expose it; exposed here for the values interface.
    * @type {Float32Array}
    */
   @meta.mapAttribute(meta.READ)
@@ -642,7 +645,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Current world velocity obtained from the translation curve derivative.
-   * Adapted: Carbon declares m_worldVelocity (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:615) but does not expose it; exposed here for the values interface.
+   *
+   * @adapted Carbon declares m_worldVelocity (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:615) but does not expose it; exposed here for the values interface.
    * @type {Float32Array}
    */
   @meta.mapAttribute(meta.READ)
@@ -661,6 +665,8 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon MAP_PROPERTY "audioGeometry" over the protected
    * GetAudioGeometry/SetAudioGeometry (EveSpaceObject2_Blue.cpp:327): the
    * Wwise spatial-audio geometry interface.
+   *
+   * @implemented
    */
   @be.mapProperty()
   @type.rootRef("ITr2AudGeometry")
@@ -670,7 +676,11 @@ export class EveSpaceObject2 extends EveEntity
     return this._GetAudioGeometry();
   }
 
-  /** Replaces the audio geometry interface. */
+  /**
+   * Replaces the audio geometry interface.
+   *
+   * @implemented
+   */
   @meta.implemented
   set audioGeometry(value)
   {
@@ -946,6 +956,8 @@ export class EveSpaceObject2 extends EveEntity
    * locator count from the "damage" locator set - which Carbon does at build
    * time - so a field-populated graph reaches the same live state as the
    * authoring path.
+   *
+   * @adapted
    */
   @meta.adapted
   Initialize()
@@ -982,7 +994,11 @@ export class EveSpaceObject2 extends EveEntity
     return true;
   }
 
-  /** Returns the hull mesh, or null when none is attached. */
+  /**
+   * Returns the hull mesh, or null when none is attached.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMesh()
   {
@@ -992,6 +1008,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Replaces the hull mesh; the cached area blocks are only rebuilt on the next
    * batch call.
+   *
+   * @adapted
    */
   @meta.adapted
   SetMesh(mesh)
@@ -1009,6 +1027,8 @@ export class EveSpaceObject2 extends EveEntity
    * own notify target to the new geometry; the updater's rebuild on load is
    * the updater's own subscription here (Tr2GrannyAnimation.SetSharedGeometryRes),
    * and the audio geometry is not ported.
+   *
+   * @adapted
    */
   @meta.adapted
   PrepareForAnimation()
@@ -1022,7 +1042,11 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  /** Borrowed overlay vector used by child mesh inheritance. */
+  /**
+   * Borrowed overlay vector used by child mesh inheritance.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetOverlayEffects()
   {
@@ -1032,6 +1056,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Appends an overlay effect (Carbon EveSpaceObject2.cpp:3310-3313); the
    * list's INSERTED arm replays the controller variables onto it (cpp:376-389).
+   *
+   * @implemented
    */
   @meta.implemented
   AddOverlayEffect(overlayEffect)
@@ -1039,7 +1065,11 @@ export class EveSpaceObject2 extends EveEntity
     addChild(this, "overlayEffects", overlayEffect, { listNotify: this });
   }
 
-  /** Removes an overlay effect when present (Carbon EveSpaceObject2.cpp:3319-3326). */
+  /**
+   * Removes an overlay effect when present (Carbon EveSpaceObject2.cpp:3319-3326).
+   *
+   * @implemented
+   */
   @meta.implemented
   RemoveOverlayEffect(overlayEffect)
   {
@@ -1049,6 +1079,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * The first overlay effect whose name matches, or null; null for no name
    * (Carbon EveSpaceObject2.cpp:3332-3347).
+   *
+   * @implemented
    */
   @meta.implemented
   GetOverlayEffectByName(name)
@@ -1057,14 +1089,22 @@ export class EveSpaceObject2 extends EveEntity
     return this.overlayEffects.find(overlay => overlay.name === name) ?? null;
   }
 
-  /** Whether the hull is animated, as the SOF sets it (Carbon EveSpaceObject2.cpp:2530-2533). */
+  /**
+   * Whether the hull is animated, as the SOF sets it (Carbon EveSpaceObject2.cpp:2530-2533).
+   *
+   * @implemented
+   */
   @meta.implemented
   IsAnimated()
   {
     return this.isAnimated;
   }
 
-  /** Carbon EveSpaceObject2.cpp:2535-2538. */
+  /**
+   * Carbon EveSpaceObject2.cpp:2535-2538.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetIsAnimated(isAnimated)
   {
@@ -1074,6 +1114,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Appends a controller, links it to this object when it is not already linked,
    * and replays the current controller variables onto it.
+   *
+   * @adapted
    */
   @meta.adapted
   AddController(controller)
@@ -1087,6 +1129,8 @@ export class EveSpaceObject2 extends EveEntity
    * Appends a placement observer, which is repositioned from the observer
    * transform on every synchronous update; the observer is returned for
    * chaining.
+   *
+   * @implemented
    */
   @meta.implemented
   AddObserver(observer)
@@ -1099,6 +1143,8 @@ export class EveSpaceObject2 extends EveEntity
    * Sets the colour set that effect children and lights inherit, creating the
    * inherit-properties holder on first use, and pushes it to the existing
    * children and lights.
+   *
+   * @implemented
    */
   @meta.implemented
   SetInheritProperties(colorSet)
@@ -1128,6 +1174,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Returns the first effect child with the given name, or null when none
    * matches.
+   *
+   * @implemented
    */
   @meta.implemented
   GetEffectChildByName(name)
@@ -1157,6 +1205,8 @@ export class EveSpaceObject2 extends EveEntity
    * component follows the list edges: registered on the first light, dropped on
    * the last removal or an unload. Decals renumber their priorities, which is
    * the one arm needing SWAPPED and MOVED.
+   *
+   * @implemented
    */
   @meta.implemented
   OnListModified(event, key = 0, key2 = 0, value = null, list = null)
@@ -1278,6 +1328,8 @@ export class EveSpaceObject2 extends EveEntity
    * Appends an effect child, first giving it the hull's inherited properties and
    * then replaying the current controller variables onto it, so a late addition
    * starts in the same state as the rest.
+   *
+   * @adapted
    */
   @meta.adapted
   AddToEffectChildrenList(child)
@@ -1289,7 +1341,11 @@ export class EveSpaceObject2 extends EveEntity
     return child;
   }
 
-  /** Appends a light, first giving it the hull's inherited properties. */
+  /**
+   * Appends a light, first giving it the hull's inherited properties.
+   *
+   * @implemented
+   */
   @meta.implemented
   AddLight(light)
   {
@@ -1301,6 +1357,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Drops every light from the hull; component registration is not revisited
    * here.
+   *
+   * @implemented
    */
   @meta.implemented
   ClearLights()
@@ -1313,6 +1371,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Removes an effect child, returning false when it is not attached to this
    * hull.
+   *
+   * @implemented
    */
   @meta.implemented
   RemoveFromEffectChildrenList(child)
@@ -1327,6 +1387,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Sets the curve that rotates the model within the hull's ball rotation, or
    * clears it when passed nothing.
+   *
+   * @implemented
    */
   @meta.implemented
   SetModelRotationCurve(curve)
@@ -1334,7 +1396,11 @@ export class EveSpaceObject2 extends EveEntity
     this.modelRotationCurve = curve ?? null;
   }
 
-  /** Returns the model rotation curve, or null when none is set. */
+  /**
+   * Returns the model rotation curve, or null when none is set.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetModelRotationCurve()
   {
@@ -1344,6 +1410,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Sets the curve that offsets the model within the hull's ball position, or
    * clears it when passed nothing.
+   *
+   * @implemented
    */
   @meta.implemented
   SetModelTranslationCurve(curve)
@@ -1351,7 +1419,11 @@ export class EveSpaceObject2 extends EveEntity
     this.modelTranslationCurve = curve ?? null;
   }
 
-  /** Returns the model translation curve, or null when none is set. */
+  /**
+   * Returns the model translation curve, or null when none is set.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetModelTranslationCurve()
   {
@@ -1360,6 +1432,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Rebuilds the hull world transform for a frame from the ball position and rotation curves plus the optional model translation and rotation curves, applies modelScale as a uniform scale, then refreshes the inverse transform and the world bounds; the previous world transform is kept for motion vectors and the world velocity comes from the position curve's derivative.
+   *
+   * @adapted
    * @param {number} time Frame time; repeating the previous call's time is a no-op.
    * @returns {boolean} False when the transform had already been built for this time.
    */
@@ -1438,6 +1512,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Refreshes Carbon's realized world-space sphere from the dynamic skinned
    * sphere when available, otherwise from the authored local sphere.
+   *
+   * @implemented
    */
   @meta.implemented
   UpdateWorldBounds()
@@ -1466,6 +1542,8 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon EveSpaceObject2::PrepareShaderData (cpp:734-763): refreshes the
    * world bounds, packs the ship data, and derives the clip-sphere dissolve
    * values into the persistent per-object records.
+   *
+   * @implemented
    */
   @meta.implemented
   PrepareShaderData(updateContext = null)
@@ -1508,6 +1586,8 @@ export class EveSpaceObject2 extends EveEntity
    * in across the low-detail threshold so a hull entering that range does not
    * pop. The coefficients are cleared first, which is also what leaves the
    * unwritten tail zero on the L1 path.
+   *
+   * @implemented
    * @param {Object} manager - Tr2ShLightingManager
    * @param {Object} [updateContext] - frame context, for the detail thresholds
    */
@@ -1544,9 +1624,9 @@ export class EveSpaceObject2 extends EveEntity
    * its world translation, its secondary-lighting sphere radius and albedo, and
    * no emissive colour. The translation is one live view, which unregistering
    * matches by identity.
-   * Adapted: Carbon passes the radius as a pointer the manager reads live;
-   * a getter supplies the current value at every source refresh.
    *
+   * @adapted Carbon passes the radius as a pointer the manager reads live;
+   *   a getter supplies the current value at every source refresh.
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
    */
@@ -1559,6 +1639,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Unregisters this hull as a secondary light source (EveSpaceObject2.cpp:516-519).
    *
+   * @adapted
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager removed it.
    */
@@ -1588,6 +1669,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon EveSpaceObject2::ClearShLighting (cpp:1423-1426): drops this hull's
    * secondary-lighting contribution back to nothing.
+   *
+   * @implemented
    */
   @meta.implemented
   ClearShLighting()
@@ -1602,6 +1685,8 @@ export class EveSpaceObject2 extends EveEntity
    * attachment needs from its hull. `shLighting` is a LIVE view into the PS
    * record, exactly as Carbon hands out a raw pointer into m_psData - an
    * attachment reading it sees the hull's current coefficients.
+   *
+   * @implemented
    * @param {Object} out - caller-owned record, refreshed in place
    */
   @meta.implemented
@@ -1626,6 +1711,8 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon EveSpaceObject2::GetPerObjectStructs (cpp:1485-1490): hands a copy
    * of both records to a caller, with the VS record's customData taken from the
    * PS record as Carbon does.
+   *
+   * @implemented
    * @returns {{vs: RawData, ps: RawData}} independent copies, not live records
    */
   @meta.implemented
@@ -1641,6 +1728,8 @@ export class EveSpaceObject2 extends EveEntity
    * Refreshes the world transform, then - when the update flag is on - places the observers, stamps the LOD-gated curve clock while advancing the overlay effects, runs the effect children's synchronous pass with the current placement, and updates the impact overlay; the overlay effects receive the context time as both clocks, as Carbon does.
    * Effect children borrow the root bone palette (cpp:598). Adapted: the
    * CPU animation updater advances by context delta instead of native clock.
+   *
+   * @adapted
    * @returns {boolean} False when the update flag is off; the world transform is refreshed either way.
    */
   @meta.adapted
@@ -1707,6 +1796,8 @@ export class EveSpaceObject2 extends EveEntity
    * before the impact overlay; effect children borrow the root bone palette
    * at cpp:724. Adapted: JS executes this update phase serially
    * and returns the computed controller frequency; the native method is void.
+   *
+   * @adapted
    * @returns {number} The controller update frequency in 0..1, which is also handed to the effect children; 0 when the hull is not visible or the update flag is off.
    */
   @meta.adapted
@@ -1832,7 +1923,7 @@ export class EveSpaceObject2 extends EveEntity
    * Updates Carbon's visibility, pixel-size, and mesh-LOD state, then forwards
    * visibility to the explicitly owned visual branches.
    *
-   * Adapted: raytracing mesh updates are not ported.
+   * @adapted raytracing mesh updates are not ported.
    */
   @meta.adapted
   UpdateVisibility(updateContext = null, _parentTransform = EveSpaceObject2._identityTransform)
@@ -1963,6 +2054,7 @@ export class EveSpaceObject2 extends EveEntity
    * effect children and the attachments (sprite and spotlight sets) register
    * their quad effects.
    *
+   * @implemented
    * @param {object} quadRenderer The scene's Tr2QuadRenderer.
    */
   @meta.implemented
@@ -1978,6 +2070,7 @@ export class EveSpaceObject2 extends EveEntity
    * (y) and booster gain (x); the effect children follow the child display
    * rule.
    *
+   * @implemented
    * @param {object} frustum The frame's frustum.
    * @param {object} quadRenderer The scene's Tr2QuadRenderer.
    */
@@ -2006,8 +2099,7 @@ export class EveSpaceObject2 extends EveEntity
    * (the impostor's hash) instead of pushing its renderables; it falls back to
    * its renderables when the manager declines.
    *
-   * Adapted: returns `out`; the decal mesh cache is not ported.
-   *
+   * @adapted returns `out`; the decal mesh cache is not ported.
    * @param {ITr2Renderable[]} out The frame's renderables.
    * @param {Tr2ImpostorManager|null} impostors The scene's impostor manager, if any.
    * @returns {ITr2Renderable[]} out
@@ -2039,6 +2131,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * ITr2ImpostorSource (cpp:4231-4252): every batch the object's renderables make,
    * opaque, decal, transparent and additive, for the impostor capture.
+   *
+   * @implemented
    * @param {TriFrustum} _frustum The capture frustum (unused, as in Carbon).
    * @param {Map<number, object>} batches Accumulators by TriBatchType.
    */
@@ -2054,7 +2148,11 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  /** ITr2ImpostorSource (cpp:4254-4259): how far the view has turned since the impostor was captured. */
+  /**
+   * ITr2ImpostorSource (cpp:4254-4259): how far the view has turned since the impostor was captured.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetRenderPriority(oldHash, newHash)
   {
@@ -2063,14 +2161,22 @@ export class EveSpaceObject2 extends EveEntity
     return Math.max(1 - dotView, 1 - dotUp);
   }
 
-  /** ITr2ImpostorSource (cpp:4261-4264): the object's bounding sphere. */
+  /**
+   * ITr2ImpostorSource (cpp:4261-4264): the object's bounding sphere.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetImpostorBoundingSphere(sphere)
   {
     return this.GetBoundingSphere(sphere);
   }
 
-  /** ITr2ImpostorSource (cpp:4266-4274): the bounding sphere moved to last frame's world position. */
+  /**
+   * ITr2ImpostorSource (cpp:4266-4274): the bounding sphere moved to last frame's world position.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLastImpostorBoundingSphere(sphere)
   {
@@ -2090,6 +2196,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon EveSpaceObject2::PushRenderables (cpp:1530-1551): the hull itself while its mesh is visible and loaded,
    * then the children and decals. Virtual in Carbon: EveSwarm replaces it with its per-fighter renderables.
+   *
+   * @implemented
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
   @meta.implemented
@@ -2111,6 +2219,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon EveSpaceObject2::PushChildrenAndDecalRenderables (cpp:1553-1586): displayed and always-on children, then
    * the decals against the hull mesh's geometry.
+   *
+   * @implemented
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
   @meta.implemented
@@ -2140,10 +2250,14 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  /** Carbon ITr2Renderable contract (EveSpaceObject2.cpp:1097-1140): activated
+  /**
+   * Carbon ITr2Renderable contract (EveSpaceObject2.cpp:1097-1140): activated
    * attachments recurse, the impact overlay contributes, the hull mesh delegates
    * per batch type, and TRANSPARENT routes through the distance-sorted area
-   * path, then GetBatchesFromOverlayVector adds the overlay batches. */
+   * path, then GetBatchesFromOverlayVector adds the overlay batches.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, reason)
   {
@@ -2247,13 +2361,17 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  /** Rebuilds the cached overlay/shadow area-block lists from the current mesh
+  /**
+   * Rebuilds the cached overlay/shadow area-block lists from the current mesh
    * (Carbon RebuildCachedData, EveSpaceObject2.cpp:2077-2097, triggered there by
    * the geometry-resource load callback). TYPE_ALL = shadow-casting OPAQUE +
    * TRANSPARENT + DECAL areas; TYPE_OPAQUEONLY = shadow-casting OPAQUE; the
    * shadow list groups OPAQUE areas by shared material. All coalesced.
    * Carbon (cpp:2408-2419) calls CollectOverlayAreaBlocks from the geometry-resource
-   * notify callback; here it rebuilds lazily on first batch use from the mesh areas alone. */
+   * notify callback; here it rebuilds lazily on first batch use from the mesh areas alone.
+   *
+   * @adapted
+   */
   @meta.adapted
   RebuildCachedData()
   {
@@ -2274,6 +2392,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Drops the cached overlay and shadow area-block lists so the next batch call
    * rebuilds them from the current mesh.
+   *
+   * @implemented
    */
   @meta.implemented
   ReleaseCachedData()
@@ -2303,6 +2423,7 @@ export class EveSpaceObject2 extends EveEntity
    * The OPAQUE bit deliberately pulls in the transparent and additive OVERLAY
    * effects too, so a cloaking hull stays pickable.
    *
+   * @implemented
    * @param {Object} batches - the picking accumulator
    * @param {Number} pickTypes - a Tr2PickType mask
    * @param {Object} perObjectData - this hull's per-object record
@@ -2350,6 +2471,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon EveSpaceObject2::GetID (cpp:3640-3643): a picked area resolves to
    * the hull itself, so the area index is deliberately ignored.
+   *
+   * @implemented
    * @param {Number} [_areaID] - the picked area, unused by this class
    * @returns {EveSpaceObject2} this
    */
@@ -2366,8 +2489,8 @@ export class EveSpaceObject2 extends EveEntity
    * they travel as a geometry source descriptor and shadowPixelSize goes unused
    * until LOD selection is ported.
    *
-   * Adapted: LOD draw args are left as a geometry source descriptor and primitive-count
-   * gating is not ported yet; Carbon bakes both here.
+   * @adapted LOD draw args are left as a geometry source descriptor and primitive-count
+   *   gating is not ported yet; Carbon bakes both here.
    */
   @meta.adapted
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
@@ -2406,11 +2529,15 @@ export class EveSpaceObject2 extends EveEntity
     return committed;
   }
 
-  /** Carbon GetBatchesFromOverlayVector (EveSpaceObject2.cpp:1236-1265): the
+  /**
+   * Carbon GetBatchesFromOverlayVector (EveSpaceObject2.cpp:1236-1265): the
    * impact overlay's armor-damage shader draws over the TYPE_ALL blocks at
    * maximum priority, then each overlay effect draws over its overlay-type
    * blocks, through EveMeshOverlayEffect.emitDamageOverlayBatches/emitOverlayBatches.
-   * The cached blocks are rebuilt lazily (see RebuildCachedData). */
+   * The cached blocks are rebuilt lazily (see RebuildCachedData).
+   *
+   * @adapted
+   */
   @meta.adapted
   GetBatchesFromOverlayVector(batches, perObjectData, batchType, mesh)
   {
@@ -2443,7 +2570,7 @@ export class EveSpaceObject2 extends EveEntity
    * does, which tells the renderer to route this object through the sorted
    * transparent pass.
    *
-   * Adapted: Portable mesh area access replaces Carbon's native mesh-area vectors.
+   * @adapted Portable mesh area access replaces Carbon's native mesh-area vectors.
    */
   @meta.adapted
   HasTransparentBatches()
@@ -2461,6 +2588,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Returns the distance from the renderer's view position to the hull
    * world translation, used to order transparent renderables back-to-front.
+   *
+   * @implemented
    */
   @meta.implemented
   GetSortValue()
@@ -2483,6 +2612,8 @@ export class EveSpaceObject2 extends EveEntity
    * Tr2PerObjectDataWithPersistentBuffers from the accumulator; this port
    * wraps its two persistent RawData records in native per-object data so each
    * gathering owns its picking pointer independently of the persistent payloads.
+   *
+   * @adapted
    */
   @meta.adapted
   GetPerObjectData(_accumulator = null)
@@ -2506,21 +2637,29 @@ export class EveSpaceObject2 extends EveEntity
     return data;
   }
 
-  /** Carbon forwards the shadow pass to the same per-object record. */
+  /**
+   * Carbon forwards the shadow pass to the same per-object record.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetShadowPerObjectData(accumulator = null)
   {
     return this.GetPerObjectData(accumulator);
   }
 
-  /** Carbon EveSpaceObject2::GetLights (cpp:3536-3555): display gate only
+  /**
+   * Carbon EveSpaceObject2::GetLights (cpp:3536-3555): display gate only
    * (no lights-empty early-out, unlike EveChildMesh), then per light
    * AddLight(manager, worldTransform, 1, bones, boneCount) FOLLOWED by
    * SetBrightnessMultiplier(m_activationStrength) - the order is contract:
    * the submission uses the multiplier stamped on the PREVIOUS pass (first
    * pass uses the Tr2Light default 1) - one frame of activation-strength
    * lag, preserved verbatim. cpp:3554's dead `DisplayChildren()` local is
-   * not ported. */
+   * not ported.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLights(lightManager)
   {
@@ -2546,8 +2685,8 @@ export class EveSpaceObject2 extends EveEntity
    * against the supplied shadow frustum. Carbon's float& result is represented
    * by an optional length-one array.
    *
-   * Adapted: The optional length-one array replaces Carbon's float& sizeInShadow
-   * out-parameter.
+   * @adapted The optional length-one array replaces Carbon's float& sizeInShadow
+   *   out-parameter.
    */
   @meta.adapted
   IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
@@ -2584,10 +2723,14 @@ export class EveSpaceObject2 extends EveEntity
     return sizeInShadow > 15;
   }
 
-  /** Carbon EveSpaceObject2::RegisterComponents (cpp:3568-3609): registers its
+  /**
+   * Carbon EveSpaceObject2::RegisterComponents (cpp:3568-3609): registers its
    * own components and its children with the scene registration container "so
    * we don't have to traverse the tree every frame". RegisterAudioGeometry
-   * (cpp:3572-3575) is audio-engine-owned and unported. Gate m_display. */
+   * (cpp:3572-3575) is audio-engine-owned and unported. Gate m_display.
+   *
+   * @implemented
+   */
   @meta.implemented
   RegisterComponents()
   {
@@ -2621,11 +2764,15 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  /** Carbon EveSpaceObject2::UnRegisterComponents (cpp:3615-3638): forwards
+  /**
+   * Carbon EveSpaceObject2::UnRegisterComponents (cpp:3615-3638): forwards
    * the un-registration to the children only - EveEntity::UnRegister already
    * called UnRegisterAllComponents(this) first (EveEntity.cpp:90) - and does
    * not re-check display. UnregisterAudioGeometry (cpp:3617) is
-   * audio-engine-owned and unported. */
+   * audio-engine-owned and unported.
+   *
+   * @implemented
+   */
   @meta.implemented
   UnRegisterComponents()
   {
@@ -2647,6 +2794,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon EveSpaceObject2::GetAudioGeometry (protected, cpp:4564-4567).
    *
+   * @implemented
    * @returns {ITr2AudGeometry|null} The audio geometry interface.
    */
   @meta.implemented
@@ -2659,11 +2807,10 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon EveSpaceObject2::SetAudioGeometry (protected, cpp:4569-4578):
    * stores the replacement audio geometry interface.
    *
-   * Adapted: Carbon unregisters the old geometry and registers the mesh's
-   * audio geometry with the new one (UnregisterAudioGeometry and
-   * RegisterAudioGeometry, cpp:4580-4616). Those stay audio-engine-owned and
-   * unported, as in RegisterComponents and UnRegisterComponents.
-   *
+   * @adapted Carbon unregisters the old geometry and registers the mesh's
+   *   audio geometry with the new one (UnregisterAudioGeometry and
+   *   RegisterAudioGeometry, cpp:4580-4616). Those stay audio-engine-owned and
+   *   unported, as in RegisterComponents and UnRegisterComponents.
    * @param {ITr2AudGeometry|null} audioGeometry The replacement, or null.
    */
   @meta.adapted
@@ -2675,6 +2822,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Reports whether children and effect children should be shown; always true on
    * the base hull, subclasses gate it on activation state.
+   *
+   * @implemented
    */
   @meta.implemented
   DisplayChildren()
@@ -2685,7 +2834,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon EveSpaceObject2::GetObserverTransform: the transform audio observers are placed at, the world transform.
    *
-   * Adapted: Carbon returns the Matrix by value; it is written to the caller-owned out, which is returned.
+   * @adapted Carbon returns the Matrix by value; it is written to the caller-owned out, which is returned.
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
@@ -2698,6 +2847,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ): copies the world transform effect
    * children are placed against into out, and returns out.
+   *
+   * @implemented
    * @param {mat4} out
    * @returns {mat4} out
    */
@@ -2711,6 +2862,8 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon EveSpaceObject2::UpdateModelCenterWorldPosition (cpp:2992-3007): brings the world transform up to t
    * first, since a camera is looking at this object, then the model centre in world space, from the skinned
    * dynamic sphere while the animation is initialised.
+   *
+   * @implemented
    * @param {vec3} position - receives the world-space model centre
    * @param {number} t - the time to update to, in Blue ticks
    */
@@ -2732,7 +2885,11 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  /** Carbon's non-updating model-center query. */
+  /**
+   * Carbon's non-updating model-center query.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetModelCenterWorldPosition(out)
   {
@@ -2741,6 +2898,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Writes the curve-sampled ball position into a caller-owned vector.
+   *
+   * @implemented
    * @param {Float32Array} out Caller-owned position.
    * @returns {Float32Array} out
    */
@@ -2754,6 +2913,8 @@ export class EveSpaceObject2 extends EveEntity
    * Returns the live curve-sampled ball rotation, which excludes the model
    * rotation curve; the quaternion is the object's own field and is rewritten by
    * the next transform update.
+   *
+   * @implemented
    */
   @meta.implemented
   GetWorldRotation()
@@ -2764,6 +2925,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Finds a sound emitter by observer name on this hull and then recursively in
    * the effect children, returning null when no emitter carries the name.
+   *
+   * @implemented
    */
   @meta.implemented
   FindSoundEmitter(name)
@@ -2792,6 +2955,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Sets the mute flag and pushes it to every effect child and placement
    * observer.
+   *
+   * @adapted
    */
   @meta.adapted
   SetMute(mute)
@@ -2810,6 +2975,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Plays an animation with explicit loop, start, and speed settings
    * (Carbon PlayAnimationEx, MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @adapted
    */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
@@ -2823,6 +2990,8 @@ export class EveSpaceObject2 extends EveEntity
    * local box corners transformed with perspective divide). The granny path
    * is unported. Returns an inverted-empty { min, max } box when dynamic
    * bounds are disabled, as Carbon's BoundingBoxInitialize does.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -2854,6 +3023,8 @@ export class EveSpaceObject2 extends EveEntity
    * Calculates the skinned bounding sphere (CMF path: the current bounding
    * sphere; granny path unported). Returns (0,0,0,-1) when dynamic bounds
    * are disabled.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -2867,7 +3038,11 @@ export class EveSpaceObject2 extends EveEntity
     return vec4.set(out, 0, 0, 0, -1);
   }
 
-  /** Marks the derived locator graph stale and restarts any requested filter. */
+  /**
+   * Marks the derived locator graph stale and restarts any requested filter.
+   *
+   * @implemented
+   */
   @meta.implemented
   InvalidateMergedLocators(reason = "structure")
   {
@@ -2882,6 +3057,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Rebuilds the locator sets visible on this object from its own authored sets
    * plus the sets owned by child meshes and nested child containers.
+   *
+   * @adapted
    */
   @meta.adapted
   EnsureChildLocatorMerged()
@@ -3103,7 +3280,11 @@ export class EveSpaceObject2 extends EveEntity
     });
   }
 
-  /** Advances the asynchronous damage-locator filtering state machine. */
+  /**
+   * Advances the asynchronous damage-locator filtering state machine.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateDamageLocatorFilter()
   {
@@ -3147,7 +3328,11 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  /** Requests a damage-locator filter pass. */
+  /**
+   * Requests a damage-locator filter pass.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   RunDamageLocatorFilter()
@@ -3158,6 +3343,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Clears all impact and damage effects on the impact overlay.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3174,6 +3361,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Clears all animations on the animation updater.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3184,6 +3373,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Creates an impact facing a position on the closest facing damage locator.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3195,6 +3386,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Creates an impact effect on a damage locator through the impact overlay.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -3229,6 +3422,8 @@ export class EveSpaceObject2 extends EveEntity
    * out of range. The argument is unsigned in Carbon, so a negative index
    * wraps high and is rejected. Quirk, reproduced: the test is `>`, so an
    * index equal to the locator count is accepted.
+   *
+   * @implemented
    * @param {number} locator Damage locator index.
    */
   @meta.implemented
@@ -3240,6 +3435,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Ends the current animation on the animation updater.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3251,6 +3448,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Freezes LOD selection at the current mesh and marks decal geometry
    * frozen.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3265,6 +3464,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Gets the number of damage locators on this object.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3275,6 +3476,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Carbon EveSpaceObject2::GetLastDamageLocatorHit (EveSpaceObject2.cpp:3730-3733).
+   *
+   * @implemented
    * @returns {number} The last hit damage locator, or -1.
    */
   @meta.implemented
@@ -3286,6 +3489,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon ResetClipSphereCenter (EveSpaceObject2.cpp:4416-4419): the clip
    * sphere centre becomes the negated bounding sphere centre.
+   *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -3297,6 +3502,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon ResetClipSphereCenterToPos (EveSpaceObject2.cpp:4422-4425): copies
    * `center` into the clip sphere centre.
+   *
+   * @implemented
    * @param {vec3} center
    * @returns {void}
    */
@@ -3308,6 +3515,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Gets the number of locators in a named locator set.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3319,6 +3528,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets the first locator list whose set has the requested Carbon name.
    * The returned list remains owned by the locator set.
+   *
+   * @implemented
    */
   @meta.implemented
   GetLocatorsForSet(locatorSetName)
@@ -3335,7 +3546,11 @@ export class EveSpaceObject2 extends EveEntity
     return null;
   }
 
-  /** Appends copies of a named locator set, merging with an existing authored set. */
+  /**
+   * Appends copies of a named locator set, merging with an existing authored set.
+   *
+   * @implemented
+   */
   @meta.implemented
   MergeToLocatorSet(locatorSet)
   {
@@ -3352,7 +3567,11 @@ export class EveSpaceObject2 extends EveEntity
     this.AddLocatorSet(locatorSet.GetName(), locators);
   }
 
-  /** Adds a new authored locator set without replacing another set of the same name. */
+  /**
+   * Adds a new authored locator set without replacing another set of the same name.
+   *
+   * @implemented
+   */
   @meta.implemented
   AddLocatorSet(name, locators)
   {
@@ -3363,7 +3582,11 @@ export class EveSpaceObject2 extends EveEntity
     return locatorSet;
   }
 
-  /** Removes all authored locator sets and invalidates every derived locator view. */
+  /**
+   * Removes all authored locator sets and invalidates every derived locator view.
+   *
+   * @implemented
+   */
   @meta.implemented
   ClearLocatorSets()
   {
@@ -3374,6 +3597,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets the closest locator in a set to a world position, ignoring locator
    * facing. Returns -1 when the set is missing or empty.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap("GetGoodLocatorIndex")
   @be.mapMethodAndWrap()
@@ -3410,6 +3635,8 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon's script surface maps GetGoodLocatorIndex to GetCloseLocatorIndex
    * (EveSpaceObject2_Blue.cpp); the internal randomized fit heuristic is not
    * script-exposed.
+   *
+   * @adapted
    */
   @legacyBlue.method
   @meta.adapted
@@ -3422,6 +3649,8 @@ export class EveSpaceObject2 extends EveEntity
    * Gets the local direction of an indexed damage locator, (0,0,0) for
    * indices out of range (Carbon script GetDamageLocatorDirection maps to
    * GetDamageLocatorDirectionLocal).
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -3445,8 +3674,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Internal ITriTargetable locator query, using the org-standard out-last convention.
    *
-   * Adapted: CarbonEngineJS keeps output parameters last and returns a validity flag for
-   * targetable callers.
+   * @adapted CarbonEngineJS keeps output parameters last and returns a validity flag for
+   *   targetable callers.
    */
   @meta.adapted
   GetDamageLocatorPosition(index, inWorldSpace, out)
@@ -3467,6 +3696,8 @@ export class EveSpaceObject2 extends EveEntity
    * Gets a damage locator's BIND position in object space - the merged set's
    * authored position, no animation (Carbon EveSpaceObject2.cpp:2785-2796).
    * Impact overlays seed decals here so they stay put on animated parts.
+   *
+   * @implemented
    */
   @meta.implemented
   GetDamageLocatorBindPosition(index, out)
@@ -3481,7 +3712,11 @@ export class EveSpaceObject2 extends EveEntity
     return true;
   }
 
-  /** Gets the closest facing damage locator for ITriTargetable consumers. */
+  /**
+   * Gets the closest facing damage locator for ITriTargetable consumers.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetClosestDamageLocatorIndex(position)
   {
@@ -3492,6 +3727,8 @@ export class EveSpaceObject2 extends EveEntity
    * Ports Carbon's randomized distance/direction fit for impact variation.
    *
    * Random draws delegate to the matching generator in global/math/random.js.
+   *
+   * @adapted
    */
   @meta.adapted
   GetGoodDamageLocatorIndex(position)
@@ -3545,14 +3782,22 @@ export class EveSpaceObject2 extends EveEntity
     return bestLocator < 0 ? this.GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName) : bestLocator;
   }
 
-  /** Gets the model-scaled target radius. */
+  /**
+   * Gets the model-scaled target radius.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetRadius()
   {
     return this.GetBoundingSphereRadius();
   }
 
-  /** Computes a miss point just outside the model silhouette. */
+  /**
+   * Computes a miss point just outside the model silhouette.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetMissPosition(hit, source, out)
   {
@@ -3578,7 +3823,11 @@ export class EveSpaceObject2 extends EveEntity
     return out;
   }
 
-  /** Gets the current target impact material. */
+  /**
+   * Gets the current target impact material.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetImpactConfiguration()
   {
@@ -3587,21 +3836,33 @@ export class EveSpaceObject2 extends EveEntity
       : ImpactConfiguration.IMPACT_INVALID;
   }
 
-  /** Replaces the ship impact overlay. */
+  /**
+   * Replaces the ship impact overlay.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetImpactOverlay(overlay)
   {
     this.impactOverlay = overlay;
   }
 
-  /** Returns the ship impact overlay. */
+  /**
+   * Returns the ship impact overlay.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetImpactOverlay()
   {
     return this.impactOverlay;
   }
 
-  /** Reports whether impacts currently use the authored shield ellipsoid. */
+  /**
+   * Reports whether impacts currently use the authored shield ellipsoid.
+   *
+   * @implemented
+   */
   @meta.implemented
   HasImpactConfigurationShield()
   {
@@ -3612,8 +3873,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Resolves a shield-ray or damage-locator collision point.
    *
-   * Adapted: CarbonEngineJS uses an out-last signature; the ellipsoid intersection is
-   * otherwise source-faithful CPU math.
+   * @adapted CarbonEngineJS uses an out-last signature; the ellipsoid intersection is
+   *   otherwise source-faithful CPU math.
    */
   @meta.adapted
   GetImpactPosition(locator, posPrev, posNow, epsilon, out)
@@ -3642,7 +3903,11 @@ export class EveSpaceObject2 extends EveEntity
     return false;
   }
 
-  /** Updates an existing impact overlay entry. */
+  /**
+   * Updates an existing impact overlay entry.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateImpact(out, direction, impactIndex)
   {
@@ -3661,6 +3926,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets the local position of an indexed damage locator, (0,0,0) for
    * indices out of range.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3679,6 +3946,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets the world-space position of an indexed damage locator, (0,0,0) for
    * indices out of range (returned untransformed, as Carbon does).
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3697,6 +3966,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Checks whether this object is in impostor mode. The impostor system that
    * raises the flag is unported, so this reports the default until then.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -3708,6 +3979,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon EveSpaceObject2::GetLocatorPositionFromSet (EveSpaceObject2.cpp:2804-2809, Blue-exposed): the locator's
    * position by value, through GetLocatorPosition.
+   *
+   * @implemented
    * @returns {vec3} a new vector
    */
   @be.mapMethodAndWrap()
@@ -3723,6 +3996,8 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon EveSpaceObject2::GetLocatorPosition (EveSpaceObject2.cpp:2818-2846): a locator's position from a named
    * set, in world or object space. An out-of-range index or missing set writes the world translation in world space
    * and (0,0,0) in object space, and answers false.
+   *
+   * @implemented
    * @param {vec3} out - receives the position
    * @param {number} index
    * @param {boolean} inWorldSpace
@@ -3758,6 +4033,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon EveSpaceObject2::GetLocatorRotationFromSet (EveSpaceObject2.cpp:2811-2816, Blue-exposed): the locator's
    * direction by value, through GetLocatorDirection.
+   *
+   * @implemented
    * @returns {vec3} a new vector
    */
   @be.mapMethodAndWrap()
@@ -3772,6 +4049,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon EveSpaceObject2::GetLocatorDirection (EveSpaceObject2.cpp:2960-2989): a locator's direction from a named
    * set, in world or object space. An out-of-range index or missing set writes (0,1,0) and answers false.
+   *
+   * @implemented
    * @param {vec3} out - receives the direction
    * @param {number} index
    * @param {boolean} inWorldSpace
@@ -3810,7 +4089,11 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  /** Carbon EveSpaceObject2::UpdateCurveSet (cpp:3901-3924): samples matching own sets at an explicit time on both clocks, then the children. */
+  /**
+   * Carbon EveSpaceObject2::UpdateCurveSet (cpp:3901-3924): samples matching own sets at an explicit time on both clocks, then the children.
+   *
+   * @implemented
+   */
   @meta.implemented
   UpdateCurveSet(name, time)
   {
@@ -3821,7 +4104,11 @@ export class EveSpaceObject2 extends EveEntity
     for (const owner of this._CurveSetOwners()) owner.UpdateCurveSet(name, time);
   }
 
-  /** Carbon EveSpaceObject2::PlayCurveSet (cpp:3930-3961): matching own sets play whole or a named range, then the children. */
+  /**
+   * Carbon EveSpaceObject2::PlayCurveSet (cpp:3930-3961): matching own sets play whole or a named range, then the children.
+   *
+   * @implemented
+   */
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -3841,7 +4128,11 @@ export class EveSpaceObject2 extends EveEntity
     for (const owner of this._CurveSetOwners()) owner.PlayCurveSet(name, rangeName);
   }
 
-  /** Carbon EveSpaceObject2::StopCurveSet (cpp:3967-3990). */
+  /**
+   * Carbon EveSpaceObject2::StopCurveSet (cpp:3967-3990).
+   *
+   * @implemented
+   */
   @meta.implemented
   StopCurveSet(name)
   {
@@ -3852,7 +4143,11 @@ export class EveSpaceObject2 extends EveEntity
     for (const owner of this._CurveSetOwners()) owner.StopCurveSet(name);
   }
 
-  /** Carbon EveSpaceObject2::GetCurveSetDuration (cpp:3996-4019): the longest over matching own sets and the children. */
+  /**
+   * Carbon EveSpaceObject2::GetCurveSetDuration (cpp:3996-4019): the longest over matching own sets and the children.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -3865,7 +4160,11 @@ export class EveSpaceObject2 extends EveEntity
     return duration;
   }
 
-  /** Carbon EveSpaceObject2::GetRangeDuration (cpp:4024-4047): the longest named range over own sets and the children. */
+  /**
+   * Carbon EveSpaceObject2::GetRangeDuration (cpp:4024-4047): the longest named range over own sets and the children.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -3881,6 +4180,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Raises a named controller event on this hull's controllers and forwards it
    * to the effect children and overlay effects.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3904,6 +4205,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Plays an animation once, replacing the current one
    * (Carbon script PlayAnimation maps to PlayAnimationOnce).
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -3914,6 +4217,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Chains an animation once after the current one (Carbon ChainAnimation).
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3925,6 +4230,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Chains an animation with explicit loop, start, and speed settings
    * (Carbon ChainAnimationEx).
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -3950,6 +4257,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Recalculates the authored bounding sphere from the mesh geometry
    * resource. Fails when no mesh or ready geometry resource is attached.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -3976,8 +4285,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Sets Carbon's authored local bounding sphere from a sph3-compatible value.
    *
-   * Adapted: Carbon's CcpMath::Sphere is represented by core-math sph3; object-shaped
-   * center/radius input is accepted at adapter boundaries.
+   * @adapted Carbon's CcpMath::Sphere is represented by core-math sph3; object-shaped
+   *   center/radius input is accepted at adapter boundaries.
    */
   @meta.adapted
   SetBoundingSphereInformation(sphere)
@@ -3997,6 +4306,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Returns a plain-object snapshot of the controller variables currently
    * stamped on this hull.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -4008,8 +4319,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets Carbon's most recently selected geometry LOD.
    *
-   * Adapted: Geometry resources without multi-LOD support expose their sole browser LOD as
-   * index zero.
+   * @adapted Geometry resources without multi-LOD support expose their sole browser LOD as
+   *   index zero.
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -4025,6 +4336,8 @@ export class EveSpaceObject2 extends EveEntity
    * Counts authored locators whose names start with the case-sensitive prefix.
    * JS null or an omitted prefix represents Carbon's null pointer; an empty
    * prefix also matches every authored locator. Animation bones are not counted.
+   *
+   * @adapted
    * @param {string|null} [prefix]
    * @returns {number}
    */
@@ -4044,6 +4357,8 @@ export class EveSpaceObject2 extends EveEntity
    * Finds the first authored locator with this exact, case-sensitive name.
    * JS represents Carbon's reference out parameter with caller-owned indexOut;
    * indexOut.index is written only when the method returns true.
+   *
+   * @adapted
    * @param {string} name
    * @param {{index: number}} indexOut
    * @returns {boolean}
@@ -4066,6 +4381,8 @@ export class EveSpaceObject2 extends EveEntity
    * Finds a name in the animation skeleton's bone order, not its mesh palette.
    * JS writes Carbon's reference out parameter to caller-owned indexOut.index
    * only on success, using the animation updater's public bone-name list.
+   *
+   * @adapted
    * @param {string} name
    * @param {{index: number}} indexOut
    * @returns {boolean}
@@ -4084,6 +4401,8 @@ export class EveSpaceObject2 extends EveEntity
    * Selects an animation joint before an authored locator, or ELT_COUNT on miss.
    * JS carries Carbon's reference out parameter in caller-owned indexOut.index;
    * a miss leaves it unchanged.
+   *
+   * @adapted
    * @param {string} name
    * @param {{index: number}} indexOut
    * @returns {number} A member of EveSpaceObject2.LocatorType.
@@ -4108,6 +4427,8 @@ export class EveSpaceObject2 extends EveEntity
    * adaptation, invalid indices and out-of-range authored indices return null;
    * Carbon's authored path indexes unchecked. JS indices are not coerced into
    * Carbon's unsigned index.
+   *
+   * @adapted
    * @param {string|number} nameOrType Name or EveSpaceObject2.LocatorType.
    * @param {mat4|number} [indexOrOut] Named output matrix or numeric locator index.
    * @param {mat4} [out] Output matrix for the numeric overload.
@@ -4161,6 +4482,8 @@ export class EveSpaceObject2 extends EveEntity
    * enabled, else the mesh box, else the cached box (at worst it lags one
    * frame). With out arguments it fills them and returns true; without, it
    * returns { min, max }.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -4195,7 +4518,11 @@ export class EveSpaceObject2 extends EveEntity
     return { min, max };
   }
 
-  /** Gets Carbon's cached local box transformed into a world-axis-aligned box. */
+  /**
+   * Gets Carbon's cached local box transformed into a world-axis-aligned box.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetWorldBoundingBox(minBounds, maxBounds)
   {
@@ -4208,7 +4535,11 @@ export class EveSpaceObject2 extends EveEntity
     return minBounds && maxBounds ? true : { min, max };
   }
 
-  /** Reports whether the attached mesh has a ready geometry resource. */
+  /**
+   * Reports whether the attached mesh has a ready geometry resource.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsBoundingBoxReady()
   {
@@ -4220,6 +4551,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets Carbon's realized world sphere, optionally accumulated with transform
    * and effect children when query is EVE_BOUNDS_WITH_CHILDREN.
+   *
+   * @implemented
    */
   @meta.implemented
   GetBoundingSphere(out, query = 0)
@@ -4248,6 +4581,8 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon EstimatePixelDiameter (EveSpaceObject2.cpp:3871-3886): the mesh's
    * local box as a world sphere through the exact pixel query; a meshless
    * object sizes its bounding sphere through the estimated one.
+   *
+   * @implemented
    */
   @meta.implemented
   EstimatePixelDiameter(frustum)
@@ -4271,7 +4606,11 @@ export class EveSpaceObject2 extends EveEntity
   }
 
 
-  /** Carbon EveSpaceObject2::GetWorldVelocity (cpp:3014-3017): the ball's velocity. */
+  /**
+   * Carbon EveSpaceObject2::GetWorldVelocity (cpp:3014-3017): the ball's velocity.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWorldVelocity(velocity)
   {
@@ -4279,14 +4618,22 @@ export class EveSpaceObject2 extends EveEntity
     return velocity;
   }
 
-  /** Carbon: IsPickable (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp:4082-4085). Returns the authored picking flag. */
+  /**
+   * Carbon: IsPickable (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp:4082-4085). Returns the authored picking flag.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsPickable()
   {
     return this.isPickable;
   }
 
-  /** Carbon: IsVisible (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp:1814-1819). Tests the current context, independently of cached display/visibility flags. */
+  /**
+   * Carbon: IsVisible (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp:1814-1819). Tests the current context, independently of cached display/visibility flags.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsVisible(updateContext)
   {
@@ -4296,7 +4643,11 @@ export class EveSpaceObject2 extends EveEntity
         >= updateContext.GetVisibilityThreshold();
   }
 
-  /** Reports the result of the latest Carbon visibility update. */
+  /**
+   * Reports the result of the latest Carbon visibility update.
+   *
+   * @implemented
+   */
   @meta.implemented
   IsInFrustum()
   {
@@ -4306,6 +4657,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets the bounding sphere center, preferring the dynamic skinned sphere
    * when one is published.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -4321,6 +4674,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets the model-scaled bounding sphere radius, preferring the dynamic
    * skinned sphere when one is published.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -4336,6 +4691,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * The Tr2GrannyAnimation driving this object, or null
    * (ITr2GrannyAnimationOwner, EveSpaceObject2.h:450-453).
+   *
+   * @implemented
    */
   @meta.implemented
   GetAnimationController()
@@ -4345,6 +4702,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * IEveSpaceObjectAttachmentOwner::AddAttachment (EveSpaceObject2.cpp:3240-3243): appends to m_attachments.
+   *
+   * @implemented
    * @param {object} attachment The attachment.
    */
   @meta.implemented
@@ -4353,7 +4712,11 @@ export class EveSpaceObject2 extends EveEntity
     addChild(this, "attachments", attachment, { listNotify: this });
   }
 
-  /** IEveSpaceObjectAttachmentOwner::ClearAttachments (EveSpaceObject2.cpp:3245-3248): empties m_attachments. */
+  /**
+   * IEveSpaceObjectAttachmentOwner::ClearAttachments (EveSpaceObject2.cpp:3245-3248): empties m_attachments.
+   *
+   * @implemented
+   */
   @meta.implemented
   ClearAttachments()
   {
@@ -4363,6 +4726,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * IEveSpaceObjectDecalOwner::AddDecal (EveSpaceObject2.cpp:3254-3263). A decal added while the high detail mesh is frozen
    * is told so; its priority is its index, which the decal list's notification sets on insertion.
+   *
+   * @implemented
    * @param {object} newDecal The decal.
    */
   @meta.implemented
@@ -4375,6 +4740,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets the number of mesh-bound bones. Carbon dereferences the animation
    * updater unchecked; CarbonEngineJS reports 0 when none is attached.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -4406,6 +4773,8 @@ export class EveSpaceObject2 extends EveEntity
    * Pushes shield, armor and hull damage levels to the impact overlay and
    * mirrors them into the ShieldDamage, ArmorDamage and HullDamage controller
    * variables so bound effects follow.
+   *
+   * @adapted
    */
   @be.mapMethodAndWrap()
   @meta.adapted
@@ -4429,6 +4798,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Toggles a named impact-overlay animation (boosters, hardeners, ...).
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -4476,6 +4847,8 @@ export class EveSpaceObject2 extends EveEntity
    * Appends every part's existing damage overlay with its range start in the
    * merged damage locator set, as [overlay, start] pairs (Carbon
    * EveSpaceObject2.cpp:3561-3574).
+   *
+   * @implemented
    */
   @meta.implemented
   CollectPartDamageOverlays(out)
@@ -4496,6 +4869,7 @@ export class EveSpaceObject2 extends EveEntity
    * SPACE_OBJECT_CLIPPING option, so the hull only clips (a cloak dissolving
    * it) once a clip factor turns non-zero.
    *
+   * @implemented
    * @param {string|null} [propertyName] The changed member's exposed name.
    * @returns {boolean} Always true.
    */
@@ -4526,6 +4900,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Sets a shader option on the mesh, overlay effects, decals, attachments and
    * effect children (EveSpaceObject2.cpp:4358-4388).
+   *
+   * @implemented
    */
   @meta.implemented
   SetShaderOption(name, value)
@@ -4541,6 +4917,8 @@ export class EveSpaceObject2 extends EveEntity
    * Stores a controller variable on the hull and pushes it to the controllers,
    * effect children and overlay effects; the stored value is replayed onto
    * controllers and children added later.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -4566,6 +4944,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Forwards a procedural-container variable to every effect child; the hull
    * itself keeps no copy.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -4580,6 +4960,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Starts this hull's controllers and those of its effect children and overlay
    * effects.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -4606,6 +4988,8 @@ export class EveSpaceObject2 extends EveEntity
    * locator records ({ position, direction, boneIndex }, Carbon's
    * LocatorStructureList shape) or the same [position, rotation, boneIndex]
    * tuple shape it returns.
+   *
+   * @adapted
    */
   @be.mapMethod()
   @meta.adapted
@@ -4635,6 +5019,8 @@ export class EveSpaceObject2 extends EveEntity
    * posed by the current bones and model curves, as [position, rotation,
    * boneIndex] tuples (Carbon script GetTransformedLocatorsFromSet maps to
    * PyGetTransformedLocatorsFromSet, EveSpaceObject2_Blue.cpp:146-181).
+   *
+   * @implemented
    */
   @be.mapMethod()
   @meta.implemented
@@ -4718,6 +5104,8 @@ export class EveSpaceObject2 extends EveEntity
    * object's own animation updater.
    *
    * Overridable on purpose: Carbon's EveSwarm overrides this.
+   *
+   * @implemented
    */
   @meta.implemented
   GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex = -1)
@@ -4808,7 +5196,11 @@ export class EveSpaceObject2 extends EveEntity
     return out;
   }
 
-  /** Carbon's authored-or-derived local shape ellipsoid query. */
+  /**
+   * Carbon's authored-or-derived local shape ellipsoid query.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetShapeEllipsoid(outCenter, outRadii)
   {

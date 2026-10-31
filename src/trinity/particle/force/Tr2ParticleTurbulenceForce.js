@@ -42,7 +42,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
   /**
    * Samples the four-dimensional turbulence field at a particle's position and time, scaled by the configured amplitude.
    *
-   * Adapted: Uses core-math's browser port of Carbon's four-dimensional turbulence lookup.
+   * @adapted Uses core-math's browser port of Carbon's four-dimensional turbulence lookup.
    */
 
   @meta.adapted
@@ -84,6 +84,8 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
 
   /**
    * Advances the time accumulator that animates the turbulence field.
+   *
+   * @implemented
    */
 
   @meta.implemented

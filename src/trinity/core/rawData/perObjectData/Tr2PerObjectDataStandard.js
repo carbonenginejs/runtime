@@ -92,11 +92,10 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * The upload itself is the shared static, so this class adds the virtual and
    * the identity without a second copy of the mechanism.
    *
-   * Adapted: Carbon binds the pixel payload without consulting the technique mask,
-   * distinguished from the gated form only by C++ overload resolution on an argument type.
-   * Our layouts declare the stages they serve, so the gate is per declaration and more
-   * precise than Carbon's hardcoded halves.
-   *
+   * @adapted Carbon binds the pixel payload without consulting the technique mask,
+   *   distinguished from the gated form only by C++ overload resolution on an argument type.
+   *   Our layouts declare the stages they serve, so the gate is per declaration and more
+   *   precise than Carbon's hardcoded halves.
    * @param {object[]} buffers A `Tr2ConstantBufferAL` per `ShaderType`.
    * @param {number} constantTypeMask A bit per `ShaderType`.
    * @param {object} renderContext The context to upload and bind against.
@@ -118,6 +117,8 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    *
    * Adapted: Tr2IndirectDrawBufferWriter is unported and nothing on this path draws
    * indirectly.
+   *
+   * @notImplemented
    */
   @meta.notImplemented
   ApplyConstantBuffers()

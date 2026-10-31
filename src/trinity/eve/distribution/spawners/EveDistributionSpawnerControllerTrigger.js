@@ -52,6 +52,8 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   /**
    * Restarts the wrapped spawners; the placement pool is not used by this
    * trigger.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -60,7 +62,11 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
     this.Restart();
   }
 
-  /** Restarts every wrapped spawner, leaving the active state untouched. */
+  /**
+   * Restarts every wrapped spawner, leaving the active state untouched.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Restart()
@@ -74,6 +80,8 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   /**
    * Re-evaluates the active state when the `value` property is written directly
    * rather than through a controller.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -86,7 +94,11 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
     return true;
   }
 
-  /** Ticks the wrapped spawners only while the trigger is active. */
+  /**
+   * Ticks the wrapped spawners only while the trigger is active.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateSyncronous(updateContext, params, owner)
@@ -105,6 +117,8 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   /**
    * Adopts the value when the name matches this trigger's variable and
    * re-evaluates the active state; other names are ignored.
+   *
+   * @implemented
    */
 
   @meta.implemented

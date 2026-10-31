@@ -10,19 +10,35 @@ import { blue } from "#schema";
 export class IStretchAudio extends IRoot
 {
 
-  /** Starts playback for the stretch-audio component. */
+  /**
+   * Starts playback for the stretch-audio component.
+   *
+   * @abstract
+   */
   @be.abstract
   Start() {}
 
-  /** Stops playback for the stretch-audio component. */
+  /**
+   * Stops playback for the stretch-audio component.
+   *
+   * @abstract
+   */
   @be.abstract
   Stop() {}
 
-  /** Updates the source and destination positions used by the stretch effect. */
+  /**
+   * Updates the source and destination positions used by the stretch effect.
+   *
+   * @abstract
+   */
   @be.abstract
   Update(_sourcePosition, _destinationPosition) {}
 
-  /** Finds an owned audio emitter by name. */
+  /**
+   * Finds an owned audio emitter by name.
+   *
+   * @abstract
+   */
   @be.abstract
   FindEmitterByName(_name) {}
 

@@ -10,6 +10,8 @@ export class IBehavior extends IRoot
   /**
    * Per-agent scratch size, none by default (h:29-32). Adapted: scratch is one plain record per agent, so any non-zero
    * answer means "has scratch".
+   *
+   * @implemented
    * @returns {number}
    */
   GetScratchMemorySize()
@@ -19,6 +21,8 @@ export class IBehavior extends IRoot
 
   /**
    * Initializes one agent's scratch (h:34-36). Adapted: returns the fresh record; the default has none.
+   *
+   * @implemented
    * @returns {object|null}
    */
   InitializeScratch()
@@ -28,6 +32,8 @@ export class IBehavior extends IRoot
 
   /**
    * The pass this behavior runs in (h:38-41).
+   *
+   * @implemented
    * @returns {number} A ProcessPriority.
    */
   GetProcessPriority()
@@ -37,6 +43,8 @@ export class IBehavior extends IRoot
 
   /**
    * The name BehaviorGroup.GetBehaviorByName matches (h:43-46).
+   *
+   * @implemented
    * @returns {string}
    */
   GetBehaviorName()
@@ -44,13 +52,19 @@ export class IBehavior extends IRoot
     return "unnamed";
   }
 
-  /** Clears behavior state; used by Formation (h:49-51). */
+  /**
+   * Clears behavior state; used by Formation (h:49-51).
+   *
+   * @implemented
+   */
   Reset()
   {
   }
 
   /**
    * Applies this behavior's force to each agent's acceleration and returns (position, force) pairs per agent (h:53-54).
+   *
+   * @abstract
    * @param {Array} _agents - DroneAgent records
    * @param {Array|null} _scratchData - this behavior's per-agent records
    * @param {number} _deltaTime
@@ -61,18 +75,28 @@ export class IBehavior extends IRoot
    */
   CalculateBehavior(_agents, _scratchData, _deltaTime, _group, _system, _dronesInSearchRadius) {}
 
-  /** Debug-renderer options; none by default (h:57-59). */
+  /**
+   * Debug-renderer options; none by default (h:57-59).
+   *
+   * @implemented
+   */
   GetDebugOptions(_options)
   {
   }
 
-  /** Debug drawing; nothing by default (h:60-62). */
+  /**
+   * Debug drawing; nothing by default (h:60-62).
+   *
+   * @implemented
+   */
   RenderDebugInfo(_renderer, _agents, _parentWorldLocation)
   {
   }
 
   /**
    * The neighbour search radius the group gathers for this behavior; -1 when it ignores other agents (h:64-69).
+   *
+   * @implemented
    * @returns {number}
    */
   GetBehaviorSearchRadius()
@@ -82,6 +106,8 @@ export class IBehavior extends IRoot
 
   /**
    * Lets another behavior switch this one on or off (h:71-74).
+   *
+   * @implemented
    * @param {boolean} _state
    */
   UpdateState(_state)

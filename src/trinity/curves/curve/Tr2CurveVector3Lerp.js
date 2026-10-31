@@ -83,6 +83,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
 
   /**
    * Updates the cached value for the supplied time.
+   *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -95,6 +97,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
 
   /**
    * Copies the native returned vector into a caller-owned output buffer.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination.
@@ -109,6 +113,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
   /**
    * Updates the cache and copies it into the caller-owned output.
    * JavaScript combines native time overloads with seconds first and output last.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -124,6 +130,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
   /**
    * Samples into the caller-owned output without updating the cache.
    * JavaScript combines native time overloads with seconds first and output last.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -144,6 +152,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
 
   /**
    * Retains the native no-op first derivative, leaving output unchanged.
+   *
+   * @adapted
    * @param {number} _time Unused time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
@@ -157,6 +167,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
 
   /**
    * Retains the native no-op second derivative, leaving output unchanged.
+   *
+   * @adapted
    * @param {number} _time Unused time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
@@ -170,6 +182,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
 
   /**
    * Retains the native no-op position interpolation, leaving output unchanged.
+   *
+   * @adapted
    * @param {number} _time Unused time in seconds.
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The unchanged destination.
@@ -184,6 +198,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
   /**
    * Blends the initial value to the child curve first value.
    * Native private helper; JavaScript uses a caller-owned output and reusable scratch vectors.
+   *
+   * @adapted
    * @param {Float32Array} out Destination vector.
    * @param {number} time Time in seconds.
    * @returns {Float32Array} The destination.
@@ -216,6 +232,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * declares this private const method; no translation unit in the Carbon checkout defines or calls it and no
    * exposure row names it.
    *
+   * @notUsed
    * @throws {Error} Always.
    */
   @meta.notUsed

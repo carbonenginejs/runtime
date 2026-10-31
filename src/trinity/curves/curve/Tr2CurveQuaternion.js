@@ -75,6 +75,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Updates the cached quaternion value for the supplied time.
    *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -88,6 +89,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Updates the cached value and copies it into `out`.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
@@ -103,6 +105,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Gets the quaternion value at `time` into `out`.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
@@ -116,6 +119,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Returns the native identity quaternion derivative.
    *
+   * @implemented
    * @param {number} _time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
@@ -130,6 +134,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Returns the native identity quaternion second derivative.
    *
+   * @implemented
    * @param {number} _time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
@@ -144,6 +149,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Gets the last authored key time, or zero for an empty curve.
    *
+   * @implemented
    * @returns {number} The curve result.
    */
 
@@ -177,6 +183,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Gets the quaternion value at `time` into `out`.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
@@ -191,6 +198,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Borrows the live cached value; Carbon returns a quaternion value copy.
    *
+   * @adapted
    * @returns {Float32Array|number[]} The live cached quaternion storage.
    */
 
@@ -203,6 +211,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Sorts keys by authored time after key edits.
    *
+   * @adapted
    * @returns {void}
    */
   @be.mapMethodAndWrap()
@@ -216,6 +225,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Adds a quaternion key and refreshes key ordering.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array|number[]} value Curve parameter.
    * @param {number} [interpolation = Tr2CurveInterpolation.LINEAR] Curve parameter.
@@ -237,6 +247,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Sets both before and after extrapolation modes.
    *
+   * @implemented
    * @param {number} extrapolation Curve parameter.
    * @returns {void}
    */
@@ -250,6 +261,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Converts caller time into the authored key range according to extrapolation.
    *
+   * @adapted
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
@@ -385,6 +397,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   /**
    * Evaluates the value inside a key segment using the segment interpolation mode.
    *
+   * @adapted
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @param {number} time Time in seconds.
    * @param {Tr2CurveQuaternionKey} k0 Segment start key.

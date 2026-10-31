@@ -341,6 +341,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * The refusals are dx11's in dx11's order (`Tr2TextureALDx11.cpp:339-400`);
    * the three WebGL2 refusals after them are named where they are made.
    *
+   * @adapted
    * @param {Tr2BitmapDimensions} desc The texture description.
    * @param {Tr2MsaaDesc} msaa Multisample description.
    * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
@@ -432,6 +433,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * first request from the initial data kept here; see the head comment and
    * `GetShaderResourceTexture`.
    *
+   * @adapted
    * @param {WebGLTexture} _texture The texture the views are over.
    * @param {Tr2BitmapDimensions} desc The description.
    * @param {Tr2MsaaDesc} _msaa The multisample description.
@@ -672,6 +674,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * Adopts a texture shared by another device. WebGL2 cannot share textures
    * between contexts.
    *
+   * @notSupported
    * @returns {number} An `ALResult` value.
    */
   OpenShared()
@@ -710,44 +713,72 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     this._gl = null;
   }
 
-  /** Releases the texture and leaves the device-resource registry. */
+  /**
+   * Releases the texture and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
     super.Destroy();
   }
 
-  /** Whether the texture exists on the device. */
+  /**
+   * Whether the texture exists on the device.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._texture !== null || this._renderbuffer !== null;
   }
 
-  /** Which memory class this texture occupies. */
+  /**
+   * Which memory class this texture occupies.
+   *
+   * @implemented
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;
   }
 
-  /** The texture description. */
+  /**
+   * The texture description.
+   *
+   * @implemented
+   */
   GetDesc()
   {
     return this._desc;
   }
 
-  /** The multisample description. */
+  /**
+   * The multisample description.
+   *
+   * @implemented
+   */
   GetMsaaDesc()
   {
     return this._msaa;
   }
 
-  /** The GPU usage. */
+  /**
+   * The GPU usage.
+   *
+   * @implemented
+   */
   GetGpuUsage()
   {
     return this._gpuUsage;
   }
 
-  /** The CPU usage. */
+  /**
+   * The CPU usage.
+   *
+   * @implemented
+   */
   GetCpuUsage()
   {
     return this._cpuUsage;
@@ -831,10 +862,9 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * Copies one subresource, or a box of it, into a readback
    * (`Tr2TextureALDx11.cpp:873-933`), with dx11's refusals in dx11's order.
    *
-   * Adapted: the staging copy is a `readPixels` into a pack buffer (see
-   * `Tr2ReadbackALWebgl2`), and a compressed texture, which has no framebuffer
-   * attachment to read from, is refused as `MapForReading` refuses it.
-   *
+   * @adapted the staging copy is a `readPixels` into a pack buffer (see
+   *   `Tr2ReadbackALWebgl2`), and a compressed texture, which has no framebuffer
+   *   attachment to read from, is refused as `MapForReading` refuses it.
    * @param {Tr2TextureSubresource} region The subresource to copy.
    * @param {object} renderContext The primary context.
    * @returns {Tr2ReadbackALWebgl2|null} The readback, or null when refused.
@@ -881,6 +911,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * GPU as dx11's `Map(READ)` does. A compressed texture has no framebuffer
    * attachment and is refused.
    *
+   * @adapted
    * @param {Tr2TextureSubresource} region The subresource to map.
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
@@ -923,6 +954,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * Ends a read mapping; the staging copy is let go unless read often, as dx11
    * lets go of its staging texture.
    *
+   * @implemented
    * @param {object} _renderContext The context the map was made against.
    */
   UnmapForReading(_renderContext)
@@ -937,6 +969,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * unmap (`:891-1006`); WebGL2 cannot map a texture, so `WRITE_OFTEN` takes
    * the same staging route as `WRITE`.
    *
+   * @adapted
    * @param {Tr2TextureSubresource} region The subresource to map.
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
@@ -980,6 +1013,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * Ends a write mapping by uploading the staging bytes, dx11's
    * `UpdateSubresource` at unmap (`:1008-1050`).
    *
+   * @adapted
    * @param {object} renderContext The context the map was made against.
    */
   @meta.adapted
@@ -1010,6 +1044,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * Writes pixels into one subresource (`:1052-1097`). Browser video is uploaded
    * directly with straight alpha; GL unpack and binding state are restored.
    *
+   * @adapted
    * @param {Tr2TextureSubresource} region The subresource to write.
    * @param {ArrayBufferView} source The pixels.
    * @param {number} pitch Bytes per row in the source.
@@ -1079,6 +1114,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * and face by face, halving the box as dx11 does. Compressed textures have
    * no framebuffer attachment, so a copy involving one fails.
    *
+   * @adapted
    * @param {Tr2TextureSubresource} destSubresource The region to write.
    * @param {Tr2TextureALWebgl2} source The texture to read.
    * @param {Tr2TextureSubresource} sourceSubresource The region to read.
@@ -1154,6 +1190,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Regenerates the mip chain (`:1167-1179`).
    *
+   * @implemented
    * @param {object} _renderContext The context to generate against.
    * @returns {number} An `ALResult` value.
    */
@@ -1181,6 +1218,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * With one sample it is a plain copy, as on dx11. Otherwise the
    * renderbuffer is blitted into the destination's top mip.
    *
+   * @adapted
    * @param {Tr2TextureALWebgl2} destination The texture to resolve into.
    * @param {object} renderContext The context to resolve against.
    * @returns {number} An `ALResult` value.
@@ -1223,6 +1261,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   /**
    * The handle another device could open this texture by.
    *
+   * @notSupported
    * @returns {number} Always zero; WebGL2 shares nothing.
    */
   GetSharedHandle()
@@ -1233,6 +1272,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Where the shader-resource view sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index"; dx11 has no heap either.
    */
   GetSrvIndexInHeap()
@@ -1243,6 +1283,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Where the unordered-access view sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index".
    */
   GetUavIndexInHeap()
@@ -1265,6 +1306,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * Names the texture. WebGL has no debug names, so it is kept for `Describe`
    * and `GetName`.
    *
+   * @adapted
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
@@ -1274,7 +1316,11 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** The debug name. */
+  /**
+   * The debug name.
+   *
+   * @implemented
+   */
   GetName()
   {
     return this._name;
@@ -1283,6 +1329,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the texture for the device-resource registry.
    *
+   * @adapted
    * @param {object} description The record to fill.
    */
   Describe(description)

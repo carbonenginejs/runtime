@@ -42,6 +42,8 @@ export class EveInstancedMeshManagerDataHandle
   /**
    * Carbon's `operator bool` (h:82-85), which JavaScript cannot overload:
    * whether the handle holds a registration.
+   *
+   * @renamed operator bool
    * @returns {boolean}
    */
   @meta.renamed("operator bool")

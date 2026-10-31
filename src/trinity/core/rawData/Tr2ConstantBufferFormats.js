@@ -42,7 +42,8 @@ export class Tr2ConstantBufferFormats
 {
   /**
    * Carbon Tr2PopulatePerFrameVSDataTransformations (cpp:14-30).
-   * Adapted: gl-matrix reverses Carbon's view * projection operands.
+   *
+   * @adapted gl-matrix reverses Carbon's view * projection operands.
    * @param {RawData} data Native per-frame vertex block to fill.
    * @returns {void}
    */

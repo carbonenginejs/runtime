@@ -212,8 +212,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * the outline, and for the fill the centre, one per step and eight anti-aliasing vertices
    * (reserved whether or not the effect is anti-aliased).
    *
-   * Adapted: a negative arc length (negative radius) is clamped to zero steps; see `stepCount`.
-   *
+   * @adapted a negative arc length (negative radius) is clamped to zero steps; see `stepCount`.
    * @returns {number} The vertex capacity the next dirty gather allocates.
    */
   @meta.adapted
@@ -244,12 +243,6 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * centre; TR2_SFX_FILL_AA pulls it in by 2 pixels and adds two anti-aliased edge quads along
    * the start and end radii.
    *
-   * Adapted: Carbon never sets texture coordinates on the non-anti-aliased vertices
-   * (`// TODO: UV coordinates`, cpp:141, 352). The outline's vertices are built on the stack and
-   * zero-construct, so theirs are (0, 0) in Carbon too; only the fill's CCP_MALLOC'd vertices
-   * (cpp:212-214) hold indeterminate heap memory (bug, CE-156). JS cannot reproduce indeterminate
-   * memory, so they are 0.
-   *
    * Quirks reproduced:
    * - Textures are applied only on a dirty gather; a clean gather draws with whatever textures
    *   the scene last bound (cpp:66-100) (bug, CE-163).
@@ -259,6 +252,11 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * - Indices are stored as `unsigned short` and their count is narrowed to `unsigned short`
    *   (cpp:390) (quirk, CE-165).
    *
+   * @adapted Carbon never sets texture coordinates on the non-anti-aliased vertices
+   *   (`// TODO: UV coordinates`, cpp:141, 352). The outline's vertices are built on the stack and
+   *   zero-construct, so theirs are (0, 0) in Carbon too; only the fill's CCP_MALLOC'd vertices
+   *   (cpp:212-214) hold indeterminate heap memory (bug, CE-156). JS cannot reproduce indeterminate
+   *   memory, so they are 0.
    * @param {Tr2Sprite2dScene} renderer Scene gathering this arc.
    * @returns {void}
    */
@@ -426,6 +424,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
   /**
    * Carbon Tr2Sprite2dArc::PickPoint (Tr2Sprite2dArc.cpp:393-396): arcs are never picked.
    *
+   * @implemented
    * @param {number} _x Screen x.
    * @param {number} _y Screen y.
    * @param {Tr2Sprite2dScene} _renderer Scene supplying the active transform.
@@ -442,6 +441,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * Carbon Tr2Sprite2dArc::ClearVertices (Tr2Sprite2dArc.cpp:398-406): drops the prepared vertices
    * and indices.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented

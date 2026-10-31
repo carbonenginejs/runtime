@@ -16,7 +16,11 @@ export class TriStepSetUpscalingContextID extends TriRenderStep
   @type.uint32
   upscalingContextID = 0xffffffff;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(upscalingContextID = 0xffffffff)
@@ -26,6 +30,8 @@ export class TriStepSetUpscalingContextID extends TriRenderStep
 
   /**
    * Selects the upscaling context subsequent steps resolve against.
+   *
+   * @adapted
    */
 
   @meta.adapted

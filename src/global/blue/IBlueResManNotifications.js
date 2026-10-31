@@ -21,10 +21,16 @@ export class IBlueResManNotifications
    *
    * Carbon is precise about when: the instance exists but has NOT yet been
    * Initialize()'d.
+   *
+   * @adapted
    */
   OnResourceCreated(_resource) {}
 
-  /** `OnResourceFromCache` - the resource was already in the cache. */
+  /**
+   * `OnResourceFromCache` - the resource was already in the cache.
+   *
+   * @adapted
+   */
   OnResourceFromCache(_resource) {}
 }
 

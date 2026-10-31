@@ -62,6 +62,8 @@ export class TriDebugTextRenderer
 
   /**
    * Carbon Printf (cpp:93-101): formats and queues text for the next Render.
+   *
+   * @implemented
    * @param {number} font A TriDebugFont value.
    * @param {{left: number, top: number, right: number, bottom: number}} rect
    * @param {number} format TriDebugFontStyle bits.
@@ -77,6 +79,8 @@ export class TriDebugTextRenderer
 
   /**
    * Carbon PrintfImmediate (cpp:104-111): formats and draws at once.
+   *
+   * @implemented
    * @param {Tr2RenderContext} renderContext
    * @param {number} font A TriDebugFont value.
    * @param {{left: number, top: number, right: number, bottom: number}} rect
@@ -94,6 +98,8 @@ export class TriDebugTextRenderer
   /**
    * Carbon Vprintf (cpp:64-80): the va_list form of Printf; the arguments
    * arrive as an array.
+   *
+   * @implemented
    * @param {number} font
    * @param {{left: number, top: number, right: number, bottom: number}} rect
    * @param {number} format
@@ -116,6 +122,8 @@ export class TriDebugTextRenderer
 
   /**
    * Carbon VprintfImmediate (cpp:82-90).
+   *
+   * @implemented
    * @param {Tr2RenderContext} renderContext
    * @param {number} font
    * @param {{left: number, top: number, right: number, bottom: number}} rect
@@ -132,6 +140,8 @@ export class TriDebugTextRenderer
 
   /**
    * Carbon Render (cpp:113-119): draws every queued entry.
+   *
+   * @implemented
    * @param {Tr2RenderContext} renderContext
    */
   @meta.implemented
@@ -143,7 +153,11 @@ export class TriDebugTextRenderer
     }
   }
 
-  /** Carbon Clear (cpp:121-128). */
+  /**
+   * Carbon Clear (cpp:121-128).
+   *
+   * @implemented
+   */
   @meta.implemented
   Clear()
   {
@@ -153,6 +167,8 @@ export class TriDebugTextRenderer
   /**
    * Carbon OnPrepareResources (cpp:135-138): nothing to prepare; the text
    * texture is created on first draw.
+   *
+   * @implemented
    * @returns {boolean} True, always.
    */
   @meta.implemented
@@ -165,8 +181,8 @@ export class TriDebugTextRenderer
    * Carbon GetDescription (TriDebugTextRenderer.h:43-48, TRINITYDEV): the
    * device-resource description.
    *
-   * Adapted: returned rather than written to an output string, as the other
-   * resource descriptions are (TriDebugResourceHelper.GetDescription).
+   * @adapted returned rather than written to an output string, as the other
+   *   resource descriptions are (TriDebugResourceHelper.GetDescription).
    * @returns {string} "<TriDebugFont>".
    */
   @meta.adapted
@@ -177,6 +193,8 @@ export class TriDebugTextRenderer
 
   /**
    * Carbon ReleaseResources (cpp:130-133): drops the text texture.
+   *
+   * @implemented
    * @param {number} _s TriStorage flags.
    */
   @meta.implemented

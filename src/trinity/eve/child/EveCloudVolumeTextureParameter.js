@@ -44,8 +44,8 @@ export class EveCloudVolumeTextureParameter extends IRoot
    * per-object id on first hash - same object, same hash, for the life of
    * the process, which is exactly what the pointer bought Carbon.
    *
-   * Adapted: Carbon hashes the volume pointer's bytes; the parameter library's identity hash
-   * gives the same same-object-same-hash contract.
+   * @adapted Carbon hashes the volume pointer's bytes; the parameter library's identity hash
+   *   gives the same same-object-same-hash contract.
    */
 
   @meta.adapted
@@ -54,7 +54,11 @@ export class EveCloudVolumeTextureParameter extends IRoot
     return hashFnv1Identity(this.volume, startingHash);
   }
 
-  /** Carbon GetParameterName (cpp:394-397). */
+  /**
+   * Carbon GetParameterName (cpp:394-397).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -69,6 +73,8 @@ export class EveCloudVolumeTextureParameter extends IRoot
    * effectRes->GetResource(m_name) probe, which is the resource half of the
    * TriTextureParameter convention (donor checks resources only, not
    * constants).
+   *
+   * @implemented
    */
 
   @meta.implemented

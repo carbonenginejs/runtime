@@ -97,6 +97,9 @@ export class Tr2PlatformInfo
     /**
      * The value `GetPlatformName` answers: the platform name for the described backend, or null for none.
      * Carbon has no member (the name is the macro TRINITY_PLATFORM_NAME), so this is ours.
+     *
+     * @cjs
+     * @adapted
      * @type {string|null}
      */
     @meta.cjs
@@ -106,6 +109,9 @@ export class Tr2PlatformInfo
     /**
      * The value `GetPlatformID` answers: Carbon's TRINITY_PLATFORM build constant; always 0 here (see the constructor).
      * Carbon has no member, so this is ours.
+     *
+     * @cjs
+     * @adapted
      * @type {number}
      */
     @meta.cjs
@@ -115,6 +121,9 @@ export class Tr2PlatformInfo
     /**
      * The value `IsLowPerformance` answers: whether the described platform is low-end.
      * Carbon has no member (the answer is the macro TRINITY_PLATFORM_IS_LOW_PERFORMACE), so this is ours.
+     *
+     * @cjs
+     * @adapted
      * @type {boolean}
      */
     @meta.cjs
@@ -230,9 +239,8 @@ export class Tr2PlatformInfo
      * Carbon: Tr2PlatformInfo::GetPlatformName (trinity/trinity/Tr2PlatformInfo.cpp:7-10;
      * Tr2PlatformInfo.h:24).
      *
-     * Adapted: Carbon returns the compile-time macro TRINITY_PLATFORM_NAME of the linked backend; this
-     * returns the name of the backend that was probed, or null when there is none (see the head of this file).
-     *
+     * @adapted Carbon returns the compile-time macro TRINITY_PLATFORM_NAME of the linked backend; this
+     *   returns the name of the backend that was probed, or null when there is none (see the head of this file).
      * @returns {string|null} The platform name.
      */
     @meta.adapted
@@ -247,10 +255,9 @@ export class Tr2PlatformInfo
      * Carbon: Tr2PlatformInfo::GetPlatformID (trinity/trinity/Tr2PlatformInfo.cpp:12-15;
      * Tr2PlatformInfo.h:25).
      *
-     * Adapted: Carbon returns the build constant TRINITY_PLATFORM (dx11 = 2, stub = 5, dx12 = 6, metal = 10),
-     * which names targets that do not exist here; a browser value in that numbering would be invented, so
-     * this answers 0 unless the host supplies one.
-     *
+     * @adapted Carbon returns the build constant TRINITY_PLATFORM (dx11 = 2, stub = 5, dx12 = 6, metal = 10),
+     *   which names targets that do not exist here; a browser value in that numbering would be invented, so
+     *   this answers 0 unless the host supplies one.
      * @returns {number} The platform id.
      */
     @meta.adapted
@@ -265,9 +272,8 @@ export class Tr2PlatformInfo
      * Carbon: Tr2PlatformInfo::IsLowPerformance (trinity/trinity/Tr2PlatformInfo.cpp:40-43;
      * Tr2PlatformInfo.h:28).
      *
-     * Adapted: Carbon returns the macro TRINITY_PLATFORM_IS_LOW_PERFORMACE of the linked backend; this
-     * returns what the probe measured (a WebGPU fallback adapter), false for WebGL.
-     *
+     * @adapted Carbon returns the macro TRINITY_PLATFORM_IS_LOW_PERFORMACE of the linked backend; this
+     *   returns what the probe measured (a WebGPU fallback adapter), false for WebGL.
      * @returns {boolean} Whether the platform is low-end.
      */
     @meta.adapted
@@ -280,6 +286,7 @@ export class Tr2PlatformInfo
      * platformName (MAP_PROPERTY_READONLY): Carbon's property over GetPlatformName, which the macro calls.
      * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2PlatformInfo_Blue.cpp:47).
      *
+     * @implemented
      * @type {string|null}
      */
     @be.mapPropertyReadOnly()
@@ -293,6 +300,7 @@ export class Tr2PlatformInfo
      * platformID (MAP_PROPERTY_READONLY): Carbon's property over GetPlatformID, which the macro calls.
      * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2PlatformInfo_Blue.cpp:48).
      *
+     * @implemented
      * @type {number}
      */
     @be.mapPropertyReadOnly()
@@ -306,6 +314,7 @@ export class Tr2PlatformInfo
      * isLowPerformance (MAP_PROPERTY_READONLY): Carbon's property over IsLowPerformance, which the macro calls.
      * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2PlatformInfo_Blue.cpp:49).
      *
+     * @implemented
      * @type {boolean}
      */
     @be.mapPropertyReadOnly()
@@ -315,7 +324,11 @@ export class Tr2PlatformInfo
         return this.IsLowPerformance();
     }
 
-    /** Reports one named or numeric static platform capability. */
+    /**
+     * Reports one named or numeric static platform capability.
+     *
+     * @adapted
+     */
     @be.mapMethodAndWrap()
     @meta.adapted
     GetStaticCap(capability)

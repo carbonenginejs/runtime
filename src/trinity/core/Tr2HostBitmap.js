@@ -94,7 +94,11 @@ export class Tr2HostBitmap extends HostBitmap
     this._name = value;
   }
 
-  /** Uses the inherited ImageIO bitmap allocation exposed by Tr2HostBitmap_Blue.cpp:453-459. */
+  /**
+   * Uses the inherited ImageIO bitmap allocation exposed by Tr2HostBitmap_Blue.cpp:453-459.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Create(width, height, mipCount, format)
@@ -102,7 +106,11 @@ export class Tr2HostBitmap extends HostBitmap
     return super.Create(width, height, mipCount, format);
   }
 
-  /** Uses the inherited ImageIO cube allocation exposed by Tr2HostBitmap_Blue.cpp:461-466. */
+  /**
+   * Uses the inherited ImageIO cube allocation exposed by Tr2HostBitmap_Blue.cpp:461-466.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   CreateCube(width, mipCount, format)
@@ -110,7 +118,11 @@ export class Tr2HostBitmap extends HostBitmap
     return super.CreateCube(width, mipCount, format);
   }
 
-  /** Uses the inherited ImageIO volume allocation exposed by Tr2HostBitmap_Blue.cpp:468-475. */
+  /**
+   * Uses the inherited ImageIO volume allocation exposed by Tr2HostBitmap_Blue.cpp:468-475.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   CreateVolume(width, height, depth, mipCount, format)
@@ -118,7 +130,11 @@ export class Tr2HostBitmap extends HostBitmap
     return super.CreateVolume(width, height, depth, mipCount, format);
   }
 
-  /** Carbon method PopulateMargin (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method PopulateMargin (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   PopulateMargin(...args)
@@ -126,7 +142,11 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.PopulateMargin is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SaveAsync -> PySaveAsync (MAP_METHOD). */
+  /**
+   * Carbon method SaveAsync -> PySaveAsync (MAP_METHOD).
+   *
+   * @notImplemented
+   */
   @be.mapMethod()
   @meta.notImplemented
   SaveAsync(...args)
@@ -134,7 +154,11 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.SaveAsync is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method WaitForSave (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method WaitForSave (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   WaitForSave(...args)
@@ -149,6 +173,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Tr2HostBitmap.h:57). Exposed as "ChangeFormat" (Tr2HostBitmap_Blue.cpp:652-659,
    * MAP_METHOD_AND_WRAP). It reports `ImageIO::HostBitmap::ChangeFormat` as an `ALResult`.
    *
+   * @implemented
    * @param {number} format A `PixelFormat` value of the same byte size.
    * @returns {number} `ALResult.S_OK` when the label changed, otherwise `ALResult.E_FAIL`.
    */
@@ -165,6 +190,8 @@ export class Tr2HostBitmap extends HostBitmap
    * no source or output is changed before the complete encoding succeeds.
    * Approved extensions preserve all source mips and replace Carbon's LGPL
    * realtime encoders with MIT libsquish. DDS owns corrected BC2/BC5 mappings.
+   *
+   * @adapted
    * @param {number} compressionFormat Carbon compression mode.
    * @param {number} qualityLevel Carbon squish quality (or -1 for range fit).
    * @param {object} output TriTextureRes receiving the completed bitmap.
@@ -203,6 +230,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Forced divergence: a Promise, as `CreateFromFile`. A Python `TypeError` is a thrown
    * `TypeError`; only a JavaScript string is a file path (no byte-string form exists).
    *
+   * @adapted
    * @param {string} file Res path or file path of an image.
    * @returns {Promise<{Width: number, Height: number, Depth: number, MipLevels: number, Format: number, ResourceType: number, ImageFileFormat: number}|null>}
    *   The image description, or null when the bitmap is not valid.
@@ -246,6 +274,7 @@ export class Tr2HostBitmap extends HostBitmap
    * `CleanupAsyncSave( false )` (cpp:488) is omitted: asynchronous saving (`SaveAsync`) is not
    * implemented, so no save can be pending.
    *
+   * @adapted
    * @param {string} file Res path or file path of an image the registered handlers read.
    * @returns {Promise<boolean>} Whether the image was read into this bitmap.
    */
@@ -295,6 +324,7 @@ export class Tr2HostBitmap extends HostBitmap
    * silently skipped. With a sequence, a failing tuple makes Carbon return NULL without a Python
    * exception set (cpp:731), which Python reports as a SystemError; here it throws an `Error`.
    *
+   * @adapted
    * @param {...*} args `x, y, value`, or one sequence of `[x, y, value]` tuples.
    * @returns {null} None.
    * @throws {TypeError} "Expected sequence of tuples" when the single argument is not a sequence.
@@ -338,6 +368,7 @@ export class Tr2HostBitmap extends HostBitmap
    * the 32-bit value whose bytes are copied in little-endian order, which is what memcpy of an `int`
    * stores on x86, the layout the Python wrapper passes (cpp:690-696).
    *
+   * @adapted
    * @param {number} x Column.
    * @param {number} y Row.
    * @param {number} data The 4-byte pixel value.
@@ -370,9 +401,8 @@ export class Tr2HostBitmap extends HostBitmap
    * bug: the same `>` bounds test as `SetPixel` (cpp:675-676); `x == width` reads the next row's first
    * pixel and `y == height` reads past the buffer (here, 0).
    *
-   * Adapted: Carbon writes the 4 bytes through `void* data` and returns bool; this returns the bytes
-   * as a little-endian unsigned 32-bit value, or null where Carbon returns false.
-   *
+   * @adapted Carbon writes the 4 bytes through `void* data` and returns bool; this returns the bytes
+   *   as a little-endian unsigned 32-bit value, or null where Carbon returns false.
    * @param {number} x Column.
    * @param {number} y Row.
    * @returns {number|null} The pixel value, or null.
@@ -396,6 +426,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: Tr2HostBitmap::SetPixelPy (trinity/trinity/Tr2HostBitmap.cpp:687-697; Tr2HostBitmap.h:59).
    * The tuple is parsed with "iii": three signed 32-bit integers.
    *
+   * @adapted
    * @param {number[]} tuple `[x, y, value]`.
    * @returns {boolean} Whether the pixel was written.
    * @throws {TypeError} When the tuple is not three int32 values (a pending Python exception in C++).
@@ -414,6 +445,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: Tr2HostBitmap::GetPixelPy (trinity/trinity/Tr2HostBitmap.cpp:699-708; Tr2HostBitmap.h:60).
    * The value is a signed Python int (`int val`), so a pixel with the top bit set is negative.
    *
+   * @adapted
    * @param {number[]} tuple `[x, y]`.
    * @returns {number|null} The pixel as a signed 32-bit integer, or null (None).
    * @throws {TypeError} When the tuple is not two int32 values (a pending Python exception in C++).
@@ -435,6 +467,7 @@ export class Tr2HostBitmap extends HostBitmap
    * One argument is a sequence of tuples and answers a list of values; any other count is the two of
    * a single pixel.
    *
+   * @adapted
    * @param {...*} args `x, y`, or one sequence of `[x, y]` tuples.
    * @returns {number|null|Array<number|null>} The value (null for None), or the list of values.
    * @throws {TypeError} "Expected sequence of tuples" when the single argument is not a sequence.
@@ -464,6 +497,7 @@ export class Tr2HostBitmap extends HostBitmap
    * read from the null result when it is omitted (cpp:803). Reproduced as a thrown `TypeError`, the
    * nearest to a crash that JavaScript has.
    *
+   * @adapted
    * @param {number} background The 32-bit value written to every pixel first.
    * @param {Array<number[]>} pixels `[x, y, value]` tuples; pixels outside the bitmap are skipped.
    * @param {*} [_discard] Parsed by Carbon and never read.
@@ -510,6 +544,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Channels are the characters of `channels` among 'r', 'g', 'b' and 'a', read from the raw 32-bit
    * value as 0xAARRGGBB; an empty selection counts every pixel.
    *
+   * @implemented
    * @param {string} channels Any of the characters r, g, b, a.
    * @param {number} value The value each selected channel must equal.
    * @returns {number} The number of matching pixels; 0 for a bitmap that is not valid, uncompressed and four bytes per pixel.
@@ -545,6 +580,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: Tr2HostBitmap::IsMonochrome (trinity/trinity/Tr2HostBitmap.cpp:624-650; Tr2HostBitmap.h:46).
    * Exposed as "IsMonochrome" (Tr2HostBitmap_Blue.cpp:598-601). Alpha is ignored.
    *
+   * @implemented
    * @returns {boolean} False for a bitmap that is not valid, uncompressed and four bytes per pixel.
    */
   @be.mapMethodAndWrap()
@@ -570,7 +606,11 @@ export class Tr2HostBitmap extends HostBitmap
     return true;
   }
 
-  /** Carbon method CreateFromHeightData (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method CreateFromHeightData (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   CreateFromHeightData(...args)
@@ -578,7 +618,11 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.CreateFromHeightData is not implemented in CarbonEngineJS.");
   }
 
-  /** Uses the inherited ImageIO crop exposed by Tr2HostBitmap_Blue.cpp:622-629. */
+  /**
+   * Uses the inherited ImageIO crop exposed by Tr2HostBitmap_Blue.cpp:622-629.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Crop(left, top, right, bottom)
@@ -586,7 +630,11 @@ export class Tr2HostBitmap extends HostBitmap
     return super.Crop(left, top, right, bottom);
   }
 
-  /** Uses the inherited ImageIO downsample exposed by Tr2HostBitmap_Blue.cpp:617-620. */
+  /**
+   * Uses the inherited ImageIO downsample exposed by Tr2HostBitmap_Blue.cpp:617-620.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Downsample2x2()
@@ -594,7 +642,11 @@ export class Tr2HostBitmap extends HostBitmap
     return super.Downsample2x2();
   }
 
-  /** Carbon method IsSaveSucceeded (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method IsSaveSucceeded (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   IsSaveSucceeded(...args)
@@ -602,7 +654,11 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.IsSaveSucceeded is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method __init__ -> PyInit (MAP_METHOD). */
+  /**
+   * Carbon method __init__ -> PyInit (MAP_METHOD).
+   *
+   * @notImplemented
+   */
   @be.mapMethod()
   @meta.notImplemented
   __init__(...args)
@@ -610,7 +666,11 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.__init__ is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method IsSaveCompleted (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method IsSaveCompleted (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   IsSaveCompleted(...args)
@@ -618,7 +678,11 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.IsSaveCompleted is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method IsSaving (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method IsSaving (MAP_METHOD_AND_WRAP).
+   *
+   * @notImplemented
+   */
   @be.mapMethodAndWrap()
   @meta.notImplemented
   IsSaving(...args)
@@ -626,7 +690,11 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.IsSaving is not implemented in CarbonEngineJS.");
   }
 
-  /** Uses the inherited ImageIO storage-validity predicate exposed by the native Blue table. */
+  /**
+   * Uses the inherited ImageIO storage-validity predicate exposed by the native Blue table.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   IsValid()
@@ -634,7 +702,11 @@ export class Tr2HostBitmap extends HostBitmap
     return super.IsValid();
   }
 
-  /** Uses the inherited ImageIO compression predicate exposed by the native Blue table. */
+  /**
+   * Uses the inherited ImageIO compression predicate exposed by the native Blue table.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   IsCompressed()
@@ -655,6 +727,7 @@ export class Tr2HostBitmap extends HostBitmap
    * the bytes of one row of 4x4 blocks, so Carbon's view is four times the data. Reproduced as the
    * request; a `Uint8Array` view clamps to the buffer.
    *
+   * @adapted
    * @returns {boolean|Array} `false` when the bitmap is not valid, otherwise `[view, width, height, pitch]`.
    */
   @be.mapMethod("GetRawData")
@@ -676,6 +749,7 @@ export class Tr2HostBitmap extends HostBitmap
    * bug: a level past the chain gives `GetMipRawData` a null pointer, which Carbon wraps in a
    * memoryview unchecked (Tr2HostBitmap_Blue.cpp:104). Forced divergence: here it throws a `RangeError`.
    *
+   * @adapted
    * @param {number} mipLevel The mip level.
    * @returns {boolean|Array} `false`, or `[view, width, height, pitch]` of that level.
    * @throws {RangeError} When the level is outside the mip chain.
@@ -702,6 +776,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Tr2HostBitmap.h:75). Exposed as "SetMipRawData" (Tr2HostBitmap_Blue.cpp:531-539, MAP_METHOD).
    * Python's `ValueError`s are thrown as `Error`s with the same messages.
    *
+   * @adapted
    * @param {number} mipLevel The mip level.
    * @param {Uint8Array} buffer A writable buffer of at least the mip's size.
    * @returns {null} None.
@@ -730,6 +805,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: Tr2HostBitmap::PyApplyConvFilter (trinity/trinity/Tr2HostBitmap.h:71). The header
    * declares it; no translation unit in the Carbon checkout defines it and no exposure row names it.
    *
+   * @notUsed
    * @throws {Error} Always.
    */
   @meta.notUsed
@@ -738,7 +814,11 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.PyApplyConvFilter is declared in Carbon (Tr2HostBitmap.h:71) and never defined.");
   }
 
-  /** Carbon method Save -> PySave (MAP_METHOD). */
+  /**
+   * Carbon method Save -> PySave (MAP_METHOD).
+   *
+   * @notImplemented
+   */
   @be.mapMethod()
   @meta.notImplemented
   Save(...args)
@@ -752,6 +832,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: Tr2HostBitmap::DoPrepareAsyncSave (trinity/trinity/Tr2HostBitmap.cpp:472-475;
    * Tr2HostBitmap.h:81).
    *
+   * @implemented
    * @returns {boolean} Always true.
    */
   @meta.implemented
@@ -767,6 +848,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Tr2HostBitmap.h:82). It is `Save( m_saveFilename )`; neither `Save` nor the `Tr2AsyncSave`
    * base that holds `m_saveFilename` (see resource/dropped/README.md) is ported.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @meta.notImplemented
@@ -781,6 +863,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: Tr2HostBitmap::DoCleanupAsyncSave (trinity/trinity/Tr2HostBitmap.cpp:482-484;
    * Tr2HostBitmap.h:83). The body is empty in Carbon.
    *
+   * @implemented
    * @returns {void}
    */
   @meta.implemented
@@ -796,8 +879,7 @@ export class Tr2HostBitmap extends HostBitmap
    * MAP_METHOD_AND_WRAP): false without a render target, else `CopyFromRenderTarget` on the
    * main-thread render context.
    *
-   * Adapted: awaited, as `CopyFromRenderTarget` is.
-   *
+   * @adapted awaited, as `CopyFromRenderTarget` is.
    * @param {Tr2RenderTarget|null} rt The render target to copy.
    * @returns {Promise<boolean>} Whether the copy succeeded.
    */
@@ -817,9 +899,8 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: Tr2HostBitmap::CopyFromRenderTarget (trinity/trinity/Tr2HostBitmap.cpp:36-39;
    * Tr2HostBitmap.h:30), through `SharedCopyFaceFromRenderTarget`. False for a bitmap that is not 2D.
    *
-   * Adapted: awaited. Carbon locks the texture and reads it synchronously; the
-   * browser can only read a GPU texture back asynchronously.
-   *
+   * @adapted awaited. Carbon locks the texture and reads it synchronously; the
+   *   browser can only read a GPU texture back asynchronously.
    * @param {Tr2TextureAL} rtAL The texture to copy, readable by the CPU.
    * @param {Tr2RenderContext} renderContext The render context the readback is issued on.
    * @returns {Promise<boolean>} Whether the copy succeeded.
@@ -839,8 +920,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: the source-rectangle Tr2HostBitmap::CopyFromRenderTarget overload
    * (trinity/trinity/Tr2HostBitmap.cpp:41-44; Tr2HostBitmap.h:31).
    *
-   * Adapted: awaited, as `CopyFromRenderTarget` is.
-   *
+   * @adapted awaited, as `CopyFromRenderTarget` is.
    * @param {Tr2TextureAL} rtAL The texture to copy, readable by the CPU.
    * @param {ArrayLike<number>} srcRect Source left, top, right and bottom, in pixels.
    * @param {number} offsetX Destination column of the source's column 0.
@@ -861,6 +941,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Tr2HostBitmap.h:54). Exposed as "CopyFromRenderTargetRegion" (Tr2HostBitmap_Blue.cpp:483-493,
    * MAP_METHOD_AND_WRAP). Not implemented: it calls the source-rectangle `CopyFromRenderTarget`.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @be.mapMethodAndWrap("CopyFromRenderTargetRegion")
@@ -877,6 +958,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Tr2HostBitmap.h:68). Exposed as "CopyFaceFromRenderTarget" (Tr2HostBitmap_Blue.cpp:495-500,
    * MAP_METHOD_AND_WRAP). Not implemented: it calls `CopyFaceFromRenderTarget`.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @be.mapMethodAndWrap("CopyFaceFromRenderTarget")
@@ -892,8 +974,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: Tr2HostBitmap::CopyFaceFromRenderTarget (trinity/trinity/Tr2HostBitmap.cpp:56-59;
    * Tr2HostBitmap.h:32), through `SharedCopyFaceFromRenderTarget`. False for a bitmap that is not a cube.
    *
-   * Adapted: awaited, as `CopyFromRenderTarget` is.
-   *
+   * @adapted awaited, as `CopyFromRenderTarget` is.
    * @param {number} face The cube face (`CubemapFace`).
    * @param {Tr2TextureAL} rtAL The cube texture to copy, readable by the CPU.
    * @param {Tr2RenderContext} renderContext The render context the readback is issued on.
@@ -912,13 +993,12 @@ export class Tr2HostBitmap extends HostBitmap
    * rectangle per level. B8G8R8X8 sources write alpha 255. A rectangle that
    * clips away entirely succeeds without copying.
    *
-   * Adapted: each mip is read through a `Tr2ReadbackAL` (`CreateReadback`,
-   * then an awaited `Map`), where Carbon locks the texture with
-   * `MapForReading` and reads it synchronously; the browser offers GPU
-   * readback only asynchronously. The readback's row pitch is padded to
-   * WebGPU's 256-byte alignment, which the copy honours as Carbon honours the
-   * locked pitch.
-   *
+   * @adapted each mip is read through a `Tr2ReadbackAL` (`CreateReadback`,
+   *   then an awaited `Map`), where Carbon locks the texture with
+   *   `MapForReading` and reads it synchronously; the browser offers GPU
+   *   readback only asynchronously. The readback's row pitch is padded to
+   *   WebGPU's 256-byte alignment, which the copy honours as Carbon honours the
+   *   locked pitch.
    * @param {number} face The cube face, or 0 for a 2D bitmap.
    * @param {Tr2TextureAL} rtAL The texture to copy, readable by the CPU.
    * @param {ArrayLike<number>|null} srcRect Source left, top, right and bottom, or null for the whole texture.
@@ -1016,6 +1096,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Tr2HostBitmap.h:33). Not implemented: it locks the texture and reads its pixels back to the CPU,
    * which the browser only offers asynchronously.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @meta.notImplemented
@@ -1031,6 +1112,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Tr2HostBitmap.h:69). Exposed as "CopyFromTextureRes" (Tr2HostBitmap_Blue.cpp:502-506,
    * MAP_METHOD_AND_WRAP). Not implemented: it calls `CopyFromTextureRes`.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @be.mapMethodAndWrap("CopyFromTextureRes")
@@ -1046,6 +1128,7 @@ export class Tr2HostBitmap extends HostBitmap
    * Carbon: Tr2HostBitmap::CopyFromTextureRes (trinity/trinity/Tr2HostBitmap.cpp:268-370;
    * Tr2HostBitmap.h:34). Not implemented: it reads the texture back to the CPU.
    *
+   * @notImplemented
    * @throws {Error} Always.
    */
   @meta.notImplemented
@@ -1054,7 +1137,11 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.CopyFromTextureRes is not implemented in CarbonEngineJS.");
   }
 
-  /** Uses the inherited ImageIO 3:4-strip volume conversion exposed by Tr2HostBitmap_Blue.cpp:631-634. */
+  /**
+   * Uses the inherited ImageIO 3:4-strip volume conversion exposed by Tr2HostBitmap_Blue.cpp:631-634.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   ConvertToVolume()

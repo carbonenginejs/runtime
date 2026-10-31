@@ -101,6 +101,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Carbon's Setup( dnaString, dataMgr ) (EveSOFDNA.cpp:216): resolves a
    * complete DNA string.
+   *
+   * @implemented
    * @param {string} dnaString
    * @param {EveSOFDataMgr} dataMgr
    */
@@ -116,6 +118,8 @@ export class EveSOFDNA extends IRoot
    * resolves a layout descriptor in its parent's context. All four parameters
    * differ from the string form; it is named after descriptor, the one that
    * carries the meaning (docs 22d1237).
+   *
+   * @implemented
    * @param {string} layoutName
    * @param {object} descriptor DNADescriptorData
    * @param {EveSOFDNA|null} parent
@@ -127,7 +131,11 @@ export class EveSOFDNA extends IRoot
     this._setupFromDescriptor(String(layoutName ?? ""), descriptor, parent, dataMgr);
   }
 
-  /** Returns whether the three required catalog selections resolved. */
+  /**
+   * Returns whether the three required catalog selections resolved.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsValid()
@@ -141,7 +149,11 @@ export class EveSOFDNA extends IRoot
     return this._parseError;
   }
 
-  /** Performs Carbon's slow command validation with unsafe C++ cases guarded. */
+  /**
+   * Performs Carbon's slow command validation with unsafe C++ cases guarded.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ValidateContent()
@@ -193,7 +205,11 @@ export class EveSOFDNA extends IRoot
     return true;
   }
 
-  /** Returns the normalized DNA text stored for the resolved selection. */
+  /**
+   * Returns the normalized DNA text stored for the resolved selection.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDnaString()
@@ -201,7 +217,11 @@ export class EveSOFDNA extends IRoot
     return this.dna;
   }
 
-  /** Returns the number of hull records composing this selection. */
+  /**
+   * Returns the number of hull records composing this selection.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMultiHullCount()
@@ -209,7 +229,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas.length;
   }
 
-  /** Returns the resolver's live hull-name array in composition order. */
+  /**
+   * Returns the resolver's live hull-name array in composition order.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHullNames()
@@ -220,6 +244,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the explicit DNA build-class index when valid, otherwise the first
    * hull's default.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -237,6 +263,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the first hull's geometry path, rewritten to Carbon's combined path
    * convention for a multi-hull selection.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -260,6 +288,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live mesh-area list for a supported batch
    * type, or null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -281,6 +311,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live decal-set list, or an empty list
    * when that hull is unavailable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -292,6 +324,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live light-set list, or an empty list
    * when that hull is unavailable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -303,6 +337,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live sprite-set list, or an empty list
    * when that hull is unavailable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -314,6 +350,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live spotlight-set list, or an empty list
    * when that hull is unavailable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -325,6 +363,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the faction's catalog-owned spotlight colors for the numeric group,
    * treating -1 or a missing group as absent.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -337,6 +377,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live plane-set list, or an empty list
    * when that hull is unavailable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -348,6 +390,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the faction's catalog-owned plane-set colors for the numeric group,
    * treating -1 or a missing group as absent.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -360,6 +404,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live sprite-line-set list, or an empty
    * list when that hull is unavailable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -371,6 +417,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live haze-set list, or an empty list when
    * that hull is unavailable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -382,6 +430,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live banner list, or an empty list when
    * that hull is unavailable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -393,6 +443,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live banner-set list, or an empty list
    * when that hull is unavailable.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -401,7 +453,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas[hullIndex]?.bannerSets ?? [];
   }
 
-  /** Returns legacy hull children from Carbon's first-hull-only path. */
+  /**
+   * Returns legacy hull children from Carbon's first-hull-only path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHullChildren()
@@ -409,7 +465,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas[0]?.children ?? [];
   }
 
-  /** Returns SOF6 child sets from Carbon's first-hull-only path. */
+  /**
+   * Returns SOF6 child sets from Carbon's first-hull-only path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHullChildSets()
@@ -417,7 +477,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas[0]?.childSets ?? [];
   }
 
-  /** Returns instanced attachments from Carbon's first-hull-only path. */
+  /**
+   * Returns instanced attachments from Carbon's first-hull-only path.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHullInstancedMeshes()
@@ -425,7 +489,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas[0]?.instancedMeshes ?? [];
   }
 
-  /** Returns legacy animation declarations from Carbon's first hull. */
+  /**
+   * Returns legacy animation declarations from Carbon's first hull.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHullAnimations()
@@ -436,6 +504,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the first hull record's live sound-emitter declarations, or an empty
    * list.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -447,6 +517,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the first hull record's live controller declarations, or an empty
    * list.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -455,7 +527,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas[0]?.controllers ?? [];
   }
 
-  /** Returns the first hull's non-empty model-rotation curve path, or null. */
+  /**
+   * Returns the first hull's non-empty model-rotation curve path, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetModelRotationCurvePath()
@@ -463,7 +539,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas[0]?.modelRotationCurvePath || null;
   }
 
-  /** Returns the first hull's non-empty model-translation curve path, or null. */
+  /**
+   * Returns the first hull's non-empty model-translation curve path, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetModelTranslationCurvePath()
@@ -471,7 +551,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas[0]?.modelTranslationCurvePath || null;
   }
 
-  /** Gets the faction visibility override for one legacy child group. */
+  /**
+   * Gets the faction visibility override for one legacy child group.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFactionChildData(groupIndex)
@@ -481,7 +565,11 @@ export class EveSOFDNA extends IRoot
     return this.factionData?.factionChildren?.get(index) ?? null;
   }
 
-  /** Returns the resolved generic catalog's banner-shader data, or null. */
+  /**
+   * Returns the resolved generic catalog's banner-shader data, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetGenericBannerShaderData()
@@ -489,7 +577,11 @@ export class EveSOFDNA extends IRoot
     return this.genericData?.bannerShader ?? null;
   }
 
-  /** Returns Carbon's decal minimum screen size for one HullDecalSetItem Usage. */
+  /**
+   * Returns Carbon's decal minimum screen size for one HullDecalSetItem Usage.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDecalMinScreenSize(usage)
@@ -500,6 +592,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the greatest opaque area index for the selected hull, using zero for
    * non-opaque batches or an empty area list.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -517,6 +611,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live turret-locator list, or an empty
    * list.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -525,7 +621,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas[hullIndex]?.locatorTurrets ?? [];
   }
 
-  /** Returns a new sorted snapshot of the selected hull's locator-set names. */
+  /**
+   * Returns a new sorted snapshot of the selected hull's locator-set names.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHullLocatorSetNames(hullIndex = 0)
@@ -537,6 +637,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live locator list for a named set, or
    * null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -549,6 +651,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the live locator list used to place a named layout set on the
    * selected hull, or null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -557,7 +661,11 @@ export class EveSOFDNA extends IRoot
     return this.GetHullLocators(locatorSetName, hullIndex);
   }
 
-  /** Returns the number of layout catalog records selected by the DNA. */
+  /**
+   * Returns the number of layout catalog records selected by the DNA.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLayoutCount()
@@ -565,7 +673,11 @@ export class EveSOFDNA extends IRoot
     return this.layoutData.length;
   }
 
-  /** Returns the catalog-owned selected layout at the numeric index, or null. */
+  /**
+   * Returns the catalog-owned selected layout at the numeric index, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetLayoutData(index)
@@ -576,6 +688,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the total number of locators in the named set across every selected
    * hull.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -592,6 +706,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the first next-subsystem locator position for the selected hull, or
    * null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -603,6 +719,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected hull record's live audio position only when it is the
    * final hull in the composition.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -615,6 +733,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the generic catalog's base resource path for area shaders, or an
    * empty string.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -626,6 +746,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the generic catalog's base resource path for decal shaders, or an
    * empty string.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -634,7 +756,11 @@ export class EveSOFDNA extends IRoot
     return this.genericData?.decalShaderLocation ?? "";
   }
 
-  /** Carbon returns constant decal shader 0. */
+  /**
+   * Carbon returns constant decal shader 0.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetDecalShader()
@@ -642,7 +768,11 @@ export class EveSOFDNA extends IRoot
     return 0;
   }
 
-  /** Reports whether the first selected hull explicitly enables decal sets. */
+  /**
+   * Reports whether the first selected hull explicitly enables decal sets.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   IsHullUsingDecalSets()
@@ -653,6 +783,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the generic animated or static shader prefix requested by the
    * caller.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -664,6 +796,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Builds an area-shader resource path from the generic base path, the current
    * hull animation prefix, and the supplied suffix.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -679,6 +813,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the generic catalog's area-shader definition with the requested
    * name, or null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -690,6 +826,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the generic catalog's decal-shader definition with the requested
    * name, or null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -698,7 +836,11 @@ export class EveSOFDNA extends IRoot
     return this.genericData?.decalShaderData?.get(String(shaderName)) ?? null;
   }
 
-  /** Returns a hull-local texture path for a projected opaque mesh index. */
+  /**
+   * Returns a hull-local texture path for a projected opaque mesh index.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetHullTextureWithMeshIndex(textureName, meshIndex, hullIndex = 0, resourceExists = null, cache = null)
@@ -711,7 +853,11 @@ export class EveSOFDNA extends IRoot
     return this.ModifyTextureResPath(texture.resFilePath, resourceExists, cache);
   }
 
-  /** Returns the resolved generic catalog's damage settings, or null. */
+  /**
+   * Returns the resolved generic catalog's damage settings, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetGenericDamageData()
@@ -719,7 +865,11 @@ export class EveSOFDNA extends IRoot
     return this.genericData?.damage ?? null;
   }
 
-  /** Returns the resolved generic catalog's hull-damage settings, or null. */
+  /**
+   * Returns the resolved generic catalog's hull-damage settings, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetGenericHullDamageData()
@@ -727,7 +877,11 @@ export class EveSOFDNA extends IRoot
     return this.genericData?.hullDamage ?? null;
   }
 
-  /** Returns the resolved generic catalog's swarm behavior properties, or null. */
+  /**
+   * Returns the resolved generic catalog's swarm behavior properties, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetGenericSwarmProperties()
@@ -735,7 +889,11 @@ export class EveSOFDNA extends IRoot
     return this.genericData?.swarmBehavior ?? null;
   }
 
-  /** Returns the resolved race catalog's damage settings, or null. */
+  /**
+   * Returns the resolved race catalog's damage settings, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRaceDamageData()
@@ -743,7 +901,11 @@ export class EveSOFDNA extends IRoot
     return this.raceData?.damage ?? null;
   }
 
-  /** Returns the resolved race catalog's booster settings, or null. */
+  /**
+   * Returns the resolved race catalog's booster settings, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRaceBoosterData()
@@ -751,7 +913,11 @@ export class EveSOFDNA extends IRoot
     return this.raceData?.boosters ?? null;
   }
 
-  /** Returns the selected hull record's live booster settings, or null. */
+  /**
+   * Returns the selected hull record's live booster settings, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetHullBoosterData(hullIndex = 0)
@@ -762,6 +928,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the combined number of authored booster items across all selected
    * hulls.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -776,6 +944,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the first hull's numeric impact-effect type, defaulting to no impact
    * effect.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -787,6 +957,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the generic shield-shader path selected by the hull's impact-effect
    * type, or null when no supported shield effect applies.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -802,7 +974,11 @@ export class EveSOFDNA extends IRoot
     }
   }
 
-  /** Applies Carbon's optional faction/DNA texture path insertion. */
+  /**
+   * Applies Carbon's optional faction/DNA texture path insertion.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ModifyTextureResPath(resourcePath, resourceExists = null, cache = null)
@@ -825,7 +1001,11 @@ export class EveSOFDNA extends IRoot
     return exists ? candidate : resourcePath;
   }
 
-  /** Returns the resolved faction's catalog-owned color array, or an empty list. */
+  /**
+   * Returns the resolved faction's catalog-owned color array, or an empty list.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetColorSet()
@@ -836,6 +1016,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the resolved faction's catalog-owned logo at the numeric index, or
    * null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -847,6 +1029,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Reports whether the indexed faction logo exists and declares at least one
    * texture.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -858,6 +1042,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Reports whether the faction visibility set contains the supplied value after
    * unsigned 32-bit normalization.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -866,7 +1052,11 @@ export class EveSOFDNA extends IRoot
     return this.factionData?.visibilityData?.has(Number(hash) >>> 0) === true;
   }
 
-  /** Resolves one mesh parameter using Carbon's ordered material fallbacks. */
+  /**
+   * Resolves one mesh parameter using Carbon's ordered material fallbacks.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetMeshAreaParameter(areaType, parameterName, hullParameters = null, blockedMaterials = 0)
@@ -938,7 +1128,11 @@ export class EveSOFDNA extends IRoot
     return hullParameters?.get(String(parameterName)) ?? null;
   }
 
-  /** Resolves a turret shader parameter after applying the faction's material-usage remap. */
+  /**
+   * Resolves a turret shader parameter after applying the faction's material-usage remap.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFactionTurretParameters(parameterName)
@@ -964,6 +1158,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the active pattern's layer count, selecting explicit, SOF6
    * faction-default, or legacy hull-default data as appropriate.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -984,6 +1180,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the faction-default pattern's catalog-owned application for the
    * first hull, or null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -996,6 +1194,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the selected pattern's SOF6 or legacy catalog application for the
    * first hull, or null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1011,6 +1211,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Resolves explicit or SOF6 faction pattern applications and otherwise
    * synthesizes a fresh legacy default wrapper.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -1029,6 +1231,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the catalog-owned projection for a valid active pattern layer, or
    * null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1042,6 +1246,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the catalog-owned settings for a valid active pattern layer, or
    * null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1055,6 +1261,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns a shallow copy of the pattern layer's material-target array, or
    * null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1066,6 +1274,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Reports whether the pattern layer explicitly enables the numeric hull-area
    * type.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1077,6 +1287,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns the first hull category's configured reflection mode, falling back
    * to Carbon's built-in category rules.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1099,6 +1311,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns a newly allocated sphere enclosing every selected hull after
    * applying chained next-subsystem offsets, or null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1132,6 +1346,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns a fresh descriptor referencing the first resolved hull's live
    * ellipsoid vectors, or null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1148,6 +1364,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns a defensive copy of the resolver-owned parent bounding sphere, or
    * null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1156,7 +1374,11 @@ export class EveSOFDNA extends IRoot
     return EveSOFDNA._CopySphere(this.parentBoundingSphere);
   }
 
-  /** Returns the resolver-owned parent hull-shape ellipsoid descriptor, or null. */
+  /**
+   * Returns the resolver-owned parent hull-shape ellipsoid descriptor, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParentHullShapeEllipsoid()
@@ -1167,6 +1389,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Replaces the parent bounding sphere with a defensive copy of the supplied
    * coordinates.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1178,6 +1402,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Replaces the parent hull-shape ellipsoid with a deep copy of the supplied
    * center and radius vectors.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1211,6 +1437,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Reports the resolver's current skinned-animation flag, which layouts may
    * disable independently of catalog data.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1222,6 +1450,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Disables skinned animation for this resolved DNA without modifying the
    * source hull record.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1233,6 +1463,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Reports whether multi-hull composition or the first hull's flag requires
    * dynamic bounds.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1241,7 +1473,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas.length > 1 || this.hullDatas[0]?.enableDynamicBoundingSphere === true;
   }
 
-  /** Reports whether the first selected hull is authored to cast shadows. */
+  /**
+   * Reports whether the first selected hull is authored to cast shadows.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   CastShadow()
@@ -1254,6 +1490,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Reports whether the parsed command map contains the supplied command name or
    * valid numeric command.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1266,6 +1504,8 @@ export class EveSOFDNA extends IRoot
   /**
    * Returns a defensive copy of the supplied DNA command's parsed arguments, or
    * null.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -1276,7 +1516,11 @@ export class EveSOFDNA extends IRoot
     return this._commands.get(name).slice();
   }
 
-  /** Reports whether the first selected hull uses the SOF6 data model. */
+  /**
+   * Reports whether the first selected hull uses the SOF6 data model.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UsingSof6()
@@ -1284,7 +1528,11 @@ export class EveSOFDNA extends IRoot
     return this.hullDatas.length > 0 && this.hullDatas[0].sof6 === true;
   }
 
-  /** Returns the faction catalog name resolved for this DNA. */
+  /**
+   * Returns the faction catalog name resolved for this DNA.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFactionName()
@@ -1292,7 +1540,11 @@ export class EveSOFDNA extends IRoot
     return this.factionName;
   }
 
-  /** Returns the race catalog name resolved for this DNA. */
+  /**
+   * Returns the race catalog name resolved for this DNA.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetRaceName()

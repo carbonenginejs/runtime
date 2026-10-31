@@ -345,7 +345,11 @@ export class Tr2GpuParticleSystem
     TriDevice.UnregisterResource(this);
   }
 
-  /** Carbon InitializeBuffers (cpp:125-134): the GPU buffer objects, created empty. */
+  /**
+   * Carbon InitializeBuffers (cpp:125-134): the GPU buffer objects, created empty.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   InitializeBuffers()
@@ -362,6 +366,8 @@ export class Tr2GpuParticleSystem
   /**
    * Carbon RegisterVariables (cpp:140-149): the buffers, by the names the
    * effects bind them under.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -381,6 +387,7 @@ export class Tr2GpuParticleSystem
    * Carbon IInitialize::Initialize (cpp:151-167): every effect gets the local
    * store, and a loaded capacity other than the default is applied.
    *
+   * @implemented
    * @returns {boolean} True.
    */
 
@@ -401,6 +408,7 @@ export class Tr2GpuParticleSystem
    * earlier capacity keep their size; only the dispatch sizes follow the new
    * value. A capacity loaded before the device exists is the one created.
    *
+   * @implemented
    * @param {number} maxParticles The capacity.
    */
 
@@ -416,6 +424,7 @@ export class Tr2GpuParticleSystem
    * Carbon ReleaseResources (cpp:180-198): the constant buffers of the
    * released memory class, and a clear when managed memory goes.
    *
+   * @implemented
    * @param {number} storage The TriStorage mask being released.
    */
 
@@ -433,6 +442,7 @@ export class Tr2GpuParticleSystem
    * Carbon OnPrepareResources (cpp:200-242): each buffer that is not valid is
    * created, which asks for a clear; the emitter params are uploaded.
    *
+   * @implemented
    * @returns {boolean} True.
    */
 
@@ -487,6 +497,7 @@ export class Tr2GpuParticleSystem
    * Carbon OnModified (cpp:244-288): an effect slot that changed gets the
    * local store; a changed capacity is applied.
    *
+   * @implemented
    * @param {string} propertyName The Blue name that changed.
    * @returns {boolean} True.
    */
@@ -505,6 +516,7 @@ export class Tr2GpuParticleSystem
   /**
    * Carbon SetVariableStore (cpp:290-298).
    *
+   * @implemented
    * @param {object|null} effect A Tr2Effect.
    */
 
@@ -517,7 +529,11 @@ export class Tr2GpuParticleSystem
     effect.EndUpdate();
   }
 
-  /** Carbon Clear (cpp:305-308): the clear happens during the next Update. */
+  /**
+   * Carbon Clear (cpp:305-308): the clear happens during the next Update.
+   *
+   * @implemented
+   */
   @be.mapMethodAndWrap()
   @meta.implemented
   Clear()
@@ -529,6 +545,7 @@ export class Tr2GpuParticleSystem
    * Carbon Update (cpp:318-375): clears if asked, emits the frame's requests,
    * simulates, sorts and prepares the draw arguments.
    *
+   * @implemented
    * @param {number} time The scene's update time (Be::Time, Blue 100ns ticks); the frame delta is TimeAsFloat of
    *   the tick difference.
    * @param {Float32Array|number[]} originShift The world origin shift since the previous frame.
@@ -595,6 +612,7 @@ export class Tr2GpuParticleSystem
    * and a WebGPU buffer reads back only asynchronously. The flag is off by
    * default and only for debugging.
    *
+   * @notImplemented
    * @param {object} _renderContext The Tr2RenderContext.
    */
 
@@ -609,6 +627,7 @@ export class Tr2GpuParticleSystem
    * Carbon DoClear (cpp:396-405): zeroes the counters and runs the clear
    * kernel over the whole particle buffer.
    *
+   * @implemented
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {boolean} Whether the clear kernel ran.
    */
@@ -630,6 +649,7 @@ export class Tr2GpuParticleSystem
    * Carbon RunSimulation (cpp:411-454): the update constants, the counter
    * reset technique, then the update kernel over the whole capacity.
    *
+   * @implemented
    * @param {number} dt The frame time.
    * @param {Float32Array|number[]} originShift The world origin shift.
    * @param {object} renderContext The Tr2RenderContext.
@@ -671,11 +691,10 @@ export class Tr2GpuParticleSystem
    * Carbon ExpireEmitterParams (cpp:461-480): counts down each params entry's
    * lifetime and frees the slots of those that ran out.
    *
-   * Adapted: Carbon walks a std::map in key order, so expired slots are freed
-   * in ascending-id order; a Map walks in insertion order. The order only
-   * decides which free slot the next new params entry reuses, and that slot
-   * is always rewritten before the GPU reads it.
-   *
+   * @adapted Carbon walks a std::map in key order, so expired slots are freed
+   *   in ascending-id order; a Map walks in insertion order. The order only
+   *   decides which free slot the next new params entry reuses, and that slot
+   *   is always rewritten before the GPU reads it.
    * @param {number} dt The frame time.
    */
 
@@ -700,6 +719,7 @@ export class Tr2GpuParticleSystem
    * Carbon UpdateEmitterParams (cpp:486-532): gives each request's params a
    * slot, uploads the params when any changed, and extends the live time.
    *
+   * @implemented
    * @param {object} renderContext The Tr2RenderContext.
    */
 
@@ -755,6 +775,7 @@ export class Tr2GpuParticleSystem
    * Carbon UpdateGpuEmitterParams (cpp:538-555): grows the params buffer to
    * hold the mirror (at least 64 entries) and uploads it.
    *
+   * @implemented
    * @param {object} renderContext The Tr2RenderContext.
    */
 
@@ -779,6 +800,7 @@ export class Tr2GpuParticleSystem
    * Carbon EmitParticles (cpp:562-598): the requests' emitters in batches of
    * EMITS_PER_DISPATCH, one emit dispatch per batch with a group per emitter.
    *
+   * @implemented
    * @param {object} renderContext The Tr2RenderContext.
    */
 
@@ -806,6 +828,7 @@ export class Tr2GpuParticleSystem
    * Carbon Sort (cpp:604-630): the sort arguments, an indirect pre-sort, then
    * incremental merges up to the capacity.
    *
+   * @implemented
    * @param {object} renderContext The Tr2RenderContext.
    */
 
@@ -842,6 +865,7 @@ export class Tr2GpuParticleSystem
    * The fourth sort constant is written as the neutral 0: Carbon leaves it
    * unset (Tr2GpuParticleSystem.cpp:655-669).
    *
+   * @implemented
    * @param {number} presorted The size already sorted.
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {boolean} Whether this was the last level.
@@ -890,6 +914,7 @@ export class Tr2GpuParticleSystem
    * Carbon Render (cpp:682-694): additive standard states, then the render
    * effect draws through this system's SubmitGeometry.
    *
+   * @implemented
    * @param {object} renderContext The Tr2RenderContext.
    */
 
@@ -907,6 +932,7 @@ export class Tr2GpuParticleSystem
    * per visible particle, generated in the vertex shader, with the count read
    * from the draw arguments.
    *
+   * @implemented
    * @param {object} renderContext The Tr2RenderContext.
    */
 
@@ -925,9 +951,8 @@ export class Tr2GpuParticleSystem
    * copying its inputs, with the count capped at the capacity and a random
    * seed in the high half.
    *
-   * Adapted: the request is packed into the EmitterGpu and EmitterParamsGpu
-   * byte layouts here, where Carbon copies the structs. The seed uses the shared CRT stream.
-   *
+   * @adapted the request is packed into the EmitterGpu and EmitterParamsGpu
+   *   byte layouts here, where Carbon copies the structs. The seed uses the shared CRT stream.
    * @param {object} emitter A Tr2GpuSharedEmitter emitter record.
    * @param {number} id The params' semi-unique id.
    * @param {number} hash The params' hash.
@@ -970,6 +995,8 @@ export class Tr2GpuParticleSystem
    * Waiting: the emitTime, updateTime, sortTime and renderTime
    * MAP_PROPERTY_READONLY rows (Tr2GpuParticleSystem_Blue.cpp:89-104) stay
    * unconverted until these Gets exist, since a reading getter would throw.
+   *
+   * @notImplemented
    */
 
   @meta.notImplemented
@@ -981,6 +1008,8 @@ export class Tr2GpuParticleSystem
   /**
    * emitTime (MAP_PROPERTY_READONLY): Carbon's property over GetEmitTime, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp:89).
+   *
+   * @notImplemented
    */
   @be.mapPropertyReadOnly()
   @meta.notImplemented
@@ -989,7 +1018,11 @@ export class Tr2GpuParticleSystem
     return this.GetEmitTime();
   }
 
-  /** Carbon GetUpdateTime (cpp:737-740); see GetEmitTime. Waiting: its "updateTime" property. */
+  /**
+   * Carbon GetUpdateTime (cpp:737-740); see GetEmitTime. Waiting: its "updateTime" property.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   GetUpdateTime()
@@ -1000,6 +1033,8 @@ export class Tr2GpuParticleSystem
   /**
    * updateTime (MAP_PROPERTY_READONLY): Carbon's property over GetUpdateTime, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp:93).
+   *
+   * @notImplemented
    */
   @be.mapPropertyReadOnly()
   @meta.notImplemented
@@ -1008,7 +1043,11 @@ export class Tr2GpuParticleSystem
     return this.GetUpdateTime();
   }
 
-  /** Carbon GetSortTime (cpp:742-745); see GetEmitTime. Waiting: its "sortTime" property. */
+  /**
+   * Carbon GetSortTime (cpp:742-745); see GetEmitTime. Waiting: its "sortTime" property.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   GetSortTime()
@@ -1019,6 +1058,8 @@ export class Tr2GpuParticleSystem
   /**
    * sortTime (MAP_PROPERTY_READONLY): Carbon's property over GetSortTime, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp:97).
+   *
+   * @notImplemented
    */
   @be.mapPropertyReadOnly()
   @meta.notImplemented
@@ -1027,7 +1068,11 @@ export class Tr2GpuParticleSystem
     return this.GetSortTime();
   }
 
-  /** Carbon GetRenderTime (cpp:747-750); see GetEmitTime. Waiting: its "renderTime" property. */
+  /**
+   * Carbon GetRenderTime (cpp:747-750); see GetEmitTime. Waiting: its "renderTime" property.
+   *
+   * @notImplemented
+   */
 
   @meta.notImplemented
   GetRenderTime()
@@ -1038,6 +1083,8 @@ export class Tr2GpuParticleSystem
   /**
    * renderTime (MAP_PROPERTY_READONLY): Carbon's property over GetRenderTime, which the macro calls.
    * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp:101).
+   *
+   * @notImplemented
    */
   @be.mapPropertyReadOnly()
   @meta.notImplemented
@@ -1050,6 +1097,7 @@ export class Tr2GpuParticleSystem
    * Carbon HasParticles (cpp:752-755): an estimate, which can report particles
    * that have already died.
    *
+   * @implemented
    * @returns {boolean} Whether any particle may be alive.
    */
 

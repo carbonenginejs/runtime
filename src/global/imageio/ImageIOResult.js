@@ -70,6 +70,7 @@ export class ImageIOResult
   /**
    * The fixed text for the code, with the message appended (ImageIOResult.cpp:73-81).
    *
+   * @implemented
    * @returns {string} Error text.
    */
   GetErrorMessage()

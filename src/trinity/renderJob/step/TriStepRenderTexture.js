@@ -49,7 +49,11 @@ export class TriStepRenderTexture extends TriRenderStep
   @type.object.ref("ITr2TextureProvider")
   texture = null;
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD). */
+  /**
+   * Carbon method __init__ -> py__init__ (MAP_METHOD).
+   *
+   * @adapted
+   */
   @be.mapMethod()
   @meta.adapted
   __init__(source = null)
@@ -95,6 +99,8 @@ export class TriStepRenderTexture extends TriRenderStep
    * dereferences `m_texture` rather than `m_atlasTexture` on `cpp:67` - a null
    * dereference on the only path that reaches it - so there is nothing here
    * worth transcribing until the atlas type exists.
+   *
+   * @adapted
    */
 
   @meta.adapted

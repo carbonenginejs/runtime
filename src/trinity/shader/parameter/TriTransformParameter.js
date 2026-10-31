@@ -61,14 +61,22 @@ export class TriTransformParameter extends ITriEffectParameter
   @type.mat4
   worldTransform = mat4.create();
 
-  /** Native legacy-scene hook is empty (TriTransformParameter.h:42). */
+  /**
+   * Native legacy-scene hook is empty (TriTransformParameter.h:42).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RebuildEffectHandles(_effectRes)
   {
   }
 
-  /** The shader constant name the composed transform matrix is uploaded to. */
+  /**
+   * The shader constant name the composed transform matrix is uploaded to.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterName()
@@ -79,6 +87,8 @@ export class TriTransformParameter extends ITriEffectParameter
   /**
    * Content hash: transform base + translation/scaling/rotation bytes, then
    * name (Carbon hashes the contiguous transform-state struct region).
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -91,7 +101,8 @@ export class TriTransformParameter extends ITriEffectParameter
     return hashFnv1String(this.name, startingHash);
   }
 
-  /** Carbon TriTransformParameter::CopyValueToEffect
+  /**
+   * Carbon TriTransformParameter::CopyValueToEffect
    * (TriTransformParameter.cpp:30-66) builds the 6-arg TransformationMatrix
    * (math Matrix.cpp:66-143, scalingCenter NULL): row-vector
    * S * T(-rotationCenter) * R * T(rotationCenter + translation) - the scale
@@ -105,6 +116,8 @@ export class TriTransformParameter extends ITriEffectParameter
    * unported composition (the JS treats every non-FIXED base as the zeroed
    * inverse view only); when ported it must swap per the convention.
    * Carbon declaration: TriTransformParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/TriTransformParameter.h:28).
+   *
+   * @adapted
    */
   @meta.adapted
   CopyValueToEffect(_inputType, dest, size = 64, context = null)

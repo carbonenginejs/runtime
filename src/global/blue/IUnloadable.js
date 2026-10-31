@@ -13,6 +13,7 @@ export class IUnloadable extends IRoot
   /**
    * `UnloadWhenUnreferenced` - release state; the object stays held.
    *
+   * @abstract
    * @returns {void}
    */
   UnloadWhenUnreferenced() {}
@@ -20,6 +21,7 @@ export class IUnloadable extends IRoot
   /**
    * `ReloadWhenReferenced` - restore the state released by UnloadWhenUnreferenced.
    *
+   * @abstract
    * @returns {void}
    */
   ReloadWhenReferenced() {}

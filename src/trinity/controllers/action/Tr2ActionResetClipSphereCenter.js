@@ -47,6 +47,8 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * owner resets its clip sphere centre to the last damage locator hit, to the
    * authored locator, or (OBJECT_CENTER and any unknown mode) to its object
    * centre. Any other owner is ignored.
+   *
+   * @implemented
    * @param {ITr2ActionController} controller
    * @returns {void}
    */
@@ -79,6 +81,8 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * Random draws delegate to the matching generator in global/math/random.js.
    * set when the index is negative, a division by zero (CE-56); an empty set
    * does nothing here.
+   *
+   * @adapted
    * @param {EveSpaceObject2} owner
    * @param {string} locatorSetName
    * @param {number} locatorIndex

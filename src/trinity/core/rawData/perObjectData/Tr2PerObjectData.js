@@ -21,6 +21,8 @@ import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
 /**
  * Per-object render data: the object id a batch is picked and identified by,
  * and the upload of its constant payloads through the abstraction layer.
+ *
+ * @abstract
  */
 @meta.carbon("Tr2PerObjectData")
 @be.abstract
@@ -38,21 +40,33 @@ export class Tr2PerObjectData
    */
   userData = 0;
 
-  /** Pre-92483097 Tr2PerObjectData.h: the uint32 collision-set index. */
+  /**
+   * Pre-92483097 Tr2PerObjectData.h: the uint32 collision-set index.
+   *
+   * @implemented
+   */
   @meta.implemented
   SetUserData(value)
   {
     this.userData = value >>> 0;
   }
 
-  /** Returns the pre-92483097 collision-set index without pointer interpretation. */
+  /**
+   * Returns the pre-92483097 collision-set index without pointer interpretation.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetUserData()
   {
     return this.userData;
   }
 
-  /** Native uint64_t, held exactly as BigInt; callers encode request-local identity. */
+  /**
+   * Native uint64_t, held exactly as BigInt; callers encode request-local identity.
+   *
+   * @adapted
+   */
   @meta.adapted
   SetPickingPointer(pickingPointer)
   {
@@ -60,7 +74,11 @@ export class Tr2PerObjectData
     this.pickingPointer = BigInt.asUintN(64, pickingPointer);
   }
 
-  /** Returns all 64 bits without conversion through a JavaScript Number. */
+  /**
+   * Returns all 64 bits without conversion through a JavaScript Number.
+   *
+   * @adapted
+   */
   @meta.adapted
   GetPickingPointer()
   {
@@ -99,6 +117,7 @@ export class Tr2PerObjectData
    * The static `setPerObjectDataToDevice` below is the shared mechanism these
    * overrides call; this is the dispatch point Carbon's callers reach through.
    *
+   * @implemented
    * @returns {number} How many payloads were uploaded; none, at this level.
    */
   @meta.implemented
@@ -115,6 +134,8 @@ export class Tr2PerObjectData
    *
    * Adapted: Tr2IndirectDrawBufferWriter is unported and nothing on this path draws
    * indirectly; Carbon's base asserts here too.
+   *
+   * @notImplemented
    */
   @meta.notImplemented
   ApplyConstantBuffers()

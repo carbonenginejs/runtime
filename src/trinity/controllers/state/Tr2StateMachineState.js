@@ -85,6 +85,8 @@ export class Tr2StateMachineState
 
   /**
    * Relinks the finalizer after it is modified.
+   *
+   * @implemented
    * @param {string} propertyName Exposed member name.
    * @returns {boolean} True after the notification is handled.
    */
@@ -101,8 +103,9 @@ export class Tr2StateMachineState
 
   /**
    * Handles Carbon list notifications for action and transition lists.
-   * Adapted: exact mapped identities represent native BlueCastPtr; helpers split
-   * the two owned-list branches. Bulk, move and swap events do not change linkage.
+   *
+   * @adapted exact mapped identities represent native BlueCastPtr; helpers split
+   *   the two owned-list branches. Bulk, move and swap events do not change linkage.
    * @param {number} event Native list event flags.
    * @param {number} [_key=0] Unused first key.
    * @param {number} [_key2=0] Unused second key.
@@ -128,9 +131,10 @@ export class Tr2StateMachineState
    * Links transitions, actions, and the finalizer to a state machine.
    * Each action and finalizer resolves the controller through the supplied
    * machine, even when an earlier callback changes this state's linkage.
-   * Adapted: JavaScript holds the state-machine reference. The existing mask
-   * prepass and postpass are retained; native Link interleaves transition Link
-   * and mask collection, a separate outstanding algorithm difference.
+   *
+   * @adapted JavaScript holds the state-machine reference. The existing mask
+   *   prepass and postpass are retained; native Link interleaves transition Link
+   *   and mask collection, a separate outstanding algorithm difference.
    * @param {Tr2StateMachine} stateMachine Owning state machine.
    * @returns {void}
    */
@@ -158,6 +162,8 @@ export class Tr2StateMachineState
 
   /**
    * Recomputes the combined transition variable mask.
+   *
+   * @implemented
    * @returns {void}
    */
 
@@ -186,6 +192,8 @@ export class Tr2StateMachineState
 
   /**
    * Unlinks transitions, actions, and the finalizer.
+   *
+   * @implemented
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
@@ -222,6 +230,8 @@ export class Tr2StateMachineState
    * ContinueOnMainThread, so the state's transitions can be evaluated before
    * its actions have set the variables they test; ours starts the actions
    * directly, as Carbon did before trinity 85a2b621.
+   *
+   * @adapted
    * @returns {void}
    */
 
@@ -252,6 +262,8 @@ export class Tr2StateMachineState
    * Fixes CE-198: Carbon queues each action's Stop through
    * ContinueOnMainThread; ours stops the actions directly, as Carbon did
    * before trinity 85a2b621, so the finalizer sees them already stopped.
+   *
+   * @adapted
    * @returns {void}
    */
 
@@ -283,7 +295,8 @@ export class Tr2StateMachineState
 
   /**
    * Updates transitions and returns the next state when one activates.
-   * Adapted: BigInt carries the native uint64 dirty-variable mask.
+   *
+   * @adapted BigInt carries the native uint64 dirty-variable mask.
    * @param {bigint|number} [dirtyVariables=0n] Variables changed by the controller.
    * @returns {Tr2StateMachineState|null} Next state, or null while remaining here.
    */
@@ -342,6 +355,8 @@ export class Tr2StateMachineState
 
   /**
    * Rebases action simulation time.
+   *
+   * @implemented
    * @param {number} diff Simulation-time offset in Blue ticks.
    * @returns {void}
    */
@@ -360,6 +375,8 @@ export class Tr2StateMachineState
    * Carbon: Tr2StateMachineState::GetStateMachine (trinity/trinity/Controllers/Tr2StateMachineState.cpp:258-261), the typed
    * C++ getter. Carbon's exposure row (Tr2StateMachineState_Blue.cpp:22) names "GetStateMachine" but binds it to
    * GetStateMachinePtr, which therefore carries the row.
+   *
+   * @implemented
    * @returns {Tr2StateMachine|null} Owning machine, or null while unlinked.
    */
   @meta.implemented
@@ -373,6 +390,8 @@ export class Tr2StateMachineState
    * Carbon: Tr2StateMachineState::GetStateMachinePtr (trinity/trinity/Controllers/Tr2StateMachineState.cpp:323-326),
    * the function Carbon's "GetStateMachine" exposure row binds (Tr2StateMachineState_Blue.cpp:22). Native returns the
    * raw root of the held state machine pointer, which in JavaScript is the machine itself.
+   *
+   * @implemented
    * @returns {Tr2StateMachine|null} Owning machine, or null while unlinked.
    */
   @be.mapMethodAndWrap("GetStateMachine")
@@ -384,6 +403,8 @@ export class Tr2StateMachineState
 
   /**
    * Gets the authored state name.
+   *
+   * @implemented
    * @returns {string} Authored state name.
    */
 
@@ -415,8 +436,9 @@ export class Tr2StateMachineState
   /**
    * Finds the destination of the first transition that activates against a fully
    * dirty variable mask, used to resolve where to go once finalizing completes.
-   * Adapted: native GetNextState retains its private JavaScript name and uses
-   * BigInt for the native all-bits uint64 mask.
+   *
+   * @adapted native GetNextState retains its private JavaScript name and uses
+   *   BigInt for the native all-bits uint64 mask.
    * @returns {Tr2StateMachineState|null} First active destination, or null.
    */
 

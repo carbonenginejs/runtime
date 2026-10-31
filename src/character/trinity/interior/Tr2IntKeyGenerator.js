@@ -6,7 +6,11 @@ import { meta } from "#schema";
 export class Tr2IntKeyGenerator
 {
 
-  /** Carbon static comparator for interior render batches. */
+  /**
+   * Carbon static comparator for interior render batches.
+   *
+   * @implemented
+   */
   @meta.implemented
   static Less(batch1, batch2)
   {
@@ -15,7 +19,11 @@ export class Tr2IntKeyGenerator
     return batch1.renderingMode === 4 ? batch1.depth < batch2.depth : false;
   }
 
-  /** Carbon requests stable sorting so authored decal order is preserved. */
+  /**
+   * Carbon requests stable sorting so authored decal order is preserved.
+   *
+   * @implemented
+   */
   @meta.implemented
   static GetSortType()
   {

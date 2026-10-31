@@ -23,6 +23,7 @@ export class IEveShadowCaster extends IRoot
    * (h:144-145). Engine code calls the specific names; this inspects its
    * argument only because JavaScript cannot overload.
    *
+   * @adapted
    * @returns {boolean}
    */
   IsCastingShadow(cameraFrustum, second, third, fourth)
@@ -36,6 +37,7 @@ export class IEveShadowCaster extends IRoot
    * Carbon's IsCastingShadow( cameraFrustum, shadowFrustum, renderReason,
    * sizeInShadow ) (h:144), used for the cascaded shadow map. Pure virtual.
    *
+   * @abstract
    * @returns {boolean}
    */
 
@@ -45,6 +47,7 @@ export class IEveShadowCaster extends IRoot
    * Carbon's IsCastingShadow( cameraFrustum, position, radius, renderReason )
    * (h:145): false unless a caster overrides it.
    *
+   * @implemented
    * @returns {boolean}
    */
 
@@ -53,27 +56,47 @@ export class IEveShadowCaster extends IRoot
     return false;
   }
 
-  /** Carbon's GetShadowBatches (h:149). Pure virtual. */
+  /**
+   * Carbon's GetShadowBatches (h:149). Pure virtual.
+   *
+   * @abstract
+   */
 
   GetShadowBatches(_batches, _perObjectData, _shadowPixelSize) {}
 
-  /** Carbon's GetShadowPerObjectData (h:150). Pure virtual. */
+  /**
+   * Carbon's GetShadowPerObjectData (h:150). Pure virtual.
+   *
+   * @abstract
+   */
 
   GetShadowPerObjectData(_accumulator) {}
 
-  /** Carbon's PushRtGeometry (h:152): raytraced shadows; empty by default. */
+  /**
+   * Carbon's PushRtGeometry (h:152): raytraced shadows; empty by default.
+   *
+   * @implemented
+   */
 
   PushRtGeometry(_raytracingManager)
   {
   }
 
-  /** Carbon's MarkRtDirty (h:155): empty by default. */
+  /**
+   * Carbon's MarkRtDirty (h:155): empty by default.
+   *
+   * @implemented
+   */
 
   MarkRtDirty()
   {
   }
 
-  /** Carbon's IsShadowCastingDirty (h:158): false by default. */
+  /**
+   * Carbon's IsShadowCastingDirty (h:158): false by default.
+   *
+   * @implemented
+   */
 
   IsShadowCastingDirty()
   {

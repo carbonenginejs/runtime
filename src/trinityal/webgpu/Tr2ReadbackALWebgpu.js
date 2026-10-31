@@ -44,19 +44,31 @@ export class Tr2ReadbackALWebgpu extends Tr2DeviceResourceAL
     });
   }
 
-  /** True only after this copy's actual map completes, without a frame estimate. */
+  /**
+   * True only after this copy's actual map completes, without a frame estimate.
+   *
+   * @adapted
+   */
   IsReady(_renderContext)
   {
     return this.IsValid() && this._data !== null;
   }
 
-  /** A destroyed or failed staging buffer cannot yield a result. */
+  /**
+   * A destroyed or failed staging buffer cannot yield a result.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._buffer !== null;
   }
 
-  /** Ready maps return directly; pending maps await this request, never an older one. */
+  /**
+   * Ready maps return directly; pending maps await this request, never an older one.
+   *
+   * @adapted
+   */
   Map(renderContext)
   {
     if (!this.IsValid()) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
@@ -64,7 +76,11 @@ export class Tr2ReadbackALWebgpu extends Tr2DeviceResourceAL
     return { result: ALResult.S_OK, data: this._data, pitch: this._rowPitch };
   }
 
-  /** Cancels pending mapping and releases storage after queued copy commands submit. */
+  /**
+   * Cancels pending mapping and releases storage after queued copy commands submit.
+   *
+   * @adapted
+   */
   Destroy()
   {
     const buffer = this._buffer;
@@ -74,12 +90,20 @@ export class Tr2ReadbackALWebgpu extends Tr2DeviceResourceAL
     super.Destroy();
   }
 
-  /** Like the native readback, contributes no additional inventory fields. */
+  /**
+   * Like the native readback, contributes no additional inventory fields.
+   *
+   * @implemented
+   */
   Describe(_description)
   {
   }
 
-  /** Matches native staging storage's managed memory class. */
+  /**
+   * Matches native staging storage's managed memory class.
+   *
+   * @implemented
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;

@@ -61,7 +61,11 @@ export class Tr2KelvinColor extends IInitialize
   // hue shift - it scales red and blue by (1 - tint) while scaling green by
   // tint, so the neutral value is 0.5 and the result is renormalised after.
 
-  /** Native initialization has no work and always succeeds. */
+  /**
+   * Native initialization has no work and always succeeds.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -145,21 +149,33 @@ export class Tr2KelvinColor extends IInitialize
     return vec3.set(out, red / brightest, green / brightest, blue / brightest);
   }
 
-  /** Carbon GetTemperature (Tr2KelvinColor.h:53-56). */
+  /**
+   * Carbon GetTemperature (Tr2KelvinColor.h:53-56).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetTemperature()
   {
     return this.temperature;
   }
 
-  /** Carbon GetTint (Tr2KelvinColor.h:58-61). */
+  /**
+   * Carbon GetTint (Tr2KelvinColor.h:58-61).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetTint()
   {
     return this.tint;
   }
 
-  /** Carbon GetWhiteBalance (Tr2KelvinColor.h:63-66). */
+  /**
+   * Carbon GetWhiteBalance (Tr2KelvinColor.h:63-66).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetWhiteBalance()
   {
@@ -170,9 +186,8 @@ export class Tr2KelvinColor extends IInitialize
    * Carbon AsRGB (Tr2KelvinColor.h:69-77): the temperature as an opaque RGBA
    * colour, TriColorFromKelvin's RGB with alpha 1.
    *
-   * Adapted: written into `out` rather than returned by value, and stored as
-   * float32 where Carbon converts its Vector3d at the end.
-   *
+   * @adapted written into `out` rather than returned by value, and stored as
+   *   float32 where Carbon converts its Vector3d at the end.
    * @param {vec4} out Receives the colour.
    * @returns {vec4} out
    */

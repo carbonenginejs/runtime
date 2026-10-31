@@ -26,6 +26,8 @@ export class EveSOFDataHullBannerSet extends IRoot
    * Carbon MAP_PROPERTY_READONLY "name" over GetName
    * (EveSOFData_Blue.cpp:692): the banner set's visibility group. Carbon persists no name for
    * this class; the getter derives it.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.string

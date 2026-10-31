@@ -41,6 +41,8 @@ export class EveMultiEffectParameter extends IRoot
    * Carbon MAP_PROPERTY_READONLY "isValid" over IsValid
    * (EveMultiEffectParameter_Blue.cpp:26): whether the bound object matches
    * the declared parameter type.
+   *
+   * @implemented
    */
   @be.mapPropertyReadOnly()
   @type.boolean
@@ -50,7 +52,11 @@ export class EveMultiEffectParameter extends IRoot
     return this.IsValid();
   }
 
-  /** Binds an object to this slot, or clears it when given nothing. */
+  /**
+   * Binds an object to this slot, or clears it when given nothing.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetParameterObject(object)
@@ -62,6 +68,8 @@ export class EveMultiEffectParameter extends IRoot
    * Whether the bound object matches the declared parameter type; TYPE_ANYTHING
    * accepts any non-null object, and an unrecognised type accepts none
    * (Carbon's BlueCastPtr to the concrete class).
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -84,6 +92,8 @@ export class EveMultiEffectParameter extends IRoot
   /**
    * Sets the effect rebound when this slot's object changes; passing nothing
    * detaches the slot.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -92,7 +102,11 @@ export class EveMultiEffectParameter extends IRoot
     this._owner = owner ?? null;
   }
 
-  /** The object bound to this slot, or null. */
+  /**
+   * The object bound to this slot, or null.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetParameterObject()
@@ -100,7 +114,11 @@ export class EveMultiEffectParameter extends IRoot
     return this.object;
   }
 
-  /** The name bindings and controllers use to reach this slot. */
+  /**
+   * The name bindings and controllers use to reach this slot.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -111,6 +129,8 @@ export class EveMultiEffectParameter extends IRoot
   /**
    * Rebinds the owning effect after a model update, since the bound object is
    * the slot's only notifying field.
+   *
+   * @implemented
    */
 
   @meta.implemented

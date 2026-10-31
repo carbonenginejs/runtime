@@ -38,6 +38,7 @@ export class IBlueResMan extends IRoot
    * requested kind (`requirement`, standing for the IID) with the browser's
    * own request settings.
    *
+   * @abstract
    * @param {string} _path Resource path.
    * @param {object} [_options] Resource options.
    * @returns {*} The resource.
@@ -48,6 +49,7 @@ export class IBlueResMan extends IRoot
    * `GetResourceW` - `GetResource` for a wide-character path; identical in
    * JavaScript.
    *
+   * @abstract
    * @param {string} _path Resource path.
    * @param {object} [_options] Resource options, as `GetResource`.
    * @returns {*} The resource.
@@ -58,6 +60,7 @@ export class IBlueResMan extends IRoot
    * `LoadObject( const char* name, Be::LOADOBJECT_INIT_FLAG init = Be::LDOBJ_INITIALIZE )`
    * - an object built from a blue or red file, chosen by extension.
    *
+   * @abstract
    * @param {string} _path Object file path.
    * @param {*} [_init] Load options.
    * @returns {*} The object.
@@ -68,6 +71,7 @@ export class IBlueResMan extends IRoot
    * `LoadObject( const wchar_t* name, Be::LOADOBJECT_INIT_FLAG init = Be::LDOBJ_INITIALIZE )`
    * - `LoadObject` for a wide-character path; identical in JavaScript.
    *
+   * @abstract
    * @param {string} _path Object file path.
    * @param {*} [_init] Load options, as `LoadObject`.
    * @returns {*} The object.
@@ -78,6 +82,7 @@ export class IBlueResMan extends IRoot
    * `SaveObject( IRoot* obj, const char* name )` - write an object to a blue or
    * red file, chosen by extension.
    *
+   * @abstract
    * @param {object} _object The object.
    * @param {string} _path File path.
    * @returns {boolean} Whether it was written.
@@ -88,13 +93,18 @@ export class IBlueResMan extends IRoot
    * `SaveObjectW( IRoot* obj, const wchar_t* name )` - `SaveObject` for a
    * wide-character path; identical in JavaScript.
    *
+   * @abstract
    * @param {object} _object The object.
    * @param {string} _path File path.
    * @returns {boolean} Whether it was written.
    */
   SaveObjectW(_object, _path) {}
 
-  /** `IsOnMainThread` - whether the caller shares the main-thread queue's thread. */
+  /**
+   * `IsOnMainThread` - whether the caller shares the main-thread queue's thread.
+   *
+   * @abstract
+   */
   IsOnMainThread() {}
 
   /**
@@ -102,6 +112,7 @@ export class IBlueResMan extends IRoot
    * writes the request id to its `id` output parameter; the output parameter
    * is the return value here.
    *
+   * @abstract
    * @param {*} _queue The queue.
    * @param {Function} _callback The callback.
    * @param {*} _context The callback's context.
@@ -110,43 +121,95 @@ export class IBlueResMan extends IRoot
    */
   AddToQueue(_queue, _callback, _context, _flags) {}
 
-  /** `CancelFromQueue` - cancel a previously queued callback. */
+  /**
+   * `CancelFromQueue` - cancel a previously queued callback.
+   *
+   * @abstract
+   */
   CancelFromQueue(_queue, _id) {}
 
-  /** `GetNextIdForQueue` - the id a queue would issue next, so a caller can tell whether anything was added. */
+  /**
+   * `GetNextIdForQueue` - the id a queue would issue next, so a caller can tell whether anything was added.
+   *
+   * @abstract
+   */
   GetNextIdForQueue(_queue) {}
 
-  /** `PumpMainThreadQueue` - run one main-thread item; false when the queue was empty. */
+  /**
+   * `PumpMainThreadQueue` - run one main-thread item; false when the queue was empty.
+   *
+   * @abstract
+   */
   PumpMainThreadQueue() {}
 
-  /** `PauseQueue` - stop a queue running work. */
+  /**
+   * `PauseQueue` - stop a queue running work.
+   *
+   * @abstract
+   */
   PauseQueue(_queue) {}
 
-  /** `ResumeQueue` - let a paused queue run again. */
+  /**
+   * `ResumeQueue` - let a paused queue run again.
+   *
+   * @abstract
+   */
   ResumeQueue(_queue) {}
 
-  /** `SetUrgentResourceLoads` - mark subsequent loads urgent. */
+  /**
+   * `SetUrgentResourceLoads` - mark subsequent loads urgent.
+   *
+   * @abstract
+   */
   SetUrgentResourceLoads(_urgent) {}
 
-  /** `IsUrgentResourceLoads` - whether loads are currently marked urgent. */
+  /**
+   * `IsUrgentResourceLoads` - whether loads are currently marked urgent.
+   *
+   * @abstract
+   */
   IsUrgentResourceLoads() {}
 
-  /** `ReserveBackgroundLoadMemory` - claim background-load memory, blocking while over budget. */
+  /**
+   * `ReserveBackgroundLoadMemory` - claim background-load memory, blocking while over budget.
+   *
+   * @abstract
+   */
   ReserveBackgroundLoadMemory(_size) {}
 
-  /** `ReleaseBackgroundLoadMemory` - return claimed background-load memory. */
+  /**
+   * `ReleaseBackgroundLoadMemory` - return claimed background-load memory.
+   *
+   * @abstract
+   */
   ReleaseBackgroundLoadMemory(_size) {}
 
-  /** `GetPendingLoads` - how many loads have not finished. */
+  /**
+   * `GetPendingLoads` - how many loads have not finished.
+   *
+   * @abstract
+   */
   GetPendingLoads() {}
 
-  /** `GetPendingPrepares` - how many prepares have not finished. */
+  /**
+   * `GetPendingPrepares` - how many prepares have not finished.
+   *
+   * @abstract
+   */
   GetPendingPrepares() {}
 
-  /** `RegisterResourceConstructor` - bind a `dynamic:/<name>` factory, as the gradient and colour textures do for themselves. */
+  /**
+   * `RegisterResourceConstructor` - bind a `dynamic:/<name>` factory, as the gradient and colour textures do for themselves.
+   *
+   * @abstract
+   */
   RegisterResourceConstructor(_name, _constructor) {}
 
-  /** `UnregisterResourceConstructor` - remove a `dynamic:/<name>` factory. */
+  /**
+   * `UnregisterResourceConstructor` - remove a `dynamic:/<name>` factory.
+   *
+   * @abstract
+   */
   UnregisterResourceConstructor(_name) {}
 
   static Queue = BlueResManQueue;

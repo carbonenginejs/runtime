@@ -27,6 +27,7 @@ export class ITr2ControllerAction extends IRoot
   /**
    * Attaches this action to the controller that will drive it.
    *
+   * @adapted
    * @param {object} _controller The driving action controller.
    */
 
@@ -35,7 +36,11 @@ export class ITr2ControllerAction extends IRoot
   {
   }
 
-  /** Detaches this action, dropping every reference to the controller. */
+  /**
+   * Detaches this action, dropping every reference to the controller.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   Unlink()
@@ -45,6 +50,7 @@ export class ITr2ControllerAction extends IRoot
   /**
    * Begins the action.
    *
+   * @adapted
    * @param {object} _controller The driving action controller.
    */
 
@@ -56,6 +62,7 @@ export class ITr2ControllerAction extends IRoot
   /**
    * Stops the action.
    *
+   * @adapted
    * @param {object} _controller The driving action controller.
    */
 
@@ -67,6 +74,7 @@ export class ITr2ControllerAction extends IRoot
   /**
    * Shifts any absolute sim-clock times this action holds.
    *
+   * @adapted
    * @param {number} _diff Seconds added to the sim clock.
    */
 
@@ -81,6 +89,7 @@ export class ITr2ControllerAction extends IRoot
    * THE ONE METHOD CARBON GIVES A CONCRETE DEFAULT: an action does not hold
    * its state hostage unless it says so.
    *
+   * @implemented
    * @returns {boolean} True unless the action needs to finish first.
    */
 

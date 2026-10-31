@@ -41,13 +41,21 @@ export class BlueResFileSystemRemote extends IBlueResFileSystem
     return this._remoteFileCache;
   }
 
-  /** `FileExists` - whether the cache's index lists the file (cpp:13-16). */
+  /**
+   * `FileExists` - whether the cache's index lists the file (cpp:13-16).
+   *
+   * @implemented
+   */
   FileExists(filename)
   {
     return this._remoteFileCache.FileExists(substituteBlackForRedInFilename(filename));
   }
 
-  /** `IsDirectory` - whether the cache's index has anything under the path (cpp:18-21). */
+  /**
+   * `IsDirectory` - whether the cache's index has anything under the path (cpp:18-21).
+   *
+   * @implemented
+   */
   IsDirectory(dir)
   {
     return this._remoteFileCache.IsDirectory(dir);
@@ -56,6 +64,8 @@ export class BlueResFileSystemRemote extends IBlueResFileSystem
   /**
    * `GetDirectoryContents` - adds the directory's entries, `.black` reported
    * as `.red`; a directory the cache does not have adds nothing (cpp:23-36).
+   *
+   * @implemented
    */
   GetDirectoryContents(dir, results)
   {
@@ -75,10 +85,10 @@ export class BlueResFileSystemRemote extends IBlueResFileSystem
    * `GetStreamFromPathW` - the file's bytes through the cache, or `null` when
    * the cache fails (cpp:38-43).
    *
-   * Adapted: asynchronous, answering `{ form: "bytes", data }`, the only form
-   * this file system declares. Like Carbon, every cache failure reads as
-   * "not here", so the next file system is asked.
-   *
+   * @adapted asynchronous, answering `{ form: "bytes", data }`, the only form
+   *   this file system declares. Like Carbon, every cache failure reads as
+   *   "not here", so the next file system is asked.
+   * @renamed GetStreamFromPathW
    * @param {string} resPath Res path.
    * @param {import("./IBlueResFileSystem.js").BlueResFileSystemRequest} _request Always the bytes form.
    * @returns {Promise<import("./IBlueResFileSystem.js").BlueResFileSystemResult|null>} The bytes, or `null`.
@@ -100,12 +110,12 @@ export class BlueResFileSystemRemote extends IBlueResFileSystem
    * `ResolvePathW` - the file's cache-folder name, or `null` when the index
    * does not list it (cpp:45-53).
    *
-   * Adapted: the cache-folder name itself, where Carbon makes it absolute on
-   * the local disk; resolving a folder alias belongs to the host store.
-   *
    * Quirk, reproduced (cpp:47-49): the existence check substitutes `.black`
    * for `.red` but the name lookup does not, so a `.red` path resolves to
    * itself.
+   *
+   * @adapted the cache-folder name itself, where Carbon makes it absolute on
+   *   the local disk; resolving a folder alias belongs to the host store.
    */
   ResolvePathW(path)
   {

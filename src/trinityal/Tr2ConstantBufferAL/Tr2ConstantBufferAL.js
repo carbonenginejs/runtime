@@ -82,6 +82,7 @@ export class Tr2ConstantBufferAL
    * full overload with `REUSABLE` usage and no initial data
    * (`Tr2ConstantBufferAL.cpp:23-26`).
    *
+   * @implemented
    * @param {number} size Bytes.
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
@@ -99,13 +100,12 @@ export class Tr2ConstantBufferAL
    * implementation replaces this value's; any failure leaves it on the null
    * implementation.
    *
-   * Adapted: the render context allocates the implementation instead of a
-   * compile-time platform include, and also applies the size ceiling, because
-   * `TRINITY_PLATFORM_MAX_CONSTANT_BUFFER_SIZE` is a per-backend define
-   * (`Tr2CapsALDx11.h:17`, `Tr2CapsALStub.h:18`) that only the context's own
-   * backend knows. The previous share is released explicitly because
-   * JavaScript has no shared_ptr; existing copies keep it alive.
-   *
+   * @adapted the render context allocates the implementation instead of a
+   *   compile-time platform include, and also applies the size ceiling, because
+   *   `TRINITY_PLATFORM_MAX_CONSTANT_BUFFER_SIZE` is a per-backend define
+   *   (`Tr2CapsALDx11.h:17`, `Tr2CapsALStub.h:18`) that only the context's own
+   *   backend knows. The previous share is released explicitly because
+   *   JavaScript has no shared_ptr; existing copies keep it alive.
    * @param {number} size Bytes.
    * @param {number} usage A `Tr2ConstantUsageAL` value.
    * @param {ArrayBufferView|null} initialData Initial contents, if any.
@@ -130,8 +130,7 @@ export class Tr2ConstantBufferAL
   /**
    * Opens the constants for writing (`Tr2ConstantBufferAL.cpp:49-52`).
    *
-   * Adapted: Carbon's `void** data` output becomes the returned `data`.
-   *
+   * @adapted Carbon's `void** data` output becomes the returned `data`.
    * @param {object} renderContext The context to lock against.
    * @returns {{result: number, data: Uint8Array|null}} The locked memory.
    */
@@ -144,6 +143,7 @@ export class Tr2ConstantBufferAL
   /**
    * Closes the constants (`Tr2ConstantBufferAL.cpp:54-57`).
    *
+   * @implemented
    * @param {object} renderContext The context the lock was made against.
    * @returns {number} An `ALResult` value.
    */
@@ -156,6 +156,7 @@ export class Tr2ConstantBufferAL
   /**
    * Whether the implementation holds storage (`Tr2ConstantBufferAL.cpp:59-62`).
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   @meta.implemented
@@ -167,6 +168,7 @@ export class Tr2ConstantBufferAL
   /**
    * The implementation's size in bytes (`Tr2ConstantBufferAL.cpp:64-67`).
    *
+   * @implemented
    * @returns {number} Bytes; zero when uncreated.
    */
   @meta.implemented
@@ -178,6 +180,7 @@ export class Tr2ConstantBufferAL
   /**
    * The implementation's memory class (`Tr2ConstantBufferAL.cpp:69-72`).
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   @meta.implemented
@@ -189,8 +192,8 @@ export class Tr2ConstantBufferAL
   /**
    * Compares implementation identity (`Tr2ConstantBufferAL.cpp:74-77`).
    *
-   * Adapted: JavaScript has no overloadable equality operator.
-   *
+   * @adapted JavaScript has no overloadable equality operator.
+   * @renamed operator==
    * @param {Tr2ConstantBufferAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
@@ -204,6 +207,7 @@ export class Tr2ConstantBufferAL
    * Names valid storage; an invalid value or an absent name keeps Carbon's
    * errors (`Tr2ConstantBufferAL.cpp:79-90`).
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
@@ -220,6 +224,7 @@ export class Tr2ConstantBufferAL
    * (`Tr2ConstantBufferAL.cpp:92-95`). The null implementation when uncreated,
    * as Carbon returns `NullCB().get()`.
    *
+   * @implemented
    * @returns {object} The implementation.
    */
   @meta.implemented

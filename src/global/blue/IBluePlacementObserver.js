@@ -13,6 +13,8 @@ export class IBluePlacementObserver extends IRoot
   /**
    * Receives a placement's forward vector, up vector and position, in that order.
    * Native signature: void UpdatePlacement(const Vector3& front, const Vector3& top, const Vector3& pos) = 0.
+   *
+   * @abstract
    * @param {Float32Array} _front The caller's forward vector.
    * @param {Float32Array} _top The caller's up vector.
    * @param {Float32Array} _position The caller's position vector.

@@ -16,7 +16,11 @@ import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../ITr2Renderable.js";
 import { ITr2Pickable } from "../ITr2Pickable.js";
 
-/** A drawable set of primitives with a world transform, sort value and bounding sphere. */
+/**
+ * A drawable set of primitives with a world transform, sort value and bounding sphere.
+ *
+ * @abstract
+ */
 @be.define("Tr2PrimitiveSet")
 @be.inherit(ITr2Renderable, ITr2Pickable, INotify)
 @be.mapInterface(ITr2Renderable)
@@ -26,7 +30,11 @@ import { ITr2Pickable } from "../ITr2Pickable.js";
 export class Tr2PrimitiveSet extends IRoot
 {
 
-  /** Carbon Tr2PrimitiveSet.cpp:170: propagate edited color through the virtual setter. */
+  /**
+   * Carbon Tr2PrimitiveSet.cpp:170: propagate edited color through the virtual setter.
+   *
+   * @implemented
+   */
   @meta.implemented
   OnModified(names)
   {
@@ -95,7 +103,11 @@ export class Tr2PrimitiveSet extends IRoot
   @type.string
   name = "";
 
-  /** Carbon method SetCurrentColor (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetCurrentColor (MAP_METHOD_AND_WRAP).
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   SetCurrentColor(_color)
@@ -108,8 +120,9 @@ export class Tr2PrimitiveSet extends IRoot
 
   /**
    * Native opaque/picking dispatch (cpp:52), despite its stale transparent comment.
-   * Adapted: the effect is asked `IsGood()` first, which renews what it holds
-   * and skips it while its resource is not good (Tr2Effect.IsGood).
+   *
+   * @adapted the effect is asked `IsGood()` first, which renews what it holds
+   *   and skips it while its resource is not good (Tr2Effect.IsGood).
    */
 
   @meta.adapted
@@ -121,11 +134,19 @@ export class Tr2PrimitiveSet extends IRoot
       this.GetBatchesImpl(accumulator, perObjectData, this.pickEffect, Tr2PrimitiveSet.GetBatchesReason.Picking);
   }
 
-  /** Native subclasses supply their own geometry. */
+  /**
+   * Native subclasses supply their own geometry.
+   *
+   * @abstract
+   */
   @meta.abstract
   GetBatchesImpl(_accumulator, _perObjectData, _effect, _reason) {}
 
-  /** Native primitive sets participate in transparent sorting (cpp:47). */
+  /**
+   * Native primitive sets participate in transparent sorting (cpp:47).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   HasTransparentBatches()
@@ -133,7 +154,11 @@ export class Tr2PrimitiveSet extends IRoot
     return true;
   }
 
-  /** Distance from the view to the bounding sphere's surface (cpp:67-75). */
+  /**
+   * Distance from the view to the bounding sphere's surface (cpp:67-75).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSortValue()
@@ -143,7 +168,11 @@ export class Tr2PrimitiveSet extends IRoot
     return Math.hypot(eye[0] - bound[0], eye[1] - bound[1], eye[2] - bound[2]) - bound[3];
   }
 
-  /** An optional output replaces Carbon's value-returned world sphere (cpp:82). */
+  /**
+   * An optional output replaces Carbon's value-returned world sphere (cpp:82).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetBoundingSphere(out) // alloc: value-returned sphere belongs to the caller.
@@ -153,7 +182,11 @@ export class Tr2PrimitiveSet extends IRoot
     return out;
   }
 
-  /** Native transform reference (header:29). */
+  /**
+   * Native transform reference (header:29).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetWorldTransform()
@@ -164,6 +197,8 @@ export class Tr2PrimitiveSet extends IRoot
   /**
    * The JS object is Carbon's raw-root picking identity (header:39).
    * GetID/GetPickingBatches implement the native ITr2Pickable contract.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -172,7 +207,11 @@ export class Tr2PrimitiveSet extends IRoot
     return this;
   }
 
-  /** Both cpp-local native structs contain exactly one WorldMat (cpp:93-114). */
+  /**
+   * Both cpp-local native structs contain exactly one WorldMat (cpp:93-114).
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetPerObjectData(accumulator)
@@ -193,6 +232,8 @@ export class Tr2PrimitiveSet extends IRoot
   /**
    * Native view-facing and distance-scaled transform (cpp:109-167), from the
    * renderer's current view; matrix composition reverses Carbon order.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -224,7 +265,11 @@ export class Tr2PrimitiveSet extends IRoot
     }
   }
 
-  /** Native bit-mask dispatch through the regular batch gates (cpp:182). */
+  /**
+   * Native bit-mask dispatch through the regular batch gates (cpp:182).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetPickingBatches(accumulator, pickTypes, perObjectData)

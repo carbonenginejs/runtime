@@ -33,6 +33,8 @@ const LIST_KINDS = new Set([ "list", "array" ]);
 
 /**
  * `IRootWriter` - writes an object's members through a writer's primitives.
+ *
+ * @abstract
  */
 export class IRootWriter extends IRoot
 {
@@ -48,6 +50,7 @@ export class IRootWriter extends IRoot
   /**
    * Writes each member of an object (`WriteMembers`, IRootWriter.cpp:9-157).
    *
+   * @adapted
    * @param {object} instance The object.
    * @param {object} options `persistOnly`, and what the writer reads.
    */
@@ -183,6 +186,7 @@ export class IRootWriter extends IRoot
    * Writes a list (`WriteList`, IRootWriter.cpp:173-183): objects through
    * `WriteIRoot`, which may alias them, and values as values.
    *
+   * @adapted
    * @param {Array} list The list.
    * @param {string|null} declaredClassName The list's declared item class.
    * @param {*} [itemType] Complete declared type for plain list items.
@@ -257,7 +261,11 @@ export class IRootWriter extends IRoot
     this.WriteRecordEnd();
   }
 
-  /** Writes a binary block from an ICustomPersist (`WriteBinaryBlock`, IRootWriter.h:52); a writer provides it. */
+  /**
+   * Writes a binary block from an ICustomPersist (`WriteBinaryBlock`, IRootWriter.h:52); a writer provides it.
+   *
+   * @abstract
+   */
   WriteBinaryBlock(_persist, _propertyName) {}
 
   /** Begins a plain record inside a value; a writer provides it. */
@@ -272,20 +280,30 @@ export class IRootWriter extends IRoot
     throw new Error("IRootWriter.WriteRecordEnd is provided by a writer.");
   }
 
-  /** Writes the next member's name; a writer provides it. */
+  /**
+   * Writes the next member's name; a writer provides it.
+   *
+   * @abstract
+   */
   WriteMemberName(_name) {}
 
   /**
    * Writes one value. Adapted: Carbon has a primitive per C++ type
    * (`WriteInt32`, `WriteFloat`, `WriteChar`...); a JavaScript value carries its
    * own type, so one primitive takes them all.
+   *
+   * @adapted
    */
   WriteValue(_value)
   {
     throw new Error("IRootWriter.WriteValue is provided by a writer.");
   }
 
-  /** Writes an object, or an alias to one already written; a writer provides it. */
+  /**
+   * Writes an object, or an alias to one already written; a writer provides it.
+   *
+   * @abstract
+   */
   WriteIRoot(_instance, _declaredClassName) {}
 
   /**
@@ -297,10 +315,18 @@ export class IRootWriter extends IRoot
     this.WriteIRoot(instance, declaredClassName);
   }
 
-  /** Begins a list; a writer provides it. */
+  /**
+   * Begins a list; a writer provides it.
+   *
+   * @abstract
+   */
   WriteVectorBegin(_size) {}
 
-  /** Ends a list; a writer provides it. */
+  /**
+   * Ends a list; a writer provides it.
+   *
+   * @abstract
+   */
   WriteVectorEnd(_size) {}
 }
 

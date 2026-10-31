@@ -158,6 +158,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * booster influence, packs the cone colour and the glow's sprite colour,
    * flare colour and scale as halves, then the bounds. The transforms and
    * activation are written per frame by AddToQuadRenderer.
+   *
+   * @implemented
    */
   @be.mapMethodAndWrap()
   @meta.implemented
@@ -199,7 +201,11 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, this.skinned, this.spotlightItems);
   }
 
-  /** Carbon Initialize (cpp:106-122): the effect keys, then the first Rebuild. */
+  /**
+   * Carbon Initialize (cpp:106-122): the effect keys, then the first Rebuild.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -210,7 +216,11 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     return true;
   }
 
-  /** Carbon RegisterWithQuadRenderer (cpp:194-198): the cone, then the glow. */
+  /**
+   * Carbon RegisterWithQuadRenderer (cpp:194-198): the cone, then the glow.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
@@ -224,6 +234,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * (through its bone when skinned and the bone exists) is written into both
    * vertices as its three columns, with activation * intensity and the booster
    * gain influence as halves; the glows, then the cones, go to the renderer.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -281,7 +293,11 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
 
   static _boneScratch = mat4.create();
 
-  /** The effect that draws the light cones. */
+  /**
+   * The effect that draws the light cones.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetConeEffect()
@@ -289,7 +305,11 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     return this.coneEffect;
   }
 
-  /** Sets the effect that draws the light cones. */
+  /**
+   * Sets the effect that draws the light cones.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetConeEffect(effect)
@@ -298,7 +318,11 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     this._coneEffectHash = this.coneEffect ? Number(this.coneEffect.GetHashValue()) >>> 0 : 0;
   }
 
-  /** The effect that draws the glow sprite at each cone's source. */
+  /**
+   * The effect that draws the glow sprite at each cone's source.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetGlowEffect()
@@ -306,7 +330,11 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     return this.glowEffect;
   }
 
-  /** Sets the effect that draws the glow sprite at each cone's source. */
+  /**
+   * Sets the effect that draws the glow sprite at each cone's source.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetGlowEffect(effect)
@@ -320,6 +348,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * additive-batch registration keyed by the cone effect's hash. Carbon
    * registers through its cached m_coneEffectHash; the key is read from the
    * effect here, exactly as EveSpriteSet's registration seam does.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -338,6 +368,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   /**
    * Carbon RegisterQuadRendererGlow (cpp:129-132): the glow twin, two quads
    * per sprite.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -365,8 +397,12 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     return GLOW_POOL_VERTEX_DEFINITION;
   }
 
-  /** Carbon EveSpotlightSet::GetAabb (cpp:176-179): the item-set bounds, with the bone
-   * list forwarded only when the set is skinned. */
+  /**
+   * Carbon EveSpotlightSet::GetAabb (cpp:176-179): the item-set bounds, with the bone
+   * list forwarded only when the set is skinned.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
@@ -380,9 +416,13 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     );
   }
 
-  /** Carbon EveSpotlightSet::UpdateVisibility (cpp:138-148): an uninitialized set is
+  /**
+   * Carbon EveSpotlightSet::UpdateVisibility (cpp:138-148): an uninitialized set is
    * NOT visible; otherwise the bounds move into world space and take the
-   * frustum box test. No LOD and no display gate. */
+   * frustum box test. No LOD and no display gate.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
@@ -400,6 +440,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   /**
    * Sets whether the spotlights ride skeleton bones, which is what decides if
    * GetAabb consults the caller's bone list at all.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -408,7 +450,11 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     this.skinned = !!skinned;
   }
 
-  /** The authored set name, which SOF uses to match this set to its DNA entry. */
+  /**
+   * The authored set name, which SOF uses to match this set to its DNA entry.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetName()
@@ -416,7 +462,11 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     return this.name;
   }
 
-  /** Sets the authored set name, coercing null or undefined to an empty string. */
+  /**
+   * Sets the authored set name, coercing null or undefined to an empty string.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetName(name)
@@ -424,7 +474,11 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     this.name = String(name ?? "");
   }
 
-  /** The live spotlight item list, not a copy. */
+  /**
+   * The live spotlight item list, not a copy.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetSpotlightItems()
@@ -435,6 +489,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   /**
    * Appends an authored spotlight item; the bounds only pick it up on the next
    * Rebuild.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -446,6 +502,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   /**
    * Carbon SetShaderOption (cpp:405-420): the option changes the effect's
    * permutation and so its hash, and the set registers again under it.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -467,6 +525,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
 
   /**
    * Carbon EveSpotlightSet::GetDebugOptions (cpp:440-445).
+   *
+   * @implemented
    * @param {Set<string>} options The caller-owned option set.
    */
 
@@ -491,6 +551,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * "Spotlight Sets Lights" draws each light's inner and outer cone (height
    * the light radius, angle the authored degrees in radians), owned by the
    * light's item.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentTransform
    * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
@@ -590,6 +652,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   /**
    * Converts a SOF-authored light description into an EveSpotlightLight and
    * appends it to the set.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -598,8 +662,12 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     this.lights.push(EveSpotlightLight.FromSOF(light));
   }
 
-  /** Carbon EveSpotlightSet::RegisterComponents (cpp:527-534): LightOwner
-   * when lights are authored. */
+  /**
+   * Carbon EveSpotlightSet::RegisterComponents (cpp:527-534): LightOwner
+   * when lights are authored.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   RegisterComponents()
@@ -611,16 +679,18 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     }
   }
 
-  /** Carbon EveSpotlightSet::UpdateLights (cpp:150-170): the shared
+  /**
+   * Carbon EveSpotlightSet::UpdateLights (cpp:150-170): the shared
    * packed-set bone pattern (boneIndex >= 0; column-stride Float4x3
    * unpack; 4th column zeroed, [15] = 1; boneMatrix *= parentTransform -
    * Carbon row-vector, bone FIRST: gl operands SWAP; else copy the parent).
    * Stamps BOTH activationStrength and boosterGain (cpp:168-169).
    *
-   * Adapted: Carbon skips bone 0 here (EveSpotlightSet.cpp:154; CE-27), so a light on binding 0
-   * gets only the parent transform. Binding 0 is a mesh bone binding and can
-   * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
-   * Normal2Warp - so ours applies bone 0 like any other. */
+   * @adapted Carbon skips bone 0 here (EveSpotlightSet.cpp:154; CE-27), so a light on binding 0
+   *   gets only the parent transform. Binding 0 is a mesh bone binding and can
+   *   be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
+   *   Normal2Warp - so ours applies bone 0 like any other.
+   */
 
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, boosterGain = 0)
@@ -647,14 +717,15 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     this._boosterGain = Number(boosterGain) || 0;
   }
 
-  /** Carbon EveSpotlightSet::GetLights (cpp:536-552): the haze pattern
+  /**
+   * Carbon EveSpotlightSet::GetLights (cpp:536-552): the haze pattern
    * (parentBrightness inside the loop, boosterGainInfluence multiply) but
    * with the SPOT conversion (cpp:549) - cos-of-degree angles and the
    * 1/tan(outerAngle) projection-plane distance, Infinity at outerAngle 0
    * exactly as Carbon ships. The spot direction comes from lightData.rotation
    * via the conversion's swapped RotationMatrix * transform composition.
    *
-   * Adapted: Profile-index packing is by-reference per lightConversion.js conventions.
+   * @adapted Profile-index packing is by-reference per lightConversion.js conventions.
    */
 
   @meta.adapted

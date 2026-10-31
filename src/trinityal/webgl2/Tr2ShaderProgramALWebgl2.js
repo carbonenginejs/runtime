@@ -103,6 +103,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
   /**
    * The register map (`Tr2ShaderProgramAL::GetRegisterMap`).
    *
+   * @implemented
    * @returns {Tr2RegisterMapAL} The map.
    */
   GetRegisterMap()
@@ -116,6 +117,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    * (`trinityal/src/Tr2ShaderProgramAL.cpp:34-43`); WebGL2 has no indirect
    * draws at all.
    *
+   * @notSupported
    * @param {object} _bufferLayout The indirect buffer layout.
    * @param {object} _renderContext The context.
    * @returns {number} `E_FAIL`.
@@ -136,6 +138,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    * array does, and each one's implementation is read as dx11 reads
    * `shaders[i].m_shader` (`:48-49`).
    *
+   * @adapted
    * @param {object[]} shaders The `Tr2ShaderAL` stages.
    * @param {number} count How many of them to link.
    * @param {object} renderContext The context to link against.
@@ -315,7 +318,11 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
     this._gl = null;
   }
 
-  /** Releases the program and leaves the device-resource registry. */
+  /**
+   * Releases the program and leaves the device-resource registry.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._Reset();
@@ -325,6 +332,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Whether the program linked.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -335,6 +343,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Which memory class this program occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -345,6 +354,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Describes the program for the device-resource registry, with dx11's keys.
    *
+   * @implemented
    * @param {object} description The record to fill.
    */
   Describe(description)
@@ -356,6 +366,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
   /**
    * Names the program. WebGL has no debug names, so it is kept for `Describe`.
    *
+   * @implemented
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */

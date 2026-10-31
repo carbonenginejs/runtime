@@ -60,7 +60,12 @@ export class Tr2VideoAdapters
         this.#options = { ...options };
     }
 
-    /** Refreshes browser adapter, display-mode, and capability snapshots. */
+    /**
+     * Refreshes browser adapter, display-mode, and capability snapshots.
+     *
+     * @adapted
+     * @renamed RefreshData
+     */
     async Refresh(options = {})
     {
         this.#options = { ...this.#options, ...options };
@@ -106,37 +111,61 @@ export class Tr2VideoAdapters
         return this;
     }
 
-    /** Refreshes adapter data using the Carbon-compatible method name. */
+    /**
+     * Refreshes adapter data using the Carbon-compatible method name.
+     *
+     * @adapted
+     */
     RefreshData(options = {})
     {
         return this.Refresh(options);
     }
 
-    /** Returns the number of detected adapters. */
+    /**
+     * Returns the number of detected adapters.
+     *
+     * @adapted
+     */
     GetAdapterCount()
     {
         return this.adapters.length;
     }
 
-    /** Returns one detected adapter snapshot, or null when absent. */
+    /**
+     * Returns one detected adapter snapshot, or null when absent.
+     *
+     * @adapted
+     */
     GetAdapterInfo(adapterIndex)
     {
         return this.adapters[adapterIndex] ?? null;
     }
 
-    /** Returns the browser's current display-mode snapshot for an adapter. */
+    /**
+     * Returns the browser's current display-mode snapshot for an adapter.
+     *
+     * @adapted
+     */
     GetCurrentDisplayMode(adapterIndex = 0)
     {
         return this.adapters[adapterIndex] ? this.displayModes[0] ?? null : null;
     }
 
-    /** Returns the available browser display-mode count for a back-buffer format. */
+    /**
+     * Returns the available browser display-mode count for a back-buffer format.
+     *
+     * @adapted
+     */
     GetDisplayModeCount(adapterIndex, backBufferFormat)
     {
         return this.GetCurrentDisplayMode(adapterIndex) && this.SupportsBackBufferFormat(adapterIndex, backBufferFormat) ? 1 : 0;
     }
 
-    /** Returns one compatible display mode, or null when unavailable. */
+    /**
+     * Returns one compatible display mode, or null when unavailable.
+     *
+     * @adapted
+     */
     GetDisplayMode(adapterIndex, backBufferFormat, modeIndex)
     {
         return modeIndex === 0 && this.SupportsBackBufferFormat(adapterIndex, backBufferFormat)
@@ -144,21 +173,33 @@ export class Tr2VideoAdapters
             : null;
     }
 
-    /** Reports whether an adapter supports a configured back-buffer format. */
+    /**
+     * Reports whether an adapter supports a configured back-buffer format.
+     *
+     * @adapted
+     */
     SupportsBackBufferFormat(adapterIndex, format)
     {
         if (!this.adapters[adapterIndex]) return false;
         return this.#supportsFormat("backBufferFormats", format);
     }
 
-    /** Reports whether an adapter supports a configured render-target format. */
+    /**
+     * Reports whether an adapter supports a configured render-target format.
+     *
+     * @adapted
+     */
     SupportsRenderTargetFormat(adapterIndex, format)
     {
         if (!this.adapters[adapterIndex]) return false;
         return this.#supportsFormat("renderTargetFormats", format);
     }
 
-    /** Returns the adapter's maximum two-dimensional texture dimension. */
+    /**
+     * Returns the adapter's maximum two-dimensional texture dimension.
+     *
+     * @adapted
+     */
     GetMaxTextureSize(adapterIndex)
     {
         const value = this.adapters[adapterIndex]?.limits?.maxTextureDimension2D;

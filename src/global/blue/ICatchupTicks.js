@@ -14,6 +14,7 @@ export class ICatchupTicks extends IVariableTicker
   /**
    * `OnPostFrameTick` - every tick for this system in this frame has completed.
    *
+   * @abstract
    * @param {number} _timestamp Time since the client started, in 100ns ticks.
    * @param {*} _cookie Whatever the registrant passed when it registered.
    */

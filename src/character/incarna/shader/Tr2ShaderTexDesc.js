@@ -13,6 +13,8 @@ import { meta, type } from "#schema";
  * persist.
  *
  * Data only.
+ *
+ * @adapted
  */
 @meta.define("Tr2ShaderTexDesc")
 @meta.adapted

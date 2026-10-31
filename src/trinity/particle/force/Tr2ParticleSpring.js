@@ -31,7 +31,11 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
   @type.float32
   springConstant = 0;
 
-  /** Applies Carbon's linear spring force toward the configured origin. */
+  /**
+   * Applies Carbon's linear spring force toward the configured origin.
+   *
+   * @adapted
+   */
 
   @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out)
@@ -43,6 +47,8 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
   /**
    * Nothing to advance per frame: the spring force depends only on each
    * particle's current position.
+   *
+   * @adapted
    */
 
   @meta.adapted
@@ -53,6 +59,8 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
   /**
    * Carbon Tr2ParticleSpring::RenderDebugInfo (Particle/Tr2ParticleSpring.cpp:42-50): a star of
    * four 20-unit diagonals through the world-space position, in 0xffaaaa00.
+   *
+   * @implemented
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.

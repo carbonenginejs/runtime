@@ -89,7 +89,11 @@ export class EveTrailsSet
     this.PrepareResources();
   }
 
-  /** Carbon Initialize (cpp:38-43): load the trail mesh. */
+  /**
+   * Carbon Initialize (cpp:38-43): load the trail mesh.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Initialize()
@@ -103,6 +107,8 @@ export class EveTrailsSet
    * forget its declaration, request the new one and rebuild when it has loaded.
    *
    * The set is the resource's notify target (AddNotifyTarget), as in Carbon.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -118,7 +124,11 @@ export class EveTrailsSet
     this.geometryResource?.AddNotifyTarget(this);
   }
 
-  /** Carbon Cleanup (cpp:78-82): the declaration elements are no longer valid. */
+  /**
+   * Carbon Cleanup (cpp:78-82): the declaration elements are no longer valid.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Cleanup()
@@ -126,7 +136,11 @@ export class EveTrailsSet
     this._trailVertexDeclElementCount = 0;
   }
 
-  /** Sets the effect that draws the trails. */
+  /**
+   * Sets the effect that draws the trails.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetEffect(effect)
@@ -134,7 +148,11 @@ export class EveTrailsSet
     this.effect = effect ?? null;
   }
 
-  /** Carbon SetMeshResPath (cpp:96-101): set the path and fire its notification by hand. */
+  /**
+   * Carbon SetMeshResPath (cpp:96-101): set the path and fire its notification by hand.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetMeshResPath(path)
@@ -148,8 +166,8 @@ export class EveTrailsSet
    * its declaration gains the instance float4 (TEXCOORD1 on stream 1 at
    * offset 0, one step per instance) and is interned.
    *
-   * Adapted: the decoded mesh keeps no declaration handle, so its elements
-   * are read directly, as EveSpaceObjectDecal does.
+   * @adapted the decoded mesh keeps no declaration handle, so its elements
+   *   are read directly, as EveSpaceObjectDecal does.
    */
 
   @meta.adapted
@@ -169,7 +187,11 @@ export class EveTrailsSet
     this._trailVertexDeclElementCount = this._trailVertexDecl.length;
   }
 
-  /** Carbon ReleaseCachedData (cpp:144-148). */
+  /**
+   * Carbon ReleaseCachedData (cpp:144-148).
+   *
+   * @implemented
+   */
 
   @meta.implemented
   ReleaseCachedData(_resource)
@@ -177,7 +199,11 @@ export class EveTrailsSet
     this.Cleanup();
   }
 
-  /** Carbon OnModified (cpp:175-183): a new mesh path reloads. */
+  /**
+   * Carbon OnModified (cpp:175-183): a new mesh path reloads.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnModified(propertyName)
@@ -186,14 +212,22 @@ export class EveTrailsSet
     return true;
   }
 
-  /** Carbon Update (cpp:169-171): nothing; the motion lives on the booster renderables' splines. */
+  /**
+   * Carbon Update (cpp:169-171): nothing; the motion lives on the booster renderables' splines.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Update(_time)
   {
   }
 
-  /** Carbon Clear (cpp:177-184): drop the trails and the device half. */
+  /**
+   * Carbon Clear (cpp:177-184): drop the trails and the device half.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Clear()
@@ -202,7 +236,11 @@ export class EveTrailsSet
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
   }
 
-  /** Carbon Add (cpp:198-206): one trail at a booster's transform, with its size. */
+  /**
+   * Carbon Add (cpp:198-206): one trail at a booster's transform, with its size.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   Add(localMatrix, size)
@@ -220,8 +258,8 @@ export class EveTrailsSet
   /**
    * Carbon ReleaseResources (cpp:213-217).
    *
-   * Adapted: Tr2SuballocatedBuffer has no Free, so the allocation is dropped
-   * rather than returned.
+   * @adapted Tr2SuballocatedBuffer has no Free, so the allocation is dropped
+   *   rather than returned.
    */
 
   @meta.adapted
@@ -231,7 +269,11 @@ export class EveTrailsSet
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
   }
 
-  /** Carbon OnPrepareResources (cpp:224-242): the declaration once the mesh is in, then the instances. */
+  /**
+   * Carbon OnPrepareResources (cpp:224-242): the declaration once the mesh is in, then the instances.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   OnPrepareResources()
@@ -248,6 +290,8 @@ export class EveTrailsSet
   /**
    * Carbon InitializeInstanceBuffer (cpp:249-272): each trail's position
    * (_41, _42, _43 of its transform) and size as one float4.
+   *
+   * @implemented
    */
 
   @meta.implemented
@@ -270,11 +314,10 @@ export class EveTrailsSet
    * Carbon GetBatches (cpp:280-331): the trail mesh's first LOD, instanced once
    * per booster, with the booster renderable's per-object data.
    *
-   * Adapted: a decoded mesh makes its LOD allocations on first draw, as
-   * Tr2MeshBase.CreateGeometryBatch does, where Carbon's are made when the
-   * resource prepares; and its LOD primitive count is the sum over its areas,
-   * which is what Carbon's m_primitiveCount holds.
-   *
+   * @adapted a decoded mesh makes its LOD allocations on first draw, as
+   *   Tr2MeshBase.CreateGeometryBatch does, where Carbon's are made when the
+   *   resource prepares; and its LOD primitive count is the sum over its areas,
+   *   which is what Carbon's m_primitiveCount holds.
    * @param {object} accumulator The batches.
    * @param {object} perObjectData The booster renderable's per-object data.
    */
@@ -315,7 +358,11 @@ export class EveTrailsSet
     accumulator.Commit(batch);
   }
 
-  /** The authored rate at which a trail fades out behind its booster. */
+  /**
+   * The authored rate at which a trail fades out behind its booster.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetFadeSpeed()
@@ -346,7 +393,11 @@ export class EveTrailsSet
   static SingleTrailData = EveTrailsSetSingleTrailData;
 
 
-  /** Carbon destructor (EveTrailsSet.cpp:31-37): detach and discard cached declaration data. */
+  /**
+   * Carbon destructor (EveTrailsSet.cpp:31-37): detach and discard cached declaration data.
+   *
+   * @adapted
+   */
   @meta.adapted
   Destruct()
   {

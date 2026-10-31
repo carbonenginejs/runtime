@@ -36,7 +36,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   @type.expression
   _expressionYaw = "";
 
-  /** Gets the live yaw expression text. @returns {string} Source text. */
+  /**
+   * Gets the live yaw expression text. @returns {string} Source text.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.expression
   @meta.implemented
@@ -45,7 +49,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     return this.GetExpressionYaw();
   }
 
-  /** Writes through the compile/commit setter. @param {string} expression Source text. */
+  /**
+   * Writes through the compile/commit setter. @param {string} expression Source text.
+   *
+   * @implemented
+   */
   @meta.implemented
   set expressionYaw(expression)
   {
@@ -60,7 +68,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   @type.expression
   _expressionPitch = "";
 
-  /** Gets the live pitch expression text. @returns {string} Source text. */
+  /**
+   * Gets the live pitch expression text. @returns {string} Source text.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.expression
   @meta.implemented
@@ -69,7 +81,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     return this.GetExpressionPitch();
   }
 
-  /** Writes through the compile/commit setter. @param {string} expression Source text. */
+  /**
+   * Writes through the compile/commit setter. @param {string} expression Source text.
+   *
+   * @implemented
+   */
   @meta.implemented
   set expressionPitch(expression)
   {
@@ -84,7 +100,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   @type.expression
   _expressionRoll = "";
 
-  /** Gets the live roll expression text. @returns {string} Source text. */
+  /**
+   * Gets the live roll expression text. @returns {string} Source text.
+   *
+   * @implemented
+   */
   @be.mapProperty()
   @type.expression
   @meta.implemented
@@ -93,7 +113,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     return this.GetExpressionRoll();
   }
 
-  /** Writes through the compile/commit setter. @param {string} expression Source text. */
+  /**
+   * Writes through the compile/commit setter. @param {string} expression Source text.
+   *
+   * @implemented
+   */
   @meta.implemented
   set expressionRoll(expression)
   {
@@ -186,6 +210,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   /**
    * Replays nonempty stored source through setters after clearing each backing field.
    * Uses the existing JavaScript parser; a failed compile retains its old program.
+   *
+   * @adapted
    * @returns {boolean} True.
    */
 
@@ -206,6 +232,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 
   /**
    * Updates the cached quaternion.
+   *
+   * @implemented
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -218,6 +246,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 
   /**
    * Updates the cache and copies to a caller destination using the JavaScript output convention.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} The destination.
@@ -232,6 +262,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 
   /**
    * Preserves the native GetValueAt alias via the JavaScript caller-output convention.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} The destination.
@@ -245,6 +277,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   /**
    * Samples with the existing JavaScript parser, context and quaternion conversion.
    * Native float-time rounding, parser and error policies remain adapted.
+   *
+   * @adapted
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} The destination.
@@ -260,6 +294,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 
   /**
    * Retains the native no-op first derivative.
+   *
+   * @adapted
    * @param {number} _time Unused time.
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} Unchanged destination.
@@ -273,6 +309,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 
   /**
    * Retains the native no-op second derivative.
+   *
+   * @adapted
    * @param {number} _time Unused time.
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} Unchanged destination.
@@ -284,7 +322,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     return out;
   }
 
-  /** Reads one stored component expression. @param {number} index Component index. @returns {string} Source. */
+  /**
+   * Reads one stored component expression. @param {number} index Component index. @returns {string} Source.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetExpression(index)
@@ -295,6 +337,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   /**
    * Compiles nonempty source before committing it; invalid source preserves the old
    * source/program and empty source retains the old program. Uses the existing JS parser.
+   *
+   * @adapted
    * @param {number} index Component index.
    * @param {string} expression Source text.
    * @returns {void}
@@ -316,7 +360,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     this[field] = expression;
   }
 
-  /** Gets the stored yaw expression text. @returns {string} Source text. */
+  /**
+   * Gets the stored yaw expression text. @returns {string} Source text.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetExpressionYaw()
@@ -324,7 +372,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     return this.GetExpression(0);
   }
 
-  /** Gets the stored pitch expression text. @returns {string} Source text. */
+  /**
+   * Gets the stored pitch expression text. @returns {string} Source text.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetExpressionPitch()
@@ -332,7 +384,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     return this.GetExpression(1);
   }
 
-  /** Gets the stored roll expression text. @returns {string} Source text. */
+  /**
+   * Gets the stored roll expression text. @returns {string} Source text.
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetExpressionRoll()
@@ -342,6 +398,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 
   /**
    * Sets the yaw expression through the adapted parser/commit contract.
+   *
+   * @adapted
    * @param {string} expression Source text.
    * @returns {void}
    */
@@ -354,6 +412,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 
   /**
    * Sets the pitch expression through the adapted parser/commit contract.
+   *
+   * @adapted
    * @param {string} expression Source text.
    * @returns {void}
    */
@@ -366,6 +426,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 
   /**
    * Sets the roll expression through the adapted parser/commit contract.
+   *
+   * @adapted
    * @param {string} expression Source text.
    * @returns {void}
    */
@@ -379,6 +441,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   /**
    * Carbon's GetInputValue( index ): the n-th input sampled at the current
    * context time; zero for an out-of-range index.
+   *
+   * @implemented
    * @param {number} index Input index.
    * @returns {number}
    */
@@ -391,6 +455,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 
   /**
    * Carbon's GetInputValue( index, time ): the n-th input sampled at time.
+   *
+   * @adapted
    * @param {number} index Input index.
    * @param {number} time Sample time.
    * @returns {number}
@@ -406,6 +472,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Gets this curve's per-instance random constant, which stays fixed until
    * ResetRandomConstant is called so `randomConstant` expressions are stable
    * over time. Native fake-random override is not implemented.
+   *
+   * @adapted
    * @returns {number} Cached random constant.
    */
 
@@ -415,7 +483,11 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     return this.randomConstant;
   }
 
-  /** Draws from the shared native-compatible CRT stream. @returns {void} */
+  /**
+   * Draws from the shared native-compatible CRT stream. @returns {void}
+   *
+   * @adapted
+   */
   @be.mapMethodAndWrap()
   @meta.adapted
   ResetRandomConstant()
@@ -426,6 +498,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   /**
    * Gets the curve expression terms offered to an editor, including `radians`
    * because this curve's outputs are angles. Uses the shared JavaScript term schema.
+   *
+   * @adapted
    * @returns {Array} Editor term descriptors.
    */
   @be.mapMethodAndWrap()
@@ -440,6 +514,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   /**
    * Compiles and evaluates an arbitrary expression against this curve's context
    * at time 0, returning 0 when it does not compile; uses the JavaScript parser.
+   *
+   * @adapted
    * @param {string} expression Source text.
    * @returns {number} Evaluation result or zero.
    */

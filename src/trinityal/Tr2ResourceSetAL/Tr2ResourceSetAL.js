@@ -41,6 +41,8 @@ export class Tr2ResourceSetAL
   /**
    * Carbon's Create( description, pipeline, renderContext ) (h:135): raytracing
    * resource sets, which neither JS backend supports.
+   *
+   * @adapted
    */
   @meta.adapted
   Create__Pipeline(_description, _pipeline, _renderContext)
@@ -54,8 +56,8 @@ export class Tr2ResourceSetAL
    * backend-selected resource set and replaces this handle's shared ownership
    * record.
    *
-   * Adapted: Context allocation replaces the compile-time platform include. Shared ownership
-   * is explicitly released.
+   * @adapted Context allocation replaces the compile-time platform include. Shared ownership
+   *   is explicitly released.
    */
   @meta.adapted
   Create__Program(description, program, renderContext)
@@ -67,19 +69,31 @@ export class Tr2ResourceSetAL
     return result;
   }
 
-  /** Reports whether the shared backend implementation is valid. */
+  /**
+   * Reports whether the shared backend implementation is valid.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._resourceSet.implementation.IsValid();
   }
 
-  /** Returns the shared backend implementation's memory class. */
+  /**
+   * Returns the shared backend implementation's memory class.
+   *
+   * @implemented
+   */
   GetMemoryClass()
   {
     return this._resourceSet.implementation.GetMemoryClass();
   }
 
-  /** Names a valid resource set, rejecting an absent name. */
+  /**
+   * Names a valid resource set, rejecting an absent name.
+   *
+   * @implemented
+   */
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -90,8 +104,8 @@ export class Tr2ResourceSetAL
   /**
    * Resets this handle while allowing other owners to retain its implementation.
    *
-   * Adapted: JavaScript has no scope destructor. Existing effect teardown resets this handle
-   * explicitly; shared copies retain the backend until their final explicit reset.
+   * @adapted JavaScript has no scope destructor. Existing effect teardown resets this handle
+   *   explicitly; shared copies retain the backend until their final explicit reset.
    */
   @meta.adapted
   Destroy()

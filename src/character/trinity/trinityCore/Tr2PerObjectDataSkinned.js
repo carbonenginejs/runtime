@@ -35,7 +35,11 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
   /** m_worldPos: native stored value; this donor does not upload it. */
   _worldPos = vec4.create(); // alloc: retained per-object position
 
-  /** Borrows the animation buffer, as Carbon's float pointer does (cpp:136). */
+  /**
+   * Borrows the animation buffer, as Carbon's float pointer does (cpp:136).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   SetSkinningMatrices(n, data)
@@ -44,7 +48,11 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
     this._data = data;
   }
 
-  /** Returns the borrowed palette (h:119). */
+  /**
+   * Returns the borrowed palette (h:119).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   GetSkinningMatrices()
@@ -52,7 +60,9 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
     return this._data;
   }
 
-  /** Adapted: a typed view replaces the pointer into twelve packed floats (cpp:142). */
+  /**
+   * @adapted a typed view replaces the pointer into twelve packed floats (cpp:142).
+   */
   @blue.method
   @meta.adapted
   GetSkinningMatrix(ix)
@@ -60,7 +70,11 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
     return this._data.subarray(ix * 12, (ix + 1) * 12);
   }
 
-  /** Copies the world matrix without changing its byte orientation (h:124). */
+  /**
+   * Copies the world matrix without changing its byte orientation (h:124).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   SetWorldMatrix(worldMat)
@@ -68,7 +82,11 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
     mat4.copy(this._worldMat, worldMat);
   }
 
-  /** Copies the mirror matrix (h:128). */
+  /**
+   * Copies the mirror matrix (h:128).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   SetMirrorMatrix(mirrorMat)
@@ -76,7 +94,11 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
     mat4.copy(this._mirrorMatrix, mirrorMat);
   }
 
-  /** Returns the retained mirror matrix (h:132). */
+  /**
+   * Returns the retained mirror matrix (h:132).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   GetMirrorMatrix()
@@ -84,7 +106,11 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
     return this._mirrorMatrix;
   }
 
-  /** Stores the native position with w=0 (h:136). */
+  /**
+   * Stores the native position with w=0 (h:136).
+   *
+   * @implemented
+   */
   @blue.method
   @meta.implemented
   SetWorldPosition(worldPos)
@@ -94,8 +120,9 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
 
   /**
    * Copies only world and mirror; leaves the palette and reserved register untouched.
-   * Adapted: the AL's mapped Uint8Array replaces void* (cpp:128-132).
-   * These two memcpy sites do not transpose, unlike most per-object producers.
+   *
+   * @adapted the AL's mapped Uint8Array replaces void* (cpp:128-132).
+   *   These two memcpy sites do not transpose, unlike most per-object producers.
    */
   @blue.method
   @meta.adapted
@@ -114,8 +141,9 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
 
   /**
    * Native stage gating and partial VS write (cpp:75-111).
-   * Adapted: the inherited RawData lease supplies PS bytes and the AL returns
-   * its mapped byte view instead of filling an output pointer.
+   *
+   * @adapted the inherited RawData lease supplies PS bytes and the AL returns
+   *   its mapped byte view instead of filling an output pointer.
    */
   @blue.method
   @meta.adapted
@@ -141,7 +169,11 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
     return uploaded;
   }
 
-  /** Native indirect writer (cpp:113); Tr2IndirectDrawBufferWriter is not ported. */
+  /**
+   * Native indirect writer (cpp:113); Tr2IndirectDrawBufferWriter is not ported.
+   *
+   * @notImplemented
+   */
   @blue.method
   @meta.notImplemented
   ApplyConstantBuffers(_writer, _renderContext)
@@ -149,7 +181,11 @@ export class Tr2PerObjectDataSkinned extends Tr2PerObjectDataPSBuffer
     throw new Error("Tr2PerObjectDataSkinned.ApplyConstantBuffers: indirect draw is unported.");
   }
 
-  /** Native PS-only indirect writer (cpp:125); its writer is not ported. */
+  /**
+   * Native PS-only indirect writer (cpp:125); its writer is not ported.
+   *
+   * @notImplemented
+   */
   @blue.method
   @meta.notImplemented
   ApplyPsConstantBuffers(_writer, _renderContext)

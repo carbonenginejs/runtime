@@ -45,6 +45,7 @@ export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
   /**
    * Creates the sampler state.
    *
+   * @adapted
    * @param {object} description The sampler description.
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
@@ -57,7 +58,11 @@ export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** Releases the state and leaves the device-resource registry. */
+  /**
+   * Releases the state and leaves the device-resource registry.
+   *
+   * @adapted
+   */
   Destroy()
   {
     this._isValid = false;
@@ -68,6 +73,7 @@ export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
   /**
    * Whether the state was created.
    *
+   * @implemented
    * @returns {boolean} True once created.
    */
   IsValid()
@@ -88,6 +94,7 @@ export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
   /**
    * Where the sampler sits in the descriptor heap.
    *
+   * @implemented
    * @returns {number} Carbon's "no index".
    */
   GetIndexInHeap()
@@ -98,6 +105,7 @@ export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
   /**
    * Which memory class this state occupies.
    *
+   * @implemented
    * @returns {number} A `Tr2ALMemoryType` value.
    */
   GetMemoryClass()
@@ -114,6 +122,7 @@ export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -123,6 +132,7 @@ export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
   /**
    * Names the state for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */

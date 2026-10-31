@@ -15,6 +15,8 @@ export class IEveComponentCollection
    * Carbon's `bool Add( EveEntity* entity, uint32_t* index )`.
    *
    * Adapted: the output index is the return value (rule 11).
+   *
+   * @abstract
    * @param {EveEntity} _entity
    * @returns {number} The index the entity was stored at.
    */
@@ -23,18 +25,26 @@ export class IEveComponentCollection
 
   /**
    * Carbon's `EveEntity* SwapWithBack( uint32_t index )`.
+   *
+   * @abstract
    * @param {number} _index
    * @returns {EveEntity|null} The entity moved into the slot.
    */
   @meta.abstract
   SwapWithBack(_index) {}
 
-  /** Carbon's `void Clear()`. */
+  /**
+   * Carbon's `void Clear()`.
+   *
+   * @abstract
+   */
   @meta.abstract
   Clear() {}
 
   /**
    * Carbon's `uint32_t GetBit() const`.
+   *
+   * @abstract
    * @returns {number}
    */
   @meta.abstract
@@ -42,6 +52,8 @@ export class IEveComponentCollection
 
   /**
    * Carbon's `size_t Size() const`.
+   *
+   * @abstract
    * @returns {number}
    */
   @meta.abstract

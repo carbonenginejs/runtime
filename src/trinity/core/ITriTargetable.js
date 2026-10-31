@@ -10,21 +10,33 @@ import { ImpactConfiguration } from "../generated/include/enums.js";
  * EveSpaceObject2, EveEffectRoot2 and EveRootTransform. Output vectors are the
  * last argument (Carbon passes them first) except UpdateImpact, whose
  * implementers already take the output first.
+ *
+ * @abstract
  */
 @be.interface("ITriTargetable")
 @be.abstract
 export class ITriTargetable extends IRoot
 {
-  /** Number of damage locators. @returns {number} */
+  /**
+   * Number of damage locators. @returns {number}
+   *
+   * @abstract
+   */
   @meta.abstract
   GetDamageLocatorCount() {}
 
-  /** Index of the damage locator closest to a world position. @param {Float32Array} _position @returns {number} */
+  /**
+   * Index of the damage locator closest to a world position. @param {Float32Array} _position @returns {number}
+   *
+   * @abstract
+   */
   @meta.abstract
   GetClosestDamageLocatorIndex(_position) {}
 
   /**
    * Writes a damage locator's position.
+   *
+   * @abstract
    * @param {number} _index Locator index.
    * @param {boolean} _inWorldSpace World rather than object space.
    * @param {Float32Array} _out Output position.
@@ -35,6 +47,8 @@ export class ITriTargetable extends IRoot
 
   /**
    * Writes a damage locator's direction.
+   *
+   * @abstract
    * @param {number} _index Locator index.
    * @param {boolean} _inWorldSpace World rather than object space.
    * @param {Float32Array} _out Output direction.
@@ -45,6 +59,8 @@ export class ITriTargetable extends IRoot
 
   /**
    * Writes where a shot from source aimed at hit lands when it misses.
+   *
+   * @abstract
    * @param {Float32Array} _hit Aimed position.
    * @param {Float32Array} _source Shot origin.
    * @param {Float32Array} _out Output miss position.
@@ -52,16 +68,26 @@ export class ITriTargetable extends IRoot
   @meta.abstract
   GetMissPosition(_hit, _source, _out) {}
 
-  /** A randomized well-facing damage locator for a world position. @param {Float32Array} _position @returns {number} */
+  /**
+   * A randomized well-facing damage locator for a world position. @param {Float32Array} _position @returns {number}
+   *
+   * @abstract
+   */
   @meta.abstract
   GetGoodDamageLocatorIndex(_position) {}
 
-  /** Target radius. @returns {number} */
+  /**
+   * Target radius. @returns {number}
+   *
+   * @abstract
+   */
   @meta.abstract
   GetRadius() {}
 
   /**
    * Creates an impact effect at a damage locator.
+   *
+   * @abstract
    * @param {number} _damageLocatorIndex Locator index.
    * @param {Float32Array} _direction Impact direction.
    * @param {number} _lifeTime Impact lifetime in seconds.
@@ -73,6 +99,8 @@ export class ITriTargetable extends IRoot
 
   /**
    * Updates a live impact's position.
+   *
+   * @abstract
    * @param {Float32Array} _out Output position.
    * @param {Float32Array} _direction Impact direction.
    * @param {number} _impactIndex Impact index from CreateImpact.
@@ -81,7 +109,11 @@ export class ITriTargetable extends IRoot
   @meta.abstract
   UpdateImpact(_out, _direction, _impactIndex) {}
 
-  /** Carbon's default (ITriTargetable.h:23-26): no impact configuration. @returns {number} */
+  /**
+   * Carbon's default (ITriTargetable.h:23-26): no impact configuration. @returns {number}
+   *
+   * @implemented
+   */
 
   @meta.implemented
   GetImpactConfiguration()
@@ -91,6 +123,8 @@ export class ITriTargetable extends IRoot
 
   /**
    * Resolves where a projectile moving from posPrev to posNow hits.
+   *
+   * @abstract
    * @param {number} _locator Targeted damage locator.
    * @param {Float32Array} _posPrev Previous projectile position.
    * @param {Float32Array} _posNow Current projectile position.
@@ -101,11 +135,19 @@ export class ITriTargetable extends IRoot
   @meta.abstract
   GetImpactPosition(_locator, _posPrev, _posNow, _epsilon, _out) {}
 
-  /** Whether impacts use the shield ellipsoid. @returns {boolean} */
+  /**
+   * Whether impacts use the shield ellipsoid. @returns {boolean}
+   *
+   * @abstract
+   */
   @meta.abstract
   HasImpactConfigurationShield() {}
 
-  /** Carbon's default (ITriTargetable.h:32-34) ignores the locator. @param {number} _locator */
+  /**
+   * Carbon's default (ITriTargetable.h:32-34) ignores the locator. @param {number} _locator
+   *
+   * @implemented
+   */
 
   @meta.implemented
   SetLastDamageLocatorHit(_locator)

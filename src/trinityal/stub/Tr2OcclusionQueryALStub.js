@@ -27,6 +27,7 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
   /**
    * Creates the query.
    *
+   * @implemented
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult`.
    */
@@ -39,13 +40,20 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 
-  /** @returns {boolean} Whether the query was created. */
+  /**
+   * @implemented
+   * @returns {boolean} Whether the query was created.
+   */
   IsValid()
   {
     return this._isValid;
   }
 
-  /** Releases the query. */
+  /**
+   * Releases the query.
+   *
+   * @implemented
+   */
   Destroy()
   {
     this._isValid = false;
@@ -55,6 +63,7 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
   /**
    * Starts counting.
    *
+   * @implemented
    * @returns {number} An `ALResult`.
    */
   Begin()
@@ -72,6 +81,7 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
    * ENDING A QUERY THAT NEVER BEGAN IS AN ERROR, which Carbon checks
    * (`cpp:End`) and which is the mispairing this class exists to catch.
    *
+   * @implemented
    * @returns {number} An `ALResult`.
    */
   End()
@@ -90,6 +100,7 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
    * Carbon's arguments (`Tr2OcclusionQueryALStub.cpp:67`), less the `count`
    * output, which comes back in the result.
    *
+   * @adapted
    * @param {object} _renderContext The context; the stub reads nothing from it.
    * @param {number} [_waitMode] A `WaitMode`; nothing to wait for here.
    * @returns {object} `{ result, count }`.
@@ -101,7 +112,10 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
     return { result: ALResult.S_OK, count: 0 };
   }
 
-  /** @returns {number} A `Tr2ALMemoryType`. */
+  /**
+   * @implemented
+   * @returns {number} A `Tr2ALMemoryType`.
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_VIDEO;
@@ -117,6 +131,7 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
    * here either; it is stated rather than inherited from the base class so
    * the donor method has a counterpart on this class.
    *
+   * @implemented
    * @param {object} _description Accumulator, keyed by name; left untouched.
    */
   Describe(_description)
@@ -126,6 +141,7 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
   /**
    * Names the query for a debugger.
    *
+   * @implemented
    * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name
    *   (`Tr2OcclusionQueryALStub.cpp:81-84`).

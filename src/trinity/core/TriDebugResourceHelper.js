@@ -40,14 +40,22 @@ export class TriDebugResourceHelper
     TriDevice.RegisterResource(this);
   }
 
-  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed. */
+  /**
+   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed.
+   *
+   * @implemented
+   */
   @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
-  /** Carbon OnPrepareResources (cpp:22-37): interns the position and the position-and-colour declarations. */
+  /**
+   * Carbon OnPrepareResources (cpp:22-37): interns the position and the position-and-colour declarations.
+   *
+   * @implemented
+   */
   @meta.implemented
   OnPrepareResources()
   {
@@ -65,6 +73,8 @@ export class TriDebugResourceHelper
   /**
    * Carbon ReleaseResources (cpp:39-43): resets both declarations. Carbon quirk, kept: it resets them to 0, not to
    * UNINITIALIZED_DECLARATION, so a released helper reports handle 0 until it is prepared again.
+   *
+   * @implemented
    */
   @meta.implemented
   ReleaseResources(_storage)
@@ -76,7 +86,7 @@ export class TriDebugResourceHelper
   /**
    * Carbon GetDescription (TriDebugResourceHelper.h:27-31, TRINITYDEV): the device-resource description.
    *
-   * Adapted: returned rather than written to an output string, as the other resource descriptions are.
+   * @adapted returned rather than written to an output string, as the other resource descriptions are.
    * @returns {string} "TriDebugResourceHelper".
    */
   @meta.adapted
@@ -85,7 +95,11 @@ export class TriDebugResourceHelper
     return "TriDebugResourceHelper";
   }
 
-  /** Carbon GetEffect (cpp:45-54): Debug.fx, created on first use. */
+  /**
+   * Carbon GetEffect (cpp:45-54): Debug.fx, created on first use.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetEffect()
   {
@@ -97,7 +111,11 @@ export class TriDebugResourceHelper
     return this._effect;
   }
 
-  /** Carbon GetLineEffect (cpp:56-65): DebugLine.fx, created on first use. */
+  /**
+   * Carbon GetLineEffect (cpp:56-65): DebugLine.fx, created on first use.
+   *
+   * @implemented
+   */
   @meta.implemented
   GetLineEffect()
   {
@@ -109,14 +127,22 @@ export class TriDebugResourceHelper
     return this._lineEffect;
   }
 
-  /** Carbon GetVertexPosDecl (cpp:67-70). */
+  /**
+   * Carbon GetVertexPosDecl (cpp:67-70).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetVertexPosDecl()
   {
     return this._vertexPosDecl;
   }
 
-  /** Carbon GetVertexPosColorDecl (cpp:72-75). */
+  /**
+   * Carbon GetVertexPosColorDecl (cpp:72-75).
+   *
+   * @implemented
+   */
   @meta.implemented
   GetVertexPosColorDecl()
   {

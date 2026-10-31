@@ -12,6 +12,8 @@ export class ITriCurveLength extends IRoot
   /**
    * Returns the curve's length in seconds.
    * Native signature: float Length() = 0.
+   *
+   * @abstract
    * @returns {number} Length in seconds.
    */
   Length()

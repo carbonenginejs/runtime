@@ -992,6 +992,8 @@ export class CjsMusicEngine extends ICjsMusicEngine
     /**
      * Music play positions are not tracked, so a music id reports -1, the
      * invalid position, as it did before this method was declared.
+     *
+     * @notImplemented
      */
     GetSourcePlayPosition(_playingID)
     {

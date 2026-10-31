@@ -22,37 +22,61 @@ export class Tr2ReadbackALStub extends Tr2DeviceResourceAL
     this._rowPitch = rowPitch;
   }
 
-  /** Native stub copies complete during construction. */
+  /**
+   * Native stub copies complete during construction.
+   *
+   * @implemented
+   */
   IsReady(_renderContext)
   {
     return true;
   }
 
-  /** Native out-parameters become a borrowed mapping record. */
+  /**
+   * Native out-parameters become a borrowed mapping record.
+   *
+   * @adapted
+   */
   Map(_renderContext)
   {
     return { result: ALResult.S_OK, data: this._data, pitch: this._rowPitch };
   }
 
-  /** Releases copied bytes and the explicit device-resource registration. */
+  /**
+   * Releases copied bytes and the explicit device-resource registration.
+   *
+   * @adapted
+   */
   Destroy()
   {
     this._data = null;
     super.Destroy();
   }
 
-  /** Native stub readbacks contribute no description fields. */
+  /**
+   * Native stub readbacks contribute no description fields.
+   *
+   * @implemented
+   */
   Describe(_description)
   {
   }
 
-  /** Native readbacks are managed device resources. */
+  /**
+   * Native readbacks are managed device resources.
+   *
+   * @implemented
+   */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;
   }
 
-  /** Mirrors the native nonempty CPU buffer check. */
+  /**
+   * Mirrors the native nonempty CPU buffer check.
+   *
+   * @implemented
+   */
   IsValid()
   {
     return this._data !== null && this._data.length !== 0;
