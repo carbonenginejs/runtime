@@ -7,6 +7,8 @@ import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
  * Internal asynchronous object reader. JavaScript cannot block on Carbon's
  * LoadObject read, so resMan retains its builder and constructs per caller.
  * LoadObject exposes the graph, never this handler's native notify surface.
+ * It lives in resMan's loadObjectCache, never in MotherLode: GetResource
+ * serves Res classes only.
  */
 export class CjsLoadingObject extends BlueAsyncRes
 {

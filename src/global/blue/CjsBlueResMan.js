@@ -2937,9 +2937,11 @@ export class CjsBlueResMan
   }
 
   /**
-   * Pure read of retained plain/object data; family data stays on its resource.
-   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
-   * @returns {*} Plain/object data, or null for released data and native family resources.
+   * Pure read of a loading object's retained builder: the decoded values
+   * `LoadObject` builds each caller's object from. A resource keeps its data on
+   * itself, so it has none.
+   * @param {BlueAsyncRes} resource A loading object in `loadObjectCache`, or a resource.
+   * @returns {*} The builder, or null once released and for a resource.
    */
   GetResourcePayload(resource)
   {
@@ -2947,9 +2949,9 @@ export class CjsBlueResMan
   }
 
   /**
-   * Whether plain/object data remains resident.
-   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
-   * @returns {boolean} Whether plain/object data is still retained.
+   * Whether a loading object's builder is still resident.
+   * @param {BlueAsyncRes} resource A loading object in `loadObjectCache`, or a resource.
+   * @returns {boolean} Whether the builder is retained; false for a resource.
    */
   HasResourcePayload(resource)
   {
@@ -2957,8 +2959,10 @@ export class CjsBlueResMan
   }
 
   /**
-   * Release plain/object data without changing identity or reviving a resource.
-   * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * Release a loading object's builder without changing its identity; the next
+   * `LoadObject` reads and parses again. MotherLode's idle sweep calls it. A
+   * resource has none, so nothing happens.
+   * @param {BlueAsyncRes} resource A loading object in `loadObjectCache`, or a resource.
    * @returns {void}
    */
   ReleaseResourcePayload(resource)
