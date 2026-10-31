@@ -1,4 +1,5 @@
 import { CjsSchema } from "../../global/schema/CjsSchema.js";
+import { characterSourceLists } from "./characterSourceLists.js";
 import { getClassRegistrations } from "../../global/blue/classes/registry.js";
 
 const PYTHON_OBJECT = "tag:yaml.org,2002:python/object:";
@@ -79,23 +80,25 @@ export function normalizeCharacterYamlValues(Constructor, values)
         }
         result[key] = normalized;
     }
-    if (Object.hasOwn(Constructor, "sourceLists")) TranslateSourceLists(Constructor, values, result);
+    const lists = characterSourceLists[CjsSchema.getClassName(Constructor)];
+    if (lists) TranslateSourceLists(Constructor, lists, values, result);
     return result;
 }
 
 /**
- * Copies each tuple of a file's list into the named field its class declares (`sourceLists`: the file's key,
- * then one field per tuple), and drops the list. A null list leaves the fields at their defaults; an RGB tuple
+ * Copies each tuple of a file's list into its named field (`characterSourceLists`: the file's key, then one
+ * field per tuple), and drops the list. A null list leaves the fields at their defaults; an RGB tuple
  * gains alpha 1. Any other list shape throws.
  * @param {Function} Constructor The record class.
+ * @param {Object<string, string[]>} lists The class's list forms.
  * @param {object} values The file's values.
  * @param {object} result The values to set, edited in place.
  * @returns {void}
  */
-function TranslateSourceLists(Constructor, values, result)
+function TranslateSourceLists(Constructor, lists, values, result)
 {
     const className = CjsSchema.getClassName(Constructor);
-    for (const [ key, names ] of Object.entries(Constructor.sourceLists))
+    for (const [ key, names ] of Object.entries(lists))
     {
         if (!Object.hasOwn(values, key)) continue;
         const list = values[key];

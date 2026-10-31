@@ -58,12 +58,6 @@ export class CjsCharacterRecipeModifier
     @type.color
     specularColor3 = vec4.fromValues(.5, .5, .5, 1);
 
-    /**
-     * The files' list form, translated by the reader: each listed key holds one tuple per named field, copied
-     * into that field in order.
-     */
-    static sourceLists = { specularcolors: [ "specularColor1", "specularColor2", "specularColor3" ] };
-
     /** Authored variation name. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string

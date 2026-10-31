@@ -7,7 +7,7 @@ import { vec4 } from "#math/vec4";
 /**
  * A colour variation: three colours, three specular colours and an optional pattern. Each colour is its own
  * field, as Carbon exposes `EveSOFDataFactionColorSet` colour by colour; the file's `colors` and
- * `specularColors` lists are translated by the reader (`sourceLists`).
+ * `specularColors` lists are translated by the reader (`formats/characterSourceLists.js`).
  */
 @meta.define("CjsCharacterColorVariation")
 export class CjsCharacterColorVariation
@@ -55,15 +55,6 @@ export class CjsCharacterColorVariation
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.color
     specularColor3 = vec4.fromValues(.5, .5, .5, 1);
-
-    /**
-     * The files' list form, translated by the reader: each listed key holds one tuple per named field, copied
-     * into that field in order.
-     */
-    static sourceLists = {
-        colors: [ "color1", "color2", "color3" ],
-        specularColors: [ "specularColor1", "specularColor2", "specularColor3" ]
-    };
 
     /**
      * The specular colour of a palette that tints nothing: mid grey, opaque. 229 of build 3662168's 2,555
