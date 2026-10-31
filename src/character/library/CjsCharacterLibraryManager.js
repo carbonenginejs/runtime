@@ -3,9 +3,16 @@ import { CjsCharacterPart } from "./CjsCharacterPart.js";
 import { CjsCharacterModifier } from "./CjsCharacterModifier.js";
 import { CjsSchema } from "#schema";
 import { blue } from "#blue";
+import { CjsCharacterLibraryBuilder } from "../library-builder/CjsCharacterLibraryBuilder.js";
 
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
+
+/** The specular colour of a palette that tints nothing: mid grey, opaque. */
+const NEUTRAL_SPECULAR = [ .5, .5, .5, 1 ];
+
+/** The shipped pattern textures; a palette's `pattern` names one (`caldari_C` is `caldari_c_z.dds`). */
+const PATTERN_ROOT = "res:/graphics/character/patterns/";
 
 /** Installs, loads, and queries one combined hydrated character library. */
 export class CjsCharacterLibraryManager
@@ -212,6 +219,43 @@ export class CjsCharacterLibraryManager
     ListColorVariationNames()
     {
         return this.ListKindNames("colorVariations");
+    }
+
+    /**
+     * A `.color` palette's colours, as a colourise layer takes them: three RGBA colours of four finite
+     * numbers each, as every shipped character palette has (all 2555 in build 3650286; 2326 also carry
+     * specular colours, all of the same shape).
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*): the game's paper doll is Python
+     * client code, not Carbon. This is the palette read Graphene's composers made for themselves
+     * (graphene `palettes.js`, `readPaletteFile`), moved onto the one library so every character shares
+     * one loaded record. The decode runs on each call, so an edited record answers its new colours.
+     *
+     * @param {string} path The palette's canonical `res:` path.
+     * @param {object} [options] What the caller can compose.
+     * @param {"allow"|"skip"|"reject"} [options.pattern="allow"] A patterned palette, drawn with CCP's
+     *   patternblit: read its colours anyway, answer null, or throw.
+     * @param {boolean} [options.neutralSpecular=false] Throw unless every specular colour is neutral, for a
+     *   layer that cannot compose a specular tint.
+     * @param {boolean} [options.specular=false] Also read the three specular colours, which the palette must
+     *   then have.
+     * @returns {Promise<?{ colors: Float32Array[], specularColors: ?Float32Array[], pattern: ?object }>} The
+     *   colours, and the pattern of a patterned palette that is allowed; null for a skipped pattern.
+     * @throws {Error} For a malformed palette, or one the options refuse.
+     */
+    async FetchPalette(path, { pattern = "allow", neutralSpecular = false, specular = false } = {})
+    {
+        this._StartLazySource();
+        const value = await this.GetColorVariation(path);
+        if (value.pattern && pattern === "skip") return null;
+        if (value.pattern && pattern === "reject") throw new Error("Palette needs pattern composition: " + path);
+        if (neutralSpecular && value.specularColors.some(color => color.some((channel, i) => channel !== NEUTRAL_SPECULAR[i])))
+            throw new Error("Palette needs specular tint composition: " + path);
+        return {
+            colors: ColorTriple(value.colors, path),
+            specularColors: specular ? ColorTriple(value.specularColors, path) : null,
+            pattern: value.pattern ? PatternOf(value, path) : null
+        };
     }
 
     /**
@@ -848,6 +892,22 @@ export class CjsCharacterLibraryManager
         return this;
     }
 
+    /**
+     * The shared library's lazy start: with nothing installed and no source builder, the first Fetch
+     * indexes the character sources through Blue's installed paths and resMan, loading no record yet.
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*): stands in for
+     * `Initialize(blue, options)`, which comes with the runtime root.
+     */
+    _StartLazySource()
+    {
+        if (this._sourceBuilder || this._installGeneration !== 0) return;
+        const builder = new CjsCharacterLibraryBuilder({ paths: blue.paths, resMan: blue.resMan });
+        builder.Index();
+        this._sourceBuilder = builder;
+        this.InstallLibrary(builder.GetLibrary());
+    }
+
     /** Installs a hydrated library directly, or hydrates the same-shaped JSON values once. */
     InstallLibrary(value)
     {
@@ -1059,6 +1119,51 @@ function PrepareLibrary(value)
 
     installed.Reindex();
     return installed;
+}
+
+/**
+ * A patterned palette's pattern, as patternblit takes it. `patternColors` holds patternblit's five colours, then
+ * the placement and the rotation: the three pattern colours (the pattern texture's R, G and B select them), then
+ * colour areas 2 and 3; the palette's own `colors` are what the item shows without its pattern. That reading is
+ * ours, from the data: the third colour is set wherever the pattern uses its B channel (31 of 31 shipped
+ * palettes), and the last two match the names (`stealth` dark, `white` white, `blueorange` blue and orange)
+ * where `colors` do not (`stealth` area 2 is red).
+ * @param {{ pattern: string, patternColors: any[] }} value The palette.
+ * @param {string} path The palette, for errors.
+ * @returns {{ map: string, colors: Float32Array[], areas: Float32Array[], transform: Float32Array, rotation: number }}
+ *   The pattern texture, its three colours, the colours of areas 2 and 3, its placement (offset x, y; repeat x, y)
+ *   and its rotation in degrees.
+ * @throws {Error} Unless the pattern colours, placement and rotation are well formed.
+ */
+function PatternOf(value, path)
+{
+    const list = value.patternColors;
+    if (!Array.isArray(list) || list.length !== 7) throw new Error("Malformed pattern colours " + path);
+    const transform = list[5];
+    const rotation = list[6];
+    if (!Array.isArray(transform) || transform.length !== 4 || !transform.every(Number.isFinite) || !Number.isFinite(rotation))
+        throw new Error("Malformed pattern placement " + path);
+    return {
+        map: PATTERN_ROOT + String(value.pattern).toLowerCase() + "_z.dds",
+        colors: ColorTriple(list.slice(0, 3), path),
+        areas: ColorTriple([ list[3], list[4], [ 0, 0, 0, 1 ] ], path).slice(0, 2),
+        transform: Float32Array.from(transform),
+        rotation
+    };
+}
+
+/**
+ * Three RGBA colours as Float32Arrays.
+ * @param {any} list The palette's colour list.
+ * @param {string} path The palette, for the error.
+ * @returns {Float32Array[]} The colours.
+ * @throws {Error} Unless the list is three colours of four finite numbers.
+ */
+function ColorTriple(list, path)
+{
+    if (!Array.isArray(list) || list.length !== 3 || list.some(color => !Array.isArray(color) || color.length !== 4 || !color.every(Number.isFinite)))
+        throw new Error("Malformed palette " + path);
+    return list.map(color => Float32Array.from(color));
 }
 
 export default CjsCharacterLibraryManager;

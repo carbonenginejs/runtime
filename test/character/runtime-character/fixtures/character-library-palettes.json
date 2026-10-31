@@ -1,0 +1,1453 @@
+{
+ "build": 3662168,
+ "combos": [
+  {
+   "pattern": "allow",
+   "neutralSpecular": false,
+   "specular": false
+  },
+  {
+   "pattern": "allow",
+   "neutralSpecular": false,
+   "specular": true
+  },
+  {
+   "pattern": "allow",
+   "neutralSpecular": true,
+   "specular": false
+  },
+  {
+   "pattern": "allow",
+   "neutralSpecular": true,
+   "specular": true
+  },
+  {
+   "pattern": "skip",
+   "neutralSpecular": false,
+   "specular": false
+  },
+  {
+   "pattern": "skip",
+   "neutralSpecular": false,
+   "specular": true
+  },
+  {
+   "pattern": "skip",
+   "neutralSpecular": true,
+   "specular": false
+  },
+  {
+   "pattern": "skip",
+   "neutralSpecular": true,
+   "specular": true
+  },
+  {
+   "pattern": "reject",
+   "neutralSpecular": false,
+   "specular": false
+  },
+  {
+   "pattern": "reject",
+   "neutralSpecular": false,
+   "specular": true
+  },
+  {
+   "pattern": "reject",
+   "neutralSpecular": true,
+   "specular": false
+  },
+  {
+   "pattern": "reject",
+   "neutralSpecular": true,
+   "specular": true
+  }
+ ],
+ "palettes": [
+  {
+   "path": "res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/dark.color",
+   "text": "colors:\r\n- !!python/tuple [0.270588, 0.290196, 0.305882, 1]\r\n- &id001 !!python/tuple [0.5, 0.5, 0.5, 1.0]\r\n- *id001\r\npattern: ''\r\npatternColors:\r\n- !!python/tuple [0.2, 0.2, 0.2, 1.0]\r\n- !!python/tuple [0.6, 0.6, 0.6, 1.0]\r\n- *id001\r\n- *id001\r\n- *id001\r\n- !!python/tuple [0, 0, 8, 8]\r\n- 0.0\r\nspecularColors:\r\n- *id001\r\n- *id001\r\n- *id001\r\n",
+   "results": [
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2705880105495453,
+        0.2901960015296936,
+        0.3058820068836212,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": null
+     }
+    }
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/ep.color",
+   "text": "colors:\r\n- !!python/tuple [0.117647, 0.337255, 0.607843, 1]\r\n- !!python/tuple [0.494118, 0.494118, 0.494118, 1]\r\n- !!python/tuple [0.498039, 0.498039, 0.498039, 1]\r\npattern: ''\r\npatternColors:\r\n- !!python/tuple [0.2, 0.2, 0.2, 1.0]\r\n- !!python/tuple [0.6, 0.6, 0.6, 1.0]\r\n- &id001 !!python/tuple [0.5, 0.5, 0.5, 1.0]\r\n- *id001\r\n- *id001\r\n- !!python/tuple [0, 0, 8, 8]\r\n- 0.0\r\nspecularColors:\r\n- !!python/tuple [0.101961, 0.85098, 0.439216, 1]\r\n- *id001\r\n- *id001\r\n",
+   "results": [
+    {
+     "value": {
+      "colors": [
+       [
+        0.11764699965715408,
+        0.33725500106811523,
+        0.6078429818153381,
+        1
+       ],
+       [
+        0.49411800503730774,
+        0.49411800503730774,
+        0.49411800503730774,
+        1
+       ],
+       [
+        0.49803900718688965,
+        0.49803900718688965,
+        0.49803900718688965,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.11764699965715408,
+        0.33725500106811523,
+        0.6078429818153381,
+        1
+       ],
+       [
+        0.49411800503730774,
+        0.49411800503730774,
+        0.49411800503730774,
+        1
+       ],
+       [
+        0.49803900718688965,
+        0.49803900718688965,
+        0.49803900718688965,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.10196100175380707,
+        0.8509799838066101,
+        0.4392159879207611,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": null
+     }
+    },
+    {
+     "error": "Palette needs specular tint composition: res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/ep.color"
+    },
+    {
+     "error": "Palette needs specular tint composition: res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/ep.color"
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.11764699965715408,
+        0.33725500106811523,
+        0.6078429818153381,
+        1
+       ],
+       [
+        0.49411800503730774,
+        0.49411800503730774,
+        0.49411800503730774,
+        1
+       ],
+       [
+        0.49803900718688965,
+        0.49803900718688965,
+        0.49803900718688965,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.11764699965715408,
+        0.33725500106811523,
+        0.6078429818153381,
+        1
+       ],
+       [
+        0.49411800503730774,
+        0.49411800503730774,
+        0.49411800503730774,
+        1
+       ],
+       [
+        0.49803900718688965,
+        0.49803900718688965,
+        0.49803900718688965,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.10196100175380707,
+        0.8509799838066101,
+        0.4392159879207611,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": null
+     }
+    },
+    {
+     "error": "Palette needs specular tint composition: res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/ep.color"
+    },
+    {
+     "error": "Palette needs specular tint composition: res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/ep.color"
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.11764699965715408,
+        0.33725500106811523,
+        0.6078429818153381,
+        1
+       ],
+       [
+        0.49411800503730774,
+        0.49411800503730774,
+        0.49411800503730774,
+        1
+       ],
+       [
+        0.49803900718688965,
+        0.49803900718688965,
+        0.49803900718688965,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.11764699965715408,
+        0.33725500106811523,
+        0.6078429818153381,
+        1
+       ],
+       [
+        0.49411800503730774,
+        0.49411800503730774,
+        0.49411800503730774,
+        1
+       ],
+       [
+        0.49803900718688965,
+        0.49803900718688965,
+        0.49803900718688965,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.10196100175380707,
+        0.8509799838066101,
+        0.4392159879207611,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": null
+     }
+    },
+    {
+     "error": "Palette needs specular tint composition: res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/ep.color"
+    },
+    {
+     "error": "Palette needs specular tint composition: res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/ep.color"
+    }
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/bottomouter/pantsaf01/nikunni.color",
+   "text": "colors:\r\n- !!python/tuple [0.0627451, 0.0588235, 0.0745098, 1]\r\n- !!python/tuple [0.101961, 0.101961, 0.101961, 1]\r\n- !!python/tuple [0, 0, 0, 1]\r\npattern: !!python/unicode 'Amarr_B'\r\npatternColors:\r\n- !!python/tuple [0.0627451, 0.0588235, 0.0745098, 1]\r\n- !!python/tuple [0.117647, 0.117647, 0.141176, 1]\r\n- !!python/tuple [0.5, 0.5, 0.5, 1]\r\n- !!python/tuple [0.0901961, 0.0941176, 0.109804, 1]\r\n- !!python/tuple [0.5, 0.5, 0.5, 1]\r\n- !!python/tuple [0, 0, 8, 8]\r\n- 0.0\r\nspecularColors:\r\n- !!python/tuple [0.101961, 0.113725, 0.207843, 1]\r\n- !!python/tuple [0.14902, 0.176471, 0.243137, 1]\r\n- !!python/tuple [0.498039, 0.498039, 0.498039, 1]\r\n",
+   "results": [
+    {
+     "value": {
+      "colors": [
+       [
+        0.062745101749897,
+        0.05882349982857704,
+        0.07450979948043823,
+        1
+       ],
+       [
+        0.10196100175380707,
+        0.10196100175380707,
+        0.10196100175380707,
+        1
+       ],
+       [
+        0,
+        0,
+        0,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": {
+       "map": "res:/graphics/character/patterns/amarr_b_z.dds",
+       "colors": [
+        [
+         0.062745101749897,
+         0.05882349982857704,
+         0.07450979948043823,
+         1
+        ],
+        [
+         0.11764699965715408,
+         0.11764699965715408,
+         0.1411760002374649,
+         1
+        ],
+        [
+         0.5,
+         0.5,
+         0.5,
+         1
+        ]
+       ],
+       "areas": [
+        [
+         0.09019610285758972,
+         0.09411759674549103,
+         0.10980399698019028,
+         1
+        ],
+        [
+         0.5,
+         0.5,
+         0.5,
+         1
+        ]
+       ],
+       "transform": [
+        0,
+        0,
+        8,
+        8
+       ],
+       "rotation": 0
+      }
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.062745101749897,
+        0.05882349982857704,
+        0.07450979948043823,
+        1
+       ],
+       [
+        0.10196100175380707,
+        0.10196100175380707,
+        0.10196100175380707,
+        1
+       ],
+       [
+        0,
+        0,
+        0,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.10196100175380707,
+        0.11372499912977219,
+        0.20784300565719604,
+        1
+       ],
+       [
+        0.1490200012922287,
+        0.17647099494934082,
+        0.24313700199127197,
+        1
+       ],
+       [
+        0.49803900718688965,
+        0.49803900718688965,
+        0.49803900718688965,
+        1
+       ]
+      ],
+      "pattern": {
+       "map": "res:/graphics/character/patterns/amarr_b_z.dds",
+       "colors": [
+        [
+         0.062745101749897,
+         0.05882349982857704,
+         0.07450979948043823,
+         1
+        ],
+        [
+         0.11764699965715408,
+         0.11764699965715408,
+         0.1411760002374649,
+         1
+        ],
+        [
+         0.5,
+         0.5,
+         0.5,
+         1
+        ]
+       ],
+       "areas": [
+        [
+         0.09019610285758972,
+         0.09411759674549103,
+         0.10980399698019028,
+         1
+        ],
+        [
+         0.5,
+         0.5,
+         0.5,
+         1
+        ]
+       ],
+       "transform": [
+        0,
+        0,
+        8,
+        8
+       ],
+       "rotation": 0
+      }
+     }
+    },
+    {
+     "error": "Palette needs specular tint composition: res:/graphics/character/female/paperdoll/bottomouter/pantsaf01/nikunni.color"
+    },
+    {
+     "error": "Palette needs specular tint composition: res:/graphics/character/female/paperdoll/bottomouter/pantsaf01/nikunni.color"
+    },
+    {
+     "value": null
+    },
+    {
+     "value": null
+    },
+    {
+     "value": null
+    },
+    {
+     "value": null
+    },
+    {
+     "error": "Palette needs pattern composition: res:/graphics/character/female/paperdoll/bottomouter/pantsaf01/nikunni.color"
+    },
+    {
+     "error": "Palette needs pattern composition: res:/graphics/character/female/paperdoll/bottomouter/pantsaf01/nikunni.color"
+    },
+    {
+     "error": "Palette needs pattern composition: res:/graphics/character/female/paperdoll/bottomouter/pantsaf01/nikunni.color"
+    },
+    {
+     "error": "Palette needs pattern composition: res:/graphics/character/female/paperdoll/bottomouter/pantsaf01/nikunni.color"
+    }
+   ]
+  },
+  {
+   "path": "res:/graphics/character/female/paperdoll/hair/hair_bob_02/rbvf.color",
+   "text": "colors:\r\n- !!python/tuple [0.25098, 0, 0, 1]\r\n- !!python/tuple [0.25098, 0, 0, 1]\r\n- !!python/tuple [0.4, 0.25098039215686274, 0.2235294117647059, 1.0]\r\npattern: ''\r\npatternColors:\r\n- !!python/tuple [0.2, 0.2, 0.2, 1.0]\r\n- !!python/tuple [0.6, 0.6, 0.6, 1.0]\r\n- &id001 !!python/tuple [0.5, 0.5, 0.5, 1.0]\r\n- *id001\r\n- *id001\r\n- !!python/tuple [0, 0, 8, 8]\r\n- 0.0\r\n",
+   "results": [
+    {
+     "value": {
+      "colors": [
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.4000000059604645,
+        0.250980406999588,
+        0.2235294133424759,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "error": "Malformed palette res:/graphics/character/female/paperdoll/hair/hair_bob_02/rbvf.color"
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.4000000059604645,
+        0.250980406999588,
+        0.2235294133424759,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "error": "Malformed palette res:/graphics/character/female/paperdoll/hair/hair_bob_02/rbvf.color"
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.4000000059604645,
+        0.250980406999588,
+        0.2235294133424759,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "error": "Malformed palette res:/graphics/character/female/paperdoll/hair/hair_bob_02/rbvf.color"
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.4000000059604645,
+        0.250980406999588,
+        0.2235294133424759,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "error": "Malformed palette res:/graphics/character/female/paperdoll/hair/hair_bob_02/rbvf.color"
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.4000000059604645,
+        0.250980406999588,
+        0.2235294133424759,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "error": "Malformed palette res:/graphics/character/female/paperdoll/hair/hair_bob_02/rbvf.color"
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.2509799897670746,
+        0,
+        0,
+        1
+       ],
+       [
+        0.4000000059604645,
+        0.250980406999588,
+        0.2235294133424759,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": null
+     }
+    },
+    {
+     "error": "Malformed palette res:/graphics/character/female/paperdoll/hair/hair_bob_02/rbvf.color"
+    }
+   ]
+  },
+  {
+   "path": "res:/graphics/character/male/paperdoll/bottomouter/pantsam01/nikunni.color",
+   "text": "colors:\r\n- !!python/tuple [0.0784314, 0.121569, 0.0784314, 1]\r\n- !!python/tuple [0.0784314, 0.121569, 0.0784314, 1]\r\n- !!python/tuple [0.0784314, 0.0784314, 0.0784314, 1]\r\npattern: !!python/unicode 'Amarr_N_Pants'\r\npatternColors:\r\n- !!python/tuple [0.0627451, 0.0666667, 0.0705882, 1]\r\n- !!python/tuple [0.141176, 0.160784, 0.207843, 1]\r\n- !!python/tuple [0, 0, 0, 1]\r\n- !!python/tuple [0.0588235, 0.0627451, 0.0823529, 1]\r\n- !!python/tuple [0.0823529, 0.0823529, 0.0823529, 1]\r\n- !!python/tuple [0, 0, 8, 8]\r\n- 0.0\r\nspecularColors:\r\n- &id001 !!python/tuple [0.5, 0.5, 0.5, 1.0]\r\n- *id001\r\n- *id001\r\n",
+   "results": [
+    {
+     "value": {
+      "colors": [
+       [
+        0.0784313976764679,
+        0.12156900018453598,
+        0.0784313976764679,
+        1
+       ],
+       [
+        0.0784313976764679,
+        0.12156900018453598,
+        0.0784313976764679,
+        1
+       ],
+       [
+        0.0784313976764679,
+        0.0784313976764679,
+        0.0784313976764679,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": {
+       "map": "res:/graphics/character/patterns/amarr_n_pants_z.dds",
+       "colors": [
+        [
+         0.062745101749897,
+         0.06666669994592667,
+         0.07058820128440857,
+         1
+        ],
+        [
+         0.1411760002374649,
+         0.16078400611877441,
+         0.20784300565719604,
+         1
+        ],
+        [
+         0,
+         0,
+         0,
+         1
+        ]
+       ],
+       "areas": [
+        [
+         0.05882349982857704,
+         0.062745101749897,
+         0.0823528990149498,
+         1
+        ],
+        [
+         0.0823528990149498,
+         0.0823528990149498,
+         0.0823528990149498,
+         1
+        ]
+       ],
+       "transform": [
+        0,
+        0,
+        8,
+        8
+       ],
+       "rotation": 0
+      }
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.0784313976764679,
+        0.12156900018453598,
+        0.0784313976764679,
+        1
+       ],
+       [
+        0.0784313976764679,
+        0.12156900018453598,
+        0.0784313976764679,
+        1
+       ],
+       [
+        0.0784313976764679,
+        0.0784313976764679,
+        0.0784313976764679,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": {
+       "map": "res:/graphics/character/patterns/amarr_n_pants_z.dds",
+       "colors": [
+        [
+         0.062745101749897,
+         0.06666669994592667,
+         0.07058820128440857,
+         1
+        ],
+        [
+         0.1411760002374649,
+         0.16078400611877441,
+         0.20784300565719604,
+         1
+        ],
+        [
+         0,
+         0,
+         0,
+         1
+        ]
+       ],
+       "areas": [
+        [
+         0.05882349982857704,
+         0.062745101749897,
+         0.0823528990149498,
+         1
+        ],
+        [
+         0.0823528990149498,
+         0.0823528990149498,
+         0.0823528990149498,
+         1
+        ]
+       ],
+       "transform": [
+        0,
+        0,
+        8,
+        8
+       ],
+       "rotation": 0
+      }
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.0784313976764679,
+        0.12156900018453598,
+        0.0784313976764679,
+        1
+       ],
+       [
+        0.0784313976764679,
+        0.12156900018453598,
+        0.0784313976764679,
+        1
+       ],
+       [
+        0.0784313976764679,
+        0.0784313976764679,
+        0.0784313976764679,
+        1
+       ]
+      ],
+      "specularColors": null,
+      "pattern": {
+       "map": "res:/graphics/character/patterns/amarr_n_pants_z.dds",
+       "colors": [
+        [
+         0.062745101749897,
+         0.06666669994592667,
+         0.07058820128440857,
+         1
+        ],
+        [
+         0.1411760002374649,
+         0.16078400611877441,
+         0.20784300565719604,
+         1
+        ],
+        [
+         0,
+         0,
+         0,
+         1
+        ]
+       ],
+       "areas": [
+        [
+         0.05882349982857704,
+         0.062745101749897,
+         0.0823528990149498,
+         1
+        ],
+        [
+         0.0823528990149498,
+         0.0823528990149498,
+         0.0823528990149498,
+         1
+        ]
+       ],
+       "transform": [
+        0,
+        0,
+        8,
+        8
+       ],
+       "rotation": 0
+      }
+     }
+    },
+    {
+     "value": {
+      "colors": [
+       [
+        0.0784313976764679,
+        0.12156900018453598,
+        0.0784313976764679,
+        1
+       ],
+       [
+        0.0784313976764679,
+        0.12156900018453598,
+        0.0784313976764679,
+        1
+       ],
+       [
+        0.0784313976764679,
+        0.0784313976764679,
+        0.0784313976764679,
+        1
+       ]
+      ],
+      "specularColors": [
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ],
+       [
+        0.5,
+        0.5,
+        0.5,
+        1
+       ]
+      ],
+      "pattern": {
+       "map": "res:/graphics/character/patterns/amarr_n_pants_z.dds",
+       "colors": [
+        [
+         0.062745101749897,
+         0.06666669994592667,
+         0.07058820128440857,
+         1
+        ],
+        [
+         0.1411760002374649,
+         0.16078400611877441,
+         0.20784300565719604,
+         1
+        ],
+        [
+         0,
+         0,
+         0,
+         1
+        ]
+       ],
+       "areas": [
+        [
+         0.05882349982857704,
+         0.062745101749897,
+         0.0823528990149498,
+         1
+        ],
+        [
+         0.0823528990149498,
+         0.0823528990149498,
+         0.0823528990149498,
+         1
+        ]
+       ],
+       "transform": [
+        0,
+        0,
+        8,
+        8
+       ],
+       "rotation": 0
+      }
+     }
+    },
+    {
+     "value": null
+    },
+    {
+     "value": null
+    },
+    {
+     "value": null
+    },
+    {
+     "value": null
+    },
+    {
+     "error": "Palette needs pattern composition: res:/graphics/character/male/paperdoll/bottomouter/pantsam01/nikunni.color"
+    },
+    {
+     "error": "Palette needs pattern composition: res:/graphics/character/male/paperdoll/bottomouter/pantsam01/nikunni.color"
+    },
+    {
+     "error": "Palette needs pattern composition: res:/graphics/character/male/paperdoll/bottomouter/pantsam01/nikunni.color"
+    },
+    {
+     "error": "Palette needs pattern composition: res:/graphics/character/male/paperdoll/bottomouter/pantsam01/nikunni.color"
+    }
+   ]
+  }
+ ]
+}
