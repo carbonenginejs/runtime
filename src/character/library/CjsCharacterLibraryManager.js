@@ -4,15 +4,10 @@ import { CjsCharacterModifier } from "./CjsCharacterModifier.js";
 import { CjsSchema } from "#schema";
 import { blue } from "#blue";
 import { CjsCharacterLibraryBuilder } from "../library-builder/CjsCharacterLibraryBuilder.js";
+import { CjsCharacterColorVariation } from "./kinds/CjsCharacterColorVariation.js";
 
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
-
-/** The specular colour of a palette that tints nothing: mid grey, opaque. */
-const NEUTRAL_SPECULAR = [ .5, .5, .5, 1 ];
-
-/** The shipped pattern textures; a palette's `pattern` names one (`caldari_C` is `caldari_c_z.dds`). */
-const PATTERN_ROOT = "res:/graphics/character/patterns/";
 
 /** Installs, loads, and queries one combined hydrated character library. */
 export class CjsCharacterLibraryManager
@@ -249,12 +244,12 @@ export class CjsCharacterLibraryManager
         const value = await this.GetColorVariation(path);
         if (value.pattern && pattern === "skip") return null;
         if (value.pattern && pattern === "reject") throw new Error("Palette needs pattern composition: " + path);
-        if (neutralSpecular && value.specularColors.some(color => color.some((channel, i) => channel !== NEUTRAL_SPECULAR[i])))
+        if (neutralSpecular && value.specularColors.some(color => color.some((channel, i) => channel !== CjsCharacterColorVariation.neutralSpecular[i])))
             throw new Error("Palette needs specular tint composition: " + path);
         return {
-            colors: ColorTriple(value.colors, path),
-            specularColors: specular ? ColorTriple(value.specularColors, path) : null,
-            pattern: value.pattern ? PatternOf(value, path) : null
+            colors: CjsCharacterColorVariation.colorTriple(value.colors, path),
+            specularColors: specular ? CjsCharacterColorVariation.colorTriple(value.specularColors, path) : null,
+            pattern: value.pattern ? CjsCharacterColorVariation.patternOf(value, path) : null
         };
     }
 
@@ -1119,51 +1114,6 @@ function PrepareLibrary(value)
 
     installed.Reindex();
     return installed;
-}
-
-/**
- * A patterned palette's pattern, as patternblit takes it. `patternColors` holds patternblit's five colours, then
- * the placement and the rotation: the three pattern colours (the pattern texture's R, G and B select them), then
- * colour areas 2 and 3; the palette's own `colors` are what the item shows without its pattern. That reading is
- * ours, from the data: the third colour is set wherever the pattern uses its B channel (31 of 31 shipped
- * palettes), and the last two match the names (`stealth` dark, `white` white, `blueorange` blue and orange)
- * where `colors` do not (`stealth` area 2 is red).
- * @param {{ pattern: string, patternColors: any[] }} value The palette.
- * @param {string} path The palette, for errors.
- * @returns {{ map: string, colors: Float32Array[], areas: Float32Array[], transform: Float32Array, rotation: number }}
- *   The pattern texture, its three colours, the colours of areas 2 and 3, its placement (offset x, y; repeat x, y)
- *   and its rotation in degrees.
- * @throws {Error} Unless the pattern colours, placement and rotation are well formed.
- */
-function PatternOf(value, path)
-{
-    const list = value.patternColors;
-    if (!Array.isArray(list) || list.length !== 7) throw new Error("Malformed pattern colours " + path);
-    const transform = list[5];
-    const rotation = list[6];
-    if (!Array.isArray(transform) || transform.length !== 4 || !transform.every(Number.isFinite) || !Number.isFinite(rotation))
-        throw new Error("Malformed pattern placement " + path);
-    return {
-        map: PATTERN_ROOT + String(value.pattern).toLowerCase() + "_z.dds",
-        colors: ColorTriple(list.slice(0, 3), path),
-        areas: ColorTriple([ list[3], list[4], [ 0, 0, 0, 1 ] ], path).slice(0, 2),
-        transform: Float32Array.from(transform),
-        rotation
-    };
-}
-
-/**
- * Three RGBA colours as Float32Arrays.
- * @param {any} list The palette's colour list.
- * @param {string} path The palette, for the error.
- * @returns {Float32Array[]} The colours.
- * @throws {Error} Unless the list is three colours of four finite numbers.
- */
-function ColorTriple(list, path)
-{
-    if (!Array.isArray(list) || list.length !== 3 || list.some(color => !Array.isArray(color) || color.length !== 4 || !color.every(Number.isFinite)))
-        throw new Error("Malformed palette " + path);
-    return list.map(color => Float32Array.from(color));
 }
 
 export default CjsCharacterLibraryManager;
