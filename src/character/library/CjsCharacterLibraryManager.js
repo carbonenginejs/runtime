@@ -194,6 +194,24 @@ export class CjsCharacterLibraryManager
         return this.GetKindRecord("avatarPartMetaData", name);
     }
 
+    /**
+     * One part folder's `metadata.yaml`, as its typed record, from the one library every character shares.
+     * A field the file does not state holds its class default (`numColorAreas` -1).
+     *
+     * Ours (non-carbon-extensions.md § *The shared character library*): the metadata read Graphene's
+     * composers made for themselves (graphene `resourceListing.js`, `ReadMetadata`), moved onto the
+     * library. It starts the shared library's lazy source, as every Fetch does.
+     *
+     * @param {string} path The `metadata.yaml`'s canonical `res:` path.
+     * @returns {Promise<import("../model/catalog/CjsAvatarPartMetaData.js").CjsAvatarPartMetaData>} The record; a
+     *   path that is not indexed rejects.
+     */
+    async FetchAvatarPartMetaData(path)
+    {
+        this._StartLazySource();
+        return this.GetAvatarPartMetaData(path);
+    }
+
     /** @returns {Promise<Array<string>>} Exact avatarPartMetaData names after source identification. */
     ListAvatarPartMetaDataNames()
     {

@@ -115,6 +115,17 @@ test("GetPart joins exact records and paths without acquiring opaque resources",
     assert.throws(() => CjsCharacterLibraryManager.parseModifier("utilityshapes/test###wat"), /suffix/);
 });
 
+test("FetchAvatarPartMetaData starts the lazy source and reads only that metadata file", async t =>
+{
+    const { reads } = fixture(t);
+    const manager = new CjsCharacterLibraryManager();
+    const metadata = await manager.FetchAvatarPartMetaData(ROOT + "/metadata.yaml");
+    assert.equal(await manager.FetchAvatarPartMetaData(ROOT + "/metadata.yaml"), metadata);
+    assert.deepEqual(metadata.dependantModifiers, [ "utilityshapes/test###0.25" ]);
+    assert.equal(metadata.numColorAreas, -1);
+    assert.deepEqual(reads, [ ROOT + "/metadata.yaml" ]);
+});
+
 test("eager loading stores opaque paths without decoding and loads every indexed text", async t =>
 {
     const { builder, reads } = fixture(t);
