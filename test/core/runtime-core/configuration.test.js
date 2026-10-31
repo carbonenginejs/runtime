@@ -250,7 +250,7 @@ test("deferred reader policy is installed on the next startup with fresh resourc
     header.setUint32(offset, value, true);
   bytes.set([1,2,3,255],128);
   library.SetConfiguration({resMan:{source:{Read:()=>bytes}}});
-  const resource = await next.resMan.LoadObject("res:/configured.dds");
+  const resource = await next.resMan.FetchResource("res:/configured.dds");
   assert.equal(reads,1);
   assert.equal(resource.GetBitmap().GetWidth(),1);
 });

@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import { blue } from "../../../npm/dist/global/blue/index.js";
 import { localFileSystem } from "../../support/localFileSystem.js";
+import { RegisterDataLoader } from "../../support/testDataRes.js";
 
 // Carbon's FileExistsLocally asks whether a file's bytes are on this machine
 // (BluePaths.cpp:170-206). Loading a resource does not answer it: the
@@ -12,7 +13,7 @@ import { localFileSystem } from "../../support/localFileSystem.js";
 test("FileExistsLocally is stored bytes, not what the resource manager holds", async () =>
 {
   blue.resMan.Register({ source: { Read: () => Promise.resolve("{\"ok\":true}") } });
-  blue.resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  RegisterDataLoader(blue.resMan, "json", value => JSON.parse(value));
 
   const path = "res:/paths/fetched.json";
   const resource = blue.resMan.GetResource(path);

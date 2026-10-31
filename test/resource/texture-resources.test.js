@@ -57,7 +57,7 @@ test("a texture resource loads as Carbon's HostBitmap, not a plain payload", asy
   const bytes = legacyDds(2, 1, [ 1, 2, 3, 255, 4, 5, 6, 255 ]);
   const resMan = await managerServing("res:/x/y.dds", bytes);
 
-  const resource = await resMan.LoadObject("res:/x/y.dds");
+  const resource = await resMan.FetchResource("res:/x/y.dds");
 
   assert.ok(resource instanceof TriTextureRes, "the route's handler");
 
@@ -104,7 +104,7 @@ test("the same route serves Tr2ImageRes, which is Carbon's CPU-only image", asyn
   const bytes = legacyDds(1, 1, [ 10, 20, 30, 255 ]);
   const resMan = await managerServing("res:/x/icon.dds", bytes, { extensions: { dds: Tr2ImageRes } });
 
-  const resource = await resMan.LoadObject("res:/x/icon.dds");
+  const resource = await resMan.FetchResource("res:/x/icon.dds");
 
   assert.ok(resource instanceof Tr2ImageRes);
   assert.equal(resource.GetBitmap().IsValid(), true);
@@ -118,7 +118,7 @@ test("a file the image handlers refuse fails the load, as Carbon's DoLoad does",
   const resMan = await managerServing("res:/x/broken.dds", new Uint8Array(128));
 
   await assert.rejects(
-    () => resMan.LoadObject("res:/x/broken.dds"),
+    () => resMan.FetchResource("res:/x/broken.dds"),
     error => /broken\.dds/.test(error.message) || error.code === "CJS_RESOURCE_IMAGE_READ_FAILED"
   );
 });
@@ -276,7 +276,7 @@ test("VTA textures load the first volume frame through the ordinary texture reso
     grids: [ { name: "density", encoding: 0, width: 2, height: 1, depth: 2 } ],
     frames: [ [ [ 1, 2, 3, 4 ] ], [ [ 5, 6, 7, 8 ] ] ]
   });
-  const resource = await (await managerServing(path, bytes)).LoadObject(path);
+  const resource = await (await managerServing(path, bytes)).FetchResource(path);
   assert.equal(resource.constructor, TriTextureRes);
   const bitmap = resource.GetBitmap();
   assert.equal(bitmap.constructor, HostBitmap);

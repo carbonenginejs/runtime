@@ -278,7 +278,7 @@ test("a 24-bit volume DDS becomes a 3D bgra8unorm texture, one write for all its
   resMan.Register({ source: { Read: () => Promise.resolve(volumeDds(4)) } });
   await configureResourceManager(resMan);
 
-  const resource = await resMan.LoadObject("res:/texture/global/noise.dds");
+  const resource = await resMan.FetchResource("res:/texture/global/noise.dds");
   const bitmap = resource.GetBitmap();
 
   assert.equal(bitmap.GetFormat(), PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM, "Carbon's reader widens 24-bit to BGRX");

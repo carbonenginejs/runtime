@@ -9,6 +9,7 @@ import { test, beforeEach, afterEach } from "node:test";
 
 import "../../../npm/dist/index.js";
 import { CjsBlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/global/blue/index.js";
+import { RegisterDataLoader } from "../../support/testDataRes.js";
 
 
 /** A manager on a hand-driven clock, with one bound resource. */
@@ -17,7 +18,7 @@ async function managed()
   const clock = { now: 1000 };
   const resMan = new CjsBlueResMan({ source: { Read: () => "{}" } });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("data", value => JSON.parse(value));
+  RegisterDataLoader(resMan, "data", value => JSON.parse(value));
   resMan.motherLode._now = () => clock.now;
   const resource = resMan.GetResource("res:/tick/stamp.data");
   // Settle the native load before measuring renewal.

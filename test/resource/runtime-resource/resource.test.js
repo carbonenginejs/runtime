@@ -200,7 +200,8 @@ test("CjsBlueResMan registers immutable extension handlers through every short f
   const resource = await resMan.Fetch("res:/data/one.route");
   assert.equal(resource instanceof TestRouteResource, true);
   assert.deepEqual(resource.value, { byte: 7 });
-  assert.equal(await resMan.LoadObject("res:/data/one.route"), resource);
+  // LoadObject returns objects only (BlueResMan.cpp:724-785): a resource is GetResource's.
+  await assert.rejects(resMan.LoadObject("res:/data/one.route"), /is a resource, not an object/u);
 
   class MissingMode extends TestValueResource {}
   MissingMode.handlerMode = "other";

@@ -161,21 +161,6 @@ test("background concurrency one cannot deadlock a native source read", async t 
   assert.deepEqual(resources.map(resource => resource.value), [5, 5]);
 });
 
-test("plain data lives on the manager and reconstructs only on explicit Ready", async t =>
-{
-  let reads = 0;
-  const manager = managerFor(t, () => new Uint8Array([ ++reads ]));
-  manager.RegisterObjectLoader("data", bytes => ({ number: bytes[0] }));
-  const resource = manager.GetResource("res:/plain.data");
-  assert.deepEqual(await manager.Ready(resource), {number: 1});
-  assert.deepEqual(manager.GetResourcePayload(resource), {number: 1});
-  manager.ReleaseResourcePayload(resource);
-  assert.equal(resource.IsGood(), true);
-  assert.equal(manager.HasResourcePayload(resource), false);
-  assert.equal(reads, 1);
-  assert.deepEqual(await manager.Ready(resource), {number: 2});
-});
-
 test("notify targets persist, duplicate removals balance, and destroyed owners are diagnosed", t =>
 {
   managerFor(t, () => new Uint8Array([1]));
@@ -249,13 +234,14 @@ test("extension re-registration changes new handles while a reload keeps its cap
   assert.equal(fresh.value, 14);
 });
 
-test("automatic plain-data expiry and identity purge follow the configured cadence", async t =>
+test("automatic identity purge follows the configured cadence", async t =>
 {
   let time = 0;
   const manager = managerFor(t, () => new Uint8Array([1]), {
     motherLode: new CjsMotherLode({ now: () => time, cacheSize: 0 })
   });
-  manager.RegisterObjectLoader("plain", () => ({value: 1}));
+  manager.RegisterObjectLoader("plain", () => 1);
+  manager.RegisterExtension("plain", ValueResource);
   assert.equal(manager.IsAutoPurgeEnabled(), false);
   manager.SetAutoPurgePolicy({ intervalMilliseconds: 10, maxIdleMilliseconds: 20,
     payloadMaxIdleMilliseconds: 5, now: () => time });
@@ -264,13 +250,10 @@ test("automatic plain-data expiry and identity purge follow the configured caden
   manager.PumpAutoPurge({time});
   time = 5;
   manager.Update({purge: {time}});
-  assert.equal(manager.HasResourcePayload(resource), true);
   time = 10;
   manager.Update({purge: false});
-  assert.equal(manager.HasResourcePayload(resource), true);
   manager.Update({purge: {time}});
-  assert.equal(manager.HasResourcePayload(resource), false);
-  assert.equal(manager.GetResourceStatus(resource).purged, false);
+  assert.equal(manager.GetResourceStatus(resource).purged, false, "within maxIdleMilliseconds");
   time = 20;
   manager.Update({purge: {time}});
   assert.equal(manager.GetResourceStatus(resource).purged, true);

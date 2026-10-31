@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { BlueAsyncRes, CjsBlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
+import { RegisterDataLoader } from "../../support/testDataRes.js";
 
 /** One process-wide manager, restored after every test. */
 function managerFor(t)
@@ -9,7 +10,7 @@ function managerFor(t)
   const previous = blue.resMan;
   const manager = new CjsBlueResMan({ source: { Read: () => "{}" } });
   blue.resMan = manager;
-  manager.RegisterObjectLoader("json", value => JSON.parse(value));
+  RegisterDataLoader(manager, "json", value => JSON.parse(value));
   t.after(() => { try { manager.Clear(); } finally { blue.resMan = previous; } });
   return manager;
 }
@@ -58,7 +59,7 @@ test("a purged handle revives on use and successful preparation resets the retry
 test("a failed native resource is prepared, stays bad and never retries on use", async t =>
 {
   const manager = managerFor(t);
-  manager.RegisterObjectLoader("bad", () => { throw new Error("bad data"); });
+  RegisterDataLoader(manager, "bad", () => { throw new Error("bad data"); });
   const resource = manager.GetResource("res:/failed.bad");
   await assert.rejects(manager.Ready(resource), /bad data/);
   for (let i = 0; i < 10; i++) assert.equal(resource.IsGood(), false);

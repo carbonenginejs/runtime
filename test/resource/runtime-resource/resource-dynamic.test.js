@@ -75,7 +75,7 @@ test("dynamic:/color resolves through its constructor, shares by query, and neve
   assert.notEqual(resMan.GetResource("dynamic:/color/0,1,0,1"), red);
 
   await resMan.Ready(red);
-  await resMan.LoadObject("dynamic:/color/1,0,0,1");
+  await assert.rejects(resMan.LoadObject("dynamic:/color/1,0,0,1"), /is a resource, not an object/u);
   assert.equal(counter.reads, 0);
 });
 
@@ -130,10 +130,8 @@ test("a malformed dynamic colour fails without falling back to a source read", a
   assert.equal(broken.IsPrepared(), true);
   assert.equal(broken.IsGood(), false);
   assert.equal(resMan.GetResourceStatus(broken).error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
-  await assert.rejects(
-    resMan.LoadObject("dynamic:/color/1,2"),
-    error => error.code === "CJS_TEXTURE_PROCEDURAL_PATH_INVALID"
-  );
+  // A resource is GetResource's; LoadObject returns objects only.
+  await assert.rejects(resMan.LoadObject("dynamic:/color/1,2"), /is a resource, not an object/u);
   assert.equal(counter.reads, 0);
 });
 

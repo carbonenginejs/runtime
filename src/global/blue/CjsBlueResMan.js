@@ -234,12 +234,32 @@ export class CjsBlueResMan
   // service behind a different extern.
 
   /**
-   * The parsed-object and resource cache. Carbon's by-value
-   * `PMotherLode m_loadObjectCache` (BlueResMan.h:123), created with its owner
-   * (`PARENTLOCK( m_loadObjectCache )`, BlueResMan.cpp:70); Register may
-   * replace it.
+   * The resource cache: Carbon's process-wide `BeMotherLode`, which
+   * `GetResource` looks resources up in and inserts them into
+   * (BlueResMan.cpp:183,242,288). Register may replace it.
    */
   motherLode = new CjsMotherLode();
+
+  /**
+   * `m_loadObjectCache.SetCacheSize( 1*1024*1024 )` (BlueResMan.cpp:91): the
+   * load-object cache's byte budget. Carbon's value, not measured for ours:
+   * our recorded bytes are not Carbon's builder sizes.
+   */
+  loadObjectCacheSize = 1024 * 1024;
+
+  /**
+   * `PMotherLode m_loadObjectCache` (BlueResMan.h:123): LoadObject's own cache,
+   * one builder per file, apart from MotherLode, so a resource lookup never
+   * finds a loading object (BlueResMan.cpp:722-773). Carbon's is a second
+   * MotherLode, and so is ours: its entries keep the same keep-alive, load
+   * lock, trim, opt-in idle sweep and revival as `motherLode`'s. It reads
+   * `motherLode`'s clock, because the manager stamps one activity time on
+   * every handle (`activityTime`).
+   */
+  loadObjectCache = createLoadObjectCache(this.loadObjectCacheSize, () => this.motherLode.GetActivityTime());
+
+  /** Handles held by `loadObjectCache`, so the shared lifecycle code finds their lode. */
+  _objectLoads = new WeakSet();
 
   /** Default source for later requests, or null for be.paths (SetSource). */
   source = null;
@@ -336,7 +356,6 @@ export class CjsBlueResMan
 
   _extensionRoutes = new Map();
   _resourceExtensionRoutes = new WeakMap();
-  _resourceHandlerModes = new WeakMap();
 
   // BlueResMan::m_dynamicConstructors (BlueResMan.h:154-155).
   _dynamicConstructors = new Map();
@@ -449,6 +468,12 @@ export class CjsBlueResMan
         value,
         options.cacheCleanup || {}
       ),
+      loadObjectCacheSize: value =>
+      {
+        assertNonNegativeInteger(value, "CjsBlueResMan loadObjectCacheSize");
+        this.loadObjectCacheSize = value;
+        this.loadObjectCache.SetCacheSize(value, options.cacheCleanup || {});
+      },
       autoPurgePolicy: this.SetAutoPurgePolicy,
       source: this.SetSource,
       mainThreadLoader: this.SetMainThreadLoader,
@@ -897,7 +922,11 @@ export class CjsBlueResMan
     const cacheResult = options.cache === false
       ? null
       : this.motherLode.TrimCache(cacheOptions);
-    const trimmed = Boolean(cacheResult && cacheResult.evicted > 0);
+    const objectCacheResult = options.cache === false
+      ? null
+      : this.loadObjectCache.TrimCache(cacheOptions);
+    const trimmed = Boolean((cacheResult && cacheResult.evicted > 0)
+      || (objectCacheResult && objectCacheResult.evicted > 0));
     const purgeOptions = options.purge === true || options.purge === undefined
       ? {}
       : options.purge;
@@ -1191,6 +1220,12 @@ export class CjsBlueResMan
     {
       throw new TypeError("CjsBlueResMan extension Target and Identify are valid only for object handlers.");
     }
+    // An object route builds a Target or an Identify class; without one its
+    // values are plain data, which is neither a resource nor an object.
+    if (!Target && !Identify && handlerMode === ResourceHandlerMode.OBJECT)
+    {
+      throw new TypeError(`CjsBlueResMan extension .${ext}: an object handler needs a Target or Identify; register a Res class for a resource.`);
+    }
     if (Target) assertExtensionTarget(Target, "Target");
     if (Identify && typeof Identify !== "function")
     {
@@ -1317,27 +1352,15 @@ export class CjsBlueResMan
    * Carbon: BlueResMan::GetResourceW/GetResourceHelper (blue/src/BlueResMan.cpp:143-290).
    * Adapted: JavaScript constructors represent interface identities; the result is
    * the resource or null rather than a boolean and an output pointer.
-   * Adapted: for an object file (.black/.red, a RegisterObjectBuilder
-   * extension) Carbon logs "No factory found for extension" and returns null
-   * (BlueResMan.cpp:269-272); ours throws, because an object file through
-   * GetResource is always a caller bug.
+   * Only a Res class registered for the extension (plus `ex`) is served; for
+   * anything else - an object file, plain data - it logs "No factory found for
+   * extension" and returns null, as Carbon's does (BlueResMan.cpp:266-273).
    *
    * @returns {BlueAsyncRes|null} Cached or newly initialized handle, or null for an unsupported factory/interface.
-   * @throws {TypeError} If the path is an object file, or the path, identity settings, or resource constructor are invalid.
+   * @throws {TypeError} If the path, identity settings, or resource constructor are invalid.
    * @throws {Error} If MotherLode is inactive or displaced-resource cleanup fails.
    */
   GetResource(path, options = {}) {
-    // AN OBJECT FILE IS NOT A RESOURCE. Carbon's GetResource finds a resource
-    // factory by extension and has none for .black or .red ("No factory found
-    // for extension", BlueResMan.cpp:266-273);
-    // those are LoadObject's, which builds a new object per call. Handing out
-    // the cached builder would let a caller hold what every load builds from.
-    if (typeof path === "string" && path
-      && !options?.ex
-      && this._objectBuilderLoaders.has(this.GetObjectLoader(options?.ext || getResourceExtension(normalizeResourcePath(path)))))
-    {
-      throw new TypeError(`CjsBlueResMan.GetResource: ${path} is an object file; load it with LoadObject.`);
-    }
     const resource = this._GetResource(path, options);
     // Carbon: BlueResMan::GetResourceW (blue/src/BlueResMan.cpp:143-163).
     // The requested interface validates the selected resource; it never selects
@@ -1359,8 +1382,8 @@ export class CjsBlueResMan
   }
 
   /**
-   * Resolve extension plus ex, initialize, then insert as Carbon does.
-   * Object handlers remain internal; their manager result is data or a fresh graph.
+   * Resolve extension plus ex to its Res class, initialize, then insert as
+   * Carbon does. Object loads have their own path (`_GetLoadingObject`).
    * @param {string} path
    * @param {object} [options={}]
    * @returns {BlueAsyncRes|null}
@@ -1388,8 +1411,7 @@ export class CjsBlueResMan
 
     const ext = normalizeResourceExtension((options.ext || getResourceExtension(key)) + ex);
     const route = this.GetExtensionRoute(ext);
-    const Constructor = route?.Handler || (!ex && (this.GetObjectLoader(ext) || this.GetFormatDescriptors(ext).length)
-      ? CjsLoadingObject : null);
+    const Constructor = route?.handlerMode === ResourceHandlerMode.RESOURCE ? route.Handler : null;
     if (!Constructor)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "No factory found for extension (%s, %s)", path, ex);
@@ -1463,66 +1485,119 @@ export class CjsBlueResMan
    */
   async _LoadObject(path, options, build)
   {
-    const resource = this._GetResource(path, options);
-    if (!resource) throw new Error("No resource factory for " + path);
-    if (build) this._RequireObjectRoute(resource, path);
+    const resource = this._GetLoadingObject(path, options);
     const result = await this.Ready(resource);
     if (!build) return result;
     if (this._IsObjectBuilderResource(resource)) return this._QueueObjectBuild(resource);
-    return this._ObjectOutcome(resource, path, result);
+    return this._ObjectOutcome(resource, path);
   }
 
   /**
-   * What a settled load hands one LoadObject caller: a new object when the load
-   * kept a builder, the handle when it published a RESOURCE-mode resource, and
-   * otherwise - plain values, e.g. an Identify that answered `true` - a refusal.
+   * LoadObject's lookup in `loadObjectCache` (BlueResMan.cpp:722-773): the
+   * cached loading object for path plus `ex`, or a new one for an object
+   * route - a registered object builder, or an OBJECT-mode route with a Target
+   * or Identify - initialized and inserted.
    *
-   * @param {BlueAsyncRes} resource Canonical resource.
+   * Adapted: Carbon caches the parsed builder itself; ours caches the loading
+   * object that reads it asynchronously and keeps the builder as its payload.
+   *
+   * @param {string} path Carbon-style resource path.
+   * @param {object} [options={}] Identity, source, format and reload options.
+   * @returns {BlueAsyncRes} The loading object.
+   * @throws {TypeError} If the path is a resource or plain data, not an object.
+   * @throws {Error} If no reader is registered for the extension.
+   */
+  _GetLoadingObject(path, options = {})
+  {
+    if (typeof path !== "string" || !path) throw new TypeError("Resource path must be non-empty.");
+    const key = normalizeResourcePath(path);
+    const ex = this.GetResourceVariant(options);
+    const cacheKey = getMotherLodeKey(key, ex);
+    const existing = this.loadObjectCache.Lookup(cacheKey);
+    if (existing)
+    {
+      this.loadObjectCache.KeepAlive(cacheKey);
+      if (options.reload === true)
+      {
+        const record = this._GetResourceRecord(existing);
+        record.request = mergeResourceLoaderOptions(record.request, options);
+        existing.Reload();
+      }
+      return existing;
+    }
+
+    if (isDynamicResourcePath(key))
+    {
+      throw new TypeError(`CjsBlueResMan.LoadObject: ${path} is a resource, not an object; get it with GetResource(path).`);
+    }
+
+    const ext = normalizeResourceExtension((options.ext || getResourceExtension(key)) + ex);
+    const route = this.GetExtensionRoute(ext);
+    let Constructor = null;
+    if (route)
+    {
+      if (route.handlerMode !== ResourceHandlerMode.OBJECT)
+      {
+        throw new TypeError(`CjsBlueResMan.LoadObject: ${path} is a resource, not an object; get it with GetResource(path).`);
+      }
+      Constructor = route.Handler;
+    }
+    else if (!ex && this._objectBuilderLoaders.has(this.GetObjectLoader(ext)))
+    {
+      Constructor = CjsLoadingObject;
+    }
+    else if (this.GetObjectLoader(ext) || this.GetFormatDescriptors(ext).length)
+    {
+      this._RefusePlainObject(path);
+    }
+    else
+    {
+      throw new Error("No resource factory for " + path);
+    }
+
+    const resource = this.CreateResource(Constructor, key, ex, options, route);
+    this._objectLoads.add(resource);
+    this.loadObjectCache.Insert(cacheKey, resource);
+    const operation = this._GetResourceLoad(resource);
+    if (operation && !operation.locked)
+    {
+      this.LockResource(resource);
+      operation.locked = true;
+    }
+    this.loadObjectCache.KeepAlive(cacheKey);
+    return resource;
+  }
+
+  /**
+   * What a settled load hands one LoadObject caller: a new object built from
+   * what the load kept, a builder or a route's Target. Plain values - an
+   * Identify that answered `true` - are refused: LoadObject returns objects only
+   * (BlueResMan.cpp:724-785).
+   *
+   * @param {BlueAsyncRes} resource The loading object.
    * @param {string} path The requested path, for the message.
-   * @param {*} result The load's published outcome.
-   * @returns {*} The caller's object or resource handle.
+   * @returns {*} The caller's object.
    * @throws {TypeError} When the load yielded plain values.
    */
-  _ObjectOutcome(resource, path, result)
+  _ObjectOutcome(resource, path)
   {
     if (this._objectBuilders.has(resource)) return this._BuildObject(resource);
-    const route = this._resourceExtensionRoutes.get(resource) || null;
-    const mode = resolveResourceHandlerMode(resource, route ? this._resourceHandlerModes.get(resource) || null : null);
-    if (mode === ResourceHandlerMode.RESOURCE) return result;
-    return this._RefusePlainObject(resource, path);
+    return this._RefusePlainObject(path);
   }
 
   /**
-   * AN OBJECT KNOWS ITS CLASS (operator ruling, 2026-09-28): a load without one
-   * is a resource. LoadObject answers a RESOURCE-mode handle (Carbon's
-   * GetResource), a registered object builder (LoadObject), or a route that
-   * hydrates a Target or an Identify class; anything that yields plain decoded
-   * values - a format-only route, a bare loader - is refused, pointing at
-   * GetResource, whose payload holds those values.
+   * AN OBJECT KNOWS ITS CLASS (operator ruling, 2026-09-28): LoadObject builds
+   * from a registered object builder or a route that hydrates a Target or an
+   * Identify class. Plain decoded values are neither a resource nor an object;
+   * they are read directly (2026-11-01).
    *
-   * @param {BlueAsyncRes} resource Canonical resource.
-   * @param {string} path The requested path, for the message.
-   * @returns {void}
-   * @throws {TypeError} When the route yields plain values.
-   */
-  _RequireObjectRoute(resource, path)
-  {
-    const route = this._resourceExtensionRoutes.get(resource) || null;
-    const mode = resolveResourceHandlerMode(resource, route ? this._resourceHandlerModes.get(resource) || null : null);
-    if (mode === ResourceHandlerMode.RESOURCE) return;
-    if (route ? (route.Target || route.Identify) : this._IsObjectBuilderResource(resource)) return;
-    this._RefusePlainObject(resource, path);
-  }
-
-  /**
-   * @param {BlueAsyncRes} resource Canonical resource.
    * @param {string} path The requested path.
    * @returns {never}
    * @throws {TypeError} Always.
    */
-  _RefusePlainObject(resource, path)
+  _RefusePlainObject(path)
   {
-    throw new TypeError(`CjsBlueResMan.LoadObject: ${path} yields plain data, not an object; read it with GetResource(path), resMan.Ready(resource) and resMan.GetResourcePayload(resource).`);
+    throw new TypeError(`CjsBlueResMan.LoadObject: ${path} yields plain data, not an object; read it with ReadResource(path), ResolveFormatDescriptor and ReadFormat.`);
   }
 
   /**
@@ -1603,6 +1678,7 @@ export class CjsBlueResMan
     const normalizedPath = normalizeResourcePath(path);
     const variant = this.GetResourceVariant(options);
     const cacheKey = getMotherLodeKey(normalizedPath, variant);
+    if (this.loadObjectCache.Lookup(cacheKey)) return this.FetchObject(path, options);
     const existing = this.motherLode.Lookup(cacheKey);
     const ext = normalizeResourceExtension(
       (options.ext || getResourceExtension(normalizedPath)) + (options.ex ?? "")
@@ -1611,7 +1687,7 @@ export class CjsBlueResMan
       ? this._resourceExtensionRoutes.get(existing) || null
       : this.GetExtensionRoute(ext);
     const buildsObjects = route
-      ? route.handlerMode !== ResourceHandlerMode.RESOURCE && Boolean(route.Target || route.Identify)
+      ? route.handlerMode === ResourceHandlerMode.OBJECT
       : this._objectBuilderLoaders.has(this.GetObjectLoader(ext));
     return buildsObjects ? this.FetchObject(path, options) : this.FetchResource(path, options);
   }
@@ -2041,7 +2117,19 @@ export class CjsBlueResMan
    */
   PurgeInactive(options = {})
   {
-    return this.motherLode.PurgeInactive(options);
+    const resources = this.motherLode.PurgeInactive(options);
+    const objects = this.loadObjectCache.PurgeInactive(options);
+    return Object.freeze({
+      frame: resources.frame,
+      time: resources.time,
+      purged: resources.purged + objects.purged,
+      payloadsReleased: resources.payloadsReleased + objects.payloadsReleased,
+      cached: resources.cached + objects.cached,
+      locked: resources.locked + objects.locked,
+      purgedKeys: Object.freeze([ ...resources.purgedKeys, ...objects.purgedKeys ]),
+      payloadKeys: Object.freeze([ ...resources.payloadKeys, ...objects.payloadKeys ]),
+      cachedKeys: Object.freeze([ ...resources.cachedKeys, ...objects.cachedKeys ])
+    });
   }
 
   /**
@@ -2279,11 +2367,14 @@ export class CjsBlueResMan
    */
   Clear()
   {
-    for (const [, resource] of this.motherLode.Entries())
+    for (const lode of [ this.motherLode, this.loadObjectCache ])
     {
-      if (CjsSchema.cast(resource, IBlueResource)) resource.CancelPendingLoad();
+      for (const [, resource] of lode.Entries())
+      {
+        if (CjsSchema.cast(resource, IBlueResource)) resource.CancelPendingLoad();
+      }
+      lode.Clear();
     }
-    this.motherLode.Clear();
     this.sourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
     this._lastAutoPurgeTime = null;
@@ -2516,7 +2607,6 @@ export class CjsBlueResMan
     if (extensionRoute)
     {
       this._resourceExtensionRoutes.set(resource, extensionRoute);
-      this._resourceHandlerModes.set(resource, extensionRoute.handlerMode);
     }
     const record = this._GetResourceRecord(resource);
     record.request = { ...options, ...getResourceLoaderOptions(options, options.source || this.source) };
@@ -2713,7 +2803,7 @@ export class CjsBlueResMan
     // GetResource starts the attempt even when nobody awaits it.
     operation.promise.catch(noop);
     record.operation = operation;
-    if (resource.GetPath() && this.motherLode.Lookup(getMotherLodeKey(resource.GetPath(), resource.GetExt())) === resource)
+    if (resource.GetPath() && this._LodeOf(resource).Lookup(getMotherLodeKey(resource.GetPath(), resource.GetExt())) === resource)
     {
       this.LockResource(resource);
       operation.locked = true;
@@ -2886,7 +2976,19 @@ export class CjsBlueResMan
   KeepPayloadAlive(resource, options = {})
   {
     if (!resource.GetPath()) return;
-    this.motherLode.KeepPayloadAlive(getMotherLodeKey(resource.GetPath(), resource.GetExt()), options);
+    this._LodeOf(resource).KeepPayloadAlive(getMotherLodeKey(resource.GetPath(), resource.GetExt()), options);
+  }
+
+  /**
+   * The cache a handle belongs to: `loadObjectCache` for an object load,
+   * `motherLode` for a resource.
+   *
+   * @param {BlueAsyncRes} resource Resource or loading object.
+   * @returns {CjsMotherLode} Its cache.
+   */
+  _LodeOf(resource)
+  {
+    return this._objectLoads.has(resource) ? this.loadObjectCache : this.motherLode;
   }
 
   /**
@@ -2897,7 +2999,7 @@ export class CjsBlueResMan
   LockResource(resource)
   {
     if (!resource.GetPath()) return 0;
-    return this.motherLode.Lock(getMotherLodeKey(resource.GetPath(), resource.GetExt()));
+    return this._LodeOf(resource).Lock(getMotherLodeKey(resource.GetPath(), resource.GetExt()));
   }
 
   /**
@@ -2908,7 +3010,7 @@ export class CjsBlueResMan
   UnlockResource(resource)
   {
     if (!resource.GetPath()) return 0;
-    return this.motherLode.Unlock(getMotherLodeKey(resource.GetPath(), resource.GetExt()));
+    return this._LodeOf(resource).Unlock(getMotherLodeKey(resource.GetPath(), resource.GetExt()));
   }
 
   /**
@@ -2942,19 +3044,20 @@ export class CjsBlueResMan
     // Render-target wrappers and directly built textures have no MotherLode identity.
     if (!resource.GetPath()) return;
     if (options === undefined && this.activityTime > 0) resource._lastUsedTime = this.activityTime;
-    else this.motherLode.KeepAlive(getMotherLodeKey(resource.GetPath(), resource.GetExt()), options || {});
+    else this._LodeOf(resource).KeepAlive(getMotherLodeKey(resource.GetPath(), resource.GetExt()), options || {});
     const record = this._resourceRecords.get(resource);
     if (!record?.purged || record.attempts >= this.maxReloadAttempts) return;
 
+    const lode = this._LodeOf(resource);
     const key = getMotherLodeKey(resource.GetPath(), resource.GetExt());
-    const current = this.motherLode.Lookup(key);
+    const current = lode.Lookup(key);
     if (current && current !== resource) return;
     record.attempts += 1;
     resource.Reload();
     // Carbon initializes before insertion. The queued async load begins later.
     if (!current)
     {
-      this.motherLode.Insert(key, resource);
+      lode.Insert(key, resource);
       const operation = this._GetResourceLoad(resource);
       if (operation && !operation.locked)
       {
@@ -3713,35 +3816,6 @@ function getResourceFileName(path)
   return cleanPath.slice(slashIndex + 1);
 }
 
-/**
- * The mode this resource publishes under.
- *
- * There are two modes and there have only ever been two - RESOURCE hands back
- * the stable handle, OBJECT hands back the reader outcome - but the question
- * was answered in four branches at each of two call sites, because a resource
- * reached without a registered route has no captured mode to read. Both sites
- * then re-derived the same rule inline, and both had to be kept in agreement by
- * hand.
- *
- * The route's captured mode wins when there is one, since that is what the
- * registration declared. Otherwise the class answers for itself: anything
- * deriving from `BlueAsyncRes` carries a `handlerMode`, and a bare `BlueAsyncRes`
- * is a carrier rather than a semantic resource, so it publishes its payload.
- * That last case is why the class static cannot simply be trusted - the base
- * declares RESOURCE for the subclasses that inherit it, not for itself.
- *
- * @param {object} resource Resource being published or read back.
- * @param {string|null} [routedMode] Mode captured at registration, when routed.
- * @returns {string} A `ResourceHandlerMode` value.
- */
-function resolveResourceHandlerMode(resource, routedMode = null)
-{
-  if (routedMode === ResourceHandlerMode.RESOURCE) return ResourceHandlerMode.RESOURCE;
-  if (routedMode === ResourceHandlerMode.OBJECT) return ResourceHandlerMode.OBJECT;
-
-  return resource.isResource ? ResourceHandlerMode.RESOURCE : ResourceHandlerMode.OBJECT;
-}
-
 
 /**
  * Normalize an opt-in time-based automatic purge policy into a fresh object.
@@ -3944,6 +4018,19 @@ function defaultQueueYield()
 function defaultQueueNow()
 {
   return CjsBlueOS.Monotonic();
+}
+
+/**
+ * LoadObject's cache: a second MotherLode, as Carbon's `m_loadObjectCache`
+ * (BlueResMan.h:123), sized as `m_loadObjectCache.SetCacheSize` (BlueResMan.cpp:91).
+ *
+ * @param {number} cacheSize Byte budget.
+ * @param {() => number} now The clock, in milliseconds.
+ * @returns {CjsMotherLode} The cache.
+ */
+function createLoadObjectCache(cacheSize, now)
+{
+  return new CjsMotherLode({ now, cacheSize });
 }
 
 /**

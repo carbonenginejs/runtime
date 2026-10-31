@@ -6,12 +6,19 @@ import {
   CjsLoadingObject,
   CjsMotherLode,
   CjsBlueResMan,
-  BlueAsyncRes
+  BlueAsyncRes,
+  getMotherLodeKey
 } from "../../../npm/dist/resource/index.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
 
 // Carbon's LoadObject caches a builder and creates a new object per call
 // (BlueResMan.cpp:653-795). These pin that for routes that hydrate a Target.
+
+/** The loading object LoadObject keeps for a path, in its own cache (m_loadObjectCache). */
+function objectLoad(resMan, path)
+{
+  return resMan.loadObjectCache.Lookup(getMotherLodeKey(path, ""));
+}
 
 class TestGraphFormat
 {
@@ -108,7 +115,8 @@ test("the retained payload is the decoded values, and a released payload rebuild
   const { resMan, counter } = graphManager();
   const path = "res:/data/lease.graph";
   await resMan.Fetch(path);
-  const handle = resMan.GetResource(path);
+  const handle = objectLoad(resMan, path);
+  assert.equal(resMan.Lookup(path), null, "a resource lookup never finds a loading object");
   assert.equal(CjsSchema.cast(resMan.GetResourcePayload(handle), TestGraph), null);
   assert.deepEqual(resMan.GetResourcePayload(handle).list, [ 1, 2 ]);
 
@@ -137,9 +145,9 @@ test("RESOURCE-mode routes keep their shared outcome", async () =>
   assert.equal(CjsSchema.cast(semantic, TestSemanticResource), semantic);
   assert.deepEqual(semantic.value.list, [1, 2]);
   assert.equal(resMan.GetResourcePayload(semantic), null);
-  assert.equal(
-    await resMan.LoadObject("res:/data/semantic.graph", { ex: "semantic" }),
-    semantic
+  await assert.rejects(
+    resMan.LoadObject("res:/data/semantic.graph", { ex: "semantic" }),
+    /is a resource, not an object/u
   );
 });
 
@@ -208,7 +216,7 @@ test("an object builder is parsed once and builds a new object for every caller"
   assert.equal(counter.objects, 3);
   // The payload is the builder, never an object a caller holds (the manager's
   // own handle: GetResource refuses an object file).
-  const payload = resMan.GetResourcePayload(resMan._GetResource(path));
+  const payload = resMan.GetResourcePayload(objectLoad(resMan, path));
   assert.equal(typeof payload.CreateObject, "function");
   assert.notEqual(payload, first);
 });
@@ -232,31 +240,35 @@ test("a released builder payload is read and parsed again on the next load", asy
   const { resMan, counter } = builderManager();
   const path = "res:/data/lease.obj";
   await resMan.LoadObject(path);
-  resMan.ReleaseResourcePayload(resMan._GetResource(path));
+  resMan.ReleaseResourcePayload(objectLoad(resMan, path));
   const rebuilt = await resMan.LoadObject(path);
   assert.equal(rebuilt.read, 2);
   assert.equal(counter.reads, 2);
   assert.equal(counter.builders, 2);
 });
 
-test("GetResource refuses an object file; a registered plain route still answers", async () =>
+test("GetResource has no factory for an object file, as Carbon's (BlueResMan.cpp:266-273); a Res route still answers", async () =>
 {
   const { resMan } = builderManager();
-  assert.throws(() => resMan.GetResource("res:/data/refused.obj"), /is an object file; load it with LoadObject/u);
-  assert.throws(() => resMan.GetResource("RES:/Data/Refused.OBJ"), /is an object file/u);
+  assert.equal(resMan.GetResource("res:/data/refused.obj"), null);
+  assert.equal(resMan.GetResource("RES:/Data/Refused.OBJ"), null);
   RegisterDataLoader(resMan, "bin", bytes => bytes);
   const handle = resMan.GetResource("res:/data/plain.bin");
   await resMan.Ready(handle);
   assert.equal(typeof handle.GetPath, "function");
 });
 
-test("GetObject refuses a load that yields plain data, and names GetResource", async () =>
+test("LoadObject refuses a load that yields plain data, and names the plain read", async () =>
 {
-  const refused = /yields plain data, not an object; read it with GetResource/u;
+  const refused = /yields plain data, not an object; read it with ReadResource/u;
   const resMan = new CjsBlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
   blue.resMan = resMan;
-  // A format-only route (no Target or Identify).
-  resMan.RegisterExtension("fmt", CjsLoadingObject, { Format: TestGraphFormat });
+  // A format-only object route (no Target or Identify) is refused at registration.
+  assert.throws(
+    () => resMan.RegisterExtension("fmt", CjsLoadingObject, { Format: TestGraphFormat }),
+    /an object handler needs a Target or Identify/u
+  );
+  resMan.RegisterFormat(class TestFmtFormat { static extensions = [ ".fmt" ]; static read() { return { list: [ 1, 2 ] }; } });
   // Identify answering true (plain values) - refused once the load says so.
   resMan.RegisterExtension("idtrue", CjsLoadingObject, { Format: TestGraphFormat, Identify() { return true; } });
   // A bare loader returning data.
@@ -280,7 +292,7 @@ test("GetObject refuses a load that yields plain data, and names GetResource", a
     _DoPrepare() { return this.value !== null; }
   }
   routed.RegisterExtension("graphsemantic", TestSemanticResource, { Format: TestGraphFormat });
-  const semantic = await routed.LoadObject("res:/data/s.graph", { ex: "semantic" });
+  const semantic = await routed.FetchResource("res:/data/s.graph", { ex: "semantic" });
   assert.equal(CjsSchema.cast(semantic, TestSemanticResource), semantic);
 });
 
@@ -405,7 +417,8 @@ test("a Target constructs exactly one graph per caller, with no discarded prepar
   class CountedGraph { static from(values) { builds++; return {values}; } }
   const {resMan} = graphManager();
   resMan.RegisterExtension("count", CjsLoadingObject, {Format: TestGraphFormat, Target: CountedGraph});
-  const resource = resMan.GetResource("res:/count.count");
+  // The load alone, without a caller's build: LoadObject's own lookup.
+  const resource = resMan._GetLoadingObject("res:/count.count");
   await resMan.Ready(resource);
   assert.equal(builds, 0);
   await resMan.LoadObject("res:/count.count");
