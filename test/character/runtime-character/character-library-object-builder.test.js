@@ -20,11 +20,11 @@ test("content inspection separates camera/post layouts without decoding other re
     assert.equal(Object.getPrototypeOf(positional), CjsCharacterCameraSequence.prototype);
     assert.equal(positional.value.length, 6);
     assert.equal(CjsCharacterObjectBuilder.getSource(positional).kind, "cameraSequences");
-    const vector = Builder("lut: true\nlut_influence: !!python/tuple [0.1, 0.2, 0.3, 0.4]\nlut_path: R:/Authored/Lut.dds\n", "posts").CreateObject();
+    const vector = Builder("lut: true\nlut_influence: !!python/tuple [0.1, 0.2, 0.3, 0.4]\nlut_path: res:/test/lut.dds\n", "posts").CreateObject();
     const scalar = Builder('lut: ""\nlut_influence: 0\nlut_path: ""\n', "posts").CreateObject();
     assert.equal(Object.getPrototypeOf(vector), CjsCharacterPost.prototype);
     assert.equal(Object.getPrototypeOf(scalar), CjsCharacterScalarPost.prototype);
-    assert.equal(vector.lut_path, "R:/Authored/Lut.dds");
+    assert.equal(vector.lut_path, "res:/test/lut.dds");
     assert.throws(() => Builder("lut: true\nlut_influence: 1\n", "posts").CreateObject(), /Unrecognized/);
 });
 

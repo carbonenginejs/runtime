@@ -10,7 +10,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SELF = "scripts/lint-private-references.js";
 // Ignore rules name local folders; they reference nothing.
 // The character shape records verbatim authored drive paths as source evidence.
-const IGNORED = new Set([ SELF, ".gitignore", ".npmignore", "src/character/discovery/characters.yaml", "src/character/discovery/gsf.yaml", "src/character/discovery/scenes_post.yaml", "src/character/discovery/scenes_scene.yaml" ]);
+const IGNORED = new Set([ SELF, ".gitignore", ".npmignore" ]);
 const BINARY = /\.(png|jpe?g|gif|webp|psd|dds|tga|bin|wasm|gz|tgz|zip|ktx2?|glb|gr2|black|red|wem|bnk|ogg|mp3|mp4|webm|ttf|woff2?)$/iu;
 const RULES = [
     [ "private org document", /(?:^|[^\w.-])\/?docs\/(?:internal|research|projects|architecture|specifications|standards|decisions)\//u ],

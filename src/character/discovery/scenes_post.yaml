@@ -51,7 +51,7 @@
   # Item 2: 227 of 227; kinds: number; values: 1, 0; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
   # Item 3: 227 of 227; kinds: number; values: 1, 0; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
   [float, float, float, float]
-# 227 of 227; kinds: string; values: "", "res:/Graphics/Character/Global/PaperdollLibrary/Posts/LUT_not_so_default.dds", "res:/Graphics/Character/Global/PaperdollLibrary/Posts/NCC_BR_green.dds", "R:\\Graphics\\Character\\Global\\PaperdollLibrary\\Posts\\TheraLUT64.dds"; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+# 227 of 227; kinds: string; values: "", "res:/Graphics/Character/Global/PaperdollLibrary/Posts/LUT_not_so_default.dds", "res:/Graphics/Character/Global/PaperdollLibrary/Posts/NCC_BR_green.dds"; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
 # (sampled 198) → res:/graphics/character/global/paperdolllibrary/posts/*; 198 indexed candidates via casefold; indexed existence only, not runtime resolution
 "lut_path":
   string

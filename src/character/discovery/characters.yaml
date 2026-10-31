@@ -11,7 +11,7 @@
 # animation: PATH
 # gender: male
 # name: !!python/unicode 'Adam'
-# path: !!python/unicode 'R:\Graphics\Character\DNAFiles\Templates\Adam.prs'
+# path: !!python/unicode '(authoring path omitted)'
 # rotation: !!python/tuple
 # - 0.0
 # - 0.0
@@ -33,7 +33,7 @@
 # 17 of 17; kinds: string; values: "Adam", "Aura", "Eve", "AchuraFemaleClothing", "AmarrMaleClothing", "BrutorFemaleClothing", "businessMan1", "CivireMaleClothing", "DeteisFemaleClothing", "GallenteMaleClothing", "IntakiFemaleClothing", "JinMeiMaleClothing", "KhanidFemaleClothing", "NikunniMaleClothing", "SebiestorFemaleClothing", "VherokiorMaleClothing"; example: res:/graphics/character/global/paperdolllibrary/characters/0 adam.yaml
 "name":
   string
-# 17 of 17; kinds: string; values: "R:\\Graphics\\Character\\DNAFiles\\Templates\\Adam.prs", "R:\\Graphics\\Character\\DNAFiles\\Custom\\Aura_V2.prs", "R:\\Graphics\\Character\\DNAFiles\\Templates\\Eve.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\AchuraFemaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\AmarrMaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\BrutorFemaleClothing.prs", "E:\\perforce\\vicente_EVE\\eve\\shared_tools\\pipeline\\testdata\\trailertools\\decalbeard\\businessMan1.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\CivireMaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\DeteisFemaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\GallenteMaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\IntakiFemaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\JinMeiMaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\KhanidFemaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\NikunniMaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\SebiestorFemaleClothing.prs", "R:\\Graphics\\Character\\DNAFiles\\CharacterSelect\\VherokiorMaleClothing.prs"; example: res:/graphics/character/global/paperdolllibrary/characters/0 adam.yaml
+# 17 of 17; kinds: string; values: (authoring paths omitted); example: res:/graphics/character/global/paperdolllibrary/characters/0 adam.yaml
 "path":
   string
 # 17 of 17; kinds: sequence; lengths: 4; example: res:/graphics/character/global/paperdolllibrary/characters/0 adam.yaml

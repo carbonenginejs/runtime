@@ -309,7 +309,7 @@ SourceReference: object
 # Observed values: 0
 AnimationIndex: int
 # ExpectedName: 6050 of 6050; example res:/animation_gstate/gstate/charactercreator_gstate_female_master.gsf at root.AnimationSets[0].AnimationSpecs[0].ExpectedName.
-# More than 20 values; examples "E:/Work/CharacterCreator/Animations/Female/Maya/Temp/Female_Additive_Breathing.ma", "R:/Animation_New/Female/Maya/Temp/Female_Additive_Breathing_02.ma", "R:/Animation_New/Female/Maya/Temp/Female_Additive_BreathingLight_02.ma"
+# More than 20 values; examples (authoring paths omitted)
 # Decoded null is ambiguous; not asserted to be an authored null/default.
 ExpectedName: string|null
 
