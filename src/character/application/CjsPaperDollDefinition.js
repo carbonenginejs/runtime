@@ -36,10 +36,12 @@ import { CjsPaperDollMask } from "./CjsPaperDollMask.js";
 import { PaperDollPass } from "./paperDollOrder.js";
 
 /**
- * The paper-doll map size tiers, largest first, by `characterTextureQuality` value:
- * `_4k`, unsuffixed (half of it), `_512`, `_256`.
+ * The paper-doll map size tiers, largest first, as `[characterTextureQuality value,
+ * file suffix]`: `_4k`, unsuffixed (half of it), `_512`, `_256`. An array, not an
+ * object: an object lists the integer-like keys `512` and `256` first, which broke the
+ * fallback order for every quality but `4k`.
  */
-const TEXTURE_TIERS = { "4k": "_4k", "2k": "", "512": "_512", "256": "_256" };
+const TEXTURE_TIERS = [ [ "4k", "_4k" ], [ "2k", "" ], [ "512", "_512" ], [ "256", "_256" ] ];
 
 /**
  * Who and what one paper doll character is: its identity, its foundation and
@@ -419,8 +421,9 @@ export class CjsPaperDollDefinition
      */
     static tierOrder(quality = CjsPaperDollDefinition.characterTextureQuality)
     {
-        if (!(quality in TEXTURE_TIERS)) throw new Error("Unknown character texture quality " + quality);
-        const tiers = Object.values(TEXTURE_TIERS), index = tiers.indexOf(TEXTURE_TIERS[quality]);
+        const index = TEXTURE_TIERS.findIndex(([ value ]) => value === quality);
+        if (index === -1) throw new Error("Unknown character texture quality " + quality);
+        const tiers = TEXTURE_TIERS.map(([ , suffix ]) => suffix);
         return [ ...tiers.slice(index), ...tiers.slice(0, index).reverse() ];
     }
 

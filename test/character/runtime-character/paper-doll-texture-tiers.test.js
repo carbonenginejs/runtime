@@ -5,7 +5,10 @@ import { CjsPaperDollDefinition } from "../../../npm/dist/character/index.js";
 
 // Expected values recorded from Graphene's tier helpers (resourceListing.js SplitTier, TierOrder,
 // PickTier and TierCandidates at graphene 0294b0c) over map files of build 3662168's female
-// paper-doll folders. The statics must answer exactly as those did, for every quality.
+// paper-doll folders, with one correction: their tier list was the object's values, which put
+// the integer-like keys '512' and '256' first, so the first recording captured a wrong fallback
+// order for 2k, 512 and 256. These were re-recorded with the tiers in their stated order (own,
+// then each smaller, then each larger). The 4k values are unchanged from the first recording.
 const expected = JSON.parse(readFileSync(new URL("./fixtures/paper-doll-texture-tiers.json", import.meta.url), "utf8"));
 const QUALITIES = [ "4k", "2k", "512", "256" ];
 
