@@ -1165,6 +1165,12 @@ export class CjsMotherLode
  * The source path and promised-output variant are separated with an internal null byte;
  * variants therefore may not contain that delimiter.
  *
+ * Carbon: BlueResMan::GetResourceHelper's cache key (blue/src/BlueResMan.cpp:179-181).
+ *
+ * @adapted Carbon appends `ex` to the normalized path with no separator, so MotherLode can never take a key
+ * apart. The null byte keeps the path recoverable, which `DeleteAllVariants`, `normalizeResolvedKey` and
+ * `getKeyPath` rely on, and stops a path plus `ex` from colliding with a longer path.
+ *
  * @param {string} path Source resource path normalized with Carbon path rules.
  * @param {*} [variant=""] Stable build/outcome variant; empty values use the path alone.
  * @returns {string} Canonical resolved MotherLode identity.
