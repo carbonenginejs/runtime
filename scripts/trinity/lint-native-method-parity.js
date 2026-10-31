@@ -497,6 +497,13 @@ function RenamedOriginal(member)
     const original = RenamedCallOriginal(decorator.expression);
     if (original) return original;
   }
+  // The JSDoc tag form (decorator-upgrade.md § 00, 2026-10-30): `@renamed Original reason`.
+  // A JSDoc above a decorated member may be attached to its first decorator.
+  for (const comment of [ ...(member.leadingComments ?? []), ...(member.decorators?.[0]?.leadingComments ?? []) ])
+  {
+    const match = /^\s*\*?\s*@renamed\s+([A-Za-z_$][\w$]*)/m.exec(comment.value);
+    if (match) return match[1];
+  }
   return null;
 }
 

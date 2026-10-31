@@ -16,6 +16,23 @@ function files(dir, extensions, excluded = new Set([".git", "node_modules", "npm
     }
     return result.sort();
 }
+/**
+ * The implementation-marker JSDoc tags (decorator-upgrade.md § 00, 2026-10-30), each read as the marker decorator of
+ * the same name so every rule sees one vocabulary. `@abstract` is JSDoc's own; the tag and the executable
+ * `meta.abstract` both say abstract, as `@notUsed` and `meta.notUsed` both say not used.
+ */
+export const MARKER_TAGS = ["implemented","adapted","noop","notSupported","renamed","cjs","abstract","notImplemented","notUsed"];
+const MARKER_TAG = new RegExp("^[ \\t]*\\*?[ \\t]*@(" + MARKER_TAGS.join("|") + ")\\b[ \\t]*(.*)$", "gm");
+/** The marker tags in one JSDoc comment's text, as `{ name: "meta.<tag>", args, line offset }`. */
+export function markerTags(commentValue) {
+    const tags = [];
+    for (const match of commentValue.matchAll(MARKER_TAG)) {
+        const reason = match[2].trim();
+        const args = match[1] === "renamed" ? [reason.split(/\s+/)[0] ?? ""] : reason ? [reason] : [];
+        tags.push({ name: "meta." + match[1], args, text: match[0].trim(), form: "tag" });
+    }
+    return tags;
+}
 function walk(node, fn) {
     if (!node || typeof node !== "object") return;
     if (Array.isArray(node)) { for (const n of node) walk(n, fn); return; }
@@ -80,17 +97,34 @@ for (const file of files(path.join(root,"src"), [".js"])) {
         return d;
     };
     const donorComments = new Map(classDonorComments(ast).map(c => [c.start, c.entries]));
+    // The JSDoc block directly above a node (a class may sit behind `export` or `export default`).
+    const blockComments = (ast.comments ?? []).filter(x => x.type === "CommentBlock" && x.value.startsWith("*"));
+    const jsDocOf = node => {
+        let best = null;
+        for (const x of blockComments) if (x.end <= node.start && (!best || x.end > best.end)) best = x;
+        if (!best || !/^\s*(export\s+(default\s+)?)?$/.test(text.slice(best.end, node.start))) return null;
+        return best;
+    };
+    const tagged = (node, existing) => {
+        const comment = jsDocOf(node);
+        if (!comment) return existing;
+        const own = new Set(existing.map(d => d.name));
+        const tags = markerTags(comment.value).filter(t => !own.has(t.name))
+            .map(t => ({ ...t, line: comment.loc.start.line, start: comment.start, end: comment.end }));
+        for (const t of tags) decorators.push({ source, dropped, ...t });
+        return [ ...existing, ...tags ];
+    };
     const local = new Map(), classNodes = [];
     walk(ast.program,n => {if(["ClassDeclaration","ClassExpression"].includes(n.type) && n.id) classNodes.push(n);});
     for(const n of classNodes) {
         const c = {source, dropped, name:n.id.name, line:n.loc.start.line,
-            extends:src(n.superClass), decorators:(n.decorators??[]).map(d=>deco(d)), definitions:[],
+            extends:src(n.superClass), decorators:tagged(n, (n.decorators??[]).map(d=>deco(d))), definitions:[],
             donorComments: donorComments.get(n.start) ?? [], members:[], imports, sourceHash:hash(raw)};
         for(const m of n.body.body) {
             if(!m.key) continue;
             c.members.push({name:key(m.key), static:!!m.static, kind:m.kind??m.type,
                 line:m.loc.start.line, start:m.start, end:m.end,
-                decorators:(m.decorators??[]).map(d=>deco(d)),
+                decorators:tagged(m, (m.decorators??[]).map(d=>deco(d))),
                 comments:(m.leadingComments??[]).map(x=>x.value).join("\n"),
                 params:(m.params??[]).map(src), initializer:src(m.value)});
         }

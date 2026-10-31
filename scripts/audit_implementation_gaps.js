@@ -65,7 +65,7 @@ for (const file of files)
 
     for (const member of declaration.body.body)
     {
-      if (METHOD_TYPES.has(member.type) && HasDecorator(member, "impl", "notImplemented"))
+      if (METHOD_TYPES.has(member.type) && (HasDecorator(member, "impl", "notImplemented") || HasMarkerTag(member, "notImplemented")))
       {
         methods.push(CreateRecord(relativeFile, className, GetMemberName(member), member.loc.start.line));
       }
@@ -134,6 +134,21 @@ async function GetJavaScriptFiles(directory)
   }
 
   return found;
+}
+
+/**
+ * Whether the member's JSDoc carries an implementation-marker tag (decorator-upgrade.md § 00, 2026-10-30).
+ *
+ * @param {object} member
+ * @param {string} tag Tag name without the `@`.
+ * @returns {boolean}
+ */
+function HasMarkerTag(member, tag)
+{
+  const pattern = new RegExp(`^\\s*\\*?\\s*@${tag}\\b`, "m");
+  // A JSDoc above a decorated member may be attached to its first decorator.
+  const comments = [ ...(member.leadingComments ?? []), ...(member.decorators?.[0]?.leadingComments ?? []) ];
+  return comments.some(comment => comment.type === "CommentBlock" && pattern.test(comment.value));
 }
 
 /**
