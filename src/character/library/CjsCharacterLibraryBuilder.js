@@ -1,11 +1,11 @@
 import { getResourceExtension, normalizeResourcePath } from "#utils/path";
-import { CjsCharacterLibraryConfiguration } from "../library/CjsCharacterLibraryConfiguration.js";
+import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
 import { CjsCharacterObjectBuilder } from "../formats/CjsCharacterObjectBuilder.js";
 import { CjsSchema } from "#schema";
 
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsCharacterLibrary } from "../library/CjsCharacterLibrary.js";
-import { CjsCharacterLibraryDocuments } from "../library/CjsCharacterLibraryDocuments.js";
+import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
+import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
 import { createCharacterResourceReader } from "./resourceSource.js";
 
 const DOCUMENT_NAMES = CjsCharacterLibraryDocuments.listDocumentNames();

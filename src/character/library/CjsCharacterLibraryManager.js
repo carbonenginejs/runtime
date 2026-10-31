@@ -3,7 +3,7 @@ import { CjsCharacterPart } from "./CjsCharacterPart.js";
 import { CjsCharacterModifier } from "./CjsCharacterModifier.js";
 import { CjsSchema } from "#schema";
 import { blue } from "#blue";
-import { CjsCharacterLibraryBuilder } from "../library-builder/CjsCharacterLibraryBuilder.js";
+import { CjsCharacterLibraryBuilder } from "./CjsCharacterLibraryBuilder.js";
 import { CjsCharacterColorVariation } from "./kinds/CjsCharacterColorVariation.js";
 
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";

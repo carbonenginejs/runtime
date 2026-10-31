@@ -115,7 +115,7 @@
 //   The JSDoc clause keeps the exemption to helpers someone has declared as
 //   JSON output writers: the same helper shape also builds decoded FSD records
 //   and YAML mappings, which are not covered by this ruling.
-//   Site: DefineValue (character/library-builder/CjsCharacterLibraryBuilder.js).
+//   Site: DefineValue (character/library/CjsCharacterLibraryBuilder.js).
 //
 // HOW THE BASELINE WORKS. The existing sites are frozen per file and per kind,
 // the same ratchet as lint-optional-calls, and the check fails only when a

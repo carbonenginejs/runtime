@@ -14,7 +14,7 @@
     "src/audio/library-builder/resourceSource.js": 2,
     "src/audio/trinity/trinityAudio/Tr2AudioStretchBase.js": 2,
     "src/character/controls/CjsCharacterRigBinding.js": 7,
-    "src/character/library-builder/resourceSource.js": 2,
+    "src/character/library/resourceSource.js": 2,
     "src/character/trinity/interior/Tr2InteriorPerLightPSData.js": 6,
     "src/character/trinity/interior/Tr2InteriorPerObjectPSData.js": 3,
     "src/character/trinity/trinityCore/Tr2SkinnedObject.js": 2,

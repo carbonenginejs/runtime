@@ -10,6 +10,8 @@ const SOURCE_ROOT = path.join(PACKAGE_ROOT, "src", "character");
 const PACKAGE_IMPORT = /(?:from\s+|import\s*\()\s*["'](#[^"']+)["']/gu;
 const FORBIDDEN_RUNTIME_DEPENDENCY = /^#(?:engine|core|tools|audio|sof|input)(?:\/|$)/u;
 const RESOURCE_DEPENDENCY = /^#resource(?:\/|$)/u;
+// The library builder and its byte reader are the character files that may read through the resource layer.
+const LIBRARY_BUILDER_FILES = new Set([ "src/character/library/CjsCharacterLibraryBuilder.js", "src/character/library/resourceSource.js" ]);
 const NODE_FILE_DEPENDENCY = /(?:from\s+|import\s*\()\s*["'](?:node:)?(?:fs|path|os|child_process)["']/u;
 const LEGACY_TW2_GLOBAL_ACCESS = /(?:import\s*\{\s*tw2\s*\}\s*from\s*["']global["']|\btw2\s*(?:\?\.|\.))/u;
 const BACKEND_DIRECTORIES = new Set([ "gles", "webgl2", "webgpu" ]);
@@ -37,10 +39,10 @@ test("the character CPU/data layer stays backend- and Node-loader-free", async (
                 failures.push(`${Relative(filePath)} imports ${match[1]}`);
             }
             if (RESOURCE_DEPENDENCY.test(match[1])
-                && !Relative(filePath).startsWith("src/character/library-builder/"))
+                && !LIBRARY_BUILDER_FILES.has(Relative(filePath)))
             {
                 failures.push(
-                    `${Relative(filePath)} imports ${match[1]} outside library-builder`,
+                    `${Relative(filePath)} imports ${match[1]} outside the library builder`,
                 );
             }
         }

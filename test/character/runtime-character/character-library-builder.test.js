@@ -23,7 +23,7 @@ import {
     CjsCharacterResource,
     CjsCharacterTextureMetadata
 } from "../../../npm/dist/character/index.js";
-import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/library-builder/index.js";
+import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/index.js";
 import * as CcpLog from "../../../npm/dist/global/logging/ccpLog.js";
 import { blue } from "../../../npm/dist/global/blue/index.js";
 import {

@@ -61,12 +61,11 @@ test("every character entry imports without touching browser or GPU capabilities
             }
 
             const root = await import("./npm/dist/character/index.js");
-            const builder = await import("./npm/dist/character/library-builder/index.js");
             const generated = await import("./npm/dist/character/generated/index.js");
 
             new root.CjsCharacterLibrary();
 
-            for (const [ name, module ] of Object.entries({ root, builder, generated }))
+            for (const [ name, module ] of Object.entries({ root, generated }))
             {
                 if (!Object.keys(module).length)
                 {

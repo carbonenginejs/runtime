@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { CjsCharacterLibrary, CjsCharacterLibraryDocuments, CjsCharacterLibraryManager,
     CjsCharacterAppearanceResolver } from "../../../npm/dist/character/index.js";
-import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/library-builder/index.js";
+import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/index.js";
 
 function fixture()
 {

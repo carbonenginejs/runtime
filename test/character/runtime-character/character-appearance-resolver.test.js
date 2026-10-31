@@ -10,7 +10,7 @@ import {
     CjsCharacterLibrary,
     CjsCharacterResolvedPart
 } from "../../../npm/dist/character/index.js";
-import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/library-builder/index.js";
+import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/index.js";
 
 test("decodes utility shapes and applies occlusion and weight conflicts without a library", () =>
 {
