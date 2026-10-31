@@ -36,8 +36,16 @@ export class CjsCharacterLibraryBuilder
 
     _kindLoads = new Map();
 
+    /**
+     * In-flight LoadRecord reads by path, so concurrent requests share one load; a settled read is removed.
+     * @type {Map<string, Promise<object>>}
+     */
     _recordLoads = new Map();
 
+    /**
+     * Whether Index has listed the source paths.
+     * @type {boolean}
+     */
     _indexed = false;
 
     /**
@@ -199,6 +207,23 @@ export class CjsCharacterLibraryBuilder
     }
 
     /**
+     * Resolves only an exact indexed reference; no fallback or path guessing occurs.
+     * @param {string} path Canonical res path.
+     * @returns {Promise<object>} Loaded record or opaque resource path record.
+     */
+    async Resolve(path)
+    {
+        this.Index();
+        const key = normalizeResourcePath(path);
+        const kind = this._sourceKinds.get(key);
+        if (!kind) throw new Error(`Unresolved character reference: ${path}`);
+        await this.LoadRecord(kind, key);
+        const variant = kind === "cameras" ? "cameraSequences" : kind === "posts" ? "scalarPosts" : null;
+        return this._flatLibrary.GetKindRecord(kind, key)
+            ?? (variant ? this._flatLibrary.GetKindRecord(variant, key) : null);
+    }
+
+    /**
      * LoadRecord's read: a path-only kind becomes its path record; a text kind loads through resMan
      * LoadObject and its configured object builder, which identifies the record's actual kind.
      * @param {string} kind Configured source family.
@@ -228,24 +253,6 @@ export class CjsCharacterLibraryBuilder
         this._flatLibrary.AddKind(actual, path, record);
         return record;
     }
-
-    /**
-     * Resolves only an exact indexed reference; no fallback or path guessing occurs.
-     * @param {string} path Canonical res path.
-     * @returns {Promise<object>} Loaded record or opaque resource path record.
-     */
-    async Resolve(path)
-    {
-        this.Index();
-        const key = normalizeResourcePath(path);
-        const kind = this._sourceKinds.get(key);
-        if (!kind) throw new Error(`Unresolved character reference: ${path}`);
-        await this.LoadRecord(kind, key);
-        const variant = kind === "cameras" ? "cameraSequences" : kind === "posts" ? "scalarPosts" : null;
-        return this._flatLibrary.GetKindRecord(kind, key)
-            ?? (variant ? this._flatLibrary.GetKindRecord(variant, key) : null);
-    }
-
 
     static schema = "carbonenginejs.characterLibrary";
 

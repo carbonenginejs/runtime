@@ -12,9 +12,6 @@ const TEXT_DECODER = new TextDecoder("utf-8", { fatal: true });
  */
 export class CjsJsonFormat extends CjsFormat
 {
-    /** Registered name; `constructor.name` does not survive minification. */
-    static className = "CjsJsonFormat";
-
     /**
      * Creates a CjsJsonFormat; the reader takes no retained configuration.
      *
@@ -66,6 +63,9 @@ export class CjsJsonFormat extends CjsFormat
             throw new TypeError(`${FORMAT_NAME}: ${SourceName(options)} is not valid JSON: ${error.message}`, { cause: error });
         }
     }
+
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsJsonFormat";
 
     static id = "CjsJsonFormat";
 

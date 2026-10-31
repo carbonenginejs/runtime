@@ -14,9 +14,6 @@ import { normalizeResourcePath } from "#utils/path";
 export class CjsCharacterLibraryManager
 {
 
-    /** The registered name: the manager is never hydrated, so it is not a schema class (class-ownership.md § *Class-shape rules*). */
-    static className = "CjsCharacterLibraryManager";
-
     _sourceBuilder = null;
 
     _partJoins = new Map();
@@ -172,23 +169,6 @@ export class CjsCharacterLibraryManager
         }
         if (generation !== this._installGeneration) throw new Error("Character library was replaced during a part join.");
         return this._library.AddKind("parts", name, part);
-    }
-
-    /**
-     * Splits the observed ###number suffix without normalizing the raw modifier path.
-     * @param {string} value Authored dependency or occlusion string.
-     * @returns {CjsCharacterModifier} Parsed path and finite weight; invalid suffixes reject.
-     */
-    static parseModifier(value)
-    {
-        if (typeof value !== "string" || !value) throw new TypeError("Character modifier must be a nonempty string.");
-        const match = value.match(/^(.+?)###([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)$/u);
-        if (!match && value.includes("#")) throw new TypeError(`Unsupported character modifier suffix: ${value}`);
-        const modifier = new CjsCharacterModifier();
-        modifier.path = match ? match[1] : value;
-        modifier.weight = match ? Number(match[2]) : 1;
-        if (!Number.isFinite(modifier.weight)) throw new TypeError(`Invalid modifier weight: ${value}`);
-        return modifier;
     }
 
     /**
@@ -1230,6 +1210,25 @@ export class CjsCharacterLibraryManager
         return this._library.InspectResourceForData(resourcePath, options);
     }
 
+    /** The registered name: the manager is never hydrated, so it is not a schema class (class-ownership.md § *Class-shape rules*). */
+    static className = "CjsCharacterLibraryManager";
+
+    /**
+     * Splits the observed ###number suffix without normalizing the raw modifier path.
+     * @param {string} value Authored dependency or occlusion string.
+     * @returns {CjsCharacterModifier} Parsed path and finite weight; invalid suffixes reject.
+     */
+    static parseModifier(value)
+    {
+        if (typeof value !== "string" || !value) throw new TypeError("Character modifier must be a nonempty string.");
+        const match = value.match(/^(.+?)###([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)$/u);
+        if (!match && value.includes("#")) throw new TypeError(`Unsupported character modifier suffix: ${value}`);
+        const modifier = new CjsCharacterModifier();
+        modifier.path = match ? match[1] : value;
+        modifier.weight = match ? Number(match[2]) : 1;
+        if (!Number.isFinite(modifier.weight)) throw new TypeError(`Invalid modifier weight: ${value}`);
+        return modifier;
+    }
 }
 
 function NormalizeLibraryPath(value)
