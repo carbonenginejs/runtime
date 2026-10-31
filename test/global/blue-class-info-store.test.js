@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ImportAllDistModules, ImportDist } from "../support/allDistClasses.js";
 
-// Blue's class-info store (ClassInfo.ExposeToBlue, BlueClasses.GetRtti) sits beside the schema's class record and is
+// Blue's class-info store (ClassInfo.exposeToBlue, BlueClasses.GetRtti) sits beside the schema's class record and is
 // built from the same decorator metadata (decorator-upgrade.md § 5 step 2). For every registered class it must answer
 // what the schema answers, and its Blue view must be what PyGetTypeInfo reports.
 
@@ -22,8 +22,8 @@ test("the store is built once per class and its RTTI once per class info", () =>
   assert.ok(registrations.length > 1000, `expected the whole runtime registered, got ${registrations.length} classes`);
   for (const { type } of registrations)
   {
-    const ci = ClassInfo.ExposeToBlue(type);
-    assert.equal(ClassInfo.ExposeToBlue(type), ci);
+    const ci = ClassInfo.exposeToBlue(type);
+    assert.equal(ClassInfo.exposeToBlue(type), ci);
     assert.equal(classes.GetRtti(ci), classes.GetRtti(ci));
   }
 });
@@ -33,7 +33,7 @@ test("every schema row is found by its exposed name with its flags and key, and 
   const problems = [];
   for (const { name, type } of registrations)
   {
-    const rtti = classes.GetRtti(ClassInfo.ExposeToBlue(type));
+    const rtti = classes.GetRtti(ClassInfo.exposeToBlue(type));
     const schema = CjsSchema.getSchema(type);
     const byName = new Map();
     for (const row of [ ...schema.members, ...schema.properties.filter(property => property.property || property.edit) ])
@@ -71,7 +71,7 @@ test("the Blue view is PyGetTypeInfo's members and methods", () =>
   const problems = [];
   for (const { name, type } of registrations)
   {
-    const ci = ClassInfo.ExposeToBlue(type);
+    const ci = ClassInfo.exposeToBlue(type);
     const [ , , members, methods ] = CjsBlueClasses._typeInfo(type, 0);
     const blueRows = new Map();
     const rowCount = new Map();
@@ -115,7 +115,7 @@ test("our own map rows are in the store and left out of the Blue view", () =>
   }
   CjsSchema.decorateField(OwnStoreProbe, "speed", meta.mapAttribute(meta.READWRITE | meta.PERSIST), storage.float32);
   meta.define("OwnStoreProbe")(OwnStoreProbe);
-  const ci = ClassInfo.ExposeToBlue(OwnStoreProbe);
+  const ci = ClassInfo.exposeToBlue(OwnStoreProbe);
   const value = classes.GetRtti(ci).FindAttribute("speed");
   assert.equal(value.type, "var");
   assert.equal(value.var.editFlags, 0x013);

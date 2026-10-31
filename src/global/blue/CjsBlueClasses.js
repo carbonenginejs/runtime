@@ -39,7 +39,7 @@ import { CjsSchema, meta, blue } from "#schema";
 import { getCarbonTypeDefinition } from "../schema/types/carbonTypes.js";
 import { mappedInterfaces, exposureChainTo } from "../compose/interface.js";
 import { IBlueClasses } from "./IBlueClasses.js";
-import { BlueRttiType } from "./classes/BlueRttiType.js";
+import { BlueRttiType } from "./BlueRttiType.js";
 import { Copier } from "./Copier.js";
 import * as CcpLog from "../logging/ccpLog.js";
 // The class, not the `blue` instance: the holder constructs this registry,
@@ -307,7 +307,7 @@ export class CjsBlueClasses extends IBlueClasses
    * class's flattened run-time type information, built on the first request
    * and kept on the class info.
    *
-   * @param {import("./classes/ClassInfo.js").ClassInfo} ci The class information, from `ClassInfo.ExposeToBlue(Class)`.
+   * @param {import("./ClassInfo.js").ClassInfo} ci The class information, from `ClassInfo.exposeToBlue(Class)`.
    * @returns {BlueRttiType} The class's RTTI.
    */
   GetRtti(ci)

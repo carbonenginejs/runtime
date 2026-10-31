@@ -1,8 +1,8 @@
 // Source: blueexposure/include/BlueTypes.h:378-400 (Be::ClassInfo)
 // Source: blueexposure/include/BlueExposureMacrosPython.h:20-67 (ExposeToBlue, EXPOSURE_BEGIN_IMP, EXPOSURE_END_IMPL)
-import { CjsSchema } from "#schema";
-import { getCarbonTypeDefinition } from "../../schema/types/carbonTypes.js";
-import { ownMappedInterfaces, exposureChainTo } from "../../compose/interface.js";
+import { CjsSchema, meta } from "#schema";
+import { getCarbonTypeDefinition } from "../schema/types/carbonTypes.js";
+import { ownMappedInterfaces, exposureChainTo } from "../compose/interface.js";
 import { VarEntry } from "./VarEntry.js";
 
 /** Be::EDITFLAGS bits (BlueTypes.h:288-303), keyed by the schema's edit flag names. */
@@ -22,7 +22,7 @@ const s_classInfo = new WeakMap();
  * A class's Blue type information: Carbon's `Be::ClassInfo`, which a class's
  * `ExposeToBlue()` builds once from its exposure macros and keeps
  * (`EXPOSURE_BEGIN_IMP`, BlueExposureMacrosPython.h:23-24). Here the macros
- * are the class's `be`/`meta` decorators, so `ClassInfo.ExposeToBlue(Class)`
+ * are the class's `be`/`meta` decorators, so `ClassInfo.exposeToBlue(Class)`
  * reads their metadata and builds the record once. The flattened lookup is
  * `BlueRttiType`, which `BlueClasses.GetRtti` builds from it on demand.
  *
@@ -74,8 +74,9 @@ export class ClassInfo
    * `ExposeToBlue()` (BlueExposureMacrosPython.h:20-67): the class's
    * information, built on the first call and returned from then on.
    *
-   * Adapted: Carbon generates one `ExposeToBlue` per class from its macros;
-   * JavaScript has one function that reads the class's decorator metadata.
+   * Adapted: our decorators stand in for the macros. Carbon generates one
+   * `ExposeToBlue` per class from its macros; JavaScript has one static that
+   * takes the class and reads its decorator metadata.
    * The record is rebuilt only when that metadata has changed since (the
    * schema hands out a new record then), which happens while classes are
    * still being declared and in tests.
@@ -89,7 +90,7 @@ export class ClassInfo
    * @param {Function} Constructor A class with registered metadata.
    * @returns {ClassInfo} Its class information.
    */
-  static ExposeToBlue(Constructor)
+  static exposeToBlue(Constructor)
   {
     const schema = CjsSchema.getSchema(Constructor);
     const cached = s_classInfo.get(Constructor);
@@ -102,7 +103,7 @@ export class ClassInfo
     for (const Interface of ownMappedInterfaces(Constructor)) ci.interfaceTable.push(CjsSchema.getClassName(Interface));
 
     const Parent = ClassInfo._ParentClass(Constructor);
-    ci.parentClassInfo = Parent ? ClassInfo.ExposeToBlue(Parent) : null;
+    ci.parentClassInfo = Parent ? ClassInfo.exposeToBlue(Parent) : null;
     for (let parent = ci.parentClassInfo; parent; parent = parent.parentClassInfo)
     {
       for (const entry of parent.memberTable) if (CjsSchema.isFieldHidden(Constructor, entry.key)) ci.hiddenInherited.add(entry.key);
@@ -148,7 +149,7 @@ export class ClassInfo
 
   /**
    * The nearest superclass with a registered name, standing in for
-   * `mParentClassInfo` (see `ExposeToBlue`).
+   * `mParentClassInfo` (see `exposeToBlue`). Ours.
    *
    * @param {Function} Constructor The class.
    * @returns {Function|null} The parent class, or null.
@@ -166,7 +167,8 @@ export class ClassInfo
    * One member or property row as a `VarEntry`. The flags are the row's own
    * when it carries an exposure record; an older declaration without one has
    * its editor bits derived from its edit flags, `type.flags` and enum, as
-   * PyGetTypeInfo reports them (CjsBlueClasses._typeInfo).
+   * PyGetTypeInfo reports them (CjsBlueClasses._typeInfo). Ours: Carbon's
+   * macros write each `VarEntry` directly.
    *
    * @param {Function} Constructor The class, for the property's accessors.
    * @param {object} member The schema's member or property record.
@@ -206,6 +208,7 @@ export class ClassInfo
 
   /**
    * The accessor descriptor for a key, wherever it is on the prototype chain.
+   * Ours: Carbon's macros take the getter and setter as arguments.
    *
    * @param {object} prototype The class prototype.
    * @param {string} key The property key.
@@ -222,3 +225,9 @@ export class ClassInfo
   }
 
 }
+
+CjsSchema.decorateMethod(ClassInfo, "exposeToBlue", meta.adapted);
+CjsSchema.decorateMethod(ClassInfo, "_ParentClass", meta.cjs, meta.implemented);
+CjsSchema.decorateMethod(ClassInfo, "_VarEntryOf", meta.cjs, meta.implemented);
+CjsSchema.decorateMethod(ClassInfo, "_FindDescriptor", meta.cjs, meta.implemented);
+CjsSchema.meta.carbon("ClassInfo")(ClassInfo);

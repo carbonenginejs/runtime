@@ -1,5 +1,6 @@
 // Source: blueexposure/BlueClasses.cpp:72-231 (BlueRttiType)
 // Source: blueexposure/include/IBlueRtti.h:14-35 (BlueRttiValue, IBlueRtti)
+import { CjsSchema, meta } from "#schema";
 
 /**
  * A class's run-time type information: every exposed member and method under
@@ -42,8 +43,10 @@ export class BlueRttiType
    * `Init( const Be::ClassInfo *ci )` (BlueClasses.cpp:82-187): collects the
    * class's members, then each parent's, then its methods, and inserts them
    * in that order without replacing a name already present, so a derived
-   * class's entry wins. Hidden members are left out, as in Carbon, and so are
-   * parent rows the class hides with `hideInherited` (ours, see ClassInfo).
+   * class's entry wins. Hidden members are left out, as in Carbon.
+   *
+   * Adapted: parent rows the class hides with `hideInherited` are left out
+   * too (ours, see ClassInfo), and no offsets are kept (see the class).
    *
    * @param {import("./ClassInfo.js").ClassInfo} ci The class.
    */
@@ -114,3 +117,9 @@ export class BlueRttiType
   }
 
 }
+
+CjsSchema.decorateMethod(BlueRttiType, "Init", meta.adapted);
+CjsSchema.decorateMethod(BlueRttiType, "GetMethodsAsList", meta.adapted);
+CjsSchema.decorateMethod(BlueRttiType, "FindAttribute", meta.implemented);
+CjsSchema.decorateMethod(BlueRttiType, "FindMethod", meta.implemented);
+CjsSchema.meta.carbon("BlueRttiType")(BlueRttiType);

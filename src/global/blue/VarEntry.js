@@ -1,10 +1,11 @@
 // Source: blueexposure/include/BlueTypes.h:321-375 (Be::VarEntry)
+import { CjsSchema } from "#schema";
 
 /**
  * One row of a class's member table: Carbon's `Be::VarEntry`, which
  * `MAP_ATTRIBUTE` and `MAP_PROPERTY*` push into the table `EXPOSURE_BEGIN`
  * starts (BlueExposureMacrosPython.h:35). Built once per class by
- * `ClassInfo.ExposeToBlue` from the decorator metadata.
+ * `ClassInfo.exposeToBlue` from the decorator metadata.
  *
  * Adapted: Carbon's `mOffset` and `mSize` locate the member's bytes in the
  * object; a JavaScript member is located by its property key, so `key` stands
@@ -50,3 +51,5 @@ export class VarEntry
   blue = false;
 
 }
+
+CjsSchema.meta.carbon("VarEntry")(VarEntry);
