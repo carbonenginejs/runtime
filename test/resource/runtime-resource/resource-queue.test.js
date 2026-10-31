@@ -6,11 +6,13 @@ import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
 
 import { CjsBlueResMan } from "../../../npm/dist/global/blue/CjsBlueResMan.js";
 
-import { blue, BlueResManQueue, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResManQueue } from "../../../npm/dist/global/blue/index.js";
 
 import { BlueResManQueue as RootBlueResManQueue } from "../../../npm/dist/resource/index.js";
 
 import { LoadData } from "../../support/loadData.js";
+
+import { RegisterDataLoader, TestDataRes } from "../../support/testDataRes.js";
 
 const { BRMQ_MAIN, BRMQ_BACKGROUND } = BlueResManQueue;
 
@@ -74,7 +76,7 @@ test("native loading reads on BACKGROUND and prepares once on MAIN", async () =>
   const resMan = new CjsBlueResMan({autoPumpMainThreadQueue: false, maxConcurrentLoads: 1,
     source: {Read(path) { calls.push(["load", path]); return bytes; }} });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("bin", (value, context) => { calls.push([context.stage, context.path]); return {bytes: value}; });
+  RegisterDataLoader(resMan, "bin", (value, context) => { calls.push([context.stage, context.path]); return {bytes: value}; });
   const operation = LoadData(resMan, "res:/queue/example.bin");
   const resource = resMan.Lookup("res:/queue/example.bin");
   assert.equal(resource.IsLoading(), true);
@@ -85,7 +87,7 @@ test("native loading reads on BACKGROUND and prepares once on MAIN", async () =>
   assert.equal(resMan.PumpMainThreadQueue(), true);
   const object = await operation;
   assert.equal(object.bytes, bytes);
-  assert.equal(resMan.GetResourcePayload(resource), object);
+  assert.equal(resource.value, object);
   assert.equal(resource.IsPrepared(), true);
   assert.equal(resMan.GetPendingPrepares(), 0);
   assert.deepEqual(calls, [["load", "res:/queue/example.bin"], ["read", "res:/queue/example.bin"]]);
@@ -102,8 +104,8 @@ test("suffix-selected resources share source bytes while retaining their native 
   const resMan = new CjsBlueResMan({autoPumpMainThreadQueue: false, maxConcurrentLoads: 2,
     source: {Read() { reads++; return new Uint8Array([7]); }} });
   blue.resMan = resMan;
-  resMan.RegisterExtension("binraw", CjsLoadingObject, {Format: TestFormat, defaults: {emit: "raw"}});
-  resMan.RegisterExtension("binjson", CjsLoadingObject, {Format: TestFormat, defaults: {emit: "json"}});
+  resMan.RegisterExtension("binraw", TestDataRes, {Format: TestFormat, defaults: {emit: "raw"}});
+  resMan.RegisterExtension("binjson", TestDataRes, {Format: TestFormat, defaults: {emit: "json"}});
   const raw = LoadData(resMan, "res:/queue/shared.bin", {ex: "raw"});
   const json = LoadData(resMan, "res:/queue/shared.bin", {ex: "json"});
   assert.equal(resMan.GetPendingLoads(), 2);
@@ -124,7 +126,7 @@ test("Wait also waits for work queued after the call (BlueResMan.cpp:971-977)", 
     source: { Read() { return new Uint8Array([ 5 ]); } }
   });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
+  RegisterDataLoader(resMan, "bin", bytes => new Promise(resolve => {
     releaseRead = () => resolve({ bytes });
   }));
 
@@ -167,7 +169,7 @@ test("Wait resolves after a captured resource lineage fails", async () => {
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("bin", () => {
+  RegisterDataLoader(resMan, "bin", () => {
     throw new Error("expected resource-stage failure");
   });
 
@@ -187,7 +189,7 @@ test("Clear cancellation settles an already captured resource lineage", async ()
   });
   blue.resMan = resMan;
   resMan.PauseQueue(BRMQ_BACKGROUND);
-  resMan.RegisterObjectLoader("bin", value => value);
+  RegisterDataLoader(resMan, "bin", value => value);
   const operation = LoadData(resMan, "res:/queue/wait-clear.bin");
   const resource = resMan.Lookup("res:/queue/wait-clear.bin");
   const operationFailure = assert.rejects(
@@ -201,7 +203,7 @@ test("Clear cancellation settles an already captured resource lineage", async ()
   assert.equal(await fence, resMan);
   assert.equal(resource.IsPrepared(), false);
   assert.equal(resMan.GetResourceStatus(resource).error.code, "CJS_RESOURCE_LOAD_CANCELLED");
-  assert.equal(resMan.HasResourcePayload(resource), false);
+  assert.equal(resource.value, null);
 });
 
 test("Wait pump false relies on an external queue driver", async () => {
@@ -278,7 +280,7 @@ test("Clear during an active source read prevents late loading, preparation, and
     }
   });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("bin", bytes => {
+  RegisterDataLoader(resMan, "bin", bytes => {
     loaderCalls += 1;
     return bytes;
   });
@@ -301,7 +303,7 @@ test("Clear during an active source read prevents late loading, preparation, and
   assert.equal(resMan.Lookup("res:/queue/stale-clear.bin"), null);
   assert.equal(resource.IsPrepared(), false);
   assert.equal(resMan.GetResourceStatus(resource).error.code, "CJS_RESOURCE_LOAD_CANCELLED");
-  assert.equal(resMan.HasResourcePayload(resource), false);
+  assert.equal(resource.value, null);
   assert.equal(loaderCalls, 0);
   assert.equal(resMan.GetPendingPrepares(), 0);
 });
@@ -314,7 +316,7 @@ test("Delete during an active native reader cancels its late completion", async 
     source: { Read() { return new Uint8Array([ 7 ]); } }
   });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
+  RegisterDataLoader(resMan, "bin", bytes => new Promise(resolve => {
     releaseRead = () => resolve({ bytes });
   }));
 
@@ -338,22 +340,11 @@ test("Delete during an active native reader cancels its late completion", async 
   assert.equal(resMan.Lookup(path), null);
   assert.equal(resource.IsPrepared(), false);
   assert.equal(resMan.GetResourceStatus(resource).error.code, "CJS_RESOURCE_LOAD_CANCELLED");
-  assert.equal(resMan.HasResourcePayload(resource), false);
+  assert.equal(resource.value, null);
   assert.equal(rebuilds, 0);
   resource.RemoveNotifyTarget(target);
   assert.equal(resMan.GetPendingPrepares(), 0);
 });
-
-async function LoadOwner(resMan, path) {
-  const resource = resMan.GetResource(path);
-  for (let pass = 0; pass < 100 && !resMan.HasResourcePayload(resource); pass++) {
-    resMan.PumpBackgroundQueue();
-    resMan.PumpMainThreadQueue();
-    await FlushMicrotasks();
-  }
-  assert.equal(resMan.HasResourcePayload(resource), true, `${path} loaded`);
-  return resource;
-}
 
 async function FlushMicrotasks() {
   await Promise.resolve();
@@ -383,7 +374,7 @@ test("resources created in urgent mode load and prepare ahead of regular ones (B
     }
   });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("bin", value => ({ bytes: value }));
+  RegisterDataLoader(resMan, "bin", value => ({ bytes: value }));
 
   const regular = [ LoadData(resMan, "res:/urgent/a.bin"), LoadData(resMan, "res:/urgent/b.bin") ];
   resMan.SetUrgentResourceLoads(true);
@@ -427,7 +418,7 @@ test("a background queue drains on its own: a finished task starts the next with
 test("a reload reads the urgent mode again, and WaitUrgent waits for it (BlueAsyncRes.cpp:363-367, 220)", async () => {
   const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false, source: { Read() { return new Uint8Array([ 1 ]); } } });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("bin", value => ({ bytes: value }));
+  RegisterDataLoader(resMan, "bin", value => ({ bytes: value }));
   const first = LoadData(resMan, "res:/urgent/reloaded.bin");
   await resMan.Wait();
   await first;

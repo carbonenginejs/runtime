@@ -14,6 +14,7 @@ import { CjsRedFormat } from "../../../npm/dist/global/blue/formats/red/index.js
 import { CjsEventEmitter, Tr2ImageRes, TriGeometryRes, TriTextureRes, CjsMotherLode, CjsLoadingObject, CjsBlueResMan, BlueAsyncRes, CjsResourceProbe, ResourceHandlerMode, Tr2GrannyStateRes, Tr2LightProfileRes, TriGrannyRes, getMotherLodeKey } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes, Tr2MaterialRes } from "../../../npm/dist/trinity/shader/index.js";
 import { LoadData } from "../../support/loadData.js";
+import { RegisterDataLoader, TestDataRes } from "../../support/testDataRes.js";
 import {blue} from "../../../npm/dist/global/blue/index.js";
 
 /** A concrete family test double that owns its reader result. */
@@ -232,7 +233,7 @@ test("CjsBlueResMan ordered extension formats probe once and use only a final fa
   const source = { Read() { return new Uint8Array([ 1 ]); } };
   const resMan = new CjsBlueResMan({ source });
   blue.resMan = resMan;
-  resMan.RegisterExtension("ordered", CjsLoadingObject, [
+  resMan.RegisterExtension("ordered", TestDataRes, [
     TestRejectingFormat,
     TestAcceptedFormat,
     TestFallbackFormat
@@ -252,7 +253,7 @@ test("CjsBlueResMan ordered extension formats probe once and use only a final fa
   assert.deepEqual(calls, [ "probe:reject", "probe:accept" ]);
 
   assert.throws(
-    () => resMan.RegisterExtension("invalid", CjsLoadingObject, [
+    () => resMan.RegisterExtension("invalid", TestDataRes, [
       TestFallbackFormat,
       TestAcceptedFormat
     ]),
@@ -270,8 +271,8 @@ test("CjsBlueResMan uses Black-first content routing for both red and black suff
   const source = { Read() { return encoded; } };
   const resMan = new CjsBlueResMan({ source });
   blue.resMan = resMan;
-  resMan.RegisterExtension("red", CjsLoadingObject, [ CjsBlackFormat, CjsRedFormat ]);
-  resMan.RegisterExtension("black", CjsLoadingObject, [ CjsBlackFormat, CjsRedFormat ]);
+  resMan.RegisterExtension("red", TestDataRes, [ CjsBlackFormat, CjsRedFormat ]);
+  resMan.RegisterExtension("black", TestDataRes, [ CjsBlackFormat, CjsRedFormat ]);
 
   const fromRed = await LoadData(resMan, "res:/data/value.red");
   const fromBlack = await LoadData(resMan, "res:/data/value.black");
@@ -301,7 +302,7 @@ test("CjsBlueResMan never falls through after an ordered format is selected", as
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
   blue.resMan = resMan;
-  resMan.RegisterExtension("once", CjsLoadingObject, [
+  resMan.RegisterExtension("once", TestDataRes, [
     TestSelectedFormat,
     TestUnselectedFallback
   ]);
@@ -362,15 +363,6 @@ test("CjsBlueResMan Register accepts composed extension route objects", async ()
     { type: "known", value: 4, hydratedBy: "TestValueFormat" }
   );
 
-  resMan.RegisterExtension("rawshape", CjsLoadingObject, {
-    Format: TestValueFormat,
-    Identify() { return true; }
-  });
-  assert.deepEqual(
-    await LoadData(resMan, "res:/data/value.rawshape"),
-    { type: "known", value: 4 }
-  );
-
   resMan.RegisterExtension("unknownshape", CjsLoadingObject, {
     Format: TestValueFormat,
     Identify() { return false; }
@@ -388,6 +380,10 @@ test("CjsBlueResMan exposes normalized resource paths to sources, formats and ta
   let identifyContext = null;
   let sourceUrl = null;
 
+  class TestContextTarget
+  {
+    static from(values) { return Object.assign(new TestContextTarget(), values); }
+  }
   class TestContextFormat
   {
     static read(_bytes, _options, context)
@@ -414,17 +410,16 @@ test("CjsBlueResMan exposes normalized resource paths to sources, formats and ta
         {
           assert.deepEqual(values, { type: "context" });
           identifyContext = context;
-          return true;
+          return TestContextTarget;
         }
       }
     }
   });
   blue.resMan = resMan;
 
-  assert.deepEqual(
-    await LoadData(resMan, " RES:\\Character\\Folder\\Metadata.YAML "),
-    { type: "context" }
-  );
+  const loaded = await resMan.LoadObject(" RES:\\Character\\Folder\\Metadata.YAML ");
+  assert.equal(loaded instanceof TestContextTarget, true);
+  assert.equal(loaded.type, "context");
 
   const expected = {
     path: "res:/character/folder/metadata.yaml",
@@ -442,7 +437,7 @@ test("CjsBlueResMan exposes normalized resource paths to sources, formats and ta
   assert.equal(identifyContext.fileName, expected.fileName);
   assert.equal(identifyContext.url, expected.url);
 
-  await LoadData(resMan, "res:/character/folder/metadata", { ext: ".YAML" });
+  await resMan.LoadObject("res:/character/folder/metadata", { ext: ".YAML" });
   assert.equal(formatContext.resFilePath, "res:/character/folder/metadata");
   assert.equal(formatContext.fileName, "metadata");
   assert.equal(formatContext.ext, "yaml");
@@ -731,7 +726,7 @@ test("CjsBlueResMan reads source through a registered loader and marks the resou
   const resMan = new CjsBlueResMan({ source });
   blue.resMan = resMan;
 
-  resMan.RegisterObjectLoader("json", (value, context) => {
+  RegisterDataLoader(resMan, "json", (value, context) => {
     loaderContext = context;
     return JSON.parse(value);
   });
@@ -746,7 +741,7 @@ test("CjsBlueResMan reads source through a registered loader and marks the resou
   assert.equal(resource.IsPrepared(), true);
   assert.equal(resource.IsPrepared(), true);
   assert.equal(resource.IsGood(), true);
-  assert.equal(resMan.GetResourcePayload(resource), object);
+  assert.equal(resource.value, object);
   assert.equal(loaderContext.path, "res:/data/example.json");
   assert.equal(loaderContext.resFilePath, "res:/data/example.json");
   assert.equal(loaderContext.ext, "json");
@@ -782,104 +777,26 @@ test("registered formats and resource readiness share one object operation", asy
   }
 
   const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestFormat);
+  resMan.RegisterExtension("one", TestDataRes);
   blue.resMan = resMan;
   const resource = resMan.GetResource("res:/data/shared.one", { emit: "raw" });
   const first = resMan.Ready(resource);
   const second = resMan.Ready(resource);
   const third = resMan.Ready(resource);
-  // Plain data is read through its resource (GetObject answers objects only):
-  // a manager-level read joins the same operation - one source and one format
-  // read below - rather than being the same promise.
+  // A second load of the same resource joins its operation: one source and
+  // one format read below, rather than the same promise.
   const viaManager = LoadData(resMan, "res:/data/shared.one", { emit: "raw" });
 
   assert.equal(resMan.ResolveFormat("two", { emit: "raw" }), TestFormat);
   assert.deepEqual(resMan.GetFormats("one"), [ TestFormat ]);
   assert.equal(first, second);
   assert.equal(first, third);
-  assert.equal(await first, bytes);
+  assert.equal(await first, resource);
   assert.equal(await viaManager, bytes);
   assert.equal(formatInput, bytes);
   assert.equal(sourceReads, 1);
   assert.equal(formatReads, 1);
-  assert.equal(resMan.GetResourcePayload(resource), bytes);
-});
-
-test("generic payloads release and reconstruct only on explicit object use", async () =>
-{
-  let time = 0;
-  let sourceReads = 0;
-  const motherLode = new CjsMotherLode({ now: () => time });
-  const resMan = new CjsBlueResMan({
-    motherLode,
-    source: {
-      Read()
-      {
-        sourceReads += 1;
-        return `{\"revision\":${sourceReads}}`;
-      }
-    }
-  });
-  blue.resMan = resMan;
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-
-  const path = "res:/data/reconstruct.json";
-  const resource = resMan.GetResource(path);
-  const first = resMan.Ready(resource);
-  const concurrent = resMan.Ready(resource);
-  // The manager-level read of plain data goes through the resource and joins
-  // this operation: one source read, the same payload.
-  const viaManager = LoadData(resMan, path);
-
-  assert.equal(first, concurrent);
-  const firstObject = await first;
-  assert.equal(await viaManager, firstObject);
-  assert.deepEqual(firstObject, { revision: 1 });
-  assert.equal(resMan.GetResourcePayload(resource), firstObject);
-  assert.equal(resMan.GetResourcePayload(resource), firstObject);
-  assert.equal(motherLode.GetStats().payloads, 1);
-
-  const resident = LoadData(resMan, path);
-  assert.notEqual(resident, first);
-  assert.equal(await resident, firstObject);
-  assert.equal(sourceReads, 1);
-
-  time = 10;
-  const payloadSweep = resMan.PurgeInactive({
-    time,
-    maxIdleMilliseconds: 100,
-    payloadMaxIdleMilliseconds: 1
-  });
-  assert.equal(payloadSweep.payloadsReleased, 1);
-  assert.equal(resMan.HasResourcePayload(resource), false);
-  assert.equal(resMan.GetResourcePayload(resource), null);
-  assert.equal(resMan.GetResourcePayload(resource), null);
-  assert.equal(sourceReads, 1);
-
-  resource.IsPrepared();
-  resMan.GetResourcePayload(resource);
-  resource.KeepAlive({ time });
-  assert.equal(sourceReads, 1);
-
-  const reconstructed = await resMan.Ready(resource);
-  assert.deepEqual(reconstructed, { revision: 2 });
-  assert.equal(resMan.Lookup(path), resource);
-  assert.equal(resMan.GetResourcePayload(resource), reconstructed);
-  assert.equal(resMan.GetResourcePayload(resource), reconstructed);
-  assert.equal(sourceReads, 2);
-
-  time = 20;
-  const identitySweep = resMan.PurgeInactive({ time, maxIdleMilliseconds: 1 });
-  assert.equal(identitySweep.purged, 1);
-  assert.equal(resMan.GetResourceStatus(resource).purged, true);
-  assert.equal(resMan.GetResourcePayload(resource), null);
-
-  const replacementObject = await resMan.Ready(resource);
-  const replacement = resMan.Lookup(path);
-  assert.equal(replacement, resource);
-  assert.deepEqual(replacementObject, { revision: 3 });
-  assert.equal(resMan.GetResourceStatus(resource).purged, false);
-  assert.equal(resMan.GetResourcePayload(resource), replacementObject);
-  assert.equal(sourceReads, 3);
+  assert.equal(resource.value, bytes);
 });
 
 test("source revision scopes shared source and parsed format operations", async () =>
@@ -1099,6 +1016,7 @@ test("registered format defaults are deeply snapshotted", async () =>
   const resMan = new CjsBlueResMan({
     source: { Read() { return new Uint8Array([ 4 ]); } }
   }).RegisterFormat(TestDefaultSnapshotFormat, defaults);
+  resMan.RegisterExtension("defaultsnapshot", TestDataRes);
   blue.resMan = resMan;
   defaults.transform.multiplier = 20;
   defaults.offsets[0] = 10;
@@ -1201,7 +1119,8 @@ test("late invalidated format settlement cannot displace a newer retained record
   };
   const resMan = new CjsBlueResMan({ source }).RegisterFormat(TestLateFormatCache);
   blue.resMan = resMan;
-  const resource = resMan.GetResource(path, options);
+  const resource = new BlueAsyncRes();
+  resource._path = path;
   const descriptor = resMan.ResolveFormatDescriptor("lateformat", options);
   const oldOperation = resMan.ReadFormatOnce(resource, descriptor, new Uint8Array([ 1 ]), options);
   await Promise.resolve();
@@ -1226,7 +1145,7 @@ test("Delete preserves retained reads while Clear resets every read ledger", asy
   const source = { Read() { sourceReads += 1; return new Uint8Array([ sourceReads ]); } };
   const resMan = new CjsBlueResMan({ source });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("bin", value => value);
+  RegisterDataLoader(resMan, "bin", value => value);
   const path = "res:/data/delete-cache.bin";
   const retained = resMan.ReadResource(path, { sourceRevision: 1, cacheSource: true });
   await retained;
@@ -1238,45 +1157,6 @@ test("Delete preserves retained reads while Clear resets every read ledger", asy
   resMan.Clear();
   assert.deepEqual(await resMan.ReadResource(path, { sourceRevision: 1 }), new Uint8Array([ 2 ]));
   assert.equal(sourceReads, 2);
-});
-
-test("released resources retain source provenance but not cache policy", async () =>
-{
-  let originalReads = 0;
-  let laterDefaultReads = 0;
-  const originalSource = { Read() { originalReads += 1; return "{\"source\":\"original\"}"; } };
-  const laterDefaultSource = { Read() { laterDefaultReads += 1; return "{\"source\":\"later\"}"; } };
-  const resMan = new CjsBlueResMan({ source: originalSource });
-  blue.resMan = resMan;
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-  const path = "res:/data/provenance.json";
-  // Request options go on GetResource, which starts the load; Ready() waits.
-  const resource = resMan.GetResource(path, {
-    sourceRevision: "original-v1",
-    cacheSource: true
-  });
-  await resMan.Ready(resource);
-  assert.equal(originalReads, 1);
-  resMan.SetSource(laterDefaultSource);
-  assert.equal(resMan.InvalidateReadCache(path, {
-    source: originalSource,
-    sourceRevision: "original-v1"
-  }).source, 1);
-
-  resMan.ReleaseResourcePayload(resource);
-  assert.deepEqual(
-    await LoadData(resMan, path, {
-      source: laterDefaultSource,
-      sourceRevision: "different-v2"
-    }),
-    { source: "original" }
-  );
-  assert.equal(originalReads, 2);
-  assert.equal(laterDefaultReads, 0);
-  assert.equal(resMan.InvalidateReadCache(path, {
-    source: originalSource,
-    sourceRevision: "original-v1"
-  }).source, 0);
 });
 
 test("TriGeometryRes selects a LOD by screen size, lowest quality first", () => {
@@ -1366,14 +1246,15 @@ test("GetResource requests the resource; Ready() waits on that request (Carbon's
   let reads = 0;
   const resMan = new CjsBlueResMan({ source: { Read() { reads += 1; return "{\"loaded\":true}"; } } });
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  RegisterDataLoader(resMan, "json", value => JSON.parse(value));
 
   const resource = resMan.GetResource("res:/data/requested.json");
   // Nothing has awaited it: the request was made by asking for the resource.
   for (let i = 0; i < 20 && reads === 0; i++) await Promise.resolve();
   assert.equal(reads, 1, "GetResource alone read the source");
 
-  assert.deepEqual(await resMan.Ready(resource), { loaded: true });
+  assert.equal(await resMan.Ready(resource), resource);
+  assert.deepEqual(resource.value, { loaded: true });
   assert.equal(reads, 1, "Ready() joined the request rather than reading again");
   assert.equal(resMan.GetResource("res:/data/requested.json"), resource);
   assert.equal(reads, 1, "a cache hit requests nothing");
@@ -1383,7 +1264,7 @@ test("a resource that cannot be fetched fails on the resource, not in GetResourc
 {
   const resMan = new CjsBlueResMan();
   blue.resMan = resMan;
-  resMan.RegisterObjectLoader("json", JSON.parse);
+  RegisterDataLoader(resMan, "json", JSON.parse);
   const resource = resMan.GetResource("res:/data/unreachable.json");
   // The load fails on the resource once the read through be.paths answers.
   await resMan.Wait();
@@ -1400,7 +1281,7 @@ test("an invalid GetResource call throws; only resource failures are recorded", 
   assert.throws(() => resMan.GetResource(42), TypeError);
   assert.throws(() => resMan.GetResource(""), TypeError);
   assert.throws(() => resMan.GetResource("res:/data/x.json", 5), TypeError);
-  resMan.RegisterObjectLoader("json", JSON.parse);
+  RegisterDataLoader(resMan, "json", JSON.parse);
   const resource = resMan.GetResource("res:/data/x.json");
   await resMan.Wait();
   assert.equal(resource.IsPrepared() && !resource.IsGood(), true, "no file system is the resource's failure");

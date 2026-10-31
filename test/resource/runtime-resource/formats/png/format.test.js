@@ -3,7 +3,7 @@ import { deflateSync } from "node:zlib";
 import test from "node:test";
 import { CjsBlueResMan } from "../../../../../src/global/blue/CjsBlueResMan.js";
 import CjsPngFormat, { CjsPngFormat as NamedCjsPngFormat } from "../../../../../src/resource/formats/png/index.js";
-import { LoadData } from "../../../../support/loadData.js";
+import { ReadData } from "../../../../support/loadData.js";
 
 test("exports default and named CjsPngFormat", () =>
 {
@@ -126,7 +126,7 @@ test("retains ancillary units and ignores malformed placement chunk lengths", ()
     assert.equal(invalid.physicalPixelDimensions, null);
 });
 
-test("resource-manager raw PNG inspection reuses its resident resource", async () =>
+test("resource-manager raw PNG inspection reads its shared source once", async () =>
 {
     const offset = new Uint8Array(9);
     const physical = new Uint8Array(9);
@@ -149,18 +149,18 @@ test("resource-manager raw PNG inspection reuses its resident resource", async (
         }
     }).RegisterFormat(CjsPngFormat);
 
-    // Raw inspection is data, read through the resource: resource semantics,
-    // one shared payload.
-    const first = await LoadData(resMan, "res:/character/example.png", {
+    // Raw inspection is plain data: ReadResource and the format, no resource.
+    // A retained source read is shared; each read parses.
+    const first = await ReadData(resMan, "res:/character/example.png", {
         emit: "raw",
         cacheSource: true
     });
-    const second = await LoadData(resMan, "res:/character/example.png", {
+    const second = await ReadData(resMan, "res:/character/example.png", {
         emit: "raw",
         cacheSource: true
     });
 
-    assert.strictEqual(second, first);
+    assert.deepEqual(second, first);
     assert.equal(reads, 1);
     assert.deepEqual(first.metadata.offset, { x: 100000, y: 200000, unit: 0 });
     assert.deepEqual(first.metadata.physicalPixelDimensions, {

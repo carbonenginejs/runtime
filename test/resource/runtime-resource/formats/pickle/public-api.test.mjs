@@ -9,7 +9,6 @@ import {
 import CjsPickleFormat, {
   CjsPickleFormat as NamedCjsPickleFormat
 } from "../../../../../src/resource/formats/pickle/index.js";
-import { LoadData } from "../../../../support/loadData.js";
 
 test("package subpath exports one public pickle format class", async () =>
 {
@@ -188,10 +187,17 @@ test("pickle profiles strictly validate options and resource limits", () =>
   );
 });
 
-test("ResMan routes lowercase pickle resource context without domain coupling", async () =>
+test("ResMan routes lowercase pickle resource context without domain coupling", async t =>
 {
+  const { blue } = await import("../../../../../npm/dist/global/blue/blue.js");
+  const previous = blue.resMan;
+  t.after(() => { blue.resMan = previous; });
   const input = bytes("(dp0\nVvalue\np1\nI7\ns.");
   let identifyContext = null;
+  class PickleProfile
+  {
+    static from(values) { return Object.assign(new PickleProfile(), values); }
+  }
   const resMan = new CjsBlueResMan({
     source: {
       Read()
@@ -207,17 +213,18 @@ test("ResMan routes lowercase pickle resource context without domain coupling", 
         {
           assert.deepEqual(value, { value: 7 });
           identifyContext = context;
-          return true;
+          return PickleProfile;
         }
       }
     }
   });
 
-  // Identify answering true is data, read through the resource.
-  assert.deepEqual(
-    await LoadData(resMan, " RES:\\Data\\Profile.PICKLE "),
-    { value: 7 }
-  );
+  blue.resMan = resMan;
+
+  // Identify names the class the decoded values build: LoadObject returns it.
+  const profile = await resMan.LoadObject(" RES:\\Data\\Profile.PICKLE ");
+  assert.equal(profile instanceof PickleProfile, true);
+  assert.equal(profile.value, 7);
   assert.equal(identifyContext.resFilePath, "res:/data/profile.pickle");
   assert.equal(identifyContext.ext, "pickle");
   assert.equal(identifyContext.fileName, "profile.pickle");
