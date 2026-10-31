@@ -526,6 +526,61 @@ test("urgent mode keeps the per-tick prepare budget (BlueResMan.cpp:446-465)", (
   assert.deepEqual(ran, [ "a" ]);
   resMan.SetUrgentResourceLoads(false);
 });
+
+test("Update fills Carbon's statistics members (BlueResMan.cpp:466-500)", () => {
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  blue.resMan = resMan;
+  for (const name of [ "a", "b", "c" ]) resMan.QueueTask("main", () => name);
+  let clock = 0;
+  // Each clock read advances 1 ms; the slice is 1 ms, so one prepare per tick.
+  const tick = { cache: false, purge: false, prepare: { maxTime: 0.001, now: () => clock++ } };
+
+  resMan.Update(tick);
+  assert.equal(resMan.preparesHandledLastTick, 1);
+  assert.equal(resMan.preparesHandledTotal, 1);
+  assert.equal(resMan.preparesHandledPerTickMax, 1);
+  assert.equal(resMan.pendingPrepares, 2);
+  assert.equal(resMan.pendingLoads, 0);
+  assert.equal(resMan.mainThreadMaxTime, 0.001);
+  for (const name of [ "prepareQueueTimeAverage", "prepareQueueTimeMax", "loadQueueTimeAverage", "loadQueueTimeMax" ])
+    assert.equal(typeof resMan[name], "number", name);
+
+  resMan.Update(tick);
+  resMan.Update(tick);
+  assert.equal(resMan.preparesHandledTotal, 3);
+  assert.equal(resMan.pendingPrepares, 0);
+
+  resMan.Update(tick);
+  assert.equal(resMan.preparesHandledLastTick, 0, "an idle tick handles nothing");
+  assert.equal(resMan.preparesHandledPerTickMax, 1);
+});
+
+test("Update keeps preparing past its slice while more than maxAllowedInPrepareQueue wait (BlueResMan.cpp:463)", () => {
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false, maxAllowedInPrepareQueue: 1 });
+  blue.resMan = resMan;
+  assert.equal(new CjsBlueResMan().maxAllowedInPrepareQueue, 256, "Carbon's default (BlueResMan.cpp:84)");
+  assert.throws(() => resMan.Register({ maxAllowedInPrepareQueue: -1 }), TypeError);
+  const ran = [];
+  for (const name of [ "a", "b", "c" ]) resMan.QueueTask("main", () => { ran.push(name); });
+  let clock = 0;
+
+  resMan.Update({ cache: false, purge: false, prepare: { maxTime: 0.001, now: () => clock++ } });
+  // Three waiting: past the slice after "a", but two still exceed one; after "b", one does not.
+  assert.deepEqual(ran, [ "a", "b" ]);
+  assert.equal(resMan.preparesHandledLastTick, 2);
+  assert.equal(resMan.pendingPrepares, 1);
+});
+
+test("SetLoadingThreadCount clamps to one and sets the background concurrency (BlueResMan.cpp:520-528)", () => {
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false, maxConcurrentLoads: 3 });
+  assert.equal(resMan.GetQueueStats("background").concurrency, 3, "maxConcurrentLoads configures it");
+  resMan.SetLoadingThreadCount(0);
+  assert.equal(resMan.GetQueueStats("background").concurrency, 1);
+  assert.equal(resMan.maxConcurrentLoads, 1);
+  resMan.SetLoadingThreadCount(5);
+  assert.equal(resMan.GetQueueStats("background").concurrency, 5);
+  assert.equal(resMan.maxConcurrentLoads, 5);
+});
 let previousManager;
 beforeEach(() => { previousManager = blue.resMan; });
 afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previousManager; } });

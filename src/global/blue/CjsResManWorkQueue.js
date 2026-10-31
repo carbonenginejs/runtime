@@ -203,22 +203,28 @@ export class CjsResManWorkQueue
   /**
    * Starts waiting tasks while slots are free, within the item and time
    * limits - `Update` called in a loop, as resMan's tick does
-   * (BlueResMan.cpp:450-464).
+   * (BlueResMan.cpp:450-464). Past the time limit the loop still goes on
+   * while more than `maxAllowedInPrepareQueue` tasks are pending, as Carbon's
+   * condition does (BlueResMan.cpp:463); omitted, the time limit alone stops it.
    *
-   * @param {object} [options={}] `maxItems`, `maxTime` (ms) and a `now` clock.
-   * @returns {object} Processed, queued, active and pending counts, and whether paused.
+   * @param {object} [options={}] `maxItems`, `maxTime` (ms), `maxAllowedInPrepareQueue` and a `now` clock.
+   * @returns {object} Processed, queued, active and pending counts, whether paused, and the
+   *   time spent in the loop (ms).
    */
   Pump(options = {}) {
     const maxItems = normalizeLimit(options.maxItems);
     const maxTime = normalizeLimit(options.maxTime);
+    const maxAllowed = options.maxAllowedInPrepareQueue ?? Number.POSITIVE_INFINITY;
     const now = typeof options.now === "function" ? options.now : defaultNow;
     const startedAt = now();
     let processed = 0;
+    let elapsed = 0;
 
     if (!this._paused) {
       while (processed < maxItems && this._manager.Update()) {
         processed++;
-        if (now() - startedAt >= maxTime) break;
+        elapsed = now() - startedAt;
+        if (elapsed >= maxTime && this.GetPendingCount() <= maxAllowed) break;
       }
     }
 
@@ -227,8 +233,19 @@ export class CjsResManWorkQueue
       queued: this.GetQueuedCount(),
       active: this.GetActiveCount(),
       pending: this.GetPendingCount(),
-      paused: this._paused
+      paused: this._paused,
+      elapsed
     };
+  }
+
+  /** `IBlueCallbackMan::GetTimeInQueueAverage` of the queue's callback manager, in seconds. */
+  GetTimeInQueueAverage() {
+    return this._manager.GetTimeInQueueAverage();
+  }
+
+  /** `IBlueCallbackMan::GetTimeInQueueMax` of the queue's callback manager, in seconds. */
+  GetTimeInQueueMax() {
+    return this._manager.GetTimeInQueueMax();
   }
 
   /**

@@ -396,7 +396,7 @@ function ValidateConfiguration(configuration)
 {
   const plain = value => value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
   const options = new Set(["motherLode", "cacheSize", "cacheCleanup", "autoPurgePolicy", "source", "mainThreadLoader",
-    "workerLoader", "useWorkerLoading", "maxConcurrentLoads", "maxPrepareTime", "maxPrepareItemsPerTick",
+    "workerLoader", "useWorkerLoading", "maxConcurrentLoads", "maxPrepareTime", "maxPrepareItemsPerTick", "maxAllowedInPrepareQueue",
     "autoPumpMainThreadQueue", "queueScheduler", "urgentResourceLoads"]);
   if (!plain(configuration)) throw new TypeError("Configuration must contain named sections.");
   for (const [section, entries] of Object.entries(configuration))
@@ -458,7 +458,7 @@ function ValidateConfiguration(configuration)
       else if (section === "resMan")
       {
         valid = options.has(key) && value !== undefined;
-        if (["cacheSize", "maxConcurrentLoads", "maxPrepareTime", "maxPrepareItemsPerTick"].includes(key))
+        if (["cacheSize", "maxConcurrentLoads", "maxPrepareTime", "maxPrepareItemsPerTick", "maxAllowedInPrepareQueue"].includes(key))
           valid = typeof value === "number" && Number.isFinite(value) && value >= 0 && (key !== "maxConcurrentLoads" || value > 0);
         if (["useWorkerLoading", "autoPumpMainThreadQueue", "urgentResourceLoads"].includes(key)) valid = typeof value === "boolean";
         if (key === "queueScheduler") valid = value === null || typeof value === "function";

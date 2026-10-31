@@ -105,8 +105,9 @@ test("live configuration applies scheduling but defers image-handler policy unti
   assert.equal(register.mock.callCount(), 1);
   assert.deepEqual(register.mock.calls[0].arguments, [{ maxPrepareItemsPerTick: 7 }]);
   assert.equal(ImageIO._imageHandlers.filter(value => value === CjsPngFormat).length, count);
-  library.SetConfiguration({ imageHandlers: { png: CjsVtaFormat }, resMan: { maxConcurrentLoads: 1 } });
+  library.SetConfiguration({ imageHandlers: { png: CjsVtaFormat }, resMan: { maxConcurrentLoads: 1, maxAllowedInPrepareQueue: 64 } });
   assert.equal(owners.resMan.maxConcurrentLoads, 1, "independent scheduling changes apply immediately");
+  assert.equal(owners.resMan.maxAllowedInPrepareQueue, 64);
   assert.equal(library.GetConfiguration().requested.imageHandlers.png, CjsVtaFormat);
   assert.equal(library.GetConfiguration().configured.imageHandlers.png, CjsPngFormat);
   assert.equal(ImageIO.getImageHandler("png"), CjsPngFormat);

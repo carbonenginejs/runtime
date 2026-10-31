@@ -276,7 +276,10 @@ export class CjsBlueResMan
   /** The selected execution strategy: the worker loader or the main-thread loader. */
   resourceLoader = this.workerLoader;
 
-  /** Background-queue concurrency. */
+  /**
+   * Background-queue concurrency, the configuration input for Carbon's
+   * `SetLoadingThreadCount` (BlueResMan.cpp:520-528), which sets it.
+   */
   maxConcurrentLoads = 8;
 
   /**
@@ -287,6 +290,43 @@ export class CjsBlueResMan
 
   /** Prepare items per tick; 0 for no limit. */
   maxPrepareItemsPerTick = 0;
+
+  /**
+   * `m_maxAllowedInPrepareQueue( 256 )` (BlueResMan.cpp:84): `Update` keeps
+   * preparing past its time slice while more than this many are waiting
+   * (BlueResMan.cpp:463).
+   */
+  maxAllowedInPrepareQueue = 256;
+
+  /** `m_pendingLoads` (BlueResMan.cpp:79): the background queue's size at the last `Update`. */
+  pendingLoads = 0;
+
+  /** `m_pendingPrepares` (BlueResMan.cpp:80): the main queue's size at the last `Update`. */
+  pendingPrepares = 0;
+
+  /** `m_loadQueueTimeAverage` (BlueResMan.cpp:85): seconds, from the background queue at the last `Update`. */
+  loadQueueTimeAverage = 0;
+
+  /** `m_loadQueueTimeMax` (BlueResMan.cpp:86): seconds, from the background queue at the last `Update`. */
+  loadQueueTimeMax = 0;
+
+  /** `m_prepareQueueTimeAverage` (BlueResMan.cpp:87): seconds, from the main queue at the last `Update`. */
+  prepareQueueTimeAverage = 0;
+
+  /** `m_prepareQueueTimeMax` (BlueResMan.cpp:88): seconds, from the main queue at the last `Update`. */
+  prepareQueueTimeMax = 0;
+
+  /** `m_preparesHandledLastTick` (BlueResMan.cpp:81): prepares the last `Update` ran. */
+  preparesHandledLastTick = 0;
+
+  /** `m_preparesHandledPerTickMax` (BlueResMan.cpp:82): the most prepares one `Update` has run. */
+  preparesHandledPerTickMax = 0;
+
+  /** `m_preparesHandledTotal` (BlueResMan.cpp:83): prepares run by every `Update`. */
+  preparesHandledTotal = 0;
+
+  /** `m_mainThreadMaxTime` (BlueResMan.cpp:78): the longest prepare loop of one `Update`, in seconds. */
+  mainThreadMaxTime = 0;
 
   /** Whether the main-thread queue schedules its own pumps. */
   autoPumpMainThreadQueue = true;
@@ -429,8 +469,7 @@ export class CjsBlueResMan
       maxConcurrentLoads: value =>
       {
         assertPositiveInteger(value, "CjsBlueResMan maxConcurrentLoads");
-        this.maxConcurrentLoads = value;
-        this._loadQueue.SetConcurrency(value);
+        this.SetLoadingThreadCount(value);
       },
       maxPrepareTime: value =>
       {
@@ -441,6 +480,11 @@ export class CjsBlueResMan
       {
         assertNonNegativeInteger(value, "CjsBlueResMan maxPrepareItemsPerTick");
         this.maxPrepareItemsPerTick = value;
+      },
+      maxAllowedInPrepareQueue: value =>
+      {
+        assertNonNegativeInteger(value, "CjsBlueResMan maxAllowedInPrepareQueue");
+        this.maxAllowedInPrepareQueue = value;
       },
       autoPumpMainThreadQueue: value =>
       {
@@ -598,6 +642,18 @@ export class CjsBlueResMan
    * the resource manager.
    */
   PumpMainThreadQueue(options = {}) {
+    return this._PumpMainThreadQueue(options).processed > 0;
+  }
+
+  /**
+   * The prepare loop of `BlueResMan::Update` (BlueResMan.cpp:446-464), shared by
+   * `PumpMainThreadQueue` and `Update`, which reads its counts and time for
+   * Carbon's statistics.
+   *
+   * @param {object} options `maxItems`, `maxTime` (seconds) and a `now` clock.
+   * @returns {object} The prepare queue's pump result (`processed`, `elapsed` in ms, counts).
+   */
+  _PumpMainThreadQueue(options) {
     // BlueResMan.cpp:452: each main tick first lets a throttled background
     // queue resume.
     this._loadQueue.Unthrottle();
@@ -606,10 +662,11 @@ export class CjsBlueResMan
     const result = this._prepareQueue.Pump({
       maxItems: options.maxItems ?? this.maxPrepareItemsPerTick,
       maxTime: (options.maxTime ?? this.maxPrepareTime) * 1000,
+      maxAllowedInPrepareQueue: this.maxAllowedInPrepareQueue,
       now: options.now
     });
     if (result.queued > 0 && result.active === 0) this.ScheduleMainThreadQueue();
-    return result.processed > 0;
+    return result;
   }
 
   /**
@@ -660,6 +717,47 @@ export class CjsBlueResMan
    */
   GetPendingPrepares() {
     return this._prepareQueue.GetPendingCount();
+  }
+
+  /**
+   * The statistics tail of `BlueResMan::Update` (BlueResMan.cpp:466-500): copies
+   * one prepare loop's count and time and both queues' sizes and waiting times
+   * into Carbon's members. Our `Update` runs it straight after its prepare
+   * loop, before the cache and purge housekeeping Carbon's has no part of.
+   *
+   * @param {object} prepareResult The prepare queue's pump result.
+   */
+  _UpdateStatistics(prepareResult) {
+    const timeInUpdate = prepareResult.elapsed / 1000;
+    this.preparesHandledLastTick = prepareResult.processed;
+    this.preparesHandledTotal += this.preparesHandledLastTick;
+    if (this.preparesHandledLastTick > this.preparesHandledPerTickMax) this.preparesHandledPerTickMax = this.preparesHandledLastTick;
+    if (timeInUpdate > this.mainThreadMaxTime) this.mainThreadMaxTime = timeInUpdate;
+
+    this.pendingPrepares = this._prepareQueue.GetPendingCount();
+    this.pendingLoads = this._loadQueue.GetPendingCount();
+
+    this.prepareQueueTimeMax = this._prepareQueue.GetTimeInQueueMax();
+    this.prepareQueueTimeAverage = this._prepareQueue.GetTimeInQueueAverage();
+
+    this.loadQueueTimeMax = this._loadQueue.GetTimeInQueueMax();
+    this.loadQueueTimeAverage = this._loadQueue.GetTimeInQueueAverage();
+  }
+
+  /**
+   * `SetLoadingThreadCount` (BlueResMan.cpp:520-528) - how many loads the
+   * background queue runs at once, at least one.
+   *
+   * Adapted: Carbon stops the queue's threads, sets the count and runs them
+   * again. Our background queue is not threaded; its slots are async, so the
+   * count applies to the next loads without a stop.
+   *
+   * @param {number} n The count; below 1 becomes 1.
+   */
+  SetLoadingThreadCount(n) {
+    if (n < 1) n = 1;
+    this.maxConcurrentLoads = n;
+    this._loadQueue.SetConcurrency(n);
   }
 
   /**
@@ -782,7 +880,9 @@ export class CjsBlueResMan
     // renews with this time (BlueAsyncRes.KeepAlive).
     this.activityTime = this.motherLode.GetActivityTime();
     const loaded = this.PumpBackgroundQueue(options.background || {});
-    const prepared = this.PumpMainThreadQueue(options.prepare || options);
+    const prepareResult = this._PumpMainThreadQueue(options.prepare || options);
+    const prepared = prepareResult.processed > 0;
+    this._UpdateStatistics(prepareResult);
     const cacheOptions = options.cache === true || options.cache === undefined
       ? {}
       : options.cache;
@@ -4178,6 +4278,7 @@ CjsSchema.decorateMethod(CjsBlueResMan, "PauseQueue", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "ResumeQueue", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingLoads", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingPrepares", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "SetLoadingThreadCount", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "SetUrgentResourceLoads", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "IsUrgentResourceLoads", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "Update", meta.adapted);
