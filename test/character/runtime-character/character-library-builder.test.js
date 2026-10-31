@@ -794,11 +794,18 @@ test("inspects extension-neutral resource data through one resident resource-man
     );
     const events = [];
     const requests = [];
+    const bytes = new Uint8Array(0);
     const resMan = {
-        GetResource(path, options)
+        async ReadResource(path, options)
         {
             requests.push([ path, options ]);
-            return { Ready: async () => ({
+            return bytes;
+        },
+        async ReadFormat(descriptor, source, options)
+        {
+            assert.strictEqual(source, bytes);
+            assert.strictEqual(options, requests.at(-1)[1]);
+            return {
                 metadata: {
                     sourceFormat: "png",
                     width: 1024,
@@ -806,7 +813,7 @@ test("inspects extension-neutral resource data through one resident resource-man
                     offset: { x: 250000, y: -125000, unit: 0 },
                     physicalPixelDimensions: { x: 500000, y: 1000000, unit: 0 }
                 }
-            }) };
+            };
         }
     };
 
@@ -938,10 +945,14 @@ test("asynchronous library loading preserves the configured resource manager", a
     const manager = new CjsCharacterLibraryManager(null, {
         resourceLoader: async () => value,
         resourceManager: {
-            GetResource(path, options)
+            async ReadResource(path, options)
             {
                 requests.push([ path, options ]);
-                return { Ready: async () => ({
+                return new Uint8Array(0);
+            },
+            async ReadFormat()
+            {
+                return {
                     metadata: {
                         sourceFormat: "png",
                         width: 128,
@@ -949,7 +960,7 @@ test("asynchronous library loading preserves the configured resource manager", a
                         offset: null,
                         physicalPixelDimensions: null
                     }
-                }) };
+                };
             }
         }
     });
