@@ -4,6 +4,7 @@ import { IRoot } from "../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA_Blue.cpp
 import { type, blue } from "#schema";
+import * as CcpLog from "../global/logging/ccpLog.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 import { EveSOFDataHull } from "./hull/EveSOFDataHull.js";
@@ -1481,8 +1482,12 @@ export class EveSOFDNA extends IRoot
 
     this._reset(dna, dataMgr);
     const parts = splitCarbon(dna, ":");
+    // Each failure logs as Carbon's Setup does (EveSOFDNA.cpp:233-300) and
+    // leaves the DNA invalid, so EveSOF's builds return null (EveSOF.cpp:584-587).
+    const channel = CcpLog.GetModuleChannel("trinity");
     if (parts.length < 3)
     {
+      CcpLog.CCP_LOGERR_CH(channel, "Invalid SOF DNA, not enough subparts: %s", dnaString);
       this._parseError = "not-enough-parts";
       return;
     }
@@ -1492,6 +1497,7 @@ export class EveSOFDNA extends IRoot
       const command = splitCarbon(parts[index], "?");
       if (command.length !== 2)
       {
+        CcpLog.CCP_LOGERR_CH(channel, "Invalid SOF DNA, incorrect command and args: %s", dnaString);
         this._parseError = "malformed-command";
         return;
       }
@@ -1518,6 +1524,7 @@ export class EveSOFDNA extends IRoot
     this.hullNames = splitCarbon(parts[0], ";");
     if (this.hullNames.length === 0)
     {
+      CcpLog.CCP_LOGERR_CH(channel, "Couldn't find at least one hull name: %s", dnaString);
       this._parseError = "missing-hull";
       return;
     }
@@ -1529,21 +1536,26 @@ export class EveSOFDNA extends IRoot
       const hull = dataMgr.GetHullData(name);
       if (!hull)
       {
+        CcpLog.CCP_LOGERR_CH(channel, "Couldn't find the requested hull: %s", name);
         this._parseError = "unknown-hull";
         return;
       }
       this.hullDatas.push(hull);
     }
 
+    // Carbon's faction and race messages give only the DNA; ours also name the
+    // part that was not found.
     this.factionData = dataMgr.GetFactionData(this.factionName);
     if (!this.factionData)
     {
+      CcpLog.CCP_LOGERR_CH(channel, "Couldn't find the requested faction %s: %s", this.factionName, dnaString);
       this._parseError = "unknown-faction";
       return;
     }
     this.raceData = dataMgr.GetRaceData(this.raceName);
     if (!this.raceData)
     {
+      CcpLog.CCP_LOGERR_CH(channel, "Couldn't find the requested race %s: %s", this.raceName, dnaString);
       this._parseError = "unknown-race";
       return;
     }

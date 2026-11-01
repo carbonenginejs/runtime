@@ -46,6 +46,7 @@ import { EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings } from "
 import { EveSOFDataHullExtensionBucket } from "../../../npm/dist/sof/layout/EveSOFDataHullExtensionBucket.js";
 import { EveSOFDataLogoSet } from "../../../npm/dist/sof/shared/EveSOFDataLogoSet.js";
 import { vec3 } from "../../../npm/dist/global/math/vec3.js";
+import { LogType, RegisterLogEcho, UnregisterLogEcho } from "../../../npm/dist/global/logging/ccpLog.js";
 import {
   EveChildTurret,
   EveTurretSet,
@@ -347,6 +348,29 @@ test("EveSOF DNA inspection distinguishes malformed and unknown selections", asy
     valid: false,
     error: "malformed-command",
   });
+});
+
+test("an unknown faction logs Carbon's error naming the faction, and the build returns null", async () => {
+  const sof = new EveSOF();
+  sof.dataMgr.SetData(createData());
+  const errors = [];
+  const echo = (_channel, _type, _userData, message) => errors.push(message);
+  RegisterLogEcho(echo, LogType.LOGTYPE_ERR);
+  try
+  {
+    assert.deepEqual(await sof.InspectDna("rifter:nosuchfaction:minmatar"), {
+      buildable: false,
+      valid: false,
+      error: "unknown-faction",
+    });
+    assert.equal(await sof.BuildFromDNA("rifter:nosuchfaction:minmatar"), null);
+  }
+  finally
+  {
+    UnregisterLogEcho(echo);
+  }
+  assert.ok(errors.some(message => message.includes("Couldn't find the requested faction nosuchfaction")
+    && message.includes("rifter:nosuchfaction:minmatar")), JSON.stringify(errors));
 });
 
 test("a fresh EveSOFDataMgr exposes Carbon zero-valued damage records", () => {
