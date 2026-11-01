@@ -180,6 +180,8 @@ test("pending and hidden groups do not prevent a ready group from batching", t =
 test("allocation resize, empty groups, mapping failures and teardown obey ownership", t =>
 {
   const value = system(t, [group()]);
+  // In use, as a drawn ship's is: nothing prepares during a build.
+  value.IsGood();
   const a = value.behaviorGroups[0];
   a.SetVertexFunctionReferance(() => value.ChangeBufferInstanceCount());
   a.SetCount(4);

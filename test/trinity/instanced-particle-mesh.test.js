@@ -61,6 +61,8 @@ function particles(t)
 {
   const p=new Tr2ParticleSystem();p.maxParticleCount=8;
   p.elements.push(Object.assign(new Tr2ParticleElementDeclaration(),{elementType:1}));p.Initialize();
+  // In use, as a drawn ship's is: nothing prepares during a build.
+  p.IsGood();
   p.SpawnParticle({position:[1,2,3]});p.SpawnParticle({position:[3,4,5]});p.SortParticles();
   t.after(()=>p.ReleaseResources());return p;
 }

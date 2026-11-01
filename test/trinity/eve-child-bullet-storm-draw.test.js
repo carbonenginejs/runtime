@@ -47,6 +47,8 @@ function stormOverOneLocator(multiplier)
     GetLocatorsForSet: name => name === "weapon" ? [ { position: [ 1, 2, 3 ], direction: [ 0, 0, 0, 1 ] } ] : null,
     GetBoundingSphere(out) { out.set([ 0, 0, 0, 50 ]); return true; }
   };
+  // In use, as a drawn ship's is: nothing prepares during a build.
+  storm.IsGood();
   assert.equal(storm.Rebuild(), true);
   return storm;
 }

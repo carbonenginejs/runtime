@@ -43,6 +43,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { ITr2VolumetricRenderable } from "../../core/ITr2VolumetricRenderable.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResourceState } from "../../core/device/deviceResourceState.js";
 
 // Carbon std::numeric_limits<float>::max() (cpp:916). The renderable-side sort
 // value is a finite float32, NOT Infinity - downstream distance sums must stay
@@ -377,10 +378,11 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Owns the lightmap bindings from EveChildCloud2.cpp:103-109.
    * Adapted: explicit ownership replaces native by-value resource destruction.
    *
-   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
-   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
-   *   use (IsGood at its use site), so one built and never drawn is never listed
-   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   * @adapted Carbon registers with the device and prepares here, as the
+   *   Tr2DeviceResource base constructor registers (Tr2DeviceResource.cpp:6-9).
+   *   Here it does both on its first use (IsGood at its use site), so one built
+   *   and never drawn is never listed and holds no device objects, and one left
+   *   unused is released (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   constructor()
   {
@@ -394,13 +396,13 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     this.depthShadowMapHandle.SetValue(null);
     this.lights.SetNotify(this);
     this._lightmapPerObjectData.data = RawData.create("EveChildCloud2PerObjectData");
-    this.PrepareResources();
   }
 
   /**
    * Rebinds effects and resets the vertex buffer (EveChildCloud2.cpp:165-180).
    *
-   * @adapted
+   * @adapted only a prepared cloud prepares again; one not yet used is prepared
+   *   by its first use (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
 
   Initialize()
@@ -408,7 +410,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     for (const effect of [this.effect, this.reflectionEffect])
       if (effect) { effect.SetVariableStore(this._variableStore); effect.RebuildCachedData(); }
     this._vertexBuffer.Destroy();
-    this.PrepareResources();
+    if (this._state === Tr2DeviceResourceState.PREPARED) this.PrepareResources();
     return true;
   }
 

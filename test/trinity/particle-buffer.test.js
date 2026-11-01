@@ -25,6 +25,8 @@ function system(t)
     { elementType: 2 }, { elementType: 1 }, { elementType: 3, usedByGPU: false }
   ]) value.elements.push(Object.assign(new Tr2ParticleElementDeclaration(), fields));
   value.Initialize();
+  // In use, as a drawn ship's is: nothing prepares during a build.
+  value.IsGood();
   t.after(() => value.ReleaseResources());
   return value;
 }
@@ -84,6 +86,9 @@ test("particle readiness follows declaration even without a device; zero capacit
   setup(t, false);
   const value = system(t);
   assert.equal(value.GetGpuBuffer(), null);
+  // Without a device the first use prepares nothing; Carbon's own Initialize calls
+  // OnPrepareResources directly (cpp:1250), which builds the declaration alone.
+  assert.equal(value._OnPrepareResources(), true);
   assert.equal(value.CreateVertexBuffer(), false);
   assert.equal(value.IsInstanceDataReady(), true, "cpp:301-303 deliberately checks declaration alone");
   value.SetMaxParticleCount(0);

@@ -24,6 +24,7 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { trinity } from "../../CjsTrinity.js";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
+import { Tr2DeviceResourceState } from "../../core/device/deviceResourceState.js";
 
 /** BulletStormVertex (cpp:20-23): one float corner id. */
 const CORNER_STRIDE = 4;
@@ -48,15 +49,15 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   /**
    * Carbon's constructor (cpp:35-50): prepares its buffers.
    *
-   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
-   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
-   *   use (IsGood at its use site), so one built and never drawn is never listed
-   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   * @adapted Carbon registers with the device and prepares here, as the
+   *   Tr2DeviceResource base constructor registers (Tr2DeviceResource.cpp:6-9).
+   *   Here it does both on its first use (IsGood at its use site), so one built
+   *   and never drawn is never listed and holds no device objects, and one left
+   *   unused is released (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   constructor()
   {
     super();
-    this.PrepareResources();
   }
 
   /**
@@ -183,12 +184,13 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   /**
    * Carbon EveChildBulletStorm::Initialize (cpp:60-64): a loaded storm prepares its resources.
    *
-   * @implemented
+   * @adapted only a prepared storm prepares again; one not yet used is prepared
+   *   by its first use (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
 
   Initialize()
   {
-    this.PrepareResources();
+    if (this._state === Tr2DeviceResourceState.PREPARED) this.PrepareResources();
     return true;
   }
 
@@ -238,6 +240,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     }
 
     this.Rebuild();
+    if (!this._CreateInstanceBuffer()) return false;
     Tr2Renderer.ReserveQuadListIndexBuffer(2);
     return true;
   }
@@ -248,7 +251,9 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * Random draws delegate to the matching generator in global/math/random.js.
    * CPU instances are retained; GPU buffers are created only while resource creation is allowed.
    *
-   * @adapted
+   * @adapted the CPU instances are built always; the per-instance buffer only for a
+   *   prepared storm, and otherwise by _OnPrepareResources, so a build allocates
+   *   nothing (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   @be.mapMethodAndWrap()
   Rebuild()
@@ -278,6 +283,19 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
       }
     }
     this.objectCount = this.instances.length;
+    return this._state === Tr2DeviceResourceState.PREPARED ? this._CreateInstanceBuffer() : true;
+  }
+
+  /**
+   * The upload half of Carbon Rebuild (cpp:192-204): the per-instance stream from
+   * the CPU instances, while resource creation is allowed.
+   *
+   * @cjs Split out so Rebuild allocates only for a prepared storm and
+   *   _OnPrepareResources allocates while preparing.
+   * @returns {boolean} False when the buffer could not be created.
+   */
+  _CreateInstanceBuffer()
+  {
     if (this.objectCount > 0 && Tr2Renderer.IsResourceCreationAllowed())
     {
       const vertices = new Float32Array(this.objectCount * INSTANCE_STRIDE / 4); // alloc: per-instance stream, rebuilt on edit

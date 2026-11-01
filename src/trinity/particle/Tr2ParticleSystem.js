@@ -25,6 +25,7 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js
 import { ITr2GpuBuffer } from "../core/ITr2GpuBuffer.js";
 import { box3 } from "#math/box3";
 import { trinity } from "../CjsTrinity.js";
+import { Tr2DeviceResourceState } from "../core/device/deviceResourceState.js";
 
 // RenderDebugInfo scratch (debug drawing is single-threaded).
 const DEBUG_AABB = box3.create();
@@ -400,7 +401,9 @@ export class Tr2ParticleSystem
       element.buffer = this._buffers[element.bufferIndex];
     }
 
-    if (this._strides[0] > 0 && Tr2Renderer.IsResourceCreationAllowed())
+    // Only a prepared system makes its device buffer here; preparing makes it otherwise
+    // (_OnPrepareResources), so a build allocates nothing (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+    if (this._strides[0] > 0 && this._state === Tr2DeviceResourceState.PREPARED && Tr2Renderer.IsResourceCreationAllowed())
     {
       this.CreateVertexBuffer();
     }
@@ -663,7 +666,9 @@ export class Tr2ParticleSystem
     this._declarationHash++;
     this.isValid = true;
     this._BuildBuffers();
-    this._OnPrepareResources();
+    // Carbon prepares here (cpp:111); only a prepared system does, so a build allocates
+    // nothing (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+    if (this._state === Tr2DeviceResourceState.PREPARED) this.PrepareResources();
     this.RebindConstraints();
     return true;
   }
@@ -1042,16 +1047,18 @@ export class Tr2ParticleSystem
   }
 
   /**
-   * Builds particle storage and prepares AL resources. Carbon always returns
-   * true; validity is queried separately. Registers clock rebasing and tells
-   * child emitters to use their thread-safe insertion contract.
+   * Builds particle storage. Carbon always returns true; validity is queried
+   * separately. Registers clock rebasing and tells child emitters to use their
+   * thread-safe insertion contract.
    *
-   * @adapted
+   * @adapted Carbon also prepares the AL resources here (cpp:1250); here only a
+   *   prepared system prepares again, and one not yet used is prepared by its
+   *   first use (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   Initialize()
   {
     this.UpdateElementDeclaration();
-    this._OnPrepareResources();
+    if (this._state === Tr2DeviceResourceState.PREPARED) this.PrepareResources();
     if (this.useSimTimeRebase) this.#UpdateRebaseRegistration();
     if (this.emitParticleOnDeathEmitter) this.emitParticleOnDeathEmitter.SetThreadSafeFlag();
     if (this.emitParticleDuringLifeEmitter) this.emitParticleDuringLifeEmitter.SetThreadSafeFlag();

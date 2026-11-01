@@ -37,6 +37,7 @@ import { TriStorageFlags } from "#consts/graphics";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
+import { Tr2DeviceResourceState } from "../../core/device/deviceResourceState.js";
 
 // Tr2ChildBoosterInstanceData (Tr2RingBuffer.h:19-26): Float4x3 transform
 // (COLUMN-stride rows), intensity, wavePhase, atlasIndex0, atlasIndex1 -
@@ -307,13 +308,14 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    *
    * @adapted a set whose boosters arrived as records rather than through Add
    *   derives what Add derives from them: the flares, the bounding sphere and
-   *   the max size.
+   *   the max size. Only a prepared set prepares again; one not yet used is
+   *   prepared by its first use (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
 
   Initialize()
   {
     if (this._singleBoosters.length) this._DeriveFromBoosters();
-    this.PrepareResources();
+    if (this._state === Tr2DeviceResourceState.PREPARED) this.PrepareResources();
     return true;
   }
 

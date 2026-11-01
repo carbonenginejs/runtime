@@ -32,6 +32,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { ITr2DebugRenderable } from "#interfaces";
 import { trinity } from "../../CjsTrinity.js";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
+import { Tr2DeviceResourceState } from "../../core/device/deviceResourceState.js";
 
 /**
  * A child that drives behaviour groups - swarms, drones and the like - from its
@@ -136,10 +137,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
   /**
    * Carbon's constructor: zeroes its per-object records and prepares.
    *
-   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
-   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
-   *   use (IsGood at its use site), so one built and never drawn is never listed
-   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   * @adapted Carbon registers with the device and prepares here, as the
+   *   Tr2DeviceResource base constructor registers (Tr2DeviceResource.cpp:6-9).
+   *   Here it does both on its first use (IsGood at its use site), so one built
+   *   and never drawn is never listed and holds no device objects, and one left
+   *   unused is released (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   constructor()
   {
@@ -147,7 +149,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
     // Carbon's constructor memsets these records; child-mesh defaults differ.
     this._perObjectData.vs.Zero();
     this._perObjectData.ps.Zero();
-    this.PrepareResources();
   }
 
   /**
@@ -186,6 +187,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     this._shipInstanceBuffer.Destroy();
     this._boosterInstanceBuffer.Destroy();
     this.ChangeBufferInstanceCount();
+    this._CreateInstanceBuffers();
     return this._shipInstanceBuffer.IsValid() && this._boosterInstanceBuffer.IsValid();
   }
 
@@ -587,7 +589,9 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * ChangeBufferInstanceCount). AL descriptions replace the native overload.
    * Before device creation the requested count is retained for prepare.
    *
-   * @adapted
+   * @adapted the count is always kept; the streams are reallocated only for a
+   *   prepared system, and otherwise by _OnPrepareResources, so a build allocates
+   *   nothing (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
 
   ChangeBufferInstanceCount()
@@ -595,6 +599,19 @@ export class EveChildBehaviorSystem extends EveChildTransform
     let count = 0;
     for (const group of this.behaviorGroups) count += group.GetSize();
     this.instanceCount = Math.max(1, count);
+    if (this._state === Tr2DeviceResourceState.PREPARED) this._CreateInstanceBuffers();
+  }
+
+  /**
+   * The allocation half of Carbon ChangeBufferInstanceCount: the ship and booster
+   * streams for `instanceCount`.
+   *
+   * @cjs Split out so ChangeBufferInstanceCount allocates only for a prepared
+   *   system and _OnPrepareResources allocates while preparing.
+   * @returns {void}
+   */
+  _CreateInstanceBuffers()
+  {
     if (!Tr2Renderer.IsResourceCreationAllowed()) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     if (Failed(this._shipInstanceBuffer.Create(Tr2BufferDescriptionAL.create__Stride(

@@ -25,6 +25,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/Tr2RenderBatch.js";
 import { EveChildCloudPerObjectData } from "../../core/rawData/perObjectData/EveChildCloudPerObjectData.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResourceState } from "../../core/device/deviceResourceState.js";
 
 
 const LOCAL_MIN = vec3.fromValues(-0.5, -0.5, -0.5);
@@ -149,28 +150,30 @@ export class EveChildCloud extends EveSpaceObjectChild
   /**
    * Carbon's constructor: prepares its grid.
    *
-   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
-   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
-   *   use (IsGood at its use site), so one built and never drawn is never listed
-   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   * @adapted Carbon registers with the device and prepares here, as the
+   *   Tr2DeviceResource base constructor registers (Tr2DeviceResource.cpp:6-9).
+   *   Here it does both on its first use (IsGood at its use site), so one built
+   *   and never drawn is never listed and holds no device objects, and one left
+   *   unused is released (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   constructor()
   {
     super();
-    this.PrepareResources();
   }
 
   /**
    * Recreates native geometry; explicit destruction replaces C++ buffer assignment.
    *
-   * @adapted
+   * @adapted explicit destruction replaces C++ buffer assignment, and only a
+   *   prepared cloud prepares again; one not yet used is prepared by its first
+   *   use (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
 
   Initialize()
   {
     this._vertexBuffer.Destroy();
     this.ReleaseResources();
-    this.PrepareResources();
+    if (this._state === Tr2DeviceResourceState.PREPARED) this.PrepareResources();
     return true;
   }
 
@@ -178,7 +181,8 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Carbon OnModified (cpp:200-209): a new tessellation level drops the vertex
    * and index buffers and prepares them again. The vertex declaration is kept.
    *
-   * @implemented
+   * @adapted only a prepared cloud prepares again; one not yet used is prepared
+   *   by its first use (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
 
   OnModified(value = null)
@@ -189,7 +193,7 @@ export class EveChildCloud extends EveSpaceObjectChild
       this._vertexBuffer.Destroy();
       for (const buffer of this._indexBuffers) buffer.Destroy();
       this._indexBuffers.length = 0;
-      this.PrepareResources();
+      if (this._state === Tr2DeviceResourceState.PREPARED) this.PrepareResources();
     }
     return true;
   }
