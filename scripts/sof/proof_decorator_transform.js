@@ -29,7 +29,7 @@ function entryText(kind) {
   const sofBase = kind === "source" ? "../../src/sof" : "../../npm/dist/sof";
   const schemaEntry = kind === "source"
     ? "#schema"
-    : "../../npm/dist/global/schema/index.js";
+    : "../../npm/dist/blue/schema/index.js";
   const hullBase = `${sofBase}/hull`;
   const sharedBase = hullBase.replace("/hull", "/shared");
   return `

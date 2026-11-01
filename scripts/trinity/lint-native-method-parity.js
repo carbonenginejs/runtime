@@ -21,7 +21,7 @@
 // so does meta.renamed("X") given at define time - in a
 // `CjsSchema.define(Class, { methods: { Name: [ ... ] } })` map or a
 // `CjsSchema.decorateMethod(Class, "Name", ...)` call - which is the only form
-// src/global/blue may use (no decorator syntax there). Both forms are read from
+// src/blue/blue may use (no decorator syntax there). Both forms are read from
 // the AST: src cannot be imported under Node (decorator syntax), so the
 // runtime metadata is reachable only through a build of npm/dist, which
 // would tie this lint to the freshness of that build. Only string literals

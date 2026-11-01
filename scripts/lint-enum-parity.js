@@ -77,7 +77,7 @@ function jsVocabularies(source)
 function registeredSources(source, file)
 {
     const ast = parse(source, { sourceType: "module", plugins: [ [ "decorators", { version: "2023-11" } ] ] });
-    const registry = path.join(root, "src/global/blue/enums/CjsBlueEnumRegistry.js");
+    const registry = path.join(root, "src/blue/blue/enums/CjsBlueEnumRegistry.js");
     const imports = new Set();
     const declarations = new Set();
     const found = new Map();

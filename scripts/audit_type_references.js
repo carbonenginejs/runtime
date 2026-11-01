@@ -3,7 +3,7 @@
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { CjsSchema } from "../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../npm/dist/blue/schema/index.js";
 
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");

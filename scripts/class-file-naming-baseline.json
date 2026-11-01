@@ -53,7 +53,7 @@
     ]
   },
   "multipleClasses": {
-    "src/global/blue/CjsFormatStore.js": [
+    "src/blue/blue/CjsFormatStore.js": [
       "CjsFormatRoute",
       "CjsFormatStore"
     ],

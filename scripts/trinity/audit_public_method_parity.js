@@ -42,7 +42,7 @@ for (const entry of promoted)
 // Promoted classes remain Trinity-owned; their native bases may live in Blue.
 // Use the real shared declarations for both primary and composed-base lookup.
 const baseClasses = new Map([
-  ...await ReadJavaScriptClasses(path.join(root, "src", "global", "blue")),
+  ...await ReadJavaScriptClasses(path.join(root, "src", "blue", "blue")),
   ...await ReadJavaScriptClasses(path.join(root, "src", "trinityal")),
   ...classes
 ]);
