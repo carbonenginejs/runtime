@@ -506,6 +506,15 @@ export class TriDevice extends IRoot
     ExecuteMainThreadActions();
     Tr2GpuResourcePool.ClearAllUnusedResources();
 
+    // Ours: the device-resource eviction pass, on rendered time (unscaled clamped
+    // deltas). It moves to the root's shared clock when the root provides one.
+    this._renderedTime += deltaSeconds;
+    if (this._renderedTime - this._lastResourceEviction >= this.resourceEvictionInterval)
+    {
+      this._lastResourceEviction = this._renderedTime;
+      this._ReleaseIdleResources();
+    }
+
     return this;
   }
 
@@ -574,6 +583,66 @@ export class TriDevice extends IRoot
   /** Carbon m_postUpdateCallbacks (TriDevice.h:313). */
   #postUpdateCallbacks = [];
 
+  /**
+   * The device resources in use, Carbon's registry (`GetResourcesRegistered`,
+   * `TriDevice.h:266`).
+   *
+   * @adapted Carbon's is a static `std::set` of raw pointers that owns nothing.
+   *   Here it is an array on the device: a resource's `_registered` flag says it
+   *   has an entry, so a use never searches it, and the eviction pass compacts it
+   *   in place, so no `Set` or `Map` is iterated in the per-frame path (hot-path
+   *   rule). It holds its resources strongly only until they are idle past their
+   *   rule; see `_ReleaseIdleResources`.
+   * @type {object[]}
+   */
+  _resourcesRegistered = [];
+
+  /**
+   * Seconds of rendered time: the clamped tick deltas `OnTick` takes, summed, so
+   * a hidden tab that is not ticked ages nothing. Retention counts in it.
+   *
+   * @cjs The device's own clock stands in for the runtime root's rendered time
+   *   shared with resMan, until the root provides it
+   *   (docs internal/decisions/device-resource-registration.md, *Clock*).
+   * @type {number}
+   */
+  _renderedTime = 0;
+
+  /**
+   * `_renderedTime` at the last eviction pass.
+   *
+   * @cjs
+   * @type {number}
+   */
+  _lastResourceEviction = 0;
+
+  /**
+   * Seconds of rendered time between eviction passes.
+   *
+   * @cjs Configured through `CjsLibrary`; one second, from the measurement in
+   *   docs internal/decisions/device-resource-registration.md.
+   * @type {number}
+   */
+  resourceEvictionInterval = 1;
+
+  /**
+   * The short retention rule, in seconds of rendered time: used constantly, so
+   * idle means gone.
+   *
+   * @cjs Provisional default, configured through `CjsLibrary`.
+   * @type {number}
+   */
+  resourceRetentionShort = 10;
+
+  /**
+   * The long retention rule, in seconds of rendered time: may sit unused between
+   * updates.
+   *
+   * @cjs Provisional default, configured through `CjsLibrary`.
+   * @type {number}
+   */
+  resourceRetentionLong = 120;
+
   /** Carbon's static resource registry (TriDevice.h:265-266). */
   static #resourcesRegistered = new Set();
 
@@ -622,6 +691,88 @@ export class TriDevice extends IRoot
   static UnregisterResource(resource)
   {
     TriDevice.#resourcesRegistered.delete(resource);
+  }
+
+  /**
+   * Registers a device resource with this device on its use, with the retention
+   * rule its owner gives (`TriDevice.h:135`, `TriDevice.cpp:1087-1091`).
+   * Called from the resource's `IsGood`. A resource already in the registry
+   * keeps its one entry: only its stamp and rule are refreshed.
+   *
+   * @adapted Carbon's is static and registers from the resource's constructor
+   *   for the resource's whole life, unregistered by its destructor. JavaScript
+   *   has no destructor, so registration follows use instead: the resource is
+   *   listed while it is used and released and dropped by the eviction pass once
+   *   it has been idle past `retention`, and the device holds nothing it does not
+   *   use (docs internal/decisions/device-resource-registration.md). The rule is
+   *   the further parameter that needs, not an overload.
+   * @param {object} resource A `Tr2DeviceResource`.
+   * @param {number} retention Seconds of rendered time it may sit unused;
+   *   `Infinity` never evicts it.
+   * @returns {void}
+   */
+  RegisterResource(resource, retention)
+  {
+    resource._retention = retention;
+    resource._lastUsed = this._renderedTime;
+    resource._unregistered = false;
+    if (resource._registered) return;
+    resource._registered = true;
+    this._resourcesRegistered.push(resource);
+  }
+
+  /**
+   * Takes a device resource out of the registry (`TriDevice.h:136`,
+   * `TriDevice.cpp:1093-1106`), at the next eviction pass.
+   *
+   * @adapted Carbon erases it at once, or queues it in `s_resourcesToBeRemoved`
+   *   while a release walk is iterating. Here only the eviction pass changes the
+   *   array, so this marks the resource and the pass drops it without releasing
+   *   it again; a use before the pass keeps its entry. Nothing searches the array.
+   * @param {object} resource The registered resource.
+   * @returns {void}
+   */
+  UnregisterResource(resource)
+  {
+    resource._unregistered = true;
+  }
+
+  /**
+   * The eviction pass, run from `OnTick` when `resourceEvictionInterval` has
+   * passed: walks the registry once and compacts it in place. A resource
+   * unregistered since its last use is dropped; one idle past its retention is
+   * released (`ReleaseResources(TRISTORAGE_VIDEOMEMORY)`, as before a device
+   * reset) and dropped; the rest are kept. A dropped resource's `_registered`
+   * is cleared, so its next use registers it again and prepares it again.
+   *
+   * @cjs Carbon's registry lives for the resource's whole life and has no
+   *   eviction; this is the half of use-driven registration that removes.
+   * @returns {void}
+   */
+  _ReleaseIdleResources()
+  {
+    const resources = this._resourcesRegistered;
+    const now = this._renderedTime;
+    let write = 0;
+    // A release can register another resource; the loop reads to the live length.
+    for (let read = 0; read < resources.length; read++)
+    {
+      const resource = resources[read];
+      if (resource._unregistered)
+      {
+        resource._unregistered = false;
+        resource._registered = false;
+        continue;
+      }
+      if (now - resource._lastUsed > resource._retention)
+      {
+        resource._registered = false;
+        resource.ReleaseResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);
+        continue;
+      }
+      resources[write++] = resource;
+    }
+    resources.length = write;
   }
 
   /**
@@ -702,6 +853,12 @@ export class TriDevice extends IRoot
     {
       resource.ReleaseResources(storage);
     }
+    // The registry in use; a release only marks, so the array does not change under the walk.
+    const registered = this._resourcesRegistered;
+    for (let i = 0; i < registered.length; i++)
+    {
+      if (!registered[i]._unregistered) registered[i].ReleaseResources(storage);
+    }
 
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
     renderContext.GetEffectStateManager().ReleaseDeviceResources(storage);
@@ -726,6 +883,12 @@ export class TriDevice extends IRoot
     for (const resource of [ ...TriDevice.#resourcesRegistered ])
     {
       resource.PrepareResources();
+    }
+    // The registry in use: a prepare may register more, which prepare on their own use.
+    const registered = this._resourcesRegistered;
+    for (let i = 0, count = registered.length; i < count; i++)
+    {
+      if (!registered[i]._unregistered) registered[i].PrepareResources();
     }
 
     Tr2Renderer.prepareDeviceResources();
