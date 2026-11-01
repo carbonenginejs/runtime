@@ -135,7 +135,7 @@ export class Tr2ImpostorManager
       Tr2ImpostorManager._definition = definition;
     }
     this._quadRenderer.RegisterEffect(this._effectKey, TriBatchType.TRIBATCHTYPE_OPAQUE, 36, 1, Tr2ImpostorManager._definition, this.effect);
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /**

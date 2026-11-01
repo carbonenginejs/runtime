@@ -58,7 +58,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /**

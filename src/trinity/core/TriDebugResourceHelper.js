@@ -38,7 +38,7 @@ export class TriDebugResourceHelper
   /** Registers the device-resource lifetime, as Carbon's Tr2DeviceResource base does. */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /**

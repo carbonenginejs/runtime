@@ -25,7 +25,7 @@ const s_buffers = {
   {
     if (!this.registered)
     {
-      trinity.RegisterResource(this, Infinity);
+      trinity.RegisterResource(this);
       this.registered = true;
     }
 

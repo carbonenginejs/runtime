@@ -2101,7 +2101,7 @@ export class EveSpaceScene
    */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
 
     // cpp:285.
     this._visualizerEffects[EveVisualizeMethod.VW_LIGHT_COUNT].type = VisualizerType.FULL_SCREEN_QUAD_OVERLAY;

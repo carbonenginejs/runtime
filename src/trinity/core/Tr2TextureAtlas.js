@@ -380,7 +380,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /** How many textures are in the atlas texture? Counts live textures only. */

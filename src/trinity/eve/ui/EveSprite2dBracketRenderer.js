@@ -26,6 +26,19 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 {
 
   /**
+   * Carbon's constructor (cpp:9-13).
+   *
+   * Infrastructure, one per scene: on Carbon's registry from here to `Destruct`, as the
+   * Tr2DeviceResource base constructor registers (Tr2DeviceResource.cpp:6-9), and never
+   * swept (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 1).
+   */
+  constructor()
+  {
+    super();
+    trinity.RegisterResource(this);
+  }
+
+  /**
    * Carbon's destructor: the buffer members release with it, then the
    * Tr2DeviceResource base unregisters (Tr2DeviceResource.cpp:11-14).
    *
@@ -80,8 +93,6 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
   GatherSprites(renderer)
   {
     if (!this.display || !this.brackets.length) return;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Its buffers are made here, so it does not gate.
-    this.IsGood();
 
     const count = this.brackets.length;
     // Carbon's index buffer is uint16. Reject overflow instead of wrapping indices.

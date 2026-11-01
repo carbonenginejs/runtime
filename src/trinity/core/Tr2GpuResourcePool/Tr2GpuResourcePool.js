@@ -74,7 +74,7 @@ export class Tr2GpuResourcePool
   {
     this.#outer = outer;
     allPools.add(this);
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /**

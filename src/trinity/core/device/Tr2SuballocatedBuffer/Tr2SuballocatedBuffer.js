@@ -62,7 +62,7 @@ export class Tr2SuballocatedBuffer
     this._blockSize = blockSize;
     this._maxSize = maxSize;
     // Carbon's Tr2DeviceResource base constructor registers every resource.
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /**

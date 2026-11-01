@@ -36,7 +36,7 @@ export class Tr2PickBuffer
   {
     this._format = format;
     this._size = size;
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /**

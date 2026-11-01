@@ -834,7 +834,7 @@ export class Tr2LightManager
     const store = Tr2VariableStore.globalStore();
     this._lightBufferVariable = store.RegisterVariableInternal(Tr2LightManager.LIGHT_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._lightBuffer);
     this._indexBufferVariable = store.RegisterVariableInternal(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._indexBuffer);
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
     this.PrepareResources();
     return this;
   }

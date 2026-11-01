@@ -84,7 +84,7 @@ export class EveSpaceSceneRenderDriver
    */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /**

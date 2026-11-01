@@ -125,7 +125,7 @@ export class Tr2RingBuffer
   /** Registers the arena as Carbon's Tr2DeviceResource constructor does. */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /**

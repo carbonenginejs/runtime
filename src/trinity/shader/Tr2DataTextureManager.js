@@ -89,7 +89,7 @@ export class Tr2DataTextureManager
    */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
     Tr2VariableStore.globalStore().RegisterVariableInternal(IMPACT_SHIELD_DATA_MAP, TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._dataTexture);
     this.PrepareResources();
   }
