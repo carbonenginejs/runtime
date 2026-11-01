@@ -21,3 +21,13 @@ export const Tr2DeviceResourceState = { NONE: 0, PREPARED: 1, DESTRUCTED: 2 };
  * @type {number}
  */
 export const TICKS_PER_SECOND = 10000000;
+
+/**
+ * Seconds of Blue frame time a scene-content resource waits after a failed
+ * prepare before its next use tries again, so a broken resource does not re-run
+ * its prepare for every draw.
+ *
+ * @cjs Ours, with the rest of the lifecycle (Ruru, 2026-11-02).
+ * @type {number}
+ */
+export const PREPARE_RETRY_SECONDS = 1;

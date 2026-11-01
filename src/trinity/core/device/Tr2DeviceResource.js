@@ -19,7 +19,7 @@
 import { CjsSchema, meta } from "#schema";
 import { blue } from "#blue";
 import { trinity } from "../../CjsTrinity.js";
-import { Tr2DeviceResourceState } from "./deviceResourceState.js";
+import { Tr2DeviceResourceState, TICKS_PER_SECOND, PREPARE_RETRY_SECONDS } from "./deviceResourceState.js";
 
 
 
@@ -118,7 +118,11 @@ export class Tr2DeviceResource
     if (this._state === Tr2DeviceResourceState.DESTRUCTED) return false;
     const now = blue.os.GetCurrentFrameTime();
     if (!(this._stamp >= now)) this._stamp = now;
-    if (this._state !== Tr2DeviceResourceState.PREPARED) this.PrepareResources();
+    // A failed prepare waits PREPARE_RETRY_SECONDS before trying again, unlisted.
+    if (this._state !== Tr2DeviceResourceState.PREPARED && !(now < this._retryAt))
+    {
+      if (!this.PrepareResources()) this._retryAt = now + PREPARE_RETRY_SECONDS * TICKS_PER_SECOND;
+    }
     if (this._state === Tr2DeviceResourceState.PREPARED && this._listed !== true) trinity._ListSceneResource(this);
     return this._state === Tr2DeviceResourceState.PREPARED;
   }
@@ -172,6 +176,23 @@ export class Tr2DeviceResource
    * @type {boolean}
    */
   _listed = false;
+
+  /**
+   * The generation of its entry in Carbon's registry, so it is registered once
+   * per generation.
+   *
+   * @cjs
+   * @type {number}
+   */
+  _registeredGeneration = -1;
+
+  /**
+   * Blue frame time (ticks) before which a failed prepare is not tried again.
+   *
+   * @cjs
+   * @type {number}
+   */
+  _retryAt = 0;
 
   /**
    * Carbon OnPrepareResources (h:47-62): creates only the device objects that

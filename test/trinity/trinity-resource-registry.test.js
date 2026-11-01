@@ -89,8 +89,10 @@ test("UnregisterResource is the destructor's: the resource leaves the registry, 
   holder.UnregisterResource(r);
   assert.deepEqual(holder.GetResourcesRegistered(), [ other ]);
   assert.equal(r._state, 2, "DESTRUCTED");
+  assert.equal(holder._resourcesRegistered.length, 2, "an array: the stale entry stays until the sweep");
   holder.CollectResources();
   assert.deepEqual(holder._sceneResources, [ other ]);
+  assert.deepEqual(holder._resourcesRegistered, [ other ], "the sweep compacts Carbon's registry too");
   assert.equal(r.releases, 0, "its Destruct released it; the sweep does not again");
 });
 

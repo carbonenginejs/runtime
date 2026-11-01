@@ -76,6 +76,19 @@ test("a failed prepare answers false and lists nothing", t =>
   assert.equal(trinity._sceneResources.includes(r), false);
 });
 
+test("a failed prepare backs off for a second of frame time before the next use tries again", t =>
+{
+  const time = clock(t);
+  const r = resource(false);
+  r.IsGood();
+  r.IsGood();
+  assert.equal(r.prepares, 1, "no retry within the back-off");
+  time.at(1.5);
+  r.IsGood();
+  assert.equal(r.prepares, 2, "retried after it");
+  assert.equal(trinity._sceneResources.includes(r), false, "never listed while failing");
+});
+
 test("unused past the rule it is released and dropped; the next IsGood prepares and lists it again", t =>
 {
   const time = clock(t);
