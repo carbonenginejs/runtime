@@ -165,12 +165,17 @@ export class EveEllipseSet extends EveChildTransform
    * also makes the set its ellipse list's notify target (cpp:73); a JavaScript
    * array has no notify slot, so list events reach OnListModified from the
    * Blue loader and the set's own list methods bind definitions explicitly.
+   *
+   * Carbon prepares here (its constructor); here nothing prepares during a build: the
+   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
+   * @adapted
    */
   constructor()
   {
     super();
     vec4.set(this._boundingSphere, 0, 0, 0, 0);
-    this.PrepareResources();
   }
 
   /**

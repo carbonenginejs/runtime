@@ -31,7 +31,8 @@ function straight(lines) {return lines.AddStraightLine([1,2,3],[1,0.5,0,1],[4,6,
 function near(actual,expected,epsilon=1e-5) {assert.equal(actual.length,expected.length);actual.forEach((v,i)=>assert.ok(Math.abs(v-expected[i])<epsilon,`${i}: ${v} != ${expected[i]}`));}
 
 test('line submission packs the native 80-byte stream, adjacency, stable IDs and declaration',t=>{
-  setup(t);const lines=new Tr2CurveLineSet();const removed=straight(lines);straight(lines);lines.RemoveLine(removed);
+  // In use, as a drawn ship's is: nothing prepares during a build.
+  setup(t);const lines=new Tr2CurveLineSet();lines.IsGood();const removed=straight(lines);straight(lines);lines.RemoveLine(removed);
   assert.equal(straight(lines),0);lines.ChangeLineMultiColor(0,[0,1,0,1],0.3);lines.ChangeLineAnimation(0,[1,0,1,1],2,4);
   assert.equal(lines.FillVertexBuffer(),true);assert.equal(lines.GetNumOfLines(),2);
   const data=bytes(lines);assert.equal(data.length,960);

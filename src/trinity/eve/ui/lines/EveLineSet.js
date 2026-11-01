@@ -120,13 +120,16 @@ export class EveLineSet
    * Carbon Initialize (cpp:35-42): seeds the line capacity at 100 and prepares the resources. Carbon also reserves
    * the line vector; a JavaScript array needs no reserve.
    *
-   * @implemented
+   * Carbon prepares here (EveLineSet::Initialize); here nothing prepares during a build: the
+   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
+   * @adapted
    */
 
   Initialize()
   {
     this.maxCurrentLineCount = 100;
-    this.PrepareResources();
     return true;
   }
 
@@ -384,6 +387,10 @@ export class EveLineSet
    * Carbon SubmitChanges (cpp:246-283): grows the buffer when the lines outgrow it, prepares the resources, uploads
    * the lines, and rebuilds the bounding sphere from their end points.
    *
+   * A submit or edit is a use: it prepares now, as Carbon does, and keeps the
+   * set alive (KeepAlive), so one submitted and never drawn is still released
+   * by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
    * @adapted Carbon grows to the line vector's capacity, which its allocator chooses; a JavaScript array has none, so
    *   the buffer grows to the line count.
    */
@@ -400,6 +407,7 @@ export class EveLineSet
 
     // Make sure the resources are prepared.
     this.PrepareResources();
+    this.KeepAlive();
 
     if (!this._vertexBuffer.IsValid()) return false;
 

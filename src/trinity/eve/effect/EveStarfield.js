@@ -114,12 +114,15 @@ export class EveStarfield
   /**
    * Initializes device storage when creation is allowed (cpp:98-102).
    *
-   * @implemented
+   * Carbon prepares here (cpp:98-102); here nothing prepares during a build: the
+   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
+   * @adapted
    */
 
   Initialize()
   {
-    this.PrepareResources();
     return true;
   }
 

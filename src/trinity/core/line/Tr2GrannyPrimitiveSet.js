@@ -69,13 +69,16 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   /**
    * Acquires the authored resource after reader population (cpp:38-44).
    *
-   * @implemented
+   * Carbon prepares here (Tr2GrannyPrimitiveSet::Initialize); here nothing prepares during a build: the
+   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
+   * @adapted
    */
 
   Initialize()
   {
     this.SetGrannyResource();
-    this.PrepareResources();
     return true;
   }
 
@@ -138,7 +141,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   /**
    * Rebuilds only a successfully prepared current resource (cpp:194-202).
    *
-   * @implemented
+   * A submit or edit is a use: it prepares now, as Carbon does, and keeps the
+   * set alive (KeepAlive), so one submitted and never drawn is still released
+   * by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
+   * @adapted
    */
 
   RebuildCachedData(resource)
@@ -147,6 +154,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     this.CleanUp();
     this.CreatePrimitive();
     this.PrepareResources();
+    this.KeepAlive();
   }
 
   /**
@@ -253,13 +261,18 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   /**
    * Updates cached vertex colors, without reassigning the authored color field (cpp:519-526).
    *
-   * @implemented
+   * A submit or edit is a use: it prepares now, as Carbon does, and keeps the
+   * set alive (KeepAlive), so one submitted and never drawn is still released
+   * by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
+   * @adapted
    */
 
   SetCurrentColor(color)
   {
     for (let offset = 6; offset < this._points.length; offset += 10) this._points.set(color, offset);
     this.PrepareResources();
+    this.KeepAlive();
   }
 
   /**

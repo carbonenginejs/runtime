@@ -162,6 +162,10 @@ export class Tr2CurveLineSet
   /**
    * Carbon's constructor: prepares the empty set.
    *
+   * Carbon prepares here (its constructor); here nothing prepares during a build: the
+   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
    * @adapted Carbon registers with the device here, as the Tr2DeviceResource
    *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
    *   use (IsGood at its use site), so one built and never drawn is never listed
@@ -169,7 +173,6 @@ export class Tr2CurveLineSet
    */
   constructor()
   {
-    this.PrepareResources();
   }
 
   /**
@@ -226,12 +229,18 @@ export class Tr2CurveLineSet
   /**
    * Only the mapped width factor requires a vertex refill (cpp:50-58).
    *
-   * @implemented
+   * @adapted a width edit is a use: it refills now, as Carbon does, and keeps the
+   *   set alive (KeepAlive), so one edited and never drawn is still released by the
+   *   sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
 
   OnModified(name)
   {
-    if (IsMatch(name, "lineWidthFactor")) this.FillVertexBuffer();
+    if (IsMatch(name, "lineWidthFactor"))
+    {
+      this.FillVertexBuffer();
+      this.KeepAlive();
+    }
     return true;
   }
 
@@ -565,12 +574,15 @@ export class Tr2CurveLineSet
   /**
    * Native submission intentionally reports success even when filling fails.
    *
-   * @implemented
+   * @adapted a submit is a use: it fills now, as Carbon does, and keeps the set
+   *   alive (KeepAlive), so one submitted and never drawn is still released by the
+   *   sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   @be.mapMethodAndWrap()
   SubmitChanges()
   {
     this.FillVertexBuffer();
+    this.KeepAlive();
     return true;
   }
 

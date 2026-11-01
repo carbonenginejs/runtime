@@ -32,7 +32,7 @@ test("lines upload colored endpoints and independent picking positions with nati
   const {maps}=setup(t),s=new Tr2LineSet();
   s.AddLine([0,0,0],red,[6,0,0],green);s.AddLine([0,6,0],blue,[6,6,0],red);
   s.AddPickingTriangle([100,0,0],[110,0,0],[100,10,0]);
-  assert.equal(CjsSchema.cast(s,IInitialize),s);finalizeReaderObject(s);
+  assert.equal(CjsSchema.cast(s,IInitialize),s);finalizeReaderObject(s);s.IsGood();
   assert.equal(s.maxCurrentLineCount,100);assert.equal(s.currentSubmittedLineCount,2);
   assert.equal(s._vertexBuffer.GetDesc().stride,56);assert.equal(s.pickingVertexBuffer.GetDesc().stride,36);
   assert.deepEqual(floats(maps,s._vertexBuffer),[0,0,0,...red,6,0,0,...green,0,6,0,...blue,6,6,0,...red]);
@@ -57,7 +57,7 @@ test("line GPU picking draws dedicated triangles and otherwise falls back to vis
 });
 
 test("solid submission uploads native normals/colors and emits nonindexed triangles",t=>{
-  const {maps,effect,context,draws}=setup(t),s=new Tr2SolidSet();s.effect=s.pickEffect=effect;triangle(s);finalizeReaderObject(s);
+  const {maps,effect,context,draws}=setup(t),s=new Tr2SolidSet();s.effect=s.pickEffect=effect;triangle(s);finalizeReaderObject(s);s.IsGood();
   assert.equal(s._vertexBuffer.GetDesc().stride,40);assert.equal(s.currentSubmittedTriangleCount,1);
   assert.deepEqual(floats(maps,s._vertexBuffer),[0,0,0,-0,0,1,...red,6,0,0,-0,0,1,...green,0,3,0,-0,0,1,...blue]);
   assert.deepEqual([...s.boundingSphere.slice(0,3)],[2,1,0]);assert.ok(Math.abs(s.boundingSphere[3]-Math.sqrt(17))<1e-5);

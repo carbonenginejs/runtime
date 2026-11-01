@@ -81,6 +81,10 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   /**
    * Native SubmitChanges; JS array length replaces inaccessible vector capacity.
    *
+   * A submit or edit is a use: it prepares now, as Carbon does, and keeps the
+   * set alive (KeepAlive), so one submitted and never drawn is still released
+   * by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
    * @adapted
    */
   @be.mapMethodAndWrap()
@@ -92,6 +96,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
       this.ReleaseResources();
     }
     this.PrepareResources();
+    this.KeepAlive();
     return true;
   }
 
@@ -114,12 +119,15 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   /**
    * Prepares existing geometry after reader population; JS arrays need no reserve.
    *
+   * Carbon prepares here (Tr2SolidSet::Initialize); here nothing prepares during a build: the
+   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
    * @adapted
    */
 
   Initialize()
   {
-    this.PrepareResources();
     return true;
   }
 

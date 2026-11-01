@@ -188,6 +188,10 @@ export class EveSpherePin
   /**
    * Carbon's constructor: creates its effects and bounds, and prepares.
    *
+   * Carbon prepares here (its constructor); here nothing prepares during a build: the
+   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
    * @adapted Carbon registers with the device here, as the Tr2DeviceResource
    *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
    *   use (IsGood at its use site), so one built and never drawn is never listed
@@ -201,7 +205,6 @@ export class EveSpherePin
     this._ownedEffects.add(this.pickEffect);
     this.pickEffect.SetEffectPathName("res:/Graphics/Effect/Managed/Space/UI/SpherePinPicking.fx");
     this.BuildBoundingSphere();
-    this.PrepareResources();
   }
 
   /**

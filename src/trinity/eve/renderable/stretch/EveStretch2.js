@@ -143,12 +143,15 @@ export class EveStretch2 extends IEveFiringEffectElement
   /**
    * Carbon Initialize (cpp:96-100): prepares the device half.
    *
-   * @implemented
+   * Carbon prepares here (cpp:96-100); here nothing prepares during a build: the
+   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
+   * @adapted
    */
 
   Initialize()
   {
-    this.PrepareResources();
     return true;
   }
 
@@ -157,7 +160,11 @@ export class EveStretch2 extends IEveFiringEffectElement
    * CCP_ASSERT on more than MAX_QUAD_COUNT quads (cpp:106) is compiled out of
    * shipping builds, so nothing stops the count there.
    *
-   * @implemented
+   * An edit is a use: it prepares now, as Carbon does, and keeps the stretch
+   * alive (KeepAlive), so one edited and never drawn is still released by the
+   * sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *
+   * @adapted
    */
 
   OnModified(propertyName)
@@ -166,6 +173,7 @@ export class EveStretch2 extends IEveFiringEffectElement
     {
       this.ReleaseResources();
       this.PrepareResources();
+    this.KeepAlive();
     }
     return true;
   }
