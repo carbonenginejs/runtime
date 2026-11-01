@@ -1,21 +1,5 @@
 {
-  "Allign": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "ApproachGroup": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "AudEmitter": [
-    "GetDebugOptions",
-    "RenderDebugBoundingSphere",
-    "RenderDebugDirection",
-    "RenderDebugInfo",
-    "RenderDebugName"
-  ],
   "AudGameObjResource": [
-    "Orientation",
     "PropagateWwiseCallback"
   ],
   "AudManager": [
@@ -33,19 +17,11 @@
     "InitSound",
     "LoadBankCallback",
     "MethodName",
-    "OnTick",
     "RegisterForTicks",
     "ResourceMonitorCallback",
     "StopTrackingSoundBank",
     "Terminate",
     "UnloadBankCallback"
-  ],
-  "AudObstructionOcclusion": [
-    "Advance",
-    "ReachedTarget",
-    "SendToWwise",
-    "SetTarget",
-    "SnapToTarget"
   ],
   "AudStaticDataRepository": [
     "GenerateVectorFromPythonList",
@@ -55,106 +31,18 @@
     "PropagatePythonCallback"
   ],
   "AudioGameObject": [
-    "GetDebugOptions",
-    "RenderDebugInfo",
     "py__init__"
   ],
-  "BackAndForth": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
   "BehaviorGroup": [
-    "GetDebugOptions",
-    "GetVertexDeclarationHandle",
     "RebuildCachedData",
     "ReleaseCachedData",
-    "RenderDebugInfo",
     "SetupRenderables"
-  ],
-  "BehaviorGroupBooster": [
-    "AdjustFlareLists",
-    "GetVertexDeclaration",
-    "InitializeAmbientFlare",
-    "InitializeHaloFlare",
-    "RenderBoosterDebug",
-    "RenderLightDebug",
-    "SetupBoosterEffect",
-    "SetupQuads"
-  ],
-  "DroneAvoidance": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "EveBannerSet": [
-    "CreateBannerGeometry",
-    "CreateCurvedBannerGeometry",
-    "CreateFlatBannerGeometry",
-    "CreateHorizontalCurvedBannerGeometry",
-    "CreateVerticalCurvedBannerGeometry",
-    "OnPrepareResources",
-    "ReleaseResources"
-  ],
-  "EveBaseDistributionMethod": [
-    "GetInitialPlacementIndexByID",
-    "GetInitialPlacementMatrixForPlacement",
-    "GetPlacement",
-    "GetRandomPlacement",
-    "HandleDistributionEntityLifetimeEvent",
-    "SwapInitialPlacements"
   ],
   "EveBasicPerObjectData": [
     "SetPerObjectData"
   ],
-  "EveBoosterSet2": [
-    "AddToQuadRenderer",
-    "OnPrepareResources",
-    "RebuildInstanceData",
-    "RegisterWithQuadRenderer",
-    "ReleaseResources",
-    "RenderDebugInfo"
-  ],
   "EveChildAudio": [
-    "GetDebugOptions",
-    "RenderDebugInfo",
     "py__init__"
-  ],
-  "EveChildBehaviorSystem": [
-    "GetDebugOptions",
-    "GetGroupBatches",
-    "GetGroupBoosterBatches",
-    "GetInstanceBufferVertexDeclaration",
-    "IsInstanceDataReady",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "RenderDebugInfo",
-    "UpdateBuffer"
-  ],
-  "EveChildBoosterSet": [
-    "GetDebugOptions",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "RenderDebugInfo"
-  ],
-  "EveChildBulletStorm": [
-    "Initialize",
-    "OnPrepareResources",
-    "ReleaseResources"
-  ],
-  "EveChildCloud": [
-    "GetDebugOptions",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "RenderDebugInfo"
-  ],
-  "EveChildCloud2": [
-    "ClearVariableStore",
-    "CreateEmptyLightMap",
-    "GetDebugOptions",
-    "Initialize",
-    "OnListModified",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "RenderDebugInfo"
   ],
   "EveChildContainer": [
     "DoUpdateAsyncronous",
@@ -167,90 +55,32 @@
     "GetDebugOptions",
     "RenderDebugInfo"
   ],
-  "EveChildFogVolume": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
   "EveChildInstanceContainer": [
-    "AddInstanceTransform",
-    "AddToEffectChildrenList",
-    "ClearInstanceList",
-    "CreateInstance",
-    "CreateInstances",
-    "DisableEditMode",
     "DistributeAcrossLocatorset",
-    "GetCurveSetDuration",
     "GetDebugOptions",
-    "GetEffectChildByName",
-    "GetOwnerMaxSpeed",
-    "GetRangeDuration",
-    "GetSource",
     "GetWorldVelocity",
-    "HandleControllerEventForInstance",
-    "OnListModified",
     "OnStructureListModified",
-    "PlayAllCurveSets",
-    "PlayCurveSet",
-    "PopFront",
-    "RemoveFromEffectChildrenList",
     "RenderDebugInfo",
-    "SetControllerVariableForInstance",
-    "SetInheritProperties",
-    "SetSource",
-    "SetSourceEffect",
-    "StopAllCurveSets",
-    "StopCurveSet",
-    "UpdateCurveSet",
-    "UpdateInstance"
+    "SetInheritProperties"
   ],
   "EveChildInstancedMeshes": [
     "GetDebugOptions",
-    "GetPerObjectDataSize",
     "OnPrepareResources",
-    "PushRtGeometry",
-    "RebuildCachedData",
-    "RebuildOverlayAreaBlocks",
     "ReleaseCachedData",
     "ReleaseResources",
-    "RenderDebugInfo",
-    "UpdatePerObjectBuffer"
-  ],
-  "EveChildLightingOverride": [
-    "GetDebugOptions",
     "RenderDebugInfo"
-  ],
-  "EveChildLineSet": [
-    "CreateSpriteVertexDeclaration",
-    "GenerateManagedPoints",
-    "GetDebugOptions",
-    "GetMesh",
-    "GetOwnerMaxSpeed",
-    "GetWorldVelocity",
-    "Initialize",
-    "InitializeLineSet",
-    "IsUpdating",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "RenderDebugInfo",
-    "UpdateBoundingSphere",
-    "UpdateBuffer"
   ],
   "EveChildMesh": [
     "DisplayDecals",
     "GetAllBakedMorphTargetStates",
-    "GetAnimationController",
     "GetBakedMorphTarget",
     "GetDebugOptions",
     "GetMeshBindingIndices",
     "GetOverlayEffects",
     "GetPerObjectDataSize",
     "IsMorphsBaked",
-    "IsShadowCastingDirty",
-    "MarkRtDirty",
     "OnPrepareResources",
     "PrepareMorphBuffers",
-    "PushRtGeometry",
-    "RebuildOverlayAreaBlocks",
     "RegisterAudioGeometry",
     "ReleaseBvhVisualization",
     "ReleaseResources",
@@ -264,109 +94,34 @@
     "UpdateRtMesh",
     "UpdateRtSkeleton"
   ],
-  "EveChildParticleSphere": [
-    "AddParticles",
-    "ApplyConstraint",
-    "CheckBinding",
-    "FillParticleData",
-    "Update"
-  ],
   "EveChildParticleSystem": [
     "GetCurveSetDuration",
-    "GetDebugOptions",
     "PlayCurveSet",
-    "RenderDebugInfo",
     "StopCurveSet"
   ],
   "EveChildPlug": [
     "AddExternalParameter",
-    "FindSoundEmitter",
-    "GetCurveSetDuration",
-    "GetDebugOptions",
-    "GetEffectChildByName",
     "GetExternalParameters",
-    "GetRangeDuration",
-    "PlayAllCurveSets",
-    "PlayCurveSet",
-    "RenderDebugInfo",
-    "SetInheritProperties",
-    "StopAllCurveSets",
-    "StopCurveSet",
-    "UpdateCurveSet"
-  ],
-  "EveChildPostProcessVolume": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
+    "SetInheritProperties"
   ],
   "EveChildProceduralContainer": [
     "GetDebugOptions",
     "RenderDebugInfo"
   ],
   "EveChildRef": [
-    "AddToEffectChildrenList",
-    "FindSoundEmitter",
-    "GetCurveSetDuration",
     "GetDebugOptions",
-    "GetEffectChildByName",
-    "GetRangeDuration",
-    "GetResPath",
-    "Initialize",
-    "LoadChild",
-    "PlayAllCurveSets",
-    "PlayCurveSet",
-    "RemoveFromEffectChildrenList",
-    "RenderDebugInfo",
-    "SetInheritProperties",
-    "SetResPath",
-    "StopCurveSet",
-    "UpdateCurveSet"
+    "RenderDebugInfo"
   ],
   "EveChildSocket": [
     "AddParameterForExternal",
-    "AddToEffectChildrenList",
-    "BindParameters",
-    "FindSoundEmitter",
-    "GetCurveSetDuration",
-    "GetDebugOptions",
-    "GetEffectChildByName",
-    "GetPlugResPath",
-    "GetRangeDuration",
-    "Initialize",
-    "LoadChild",
-    "PlayAllCurveSets",
-    "PlayCurveSet",
-    "Propogate",
-    "RemoveFromEffectChildrenList",
-    "RenderDebugInfo",
-    "SetInheritProperties",
-    "SetPlugResPath",
-    "StopAllCurveSets",
-    "StopCurveSet",
-    "UpdateCurveSet"
+    "SetInheritProperties"
   ],
   "EveChildTurret": [
     "GetDebugOptions",
     "RenderDebugInfo"
   ],
-  "EveCloudEditableVolume": [
-    "GetDebugOptions",
-    "GetTexture",
-    "Initialize",
-    "RasterizeBall",
-    "RasterizeBalls",
-    "RasterizeBallsAnimated",
-    "RenderDebugInfo",
-    "ThreadProc",
-    "ThreadProcAnimated",
-    "Update"
-  ],
   "EveDistanceField": [
-    "CalculateFieldCoverageAndDistance",
-    "CreateCurveSet",
-    "GetDebugOptions",
-    "SetMaxDistance",
-    "SetNeutralValues",
-    "UpdateDistanceCurveSize"
+    "SetMaxDistance"
   ],
   "EveDistributionPlacementGeneratorParentLocators": [
     "BuildInitialLocatorsFromParent"
@@ -375,87 +130,23 @@
     "ShouldReflect"
   ],
   "EveEllipseSet": [
-    "CommitRibbonBatch",
-    "GetID",
-    "GetPickingBatches",
-    "OnPrepareResources",
-    "RebuildGeometry",
-    "RefreshGeometryIfNeeded",
-    "ReleaseResources",
     "py__init__"
-  ],
-  "EveHazeSet": [
-    "OnPrepareResources",
-    "ReleaseResources"
-  ],
-  "EveKDdroneManagementTree": [
-    "DrawDebugTree",
-    "DrawSquareInnerLines",
-    "RenderDebugInfo"
-  ],
-  "EveLensflare": [
-    "GetCurveSetDuration",
-    "GetRangeDuration",
-    "GetRenderables",
-    "Initialize",
-    "OnListModified",
-    "PlayCurveSet",
-    "PrepareRender",
-    "RunBackgroundOcclusionQueries",
-    "RunOcclusionQueries",
-    "StopCurveSet",
-    "UpdateCurveSet"
-  ],
-  "EveLineSet": [
-    "OnPrepareResources",
-    "ReleaseResources",
-    "UpdateViewDependentData"
-  ],
-  "EveMissile": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
   ],
   "EveMissileWarhead": [
     "RenderDebugInfoFromParent"
   ],
   "EveMobile": [
-    "GetDebugOptions",
-    "GetTurretLocatorCountingInfo",
-    "RenderDebugInfo",
-    "ResetTurretLocatorCounter",
-    "SetShaderOption",
     "ValidateTurretLocatorName"
   ],
   "EveModularObjectModifier": [
     "FindPartData"
-  ],
-  "EveOccluder": [
-    "RunQuery"
-  ],
-  "EvePendingPickingReadback": [
-    "MapDebug",
-    "MapMain",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "Unmap"
   ],
   "EvePlaneSet": [
     "CreateBoundingBoxes"
   ],
   "EvePlanet": [
     "CalcRequiredTextureSize",
-    "CalculatePlanetScaleTransform",
-    "EstimatePixelDiameterDist",
-    "EstimatePixelDiameterPos",
-    "GetEstimatedPixelDiameter",
-    "GetTranslationCurve",
-    "GetZOnlyRenderables",
-    "OnPrepareResources",
-    "SetLod",
-    "UpdateEffectChildren",
-    "UpdateLOD",
-    "UpdatePlanetSyncronous",
-    "UpdatePlanetVisibility"
+    "OnPrepareResources"
   ],
   "EveProceduralMethodCycling": [
     "SelectParameter"
@@ -471,14 +162,9 @@
     "ProcessLayoutDistributionDistribute",
     "ProcessPlacementDistributionOrGroup",
     "SetupConsts",
-    "SetupMesh",
-    "size_t"
-  ],
-  "EveSOFDNA": [
-    "SetupCustomData"
+    "SetupMesh"
   ],
   "EveSOFDataMgr": [
-    "AsLightData",
     "GenerateFactionData",
     "GenerateGenericData",
     "GenerateHullData",
@@ -486,11 +172,6 @@
     "GenerateMaterialData",
     "GeneratePatternData",
     "GenerateRaceData",
-    "HullData",
-    "HullPlaneSetData",
-    "HullPlaneSetItemData",
-    "HullSpotlightSetData",
-    "HullSpotlightSetItemData",
     "LoadFactionData",
     "LoadGenericData",
     "LoadHullAreaData",
@@ -500,99 +181,45 @@
     "LoadMaterialData",
     "LoadPatternData",
     "LoadRaceData",
-    "Locator",
-    "MultiHullDecalIndexBuffers",
-    "PointLightAttachment",
-    "SpotLightAttachment",
     "UnpackPlacementData",
     "generateDistributionConditionData",
     "generateDistributionData"
   ],
-  "EveSceneStaticParticles": [
-    "GetInstanceDataObject"
-  ],
   "EveSceneStaticParticlesPerObjectData": [
     "SetPerObjectData"
-  ],
-  "EveShip2": [
-    "GetAudioParameter",
-    "GetBoosterIntensity",
-    "GetDebugOptions",
-    "RenderDebugInfo",
-    "SetAudioParameter"
   ],
   "EveSmartLightAttributeModifierBucket": [
     "OnListModified"
   ],
   "EveSpaceObject2": [
-    "AddAttachment",
     "AddCurveSet",
     "AddCustomMask",
-    "AddDecal",
     "AddExternalParameter",
     "AddLocator",
-    "AddOverlayEffect",
     "AddToChildrenList",
     "AreOccludersReadyForRaycasts",
     "CacheAllAreasCastShadow",
-    "ClearAttachments",
     "CollectOccluders",
-    "CountLocatorsByPrefix",
-    "DetermineLocatorType",
     "EnableDynamicBoundingSphere",
-    "FindLocatorJointByName",
-    "FindLocatorTransformByName",
-    "GetAnimationController",
-    "GetAudioGeometry",
-    "GetControllerValueByName",
-    "GetCurveSetDuration",
     "GetDamageLocatorDirectionLocal",
-    "GetDebugOptions",
     "GetEffectChildren",
     "GetEstimatedPixelDiameter",
     "GetEveLocatorTransform",
-    "GetImpostorBatches",
-    "GetImpostorBoundingSphere",
-    "GetLastDamageLocatorHit",
-    "GetLastImpostorBoundingSphere",
     "GetLocalBoundingBoxFromScript",
-    "GetLocatorDirection",
-    "GetLocatorPosition",
     "GetLocatorSets",
     "GetModelWorldPosition",
-    "GetOverlayEffectByName",
     "GetPerObjectDataSize",
     "GetPositionFunction",
-    "GetRangeDuration",
-    "GetRenderPriority",
-    "IsAnimated",
     "NextAudioInstanceId",
     "PlayAnimationOnce",
-    "PlayCurveSet",
-    "PrepareForAnimation",
-    "PushChildrenAndDecalRenderables",
-    "PushRenderables",
-    "PushRtGeometry",
     "PyGetTransformedLocatorsFromSet",
     "PyTransformLocators",
     "RegisterAudioGeometry",
-    "RegisterSecondaryLightSource",
-    "RemoveOverlayEffect",
-    "RenderDebugInfo",
-    "ResetClipSphereCenter",
-    "ResetClipSphereCenterToPos",
-    "SetAudioGeometry",
     "SetCastsShadow",
     "SetDnaString",
-    "SetIsAnimated",
-    "SetLastDamageLocatorHit",
     "SetReflectionMode",
-    "SetShaderOption",
     "SetShapeEllipsoid",
-    "StopCurveSet",
     "UnregisterAudioGeometry",
-    "UnregisterSecondaryLightSource",
-    "UpdateCurveSet",
     "UpdatePerObjectBuffer",
     "UpdateRtMesh",
     "UpdateRtSkeleton"
@@ -600,264 +227,47 @@
   "EveSpaceObjectDecal": [
     "CreateDecalIndexBuffers",
     "CreateStaticIndexBuffers",
-    "GetInstancedRenderables",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "RenderDebugInfo",
-    "UpdateDecalMatrix"
+    "RenderDebugInfo"
   ],
   "EveSpaceScene": [
-    "ApplyPerFrameData",
     "ApplyUpscalingToPerFrameData",
-    "BeginRender",
-    "ClearBatches",
     "ClearRenderTargetIfNoBatches",
-    "ClearVariableStore",
-    "CreatePlanetViewMatrix",
-    "EnableShadowsInReflections",
-    "EndRender",
-    "FinalizeBatches",
-    "FinishRenderingShadowMapForLights",
     "GatherBatches",
-    "GetAllBatchesFromRenderables",
-    "GetCameraAttachments",
     "GetDepthBatchesFromRenderables",
-    "GetGpuParticleSystem",
-    "GetLightMatrices",
     "GetOpaqueBatchesFromRenderables",
-    "GetPickingObjectsToRender",
-    "GetQuadRenderer",
     "GetReprojectionMatrix",
-    "GetShLightingManager",
     "GetTransparentBatchesFromRenderables",
-    "HasReflectionProbe",
-    "Initialize",
     "IsMeshUnloadingEnabled",
-    "IsShadowsInReflectionsEnabled",
-    "Jitter",
     "Objects",
-    "OnPrepareResources",
-    "PerformPicking",
-    "PickAsyncObjectAndArea",
-    "PickObjectAndArea",
-    "PopulateAndApplyPerFrameData",
     "PrepareRaytracedShadows",
-    "PrepareShadowMapForLights",
-    "PrepareTransparentBatch",
     "ProcessOutdatedRTAnimations",
-    "ReleaseResources",
-    "Render",
     "Render3DUI",
-    "RenderBackgroundPass",
-    "RenderBackgroundPassObjects",
-    "RenderDebugInfo",
-    "RenderDepthPass",
     "RenderDistortion",
-    "RenderDistortionBatches",
-    "RenderIntoCloudShadowMap",
-    "RenderOpaqueBatches",
-    "RenderPlanets",
-    "RenderReflectionPass",
-    "RenderShadowMapForLight",
-    "RenderShadows",
-    "RenderTransparentBatches",
     "RenderTransparentBatches2",
-    "RenderVolumetricShadowMap",
-    "RenderVolumetrics",
-    "RunLensflareOcclusionQueries",
-    "SetGpuParticleSystem",
-    "SetShLightingManager",
-    "SetupCascadedShadows",
-    "SetupPlanetsAsShadowCaster",
-    "SetupTransformsForPicking",
-    "UpdateImpostors",
-    "UpdatePlanets",
-    "UpdateSceneFromScript",
-    "UpdateVariableStore"
-  ],
-  "EveSpaceSceneRenderDriver": [
-    "GetCustomStencilMapIfNeeded",
-    "GetDebugMode",
-    "GetDistortionMapIfNeeded",
-    "GetNormalMapIfNeeded",
-    "GetOpaqueColorMapIfNeeded",
-    "GetRenderSize",
-    "GetScene",
-    "GetVelocityMapIfNeeded",
-    "OnPrepareResources",
-    "PropagateSettings",
-    "ReleaseResources",
-    "RenderSSAO",
-    "SetDebugMode",
-    "SetScene",
-    "SetSettings",
-    "SetupUpscaling",
-    "UpdateGpuParticleSystem"
-  ],
-  "EveSpherePin": [
-    "BuildBoundingSphere",
-    "CreateIndexBuffer",
-    "GetBatchWithEffect",
-    "Initialize",
-    "InitializeGeometryResource",
-    "OnPrepareResources",
-    "RebuildCachedData",
-    "ReleaseCachedData",
-    "ReleaseResources",
-    "Update"
-  ],
-  "EveSpotlightSet": [
-    "GetDefinition"
-  ],
-  "EveSprite2dBracketRenderer": [
-    "OnPrepareResources",
-    "ReleaseResources"
-  ],
-  "EveSpriteLineSet": [
-    "ReallocateResources"
-  ],
-  "EveStarfield": [
-    "GetBatches",
-    "GetEffect",
-    "Initialize",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "SetEffect",
-    "Update"
+    "UpdateSceneFromScript"
   ],
   "EveStretch": [
     "GetCurveSet",
     "GetCurveSetCount",
-    "GetDebugOptions",
-    "RenderDebugInfo",
     "SetDisplayDestObject",
     "SetDisplaySourceObject",
     "UpdateViewDependentData"
   ],
-  "EveStretch2": [
-    "GetDebugOptions",
-    "GetEndPointTransforms",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "RenderDebugInfo"
-  ],
-  "EveStretch3": [
-    "GetDebugOptions",
-    "GetDestObject",
-    "GetMoveObject",
-    "GetSourceObject",
-    "GetStretchObject",
-    "RenderDebugInfo",
-    "RunOnComponents",
-    "RunOnComponentsGetMax",
-    "SetDestObject",
-    "SetMoveObject",
-    "SetSourceObject",
-    "SetStretchObject"
-  ],
   "EveSwarm": [
-    "CalculateForces",
-    "Calculate_Cohesion",
-    "Calculate_Separation",
-    "Calculate_Wander",
-    "EnableSwarmForceDebug",
-    "GetDebugOptions",
-    "PushRenderables",
-    "RenderDebugInfo",
-    "SetBehavior",
-    "UpdateOrientation",
-    "UpdateSwarm"
+    "SetBehavior"
   ],
   "EveSwarmRenderable": [
     "GetPerObjectDataSize",
-    "GetPickingBatches",
-    "PushDecals",
-    "UpdateDecalVisibility",
     "UpdatePerObjectBuffer"
   ],
-  "EveTacticalOverlay": [
-    "GetDefinition"
-  ],
-  "EveTacticalTrails": [
-    "OnPrepareResources"
-  ],
-  "EveTrailsSet": [
-    "Cleanup",
-    "GetBatches",
-    "InitializeGeometryResource",
-    "InitializeInstanceBuffer",
-    "OnPrepareResources",
-    "RebuildCachedData",
-    "ReleaseCachedData",
-    "ReleaseResources"
-  ],
-  "EveTransform": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "EveTriggerVolume": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "EveTurretFiringFX": [
-    "AddQuadsToQuadRenderer",
-    "GetDebugOptions",
-    "OnListModified",
-    "RegisterWithQuadRenderer",
-    "RenderDebugInfo"
-  ],
   "EveTurretSet": [
-    "AddQuadsToQuadRenderer",
-    "CalcRandomDelay",
-    "Cleanup",
-    "ForceIdleAnimation",
-    "GetAmbientEffect",
-    "GetAmbientEffectOrGeneratedEffect",
-    "GetClosestTurretAndLocator",
-    "GetDebugOptions",
-    "GetDynamicBounds",
-    "GetFireAnimationName",
-    "GetFiringEffect",
-    "GetLocalBoundingBox",
-    "GetLocatorName",
-    "GetSlotNumber",
-    "GetState",
-    "GetSwarmID",
-    "GetTurretBoneTransform",
-    "InitializeAmbientEffect",
-    "InitializeAnimation",
-    "InitializeDynamicBounds",
-    "InitializeFiringEffect",
-    "InitializeGeometryResource",
-    "InitializeGrannyDynamicBounds",
-    "InitializeInstanceBuffer",
-    "IsAmbientVisible",
-    "OnPrepareResources",
-    "PlayAnimation",
-    "PushRtGeometry",
-    "RebuildCachedData",
-    "RegisterWithQuadRenderer",
-    "ReleaseCachedData",
-    "ReleaseResources",
-    "RenderDebugInfo",
     "RenderDynamicBounds",
-    "SetAmbientEffect",
-    "SetAmbientEffectControllerVariableOnInstance",
-    "SetShaderOption",
-    "SetupFiringState",
-    "StopAnimation",
-    "UpdateLOD",
     "UpdateRtMesh",
-    "UpdateRtSkeleton",
-    "UpdateSingleTurrets"
+    "UpdateRtSkeleton"
   ],
   "EveUpdateContext": [
     "GetReferencePoint",
     "refObject"
-  ],
-  "EveVirtualCamera": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
   ],
   "EveVirtualCameraBehaviourFloatBase": [
     "Update"
@@ -865,29 +275,11 @@
   "EveVirtualCameraBehaviourVector3Base": [
     "Update"
   ],
-  "EveVirtualCameraSystem": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
   "EveVirtualCameraTransitionBase": [
     "IsComplete"
   ],
   "Float4x3": [
     "Matrix"
-  ],
-  "FollowASpline": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "Formation": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "IEveTransform": [
-    "Update"
-  ],
-  "Inertia": [
-    "RenderDebugInfo"
   ],
   "ProcessLifetime": [
     "GetPotentialPoints",
@@ -921,83 +313,12 @@
     "cend",
     "end"
   ],
-  "SeekTarget": [
-    "CalculateBehavior",
-    "FindSpawnPoint",
-    "GetDebugOptions",
-    "GetLocatorsForSet",
-    "GetProcessPriority",
-    "GetScratchMemorySize",
-    "InitializeScratch",
-    "RenderDebugInfo",
-    "SortLocators"
-  ],
   "SoundPrioritization": [
     "mutex",
     "visitor"
   ],
   "SpawnDrones": [
     "GridToggleReset"
-  ],
-  "SplineTunnelGroup": [
-    "CreateSplineTunnels"
-  ],
-  "StretchAudio": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "Tr2ActionOverlay": [
-    "LoadOverlay"
-  ],
-  "Tr2ActionPython": [
-    "InstantiateObject"
-  ],
-  "Tr2ActionResetClipSphereCenter": [
-    "ResetClipSphereToLocator"
-  ],
-  "Tr2ActionSetExternalControllerVariable": [
-    "LinkToDestinationOwner"
-  ],
-  "Tr2AtlasTexture": [
-    "CalcReciprocals",
-    "CalcSubTextureWindow",
-    "CalcTextureWindow",
-    "DoLoad",
-    "DoPrepare",
-    "FinalizePrepare",
-    "GetHeight",
-    "GetHeightReciprocal",
-    "GetMemoryUsage",
-    "GetRenderTarget",
-    "GetTexture",
-    "GetTextureHeight",
-    "GetTextureRes",
-    "GetTextureWidth",
-    "GetTextureWindow",
-    "GetWidth",
-    "GetWidthReciprocal",
-    "GetX",
-    "GetY",
-    "IsMemoryUsageKnown",
-    "IsStandAlone",
-    "NotifyListenersOfChange",
-    "OnPrepareResources",
-    "OnShutdown",
-    "RegisterForChangeNotification",
-    "ReleaseResources",
-    "SetRenderTarget",
-    "SetStandAlone",
-    "SetTargetAtlasBeforeLoad",
-    "SetTextureRes",
-    "UnregisterForChangeNotification"
-  ],
-  "Tr2AudioStretchBase": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "Tr2BoneMatrixCurve": [
-    "AddKey_",
-    "Interpolate"
   ],
   "Tr2ConstantBufferAL": [
     "Describe",
@@ -1008,94 +329,27 @@
   "Tr2ControllerExpression": [
     "CreateParser"
   ],
-  "Tr2CurveColorMixer": [
-    "InvertLinearColor",
-    "InvertLinearValue"
-  ],
-  "Tr2CurveEulerRotationExpression": [
-    "GetExpression",
-    "SetExpression"
-  ],
-  "Tr2CurveLineSet": [
-    "FillVertexBuffer",
-    "GetBatchImpl",
-    "GetNumOfLines",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "SetLineEffect",
-    "SetPickEffect",
-    "WriteParticleVerticesToBuffer"
-  ],
-  "Tr2CurveVector3Expression": [
-    "GetExpression",
-    "SetExpression"
-  ],
-  "Tr2CurveVector3Lerp": [
-    "GetAutoTangent"
-  ],
-  "Tr2DataTextureManager": [
-    "GetDescription",
-    "OnPrepareResources",
-    "ReleaseResources"
-  ],
   "Tr2DebugRenderer": [
-    "BeginRender",
-    "DrawArrow",
-    "DrawAudioSpeaker",
-    "DrawAxis",
-    "DrawBox",
-    "DrawCapsule",
-    "DrawCone",
-    "DrawCylinder",
-    "DrawDoubleArrow",
-    "DrawExtrusionShape",
-    "DrawLine",
-    "DrawSphere",
-    "DrawSphereArrow",
-    "DrawText",
-    "EndRender",
-    "Pick",
-    "PyGetColorForOption",
-    "Vertex"
+    "PyGetColorForOption"
   ],
   "Tr2DepthStencil": [
     "GetSharedHandle",
     "OnPrepareResources",
     "ReleaseResources"
   ],
-  "Tr2DirectInstanceData": [
-    "DestroyData",
-    "GetData",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "UpdateData"
-  ],
-  "Tr2DynamicEmitter": [
-    "IsValid"
-  ],
   "Tr2Effect": [
     "AddLoddable",
     "OnPrepareResources",
     "RebuildSamplerOverrides",
-    "ReleaseResources",
-    "Render"
-  ],
-  "Tr2EffectRes": [
-    "DoPrepare",
-    "GetDescription",
-    "GetMemoryUsage",
-    "IsMemoryUsageKnown",
-    "OnPrepareResources"
+    "ReleaseResources"
   ],
   "Tr2EffectStateManager": [
     "AssignFrom",
     "GetRenderTargetHeight",
     "GetRenderTargetWidth",
     "GetShaderLibraryCode",
-    "Initialize",
     "RegisterShaderLibrary",
     "RegisterShaderProgramOverride",
-    "Reset",
     "SetRenderStateOverride",
     "SetupContextResources",
     "Shutdown"
@@ -1106,85 +360,23 @@
   "Tr2FenceAL": [
     "Describe"
   ],
-  "Tr2FontManager": [
-    "FaceRequester",
-    "GetAtlasTextureForSbit",
-    "GetCmCache",
-    "GetFaceID",
-    "GetLoadFlag",
-    "GetManager",
-    "GetNumGlyphsCached",
-    "GetNumGlyphsInUse",
-    "GetSbitCache",
-    "Initialize",
-    "LoadFromDisk",
-    "LookupFace",
-    "LookupFaceIDAndGlyphIndex",
-    "LookupMetricsFromScript",
-    "OnPrepareResources",
-    "OnTick",
-    "PyLookupKerningXP",
-    "ReleaseResources",
-    "Shutdown",
-    "WeakRefNotify"
-  ],
-  "Tr2FontMeasurer": [
-    "AdjustIndicesIfNeeded",
-    "CalcAlphaForHorizontal",
-    "CalcAlphaForVertical",
-    "ClearSprites",
-    "DrawToBuffer",
-    "GetColor",
-    "GetFadeBottomEnd",
-    "GetFadeBottomStart",
-    "GetFadeLeftEnd",
-    "GetFadeLeftStart",
-    "GetFadeRightEnd",
-    "GetFadeRightStart",
-    "GetFadeTopEnd",
-    "GetFadeTopStart",
-    "GetFont",
-    "GetFontSize",
-    "GetVertexCount",
-    "NotifyListenersOfChange",
-    "PrepareSprites",
-    "RegisterForChangeNotification",
-    "SetColor",
-    "SetFadeBottomEnd",
-    "SetFadeBottomStart",
-    "SetFadeLeftEnd",
-    "SetFadeLeftStart",
-    "SetFadeRightEnd",
-    "SetFadeRightStart",
-    "SetFadeTopEnd",
-    "SetFadeTopStart",
-    "SetFont",
-    "SetFontSize",
-    "SubmitSprites",
-    "UnregisterForChangeNotification"
-  ],
   "Tr2GStateAnimation": [
     "CalculateSkinnedBoundingBoxFromTransform",
     "CalculateSkinnedBoundingSphere",
     "Cleanup",
     "FindBoneByName",
     "GetActiveMachineElement",
-    "GetAnimationBoneList",
-    "GetAnimationTransforms",
     "GetDynamicBounds",
     "GetFileInfo",
     "GetGrannyModel",
     "GetMeshBoneCount",
     "GetMeshBoneMatrixList",
     "GetParameterObjectByName",
-    "Initialize",
     "InitializeBoundingInfo",
     "InitializeParametersFromGState",
     "IsAnimationEnabled",
     "IsInitialized",
     "LoadGrannyRes",
-    "PostPhysicsAnimation",
-    "PrePhysicsAnimation",
     "RebuildCachedData",
     "ReleaseCachedData",
     "RenderBones",
@@ -1197,43 +389,9 @@
     "IsInitialized"
   ],
   "Tr2GpuBuffer": [
-    "Create",
-    "CreateBuffer",
-    "GetCount",
     "GetFormat",
-    "GetGpuBuffer",
-    "Initialize",
-    "IsValid",
     "OnPrepareResources",
     "ReleaseResources"
-  ],
-  "Tr2GpuParticleSystem": [
-    "DoClear",
-    "Emit",
-    "EmitParticles",
-    "EmitterParamsGpu",
-    "ExpireEmitterParams",
-    "GetEmitTime",
-    "GetRenderTime",
-    "GetSortTime",
-    "GetUpdateTime",
-    "HasParticles",
-    "Initialize",
-    "InitializeBuffers",
-    "OnPrepareResources",
-    "RegisterVariables",
-    "ReleaseResources",
-    "Render",
-    "RunSimulation",
-    "SetMaxParticles",
-    "SetVariableStore",
-    "Sort",
-    "SortIncremental",
-    "SubmitGeometry",
-    "Update",
-    "UpdateEmitterParams",
-    "UpdateGpuEmitterParams",
-    "UpdateLiveCount"
   ],
   "Tr2GpuProfiler": [
     "Begin",
@@ -1246,89 +404,48 @@
     "IsDataReady"
   ],
   "Tr2GpuResourcePool": [
-    "ClearAllUnusedResources",
     "Get",
     "GpuResourceHandle",
-    "IsValid",
-    "OnPrepareResources",
-    "ReleaseResources"
-  ],
-  "Tr2GpuSharedEmitter": [
-    "GenerateID",
-    "GetHash",
-    "GetID",
-    "UpdateHash"
+    "IsValid"
   ],
   "Tr2GpuStructuredBuffer": [
-    "Create",
-    "CreateBuffer",
-    "GetCount",
-    "GetGpuBuffer",
-    "Initialize",
-    "IsValid",
     "OnPrepareResources",
     "ReleaseResources",
-    "SetName",
     "py__init__"
   ],
   "Tr2GpuTimerAL": [
     "Describe"
   ],
-  "Tr2GpuUniqueEmitter": [
-    "GenerateID"
-  ],
   "Tr2GrannyAnimation": [
-    "AddAnimationLayerWithTrackMask",
     "AddNotifyTarget",
-    "ApplyBoneOffsets",
     "CalculateSkinnedBoundingBoxFromTransform",
     "CalculateSkinnedBoundingSphere",
     "Cleanup",
-    "FindAnimationDurationByName",
-    "FindBoneByName",
     "FindCMFAnimationByName",
     "FindGrannyAnimationByName",
     "GetAnimationChainCompleteTime",
     "GetAnimationChainCompleteTimeForLayer",
-    "GetAnimationLayer",
     "GetAnimationTime",
-    "GetCMFData",
-    "GetDynamicBounds",
-    "GetFileInfo",
     "GetGrannyModel",
     "GetMeshBindingIndices",
     "GetModel",
     "GetResPath",
-    "GetSharedGeometryRes",
     "GetSkeleton",
-    "GetSkeletonBoneIndices",
     "GetWorldTransforms",
-    "InitializeBoundingInfo",
     "IsAnimationEnabled",
-    "IsUsingCMF",
     "LoadSecondaryResPath",
-    "PostPhysicsAnimation",
-    "PrePhysicsAnimation",
-    "ReleaseCachedData",
     "RemoveNotifyTarget",
     "RenderBones",
     "RenderDynamicBounds",
     "SetAnimationEnabled",
     "SetModel",
     "SetResPath",
-    "UpdateAimingBone",
     "UpdateDebugRenderer"
-  ],
-  "Tr2GrannyIntersectionResult": [
-    "Result"
   ],
   "Tr2GrannyStateRes": [
     "Cleanup",
-    "DoPrepare",
     "GetCharacterFile",
-    "GetMemoryUsage",
     "IsAllAnimGood",
-    "IsMemoryUsageKnown",
     "LoadAnimResPath",
     "LoadAnimResources",
     "RebuildCachedData",
@@ -1339,204 +456,31 @@
     "RebuildCachedData",
     "ReleaseCachedData"
   ],
-  "Tr2HostBitmap": [
-    "ChangeFormatFromScript",
-    "CopyFaceFromRenderTargetPython",
-    "CopyFromRenderTargetPython",
-    "CopyFromRenderTargetRegionPython",
-    "CopyFromTexture",
-    "CopyFromTextureResPython",
-    "CreateFromFile",
-    "Destroy",
-    "DoCleanupAsyncSave",
-    "DoExecuteAsyncSave",
-    "DoPrepareAsyncSave",
-    "GetPixel",
-    "GetPixelPy",
-    "PyApplyConvFilter",
-    "PyCreateFromFile",
-    "PyGetMipRawData",
-    "PyGetPixel",
-    "PyGetRawData",
-    "PySetMipRawData",
-    "PySetPixel",
-    "PySetPixels",
-    "SetPixel",
-    "SetPixelPy",
-    "SharedCopyFaceFromRenderTarget"
-  ],
-  "Tr2ImageRes": [
-    "DoPrepare"
-  ],
-  "Tr2ImpostorManager": [
-    "Add",
-    "BeginImpostorUpdate",
-    "BeginUpdate",
-    "BeginUpdateAtlas",
-    "CompareImpostors",
-    "Drop",
-    "EndImpostorUpdate",
-    "EndUpdate",
-    "EndUpdateAtlas",
-    "GetImpostorCount",
-    "GetItemDepthStencil",
-    "GetRenderQueueLength",
-    "ImpostorAtlas",
-    "Initialize",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "Render",
-    "Reserve",
-    "Reset",
-    "Resize",
-    "SetItemSize"
-  ],
-  "Tr2InstancedMesh": [
-    "CreateVertexDeclaration",
-    "GetDebugOptions",
-    "GetDescription",
-    "GetVertexDeclaration",
-    "IsLoading",
-    "OnPrepareResources",
-    "ReleaseCachedData",
-    "ReleaseResources",
-    "RenderDebugInfo"
-  ],
-  "Tr2IntSkinnedObject": [
-    "AddReflectionMap",
-    "AddToApexScene",
-    "AddToScene",
-    "GetID",
-    "GetPickingBatches",
-    "IsBoundingBoxReady",
-    "IsInFrustum",
-    "PostPhysicsUpdate",
-    "PrePhysicsUpdate",
-    "RemoveFromApexScene",
-    "RemoveFromScene",
-    "RemoveReflectionMap",
-    "SetPosition",
-    "SetRotation",
-    "SetScaling",
-    "UpdatePlacement"
-  ],
-  "Tr2InteriorLightSource": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
   "Tr2InteriorPlaceable": [
     "AddReflectionMap",
-    "AddToScene",
     "CalculateBoundingBox",
     "CalculateCameraDistance",
-    "GetID",
     "GetLocalBoundingBox",
-    "GetPickingBatches",
-    "GetPlaceableResPath",
     "GetPosition",
     "GetRotation",
     "GetScaling",
     "GetTransform",
-    "GetWorldBoundingBox",
-    "Initialize",
-    "IsBoundingBoxReady",
-    "IsInFrustum",
-    "LoadPlaceableRes",
-    "PostPhysicsUpdate",
-    "PrePhysicsUpdate",
     "RebuildVolume",
-    "RemoveFromScene",
     "RemoveReflectionMap",
-    "SetLOD",
-    "SetPlaceableResPath",
     "SetPosition",
     "SetRotation",
     "SetScaling"
   ],
   "Tr2InteriorScene": [
-    "ConstructKey",
-    "DecodeBufferPixel",
-    "DoInstanceVisible",
-    "DoQueryBegin",
-    "GatherFullForwardBatches",
-    "GetDebugOptions",
-    "GetOpaquePickingBatchAccumulator",
-    "GetPickBuffer",
-    "GetPickingBatchAccumulator",
-    "GetPickingObjectsToRender",
-    "GetRequiredPasses",
-    "Initialize",
-    "MaximizeShadowMapUsage",
-    "OnInstanceVisible",
-    "OnListModified",
     "OnPrepareResources",
-    "OnQueryBegin",
-    "PickObjectOnly",
-    "PopulatePerFramePSData",
-    "PopulatePerFrameVSData",
     "ReleaseResources",
-    "Render",
-    "RenderDebugInfo",
-    "RenderFullForward",
-    "RenderGeometry",
-    "RenderPass",
-    "RenderPickingAreasForComponents",
-    "RenderShadows",
-    "ResolveVisibility",
-    "SetBackgroundCubemapResPath",
-    "SetPerFrameDataForPicking",
-    "SetRenderBackgroundCubeMap",
-    "SetVisualizationMode",
-    "SetupTransformsForPicking",
-    "USE_MAIN_THREAD_RENDER_CONTEXT",
-    "Update",
-    "UpdateSceneFromScript",
-    "VisibilityQuery"
-  ],
-  "Tr2KelvinColor": [
-    "AsRGB",
-    "GetTemperature",
-    "GetTint",
-    "GetWhiteBalance",
-    "Initialize"
+    "USE_MAIN_THREAD_RENDER_CONTEXT"
   ],
   "Tr2LightManager": [
-    "ClearLightIndices",
-    "DeleteInstance",
-    "DoUpdateLists",
-    "GetInstance",
-    "GetOrCreateInstance",
     "GetRaytracingPipelineManager",
     "GetRaytracingShaderTableDesc",
     "GetShadowMapAtlas",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "ResetVariableStore",
-    "SetVariableStore",
-    "UpdateLightBuffer",
-    "UpdateLists"
-  ],
-  "Tr2LightProfileRes": [
-    "BakeLightProfile",
-    "DoPrepare",
-    "GetMemoryUsage",
-    "GetThumbnail",
-    "IsMemoryUsageKnown",
-    "ParseIes"
-  ],
-  "Tr2LineGraph": [
-    "GetColor",
-    "GetName",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "Render",
-    "SetColor"
-  ],
-  "Tr2LineSet": [
-    "GetBatchesImpl",
-    "GetDescription",
-    "OnPrepareResources",
-    "ReleaseResources"
+    "ResetVariableStore"
   ],
   "Tr2MainWindow": [
     "AdjustWindow",
@@ -1546,19 +490,14 @@
     "GetBackBufferWidth",
     "GetClientSize",
     "GetDesktopRect",
-    "GetHwnd",
-    "GetKeyName",
     "GetLargestWindowSize",
     "GetMonitorRect",
     "GetOutputWindow",
     "GetState",
-    "GetStateScript",
     "GetWindowID",
     "GetWindowSize",
     "GetWindowStyle",
     "HasWindow",
-    "IsKeyPressed",
-    "IsMinimized",
     "OnChar_MacOS",
     "OnClose_MacOS",
     "OnInsertTextIME_MacOS",
@@ -1580,32 +519,12 @@
     "OnWinowMoved_MacOS",
     "SanitizeAdapter",
     "SanitizeFullScreenResolution",
-    "SanitizeStateScript",
     "SanitizeWindowPosition",
     "SanitizeWindowedResolution",
     "SetState",
-    "SetStateScript",
     "StaticWndProc",
     "SupportsFullscreen",
     "WndProc"
-  ],
-  "Tr2MainWindowState": [
-    "PopulatePresentParameters",
-    "State",
-    "WrapCopy"
-  ],
-  "Tr2ManipulationTool": [
-    "GetBoxTriangles",
-    "GetCirclePoints",
-    "GetCircleTriangles",
-    "GetConeTriangles",
-    "GetDesiredPlaneNormal",
-    "GetTrianglesAroundLine",
-    "MovePointOnPlane",
-    "PointToScreenCoordinates",
-    "RayToPlaneIntersection",
-    "RayToSphereIntersection",
-    "ScreenCoordinatesToRay"
   ],
   "Tr2Material": [
     "ApplyConstantBuffers",
@@ -1615,14 +534,8 @@
     "GetUsedBindlessTextures",
     "SetOption"
   ],
-  "Tr2MaterialParameterStore": [
-    "Initialize",
-    "LoadParentResource"
-  ],
   "Tr2Mesh": [
     "GetLowResMeshResPath",
-    "IsLoading",
-    "ReleaseCachedData",
     "SetLowResMeshResPath"
   ],
   "Tr2MeshArea": [
@@ -1631,13 +544,10 @@
     "HasVertexBufferAccessInRtShadow"
   ],
   "Tr2MeshBase": [
-    "BindToRig",
     "CacheBounds",
-    "FindJoint",
     "GetAllBakedMorphTargetStates",
     "GetAreaBounds",
     "GetBakedMorphTarget",
-    "GetDebugOptions",
     "GetMorphAnimations",
     "GetMorphTargetNames",
     "GetMorphTargetWeight",
@@ -1646,27 +556,12 @@
     "GetRtMesh",
     "IsBakedMorph",
     "IsLoading",
-    "RenderDebugInfo",
     "SetBakedMorphTarget",
     "SetMorphTargetWeight"
   ],
-  "Tr2Model": [
-    "AddMesh",
-    "GetBoundingBox",
-    "GetMesh",
-    "GetMeshes",
-    "GetNumOfMeshes",
-    "HasTransparency",
-    "IsLoading"
-  ],
   "Tr2MouseCursor": [
     "Apply_MacOS",
-    "Create_MacOS",
-    "py__init__"
-  ],
-  "Tr2ObjectFollowCurveKey": [
-    "GetLocatorRotation",
-    "GetModelRotation"
+    "Create_MacOS"
   ],
   "Tr2OcclusionQueryAL": [
     "Describe"
@@ -1675,31 +570,6 @@
     "IncrementJitter"
   ],
   "Tr2ParticleSystem": [
-    "ApplyConstraint",
-    "BuildBuffers",
-    "CompareParticles",
-    "CreateVertexBuffer",
-    "DestroyBuffers",
-    "DoneInsertingParticle",
-    "EnsureAligned",
-    "GetAllSystems",
-    "GetDebugOptions",
-    "GetElementStream",
-    "GetGpuBuffer",
-    "GetGpuStride",
-    "InsertParticle",
-    "IsDynamic",
-    "IsValid",
-    "OnPrepareResources",
-    "OnSimClockRebase",
-    "RandCheap",
-    "RandFloat",
-    "RebuildDeclaration",
-    "ReleaseResources",
-    "RenderDebugInfo",
-    "ShiftOffsets",
-    "SortParticles",
-    "UpdateAllSystems",
     "UpdateSimulationScript",
     "constraint",
     "globalSeed"
@@ -1715,64 +585,15 @@
     "EncoderEnding",
     "EncoderStarted"
   ],
-  "Tr2PlatformInfo": [
-    "GetPlatformID",
-    "GetPlatformName",
-    "IsLowPerformance"
-  ],
-  "Tr2PostProcessRenderer": [
-    "Blur",
-    "DownSampleDepth",
-    "GetBlackTexture",
-    "GetExposureBuffer",
-    "RenderBloom",
-    "RenderDepthOfField",
-    "RenderDynamicExposure",
-    "RenderDynamicExposureDebug",
-    "RenderFilmGrain",
-    "RenderFog",
-    "RenderGenericEffect",
-    "RenderGodRays",
-    "RenderSharpening",
-    "RenderSignalLoss",
-    "RenderTaa",
-    "SetupExposureConversion"
-  ],
   "Tr2PrimaryRenderContext": [
     "GetBackBuffer",
     "OnContextCreated"
   ],
   "Tr2PrimitiveScene": [
-    "DecodeBufferPixel",
-    "GetOpaquePickingBatchAccumulator",
-    "GetPickBuffer",
-    "GetPickingBatchAccumulator",
-    "GetPickingObjectsToRender",
-    "GetRequiredPasses",
-    "OnPrepareResources",
-    "PickObjectOnly",
-    "ReleaseResources",
-    "Render",
-    "RenderDebugInfo",
-    "RenderPickingAreasForComponents",
-    "SetPerFrameDataForPicking",
-    "SetupPerFrameData",
-    "SetupTransformsForPicking",
-    "USE_MAIN_THREAD_RENDER_CONTEXT",
-    "Update"
+    "USE_MAIN_THREAD_RENDER_CONTEXT"
   ],
   "Tr2PrimitiveText": [
     "Render"
-  ],
-  "Tr2QuadRenderer": [
-    "GetInstanceBufferSize",
-    "OnPrepareResources",
-    "RecreateQuadBuffers",
-    "ReleaseResources",
-    "UpdateInstanceBuffer"
-  ],
-  "Tr2RaycastGeometryRes": [
-    "DoPrepare"
   ],
   "Tr2RaytracingGeometry": [
     "AddBindlessResources",
@@ -1782,7 +603,6 @@
     "EndSceneUpdate",
     "FindOffsets",
     "GetBindlessResources",
-    "GetGpuBuffer",
     "GetTLAS",
     "HasGeometry",
     "PrepareShaderTableDescription",
@@ -1794,22 +614,6 @@
     "OnPrepareResources",
     "ReleaseResources"
   ],
-  "Tr2RaytracingMesh": [
-    "GetAndResetDirtyFlag",
-    "GetCurrentLodData",
-    "GetHighestLodData",
-    "GetIndexBuffer",
-    "GetSkinnedVertexBuffer",
-    "GetSkinnedVertexOffset",
-    "GetTransformOffset",
-    "GetVertexBuffer",
-    "IsGood",
-    "IsGoodForArea",
-    "SetBoneTransforms",
-    "SetMorphAnimations",
-    "SetSkinnedVertices",
-    "UpdateRtMesh"
-  ],
   "Tr2RaytracingPipelineStateManager": [
     "AddHitGroup",
     "AddLibrary",
@@ -1817,30 +621,8 @@
     "GetUniqueName"
   ],
   "Tr2ReflectionProbe": [
-    "DestroyRenderTargets",
-    "DoPrepareResources",
-    "EndRenderPass",
-    "Filter",
-    "GetDepthBuffer",
-    "GetEndFace",
-    "GetFrustum",
-    "GetReflection",
-    "GetStartFace",
-    "HasData",
-    "InitRenderPass",
-    "IsHollyWoodModeOn",
-    "IsValid",
-    "OnPrepareResources",
-    "ReadyForDynamicObjectReflections",
-    "ReleaseResources",
-    "SetBackLightColor",
-    "SetBackLightContrast",
     "SetIntensity",
-    "SetPosition",
-    "StartRenderFace"
-  ],
-  "Tr2RenderBatch": [
-    "SetInidices"
+    "SetPosition"
   ],
   "Tr2RenderContext": [
     "BeginParallelEncoding",
@@ -1850,32 +632,10 @@
     "PrepareParallelContext"
   ],
   "Tr2RenderTarget": [
-    "Attach",
-    "Destroy",
-    "Detach",
-    "GetArraySize",
-    "GetFormat",
-    "GetHeight",
-    "GetMipCount",
-    "GetMsaaQuality",
-    "GetMsaaType",
-    "GetName",
-    "GetRenderTarget",
-    "GetSharedHandle",
-    "GetTexture",
-    "GetType",
-    "GetWidth",
-    "IsAttached",
-    "IsReadable",
-    "IsValid",
-    "OnPrepareResources",
-    "OnTextureChange",
-    "ReleaseResources",
-    "SetName"
+    "GetSharedHandle"
   ],
   "Tr2Renderer": [
     "AddMipLevelSkipExclusionDirectory",
-    "AdjustProjection",
     "DisableFallbackTextureDebugging",
     "DisableResourceLoad",
     "DrawBox",
@@ -1883,101 +643,38 @@
     "DrawOrientedBox",
     "DrawSphere",
     "EnableFallbackTextureDebugging",
-    "GetAspectRatio",
     "GetBackBufferDimensions",
-    "GetBackClip",
-    "GetCurrentProjectionType",
     "GetFallbackTexture",
-    "GetFieldOfView",
-    "GetFrontClip",
-    "GetFrustumPlane",
-    "GetFrustumRadius",
     "GetGeometryShaderSupport",
-    "GetInverseProjectionTransform",
-    "GetInverseViewTransform",
-    "GetOrthoHeight",
-    "GetOrthoWidth",
     "GetPoolAllocator",
-    "GetProjectionRawTransform",
-    "GetProjectionTransform",
-    "GetReversedDepthProjectionTransform",
-    "GetSettings",
-    "GetShaderModel",
     "GetShaderModelString",
     "GetUpscalingContextID",
-    "GetViewLookAt",
-    "GetViewPosition",
-    "GetViewTransform",
-    "GetViewport",
-    "GetWorldTransform",
-    "Initialize",
     "InitializeSystemShaderOptions",
     "IsAsyncLoadDisabled",
     "IsEffectLoadDisabled",
     "IsGeometryLoadDisabled",
-    "IsLowQuality",
-    "IsResourceCreationAllowed",
     "IsTextureLoadDisabled",
     "IsTextureToResize",
-    "PopProjection",
-    "PopViewTransform",
     "Printf",
     "PrintfImmediate",
-    "ProjectWorldToScreen",
-    "PushProjection",
-    "PushViewTransform",
     "RebuildEffects",
     "RegisterEffect",
     "ReinitializeRegisteredEffects",
-    "ReleaseDeviceResources",
-    "RenderDebugInfo",
-    "RunComputeShader",
-    "RunComputeShaderIndirect",
     "SetOrthoProjection",
     "SetPerspectiveProjection",
-    "SetProjectionTransform",
     "SetResourceCreationAllowed",
-    "SetShaderModel",
     "SetUpscalingContextID",
-    "SetViewTransform",
-    "SetWorldTransform",
-    "Shutdown",
     "UnregisterEffect"
-  ],
-  "Tr2ResourceSetDescriptionAL": [
-    "Is",
-    "Resource",
-    "Sampler",
-    "UpdateHash"
-  ],
-  "Tr2RingBuffer": [
-    "ReleaseResources"
-  ],
-  "Tr2RuntimeGpuBuffer": [
-    "GetGpuBuffer",
-    "SetGpuBuffer"
   ],
   "Tr2RuntimeInstanceData": [
     "CreateDeclaration",
-    "GetGpuBuffer",
-    "OnPrepareResources",
-    "ReleaseResources",
     "SetLayout"
   ],
   "Tr2RuntimeTextureParameter": [
     "AddUsedTexture"
   ],
-  "Tr2SBitWrapper": [
-    "GetHeight",
-    "GetWidth",
-    "GetXAdvance",
-    "GetXOffset",
-    "GetYAdvance",
-    "GetYOffset"
-  ],
   "Tr2SSAO": [
     "ApplyConstBuffer",
-    "ComputeCORTAO",
     "PerformPass"
   ],
   "Tr2SSSSS": [
@@ -1988,22 +685,8 @@
     "Describe",
     "GetMetalSamplerState"
   ],
-  "Tr2ScalarExprKey": [
-    "SetExpression"
-  ],
-  "Tr2ScalarExprKeyCurve": [
-    "Interpolate",
-    "ReEvaluateKeys"
-  ],
-  "Tr2ScalingTool": [
-    "UpdateLines"
-  ],
   "Tr2SerializedMorphAnimation": [
     "m_weight"
-  ],
-  "Tr2Shader": [
-    "ApplyRenderStates",
-    "ApplyShaderOverride"
   ],
   "Tr2ShaderAL": [
     "Describe",
@@ -2032,272 +715,50 @@
     "GetBuffer",
     "ReleaseBuffer"
   ],
-  "Tr2SkinnedModel": [
-    "GetBatchesForArea",
-    "GetBoundingBox",
-    "GetDynamicBoundingBox",
-    "GetGeometryResPath",
-    "HasTransparency",
-    "SetGeometryResPath",
-    "SetSkeletonName"
-  ],
   "Tr2SkinnedObject": [
     "AllocateSkinningMatrices",
     "ClearBoneInfo",
-    "DoDisplay",
     "FreeSkinningMatrices",
-    "GetClippedWorldBoundingObb",
-    "GetDebugOptions",
-    "GetLocalBoundingBox",
-    "GetPosition",
-    "GetRotation",
-    "GetScaling",
     "GetSkinningMatrixFrameDelay",
-    "GetSkinningTransform",
-    "GetTransform",
-    "GetWorldPosition",
-    "GetWorldRotation",
-    "OnListModified",
     "PostPhysicsUpdate",
     "PrePhysicsUpdate",
-    "RenderDebugInfo",
     "ResetSkinningMatrices",
     "SetPosition",
     "SetRotation",
     "SetScaling",
-    "SetSkinningMatrixFrameDelay",
-    "UpdatePerObjectData"
+    "SetSkinningMatrixFrameDelay"
   ],
   "Tr2SkinnedObjectLod": [
     "GetHighDetailModel",
     "GetLowDetailModel",
     "GetMediumDetailModel"
   ],
-  "Tr2SolidSet": [
-    "GetBatchesImpl",
-    "GetDescription",
-    "OnPrepareResources",
-    "ReleaseResources"
-  ],
-  "Tr2Sprite2d": [
-    "GetVertexCount"
-  ],
-  "Tr2Sprite2dArc": [
-    "ClearVertices",
-    "GetVertexCount"
-  ],
-  "Tr2Sprite2dContainer": [
-    "GatherSpritesHelper"
-  ],
-  "Tr2Sprite2dDisplayList": [
-    "OnPrepareResources",
-    "ReleaseResources",
-    "SubmitGeometry"
-  ],
-  "Tr2Sprite2dFrame": [
-    "GetVertexCount",
-    "PrepareVertices"
-  ],
-  "Tr2Sprite2dLayer": [
-    "AllocateRenderTarget",
-    "FreeRenderTarget",
-    "GetTextureSecondary",
-    "GetVertexCount",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "SetTextureSecondary",
-    "Sprite2dTextureChanged"
-  ],
-  "Tr2Sprite2dLine": [
-    "GetVertexCount"
-  ],
   "Tr2Sprite2dLineTrace": [
     "AddVertex",
-    "CalcLength",
-    "ClampAngle",
-    "ClearVertices",
-    "GetEstimatedVertexCount",
-    "GetMiterPoint",
     "PyAppendVertices",
     "PySetVertices"
   ],
   "Tr2Sprite2dPolygon": [
-    "GetColor",
     "PyAppendTriangles",
     "PyAppendVertices",
-    "PySetVertices",
-    "SetColor"
+    "PySetVertices"
   ],
   "Tr2Sprite2dScene": [
-    "CleanUpStacksAfterRender",
     "CopyIndicesWithOffset",
-    "DetermineViewportSize",
-    "DetermineWorldTransform",
-    "EndCapture",
-    "EndLayer",
     "EnsureBufferSpace",
-    "FlashDefaultTexture",
-    "GetAccumulatedAlpha",
-    "GetClipRectangle",
-    "GetMaxIndexCountPerDrawCall",
-    "GetMaxVertexCountPerDrawCall",
-    "GetTranslation",
-    "GrowCaptureIndexBuffer",
-    "GrowCaptureVertexBuffer",
-    "InverseTransformPoint",
-    "IsCapturing",
-    "IsGammaCorrectingText",
-    "IsInside",
-    "IsInsideClipRect",
-    "IsInsideLineSegment",
-    "IsInsideTriangle",
-    "IsUsingLinearColorSpace",
-    "IssueDrawCall",
-    "OnPrepareResources",
-    "PopClipRectangle",
-    "PopDepthRange",
-    "PopTransform",
-    "PopTransformAbsolute",
-    "PopTranslation",
-    "PrepareRenderContextAfterRendering",
-    "PrepareRenderContextForRendering",
-    "PrepareResourcesForRender",
-    "PrepareStacksBeforeRender",
     "ProcessVertices",
-    "PushClipRectangle",
-    "PushDepthRange",
-    "PushTransform",
-    "PushTransformAbsolute",
-    "PushTranslation",
-    "ReleaseResources",
-    "RemoveFinishedCurveSets",
-    "Render",
-    "RenderDebugInfo",
-    "ReplayCapture",
-    "ResetBufferPointers",
-    "ResetCapture",
-    "RunJob",
-    "RunJobHelper",
-    "SelectEffect",
-    "SetAccumulatedAlpha",
-    "SetBlendmode",
-    "SetColor",
-    "SetDepth",
-    "SetGammaCorrectText",
-    "SetGlowBrightness",
-    "SetOutlineColor",
-    "SetOutlineThreshold",
-    "SetSpriteEffect",
-    "SetSpriteTarget",
-    "SetSpriteVerticesUVs",
-    "SetTexture",
-    "SetTextureTransform",
-    "SetTextureWindow",
-    "SetTileMode",
-    "SetUseLinearColorSpace",
-    "SetViewportSizeToVariableStore",
-    "StartCapture",
-    "StartLayer",
-    "SubmitGeometry",
-    "TexturesReady",
-    "TransformPoint",
-    "Update"
-  ],
-  "Tr2Sprite2dStretch": [
-    "GetVertexCount",
-    "PrepareVertices"
-  ],
-  "Tr2Sprite2dStretchVertical": [
-    "GetVertexCount",
-    "PrepareVertices"
-  ],
-  "Tr2Sprite2dTextObject": [
-    "FontMeasurerChanged",
-    "GetFontMeasurer",
-    "GetVertexCount",
-    "OnPrepareResources",
-    "ReleaseResources",
-    "SetFontMeasurer"
-  ],
-  "Tr2Sprite2dTexture": [
-    "Apply",
-    "AtlasTextureChanged",
-    "CheckTextureWindow",
-    "GetAtlasTexture",
-    "GetHeight",
-    "GetResPath",
-    "GetSrcHeight",
-    "GetSrcWidth",
-    "GetSrcX",
-    "GetSrcY",
-    "GetTextureRepeatMode",
-    "GetTileX",
-    "GetTileY",
-    "GetTransform",
-    "GetWidth",
-    "Initialize",
-    "IsGood",
-    "IsLoading",
-    "RegisterForChangeNotification",
-    "SetAtlasTexture",
-    "SetDirty",
-    "SetResPath",
-    "SetSrcHeight",
-    "SetSrcWidth",
-    "SetSrcX",
-    "SetSrcY",
-    "SetTextureRepeatMode",
-    "SetTileX",
-    "SetTileY",
-    "UnregisterForChangeNotification"
-  ],
-  "Tr2Sprite2dTransform": [
-    "GetTransformationMatrix"
-  ],
-  "Tr2Sprite2dVertex": [
-    "GetColor",
-    "SetColor"
+    "ResetBufferPointers"
   ],
   "Tr2SpriteObject": [
-    "GetColor",
-    "SetColor",
-    "SetGlowRenderState",
-    "SetOutlineRenderState",
-    "SetRegularRenderState",
-    "SetShadowRenderState",
     "ValidateAndSetTextures"
   ],
   "Tr2SpriteObjectBase": [
     "GetAssociatedObject",
     "SetAssociatedObject"
   ],
-  "Tr2StateMachine": [
-    "FollowTransitions"
-  ],
-  "Tr2StateMachineState": [
-    "GetNextState",
-    "GetStateMachinePtr"
-  ],
-  "Tr2StateMachineTransition": [
-    "UpdateDestination"
-  ],
-  "Tr2StaticEmitter": [
-    "DoSpawn"
-  ],
   "Tr2SuballocatedBuffer": [
-    "Allocation",
     "Expand",
-    "Free",
-    "GetOffset",
-    "GetSize",
-    "GetStartIndex",
-    "GetStride",
-    "IsValid",
-    "MapForReading",
-    "OnPrepareResources",
-    "ReadBuffer",
-    "UnmapForReading",
-    "Update"
+    "ReadBuffer"
   ],
   "Tr2SwapChainAL": [
     "CreateDx12",
@@ -2305,20 +766,10 @@
     "GetNextBackbuffer"
   ],
   "Tr2TextureAnimation": [
-    "AdvanceTime",
-    "DecodeFirstFrame",
-    "DecodeNextFrame",
     "GetPosition",
     "GetSize",
-    "Initialize",
-    "MakeRequest",
     "Read",
-    "ReadData",
-    "ReadFile",
-    "RestartAndDecodeFrame",
     "Seek",
-    "UpdateGrids",
-    "UpdateOnlyWhenRendered",
     "Write"
   ],
   "Tr2TextureArray": [
@@ -2327,96 +778,10 @@
     "OnPrepareResources",
     "ReleaseResources"
   ],
-  "Tr2TextureAtlas": [
-    "CollapseAreas",
-    "CopyTextureIntoAtlas",
-    "DirtyRegion",
-    "DoPrepare",
-    "EjectTexture",
-    "EjectTextureHelper",
-    "FreeArea",
-    "GetFormat",
-    "GetFreeArea",
-    "GetFreeAreas",
-    "GetHeight",
-    "GetMargin",
-    "GetMsaaQuality",
-    "GetMsaaSamples",
-    "GetTexture",
-    "GetTexturesInAtlas",
-    "GetTexturesInAtlasCount",
-    "GetTexturesOutsideAtlasCount",
-    "GetUsedAreas",
-    "GetWidth",
-    "Initialize",
-    "IsLargeTexture",
-    "OnPrepareResources",
-    "OnTextureChange",
-    "PaintEmptyArea",
-    "RegisterInsider",
-    "RegisterOutsider",
-    "ReleasePendingFreeAreas",
-    "ReleaseResources",
-    "RemoveFromAtlas",
-    "SetCreateOutsiders",
-    "SetMargin",
-    "SetMaxTextureArea",
-    "SetPaintEmptyAreas",
-    "UpdateFreeMaxima",
-    "UpdateMipMaps"
-  ],
-  "Tr2TextureAtlasMan": [
-    "AddAtlasWrap",
-    "FindAtlas",
-    "RemoveAtlasWrap"
-  ],
-  "Tr2TextureLodManager": [
-    "CanUploadToGpu",
-    "CpuTextureCreated",
-    "CpuTextureDestroyed",
-    "GetStats",
-    "GetUseLowResVtaFilesSetting",
-    "GpuTextureCreated",
-    "GpuTextureDestroyed",
-    "Instance",
-    "NeedToTrimCpuTexture",
-    "NeedToTrimGpuTexture",
-    "OnTick",
-    "SetUseLowResVtaFilesSetting",
-    "Stats"
-  ],
-  "Tr2TexturePipeline": [
-    "ExecuteFromScript",
-    "GetResourceDependenciesFromScript"
-  ],
-  "Tr2TextureReference": [
-    "GetArraySize",
-    "GetDepth",
-    "GetFormat",
-    "GetHeight",
-    "GetMipCount",
-    "GetName",
-    "GetTexture",
-    "GetType",
-    "GetWidth",
-    "OnTextureChange"
-  ],
-  "Tr2TexturedSpriteObject": [
-    "GetTexturePrimary",
-    "GetTextureSecondary",
-    "SetTexturePrimary",
-    "SetTextureSecondary",
-    "SetValidatedTextures",
-    "Sprite2dTextureChanged",
-    "ValidateAndSetTextures"
-  ],
   "Tr2TransientTextureReference": [
-    "GetTexture",
-    "OnTextureChange",
     "SetTexture"
   ],
   "Tr2VariableStore": [
-    "RegisterVariableInternal",
     "SetValue"
   ],
   "Tr2Vector3Parameter": [
@@ -2437,12 +802,6 @@
     "SetY",
     "SetZ"
   ],
-  "Tr2VectorFunctionModifier": [
-    "UpdateValue"
-  ],
-  "Tr2VertexDefinition": [
-    "Item"
-  ],
   "Tr2VertexLayoutAL": [
     "AddVertexDescriptor",
     "CalculateHash",
@@ -2452,14 +811,6 @@
     "SetLayout",
     "SetVertexLayout"
   ],
-  "Tr2VolumetricsRenderer": [
-    "FogViewDependentResources",
-    "UpdatePerObjectData"
-  ],
-  "TriColorSequencer": [
-    "GetValueAtAdd",
-    "GetValueAtMult"
-  ],
   "TriDevice": [
     "ApplicationActivated",
     "CreateUpscalingTechnique",
@@ -2468,11 +819,9 @@
     "GetAsyncLoadDisabled",
     "GetEffectLoadDisabled",
     "GetGeometryLoadDisabled",
-    "GetMinimumModelLOD",
     "GetMipLevelSkipCount",
     "GetTextureLoadDisabled",
     "GetThrottling",
-    "IsDeviceLost",
     "LogAllLiveResources",
     "PyCreateFullScreenDevice",
     "PyCreateWindowedDevice",
@@ -2483,11 +832,9 @@
     "PyRender",
     "PythonCreateDeviceHelper",
     "RebuildDeviceResourcesInPython",
-    "ResetDevice",
     "SetAsyncLoadDisabled",
     "SetEffectLoadDisabled",
     "SetGeometryLoadDisabled",
-    "SetMinimumModelLOD",
     "SetTextureLoadDisabled",
     "SetThrottling",
     "ShouldSkipFrame"
@@ -2500,116 +847,38 @@
     "CreateMeshesFromCMFFile",
     "CreateMeshesFromGrannyFile",
     "DetermineAreaBoundsAndVertCount",
-    "DoPrepare",
     "ExtractAudioGeometry",
-    "GetAreaBoundingBoxFromScript",
     "GetAreaCount",
     "GetAreaData",
     "GetAreaIntersectionPointNormalBoneColorFromScript",
-    "GetAreaIntersectionPointNormalBoneFromScript",
     "GetAudioGeometry",
-    "GetBoundingBoxFromScript",
-    "GetBoundingSphereFromScript",
     "GetDescription",
     "GetGpuBuffer",
-    "GetGrannyInfo",
-    "GetInstanceBufferBoundingBox",
-    "GetInstanceBufferVertexDeclaration",
-    "GetInstanceData",
     "GetIntersectionPointNormalBoneColorFromScript",
-    "GetIntersectionPointNormalBoneFromScript",
     "GetIntersectionPointsLegacy",
-    "GetMemoryUsage",
     "GetVertexComponentOffset",
     "IsAreaMorphed",
     "IsAreaSkinned",
-    "IsInstanceDataReady",
-    "IsMemoryUsageKnown",
     "OnPrepareResources",
-    "PrepareFromGrannyRes",
     "ProcessMeshTriangles",
-    "ReadCMFFile",
-    "ReadGrannyFile",
     "RebuildCachedData",
     "RecalculateBoundingBox",
     "ReleaseResourcesHelper",
     "RenderAreas",
     "SaveMeshToCMFFile",
     "SaveMeshToGrannyFile",
-    "SetupMeshes",
-    "SetupSkeletons",
     "VisualizeBVH"
-  ],
-  "TriGeometryResSkeletonData": [
-    "FindJoint"
-  ],
-  "TriGrannyRes": [
-    "BakeBlendshape",
-    "BakeBlendshapeFromScript",
-    "CreateGeometryRes",
-    "DoPrepare",
-    "GetAllMeshMorphNamesNoDigits",
-    "GetAnimationCount",
-    "GetAnimationDuration",
-    "GetAnimationName",
-    "GetCMFContents",
-    "GetCMFData",
-    "GetCMFViewData",
-    "GetEventTrackCount",
-    "GetEventTrackName",
-    "GetGrannyFile",
-    "GetGrannyMesh",
-    "GetGrannySkeleton",
-    "GetGrannyVertexType",
-    "GetMemoryUsage",
-    "GetMeshAreaCount",
-    "GetMeshBoneBindings",
-    "GetMeshCount",
-    "GetMeshMorphCount",
-    "GetMeshMorphName",
-    "GetMeshName",
-    "GetMeshTriangleCount",
-    "GetMeshVertexElements",
-    "GetModelCount",
-    "GetModelName",
-    "GetTrackGroupCount",
-    "GetTrackGroupName",
-    "GetVectorTrackCount",
-    "GetVectorTrackName",
-    "GetVertexComponentOffset",
-    "GetVertexSize",
-    "IsMemoryUsageKnown",
-    "IsUsingCMF",
-    "Load",
-    "RayIntersection",
-    "ValidateAnimationIx",
-    "ValidateFileInfo",
-    "ValidateMeshIndex"
   ],
   "TriLineSet": [
     "AddCapsule",
-    "AddDefaultColor",
-    "AddOrientedBox",
-    "AddTransformed",
     "GetWorldTransform",
-    "PyRender",
-    "RenderFromScript",
-    "SubmitGeometry"
+    "PyRender"
   ],
   "TriMatrix": [
-    "Destroy",
-    "GetMatrix",
     "PyLookAtRH",
     "PyMultiply",
     "PyRotationAxis",
     "PyRotationQuaternion"
-  ],
-  "TriObserverLocal": [
-    "GetDebugOptions",
-    "RenderDebugInfo"
-  ],
-  "TriProjection": [
-    "SetProjection"
   ],
   "TriRect": [
     "CopyRect",
@@ -2636,19 +905,6 @@
   "TriRenderJob": [
     "OnPrepareResources",
     "ReleaseResources"
-  ],
-  "TriRenderStep": [
-    "CpuTime",
-    "GetCaptureCpuTime",
-    "GetCaptureGpuTime",
-    "GetStatName",
-    "GpuTime",
-    "SetCaptureCpuTime",
-    "SetCaptureGpuTime",
-    "SetStatName"
-  ],
-  "TriRigidOrientation": [
-    "UpdateValue"
   ],
   "TriSettings": [
     "CCP_LOGERR"
@@ -2684,8 +940,7 @@
     "py__init__"
   ],
   "TriStepRemoteUpdate": [
-    "OpenSharedMemoryAndEvents",
-    "SetData"
+    "OpenSharedMemoryAndEvents"
   ],
   "TriStepRenderAtlas": [
     "py__init__"
@@ -2750,36 +1005,19 @@
     "CacheTexture"
   ],
   "TriTextureRes": [
-    "CleanupLoadData",
     "ComputeMipSkipCount",
-    "DestroyOwnTexture",
     "DoCleanupAsyncSave",
     "DoExecuteAsyncSave",
-    "DoPrepare",
     "DoPrepareAsyncSave",
-    "GetAverageColor",
     "GetDescription",
-    "GetHeight",
-    "GetMemoryUsage",
-    "GetMipLevelCount",
     "GetName",
     "GetOriginalResolution",
-    "GetOriginalResolutionAsFloat",
     "GetType",
-    "GetWidth",
-    "IsMemoryUsageKnown",
-    "IsValid",
     "OnPrepareResources",
-    "OnShutdown",
-    "OnTextureChange",
-    "OnWrappedRenderTargetChanged",
     "OpenShared",
     "ProcessLodRequest",
-    "ReleaseResources",
-    "RequestResolution",
     "ResourcePrepFinished",
     "SetName",
-    "SetTextureFromRT",
     "TrimLods",
     "UpdateLodRequest"
   ],
@@ -2790,7 +1028,6 @@
   "TriVariable": [
     "CCP_ASSERT",
     "GetValueGpuBuffer",
-    "GetValueSize",
     "GetValueTextureRes",
     "GetValue_",
     "SetValueGpuBuffer",
