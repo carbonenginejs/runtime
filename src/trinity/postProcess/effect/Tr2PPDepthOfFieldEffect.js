@@ -95,6 +95,21 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
   @meta.setting("postprocessDofCarryForegroundBlur")
   static postprocessDofCarryForegroundBlur = false;
 
+  /**
+   * Ours (named after ccpwgl's `depthOfFieldTransparentDepth`): draws the
+   * transparent and additive batches as their own depth-of-field layers, each
+   * blurred by the depth of its nearest visible surface rather than the
+   * opaque depth behind it, then composited over the opaque result. Off is
+   * exactly Carbon's depth of field. Not persisted, so Carbon's .black and
+   * .red are untouched. Registered in docs/architecture/non-carbon-extensions.md
+   * ("Separated depth-of-field layers").
+   *
+   * @cjs
+   */
+  @meta.mapAttribute(meta.READWRITE)
+  @type.boolean
+  transparentDepth = false;
+
   static Shape = { Disk: 0, Triangle: 1, Rectangle: 2, Pentagon: 3, Hexagon: 4, Heart: 5 };
 
   static Disk = 0;

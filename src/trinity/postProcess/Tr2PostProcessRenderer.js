@@ -25,12 +25,14 @@ import {
   Tr2GpuUsage,
   Tr2LoadAction,
   Tr2StoreAction,
-  UpscalingTechnique
+  UpscalingTechnique,
+  CjsDofLayerPass
 } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
 import { PostProcessEffectPaths } from "#consts/effectPaths";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
+import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 import { EveSpaceScene } from "../eve/scene/EveSpaceScene.js";
 import { Tr2PPTonemappingEffect } from "./effect/Tr2PPTonemappingEffect.js";
 import { Tr2PPTaaEffect } from "./effect/Tr2PPTaaEffect.js";
@@ -204,6 +206,16 @@ export class Tr2PostProcessRenderer extends IRoot
    */
   useSharpeningStrength = false;
 
+  /**
+   * The depth-of-field layers the space render driver drew this frame, each
+   * `{ colour, depth, mask }` pool handles (mask null for a layer that is
+   * its own coverage), or null. Set by SetDepthOfFieldLayers, consumed by
+   * RenderDepthOfFieldLayers.
+   *
+   * @cjs The separated depth-of-field layers (non-carbon-extensions.md).
+   */
+  _depthOfFieldLayers = null;
+
   /** m_blurEffects: the horizontal/vertical Blur.fx pair per BlurContext hash (cpp:897-931). */
   _blurEffects = new Map();
 
@@ -348,7 +360,10 @@ export class Tr2PostProcessRenderer extends IRoot
         if (dof)
         {
           const temporal = upscalingInfo.temporal || postProcess.GetTaaIfAvailable(this.quality) !== null;
+          const bokehFrame = this._bokehFrameCounter;
           this.RenderDepthOfField(nonMsaaSource.Get(), gpuResourcePool, renderContext, dof, temporal, upscalingInfo.upscalingAmount, renderer);
+          // Ours: the transparent and additive layers, after the opaque DoF.
+          if (this._depthOfFieldLayers) this.RenderDepthOfFieldLayers(nonMsaaSource.Get(), gpuResourcePool, renderContext, dof, temporal, upscalingInfo.upscalingAmount, renderer, bokehFrame);
         }
 
         dynamicExposure = postProcess.GetDynamicExposureIfAvailable(this.quality);
@@ -511,6 +526,107 @@ export class Tr2PostProcessRenderer extends IRoot
 
       esm.PopDepthStencilBuffer();
       esm.PopRenderTarget();
+    }
+  }
+
+  /**
+   * Hands over the depth-of-field layers the driver drew this frame, for
+   * RenderDepthOfFieldLayers; a previous frame's unconsumed layers are freed.
+   *
+   * @cjs The separated depth-of-field layers (non-carbon-extensions.md).
+   * @param {Array<{colour: GpuResourceHandle, depth: GpuResourceHandle, mask: GpuResourceHandle|null}>|null} layers The layers.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The pool they came from.
+   * @returns {void}
+   */
+  SetDepthOfFieldLayers(layers, gpuResourcePool)
+  {
+    this.ReleaseDepthOfFieldLayers(gpuResourcePool);
+    this._depthOfFieldLayers = layers && layers.length ? layers : null;
+  }
+
+  /**
+   * Frees layers no post process consumed (depth of field went unavailable,
+   * or the chain did not run).
+   *
+   * @cjs
+   * @param {Tr2GpuResourcePool} gpuResourcePool The pool they came from.
+   * @returns {void}
+   */
+  ReleaseDepthOfFieldLayers(gpuResourcePool)
+  {
+    const layers = this._depthOfFieldLayers;
+    this._depthOfFieldLayers = null;
+    if (!layers) return;
+    for (let index = 0; index < layers.length; index++)
+    {
+      Tr2PostProcessRenderer._release(gpuResourcePool, layers[index].colour);
+      Tr2PostProcessRenderer._release(gpuResourcePool, layers[index].depth);
+      Tr2PostProcessRenderer._release(gpuResourcePool, layers[index].mask);
+    }
+  }
+
+  /**
+   * Blurs each depth-of-field layer with Carbon's own RenderDepthOfField and
+   * composites it onto `dest`, the opaque result: a masked layer multiplies
+   * `dest` by its blurred transmittance, then every layer adds its colour. The circle of confusion
+   * reads the global DepthMap, so its provider is pointed at the layer's
+   * coverage depth for the layer and restored after. The TAA-friendly bokeh's
+   * rotation counter is held, so every layer and the opaque pass share the
+   * frame's rotation.
+   *
+   * @cjs The separated depth-of-field layers (after ccpwgl 89973207,
+   *   Tw2DofLayerRenderer.RenderLayers); non-carbon-extensions.md.
+   * @param {object} dest The opaque scene colour, already through DoF.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @param {Tr2PPDepthOfFieldEffect} depthOfField The merged DoF settings.
+   * @param {boolean} temporal Whether TAA or a temporal upscaler follows.
+   * @param {number} upscalingAmount The upscaler's ratio, 1 without one.
+   * @param {Tr2Renderer} renderer The renderer owning the blitter.
+   * @param {number} bokehFrame The bokeh rotation counter the opaque pass started from.
+   * @returns {void}
+   */
+  RenderDepthOfFieldLayers(dest, gpuResourcePool, renderContext, depthOfField, temporal, upscalingAmount, renderer, bokehFrame)
+  {
+    const layers = this._depthOfFieldLayers;
+    const variable = Tr2VariableStore.globalStore().FindVariable("DepthMap");
+    const provider = variable ? variable.GetValue() : null;
+    const sceneDepth = provider ? provider.GetTexture() : null;
+    const counter = this._bokehFrameCounter;
+    try
+    {
+      for (let index = 0; index < layers.length; index++)
+      {
+        const layer = layers[index];
+        if (provider) provider.SetTexture(layer.depth.Get());
+        this._bokehFrameCounter = bokehFrame;
+        this.RenderDepthOfField(layer.colour.Get(), gpuResourcePool, renderContext, depthOfField, temporal, upscalingAmount, renderer);
+        if (layer.mask)
+        {
+          this._bokehFrameCounter = bokehFrame;
+          this.RenderDepthOfField(layer.mask.Get(), gpuResourcePool, renderContext, depthOfField, temporal, upscalingAmount, renderer);
+        }
+        try
+        {
+          if (layer.mask)
+          {
+            renderContext.SetDepthOfFieldLayerPass(CjsDofLayerPass.COMPOSITE_MULTIPLY);
+            Tr2PostProcessRenderer.drawTextureInto(dest, Tr2LoadAction.LOAD, layer.mask.Get(), renderContext, renderer);
+          }
+          renderContext.SetDepthOfFieldLayerPass(CjsDofLayerPass.COMPOSITE_ADD);
+          Tr2PostProcessRenderer.drawTextureInto(dest, Tr2LoadAction.LOAD, layer.colour.Get(), renderContext, renderer);
+        }
+        finally
+        {
+          renderContext.SetDepthOfFieldLayerPass(CjsDofLayerPass.NONE);
+        }
+      }
+    }
+    finally
+    {
+      if (provider) provider.SetTexture(sceneDepth);
+      this._bokehFrameCounter = counter;
+      this.ReleaseDepthOfFieldLayers(gpuResourcePool);
     }
   }
 

@@ -393,3 +393,30 @@ test("CE-230: postprocessDofCarryForegroundBlur carries the authored foreground 
     Tr2PPDepthOfFieldEffect.postprocessDofCarryForegroundBlur = false;
   }
 });
+
+test("the depth-of-field layers member reaches the merged effect only where a source turns it on", () =>
+{
+  const post = new Tr2PostProcess2();
+  const depthOfField = new Tr2PPDepthOfFieldEffect();
+  depthOfField.scale = 2;
+  post.SetDepthOfField(depthOfField);
+  const merge = observer =>
+  {
+    const source = new Tr2PostProcessAttributes();
+    source.FromPostProcess(post, Tr2PostProcessAttributes.MEDIUM_PRIORITY, 1);
+    return Tr2PostProcessAttributes.MergeInto(new Tr2PostProcess2(), [ source ], observer).depthOfField;
+  };
+  Tr2PPDepthOfFieldEffect.postprocessDofEnabled = true;
+  try
+  {
+    const off = Tr2PostProcessAttributes.CreateDebugObserver();
+    assertEquals(merge(off).transparentDepth, false);
+    assertEquals("depthOfFieldTransparentDepth" in off.GetDict(), false, "off leaves the merge, debug included, Carbon's");
+    depthOfField.transparentDepth = true;
+    assertEquals(merge().transparentDepth, true);
+  }
+  finally
+  {
+    Tr2PPDepthOfFieldEffect.postprocessDofEnabled = false;
+  }
+});

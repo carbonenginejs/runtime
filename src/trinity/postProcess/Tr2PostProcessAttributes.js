@@ -966,6 +966,21 @@ export class Tr2PostProcessAttributes extends IRoot
   depthOfFieldForegroundBlurNeeded = false;
 
   /**
+   * Ours: includes this source in strongest-contributor selection for the
+   * depth-of-field layers (`Tr2PPDepthOfFieldEffect.transparentDepth`).
+   * @type {boolean}
+   */
+  depthOfFieldTransparentDepthEnabled = false;
+
+  /**
+   * Ours: carries `Tr2PPDepthOfFieldEffect.transparentDepth` to the merged
+   * effect, selected by contribution weight. False everywhere leaves the merge
+   * exactly Carbon's.
+   * @type {boolean}
+   */
+  depthOfFieldTransparentDepth = false;
+
+  /**
    * Restores every attribute to its default and clears its enable flag, then
    * deliberately re-enables the colour-correction attributes so entering a
    * volume does not interpolate white balance and grading up from zero.
@@ -1082,6 +1097,11 @@ export class Tr2PostProcessAttributes extends IRoot
       set("depthOfFieldFocalLength", depthOfField.focalLength);
       set("depthOfFieldShape", depthOfField.bokehShape);
     }
+
+    // Ours: the depth-of-field layers member, enabled only where a source
+    // turns it on, so a merge without it is exactly Carbon's.
+    this.depthOfFieldTransparentDepth = !!(depthOfField && depthOfField.transparentDepth);
+    this.depthOfFieldTransparentDepthEnabled = this.depthOfFieldTransparentDepth;
 
     // CE-230, a declared divergence under postprocessDofCarryForegroundBlur:
     // Carbon's Set (cpp:438-444) never copies m_foregroundBlurNeeded, nor does
@@ -1237,6 +1257,7 @@ export class Tr2PostProcessAttributes extends IRoot
     depthOfFieldFocalLength: 0,
     depthOfFieldShape: 0,
     depthOfFieldForegroundBlurNeeded: false,
+    depthOfFieldTransparentDepth: false,
     whiteTemperature: 6500,
     whiteTint: 0,
     colorSaturation: 1,
@@ -1251,7 +1272,8 @@ export class Tr2PostProcessAttributes extends IRoot
    * @type {Set<string>}
    */
   static MaxWeightAttributes = Object.freeze(new Set([
-    "grimePath", "filmGrainColored", "vignetteShapePath", "vignetteDetailPath", "depthOfFieldShape", "depthOfFieldForegroundBlurNeeded"
+    "grimePath", "filmGrainColored", "vignetteShapePath", "vignetteDetailPath", "depthOfFieldShape", "depthOfFieldForegroundBlurNeeded",
+    "depthOfFieldTransparentDepth"
   ]));
 
   /**
@@ -1514,6 +1536,10 @@ export class Tr2PostProcessAttributes extends IRoot
       if (name !== "lutPath") values.set(name, Tr2PostProcessAttributes.Accumulate(name, sources, undefined, debugObserver));
     }
     values.set("depthOfFieldForegroundBlurNeeded", Tr2PostProcessAttributes.Accumulate("depthOfFieldForegroundBlurNeeded", sources, true, debugObserver));
+    // Ours: only when a source turns the layers on, so a merge without them,
+    // its debug dictionary included, is exactly Carbon's.
+    const transparentDepth = sources.some(source => source.depthOfFieldTransparentDepthEnabled);
+    values.set("depthOfFieldTransparentDepth", transparentDepth && Tr2PostProcessAttributes.Accumulate("depthOfFieldTransparentDepth", sources, true, debugObserver));
     const lutPaths = Tr2PostProcessAttributes.AccumulateLuts(sources, debugObserver);
     const value = name => values.get(name);
     postProcess.SetBloom(null);
@@ -1630,6 +1656,7 @@ export class Tr2PostProcessAttributes extends IRoot
       effect.focalLength = value("depthOfFieldFocalLength");
       effect.bokehShape = value("depthOfFieldShape");
       effect.foregroundBlurNeeded = value("depthOfFieldForegroundBlurNeeded");
+      effect.transparentDepth = value("depthOfFieldTransparentDepth");
       postProcess.SetDepthOfField(effect);
     }
 

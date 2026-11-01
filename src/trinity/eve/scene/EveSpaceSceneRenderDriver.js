@@ -24,7 +24,7 @@ import { type, blue as legacyBlue } from "#schema";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
-import { DepthStencilFormat, INVALID_UPSCALING_CONTEXT_ID, PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction, UpscalingTechnique } from "#consts/render-context";
+import { CjsDofLayerPass, DepthStencilFormat, INVALID_UPSCALING_CONTEXT_ID, PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction, UpscalingTechnique } from "#consts/render-context";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData, Tr2TextureSubresource, Tr2TextureAL } from "#trinityal";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
@@ -973,6 +973,9 @@ export class EveSpaceSceneRenderDriver
       this._RegisterSSAOMap(EveSpaceSceneRenderDriver.getEmptySSAO(this._gpuResourcePool));
       this._depthMapReference.SetTexture(null);
 
+      // Ours: depth-of-field layers the post process did not consume.
+      this.postProcess.ReleaseDepthOfFieldLayers(this._gpuResourcePool);
+
       // An interrupted scene pass must also drop the opaque-map share.
       if (this._opaqueMapReference.GetTexture()) this._opaqueMapReference.SetTexture(null);
 
@@ -1347,7 +1350,11 @@ export class EveSpaceSceneRenderDriver
       }
       try
       {
-        submitted = this._SubmitTransparent(map, renderContext) || submitted;
+        // Ours: with depth of field's transparentDepth on, the transparent
+        // family draws as separate depth-of-field layers instead.
+        submitted = (this._DepthOfFieldLayersWanted(offscreen)
+          ? this._RenderDepthOfFieldLayers(map, offscreen, renderContext)
+          : this._SubmitTransparent(map, renderContext)) || submitted;
 
         // THE DISTORTION BATCHES (EveSpaceScene.cpp:2759-2765), into the distortion
         // map with the depth read-only, as Carbon's whole colour pass holds it.
@@ -1808,6 +1815,120 @@ export class EveSpaceSceneRenderDriver
     [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, RenderingMode.RM_ALPHA ],
     [ TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE ]
   ]);
+
+  /**
+   * Each depth-of-field layer, in drawing order: its batch type, standard
+   * mode, coverage-discard mode, and whether it needs a transmittance mask.
+   * The transparent layer's authored SRCALPHA / INVSRCALPHA onto transparent
+   * black is premultiplied colour, and its mask carries the coverage the
+   * bokeh would lose; the additive layer is its own coverage (ccpwgl
+   * 89973207, Tw2DofLayerRenderer.RenderLayers).
+   */
+  static _depthOfFieldLayers = Object.freeze([
+    [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, RenderingMode.RM_ALPHA, 1, true ],
+    [ TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE, 2, false ]
+  ]);
+
+  /**
+   * Whether this frame draws the transparent family as depth-of-field layers:
+   * an off-screen target, and a depth of field the post process will run
+   * (its merged effect available at the renderer's quality) with
+   * `transparentDepth` on.
+   *
+   * @cjs The separated depth-of-field layers (non-carbon-extensions.md).
+   * @param {object|null} offscreen The frame's off-screen targets.
+   * @returns {boolean} Whether to draw layers.
+   */
+  _DepthOfFieldLayersWanted(offscreen)
+  {
+    if (!offscreen) return false;
+    const postProcess = this.scene.GetPostProcess();
+    const depthOfField = postProcess ? postProcess.GetDepthOfFieldIfAvailable(this.postProcess.GetPostProcessingQuality()) : null;
+    return depthOfField !== null && depthOfField.transparentDepth === true;
+  }
+
+  /**
+   * Draws the transparent and additive accumulators as depth-of-field layers
+   * instead of into the scene colour, and hands them to the post process.
+   * Each layer is a colour target cleared to transparent black over a copy of
+   * the opaque depth: the batches draw their colour with the depth read-only,
+   * then again depth-only through the coverage discard, so the layer's depth
+   * is its nearest visible surface (ccpwgl 89973207, Tw2DofLayerRenderer and
+   * Tw2DofDepthRenderer.DrawBatch).
+   *
+   * @cjs The separated depth-of-field layers (non-carbon-extensions.md).
+   * @param {object|null} map The batch map `_Collect` produced.
+   * @param {object} offscreen The frame's off-screen targets.
+   * @param {object} renderContext Recording render context.
+   * @returns {boolean} Whether anything was submitted.
+   */
+  _RenderDepthOfFieldLayers(map, offscreen, renderContext)
+  {
+    if (!map) return false;
+
+    const esm = renderContext.GetEffectStateManager();
+    const layers = [];
+    let submitted = false;
+
+    for (const [ batchType, renderingMode, discard, masked ] of EveSpaceSceneRenderDriver._depthOfFieldLayers)
+    {
+      const accumulator = map.GetAccumulator(batchType);
+      if (!accumulator || accumulator.GetBatchCount() === 0) continue;
+
+      const colour = this._TempTexture("DoF layer colour", offscreen.size, offscreen.color.Get().GetFormat());
+      const depth = this._TempTexture("DoF layer depth", offscreen.size, PixelFormat.PIXEL_FORMAT_D32_FLOAT,
+        Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE);
+      const mask = masked ? this._TempTexture("DoF layer mask", offscreen.size, offscreen.color.Get().GetFormat()) : null;
+      layers.push({ colour, depth, mask });
+      depth.Get().CopySubresourceRegion(Tr2TextureSubresource.create__MipLevel(0), offscreen.depth.Get(), Tr2TextureSubresource.create__MipLevel(0), renderContext);
+
+      esm.PushRenderTarget__TextureAL(colour.Get());
+      esm.PushDepthStencilBuffer__TextureAL(depth.Get());
+      try
+      {
+        renderContext.Clear({ clearColor: true, color: [ 0, 0, 0, 0 ] });
+
+        // Colour, testing the opaque depth without writing it.
+        renderContext.SetReadOnlyDepth(true);
+        try
+        {
+          esm.ApplyStandardStates(renderingMode);
+          submitted = renderContext.RenderBatches(accumulator) || submitted;
+
+          // The transmittance mask: white times one minus each alpha.
+          if (mask)
+          {
+            esm.SetRenderTarget(0, mask.Get());
+            renderContext.Clear({ clearColor: true, color: [ 1, 1, 1, 1 ] });
+            renderContext.SetDepthOfFieldLayerPass(CjsDofLayerPass.LAYER_MASK);
+            esm.ApplyStandardStates(renderingMode);
+            renderContext.RenderBatches(accumulator);
+            renderContext.SetDepthOfFieldLayerPass(CjsDofLayerPass.NONE);
+          }
+        }
+        finally
+        {
+          renderContext.SetReadOnlyDepth(false);
+        }
+
+        // The coverage depth: the same batches, depth only, where visible.
+        renderContext.SetDepthOfFieldLayerPass(CjsDofLayerPass.COVERAGE_DEPTH);
+        renderContext.SetCoverageDiscard(discard);
+        esm.ApplyStandardStates(renderingMode);
+        renderContext.RenderBatches(accumulator);
+      }
+      finally
+      {
+        renderContext.SetCoverageDiscard(0);
+        renderContext.SetDepthOfFieldLayerPass(CjsDofLayerPass.NONE);
+        esm.PopDepthStencilBuffer();
+        esm.PopRenderTarget();
+      }
+    }
+
+    this.postProcess.SetDepthOfFieldLayers(layers, this._gpuResourcePool);
+    return submitted;
+  }
 
   /**
    * Carbon UpdateGpuParticleSystem (EveSpaceSceneRenderDriver.cpp:634-642):
