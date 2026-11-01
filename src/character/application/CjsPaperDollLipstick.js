@@ -16,6 +16,9 @@ import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 export class CjsPaperDollLipstick extends CjsPaperDollComponent
 {
 
+    /** The applied palette's three specular colours (W is the gloss); empty until a palette is applied. */
+    _specularColors = [];
+
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Lipstick")
@@ -53,14 +56,40 @@ export class CjsPaperDollLipstick extends CjsPaperDollComponent
 
     /**
      * The head pass reads the diffuse colours. The surface pass reads only the
-     * style and the palette its specular colours and gloss come from, so a custom
-     * colour edit does not rebuild the specular.
+     * style, the palette and that palette's specular colours (their W is the
+     * gloss), so a custom colour edit does not rebuild the specular.
      */
     Capture(pass)
     {
         const state = super.Capture(pass);
         if (pass !== PaperDollPass.SURFACE) return state;
-        return { option: state.option, palette: state.option ? this.palette : "", colorAreas: [], colors: [] };
+        const palette = state.option ? this.palette : "";
+        return {
+            option: state.option,
+            palette,
+            colorAreas: [],
+            colors: [],
+            specularColors: palette ? this._specularColors.map(color => Float32Array.from(color)) : []
+        };
+    }
+
+    /**
+     * Takes the applied palette's specular colours, which the UI fetches with the palette; the surface pass
+     * draws them. An empty list leaves the surface undrawn.
+     * @param {ArrayLike<number>[]} colors The palette's three specular colours, or an empty list.
+     * @returns {void}
+     */
+    SetSpecularColors(colors)
+    {
+        this._specularColors = colors.map(color => Float32Array.from(color));
+        this.Rebuild();
+    }
+
+    /** Restores the configured inputs and forgets the applied palette's specular colours. */
+    Reset()
+    {
+        this._specularColors = [];
+        super.Reset();
     }
 
     static layer = PaperDollLayer.LIPSTICK;
@@ -68,5 +97,7 @@ export class CjsPaperDollLipstick extends CjsPaperDollComponent
     static passes = PaperDollPass.HEAD | PaperDollPass.SURFACE;
 
     static category = "makeup/lipstick";
+
+    static paletteSpecular = true;
 
 }

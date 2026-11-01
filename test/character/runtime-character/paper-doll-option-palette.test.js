@@ -83,6 +83,51 @@ test("lipstick surface capture keeps its palette with custom diffuse inputs", ()
     component.palette = "gloss";
     assert.equal(component.Capture(PaperDollPass.HEAD).palette, "");
     assert.deepEqual(component.Capture(PaperDollPass.SURFACE), {
-        option: "lip", palette: "gloss", colorAreas: [], colors: []
+        option: "lip", palette: "gloss", colorAreas: [], colors: [], specularColors: []
     });
+});
+
+test("an option configured by index alone is completed once by its resolver, which a failure lets retry", async () =>
+{
+    const component = new CjsPaperDollDefinition().bottomOuter;
+    const calls = [];
+    let fail = true;
+    component.Configure([{ id: "pants", path: "bottomouter/pants" }], new Map(), {
+        resolve: async id =>
+        {
+            calls.push(id);
+            if (fail) throw new Error("not yet");
+            return { colorAreas: [3, 1, 1], occludes: ["feet"], defaultPalette: "authored" };
+        }
+    });
+    component.option = "pants";
+    assert.deepEqual(component.GetColorAreas(), [], "unresolved: no colour areas");
+    await assert.rejects(component.ResolveOption("pants"), /not yet/);
+    fail = false;
+    component.ClearDirty();
+    const [first, second] = await Promise.all([component.ResolveOption("pants"), component.ResolveOption("pants")]);
+    assert.strictEqual(first, second);
+    assert.deepEqual(calls, ["pants", "pants"], "one retry after the failure, shared by concurrent calls");
+    assert.deepEqual(component.GetColorAreas(), [1, 3]);
+    assert.deepEqual(first.occludes, ["feet"]);
+    assert.equal(first.defaultPalette, "authored");
+    assert.equal(component.IsDirty(), true, "a resolution rebuilds");
+    assert.strictEqual(await component.ResolveOption("pants"), first);
+    assert.equal(await component.ResolveOption(""), null);
+});
+
+test("lipstick's surface capture carries the applied palette's specular colours", () =>
+{
+    const component = new CjsPaperDollDefinition().lipstick;
+    component.Configure([{ id: "lip", colorAreas: [1] }], new Map(), { option: "lip" });
+    component.palette = "red";
+    assert.deepEqual(component.Capture(PaperDollPass.SURFACE).specularColors, []);
+    component.ClearDirty();
+    component.SetSpecularColors([0, 1, 2].map(i => Float32Array.of(i, i, i, 1.3)));
+    assert.equal(component.IsDirty(), true);
+    const captured = component.Capture(PaperDollPass.SURFACE).specularColors;
+    assert.equal(captured.length, 3);
+    assert.equal(captured[2][0], 2);
+    component.Reset();
+    assert.deepEqual(component.Capture(PaperDollPass.SURFACE).specularColors, []);
 });

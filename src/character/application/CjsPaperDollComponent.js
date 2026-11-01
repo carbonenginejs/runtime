@@ -18,6 +18,12 @@ export class CjsPaperDollComponent
 
     _palettes = new Map();
 
+    /** The configured option resolver, or null when every option arrived fully described. */
+    _resolve = null;
+
+    /** Each option's resolution in flight or done, by id; a failed one is forgotten so it can be retried. */
+    _resolving = new Map();
+
     enabled = true;
 
     option = "";
@@ -42,18 +48,59 @@ export class CjsPaperDollComponent
         this.Rebuild();
     }
 
-    /** Installs prepared option records and typed palettes, then resets inputs. */
-    Configure(options, palettes, { option = "" } = {})
+    /**
+     * Installs option records and typed palettes, then resets inputs.
+     *
+     * An option record needs only what the file index gives (`id`, `path`, `label`, swatch records by name).
+     * What has to be read from an option's files (its `colorAreas`, `occludes`, `defaultPalette`, palettes) can
+     * come later from `resolve`, which `ResolveOption` runs the first time the option is applied; until then the
+     * option has no colour areas and occludes nothing.
+     * @param {object[]} options The option records; `colorAreas` defaults to none.
+     * @param {Map<string, ArrayLike<number>[]>} palettes Palettes whose colours are already known, by id.
+     * @param {object} [settings] The default option and the resolver.
+     * @param {string} [settings.option=""] The option Reset selects.
+     * @param {?function(string): Promise<object>} [settings.resolve=null] Reads one option's remaining fields.
+     * @returns {void}
+     */
+    Configure(options, palettes, { option = "", resolve = null } = {})
     {
         this._options = new Map(options.map(value => [value.id, {
             ...value,
-            colorAreas: [...new Set(value.colorAreas)].sort()
+            colorAreas: [...new Set(value.colorAreas ?? [])].sort()
         }]));
         this._palettes = new Map([...palettes].map(([id, colors]) => [
             id, colors.map(color => Float32Array.from(color))
         ]));
+        this._resolve = resolve;
+        this._resolving = new Map();
         this._defaultOption = option;
         this.Reset();
+    }
+
+    /**
+     * Completes one option's record through the configured resolver, once per option: the fields it returns
+     * replace the record's, and the inputs are marked for rebuilding. Concurrent calls share one resolution; a
+     * failed one is forgotten, so the next call retries it.
+     * @param {string} id The option's id; "" (no option) resolves to null.
+     * @returns {Promise<?object>} The option's record, or null for "" or an unknown id.
+     */
+    ResolveOption(id)
+    {
+        const record = this._options.get(id) ?? null;
+        if (!record || !this._resolve) return Promise.resolve(record);
+        if (!this._resolving.has(id))
+        {
+            const resolving = this._resolving;
+            const operation = this._resolve(id).then(fields =>
+            {
+                Object.assign(record, fields, { colorAreas: [...new Set(fields.colorAreas ?? [])].sort() });
+                this.Rebuild();
+                return record;
+            });
+            resolving.set(id, operation);
+            operation.catch(() => { if (resolving.get(id) === operation) resolving.delete(id); });
+        }
+        return this._resolving.get(id);
     }
 
     /** The component's declared colour inputs used by the selected option. */
@@ -169,5 +216,11 @@ export class CjsPaperDollComponent
 
     /** UI hint that selecting an option also selects the palette it names. */
     static optionNamesPalette = false;
+
+    /**
+     * Whether a palette also carries specular colours this component's surface pass reads; the UI then hands
+     * them over with `SetSpecularColors` when it applies a palette.
+     */
+    static paletteSpecular = false;
 
 }
