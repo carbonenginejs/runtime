@@ -78,7 +78,7 @@ semantics, and shutdown does not undo their registrations. Backend configuration
 is requested data, not evidence of an active device. See the core source README
 for configuration shapes and partial-failure behavior.
 
-`global/blue` exports the process-wide `blue` instance and its `CjsBlue` class.
+`blue/blue` exports the process-wide `blue` instance and its `CjsBlue` class.
 The holder delegates `Fetch`: DNA to its installed SOF, other inputs to its
 resource manager. `BlueResMan` and `BlueClasses` are the adapted service
 identities. Class/enum declarations share their existing authoritative registries.
