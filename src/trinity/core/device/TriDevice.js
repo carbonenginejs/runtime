@@ -22,6 +22,7 @@ import { Tr2RenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { ExecuteMainThreadActions } from "../continueOnMainThread.js";
+import { TRINITY } from "./trinityTickCookie.js";
 import "#consts/renderContext/presentation";
 import "#consts/renderContext/upscaling";
 import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
@@ -544,8 +545,8 @@ export class TriDevice extends IRoot
     return this;
   }
 
-  /** Carbon's tick cookie, the string "Trinity" (`TriDevice.cpp:148`). */
-  static TICK_COOKIE = "Trinity";
+  /** Carbon's tick cookie, `TRINITY` (`TriDevice.cpp:148`); an alias of the module constant. */
+  static TICK_COOKIE = TRINITY;
 
   // ==========================================================================
   // THE DEVICE LIFECYCLE. Source: TriDevice.cpp:230-341, :480-487, :669-691,
