@@ -197,8 +197,10 @@ export class Tr2PostProcessRenderer extends IRoot
    * v7.0.1's, which this port follows: CAS at a fixed intensity of 0 on the HDR
    * image before tonemapping (cpp:790, 875).
    *
-   * @cjs An A/B switch between the two Carbon versions, so the operator can
-   *   compare strengths against the game; it goes when one is chosen.
+   * @cjs An option between the two Carbon versions, which carry no switch
+   *   (operator, 2026-11-01: "we leave as an option"); HEAD's at strength 1 is
+   *   much closer to the in-game crop. Registered in
+   *   docs/architecture/non-carbon-extensions.md.
    */
   useSharpeningStrength = false;
 
