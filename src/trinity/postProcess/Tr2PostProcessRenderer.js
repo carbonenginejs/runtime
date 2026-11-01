@@ -304,9 +304,15 @@ export class Tr2PostProcessRenderer extends IRoot
 
     if (upscalingEnabled) displaySize = { width: upscalingInfo.displayWidth, height: upscalingInfo.displayHeight };
 
-    // HEAD (cpp:687-691): CAS writes the final result, so it must take a UAV.
+    // HEAD (cpp:687-691): CAS writes the final result, so it must take a UAV,
+    // in the destination's UAV-compatible format. Adapted: WGSL fixes one
+    // storage format per binding, and CAS's untyped float4 OutputTexture
+    // translates as rgba16float (lowerBindingLayout.js, STORAGE_TEXTURE_FORMAT),
+    // which v7.0.1's HDR pass needs; an 8-bit target here fails the bind group
+    // and the dispatch is dropped. So the result is that float format, and is
+    // drawn to the destination as Carbon's is.
     let output = sharpenAfterTonemapping
-      ? gpuResourcePool.GetTempTexture__Size("Final Result", displaySize, Tr2PostProcessRenderer.getUavCompatibleFormat(destinationFormat), RENDER_TARGET | Tr2GpuUsage.UNORDERED_ACCESS)
+      ? gpuResourcePool.GetTempTexture__Size("Final Result", displaySize, PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT, RENDER_TARGET | Tr2GpuUsage.UNORDERED_ACCESS)
       : gpuResourcePool.GetTempTexture__Size("Final Result", displaySize, destinationFormat, RENDER_TARGET);
 
     // Always copy (cpp:691-693).
@@ -576,6 +582,7 @@ export class Tr2PostProcessRenderer extends IRoot
       const dispatchX = Math.floor((renderWidth + (CAS_THREAD_GROUP_WORK_REGION_DIM - 1)) / CAS_THREAD_GROUP_WORK_REGION_DIM);
       const dispatchY = Math.floor((renderHeight + (CAS_THREAD_GROUP_WORK_REGION_DIM - 1)) / CAS_THREAD_GROUP_WORK_REGION_DIM);
 
+      // CE-229 quirk reproduced: the result is ignored, so a dropped dispatch leaves `output` unwritten (cpp:898).
       Tr2Renderer.runComputeShader(this._fidelityFxCasShader, dispatchX, dispatchY, 1, renderContext);
     }
     finally
