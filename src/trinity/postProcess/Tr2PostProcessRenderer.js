@@ -190,6 +190,18 @@ export class Tr2PostProcessRenderer extends IRoot
   @type.boolean
   useNewBloom = Tr2PostProcessRenderer.newBloom;
 
+  /**
+   * Selects Carbon HEAD's sharpening (2276880b, cpp:681, 805-848, 876-899):
+   * CAS at the post process's `sharpeningStrength`, after tonemapping and off
+   * at 0, with the tonemap dither off while it sharpens. Off, the chain is
+   * v7.0.1's, which this port follows: CAS at a fixed intensity of 0 on the HDR
+   * image before tonemapping (cpp:790, 875).
+   *
+   * @cjs An A/B switch between the two Carbon versions, so the operator can
+   *   compare strengths against the game; it goes when one is chosen.
+   */
+  useSharpeningStrength = false;
+
   /** m_blurEffects: the horizontal/vertical Blur.fx pair per BlurContext hash (cpp:897-931). */
   _blurEffects = new Map();
 
@@ -286,10 +298,16 @@ export class Tr2PostProcessRenderer extends IRoot
     const upscalingInfo = al.GetUpscalingInfo(upscalingContext ? upscalingContext.GetID() : INVALID_UPSCALING_CONTEXT_ID);
     const upscalingEnabled = upscalingInfo.technique !== UpscalingTechnique.NONE;
     const sharpeningRequired = !upscalingInfo.hasSharpening;
+    // Carbon HEAD (2276880b, cpp:681): sharpening after tonemapping, by the
+    // post process's strength and off at 0. Only under useSharpeningStrength.
+    const sharpenAfterTonemapping = this.useSharpeningStrength && (postProcess ? sharpeningRequired && postProcess.sharpeningStrength > 0 : false);
 
     if (upscalingEnabled) displaySize = { width: upscalingInfo.displayWidth, height: upscalingInfo.displayHeight };
 
-    let output = gpuResourcePool.GetTempTexture__Size("Final Result", displaySize, destinationFormat, RENDER_TARGET);
+    // HEAD (cpp:687-691): CAS writes the final result, so it must take a UAV.
+    let output = sharpenAfterTonemapping
+      ? gpuResourcePool.GetTempTexture__Size("Final Result", displaySize, Tr2PostProcessRenderer.getUavCompatibleFormat(destinationFormat), RENDER_TARGET | Tr2GpuUsage.UNORDERED_ACCESS)
+      : gpuResourcePool.GetTempTexture__Size("Final Result", displaySize, destinationFormat, RENDER_TARGET);
 
     // Always copy (cpp:691-693).
     let nonMsaaSource = gpuResourcePool.GetTempTexture__Size("Pre-upscaling Composite", renderSize, source.GetFormat(), RENDER_TARGET);
@@ -383,7 +401,8 @@ export class Tr2PostProcessRenderer extends IRoot
         }
       }
 
-      const sharpened = this.RenderSharpening(sharpeningRequired, upscaledSource, gpuResourcePool, renderContext);
+      // v7.0.1's pass on the HDR image; HEAD has none here.
+      const sharpened = this.RenderSharpening(sharpeningRequired && !this.useSharpeningStrength, upscaledSource, gpuResourcePool, renderContext);
       if (sharpened !== upscaledSource)
       {
         release(upscaledSource);
@@ -396,6 +415,8 @@ export class Tr2PostProcessRenderer extends IRoot
       this.tonemappingEffect.SetParameter__TextureAL("BlitOriginal", upscaledSource.Get());
       this.tonemappingEffect.SetParameter__BufferAL("Exposure", exposure.Get());
       this.tonemappingEffect.SetParameter__BufferAL("Histogram", histogramBuffer?.Get() ?? null);
+      // HEAD (cpp:792): no tonemap dither while CAS sharpens the result.
+      if (this.useSharpeningStrength) this.tonemappingEffect.SetParameter("DitherStrength", sharpenAfterTonemapping ? 0 : 1);
 
       const filmGrain = postProcess ? postProcess.GetFilmGrainIfAvailable(this.quality) : null;
 
@@ -403,17 +424,33 @@ export class Tr2PostProcessRenderer extends IRoot
       {
         if (upscalingContext && !upscalingInfo.temporal)
         {
-          const tonemappedOutput = gpuResourcePool.GetTempTexture__Size("Tonemapping Result", renderSize, destinationFormat, RENDER_TARGET);
+          const tonemappedOutput = gpuResourcePool.GetTempTexture__Size("Tonemapping Result", renderSize, sharpenAfterTonemapping ? upscaledSource.Get().GetFormat() : destinationFormat, RENDER_TARGET);
 
           this.RenderTonemapping(tonemappedOutput.Get(), postProcess, renderContext, renderer);
 
-          release(output);
-          output = this.RenderUpscaling(tonemappedOutput.Get(), depthMap?.Get() ?? null, velocity?.Get() ?? null, opaqueColor?.Get() ?? null, scene.GetReprojectionMatrix(), gpuResourcePool, renderContext, upscalingContext, dynamicExposure);
+          const upscaled = this.RenderUpscaling(tonemappedOutput.Get(), depthMap?.Get() ?? null, velocity?.Get() ?? null, opaqueColor?.Get() ?? null, scene.GetReprojectionMatrix(), gpuResourcePool, renderContext, upscalingContext, dynamicExposure);
           release(tonemappedOutput);
           depthMap = release(depthMap);
           velocity = release(velocity);
           opaqueColor = release(opaqueColor);
           scene.ApplyUpscalingToPerFrameData(displaySize.width, displaySize.height, renderContext);
+          if (sharpenAfterTonemapping)
+          {
+            this.RenderSharpening__Strength(postProcess.sharpeningStrength, upscaled.Get(), output.Get(), renderContext);
+            release(upscaled);
+          }
+          else
+          {
+            release(output);
+            output = upscaled;
+          }
+        }
+        else if (sharpenAfterTonemapping)
+        {
+          const tonemappedOutput = gpuResourcePool.GetTempTexture__Size("Tonemapping Result", displaySize, upscaledSource.Get().GetFormat(), RENDER_TARGET);
+          this.RenderTonemapping(tonemappedOutput.Get(), postProcess, renderContext, renderer);
+          this.RenderSharpening__Strength(postProcess.sharpeningStrength, tonemappedOutput.Get(), output.Get(), renderContext);
+          release(tonemappedOutput);
         }
         else
         {
@@ -429,6 +466,14 @@ export class Tr2PostProcessRenderer extends IRoot
         {
           Tr2Renderer.drawTexture(renderContext, output.Get());
         }
+      }
+      else if (sharpenAfterTonemapping)
+      {
+        const tonemappedOutput = gpuResourcePool.GetTempTexture__Size("Tonemapping Result", displaySize, upscaledSource.Get().GetFormat(), RENDER_TARGET);
+        this.RenderTonemapping(tonemappedOutput.Get(), postProcess, renderContext, renderer);
+        this.RenderSharpening__Strength(postProcess.sharpeningStrength, tonemappedOutput.Get(), output.Get(), renderContext);
+        release(tonemappedOutput);
+        Tr2Renderer.drawTexture(renderContext, output.Get());
       }
       else
       {
@@ -498,15 +543,33 @@ export class Tr2PostProcessRenderer extends IRoot
       format,
       RENDER_TARGET | Tr2GpuUsage.UNORDERED_ACCESS
     );
-    const renderWidth = output.Get().GetWidth();
-    const renderHeight = output.Get().GetHeight();
     const casIntensity = 0;
-    const { const0, const1 } = Tr2PostProcessRenderer.casSetup(casIntensity, renderWidth, renderHeight, renderWidth, renderHeight);
+    this.RenderSharpening__Strength(casIntensity, texture, output.Get(), renderContext);
+    return output;
+  }
+
+  /**
+   * Carbon HEAD's RenderSharpening (2276880b, cpp:876-899): AMD CAS from
+   * `input` into `output` at `strength`, clamped to 0-1. The output must allow
+   * unordered access. Like Carbon, it ignores whether the dispatch ran.
+   *
+   * @implemented
+   * @param {number} strength CAS sharpness, 0 to 1.
+   * @param {object} input The texture to sharpen.
+   * @param {object} output The UAV-compatible texture to write.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @returns {void}
+   */
+  RenderSharpening__Strength(strength, input, output, renderContext)
+  {
+    const renderWidth = output.GetWidth();
+    const renderHeight = output.GetHeight();
+    const { const0, const1 } = Tr2PostProcessRenderer.casSetup(Math.min(1, Math.max(0, strength)), renderWidth, renderHeight, renderWidth, renderHeight);
 
     this._fidelityFxCasShader.SetParameter__Vector4("const0", const0);
     this._fidelityFxCasShader.SetParameter__Vector4("const1", const1);
-    this._fidelityFxCasShader.SetParameter__TextureAL("InputTexture", texture);
-    this._fidelityFxCasShader.SetParameter__TextureAL("OutputTexture", output.Get());
+    this._fidelityFxCasShader.SetParameter__TextureAL("InputTexture", input);
+    this._fidelityFxCasShader.SetParameter__TextureAL("OutputTexture", output);
 
     try
     {
@@ -520,8 +583,6 @@ export class Tr2PostProcessRenderer extends IRoot
       this._fidelityFxCasShader.SetParameter__TextureAL("InputTexture", null);
       this._fidelityFxCasShader.SetParameter__TextureAL("OutputTexture", null);
     }
-
-    return output;
   }
 
   /**

@@ -102,6 +102,18 @@ export class Tr2PostProcess2 extends IRoot
   exposureAdjustment = 0;
 
   /**
+   * `m_sharpeningStrength`: the CAS sharpening strength, 0 to 1. A member of
+   * Carbon HEAD (2276880b, Tr2PostProcess2.h:89, exposed at
+   * Tr2PostProcess2_Blue.cpp:31), not of v7.0.1, which this port follows
+   * (docs/research/carbon-version-drift.md). The renderer reads it only while
+   * `Tr2PostProcessRenderer.useSharpeningStrength` is on.
+   */
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
+  @type.float32
+  sharpeningStrength = 0.5;
+
+  /**
    * Returns the -1 mip LOD bias temporal anti-aliasing requires when TAA is
    * active, and 0 otherwise.
    *

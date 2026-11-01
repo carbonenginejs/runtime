@@ -1777,6 +1777,9 @@ export class EveSpaceScene
     if (sources.length)
     {
       this._combinedPostProcess ??= new Tr2PostProcess2();
+      // Carbon HEAD (2276880b, EveSpaceScene.cpp:373): the scene default's
+      // sharpening strength, not blended.
+      this._combinedPostProcess.sharpeningStrength = this.postprocess ? this.postprocess.sharpeningStrength : 0.5;
 
       sources.sort((a, b) => b.priority - a.priority);
 
