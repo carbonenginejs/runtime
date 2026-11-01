@@ -387,9 +387,13 @@ export class EveLineSet
    * Carbon SubmitChanges (cpp:246-283): grows the buffer when the lines outgrow it, prepares the resources, uploads
    * the lines, and rebuilds the bounding sphere from their end points.
    *
-   * A submit or edit is a use: it prepares now, as Carbon does, and keeps the
-   * set alive (KeepAlive), so one submitted and never drawn is still released
-   * by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   * Prepares now, as Carbon does, rather than on first use: the upload below
+   * writes into the vertex buffer that preparing creates at maxCurrentLineCount,
+   * and without it the submit returns false before recording
+   * currentSubmittedLineCount and rebuilding boundingSphere, which the next draw
+   * counts and culls by. KeepAlive then stamps the set as in use, since submitted lines are about
+   * to be drawn; one submitted and never drawn is still released by the sweep
+   * (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted Carbon grows to the line vector's capacity, which its allocator chooses; a JavaScript array has none, so
    *   the buffer grows to the line count.

@@ -141,9 +141,13 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   /**
    * Rebuilds only a successfully prepared current resource (cpp:194-202).
    *
-   * A submit or edit is a use: it prepares now, as Carbon does, and keeps the
-   * set alive (KeepAlive), so one submitted and never drawn is still released
-   * by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   * Prepares now, as Carbon does, rather than on first use: CreatePrimitive
+   * replaced the points and index lists from the reloaded resource, and
+   * preparing is what uploads them and recomputes boundingSphere (mean centre,
+   * maximum point distance), which picking and culling read. KeepAlive then
+   * stamps the set as in use, since its resource reloaded under a set that is
+   * being drawn; one rebuilt and never drawn is still released by the sweep
+   * (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
    */
@@ -261,9 +265,12 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   /**
    * Updates cached vertex colors, without reassigning the authored color field (cpp:519-526).
    *
-   * A submit or edit is a use: it prepares now, as Carbon does, and keeps the
-   * set alive (KeepAlive), so one submitted and never drawn is still released
-   * by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   * Prepares now, as Carbon does, rather than on first use: preparing is the
+   * only path that copies the recoloured points into the vertex buffer, so a
+   * set already drawn would otherwise keep its old colour. No CPU state changes
+   * here (the bounds it recomputes are unchanged). KeepAlive then stamps the set
+   * as in use, since a recolour is for display; one recoloured and never drawn
+   * is still released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
    */

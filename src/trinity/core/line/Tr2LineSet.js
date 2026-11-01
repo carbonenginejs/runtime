@@ -126,9 +126,13 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   /**
    * Native SubmitChanges; JS array length replaces inaccessible vector capacity.
    *
-   * A submit or edit is a use: it prepares now, as Carbon does, and keeps the
-   * set alive (KeepAlive), so one submitted and never drawn is still released
-   * by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   * Prepares now, as Carbon does, rather than on first use: preparing is what
+   * uploads the submitted lines and picking triangles, records
+   * currentSubmittedLineCount and currentSubmittedTriangleCount, and rebuilds
+   * boundingSphere from the line end points, and the next draw's culling and
+   * vertex counts read those. KeepAlive then stamps the set as in use, since
+   * submitted lines are about to be drawn; one submitted and never drawn is
+   * still released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
    */

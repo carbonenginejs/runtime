@@ -81,9 +81,12 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   /**
    * Native SubmitChanges; JS array length replaces inaccessible vector capacity.
    *
-   * A submit or edit is a use: it prepares now, as Carbon does, and keeps the
-   * set alive (KeepAlive), so one submitted and never drawn is still released
-   * by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   * Prepares now, as Carbon does, rather than on first use: preparing is what
+   * uploads the submitted triangles, records currentSubmittedTriangleCount and
+   * rebuilds boundingSphere from their corners, and the next draw's culling
+   * and vertex count read those. KeepAlive then stamps the set as in use, since
+   * submitted triangles are about to be drawn; one submitted and never drawn is
+   * still released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
    */

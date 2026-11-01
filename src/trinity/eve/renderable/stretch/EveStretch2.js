@@ -160,9 +160,11 @@ export class EveStretch2 extends IEveFiringEffectElement
    * CCP_ASSERT on more than MAX_QUAD_COUNT quads (cpp:106) is compiled out of
    * shipping builds, so nothing stops the count there.
    *
-   * An edit is a use: it prepares now, as Carbon does, and keeps the stretch
-   * alive (KeepAlive), so one edited and never drawn is still released by the
-   * sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   * Prepares now, as Carbon does, rather than on first use: preparing reserves
+   * the shared quad-list index buffer for the new quadCount, which the next
+   * draw indexes into, and holds no CPU state of its own. KeepAlive then stamps
+   * the stretch as in use, since a quad-count edit is made to one being shown;
+   * one edited and never drawn is still released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
    */
@@ -173,7 +175,7 @@ export class EveStretch2 extends IEveFiringEffectElement
     {
       this.ReleaseResources();
       this.PrepareResources();
-    this.KeepAlive();
+      this.KeepAlive();
     }
     return true;
   }

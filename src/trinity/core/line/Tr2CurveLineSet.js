@@ -229,9 +229,12 @@ export class Tr2CurveLineSet
   /**
    * Only the mapped width factor requires a vertex refill (cpp:50-58).
    *
-   * @adapted a width edit is a use: it refills now, as Carbon does, and keeps the
-   *   set alive (KeepAlive), so one edited and never drawn is still released by the
-   *   sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   * @adapted refills now, as Carbon does, rather than on first use: the fill
+   *   re-tessellates every line at the new width, resets
+   *   currentSubmittedLineCount and rebuilds boundingSphere, which the next draw
+   *   counts and culls by. KeepAlive then stamps the set as in use, since a width
+   *   edit is made to lines being shown; one edited and never drawn is still
+   *   released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
 
   OnModified(name)
@@ -574,9 +577,12 @@ export class Tr2CurveLineSet
   /**
    * Native submission intentionally reports success even when filling fails.
    *
-   * @adapted a submit is a use: it fills now, as Carbon does, and keeps the set
-   *   alive (KeepAlive), so one submitted and never drawn is still released by the
-   *   sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   * @adapted fills now, as Carbon does, rather than on first use: the fill
+   *   tessellates the submitted lines into the vertex buffer (growing it to fit),
+   *   records currentSubmittedLineCount and rebuilds boundingSphere from the line
+   *   points, which the next draw counts and culls by. KeepAlive then stamps the
+   *   set as in use, since submitted lines are about to be drawn; one submitted
+   *   and never drawn is still released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   @be.mapMethodAndWrap()
   SubmitChanges()
