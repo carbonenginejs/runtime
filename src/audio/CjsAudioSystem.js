@@ -6,8 +6,8 @@
 // Headless-first: constructing the system does NOT require an AudioContext -
 // pass one (or a factory) only when sound should actually be realized. Without
 // it, the graph runs in Carbon's null-manager/headless mode untouched.
-import { CjsSchema } from "../global/schema/CjsSchema.js";
-import { blue } from "../global/blue/blue.js";
+import { CjsSchema } from "../blue/schema/CjsSchema.js";
+import { blue } from "../blue/blue/blue.js";
 import { AudGameObjResource } from "./trinity/audio/AudGameObjResource.js";
 import { AudEmitter } from "./trinity/audio/AudEmitter.js";
 import { AudManager } from "./trinity/audio/AudManager.js";

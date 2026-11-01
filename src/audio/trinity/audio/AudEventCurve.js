@@ -1,4 +1,4 @@
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 // Source: audio/src/AudEventCurve.h + AudEventCurve.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.

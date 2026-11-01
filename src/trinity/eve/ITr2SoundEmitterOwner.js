@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/ITr2SoundEmitterOwner.h:9-14
 import { CjsSchema, meta } from "#schema";
 

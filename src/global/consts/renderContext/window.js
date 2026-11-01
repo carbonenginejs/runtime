@@ -1,4 +1,4 @@
-import { blueEnums, EnumRegistrationType } from "../../blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums, EnumRegistrationType } from "../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 // Source: trinity/trinity/UI/Tr2MainWindow.h (Tr2WindowMode, Tr2WindowShowState, Tr2ImeState_MacOS namespaces)
 
 export const Tr2WindowMode = {

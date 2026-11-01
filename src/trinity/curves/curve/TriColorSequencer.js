@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { vec4 } from "#math/vec4";
 import { ITriFunction, ITriColorFunction, BlueList, ITriCurveLength } from "#blue";
 import { ITriDuration } from "../ITriDuration.js";
-import { mappedInterfaces } from "../../../global/compose/interface.js";
+import { mappedInterfaces } from "../../../blue/compose/interface.js";
 import { type, blue } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
 import "#consts/graphics/trinityEnums";

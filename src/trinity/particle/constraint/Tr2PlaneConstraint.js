@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 import { IsMatch, BlueList, IListNotify, INotify } from "#blue";
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, type, blue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";

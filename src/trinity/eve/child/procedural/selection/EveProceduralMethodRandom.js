@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandom.h
 import { IsMatch, INotify, IListNotify } from "#blue";
-import { IInitialize } from "../../../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../../../blue/blueexposure/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { CjsSchema, type, blue } from "#schema";
 import { EveProceduralMethodRandomParameter } from "./EveProceduralMethodRandomParameter.js";

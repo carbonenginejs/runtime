@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.cpp
 
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";

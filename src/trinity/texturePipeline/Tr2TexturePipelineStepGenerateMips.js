@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepGenerateMips.h
 // Marker step: Carbon registers the class with zero attributes; the mip
 // generation itself happens where the pipeline is executed.

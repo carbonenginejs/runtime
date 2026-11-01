@@ -1,4 +1,4 @@
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 import { ITr2EffectValue } from "./ITr2EffectValue.js";
 // Source: trinity/trinity/Include/ITriEffectParameter.h:10-23
 //

@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.

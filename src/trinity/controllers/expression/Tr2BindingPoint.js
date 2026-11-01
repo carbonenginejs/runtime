@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.cpp
 import { blue, BlueClasses, IList, INotify } from "#blue";
 import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor, type } from "#schema";
-import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "../../../global/blue/dictionaryDeclarations.js";
+import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "../../../blue/blue/dictionaryDeclarations.js";
 
 
 /** Component offsets of a one-letter swizzle (cpp:411-431). */

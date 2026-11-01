@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/TriDevice.h
 import { DestroyGlobalGpuResourcePool, Tr2GpuResourcePool } from "../Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 // Hand-maintained from Carbon source. Unimplemented backend methods here are

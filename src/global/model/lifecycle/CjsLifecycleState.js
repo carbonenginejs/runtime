@@ -1,6 +1,6 @@
 import { CjsSchema } from "#schema/CjsSchema";
 
-import { ensureRuntimeState, getRuntimeState } from "../../compose/runtimeState.js";
+import { ensureRuntimeState, getRuntimeState } from "../../../blue/compose/runtimeState.js";
 
 export const CJS_LIFECYCLE = Object.freeze({
     ALIVE: "alive",

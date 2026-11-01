@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.cpp
 
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";

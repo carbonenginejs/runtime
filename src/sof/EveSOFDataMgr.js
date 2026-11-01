@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../global/blueexposure/IRoot.js";
+import { IRoot } from "../blue/blueexposure/IRoot.js";
 import { normalizeResourcePath } from "#utils/path";
 import { ccpHashFnv1 } from "#utils";
 

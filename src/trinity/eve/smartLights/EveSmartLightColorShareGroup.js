@@ -1,8 +1,8 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightColorShareGroup.h
 import { IsMatch } from "#blue";
-import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
-import { INotify } from "../../../global/blueexposure/INotify.js";
+import { IListNotify } from "../../../blue/blueexposure/IListNotify.js";
+import { INotify } from "../../../blue/blueexposure/INotify.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { type, blue } from "#schema";

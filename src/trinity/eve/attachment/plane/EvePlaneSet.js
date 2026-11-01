@@ -4,8 +4,8 @@ import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
 import { IsMatch } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
-import { INotify } from "../../../../global/blueexposure/INotify.js";
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
+import { INotify } from "../../../../blue/blueexposure/INotify.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat3 } from "#math/mat3";

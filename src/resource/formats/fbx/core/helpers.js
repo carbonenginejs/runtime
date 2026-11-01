@@ -1,4 +1,4 @@
-import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 import { adler32 } from "#utils/checksum";
 import { asUint8Array, getArrayBufferViewName } from "#utils/bytes";
 import {

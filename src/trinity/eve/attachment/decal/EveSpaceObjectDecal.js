@@ -5,7 +5,7 @@ import { EveDecalPerObjectData } from "../../../core/rawData/perObjectData/EveDe
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal_Blue.cpp
 import { ITr2Pickable } from "../../../core/ITr2Pickable.js";
 import { IsMatch, INotify } from "#blue";
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";

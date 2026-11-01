@@ -1,4 +1,4 @@
-import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 /**
  * SM4/SM5 opcode identifiers for DXBC `SHEX`/`SHDR` token streams.
  *

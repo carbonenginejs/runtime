@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp

@@ -3,9 +3,9 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
 import { IsMatch, BlueList } from "#blue";
 import { IBehavior } from "./IBehavior.js";
-import { IListNotify } from "../../../../global/blueexposure/IListNotify.js";
-import { INotify } from "../../../../global/blueexposure/INotify.js";
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
+import { IListNotify } from "../../../../blue/blueexposure/IListNotify.js";
+import { INotify } from "../../../../blue/blueexposure/INotify.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, type, blue } from "#schema";

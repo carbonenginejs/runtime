@@ -2,7 +2,7 @@
 // Source: blueexposure/include/BlueTypes.h:409-419
 // Realm-local ClassRegistration storage shared by Blue and schema. This leaf
 // imports neither facade, so declarations can register without loading Blue.
-import * as CcpLog from "../../logging/ccpLog.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 
 /**
  * Carbon's ClassRegistrarNullFactory (BlueRegistration.cpp:94-97).

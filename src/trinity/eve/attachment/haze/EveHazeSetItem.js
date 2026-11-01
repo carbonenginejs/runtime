@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem_Blue.cpp

@@ -1,4 +1,4 @@
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2Scene } from "../../../trinity/core/ITr2Scene.js";
 // Source: trinity/trinity/Wod/WodBakingScene.h

@@ -8,7 +8,7 @@ import { meta, type } from "#schema";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { mat4 } from "#math/mat4";
 import { noise } from "#math/noise";
-import { CcpTime } from "../../../global/blue/CcpTime.js";
+import { CcpTime } from "../../../blue/blue/CcpTime.js";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
 import { CreateLightRecord } from "./lightConversion.js";

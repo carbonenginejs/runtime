@@ -3,8 +3,8 @@ import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2Pe
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh_Blue.cpp
-import { INotify } from "../../../global/blueexposure/INotify.js";
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { INotify } from "../../../blue/blueexposure/INotify.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import "#consts/graphics/trinityEnums";

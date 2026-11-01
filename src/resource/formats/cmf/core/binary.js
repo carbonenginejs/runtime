@@ -1,4 +1,4 @@
-import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 import { crc32 as sharedCrc32 } from "#utils/checksum";
 
 const textDecoder = new TextDecoder();

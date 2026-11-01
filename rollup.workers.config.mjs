@@ -14,12 +14,12 @@ const destination = path.join(root, "npm/dist/workers");
 
 /** The worker bundles, by output file name, and the built module each is bundled from. */
 export const WORKER_BUNDLES = Object.freeze({
-    "resource.worker.bundle.js": "npm/dist/global/blue/worker/CjsResManWorker.js",
+    "resource.worker.bundle.js": "npm/dist/blue/blue/worker/CjsResManWorker.js",
     "gr2.worker.bundle.js": "npm/dist/resource/formats/gr2/CjsGr2Format.js",
     "dds.worker.bundle.js": "npm/dist/resource/formats/dds/CjsDdsFormat.js",
     "dds-compression.worker.bundle.js": "npm/dist/resource/codecs/bcn/compressionWorker.js",
     "image-decode.worker.bundle.js": "npm/dist/resource/imageio/imageDecodeCallbacks.js",
-    "callback-man.worker.bundle.js": "npm/dist/global/blue/worker/blueCallbackManWorkerEntry.js"
+    "callback-man.worker.bundle.js": "npm/dist/blue/blue/worker/blueCallbackManWorkerEntry.js"
 });
 
 /**

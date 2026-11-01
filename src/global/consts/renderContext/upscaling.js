@@ -1,4 +1,4 @@
-import { blueEnums, EnumRegistrationType } from "../../blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums, EnumRegistrationType } from "../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 // Source: trinity/trinityal/include/upscaling/Tr2UpscalingAL.h (Technique, Setting)
 
 export const UpscalingTechnique = {

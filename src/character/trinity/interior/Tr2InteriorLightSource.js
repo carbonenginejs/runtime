@@ -1,4 +1,4 @@
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";

@@ -1,9 +1,9 @@
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/EveCamera.h
 import { IsMatch, CcpTime } from "#blue";
-import { INotify } from "../../../global/blueexposure/INotify.js";
+import { INotify } from "../../../blue/blueexposure/INotify.js";
 //   trinity/trinity/Eve/EveCamera.cpp
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
 import { CjsSchema, type, blue } from "#schema";

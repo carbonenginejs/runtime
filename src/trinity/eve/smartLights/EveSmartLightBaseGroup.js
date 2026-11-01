@@ -1,7 +1,7 @@
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightBaseGroup.h
-import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
+import { IListNotify } from "../../../blue/blueexposure/IListNotify.js";
 import { IEveSmartLightGroup } from "./IEveSmartLightGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { type } from "#schema";

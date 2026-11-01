@@ -1,6 +1,6 @@
 import { CjsSchema } from "#schema/CjsSchema";
 
-import { installNotify } from "../compose/notify.js";
+import { installNotify } from "../../blue/compose/notify.js";
 
 /**
  * Minimal event emitter with lowercase exact-name dispatch.

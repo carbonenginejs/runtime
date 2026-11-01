@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve.h
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve_Blue.cpp
 // Source: trinity/trinity/include/Tr2Curve.h:26-33

@@ -5,7 +5,7 @@ import { StreamType } from "#consts/media";
  * A format's name for messages: its `static className`, inherited from the
  * nearest format that declares one. Formats are not schema-registered, and a
  * format imports nothing outside the formats tree (a single format is
- * importable on its own), so this does not reach for global/compose.
+ * importable on its own), so this does not reach for blue/compose.
  *
  * @param {Function} Constructor A CjsFormat subclass.
  * @returns {string} The declared name, or "<unnamed format>".

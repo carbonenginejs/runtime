@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../../blue/blueexposure/IRoot.js";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.cpp

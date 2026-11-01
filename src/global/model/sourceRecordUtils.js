@@ -1,4 +1,4 @@
-import { CjsSchema } from "../schema/index.js";
+import { CjsSchema } from "../../blue/schema/index.js";
 
 /** Converts a truthy scalar, array, or map into an array of values. */
 export function asArray(value)

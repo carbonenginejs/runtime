@@ -11,7 +11,7 @@
 // State is lazy on first listener and DELETED when the last listener leaves
 // (the emitter costs nothing while unobserved - the operator's GC concern is
 // the design constraint here). The state slot is the shared __state expando
-// (./runtimeState.js) - both live in global/compose, the home of what
+// (./runtimeState.js) - both live in blue/compose, the home of what
 // @compose.* installs and the state those installations share.
 //
 // CjsEventEmitter remains as the inheritance packaging over this same map -

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/UI/EveEllipseSet.h
-import { INotify } from "../../../global/blueexposure/INotify.js";
+import { INotify } from "../../../blue/blueexposure/INotify.js";
 import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";
 //   trinity/trinity/Eve/UI/EveEllipseSet.cpp
@@ -18,7 +18,7 @@ import { TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { Tr2PickType } from "#consts/graphics/tr2PickType";
 import { Topology, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2Lod } from "#consts/trinity";
-import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
+import { IListNotify } from "../../../blue/blueexposure/IListNotify.js";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveEllipseDefinition } from "./EveEllipseDefinition.js";
 import { EveEllipseSetEllipseVertex } from "./EveEllipseSetEllipseVertex.js";

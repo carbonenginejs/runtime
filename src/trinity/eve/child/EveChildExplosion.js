@@ -5,7 +5,7 @@ import { random as carbonRandom } from "#math/random";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, type } from "#schema";
 import { blue, ICopier } from "#blue";
-import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
+import { addChild, removeChild, clearChildren } from "../../../blue/blue/children.js";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { EveEntity } from "../EveEntity.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";

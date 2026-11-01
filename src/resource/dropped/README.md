@@ -26,7 +26,7 @@ Carbon helper must not be exported as a second fence model.
 
 Replacement surfaces:
 
-- `src/global/blue/BlueResMan.js` (`Wait`, and the `_threadQueues` it counts)
+- `src/blue/blue/BlueResMan.js` (`Wait`, and the `_threadQueues` it counts)
 
 ## Tr2CmfContents and CmfVertexReader
 

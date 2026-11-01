@@ -13,10 +13,10 @@ import { vec3 } from "#math/vec3";
 import { CjsStretchRuntime } from "../../renderable/stretch/CjsStretchRuntime.js";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js";
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
-import { INotify } from "../../../../global/blueexposure/INotify.js";
-import { IListNotify } from "../../../../global/blueexposure/IListNotify.js";
-import { blue } from "../../../../global/blue/blue.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
+import { INotify } from "../../../../blue/blueexposure/INotify.js";
+import { IListNotify } from "../../../../blue/blueexposure/IListNotify.js";
+import { blue } from "../../../../blue/blue/blue.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { EveUpdateContext } from "../../EveUpdateContext.js";
 

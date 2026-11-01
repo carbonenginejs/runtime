@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveEffectChildrenOwner.h:9-15
 
 /** Contract for an object that keeps a named list of effect children, as EveEffectRoot2 does. */

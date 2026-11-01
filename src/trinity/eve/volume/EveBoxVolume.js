@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume_Blue.cpp
 import { IsMatch, INotify } from "#blue";
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 import { box3 } from "#math/box3";
 import { color } from "#math/color";
 import { mat4 } from "#math/mat4";

@@ -1,13 +1,13 @@
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
-import { IRoot } from "../../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.h
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.cpp
 import { vec3 } from "#math/vec3";
 import { type } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 import { blue, CcpTime } from "#blue";
-import { mappedInterfaces } from "../../../../global/compose/interface.js";
+import { mappedInterfaces } from "../../../../blue/compose/interface.js";
 import { ITriTargetable } from "../../../core/ITriTargetable.js";
 import { IWorldPosition } from "../../../core/IWorldPosition.js";
 

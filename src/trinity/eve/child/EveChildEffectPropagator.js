@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 import { CjsSchema, type } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveChildContainer } from "./EveChildContainer.js";

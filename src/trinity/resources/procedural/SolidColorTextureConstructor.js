@@ -46,7 +46,7 @@ export class SolidColorTextureConstructor extends IBlueDynamicResourceConstructo
 /**
  * Registers the `color` dynamic constructor on one manager.
  *
- * @param {import("../../../global/blue/IBlueResMan.js").IBlueResMan} resourceManager
+ * @param {import("../../../blue/blue/IBlueResMan.js").IBlueResMan} resourceManager
  *   Any IBlueResMan; only RegisterResourceConstructor is called.
  * @returns {object} The same manager, for chaining.
  */

@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2SolidSet.h
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, type, blue } from "#schema";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";

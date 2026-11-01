@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 import { CjsSchema, meta, type } from "#schema";
-import { createChild, addChild, removeChild, deleteChild, clearChildren } from "../../global/blue/children.js";
+import { createChild, addChild, removeChild, deleteChild, clearChildren } from "../../blue/blue/children.js";
 import "../model/index.js";
 
 const DOCUMENT_DEFINITIONS = [

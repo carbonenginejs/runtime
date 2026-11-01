@@ -1,12 +1,12 @@
-import { blue } from "../global/blue/index.js";
-import { installBlueServices } from "../global/blue/blue.js";
-import { BeCallbackMan } from "../global/blue/BlueCallbackMan.js";
-import { BlueCallbackManTicker } from "../global/blue/BlueCallbackManTicker.js";
+import { blue } from "../blue/blue/index.js";
+import { installBlueServices } from "../blue/blue/blue.js";
+import { BeCallbackMan } from "../blue/blue/BlueCallbackMan.js";
+import { BlueCallbackManTicker } from "../blue/blue/BlueCallbackManTicker.js";
 import { CjsSchema, meta } from "#schema";
 import { CjsOverlay2D } from "./overlay/CjsOverlay2D.js";
 
-import { IBlueResFileSystem } from "../global/blue/IBlueResFileSystem.js";
-import { IBlueDynamicResourceConstructor } from "../global/blue/IBlueDynamicResourceConstructor.js";
+import { IBlueResFileSystem } from "../blue/blue/IBlueResFileSystem.js";
+import { IBlueDynamicResourceConstructor } from "../blue/blue/IBlueDynamicResourceConstructor.js";
 import { DefaultConfiguration } from "./configuration.js";
 import { ImageIO } from "../resource/imageio/ImageIO.js";
 import { TriSettingsRegistrar } from "../trinity/core/TriSettingsRegistrar.js";

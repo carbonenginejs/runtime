@@ -1,4 +1,4 @@
-import { blueEnums } from "../../../global/blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 import { CjsByteWriter } from "../CjsByteWriter.js";
 import { CjsByteReader } from "../CjsByteReader.js";
 import { CjsFormatReadError, CjsFormatWriteError } from "../CjsFormatError.js";

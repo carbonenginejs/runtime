@@ -6,7 +6,7 @@
 // that undoes multiple-inheritance pointer offsets). JavaScript has no class
 // templates and no base-pointer offsets, and every Blue class already extends
 // IRoot, so IRoot carries both once: IRoot.QueryInterface and
-// IRoot.GetRootObject (src/global/blueexposure/IRoot.js), with IRoot.ClassType for the
+// IRoot.GetRootObject (src/blue/blueexposure/IRoot.js), with IRoot.ClassType for the
 // ClassInfo part the header comment names (BlueClass.h:31).
 // No runtime registration or export.
 

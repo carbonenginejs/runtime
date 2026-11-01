@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/TriObserverLocal.cpp
 // Source: trinity/trinity/TriObserverLocal_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { ITriObserverLocal } from "../../../global/blue/ITriObserverLocal.js";
+import { ITriObserverLocal } from "../../../blue/blue/ITriObserverLocal.js";
 import { CjsSchema, type, blue } from "#schema";
 import { ITr2DebugRenderable } from "#interfaces";
 

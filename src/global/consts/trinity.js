@@ -1,4 +1,4 @@
-import { blueEnums } from "../blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../blue/blue/enums/CjsBlueEnumRegistry.js";
 export { Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, COMPRESS_SQUISH_QUALITY_DEFAULT } from "./dxtCompression.js";
 // Source: trinity/trinity/Resources/Tr2LodResource.h
 

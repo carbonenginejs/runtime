@@ -1,4 +1,4 @@
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Lights/ITr2LightOwner.h:10-16
 //
 // Carbon also registers this as the "LightOwner" component type (ITr2LightOwner.h:18,

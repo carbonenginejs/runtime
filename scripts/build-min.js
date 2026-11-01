@@ -47,7 +47,7 @@ await build({
                         NewExpression(p)
                         {
                             if (p.node.callee.name === "URL" && p.node.arguments[0]?.value === "./CjsResManWorker.js")
-                                p.node.arguments[0].value = "./global/blue/worker/CjsResManWorker.js";
+                                p.node.arguments[0].value = "./blue/blue/worker/CjsResManWorker.js";
                         }
                     } })]
                 });

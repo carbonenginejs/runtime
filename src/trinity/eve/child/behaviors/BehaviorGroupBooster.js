@@ -1,8 +1,8 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.h
 import { IsMatch, INotify, blue, CcpTime } from "#blue";
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { type } from "#schema";

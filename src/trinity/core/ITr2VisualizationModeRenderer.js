@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/ITr2VisualizationModeRenderer.h:16-27
 import { CjsSchema, meta } from "#schema";
 

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../global/blueexposure/IRoot.js";
-import { INotify } from "../../global/blueexposure/INotify.js";
-import { IBlueEvents } from "../../global/blue/IBlueEvents.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
+import { INotify } from "../../blue/blueexposure/INotify.js";
+import { IBlueEvents } from "../../blue/blue/IBlueEvents.js";
 // Source: videoplayer/VideoPlayer.h, videoplayer/VideoPlayer.cpp:104-247
 // Browser adaptation: HTML media owns decoding, presentation and audio clocks.
 // Resource paths and playlist policy remain with VideoPlaylistController.

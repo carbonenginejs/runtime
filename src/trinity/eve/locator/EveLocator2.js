@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.cpp
 import { mat4 } from "#math/mat4";

@@ -5,8 +5,8 @@ import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRend
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.cpp
 import { IsMatch, CcpTime } from "#blue";
-import { INotify } from "../../../../global/blueexposure/INotify.js";
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
+import { INotify } from "../../../../blue/blueexposure/INotify.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";

@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Include/ITr2Updateable.h
 //
 // Carbon's single-method update contract: anything registered with a

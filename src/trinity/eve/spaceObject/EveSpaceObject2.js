@@ -9,7 +9,7 @@ import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRendera
 import { IsMatch } from "#blue";
 import { FLOAT_MAX } from "../../core/view/TriFrustum.js";
 import { IEveShadowCaster } from "../IEveShadowCaster.js";
-import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
+import { IListNotify } from "../../../blue/blueexposure/IListNotify.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
@@ -37,7 +37,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
+import { addChild, removeChild, clearChildren } from "../../../blue/blue/children.js";
 import { ccpHashFnv1 } from "#utils";
 import { BLUELISTEVENT } from "#consts/blue";
 import { EveComponentType, EntityComponents } from "../EntityComponents.js";

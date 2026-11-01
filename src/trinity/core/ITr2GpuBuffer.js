@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Include/ITr2GpuBuffer.h:13-25
 import { CjsSchema, meta } from "#schema";
 

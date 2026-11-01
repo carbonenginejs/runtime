@@ -13,7 +13,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { blue, IInitialize, INotify, IsMatch } from "#blue";
-import { CcpTime } from "../../../global/blue/CcpTime.js";
+import { CcpTime } from "../../../blue/blue/CcpTime.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2Lod } from "../EveLODHelper.js";

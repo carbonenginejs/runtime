@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask.h
 //   trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask.cpp
 //   trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask_Blue.cpp:29-30 (the

@@ -4,8 +4,8 @@
   "sideEffects": [
     "./dist/carbonenginejs.min.js",
     "./dist/global/index.js",
-    "./dist/global/blue/index.js",
-    "./dist/global/blue/blue.js",
+    "./dist/blue/blue/index.js",
+    "./dist/blue/blue/blue.js",
     "./dist/global/consts/graphics/trinityEnums.js",
     "./dist/global/consts/trinity.js",
     "./dist/global/consts/media/metadata.js",

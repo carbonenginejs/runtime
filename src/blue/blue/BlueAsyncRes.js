@@ -3,7 +3,7 @@
 // Source: blue/src/BlueAsyncRes_Blue.cpp
 import { exposure as be } from "#be";
 import { CjsSchema, type } from "#schema";
-import * as CcpLog from "../logging/ccpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { blue } from "./blue.js";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { BlueResManQueue } from "./IBlueResMan.js";

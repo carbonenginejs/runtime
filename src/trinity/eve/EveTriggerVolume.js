@@ -1,11 +1,11 @@
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
 import { IWorldPosition } from "../core/IWorldPosition.js";
 // Source: trinity/trinity/Eve/EveTriggerVolume.h
 // Source: trinity/trinity/Eve/EveTriggerVolume.cpp
 // Source: trinity/trinity/Eve/EveTriggerVolume_Blue.cpp
-import { IInitialize } from "../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../blue/blueexposure/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";

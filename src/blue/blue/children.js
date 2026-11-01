@@ -6,7 +6,7 @@ import { DictReader, CreateAnchorTable } from "./DictReader.js";
 import { ensureRuntimeState } from "../compose/runtimeState.js";
 import { NotifyModified } from "../compose/values.js";
 import { NOTIFY_METHODS } from "../compose/notify.js";
-import { BLUELISTEVENT } from "../consts/blue.js";
+import { BLUELISTEVENT } from "../../global/consts/blue.js";
 
 const CHILD_COLLECTION_KINDS = new Set([ "array", "list" ]);
 

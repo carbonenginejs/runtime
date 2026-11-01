@@ -1,4 +1,4 @@
-import { CARBON_TYPE } from "../../global/schema/types/carbonTypes.js";
+import { CARBON_TYPE } from "../../blue/schema/types/carbonTypes.js";
 
 /**
  * Our common decoded table representation. The class is an in-process builder;

@@ -1,7 +1,7 @@
 import { CjsSchema } from "#schema/CjsSchema";
 import { blue } from "./blue.js";
 import { BlueAsyncRes } from "./BlueAsyncRes.js";
-import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
+import { ResourceHandlerMode } from "../../global/consts/resourceHandlerMode.js";
 
 /**
  * Internal asynchronous object reader. JavaScript cannot block on Carbon's

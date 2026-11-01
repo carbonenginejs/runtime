@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveInheritPropertiesOwner.h
 //
 // The capability a child must CARRY to receive inherited faction colours.

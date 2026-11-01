@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "../schema/index.js";
+import { CjsSchema, meta } from "../../blue/schema/index.js";
 
 /**
  * Dependency-free participant in runtime backend selection.

@@ -8,7 +8,7 @@ import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { SharedGeometryBuffer } from "./TriGeometryResAllocations.js";
-import { ReadValues } from "../../../global/blue/values.js";
+import { ReadValues } from "../../../blue/blue/values.js";
 import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";

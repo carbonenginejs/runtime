@@ -1,4 +1,4 @@
-import { blueEnums, EnumRegistrationType } from "../../blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums, EnumRegistrationType } from "../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 /** Global Trinity render-batch vocabulary from ITr2Renderable.h. */
 export const TriBatchType = {
     TRIBATCHTYPE_OPAQUE: 0,

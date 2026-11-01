@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Tr2BindingVector3.h
 // Source: trinity/trinity/Tr2BindingVector3_Blue.cpp
 import { type, blue } from "#schema";

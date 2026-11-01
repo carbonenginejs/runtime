@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:177-243
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52

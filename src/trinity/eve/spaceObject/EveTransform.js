@@ -27,7 +27,7 @@ import { ITr2BoundingBox, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectRefer
 import { TriDebugFont } from "../../core/TriDebugTextRenderer.js";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { IInitialize } from "#blueexposure/IInitialize";
-import { CcpTime } from "../../../global/blue/CcpTime.js";
+import { CcpTime } from "../../../blue/blue/CcpTime.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 

@@ -1,4 +1,4 @@
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Include/ITr2MultiPassScene.h:16-44
 import { CjsSchema, meta } from "#schema";
 import { PassType, RenderPassResult } from "../generated/include/enums.js";

@@ -26,7 +26,7 @@
 //   this` - the same thing once the indirection is gone.
 
 import { CjsSchema } from "#schema";
-import { IRoot } from "../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../blue/blueexposure/IRoot.js";
 
 
 /** Contract for an object that owns controllers and answers their variables. */

@@ -5,7 +5,7 @@ import { Alias, Document, Pair, Scalar, YAMLMap, YAMLSeq, isSeq } from "yaml";
 import { CjsSchema, blue } from "#schema";
 import { IRootWriter } from "./IRootWriter.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
-import * as CcpLog from "../logging/ccpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /**
  * Authoring metadata safe to publish. Adapted from YamlWriter.cpp:333:

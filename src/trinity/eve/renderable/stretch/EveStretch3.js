@@ -26,9 +26,9 @@ import { ITr2DynamicBindingOwner } from "../../ITr2DynamicBindingOwner.js";
 import { ITr2SoundEmitterOwner } from "../../ITr2SoundEmitterOwner.js";
 import { EveEntity } from "../../EveEntity.js";
 import { EveChildModifierStretch } from "../../child/modifiers/EveChildModifierStretch.js";
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
-import { INotify } from "../../../../global/blueexposure/INotify.js";
-import { IListNotify } from "../../../../global/blueexposure/IListNotify.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
+import { INotify } from "../../../../blue/blueexposure/INotify.js";
+import { IListNotify } from "../../../../blue/blueexposure/IListNotify.js";
 import { CjsStretchRuntime } from "./CjsStretchRuntime.js";
 
 

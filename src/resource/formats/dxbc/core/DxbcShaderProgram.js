@@ -1,4 +1,4 @@
-import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 import { DxbcReadError } from "./DxbcReadError.js";
 
 /**

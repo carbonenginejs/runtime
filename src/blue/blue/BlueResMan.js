@@ -14,7 +14,7 @@ import { BlueResManQueue, IBlueResMan } from "./IBlueResMan.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { IRoot } from "../blueexposure/IRoot.js";
 import { IBlueResource } from "./IBlueResource.js";
-import * as CcpLog from "../logging/ccpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { hasOwnThen } from "#utils/object";
 import {
   getResourceExtension,
@@ -25,7 +25,7 @@ import {
 
 
 import { GetResources } from "./getResources.js";
-import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
+import { ResourceHandlerMode } from "../../global/consts/resourceHandlerMode.js";
 import { BlueCallbackMan } from "./BlueCallbackMan.js";
 import {
   CjsResManMainThreadLoader
@@ -4376,7 +4376,7 @@ function createExtensionTargetError(resource, message, cause = null)
 }
 
 // Carbon: `class BlueResMan : public IBlueResMan, public IBlueEvents`. Declared
-// as calls - this folder cannot use decorator syntax (global/blue/index.js).
+// as calls - this folder cannot use decorator syntax (blue/blue/index.js).
 // The Cjs prefix identifies browser adaptations (workers, fetch and routes);
 // carbon metadata identifies the native service whose responsibility it carries.
 CjsSchema.meta.inherit(IBlueResMan, IBlueEvents)(BlueResMan);

@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomOffset.h
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type } from "#schema";
 import { blue } from "#blue";

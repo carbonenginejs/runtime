@@ -42,7 +42,7 @@ import { mappedInterfaces, ownMappedInterfaces, exposureChainTo } from "../compo
 import { IBlueClasses } from "./IBlueClasses.js";
 import { BlueRttiType } from "./BlueRttiType.js";
 import { Copier } from "./Copier.js";
-import * as CcpLog from "../logging/ccpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /** Be::EDITFLAGS bits (BlueTypes.h:288-303), keyed by the schema's edit flag names. */
 const EDIT_FLAG_BITS = [

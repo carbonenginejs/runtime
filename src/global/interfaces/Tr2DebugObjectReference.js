@@ -1,6 +1,6 @@
 // Source: blue/include/ITr2DebugRenderer2.h:97-124
 // Source: trinity/trinity/Tr2DebugRenderer.cpp:72-110
-import { CjsSchema } from "../schema/index.js";
+import { CjsSchema } from "../../blue/schema/index.js";
 
 /**
  * Names what a debug primitive belongs to: an object, and an area within it

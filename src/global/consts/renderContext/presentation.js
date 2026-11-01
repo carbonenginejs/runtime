@@ -1,4 +1,4 @@
-import { blueEnums, EnumRegistrationType } from "../../blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums, EnumRegistrationType } from "../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 // Source: trinity/trinityal/Tr2RenderContextEnum.h (SwapEffect, PresentInterval, RenderState)
 
 export const SwapEffect = {

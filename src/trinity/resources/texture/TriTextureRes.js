@@ -13,7 +13,7 @@ import { createDdsBitmap } from "../../../resource/formats/dds/ddsBitmap.js";
 import { CjsDdsFormat } from "../../../resource/formats/dds/CjsDdsFormat.js";
 import { compressBitmapAsync, selectCompression } from "#resource/codecs/bcn";
 import { DECODE_BITMAP_CALLBACK, IMAGE_DECODE_FORMATS } from "../../../resource/imageio/imageDecodeCallbacks.js";
-import { BeCallbackMan, BlueCallbackMan } from "../../../global/blue/BlueCallbackMan.js";
+import { BeCallbackMan, BlueCallbackMan } from "../../../blue/blue/BlueCallbackMan.js";
 import { asUint8Array } from "#utils/bytes";
 import { getResourceExtension } from "#utils/path";
 import { exposure as be } from "#be";

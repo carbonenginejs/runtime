@@ -5,13 +5,13 @@ import { exposure as be } from "#be";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { type, blue as legacyBlue } from "#schema";
 import { BlueScriptCallback, IInitialize, ISimTimeRebaseNotify, blue, BlueList, CcpTime } from "#blue";
-import { ITriFunction } from "../../global/blue/ITriFunction.js";
-import { ITriCurveLength } from "../../global/blue/ITriCurveLength.js";
+import { ITriFunction } from "../../blue/blue/ITriFunction.js";
+import { ITriCurveLength } from "../../blue/blue/ITriCurveLength.js";
 import { ITr2Updateable } from "../core/ITr2Updateable.js";
 import { ITriDuration } from "./ITriDuration.js";
 import { ITr2ValueBinding } from "./ITr2ValueBinding.js";
 import { Tr2CurveSetRange } from "./Tr2CurveSetRange.js";
-import { mappedInterfaces } from "../../global/compose/interface.js";
+import { mappedInterfaces } from "../../blue/compose/interface.js";
 
 
 /**

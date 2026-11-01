@@ -1,5 +1,5 @@
 // Source: blue/include/ITr2DebugRenderer2.h:37-94
-import { CjsSchema } from "../schema/index.js";
+import { CjsSchema } from "../../blue/schema/index.js";
 import { color as colorMath } from "../math/color.js";
 
 // Scratch for GetAutoSelectedColor's Color temporary (debug drawing is single-threaded).

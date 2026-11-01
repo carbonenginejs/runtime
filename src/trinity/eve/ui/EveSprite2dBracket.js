@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/EveSprite2dBracket.h
 // Source: trinity/trinity/EveSprite2dBracket.cpp
 import { vec2 } from "#math/vec2";

@@ -26,7 +26,7 @@
 import { CjsSchema, blue } from "#schema";
 import { IRootWriter } from "./IRootWriter.js";
 import { getDictionaryDeclarations } from "./dictionaryDeclarations.js";
-import * as CcpLog from "../logging/ccpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /**
  * Default `sizeWarningBytes`: an export estimated past this logs a warning.

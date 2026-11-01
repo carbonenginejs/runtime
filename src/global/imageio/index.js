@@ -4,7 +4,7 @@
 // resource/imageio, which re-exports these.
 //
 // NO DECORATOR SYNTAX IN THIS FOLDER, for the same packaging reason as
-// global/blue: declare metadata with CjsSchema.define at the foot of a file.
+// blue/blue: declare metadata with CjsSchema.define at the foot of a file.
 
 export * from "./BitmapDimensions.js";
 export * from "./ImageUtility.js";

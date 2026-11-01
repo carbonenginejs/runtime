@@ -1,6 +1,6 @@
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 import { exposure as be } from "#be";
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay_Blue.cpp

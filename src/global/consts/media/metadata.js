@@ -1,5 +1,5 @@
 // Source: videoplayer/Metadata.h (StreamType)
-import { blueEnums } from "../../blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 /** Carbon videoplayer/Metadata.h:255-260; one stream mask shared by requests and format outputs. */
 export const StreamType = {
     STREAM_AUDIO: 1,

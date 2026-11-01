@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/IEveSpaceObjectAttachment.h
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { EveEntity } from "../EveEntity.js";

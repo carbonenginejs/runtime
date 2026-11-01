@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.cpp
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp
 import { IsMatch, INotify, CcpTime } from "#blue";
-import { IInitialize } from "../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../blue/blueexposure/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 //
 // The GPU particle system: emitters queue emit requests during the scene

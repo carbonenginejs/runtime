@@ -1,10 +1,10 @@
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
-import { IListNotify } from "../../../global/blueexposure/IListNotify.js";
+import { IListNotify } from "../../../blue/blueexposure/IListNotify.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
-import { INotify } from "../../../global/blueexposure/INotify.js";
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { INotify } from "../../../blue/blueexposure/INotify.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -14,7 +14,7 @@ import { EveEntity } from "../EveEntity.js";
 import { CjsSchema, type, blue } from "#schema";
 import { IsMatch } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
-import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
+import { addChild, removeChild, clearChildren } from "../../../blue/blue/children.js";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 

@@ -1,4 +1,4 @@
-import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 export const FILE_SIGNATURE = 0x66666D63;
 export const FILE_VERSION = 1;
 

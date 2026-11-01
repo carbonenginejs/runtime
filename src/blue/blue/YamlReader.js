@@ -19,7 +19,7 @@ import { getClassRegistration } from "../blueexposure/classes/registry.js";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
 import { mappedInterfaces } from "../compose/interface.js";
 import { BLUELISTEVENT } from "#consts/blue";
-import * as CcpLog from "../logging/ccpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /**
  * Carbon's class-driven Red reader. Adapted: the yaml package supplies nodes,

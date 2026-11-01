@@ -1,8 +1,8 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer.h
-import { INotify } from "../../../global/blueexposure/INotify.js";
+import { INotify } from "../../../blue/blueexposure/INotify.js";
 import { IEveShadowCaster } from "../IEveShadowCaster.js";
-import { IInitialize } from "../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../blue/blueexposure/IInitialize.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";

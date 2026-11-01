@@ -1,5 +1,5 @@
-import { CjsError } from "../utils/errors/CjsError.js";
-import { CcpLogChannel_t } from "../logging/CcpLogChannel_t.js";
+import { CjsError } from "../../global/utils/errors/CjsError.js";
+import { CcpLogChannel_t } from "../../global/logging/CcpLogChannel_t.js";
 import {
     cloneCarbonValue,
     coerceCarbonMathInto,
@@ -16,8 +16,8 @@ import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast, mappedInterfaces, setInterfaceClassResolver } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport, isExportableField, isTransportedDeclaration, isWritableField } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
-import { TriSettingNames } from "../consts/trinity.js";
-import { CjsUnusedMethodError } from "../utils/errors/CjsUnusedMethodError.js";
+import { TriSettingNames } from "../../global/consts/trinity.js";
+import { CjsUnusedMethodError } from "../../global/utils/errors/CjsUnusedMethodError.js";
 import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../blueexposure/classes/registry.js";
 
 

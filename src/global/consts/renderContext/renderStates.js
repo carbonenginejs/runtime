@@ -1,4 +1,4 @@
-import { blueEnums } from "../../blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../../blue/blue/enums/CjsBlueEnumRegistry.js";
 // Source: trinity/trinityal/Tr2RenderContextEnum.h
 //   (CullMode, ColorWriteEnable, CompareFunc, FillMode, BlendMode, BlendOperation)
 //

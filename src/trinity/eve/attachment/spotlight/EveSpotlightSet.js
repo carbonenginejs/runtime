@@ -3,7 +3,7 @@ import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.cpp
 import { EveEntity } from "../../EveEntity.js";
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";

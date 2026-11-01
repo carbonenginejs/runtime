@@ -17,7 +17,7 @@
 import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { TriFrustum } from "../core/view/TriFrustum.js";
-import { CcpTime } from "../../global/blue/CcpTime.js";
+import { CcpTime } from "../../blue/blue/CcpTime.js";
 
 /** Carries per-frame Eve timing, LOD, origin-rebasing, visibility, and runtime-composition state shared across scene updates. */
 @meta.carbon("EveUpdateContext")

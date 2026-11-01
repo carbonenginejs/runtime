@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { IRoot } from "../../../global/blueexposure/IRoot.js";
+import { IRoot } from "../../../blue/blueexposure/IRoot.js";
 // Source: trinity/trinity/Particle/ITr2GenericEmitter.h
 import { CjsSchema, meta } from "#schema";
 import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitterUpdateArguments.js";

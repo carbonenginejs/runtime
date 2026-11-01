@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
-import { INotify } from "../../../../global/blueexposure/INotify.js";
+import { INotify } from "../../../../blue/blueexposure/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorVolume.h
-import { IInitialize } from "../../../../global/blueexposure/IInitialize.js";
+import { IInitialize } from "../../../../blue/blueexposure/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";

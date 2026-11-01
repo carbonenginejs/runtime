@@ -2,19 +2,19 @@
 //   blue/include/IBlueOS.h:226, blue/src/BlueResMan.cpp:98-123.
 // Shared definitions are available before application startup. Each enum
 // registers at its defining module; the holder starts no service on import.
-import "../consts/graphics/trinityEnums.js";
-import "../consts/trinity.js";
-import "../consts/renderContext/presentation.js";
-import "../consts/renderContext/window.js";
-import "../consts/renderContext/formats.js";
-import "../consts/renderContext/upscaling.js";
-import "../consts/renderContext/resources.js";
+import "../../global/consts/graphics/trinityEnums.js";
+import "../../global/consts/trinity.js";
+import "../../global/consts/renderContext/presentation.js";
+import "../../global/consts/renderContext/window.js";
+import "../../global/consts/renderContext/formats.js";
+import "../../global/consts/renderContext/upscaling.js";
+import "../../global/consts/renderContext/resources.js";
 import { CjsSchema } from "#schema";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { IBlueResMan } from "./IBlueResMan.js";
 import { IBluePaths } from "./IBluePaths.js";
 import { IBlueOS } from "./IBlueOS.js";
-import { ICjsWwiseSoundEngine } from "../audio/ICjsWwiseSoundEngine.js";
+import { ICjsWwiseSoundEngine } from "../../global/audio/ICjsWwiseSoundEngine.js";
 import { CjsBlue } from "./CjsBlue.js";
 
 /** Shared service references; the public Blue entry composes its resource manager. */

@@ -28,7 +28,7 @@ import { BlueOS } from "./BlueOS.js";
 import { IBlueThreadMonitor } from "./IBlueThreadMonitor.js";
 import { BeThreadMonitor, BlueThreadMonitor } from "./BlueThreadMonitor.js";
 import { ScopedThreadStatus } from "./ScopedThreadStatus.js";
-import * as CcpLog from "../logging/ccpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /**
  * @typedef {object} BlueCallbackEntry
