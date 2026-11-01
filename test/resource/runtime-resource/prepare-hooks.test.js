@@ -30,7 +30,10 @@ test("Tr2EffectRes::DoPrepare drops every built shader (cpp:318)", () =>
 test("Tr2EffectRes::GetDescription names the path (cpp:366-372)", () =>
 {
   const effect = new Tr2EffectRes();
-  effect.path = "res:/graphics/effect.fx";
+  // Carbon's m_path (BlueAsyncRes.h:153) is exposed read-only as "path"
+  // (BlueAsyncRes_Blue.cpp:13) and set only by Initialize, which would start a
+  // load here; the description needs only the member.
+  effect._path = "res:/graphics/effect.fx";
 
   assert.strictEqual(effect.GetDescription(), "Tr2EffectRes: 'res:/graphics/effect.fx'");
 });
