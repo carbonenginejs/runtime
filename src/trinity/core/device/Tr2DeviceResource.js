@@ -76,13 +76,84 @@ export class Tr2DeviceResource
   {
     if (CjsSchema.getConstructor("Tr2Renderer").IsResourceCreationAllowed())
     {
-      if (!this.OnPrepareResources())
+      // Ours: whether the device objects exist now, for IsGood.
+      this._prepared = this.OnPrepareResources() === true;
+      if (!this._prepared)
       {
         return false;
       }
     }
     return true;
   }
+
+  /**
+   * Whether this device resource has everything it needs to work, and a use: it
+   * registers with `trinity` if it has no entry (first use, or after the eviction
+   * pass dropped it) and prepares its device objects then, refreshes its
+   * last-used stamp otherwise, and answers whether its device objects exist now
+   * (docs internal/decisions/device-resource-registration.md, *Where `IsGood`
+   * lives*). Asked at each use site, after the gates; a resource asked nowhere
+   * goes idle and is released.
+   *
+   * @cjs Carbon's Tr2DeviceResource has no IsGood: it registers in its
+   *   constructor and lives in the registry until its destructor. JavaScript has
+   *   no destructor, so registration follows use, and asking is the use; this
+   *   extends the resources' "IsGood renews" to device resources (non-Carbon
+   *   extensions register, *Resource keep-alive through IsGood*).
+   * @returns {boolean} Whether the device objects exist now.
+   */
+  IsGood()
+  {
+    const first = this._registered !== true;
+    trinity.RegisterResource(this, this._retention || trinity.resourceRetentionShort);
+    if (first) this.PrepareResources();
+    return this._prepared === true;
+  }
+
+  /**
+   * Whether this resource has an entry in `trinity`'s registry; only the
+   * eviction pass clears it. Installed classes take it on first registration
+   * (`@be.inherit` copies methods, not fields).
+   *
+   * @cjs
+   * @type {boolean}
+   */
+  _registered = false;
+
+  /**
+   * The rendered time of the last use (`IsGood`), in seconds.
+   *
+   * @cjs
+   * @type {number}
+   */
+  _lastUsed = 0;
+
+  /**
+   * How long this resource may sit unused, in seconds of rendered time;
+   * `Infinity` never evicts it; 0 until its registration sets it.
+   *
+   * @cjs
+   * @type {number}
+   */
+  _retention = 0;
+
+  /**
+   * Whether it was released or destructed elsewhere since its last use, so the
+   * eviction pass drops it without releasing it again.
+   *
+   * @cjs
+   * @type {boolean}
+   */
+  _unregistered = false;
+
+  /**
+   * Whether its device objects exist: set by `PrepareResources`, cleared when
+   * the device or the eviction pass releases it.
+   *
+   * @cjs
+   * @type {boolean}
+   */
+  _prepared = false;
 
   /**
    * Carbon OnPrepareResources (h:47-62): creates only the device objects that

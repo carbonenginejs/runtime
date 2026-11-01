@@ -655,7 +655,9 @@ export class TriDevice extends IRoot
     const registered = trinity._resourcesRegistered;
     for (let i = 0; i < registered.length; i++)
     {
-      if (!registered[i]._unregistered) registered[i].ReleaseResources(storage);
+      if (registered[i]._unregistered) continue;
+      registered[i].ReleaseResources(storage);
+      registered[i]._prepared = false;
     }
 
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();

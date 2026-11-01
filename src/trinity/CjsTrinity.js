@@ -377,6 +377,7 @@ export class CjsTrinity extends IBlueEvents
       {
         resource._registered = false;
         resource.ReleaseResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);
+        resource._prepared = false;
         continue;
       }
       resources[write++] = resource;
