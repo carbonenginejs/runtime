@@ -692,6 +692,49 @@ export class TriDevice extends IRoot
   }
 
   /**
+   * Carbon RegisterResource (TriDevice.h:135): adds a device resource to the
+   * registry. Forwards to `trinity.RegisterResource` with no eviction, which is
+   * Carbon's lifetime: registered until unregistered.
+   *
+   * @adapted the registry lives on `trinity` (CjsTrinity), because the device is
+   *   handed in after resources exist and the registry must exist before it, as
+   *   Carbon's statics outlive any one device. Callers use `trinity`; this keeps
+   *   Carbon's name for parity and for code ported from Carbon.
+   * @param {Tr2DeviceResource} resource The resource.
+   * @returns {void}
+   */
+  static RegisterResource(resource)
+  {
+    trinity.RegisterResource(resource, Infinity);
+  }
+
+  /**
+   * Carbon UnregisterResource (TriDevice.h:136): removes a device resource from
+   * the registry. Forwards to `trinity.UnregisterResource`.
+   *
+   * @adapted the registry lives on `trinity` (see RegisterResource).
+   * @param {Tr2DeviceResource} resource The resource.
+   * @returns {void}
+   */
+  static UnregisterResource(resource)
+  {
+    trinity.UnregisterResource(resource);
+  }
+
+  /**
+   * Carbon GetResourcesRegistered (TriDevice.h:266): the registered device
+   * resources. Forwards to `trinity.GetResourcesRegistered`.
+   *
+   * @adapted the registry lives on `trinity` (see RegisterResource); answers a
+   *   snapshot array where Carbon returns its ResourceSet by reference.
+   * @returns {Tr2DeviceResource[]} The registered resources.
+   */
+  static GetResourcesRegistered()
+  {
+    return trinity.GetResourcesRegistered();
+  }
+
+  /**
    * Hands the present parameters to the ambient render context
    * (`TriDevice.cpp:1019-1037`).
    *
