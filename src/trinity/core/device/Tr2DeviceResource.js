@@ -13,11 +13,13 @@
 // That route has no constructor. Most such classes register on use, through
 // IsGood at their use site, and are released when idle; infrastructure (scene,
 // render driver, pools, managers) registers in its own constructor with
-// `trinity.RegisterResource(this, Infinity)`, as this constructor does, and
+// `trinity.RegisterResource(this)`, as this constructor does, and
 // unregisters in its Destruct, where Carbon's destructor would (cpp:11-14)
 // (docs internal/decisions/device-resource-registration.md).
 import { CjsSchema, meta } from "#schema";
+import { blue } from "#blue";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResourceState } from "./deviceResourceState.js";
 
 
 
@@ -35,7 +37,7 @@ export class Tr2DeviceResource
    */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
+    trinity.RegisterResource(this);
   }
 
   /**
@@ -79,9 +81,14 @@ export class Tr2DeviceResource
   {
     if (CjsSchema.getConstructor("Tr2Renderer").IsResourceCreationAllowed())
     {
-      // Ours: whether the device objects exist now, for IsGood.
-      this._prepared = this._OnPrepareResources() === true;
-      if (!this._prepared)
+      const prepared = this._OnPrepareResources() === true;
+      // Ours: the state IsGood answers from (Revised lifecycle § 3). A destructed
+      // resource stays destructed.
+      if (this._state !== Tr2DeviceResourceState.DESTRUCTED)
+      {
+        this._state = prepared ? Tr2DeviceResourceState.PREPARED : Tr2DeviceResourceState.NONE;
+      }
+      if (!prepared)
       {
         return false;
       }
@@ -91,12 +98,13 @@ export class Tr2DeviceResource
 
   /**
    * Whether this device resource has everything it needs to work, and a use: it
-   * registers with `trinity` if it has no entry (first use, or after the eviction
-   * pass dropped it) and prepares its device objects then, refreshes its
-   * last-used stamp otherwise, and answers whether its device objects exist now
-   * (docs internal/decisions/device-resource-registration.md, *Where `IsGood`
-   * lives*). Asked at each use site, after the gates; a resource asked nowhere
-   * goes idle and is released.
+   * stamps Blue's current frame time, prepares its device objects if it has
+   * none, lists itself with `trinity` once prepared (the sweep's array and
+   * Carbon's registry), and answers whether its device objects exist now (docs
+   * internal/decisions/device-resource-registration.md, *Where `IsGood` lives*,
+   * *Revised lifecycle* § 3-4). Asked at each use site, after the gates; a
+   * resource asked nowhere goes idle and is released by the sweep. A destructed
+   * resource answers false and never prepares again.
    *
    * @cjs Carbon's Tr2DeviceResource has no IsGood: it registers in its
    *   constructor and lives in the registry until its destructor. JavaScript has
@@ -107,56 +115,63 @@ export class Tr2DeviceResource
    */
   IsGood()
   {
-    const first = this._registered !== true;
-    trinity.RegisterResource(this, this._retention || trinity.resourceRetentionShort);
-    if (first) this.PrepareResources();
-    return this._prepared === true;
+    if (this._state === Tr2DeviceResourceState.DESTRUCTED) return false;
+    const now = blue.os.GetCurrentFrameTime();
+    if (!(this._stamp >= now)) this._stamp = now;
+    if (this._state !== Tr2DeviceResourceState.PREPARED) this.PrepareResources();
+    if (this._state === Tr2DeviceResourceState.PREPARED && this._listed !== true) trinity._ListSceneResource(this);
+    return this._state === Tr2DeviceResourceState.PREPARED;
   }
 
   /**
-   * Whether this resource has an entry in `trinity`'s registry; only the
-   * eviction pass clears it. Installed classes take it on first registration
-   * (`@be.inherit` copies methods, not fields).
+   * Keeps this resource: the same stamp as a use, Blue's current frame time,
+   * and prepares it if it has no device objects (prepare-ahead). A holder that
+   * wants it kept renews it at least once per idle rule; it never stamps ahead.
    *
-   * @cjs
-   * @type {boolean}
+   * @cjs MotherLode's name for the same thing on resources (`MotherLode.KeepAlive`);
+   *   Carbon's device resources live until their destructor (*Revised lifecycle* § 4).
+   * @returns {void}
    */
-  _registered = false;
+  KeepAlive()
+  {
+    this.IsGood();
+  }
 
   /**
-   * The rendered time of the last use (`IsGood`), in seconds.
+   * `NONE`, `PREPARED` or `DESTRUCTED` (`Tr2DeviceResourceState`). Installed
+   * classes take it on first use (`@be.inherit` copies methods, not fields), so
+   * an undefined state reads as `NONE`.
    *
    * @cjs
    * @type {number}
    */
-  _lastUsed = 0;
+  _state = Tr2DeviceResourceState.NONE;
 
   /**
-   * How long this resource may sit unused, in seconds of rendered time;
-   * `Infinity` never evicts it; 0 until its registration sets it.
+   * Blue frame time (ticks) of the last use.
    *
    * @cjs
    * @type {number}
    */
-  _retention = 0;
+  _stamp = 0;
 
   /**
-   * Whether it was released or destructed elsewhere since its last use, so the
-   * eviction pass drops it without releasing it again.
+   * Moves on whenever this resource's entry in the sweep's array stops being
+   * valid (destructed, or released by the sweep), so the old entry is dropped.
+   *
+   * @cjs
+   * @type {number}
+   */
+  _generation = 0;
+
+  /**
+   * Whether it has a valid entry in the sweep's array, so a use never lists it
+   * twice.
    *
    * @cjs
    * @type {boolean}
    */
-  _unregistered = false;
-
-  /**
-   * Whether its device objects exist: set by `PrepareResources`, cleared when
-   * the device or the eviction pass releases it.
-   *
-   * @cjs
-   * @type {boolean}
-   */
-  _prepared = false;
+  _listed = false;
 
   /**
    * Carbon OnPrepareResources (h:47-62): creates only the device objects that

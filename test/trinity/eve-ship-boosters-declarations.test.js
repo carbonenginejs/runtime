@@ -116,9 +116,6 @@ test("live replacement transfers native component registration without destroyin
   const ship = new EveShip2();
   const first = new EveBoosterSet2();
   const second = new EveBoosterSet2();
-  // Both in use, so both are registered device resources.
-  first.IsGood();
-  second.IsGood();
   ship.Register(registry);
   ship.boosters = first;
   second.Register(foreign);
@@ -131,7 +128,7 @@ test("live replacement transfers native component registration without destroyin
   assert.ok(!foreign.registeredEntities.includes(second));
   assert.ok(!registry.GetComponents(EveComponentType.LightOwner).includes(first));
   assert.ok(registry.GetComponents(EveComponentType.LightOwner).includes(second));
-  assert.ok(trinity.GetResourcesRegistered().includes(first), "replacing one owner does not destroy the old device resource");
+  assert.notEqual(first._state, 2, "replacing one owner does not destroy the old device resource (not DESTRUCTED)");
 
   const calls = [];
   const unregister = second.UnRegister, register = second.Register;
@@ -151,7 +148,7 @@ test("live replacement transfers native component registration without destroyin
   assert.equal(ship._boosters, null);
   assert.equal(second.GetComponentRegistry(), null);
   assert.ok(!registry.GetComponents(EveComponentType.LightOwner).includes(second));
-  assert.ok(trinity.GetResourcesRegistered().includes(second));
+  assert.notEqual(second._state, 2, "detaching does not destroy the device resource (not DESTRUCTED)");
 });
 
 test("a detached ship clears an incoming booster's foreign registry with Register(null)", t =>

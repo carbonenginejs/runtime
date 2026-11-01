@@ -1,8 +1,9 @@
-// CjsTrinity: the device-resource registry, SetDevice, Initialize and Shutdown
-// (docs internal/decisions/device-resource-registration.md). A use registers
-// once, the eviction pass compacts in place, releases what is idle past its rule
-// and drops what was unregistered without releasing it again; the device is
-// handed in and replaced only through SetDevice.
+// CjsTrinity: Carbon's registry, the scene-content sweep, SetDevice, Initialize
+// and Shutdown (docs internal/decisions/device-resource-registration.md, Revised
+// lifecycle). Registering keeps one entry; UnregisterResource destructs; the
+// sweep, run every sweep interval of Blue frame time, releases what is unused
+// past the one rule and drops stale entries; the device is handed in and
+// replaced only through SetDevice.
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -37,146 +38,139 @@ function device()
   };
 }
 
+/** Blue ticks per second. */
+const SECOND = 10000000;
+
 /**
- * Passes rendered time and runs the eviction pass, as `OnTick` does once the interval has passed.
+ * Controls Blue's frame time for one test.
  *
- * @param {CjsTrinity} holder Trinity.
- * @param {number} seconds Rendered seconds to add first.
+ * @param {object} t The test context.
+ * @returns {{ at: function(number): void }} Sets the frame time, in seconds.
  */
-function pass(holder, seconds)
+function clock(t)
 {
-  holder._renderedTime += seconds;
-  holder._ReleaseIdleResources();
+  let now = 0;
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => now);
+  return { at(seconds) { now = seconds * SECOND; } };
 }
 
-test("a use registers once; using it again keeps the one entry", () =>
+/**
+ * A prepared scene-content stand-in, listed with the holder as `IsGood` lists one.
+ *
+ * @param {CjsTrinity} holder Trinity.
+ * @param {string} name A label for failures.
+ * @param {number} stamp The frame time of its last use, in ticks.
+ * @returns {object} The resource.
+ */
+function listed(holder, name, stamp = 0)
 {
-  const holder = new CjsTrinity();
-  const r = resource("r");
-  holder.RegisterResource(r, 10);
-  holder.RegisterResource(r, 10);
-  holder.RegisterResource(r, 10);
-  assert.deepEqual(holder._resourcesRegistered, [ r ]);
-  assert.deepEqual(holder.GetResourcesRegistered(), [ r ]);
-  assert.equal(r._registered, true);
-});
+  const r = resource(name);
+  r._state = 1;
+  r._stamp = stamp;
+  holder._ListSceneResource(r);
+  return r;
+}
 
-test("registering works before there is a device", () =>
+test("Carbon's registry: registering twice keeps one entry, before any device", () =>
 {
   const holder = new CjsTrinity();
   const r = resource("r");
-  holder.RegisterResource(r, Infinity);
+  holder.RegisterResource(r);
+  holder.RegisterResource(r);
   assert.equal(holder.device, null);
   assert.deepEqual(holder.GetResourcesRegistered(), [ r ]);
 });
 
-test("released and then used again before the pass keeps one entry", () =>
+test("UnregisterResource is the destructor's: the resource leaves the registry, its entry goes stale and is dropped unreleased", t =>
 {
+  clock(t);
   const holder = new CjsTrinity();
-  const r = resource("r");
-  holder.RegisterResource(r, 10);
-  r.ReleaseResources(1);
-  holder.RegisterResource(r, 10);
-  assert.deepEqual(holder._resourcesRegistered, [ r ]);
-  pass(holder, 1);
-  assert.deepEqual(holder._resourcesRegistered, [ r ], "used within its rule, so kept");
-  assert.equal(r.releases, 1, "the pass did not release it again");
-});
-
-test("destructed while listed: unlisted at once, dropped at the pass, never released twice, and registers again cleanly", () =>
-{
-  const holder = new CjsTrinity();
-  const r = resource("r");
-  const other = resource("other");
-  holder.RegisterResource(r, 10);
-  holder.RegisterResource(other, 10);
-  // Its Destruct releases its own device objects and unregisters.
-  r.ReleaseResources(1);
+  const r = listed(holder, "r"), other = listed(holder, "other");
   holder.UnregisterResource(r);
-  assert.equal(holder._resourcesRegistered.length, 2, "nothing changes the array before the pass");
-  assert.deepEqual(holder.GetResourcesRegistered(), [ other ], "but it is no longer listed");
-  pass(holder, 1);
-  assert.deepEqual(holder._resourcesRegistered, [ other ]);
-  assert.equal(r._registered, false);
-  assert.equal(r.releases, 1, "the pass drops it without releasing it");
-  pass(holder, 100);
-  assert.equal(r.releases, 1);
-  holder.RegisterResource(r, 10);
-  assert.deepEqual(holder._resourcesRegistered, [ r ], "other went idle; r registers again with one entry");
-  assert.equal(r._unregistered, false);
+  assert.deepEqual(holder.GetResourcesRegistered(), [ other ]);
+  assert.equal(r._state, 2, "DESTRUCTED");
+  holder.CollectResources();
+  assert.deepEqual(holder._sceneResources, [ other ]);
+  assert.equal(r.releases, 0, "its Destruct released it; the sweep does not again");
 });
 
-test("unregistered and then used before the pass keeps its entry", () =>
+test("the sweep releases what is unused past the rule once, keeps the rest in order, and a release lists it again on use", t =>
 {
+  const time = clock(t);
   const holder = new CjsTrinity();
-  const r = resource("r");
-  holder.RegisterResource(r, 10);
-  holder.UnregisterResource(r);
-  holder.RegisterResource(r, 10);
-  pass(holder, 1);
-  assert.deepEqual(holder._resourcesRegistered, [ r ]);
-});
-
-test("idle past its rule: released once and dropped; the rest keep their order", () =>
-{
-  const holder = new CjsTrinity();
-  const a = resource("a"), b = resource("b"), c = resource("c"), d = resource("d");
-  for (const r of [ a, b, c, d ]) holder.RegisterResource(r, 10);
-  holder._renderedTime += 8;
-  holder.RegisterResource(b, 10);
-  holder.RegisterResource(d, 10);
-  pass(holder, 5);
-  assert.deepEqual(holder._resourcesRegistered, [ b, d ]);
+  holder.resourceIdleRule = 10;
+  const [ a, b, c, d ] = [ "a", "b", "c", "d" ].map(name => listed(holder, name, 0));
+  b._stamp = d._stamp = 8 * SECOND;
+  time.at(13);
+  holder.CollectResources();
+  assert.deepEqual(holder._sceneResources, [ b, d ]);
+  assert.deepEqual(holder._sceneGenerations, [ 0, 0 ]);
   assert.deepEqual([ a, b, c, d ].map(r => r.releases), [ 1, 0, 1, 0 ]);
-  assert.deepEqual([ a, b, c, d ].map(r => r._registered), [ false, true, false, true ]);
-  pass(holder, 1);
+  assert.deepEqual([ a, c ].map(r => [ r._state, r._generation, r._listed ]), [ [ 0, 1, false ], [ 0, 1, false ] ]);
+  assert.deepEqual(holder.GetResourcesRegistered(), [ b, d ], "released scene content leaves Carbon's registry");
+  holder.CollectResources();
   assert.deepEqual([ a.releases, c.releases ], [ 1, 1 ], "a dropped resource is not released again");
 });
 
-test("Infinity never evicts", () =>
+test("one stamp: a use at the current frame keeps a resource, nothing stamps ahead", t =>
 {
+  const time = clock(t);
   const holder = new CjsTrinity();
-  const r = resource("r");
-  holder.RegisterResource(r, Infinity);
-  pass(holder, 1e9);
-  assert.deepEqual(holder._resourcesRegistered, [ r ]);
+  holder.resourceIdleRule = 10;
+  const r = listed(holder, "r", 0);
+  time.at(9);
+  holder.CollectResources();
+  assert.equal(r.releases, 0, "9 s idle is within a 10 s rule");
+  time.at(11);
+  holder.CollectResources();
+  assert.equal(r.releases, 1);
+});
+
+test("an entry the device released and nothing prepared again is dropped, so the next use lists it again", t =>
+{
+  clock(t);
+  const holder = new CjsTrinity();
+  const r = listed(holder, "r");
+  r._state = 0;
+  holder.CollectResources();
+  assert.deepEqual(holder._sceneResources, []);
+  assert.equal(r._listed, false);
   assert.equal(r.releases, 0);
 });
 
-test("a release that registers another resource during the pass is kept", () =>
+test("a release that lists another resource during the sweep is kept", t =>
 {
+  const time = clock(t);
   const holder = new CjsTrinity();
-  const late = resource("late");
-  const r = resource("r");
-  r.ReleaseResources = function() { this.releases++; holder.RegisterResource(late, 10); };
-  holder.RegisterResource(r, 1);
-  pass(holder, 5);
-  assert.deepEqual(holder._resourcesRegistered, [ late ]);
+  holder.resourceIdleRule = 1;
+  const r = listed(holder, "r", 0);
+  let late = null;
+  r.ReleaseResources = function() { this.releases++; late = listed(holder, "late", 5 * SECOND); };
+  time.at(5);
+  holder.CollectResources();
+  assert.deepEqual(holder._sceneResources, [ late ]);
 });
 
-test("OnTick forwards to the device, counts clamped rendered seconds and runs the pass once the interval has passed", () =>
+test("OnTick forwards to the device and sweeps once the sweep interval of Blue frame time has passed", t =>
 {
+  const time = clock(t);
   const holder = new CjsTrinity();
+  holder.resourceIdleRule = 2;
+  holder.resourceSweepInterval = 60;
   const d = device();
   holder.SetDevice(d);
-  const r = resource("r");
-  holder.RegisterResource(r, 2);
-  const second = 10000000;
+  time.at(100);
   holder.OnTick(0, 0);
-  holder.OnTick(second / 2, second / 2);
-  assert.equal(d.ticks, 2);
-  assert.equal(holder._renderedTime, 0.5);
-  assert.equal(holder._lastResourceEviction, 0, "the interval has not passed");
-  // A long gap (a hidden tab) counts as at most one second.
-  holder.OnTick(600 * second, 600 * second);
-  assert.equal(holder._renderedTime, 1.5);
-  assert.equal(holder._lastResourceEviction, 1.5);
-  assert.equal(r.releases, 0, "1.5 s idle is within a 2 s rule");
-  holder.OnTick(601 * second, 601 * second);
-  holder.OnTick(602 * second, 602 * second);
-  assert.equal(holder._renderedTime, 3.5);
+  assert.equal(d.ticks, 1);
+  assert.equal(holder._lastSweep, 100 * SECOND, "the first tick sweeps");
+  const r = listed(holder, "r", 100 * SECOND);
+  time.at(130);
+  holder.OnTick(0, 0);
+  assert.equal(r.releases, 0, "the interval has not passed");
+  time.at(160);
+  holder.OnTick(0, 0);
   assert.equal(r.releases, 1);
-  assert.deepEqual(holder._resourcesRegistered, []);
+  assert.deepEqual(holder._sceneResources, []);
 });
 
 test("SetDevice: the same device again does nothing", () =>
@@ -241,6 +235,12 @@ test("CjsLibrary builds the device for the host's abstraction layer and starts t
     assert.equal(trinity.device, built);
     assert.ok(trinity.fontManager);
     assert.ok(trinity.variableStore.FindVariable("Time"), "the renderer's globals are registered");
+    const rule = trinity.resourceIdleRule, interval = trinity.resourceSweepInterval;
+    library.SetConfiguration({ deviceResources: { idleRule: 5, sweepInterval: 20 } });
+    assert.deepEqual([ trinity.resourceIdleRule, trinity.resourceSweepInterval ], [ 5, 20 ], "deviceResources configures the sweep");
+    assert.throws(() => library.SetConfiguration({ deviceResources: { idleRule: -1 } }), /Invalid configuration entry/);
+    trinity.resourceIdleRule = rule;
+    trinity.resourceSweepInterval = interval;
   }
   finally
   {

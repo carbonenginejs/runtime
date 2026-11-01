@@ -1,10 +1,12 @@
-// Tr2DeviceResource.IsGood (docs internal/decisions/device-resource-registration.md):
-// a use registers the resource with trinity and prepares it on first use, renews
-// it after, and answers whether its device objects exist; the eviction pass
-// releases what goes unused and the next use prepares it again.
+// Tr2DeviceResource.IsGood and KeepAlive (docs internal/decisions/device-resource-registration.md,
+// Revised lifecycle): a use stamps Blue's current frame time, prepares and lists a
+// resource that has no device objects, and answers whether they exist; the sweep
+// releases what goes unused past the rule and the next use prepares it again; a
+// destructed resource never prepares again.
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { trinity, Tr2DeviceResource, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { InitializeTrinityStub } from "../support/trinityStub.js";
@@ -32,90 +34,120 @@ function resource(prepares = true)
   return r;
 }
 
+/** Blue ticks per second. */
+const SECOND = 10000000;
+
 /**
- * Passes rendered time and runs the eviction pass.
+ * Controls Blue's frame time for one test.
  *
- * @param {number} seconds Rendered seconds to add first.
+ * @param {object} t The test context.
+ * @returns {{ at: function(number): void }} Sets the frame time, in seconds.
  */
-function pass(seconds)
+function clock(t)
 {
-  trinity._renderedTime += seconds;
-  trinity._ReleaseIdleResources();
+  let now = 1000 * SECOND;
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => now);
+  return { at(seconds) { now = (1000 + seconds) * SECOND; } };
 }
 
-test("the first IsGood registers and prepares; later ones only renew", () =>
+test("the first IsGood prepares and lists; later ones only stamp the current frame", t =>
 {
+  const time = clock(t);
   const r = resource();
   assert.equal(trinity.GetResourcesRegistered().includes(r), false, "built and never used: not registered");
   assert.equal(r.IsGood(), true);
   assert.equal(r.prepares, 1);
   assert.equal(trinity.GetResourcesRegistered().includes(r), true);
-  assert.equal(r._retention, trinity.resourceRetentionShort, "the short rule by default");
-  trinity._renderedTime += 3;
+  assert.equal(trinity._sceneResources.filter(x => x === r).length, 1);
+  time.at(3);
   assert.equal(r.IsGood(), true);
-  assert.equal(r.prepares, 1, "no second prepare while registered");
-  assert.equal(r._lastUsed, trinity._renderedTime);
+  assert.equal(r.prepares, 1, "no second prepare while prepared");
+  assert.equal(r._stamp, 1003 * SECOND, "Blue's current frame time");
+  assert.equal(trinity._sceneResources.filter(x => x === r).length, 1, "listed once");
   trinity.UnregisterResource(r);
-  pass(0);
+  trinity.CollectResources();
 });
 
-test("a failed prepare answers false", () =>
+test("a failed prepare answers false and lists nothing", t =>
 {
+  clock(t);
   const r = resource(false);
   assert.equal(r.IsGood(), false);
-  trinity.UnregisterResource(r);
-  pass(0);
+  assert.equal(trinity._sceneResources.includes(r), false);
 });
 
-test("unused past its rule it is released and dropped; the next IsGood prepares it again", () =>
+test("unused past the rule it is released and dropped; the next IsGood prepares and lists it again", t =>
 {
+  const time = clock(t);
   const r = resource();
   r.IsGood();
-  pass(trinity.resourceRetentionShort + 1);
+  time.at(trinity.resourceIdleRule + 1);
+  trinity.CollectResources();
   assert.equal(r.releases, 1);
   assert.equal(trinity.GetResourcesRegistered().includes(r), false);
-  assert.equal(r._prepared, false);
+  assert.equal(r._state, 0, "NONE");
   assert.equal(r.IsGood(), true);
   assert.equal(r.prepares, 2);
   assert.equal(trinity.GetResourcesRegistered().includes(r), true);
   trinity.UnregisterResource(r);
-  pass(0);
+  trinity.CollectResources();
 });
 
-test("used within its rule it survives every pass", () =>
+test("used within the rule it survives every sweep", t =>
 {
+  const time = clock(t);
   const r = resource();
   for (let i = 0; i < 30; i++)
   {
+    time.at(i * trinity.resourceIdleRule / 2);
     r.IsGood();
-    pass(1);
+    trinity.CollectResources();
   }
   assert.equal(r.releases, 0);
   assert.equal(r.prepares, 1);
   trinity.UnregisterResource(r);
-  pass(0);
+  trinity.CollectResources();
 });
 
-test("a device release clears the answer until the device prepares it again", () =>
+test("KeepAlive is a use: it stamps the current frame and prepares", t =>
 {
+  const time = clock(t);
+  const r = resource();
+  r.KeepAlive();
+  assert.equal(r.prepares, 1, "prepare-ahead");
+  time.at(trinity.resourceIdleRule - 1);
+  r.KeepAlive();
+  time.at(2 * trinity.resourceIdleRule - 2);
+  trinity.CollectResources();
+  assert.equal(r.releases, 0, "renewed within the rule");
+  trinity.UnregisterResource(r);
+  trinity.CollectResources();
+});
+
+test("a destructed resource answers false and never prepares again", t =>
+{
+  clock(t);
+  const r = resource();
+  r.IsGood();
+  trinity.UnregisterResource(r);
+  assert.equal(r.IsGood(), false);
+  assert.equal(r.prepares, 1);
+  trinity.CollectResources();
+  assert.equal(trinity._sceneResources.includes(r), false);
+});
+
+test("a device release drops the state until the device prepares it again, keeping its one entry", t =>
+{
+  clock(t);
   const r = resource();
   r.IsGood();
   trinity.device.ReleaseDeviceResources();
-  assert.equal(r._prepared, false);
+  assert.equal(r._state, 0, "NONE");
   trinity.device.PrepareDeviceResources();
+  assert.equal(r._state, 1, "PREPARED");
   assert.equal(r.IsGood(), true);
   assert.equal(r.prepares, 2);
+  assert.equal(trinity._sceneResources.filter(x => x === r).length, 1);
   trinity.UnregisterResource(r);
-  pass(0);
-});
-
-test("an owner's rule set before the first use is kept", () =>
-{
-  const r = resource();
-  r._retention = Infinity;
-  r.IsGood();
-  pass(1e9);
-  assert.equal(r.releases, 0);
-  trinity.UnregisterResource(r);
-  pass(0);
+  trinity.CollectResources();
 });

@@ -103,6 +103,13 @@ export const DefaultConfiguration = {
   // once, at startup: Tr2EffectRes.CommitBackend and SetEffectPathDefaults.
   effects: {},
 
+  // Scene-content device resources: `idleRule`, the seconds of Blue frame time
+  // one may go unused before the sweep releases it, and `sweepInterval`, the
+  // seconds between sweeps. Applied onto `trinity` (resourceIdleRule,
+  // resourceSweepInterval), whose fields hold the defaults
+  // (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 5-6).
+  deviceResources: {},
+
   paths: {},
   resMan: {},
   settings: {},

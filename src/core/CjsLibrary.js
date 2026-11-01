@@ -137,7 +137,7 @@ export class CjsLibrary
     this._ValidateConfigurationOwners(configuration);
     this._configurationFailure = null;
     for (const section of ["formatOptions", "resMan", "formats", "objectLoaders", "objectBuilders", "extensions",
-      "resourceConstructors", "imageHandlers", "paths", "settings", "callbackModules", "effects"])
+      "resourceConstructors", "imageHandlers", "paths", "settings", "callbackModules", "effects", "deviceResources"])
     {
       const entries = configuration[section] || {};
       if (section === "effects" && Object.keys(entries).length)
@@ -204,6 +204,9 @@ export class CjsLibrary
           }
           else if (section === "settings") settings.SetValue(key, value);
           else if (section === "callbackModules") BeCallbackMan.RegisterCallbackModule(key, value);
+          // Trinity's sweep reads them on its next tick.
+          else if (section === "deviceResources" && key === "idleRule") trinity.resourceIdleRule = value;
+          else if (section === "deviceResources" && key === "sweepInterval") trinity.resourceSweepInterval = value;
           (this._configured[section] ??= {})[key] = value;
         }
         catch (error)
@@ -507,6 +510,8 @@ function ValidateConfiguration(configuration)
         else if (key === "mainThreadTimeSlice") valid = typeof value === "number" && Number.isFinite(value) && value > 0;
         else valid = false;
       }
+      else if (section === "deviceResources")
+        valid = (key === "idleRule" || key === "sweepInterval") && typeof value === "number" && Number.isFinite(value) && value > 0;
       else if (section === "resMan")
       {
         valid = options.has(key) && value !== undefined;

@@ -12,6 +12,7 @@ import { blue, IBlueEvents } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
 import { noise } from "../global/math/noise.js";
 import { TRINITY } from "./core/device/trinityTickCookie.js";
+import { Tr2DeviceResourceState, TICKS_PER_SECOND } from "./core/device/deviceResourceState.js";
 import { Tr2GlobalVariableStore } from "./core/variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "./generated/trinityCore/enums.js";
 
@@ -51,31 +52,25 @@ export class CjsTrinity extends IBlueEvents
   fontManager = null;
 
   /**
-   * Seconds of rendered time between eviction passes.
+   * The one idle rule for scene content: seconds of Blue frame time a prepared
+   * scene-content device resource may go unused (no `IsGood`, no `KeepAlive`)
+   * before the sweep releases it.
    *
-   * @cjs Configured through `CjsLibrary`; one second, from the measurement in
-   *   docs internal/decisions/device-resource-registration.md.
+   * @cjs Configured through `CjsLibrary` (`deviceResources.idleRule`); a
+   *   provisional default (docs internal/decisions/device-resource-registration.md,
+   *   *Revised lifecycle* § 5).
    * @type {number}
    */
-  resourceEvictionInterval = 1;
+  resourceIdleRule = 30;
 
   /**
-   * The short retention rule, in seconds of rendered time: used constantly, so
-   * idle means gone.
+   * Seconds of Blue frame time between sweeps. The sweep is rare and never per
+   * frame; `CollectResources` runs one on demand.
    *
-   * @cjs Provisional default, configured through `CjsLibrary`.
+   * @cjs Configured through `CjsLibrary` (`deviceResources.sweepInterval`).
    * @type {number}
    */
-  resourceRetentionShort = 10;
-
-  /**
-   * The long retention rule, in seconds of rendered time: may sit unused between
-   * updates.
-   *
-   * @cjs Provisional default, configured through `CjsLibrary`.
-   * @type {number}
-   */
-  resourceRetentionLong = 120;
+  resourceSweepInterval = 60;
 
   /**
    * The root variable store, created on its first read.
@@ -85,43 +80,47 @@ export class CjsTrinity extends IBlueEvents
   _variableStore = null;
 
   /**
-   * The device resources registered, Carbon's registry.
+   * Carbon's registry: every registered device resource, which a device swap or
+   * reset walks. Infrastructure is on it from its constructor to its `Destruct`;
+   * scene content while it is prepared.
    *
    * @adapted Carbon's is a static `std::set` of raw pointers on TriDevice
-   *   (`GetResourcesRegistered`, TriDevice.h:266) that owns nothing. Here it is an
-   *   array on Trinity: a resource's `_registered` flag says it has an entry, so
-   *   registering never searches it, and the eviction pass compacts it in place,
-   *   so no `Set` or `Map` is iterated in the per-frame path (hot-path rule). It
-   *   holds its resources strongly only until they are idle past their rule.
+   *   (`GetResourcesRegistered`, TriDevice.h:266), unregistered by the destructor.
+   *   Here it is a `Set` on Trinity, holding strongly: it is walked only by a
+   *   device swap or reset and `GetResourcesRegistered`, never per frame, and
+   *   scene content leaves it when the sweep releases it (*Revised lifecycle* § 1).
+   * @type {Set<object>}
+   */
+  _resourcesRegistered = new Set();
+
+  /**
+   * The prepared scene-content device resources: the sweep's array. Each entry is
+   * the resource and, at the same index in `_sceneGenerations`, the generation
+   * it was pushed with; an entry whose generation no longer matches its
+   * resource's is stale and is dropped.
+   *
+   * @cjs Use-driven eviction is ours (docs internal/decisions/device-resource-registration.md,
+   *   *Revised lifecycle* § 4). Two parallel arrays, for the hot-path rule; the
+   *   sweep compacts them in place.
    * @type {object[]}
    */
-  _resourcesRegistered = [];
+  _sceneResources = [];
 
   /**
-   * Seconds of rendered time: the clamped tick deltas `OnTick` takes, summed, so
-   * a hidden tab, which is not ticked, ages nothing. Retention counts in it.
+   * The generation of each entry in `_sceneResources`, at the same index.
    *
-   * @cjs Trinity's own clock stands in for the runtime root's rendered time
-   *   shared with resMan, and moves to it when the root provides one.
-   * @type {number}
+   * @cjs
+   * @type {number[]}
    */
-  _renderedTime = 0;
+  _sceneGenerations = [];
 
   /**
-   * `_renderedTime` at the last eviction pass.
+   * Blue frame time (ticks) of the last sweep.
    *
    * @cjs
    * @type {number}
    */
-  _lastResourceEviction = 0;
-
-  /**
-   * The simulation time of the last tick, for the rendered-time delta.
-   *
-   * @cjs
-   * @type {number}
-   */
-  _lastSimTime = 0;
+  _lastSweep = 0;
 
   /**
    * The root of the variable-store graph, created on first read.
@@ -254,12 +253,12 @@ export class CjsTrinity extends IBlueEvents
   }
 
   /**
-   * Blue's tick: forwards to the device's `OnTick`, then sums rendered time and
-   * runs the eviction pass once `resourceEvictionInterval` has passed.
+   * Blue's tick: forwards to the device's `OnTick`, then runs the sweep once
+   * `resourceSweepInterval` seconds of Blue frame time have passed.
    *
    * @adapted Carbon's device registers itself for Blue's tick
    *   (`BeOS->RegisterForTicks( this, TRINITY )`, TriDevice.cpp:310); here Trinity
-   *   registers, because the registry it evicts is Trinity's.
+   *   registers, because the registry it sweeps is Trinity's.
    * @param {number} realTime Time since the client started, in 100ns ticks.
    * @param {number} simTime The same, slowed under load.
    * @param {*} [cookie] The registration cookie.
@@ -269,61 +268,52 @@ export class CjsTrinity extends IBlueEvents
   {
     this.device.OnTick(realTime, simTime, cookie);
 
-    // The device's own clamp (TriDevice.cpp:817-822): the seconds delta, at most one.
-    let delta = (Number(simTime) - this._lastSimTime) / 10000000;
-    this._lastSimTime = Number(simTime) || 0;
-    if (!(delta > 0)) delta = 0;
-    if (delta > 1) delta = 1;
-    this._renderedTime += delta;
-
-    if (this._renderedTime - this._lastResourceEviction >= this.resourceEvictionInterval)
+    const now = blue.os.GetCurrentFrameTime();
+    if (now - this._lastSweep >= this.resourceSweepInterval * TICKS_PER_SECOND)
     {
-      this._lastResourceEviction = this._renderedTime;
-      this._ReleaseIdleResources();
+      this._lastSweep = now;
+      this.CollectResources();
     }
   }
 
   /**
-   * Registers a device resource with Trinity
+   * Registers a device resource with Trinity, Carbon's registry
    * (`TriDevice::RegisterResource`, TriDevice.h:135, TriDevice.cpp:1087-1091).
-   * A resource already listed keeps its one entry; only its stamp and rule are
-   * refreshed. Works before `Initialize`: `Initialize` prepares what is listed.
+   * Infrastructure calls it from its constructor, as Carbon's base constructor
+   * does; scene content is registered by its own `IsGood` while prepared.
+   * Works before `Initialize`: `Initialize` prepares what is registered.
    *
    * Carbon: TriDevice::RegisterResource (TriDevice.h:135)
-   * @adapted Carbon's is static on TriDevice and holds its resources for their
-   *   whole life, unregistered by their destructor. JavaScript has no destructor,
-   *   so a resource is listed while used and released and dropped by the eviction
-   *   pass once idle past `retention`; the rule is the further parameter that needs.
+   * @adapted Carbon's is static on TriDevice; here the registry is Trinity's
+   *   (`_resourcesRegistered`). Callers that still pass a retention rule have it
+   *   ignored: there is one idle rule, for scene content (`resourceIdleRule`).
    * @param {object} resource A `Tr2DeviceResource`.
-   * @param {number} retention Seconds of rendered time it may sit unused;
-   *   `Infinity` never evicts it.
    * @returns {void}
    */
-  RegisterResource(resource, retention)
+  RegisterResource(resource)
   {
-    resource._retention = retention;
-    resource._lastUsed = this._renderedTime;
-    resource._unregistered = false;
-    if (resource._registered) return;
-    resource._registered = true;
-    this._resourcesRegistered.push(resource);
+    this._resourcesRegistered.add(resource);
   }
 
   /**
-   * Takes a device resource out of the registry at the next eviction pass
-   * (`TriDevice::UnregisterResource`, TriDevice.h:136, TriDevice.cpp:1093-1106).
+   * Takes a device resource out of the registry, as its destructor does in
+   * Carbon (`TriDevice::UnregisterResource`, TriDevice.h:136,
+   * TriDevice.cpp:1093-1106): the resource is destructed. A scene-content
+   * resource's state becomes `DESTRUCTED` and its generation moves on, so its
+   * entry in the sweep's array is stale and its `IsGood` never prepares again.
    *
    * Carbon: TriDevice::UnregisterResource (TriDevice.h:136)
-   * @adapted Carbon erases it at once, or queues it in `s_resourcesToBeRemoved`
-   *   while a release walk iterates. Here only the eviction pass changes the
-   *   array: this marks the resource, `GetResourcesRegistered` stops listing it,
-   *   and the pass drops it without releasing it again; a use first keeps it.
+   * @adapted Carbon erases it, or queues it while a release walk iterates; here
+   *   the release walk iterates a copy, and the sweep drops the stale entry.
    * @param {object} resource The registered resource.
    * @returns {void}
    */
   UnregisterResource(resource)
   {
-    resource._unregistered = true;
+    this._resourcesRegistered.delete(resource);
+    resource._state = Tr2DeviceResourceState.DESTRUCTED;
+    resource._generation = (resource._generation | 0) + 1;
+    resource._listed = false;
   }
 
   /**
@@ -331,58 +321,81 @@ export class CjsTrinity extends IBlueEvents
    * TriDevice.h:266), as a snapshot.
    *
    * Carbon: TriDevice::GetResourcesRegistered (TriDevice.h:266)
-   * @adapted returns a copy, so walking it cannot change the registry, and leaves
-   *   out resources unregistered since their last use, which Carbon would have
-   *   erased already.
+   * @adapted returns a copy, so walking it cannot change the registry.
    * @returns {object[]} The registered resources.
    */
   GetResourcesRegistered()
   {
-    const resources = this._resourcesRegistered;
-    const listed = [];
-    for (let i = 0; i < resources.length; i++)
-    {
-      if (!resources[i]._unregistered) listed.push(resources[i]);
-    }
-    return listed;
+    return Array.from(this._resourcesRegistered);
   }
 
   /**
-   * The eviction pass, run from `OnTick`: walks the registry once and compacts it
-   * in place. A resource unregistered since its last use is dropped; one idle
-   * past its retention is released (`ReleaseResources(TRISTORAGE_VIDEOMEMORY)`,
-   * as before a device reset) and dropped; the rest are kept. A dropped
-   * resource's `_registered` is cleared, so its next use registers it again.
+   * Lists a scene-content resource that has just been prepared: an entry in the
+   * sweep's array with its current generation, and Carbon's registry, so a
+   * device swap or reset reaches it. Called by `Tr2DeviceResource.IsGood`.
    *
-   * @cjs Carbon's registry has no eviction; this is the half of use-driven
-   *   registration that removes.
+   * @cjs
+   * @param {object} resource The prepared resource.
    * @returns {void}
    */
-  _ReleaseIdleResources()
+  _ListSceneResource(resource)
   {
-    const resources = this._resourcesRegistered;
-    const now = this._renderedTime;
+    // An installed class takes the field on first use (`@be.inherit` copies methods).
+    resource._generation |= 0;
+    resource._listed = true;
+    this._sceneResources.push(resource);
+    this._sceneGenerations.push(resource._generation);
+    this._resourcesRegistered.add(resource);
+  }
+
+  /**
+   * The sweep: walks the scene-content array once and compacts it in place. A
+   * stale entry (its generation moved on) or a destructed resource is dropped;
+   * a resource unused for longer than `resourceIdleRule` seconds of Blue frame
+   * time is released (`ReleaseResources(TRISTORAGE_VIDEOMEMORY)`, as before a
+   * device reset), leaves Carbon's registry and drops back to `NONE` with its
+   * generation moved on, so its next use prepares and lists it again; the rest
+   * are kept. Runs from `OnTick` every `resourceSweepInterval`, and on demand: a
+   * host calls it after a scene unload or a failure.
+   *
+   * @cjs Use-driven eviction is ours (docs internal/decisions/device-resource-registration.md,
+   *   *Revised lifecycle* § 6). The expired cache and the GPU budget are not
+   *   built (§ 7a): an expired resource is released at once.
+   * @returns {void}
+   */
+  CollectResources()
+  {
+    const resources = this._sceneResources;
+    const generations = this._sceneGenerations;
+    const expiry = blue.os.GetCurrentFrameTime() - this.resourceIdleRule * TICKS_PER_SECOND;
     let write = 0;
-    // A release can register another resource; the loop reads to the live length.
+    // A release can list another resource; the loop reads to the live length.
     for (let read = 0; read < resources.length; read++)
     {
       const resource = resources[read];
-      if (resource._unregistered)
+      // Stale: its generation moved on (destructed, or released and listed again).
+      if (generations[read] !== resource._generation) continue;
+      // Released by the device and not prepared again: its next use lists it again.
+      if (resource._state !== Tr2DeviceResourceState.PREPARED)
       {
-        resource._unregistered = false;
-        resource._registered = false;
+        resource._listed = false;
         continue;
       }
-      if (now - resource._lastUsed > resource._retention)
+      if (resource._stamp < expiry)
       {
-        resource._registered = false;
+        resource._listed = false;
+        resource._state = Tr2DeviceResourceState.NONE;
+        resource._generation = (resource._generation | 0) + 1;
+        this._resourcesRegistered.delete(resource);
         resource.ReleaseResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);
-        resource._prepared = false;
         continue;
       }
-      resources[write++] = resource;
+      resources[write] = resource;
+      generations[write] = generations[read];
+      write++;
     }
     resources.length = write;
+    generations.length = write;
   }
 
   static className = "CjsTrinity";

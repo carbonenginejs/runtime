@@ -24,6 +24,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { ExecuteMainThreadActions } from "../continueOnMainThread.js";
 import { TRINITY } from "./trinityTickCookie.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResourceState } from "./deviceResourceState.js";
 import "#consts/renderContext/presentation";
 import "#consts/renderContext/upscaling";
 import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
@@ -651,13 +652,15 @@ export class TriDevice extends IRoot
    */
   ReleaseDeviceResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
-    // Trinity's registry; a release only marks, so the array does not change under the walk.
-    const registered = trinity._resourcesRegistered;
+    // Trinity's registry, walked as a copy: a release may unregister. A scene-content
+    // resource drops back to NONE and keeps its entry, so the prepare walk below, or its
+    // next use, prepares it again (docs internal/decisions/device-resource-registration.md,
+    // Revised lifecycle § 3).
+    const registered = trinity.GetResourcesRegistered();
     for (let i = 0; i < registered.length; i++)
     {
-      if (registered[i]._unregistered) continue;
       registered[i].ReleaseResources(storage);
-      registered[i]._prepared = false;
+      if (registered[i]._state === Tr2DeviceResourceState.PREPARED) registered[i]._state = Tr2DeviceResourceState.NONE;
     }
 
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -681,10 +684,10 @@ export class TriDevice extends IRoot
   PrepareDeviceResources()
   {
     // Trinity's registry: a resource a prepare registers is prepared on its own use.
-    const registered = trinity._resourcesRegistered;
-    for (let i = 0, count = registered.length; i < count; i++)
+    const registered = trinity.GetResourcesRegistered();
+    for (let i = 0; i < registered.length; i++)
     {
-      if (!registered[i]._unregistered) registered[i].PrepareResources();
+      registered[i].PrepareResources();
     }
 
     Tr2Renderer.prepareDeviceResources();
@@ -693,8 +696,8 @@ export class TriDevice extends IRoot
 
   /**
    * Carbon RegisterResource (TriDevice.h:135): adds a device resource to the
-   * registry. Forwards to `trinity.RegisterResource` with no eviction, which is
-   * Carbon's lifetime: registered until unregistered.
+   * registry. Forwards to `trinity.RegisterResource`: registered until
+   * unregistered, Carbon's lifetime.
    *
    * @adapted the registry lives on `trinity` (CjsTrinity), because the device is
    *   handed in after resources exist and the registry must exist before it, as
@@ -705,7 +708,7 @@ export class TriDevice extends IRoot
    */
   static RegisterResource(resource)
   {
-    trinity.RegisterResource(resource, Infinity);
+    trinity.RegisterResource(resource);
   }
 
   /**
