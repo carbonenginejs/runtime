@@ -14,9 +14,9 @@
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CompileEffectFile } from "../../src/shadercompiler/ShaderCompiler/shaderCompiler.js";
-import { Platform } from "../../src/shadercompiler/platforms.js";
-import { CjsFxEffectCompilerWebGPU } from "../../src/shadercompiler/EffectCompilerWebGPU/index.js";
+import { CompileEffectFile } from "../../src/resource/shader/compiler/ShaderCompiler/shaderCompiler.js";
+import { Platform } from "../../src/resource/shader/compiler/platforms.js";
+import { CjsFxEffectCompilerWebGPU } from "../../src/resource/shader/compiler/EffectCompilerWebGPU/index.js";
 import { LIBRARY_ROOT } from "./cbuffer-headers.mjs";
 
 /** The containers each effect is written as. */

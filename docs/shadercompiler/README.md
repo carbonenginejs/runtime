@@ -7,7 +7,7 @@ Summary: A JavaScript port of Carbon's HLSL effect compiler, its WebGPU target, 
 
 ## The effect compiler port
 
-`src/shadercompiler` is a JavaScript port of Carbon's effect compiler,
+`src/resource/shader/compiler` is a JavaScript port of Carbon's effect compiler,
 `trinity/shadercompiler`: the compiler CCP builds `.fx` HLSL effects with. It
 runs in the browser and in Node with no native toolchain. Carbon's compiler
 parses HLSL into its own syntax tree and writes each target's shading
@@ -65,7 +65,7 @@ type (nested types included), with an `index.js` in declaration order.
 
 ### Parse tables
 
-Carbon generates its parsers with LEMON. `src/shadercompiler/lemon` builds LALR(1) tables
+Carbon generates its parsers with LEMON. `src/resource/shader/compiler/lemon` builds LALR(1) tables
 from the grammar text at first use (about 45 ms for `HLSLParser.y`) and
 resolves conflicts the way lemon does without precedence: the shift wins,
 then the earlier rule. Each state's default reduce is chosen as lemon's
@@ -121,12 +121,12 @@ organization's `research/carbon-known-defects.md`).
 
 ## Shader library
 
-`src/shadercompiler/library/` holds the effects and the `.fxh` headers they include. Includes are
+`src/resource/shader/compiler/library/` holds the effects and the `.fxh` headers they include. Includes are
 relative to the including file, as in Carbon.
 
 ### Constant buffers
 
-`src/shadercompiler/library/cbuffers/` declares Carbon's constant buffers. The engine fills them
+`src/resource/shader/compiler/library/cbuffers/` declares Carbon's constant buffers. The engine fills them
 by copying Carbon's C++ structs, so the headers are not written by hand:
 `scripts/shadercompiler/cbuffer-headers.mjs` generates them from the runtime's layout
 catalogs (`@carbonenginejs/runtime/trinity/perframe` and `/perobject`), and
@@ -184,7 +184,7 @@ shares its pixel shader; the variants differ in their vertex input.
 
 ### Selection outline
 
-`src/shadercompiler/library/selection/` draws a selection outline as Blender
+`src/resource/shader/compiler/library/selection/` draws a selection outline as Blender
 and Unreal draw theirs: a solid, even line around the selected object's
 visible shape, with no lines inside it.
 

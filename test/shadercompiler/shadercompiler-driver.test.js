@@ -1,14 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { CjsCarbonEffectReader } from "../../src/resource/format/index.js";
-import { CompileEffectFile, AddPermutationsToWorkQueue, GetSourceHash, ShaderCompilerVersion } from "../../src/shadercompiler/ShaderCompiler/shaderCompiler.js";
-import { ShaderCompilerSession } from "../../src/shadercompiler/ShaderCompiler/ShaderCompilerSession.js";
-import { Macro } from "../../src/shadercompiler/Macro.js";
-import { Platform } from "../../src/shadercompiler/platforms.js";
-import { Technique } from "../../src/shadercompiler/EffectData/Technique.js";
-import { Pass } from "../../src/shadercompiler/EffectData/Pass.js";
-import { StageInput } from "../../src/shadercompiler/EffectData/StageInput.js";
-import { ParserState } from "../../src/shadercompiler/ParserState/ParserState.js";
+import { CompileEffectFile, AddPermutationsToWorkQueue, GetSourceHash, ShaderCompilerVersion } from "../../src/resource/shader/compiler/ShaderCompiler/shaderCompiler.js";
+import { ShaderCompilerSession } from "../../src/resource/shader/compiler/ShaderCompiler/ShaderCompilerSession.js";
+import { Macro } from "../../src/resource/shader/compiler/Macro.js";
+import { Platform } from "../../src/resource/shader/compiler/platforms.js";
+import { Technique } from "../../src/resource/shader/compiler/EffectData/Technique.js";
+import { Pass } from "../../src/resource/shader/compiler/EffectData/Pass.js";
+import { StageInput } from "../../src/resource/shader/compiler/EffectData/StageInput.js";
+import { ParserState } from "../../src/resource/shader/compiler/ParserState/ParserState.js";
 
 const SOURCE = [
     "#pragma permutation(MODE, (MODE_A, MODE_B, MODE_C), MODE_B, \"The mode\", dynamic)",

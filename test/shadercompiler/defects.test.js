@@ -7,18 +7,18 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ParserUtils, FXAnalyzer, InlineString, ASTNode } from "../../src/shadercompiler/index.js";
+import { ParserUtils, FXAnalyzer, InlineString, ASTNode } from "../../src/resource/shader/compiler/index.js";
 import { parse, preprocess, createState } from "./support/parse.js";
-import { GetSourceHash } from "../../src/shadercompiler/ShaderCompiler/shaderCompiler.js";
-import { ShaderCompilerSession } from "../../src/shadercompiler/ShaderCompiler/ShaderCompilerSession.js";
+import { GetSourceHash } from "../../src/resource/shader/compiler/ShaderCompiler/shaderCompiler.js";
+import { ShaderCompilerSession } from "../../src/resource/shader/compiler/ShaderCompiler/ShaderCompilerSession.js";
 
 /**
  * Every node of a type in a tree, depth first.
  *
- * @param {import("../../src/shadercompiler/index.js").ASTNode|null} node The root.
+ * @param {import("../../src/resource/shader/compiler/index.js").ASTNode|null} node The root.
  * @param {number} type An `ASTNodeType` value.
- * @param {import("../../src/shadercompiler/index.js").ASTNode[]} [out=[]] Receives the nodes.
- * @returns {import("../../src/shadercompiler/index.js").ASTNode[]} The nodes.
+ * @param {import("../../src/resource/shader/compiler/index.js").ASTNode[]} [out=[]] Receives the nodes.
+ * @returns {import("../../src/resource/shader/compiler/index.js").ASTNode[]} The nodes.
  */
 function findNodes(node, type, out = [])
 {

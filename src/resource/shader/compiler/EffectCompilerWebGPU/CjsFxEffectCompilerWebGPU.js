@@ -19,7 +19,7 @@
 // take `@location`s by semantic, numbered for the pass in the order first
 // seen, so the vertex outputs and pixel inputs agree.
 
-import { writeBackendBlock } from "../../resource/format/index.js";
+import { writeBackendBlock } from "../../../format/index.js";
 import { InlineString } from "../InlineString.js";
 import { HLSLParserTokens } from "../hlslParserTokens.js";
 import { ParserState } from "../ParserState/ParserState.js";

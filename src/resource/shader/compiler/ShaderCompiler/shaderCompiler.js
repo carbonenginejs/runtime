@@ -18,7 +18,7 @@
 // /mtime (PrintOutOfDateFiles), listings and PDBs, which belong to the
 // native tool and its D3D compilers.
 
-import { CjsCarbonEffectFormat } from "../../resource/formats/carbonEffect/index.js";
+import { CjsCarbonEffectFormat } from "../../../formats/carbonEffect/index.js";
 import { InlineString } from "../InlineString.js";
 import { CachingIncludeHandler } from "../CachingIncludeHandler/index.js";
 import { CompileMessageQueue } from "../CompileMessageQueue.js";

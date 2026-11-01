@@ -179,7 +179,7 @@ WebGPU and WebGL2. Each part rests on published material:
   in `src/resource/format/carbonEffect` ports `Tr2EffectRes.cpp` and the
   shader compiler's file assembly. The layout was already known from ccpwgl.
   See `format-notices/hlsl`.
-- Shader compiler: `src/shadercompiler` ports CarbonEngine's
+- Shader compiler: `src/resource/shader/compiler` ports CarbonEngine's
   `trinity/shadercompiler` (MIT); see THIRD-PARTY-NOTICES.md.
 - Compiled shader bytecode: Microsoft's DXBC format, which Microsoft publishes
   in DirectX-Headers (MIT) and the DirectX Shader Compiler. See

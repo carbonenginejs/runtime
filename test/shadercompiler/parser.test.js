@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ParserUtils, FXAnalyzer, ASTNode, Type, HLSLParserTokens, InlineString, FileLocation } from "../../src/shadercompiler/index.js";
+import { ParserUtils, FXAnalyzer, ASTNode, Type, HLSLParserTokens, InlineString, FileLocation } from "../../src/resource/shader/compiler/index.js";
 import { parse, dumpTree, createState } from "./support/parse.js";
 
 const { NT_FUNCTION_DEFINITION, NT_TECHNIQUE } = ASTNode.ASTNodeType;
@@ -8,9 +8,9 @@ const { NT_FUNCTION_DEFINITION, NT_TECHNIQUE } = ASTNode.ASTNodeType;
 /**
  * The global symbol of a name in a parsed program.
  *
- * @param {import("../../src/shadercompiler/index.js").ParserState} state The parse.
+ * @param {import("../../src/resource/shader/compiler/index.js").ParserState} state The parse.
  * @param {string} name The name.
- * @returns {import("../../src/shadercompiler/index.js").Symbol} The symbol.
+ * @returns {import("../../src/resource/shader/compiler/index.js").Symbol} The symbol.
  */
 function global(state, name)
 {

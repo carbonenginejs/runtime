@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CompileMessageQueue, CachingIncludeHandler } from "../../src/shadercompiler/index.js";
+import { CompileMessageQueue, CachingIncludeHandler } from "../../src/resource/shader/compiler/index.js";
 import { createState, preprocess } from "./support/parse.js";
 
 test("object-like and function-like macros expand", () =>

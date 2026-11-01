@@ -1,8 +1,8 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
-import { CompileEffectFile } from "../../src/shadercompiler/ShaderCompiler/shaderCompiler.js";
-import { Platform } from "../../src/shadercompiler/platforms.js";
-import { CjsFxEffectCompilerWebGPU, CjsFxHlslPacking } from "../../src/shadercompiler/EffectCompilerWebGPU/index.js";
+import { CompileEffectFile } from "../../src/resource/shader/compiler/ShaderCompiler/shaderCompiler.js";
+import { Platform } from "../../src/resource/shader/compiler/platforms.js";
+import { CjsFxEffectCompilerWebGPU, CjsFxHlslPacking } from "../../src/resource/shader/compiler/EffectCompilerWebGPU/index.js";
 import { readBackendBlock } from "../../src/resource/format/index.js";
 import { parse } from "./support/parse.js";
 import { getDevice, releaseDevice, wgslErrors } from "./support/dawn.js";

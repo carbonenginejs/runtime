@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ParserState, InlineString, CachingIncludeHandler, CompileMessageQueue, ParserUtils, FXAnalyzer, ASTNode } from "../../src/shadercompiler/index.js";
+import { ParserState, InlineString, CachingIncludeHandler, CompileMessageQueue, ParserUtils, FXAnalyzer, ASTNode } from "../../src/resource/shader/compiler/index.js";
 import { LIBRARY_ROOT } from "../../scripts/shadercompiler/cbuffer-headers.mjs";
 
 /**
@@ -25,10 +25,10 @@ function compileEffect(effect)
 /**
  * Every node of a type in a tree, depth first.
  *
- * @param {import("../../src/shadercompiler/index.js").ASTNode} node The root.
+ * @param {import("../../src/resource/shader/compiler/index.js").ASTNode} node The root.
  * @param {number} type An `ASTNodeType` value.
- * @param {import("../../src/shadercompiler/index.js").ASTNode[]} [out=[]] Receives the nodes.
- * @returns {import("../../src/shadercompiler/index.js").ASTNode[]} The nodes.
+ * @param {import("../../src/resource/shader/compiler/index.js").ASTNode[]} [out=[]] Receives the nodes.
+ * @returns {import("../../src/resource/shader/compiler/index.js").ASTNode[]} The nodes.
  */
 function findNodes(node, type, out = [])
 {
@@ -43,7 +43,7 @@ function findNodes(node, type, out = [])
 /**
  * A parameter's annotations as name to text, string literals unquoted.
  *
- * @param {import("../../src/shadercompiler/index.js").Symbol} symbol The parameter.
+ * @param {import("../../src/resource/shader/compiler/index.js").Symbol} symbol The parameter.
  * @returns {Record<string, string>} The annotations.
  */
 function annotationsOf(symbol)

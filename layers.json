@@ -415,7 +415,7 @@
         "Only the shared silent sound-engine contract and stub. Blue can provide silent graph audio without importing playback, WebAudio, or an audio domain."
       ]
     },
-    "shadercompiler": {
+    "resource/shader/compiler": {
       "mayImport": [],
       "why": [
         "Carbon's HLSL effect compiler (trinity/shadercompiler), exported on its own:",

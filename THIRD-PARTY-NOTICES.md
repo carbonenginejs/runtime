@@ -141,9 +141,9 @@ THE SOFTWARE.
 
 ## CarbonEngine Trinity shader compiler
 
-`src/shadercompiler` is a JavaScript port of Carbon's HLSL effect compiler,
+`src/resource/shader/compiler` is a JavaScript port of Carbon's HLSL effect compiler,
 `trinity/shadercompiler` in CarbonEngine. The HLSL and preprocessor grammars
-under `src/shadercompiler` are transcribed from its `HLSLParser.y` and
+under `src/resource/shader/compiler` are transcribed from its `HLSLParser.y` and
 `Preprocessor.y`. Each ported file names its Carbon source in its header.
 
 - Project: <https://github.com/carbonengine>
@@ -208,7 +208,7 @@ SOFTWARE.
 
 ## MD5 by Stephan Brumme
 
-`src/shadercompiler/MD5.js` is an altered source version: a JavaScript
+`src/resource/shader/compiler/MD5.js` is an altered source version: a JavaScript
 translation of CarbonEngine's modified copy of Stephan Brumme's MD5
 (`trinity/shadercompiler/md5.cpp`, `md5.h`). It is not the original software.
 
@@ -230,7 +230,7 @@ and to alter it and redistribute it freely, subject to the following restriction
 
 ## LEMON parser generator by D. Richard Hipp
 
-`src/shadercompiler/lemon` rebuilds LEMON's LALR(1) parse tables (`CjsFxLemon.js`, after
+`src/resource/shader/compiler/lemon` rebuilds LEMON's LALR(1) parse tables (`CjsFxLemon.js`, after
 `tool/lemon.c`) and runs LEMON's parse loop (`CjsFxLemonParser.js`, after the
 driver template `lempar.c`), so Carbon's grammars parse as Carbon's
 LEMON-generated parsers do. LEMON was written by D. Richard Hipp and is

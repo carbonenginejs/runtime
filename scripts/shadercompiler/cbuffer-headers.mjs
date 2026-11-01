@@ -11,12 +11,12 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { CjsFxCBufferHeader } from "../../src/shadercompiler/library/CjsFxCBufferHeader.js";
+import { CjsFxCBufferHeader } from "../../src/resource/shader/compiler/library/CjsFxCBufferHeader.js";
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 /** Where the headers go, and the include path shaders use for them. */
-export const LIBRARY_ROOT = join(PACKAGE_ROOT, "src", "shadercompiler", "library");
+export const LIBRARY_ROOT = join(PACKAGE_ROOT, "src", "resource", "shader", "compiler", "library");
 
 /**
  * The runtime catalogs, each with Carbon's variable name per stage key (the

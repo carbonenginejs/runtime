@@ -36,9 +36,9 @@
 // rule, a shift retargeted, a goto changed to error.
 
 import { readFileSync } from "node:fs";
-import { CjsFxLemon } from "../../src/shadercompiler/lemon/CjsFxLemon.js";
-import { HLSLParser } from "../../src/shadercompiler/shadercompiler/HLSLParser.js";
-import { Preprocessor } from "../../src/shadercompiler/shadercompiler/Preprocessor.js";
+import { CjsFxLemon } from "../../src/resource/shader/compiler/lemon/CjsFxLemon.js";
+import { HLSLParser } from "../../src/resource/shader/compiler/HLSLParser.js";
+import { Preprocessor } from "../../src/resource/shader/compiler/Preprocessor.js";
 
 const [, , grammarPath, reportPath, uncompressedPath, grammarName] = process.argv;
 const grammar = { HLSLParser, Preprocessor }[grammarName];

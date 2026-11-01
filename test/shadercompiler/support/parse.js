@@ -1,4 +1,4 @@
-import { ParserState, InlineString, CachingIncludeHandler, CompileMessageQueue, ASTNode } from "../../../src/shadercompiler/index.js";
+import { ParserState, InlineString, CachingIncludeHandler, CompileMessageQueue, ASTNode } from "../../../src/resource/shader/compiler/index.js";
 
 /**
  * A ParserState over `source`, set up as Carbon's callers do: the buffer
@@ -69,7 +69,7 @@ const NAMES = Object.fromEntries(Object.entries(ASTNode.ASTNodeType).map(([name,
 /**
  * A compact text form of a syntax tree, for assertions.
  *
- * @param {import("../../../src/shadercompiler/index.js").ASTNode|null} node The root.
+ * @param {import("../../../src/resource/shader/compiler/index.js").ASTNode|null} node The root.
  * @returns {string} One line per node, indented by depth.
  */
 export function dumpTree(node)

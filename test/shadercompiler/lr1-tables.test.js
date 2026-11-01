@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { CjsFxLemon } from "../../src/shadercompiler/lemon/index.js";
-import { HLSLParser, Preprocessor } from "../../src/shadercompiler/index.js";
+import { CjsFxLemon } from "../../src/resource/shader/compiler/lemon/index.js";
+import { HLSLParser, Preprocessor } from "../../src/resource/shader/compiler/index.js";
 import { buildCanonicalLalr } from "./support/lr1Canonical.js";
 
 // CjsFxLemon builds LALR(1) tables as lemon.c does: LR(0) states, then follow

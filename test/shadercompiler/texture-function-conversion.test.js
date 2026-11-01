@@ -6,7 +6,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ASTNode, HLSLParserTokens } from "../../src/shadercompiler/index.js";
+import { ASTNode, HLSLParserTokens } from "../../src/resource/shader/compiler/index.js";
 import { parse } from "./support/parse.js";
 import {
     ConvertTextureFunctionsDX11,
@@ -15,10 +15,10 @@ import {
     MergeSamplers,
     BindlessTextureType,
     SplitCoordVec
-} from "../../src/shadercompiler/TextureFunctionConversionDX11/index.js";
-import { CodeStream, WriteHLSL, WriteMSL } from "../../src/shadercompiler/OutputHLSL/index.js";
-import { Type } from "../../src/shadercompiler/Type.js";
-import { Texture } from "../../src/shadercompiler/EffectData/Texture.js";
+} from "../../src/resource/shader/compiler/TextureFunctionConversionDX11/index.js";
+import { CodeStream, WriteHLSL, WriteMSL } from "../../src/resource/shader/compiler/OutputHLSL/index.js";
+import { Type } from "../../src/resource/shader/compiler/Type.js";
+import { Texture } from "../../src/resource/shader/compiler/EffectData/Texture.js";
 
 const T = HLSLParserTokens;
 const N = ASTNode.ASTNodeType;
@@ -50,10 +50,10 @@ class TestStream extends CodeStream
 /**
  * Every node of a type in a tree, depth first.
  *
- * @param {import("../../src/shadercompiler/index.js").ASTNode|null} node The root.
+ * @param {import("../../src/resource/shader/compiler/index.js").ASTNode|null} node The root.
  * @param {number} type An `ASTNodeType` value.
- * @param {import("../../src/shadercompiler/index.js").ASTNode[]} [out=[]] Receives the nodes.
- * @returns {import("../../src/shadercompiler/index.js").ASTNode[]} The nodes.
+ * @param {import("../../src/resource/shader/compiler/index.js").ASTNode[]} [out=[]] Receives the nodes.
+ * @returns {import("../../src/resource/shader/compiler/index.js").ASTNode[]} The nodes.
  */
 function findNodes(node, type, out = [])
 {
@@ -75,7 +75,7 @@ function findNodes(node, type, out = [])
  * Marks every symbol a tree references as used, so the printers write every
  * declaration.
  *
- * @param {import("../../src/shadercompiler/index.js").ASTNode|null} node The root.
+ * @param {import("../../src/resource/shader/compiler/index.js").ASTNode|null} node The root.
  */
 function markUsed(node)
 {
@@ -96,8 +96,8 @@ function markUsed(node)
 /**
  * Prints a node with a ported printer.
  *
- * @param {import("../../src/shadercompiler/index.js").ASTNode} node The node.
- * @param {import("../../src/shadercompiler/index.js").ParserState} state The parse.
+ * @param {import("../../src/resource/shader/compiler/index.js").ASTNode} node The node.
+ * @param {import("../../src/resource/shader/compiler/index.js").ParserState} state The parse.
  * @param {number} lang A `ShadingLanguage` value.
  * @returns {string} The text.
  */
@@ -112,7 +112,7 @@ function print(node, state, lang)
 /**
  * The printed value of each `return` in a function, in order.
  *
- * @param {import("../../src/shadercompiler/index.js").ParserState} state The parse.
+ * @param {import("../../src/resource/shader/compiler/index.js").ParserState} state The parse.
  * @param {string} name The function's name.
  * @param {number} lang A `ShadingLanguage` value.
  * @returns {string[]} The returned expressions.
@@ -127,7 +127,7 @@ function returns(state, name, lang)
 /**
  * The printed header of a function.
  *
- * @param {import("../../src/shadercompiler/index.js").ParserState} state The parse.
+ * @param {import("../../src/resource/shader/compiler/index.js").ParserState} state The parse.
  * @param {string} name The function's name.
  * @returns {string} Its HLSL header.
  */
@@ -141,7 +141,7 @@ function header(state, name)
  * Parses `source`, failing on a parse error.
  *
  * @param {string} source HLSL text.
- * @returns {import("../../src/shadercompiler/index.js").ParserState} The state.
+ * @returns {import("../../src/resource/shader/compiler/index.js").ParserState} The state.
  */
 function parsed(source)
 {
@@ -153,7 +153,7 @@ function parsed(source)
 /**
  * The messages a state has reported.
  *
- * @param {import("../../src/shadercompiler/index.js").ParserState} state The parse.
+ * @param {import("../../src/resource/shader/compiler/index.js").ParserState} state The parse.
  * @returns {string[]} The messages.
  */
 function messagesOf(state)
@@ -182,7 +182,7 @@ SamplerComparisonState sc;
  * of resources, and prints what it returns.
  *
  * @param {string} body The function body.
- * @returns {{ state: import("../../src/shadercompiler/index.js").ParserState, returned: string[] }} The state and the printed returns.
+ * @returns {{ state: import("../../src/resource/shader/compiler/index.js").ParserState, returned: string[] }} The state and the printed returns.
  */
 function metal(body)
 {

@@ -177,7 +177,7 @@
     "./trinityal/stub": "./src/trinityal/stub/index.js",
     "./trinityal/webgpu": "./src/trinityal/webgpu/index.js",
     "./trinityal/webgl2": "./src/trinityal/webgl2/index.js",
-    "./shadercompiler": "./src/shadercompiler/index.js",
+    "./shadercompiler": "./src/resource/shader/compiler/index.js",
     "./core": "./src/core/index.js",
     "./wrap": "./src/wrap/index.js",
     "./services": "./src/wrap/services/index.js",

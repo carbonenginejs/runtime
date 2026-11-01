@@ -2,8 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ParserUtils, ASTNode } from "../../src/shadercompiler/index.js";
-import { CjsFxCBufferHeader } from "../../src/shadercompiler/library/CjsFxCBufferHeader.js";
+import { ParserUtils, ASTNode } from "../../src/resource/shader/compiler/index.js";
+import { CjsFxCBufferHeader } from "../../src/resource/shader/compiler/library/CjsFxCBufferHeader.js";
 import { buildHeaders, runtimeRoot, LIBRARY_ROOT } from "../../scripts/shadercompiler/cbuffer-headers.mjs";
 import { parse } from "./support/parse.js";
 

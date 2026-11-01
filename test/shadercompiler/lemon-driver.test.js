@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CjsFxLemon } from "../../src/shadercompiler/lemon/index.js";
+import { CjsFxLemon } from "../../src/resource/shader/compiler/lemon/index.js";
 import { parse } from "./support/parse.js";
 
 // The driver against lempar.c, Carbon's copy in trinity/shadercompiler: the

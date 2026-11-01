@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { HLSLParser, Preprocessor, HLSLParserTokens, PreprocessorTokens } from "../../src/shadercompiler/index.js";
+import { HLSLParser, Preprocessor, HLSLParserTokens, PreprocessorTokens } from "../../src/resource/shader/compiler/index.js";
 import { carbonTestShaders, carbonTestsSkipReason } from "./support/carbonTestShaders.js";
 import { parse } from "./support/parse.js";
 

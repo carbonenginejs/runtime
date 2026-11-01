@@ -1,4 +1,4 @@
-// Carbon's Metal effect compiler port (src/shadercompiler/EffectCompilerMetal).
+// Carbon's Metal effect compiler port (src/resource/shader/compiler/EffectCompilerMetal).
 //
 // The first group ports Carbon's own MetalConversionTest.cpp: each test
 // compiles the same source and checks the same substrings of the stage's
@@ -18,15 +18,15 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { carbonTestShaders, carbonTestsSkipReason } from "./support/carbonTestShaders.js";
-import { EffectCompilerMetal, MSL_INCLUDE } from "../../src/shadercompiler/EffectCompilerMetal/index.js";
-import { ShaderCompilerSession } from "../../src/shadercompiler/ShaderCompiler/ShaderCompilerSession.js";
-import { CompileEffectFile } from "../../src/shadercompiler/ShaderCompiler/shaderCompiler.js";
-import { InlineString } from "../../src/shadercompiler/InlineString.js";
-import { EffectData } from "../../src/shadercompiler/EffectData/EffectData.js";
-import { Macro } from "../../src/shadercompiler/Macro.js";
-import { Platform } from "../../src/shadercompiler/platforms.js";
+import { EffectCompilerMetal, MSL_INCLUDE } from "../../src/resource/shader/compiler/EffectCompilerMetal/index.js";
+import { ShaderCompilerSession } from "../../src/resource/shader/compiler/ShaderCompiler/ShaderCompilerSession.js";
+import { CompileEffectFile } from "../../src/resource/shader/compiler/ShaderCompiler/shaderCompiler.js";
+import { InlineString } from "../../src/resource/shader/compiler/InlineString.js";
+import { EffectData } from "../../src/resource/shader/compiler/EffectData/EffectData.js";
+import { Macro } from "../../src/resource/shader/compiler/Macro.js";
+import { Platform } from "../../src/resource/shader/compiler/platforms.js";
 import { LIBRARY_ROOT } from "../../scripts/shadercompiler/cbuffer-headers.mjs";
-import { StageInput } from "../../src/shadercompiler/EffectData/StageInput.js";
+import { StageInput } from "../../src/resource/shader/compiler/EffectData/StageInput.js";
 
 /**
  * Carbon's `Compile<EffectCompilerMetal>` / `Compiles<>` (TesingUtils.h):

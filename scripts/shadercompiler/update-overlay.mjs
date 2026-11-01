@@ -22,7 +22,7 @@ import { compileLibrary } from "./compile-library.mjs";
 
 const OVERLAY = "cjs-shader-compiled";
 const RUNTIME_ROOT = resolve(fileURLToPath(new URL("../..", import.meta.url)));
-const LIBRARY = "src/shadercompiler/library";
+const LIBRARY = "src/resource/shader/compiler/library";
 
 const toolsCoreFlag = process.argv.indexOf("--tools-core");
 const toolsCore = resolve(toolsCoreFlag >= 0 ? process.argv[toolsCoreFlag + 1] : join(RUNTIME_ROOT, "..", "tools-core"));
@@ -46,10 +46,10 @@ try
         "--dir", out,
         "--replace",
         "--data", join(toolsCore, "data.local"),
-        "--purpose", `Automatic: every tracked effect in runtime src/shadercompiler/library, compiled for WebGPU by `
+        "--purpose", `Automatic: every tracked effect in runtime src/resource/shader/compiler/library, compiled for WebGPU by `
             + `runtime scripts/shadercompiler/update-overlay.mjs (runtime ${commit}${dirty ? "+uncommitted" : ""}). `
             + "All of our own shaders live here; rebuild the whole library rather than importing single effects.",
-        "--source-url", "https://github.com/carbonenginejs/runtime/tree/main/src/shadercompiler/library"
+        "--source-url", "https://github.com/carbonenginejs/runtime/tree/main/src/resource/shader/compiler/library"
     ], { cwd: toolsCore, stdio: "inherit" });
 
     if (result.status !== 0) throw new Error(`cjs-overlay-import exited with ${result.status}`);

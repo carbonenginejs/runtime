@@ -115,7 +115,7 @@ export async function readGeneratedOwnership({ sourceRoot, schemaRoot })
     // classes (operator, 2026-10-08): they are not built by readers or
     // writers. Its Carbon names (ParameterInfo, Texture, Pass) would otherwise
     // claim the Blue schema identities that share them.
-    if (path.relative(sourceRoot, file).split(path.sep)[0] === "shadercompiler") continue;
+    if (path.relative(sourceRoot, file).split(path.sep).slice(0, 3).join("/") === "resource/shader/compiler") continue;
     const source = await fs.readFile(file, "utf8");
     const ast = parse(source, { sourceType: "module", plugins: ["decorators", "decoratorAutoAccessors", "importAttributes"] });
     const defined = definitions(ast);
