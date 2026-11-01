@@ -363,3 +363,33 @@ test("maintained post-process renderer owns quality and a ported Execute", () =>
   // post process enables it (post-process-renderer.test.js runs the chain).
   assertEquals(MarkerTag("Tr2PostProcessRenderer", "RenderUpscaling"), "notImplemented");
 });
+
+test("CE-230: postprocessDofCarryForegroundBlur carries the authored foreground blur through the merge", () =>
+{
+  const post = new Tr2PostProcess2();
+  const depthOfField = new Tr2PPDepthOfFieldEffect();
+  depthOfField.scale = 2;
+  depthOfField.foregroundBlurNeeded = true;
+  post.SetDepthOfField(depthOfField);
+  const merged = () =>
+  {
+    const source = new Tr2PostProcessAttributes();
+    source.FromPostProcess(post, Tr2PostProcessAttributes.MEDIUM_PRIORITY, 1);
+    return Tr2PostProcessAttributes.MergeInto(new Tr2PostProcess2(), [ source ]).depthOfField;
+  };
+  Tr2PPDepthOfFieldEffect.postprocessDofEnabled = true;
+  try
+  {
+    // Carbon's: Set never copies m_foregroundBlurNeeded (Tr2PostProcessAttributes.cpp:438-444).
+    assertEquals(merged().foregroundBlurNeeded, false);
+    Tr2PPDepthOfFieldEffect.postprocessDofCarryForegroundBlur = true;
+    assertEquals(merged().foregroundBlurNeeded, true);
+    depthOfField.foregroundBlurNeeded = false;
+    assertEquals(merged().foregroundBlurNeeded, false);
+  }
+  finally
+  {
+    Tr2PPDepthOfFieldEffect.postprocessDofEnabled = false;
+    Tr2PPDepthOfFieldEffect.postprocessDofCarryForegroundBlur = false;
+  }
+});

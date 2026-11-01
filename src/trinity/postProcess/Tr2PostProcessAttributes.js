@@ -1083,6 +1083,19 @@ export class Tr2PostProcessAttributes extends IRoot
       set("depthOfFieldShape", depthOfField.bokehShape);
     }
 
+    // CE-230, a declared divergence under postprocessDofCarryForegroundBlur:
+    // Carbon's Set (cpp:438-444) never copies m_foregroundBlurNeeded, nor does
+    // its Reset clear the attribute (cpp:346-349), so on, it is carried and cleared here.
+    if (Tr2PPDepthOfFieldEffect.postprocessDofCarryForegroundBlur)
+    {
+      if (depthOfField) set("depthOfFieldForegroundBlurNeeded", depthOfField.foregroundBlurNeeded);
+      else
+      {
+        this.depthOfFieldForegroundBlurNeeded = false;
+        this.depthOfFieldForegroundBlurNeededEnabled = false;
+      }
+    }
+
     const luts = postProcess.GetAvilableSortedLuts([]);
     if (luts.length)
     {

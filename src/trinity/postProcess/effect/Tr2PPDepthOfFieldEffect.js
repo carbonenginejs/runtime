@@ -81,6 +81,20 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
   @meta.setting("postprocessDofEnabled")
   static postprocessDofEnabled = false;
 
+  /**
+   * Ours: carries a post process's authored `foregroundBlurNeeded` through
+   * the scene's attribute merge. Carbon's Tr2PostProcessAttributes::Set never
+   * copies it and the attribute is not exposed, so Carbon's merged depth of
+   * field never blurs the foreground (CE-230;
+   * Tr2PostProcessAttributes.cpp:438-444). Off keeps Carbon's behaviour.
+   * ccpwgl reads the flag straight off the effect. Registered in
+   * docs/architecture/non-carbon-extensions.md.
+   *
+   * @cjs
+   */
+  @meta.setting("postprocessDofCarryForegroundBlur")
+  static postprocessDofCarryForegroundBlur = false;
+
   static Shape = { Disk: 0, Triangle: 1, Rectangle: 2, Pentagon: 3, Hexagon: 4, Heart: 5 };
 
   static Disk = 0;
