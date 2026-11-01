@@ -7,7 +7,6 @@ import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
-import { Tr2Renderer } from "../Tr2Renderer.js";
 import { SharedGeometryBuffer } from "./TriGeometryResAllocations.js";
 import { ReadValues } from "../../../global/blue/values.js";
 import { vec3 } from "#math/vec3";
@@ -17,6 +16,7 @@ import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
 import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceData/index.js";
 import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 
 
 /**
@@ -25,7 +25,7 @@ import { trinity } from "../../CjsTrinity.js";
  * particle system on demand.
  */
 @be.define("Tr2RuntimeInstanceData")
-@be.inherit(ITr2InstanceData, ITr2GpuBuffer)
+@be.inherit(ITr2InstanceData, ITr2GpuBuffer, Tr2DeviceResource)
 @be.mapInterface(ITr2InstanceData)
 @be.mapInterface(ITr2GpuBuffer)
 export class Tr2RuntimeInstanceData
@@ -133,12 +133,6 @@ export class Tr2RuntimeInstanceData
 
   #vertexDeclaration = Tr2EffectStateManager.Unknown;
 
-  /** Registers Carbon's inherited Tr2DeviceResource lifetime. */
-  constructor()
-  {
-    trinity.RegisterResource(this, Infinity);
-  }
-
   /**
    * Explicit final-owner teardown replaces Carbon's resource destructor.
    *
@@ -161,16 +155,6 @@ export class Tr2RuntimeInstanceData
   {
     this.#freeAllocation();
     this.#vertexDeclaration = Tr2EffectStateManager.Unknown;
-  }
-
-  /**
-   * Inherited Tr2DeviceResource.cpp:21-32 creation guard.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this._OnPrepareResources();
   }
 
   /**
@@ -513,6 +497,9 @@ export class Tr2RuntimeInstanceData
    */
   IsInstanceDataReady()
   {
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Asked here because a consumer asks this
+    // before it reads the buffer, and it is false until preparing has run.
+    this.IsGood();
     return this.#vertexDeclaration !== Tr2EffectStateManager.Unknown &&
       this.#allocation !== null && this.#allocation.IsValid();
   }

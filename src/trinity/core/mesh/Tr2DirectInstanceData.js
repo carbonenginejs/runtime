@@ -11,9 +11,9 @@ import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2Buffer
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
-import { Tr2Renderer } from "../Tr2Renderer.js";
 import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 
 
 /**
@@ -21,7 +21,7 @@ import { trinity } from "../../CjsTrinity.js";
  * The selected AL supplies mapping storage; this provider keeps no CPU copy.
  */
 @be.define("Tr2DirectInstanceData")
-@be.inherit(ITr2InstanceData)
+@be.inherit(ITr2InstanceData, Tr2DeviceResource)
 // Carbon: MAP_INTERFACE( ITr2InstanceData ) (Tr2DirectInstanceData_Blue.cpp:12).
 @be.mapInterface(ITr2InstanceData)
 export class Tr2DirectInstanceData
@@ -54,12 +54,6 @@ export class Tr2DirectInstanceData
 
   _vertexBuffer = new Tr2BufferAL();
 
-  /** Registers Carbon's inherited Tr2DeviceResource lifetime. */
-  constructor()
-  {
-    trinity.RegisterResource(this, Infinity);
-  }
-
   /**
    * Explicit JS teardown replaces the native resource destructor.
    *
@@ -83,17 +77,6 @@ export class Tr2DirectInstanceData
   {
     this._vertexDeclaration = Tr2EffectStateManager.Unknown;
     this._vertexBuffer.Destroy();
-  }
-
-  /**
-   * Inherited Tr2DeviceResource.cpp:21-32 reset guard.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed() && !this._OnPrepareResources()) return false;
-    return true;
   }
 
   /**
@@ -130,6 +113,9 @@ export class Tr2DirectInstanceData
 
   IsInstanceDataReady()
   {
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Asked here because a consumer asks this
+    // before it reads the buffer, and it is false until preparing has run.
+    this.IsGood();
     return this._vertexDeclaration !== Tr2EffectStateManager.Unknown && this._vertexBuffer.IsValid();
   }
 

@@ -52,8 +52,9 @@ test("direct instance buffer implements Carbon allocation, mapping and reset lif
 {
   setup(t);
   const provider = new Tr2DirectInstanceData();
-  assert.ok(trinity.GetResourcesRegistered().includes(provider));
+  assert.equal(trinity.GetResourcesRegistered().includes(provider), false, "built and never asked: not registered");
   assert.equal(provider.IsInstanceDataReady(), false);
+  assert.ok(trinity.GetResourcesRegistered().includes(provider), "asking for the instance data is its use");
   assert.equal(provider.GetInstanceBufferVertexDeclaration(), Tr2EffectStateManager.Unknown);
   assert.equal(provider.GetData(3), null, "no stride means no allocation (cpp:175-178)");
   provider.SetLayout(layout());
@@ -158,7 +159,16 @@ test("real gc3_t1 SOF ship prepares direct instance providers without an abstrac
   const values = await sof.BuildValuesFromDNAAsync("gc3_t1:gallentebase:gallente");
   const ship = CjsSchema.from("EveShip2", values);
   assert.ok(ship);
-  const meshes = trinity.GetResourcesRegistered().filter(resource =>
+  // Registration follows use and nothing has drawn the ship, so its meshes are found by walking it.
+  const found = new Set(), stack = [ ship ];
+  while (stack.length)
+  {
+    const value = stack.pop();
+    if (!value || typeof value !== "object" || found.has(value) || ArrayBuffer.isView(value)) continue;
+    found.add(value);
+    for (const key of Object.keys(value)) stack.push(value[key]);
+  }
+  const meshes = [ ...found ].filter(resource =>
     CjsSchema.cast(resource, Tr2InstancedMesh) &&
     CjsSchema.cast(resource.GetInstanceGeometryResource(), Tr2DirectInstanceData));
   assert.equal(meshes.length, 4, "real ship's authored direct-provider meshes");

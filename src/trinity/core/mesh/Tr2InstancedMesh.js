@@ -17,6 +17,7 @@ import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 import { CreateLodAllocations } from "./TriGeometryResAllocations.js";
 import { IsMatch, blue, EnumRegistrationType } from "#blue";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 
 
 /**
@@ -25,6 +26,7 @@ import { trinity } from "../../CjsTrinity.js";
  */
 @be.define("Tr2InstancedMesh")
 @be.exposureChainTo(Tr2Mesh)
+@be.inherit(Tr2DeviceResource)
 export class Tr2InstancedMesh extends Tr2Mesh
 {
   /** Carbon m_vertexDeclaration: combined mesh and instance elements. */
@@ -77,13 +79,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @type.int32
   instanceMeshIndex = 0;
 
-  /** Registers the inherited device-resource lifetime (Tr2DeviceResource.cpp:8-12). */
-  constructor()
-  {
-    super();
-    trinity.RegisterResource(this, Infinity);
-  }
-
   /**
    * Ends the final owner's mesh lifetime; shared providers are only detached.
    * Adapted: explicit JS teardown replaces the native mesh and device-resource
@@ -101,17 +96,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
     this._loadedGeometryResource = null;
     this.ReleaseResources();
     trinity.UnregisterResource(this);
-  }
-
-  /**
-   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32).
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed() && !this._OnPrepareResources()) return false;
-    return true;
   }
 
   /**
@@ -293,6 +277,9 @@ export class Tr2InstancedMesh extends Tr2Mesh
     if (!this.display) return false;
     const geometry = this.GetGeometryResource();
     if (!geometry || !geometry.IsGood()) return false;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). A bare call: the declaration check below
+    // rebuilds what preparing makes.
+    this.IsGood();
     const provider = this.GetInstanceGeometryResource();
     if (!provider || !provider.IsInstanceDataReady()) return false;
     const instanceGeometry = CjsSchema.cast(provider, TriGeometryRes);
