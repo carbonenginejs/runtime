@@ -53,6 +53,7 @@ import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversi
 import { LightFeatures } from "../../lights/LightFeatures.js";
 import { LightData } from "../../lights/LightData.js";
 import { trinity } from "../../../CjsTrinity.js";
+import { Tr2DeviceResourceState } from "../../../core/device/deviceResourceState.js";
 
 
 /**
@@ -131,17 +132,17 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   _indexBuffer = null;
 
   /**
-   * Carbon's constructor (cpp:86-99): prepares the set now.
+   * Carbon's constructor (cpp:86-99).
    *
-   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
-   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
-   *   on use (IsGood at its use site), so one built and never drawn is never
-   *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   * @adapted Carbon registers with the device and prepares the set here (cpp:98),
+   *   as the Tr2DeviceResource base constructor registers (Tr2DeviceResource.cpp:6-9).
+   *   Here the set does both on use (IsGood at its use site), so one built and never
+   *   drawn is never listed and holds no device objects, and one left unused is
+   *   released (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   constructor()
   {
     super();
-    this.PrepareResources();
   }
 
   /**
@@ -165,7 +166,10 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * so it reads as invisible rather than unbounded.
    *
    * @adapted Tr2SuballocatedBuffer has no Free, so the old allocations are
-   *   dropped rather than returned.
+   *   dropped rather than returned. The bounds are built always, since visibility
+   *   needs them before the first use; the geometry only once the set is
+   *   prepared, and otherwise by _OnPrepareResources, so a build allocates nothing
+   *   (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
   @be.mapMethodAndWrap()
   Rebuild()
@@ -198,6 +202,20 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
       );
     }
 
+    if (this._state === Tr2DeviceResourceState.PREPARED) this._BuildGeometry();
+  }
+
+  /**
+   * The geometry half of Carbon Rebuild (cpp:412-430): every banner's vertices
+   * and indices into the shared buffer.
+   *
+   * @cjs Split out of Rebuild so it runs only once the set is prepared (Rebuild)
+   *   or while it prepares (_OnPrepareResources): a build allocates nothing.
+   * @returns {void}
+   */
+  _BuildGeometry()
+  {
+    if (!this.effect) return;
     const vertices = [];
     const indices = [];
     for (const banner of this.banners) this.CreateBannerGeometry(vertices, indices, banner);
@@ -251,7 +269,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     definition.items.push(item);
 
     this._vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(definition);
-    if (!this._vertexBuffer || !this._indexBuffer) this.Rebuild();
+    if (!this._vertexBuffer || !this._indexBuffer) this._BuildGeometry();
     return true;
   }
 
@@ -777,14 +795,15 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Carbon Initialize (cpp:105-109) is Rebuild; the declaration comes from the
    * constructor's PrepareResources (cpp:98).
    *
-   * @adapted a JS object is usually constructed before the device exists, so
-   *   the declaration is prepared here, after the first Rebuild.
+   * @adapted Carbon prepares here (the constructor, cpp:98); here nothing prepares during a
+   *   build: the first use (IsGood) does, so a build that fails or is never drawn
+   *   holds no device objects (docs internal/decisions/device-resource-registration.md,
+   *   Revised lifecycle § 2).
    */
 
   Initialize()
   {
     this.Rebuild();
-    this.PrepareResources();
     return true;
   }
 

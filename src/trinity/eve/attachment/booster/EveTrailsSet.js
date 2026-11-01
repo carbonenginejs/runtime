@@ -83,19 +83,6 @@ export class EveTrailsSet
   _instanceBuffer = null;
 
   /**
-   * Carbon's constructor (cpp:13-20): prepares the set now.
-   *
-   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
-   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
-   *   on use (IsGood at its use site), so one built and never drawn is never
-   *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
-   */
-  constructor()
-  {
-    this.PrepareResources();
-  }
-
-  /**
    * Carbon Initialize (cpp:38-43): load the trail mesh.
    *
    * @implemented
@@ -265,6 +252,11 @@ export class EveTrailsSet
 
   /**
    * Carbon OnPrepareResources (cpp:224-242): the declaration once the mesh is in, then the instances.
+   *
+   * Carbon's constructor registers with the device and prepares (cpp:13-20). Here
+   * the set has no constructor: it registers and prepares on its first use (IsGood
+   * at its use site), so a build that fails or is never drawn holds no device
+   * objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @implemented
    */

@@ -42,19 +42,20 @@ import { trinity } from "../../../CjsTrinity.js";
 export class EveSpaceObjectDecal
 {
   /**
-   * Carbon's constructor (cpp:45-58): prepares its resources.
+   * Carbon's constructor (cpp:45-58).
    *
-   * @adapted Carbon also registers with the device here, as its
-   *   Tr2DeviceResource base does (Tr2DeviceResource.cpp:6-9); here the decal
-   *   registers on use, when GetRenderables asks IsGood, so a decal built and
-   *   never drawn is never listed. Destruct still unregisters.
+   * @adapted Carbon registers with the device and prepares its resources here,
+   *   as its Tr2DeviceResource base does (Tr2DeviceResource.cpp:6-9); here the
+   *   decal does both on its first use, when GetRenderables asks IsGood, so a
+   *   decal built and never drawn is never listed and holds no device objects
+   *   (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
+   *   Destruct still unregisters.
    */
   constructor()
   {
     // The schema's legacy TriBatchType default is 0. Carbon's decal default is
     // the opaque batch (1), so establish it after model/schema initialization.
     this.batchType = 1;
-    this.PrepareResources();
   }
 
   /**
@@ -229,15 +230,15 @@ export class EveSpaceObjectDecal
    * Builds the decal matrix and its inverse from the authored position, rotation
    * and scaling; returns false when the composed matrix is not invertible.
    *
-   * @adapted
+   * @adapted Carbon prepares here (cpp:80); here nothing prepares during a
+   *   build: the first use (IsGood) does, so a build that fails or is never drawn
+   *   holds no device objects (docs internal/decisions/device-resource-registration.md,
+   *   Revised lifecycle § 2).
    */
 
   Initialize()
   {
-    const result = this._UpdateDecalMatrix();
-    // cpp:80.
-    this.PrepareResources();
-    return result;
+    return this._UpdateDecalMatrix();
   }
 
   /**

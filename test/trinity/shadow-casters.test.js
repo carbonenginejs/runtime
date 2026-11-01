@@ -115,6 +115,8 @@ function turretDrawFixture(t)
   const set=new EveTurretSet(),geometry=new TriGeometryRes();
   geometry.ReadCMFFile({meshes:[{decl:[{usage:"Position",usageIndex:0,type:"Float32",elementCount:3,offset:0}],vertex:{position:[0,0,0,1,0,0,0,1,0]},indices:[{faces:[0,1,2]}],areas:[{firstElement:0,elementCount:1}]}]});prepareResourceFixture(geometry);
   t.after(()=>{set.Destruct();SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);});
+  // In use, as a drawn ship's set is: nothing prepares during a build (registration and preparing follow use).
+  set.IsGood();
   return {set,geometry};
 }
 

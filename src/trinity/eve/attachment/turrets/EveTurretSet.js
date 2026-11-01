@@ -564,20 +564,6 @@ export class EveTurretSet extends EveEntity
   _firingEffectMuzzlePosSet = false;
 
   /**
-   * Carbon's constructor (cpp:122): prepares the set.
-   *
-   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
-   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
-   *   on use (IsGood at its use site), so one built and never drawn is never
-   *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
-   */
-  constructor()
-  {
-    super();
-    this.PrepareResources();
-  }
-
-  /**
    * Explicit final-owner teardown replaces native deterministic destruction.
    * The steps are Carbon's destructor's, in its order (cpp:130-145): the
    * firing effect's CleanUp, Cleanup, the geometry notify target, then
@@ -642,6 +628,11 @@ export class EveTurretSet extends EveEntity
 
   /**
    * Native declaration and instance preparation (cpp:1103-1120).
+   *
+   * Carbon's constructor registers with the device and prepares (cpp:122). Here
+   * the set registers and prepares on its first use (IsGood at its use site), so a
+   * build that fails or is never drawn holds no device objects
+   * (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @implemented
    */

@@ -378,7 +378,10 @@ export class EveBoosterSet2 extends EveEntity
    *
    * @adapted a set whose boosters arrived as records rather than through Add
    *   derives what Add derives from them: the flares, the bounding sphere and
-   *   the max size. Every renderable instance is bound back to this set.
+   *   the max size. Every renderable instance is bound back to this set. Nothing
+   *   prepares here: the first use (IsGood) does, so a build that fails or is
+   *   never drawn holds no device objects (docs internal/decisions/device-resource-registration.md,
+   *   Revised lifecycle § 2).
    */
 
   Initialize()
@@ -388,7 +391,6 @@ export class EveBoosterSet2 extends EveEntity
     {
       renderable.SetBoosterSet(this);
     }
-    this.PrepareResources();
     return true;
   }
 

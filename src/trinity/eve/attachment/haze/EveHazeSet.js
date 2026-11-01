@@ -30,6 +30,7 @@ import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { trinity } from "../../../CjsTrinity.js";
+import { Tr2DeviceResourceState } from "../../../core/device/deviceResourceState.js";
 
 // Carbon's function-local s_hazeVertexDecl (EveHazeSet.cpp:131-145), stream 0:
 // it lands on HazeVertex (cpp:15-31) - three transform rows, three inverse
@@ -187,12 +188,14 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /**
    * Carbon Initialize (cpp:77-82): the device half, then the bounds.
    *
-   * @implemented
+   * @adapted Carbon prepares here (cpp:79); here nothing prepares during a
+   *   build: the first use (IsGood) does, so a build that fails or is never drawn
+   *   holds no device objects (docs internal/decisions/device-resource-registration.md,
+   *   Revised lifecycle § 2).
    */
 
   Initialize()
   {
-    this.PrepareResources();
     this.CreateBoundingBox();
     return true;
   }
@@ -201,14 +204,16 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon Rebuild (cpp:298-303): release and prepare the device half again,
    * then the bounds.
    *
-   * @implemented
+   * @adapted only a prepared set prepares again; one not yet used is prepared by
+   *   its first use (docs internal/decisions/device-resource-registration.md,
+   *   Revised lifecycle § 2).
    */
   @be.mapMethodAndWrap()
   Rebuild()
   {
     this._rebuildRevision++;
     this.ReleaseResources(0);
-    this.PrepareResources();
+    if (this._state === Tr2DeviceResourceState.PREPARED) this.PrepareResources();
     this.CreateBoundingBox();
   }
 
