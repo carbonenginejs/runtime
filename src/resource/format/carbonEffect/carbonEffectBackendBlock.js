@@ -105,7 +105,8 @@ export const CARBON_BACKEND_UNORM_TARGET_OVERRIDE = "cjsUnormTarget";
 /**
  * A pixel shader's coverage-discard override, `cjsCoverageDiscard` (u32): 0 off
  * (the default: the shader is unchanged), 1 discards where target 0's alpha is
- * at most 0.001, 2 where its brightest colour channel is. Declared on every
+ * at most 0.001, 2 where its brightest colour channel is, 3 where that channel
+ * times the clamped alpha is (an additive material blending SRCALPHA). Declared on every
  * pixel shader whose target 0 is a vec4<f32>. The depth-of-field layer pass
  * sets it so a transparent (1) or additive (2) material writes depth only
  * where it is visible. Not Carbon: the separated DoF layers follow ccpwgl

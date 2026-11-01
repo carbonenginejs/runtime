@@ -1319,6 +1319,21 @@ export class Tr2RenderContextALWebgl2
     this._coverageDiscard = mode >>> 0;
   }
 
+  /** The depth-of-field layer pass following draws use; see `SetDepthOfFieldLayerPass`. */
+  _dofLayerPass = 0;
+
+  /**
+   * Sets the depth-of-field layer pass (`CjsDofLayerPass`) for the WebGPU
+   * backend's layer path (not Carbon's). Like the coverage discard, the WebGL2
+   * half is not wired; the pass is kept for it.
+   *
+   * @param {number} pass A `CjsDofLayerPass` value.
+   */
+  SetDepthOfFieldLayerPass(pass)
+  {
+    this._dofLayerPass = pass >>> 0;
+  }
+
   // VIEWPORT AND CLEAR.
 
   /**

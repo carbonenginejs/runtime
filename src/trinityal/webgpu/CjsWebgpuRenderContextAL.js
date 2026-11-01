@@ -3268,15 +3268,29 @@ export class CjsWebgpuRenderContextAL
   /**
    * Sets the coverage-discard mode later draws' pipelines are built with
    * (CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE): 0 off, 1 discard where target
-   * 0's alpha is invisible, 2 where its colour is. Not Carbon: the
+   * 0's alpha is invisible, 2 where its colour is, 3 where its colour times
+   * alpha is. Not Carbon: the
    * depth-of-field layer pass sets it so transparent and additive materials
    * write depth only where they are visible (after ccpwgl 89973207).
    *
-   * @param {number} mode 0, 1 or 2.
+   * @param {number} mode 0, 1, 2 or 3.
    */
   SetCoverageDiscard(mode)
   {
     this._psoDescription.coverageDiscard = Number(mode) >>> 0;
+  }
+
+  /**
+   * Sets the depth-of-field layer pass (`CjsDofLayerPass`) later draws'
+   * pipelines are built with; its states replace the authored ones
+   * (`CjsWebgpuPsoDescription.dofLayerTarget`). Not Carbon: the separated
+   * depth-of-field layers (after ccpwgl 89973207).
+   *
+   * @param {number} pass A `CjsDofLayerPass` value.
+   */
+  SetDepthOfFieldLayerPass(pass)
+  {
+    this._psoDescription.dofLayerPass = Number(pass) >>> 0;
   }
 
   /**

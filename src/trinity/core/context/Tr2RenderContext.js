@@ -515,11 +515,23 @@ export class Tr2RenderContext
    * Not Carbon: the depth-of-field layer pass uses it so transparent and
    * additive materials write depth only where visible (after ccpwgl 89973207).
    *
-   * @param {number} mode 0, 1 or 2.
+   * @param {number} mode 0, 1, 2 or 3.
    */
   SetCoverageDiscard(mode)
   {
     return this._requireAL("SetCoverageDiscard").SetCoverageDiscard(mode);
+  }
+
+  /**
+   * Sets the depth-of-field layer pass (`CjsDofLayerPass`) whose states
+   * replace the authored ones for following draws. Not Carbon: the separated
+   * depth-of-field layers (after ccpwgl 89973207).
+   *
+   * @param {number} pass A `CjsDofLayerPass` value.
+   */
+  SetDepthOfFieldLayerPass(pass)
+  {
+    return this._requireAL("SetDepthOfFieldLayerPass").SetDepthOfFieldLayerPass(pass);
   }
 
   /**

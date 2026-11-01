@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { CjsWebgpuPsoDescription } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { Tr2RenderStateSetup } from "../../../npm/dist/resource/shader/index.js";
-import { Topology } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { CjsDofLayerPass, Topology } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 // Carbon's backend describes a pipeline incrementally and resolves it at the
 // draw against a DEVICE-side cache (Tr2RenderContextDx12.cpp:793-807). These
@@ -296,4 +296,15 @@ test("the depth-of-field layer pass's coverage discard is a pipeline constant, s
 
   pso.shaderProgram = { ...program, HasCoverageDiscardOverride: () => false };
   assert.equal(pso.BuildRecipe().fragment.constants, undefined, "a module without it gets none");
+});
+
+test("a depth-of-field layer pass replaces the authored target state; NONE keeps it", () =>
+{
+  const authored = { writeMask: 0x7, blend: { color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha", operation: "add" }, alpha: { srcFactor: "one", dstFactor: "zero", operation: "add" } } };
+  const keepAlpha = { srcFactor: "zero", dstFactor: "one", operation: "add" };
+  assert.equal(CjsWebgpuPsoDescription.dofLayerTarget(authored, CjsDofLayerPass.NONE), authored);
+  assert.deepEqual(CjsWebgpuPsoDescription.dofLayerTarget(authored, CjsDofLayerPass.LAYER_MASK), { writeMask: 0x7, blend: { color: { srcFactor: "zero", dstFactor: "one-minus-src-alpha", operation: "add" }, alpha: keepAlpha } });
+  assert.deepEqual(CjsWebgpuPsoDescription.dofLayerTarget(authored, CjsDofLayerPass.COVERAGE_DEPTH), { writeMask: 0 });
+  assert.deepEqual(CjsWebgpuPsoDescription.dofLayerTarget(authored, CjsDofLayerPass.COMPOSITE_MULTIPLY), { writeMask: 0x7, blend: { color: { srcFactor: "zero", dstFactor: "src", operation: "add" }, alpha: keepAlpha } });
+  assert.deepEqual(CjsWebgpuPsoDescription.dofLayerTarget(authored, CjsDofLayerPass.COMPOSITE_ADD), { writeMask: 0x7, blend: { color: { srcFactor: "one", dstFactor: "one", operation: "add" }, alpha: keepAlpha } });
 });

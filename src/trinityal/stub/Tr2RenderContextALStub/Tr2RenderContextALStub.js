@@ -1173,6 +1173,17 @@ export class Tr2RenderContextALStub
   }
 
   /**
+   * The depth-of-field layer pass (not Carbon; see
+   * CjsWebgpuRenderContextAL.SetDepthOfFieldLayerPass). The stub draws
+   * nothing, so it keeps nothing.
+   *
+   * @param {number} _pass Ignored.
+   */
+  SetDepthOfFieldLayerPass(_pass)
+  {
+  }
+
+  /**
    * @implemented
    * @see SetReadOnlyDepth @returns {boolean} False, always.
    */

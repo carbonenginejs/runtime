@@ -48,6 +48,7 @@
 // pipelines. Nothing is allocated to key a draw.
 import { CjsSchema } from "#schema";
 import { CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE, CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "#resource/format";
+import { CjsDofLayerPass } from "../../../global/consts/renderContext/pipeline.js";
 import { ccpHashFnv1, identityOf } from "#utils/hash";
 import { TOPOLOGIES } from "./topology.js";
 
@@ -69,7 +70,8 @@ const SLOT_SAMPLE_COUNT = SLOT_DEPTH_FORMAT + 1;
 const SLOT_UNORM_TARGETS = SLOT_SAMPLE_COUNT + 1;
 const SLOT_UNCLIPPED_DEPTH = SLOT_UNORM_TARGETS + 1;
 const SLOT_COVERAGE_DISCARD = SLOT_UNCLIPPED_DEPTH + 1;
-const SLOT_STRIP_INDEX_FORMAT = SLOT_COVERAGE_DISCARD + 1;
+const SLOT_DOF_LAYER_PASS = SLOT_COVERAGE_DISCARD + 1;
+const SLOT_STRIP_INDEX_FORMAT = SLOT_DOF_LAYER_PASS + 1;
 const SLOT_STREAM_MASK = SLOT_STRIP_INDEX_FORMAT + 1;
 const SLOT_STREAM_STRIDES = SLOT_STREAM_MASK + 1;
 const BLOCK_SIZE = SLOT_STREAM_STRIDES + MAX_VERTEX_STREAMS;
@@ -211,10 +213,16 @@ export class CjsWebgpuPsoDescription
 
   /**
    * The coverage-discard mode (CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE): 0
-   * off, 1 alpha, 2 colour. Set only by the depth-of-field layer pass; not
-   * Carbon.
+   * off, 1 alpha, 2 colour, 3 alpha-weighted colour. Set only by the
+   * depth-of-field layer pass; not Carbon.
    */
   coverageDiscard = 0;
+
+  /**
+   * The depth-of-field layer pass (`CjsDofLayerPass`) whose states replace
+   * the authored ones in BuildRecipe. Set only by the layer pass; not Carbon.
+   */
+  dofLayerPass = CjsDofLayerPass.NONE;
 
   /**
    * `primitive.stripIndexFormat` for an indexed strip, or null. WebGPU bakes
@@ -272,7 +280,12 @@ export class CjsWebgpuPsoDescription
     // (Tr2RenderStateSetup.GetWebgpuRecipe); each colour target carries them,
     // as D3D11's non-independent blend gives every RTV RenderTarget[0]'s state
     // (Tr2RenderContextDx11.cpp:784-785).
-    const { target, ...state } = projected;
+    const { target: authored, ...state } = projected;
+    const target = CjsWebgpuPsoDescription.dofLayerTarget(authored, this.dofLayerPass);
+    if (this.dofLayerPass === CjsDofLayerPass.COVERAGE_DEPTH && state.depthStencil)
+    {
+      state.depthStencil = { ...state.depthStencil, depthWriteEnabled: true };
+    }
 
     // A BOUND TARGET THE PIXEL SHADER DOES NOT WRITE gets writeMask 0 and no
     // blend. D3D11 leaves such an RTV untouched; WebGPU rejects the pipeline
@@ -300,7 +313,11 @@ export class CjsWebgpuPsoDescription
 
     if (this.coverageDiscard && this.shaderProgram.HasCoverageDiscardOverride())
     {
-      constants[CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE] = this.coverageDiscard;
+      // An additive material blending SRCALPHA is premultiplied (2LayerMask):
+      // its colour alone is no coverage, so it takes the alpha-weighted mode,
+      // as ccpwgl's DrawBatch chooses from the authored states.
+      const premultiplied = this.coverageDiscard === 2 && authored.blend && authored.blend.color.srcFactor === "src-alpha";
+      constants[CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE] = premultiplied ? 3 : this.coverageDiscard;
     }
 
     return {
@@ -320,6 +337,33 @@ export class CjsWebgpuPsoDescription
       },
       multisample: { count: this.sampleCount }
     };
+  }
+
+  /**
+   * The colour target state a depth-of-field layer pass draws with
+   * (`CjsDofLayerPass`); the authored one under `NONE`. Ours: after ccpwgl
+   * 89973207, which rewrites the same states on the material's passes.
+   *
+   * @param {object} authored The projected `{ blend, writeMask }`.
+   * @param {number} pass A `CjsDofLayerPass` value.
+   * @returns {object} The target state.
+   */
+  static dofLayerTarget(authored, pass)
+  {
+    const keepAlpha = { srcFactor: "zero", dstFactor: "one", operation: "add" };
+    switch (pass)
+    {
+      case CjsDofLayerPass.LAYER_MASK:
+        return { writeMask: 0x7, blend: { color: { srcFactor: "zero", dstFactor: "one-minus-src-alpha", operation: "add" }, alpha: keepAlpha } };
+      case CjsDofLayerPass.COVERAGE_DEPTH:
+        return { writeMask: 0 };
+      case CjsDofLayerPass.COMPOSITE_MULTIPLY:
+        return { writeMask: 0x7, blend: { color: { srcFactor: "zero", dstFactor: "src", operation: "add" }, alpha: keepAlpha } };
+      case CjsDofLayerPass.COMPOSITE_ADD:
+        return { writeMask: 0x7, blend: { color: { srcFactor: "one", dstFactor: "one", operation: "add" }, alpha: keepAlpha } };
+      default:
+        return authored;
+    }
   }
 
   /**
@@ -361,6 +405,7 @@ export class CjsWebgpuPsoDescription
     block[SLOT_SAMPLE_COUNT] = this.sampleCount;
     block[SLOT_UNCLIPPED_DEPTH] = this.unclippedDepth ? 1 : 0;
     block[SLOT_COVERAGE_DISCARD] = this.coverageDiscard;
+    block[SLOT_DOF_LAYER_PASS] = this.dofLayerPass;
     block[SLOT_STRIP_INDEX_FORMAT] = FormatId(this.stripIndexFormat);
 
     const mask = StreamMask(this.vertexLayout);

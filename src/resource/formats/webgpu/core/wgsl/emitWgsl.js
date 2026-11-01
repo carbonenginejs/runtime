@@ -502,7 +502,10 @@ export function buildWgsl(input, options = {})
             {
                 const value = `output.${coverageTarget.name}`;
                 const colour = `max(max(abs(${value}.r), abs(${value}.g)), abs(${value}.b))`;
-                lines.push(`${indent}if (${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE} != 0u && !(select(${value}.a, ${colour}, ${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE} == 2u) > 0.001)) { discard; }`);
+                // Mode 3 weights the colour by alpha, for an additive material that
+                // blends SRCALPHA (premultiplied, e.g. 2LayerMask), as ccpwgl's alpha-weighted variant does.
+                const coverage = `select(select(${value}.a, ${colour}, ${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE} == 2u), ${colour} * clamp(${value}.a, 0.0, 1.0), ${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE} == 3u)`;
+                lines.push(`${indent}if (${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE} != 0u && !(${coverage} > 0.001)) { discard; }`);
             }
             lines.push(compute ? `${indent}return;` : `${indent}return output;`);
         }

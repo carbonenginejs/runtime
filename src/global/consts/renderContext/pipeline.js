@@ -112,3 +112,29 @@ export const RegisterType = Object.freeze({
     UAV_TEXTURECUBE: (1 << 6) + 9,
     UAV_TEXTURECUBEARRAY: (1 << 6) + 10
 });
+
+/**
+ * Ours, not Carbon's: the depth-of-field layer pass a draw belongs to, set on
+ * the render context with `SetDepthOfFieldLayerPass` and applied after the
+ * authored render states (after ccpwgl 89973207; the register's "Separated
+ * depth-of-field layers" entry).
+ *
+ * - `NONE`: the authored states.
+ * - `LAYER_MASK`: RGB multiplied by one minus the shader's alpha (ZERO /
+ *   INVSRCALPHA), so a target cleared to white ends as the layer's
+ *   transmittance. Carbon's bokeh does not carry alpha through, so the
+ *   transparent layer's coverage is blurred as colour, as ccpwgl blurs a mask.
+ * - `COVERAGE_DEPTH`: depth write on, colour writes and blend off; with a
+ *   coverage-discard mode, the nearest visible surface's depth.
+ * - `COMPOSITE_MULTIPLY`: the target's RGB times the source's (ZERO / SRC),
+ *   applying a blurred transmittance.
+ * - `COMPOSITE_ADD`: the source's RGB added (ONE / ONE): a premultiplied
+ *   transparent layer after its transmittance, or an additive layer.
+ */
+export const CjsDofLayerPass = Object.freeze({
+    NONE: 0,
+    LAYER_MASK: 1,
+    COVERAGE_DEPTH: 2,
+    COMPOSITE_MULTIPLY: 3,
+    COMPOSITE_ADD: 4
+});
