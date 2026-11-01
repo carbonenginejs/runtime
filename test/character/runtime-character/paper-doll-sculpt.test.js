@@ -62,3 +62,25 @@ test("sculpt inputs do not perform component validation", () =>
     doll.archetype.SetSculpt("Jaw_downShape", Number.NaN);
     assert.equal(Number.isNaN(doll.archetype.GetSculpt("Jaw_downShape")), true);
 });
+
+test("a foundation listed by id is prepared through its resolver before it can be selected", async () =>
+{
+    const doll = new CjsPaperDollDefinition();
+    const other = { ...Foundation(), id: "other", label: "Other" };
+    other.parts = other.parts.map(part => part.id === "archetype" ? { ...part, id: "other" } : part.id === "head"
+        ? { ...part, dependencies: [ { part: "other", weight: 1 } ] } : part);
+    const calls = [];
+    doll.archetype.Configure([ Foundation(), { id: "other", label: "Other" } ], { option: "archetype", strength: 1,
+        resolve: async id => { calls.push(id); return other; } });
+    assert.deepEqual(doll.archetype.GetOptions().map(value => value.id), [ "archetype", "other" ]);
+    doll.archetype.option = "other";
+    assert.throws(() => doll.archetype.Resolve(), /not prepared/);
+    doll.archetype.option = "archetype";
+    const [ first, second ] = await Promise.all([ doll.archetype.ResolveOption("other"), doll.archetype.ResolveOption("other") ]);
+    assert.strictEqual(first, second);
+    assert.deepEqual(calls, [ "other" ]);
+    doll.archetype.option = "other";
+    assert.equal(doll.archetype.Resolve().archetype, "other");
+    assert.equal((await doll.archetype.ResolveOption("archetype")).id, "archetype", "a prepared entry resolves without the resolver");
+    assert.deepEqual(calls, [ "other" ]);
+});

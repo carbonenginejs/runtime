@@ -26,6 +26,12 @@ export class CjsPaperDollArchetype
 
     _sculpt = new Map();
 
+    /** The configured foundation resolver, or null when every option arrived prepared. */
+    _resolve = null;
+
+    /** Each foundation preparation in flight or done, by id; a failed one is forgotten so it can be retried. */
+    _resolving = new Map();
+
     /** Selected prepared foundation identity. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
@@ -49,23 +55,62 @@ export class CjsPaperDollArchetype
         if (IsMatch(propertyName, "option")) this._foundationDirty = true;
     }
 
-    /** Resolves prepared foundation graphs and installs the initial input values. */
-    Configure(options, { option, strength = 1 } = {})
+    /**
+     * Resolves prepared foundation graphs and installs the initial input values.
+     *
+     * An entry that carries its prepared record (`parts`) is resolved now. One that carries only `id` and `label`
+     * is completed by `resolve` the first time `ResolveOption` asks for it, so a bloodline's files are read only
+     * when it is chosen.
+     * @param {object[]} options Prepared foundation records, or `{ id, label }` for one prepared on first use.
+     * @param {object} [settings] The initial option and strength, and the resolver.
+     * @param {string} [settings.option] The initial option; it must be prepared.
+     * @param {number} [settings.strength=1] The initial strength.
+     * @param {?function(string): Promise<object>} [settings.resolve=null] Prepares one foundation record.
+     * @returns {void}
+     */
+    Configure(options, { option, strength = 1, resolve = null } = {})
     {
         const prepared = new Map();
         for (const entry of options)
         {
             prepared.set(entry.id, { id: entry.id, label: entry.label || entry.id,
-                foundation: CjsPaperDollArchetype.resolve(entry) });
+                foundation: entry.parts ? CjsPaperDollArchetype.resolve(entry) : null });
         }
         const weight = Math.fround(strength);
         this.strength = weight;
         this._defaultStrength = weight;
         this._options = prepared;
+        this._resolve = resolve;
+        this._resolving = new Map();
         this._defaultOption = option;
         this.option = option;
         this._foundationDirty = true;
         this._dirty = true;
+    }
+
+    /**
+     * Prepares one foundation through the configured resolver, once: the record it answers is resolved into the
+     * option's foundation graph. Concurrent calls share one preparation; a failed one is forgotten, so the next
+     * call retries it.
+     * @param {string} id The archetype id.
+     * @returns {Promise<?object>} The option, or null for an unknown id.
+     */
+    ResolveOption(id)
+    {
+        const entry = this._options.get(id) ?? null;
+        if (!entry || entry.foundation || !this._resolve) return Promise.resolve(entry);
+        if (!this._resolving.has(id))
+        {
+            const resolving = this._resolving;
+            const operation = this._resolve(id).then(record =>
+            {
+                entry.foundation = CjsPaperDollArchetype.resolve(record);
+                return entry;
+            });
+            resolving.set(id, operation);
+            operation.catch(() => { if (resolving.get(id) === operation) resolving.delete(id); });
+        }
+        return this._resolving.get(id);
     }
 
     /** Returns qualified choices; there is no optional or disabled foundation. */
@@ -118,9 +163,13 @@ export class CjsPaperDollArchetype
         }
     }
 
-    /** Returns an owned snapshot (the foundation, its strength and the sculpt); callers cannot mutate the retained foundation. */
+    /**
+     * Returns an owned snapshot (the foundation, its strength and the sculpt); callers cannot mutate the retained
+     * foundation. Throws for a selected foundation that is not prepared: select one only after `ResolveOption`.
+     */
     Resolve()
     {
+        if (this.option && !this._options.get(this.option).foundation) throw new Error("Foundation " + this.option + " is not prepared");
         return this.option ? { ...structuredClone(this._options.get(this.option).foundation), strength: this.strength, sculpt: this.GetSculpts() } : null;
     }
 
