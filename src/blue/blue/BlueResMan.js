@@ -336,6 +336,15 @@ export class BlueResMan
   /** `m_mainThreadMaxTime` (BlueResMan.cpp:78): the longest prepare loop of one `Update`, in seconds. */
   mainThreadMaxTime = 0;
 
+  /**
+   * Seconds every `Update`'s prepare loop has taken, summed: the time partner
+   * of `preparesHandledTotal`, so a reader can take per-frame deltas.
+   *
+   * @cjs Carbon keeps only the maximum (`m_mainThreadMaxTime`); its
+   *   per-update `timeInUpdate` is a local (BlueResMan.cpp:447).
+   */
+  mainThreadTimeTotal = 0;
+
   /** `m_urgentResourceLoads( false )` (BlueResMan.h:128, BlueResMan.cpp:73). */
   urgentResourceLoads = false;
 
@@ -739,6 +748,7 @@ export class BlueResMan
     this.preparesHandledTotal += this.preparesHandledLastTick;
     if (this.preparesHandledLastTick > this.preparesHandledPerTickMax) this.preparesHandledPerTickMax = this.preparesHandledLastTick;
     if (timeInUpdate > this.mainThreadMaxTime) this.mainThreadMaxTime = timeInUpdate;
+    this.mainThreadTimeTotal += timeInUpdate;
 
     this.pendingPrepares = main.GetSize();
     this.pendingLoads = background.GetSize();

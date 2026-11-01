@@ -30,6 +30,7 @@
 // enumerable keys, canonicalised to an empty object, and would have collided
 // with every other program in the pipeline cache.
 import { CjsSchema } from "#schema";
+import { CjsWebgpuDevice } from "./CjsWebgpuDevice.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -263,6 +264,7 @@ export class CjsWebgpuShaderAL
       label: shaderPath || "Tr2ShaderAL",
       code: this._source
     });
+    CjsWebgpuDevice.shaderModulesCreated += 1;
     this._webgpu = webgpu;
     this._type = type;
     this._signature = signature;

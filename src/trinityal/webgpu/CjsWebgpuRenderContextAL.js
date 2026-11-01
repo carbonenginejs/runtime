@@ -95,6 +95,7 @@ import { CjsWebgpuMipGenerator } from "./core/CjsWebgpuMipGenerator.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL, CONSTANT_BUFFER_REGISTERS } from "./CjsWebgpuConstantBufferAL.js";
 import { CjsWebgpuFenceAL } from "./CjsWebgpuFenceAL.js";
+import { CjsWebgpuDevice } from "./CjsWebgpuDevice.js";
 import { CARBON_BACKEND_ADDRESS_MODES_SYMBOL } from "#resource/format";
 import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
 import { CjsWebgpuResourceSetAL } from "./CjsWebgpuResourceSetAL.js";
@@ -1508,6 +1509,7 @@ export class CjsWebgpuRenderContextAL
         compute: { module, entryPoint: WEBGPU_ENTRY_POINT }
       });
       this._computePipelines.set(program, pipeline);
+      CjsWebgpuDevice.computePipelinesCreated += 1;
     }
 
     if (!this._EmitBindGroups()) return false;
@@ -2791,6 +2793,7 @@ export class CjsWebgpuRenderContextAL
         : {})
     };
 
+    CjsWebgpuDevice.renderPipelinesCreated += 1;
     return this._webgpu.GetDevice().createRenderPipeline(descriptor);
   }
 

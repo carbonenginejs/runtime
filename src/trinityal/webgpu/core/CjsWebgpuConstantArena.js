@@ -22,6 +22,7 @@
 
 
 import { CjsSchema, type } from "#schema";
+import { CjsWebgpuDevice } from "../CjsWebgpuDevice.js";
 function fail(message)
 {
   const error = new Error(`CjsWebgpuConstantArena: ${message}`);
@@ -114,6 +115,7 @@ export class CjsWebgpuConstantArena
 
     // `writeBuffer` wants a four-byte-aligned length; the reserve is.
     this._webgpu.GetDevice().queue.writeBuffer(page, offset, bytes, 0, bytes.byteLength & ~3);
+    CjsWebgpuDevice.bufferBytesWritten += bytes.byteLength & ~3;
 
     return { page: this._page, offset, size: reserved };
   }

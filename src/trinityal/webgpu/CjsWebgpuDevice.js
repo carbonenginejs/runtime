@@ -20,6 +20,49 @@ export class CjsWebgpuDevice
 {
 
   /**
+   * Bytes this backend has passed to `GPUQueue.writeBuffer`, since the page
+   * loaded: device buffers (`WriteDeviceBuffer`) and constant-arena pages.
+   * A running total; a reader takes per-frame deltas.
+   *
+   * @cjs Carbon has no counter for buffer uploads (its `CCP_STATS_DECLARE`
+   *   list has none); a load readout needs one, because a WebGPU write is a
+   *   whole copy where Carbon maps memory.
+   */
+  static bufferBytesWritten = 0;
+
+  /**
+   * Bytes this backend has passed to `GPUQueue.writeTexture`, since the page
+   * loaded: texture creation uploads and `UpdateTexture`-style writes.
+   *
+   * @cjs As `bufferBytesWritten`.
+   */
+  static textureBytesWritten = 0;
+
+  /**
+   * Render pipelines created through `CjsWebgpuRenderContextAL`, since the
+   * page loaded. The mip generator's own few (one per format) are not counted.
+   *
+   * @cjs Carbon has no creation counter; in WebGPU each creation can stall on
+   *   a GPU-process compile, so a load readout counts them.
+   */
+  static renderPipelinesCreated = 0;
+
+  /**
+   * Compute pipelines created through `CjsWebgpuRenderContextAL`, since the
+   * page loaded. The video colour sampler's own two are not counted.
+   *
+   * @cjs As `renderPipelinesCreated`.
+   */
+  static computePipelinesCreated = 0;
+
+  /**
+   * Shader modules created by `CjsWebgpuShaderAL`, since the page loaded.
+   *
+   * @cjs As `renderPipelinesCreated`.
+   */
+  static shaderModulesCreated = 0;
+
+  /**
    * The GPU provider (`navigator.gpu` or an injected one), kept for
    * Recreate. Set by the constructor.
    * @type {GPU|null}
@@ -270,6 +313,7 @@ export class CjsWebgpuDevice
     if (offset + bytes.byteLength > record.size) fail("that write runs past the end of the device buffer");
 
     this.GetDevice().queue.writeBuffer(record.buffer, offset, bytes);
+    CjsWebgpuDevice.bufferBytesWritten += bytes.byteLength;
 
     return handle;
   }

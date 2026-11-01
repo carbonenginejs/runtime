@@ -30,6 +30,7 @@ import { CjsWebgpuVideoColorSampler } from "./CjsWebgpuVideoColorSampler.js";
 import { Tr2ReadbackALWebgpu } from "./Tr2ReadbackALWebgpu.js";
 import { IsCompressedFormat, GetBytesPerPixel } from "#consts/render-context";
 import { Tr2MemoryCounterAL } from "../Tr2MemoryCounterAL.js";
+import { CjsWebgpuDevice } from "./CjsWebgpuDevice.js";
 
 const NO_HEAP_INDEX = 0xffffffff;
 
@@ -404,6 +405,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
           { offset: 0, bytesPerRow: pitch, rowsPerImage: pitch ? Math.max(1, Math.floor(slicePitch / pitch)) : undefined },
           { width: desc.GetMipWidth(mip), height: desc.GetMipHeight(mip), depthOrArrayLayers: depth }
         );
+        CjsWebgpuDevice.textureBytesWritten += bytes.byteLength;
       }
     }
   }
@@ -849,6 +851,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
         height: box ? box.bottom - box.top : this._desc.GetMipHeight(mip),
         depthOrArrayLayers: volume ? (box ? box.back - box.front : this._desc.GetMipDepth(mip)) : 1 }
     );
+    CjsWebgpuDevice.textureBytesWritten += source.byteLength;
 
     return ALResult.S_OK;
   }

@@ -152,3 +152,16 @@ test("CjsWebgpuDevice.Request keeps adapter policy explicit and reports unavaila
   assert.equal(injectedDevice.GetAdapter(), null);
   assert.equal(injectedDevice.GetDevice(), fake.device);
 });
+
+test("CjsWebgpuDevice counts the bytes WriteDeviceBuffer passes to the queue", () =>
+{
+  const { device } = fakeDevice("write-count");
+  device.queue.writeBuffer = (buffer, offset, bytes) => device.calls.push([ "writeBuffer", offset, bytes.byteLength ]);
+  device.createBuffer = descriptor => ({ kind: "buffer", descriptor });
+  const webgpu = new CjsWebgpuDevice({ device, bufferUsage: { COPY_DST: 8 } });
+  const handle = webgpu.CreateDeviceBuffer({ size: 64, usage: 128 });
+  const before = CjsWebgpuDevice.bufferBytesWritten;
+  webgpu.WriteDeviceBuffer(handle, new Uint8Array(16), 8);
+  webgpu.WriteDeviceBuffer(handle, new Float32Array(4));
+  assert.equal(CjsWebgpuDevice.bufferBytesWritten - before, 32);
+});
