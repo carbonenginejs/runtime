@@ -552,8 +552,9 @@ export class Tr2GpuParticleSystem
     {
       return;
     }
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the clear, emit,
-    // simulate and sort, which run on the buffers preparing builds; Carbon's flow continues either way.
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood), before the clear, emit,
+    // simulate and sort, which run on the buffers preparing builds. A bare call: it is the registration on
+    // use only, and does not gate Carbon's Update, which carries on whatever it answers.
     this.IsGood();
 
     let dt = (this._previousTime === -1 || !this.enableUpdate) ? 0 : CcpTime.timeAsFloat(time - this._previousTime);
