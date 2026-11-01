@@ -264,10 +264,10 @@ export class Tr2Renderer
    *
    * Carbon also allocates its quad vertex buffer here, which is not ported;
    * this creates the blitter and the debug line set (cpp:1293-1296) and
-   * reserves the quad-list index buffer.
+   * reserves the quad-list index buffers.
    *
    * @adapted Carbon also allocates the quad vertex buffer here; only the
-   *   blitter, the debug line set and the quad-list index buffer are ported.
+   *   blitter, the debug line set and the quad-list index buffers are ported.
    * @param {object} [renderContext] The context to prepare the blitter against.
    * @returns {Tr2Blitter} The renderer's blitter.
    */
@@ -286,12 +286,11 @@ export class Tr2Renderer
   /**
    * Carbon `ReleaseDeviceResources( s )` (`Tr2Renderer.cpp:1316-1327`), which
    * TriDevice calls on device loss and reset: a managed-memory release frees
-   * the quad-list index buffer from the shared geometry buffer, so the next
-   * `prepareDeviceResources` makes it again.
+   * the quad-list index buffers from the shared geometry buffer, so the next
+   * `prepareDeviceResources` makes them again.
    *
-   * @adapted the quad vertex buffer and the reversed quad-list index buffer
-   *   are not ported (see prepareDeviceResources), so only the quad-list index
-   *   buffer is freed.
+   * @adapted the quad vertex buffer is not ported (see prepareDeviceResources),
+   *   so only the two quad-list index buffers are freed.
    * @param {number} s A `TriStorage` mask.
    * @returns {void}
    */
@@ -301,6 +300,8 @@ export class Tr2Renderer
 
     const allocation = Tr2Renderer.#quadListIndexBuffer;
     if (allocation._parent) allocation._parent.Free(allocation);
+    const reversed = Tr2Renderer.#reversedQuadListIndexBuffer;
+    if (reversed._parent) reversed._parent.Free(reversed);
   }
 
   /**
@@ -668,9 +669,9 @@ export class Tr2Renderer
   }
 
   /**
-   * Grows the shared quad-list index buffer to hold `numOfQuads` quads
-   * (`Tr2Renderer.cpp:1229-1266`). Sixteen-bit indices while every index
-   * fits, thirty-two-bit beyond.
+   * Grows the shared quad-list index buffer and its reversed-winding twin to
+   * hold `numOfQuads` quads (`Tr2Renderer.cpp:1232-1271`). Sixteen-bit indices
+   * while every index fits, thirty-two-bit beyond.
    *
    * @implemented
    * @param {number} [numOfQuads] Quads the caller needs indices for.
@@ -682,53 +683,67 @@ export class Tr2Renderer
 
     let requested = Math.max(Number(numOfQuads) || 0, 0);
 
-    if (requested <= Tr2Renderer.#quadListSize && Tr2Renderer.#quadListIndexBuffer.IsValid()) return;
+    if (requested <= Tr2Renderer.#quadListSize && Tr2Renderer.#quadListIndexBuffer.IsValid() &&
+      Tr2Renderer.#reversedQuadListIndexBuffer.IsValid()) return;
 
     requested = Math.max(requested, Tr2Renderer.#quadListSize);
     if (requested === 0) return;
 
     const Typed = requested <= Math.floor(0xffff / 6) ? Uint16Array : Uint32Array;
 
-    if (Tr2Renderer.#CreateIndexBuffer(Typed, requested))
-    {
-      Tr2Renderer.#quadListSize = requested;
-    }
+    // Carbon's `&&` (cpp:1257-1258): the reversed buffer is made only once the forward one is.
+    const forward = Tr2Renderer.#CreateIndexBuffer(Typed, requested, Tr2Renderer.#quadListIndexBuffer);
+    if (!forward) return;
+    Tr2Renderer.#quadListIndexBuffer = forward;
+    const reversed = Tr2Renderer.#CreateIndexBuffer(Typed, requested, Tr2Renderer.#reversedQuadListIndexBuffer, true);
+    if (!reversed) return;
+    Tr2Renderer.#reversedQuadListIndexBuffer = reversed;
+    Tr2Renderer.#quadListSize = requested;
   }
 
   /**
    * Carbon's file-static `CreateIndexBuffer<T>` (`Tr2Renderer.cpp:293-323`):
-   * two triangles per quad, (0,2,1) and (0,3,2), into the shared geometry
-   * buffer. The previous allocation is returned to its recorded owner before regrowth.
+   * two triangles per quad into the shared geometry buffer, (0,2,1) and
+   * (0,3,2), or (0,1,2) and (0,2,3) for the reversed winding. The previous
+   * allocation is returned to its recorded owner before regrowth.
+   *
+   * @adapted Carbon writes the new allocation through its reference argument;
+   *   this returns it, null on failure, and the caller stores it.
+   * @param {Uint16ArrayConstructor|Uint32ArrayConstructor} Typed The index type.
+   * @param {number} count Quads.
+   * @param {Tr2SuballocatedBufferAllocation} previous The allocation being replaced.
+   * @param {boolean} [reversedWinding] Carbon's `reversedWinding`.
+   * @returns {Tr2SuballocatedBufferAllocation|null} The new allocation.
    */
-  static #CreateIndexBuffer(Typed, count)
+  static #CreateIndexBuffer(Typed, count, previous, reversedWinding = false)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
     const indices = new Typed(count * 6);
+    const pattern = reversedWinding ? Tr2Renderer.#reversedPattern : Tr2Renderer.#forwardPattern;
 
     for (let quad = 0, at = 0; quad < count; quad++, at += 6)
     {
       const base = 4 * quad;
-      indices[at] = base;
-      indices[at + 1] = base + 2;
-      indices[at + 2] = base + 1;
-      indices[at + 3] = base;
-      indices[at + 4] = base + 3;
-      indices[at + 5] = base + 2;
+      for (let k = 0; k < 6; k++) indices[at + k] = pattern[k] + base;
     }
 
-    const previous = Tr2Renderer.#quadListIndexBuffer;
     if (previous._parent) previous._parent.Free(previous);
     const allocation = SharedGeometryBuffer(renderContext).Allocate(Typed.BYTES_PER_ELEMENT, count * 6, indices, renderContext);
 
     if (!allocation)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Tr2Renderer: CreateIndexBuffer failed to create an index buffer for ${count} quads`);
-      return false;
+      return null;
     }
 
-    Tr2Renderer.#quadListIndexBuffer = allocation;
-    return true;
+    return allocation;
   }
+
+  /** Carbon CreateIndexBuffer's `forwardPattern` (cpp:298). */
+  static #forwardPattern = [ 0, 2, 1, 0, 3, 2 ];
+
+  /** Carbon CreateIndexBuffer's `reversedPattern` (cpp:299). */
+  static #reversedPattern = [ 0, 1, 2, 0, 2, 3 ];
 
   /**
    * The shared quad-list index buffer allocation (`Tr2Renderer.cpp:1267-1270`).
@@ -741,6 +756,19 @@ export class Tr2Renderer
   static GetQuadListIndexBuffer()
   {
     return Tr2Renderer.#quadListIndexBuffer;
+  }
+
+  /**
+   * The shared quad-list index buffer with reversed winding
+   * (`Tr2Renderer.cpp:1278-1281`), for quads drawn under a mirrored parent.
+   * Invalid until `ReserveQuadListIndexBuffer` has made one.
+   *
+   * @implemented
+   * @returns {Tr2SuballocatedBufferAllocation} The allocation.
+   */
+  static GetReversedQuadListIndexBuffer()
+  {
+    return Tr2Renderer.#reversedQuadListIndexBuffer;
   }
 
   /**
@@ -1562,6 +1590,9 @@ export class Tr2Renderer
 
   /** Carbon s_quadListIndexBuffer. */
   static #quadListIndexBuffer = new Tr2SuballocatedBufferAllocation();
+
+  /** Carbon s_reversedQuadListIndexBuffer (cpp:103). */
+  static #reversedQuadListIndexBuffer = new Tr2SuballocatedBufferAllocation();
 
   /**
    * Carbon's `s_renderTimeVar`, registered once and assigned every frame.
