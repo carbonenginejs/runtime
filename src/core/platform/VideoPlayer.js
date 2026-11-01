@@ -6,7 +6,7 @@ import { IBlueEvents } from "../../global/blue/IBlueEvents.js";
 // Browser adaptation: HTML media owns decoding, presentation and audio clocks.
 // Resource paths and playlist policy remain with VideoPlaylistController.
 import { CjsSchema } from "#schema";
-import { State } from "../../resource/video/enums.js";
+import { State } from "./video/enums.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../trinity/core/context/Tr2RenderContext.js";
 import { BitmapDimensions } from "#imageio";
 import { UpdateVideoTexture, ClearVideoTexture } from "../../trinity/core/Tr2ImageIOHelpers.js";

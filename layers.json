@@ -98,15 +98,6 @@
       "why": [
         "Legacy public texture entry re-exports the same Trinity classes."
       ]
-    },
-    "resource/video/index.js": {
-      "mayImport": [
-        "resource",
-        "core"
-      ],
-      "why": [
-        "Legacy video entry preserves playlist exports; the controller now lives beside VideoPlayer."
-      ]
     }
   },
   "externalImports": [

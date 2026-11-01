@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { CjsFormat } from "../../src/resource/format/CjsFormat.js";
 import { StreamType } from "../../src/global/consts/media/metadata.js";
 import { blueEnums } from "../../src/global/blue/enums/CjsBlueEnumRegistry.js";
-import { StreamType as VideoStreamType } from "../../src/resource/video/enums.js";
+import { StreamType as VideoStreamType } from "../../src/core/platform/video/enums.js";
 import { CjsMp4Format } from "../../src/resource/formats/mp4/CjsMp4Format.js";
 import { CjsWebmFormat } from "../../src/resource/formats/webm/CjsWebmFormat.js";
 import { CjsOggFormat } from "../../src/resource/formats/ogg/CjsOggFormat.js";

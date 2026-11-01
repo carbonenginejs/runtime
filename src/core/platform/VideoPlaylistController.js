@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 import { IBlueDynamicResourceConstructor } from "#blue";
 import { CjsSchema } from "#schema";
 import { TriTextureRes } from "../../trinity/resources/texture/TriTextureRes.js";
-import { State } from "../../resource/video/enums.js";
+import { State } from "./video/enums.js";
 import { ColorPrefix } from "../../trinity/resources/procedural/solidColorTexture.js";
 
 const registrations = new WeakMap();

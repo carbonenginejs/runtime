@@ -10,7 +10,7 @@ export * from "../trinity/resources/Tr2LightProfileRes.js";
 export * from "./geometry/index.js";
 export * from "./shader/index.js";
 export * from "../trinity/resources/texture/index.js";
-export * from "./video/index.js";
+export * from "../core/platform/video/index.js";
 export * from "./format/CjsResourceProbe.js";
 export * from "./format/CjsFormat.js";
 export { CjsEventEmitter } from "#model";

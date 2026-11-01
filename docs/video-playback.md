@@ -7,7 +7,7 @@ Summary: Describes browser decoding, persistent GPU storage, colour sampling and
 
 ## Current integration
 
-Configure `RegisterVideoPlaylists` from the `resource/video` export with the
+Configure `RegisterVideoPlaylists` from the `core/platform` export (also re-exported by `resource`) with the
 existing resource manager, host-defined `inspacevideos` and `hangarvideos`
 playlists, and `{ createPlayer: () => new VideoPlayer() }`. `VideoPlayer` is
 exported by `core/platform`. Without the factory, registration remains
