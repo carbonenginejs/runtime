@@ -26,6 +26,8 @@ import { isFunction } from "#utils/is";
 import { TriStorageFlags } from "#consts/graphics";
 import { GpuResourceHandle } from "./GpuResourceHandle.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
+import { exposure as be } from "#be";
 
 const allPools = new Set();
 
@@ -299,12 +301,6 @@ export class Tr2GpuResourcePool
     for (const pool of allPools) pool.ClearUnusedResources(frameThreshold);
   }
 
-  /** The native pool has no resources to prepare eagerly. */
-  PrepareResources()
-  {
-    return this._OnPrepareResources();
-  }
-
   /** Native preparation succeeds without allocating pooled resources. */
   _OnPrepareResources()
   {
@@ -494,3 +490,6 @@ export function DestroyGlobalGpuResourcePool()
   if (globalPool) globalPool.Destruct();
   globalPool = null;
 }
+
+// Carbon's Tr2DeviceResource base (Tr2GpuResourcePool.h); JS has one base class, so it is installed.
+be.inherit(Tr2DeviceResource)(Tr2GpuResourcePool, { kind: "class" });

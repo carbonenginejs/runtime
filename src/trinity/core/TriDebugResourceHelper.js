@@ -4,10 +4,11 @@ import { meta, blue } from "#schema";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
-import { Tr2Renderer } from "./Tr2Renderer.js";
 import { TriDebugResourceHelperVertexPos } from "./TriDebugResourceHelperVertexPos.js";
 import { TriDebugResourceHelperVertexPosColor } from "./TriDebugResourceHelperVertexPosColor.js";
 import { trinity } from "../CjsTrinity.js";
+import { Tr2DeviceResource } from "./device/Tr2DeviceResource.js";
+import { exposure as be } from "#be";
 
 
 const DEBUG_EFFECT_PATH = "res:/Graphics/Effect/Managed/Utility/Debug.fx";
@@ -38,16 +39,6 @@ export class TriDebugResourceHelper
   constructor()
   {
     trinity.RegisterResource(this, Infinity);
-  }
-
-  /**
-   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this._OnPrepareResources();
   }
 
   /**
@@ -166,3 +157,6 @@ export class TriDebugResourceHelper
   /** Carbon TriDebugResourceHelper::VertexPosColor (public, TriDebugResourceHelper.h:44-48). */
   static VertexPosColor = TriDebugResourceHelperVertexPosColor;
 }
+
+// Carbon's Tr2DeviceResource base (TriDebugResourceHelper.h); JS has one base class, so it is installed.
+be.inherit(Tr2DeviceResource)(TriDebugResourceHelper, { kind: "class" });

@@ -5,6 +5,8 @@ import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, ALRes
 import { PixelFormat, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
+import { exposure as be } from "#be";
 
 /** Native picking attachments and their explicit device-resource lifetime. */
 export class Tr2PickBuffer
@@ -212,3 +214,6 @@ CjsSchema.decorateMethod(Tr2PickBuffer, "BeginRendering");
 CjsSchema.decorateMethod(Tr2PickBuffer, "EndRendering");
 CjsSchema.decorateMethod(Tr2PickBuffer, "MapForReading");
 CjsSchema.decorateMethod(Tr2PickBuffer, "UnmapForReading");
+
+// Carbon's Tr2DeviceResource base (Tr2PickBuffer.h); JS has one base class, so it is installed.
+be.inherit(Tr2DeviceResource)(Tr2PickBuffer, { kind: "class" });

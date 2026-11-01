@@ -42,10 +42,10 @@ import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
-import { Tr2Renderer } from "../../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../context/Tr2RenderContext.js";
 import { ITr2GpuBuffer } from "../../ITr2GpuBuffer.js";
 import { trinity } from "../../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../Tr2DeviceResource.js";
 
 
 function failRing(message)
@@ -67,7 +67,7 @@ const INVALID_OFFSET = 0xffffffff;
  * One upload arena per data type, fenced by frame.
  */
 @be.define("Tr2RingBuffer")
-@be.inherit(ITr2GpuBuffer)
+@be.inherit(ITr2GpuBuffer, Tr2DeviceResource)
 
 export class Tr2RingBuffer
 {
@@ -391,18 +391,6 @@ export class Tr2RingBuffer
     this.tail = size;
 
     this._CreateBuffer(null);
-  }
-
-  /**
-   * Prepares the arena when resource creation is allowed (Tr2DeviceResource.cpp:21-32).
-   *
-   * @implemented
-   * @returns {boolean} Whether preparation succeeded or was deferred.
-   */
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed()) return this._OnPrepareResources();
-    return true;
   }
 
   /**

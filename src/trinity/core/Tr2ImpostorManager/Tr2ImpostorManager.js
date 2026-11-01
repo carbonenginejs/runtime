@@ -24,6 +24,7 @@ import { ImpostorAtlas } from "./ImpostorAtlas.js";
 import { Impostor } from "./Impostor.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 
 const emptyTexture = new Tr2TextureAL();
 const vec4_0 = vec4.create(), vec4_1 = vec4.create();
@@ -41,7 +42,7 @@ function copyHash(out, value)
 @be.define("Tr2ImpostorManager")
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
-@be.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify, Tr2DeviceResource)
 export class Tr2ImpostorManager
 {
 

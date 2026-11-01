@@ -16,6 +16,8 @@ import { CjsSchema } from "#schema";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { Failed } from "../../../../trinityal/ALResult.js";
 import { trinity } from "../../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../Tr2DeviceResource.js";
+import { exposure as be } from "#be";
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */
 export const SHARED_BUFFER_BLOCK_SIZE = 32 * 1024 * 1024;
@@ -199,13 +201,13 @@ export class Tr2SuballocatedBuffer
   }
 
   /**
-   * Source: trinity/trinity/Tr2SuballocatedBuffer.cpp:103-121 (OnPrepareResources).
+   * Carbon OnPrepareResources (Tr2SuballocatedBuffer.cpp:103-121), called by the base's PrepareResources.
    *
    * @adapted Carbon recreates its one buffer at the allocator's size; blocks
    *   here are made on demand by Allocate, so there is nothing to create.
    * @returns {boolean} Always true.
    */
-  PrepareResources()
+  _OnPrepareResources()
   {
     return true;
   }
@@ -226,3 +228,6 @@ function Lcm(a, b)
 }
 
 CjsSchema.meta.carbon("Tr2SuballocatedBuffer")(Tr2SuballocatedBuffer);
+
+// Carbon's Tr2DeviceResource base (Tr2SuballocatedBuffer.h); JS has one base class, so it is installed.
+be.inherit(Tr2DeviceResource)(Tr2SuballocatedBuffer, { kind: "class" });

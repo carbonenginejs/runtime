@@ -25,13 +25,14 @@ import { Tr2TextureReference } from "../core/Tr2TextureReference.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 import { trinity } from "../CjsTrinity.js";
+import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
 
 const IMPACT_SHIELD_DATA_MAP = "ImpactShieldDataMap";
 const VEC4_BYTES = 16;
 
 /** Packs shader-readable data blocks into the shared impact data texture. */
 @be.define("Tr2DataTextureManager")
-@be.inherit(IInitialize)
+@be.inherit(IInitialize, Tr2DeviceResource)
 
 export class Tr2DataTextureManager
 {
@@ -117,21 +118,6 @@ export class Tr2DataTextureManager
   Initialize()
   {
     return true;
-  }
-
-  /**
-   * Prepares the device half (Carbon Tr2DeviceResource::PrepareResources,
-   * Tr2DeviceResource.cpp:21-33).
-   *
-   * Carbon skips creation during a device reset via
-   * Tr2Renderer::IsResourceCreationAllowed, which has no JS counterpart; a context
-   * with no device refuses Create instead.
-   *
-   * @adapted
-   */
-  PrepareResources()
-  {
-    return this._OnPrepareResources();
   }
 
   /**

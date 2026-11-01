@@ -43,6 +43,8 @@ import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { Succeeded, Tr2ConstantBufferAL, Tr2ConstantUsageAL } from "#trinityal";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
+import { exposure as be } from "#be";
 
 // Tr2LightManager.cpp:30-48 - copied verbatim; the buffer sizes are the ABI
 // the AL uploads against.
@@ -895,20 +897,6 @@ export class Tr2LightManager
   }
 
   /**
-   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32).
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed())
-    {
-      if (!this._OnPrepareResources()) return false;
-    }
-    return true;
-  }
-
-  /**
    * Carbon OnPrepareResources (cpp:657-675): the light buffer, the 8M-entry
    * GPU-writable index buffer, the R32_SINT node counter, and the per-frame
    * constants; the effect is pointed at all three buffers, its depth map
@@ -1263,3 +1251,5 @@ CjsSchema.decorateMethod(Tr2LightManager, "getOrCreateInstance");
 CjsSchema.decorateMethod(Tr2LightManager, "getInstance");
 CjsSchema.decorateMethod(Tr2LightManager, "deleteInstance");
 
+// Carbon's Tr2DeviceResource base (Tr2LightManager.h); JS has one base class, so it is installed.
+be.inherit(Tr2DeviceResource)(Tr2LightManager, { kind: "class" });

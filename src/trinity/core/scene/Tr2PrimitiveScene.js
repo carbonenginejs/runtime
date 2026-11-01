@@ -20,10 +20,11 @@ import { PROJECTION_TYPE } from "../../generated/shader/enums.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 
 /** Native primitive scene and tool handles. Text rendering is a separate port. */
 @be.define("Tr2PrimitiveScene")
-@be.inherit(ITr2Scene)
+@be.inherit(ITr2Scene, Tr2DeviceResource)
 @be.mapInterface(ITr2Scene)
 export class Tr2PrimitiveScene extends ITr2PickableScene
 {
@@ -147,16 +148,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   _OnPrepareResources()
   {
     return true;
-  }
-
-  /**
-   * Explicitly drives the native resource hook while its C++ base has no JS port.
-   *
-   * @adapted
-   */
-  PrepareResources()
-  {
-    return this._OnPrepareResources();
   }
 
   /**

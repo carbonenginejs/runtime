@@ -35,6 +35,7 @@ import { Tr2Event } from "./Tr2Event.js";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { trinity } from "../CjsTrinity.js";
+import { Tr2DeviceResource } from "./device/Tr2DeviceResource.js";
 
 
 /**
@@ -258,6 +259,7 @@ function CopyToTexture(bitmap, texture, x, y, margin, renderContext)
  */
 @be.define("Tr2TextureAtlas")
 @be.mapInterface(ITr2TextureProvider)
+@be.inherit(Tr2DeviceResource)
 export class Tr2TextureAtlas extends ITr2TextureProvider
 {
 
@@ -431,22 +433,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
     this.height = height;
 
     this.PrepareResources();
-  }
-
-  /**
-   * `Tr2DeviceResource::PrepareResources` (`Tr2DeviceResource.cpp:21-33`):
-   * prepares only while resource creation is allowed.
-   *
-   * @implemented
-   * @returns {boolean} False only when preparation was attempted and failed.
-   */
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed())
-    {
-      if (!this._OnPrepareResources()) return false;
-    }
-    return true;
   }
 
   /**
