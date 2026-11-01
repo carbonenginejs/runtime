@@ -321,15 +321,16 @@ export class EveBoosterSet2 extends EveEntity
   _glowsVisible = true;
 
   /**
-   * Carbon's constructor (cpp:583-622): registers with the device, as the
-   * Tr2DeviceResource base constructor does (Tr2DeviceResource.cpp:6-9), so a
-   * set built before the device exists is prepared when it comes up.
-   * Destruct unregisters it.
+   * Carbon's constructor (cpp:583-622). Destruct unregisters it.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
+   *   on use (IsGood at its use site), so one built and never drawn is never
+   *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -941,6 +942,8 @@ export class EveBoosterSet2 extends EveEntity
     this._glowsVisible = false;
     if (this.display)
     {
+      // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Its renderables draw from the buffers preparing builds.
+      this.IsGood();
       for (const renderable of this.instances)
       {
         renderable.UpdateVisibility(updateContext);

@@ -42,13 +42,15 @@ import { trinity } from "../../../CjsTrinity.js";
 export class EveSpaceObjectDecal
 {
   /**
-   * Carbon's constructor (cpp:45-58): registers with the device, as its
-   * Tr2DeviceResource base does (Tr2DeviceResource.cpp:6-9), and prepares its
-   * resources. Destruct unregisters.
+   * Carbon's constructor (cpp:45-58): prepares its resources.
+   *
+   * @adapted Carbon also registers with the device here, as its
+   *   Tr2DeviceResource base does (Tr2DeviceResource.cpp:6-9); here the decal
+   *   registers on use, when GetRenderables asks IsGood, so a decal built and
+   *   never drawn is never listed. Destruct still unregisters.
    */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
     // The schema's legacy TriBatchType default is 0. Carbon's decal default is
     // the opaque batch (1), so establish it after model/schema initialization.
     this.batchType = 1;
@@ -773,6 +775,8 @@ export class EveSpaceObjectDecal
   GetRenderables(out, _meshCache = null, geometryResource = null, screenSize = Infinity)
   {
     if (this._isVisible <= 0 || !geometryResource) return false;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood).
+    if (!this.IsGood()) return false;
 
     // A NEW MESH INVALIDATES THE BUILD. Carbon's comment calls this out as slow
     // and to be avoided, which is why it is keyed on identity rather than

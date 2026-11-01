@@ -131,14 +131,16 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   _indexBuffer = null;
 
   /**
-   * Carbon's constructor (cpp:86-99): a Tr2DeviceResource, so the device
-   * prepares it again once resources can be created - a set built before the
-   * device exists gets its declaration and buffers then.
+   * Carbon's constructor (cpp:86-99): prepares the set now.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
+   *   on use (IsGood at its use site), so one built and never drawn is never
+   *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -264,7 +266,9 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE && batchType !== TriBatchType.TRIBATCHTYPE_PICKING) return;
     if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && !this.isPickable) return;
-    if (!this.display || !this._isVisible || !this.effect || !this._vertexBuffer) return;
+    if (!this.display || !this._isVisible || !this.effect) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer check: preparing builds it.
+    if (!this.IsGood() || !this._vertexBuffer) return;
     if (this.primaryTextureParameter && !this.primaryTextureParameter.GetResource()) return;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!this.effect.IsGood()) return;

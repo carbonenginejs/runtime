@@ -116,6 +116,9 @@ test("live replacement transfers native component registration without destroyin
   const ship = new EveShip2();
   const first = new EveBoosterSet2();
   const second = new EveBoosterSet2();
+  // Both in use, so both are registered device resources.
+  first.IsGood();
+  second.IsGood();
   ship.Register(registry);
   ship.boosters = first;
   second.Register(foreign);

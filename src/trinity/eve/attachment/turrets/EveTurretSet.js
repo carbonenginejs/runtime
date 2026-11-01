@@ -563,11 +563,17 @@ export class EveTurretSet extends EveEntity
   /** Native first-firing fallback state (EveTurretSet.cpp:90,1481). */
   _firingEffectMuzzlePosSet = false;
 
-  /** Native constructor/base registration and preparation (cpp:122). */
+  /**
+   * Carbon's constructor (cpp:122): prepares the set.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
+   *   on use (IsGood at its use site), so one built and never drawn is never
+   *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   */
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -2262,6 +2268,8 @@ export class EveTurretSet extends EveEntity
     this._parentShLighting = null;
     this.visibleCount = 0;
     if (!this.display) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). GetBatches draws from the instance buffer preparing builds.
+    this.IsGood();
     const frustum = context.GetFrustum();
     for (const turret of this._turrets)
     {

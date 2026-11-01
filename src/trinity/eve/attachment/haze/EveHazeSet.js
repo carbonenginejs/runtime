@@ -139,15 +139,16 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   _cachedTransforms = [];
 
   /**
-   * Carbon's constructor (cpp:62-70): registers with the device, as the
-   * Tr2DeviceResource base constructor does (Tr2DeviceResource.cpp:6-9), so a
-   * set initialized before the device exists gets its buffer once resources
-   * can be created. Destruct unregisters it.
+   * Carbon's constructor (cpp:62-70). Destruct unregisters it.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
+   *   on use (IsGood at its use site), so one built and never drawn is never
+   *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -299,9 +300,11 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   GetBatches(accumulator, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
-    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this._vertexBuffer.IsValid() || reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION) return;
-    if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION) return;
     if (!this.display || !this.effect) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
+    if (!this.IsGood()) return;
+    if (!this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!this.effect.IsGood()) return;
 

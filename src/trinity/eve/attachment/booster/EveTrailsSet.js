@@ -82,10 +82,16 @@ export class EveTrailsSet
   /** m_instanceBuffer: a shared-buffer allocation, null until built. */
   _instanceBuffer = null;
 
-  /** Carbon's constructor (cpp:13-20): a Tr2DeviceResource, prepared now and whenever the device can. */
+  /**
+   * Carbon's constructor (cpp:13-20): prepares the set now.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
+   *   on use (IsGood at its use site), so one built and never drawn is never
+   *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -319,7 +325,9 @@ export class EveTrailsSet
     const geometryGood = geometry ? geometry.IsGood() : false;
 
     const effectGood = this.effect ? this.effect.IsGood() : false;
-    if (!geometryGood || !effectGood) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Asked with the others, before the instance buffer preparing builds.
+    const good = this.IsGood();
+    if (!geometryGood || !effectGood || !good) return;
     if (!this._instanceBuffer) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     if (!this.geometryResource.GetMeshCount()) return;
