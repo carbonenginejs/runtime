@@ -25,7 +25,7 @@ import {
   assertResourcePayloadObject,
   resourceBoundaryError,
   resourcePayloadError
-} from "../../../resource/resourceBoundary.js";
+} from "../resourceBoundary.js";
 
 /** WebGPU's `arrayStride` alignment, which WebGL2 also satisfies trivially. */
 const STRIDE_ALIGNMENT = 4;

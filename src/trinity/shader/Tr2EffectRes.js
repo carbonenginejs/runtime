@@ -8,7 +8,7 @@ import { exposure as be } from "#be";
 import { CjsSchema } from "#schema";
 import { BlueAsyncRes } from "#blue/BlueAsyncRes";
 import { ICacheable } from "#blue/ICacheable";
-import { validateResourcePayload } from "../../resource/resourceBoundary.js";
+import { validateResourcePayload } from "../resources/resourceBoundary.js";
 import { CjsCarbonEffectFormat } from "../../resource/formats/carbonEffect/index.js";
 import { Tr2Shader } from "./Tr2Shader.js";
 import { EffectCarriesBackendBlock, EffectPlatformFromPath } from "#utils/effectPath";

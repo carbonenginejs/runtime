@@ -8,7 +8,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { BlueAsyncRes, ICacheable } from "#blue";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
-import { resourcePayloadError, validateResourcePayload } from "../../../resource/resourceBoundary.js";
+import { resourcePayloadError, validateResourcePayload } from "../resourceBoundary.js";
 
 /**
  * Tr2ImageRes resource record.

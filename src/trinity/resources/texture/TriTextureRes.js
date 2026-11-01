@@ -30,7 +30,7 @@ import {
   resourceBoundaryError,
   resourceFormatRequiredError,
   resourcePayloadError
-} from "../../../resource/resourceBoundary.js";
+} from "../resourceBoundary.js";
 
 /** INVALID_LOD (TriTextureRes.cpp:76): no mip has been requested. */
 const INVALID_LOD = 0xffffffff;

@@ -6,7 +6,7 @@ import { CjsSchema, type } from "#schema";
 import { BlueAsyncRes, ICacheable, blue as blueService } from "#blue";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { CjsGr2Format } from "../../../../resource/formats/gr2/CjsGr2Format.js";
-import { assertResourcePayloadObject, resourcePayloadError } from "../../../../resource/resourceBoundary.js";
+import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
 import { Failed } from "../../../../trinityal/ALResult.js";
 import { TriGeometryRes } from "../TriGeometryRes.js";
 import { CjsCmfFormat } from "../../../../resource/formats/cmf/index.js";

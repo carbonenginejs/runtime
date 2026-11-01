@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
 import { CjsSchema } from "#schema";
 import { BlueAsyncRes, ICacheable } from "#blue";
-import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../../../resource/resourceBoundary.js";
+import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../resourceBoundary.js";
 
 /**
  * Runtime-owned GState resource.

@@ -5,7 +5,7 @@
  * classes are exported only by Trinity. Import individual formats through their subpaths.
  * Resource management and lifecycle are owned by Blue.
  */
-export * from "./resourceBoundary.js";
+export * from "../trinity/resources/resourceBoundary.js";
 export * from "../trinity/resources/Tr2LightProfileRes.js";
 export * from "./geometry/index.js";
 export * from "./shader/index.js";

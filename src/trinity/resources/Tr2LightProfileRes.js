@@ -2,7 +2,7 @@
 import { exposure as be } from "#be";
 import { CjsSchema } from "#schema";
 import { BlueAsyncRes, ICacheable, blue as blueService } from "#blue";
-import { assertResourcePayloadObject } from "../../resource/resourceBoundary.js";
+import { assertResourcePayloadObject } from "./resourceBoundary.js";
 import { HostBitmap, LoadParameters } from "#imageio";
 import { PixelFormat, TextureType } from "#consts/render-context";
 import { num } from "#math/num";
