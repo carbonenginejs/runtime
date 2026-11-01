@@ -203,7 +203,7 @@ export class Tr2CurveLineSet
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
     {

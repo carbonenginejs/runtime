@@ -131,7 +131,7 @@ export class Tr2DataTextureManager
    */
   PrepareResources()
   {
-    return this.OnPrepareResources();
+    return this._OnPrepareResources();
   }
 
   /**
@@ -144,7 +144,7 @@ export class Tr2DataTextureManager
    * @adapted
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
     const width = this.textureWidth;

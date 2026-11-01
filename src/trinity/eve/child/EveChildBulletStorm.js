@@ -226,7 +226,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @adapted
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveChildBulletStorm._VertexDefinition());
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return false;

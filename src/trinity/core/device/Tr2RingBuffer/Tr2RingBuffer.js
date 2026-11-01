@@ -401,7 +401,7 @@ export class Tr2RingBuffer
    */
   PrepareResources()
   {
-    if (Tr2Renderer.IsResourceCreationAllowed()) return this.OnPrepareResources();
+    if (Tr2Renderer.IsResourceCreationAllowed()) return this._OnPrepareResources();
     return true;
   }
 
@@ -431,7 +431,7 @@ export class Tr2RingBuffer
    * @returns {boolean} True, matching Carbon even if allocation fails.
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const renderContext = this._renderContext ?? Tr2RenderContext_GetMainThreadRenderContext();
     if (this._mirror.length && (!this._buffer || !this._buffer.IsValid()

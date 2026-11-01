@@ -93,7 +93,7 @@ test("real Crisis Dark_Front smoke emits into Carbon's physical particle layout"
   assert.equal(original.IsValid(), false, "negative control: releasing the AL allocation removes render readiness");
   assert.equal(system.IsInstanceDataReady(), false);
   assert.equal(system.aliveCount, 2);
-  system.OnPrepareResources();
+  system._OnPrepareResources();
   assert.equal(system.GetGpuBuffer().IsValid(), true);
   t.diagnostic("Crisis Dark_Front: two emitted CPU particles, 128-byte instance records, 2560-byte AL allocation; visible child uploads two far-to-near records");
 });

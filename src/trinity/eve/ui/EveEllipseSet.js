@@ -228,7 +228,7 @@ export class EveEllipseSet extends EveChildTransform
    * @returns {boolean} Whether the declaration handle is valid.
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this._vertexDeclHandle !== Tr2EffectStateManager.Unknown)
     {

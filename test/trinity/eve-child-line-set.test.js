@@ -180,7 +180,7 @@ test('native-shaped declaration ledger is copied rather than mutating the intern
 });
 
 test('owner buffer grows, reuses capacity, zeroes hidden nested paths, and releases only at destruction',t=>{
-  const {context}=setup(t),c=child(t);assert.equal(c.OnPrepareResources(),true);const buffer=c._vertexBuffer;
+  const {context}=setup(t),c=child(t);assert.equal(c._OnPrepareResources(),true);const buffer=c._vertexBuffer;
   assert.equal(buffer.GetDesc().count,128);
   const group=new EveLineChildContainer();group.lines=[circle(70),circle(70)];c.lines=[group];c.Initialize();
   c.UpdateBuffer(context);assert.equal(c._totalObjectCount,140);assert.equal(buffer.GetDesc().count,140);assert.equal(c._instanceCursor.offset,140*48);
@@ -202,9 +202,9 @@ test('replaced defaults survive until final destruction while assigned line sets
 
 test('allocation and mapping failures do not publish a fabricated instance update',t=>{
   const {context,al}=setup(t),c=child(t);const create=al.CreateBuffer.bind(al);
-  al.CreateBuffer=()=>({result:ALResult.E_OUTOFMEMORY,implementation:null});assert.equal(c.OnPrepareResources(),false);
+  al.CreateBuffer=()=>({result:ALResult.E_OUTOFMEMORY,implementation:null});assert.equal(c._OnPrepareResources(),false);
   c.UpdateBuffer(context);assert.equal(c._vertexBuffer.IsValid(),false);
-  al.CreateBuffer=create;assert.equal(c.OnPrepareResources(),true);
+  al.CreateBuffer=create;assert.equal(c._OnPrepareResources(),true);
   const buffer=c._vertexBuffer,map=buffer.MapForWriting;
   buffer.MapForWriting=()=>({result:ALResult.E_INVALIDCALL,data:null});c.UpdateBuffer(context);assert.equal(c._instanceCursor.view,null);
   buffer.MapForWriting=map;const unmap=t.mock.method(buffer,'UnmapForWriting');

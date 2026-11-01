@@ -234,7 +234,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const definition = new Tr2VertexDefinition();
     definition.Add("FLOAT32_3", "POSITION");

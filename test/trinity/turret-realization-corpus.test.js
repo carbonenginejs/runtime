@@ -491,7 +491,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   const saved=resource.GetMeshLod__LodIndex;resource.GetMeshLod__LodIndex=()=>null;assert.equal(set.GetShadowBatches(accumulator,pod,100),false);resource.GetMeshLod__LodIndex=saved;
   set.ReleaseResources();assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
   const firstCount=instanceUploads.length;const allocating=shared.Allocate;shared.Allocate=()=>null;
-  assert.equal(set.PrepareResources(),true,"native OnPrepareResources returns true after void InitializeInstanceBuffer");assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);shared.Allocate=allocating;
+  assert.equal(set.PrepareResources(),true,"native _OnPrepareResources returns true after void InitializeInstanceBuffer");assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);shared.Allocate=allocating;
   assert.equal(set.PrepareResources(),true);assert.equal(instanceUploads.length,firstCount+1);assert.equal(set.GetShadowBatches(accumulator,pod,100),true);
   purgeResourceFixture(resource);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
   set.Destruct();set.Destruct();assert.equal(trinity.GetResourcesRegistered().includes(set),false);assert.equal(set._instanceBuffer.IsValid(),false);

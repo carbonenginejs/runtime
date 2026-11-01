@@ -101,10 +101,10 @@ test("direct instance allocation and mapping failures remain visible", t =>
   const create = al.CreateBuffer.bind(al);
   al.CreateBuffer = () => ({ result: ALResult.E_OUTOFMEMORY, implementation: null });
   assert.equal(provider.GetData(2), null);
-  assert.equal(provider.OnPrepareResources(), false);
+  assert.equal(provider._OnPrepareResources(), false);
   assert.equal(provider.IsInstanceDataReady(), false);
   al.CreateBuffer = create;
-  assert.equal(provider.OnPrepareResources(), true);
+  assert.equal(provider._OnPrepareResources(), true);
   const buffer = provider.GetInstanceData().buffer;
   const map = buffer.MapForWriting;
   buffer.MapForWriting = () => ({ result: ALResult.E_INVALIDCALL, data: null });

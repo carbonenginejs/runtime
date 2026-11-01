@@ -106,7 +106,7 @@ export class EveTacticalTrails
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     return true;
   }

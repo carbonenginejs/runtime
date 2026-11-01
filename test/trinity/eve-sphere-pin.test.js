@@ -133,7 +133,7 @@ test('empty index selections and failed allocations stay dirty until a successfu
   p.centerNormal.set([1,0,0]);const failed=t.mock.method(p._indexBuffer,'Create',()=>ALResult.E_FAIL);
   p.UpdateSyncronous({});assert.equal(p._rebuildIndices,1);assert.equal(p._indexBuffer.IsValid(),false);failed.mock.restore();
   p.UpdateSyncronous({});assert.equal(p._rebuildIndices,0);assert.equal(p._indexBuffer.IsValid(),true);
-  p.ReleaseResources();assert.equal(p._indexBuffer.IsValid(),true);p._indexBuffer.Destroy();p.OnPrepareResources();assert.equal(p._rebuildIndices,1);
+  p.ReleaseResources();assert.equal(p._indexBuffer.IsValid(),true);p._indexBuffer.Destroy();p._OnPrepareResources();assert.equal(p._rebuildIndices,1);
 });
 
 test('visibility places pins without frustum culling and bounds remain local',t=>{

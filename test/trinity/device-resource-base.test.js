@@ -17,7 +17,7 @@ test("Tr2DeviceResource registers on construction and gates preparation on resou
   const calls = [];
   class Resource extends Tr2DeviceResource
   {
-    OnPrepareResources()
+    _OnPrepareResources()
     {
       calls.push("prepare");
       return false;
@@ -35,7 +35,7 @@ test("Tr2DeviceResource registers on construction and gates preparation on resou
   assert.deepEqual(calls, []);
 
   Tr2Renderer.IsResourceCreationAllowed.mock.mockImplementation(() => true);
-  assert.equal(resource.PrepareResources(), false, "a failed OnPrepareResources fails the prepare");
+  assert.equal(resource.PrepareResources(), false, "a failed _OnPrepareResources fails the prepare");
   assert.deepEqual(calls, [ "prepare" ]);
 
   trinity.UnregisterResource(resource);
@@ -45,7 +45,7 @@ test("Tr2DeviceResource's two obligations are abstract", () =>
 {
   const resource = new Tr2DeviceResource();
   assert.throws(() => resource.ReleaseResources(0), /ReleaseResources/u);
-  assert.throws(() => resource.OnPrepareResources(), /OnPrepareResources/u);
+  assert.throws(() => resource._OnPrepareResources(), /_OnPrepareResources/u);
   trinity.UnregisterResource(resource);
 });
 

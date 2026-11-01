@@ -70,7 +70,7 @@ export class Tr2SwapChain extends IRoot
    */
   PrepareResources(renderContext)
   {
-    return this.OnPrepareResources(renderContext);
+    return this._OnPrepareResources(renderContext);
   }
 
   /**
@@ -82,7 +82,7 @@ export class Tr2SwapChain extends IRoot
    * @returns {boolean} Whether the AL chain came up.
    */
 
-  OnPrepareResources(renderContext)
+  _OnPrepareResources(renderContext)
   {
     if (!Succeeded(this.#swapChain.Create(this.#windowHandle, renderContext))) return false;
 

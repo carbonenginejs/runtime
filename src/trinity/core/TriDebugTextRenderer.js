@@ -165,7 +165,7 @@ export class TriDebugTextRenderer
    * @implemented
    * @returns {boolean} True, always.
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     return true;
   }

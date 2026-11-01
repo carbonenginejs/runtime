@@ -342,7 +342,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveChildBoosterSet._BoosterVertex());
     return this._vertexDeclHandle !== Tr2EffectStateManager.Unknown;

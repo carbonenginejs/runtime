@@ -1030,7 +1030,7 @@ test("the driver is a device resource: registered on construction, unregistered 
 
   assert.ok(trinity.GetResourcesRegistered().includes(driver));
   // Carbon OnPrepareResources (EveSpaceSceneRenderDriver.cpp:176-179) creates nothing.
-  assert.equal(driver.OnPrepareResources(), true);
+  assert.equal(driver._OnPrepareResources(), true);
   assert.equal(driver.PrepareResources(), true);
   // GetDescription is the base's: the driver does not override it.
   assert.equal(driver.GetDescription(), "<Unknown>");

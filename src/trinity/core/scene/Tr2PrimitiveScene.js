@@ -144,7 +144,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    *
    * @implemented
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     return true;
   }
@@ -156,7 +156,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
    */
   PrepareResources()
   {
-    return this.OnPrepareResources();
+    return this._OnPrepareResources();
   }
 
   /**
@@ -394,7 +394,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
 CjsSchema.decorateMethod(Tr2PrimitiveScene, "Render");
 CjsSchema.decorateMethod(Tr2PrimitiveScene, "Update");
 CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderDebugInfo");
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "OnPrepareResources");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "_OnPrepareResources");
 CjsSchema.decorateMethod(Tr2PrimitiveScene, "PrepareResources");
 CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetDescription");
 CjsSchema.decorateMethod(Tr2PrimitiveScene, "ReleaseResources");

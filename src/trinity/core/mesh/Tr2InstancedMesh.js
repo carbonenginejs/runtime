@@ -110,7 +110,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    */
   PrepareResources()
   {
-    if (Tr2Renderer.IsResourceCreationAllowed() && !this.OnPrepareResources()) return false;
+    if (Tr2Renderer.IsResourceCreationAllowed() && !this._OnPrepareResources()) return false;
     return true;
   }
 
@@ -225,7 +225,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     this.CreateVertexDeclaration();
     return true;

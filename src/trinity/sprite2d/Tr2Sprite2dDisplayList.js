@@ -47,7 +47,7 @@ export class Tr2Sprite2dDisplayList
    * @implemented
    * @returns {boolean} Always true, as Carbon returns.
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     return true;
   }

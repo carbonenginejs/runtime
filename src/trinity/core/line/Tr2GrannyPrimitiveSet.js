@@ -282,7 +282,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const declaration = Tr2GrannyPrimitiveSet.#declaration;
     if (declaration.empty())

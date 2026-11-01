@@ -96,7 +96,7 @@ export class Tr2PickBuffer
    */
   PrepareResources(context = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    return this._pickTarget.IsValid() && this._depthBuffer.IsValid() || this.OnPrepareResources(context);
+    return this._pickTarget.IsValid() && this._depthBuffer.IsValid() || this._OnPrepareResources(context);
   }
 
   /**
@@ -104,7 +104,7 @@ export class Tr2PickBuffer
    *
    * @adapted
    */
-  OnPrepareResources(context = Tr2RenderContext_GetMainThreadRenderContext())
+  _OnPrepareResources(context = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const size = Math.max(this._size, 1);
     if (Failed(this._pickTarget.Create__GpuUsageCpuUsage(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(size, size, 1, this._format),
@@ -207,7 +207,7 @@ CjsSchema.decorateMethod(Tr2PickBuffer, "GetDescription");
 CjsSchema.decorateMethod(Tr2PickBuffer, "SetClearColor");
 CjsSchema.decorateMethod(Tr2PickBuffer, "ReleaseResources");
 CjsSchema.decorateMethod(Tr2PickBuffer, "PrepareResources");
-CjsSchema.decorateMethod(Tr2PickBuffer, "OnPrepareResources");
+CjsSchema.decorateMethod(Tr2PickBuffer, "_OnPrepareResources");
 CjsSchema.decorateMethod(Tr2PickBuffer, "BeginRendering");
 CjsSchema.decorateMethod(Tr2PickBuffer, "EndRendering");
 CjsSchema.decorateMethod(Tr2PickBuffer, "MapForReading");

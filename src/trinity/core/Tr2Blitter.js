@@ -190,7 +190,7 @@ export class Tr2Blitter
    */
   PrepareResources(renderContext)
   {
-    this.OnPrepareResources(renderContext);
+    this._OnPrepareResources(renderContext);
 
     return this.IsPrepared();
   }
@@ -207,7 +207,7 @@ export class Tr2Blitter
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Carbon returns true unconditionally, and so does this.
    */
-  OnPrepareResources(renderContext)
+  _OnPrepareResources(renderContext)
   {
     if (this.#screenVertexDecl === -1)
     {

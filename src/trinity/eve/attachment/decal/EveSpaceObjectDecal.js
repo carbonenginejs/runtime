@@ -94,7 +94,7 @@ export class EveSpaceObjectDecal
    * @returns {boolean} True.
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this._decalGeometry && !this._decalGeometry.indexBuffer.IsValid())
     {

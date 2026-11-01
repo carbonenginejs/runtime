@@ -203,7 +203,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     return true;
   }

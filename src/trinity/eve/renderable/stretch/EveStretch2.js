@@ -188,7 +188,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(STRETCH_VERTEX_DECL);
     Tr2Renderer.ReserveQuadListIndexBuffer(this.quadCount);

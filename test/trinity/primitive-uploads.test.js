@@ -82,7 +82,7 @@ test("colors resubmit, device release can reprepare, owner destruction unregiste
     const bound=[...s.boundingSphere];s.ReleaseResources();assert.equal(s._vertexBuffer.IsValid(),false);
     assert.deepEqual([...s.boundingSphere],bound);assert.equal(s.PrepareResources(),true);assert.equal(s._vertexBuffer.IsValid(),true);
     s.Destruct();s.Destruct();assert.equal(trinity.GetResourcesRegistered().includes(s),false);assert.equal(s._vertexBuffer.IsValid(),false);
-    assert.equal(s.OnPrepareResources(),false);
+    assert.equal(s._OnPrepareResources(),false);
   }
 });
 
@@ -91,9 +91,9 @@ test("AL allocation and mapping errors propagate from preparation",t=>{
   for(const Type of [Tr2LineSet,Tr2SolidSet]){
     const s=new Type();if(Type===Tr2LineSet)s.AddLine([0,0,0],red,[1,0,0],green);else triangle(s);
     const creation=t.mock.method(s._vertexBuffer,"Create",()=>ALResult.E_OUTOFMEMORY);
-    assert.equal(s.OnPrepareResources(),false);creation.mock.restore();
+    assert.equal(s._OnPrepareResources(),false);creation.mock.restore();
     const mapping=t.mock.method(s._vertexBuffer,"MapForWriting",()=>({result:ALResult.E_FAIL,data:null}));
-    assert.equal(s.OnPrepareResources(),false);mapping.mock.restore();assert.equal(s.OnPrepareResources(),true);
+    assert.equal(s._OnPrepareResources(),false);mapping.mock.restore();assert.equal(s._OnPrepareResources(),true);
   }
 });
 

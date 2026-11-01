@@ -46,7 +46,7 @@ const s_buffers = {
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
     {
-      if (!this.OnPrepareResources()) return false;
+      if (!this._OnPrepareResources()) return false;
     }
     return true;
   },
@@ -57,7 +57,7 @@ const s_buffers = {
   },
 
   /** Carbon OnPrepareResources (cpp:35-46): remake every invalid allocation. */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
     for (const resource of this.resources.values())

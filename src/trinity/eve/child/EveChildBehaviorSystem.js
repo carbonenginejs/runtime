@@ -181,7 +181,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * @adapted
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     this._shipInstanceBuffer.Destroy();
     this._boosterInstanceBuffer.Destroy();

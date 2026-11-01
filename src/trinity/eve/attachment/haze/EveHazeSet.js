@@ -233,7 +233,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     this._cachedTransforms = [];
 

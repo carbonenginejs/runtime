@@ -47,7 +47,7 @@ export class TriDebugResourceHelper
    */
   PrepareResources()
   {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+    return !Tr2Renderer.IsResourceCreationAllowed() || this._OnPrepareResources();
   }
 
   /**
@@ -55,7 +55,7 @@ export class TriDebugResourceHelper
    *
    * @implemented
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const position = new Tr2VertexDefinition();
     position.Add("FLOAT32_3", "POSITION");

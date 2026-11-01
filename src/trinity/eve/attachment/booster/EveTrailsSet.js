@@ -269,7 +269,7 @@ export class EveTrailsSet
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this._trailVertexDeclElementCount && this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
     {

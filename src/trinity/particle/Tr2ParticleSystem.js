@@ -663,7 +663,7 @@ export class Tr2ParticleSystem
     this._declarationHash++;
     this.isValid = true;
     this._BuildBuffers();
-    this.OnPrepareResources();
+    this._OnPrepareResources();
     this.RebindConstraints();
     return true;
   }
@@ -909,7 +909,7 @@ export class Tr2ParticleSystem
    *
    * @implemented
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     this.RebuildDeclaration();
     this.CreateVertexBuffer();
@@ -1051,7 +1051,7 @@ export class Tr2ParticleSystem
   Initialize()
   {
     this.UpdateElementDeclaration();
-    this.OnPrepareResources();
+    this._OnPrepareResources();
     if (this.useSimTimeRebase) this.#UpdateRebaseRegistration();
     if (this.emitParticleOnDeathEmitter) this.emitParticleOnDeathEmitter.SetThreadSafeFlag();
     if (this.emitParticleDuringLifeEmitter) this.emitParticleDuringLifeEmitter.SetThreadSafeFlag();

@@ -444,7 +444,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
     {
-      if (!this.OnPrepareResources()) return false;
+      if (!this._OnPrepareResources()) return false;
     }
     return true;
   }
@@ -479,7 +479,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @implemented
    * @returns {boolean} False when the atlas shrank to nothing.
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this._texture.IsValid()) return true;
 

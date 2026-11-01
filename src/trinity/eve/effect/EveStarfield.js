@@ -143,7 +143,7 @@ export class EveStarfield
    * @adapted
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this.numStars <= 0) return true;
     const declaration = EveStarfield.#declaration;

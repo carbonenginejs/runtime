@@ -27,7 +27,7 @@ function resource(prepares = true)
   const r = Object.create(Tr2DeviceResource.prototype);
   r.prepares = 0;
   r.releases = 0;
-  r.OnPrepareResources = function() { this.prepares++; return prepares; };
+  r._OnPrepareResources = function() { this.prepares++; return prepares; };
   r.ReleaseResources = function() { this.releases++; };
   return r;
 }

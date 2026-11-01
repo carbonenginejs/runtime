@@ -414,7 +414,7 @@ export class EveBoosterSet2 extends EveEntity
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveBoosterSet2._BoosterInstancedVertex());
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return false;

@@ -1167,7 +1167,7 @@ export class EveSpaceScene
    * @returns {boolean} False when either cannot be created.
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
 

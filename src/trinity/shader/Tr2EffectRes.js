@@ -559,7 +559,7 @@ export class Tr2EffectRes extends BlueAsyncRes
    */
   _OnPrepareResources()
   {
-    throw new Error("Tr2EffectRes.OnPrepareResources requires Tr2Renderer and the main-thread render context, which the resource layer cannot reach.");
+    throw new Error("Tr2EffectRes._OnPrepareResources requires Tr2Renderer and the main-thread render context, which the resource layer cannot reach.");
   }
 
   /**

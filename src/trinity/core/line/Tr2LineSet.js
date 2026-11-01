@@ -191,7 +191,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * @adapted
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this._destroyed) return false;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)

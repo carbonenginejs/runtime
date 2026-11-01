@@ -292,7 +292,7 @@ export class Tr2QuadRenderer
    */
   PrepareResources()
   {
-    return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
+    return Tr2Renderer.IsResourceCreationAllowed() ? this._OnPrepareResources() : true;
   }
 
   /**
@@ -301,7 +301,7 @@ export class Tr2QuadRenderer
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     for (const record of this._effects.values())
     {

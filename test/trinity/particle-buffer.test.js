@@ -70,7 +70,7 @@ test("particle release preserves simulation; prepare and resize replace physical
   assert.equal(value.GetInstanceBufferVertexDeclaration(), Tr2EffectStateManager.Unknown);
   assert.equal(value.aliveCount, 1);
   assert.equal(value.GetElement(1).buffer, stream, "cpp:251-255 does not destroy CPU particles");
-  assert.equal(value.OnPrepareResources(), true);
+  assert.equal(value._OnPrepareResources(), true);
   assert.equal(value.GetGpuBuffer().IsValid(), true);
   const replacement = value.GetGpuBuffer();
   value.SetMaxParticleCount(2);

@@ -162,7 +162,7 @@ export class EveLineSet
    * @adapted the AL description replaces the native stride/count overload.
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
 

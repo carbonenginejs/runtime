@@ -129,7 +129,7 @@ export class Tr2OcclusionBuffer
    *
    * @implemented
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     return true;
   }

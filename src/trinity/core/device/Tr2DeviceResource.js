@@ -77,7 +77,7 @@ export class Tr2DeviceResource
     if (CjsSchema.getConstructor("Tr2Renderer").IsResourceCreationAllowed())
     {
       // Ours: whether the device objects exist now, for IsGood.
-      this._prepared = this.OnPrepareResources() === true;
+      this._prepared = this._OnPrepareResources() === true;
       if (!this._prepared)
       {
         return false;
@@ -164,7 +164,7 @@ export class Tr2DeviceResource
    * @returns {boolean} Whether preparation succeeded.
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
   }
 
@@ -296,5 +296,5 @@ export function destroyAdapterValue(value)
 // Imperative metadata keeps native resource source imports valid ESM.
 meta.carbon("Tr2DeviceResource")(Tr2DeviceResource);
 CjsSchema.decorateMethod(Tr2DeviceResource, "ReleaseResources", meta.abstract);
-CjsSchema.decorateMethod(Tr2DeviceResource, "OnPrepareResources", meta.abstract);
+CjsSchema.decorateMethod(Tr2DeviceResource, "_OnPrepareResources", meta.abstract);
 

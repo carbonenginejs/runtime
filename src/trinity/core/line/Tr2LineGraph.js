@@ -81,7 +81,7 @@ export class Tr2LineGraph extends IRoot
    */
   _OnPrepareResources()
   {
-    throw new Error("Tr2LineGraph.OnPrepareResources requires the unported line-graph vertex buffer, vertex declaration and effect path.");
+    throw new Error("Tr2LineGraph._OnPrepareResources requires the unported line-graph vertex buffer, vertex declaration and effect path.");
   }
 
   /**

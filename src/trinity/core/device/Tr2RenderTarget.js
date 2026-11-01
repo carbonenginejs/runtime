@@ -634,7 +634,7 @@ export class Tr2RenderTarget extends IRoot
    * @implemented
    */
 
-  OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  _OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (!this._renderTarget && this._created)
     {

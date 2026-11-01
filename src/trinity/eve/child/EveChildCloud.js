@@ -228,7 +228,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    *   Native quirks retained: LODs stop ABOVE 16, and uint16 indices wrap.
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const dimension = this.preTesselationLevel;
     const context = Tr2RenderContext_GetMainThreadRenderContext();

@@ -179,7 +179,7 @@ export class Tr2ImpostorManager
    */
   PrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    return !renderContext.IsValid() || this.OnPrepareResources(renderContext);
+    return !renderContext.IsValid() || this._OnPrepareResources(renderContext);
   }
 
   /**
@@ -188,7 +188,7 @@ export class Tr2ImpostorManager
    * @adapted
    */
 
-  OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  _OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const width = (this.itemWidth * this.maxUpdates) >>> 0;
     const format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;

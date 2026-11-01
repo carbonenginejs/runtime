@@ -646,7 +646,7 @@ export class EveTurretSet extends EveEntity
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this._turretVertexDeclElementCount && this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
     {

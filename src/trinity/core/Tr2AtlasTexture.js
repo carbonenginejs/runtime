@@ -346,9 +346,9 @@ export class Tr2AtlasTexture extends IRoot
    * @notImplemented
    * @returns {boolean} Never returns.
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
-    throw new Error("Tr2AtlasTexture.OnPrepareResources is not implemented in CarbonEngineJS: it reloads through the unported BlueAsyncRes load path.");
+    throw new Error("Tr2AtlasTexture._OnPrepareResources is not implemented in CarbonEngineJS: it reloads through the unported BlueAsyncRes load path.");
   }
 
   /**

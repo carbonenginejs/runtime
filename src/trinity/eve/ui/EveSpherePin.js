@@ -294,7 +294,7 @@ export class EveSpherePin
    * @implemented
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this._tree && this._tree.IsInitialized() && !this._indexBuffer.IsValid()) this._rebuildIndices = 1;
     return true;

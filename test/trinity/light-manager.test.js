@@ -297,7 +297,7 @@ async function preparedManager(context)
   al.CreateConstantBuffer = context.CreateConstantBuffer;
   try
   {
-    assert.equal(manager.OnPrepareResources(), true);
+    assert.equal(manager._OnPrepareResources(), true);
   }
   finally
   {
@@ -330,7 +330,7 @@ function addTwoLights(manager)
   assert.equal(manager.GetLightCount(), 2);
 }
 
-test("OnPrepareResources makes Carbon's light, index and counter buffers and points the effect at them", async () =>
+test("_OnPrepareResources makes Carbon's light, index and counter buffers and points the effect at them", async () =>
 {
   const { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } = await import("../../npm/dist/global/consts/renderContext/index.js");
   const { Tr2ConstantUsageAL } = await import("../../npm/dist/trinityal/index.js");

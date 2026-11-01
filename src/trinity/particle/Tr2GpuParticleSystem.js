@@ -444,7 +444,7 @@ export class Tr2GpuParticleSystem
    * @returns {boolean} True.
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
     const { GPU_WRITABLE, DRAW_INDIRECT } = Tr2GpuBuffer.CreationFlags;

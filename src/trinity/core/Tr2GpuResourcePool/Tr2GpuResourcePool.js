@@ -302,11 +302,11 @@ export class Tr2GpuResourcePool
   /** The native pool has no resources to prepare eagerly. */
   PrepareResources()
   {
-    return this.OnPrepareResources();
+    return this._OnPrepareResources();
   }
 
   /** Native preparation succeeds without allocating pooled resources. */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     return true;
   }

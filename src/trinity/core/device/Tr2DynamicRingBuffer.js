@@ -198,7 +198,7 @@ export class Tr2DynamicRingBuffer
    */
   PrepareResources()
   {
-    return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
+    return Tr2Renderer.IsResourceCreationAllowed() ? this._OnPrepareResources() : true;
   }
 
   /**
@@ -206,7 +206,7 @@ export class Tr2DynamicRingBuffer
    *
    * @implemented
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (!this._bufferSize) return true;
 

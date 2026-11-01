@@ -556,7 +556,7 @@ export class EveChildLineSet extends EveChildTransform
    * @adapted
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     return !Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
       this._stride, 128, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN

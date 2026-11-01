@@ -170,7 +170,7 @@ export class Tr2RuntimeInstanceData
    */
   PrepareResources()
   {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+    return !Tr2Renderer.IsResourceCreationAllowed() || this._OnPrepareResources();
   }
 
   /**
@@ -178,7 +178,7 @@ export class Tr2RuntimeInstanceData
    *
    * @adapted
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this.#data && this.#stride && this.count && (!this.#allocation || !this.#allocation.IsValid()))
     {

@@ -181,7 +181,7 @@ export class Tr2ReflectionProbe
 
   IsValid(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    return this.OnPrepareResources(renderContext);
+    return this._OnPrepareResources(renderContext);
   }
 
   /**
@@ -249,7 +249,7 @@ export class Tr2ReflectionProbe
    * @returns {boolean} Whether the resources are ready.
    */
 
-  OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  _OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const al = renderContext.GetRenderContextAL();
 

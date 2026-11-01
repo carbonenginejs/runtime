@@ -420,7 +420,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @adapted
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     if (!this._vertexBuffer.IsValid())

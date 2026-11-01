@@ -92,7 +92,7 @@ export class Tr2DirectInstanceData
    */
   PrepareResources()
   {
-    if (Tr2Renderer.IsResourceCreationAllowed() && !this.OnPrepareResources()) return false;
+    if (Tr2Renderer.IsResourceCreationAllowed() && !this._OnPrepareResources()) return false;
     return true;
   }
 
@@ -103,7 +103,7 @@ export class Tr2DirectInstanceData
    * @adapted
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     if (this._stride && this.count &&
       (!this._vertexBuffer.IsValid() || this._vertexBuffer.GetDesc().count < this.count))

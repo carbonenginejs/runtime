@@ -484,7 +484,7 @@ export class EveSpaceSceneRenderDriver
    * @returns {boolean} True.
    */
 
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     return true;
   }

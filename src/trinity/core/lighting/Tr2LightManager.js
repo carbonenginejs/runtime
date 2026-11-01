@@ -903,7 +903,7 @@ export class Tr2LightManager
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
     {
-      if (!this.OnPrepareResources()) return false;
+      if (!this._OnPrepareResources()) return false;
     }
     return true;
   }
@@ -917,7 +917,7 @@ export class Tr2LightManager
    * @implemented
    * @returns {boolean} True.
    */
-  OnPrepareResources()
+  _OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
     const structured = Tr2GpuStructuredBuffer.CreationFlag;
