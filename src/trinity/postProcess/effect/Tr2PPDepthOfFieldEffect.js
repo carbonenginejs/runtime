@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.cpp
-import { type } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { blue, EnumRegistrationType } from "#blue";
 
@@ -63,16 +63,23 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
   }
 
   /**
-   * Reports depth of field as contributing only when the process-wide switch is
-   * on, the effect is displayed, and its blur scale is positive.
+   * Carbon IsActive (Tr2PPDepthOfFieldEffect.cpp:25-28): the
+   * `postprocessDofEnabled` setting, the base activity gate, and a positive
+   * blur scale.
    */
 
   IsActive()
   {
-    return Tr2PPDepthOfFieldEffect.PostProcessDofEnabled && this.display !== false && Number(this.scale) > 0;
+    return Tr2PPDepthOfFieldEffect.postprocessDofEnabled && super.IsActive() && this.scale > 0;
   }
 
-  static PostProcessDofEnabled = false;
+  /**
+   * `g_postprocessDofEnabled` (Tr2PPDepthOfFieldEffect.cpp:7-8), registered as
+   * the `postprocessDofEnabled` setting: depth of field for every post process.
+   * Off, as in Carbon; the client turns it on.
+   */
+  @meta.setting("postprocessDofEnabled")
+  static postprocessDofEnabled = false;
 
   static Shape = { Disk: 0, Triangle: 1, Rectangle: 2, Pentagon: 3, Hexagon: 4, Heart: 5 };
 

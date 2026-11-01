@@ -265,9 +265,9 @@ test("maintained post-process defaults match Carbon constructors", () =>
   assertEquals(depthOfField.GetBokehShapeString(), "BOKEH_SHAPE_DISK");
   depthOfField.scale = 1;
   assertEquals(depthOfField.IsActive(), false);
-  Tr2PostProcess2.PostProcessDofEnabled = true;
+  Tr2PPDepthOfFieldEffect.postprocessDofEnabled = true;
   assertEquals(depthOfField.IsActive(), true);
-  Tr2PostProcess2.PostProcessDofEnabled = false;
+  Tr2PPDepthOfFieldEffect.postprocessDofEnabled = false;
 });
 
 test("maintained SSAO owns Carbon quality state and leaves filtering explicit", () =>

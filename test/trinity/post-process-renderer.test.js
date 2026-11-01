@@ -137,7 +137,7 @@ test("depth of field without foreground blur runs the bokeh blend and fill witho
   depthOfField.useTAAFriendlyBokeh = false;
 
   // Carbon's g_postProcessDofEnabled setting, off by default.
-  Tr2PPDepthOfFieldEffect.PostProcessDofEnabled = true;
+  Tr2PPDepthOfFieldEffect.postprocessDofEnabled = true;
 
   let run;
   try
@@ -149,7 +149,7 @@ test("depth of field without foreground blur runs the bokeh blend and fill witho
   }
   finally
   {
-    Tr2PPDepthOfFieldEffect.PostProcessDofEnabled = false;
+    Tr2PPDepthOfFieldEffect.postprocessDofEnabled = false;
   }
 
   const { postProcess, held, heldAfter } = run;
@@ -167,7 +167,7 @@ test("depth of field with foreground blur maximises the CoC through Blur, then r
   depthOfField.scale = 2;
   depthOfField.cocScale = 0.5;
 
-  Tr2PPDepthOfFieldEffect.PostProcessDofEnabled = true;
+  Tr2PPDepthOfFieldEffect.postprocessDofEnabled = true;
 
   let run;
   try
@@ -176,7 +176,7 @@ test("depth of field with foreground blur maximises the CoC through Blur, then r
   }
   finally
   {
-    Tr2PPDepthOfFieldEffect.PostProcessDofEnabled = false;
+    Tr2PPDepthOfFieldEffect.postprocessDofEnabled = false;
   }
 
   const { postProcess, held, heldAfter } = run;

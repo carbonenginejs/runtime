@@ -270,14 +270,14 @@ export class Tr2PostProcess2 extends IRoot
   }
 
   /**
-   * Returns the depth-of-field effect when the process-wide depth-of-field
-   * switch is on, its blur scale is positive and the quality setting is HIGH,
-   * otherwise null.
+   * Carbon GetDepthOfFieldIfAvailable (Tr2PostProcess2.cpp:170-173): the
+   * effect when it is active and the quality setting is HIGH, otherwise null.
+   * Its IsActive carries the `postprocessDofEnabled` setting and the scale.
    */
 
   GetDepthOfFieldIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
-    return Tr2PostProcess2.GetIfAvailable(this.depthOfField, quality, Tr2PostProcess2.HIGH, effect => Tr2PostProcess2.PostProcessDofEnabled && Number(effect.scale) > 0);
+    return Tr2PostProcess2.GetIfAvailable(this.depthOfField, quality, Tr2PostProcess2.HIGH);
   }
 
   /**
@@ -422,24 +422,6 @@ export class Tr2PostProcess2 extends IRoot
   static COUNT = 3;
 
   static DynamicExposureQualityRequirement = Tr2PostProcess2.MEDIUM;
-
-  /**
-   * Reads the process-wide depth-of-field switch, which is stored on
-   * Tr2PPDepthOfFieldEffect and gates every graph at once.
-   */
-  static get PostProcessDofEnabled()
-  {
-    return Tr2PPDepthOfFieldEffect.PostProcessDofEnabled;
-  }
-
-  /**
-   * Sets the process-wide depth-of-field switch on Tr2PPDepthOfFieldEffect,
-   * coerced to a boolean; in Carbon this is a registered engine setting.
-   */
-  static set PostProcessDofEnabled(value)
-  {
-    Tr2PPDepthOfFieldEffect.PostProcessDofEnabled = !!value;
-  }
 
   /**
    * Whether an effect contributes: Carbon's `effect && effect->IsActive()`
