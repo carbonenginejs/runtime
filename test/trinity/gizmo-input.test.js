@@ -4,7 +4,7 @@ import { TnyInputMan } from "../../npm/dist/wrap/index.js";
 import { TnyTransformGizmo } from "../../npm/dist/wrap/gizmos/TnyTransformGizmo.js";
 import { TnyCameraControls } from "../../npm/dist/wrap/cameras/TnyCameraControls.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { EveCamera, Tr2Effect, TriDevice, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
+import { EveCamera, Tr2Effect, TriDevice, trinity, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
 function deferred()
@@ -163,7 +163,7 @@ for (const axis of ["x", "y", "z"])
 function setupGizmo(t, mode)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext(), previous = context.GetRenderContextAL();
-  const before = new Set(TriDevice.GetResourcesRegistered()), al = new Tr2RenderContextALStub();
+  const before = new Set(trinity.GetResourcesRegistered()), al = new Tr2RenderContextALStub();
   context.SetRenderContextAL(al);
   al.CreateDevice();
   // This suite exercises native geometry and transforms, not effect fetching.
@@ -172,7 +172,7 @@ function setupGizmo(t, mode)
   t.after(() =>
   {
     gizmo.Destruct();
-    for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destruct();
+    for (const resource of trinity.GetResourcesRegistered()) if (!before.has(resource)) resource.Destruct();
     context.SetRenderContextAL(previous);
   });
   return gizmo;

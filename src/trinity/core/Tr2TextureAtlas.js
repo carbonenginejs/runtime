@@ -33,8 +33,8 @@ import { Tr2TextureAtlasArea } from "./Tr2TextureAtlasArea.js";
 import { ITr2TextureProvider } from "./ITr2TextureProvider.js";
 import { Tr2Event } from "./Tr2Event.js";
 import { Tr2Renderer } from "./Tr2Renderer.js";
-import { TriDevice } from "./device/TriDevice.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
+import { trinity } from "../CjsTrinity.js";
 
 
 /**
@@ -378,7 +378,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /** How many textures are in the atlas texture? Counts live textures only. */

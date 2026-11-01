@@ -43,7 +43,6 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/
 // Tr2DeviceResource imports TriDevice, so TriDevice must never import this
 // file; it reaches scene classes by registered name for that reason.
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
 import { COMPUTE_LIGHT_LISTS_EFFECT_PATH } from "#consts/effectPaths";
@@ -60,6 +59,7 @@ import { blue } from "#blue";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import "../../postProcess/effect/Tr2PPEffect.js";
 import "#consts/renderContext/formats";
+import { trinity } from "../../CjsTrinity.js";
 
 /**
  * Carbon's default m_settings (EveSpaceSceneRenderDriver.h:54-71): the flat
@@ -84,7 +84,7 @@ export class EveSpaceSceneRenderDriver
    */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -654,7 +654,7 @@ export class EveSpaceSceneRenderDriver
     this._preparedContext = null;
     EveSpaceSceneRenderDriver.deleteUpscalingContext(this._upscalingContext);
     this._upscalingContext = null;
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /** The provider "DepthMap" is registered with; it holds this frame's scene depth. */

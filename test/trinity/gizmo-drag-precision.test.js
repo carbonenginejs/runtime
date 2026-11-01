@@ -3,7 +3,7 @@ import test from "node:test";
 import { TnyInputMan } from "../../npm/dist/wrap/input/TnyInputMan.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { TnyTransformGizmo } from "../../npm/dist/wrap/gizmos/TnyTransformGizmo.js";
-import { Tr2ManipulationTool, Tr2Effect, TriDevice, TriProjection, TriView,
+import { Tr2ManipulationTool, Tr2Effect, TriDevice, trinity, TriProjection, TriView,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
@@ -34,7 +34,7 @@ test("tool ray direction is independent of camera translation, including a rotat
 function setup(t, mode, axis, behind = false)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext(), previous = context.GetRenderContextAL();
-  const before = new Set(TriDevice.GetResourcesRegistered()), al = new Tr2RenderContextALStub();
+  const before = new Set(trinity.GetResourcesRegistered()), al = new Tr2RenderContextALStub();
   context.SetRenderContextAL(al); al.CreateDevice();
   Tr2Renderer.PushProjection(); Tr2Renderer.PushViewTransform();
   t.mock.method(Tr2Effect.prototype, "SetEffectPathName", function(path) { this.effectFilePath = path; });
@@ -55,7 +55,7 @@ function setup(t, mode, axis, behind = false)
   t.after(() =>
   {
     gizmo.Destruct();
-    for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destruct();
+    for (const resource of trinity.GetResourcesRegistered()) if (!before.has(resource)) resource.Destruct();
     Tr2Renderer.PopViewTransform(); Tr2Renderer.PopProjection(); context.SetRenderContextAL(previous);
   });
   return { gizmo, local };

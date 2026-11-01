@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { gTriDev, TriDevice, Tr2Renderer, Tr2RenderContext, Tr2RingBuffer, Tr2RingBufferOffsets } from "../../npm/dist/trinity/core/index.js";
+import {  TriDevice, Tr2Renderer, Tr2RenderContext, Tr2RingBuffer, Tr2RingBufferOffsets } from "../../npm/dist/trinity/core/index.js";
+import { trinity } from "../../npm/dist/trinity/CjsTrinity.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
 const STRIDE = 16;
@@ -197,9 +198,9 @@ test("the device's frame clock is not Trinity's", () =>
   al.CreateDevice();
   context.SetRenderContextAL(al);
 
-  gTriDev.device = new TriDevice();
-  gTriDev.device.OnTick(15000000, 15000000);
-  gTriDev.device.OnTick(25000000, 25000000);
+  trinity.device = new TriDevice();
+  trinity.device.OnTick(15000000, 15000000);
+  trinity.device.OnTick(25000000, 25000000);
 
   assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 2, "Trinity began two frames");
   assert.equal(context.GetRenderedFrameNumber(), 0, "the device has finished none of them");

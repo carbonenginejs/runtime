@@ -9,7 +9,7 @@ import {
     buildSyntheticDescription,
     SYNTHETIC_PERMUTATIONS
 } from "../format/carbonEffectSynthetic.js";
-import { Tr2EffectRes } from "../../../../src/trinity/shader/Tr2EffectRes.js";
+import { Tr2EffectRes } from "../../../../npm/dist/trinity/shader/Tr2EffectRes.js";
 
 /**
  * Records in, classes, records out — and the two record trees must agree.

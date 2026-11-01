@@ -1,8 +1,6 @@
 import { prepareResourceFixture, resourceIdentityFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { TriGeometryRes as SourceTriGeometryRes } from "../../src/trinity/resources/geometry/TriGeometryRes.js";
-import { MotherLode as SourceCjsMotherLode } from "../../src/global/blue/MotherLode.js";
 import { Tr2VirtualAllocator } from "../../src/trinity/core/device/Tr2VirtualAllocator.js";
 import { Tr2SuballocatedBuffer } from "../../npm/dist/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBuffer.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
@@ -151,7 +149,9 @@ test("suballocated buffer ReleaseResources honours managed storage and detaches 
 // Each geometry is registered with the MotherLode of its own module graph: the
 // registry casts what it holds to its BlueAsyncRes, and a src class is not the
 // dist one.
-for (const [ source, Geometry, ModuleMotherLode ] of [ [ "source", SourceTriGeometryRes, SourceCjsMotherLode ], [ "dist", TriGeometryRes, MotherLode ] ])
+// The raw-source variant went with S1 of device resource registration: a device resource now reaches
+// `trinity`, whose variable store is decorated source, so it loads only from the build.
+for (const [ source, Geometry, ModuleMotherLode ] of [ [ "dist", TriGeometryRes, MotherLode ] ])
 test(`${source} geometry evict/reload cycles return every LOD's used bytes to the live-resource baseline`, () =>
 {
   const renderContext = context();

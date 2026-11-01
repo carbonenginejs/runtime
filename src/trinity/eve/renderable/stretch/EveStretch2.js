@@ -20,11 +20,11 @@ import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2GenericEmitter/index.js";
-import { TriDevice } from "../../../core/device/TriDevice.js";
 import { Tr2ProceduralBuffer } from "../../../core/Tr2ProceduralBuffer.js";
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { trinity } from "../../../CjsTrinity.js";
 
 /**
  * Carbon GetEveStretch2Quads (EveStretch2.cpp:51-72): MAX_QUAD_COUNT quads of
@@ -147,7 +147,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**

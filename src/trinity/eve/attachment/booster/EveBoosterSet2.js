@@ -19,7 +19,6 @@ import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
-import { TriDevice } from "../../../core/device/TriDevice.js";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
@@ -27,6 +26,7 @@ import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/in
 import { TR2SHADERMODEL } from "#consts/graphics";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+import { trinity } from "../../../CjsTrinity.js";
 import {
   AddBoosterLights,
   CreateBoosterFlares,
@@ -329,7 +329,7 @@ export class EveBoosterSet2 extends EveEntity
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -349,7 +349,7 @@ export class EveBoosterSet2 extends EveEntity
   Destruct()
   {
     if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /** Carbon g_eveSpaceObjectTrailsEnabled (cpp:31-32), a registered engine setting: trails update and draw. */

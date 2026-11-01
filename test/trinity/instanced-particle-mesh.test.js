@@ -12,7 +12,7 @@ import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
 import {CjsBlackFormat} from "../../npm/dist/global/blue/formats/black/index.js";
 import {Tr2InstancedMesh,Tr2RuntimeInstanceData,Tr2MeshArea,Tr2ParticleSystem,Tr2ParticleElementDeclaration,Tr2EffectStateManager,
-  TriDevice,EveChildParticleSystem,EveChildContainer,EveShip2,EveUpdateContext,ExecuteMainThreadActions,
+  TriDevice, trinity,EveChildParticleSystem,EveChildContainer,EveShip2,EveUpdateContext,ExecuteMainThreadActions,
   Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/index.js";
 import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
 import {SharedGeometryBuffer} from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
@@ -24,8 +24,8 @@ import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 function setup(t)
 {
-  const registered=new Set(TriDevice.GetResourcesRegistered());
-  t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2RuntimeInstanceData||resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destruct();});
+  const registered=new Set(trinity.GetResourcesRegistered());
+  t.after(()=>{for(const resource of trinity.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2RuntimeInstanceData||resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destruct();});
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=blue.resMan;
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();blue.resMan=new StubResMan();
   Tr2Renderer.SetViewTransform(mat4.create());
@@ -305,7 +305,7 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
     for(const scenario of ["baseline","kills","warp"]) {
       ticks=100*1e7;let seed=123456789;
       Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
-      const registered=new Set(TriDevice.GetResourcesRegistered());
+      const registered=new Set(trinity.GetResourcesRegistered());
       const root=CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(bytes).object),ship=new EveShip2();
       addChild(ship, "effectChildren", root, { listNotify: ship });
       const electric=root.objects.find(child=>child.name==="Electric"),owners=[];
@@ -372,7 +372,7 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
       if(scenario==="kills")assert.ok(killEntries>1,"kill control independently repeats its authored lightning state");
       else assert.equal(killEntries,0,scenario);
       t.diagnostic(JSON.stringify({file,scenario,killEntries,cycles:stats.map(row=>row.draws.size)}));
-      for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destruct();
+      for(const resource of trinity.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destruct();
     }
   }
 });
@@ -413,7 +413,7 @@ test("runtime instance streams upload, merge native semantics, update and releas
   provider.UpdateData();assert.equal(collect(mesh,[area])[0].instanceCount,1);
   provider.DestroyData();assert.equal(provider.IsInstanceDataReady(),false);
   assert.equal(collect(mesh,[area]).length,0);
-  provider.Destruct();assert.equal(TriDevice.GetResourcesRegistered().includes(provider),false);
+  provider.Destruct();assert.equal(trinity.GetResourcesRegistered().includes(provider),false);
 });
 
 const deathlessValues=process.env.CJS_DEATHLESS_VALUES;

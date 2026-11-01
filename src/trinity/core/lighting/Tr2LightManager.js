@@ -35,7 +35,6 @@ import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureArray } from "../Tr2TextureArray/index.js";
 import { Tr2GpuBuffer } from "../device/Tr2GpuBuffer.js";
 import { Tr2GpuStructuredBuffer } from "../device/Tr2GpuStructuredBuffer.js";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Renderer, PER_FRAME_PS } from "../Tr2Renderer.js";
 import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
@@ -43,6 +42,7 @@ import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { Succeeded, Tr2ConstantBufferAL, Tr2ConstantUsageAL } from "#trinityal";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
+import { trinity } from "../../CjsTrinity.js";
 
 // Tr2LightManager.cpp:30-48 - copied verbatim; the buffer sizes are the ABI
 // the AL uploads against.
@@ -832,7 +832,7 @@ export class Tr2LightManager
     const store = Tr2VariableStore.globalStore();
     this._lightBufferVariable = store.RegisterVariableInternal(Tr2LightManager.LIGHT_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._lightBuffer);
     this._indexBufferVariable = store.RegisterVariableInternal(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._indexBuffer);
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
     return this;
   }
@@ -873,7 +873,7 @@ export class Tr2LightManager
     const instance = Tr2LightManager._instance;
     if (!instance) return;
     Tr2LightManager._instance = null;
-    TriDevice.UnregisterResource(instance);
+    trinity.UnregisterResource(instance);
     const store = Tr2VariableStore.globalStore();
     store.RegisterVariableInternal(Tr2LightManager.LIGHT_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, new Tr2GpuStructuredBuffer());
     store.RegisterVariableInternal(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, new Tr2GpuStructuredBuffer());

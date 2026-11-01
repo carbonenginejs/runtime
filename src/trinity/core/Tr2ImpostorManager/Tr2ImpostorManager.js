@@ -12,7 +12,6 @@ import { TriBatchType, TR2SHADERMODEL } from "#consts/graphics";
 import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
 import { Tr2RenderTarget } from "../device/Tr2RenderTarget.js";
 import { Tr2DepthStencil } from "../device/Tr2DepthStencil.js";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
@@ -24,6 +23,7 @@ import { Tr2TextureSubresource } from "../../../trinityal/Tr2HalHelperStructures
 import { ImpostorAtlas } from "./ImpostorAtlas.js";
 import { Impostor } from "./Impostor.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
+import { trinity } from "../../CjsTrinity.js";
 
 const emptyTexture = new Tr2TextureAL();
 const vec4_0 = vec4.create(), vec4_1 = vec4.create();
@@ -134,7 +134,7 @@ export class Tr2ImpostorManager
       Tr2ImpostorManager._definition = definition;
     }
     this._quadRenderer.RegisterEffect(this._effectKey, TriBatchType.TRIBATCHTYPE_OPAQUE, 36, 1, Tr2ImpostorManager._definition, this.effect);
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -498,7 +498,7 @@ export class Tr2ImpostorManager
     this._objects.clear();
     this._renderQueue.length = 0;
     this._atlas._free.length = 0;
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /** Native private nested record identities, with separate JS source files. */

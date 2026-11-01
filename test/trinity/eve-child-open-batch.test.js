@@ -11,6 +11,7 @@ import { BeObjectMetadata } from "../../npm/dist/global/blue/index.js";
 import { TriStorageFlags } from "../../npm/dist/global/consts/graphics/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { TriDevice } from "../../npm/dist/trinity/core/device/TriDevice.js";
+import { trinity } from "../../npm/dist/trinity/index.js";
 import { Tr2DeviceResource } from "../../npm/dist/trinity/core/device/Tr2DeviceResource.js";
 import { SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
 import { Tr2InstancedMesh } from "../../npm/dist/trinity/core/mesh/Tr2InstancedMesh.js";
@@ -61,7 +62,7 @@ test("EveBoosterSet2 is a Tr2DeviceResource that frees its instance range and un
 {
   const set = new EveBoosterSet2();
   assert.equal(CjsSchema.cast(set, Tr2DeviceResource), set, "EveBoosterSet2.h:177");
-  assert.ok(TriDevice.GetResourcesRegistered().includes(set), "registered by the constructor");
+  assert.ok(trinity.GetResourcesRegistered().includes(set), "registered by the constructor");
   assert.equal(typeof set.PrepareResources, "function", "PrepareResources comes from the base");
 
   // ReleaseResources (cpp:891-895) frees the instance range back to the shared buffer.
@@ -75,7 +76,7 @@ test("EveBoosterSet2 is a Tr2DeviceResource that frees its instance range and un
   set._instanceBuffer = kept;
   set.Destruct();
   assert.equal(kept.IsValid(), false);
-  assert.equal(TriDevice.GetResourcesRegistered().includes(set), false);
+  assert.equal(trinity.GetResourcesRegistered().includes(set), false);
 });
 
 test("EveBoosterSet2.RebuildInstanceData frees the previous range before allocating (cpp:957-958)", () =>
@@ -92,7 +93,7 @@ test("EveHazeSet is a Tr2DeviceResource whose vertex range is an embedded alloca
 {
   const set = new EveHazeSet();
   assert.equal(CjsSchema.cast(set, Tr2DeviceResource), set, "EveHazeSet.h:43");
-  assert.ok(TriDevice.GetResourcesRegistered().includes(set));
+  assert.ok(trinity.GetResourcesRegistered().includes(set));
   assert.equal(set._vertexBuffer.IsValid(), false, "h:110 by value: present and invalid until prepared");
 
   const range = allocate();
@@ -104,21 +105,21 @@ test("EveHazeSet is a Tr2DeviceResource whose vertex range is an embedded alloca
   set._vertexBuffer = kept;
   set.Destruct();
   assert.equal(kept.IsValid(), false);
-  assert.equal(TriDevice.GetResourcesRegistered().includes(set), false);
+  assert.equal(trinity.GetResourcesRegistered().includes(set), false);
 });
 
 test("EveTurretSet is a Tr2DeviceResource and Destruct follows Carbon's destructor order", t =>
 {
   const set = new EveTurretSet();
   assert.equal(CjsSchema.cast(set, Tr2DeviceResource), set, "EveTurretSet.h:104");
-  assert.ok(TriDevice.GetResourcesRegistered().includes(set));
+  assert.ok(trinity.GetResourcesRegistered().includes(set));
 
   const calls = [];
   t.mock.method(set, "Cleanup", () => { calls.push("Cleanup"); });
   t.mock.method(set, "ReleaseResources", storage => { calls.push([ "ReleaseResources", storage ]); });
   set.Destruct();
   assert.deepEqual(calls, [ "Cleanup", [ "ReleaseResources", TriStorageFlags.TRISTORAGE_ALL ] ], "cpp:130-145");
-  assert.equal(TriDevice.GetResourcesRegistered().includes(set), false);
+  assert.equal(trinity.GetResourcesRegistered().includes(set), false);
 });
 
 test("EveTurretSet.ReleaseResources frees the instance range", () =>

@@ -4,6 +4,11 @@ import { Tr2FontManager, Tr2FontMeasurer, TR2_FONT_FALLBACK } from '../../npm/di
 import * as fontModule from '../../npm/dist/trinity/font/Tr2FontManager.js';
 import { CjsOpenTypeFormat } from '../../npm/dist/resource/formats/opentype/index.js';
 import { clientResources } from '../support/clientResources.js';
+import { trinity } from "../../npm/dist/trinity/CjsTrinity.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock and the device size read trinity.device.
+InitializeTrinityStub();
 
 // Font manager answers for a face parsed from the client's own font file.
 // Expected values are FreeType 2.13.2's for evesansneue-regular.otf
@@ -147,9 +152,9 @@ test('size metrics and kerning are FreeType\'s, at the face\'s current size', as
 test('the measurer falls back per character when a parsed face lacks one', async t =>
 {
   browser(t);
-  Tr2FontManager.initialize();
+  trinity.fontManager = Tr2FontManager.initialize();
   t.after(() => Tr2FontManager.shutdown());
-  const manager = await Manager(t, fontModule.g_fontManager);
+  const manager = await Manager(t, trinity.fontManager);
   if (!manager) return;
   manager._loadedFamilies.add(TR2_FONT_FALLBACK);
 

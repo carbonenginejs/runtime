@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { blue } from "../../npm/dist/global/blue/index.js";
-import { Tr2ActionChildEffect, EveChildContainer, EveChildBehaviorSystem, EveChildParticleSystem, Tr2ParticleSystem, Tr2InstancedMesh, TriDevice } from "../../npm/dist/trinity/index.js";
+import { Tr2ActionChildEffect, EveChildContainer, EveChildBehaviorSystem, EveChildParticleSystem, Tr2ParticleSystem, Tr2InstancedMesh, TriDevice, trinity } from "../../npm/dist/trinity/index.js";
 
 /** A fresh loaded child with the same particle-to-mesh ownership as an ad. */
 function particleChild(onDestroy)
@@ -17,7 +17,7 @@ function particleChild(onDestroy)
 
 test("child-effect cycles return particle and mesh registrations and buffers to baseline", async t =>
 {
-  const baseline = TriDevice.GetResourcesRegistered().length;
+  const baseline = trinity.GetResourcesRegistered().length;
   let live = 0;
   t.mock.method(blue.resMan, "LoadObject", async () => { live++; return particleChild(() => live--); });
   const owner = new EveChildContainer(), action = new Tr2ActionChildEffect();
@@ -31,13 +31,13 @@ test("child-effect cycles return particle and mesh registrations and buffers to 
     action.Stop(controller);
     assert.equal(owner.objects.length, 0);
     assert.equal(live, 0);
-    assert.equal(TriDevice.GetResourcesRegistered().length, baseline);
+    assert.equal(trinity.GetResourcesRegistered().length, baseline);
   }
 });
 
 test("a child arriving after Stop releases the cancelled graph", async t =>
 {
-  const baseline = TriDevice.GetResourcesRegistered().length;
+  const baseline = trinity.GetResourcesRegistered().length;
   let resolveLoad, destroyed = 0;
   t.mock.method(blue.resMan, "LoadObject", () => new Promise(resolve => { resolveLoad = resolve; }));
   const owner = new EveChildContainer(), action = new Tr2ActionChildEffect();
@@ -49,7 +49,7 @@ test("a child arriving after Stop releases the cancelled graph", async t =>
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(destroyed, 1);
   assert.equal(owner.objects.length, 0);
-  assert.equal(TriDevice.GetResourcesRegistered().length, baseline);
+  assert.equal(trinity.GetResourcesRegistered().length, baseline);
 });
 
 test("a retained sibling keeps its shared particle provider alive", async t =>
@@ -66,14 +66,14 @@ test("a retained sibling keeps its shared particle provider alive", async t =>
   await new Promise(resolve => setImmediate(resolve));
   action.Stop(controller);
   assert.equal(destroyed, 0);
-  assert.ok(TriDevice.GetResourcesRegistered().includes(sibling.particleSystems[0]));
+  assert.ok(trinity.GetResourcesRegistered().includes(sibling.particleSystems[0]));
   sibling.particleSystems[0].Destruct();
   assert.equal(destroyed, 1);
 });
 
 test("100 recurring behavior ads release both instance buffers of both systems", async t =>
 {
-  const baseline = TriDevice.GetResourcesRegistered().length;
+  const baseline = trinity.GetResourcesRegistered().length;
   let live = 0;
   t.mock.method(blue.resMan, "LoadObject", async () =>
   {
@@ -98,6 +98,6 @@ test("100 recurring behavior ads release both instance buffers of both systems",
     assert.equal(live, 4);
     action.Stop(controller);
     assert.equal(live, 0);
-    assert.equal(TriDevice.GetResourcesRegistered().length, baseline);
+    assert.equal(trinity.GetResourcesRegistered().length, baseline);
   }
 });

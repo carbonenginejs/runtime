@@ -4,14 +4,14 @@ import test from 'node:test';
 import {CjsSchema} from '../../npm/dist/global/schema/index.js';
 import {INotify,NotifyModified} from '../../npm/dist/global/blue/index.js';
 import {mat4} from '../../npm/dist/global/math/mat4.js';
-import {Tr2CurveLineSet,EveCurveLineSet,TriDevice,Tr2EffectStateManager,Tr2RenderContext,Tr2RenderContext_GetMainThreadRenderContext} from '../../npm/dist/trinity/index.js';
+import {Tr2CurveLineSet,EveCurveLineSet,TriDevice,trinity,Tr2EffectStateManager,Tr2RenderContext,Tr2RenderContext_GetMainThreadRenderContext} from '../../npm/dist/trinity/index.js';
 import {Tr2RenderContextALStub,ALResult} from '../../npm/dist/trinityal/index.js';
 import {TriBatchType} from '../../npm/dist/global/consts/graphics/index.js';
 import {Tr2CpuUsage} from '../../npm/dist/global/consts/renderContext/index.js';
 
 function setup(t) {
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL();
-  const registered=new Set(TriDevice.GetResourcesRegistered());
+  const registered=new Set(trinity.GetResourcesRegistered());
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();
   Tr2Renderer.PushProjection();Tr2Renderer.PushViewTransform();Tr2Renderer.SetProjectionTransform(mat4.create());Tr2Renderer.SetViewTransform(mat4.create());
   const draws=[],draw=al.DrawInstanced.bind(al);
@@ -19,7 +19,7 @@ function setup(t) {
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
   const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
   t.after(()=>{
-    for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&CjsSchema.cast(resource,INotify))resource.Destruct();
+    for(const resource of trinity.GetResourcesRegistered())if(!registered.has(resource)&&CjsSchema.cast(resource,INotify))resource.Destruct();
     Tr2Renderer.PopProjection();Tr2Renderer.PopViewTransform();context.SetRenderContextAL(prior);
   });
   return {context,al,effect,draws};
@@ -107,7 +107,7 @@ test('buffer capacity, allocation/map failures and device recreation follow nati
   assert.equal(lines.PrepareResources(),false);assert.equal(lines.currentSubmittedLineCount,0);assert.equal(lines.OnModified('lineWidthFactor'),true);create.mock.restore();
   assert.equal(lines.PrepareResources(),true);assert.equal(collect(lines).length,1);
   lines.ClearLines();lines.SubmitChanges();assert.equal(lines.currentSubmittedLineCount,0);assert.equal(lines._vertexBuffer.IsValid(),true);
-  near(Array.from(lines.boundingSphere),[0,0,0,0]);lines.Destruct();assert.ok(!TriDevice.GetResourcesRegistered().includes(lines));
+  near(Array.from(lines.boundingSphere),[0,0,0,0]);lines.Destruct();assert.ok(!trinity.GetResourcesRegistered().includes(lines));
 });
 
 test('line batch categories dispatch real nonindexed draws and camera depth uses the native local bound',t=>{

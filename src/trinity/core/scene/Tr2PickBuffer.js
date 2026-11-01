@@ -3,8 +3,8 @@
 import { CjsSchema, type } from "#schema";
 import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, ALResult } from "#trinityal";
 import { PixelFormat, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { trinity } from "../../CjsTrinity.js";
 
 /** Native picking attachments and their explicit device-resource lifetime. */
 export class Tr2PickBuffer
@@ -34,7 +34,7 @@ export class Tr2PickBuffer
   {
     this._format = format;
     this._size = size;
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -190,7 +190,7 @@ export class Tr2PickBuffer
   Destruct()
   {
     this.ReleaseResources();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 }
 

@@ -36,6 +36,10 @@ import {
 import * as generatedChildren from "../../npm/dist/trinity/generated/eve/child/index.js";
 import * as generatedSmartLights from "../../npm/dist/trinity/generated/eve/smartLights/index.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock reads trinity.device.
+InitializeTrinityStub();
 
 
 const EPSILON = 1e-5;

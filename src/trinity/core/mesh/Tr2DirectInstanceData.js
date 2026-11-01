@@ -11,9 +11,9 @@ import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2Buffer
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
+import { trinity } from "../../CjsTrinity.js";
 
 
 /**
@@ -57,7 +57,7 @@ export class Tr2DirectInstanceData
   /** Registers Carbon's inherited Tr2DeviceResource lifetime. */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -70,7 +70,7 @@ export class Tr2DirectInstanceData
   Destruct()
   {
     this.ReleaseResources();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

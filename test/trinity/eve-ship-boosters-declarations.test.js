@@ -8,7 +8,7 @@ import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
-import { EveBoosterSet2, EveComponentRegistry, EveComponentType, EveShip2, TriDevice, Tr2Renderer } from "../../npm/dist/trinity/index.js";
+import { EveBoosterSet2, EveComponentRegistry, EveComponentType, EveShip2, TriDevice, trinity, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 
 test("EveShip2 preserves distinct native stored and live booster declarations", () =>
 {
@@ -128,7 +128,7 @@ test("live replacement transfers native component registration without destroyin
   assert.ok(!foreign.registeredEntities.includes(second));
   assert.ok(!registry.GetComponents(EveComponentType.LightOwner).includes(first));
   assert.ok(registry.GetComponents(EveComponentType.LightOwner).includes(second));
-  assert.ok(TriDevice.GetResourcesRegistered().includes(first), "replacing one owner does not destroy the old device resource");
+  assert.ok(trinity.GetResourcesRegistered().includes(first), "replacing one owner does not destroy the old device resource");
 
   const calls = [];
   const unregister = second.UnRegister, register = second.Register;
@@ -148,7 +148,7 @@ test("live replacement transfers native component registration without destroyin
   assert.equal(ship._boosters, null);
   assert.equal(second.GetComponentRegistry(), null);
   assert.ok(!registry.GetComponents(EveComponentType.LightOwner).includes(second));
-  assert.ok(TriDevice.GetResourcesRegistered().includes(second));
+  assert.ok(trinity.GetResourcesRegistered().includes(second));
 });
 
 test("a detached ship clears an incoming booster's foreign registry with Register(null)", t =>
@@ -185,13 +185,13 @@ test("canonical Black and Copier keep production booster persistence off the liv
 /** Avoids device realization and releases only test-created booster registrations. */
 function guardDeviceCreation(t)
 {
-  const before = new Set(TriDevice.GetResourcesRegistered());
+  const before = new Set(trinity.GetResourcesRegistered());
   t.mock.method(Tr2Renderer, "IsResourceCreationAllowed", () => false);
   t.after(() =>
   {
-    for (const resource of TriDevice.GetResourcesRegistered())
+    for (const resource of trinity.GetResourcesRegistered())
     {
-      if (!before.has(resource) && resource.constructor === EveBoosterSet2) TriDevice.UnregisterResource(resource);
+      if (!before.has(resource) && resource.constructor === EveBoosterSet2) trinity.UnregisterResource(resource);
     }
   });
 }

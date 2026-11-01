@@ -48,6 +48,7 @@ import { PixelFormat } from "#consts/render-context";
 import { TriStorageFlags } from "#consts/graphics";
 import { blue, IBlueEvents } from "#blue";
 import { type, blue as legacyBlue } from "#schema";
+import { trinity } from "../CjsTrinity.js";
 
 /**
  * Carbon's `TR2_FONT_FALLBACK` (Tr2FontManager.h:23, value at
@@ -121,16 +122,15 @@ export class Tr2FontManager extends IRoot
    * registers it for Blue ticks, so OnTick trims the glyph cache every frame.
    * Browser resources (the Canvas2D context) are acquired lazily.
    *
-   * @implemented
-   * @returns {void}
+   * @adapted the singleton is returned for `CjsTrinity.Initialize` to hold as
+   *   `trinity.fontManager`, Carbon's `g_fontManager`.
+   * @returns {Tr2FontManager} The font manager.
    */
-
-
   static initialize()
   {
-    g_fontManager = new Tr2FontManager();
-
-    blue.os.RegisterForTicks(g_fontManager, s_cookie);
+    const fontManager = new Tr2FontManager();
+    blue.os.RegisterForTicks(fontManager, s_cookie);
+    return fontManager;
   }
 
   /**
@@ -146,13 +146,14 @@ export class Tr2FontManager extends IRoot
 
   static shutdown()
   {
-    if (g_fontManager)
+    const fontManager = trinity.fontManager;
+    if (fontManager)
     {
-      blue.os.UnregisterForTicks(g_fontManager, s_cookie);
-      g_fontManager.ClearCachedGlyphs();
+      blue.os.UnregisterForTicks(fontManager, s_cookie);
+      fontManager.ClearCachedGlyphs();
     }
 
-    g_fontManager = null;
+    trinity.fontManager = null;
   }
 
   /** m_faceMap: font name to face ID. @type {Map<string, number>} */
@@ -424,13 +425,13 @@ export class Tr2FontManager extends IRoot
   {
     const faceNameUsed = faceName === "" ? TR2_FONT_FALLBACK : faceName;
 
-    let faceID = g_fontManager.GetFaceID(faceNameUsed);
-    let glyphIndex = g_fontManager.LookupGlyphIndex(faceID, charCode);
+    let faceID = trinity.fontManager.GetFaceID(faceNameUsed);
+    let glyphIndex = trinity.fontManager.LookupGlyphIndex(faceID, charCode);
 
     if (glyphIndex <= 0)
     {
-      faceID = g_fontManager.GetFaceID(TR2_FONT_FALLBACK);
-      glyphIndex = g_fontManager.LookupGlyphIndex(faceID, charCode);
+      faceID = trinity.fontManager.GetFaceID(TR2_FONT_FALLBACK);
+      glyphIndex = trinity.fontManager.LookupGlyphIndex(faceID, charCode);
     }
 
     return [ faceID, glyphIndex ];
@@ -544,7 +545,7 @@ export class Tr2FontManager extends IRoot
    */
   _PyLookupKerningXP(faceID, charCode1, charCode2)
   {
-    const kerning = g_fontManager.LookupKerningXP(faceID, charCode1, charCode2) | 0;
+    const kerning = trinity.fontManager.LookupKerningXP(faceID, charCode1, charCode2) | 0;
 
     return kerning >> 6;
   }
@@ -1097,5 +1098,3 @@ export class Tr2FontManager extends IRoot
 
 }
 
-/** Native font-manager singleton; no browser context is created at import time. */
-export let g_fontManager = null;

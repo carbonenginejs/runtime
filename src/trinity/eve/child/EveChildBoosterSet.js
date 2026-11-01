@@ -34,9 +34,9 @@ import {
   PadBoosterBoundingSphere
 } from "../attachment/booster/boosterUtilities.js";
 import { TriStorageFlags } from "#consts/graphics";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { trinity } from "../../CjsTrinity.js";
 
 // Tr2ChildBoosterInstanceData (Tr2RingBuffer.h:19-26): Float4x3 transform
 // (COLUMN-stride rows), intensity, wavePhase, atlasIndex0, atlasIndex1 -
@@ -305,7 +305,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**

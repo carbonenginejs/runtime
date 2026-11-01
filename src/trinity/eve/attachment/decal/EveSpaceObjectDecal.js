@@ -23,9 +23,9 @@ import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { Tr2PickType } from "#consts/graphics/tr2PickType";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
-import { TriDevice } from "../../../core/device/TriDevice.js";
 import { BuildDecalGeometry, BuildStaticDecalGeometry, FindCachedDecalGeometry } from "./decalIndices.js";
 import "#consts/graphics/trinityEnums";
+import { trinity } from "../../../CjsTrinity.js";
 
 
 /**
@@ -48,7 +48,7 @@ export class EveSpaceObjectDecal
    */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     // The schema's legacy TriBatchType default is 0. Carbon's decal default is
     // the opaque batch (1), so establish it after model/schema initialization.
     this.batchType = 1;
@@ -70,7 +70,7 @@ export class EveSpaceObjectDecal
   Destruct()
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

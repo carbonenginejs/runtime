@@ -41,7 +41,6 @@ import { TriSettingsRegistrar } from "./TriSettingsRegistrar.js";
 import { Tr2RenderUtils } from "./Tr2RenderUtils.js";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
-import { gTriDev } from "./device/gTriDev.js";
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2SuballocatedBufferAllocation } from "./device/Tr2SuballocatedBuffer/index.js";
 import { SharedGeometryBuffer } from "./mesh/TriGeometryResAllocations.js";
@@ -52,6 +51,7 @@ import { PROJECTION_TYPE } from "../generated/shader/enums.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { trinity } from "../CjsTrinity.js";
 
 
 /** perFrameVS, owned by the scene. */
@@ -473,7 +473,7 @@ export class Tr2Renderer
    */
   static GetAnimationTime()
   {
-    return gTriDev.device.GetAnimationTime();
+    return trinity.device.GetAnimationTime();
   }
 
   /**
@@ -486,7 +486,7 @@ export class Tr2Renderer
    */
   static GetAnimationTimeElapsed(startTime)
   {
-    return gTriDev.device.GetAnimationTimeElapsed(startTime);
+    return trinity.device.GetAnimationTimeElapsed(startTime);
   }
 
   /**
@@ -506,7 +506,7 @@ export class Tr2Renderer
     const variable = Tr2Renderer.#RenderTimeVariable();
     const previous = variable?.GetValue() ?? [ 0, 0, 0, 0 ];
 
-    const animationTime = gTriDev.device.GetAnimationTime();
+    const animationTime = trinity.device.GetAnimationTime();
     const time = [
       animationTime,
       animationTime - Math.floor(animationTime),
@@ -615,7 +615,7 @@ export class Tr2Renderer
    */
   static GetCurrentFrameCounter()
   {
-    return gTriDev.device.GetCurrentFrameCounter();
+    return trinity.device.GetCurrentFrameCounter();
   }
 
   /**

@@ -2,14 +2,14 @@ import { readEffectFixture } from "../../../support/resourceFixtures.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { CjsCarbonEffectWriter } from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
+import { CjsCarbonEffectWriter } from "../../../../npm/dist/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import {
     blob,
     buildSyntheticDescription,
     SYNTHETIC_PERMUTATIONS
 } from "../format/carbonEffectSynthetic.js";
-import { Tr2EffectRes } from "../../../../src/trinity/shader/Tr2EffectRes.js";
-import { Tr2Shader } from "../../../../src/trinity/shader/Tr2Shader.js";
+import { Tr2EffectRes } from "../../../../npm/dist/trinity/shader/Tr2EffectRes.js";
+import { Tr2Shader } from "../../../../npm/dist/trinity/shader/Tr2Shader.js";
 
 /**
  * The resource reading container bytes directly, with no intermediate document.

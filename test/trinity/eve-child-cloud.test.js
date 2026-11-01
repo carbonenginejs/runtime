@@ -4,14 +4,17 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mat4, quat, vec3 } from "../../npm/dist/global/math/index.js";
 import { RenderingMode, TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import {
-  EveChildCloud, EveUpdateContext, EveSpaceObject2, TriDevice, TriPoolAllocator,
+  EveChildCloud, EveUpdateContext, EveSpaceObject2, TriDevice, trinity, TriPoolAllocator,
   TriRenderBatchAccumulator, Tr2RenderContext_GetMainThreadRenderContext,
   Tr2EffectStateManager
 } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub, Tr2ConstantBufferAL, ALResult } from "../../npm/dist/trinityal/index.js";
 import { CjsPerObjectLayouts } from "../../npm/dist/trinity/core/rawData/CjsPerObjectLayouts.js";
-import { gTriDev } from "../../npm/dist/trinity/core/device/gTriDev.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock and the device size read trinity.device.
+InitializeTrinityStub();
 
 // Expected geometry, constants and gates below come from EveChildCloud.cpp,
 // not from the former JS shell: grid 282-352, payload 354-422, gates 218-273.
@@ -19,8 +22,8 @@ function setup(t)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext();
   const prior = context.GetRenderContextAL();
-  const registered = new Set(TriDevice.GetResourcesRegistered());
-  const oldWidth = gTriDev.device.width, oldHeight = gTriDev.device.height;
+  const registered = new Set(trinity.GetResourcesRegistered());
+  const oldWidth = trinity.device.width, oldHeight = trinity.device.height;
   const al = new Tr2RenderContextALStub();
   context.SetRenderContextAL(al);
   al.CreateDevice();
@@ -39,20 +42,20 @@ function setup(t)
   projection[14] = -100 / 99; projection[15] = 0;
   Tr2Renderer.SetViewTransform(mat4.create());
   Tr2Renderer.SetProjectionTransform(projection);
-  gTriDev.device.width = 800;
-  gTriDev.device.height = 200;
+  trinity.device.width = 800;
+  trinity.device.height = 200;
   const pool = new TriPoolAllocator().RegisterCatalog();
   const accumulator = new TriRenderBatchAccumulator().SetTriPoolAllocator(pool);
   const shader = { GetTechniqueIndex: () => 0, GetPassCount: () => 1, GetShaderTypeMask: () => 3, ApplyAllStateForPass() {} };
   const effect = { GetShaderStateInterface: () => shader, IsGood: () => true, CompatibleWithGdr: () => false, ApplyMaterialDataForPass() {} };
   t.after(() =>
   {
-    for (const resource of TriDevice.GetResourcesRegistered())
+    for (const resource of trinity.GetResourcesRegistered())
     {
       if (!registered.has(resource) && resource.constructor === EveChildCloud) resource.Destruct();
     }
     context.SetRenderContextAL(prior);
-    gTriDev.device.width = oldWidth; gTriDev.device.height = oldHeight;
+    trinity.device.width = oldWidth; trinity.device.height = oldHeight;
   });
   return { context, al, uploads, draws, accumulator, effect, projection };
 }
@@ -99,7 +102,7 @@ test("notified tessellation edits and device release rebuild owned storage", t =
   assert.equal(cloud._indexBuffers.length, 1);
   cloud.Destruct();
   assert.equal(vertex.IsValid(), false);
-  assert.ok(!TriDevice.GetResourcesRegistered().includes(cloud));
+  assert.ok(!trinity.GetResourcesRegistered().includes(cloud));
 });
 
 test("failed native buffer creation is reported and can be prepared again", t =>
@@ -194,7 +197,7 @@ test("LOD preserves Carbon's width-for-both-axes quirk and near-plane clipping",
   mat4.fromScaling(cloud.worldTransform, [1, 4, 1]); cloud.worldTransform[14] = -100;
   const record = cloud.GetPerObjectData(accumulator);
   assert.equal(cloud.currentLod, 2);
-  gTriDev.device.height = 1600;
+  trinity.device.height = 1600;
   cloud.GetPerObjectData(accumulator);
   assert.equal(cloud.currentLod, 2, "height does not enter the native formula");
   cloud.cellScreenSize = 0.2;

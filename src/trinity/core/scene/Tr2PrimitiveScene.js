@@ -15,11 +15,11 @@ import { RawData } from "../rawData/RawData.js";
 import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
 import { Tr2ConstantBufferAL } from "#trinityal";
 import { PER_FRAME_VS, Tr2Renderer } from "../Tr2Renderer.js";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { PROJECTION_TYPE } from "../../generated/shader/enums.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
+import { trinity } from "../../CjsTrinity.js";
 
 /** Native primitive scene and tool handles. Text rendering is a separate port. */
 @be.define("Tr2PrimitiveScene")
@@ -57,7 +57,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -196,7 +196,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     this._opaqueBatches.Clear();
     this._pickingBatches.Clear();
     this._allocator.Clear();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

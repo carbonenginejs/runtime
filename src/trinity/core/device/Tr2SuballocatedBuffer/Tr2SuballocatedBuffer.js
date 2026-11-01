@@ -15,7 +15,7 @@ import { TriStorageFlags } from "#consts/graphics";
 import { CjsSchema } from "#schema";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { Failed } from "../../../../trinityal/ALResult.js";
-import { TriDevice } from "../TriDevice.js";
+import { trinity } from "../../../CjsTrinity.js";
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */
 export const SHARED_BUFFER_BLOCK_SIZE = 32 * 1024 * 1024;
@@ -60,7 +60,7 @@ export class Tr2SuballocatedBuffer
     this._blockSize = blockSize;
     this._maxSize = maxSize;
     // Carbon's Tr2DeviceResource base constructor registers every resource.
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**

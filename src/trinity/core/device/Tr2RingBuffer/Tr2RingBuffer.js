@@ -42,10 +42,10 @@ import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
-import { TriDevice } from "../TriDevice.js";
 import { Tr2Renderer } from "../../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../context/Tr2RenderContext.js";
 import { ITr2GpuBuffer } from "../../ITr2GpuBuffer.js";
+import { trinity } from "../../../CjsTrinity.js";
 
 
 function failRing(message)
@@ -125,7 +125,7 @@ export class Tr2RingBuffer
   /** Registers the arena as Carbon's Tr2DeviceResource constructor does. */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -184,7 +184,7 @@ export class Tr2RingBuffer
     for (const ring of Tr2RingBuffer._instances.values())
     {
       ring._buffer?.Destroy();
-      TriDevice.UnregisterResource(ring);
+      trinity.UnregisterResource(ring);
     }
     Tr2RingBuffer._instances.clear();
   }

@@ -25,7 +25,6 @@ import { RenderingMode, TriStorageFlags } from "#consts/graphics";
 import { PixelFormat, ShaderType, Topology } from "#consts/render-context";
 import { Tr2GpuBuffer } from "../core/device/Tr2GpuBuffer.js";
 import { Tr2GpuStructuredBuffer } from "../core/device/Tr2GpuStructuredBuffer.js";
-import { TriDevice } from "../core/device/TriDevice.js";
 import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
 import { IRenderCallback } from "../core/IRenderCallback.js";
 import { Tr2Renderer, PER_OBJECT_VS } from "../core/Tr2Renderer.js";
@@ -36,6 +35,7 @@ import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { MAX_TURBULENCE_LENGTH, Tr2GpuParticleSystemEmitterParamsGpu } from "./Tr2GpuParticleSystemEmitterParamsGpu.js";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
+import { trinity } from "../CjsTrinity.js";
 
 /** Carbon DEFAULT_MAX_PARTICLES (cpp:19). */
 const DEFAULT_MAX_PARTICLES = 1024 * 1024;
@@ -316,7 +316,7 @@ export class Tr2GpuParticleSystem
    */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.InitializeBuffers();
     this.RegisterVariables();
     this.SetMaxParticles(this.maxParticles);
@@ -342,7 +342,7 @@ export class Tr2GpuParticleSystem
       this._variableStore = null;
       for (const slot of EFFECT_SLOTS) this.SetVariableStore(this[slot]);
     }
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

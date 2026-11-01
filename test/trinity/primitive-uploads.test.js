@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {CjsSchema} from "../../npm/dist/global/schema/index.js";
 import {IInitialize} from "../../npm/dist/global/blue/index.js";
 import {finalizeReaderObject} from "../../npm/dist/global/schema/hydration.js";
-import {Tr2LineSet,Tr2SolidSet,Tr2GrannyPrimitiveSet,Tr2PrimitiveSet,TriDevice,Tr2EffectStateManager,
+import {Tr2LineSet,Tr2SolidSet,Tr2GrannyPrimitiveSet,Tr2PrimitiveSet,TriDevice, trinity,Tr2EffectStateManager,
   Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/index.js";
 import {Tr2RenderContextALStub,Tr2BufferAL,ALResult} from "../../npm/dist/trinityal/index.js";
 import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
@@ -14,14 +14,14 @@ import { MarkerTag } from "../support/markerTags.js";
 const red=[1,0,0,1],green=[0,1,0,1],blue=[0,0,1,1];
 function setup(t){
   const context=Tr2RenderContext_GetMainThreadRenderContext(),old=context.GetRenderContextAL();
-  const before=new Set(TriDevice.GetResourcesRegistered()),al=new Tr2RenderContextALStub();
+  const before=new Set(trinity.GetResourcesRegistered()),al=new Tr2RenderContextALStub();
   context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();
   const maps=new Map(),map=Tr2BufferAL.prototype.MapForWriting,draws=[],draw=al.DrawInstanced.bind(al);
   t.mock.method(Tr2BufferAL.prototype,"MapForWriting",function(...args){const result=map.apply(this,args);if(result.data)maps.set(this,result.data);return result;});
   al.DrawInstanced=(...args)=>{draws.push(args);return draw(...args);};
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
   const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
-  t.after(()=>{for(const item of TriDevice.GetResourcesRegistered())if(!before.has(item))item.Destruct();context.SetRenderContextAL(old);});
+  t.after(()=>{for(const item of trinity.GetResourcesRegistered())if(!before.has(item))item.Destruct();context.SetRenderContextAL(old);});
   return {context,maps,draws,effect};
 }
 function floats(maps,buffer){const data=maps.get(buffer);assert.ok(data,"upload must occur");return [...new Float32Array(data.buffer,data.byteOffset,data.byteLength/4)];}
@@ -81,7 +81,7 @@ test("colors resubmit, device release can reprepare, owner destruction unregiste
     for(let offset=colorOffset;offset<data.length;offset+=stride)assert.deepEqual(data.slice(offset,offset+4),[.5,.25,1,.75]);
     const bound=[...s.boundingSphere];s.ReleaseResources();assert.equal(s._vertexBuffer.IsValid(),false);
     assert.deepEqual([...s.boundingSphere],bound);assert.equal(s.PrepareResources(),true);assert.equal(s._vertexBuffer.IsValid(),true);
-    s.Destruct();s.Destruct();assert.equal(TriDevice.GetResourcesRegistered().includes(s),false);assert.equal(s._vertexBuffer.IsValid(),false);
+    s.Destruct();s.Destruct();assert.equal(trinity.GetResourcesRegistered().includes(s),false);assert.equal(s._vertexBuffer.IsValid(),false);
     assert.equal(s.OnPrepareResources(),false);
   }
 });

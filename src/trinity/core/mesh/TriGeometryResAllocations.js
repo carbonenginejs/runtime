@@ -26,8 +26,8 @@ import { TriGeometryRes } from "#trinity/resources/geometry";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { Tr2GpuUsage } from "#consts/render-context";
 import { Tr2SuballocatedBuffer } from "../device/Tr2SuballocatedBuffer/index.js";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
+import { trinity } from "../../CjsTrinity.js";
 
 
 /**
@@ -53,7 +53,7 @@ export function ReleaseSharedGeometryBuffer(renderContext)
   const buffer = sharedBuffers.get(key);
   if (!buffer) return;
   buffer.ReleaseResources();
-  TriDevice.UnregisterResource(buffer);
+  trinity.UnregisterResource(buffer);
   sharedBuffers.delete(key);
 }
 

@@ -11,10 +11,10 @@ import { BitmapDimensions } from "#imageio";
 import { Failed, Tr2TextureAL } from "#trinityal";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
-import { TriDevice } from "../core/device/TriDevice.js";
 import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
 import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 import { Tr2Sprite2dContainer } from "./Tr2Sprite2dContainer.js";
+import { trinity } from "../CjsTrinity.js";
 
 /**
  * Carbon's `(uint32_t)` cast of a float display extent (Tr2Sprite2dLayer.cpp:96, 119): truncation
@@ -47,7 +47,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /** m_backgroundColor (Color) [READWRITE, PERSIST, NOTIFY]: clear colour when `clearBackground` is set. */
@@ -352,7 +352,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   {
     this._FreeRenderTarget();
     if (this._textureSecondary) this._textureSecondary.UnregisterForChangeNotification(this);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
     super.Destruct();
   }
 

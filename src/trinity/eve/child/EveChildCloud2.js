@@ -31,7 +31,6 @@ import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
 import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
 import { Tr2SubresourceData } from "../../../trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { TriTextureParameter } from "../../shader/parameter/TriTextureParameter.js";
@@ -43,6 +42,7 @@ import { Tr2RenderReason, Tr2VolumerticQuality, TriVariableContentType } from ".
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { ITr2VolumetricRenderable } from "../../core/ITr2VolumetricRenderable.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
+import { trinity } from "../../CjsTrinity.js";
 
 // Carbon std::numeric_limits<float>::max() (cpp:916). The renderable-side sort
 // value is a finite float32, NOT Infinity - downstream distance sums must stay
@@ -389,7 +389,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     this.depthShadowMapHandle.SetValue(null);
     this.lights.SetNotify(this);
     this._lightmapPerObjectData.data = RawData.create("EveChildCloud2PerObjectData");
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -472,7 +472,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     this._emptyLightMap.GetTexture().Destroy();
     this._emptyLightMap.OnTextureChange().Broadcast();
     this.lights.SetNotify(null);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

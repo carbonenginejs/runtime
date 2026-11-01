@@ -7,7 +7,7 @@ import { vec2 } from "../../npm/dist/global/math/vec2.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue, BlueScriptCallback } from "../../npm/dist/global/blue/index.js";
-import { gTriDev, TriDevice, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext, TriViewport } from "../../npm/dist/trinity/core/index.js";
+import {  TriDevice, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext, TriViewport } from "../../npm/dist/trinity/core/index.js";
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedEve from "../../npm/dist/trinity/generated/eve/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
@@ -34,8 +34,8 @@ function makeContext({ animationTime = 0, viewport = [ 0, 0, 100, 100 ] } = {})
   context.GetEffectStateManager().SetViewport(activeViewport);
   // The bracket reads the animation clock off the device, as Carbon's reads
   // it off BeOS - so the clock is set on the device, not on the context.
-  gTriDev.device = new TriDevice();
-  gTriDev.device.animationTime = animationTime;
+  trinity.trinity.device = new TriDevice();
+  trinity.trinity.device.animationTime = animationTime;
   return context;
 }
 

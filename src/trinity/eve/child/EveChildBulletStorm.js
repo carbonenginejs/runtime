@@ -17,12 +17,12 @@ import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2Buffer
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/Tr2RenderBatch.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { trinity } from "../../CjsTrinity.js";
 
 /** BulletStormVertex (cpp:20-23): one float corner id. */
 const CORNER_STRIDE = 4;
@@ -47,7 +47,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -217,7 +217,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   Destruct()
   {
     this.ReleaseResources();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

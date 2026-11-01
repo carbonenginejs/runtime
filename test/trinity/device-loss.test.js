@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { blue } from "../../npm/dist/global/blue/index.js";
 import {
-  gTriDev,
+  trinity,
   Tr2RenderContext_GetMainThreadRenderContext,
   Tr2Renderer,
   TriDevice
@@ -84,11 +84,11 @@ async function withLostCapableDevice(body)
     }
   });
 
-  const previousDevice = gTriDev.device;
+  const previousDevice = trinity.device;
   const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
   renderContext.SetRenderContextAL(al);
   const device = new TriDevice();
-  gTriDev.device = device;
+  trinity.device = device;
 
   try
   {
@@ -98,7 +98,7 @@ async function withLostCapableDevice(body)
   finally
   {
     blue.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
-    gTriDev.device = previousDevice;
+    trinity.device = previousDevice;
     renderContext.SetRenderContextAL(new Tr2RenderContextALStub());
   }
 }
@@ -110,7 +110,7 @@ test("a lost device is released, notified, replaced over ticks and prepared agai
     PrepareResources: () => events.push("prepare"),
     ReleaseResources: storage => events.push([ "release", storage ])
   };
-  TriDevice.RegisterResource(resource);
+  trinity.RegisterResource(resource, Infinity);
 
   try
   {
@@ -175,15 +175,15 @@ test("a lost device is released, notified, replaced over ticks and prepared agai
   }
   finally
   {
-    TriDevice.UnregisterResource(resource);
+    trinity.UnregisterResource(resource);
   }
 });
 
 test("a device that was never created is not a lost one", { skip: lossSkip }, () =>
 {
-  const previousDevice = gTriDev.device;
+  const previousDevice = trinity.device;
   const device = new TriDevice();
-  gTriDev.device = device;
+  trinity.device = device;
   const removed = [];
   device.onDeviceRemoved = (...args) => removed.push(args);
 
@@ -195,6 +195,6 @@ test("a device that was never created is not a lost one", { skip: lossSkip }, ()
   }
   finally
   {
-    gTriDev.device = previousDevice;
+    trinity.device = previousDevice;
   }
 });

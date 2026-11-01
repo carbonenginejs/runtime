@@ -11,6 +11,7 @@ import { DefaultConfiguration } from "./configuration.js";
 import { ImageIO } from "../resource/imageio/ImageIO.js";
 import { TriSettingsRegistrar } from "../trinity/core/TriSettingsRegistrar.js";
 import { Tr2EffectRes } from "../trinity/shader/Tr2EffectRes.js";
+import { trinity, TriDevice, Tr2FontManager, Tr2Renderer, Tr2RenderContext_GetMainThreadRenderContext } from "../trinity/index.js";
 import { SetEffectPathDefaults } from "#utils/effectPath";
 
 let activeLibrary = null;
@@ -216,6 +217,38 @@ export class CjsLibrary
   }
 
 
+  /**
+   * Builds the device for the backend the host chose and starts Trinity with it:
+   * sets the host's abstraction layer on the main render context, constructs the
+   * `TriDevice`, creates the font manager (`Tr2FontManager::Initialize`) and calls
+   * `trinity.Initialize`, which runs Carbon's InitializeTrinity for them.
+   *
+   * Ours: Carbon's host builds the device itself (Python's `trinity.TriDevice()`)
+   * and Trinity starts when its module loads; here the composition does both, so
+   * Trinity imports no device and every class can import `trinity`. The backend
+   * is whatever the host built - the WebGPU layer from its own `GPUDevice`, WebGL2,
+   * or `Tr2RenderContextALStub` for tests and tools - and nothing maps a name to
+   * one or falls back to another.
+   *
+   * @param {object} options Start-up options.
+   * @param {object} options.renderContextAL The host's abstraction layer.
+   * @returns {TriDevice} The device, now `trinity.device`.
+   * @throws {Error} When no abstraction layer is given, or Trinity is already initialized.
+   */
+  AttachTrinity({ renderContextAL = null } = {})
+  {
+    if (!renderContextAL) throw new Error("no device backend chosen");
+    if (trinity.device) throw new Error("trinity is already initialized");
+    Tr2RenderContext_GetMainThreadRenderContext().SetRenderContextAL(renderContextAL);
+    const device = new TriDevice();
+    trinity.Initialize({ device, fontManager: Tr2FontManager.initialize(), renderer: Tr2Renderer });
+    this._startedTrinity = true;
+    return device;
+  }
+
+  /** Whether AttachTrinity started Trinity, so Shutdown stops it. */
+  _startedTrinity = false;
+
   /** Creates the 2D overlay canvas over a 3D canvas; it draws on Blue ticks. */
   CreateOverlay2D(options)
   {
@@ -320,6 +353,13 @@ export class CjsLibrary
   {
     if (this._initialization) await this._initialization;
     if (!this._previousServices) return this;
+    if (this._startedTrinity)
+    {
+      // The font manager's tick first: trinity.Shutdown drops the reference.
+      Tr2FontManager.shutdown();
+      trinity.Shutdown();
+      this._startedTrinity = false;
+    }
     this._callbackManTickOs.UnregisterForTicks(this._callbackManTicker, "BeCallbackMan");
     this._callbackManTickOs = null;
     installBlueServices(this._previousServices, this._previousServices.running);

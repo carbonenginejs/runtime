@@ -15,9 +15,9 @@ import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
+import { trinity } from "../../CjsTrinity.js";
 
 
 /** A set of coloured lines with an accompanying picking-triangle list, submitted as one buffer. */
@@ -39,7 +39,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /** m_lines (std::vector<LineData>) */
@@ -314,7 +314,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   {
     this._destroyed = true;
     this.ReleaseResources();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
 }

@@ -13,7 +13,6 @@ import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2Buffer
 import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { mat4 } from "#math/mat4";
@@ -23,6 +22,7 @@ import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType";
 import { ITr2Renderable } from "../ITr2Renderable.js";
+import { trinity } from "../../CjsTrinity.js";
 
 
 const LINE_STRIDE = 80;
@@ -161,7 +161,7 @@ export class Tr2CurveLineSet
   /** Registers the inherited device-resource lifetime and prepares the empty set. */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -175,7 +175,7 @@ export class Tr2CurveLineSet
   Destruct()
   {
     this.ReleaseResources();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

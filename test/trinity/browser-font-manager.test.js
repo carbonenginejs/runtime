@@ -2,6 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Tr2FontManager, Tr2Renderer } from '../../npm/dist/trinity/index.js';
 import * as fontModule from '../../npm/dist/trinity/index.js';
+import { trinity } from "../../npm/dist/trinity/CjsTrinity.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock and the device size read trinity.device.
+InitializeTrinityStub();
 
 // Deterministic Canvas2D contract fixture, not evidence of browser pixel parity.
 function browser(t)
@@ -45,11 +50,11 @@ test('browser font identities, fixed-point metrics and pair kerning', t =>
   const manager = loaded(new Tr2FontManager()), id = manager.GetFaceID('evefont');
   assert.equal(manager.GetFaceID('evefont'), id);
   // Carbon LookupFaceIDAndGlyphIndex (Blue name "LookupGlyphIndex") resolves the
-  // name through g_fontManager (Tr2FontManager.cpp:707-725).
-  Tr2FontManager.initialize();
+  // name through trinity.fontManager (Tr2FontManager.cpp:707-725).
+  trinity.fontManager = Tr2FontManager.initialize();
   t.after(() => Tr2FontManager.shutdown());
-  loaded(fontModule.g_fontManager);
-  assert.deepEqual(manager.LookupFaceIDAndGlyphIndex('evefont', 65), [fontModule.g_fontManager.GetFaceID('evefont'), 65]);
+  loaded(fontModule.trinity.fontManager);
+  assert.deepEqual(manager.LookupFaceIDAndGlyphIndex('evefont', 65), [fontModule.trinity.fontManager.GetFaceID('evefont'), 65]);
   assert.equal(manager.LookupGlyphIndex(id, 0x1f600), 0x1f600);
   assert.equal(manager.LookupGlyphIndex(id, -1), -1);
   assert.deepEqual(manager.LookupMetrics(id, 0, 12), { ascender: 640, descender: -192, height: 832 });
@@ -162,8 +167,8 @@ test('text measurer preserves segment cancellation, limits and committed index r
 {
   browser(t);
   const { Tr2FontMeasurer } = await import('../../npm/dist/trinity/index.js');
-  Tr2FontManager.initialize();
-  loaded(fontModule.g_fontManager);
+  trinity.fontManager = Tr2FontManager.initialize();
+  loaded(fontModule.trinity.fontManager);
   const text = new Tr2FontMeasurer();
   text.font = 'evefont'; text.letterSpace = 2;
   assert.equal(text.AddText('AB'), 2); assert.equal(text.cursorX, 20);
@@ -187,8 +192,8 @@ test('committed browser text draws into a host bitmap with top-down baseline pla
 {
   browser(t);
   const { Tr2FontMeasurer } = await import('../../npm/dist/trinity/index.js');
-  Tr2FontManager.initialize();
-  loaded(fontModule.g_fontManager, fontModule.TR2_FONT_FALLBACK);
+  trinity.fontManager = Tr2FontManager.initialize();
+  loaded(trinity.fontManager, fontModule.TR2_FONT_FALLBACK);
   const text = new Tr2FontMeasurer(), bytes = new Uint8Array(20 * 20 * 4);
   text.color = 0xff030201; text.AddText('A'); text.CommitText(2, 10);
   text.DrawToHostBitmap({ IsValid: () => true, GetFormat: () => 28, GetWidth: () => 20, GetHeight: () => 20, GetPitch: () => 80, GetRawData: () => bytes });
@@ -223,9 +228,9 @@ test('text sprite runs batch by atlas identity and rebase after a split', async 
 {
   browser(t);
   const { Tr2FontMeasurer } = await import('../../npm/dist/trinity/index.js');
-  Tr2FontManager.initialize();
+  trinity.fontManager = Tr2FontManager.initialize();
   t.after(() => Tr2FontManager.shutdown());
-  loaded(fontModule.g_fontManager);
+  loaded(fontModule.trinity.fontManager);
   const measurer = new Tr2FontMeasurer();
   measurer.font = 'evefont';
   measurer.AddText('AAA B'); measurer.CommitText(0, 10);

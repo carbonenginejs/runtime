@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "#schema";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 
-import { CjsCarbonEffectWriter } from "../../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
-import { CARBON_ANNOTATION_TYPE } from "../../../src/resource/format/carbonEffect/carbonEffectRecords.js";
+import { CjsCarbonEffectWriter } from "../../../npm/dist/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
+import { CARBON_ANNOTATION_TYPE } from "../../../npm/dist/resource/format/carbonEffect/carbonEffectRecords.js";
 import { buildSyntheticDescription, str } from "./format/carbonEffectSynthetic.js";
 
-import { Tr2EffectConstant, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectParameterAnnotation, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2Pass, Tr2SamplerSetup } from "../../../src/resource/shader/index.js";
-import { GetGlobalEffectOptions, ModifyGlobalEffectOptions, Tr2EffectRes } from "../../../src/trinity/shader/Tr2EffectRes.js";
-import { Tr2Shader } from "../../../src/trinity/shader/Tr2Shader.js";
+import { Tr2EffectConstant, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectParameterAnnotation, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2Pass, Tr2SamplerSetup } from "../../../npm/dist/resource/shader/index.js";
+import { GetGlobalEffectOptions, ModifyGlobalEffectOptions, Tr2EffectRes } from "../../../npm/dist/trinity/shader/Tr2EffectRes.js";
+import { Tr2Shader } from "../../../npm/dist/trinity/shader/Tr2Shader.js";
 import { MarkerTag } from "../../support/markerTags.js";
 
 /**

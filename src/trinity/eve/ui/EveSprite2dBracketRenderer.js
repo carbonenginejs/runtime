@@ -1,6 +1,5 @@
 import { exposure as be } from "#be";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { vec4 } from "#math/vec4";
 // Source: trinity/trinity/EveSprite2dBracketRenderer.h
 // Source: trinity/trinity/EveSprite2dBracketRenderer.cpp
@@ -12,6 +11,7 @@ import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget, Tr2Sprite2dTextureSettings } from "../../generated/sprite2d/enums.js";
 import { Tr2SpriteObject } from "../../sprite2d/Tr2SpriteObject.js";
+import { trinity } from "../../CjsTrinity.js";
 
 
 /**
@@ -32,7 +32,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -51,7 +51,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
   Destruct()
   {
     this.ReleaseResources(0);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /** m_iconAtlas (Tr2AtlasTexturePtr) [READWRITE] */

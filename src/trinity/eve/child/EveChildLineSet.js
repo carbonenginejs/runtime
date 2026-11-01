@@ -21,7 +21,6 @@ import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2Buffer
 import { EveCurveLineSet } from "../ui/lines/EveCurveLineSet.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -29,6 +28,7 @@ import { CreateLodAllocations, RealizeBatchGeometry } from "../../core/mesh/TriG
 import { RawData } from "../../core/rawData/RawData.js";
 import { EveChildLineSetPerObjectData } from "../../core/rawData/perObjectData/EveChildLineSetPerObjectData.js";
 import { CalculateBoundingSphereForLineSetPaths } from "./lineSetPaths/IEveLineSetPath.js";
+import { trinity } from "../../CjsTrinity.js";
 
 const DEBUG_TRANSFORM = mat4.create();
 
@@ -190,7 +190,7 @@ export class EveChildLineSet extends EveChildTransform
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.Initialize();
   }
 
@@ -215,7 +215,7 @@ export class EveChildLineSet extends EveChildTransform
     }
     this._retiredLineSets.clear();
     this._ownedLineSet = null;
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import {
-  EveChildBulletStorm, EveUpdateContext, TriDevice, Tr2RenderContext_GetMainThreadRenderContext
+  EveChildBulletStorm, EveUpdateContext, TriDevice, trinity, Tr2RenderContext_GetMainThreadRenderContext
 } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
@@ -12,7 +12,7 @@ function setup(t)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext();
   const prior = context.GetRenderContextAL();
-  const registered = new Set(TriDevice.GetResourcesRegistered());
+  const registered = new Set(trinity.GetResourcesRegistered());
   const al = new Tr2RenderContextALStub();
   context.SetRenderContextAL(al);
   al.CreateDevice();
@@ -29,7 +29,7 @@ function setup(t)
   const effect = { GetShaderStateInterface: () => shader, IsGood: () => true, CompatibleWithGdr: () => false, ApplyMaterialDataForPass() {} };
   t.after(() =>
   {
-    for (const resource of TriDevice.GetResourcesRegistered())
+    for (const resource of trinity.GetResourcesRegistered())
     {
       if (!registered.has(resource) && resource.constructor === EveChildBulletStorm) resource.Destruct();
     }

@@ -33,6 +33,10 @@ import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { makePerObjectStore, makeRenderContextWithStore } from "./helpers/perObjectStore.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock reads trinity.device.
+InitializeTrinityStub();
 
 // An accumulator wired with a test per-object-data store.
 function makeAccumulator()

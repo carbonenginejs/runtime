@@ -5,7 +5,7 @@ import {readFileSync,existsSync} from 'node:fs';
 import {CjsSchema} from '../../npm/dist/global/schema/index.js';
 import {blue,IInitialize,INotify,NotifyModified} from '../../npm/dist/global/blue/index.js';
 import {finalizeReaderObject} from '../../npm/dist/global/schema/hydration.js';
-import {Tr2GrannyPrimitiveSet,Tr2PrimitiveSet,Tr2LineSet,Tr2SolidSet,TriDevice,Tr2EffectStateManager,
+import {Tr2GrannyPrimitiveSet,Tr2PrimitiveSet,Tr2LineSet,Tr2SolidSet,TriDevice,trinity,Tr2EffectStateManager,
   Tr2RenderContext_GetMainThreadRenderContext,RawData} from '../../npm/dist/trinity/index.js';
 import {TriGeometryRes} from '../../npm/dist/resource/index.js';
 import {Tr2RenderContextALStub,Tr2BufferAL,ALResult} from '../../npm/dist/trinityal/index.js';
@@ -24,7 +24,7 @@ function mesh(name='ordinary',x=0) {
 function geometry(meshes=[mesh()],ready=true){const r=new TriGeometryRes();r.ReadCMFFile({meshes});if(ready)prepareResourceFixture(r);return r;}
 function setup(t,resolve=null){
  const context=Tr2RenderContext_GetMainThreadRenderContext(),previous=context.GetRenderContextAL(),manager=blue.resMan;
- const before=new Set(TriDevice.GetResourcesRegistered());
+ const before=new Set(trinity.GetResourcesRegistered());
  const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();
  blue.resMan=new StubResMan(resolve);
  const maps=[],indices=[],draws=[],map=Tr2BufferAL.prototype.MapForWriting,create=al.CreateBuffer.bind(al),draw=al.DrawIndexedInstanced.bind(al);
@@ -33,7 +33,7 @@ function setup(t,resolve=null){
  al.DrawIndexedInstanced=(...args)=>{draws.push(args);return draw(...args);};
  const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
  const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
- t.after(()=>{for(const r of TriDevice.GetResourcesRegistered())if(!before.has(r)&&r.constructor===Tr2GrannyPrimitiveSet)r.Destruct();blue.resMan=manager;context.SetRenderContextAL(previous);});
+ t.after(()=>{for(const r of trinity.GetResourcesRegistered())if(!before.has(r)&&r.constructor===Tr2GrannyPrimitiveSet)r.Destruct();blue.resMan=manager;context.SetRenderContextAL(previous);});
  return {context,al,maps,indices,draws,effect,manager:blue.resMan};
 }
 function make(path='res:/primitive.gr2'){const p=new Tr2GrannyPrimitiveSet();p.grannyResPath=path;finalizeReaderObject(p);return p;}
@@ -72,7 +72,7 @@ test('coalesced path/color changes acquire once and retain old storage while rep
 test('failed replacement retains cached geometry; completion after destroy cannot resurrect it',t=>{
  const a=geometry(),b=geometry([mesh('new',50)],false);setup(t,path=>path.endsWith('a.gr2')?a:b);const p=make('res:/a.gr2'),old=p._points;
  CjsSchema.setValues(p,{grannyResPath:'res:/bad.gr2'});failResourceFixture(b, new Error('fixture failure'));assert.equal(p._points,old);
- p.Destruct();prepareResourceFixture(b);assert.equal(p._points.length,0);assert.equal(p._vertexBuffer.IsValid(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(p),false);
+ p.Destruct();prepareResourceFixture(b);assert.equal(p._points.length,0);assert.equal(p._vertexBuffer.IsValid(),false);assert.equal(trinity.GetResourcesRegistered().includes(p),false);
 });
 
 test('direct color edits upload cached vertices without changing the authored field',t=>{

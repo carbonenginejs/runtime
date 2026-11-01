@@ -19,7 +19,6 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
@@ -28,6 +27,7 @@ import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
 import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
 import { Failed } from "../../../trinityal/ALResult.js";
 import { EveSpherePinIndexTree } from "./EveSpherePinIndexTree/index.js";
+import { trinity } from "../../CjsTrinity.js";
 
 // Native s_treeMap shares one index per source resource. Weak keys replace
 // its process-lifetime owning map so retired resources can be collected.
@@ -194,7 +194,7 @@ export class EveSpherePin
     this._ownedEffects.add(this.pickEffect);
     this.pickEffect.SetEffectPathName("res:/Graphics/Effect/Managed/Space/UI/SpherePinPicking.fx");
     this.BuildBoundingSphere();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -219,7 +219,7 @@ export class EveSpherePin
     this._geometryResource = null;
     this._tree = null;
     this.pinEffect = this.pickEffect = null;
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

@@ -3,11 +3,12 @@ import { IRoot } from "../../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Tr2VariableStore.h
 // Source: trinity/trinity/Tr2VariableStore.cpp
 // Source: trinity/trinity/Tr2VariableStore_Blue.cpp
-import { CjsSchema, type, blue } from "#schema";
+import { CjsSchema, type, blue, meta } from "#schema";
 import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/Tr2TextureAL.js";
 import { Tr2TextureReference } from "../Tr2TextureReference.js";
 import { TriVariable } from "./TriVariable.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
+import { trinity } from "../../CjsTrinity.js";
 
 
 /**
@@ -369,12 +370,6 @@ export class Tr2VariableStore
   }
 
   /**
-   * Process-wide root corresponding to native GlobalStore's retained singleton.
-   * @type {Tr2VariableStore|null}
-   */
-  static _global = null;
-
-  /**
    * Suppresses parent assignment while constructing the global root itself.
    * @type {boolean}
    */
@@ -388,6 +383,7 @@ export class Tr2VariableStore
    * rest of the suite has registered, and so a host can reset between scenes.
    * Nothing in a frame should call it.
    *
+   * @cjs Forwards to `trinity.variableStore`, which holds the root.
    * @param {Tr2VariableStore} [store] The new root; a fresh store when omitted.
    * @returns {Tr2VariableStore} The store now acting as the root.
    */
@@ -397,37 +393,61 @@ export class Tr2VariableStore
     {
       // The root keeps no parent, as Carbon enforces for the global store.
       store.parentVariableStore = null;
-      Tr2VariableStore._global = store;
+      trinity.variableStore = store;
 
       return store;
     }
 
-    Tr2VariableStore._global = null;
+    trinity.variableStore = null;
 
-    return Tr2VariableStore.globalStore();
+    return trinity.variableStore;
   }
 
   /**
    * The root of the variable-store graph (Carbon's free GlobalStore function).
    *
-   * @adapted a static entry and construction guard preserve the native singleton
-   *   without the protected-constructor overload.
-   * @returns {Tr2VariableStore} Process-global store.
+   * @adapted Carbon's free function keeps a function-local static
+   *   (Tr2VariableStore.cpp:459-463); the root is `trinity.variableStore`,
+   *   created on first read the same way. This forwards to it until its callers
+   *   read `trinity.variableStore` themselves (docs projects/cjs-runtime-root.md).
+   * @returns {Tr2VariableStore} The root store, a `Tr2GlobalVariableStore`.
    */
   static globalStore()
   {
-    if (!Tr2VariableStore._global)
+    return trinity.variableStore;
+  }
+}
+
+/**
+ * Carbon's `Tr2GlobalVariableStore`: the root of the store graph that
+ * `GlobalStore()` creates once (Tr2VariableStore.cpp:450-457, :459-463). It is
+ * built through the base's protected no-parent constructor
+ * (Tr2VariableStore.cpp:21-24), so constructing the root does not ask for the
+ * root. Carbon declares it in the .cpp beside the base, and so does this file: a
+ * separate module would be a cycle, the base creating its subclass.
+ *
+ * Carbon: Tr2GlobalVariableStore (trinity/trinity/Tr2VariableStore.cpp:450)
+ */
+@meta.carbon("Tr2GlobalVariableStore")
+export class Tr2GlobalVariableStore extends Tr2VariableStore
+{
+  /**
+   * Builds the root store with no parent.
+   *
+   * @adapted Carbon passes the base its protected `( IRoot*, int )` constructor,
+   *   which skips `SetParentVariableStore`. A JavaScript class has one
+   *   constructor, so this raises the base's construction guard around `super()`.
+   */
+  constructor()
+  {
+    Tr2VariableStore._creatingGlobalStore = true;
+    try
     {
-      Tr2VariableStore._creatingGlobalStore = true;
-      try
-      {
-        Tr2VariableStore._global = new Tr2VariableStore();
-      }
-      finally
-      {
-        Tr2VariableStore._creatingGlobalStore = false;
-      }
+      super();
     }
-    return Tr2VariableStore._global;
+    finally
+    {
+      Tr2VariableStore._creatingGlobalStore = false;
+    }
   }
 }

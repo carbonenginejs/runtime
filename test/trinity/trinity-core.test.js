@@ -22,6 +22,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { GrannyBoneOffset, Tr2DepthStencil, Tr2DirectInstanceData, Tr2ExpressionTermInfo, Tr2GpuBuffer, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2MeshBase, Tr2PrimaryRenderContext, Tr2RenderContext, Tr2RenderTarget, Tr2RuntimeGpuBuffer, Tr2RuntimeInstanceData, Tr2SwapChain, Tr2VariableStore, Tr2VisibilityResults, TriDevice, TriObserverLocal, TriProjection, TriRect, TriSettings, TriVariable, TriView, TriViewport } from "../../npm/dist/trinity/core/index.js";
+import { trinity } from "../../npm/dist/trinity/index.js";
 import { Tr2PresentParameters } from "../../npm/dist/trinity/ui/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { Tr2DebugRenderer } from "../../npm/dist/trinity/core/line/Tr2DebugRenderer.js";
@@ -113,12 +114,12 @@ test("Tr2DebugRenderer stores Carbon option, selection, and color state", () =>
 test("primitive sets retain CPU geometry and native AL submission state", t =>
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext(), previous = context.GetRenderContextAL();
-  const registered = new Set(TriDevice.GetResourcesRegistered()), al = new Tr2RenderContextALStub();
+  const registered = new Set(trinity.GetResourcesRegistered()), al = new Tr2RenderContextALStub();
   al.CreateDevice();
   al.BeginScene();
   context.SetRenderContextAL(al);
   t.after(() => {
-    for (const resource of TriDevice.GetResourcesRegistered()) if (!registered.has(resource)) resource.Destruct();
+    for (const resource of trinity.GetResourcesRegistered()) if (!registered.has(resource)) resource.Destruct();
     context.SetRenderContextAL(previous);
     al.Destroy();
   });

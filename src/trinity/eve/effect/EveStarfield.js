@@ -13,9 +13,9 @@ import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2Buffer
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
+import { trinity } from "../../CjsTrinity.js";
 
 /** Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls. */
 @be.define("EveStarfield")
@@ -100,7 +100,7 @@ export class EveStarfield
   /** Registers the inherited native device-resource lifetime. */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -113,7 +113,7 @@ export class EveStarfield
   Destruct()
   {
     this.ReleaseResources();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

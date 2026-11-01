@@ -4,7 +4,7 @@ import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2DirectInstanceData, Tr2InstancedMesh, Tr2EffectStateManager, Tr2VertexDefinition,
-  Tr2RenderContext_GetMainThreadRenderContext, TriDevice, EveShip2, ITr2InstanceData } from "../../npm/dist/trinity/index.js";
+  Tr2RenderContext_GetMainThreadRenderContext, TriDevice, trinity, EveShip2, ITr2InstanceData } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub, ALResult } from "../../npm/dist/trinityal/index.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
@@ -19,7 +19,7 @@ function setup(t)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext();
   const previous = context.GetRenderContextAL(), manager = blue.resMan;
-  const registered = new Set(TriDevice.GetResourcesRegistered());
+  const registered = new Set(trinity.GetResourcesRegistered());
   const al = new Tr2RenderContextALStub();
   al.CreateDevice();
   al.BeginScene();
@@ -27,11 +27,11 @@ function setup(t)
   blue.resMan = new StubResMan();
   t.after(() =>
   {
-    for (const resource of TriDevice.GetResourcesRegistered())
+    for (const resource of trinity.GetResourcesRegistered())
     {
       if (registered.has(resource)) continue;
       resource.ReleaseResources();
-      TriDevice.UnregisterResource(resource);
+      trinity.UnregisterResource(resource);
     }
     context.SetRenderContextAL(previous);
     blue.resMan = manager;
@@ -52,7 +52,7 @@ test("direct instance buffer implements Carbon allocation, mapping and reset lif
 {
   setup(t);
   const provider = new Tr2DirectInstanceData();
-  assert.ok(TriDevice.GetResourcesRegistered().includes(provider));
+  assert.ok(trinity.GetResourcesRegistered().includes(provider));
   assert.equal(provider.IsInstanceDataReady(), false);
   assert.equal(provider.GetInstanceBufferVertexDeclaration(), Tr2EffectStateManager.Unknown);
   assert.equal(provider.GetData(3), null, "no stride means no allocation (cpp:175-178)");
@@ -90,7 +90,7 @@ test("direct instance buffer implements Carbon allocation, mapping and reset lif
   assert.equal(provider.IsInstanceDataReady(), false);
   assert.equal(provider.GetInstanceBufferVertexDeclaration(), declaration);
   provider.Destruct();
-  assert.equal(TriDevice.GetResourcesRegistered().includes(provider), false);
+  assert.equal(trinity.GetResourcesRegistered().includes(provider), false);
 });
 
 test("direct instance allocation and mapping failures remain visible", t =>
@@ -158,7 +158,7 @@ test("real gc3_t1 SOF ship prepares direct instance providers without an abstrac
   const values = await sof.BuildValuesFromDNAAsync("gc3_t1:gallentebase:gallente");
   const ship = CjsSchema.from("EveShip2", values);
   assert.ok(ship);
-  const meshes = TriDevice.GetResourcesRegistered().filter(resource =>
+  const meshes = trinity.GetResourcesRegistered().filter(resource =>
     CjsSchema.cast(resource, Tr2InstancedMesh) &&
     CjsSchema.cast(resource.GetInstanceGeometryResource(), Tr2DirectInstanceData));
   assert.equal(meshes.length, 4, "real ship's authored direct-provider meshes");

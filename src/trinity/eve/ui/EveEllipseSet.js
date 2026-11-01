@@ -28,7 +28,6 @@ import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
 import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/Tr2RenderBatch.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
@@ -36,6 +35,7 @@ import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { BoundingSphereQuery } from "../../generated/eve/enums.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { trinity } from "../../CjsTrinity.js";
 
 
 /** TRI_PI (Include/TriMath.h:243): Carbon's float pi, `3.141592654f`. */
@@ -169,7 +169,7 @@ export class EveEllipseSet extends EveChildTransform
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     vec4.set(this._boundingSphere, 0, 0, 0, 0);
     this.PrepareResources();
   }
@@ -214,7 +214,7 @@ export class EveEllipseSet extends EveChildTransform
     }
 
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

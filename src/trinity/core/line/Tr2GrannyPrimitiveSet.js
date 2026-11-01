@@ -16,9 +16,9 @@ import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
+import { trinity } from "../../CjsTrinity.js";
 
 /** Granny/CMF debug geometry rendered as colored triangle edges, solids, or picking triangles. */
 @be.define("Tr2GrannyPrimitiveSet")
@@ -69,7 +69,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -398,7 +398,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     this.#DetachResource();
     this.grannyRes = null;
     this.CleanUp();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   static #declaration = new Tr2VertexDefinition();

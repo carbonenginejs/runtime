@@ -3,7 +3,7 @@
 import { meta } from "#schema";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
-import { TriDevice } from "./device/TriDevice.js";
+import { trinity } from "../CjsTrinity.js";
 
 
 /**
@@ -25,7 +25,7 @@ const s_buffers = {
   {
     if (!this.registered)
     {
-      TriDevice.RegisterResource(this);
+      trinity.RegisterResource(this, Infinity);
       this.registered = true;
     }
 

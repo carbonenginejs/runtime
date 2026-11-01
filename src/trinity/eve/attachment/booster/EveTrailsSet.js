@@ -11,13 +11,13 @@ import { INotify } from "#blue";
 import { meta, type } from "#schema";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
-import { TriDevice } from "../../../core/device/TriDevice.js";
 import { CreateLodAllocations, SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { TriGeometryRes } from "#trinity/resources/geometry";
 import { EveTrailsSetSingleTrailData } from "./EveTrailsSetSingleTrailData.js";
+import { trinity } from "../../../CjsTrinity.js";
 
 /** sizeof( InstanceVertex ): the booster's position and size as one float4. */
 const INSTANCE_VERTEX_SIZE = 16;
@@ -85,7 +85,7 @@ export class EveTrailsSet
   /** Carbon's constructor (cpp:13-20): a Tr2DeviceResource, prepared now and whenever the device can. */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 

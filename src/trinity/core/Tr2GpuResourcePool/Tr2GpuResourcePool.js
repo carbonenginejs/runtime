@@ -23,9 +23,9 @@
 import { Failed, Tr2BitmapDimensions, Tr2TextureAL } from "../../../trinityal/index.js";
 import { Tr2CpuUsage } from "#consts/render-context";
 import { isFunction } from "#utils/is";
-import { TriDevice } from "../device/TriDevice.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { GpuResourceHandle } from "./GpuResourceHandle.js";
+import { trinity } from "../../CjsTrinity.js";
 
 const allPools = new Set();
 
@@ -72,7 +72,7 @@ export class Tr2GpuResourcePool
   {
     this.#outer = outer;
     allPools.add(this);
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -288,7 +288,7 @@ export class Tr2GpuResourcePool
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
     allPools.delete(this);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
     this.#renderContext = null;
     this.#outer = null;
   }

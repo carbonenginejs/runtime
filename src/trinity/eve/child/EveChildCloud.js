@@ -20,12 +20,11 @@ import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
 import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
-import { gTriDev } from "../../core/device/gTriDev.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/Tr2RenderBatch.js";
 import { EveChildCloudPerObjectData } from "../../core/rawData/perObjectData/EveChildCloudPerObjectData.js";
+import { trinity } from "../../CjsTrinity.js";
 
 
 const LOCAL_MIN = vec3.fromValues(-0.5, -0.5, -0.5);
@@ -151,7 +150,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -213,7 +212,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   {
     this.ReleaseResources();
     this._vertexBuffer.Destroy();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**
@@ -374,7 +373,7 @@ export class EveChildCloud extends EveSpaceObjectChild
     data.Set("screenSize", vec4_1);
     // Carbon bug CE-03: BOTH axes use back-buffer WIDTH (cpp:393-399).
     let size = Math.max(vec4_1[2] - vec4_1[0], vec4_1[3] - vec4_1[1]) *
-      gTriDev.device.width / this.preTesselationLevel / this.lastLodFactor;
+      trinity.device.width / this.preTesselationLevel / this.lastLodFactor;
     this.currentLod = 0;
     while (size < this.cellScreenSize && this.currentLod + 1 < this._indexBuffers.length)
     {

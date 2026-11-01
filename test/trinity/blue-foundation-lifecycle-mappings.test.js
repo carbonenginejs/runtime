@@ -6,7 +6,7 @@ import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsSchema, type, blue } from "../../npm/dist/global/schema/index.js";
 import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
-import { EveBoosterSet2, EveEntity, EveMobile, EveShip2, EveSpaceObject2, TriDevice, Tr2Renderer } from "../../npm/dist/trinity/index.js";
+import { EveBoosterSet2, EveEntity, EveMobile, EveShip2, EveSpaceObject2, TriDevice, trinity, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 import { ITr2ShLightingReceiver } from "../../npm/dist/trinity/core/lighting/ITr2ShLightingReceiver.js";
 import { ITr2SecondaryLightSource } from "../../npm/dist/trinity/core/lighting/ITr2SecondaryLightSource.js";
 
@@ -92,12 +92,12 @@ test("having lifecycle methods without native mappings does not opt into Black o
 function observeProductionLifecycle(t)
 {
   const calls = [];
-  const before = new Set(TriDevice.GetResourcesRegistered());
+  const before = new Set(trinity.GetResourcesRegistered());
   t.after(() =>
   {
-    for (const resource of TriDevice.GetResourcesRegistered())
+    for (const resource of trinity.GetResourcesRegistered())
     {
-      if (!before.has(resource) && resource.constructor === EveBoosterSet2) TriDevice.UnregisterResource(resource);
+      if (!before.has(resource) && resource.constructor === EveBoosterSet2) trinity.UnregisterResource(resource);
     }
   });
   t.mock.method(Tr2Renderer, "IsResourceCreationAllowed", () => false);

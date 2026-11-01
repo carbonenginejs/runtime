@@ -26,10 +26,10 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/conte
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
-import { TriDevice } from "../../../core/device/TriDevice.js";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+import { trinity } from "../../../CjsTrinity.js";
 
 // Carbon's function-local s_hazeVertexDecl (EveHazeSet.cpp:131-145), stream 0:
 // it lands on HazeVertex (cpp:15-31) - three transform rows, three inverse
@@ -147,7 +147,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -166,7 +166,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   Destruct()
   {
     if (this._vertexBuffer.IsValid()) this._vertexBuffer._parent.Free(this._vertexBuffer);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

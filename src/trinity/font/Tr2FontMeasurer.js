@@ -3,7 +3,8 @@ import { IRoot } from "../../global/blueexposure/IRoot.js";
 // Source: trinity/trinity/Font/Tr2FontMeasurer.h
 // Source: trinity/trinity/Font/Tr2FontMeasurer.cpp
 // Browser-font adaptation: fallback families and underline metrics are browser-specific.
-import { g_fontManager, TR2_FONT_FALLBACK } from "./Tr2FontManager.js";
+import { TR2_FONT_FALLBACK } from "./Tr2FontManager.js";
+import { trinity } from "../CjsTrinity.js";
 import { Tr2SBitWrapper } from "./Tr2SBitWrapper.js";
 import { GetBytesPerPixel } from "#consts/render-context";
 import { Tr2TextureSubresource, Failed } from "#trinityal";
@@ -273,14 +274,14 @@ export class Tr2FontMeasurer extends IRoot
   AddText(text)
   {
     // Carbon's font manager exists from InitializeTrinity on (trinity.cpp:290).
-    if (g_fontManager === null) throw new Error("Tr2FontMeasurer.AddText: there is no font manager; call InitializeTrinity first.");
+    if (trinity.fontManager === null) throw new Error("Tr2FontMeasurer.AddText: there is no font manager; call trinity.Initialize first.");
     // Resolve the face once per font and size, falling back when it does not work.
     let font = this._font || TR2_FONT_FALLBACK;
     while (!this._currentFace)
     {
-      this._currentFace = g_fontManager.GetFaceID(font);
+      this._currentFace = trinity.fontManager.GetFaceID(font);
 
-      if (g_fontManager.LookupFace(this._currentFace) === null)
+      if (trinity.fontManager.LookupFace(this._currentFace) === null)
       {
         if (font === TR2_FONT_FALLBACK)
         {
@@ -295,7 +296,7 @@ export class Tr2FontMeasurer extends IRoot
         continue;
       }
 
-      const metrics = g_fontManager.LookupMetricsFromScript(this._currentFace, this._fontSize, this._fontSize);
+      const metrics = trinity.fontManager.LookupMetricsFromScript(this._currentFace, this._fontSize, this._fontSize);
       if (metrics[0] > this.ascender) this.ascender = metrics[0];
       this._currentAscender = metrics[0];
       if (metrics[1] < this.descender) this.descender = metrics[1];
@@ -315,7 +316,7 @@ export class Tr2FontMeasurer extends IRoot
       // Carbon tests `if( glyphIndex )` on FTC_CMapCache_Lookup, which returns 0
       // for a missing glyph; LookupGlyphIndex adds -1 for an unusable face.
       let bitmap = null;
-      let glyphIndex = g_fontManager.LookupGlyphIndex(face, code);
+      let glyphIndex = trinity.fontManager.LookupGlyphIndex(face, code);
       if (glyphIndex > 0) bitmap = this._LookupSBit(face, this._fontSize, glyphIndex);
 
       if (!bitmap)
@@ -323,8 +324,8 @@ export class Tr2FontMeasurer extends IRoot
         // Set up the fallback once, for the measurer's lifetime (CE-167).
         if (!this._fallbackFace)
         {
-          this._fallbackFace = g_fontManager.GetFaceID(TR2_FONT_FALLBACK);
-          if (g_fontManager.LookupFace(this._fallbackFace) === null)
+          this._fallbackFace = trinity.fontManager.GetFaceID(TR2_FONT_FALLBACK);
+          if (trinity.fontManager.LookupFace(this._fallbackFace) === null)
           {
             console.error(`Tr2FontMeasurer.AddText: fallback font ${TR2_FONT_FALLBACK} not found - check your installation`);
             break;
@@ -332,13 +333,13 @@ export class Tr2FontMeasurer extends IRoot
           this._fallbackFontSize = this._fontSize;
         }
 
-        glyphIndex = g_fontManager.LookupGlyphIndex(this._fallbackFace, code);
+        glyphIndex = trinity.fontManager.LookupGlyphIndex(this._fallbackFace, code);
         if (glyphIndex > 0) bitmap = this._LookupSBit(this._fallbackFace, this._fallbackFontSize, glyphIndex);
       }
 
       if (!bitmap)
       {
-        glyphIndex = g_fontManager.LookupGlyphIndex(this._fallbackFace, 0x25a1);
+        glyphIndex = trinity.fontManager.LookupGlyphIndex(this._fallbackFace, 0x25a1);
         if (glyphIndex > 0) bitmap = this._LookupSBit(this._fallbackFace, this._fallbackFontSize, glyphIndex);
       }
 
@@ -369,7 +370,7 @@ export class Tr2FontMeasurer extends IRoot
   {
     try
     {
-      return g_fontManager.LookupSBit(face, size, size, glyphIndex);
+      return trinity.fontManager.LookupSBit(face, size, size, glyphIndex);
     }
     catch (error)
     {
@@ -542,7 +543,7 @@ export class Tr2FontMeasurer extends IRoot
 
   _DrawToBuffer(width, height, buffer, pitch)
   {
-    g_fontManager.ClearBuffer(buffer, width, height, pitch);
+    trinity.fontManager.ClearBuffer(buffer, width, height, pitch);
     const bytes = new Uint8Array(buffer.buffer ?? buffer, buffer.byteOffset ?? 0, buffer.byteLength); // alloc: byte view of caller-owned bitmap storage; does not copy pixels
     const output = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     for (const segment of this._committedRenderData)
@@ -1023,7 +1024,7 @@ export class Tr2FontMeasurer extends IRoot
         {
           const glyph = bitmap.sbit;
           if (!glyph.width || !glyph.height) continue;
-          const atlas = bitmap.atlasTexture ??= g_fontManager.GetAtlasTextureForSbit(glyph);
+          const atlas = bitmap.atlasTexture ??= trinity.fontManager.GetAtlasTextureForSbit(glyph);
           let reciprocalWidth = 1, reciprocalHeight = 1;
           const window = [0, 0, 0, 0];
           if (atlas)

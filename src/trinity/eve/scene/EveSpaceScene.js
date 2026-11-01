@@ -34,11 +34,9 @@ import { CullMode, PixelFormat, RenderState, ShaderType, Tr2GpuUsage, Tr2LoadAct
 import { Tr2ColorAttachment, Tr2ConstantBufferAL, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { RenderingMode, TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { DefaultKeyGenerator, EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
-import { gTriDev } from "../../core/device/gTriDev.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { BackgroundRenderingReason } from "../../generated/eve/enums.js";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -72,6 +70,7 @@ import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType
 import "./EveSpaceSceneRenderDriver.js";
 import { EveSpaceScenePerThreadAccumulator } from "./EveSpaceScenePerThreadAccumulator.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
+import { trinity } from "../../CjsTrinity.js";
 
 
 /** VISUALIZER_EFFECT_PATH (EveSpaceScene.cpp:124-132), indexed by EveVisualizeMethod. */
@@ -1129,7 +1128,7 @@ export class EveSpaceScene
     this.dataTextureMgr.Release();
     this.ClearComponentRegistry();
     // Carbon's Tr2DeviceResource destructor (Tr2DeviceResource.cpp:11-14).
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**
@@ -1625,7 +1624,7 @@ export class EveSpaceScene
   PickInfinity(x, y, projection, view, viewport = null, out)
   {
     // gTriDev->ScreenToProjection reads the device viewport (TriDevice.cpp:1132-1135).
-    const resolved = viewport ?? gTriDev.device.viewport;
+    const resolved = viewport ?? trinity.device.viewport;
     const projected = screenToProjection(x, y, resolved);
     const ray = convertProjectionCoordToWorldPickRay(projected.x, projected.y, projection, view);
 
@@ -2099,7 +2098,7 @@ export class EveSpaceScene
    */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
 
     // cpp:285.
     this._visualizerEffects[EveVisualizeMethod.VW_LIGHT_COUNT].type = VisualizerType.FULL_SCREEN_QUAD_OVERLAY;

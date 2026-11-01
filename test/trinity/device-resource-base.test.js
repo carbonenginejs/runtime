@@ -9,7 +9,7 @@ import {
   EveTrailsSet,
   Tr2DeviceResource,
   Tr2Renderer,
-  TriDevice
+  TriDevice, trinity
 } from "../../npm/dist/trinity/index.js";
 
 test("Tr2DeviceResource registers on construction and gates preparation on resource creation (cpp:6-27)", t =>
@@ -27,7 +27,7 @@ test("Tr2DeviceResource registers on construction and gates preparation on resou
   }
 
   const resource = new Resource();
-  assert.ok(TriDevice.GetResourcesRegistered().includes(resource), "the constructor registers");
+  assert.ok(trinity.GetResourcesRegistered().includes(resource), "the constructor registers");
   assert.equal(resource.GetDescription(), "<Unknown>");
 
   t.mock.method(Tr2Renderer, "IsResourceCreationAllowed", () => false);
@@ -38,7 +38,7 @@ test("Tr2DeviceResource registers on construction and gates preparation on resou
   assert.equal(resource.PrepareResources(), false, "a failed OnPrepareResources fails the prepare");
   assert.deepEqual(calls, [ "prepare" ]);
 
-  TriDevice.UnregisterResource(resource);
+  trinity.UnregisterResource(resource);
 });
 
 test("Tr2DeviceResource's two obligations are abstract", () =>
@@ -46,7 +46,7 @@ test("Tr2DeviceResource's two obligations are abstract", () =>
   const resource = new Tr2DeviceResource();
   assert.throws(() => resource.ReleaseResources(0), /ReleaseResources/u);
   assert.throws(() => resource.OnPrepareResources(), /OnPrepareResources/u);
-  TriDevice.UnregisterResource(resource);
+  trinity.UnregisterResource(resource);
 });
 
 test("the classes Carbon derives from Tr2DeviceResource take its PrepareResources", () =>

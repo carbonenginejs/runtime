@@ -82,7 +82,7 @@ test("a loaded resource records what its path handed it", async () =>
   const { CjsCarbonEffectWriter } = await import("../../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js");
   const { buildSyntheticDescription, SYNTHETIC_PERMUTATIONS } =
     await import("./format/carbonEffectSynthetic.js");
-  const { Tr2EffectRes } = await import("../../../src/trinity/shader/Tr2EffectRes.js");
+  const { Tr2EffectRes } = await import("../../../npm/dist/trinity/shader/Tr2EffectRes.js");
 
   const writer = new CjsCarbonEffectWriter({ compilerVersion: [ 1, 2, 6, 0 ], sourceHash: "0".repeat(32) });
   for (const axis of SYNTHETIC_PERMUTATIONS) writer.addPermutation(axis);

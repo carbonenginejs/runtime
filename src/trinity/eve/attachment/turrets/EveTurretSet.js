@@ -32,7 +32,6 @@ import { Tr2PerObjectData } from "../../../core/rawData/perObjectData/Tr2PerObje
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../../core/device/Tr2RingBuffer/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
-import { TriDevice } from "../../../core/device/TriDevice.js";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
 import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
@@ -46,6 +45,7 @@ import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Paramet
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { IsMatch, blue, EnumRegistrationType, BlueClasses } from "#blue";
 import { TriGeometryResSkeletonData } from "#trinity/resources/geometry/TriGeometryResSkeletonData";
+import { trinity } from "../../../CjsTrinity.js";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
  * center = TransformCoord(center, tf); radius *= max of the basis row lengths
@@ -567,7 +567,7 @@ export class EveTurretSet extends EveEntity
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -602,7 +602,7 @@ export class EveTurretSet extends EveEntity
     this.geometryResource = null;
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
 
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

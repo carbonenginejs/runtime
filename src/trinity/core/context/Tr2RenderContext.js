@@ -25,7 +25,6 @@ import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { Tr2PerObjectData } from "../rawData/perObjectData/Tr2PerObjectData.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
 import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";
-import { gTriDev } from "../device/gTriDev.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { Tr2Shader } from "../../shader/Tr2Shader.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";

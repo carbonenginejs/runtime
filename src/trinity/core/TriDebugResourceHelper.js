@@ -4,10 +4,10 @@ import { meta, blue } from "#schema";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
-import { TriDevice } from "./device/TriDevice.js";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { TriDebugResourceHelperVertexPos } from "./TriDebugResourceHelperVertexPos.js";
 import { TriDebugResourceHelperVertexPosColor } from "./TriDebugResourceHelperVertexPosColor.js";
+import { trinity } from "../CjsTrinity.js";
 
 
 const DEBUG_EFFECT_PATH = "res:/Graphics/Effect/Managed/Utility/Debug.fx";
@@ -37,7 +37,7 @@ export class TriDebugResourceHelper
   /** Registers the device-resource lifetime, as Carbon's Tr2DeviceResource base does. */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**

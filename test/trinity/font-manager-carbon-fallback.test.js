@@ -2,9 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Tr2FontManager, Tr2FontMeasurer, Tr2SBitWrapper, TR2_FONT_FALLBACK } from '../../npm/dist/trinity/index.js';
 import * as fontModule from '../../npm/dist/trinity/font/Tr2FontManager.js';
-import { gTriDev } from '../../npm/dist/trinity/core/device/gTriDev.js';
+import { trinity } from "../../npm/dist/trinity/CjsTrinity.js";
 import { blue } from '../../npm/dist/global/blue/index.js';
 import { CjsSchema } from '../../npm/dist/global/schema/index.js';
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock and the device size read trinity.device.
+InitializeTrinityStub();
 
 // Deterministic Canvas2D contract fixture, not evidence of browser pixel parity.
 // "AV" measures 13 against 8 + 8, so the browser pair kerning is -3 px.
@@ -42,9 +46,9 @@ function loaded(manager, ...families)
 
 function singleton(t, families = [ 'evefont', TR2_FONT_FALLBACK ])
 {
-  Tr2FontManager.initialize();
+  trinity.fontManager = Tr2FontManager.initialize();
   t.after(() => Tr2FontManager.shutdown());
-  return loaded(fontModule.g_fontManager, ...families);
+  return loaded(trinity.fontManager, ...families);
 }
 
 /** Collects console.error calls for one test. */
@@ -198,7 +202,7 @@ test('initialize registers for Blue ticks and OnTick trims by frame age (cpp:65-
   const manager = singleton(t);
   assert.ok(blue.os._tickers.some(entry => entry.cb === manager && entry.cookie === 'fontMan'));
 
-  const device = gTriDev.device, savedFrame = device.frameCounter;
+  const device = trinity.device, savedFrame = device.frameCounter;
   t.after(() => { device.frameCounter = savedFrame; });
 
   // Each fixture glyph is 8 x 11 = 88 bytes of coverage.
@@ -229,7 +233,7 @@ test('initialize registers for Blue ticks and OnTick trims by frame age (cpp:65-
   // Shutdown unregisters (cpp:78-81).
   Tr2FontManager.shutdown();
   assert.ok(!blue.os._tickers.some(entry => entry.cb === manager));
-  Tr2FontManager.initialize();
+  trinity.fontManager = Tr2FontManager.initialize();
 });
 
 test('Tr2SBitWrapper exposes Carbon\'s six read-only Blue properties (Tr2Sbit_Blue.cpp:23-53)', () =>

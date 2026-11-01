@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CjsSchema} from "../../npm/dist/global/schema/index.js";
-import {BehaviorGroup,EveChildBehaviorSystem,EveUpdateContext,TriDevice} from "../../npm/dist/trinity/index.js";
+import {BehaviorGroup,EveChildBehaviorSystem,EveUpdateContext,TriDevice, trinity} from "../../npm/dist/trinity/index.js";
 import {CjsBlackFormat} from "../../npm/dist/global/blue/formats/black/index.js";
 
 // Carbon EveUpdateContext.h:51-58 converts 100ns ticks to seconds;
@@ -27,8 +27,8 @@ for(const [key,label,authoredScale,authoredCounts] of [["CJS_MATIGU_BOIDS","exte
     const document=CjsBlackFormat.read(readFileSync(process.env[key]),{emit:"json"}),groups=[];
     const walk=value=>{if(!value||typeof value!=="object")return;if(value._type==="BehaviorGroup")groups.push(value);for(const item of Object.values(value))walk(item);};
     walk(document);assert.equal(groups.length,2);assert.deepEqual(groups.map(g=>g.count),authoredCounts);
-    const before=new Set(TriDevice.GetResourcesRegistered());
-    t.after(()=>{for(const r of TriDevice.GetResourcesRegistered())if(!before.has(r))r.Destruct();});
+    const before=new Set(trinity.GetResourcesRegistered());
+    t.after(()=>{for(const r of trinity.GetResourcesRegistered())if(!before.has(r))r.Destruct();});
     t.mock.method(Math,"random",()=>0.41);
     for(const values of groups){
       // Geometry loading is independent of the authored behavior graph.

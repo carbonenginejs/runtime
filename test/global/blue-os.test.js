@@ -5,7 +5,7 @@ import test from "node:test";
 // it: `blue` is a holder, so a test reaching it through two module instances
 // would register a device on one holder and pump the other.
 import { BeInfo, blue, BlueOS, IBlueEvents, IBlueOS, ISimTimeRebaseNotify } from "../../npm/dist/global/blue/index.js";
-import { gTriDev, Tr2Renderer, TriDevice } from "../../npm/dist/trinity/index.js";
+import { trinity, Tr2Renderer, TriDevice } from "../../npm/dist/trinity/index.js";
 
 
 // A registrant has to BE an IBlueEvents, not merely own an OnTick - Carbon's
@@ -168,18 +168,19 @@ test("GetInfo hands back a snapshot with the clocks and the pump count filled", 
 });
 
 
-test("the pump drives the device tick, which is what advances the animation clock", () =>
+test("the pump drives Trinity's tick, which forwards to the device and advances the animation clock", () =>
 {
-  // This is the whole point of the port: Carbon's TriDevice hands ITSELF to
-  // BeOS->RegisterForTicks( this, TRINITY ) (TriDevice.cpp:310), so the pump
-  // is what moves the clock the render path reads.
+  // Carbon's TriDevice hands ITSELF to BeOS->RegisterForTicks( this, TRINITY )
+  // (TriDevice.cpp:310); here Trinity registers (trinity.Initialize) and
+  // forwards the tick to its device, so the pump still moves the clock the
+  // render path reads.
   const device = new TriDevice();
-  const previousDevice = gTriDev.device;
-  gTriDev.device = device;
+  const previousDevice = trinity.device;
+  trinity.device = device;
 
   try
   {
-    blue.os.RegisterForTicks(device, TriDevice.TICK_COOKIE);
+    blue.os.RegisterForTicks(trinity, TriDevice.TICK_COOKIE);
 
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 0);
     assert.equal(Tr2Renderer.GetAnimationTime(), 0);
@@ -190,21 +191,25 @@ test("the pump drives the device tick, which is what advances the animation cloc
     blue.os.PumpOS();
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 2);
 
-    device.InvalidateAndUnregisterForTicks();
+    blue.os.UnregisterForTicks(trinity, TriDevice.TICK_COOKIE);
     blue.os.PumpOS();
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 2, "and none after unregistering");
   }
   finally
   {
-    blue.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
-    gTriDev.device = previousDevice;
+    blue.os.UnregisterForTicks(trinity, TriDevice.TICK_COOKIE);
+    trinity.device = previousDevice;
   }
 });
 
 
-test("OnTick takes Be::Time, not seconds, and clamps the animation delta at one second", () =>
+test("OnTick takes Be::Time, not seconds, and clamps the animation delta at one second", (t) =>
 {
   const device = new TriDevice();
+  // The device's render path reads the renderer clock through trinity.device.
+  const previousDevice = trinity.device;
+  trinity.device = device;
+  t.after(() => { trinity.device = previousDevice; });
 
   // 100ns ticks: half a second, then another half.
   device.OnTick(5000000, 5000000);

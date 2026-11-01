@@ -4,7 +4,7 @@ import test from "node:test";
 
 import { blue } from "../../npm/dist/global/blue/index.js";
 import {
-  gTriDev,
+  trinity,
   Tr2RenderContext_GetMainThreadRenderContext,
   Tr2Renderer,
   TriDevice,
@@ -12,6 +12,10 @@ import {
 } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { MarkerTag } from "../support/markerTags.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock and the device size read trinity.device.
+InitializeTrinityStub();
 
 
 /**
@@ -23,12 +27,12 @@ import { MarkerTag } from "../support/markerTags.js";
  */
 function withDevice(body)
 {
-  const previousDevice = gTriDev.device;
+  const previousDevice = trinity.device;
   const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
   renderContext.SetRenderContextAL(new Tr2RenderContextALStub());
 
   const device = new TriDevice();
-  gTriDev.device = device;
+  trinity.device = device;
 
   try
   {
@@ -37,12 +41,12 @@ function withDevice(body)
   finally
   {
     blue.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
-    gTriDev.device = previousDevice;
+    trinity.device = previousDevice;
   }
 }
 
 
-test("CreateSimpleDevice brings a device up and starts it ticking", () =>
+test("CreateSimpleDevice brings a device up; Trinity, not the device, holds the tick", () =>
 {
   withDevice((device) =>
   {
@@ -54,9 +58,10 @@ test("CreateSimpleDevice brings a device up and starts it ticking", () =>
     assert.equal(device.width, 800);
     assert.equal(device.height, 600);
 
-    // The last line of Carbon's CreateSimpleDevice, and the reason the path
-    // matters: a device that was never created is never ticked.
-    assert.equal(blue.os.IsRegisteredForTicks(device), true);
+    // Carbon's CreateSimpleDevice ends by registering the device for ticks
+    // (TriDevice.cpp:310); here Trinity registers and forwards the tick.
+    assert.equal(blue.os.IsRegisteredForTicks(device), false);
+    assert.equal(blue.os.IsRegisteredForTicks(trinity), true);
   });
 });
 
@@ -98,7 +103,7 @@ test("a fullscreen device is refused, naming what is missing", () =>
 });
 
 
-test("SetPresentation adopts parameters and registers; null tears down", () =>
+test("SetPresentation adopts parameters; null tears down", () =>
 {
   withDevice((device) =>
   {
@@ -111,11 +116,10 @@ test("SetPresentation adopts parameters and registers; null tears down", () =>
     assert.equal(device.width, 1024);
     assert.equal(device.height, 768);
     assert.equal(device.adapter, 0);
-    assert.equal(blue.os.IsRegisteredForTicks(device), true);
+    assert.equal(blue.os.IsRegisteredForTicks(device), false, "Trinity holds the tick, not the device");
 
     // Carbon's null branch: the App saying it is done.
     assert.equal(device.SetPresentation(0, null), true);
-    assert.equal(blue.os.IsRegisteredForTicks(device), false);
     assert.equal(device.width, 0);
     assert.equal(device.height, 0);
     assert.equal(device.GetOutputWindow(), null);
@@ -149,7 +153,7 @@ test("the pump runs the whole frame: update, present, then the frame body", () =
 });
 
 
-test("a registered device stops being ticked once it is invalidated", () =>
+test("an invalidated device loses its render context; the tick stays Trinity's", () =>
 {
   withDevice((device) =>
   {
@@ -160,10 +164,12 @@ test("a registered device stops being ticked once it is invalidated", () =>
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), before + 1);
 
     device.InvalidateAndUnregisterForTicks();
+    assert.equal(device.DeviceExists(), false, "the render context went with it");
 
+    // Carbon unregisters the device here (TriDevice.cpp:688); Trinity owns the
+    // tick and stops it in Shutdown, so the pump still reaches the device.
     blue.os.PumpOS();
-    assert.equal(Tr2Renderer.GetCurrentFrameCounter(), before + 1, "the clock stopped with it");
-    assert.equal(device.DeviceExists(), false, "and the render context went with it");
+    assert.equal(Tr2Renderer.GetCurrentFrameCounter(), before + 2);
   });
 });
 
@@ -176,8 +182,8 @@ test("the device resource registry is prepared and released with the device", ()
     ReleaseResources: (storage) => events.push([ "release", storage ])
   };
 
-  TriDevice.RegisterResource(resource);
-  assert.ok(TriDevice.GetResourcesRegistered().includes(resource));
+  trinity.RegisterResource(resource, Infinity);
+  assert.ok(trinity.GetResourcesRegistered().includes(resource));
 
   try
   {
@@ -195,10 +201,10 @@ test("the device resource registry is prepared and released with the device", ()
   }
   finally
   {
-    TriDevice.UnregisterResource(resource);
+    trinity.UnregisterResource(resource);
   }
 
-  assert.equal(TriDevice.GetResourcesRegistered().includes(resource), false);
+  assert.equal(trinity.GetResourcesRegistered().includes(resource), false);
 });
 
 
@@ -239,20 +245,20 @@ test("Update advances playing curve sets and drops the finished ones", () =>
 test("device registry snapshots cannot mutate membership and retain their original contents", () =>
 {
   const resource = { PrepareResources() {}, ReleaseResources() {} };
-  TriDevice.RegisterResource(resource);
+  trinity.RegisterResource(resource, Infinity);
   try
   {
-    const before = TriDevice.GetResourcesRegistered();
+    const before = trinity.GetResourcesRegistered();
     assert.ok(Array.isArray(before), "approved snapshot contract for native TriDevice.cpp:1061-1065");
     assert.ok(before.includes(resource));
-    const independent = TriDevice.GetResourcesRegistered();
+    const independent = trinity.GetResourcesRegistered();
     independent.length = 0;
-    assert.ok(TriDevice.GetResourcesRegistered().includes(resource), "editing a snapshot cannot unregister resources");
-    TriDevice.UnregisterResource(resource);
+    assert.ok(trinity.GetResourcesRegistered().includes(resource), "editing a snapshot cannot unregister resources");
+    trinity.UnregisterResource(resource);
     assert.ok(before.includes(resource), "existing snapshot is not live");
-    assert.equal(TriDevice.GetResourcesRegistered().includes(resource), false);
+    assert.equal(trinity.GetResourcesRegistered().includes(resource), false);
   }
-  finally { TriDevice.UnregisterResource(resource); }
+  finally { trinity.UnregisterResource(resource); }
 });
 
 test("particle final-owner Destruct detaches nine effect stores once and unregisters immediately", () =>
@@ -271,14 +277,14 @@ test("particle final-owner Destruct detaches nine effect stores once and unregis
   }
   try
   {
-    assert.ok(TriDevice.GetResourcesRegistered().includes(system));
+    assert.ok(trinity.GetResourcesRegistered().includes(system));
     system.ReleaseResources(3);
-    assert.ok(TriDevice.GetResourcesRegistered().includes(system), "cpp:180-198 device reset is not object destruction");
+    assert.ok(trinity.GetResourcesRegistered().includes(system), "cpp:180-198 device reset is not object destruction");
     assert.notEqual(system._variableStore, null);
     assert.equal(system.PrepareResources(), true, "an active resource remains preparable after reset");
     system.Destruct();
-    assert.equal(TriDevice.GetResourcesRegistered().includes(system), false, "Tr2DeviceResource.cpp:15-18 base destructor unregisters");
-    assert.ok(TriDevice.GetResourcesRegistered().includes(other), "unrelated resources stay registered");
+    assert.equal(trinity.GetResourcesRegistered().includes(system), false, "Tr2DeviceResource.cpp:15-18 base destructor unregisters");
+    assert.ok(trinity.GetResourcesRegistered().includes(other), "unrelated resources stay registered");
     assert.equal(system._variableStore, null);
     assert.deepEqual(events, slots.flatMap(slot => [ [ slot, "start" ], [ slot, "store", null ], [ slot, "end" ] ]), "Tr2GpuParticleSystem.cpp:106-119 preserves every effect update boundary");
     system.Destruct();
@@ -286,8 +292,8 @@ test("particle final-owner Destruct detaches nine effect stores once and unregis
   }
   finally
   {
-    TriDevice.UnregisterResource(system);
-    TriDevice.UnregisterResource(other);
+    trinity.UnregisterResource(system);
+    trinity.UnregisterResource(other);
   }
 });
 
@@ -305,25 +311,25 @@ test("scene and context setters preserve a shared system until its final caller 
     scene.SetGpuParticleSystem(shared); context.SetGpuParticleSystem(shared);
     scene.SetGpuParticleSystem(replacement);
     assert.ok(context.GetGpuParticleSystem() === shared, "EveUpdateContext.h:74 retains shared Tr2GpuParticleSystemPtr meaning");
-    assert.ok(TriDevice.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
+    assert.ok(trinity.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
     for (const slot of slots) assert.ok(shared[slot].variableStore === store, "other owner's effects remain connected");
     scene.SetGpuParticleSystem(shared);context.SetGpuParticleSystem(replacement);
     assert.ok(scene.GetGpuParticleSystem() === shared, "EveSpaceScene.h:526 forwards the same shared assignment");
-    assert.ok(TriDevice.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
+    assert.ok(trinity.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
     const oldHull = new EveShip2(), nextHull = new EveShip2();
     addChild(scene, "objects", oldHull, { listNotify: scene });addChild(scene, "objects", nextHull, { listNotify: scene });removeChild(scene, "objects", oldHull, { listNotify: scene });
     assert.ok(scene.GetGpuParticleSystem() === shared, "ordinary hull swap leaves scene-owned particles alive");
-    assert.ok(TriDevice.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
+    assert.ok(trinity.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
     // This caller owns the only remaining scene reference. Mirror the existing
     // demo.dispose boundary after its rendering loop has been stopped.
     const finalSystem = scene.GetGpuParticleSystem();scene.SetGpuParticleSystem(null);
-    assert.ok(TriDevice.GetResourcesRegistered().includes(finalSystem), "even final setter is assignment only");
+    assert.ok(trinity.GetResourcesRegistered().includes(finalSystem), "even final setter is assignment only");
     finalSystem.Destruct();
-    assert.equal(scene.GetGpuParticleSystem(), null);assert.equal(TriDevice.GetResourcesRegistered().includes(shared), false);
+    assert.equal(scene.GetGpuParticleSystem(), null);assert.equal(trinity.GetResourcesRegistered().includes(shared), false);
     assert.equal(shared._variableStore, null);for (const slot of slots) assert.equal(shared[slot].variableStore, null);
-    assert.ok(context.GetGpuParticleSystem() === replacement && TriDevice.GetResourcesRegistered().includes(replacement), "other system remains owned and registered");
+    assert.ok(context.GetGpuParticleSystem() === replacement && trinity.GetResourcesRegistered().includes(replacement), "other system remains owned and registered");
     assert.ok(slots.every((slot, i) => shared[slot] === effects[i]), "final owner detaches effect stores without destroying shared effect objects");
-    finalSystem.Destruct();assert.equal(TriDevice.GetResourcesRegistered().includes(shared), false);
+    finalSystem.Destruct();assert.equal(trinity.GetResourcesRegistered().includes(shared), false);
   }
   finally {scene.SetGpuParticleSystem(null);context.SetGpuParticleSystem(null);shared.Destruct();replacement.Destruct();}
 });
@@ -343,7 +349,7 @@ test("TriDevice.minimumModelLOD is an accessor over Get/SetMinimumModelLOD (TriD
   const geometry = new TriGeometryRes();
   const reloads = [];
   geometry.Reload = () => { reloads.push("reload"); return true; };
-  TriDevice.RegisterResource(geometry);
+  trinity.RegisterResource(geometry, Infinity);
   try
   {
     device.SetMinimumModelLOD(2);
@@ -354,7 +360,7 @@ test("TriDevice.minimumModelLOD is an accessor over Get/SetMinimumModelLOD (TriD
   }
   finally
   {
-    TriDevice.UnregisterResource(geometry);
+    trinity.UnregisterResource(geometry);
   }
 
   const property = CjsSchema.getSchema(TriDevice).properties.find(entry => entry.name === "minimumModelLOD");

@@ -11,7 +11,7 @@ import { blue } from "../../npm/dist/global/blue/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import {
   EveSpaceScene, EveSpaceSceneRenderDriver, EveTurretFiringFX, EveUpdateContext,
-  gTriDev, TriCurveSet, TriDevice, TriProjection, TriRenderJob, TriView, Tr2RenderJobs,
+  trinity, TriCurveSet, TriDevice, TriProjection, TriRenderJob, TriView, Tr2RenderJobs,
   Tr2RenderContext_GetMainThreadRenderContext, Tr2RenderTarget, Tr2StepExecuteRenderNode
 } from "../../npm/dist/trinity/index.js";
 import { ALResult, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
@@ -76,7 +76,7 @@ test("TriCurveSet script Update reads Blue's frame time at the call (CE-51 cast 
 
 test("device render jobs preserve tick timestamps through the real scene context", t =>
 {
-  const previousDevice = gTriDev.device;
+  const previousDevice = trinity.device;
   const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
   const previousAL = renderContext.GetRenderContextAL();
   renderContext.SetRenderContextAL(new Tr2RenderContextALStub());
@@ -87,7 +87,7 @@ test("device render jobs preserve tick timestamps through the real scene context
   simCurves.Play();
   realCurves.Play();
   device.curveSets.push(simCurves, realCurves);
-  gTriDev.device = device;
+  trinity.device = device;
   const target = new Tr2RenderTarget();
   const driver = new EveSpaceSceneRenderDriver();
   t.after(() =>
@@ -97,7 +97,7 @@ test("device render jobs preserve tick timestamps through the real scene context
     target.Destroy();
     device.InvalidateAndUnregisterForTicks();
     blue.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
-    gTriDev.device = previousDevice;
+    trinity.device = previousDevice;
     Tr2RenderContext_GetMainThreadRenderContext().SetRenderContextAL(previousAL);
   });
   assert.equal(device.CreateSimpleDevice({ canvas: true }, 64, 64), true);

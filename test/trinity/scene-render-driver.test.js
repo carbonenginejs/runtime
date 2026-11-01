@@ -23,7 +23,7 @@ import {
   Tr2VolumetricsRenderer,
   TriProjection,
   TriView, TriRenderJob, Tr2StepExecuteRenderNode, Tr2RenderTarget, Tr2Renderer,
-  TriDevice
+  TriDevice, trinity
 } from "../../npm/dist/trinity/index.js";
 import { RenderingMode, TriBatchType, TriStorageFlags } from "../../npm/dist/global/consts/graphics/index.js";
 import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -1028,7 +1028,7 @@ test("the driver is a device resource: registered on construction, unregistered 
 {
   const driver = new EveSpaceSceneRenderDriver();
 
-  assert.ok(TriDevice.GetResourcesRegistered().includes(driver));
+  assert.ok(trinity.GetResourcesRegistered().includes(driver));
   // Carbon OnPrepareResources (EveSpaceSceneRenderDriver.cpp:176-179) creates nothing.
   assert.equal(driver.OnPrepareResources(), true);
   assert.equal(driver.PrepareResources(), true);
@@ -1036,7 +1036,7 @@ test("the driver is a device resource: registered on construction, unregistered 
   assert.equal(driver.GetDescription(), "<Unknown>");
 
   driver.Destruct();
-  assert.equal(TriDevice.GetResourcesRegistered().includes(driver), false);
+  assert.equal(trinity.GetResourcesRegistered().includes(driver), false);
 });
 
 test("ReleaseResources deletes the upscaling context only for exactly TRISTORAGE_ALL (cpp:167-174)", () =>

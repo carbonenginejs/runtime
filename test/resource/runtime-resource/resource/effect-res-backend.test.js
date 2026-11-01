@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 
 import { CjsCarbonEffectWriter } from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { buildSyntheticDescription, SYNTHETIC_PERMUTATIONS } from "../format/carbonEffectSynthetic.js";
-import { Tr2EffectRes } from "../../../../src/trinity/shader/Tr2EffectRes.js";
+import { Tr2EffectRes } from "../../../../npm/dist/trinity/shader/Tr2EffectRes.js";
 
 // The orchestrator commits, once, the tree shipped containers come from, the
 // backend they are prepared for and the translator between them. DoLoad then

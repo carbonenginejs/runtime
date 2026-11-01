@@ -13,6 +13,10 @@ import { quat } from "../../npm/dist/global/math/quat.js";
 
 import { CjsPerFrameLayouts } from "../../src/trinity/core/rawData/CjsPerFrameLayouts.js";
 import { EveSpaceScene, Tr2RenderContext, Tr2Renderer, Tr2ShadowMap } from "../../npm/dist/trinity/index.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock reads trinity.device.
+InitializeTrinityStub();
 
 
 /** Field offsets hand-computed from the C++ declaration order. */

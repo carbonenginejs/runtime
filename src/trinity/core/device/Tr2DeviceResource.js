@@ -11,9 +11,10 @@
 // way they take their other secondary bases, through `@blue.inherit`, which
 // installs PrepareResources and GetDescription where the class has none.
 // That route has no constructor, so such a class registers itself in its own
-// constructor (`TriDevice.RegisterResource(this)`) as this constructor does,
+// constructor (`trinity.RegisterResource(this, Infinity)`) as this constructor does,
 // and unregisters in its Destroy, where Carbon's destructor would (cpp:11-14).
 import { CjsSchema, meta } from "#schema";
+import { trinity } from "../../CjsTrinity.js";
 
 
 
@@ -31,7 +32,7 @@ export class Tr2DeviceResource
    */
   constructor()
   {
-    CjsSchema.getConstructor("TriDevice").RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**

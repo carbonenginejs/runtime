@@ -8,7 +8,6 @@ import { box3 } from "#math/box3";
 import { CjsSchema, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { TriGeometryRes } from "#trinity/resources";
-import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Mesh } from "./Tr2Mesh.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
@@ -17,6 +16,7 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 import { CreateLodAllocations } from "./TriGeometryResAllocations.js";
 import { IsMatch, blue, EnumRegistrationType } from "#blue";
+import { trinity } from "../../CjsTrinity.js";
 
 
 /**
@@ -81,7 +81,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -100,7 +100,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
     this._instanceGeometryResource = null;
     this._loadedGeometryResource = null;
     this.ReleaseResources();
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

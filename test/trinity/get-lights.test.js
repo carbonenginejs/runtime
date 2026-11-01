@@ -16,6 +16,10 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { noise } from "../../npm/dist/global/math/noise.js";
 import { CcpTime } from "../../npm/dist/global/blue/CcpTime.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock reads trinity.device.
+InitializeTrinityStub();
 import {
   LightData,
   EveSpaceObjectAttachmentUtils,
@@ -33,7 +37,7 @@ import {
   MatrixCopyFrom3x4,
   ShadowQuality,
   Tr2PointLight,
-  gTriDev
+  trinity
 } from "../../npm/dist/trinity/index.js";
 
 
@@ -233,7 +237,7 @@ test("Blink/Fade quirks: zero rate, tiny-rate peak, phase asymmetry (EveSpaceObj
 {
   // Each helper reads Tr2Renderer::GetAnimationTime() itself (cpp:17,45,55), which is
   // gTriDev's m_animationTime.
-  const device = gTriDev.device;
+  const device = trinity.device;
   const previous = device.animationTime;
   t.after(() => { device.animationTime = previous; });
   const at = time => { device.animationTime = time; };

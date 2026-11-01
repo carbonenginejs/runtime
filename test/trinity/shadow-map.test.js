@@ -12,6 +12,10 @@ import * as trinity from "../../npm/dist/trinity/index.js";
 import * as alStub from "../../npm/dist/trinityal/index.js";
 import * as consts from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock reads trinity.device.
+InitializeTrinityStub();
 
 
 const EPSILON = 1e-5;

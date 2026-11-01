@@ -5,8 +5,8 @@
 // the same answer without it. So the policy is a plain function over injected
 // values: it constructs nothing, imports no engine, holds no state, and a
 // caller with its own composition root calls it directly and gets the identical
-// decision. `CjsLibrary.SelectBackendAsync` is its default caller, not its
-// owner.
+// decision. No caller in the runtime uses it today: the host builds the
+// abstraction layer it chose and hands it to `CjsLibrary.AttachTrinity`.
 //
 // This implements the four-stage flow accepted in the core roadmap:
 //

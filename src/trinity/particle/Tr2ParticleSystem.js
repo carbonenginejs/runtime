@@ -14,7 +14,6 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2ParticleElementDeclarationName } from "./element/Tr2ParticleElementDeclarationName.js";
-import { TriDevice } from "../core/device/TriDevice.js";
 import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
@@ -25,6 +24,7 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "../core/mesh/ITr
 import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js";
 import { ITr2GpuBuffer } from "../core/ITr2GpuBuffer.js";
 import { box3 } from "#math/box3";
+import { trinity } from "../CjsTrinity.js";
 
 // RenderDebugInfo scratch (debug drawing is single-threaded).
 const DEBUG_AABB = box3.create();
@@ -60,7 +60,7 @@ export class Tr2ParticleSystem
   {
     Tr2ParticleSystem.getAllSystems().add(this);
     this.constraints.SetNotify(this);
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -90,7 +90,7 @@ export class Tr2ParticleSystem
     this.isValid = false;
     this._instanceData.buffer = null;
     this._instanceData.count = 0;
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   _buffers = [null, null];

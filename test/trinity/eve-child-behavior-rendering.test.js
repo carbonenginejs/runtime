@@ -10,9 +10,13 @@ import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { ALResult } from "../../npm/dist/trinityal/index.js";
 import {
   EveChildBehaviorSystem, EveChildContainer, EveShip2, BehaviorGroup, BehaviorGroupBooster, Tr2Mesh, Tr2MeshArea,
-  Tr2EffectStateManager, Tr2RenderContext_GetMainThreadRenderContext, TriDevice, CjsBatchManager
+  Tr2EffectStateManager, Tr2RenderContext_GetMainThreadRenderContext, TriDevice, trinity, CjsBatchManager
 } from "../../npm/dist/trinity/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
+import { InitializeTrinityStub } from "../support/trinityStub.js";
+
+// The renderer clock reads trinity.device.
+InitializeTrinityStub();
 
 const context = Tr2RenderContext_GetMainThreadRenderContext();
 context.GetRenderContextAL().CreateDevice();
@@ -193,7 +197,7 @@ test("allocation resize, empty groups, mapping failures and teardown obey owners
   value.Destruct();
   assert.equal(value._shipInstanceBuffer.IsValid(), false);
   assert.equal(value._boosterInstanceBuffer.IsValid(), false);
-  assert.equal(TriDevice.GetResourcesRegistered().includes(value), false);
+  assert.equal(trinity.GetResourcesRegistered().includes(value), false);
   assert.equal(a._changeBufferVertexCount, null);
 });
 

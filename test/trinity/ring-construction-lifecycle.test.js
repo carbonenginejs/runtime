@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  EveSpaceScene, Tr2Effect, TriDevice, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2RenderContext,
+  EveSpaceScene, Tr2Effect, TriDevice, trinity, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2RenderContext,
   Tr2RenderContext_GetMainThreadRenderContext, Tr2Renderer, Tr2VariableStore
 } from "../../npm/dist/trinity/index.js";
 import { Tr2BaseDeviceResourceAL, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
@@ -47,7 +47,7 @@ test("scene construction registers the bone provider before material mapping and
   const ring = variable.GetValue();
   assert.equal(context.IsValid(), false);
   assert.equal(ring.GetGpuBuffer(), null, "native Resize retains the ring after failed Create (cpp:105-108)");
-  assert.ok(TriDevice.GetResourcesRegistered().includes(ring), "Tr2DeviceResource.cpp:10-13 registers the ring");
+  assert.ok(trinity.GetResourcesRegistered().includes(ring), "Tr2DeviceResource.cpp:10-13 registers the ring");
   const mappings = mappedResources();
   assert.deepEqual(mappings.map(v => v.sourceName), ["BoneTransforms", "EveSpaceSceneEnvMap", "SSAOMap"],
     "EveSpaceScene.cpp:253-258 registers all three before effect construction");
@@ -122,7 +122,7 @@ test("device preparation preserves pre-device uploads and recreates invalid or f
     context.CreateBuffer = create;
     Tr2RingBuffer.ResetInstances();
   }
-  assert.ok(!TriDevice.GetResourcesRegistered().includes(ring), "explicit teardown unregisters the arena");
+  assert.ok(!trinity.GetResourcesRegistered().includes(ring), "explicit teardown unregisters the arena");
 });
 
 test("failed allocation with dirty data preserves native failure bookkeeping and later restores the mirror", () =>

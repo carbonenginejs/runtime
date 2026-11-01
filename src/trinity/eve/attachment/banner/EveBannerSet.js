@@ -30,7 +30,6 @@ import { Tr2VertexDefinition, Tr2VertexDefinitionItem } from "../../../core/vert
 import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
-import { TriDevice } from "../../../core/device/TriDevice.js";
 
 /** sizeof( EveBannerSet::Vertex ) (cpp:65-84): position float3, normal half4, texCoord half2. */
 const BANNER_VERTEX_SIZE = 24;
@@ -53,6 +52,7 @@ function TransformNormal(out, v, m)
 import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { LightFeatures } from "../../lights/LightFeatures.js";
 import { LightData } from "../../lights/LightData.js";
+import { trinity } from "../../../CjsTrinity.js";
 
 
 /**
@@ -138,7 +138,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   constructor()
   {
     super();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 

@@ -26,11 +26,11 @@ import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
-import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import { CreateLodAllocations } from "../../core/mesh/TriGeometryResAllocations.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { ITr2DebugRenderable } from "#interfaces";
+import { trinity } from "../../CjsTrinity.js";
 
 /**
  * A child that drives behaviour groups - swarms, drones and the like - from its
@@ -138,7 +138,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     // Carbon's constructor memsets these records; child-mesh defaults differ.
     this._perObjectData.vs.Zero();
     this._perObjectData.ps.Zero();
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -154,7 +154,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     this._shipInstanceBuffer.Destroy();
     this._boosterInstanceBuffer.Destroy();
     for (const group of this.behaviorGroups) group.SetVertexFunctionReferance(null);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
   }
 
   /**

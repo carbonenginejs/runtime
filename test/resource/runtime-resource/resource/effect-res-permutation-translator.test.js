@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 
 import { CjsCarbonEffectWriter } from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { buildSyntheticDescription, SYNTHETIC_PERMUTATIONS } from "../format/carbonEffectSynthetic.js";
-import { Tr2EffectRes } from "../../../../src/trinity/shader/Tr2EffectRes.js";
+import { Tr2EffectRes } from "../../../../npm/dist/trinity/shader/Tr2EffectRes.js";
 
 // A browser backend translates the default permutation at load and hands the
 // resource a translator for the rest; the first request for another permutation

@@ -21,10 +21,10 @@ import { Succeeded } from "../../trinityal/ALResult.js";
 import { Tr2TextureSubresource } from "../../trinityal/Tr2HalHelperStructures/Tr2TextureSubresource.js";
 import { Tr2SubresourceData } from "../../trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
-import { TriDevice } from "../core/device/TriDevice.js";
 import { Tr2TextureReference } from "../core/Tr2TextureReference.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
+import { trinity } from "../CjsTrinity.js";
 
 const IMPACT_SHIELD_DATA_MAP = "ImpactShieldDataMap";
 const VEC4_BYTES = 16;
@@ -88,7 +88,7 @@ export class Tr2DataTextureManager
    */
   constructor()
   {
-    TriDevice.RegisterResource(this);
+    trinity.RegisterResource(this, Infinity);
     Tr2VariableStore.globalStore().RegisterVariableInternal(IMPACT_SHIELD_DATA_MAP, TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._dataTexture);
     this.PrepareResources();
   }
@@ -104,7 +104,7 @@ export class Tr2DataTextureManager
   Release()
   {
     Tr2VariableStore.globalStore().UnregisterVariable(IMPACT_SHIELD_DATA_MAP);
-    TriDevice.UnregisterResource(this);
+    trinity.UnregisterResource(this);
     this.ReleaseResources();
   }
 

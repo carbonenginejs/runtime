@@ -4,9 +4,9 @@
  * aggregates every family; the focused subpaths (`/trinity/eve`,
  * `/trinity/core`, `/trinity/shader`, ...) let a consumer import one.
  *
- * Importing any of them creates no graphics device or backend context: the
- * process-wide device (`gTriDev`) is constructed on first read, and a render
- * context drives the headless AL stub until an engine installs its own.
+ * Importing any of them creates no graphics device or backend context:
+ * `trinity.device` (Carbon's `gTriDev`) is null until the host calls
+ * `trinity.Initialize({ renderContextAL })` with the backend it chose.
  *
  * ```js
  * import { EveCamera } from "@carbonenginejs/runtime/trinity/eve";
@@ -31,5 +31,5 @@ export * from "./ui/index.js";
 export * from "./raytracing/index.js";
 export * from "./generated/index.js";
 export * from "./font/index.js";
-export * from "./trinity.js";
+export * from "./CjsTrinity.js";
 export * from "./resources/index.js";
