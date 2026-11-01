@@ -848,20 +848,6 @@ ray3.set = function (out, originX, originY, originZ, directionX, directionY, dir
 };
 
 /**
- * Ray3 generic sorting
- *
- * @param {{}} a
- * @param {number} a.distance
- * @param {{}} b
- * @param {number} b.distance
- * @returns {number}
- */
-ray3.SORT = function (a, b)
-{
-    return a.distance - b.distance;
-};
-
-/**
  * Gets the squared distance from a ray3 to a point
  *
  * @author three.js authors (converted)
@@ -1075,7 +1061,6 @@ export const {
     normalize,
     recast,
     set,
-    SORT,
     squaredDistance,
     toArray,
     toOriginDirection,
