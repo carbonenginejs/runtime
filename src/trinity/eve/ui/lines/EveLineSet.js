@@ -116,12 +116,6 @@ export class EveLineSet
   /** The EveLineData bytes an upload copies from, grown with the line count. */
   _staging = new Float32Array(0);
 
-  /** Registers the device-resource lifetime, as Carbon's Tr2DeviceResource base does. */
-  constructor()
-  {
-    trinity.RegisterResource(this, Infinity);
-  }
-
   /**
    * Carbon Initialize (cpp:35-42): seeds the line capacity at 100 and prepares the resources. Carbon also reserves
    * the line vector; a JavaScript array needs no reserve.
@@ -446,6 +440,8 @@ export class EveLineSet
     if (!(batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT && this.renderTransparent)
       && !(batchType === TriBatchType.TRIBATCHTYPE_ADDITIVE && !this.renderTransparent)) return;
     if (!this.display) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds and fills them.
+    if (!this.IsGood()) return;
     if (!this._vertexBuffer.IsValid()) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
 

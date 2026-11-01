@@ -160,8 +160,8 @@ export class EveEllipseSet extends EveChildTransform
    * resources.
    *
    * Carbon's Tr2DeviceResource base registers with the device in its own
-   * constructor (Tr2DeviceResource.cpp:6-9); a class taking that base through
-   * `@blue.inherit` registers here instead (Tr2DeviceResource.js head). Carbon
+   * constructor (Tr2DeviceResource.cpp:6-9); here the set registers on use
+   * (IsGood in GetBatches; docs internal/decisions/device-resource-registration.md). Carbon
    * also makes the set its ellipse list's notify target (cpp:73); a JavaScript
    * array has no notify slot, so list events reach OnListModified from the
    * Blue loader and the set's own list methods bind definitions explicitly.
@@ -169,7 +169,6 @@ export class EveEllipseSet extends EveChildTransform
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
     vec4.set(this._boundingSphere, 0, 0, 0, 0);
     this.PrepareResources();
   }
@@ -552,6 +551,8 @@ export class EveEllipseSet extends EveChildTransform
       return;
     }
 
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood).
+    this.IsGood();
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
     {
       this.PrepareResources();

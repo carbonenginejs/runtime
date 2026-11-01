@@ -19,10 +19,11 @@ import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 
 /** Granny/CMF debug geometry rendered as colored triangle edges, solids, or picking triangles. */
 @be.define("Tr2GrannyPrimitiveSet")
-@be.inherit(IInitialize)
+@be.inherit(IInitialize, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.exposureChainTo(Tr2PrimitiveSet)
 export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
@@ -64,13 +65,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   _triangleIndexBuffer = new Tr2BufferAL();
   _lineIndexBuffer = new Tr2BufferAL();
   _destroyed = false;
-
-  /** Registers native device-resource lifetime (cpp:12-22). */
-  constructor()
-  {
-    super();
-    trinity.RegisterResource(this, Infinity);
-  }
 
   /**
    * Acquires the authored resource after reader population (cpp:38-44).
@@ -269,16 +263,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /**
-   * Inherited native device-resource creation guard.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
-  }
-
-  /**
    * Explicit destruction replaces native empty-handle assignment (cpp:47-53).
    *
    * @adapted
@@ -358,6 +342,8 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
       if (this._vertexBuffer.IsValid()) this.ReleaseCachedData(resource);
       return;
     }
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
+    if (!this.IsGood()) return;
     if (!this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const picking = reason === Tr2PrimitiveSet.GetBatchesReason.Picking;
     const solid = this.renderSolid || picking, batch = new Tr2RenderBatch();

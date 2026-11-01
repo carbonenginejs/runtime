@@ -186,11 +186,17 @@ export class EveChildLineSet extends EveChildTransform
 
   _instanceCursor = { view: null, offset: 0 };
 
-  /** Registers the native device-resource lifetime and initializes default lines. */
+  /**
+   * Carbon's constructor: initializes default lines.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
+   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   */
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
     this.Initialize();
   }
 
@@ -496,8 +502,11 @@ export class EveChildLineSet extends EveChildTransform
 
   GetBatches(batches, batchType, perObjectData, _reason)
   {
-    if (!this.display || this._cachedSVD === Tr2EffectStateManager.Unknown || this._vertexDeclarationHandle === Tr2EffectStateManager.Unknown || !this._vertexBuffer.IsValid()) return;
+    if (!this.display) return;
     if ((this.renderType !== EveChildLineSet.lineSetType.OBJECT_RENDER && this.renderType !== EveChildLineSet.lineSetType.BOTH) || !this.mesh) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the instance buffer check: preparing builds it.
+    if (!this.IsGood()) return;
+    if (this._cachedSVD === Tr2EffectStateManager.Unknown || this._vertexDeclarationHandle === Tr2EffectStateManager.Unknown || !this._vertexBuffer.IsValid()) return;
     const geometry = this.mesh.GetGeometryResource();
     if (!geometry || !geometry.IsGood()) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();

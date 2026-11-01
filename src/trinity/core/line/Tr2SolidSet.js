@@ -16,11 +16,12 @@ import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 
 
 /** A set of coloured triangles with a running centre of mass, submitted as one buffer. */
 @be.define("Tr2SolidSet")
-@be.inherit(IInitialize)
+@be.inherit(IInitialize, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.mapInterface(Tr2PrimitiveSet)
 @be.exposureChainTo(Tr2PrimitiveSet)
@@ -31,13 +32,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   _vertexDeclHandle = Tr2EffectStateManager.Unknown;
   _vertexBuffer = new Tr2BufferAL();
   _destroyed = false;
-
-  /** Registers the lifetime inherited from Carbon's Tr2DeviceResource base. */
-  constructor()
-  {
-    super();
-    trinity.RegisterResource(this, Infinity);
-  }
 
   /** m_triangles (std::vector<TriangleData>) */
   @type.array({ kind: "rawStruct", className: "TriangleData" })
@@ -149,16 +143,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /**
-   * Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
-  }
-
-  /**
    * Explicit AL destruction replaces Carbon's empty reference-counted handles.
    *
    * @adapted
@@ -233,7 +217,8 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
 
   GetBatchesImpl(accumulator, perObjectData, effect, _reason)
   {
-    if (!this._vertexBuffer.IsValid()) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
+    if (!this.IsGood() || !this._vertexBuffer.IsValid()) return;
     const declaration = this._vertexDeclHandle;
     if (declaration === Tr2EffectStateManager.Unknown) return;
     const batch = new Tr2RenderBatch();

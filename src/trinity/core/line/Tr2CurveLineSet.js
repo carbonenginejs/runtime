@@ -23,6 +23,7 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType";
 import { ITr2Renderable } from "../ITr2Renderable.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 
 
 const LINE_STRIDE = 80;
@@ -107,7 +108,7 @@ function sphericalToCartesian(value, center)
 
 /** A line set that draws curved and sphere-projected lines by tessellating them into straight segments. */
 @be.define("Tr2CurveLineSet")
-@be.inherit(ITr2Renderable, ITr2Pickable, INotify)
+@be.inherit(ITr2Renderable, Tr2DeviceResource, ITr2Pickable, INotify)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2Pickable)
@@ -158,10 +159,16 @@ export class Tr2CurveLineSet
 
   _vertexView = null;
 
-  /** Registers the inherited device-resource lifetime and prepares the empty set. */
+  /**
+   * Carbon's constructor: prepares the empty set.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
+   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -176,16 +183,6 @@ export class Tr2CurveLineSet
   {
     this.ReleaseResources();
     trinity.UnregisterResource(this);
-  }
-
-  /**
-   * Inherited Tr2DeviceResource.cpp:21-32 creation guard.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /**
@@ -821,7 +818,9 @@ export class Tr2CurveLineSet
 
   GetBatchImpl(accumulator, perObjectData, effect)
   {
-    if (!effect || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+    if (!effect) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
+    if (!this.IsGood() || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!effect.IsGood()) return;
     const batch = new Tr2RenderBatch();

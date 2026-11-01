@@ -193,6 +193,8 @@ test('owner buffer grows, reuses capacity, zeroes hidden nested paths, and relea
 
 test('replaced defaults survive until final destruction while assigned line sets remain borrowed',t=>{
   setup(t);const c=child(t),old=c.lineSet,assigned=new EveCurveLineSet();c.lineSet=assigned;c.Initialize();
+  // Both in use, so both are registered device resources.
+  old.IsGood();assigned.IsGood();
   assert.equal(trinity.GetResourcesRegistered().includes(old),true);assert.equal(trinity.GetResourcesRegistered().includes(assigned),true);
   c.Destruct();assert.equal(trinity.GetResourcesRegistered().includes(old),false);
   assert.equal(trinity.GetResourcesRegistered().includes(assigned),true);assigned.Destruct();

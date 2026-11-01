@@ -89,12 +89,6 @@ export class EveTacticalTrails
   @type.float32
   fadeOutTime = 5;
 
-  /** Registers the device-resource lifetime, as Carbon's Tr2DeviceResource base does. */
-  constructor()
-  {
-    trinity.RegisterResource(this, Infinity);
-  }
-
   /**
    * Carbon ReleaseResources (cpp:73-76): drops the interned declaration; the buffer is kept.
    *
@@ -411,7 +405,9 @@ export class EveTacticalTrails
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT) return;
-    if (this.segments === 0 || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+    if (this.segments === 0) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing makes the declaration.
+    if (!this.IsGood() || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.trailEffect);
     batch.SetPerObjectData(perObjectData);

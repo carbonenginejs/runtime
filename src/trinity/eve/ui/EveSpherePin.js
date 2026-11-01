@@ -185,7 +185,14 @@ export class EveSpherePin
   _indexResult = { primitives: 0, indices: [] };
   _ownedEffects = new Set();
 
-  /** Creates native effects, bounds and the device-resource registration. */
+  /**
+   * Carbon's constructor: creates its effects and bounds, and prepares.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
+   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   */
   constructor()
   {
     this.pinEffect = new Tr2Effect();
@@ -194,7 +201,6 @@ export class EveSpherePin
     this._ownedEffects.add(this.pickEffect);
     this.pickEffect.SetEffectPathName("res:/Graphics/Effect/Managed/Space/UI/SpherePinPicking.fx");
     this.BuildBoundingSphere();
-    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -565,6 +571,8 @@ export class EveSpherePin
   {
     const geometry = this._geometryResource;
     if (!geometry || !geometry.IsGood() || geometry.GetMeshCount() < 1) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the index buffer check: preparing builds it.
+    if (!this.IsGood()) return;
     const lod = geometry.GetMeshLod__LodIndex(0, 0);
     if (!lod || !this._indexBuffer.IsValid()) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();
