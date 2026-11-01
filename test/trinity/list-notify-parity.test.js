@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BLUELISTEVENT as E } from '../../npm/dist/global/consts/blue.js';
-import { IListNotify } from '../../npm/dist/global/blue/index.js';
-import { CjsSchema, blue } from '../../npm/dist/global/schema/index.js';
+import { IListNotify } from '../../npm/dist/blue/blue/index.js';
+import { CjsSchema, blue } from '../../npm/dist/blue/schema/index.js';
 import { Tr2ParticleSystem, Tr2SphereConstraint, Tr2PlaneConstraint, ITr2GenericEmitter, PlayFX, IEveFiringEffectElement, Tr2Sprite2dPolygon, Tr2Sprite2dLineTrace, Tr2Sprite2dVertex, Tr2Sprite2dTriangle, Tr2Sprite2dLineTraceVertex } from '../../npm/dist/trinity/index.js';
 import { Tr2InteriorScene, ITr2InteriorDynamic } from '../../npm/dist/character/index.js';
 

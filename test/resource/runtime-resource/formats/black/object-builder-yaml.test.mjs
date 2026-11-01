@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import "../../../../../npm/dist/trinity/index.js";
 import "../../../../../npm/dist/character/index.js";
-import { CreateBlackObjectBuilder } from "../../../../../npm/dist/global/blue/formats/black/index.js";
+import { CreateBlackObjectBuilder } from "../../../../../npm/dist/blue/blue/formats/black/index.js";
 
 // Carbon's LoadObject reads bytes without a Black header as YAML (BlueResMan.cpp:806-840).
 const yaml = `type: Tr2InteriorScene

@@ -3,7 +3,7 @@
 // Carbon leaves it unset, the type's neutral value.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import {
   EvePlaneSetVolatileData,
   EveSpotlightSetSpotlightData,

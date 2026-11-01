@@ -1,10 +1,10 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { blue, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
-import { GetResources } from "../../npm/dist/global/blue/getResources.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { blue, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/blue/blue/index.js";
+import { GetResources } from "../../npm/dist/blue/blue/getResources.js";
 import { Tr2BindingVector3, Tr2PyValueBinding, Tr2ExternalParameter, Tr2DynamicBinding } from "../../npm/dist/trinity/index.js";
 import { TriCurveSet, ITr2ValueBinding } from "../../npm/dist/trinity/curves/index.js";
 import { MarkerTag } from "../support/markerTags.js";

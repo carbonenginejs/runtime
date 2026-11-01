@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { EveEntity } from "../../npm/dist/trinity/eve/EveEntity.js";
 import { EveChildContainer } from "../../npm/dist/trinity/eve/child/EveChildContainer.js";
 import { EveChildInstanceContainer } from "../../npm/dist/trinity/eve/child/EveChildInstanceContainer.js";

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";
-import { MotherLode } from "../../../npm/dist/global/blue/MotherLode.js";
-import { blue, BlueResMan, CjsLoadingObject } from "../../../npm/dist/global/blue/index.js";
+import { MotherLode } from "../../../npm/dist/blue/blue/MotherLode.js";
+import { blue, BlueResMan, CjsLoadingObject } from "../../../npm/dist/blue/blue/index.js";
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { TriStorageFlags, Tr2ALMemoryType } from "../../../npm/dist/global/consts/graphics/index.js";

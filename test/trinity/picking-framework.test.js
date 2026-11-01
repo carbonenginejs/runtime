@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { EveSpaceScene, EvePendingPickingReadback, Tr2RenderContext, Tr2PrimitiveScene,
   Tr2PerObjectData, ITr2PickableScene } from "../../npm/dist/trinity/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";

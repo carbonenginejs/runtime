@@ -5,10 +5,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { TriGrannyRes, Tr2GrannyIntersectionResult } from "../../../npm/dist/resource/index.js";
-import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem, BlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
-import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
+import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem, BlueResMan, blue } from "../../../npm/dist/blue/blue/index.js";
+import { installBlueServices } from "../../../npm/dist/blue/blue/blue.js";
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import "../../support/frameLoop.js";
 import { MarkerTag } from "../../support/markerTags.js";
 

@@ -11,7 +11,7 @@ import {
   EveProceduralMethodCycling, EveProceduralMethodCyclingParameter,
   EveSpaceScene, EveSpaceSceneRenderDriver, EveUpdateContext, Tr2GpuParticleSystem
 } from "../../npm/dist/trinity/index.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 
 test("cycling ads keep authored seconds on the Blue-tick frame clock", t =>
 {

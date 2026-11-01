@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { Tr2Effect, Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { SetEffectPathDefaults } from "../../npm/dist/global/utils/effectPath.js";
 

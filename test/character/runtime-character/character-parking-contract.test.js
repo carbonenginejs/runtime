@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import test from "node:test";
 import * as character from "../../../npm/dist/character/index.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 
 test("retained character entry hydrates every document family after creator removal", () =>
 {

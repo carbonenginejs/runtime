@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { blue } from "../../src/global/blue/index.js";
+import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
+import { blue } from "../../src/blue/blue/index.js";
 
 class Node
 {

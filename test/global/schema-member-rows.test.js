@@ -3,15 +3,15 @@ import test from "node:test";
 import { transformSync } from "@babel/core";
 import decoratorsPlugin from "@babel/plugin-proposal-decorators";
 import { exposure as be } from "#be";
-import { CjsSchema, type } from "../../src/global/schema/index.js";
-import { BlueClasses } from "../../src/global/blueexposure/BlueClasses.js";
-import { isWritableField } from "../../src/global/compose/values.js";
+import { CjsSchema, type } from "../../src/blue/schema/index.js";
+import { BlueClasses } from "../../src/blue/blueexposure/BlueClasses.js";
+import { isWritableField } from "../../src/blue/compose/values.js";
 
 // decorator-upgrade.md § 00 "One member under two Carbon names": each be.map* row on a member registers its own exposed name over the
 // same key with its own flags. The row nearest the member is the member's own; rows above it add names. Two rows with one name throw.
 
-const beUrl = new URL("../../src/global/blueexposure/be.js", import.meta.url).href;
-const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
+const beUrl = new URL("../../src/blue/blueexposure/be.js", import.meta.url).href;
+const schemaUrl = new URL("../../src/blue/schema/index.js", import.meta.url).href;
 async function load(source)
 {
     const header = `import { exposure as be } from ${JSON.stringify(beUrl)}; import { meta, type } from ${JSON.stringify(schemaUrl)};\n`;

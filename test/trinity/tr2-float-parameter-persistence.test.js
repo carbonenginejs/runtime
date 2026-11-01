@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { DictReader, DictWriter, YamlWriter } from "../../npm/dist/global/blue/index.js";
-import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { DictReader, DictWriter, YamlWriter } from "../../npm/dist/blue/blue/index.js";
+import { YamlReader } from "../../npm/dist/blue/blue/YamlReader.js";
 import "../../npm/dist/trinity/index.js";
 import { Tr2FloatParameter } from "../../npm/dist/trinity/shader/parameter/Tr2FloatParameter.js";
 

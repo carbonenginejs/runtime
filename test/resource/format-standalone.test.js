@@ -20,9 +20,9 @@ const FORBIDDEN_FILES = [
   "index.js",
   "global/index.js",
   "resource/index.js",
-  "global/blue/index.js",
-  "global/blue/blue.js",
-  "global/blue/BlueResMan.js"
+  "blue/blue/index.js",
+  "blue/blue/blue.js",
+  "blue/blue/BlueResMan.js"
 ];
 
 const IMPORT = /(?:^|\n)\s*(?:import|export)\s[^;]*?from\s*["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)|(?:^|\n)\s*import\s*["']([^"']+)["']/gu;
@@ -75,7 +75,7 @@ function closure(entry)
 
 const shown = file => relative(SOURCE, file).split(sep).join("/");
 
-const formats = [ "resource/formats", "global/blue/formats", "resource/codecs" ].flatMap(folder =>
+const formats = [ "resource/formats", "blue/blue/formats", "resource/codecs" ].flatMap(folder =>
   readdirSync(join(SOURCE, folder))
     .filter(name => existsSync(join(SOURCE, folder, name, "index.js")))
     .map(name => `${folder}/${name}`));

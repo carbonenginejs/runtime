@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue, BlueClasses } from "../../src/global/blue/index.js";
-import { CjsSchema, type } from "../../src/global/schema/index.js";
+import { blue, BlueClasses } from "../../src/blue/blue/index.js";
+import { CjsSchema, type } from "../../src/blue/schema/index.js";
 import * as CcpLog from "../../src/global/logging/ccpLog.js";
-import * as classRegistry from "../../src/global/blueexposure/classes/registry.js";
+import * as classRegistry from "../../src/blue/blueexposure/classes/registry.js";
 
 const { ClassRegistrarNullFactory, getClassRegistrationRevision } = classRegistry;
 

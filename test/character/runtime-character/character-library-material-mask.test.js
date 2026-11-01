@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterLibrary, CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/formats.js";
 
 // The decoders are Graphene's zoneAreas.js and usedColourAreas.js (graphene 469a432) moved unchanged: on

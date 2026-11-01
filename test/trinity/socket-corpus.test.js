@@ -6,10 +6,10 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { blue, BlueResMan } from "../../npm/dist/global/blue/index.js";
-import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
+import { blue, BlueResMan } from "../../npm/dist/blue/blue/index.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/blue/formats/black/index.js";
 import { EveChildSocket, EveChildContainer } from "../../npm/dist/trinity/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 import { StubResMan } from "../support/stubResMan.js";
 

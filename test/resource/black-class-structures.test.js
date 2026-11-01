@@ -1,16 +1,16 @@
 // Struct-list layouts derived from the runtime's decorated classes
-// (global/blue/formats/black/core/blackClassStructures.js).
+// (blue/blue/formats/black/core/blackClassStructures.js).
 import assert from "node:assert/strict";
 import test from "node:test";
 
 import "../../npm/dist/trinity/index.js";
 import "../../npm/dist/sof/index.js";
-import { classStructureLayout } from "../../npm/dist/global/blue/formats/black/core/blackClassStructures.js";
-import { CjsBlackPropertyReaders } from "../../npm/dist/global/blue/formats/black/core/CjsBlackPropertyReaders.js";
-import { CjsBlackBinaryReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackBinaryReader.js";
+import { classStructureLayout } from "../../npm/dist/blue/blue/formats/black/core/blackClassStructures.js";
+import { CjsBlackPropertyReaders } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackPropertyReaders.js";
+import { CjsBlackBinaryReader } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackBinaryReader.js";
 
-import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
-import { type } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/CjsSchema.js";
+import { type } from "../../npm/dist/blue/schema/index.js";
 
 const offsets = layout => layout.members.map(member => [ member.name, member.offset ]);
 

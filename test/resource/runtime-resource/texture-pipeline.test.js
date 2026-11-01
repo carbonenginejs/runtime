@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { PixelFormat } from "#consts/render-context";
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
 // ExecuteFromScript makes its bitmaps through Blue's class registry (Carbon's CreateInstance), so the class must be defined.

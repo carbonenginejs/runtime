@@ -1,15 +1,15 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
-import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { ICustomPersist } from "../../npm/dist/global/blueexposure/ICustomPersist.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
+import { BlueList } from "../../npm/dist/blue/blueexposure/BlueList.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { ICustomPersist } from "../../npm/dist/blue/blueexposure/ICustomPersist.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { CjsSchema, blue } from "../../npm/dist/blue/schema/index.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
@@ -337,12 +337,12 @@ test("all action null-chain tables isolate a temporary native parent query mappi
   execFileSync(process.execPath, [
     ...process.execArgv, "--input-type=module", "--eval", `
       import assert from "node:assert/strict";
-      import { meta, blue, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
-      import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
-      import { IRoot } from ${JSON.stringify(moduleURL("global/blueexposure/IRoot.js"))};
-            import { ICustomPersist } from ${JSON.stringify(moduleURL("global/blueexposure/ICustomPersist.js"))};
-      import { IInitialize } from ${JSON.stringify(moduleURL("global/blueexposure/IInitialize.js"))};
-      import { INotify } from ${JSON.stringify(moduleURL("global/blueexposure/INotify.js"))};
+      import { meta, blue, CjsSchema } from ${JSON.stringify(moduleURL("blue/schema/index.js"))};
+      import { mappedInterfaces } from ${JSON.stringify(moduleURL("blue/compose/interface.js"))};
+      import { IRoot } from ${JSON.stringify(moduleURL("blue/blueexposure/IRoot.js"))};
+            import { ICustomPersist } from ${JSON.stringify(moduleURL("blue/blueexposure/ICustomPersist.js"))};
+      import { IInitialize } from ${JSON.stringify(moduleURL("blue/blueexposure/IInitialize.js"))};
+      import { INotify } from ${JSON.stringify(moduleURL("blue/blueexposure/INotify.js"))};
       import { ITr2Updateable } from ${JSON.stringify(moduleURL("trinity/core/ITr2Updateable.js"))};
       import { ITr2ControllerAction } from ${JSON.stringify(moduleURL("trinity/controllers/action/ITr2ControllerAction.js"))};
       class ParentOnlyInterface {}

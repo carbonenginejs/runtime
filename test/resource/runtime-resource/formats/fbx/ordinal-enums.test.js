@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blueEnums } from "../../../../../npm/dist/global/blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../../../../npm/dist/blue/blue/enums/CjsBlueEnumRegistry.js";
 import "../../../../../npm/dist/resource/formats/fbx/core/helpers.js";
 
 test("FBX_ROTATION_ORDERS preserves every original ordinal wire value", () =>

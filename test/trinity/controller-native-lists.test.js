@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
+import { BlueList } from "../../npm/dist/blue/blueexposure/BlueList.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { CjsSchema, blue } from "../../npm/dist/blue/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
-import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
+import { CjsBlackReader } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackReader.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { Tr2ControllerEventHandler } from "../../npm/dist/trinity/controllers/Tr2ControllerEventHandler.js";
 import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";

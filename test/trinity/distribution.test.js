@@ -10,7 +10,7 @@ function stubRandom(value)
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { EveBoxVolume } from "../../npm/dist/trinity/eve/volume/EveBoxVolume.js";
 import { EveEllipsoidVolume } from "../../npm/dist/trinity/eve/volume/EveEllipsoidVolume.js";

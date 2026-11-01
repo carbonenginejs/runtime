@@ -1,4 +1,4 @@
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";

@@ -3,7 +3,7 @@ import test from "node:test";
 import { transformSync } from "@babel/core";
 import decoratorsPlugin from "@babel/plugin-proposal-decorators";
 import { exposure as be } from "#be";
-import { CjsSchema, meta } from "../../src/global/schema/index.js";
+import { CjsSchema, meta } from "../../src/blue/schema/index.js";
 
 // A static method is a method record like any other: decorateMethod finds it on the constructor, not the prototype.
 
@@ -27,8 +27,8 @@ test("decorateMethod records a static method as a method, with its metadata and 
 
 test("a decorated static method records the same row as the imperative call", async () =>
 {
-    const beUrl = new URL("../../src/global/blueexposure/be.js", import.meta.url).href;
-    const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
+    const beUrl = new URL("../../src/blue/blueexposure/be.js", import.meta.url).href;
+    const schemaUrl = new URL("../../src/blue/schema/index.js", import.meta.url).href;
     const header = `import { exposure as be } from ${JSON.stringify(beUrl)}; import { meta } from ${JSON.stringify(schemaUrl)};\n`;
     const code = transformSync(header + `
       @be.define("StaticDecorated")

@@ -1,4 +1,4 @@
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 // Optional offline proof using unmodified copies of indexed Black files.
 // Set CONTROLLER_BLACK_CORPUS_DIR to a directory containing the two filenames
 // below. Game data is not committed; hashes and sizes pin the inspected inputs.
@@ -8,8 +8,8 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { blue, BlueResMan } from "../../npm/dist/global/blue/index.js";
-import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
+import { blue, BlueResMan } from "../../npm/dist/blue/blue/index.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/blue/formats/black/index.js";
 import { EveChildContainer, ExecuteMainThreadActions, Tr2ControllerReference } from "../../npm/dist/trinity/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 

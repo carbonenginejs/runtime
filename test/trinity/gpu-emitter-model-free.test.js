@@ -1,10 +1,10 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { IInitialize, INotify } from "../../npm/dist/blue/blue/index.js";
 import { Tr2GpuSharedEmitter, Tr2GpuUniqueEmitter, ITr2GenericEmitter } from "../../npm/dist/trinity/index.js";
 
 test("real pillar GPU emitter initializes and Setup hashes copied structs exactly once on CPU", () =>

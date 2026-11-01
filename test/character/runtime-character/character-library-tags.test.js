@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../../npm/dist/global/schema/CjsSchema.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/CjsSchema.js";
 import { CjsYamlFormat } from "../../../npm/dist/resource/formats/yaml/index.js";
 import { CjsAvatarPartMetaData, CjsProjectedDecal, Tr2InteriorLightSource } from "../../../npm/dist/character/index.js";
 import { createCharacterYamlTagHandlers, readCharacterYamlObject } from "../../../npm/dist/character/formats/yaml.js";

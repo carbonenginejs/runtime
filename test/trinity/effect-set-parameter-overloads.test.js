@@ -1,7 +1,7 @@
 // Tr2Effect::SetParameter's ten overloads (Tr2Effect.h:93-102) are ten methods
 // here: the caller states the type, so a null or a whole float can no longer be
 // routed by what it happens to look like.
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 

@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 
 import { test, beforeEach, afterEach } from "node:test";
 
-import { MotherLode } from "../../../npm/dist/global/blue/MotherLode.js";
+import { MotherLode } from "../../../npm/dist/blue/blue/MotherLode.js";
 
-import { BlueResMan } from "../../../npm/dist/global/blue/BlueResMan.js";
+import { BlueResMan } from "../../../npm/dist/blue/blue/BlueResMan.js";
 
-import { blue, BlueResManQueue } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResManQueue } from "../../../npm/dist/blue/blue/index.js";
 
 import { BlueResManQueue as RootBlueResManQueue } from "../../../npm/dist/resource/index.js";
 

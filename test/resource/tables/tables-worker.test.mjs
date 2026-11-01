@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Worker } from "node:worker_threads";
-import { CjsResManWorkerLoader } from "../../../npm/dist/global/blue/index.js";
+import { CjsResManWorkerLoader } from "../../../npm/dist/blue/blue/index.js";
 import { CjsJsonlFormat } from "../../../npm/dist/resource/formats/jsonl/index.js";
 import { CjsSqliteFormat } from "../../../npm/dist/resource/formats/sqlite/index.js";
 import { CjsFsdFormat } from "../../../npm/dist/resource/formats/fsd/index.js";

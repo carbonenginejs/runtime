@@ -8,7 +8,7 @@ import {
     inferCarbonTypeFromCpp,
     normalizeCarbonTypeDescriptor,
     normalizeCarbonValue
-} from "../../src/global/schema/types/carbonTypes.js";
+} from "../../src/blue/schema/types/carbonTypes.js";
 
 // BlueTypes.h STDSTRING/STDWSTRING and IROOTPTR/IROOTWEAKREF are distinct
 // declarations even when JavaScript uses the same value representation.

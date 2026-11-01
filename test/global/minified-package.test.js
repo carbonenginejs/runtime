@@ -22,7 +22,7 @@ test("the min bundle and per-file modules retain portable source maps", async ()
     assert.match(code, /sourceMappingURL=carbonenginejs\.min\.js\.map/u);
     const map = JSON.parse(await fs.readFile(new URL(`${url.href}.map`), "utf8"));
     assert.equal(map.sources.length, map.sourcesContent.length);
-    assert.ok(map.sources.some(source => source.endsWith("src/global/schema/CjsSchema.js")));
+    assert.ok(map.sources.some(source => source.endsWith("src/blue/schema/CjsSchema.js")));
     assert.ok(map.sources.every(source => !/^(?:[A-Za-z]:|file:|\/)/u.test(source)));
-    await fs.access(new URL("../../npm/dist/global/schema/CjsSchema.js.map", import.meta.url));
+    await fs.access(new URL("../../npm/dist/blue/schema/CjsSchema.js.map", import.meta.url));
 });

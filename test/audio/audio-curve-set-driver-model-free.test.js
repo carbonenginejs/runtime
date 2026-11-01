@@ -1,16 +1,16 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { AudioCurveSetDriver } from "../../npm/dist/audio/trinity/audio/AudioCurveSetDriver.js";
 import { AudGameObjResource } from "../../npm/dist/audio/trinity/audio/AudGameObjResource.js";
 import { AudManager } from "../../npm/dist/audio/trinity/audio/AudManager.js";
 import { TriCurveSet } from "../../npm/dist/trinity/curves/TriCurveSet.js";
-import { ICurveSetDriver } from "../../npm/dist/global/blue/ICurveSetDriver.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { ICurveSetDriver } from "../../npm/dist/blue/blue/ICurveSetDriver.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 
 function withManager(manager, run)
 {

@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import * as children from "../../../src/global/blue/children.js";
-import { NOTIFY_METHODS } from "../../../src/global/compose/notify.js";
-import { getRuntimeState } from "../../../src/global/compose/runtimeState.js";
-import { NotifyModified } from "../../../src/global/compose/values.js";
-import { CjsSchema } from "../../../src/global/schema/index.js";
+import * as children from "../../../src/blue/blue/children.js";
+import { NOTIFY_METHODS } from "../../../src/blue/compose/notify.js";
+import { getRuntimeState } from "../../../src/blue/compose/runtimeState.js";
+import { NotifyModified } from "../../../src/blue/compose/values.js";
+import { CjsSchema } from "../../../src/blue/schema/index.js";
 
 const BELIST_UNLOADSTART = 0x07;
 const BELIST_INSERTED = 0x08;

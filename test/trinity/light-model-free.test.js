@@ -1,11 +1,11 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { ReadValues } from "../../npm/dist/global/blue/values.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { ReadValues } from "../../npm/dist/blue/blue/values.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { IInitialize, INotify } from "../../npm/dist/blue/blue/index.js";
 import { Tr2Light, Tr2PointLight, Tr2SpotLight, Tr2TexturedPointLight, Tr2FactionLight, IEveInheritPropertiesOwner } from "../../npm/dist/trinity/index.js";
 
 test("real chain point light reads into its embedded LightData and carries no values methods", () =>

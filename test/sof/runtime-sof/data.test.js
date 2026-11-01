@@ -1,7 +1,7 @@
-import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../../npm/dist/blue/compose/className.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import {
   EveSOFDataParameter,
   EveSOFDataTexture,
@@ -119,7 +119,7 @@ test("SOF blink data exposes Carbon enum values and lookup behavior", () => {
 });
 
 test("SOF enum fields expose their shared chooser values through schema metadata", async () => {
-  const { blue } = await import("../../../npm/dist/global/blue/index.js");
+  const { blue } = await import("../../../npm/dist/blue/blue/index.js");
   const { Tr2Lod } = await import("../../../npm/dist/global/consts/trinity.js");
   const { ReflectionMode } = await import("../../../npm/dist/global/consts/graphics/index.js");
   const cases = [

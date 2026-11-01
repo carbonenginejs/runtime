@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, meta, type, blue } from "../../src/global/schema/index.js";
-import "../../src/global/blue/values.js";
+import { CjsSchema, meta, type, blue } from "../../src/blue/schema/index.js";
+import "../../src/blue/blue/values.js";
 
 test("a redeclared inherited member keeps every namespace it does not restate", () =>
 {

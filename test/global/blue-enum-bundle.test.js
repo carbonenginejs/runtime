@@ -46,7 +46,7 @@ async function bundleConsumer(source, manifest, sideEffects, allowDomains = fals
         // Test observation only: reach the registry leaf without importing Blue,
         // whose own dependencies could mask a dropped bare constant import.
         if (specifier === "enum-registry-observer") return {
-          id: path.join(publishedRoot, "dist/global/blue/enums/CjsBlueEnumRegistry.js"),
+          id: path.join(publishedRoot, "dist/blue/blue/enums/CjsBlueEnumRegistry.js"),
           moduleSideEffects: false
         };
         const packageName = specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];

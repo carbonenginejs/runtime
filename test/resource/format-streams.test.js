@@ -1,17 +1,17 @@
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 import { readFileSync } from "node:fs";
 import { CjsFormat } from "../../src/resource/format/CjsFormat.js";
 import { StreamType } from "../../src/global/consts/media/metadata.js";
-import { blueEnums } from "../../src/global/blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../src/blue/blue/enums/CjsBlueEnumRegistry.js";
 import { StreamType as VideoStreamType } from "../../src/core/platform/video/enums.js";
 import { CjsMp4Format } from "../../src/resource/formats/mp4/CjsMp4Format.js";
 import { CjsWebmFormat } from "../../src/resource/formats/webm/CjsWebmFormat.js";
 import { CjsOggFormat } from "../../src/resource/formats/ogg/CjsOggFormat.js";
 import { CjsWavFormat } from "../../src/resource/formats/wav/CjsWavFormat.js";
 import { TestDataRes } from "../support/testDataRes.js";
-import { BlueResMan } from "../../npm/dist/global/blue/BlueResMan.js";
+import { BlueResMan } from "../../npm/dist/blue/blue/BlueResMan.js";
 import "../support/frameLoop.js";
 
 const { STREAM_AUDIO, STREAM_VIDEO, STREAM_AUDIO_VIDEO } = StreamType;

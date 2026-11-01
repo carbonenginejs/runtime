@@ -1,9 +1,9 @@
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 import test from "node:test";
 import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { EveChildTurret } from "../../npm/dist/trinity/eve/child/EveChildTurret.js";

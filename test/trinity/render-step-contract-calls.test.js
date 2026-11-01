@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { ITr2Scene, ITr2MultiPassScene, ITr2VisualizationModeRenderer, Tr2RenderContext, Tr2RenderTarget, Tr2LineGraph } from "../../npm/dist/trinity/core/index.js";
 import { TriRenderStep, TriStepRenderScene, TriStepRenderPass, TriStepSetVisualizationMode, TriStepRenderTexture, TriStepRenderLineGraph } from "../../npm/dist/trinity/renderJob/index.js";
-import { BlueScriptCallback } from "../../npm/dist/global/blueexposure/BlueScriptCallback.js";
+import { BlueScriptCallback } from "../../npm/dist/blue/blueexposure/BlueScriptCallback.js";
 import { StubContext, StubTarget } from "../support/stubContext.js";
 
 for (const [Step, Receiver, property, method] of [

@@ -1,4 +1,4 @@
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {

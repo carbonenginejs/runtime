@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, BlueList, NotifyModified } from "../../npm/dist/global/blue/index.js";
-import { addChild, removeChild, clearChildren } from "../../npm/dist/global/blue/children.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { blue, BlueList, NotifyModified } from "../../npm/dist/blue/blue/index.js";
+import { addChild, removeChild, clearChildren } from "../../npm/dist/blue/blue/children.js";
 import { EveSpaceScene, EveEffectRoot2 } from "../../npm/dist/trinity/index.js";
 import { ShadowQuality } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 const assets = JSON.parse(readFileSync(new URL("../support/sceneAssets.json", import.meta.url), "utf8"));

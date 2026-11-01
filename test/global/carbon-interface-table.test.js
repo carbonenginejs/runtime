@@ -1,15 +1,15 @@
-import { IRoot as ExposureRoot } from "../../src/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../src/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
 import { transformSync } from "@babel/core";
 import decorators from "@babel/plugin-proposal-decorators";
-import { CjsSchema, type, blue } from "../../src/global/schema/index.js";
-import { composedContracts, mappedInterfaces, ownMappedInterfaces } from "../../src/global/compose/interface.js";
-import { Copier } from "../../src/global/blueexposure/Copier.js";
-import { IInitialize } from "../../src/global/blueexposure/IInitialize.js";
-import { INotify } from "../../src/global/blueexposure/INotify.js";
-import { applyReaderMember, finalizeReaderObject } from "../../src/global/schema/hydration.js";
+import { CjsSchema, type, blue } from "../../src/blue/schema/index.js";
+import { composedContracts, mappedInterfaces, ownMappedInterfaces } from "../../src/blue/compose/interface.js";
+import { Copier } from "../../src/blue/blueexposure/Copier.js";
+import { IInitialize } from "../../src/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../src/blue/blueexposure/INotify.js";
+import { applyReaderMember, finalizeReaderObject } from "../../src/blue/schema/hydration.js";
 
 test("the own table holds IRoot, the class, then explicit interfaces in Carbon order", () =>
 {
@@ -33,8 +33,8 @@ test("the own table holds IRoot, the class, then explicit interfaces in Carbon o
 
 test("tables declared before IRoot registration resolve its identity on later access", () =>
 {
-  const compose = new URL("../../src/global/compose/interface.js", import.meta.url).href;
-  const root = new URL("../../src/global/blueexposure/IRoot.js", import.meta.url).href;
+  const compose = new URL("../../src/blue/compose/interface.js", import.meta.url).href;
+  const root = new URL("../../src/blue/blueexposure/IRoot.js", import.meta.url).href;
   execFileSync(process.execPath, ["--input-type=module", "--eval", `
     import assert from "node:assert/strict";
     import { carbonInterfaceDecorator, mappedInterfaces, ownMappedInterfaces } from ${JSON.stringify(compose)};
@@ -101,8 +101,8 @@ test("chainTo resolves its named parent after the own entries, not the JS parent
 test("Stage-3 and imperative declarations share the public Blue exposure facade", async () =>
 {
   const source = `
-    import { blue } from ${JSON.stringify(new URL("../../src/global/schema/index.js", import.meta.url).href)};
-    import { INotify } from ${JSON.stringify(new URL("../../src/global/blueexposure/INotify.js", import.meta.url).href)};
+    import { blue } from ${JSON.stringify(new URL("../../src/blue/schema/index.js", import.meta.url).href)};
+    import { INotify } from ${JSON.stringify(new URL("../../src/blue/blueexposure/INotify.js", import.meta.url).href)};
     @blue.interface()
     export class Parent {}
     @blue.interface(INotify)

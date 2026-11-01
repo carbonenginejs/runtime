@@ -4,8 +4,8 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { ICurveSetDriver, blue } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
-import { ICurveSetDriver as DirectDriver } from "../../src/global/blue/ICurveSetDriver.js";
-import { mappedInterfaces } from "../../src/global/compose/interface.js";
+import { ICurveSetDriver as DirectDriver } from "../../src/blue/blue/ICurveSetDriver.js";
+import { mappedInterfaces } from "../../src/blue/compose/interface.js";
 import { MarkerTag } from "../support/markerTags.js";
 
 test("ICurveSetDriver has one registered identity and an abstract native method", () =>

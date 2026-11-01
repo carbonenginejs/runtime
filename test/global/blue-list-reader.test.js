@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema, blue } from "../../src/global/schema/index.js";
-import { BlueList } from "../../src/global/blueexposure/BlueList.js";
-import { IList } from "../../src/global/blueexposure/IList.js";
-import { IListNotify } from "../../src/global/blueexposure/IListNotify.js";
-import { DictReader, CreateAnchorTable } from "../../src/global/blue/DictReader.js";
+import { CjsSchema, blue } from "../../src/blue/schema/index.js";
+import { BlueList } from "../../src/blue/blueexposure/BlueList.js";
+import { IList } from "../../src/blue/blueexposure/IList.js";
+import { IListNotify } from "../../src/blue/blueexposure/IListNotify.js";
+import { DictReader, CreateAnchorTable } from "../../src/blue/blue/DictReader.js";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
-import { ReadValues } from "../../src/global/blue/values.js";
+import { ReadValues } from "../../src/blue/blue/values.js";
 
 const { BELIST_UNLOADSTART, BELIST_LOADFINISHED } = BLUELISTEVENT;
 const itemName = "BlueListReaderItem";

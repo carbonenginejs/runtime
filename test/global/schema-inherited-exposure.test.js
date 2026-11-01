@@ -3,16 +3,16 @@ import test from "node:test";
 import { transformSync } from "@babel/core";
 import decoratorsPlugin from "@babel/plugin-proposal-decorators";
 import { exposure as be } from "#be";
-import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
-import { BlueClasses } from "../../src/global/blueexposure/BlueClasses.js";
-import { getClassRegistration } from "../../src/global/blueexposure/classes/registry.js";
+import { CjsSchema, meta, type } from "../../src/blue/schema/index.js";
+import { BlueClasses } from "../../src/blue/blueexposure/BlueClasses.js";
+import { getClassRegistration } from "../../src/blue/blueexposure/classes/registry.js";
 
 // decorator-upgrade.md § 00 "Inherited members mapped by a subclass": every be.map* decorator also works above a class, naming a member
 // the class inherits. The row lands in the subclass's own table, the base's table keeps what it had, and the name is required.
 // Attribute and property rows run before the class registers, so they sit below `@be.define` (nearest the class); method rows may sit anywhere.
 
-const beUrl = new URL("../../src/global/blueexposure/be.js", import.meta.url).href;
-const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
+const beUrl = new URL("../../src/blue/blueexposure/be.js", import.meta.url).href;
+const schemaUrl = new URL("../../src/blue/schema/index.js", import.meta.url).href;
 async function load(source)
 {
     const header = `import { exposure as be } from ${JSON.stringify(beUrl)}; import { meta, type } from ${JSON.stringify(schemaUrl)};\n`;

@@ -13,7 +13,7 @@ import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { TriTextureRes } from "../../npm/dist/resource/index.js";
 
 
-import { blue, BlueAsyncRes, BlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueAsyncRes, BlueResMan } from "../../npm/dist/blue/blue/index.js";
 
 
 /** Adds a texture parameter bound to a resource in `state`, counting renewals. */

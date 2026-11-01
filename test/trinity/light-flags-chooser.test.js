@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema, meta, type } from "../../npm/dist/global/schema/index.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema, meta, type } from "../../npm/dist/blue/schema/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import {
   Tr2LightManager,
   Tr2Light,

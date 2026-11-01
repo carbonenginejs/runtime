@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DictReader } from "../../../npm/dist/global/blue/DictReader.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { DictReader } from "../../../npm/dist/blue/blue/DictReader.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { Tr2CurveConstant } from "../../../npm/dist/trinity/curves/curve/Tr2CurveConstant.js";
 import { EveSOFDataArea } from "../../../npm/dist/sof/shared/EveSOFDataArea.js";
 import { EveSOFDataAreaMaterial } from "../../../npm/dist/sof/shared/EveSOFDataAreaMaterial.js";

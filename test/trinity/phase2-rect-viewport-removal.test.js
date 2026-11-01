@@ -1,9 +1,9 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { DictReader, DictWriter, Copier } from "../../npm/dist/global/blue/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { DictReader, DictWriter, Copier } from "../../npm/dist/blue/blue/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { TriRect } from "../../npm/dist/trinity/core/view/TriRect.js";
 import { TriViewport, Vec3TransformByViewport } from "../../npm/dist/trinity/core/view/TriViewport.js";
 import { TriStepSetViewport } from "../../npm/dist/trinity/renderJob/step/TriStepSetViewport.js";

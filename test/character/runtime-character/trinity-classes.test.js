@@ -1,17 +1,17 @@
 import { prepareResourceFixture } from "../../support/resourceFixtures.js";
-import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
-import { blue, NotifyModified } from "../../../npm/dist/global/blue/index.js";
-import * as distBlue from "../../../npm/dist/global/blue/index.js";
+import { getRegisteredClassName } from "../../../npm/dist/blue/compose/className.js";
+import { blue, NotifyModified } from "../../../npm/dist/blue/blue/index.js";
+import * as distBlue from "../../../npm/dist/blue/blue/index.js";
 import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { ITr2AnimationUpdater, Tr2Mesh } from "../../../npm/dist/trinity/index.js";
 import { RawData } from "../../../npm/dist/trinity/core/index.js";
 import { StubResMan } from "../../support/stubResMan.js";
 import "../../../npm/dist/trinity/index.js";
-import { finalizeReaderObject } from "../../../npm/dist/global/schema/hydration.js";
+import { finalizeReaderObject } from "../../../npm/dist/blue/schema/hydration.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { vec3 } from "../../../npm/dist/global/math/vec3.js";
 import {
   ITr2SkinnedObject,

@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { getReaderMemberValue, applyReaderMember, finalizeReaderObject } from "../../src/global/schema/hydration.js";
-import { IInitialize } from "../../src/global/blueexposure/IInitialize.js";
-import { INotify } from "../../src/global/blueexposure/INotify.js";
+import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
+import { getReaderMemberValue, applyReaderMember, finalizeReaderObject } from "../../src/blue/schema/hydration.js";
+import { IInitialize } from "../../src/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../src/blue/blueexposure/INotify.js";
 
 const member = (name, type, extra = {}) => ({
   name, key: name, role: "member", type: { kind: type }, edit: { persist: true }, ...extra

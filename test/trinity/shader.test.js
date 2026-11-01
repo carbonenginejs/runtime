@@ -1,7 +1,7 @@
 import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { ITriEffectParameter } from "../../npm/dist/trinity/shader/parameter/ITriEffectParameter.js";
-import { NotifyModified } from "../../npm/dist/global/blue/index.js";
-import { NOTIFY_METHODS } from "../../npm/dist/global/compose/notify.js";
+import { NotifyModified } from "../../npm/dist/blue/blue/index.js";
+import { NOTIFY_METHODS } from "../../npm/dist/blue/compose/notify.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 // blue.resMan throws until something composes a manager, so a test that
@@ -20,7 +20,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec2 } from "../../npm/dist/global/math/vec2.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import * as ResourceShader from "../../npm/dist/resource/shader/index.js";
 import { Tr2ConstantBufferAL, Tr2RegisterMapAL, Tr2RenderContextALStub, Tr2ResourceSetALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";

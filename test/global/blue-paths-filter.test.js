@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BluePaths, BlueResFileSystemRemote, RemoteFileCache } from "../../npm/dist/global/blue/index.js";
+import { BluePaths, BlueResFileSystemRemote, RemoteFileCache } from "../../npm/dist/blue/blue/index.js";
 
 const ROOT = "res:/graphics/character/";
 const FILES = [

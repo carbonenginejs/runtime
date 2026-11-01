@@ -7,7 +7,7 @@ import { parse } from "@babel/parser";
 
 test("global Blue source parses without enabling decorator syntax", () =>
 {
-    const root = fileURLToPath(new URL("../../src/global/blue/", import.meta.url));
+    const root = fileURLToPath(new URL("../../src/blue/blue/", import.meta.url));
     for (const relative of fs.readdirSync(root, {recursive: true}).filter(name => name.endsWith(".js")))
     {
         const source = fs.readFileSync(path.join(root, relative), "utf8");

@@ -3,9 +3,9 @@
 // 2-byte index reads (STDWSTRING reads the wide one).
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
-import { CjsBlackSchemaRegistry } from "../../npm/dist/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/blue/formats/black/index.js";
+import { CjsBlackSchemaRegistry } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 import { EveSOFDataHullLightSetTexturedPointLight } from "../../npm/dist/sof/index.js";
 import { clientResources } from "../support/clientResources.js";
 

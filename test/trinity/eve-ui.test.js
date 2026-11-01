@@ -1,7 +1,7 @@
 import test from "node:test";
 import { EveSprite2dBracket } from "../../npm/dist/trinity/index.js";
 import { vec2 } from "../../npm/dist/global/math/vec2.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { MarkerTag } from "../support/markerTags.js";
 
 

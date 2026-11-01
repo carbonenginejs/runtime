@@ -4,7 +4,7 @@ import test from "node:test";
 // Everything comes from the built package, and deliberately from ONE copy of
 // it: `blue` is a holder, so a test reaching it through two module instances
 // would register a device on one holder and pump the other.
-import { BeInfo, blue, BlueOS, IBlueEvents, IBlueOS, ISimTimeRebaseNotify } from "../../npm/dist/global/blue/index.js";
+import { BeInfo, blue, BlueOS, IBlueEvents, IBlueOS, ISimTimeRebaseNotify } from "../../npm/dist/blue/blue/index.js";
 import { trinity, Tr2Renderer, TriDevice } from "../../npm/dist/trinity/index.js";
 
 

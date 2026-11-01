@@ -1,5 +1,5 @@
 import { prepareResourceFixture } from "../support/resourceFixtures.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {readFile} from "node:fs/promises";
@@ -10,9 +10,9 @@ import {Tr2GrannyAnimation, EveShip2} from "../../npm/dist/trinity/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
 import {CjsGr2Format} from "../../npm/dist/resource/formats/gr2/index.js";
 import {CjsCmfFormat} from "../../npm/dist/resource/formats/cmf/index.js";
-import {CjsBlackFormat} from "../../npm/dist/global/blue/formats/black/index.js";
+import {CjsBlackFormat} from "../../npm/dist/blue/blue/formats/black/index.js";
 import {EveSOF} from "../../npm/dist/sof/index.js";
-import {blue} from "../../npm/dist/global/blue/index.js";
+import {blue} from "../../npm/dist/blue/blue/index.js";
 import "../../npm/dist/audio/index.js";
 import {StubResMan} from "../support/stubResMan.js";
 

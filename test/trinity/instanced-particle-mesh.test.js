@@ -1,16 +1,16 @@
 import { prepareResourceFixture } from "../support/resourceFixtures.js";
-import { addChild } from "../../npm/dist/global/blue/children.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { addChild } from "../../npm/dist/blue/blue/children.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import {createHash} from "node:crypto";
-import {blue} from "../../npm/dist/global/blue/index.js";
+import {blue} from "../../npm/dist/blue/blue/index.js";
 import {mat4} from "../../npm/dist/global/math/mat4.js";
 import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
-import {CjsBlackFormat} from "../../npm/dist/global/blue/formats/black/index.js";
+import {CjsBlackFormat} from "../../npm/dist/blue/blue/formats/black/index.js";
 import {Tr2InstancedMesh,Tr2RuntimeInstanceData,Tr2MeshArea,Tr2ParticleSystem,Tr2ParticleElementDeclaration,Tr2EffectStateManager,
   TriDevice, trinity,EveChildParticleSystem,EveChildContainer,EveShip2,EveUpdateContext,ExecuteMainThreadActions,
   Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/index.js";

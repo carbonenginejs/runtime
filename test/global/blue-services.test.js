@@ -3,9 +3,9 @@ import { readFileSync } from "node:fs";
 import { classDonorComments } from "../../scripts/lib/carbon-donor-comments.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue, CjsBlue, BlueOS, BlueResMan, BlueClasses, BluePaths } from "../../npm/dist/global/blue/index.js";
-import { installBlueServices } from "../../npm/dist/global/blue/blue.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { blue, CjsBlue, BlueOS, BlueResMan, BlueClasses, BluePaths } from "../../npm/dist/blue/blue/index.js";
+import { installBlueServices } from "../../npm/dist/blue/blue/blue.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { CjsLibrary } from "../../npm/dist/core/CjsLibrary.js";
 import { CjsWwiseSoundEngineStub } from "../../npm/dist/global/audio/CjsWwiseSoundEngineStub.js";
 import { AudGameObjResource } from "../../npm/dist/audio/trinity/audio/AudGameObjResource.js";
@@ -31,7 +31,7 @@ test("Blue composition owns the resource manager and the holder keeps inert shar
     assert.equal(CjsSchema.getClassName(Class), name);
     assert.equal(CjsSchema.getConstructor(name), Class);
     assert.equal(Object.hasOwn(CjsSchema.getSchema(Class), "carbon"), false);
-    const source = readFileSync(new URL(`../../src/global/${name === "BlueClasses" ? "blueexposure" : "blue"}/${name}.js`, import.meta.url), "utf8");
+    const source = readFileSync(new URL(`../../src/blue/${name === "BlueClasses" ? "blueexposure" : "blue"}/${name}.js`, import.meta.url), "utf8");
     const declared = classDonorComments(source).find(c => c.name === name);
     assert.deepEqual(declared.entries.map(e => [e.kind, e.name]), [["Carbon", donor]]);
   }
@@ -199,8 +199,8 @@ for (const entry of ["BlueResMan", "CjsLoadingObject", "BlueAsyncRes", "MotherLo
 {
   test(`native ESM accepts resource entry order: ${entry}`, () =>
   {
-    const first = new URL(`../../src/global/${entry === "BlueClasses" ? "blueexposure" : "blue"}/${entry}.js`, import.meta.url).href;
-    const holder = new URL("../../src/global/blue/index.js", import.meta.url).href;
+    const first = new URL(`../../src/blue/${entry === "BlueClasses" ? "blueexposure" : "blue"}/${entry}.js`, import.meta.url).href;
+    const holder = new URL("../../src/blue/blue/index.js", import.meta.url).href;
     const program = `import ${JSON.stringify(first)};
 import { blue } from ${JSON.stringify(holder)};
 if (!blue.resMan || blue.resMan.GetPendingLoads() !== 0) throw new Error("inert manager missing");`;

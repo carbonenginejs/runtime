@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { deflateSync } from "node:zlib";
 import test from "node:test";
-import { BlueResMan } from "../../../../../src/global/blue/BlueResMan.js";
+import { BlueResMan } from "../../../../../src/blue/blue/BlueResMan.js";
 import CjsPngFormat, { CjsPngFormat as NamedCjsPngFormat } from "../../../../../src/resource/formats/png/index.js";
 import { ReadData } from "../../../../support/loadData.js";
 

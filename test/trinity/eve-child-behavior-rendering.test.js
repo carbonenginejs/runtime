@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { perlin1DCarbon } from "../../npm/dist/global/math/noise.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";

@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 
 import "../../../npm/dist/index.js";
-import { BlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/global/blue/index.js";
+import { BlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/blue/blue/index.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
 
 

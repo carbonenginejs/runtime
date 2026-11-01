@@ -64,7 +64,7 @@ test(`Blue imports stay inert with ${first} evaluated first`, () =>
         assert.equal(shared.blue.enums.GetEnum(names[i]), identities[i], names[i]);
       }
       const globals = await import("@carbonenginejs/runtime/global");
-      const holder = await import("./dist/global/blue/blue.js");
+      const holder = await import("./dist/blue/blue/blue.js");
       assert.equal(globals.blue, shared.blue);
       assert.equal(holder.blue, shared.blue);
       assert.equal(typeof holder.installBlueServices, "function");

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 
 // Existing public definitions and class-static aliases must acquire the name
 // used by schema without copying values or adding any member: the registry

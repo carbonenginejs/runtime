@@ -1,5 +1,5 @@
-import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { getRegisteredClassName } from "../../../npm/dist/blue/compose/className.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";
 
 // blue.resMan has no source until something configures it, so a test that
@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
-import { blue, BlueResFileSystemForm, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResFileSystemForm, IBlueResFileSystem } from "../../../npm/dist/blue/blue/index.js";
 import {
   CjsSofLibraryBuilder,
   EveSOF,
@@ -6450,7 +6450,7 @@ test("typed EveSOFDataParameter subclasses flatten with Carbon's GetValue rules"
   assert.deepEqual(scalar.Assign({}, "Pfx"), { PfxIntensity: [2, 2, 2, 2] });
 
   // Every subclass registers under its own class name for document hydration.
-  const { CjsSchema } = await import("../../../npm/dist/global/schema/index.js");
+  const { CjsSchema } = await import("../../../npm/dist/blue/schema/index.js");
   for (const name of [
     "EveSOFDataParameterBool", "EveSOFDataParameterInt", "EveSOFDataParameterFloat",
     "EveSOFDataParameterVector2", "EveSOFDataParameterVector3", "EveSOFDataParameterColor",

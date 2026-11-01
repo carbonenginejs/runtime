@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { performance } from "node:perf_hooks";
 import { EveSOF, CjsSOFUpdater } from "../../../npm/dist/sof/index.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { TriTextureParameter, Tr2Effect } from "../../../npm/dist/trinity/index.js";
 import { AudEmitter } from "../../../npm/dist/audio/trinity/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";

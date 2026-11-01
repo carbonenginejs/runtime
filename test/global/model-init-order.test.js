@@ -16,8 +16,8 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { EveChildParticleSystem, Tr2DynamicEmitter, Tr2ParticleSystem } from "../../npm/dist/trinity/index.js";
 
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 
 const host = JSON.parse(readFileSync(new URL("../support/crisisParticleHost.json", import.meta.url), "utf8"));

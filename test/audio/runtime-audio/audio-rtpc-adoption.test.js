@@ -1,5 +1,5 @@
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { DictReader } from "../../../npm/dist/global/blue/DictReader.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import { DictReader } from "../../../npm/dist/blue/blue/DictReader.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {

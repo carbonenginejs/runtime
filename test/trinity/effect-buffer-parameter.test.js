@@ -1,4 +1,4 @@
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 

@@ -1,4 +1,4 @@
-import { addChild, removeChild } from "../../npm/dist/global/blue/children.js";
+import { addChild, removeChild } from "../../npm/dist/blue/blue/children.js";
 // EveSpaceScene::OnListModified (EveSpaceScene.cpp:3414-3491): adding to the
 // scene's objects through the notified list registers the entity and the
 // secondary light source; removing unregisters both; a plain push raises

@@ -9,8 +9,8 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { DictReader, blue } from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { DictReader, blue } from "../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import {
   EveChildContainer,

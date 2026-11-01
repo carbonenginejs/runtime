@@ -7,9 +7,9 @@ import { Tr2HostBitmap } from "../../../npm/dist/trinity/core/Tr2HostBitmap.js";
 import { Tr2TexturePipeline, Tr2TexturePipelineStepLoad, Tr2TexturePipelineStepLimitSize } from "../../../npm/dist/resource/index.js";
 import { CjsBmpFormat } from "../../../npm/dist/resource/formats/bmp/index.js";
 import { ImageIO } from "../../../npm/dist/resource/imageio/index.js";
-import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
-import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem } from "../../../npm/dist/blue/blue/index.js";
+import { installBlueServices } from "../../../npm/dist/blue/blue/blue.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { MarkerTag } from "../../support/markerTags.js";
 
 /** A 32-bit BMP: pixel (x, y) is b = 10 + x, g = 20 + y, r = 30, a = 200 (top-left origin). */
@@ -106,7 +106,7 @@ test("ExecuteFromScript loads each dependency, runs the pipeline and returns the
 
 test("ExecuteFromScript reports Carbon's out-of-memory result when Tr2HostBitmap cannot be created (cpp:68)", async () =>
 {
-  const { blue } = await import("../../../npm/dist/global/blue/blue.js");
+  const { blue } = await import("../../../npm/dist/blue/blue/blue.js");
   const original = blue.classes.CreateInstance;
   blue.classes.CreateInstance = () => null;
 

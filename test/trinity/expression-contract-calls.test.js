@@ -113,7 +113,7 @@ test("expression adapters retain explicit data and absent contexts; CurveSetTime
 test("the override settings drive ShipSpeed, ShipMaxSpeed and the UTC server-time terms, as Carbon's do", async t =>
 {
   const { Tr2ControllerExpression } = await import("../../npm/dist/trinity/controllers/expression/Tr2ControllerExpression.js");
-  const { CcpTime } = await import("../../npm/dist/global/blue/index.js");
+  const { CcpTime } = await import("../../npm/dist/blue/blue/index.js");
   const saved = { ...Object.fromEntries([ "controllerFunctionOverrideEnabled", "controllerShipSpeed", "controllerShipMaxSpeed", "controllerServerTime" ].map(k => [ k, Tr2ControllerExpression[k] ])) };
   t.after(() => Object.assign(Tr2ControllerExpression, saved));
   // Saturday 2026-03-14 12:34:56 UTC, as runtime-epoch Blue ticks (Tr2ControllerExpression.cpp:241-292, Windows UTC parts).

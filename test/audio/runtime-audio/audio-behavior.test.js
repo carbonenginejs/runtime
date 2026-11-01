@@ -1,7 +1,7 @@
 import test from "node:test";
 import { AudioManagerWith } from "../../support/audioStub.js";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { AudEmitter, AudEventCurve, AudEventKey, AudStaticDataRepository } from "../../../npm/dist/audio/index.js";
 import { MarkerTag } from "../../support/markerTags.js";
 

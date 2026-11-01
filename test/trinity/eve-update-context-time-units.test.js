@@ -7,7 +7,7 @@ composeStubResMan();
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import {
   EveSpaceScene, EveSpaceSceneRenderDriver, EveTurretFiringFX, EveUpdateContext,

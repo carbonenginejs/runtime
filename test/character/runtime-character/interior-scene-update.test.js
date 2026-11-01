@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
 import { Tr2InteriorScene, Tr2InteriorLightSource } from "../../../npm/dist/character/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext, Tr2VariableStore } from "../../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../../npm/dist/trinityal/index.js";

@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
-import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
-import { CjsBlackSchemaRegistry } from "../../npm/dist/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/CjsSchema.js";
+import { CjsBlackReader } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackReader.js";
+import { CjsBlackSchemaRegistry } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 import { Tr2CurveQuaternion } from "../../npm/dist/trinity/curves/curve/Tr2CurveQuaternion.js";
 
 /** A struct record's own fields as plain data, vectors as plain arrays. */

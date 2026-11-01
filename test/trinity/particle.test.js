@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import {
   ITr2AttributeGenerator,
   ITr2GenericParticleConstraint,

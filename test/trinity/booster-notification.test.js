@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { NotifyModified } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { NotifyModified } from "../../npm/dist/blue/blue/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import {
   BehaviorGroupBooster, Tr2Effect, Tr2QuadRenderer, Tr2RenderContext_GetMainThreadRenderContext

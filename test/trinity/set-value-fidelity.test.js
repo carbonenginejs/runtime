@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { Tr2ActionSetValue } from "../../npm/dist/trinity/controllers/action/Tr2ActionSetValue.js";
 import { CjsControllerExpressionCompileError } from "../../npm/dist/trinity/controllers/expression/CjsControllerExpressionCompileError.js";
 import { CjsControllerExpressionEvaluateError } from "../../npm/dist/trinity/controllers/expression/CjsControllerExpressionEvaluateError.js";
-import { CjsSchema, type } from "../../npm/dist/global/schema/index.js";
-import { INotify } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema, type } from "../../npm/dist/blue/schema/index.js";
+import { INotify } from "../../npm/dist/blue/blue/index.js";
 
 /** A registered float destination; OnModified follows each write (Tr2BindingPoint.cpp:356-358). */
 class SetValueTarget

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsSchema, meta, blue } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema, meta, blue } from "../../../npm/dist/blue/schema/index.js";
 
 function probeInterface()
 {

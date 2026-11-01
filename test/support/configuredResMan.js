@@ -1,7 +1,7 @@
 import { after, beforeEach, afterEach } from "node:test";
 import { CjsLibrary } from "../../npm/dist/core/index.js";
-import { blue, BlueOS, BluePaths } from "../../npm/dist/global/blue/index.js";
-import { BeCallbackMan } from "../../npm/dist/global/blue/BlueCallbackMan.js";
+import { blue, BlueOS, BluePaths } from "../../npm/dist/blue/blue/index.js";
+import { BeCallbackMan } from "../../npm/dist/blue/blue/BlueCallbackMan.js";
 
 // Node has no host frame loop. Pump the same background callback queue while
 // these resource tests await loads; real worker tests retain their worker path.

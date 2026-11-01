@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsWebAudioSoundEngine, CjsWwiseSoundEngineStub, ICjsWwiseSoundEngine } from "../../../npm/dist/audio/index.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { MarkerTag } from "../../support/markerTags.js";
 
 const METHODS = Object.getOwnPropertyNames(ICjsWwiseSoundEngine.prototype).filter(name => name !== "constructor");

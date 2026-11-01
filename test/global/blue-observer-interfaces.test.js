@@ -1,4 +1,4 @@
-import { IRoot as ExposureRoot } from "../../src/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../src/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -8,11 +8,11 @@ import {
 } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
 import { vec3 } from "@carbonenginejs/runtime/math/vec3";
-import { IBlueEventListener as DirectListener } from "../../src/global/blue/IBlueEventListener.js";
-import { IBluePlacementObserver as DirectObserver } from "../../src/global/blue/IBluePlacementObserver.js";
-import { IBlueMultiPlacementObserver as DirectMultiObserver } from "../../src/global/blue/IBlueMultiPlacementObserver.js";
-import { PositionDescription as DirectPosition } from "../../src/global/blue/PositionDescription.js";
-import { mappedInterfaces } from "../../src/global/compose/interface.js";
+import { IBlueEventListener as DirectListener } from "../../src/blue/blue/IBlueEventListener.js";
+import { IBluePlacementObserver as DirectObserver } from "../../src/blue/blue/IBluePlacementObserver.js";
+import { IBlueMultiPlacementObserver as DirectMultiObserver } from "../../src/blue/blue/IBlueMultiPlacementObserver.js";
+import { PositionDescription as DirectPosition } from "../../src/blue/blue/PositionDescription.js";
+import { mappedInterfaces } from "../../src/blue/compose/interface.js";
 
 test("Blue observer interfaces register one identity and only their native abstract methods", () =>
 {

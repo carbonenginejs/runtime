@@ -1,6 +1,6 @@
 // A host's local file system for tests: the paths whose bytes are "on this
 // machine", as `blue.paths.SetLocalFileSystem` and `RemoteFileCache` expect.
-import { BlueResFileSystemForm, IBlueResFileSystem } from "../../npm/dist/global/blue/index.js";
+import { BlueResFileSystemForm, IBlueResFileSystem } from "../../npm/dist/blue/blue/index.js";
 
 /** An in-memory host file system: `res:` and the cache folder's `cache:`, as bytes. */
 class TestLocalFileSystem extends IBlueResFileSystem

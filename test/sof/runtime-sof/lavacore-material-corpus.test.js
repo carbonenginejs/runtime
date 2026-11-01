@@ -1,7 +1,7 @@
 // Optional private-data proof. No game data ships in the package or tests.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsBlackFormat } from "../../../npm/dist/global/blue/formats/black/index.js";
+import { CjsBlackFormat } from "../../../npm/dist/blue/blue/formats/black/index.js";
 import { EveSOF } from "../../../npm/dist/sof/index.js";
 import * as CcpLog from "../../../npm/dist/global/logging/ccpLog.js";
 import { clientResources } from "../../support/clientResources.js";

@@ -1,5 +1,5 @@
 import { pendingResourceFixture } from "../support/resourceFixtures.js";
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
@@ -18,7 +18,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { GrannyBoneOffset, Tr2DepthStencil, Tr2DirectInstanceData, Tr2ExpressionTermInfo, Tr2GpuBuffer, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2MeshBase, Tr2PrimaryRenderContext, Tr2RenderContext, Tr2RenderTarget, Tr2RuntimeGpuBuffer, Tr2RuntimeInstanceData, Tr2SwapChain, Tr2VariableStore, Tr2VisibilityResults, TriDevice, TriObserverLocal, TriProjection, TriRect, TriSettings, TriVariable, TriView, TriViewport } from "../../npm/dist/trinity/core/index.js";

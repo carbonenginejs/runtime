@@ -1,7 +1,7 @@
-import "../../../src/global/blue/values.js";
+import "../../../src/blue/blue/values.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../../src/global/schema/index.js";
+import { CjsSchema } from "../../../src/blue/schema/index.js";
 
 /*
  * An `rootRef` field holds a REFERENCE. Assigning one must alias the value,

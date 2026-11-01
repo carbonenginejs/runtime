@@ -12,7 +12,7 @@ import { getRawDataSize } from "../../npm/dist/resource/codecs/bcn/index.js";
 import { Tr2DxtCompressControl, Tr2DxtCompressor, Tr2HostBitmap } from "../../npm/dist/trinity/core/index.js";
 import { Tr2TexturePipeline, Tr2TexturePipelineStepLoad, Tr2TexturePipelineStepCompress } from "../../npm/dist/trinity/resources/texture/index.js";
 import { TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
-import { BeCallbackMan, BlueCallbackMan } from "../../npm/dist/global/blue/BlueCallbackMan.js";
+import { BeCallbackMan, BlueCallbackMan } from "../../npm/dist/blue/blue/BlueCallbackMan.js";
 import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 
 const vectors = JSON.parse(readFileSync(new URL("./fixtures/libsquish-1.15.json", import.meta.url)));

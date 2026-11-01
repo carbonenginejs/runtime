@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue, BlueAsyncRes, BlueResMan, MotherLode } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueAsyncRes, BlueResMan, MotherLode } from "../../../npm/dist/blue/blue/index.js";
 import "../../support/frameLoop.js";
 
 /** A concrete test resource whose owned value comes through the native load hook. */

@@ -3,7 +3,7 @@ import { prepareResourceFixture } from "../../support/resourceFixtures.js";
 // through blue.resMan (Tr2SkinnedModel.cpp, Tr2MeshBase.cpp:120-282).
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
 import { mat4 } from "../../../npm/dist/global/math/mat4.js";
 import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { Tr2Mesh, Tr2MeshArea } from "../../../npm/dist/trinity/index.js";

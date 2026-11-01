@@ -5,7 +5,7 @@ import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
 import { CjsPsdFormat } from "../../npm/dist/resource/formats/psd/index.js";
 import { CjsTgaFormat } from "../../npm/dist/resource/formats/tga/index.js";
 import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -14,7 +14,7 @@ import { buildVta } from "../support/vtaFixture.js";
 import { ImageIO, HostBitmap, LoadParameters, ImageIOResult, Metadata } from "../../npm/dist/resource/imageio/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
-import { blue, BlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan } from "../../npm/dist/blue/blue/index.js";
 import { MarkerTag } from "../support/markerTags.js";
 
 // The composing application registers formats once with each table that maps an

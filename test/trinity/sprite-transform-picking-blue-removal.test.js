@@ -1,11 +1,11 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue, GetResources } from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { blue, GetResources } from "../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { DictWriter } from "../../npm/dist/blue/blue/DictWriter.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { Tr2Sprite2dPickingMask } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dPickingMask.js";
 import { Tr2Sprite2dTransform } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dTransform.js";
 import { Tr2Sprite2dContainerBase } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dContainerBase.js";

@@ -12,8 +12,8 @@ import {
   CjsBlueResFileSystemCallback,
   CjsBlueResFileSystemFetch,
   IBlueResFileSystem
-} from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+} from "../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { MarkerTag } from "../support/markerTags.js";
 
 const { BYTES, TEXT, STREAM, VALUE } = BlueResFileSystemForm;

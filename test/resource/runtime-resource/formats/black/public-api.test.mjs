@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import "../../../../../npm/dist/global/blue/values.js";
-import { CjsSchema } from "../../../../../npm/dist/global/schema/CjsSchema.js";
+import "../../../../../npm/dist/blue/blue/values.js";
+import { CjsSchema } from "../../../../../npm/dist/blue/schema/CjsSchema.js";
 
-import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../../../npm/dist/global/blue/formats/black/index.js";
+import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../../../npm/dist/blue/blue/formats/black/index.js";
 
 /** A reader payload: a null-prototype data dictionary. */
 const bag = values => Object.assign(Object.create(null), values);
@@ -50,7 +50,7 @@ const sampleSchema = {
 
 test("package root exports the format and object builder", async () =>
 {
-    const mod = await import("../../../../../npm/dist/global/blue/formats/black/index.js");
+    const mod = await import("../../../../../npm/dist/blue/blue/formats/black/index.js");
 
     assert.deepEqual(Object.keys(mod).sort(), [ "CjsBlackFormat", "CreateBlackObjectBuilder", "default" ]);
     assert.equal(mod.default, CjsBlackFormat);

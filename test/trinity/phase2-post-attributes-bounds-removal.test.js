@@ -1,9 +1,9 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { DictReader, DictWriter, Copier } from "../../npm/dist/global/blue/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { DictReader, DictWriter, Copier } from "../../npm/dist/blue/blue/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { Tr2PostProcessAttributes } from "../../npm/dist/trinity/postProcess/Tr2PostProcessAttributes.js";
 import { Tr2PostProcess2 } from "../../npm/dist/trinity/postProcess/Tr2PostProcess2.js";
 import { EveChildPostProcessVolume } from "../../npm/dist/trinity/eve/child/EveChildPostProcessVolume.js";

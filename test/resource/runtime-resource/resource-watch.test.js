@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 
 import "../../../npm/dist/index.js";
-import { BlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/global/blue/index.js";
+import { BlueResMan, BlueAsyncRes, blue } from "../../../npm/dist/blue/blue/index.js";
 import { Tr2Effect, TriTextureParameter } from "../../../npm/dist/trinity/index.js";
 import { TriTextureRes } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";

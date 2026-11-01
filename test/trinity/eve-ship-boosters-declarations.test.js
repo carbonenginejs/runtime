@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { DictWriter } from "../../npm/dist/blue/blue/DictWriter.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { CjsBlackReader } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackReader.js";
 import { EveBoosterSet2, EveComponentRegistry, EveComponentType, EveShip2, TriDevice, trinity, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 
 test("EveShip2 preserves distinct native stored and live booster declarations", () =>

@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
-import { ITriVectorFunction } from "../../npm/dist/global/blue/index.js";
+import { ITriVectorFunction } from "../../npm/dist/blue/blue/index.js";
 import { Tr2CurveQuaternion } from "../../npm/dist/trinity/curves/curve/Tr2CurveQuaternion.js";
 import { Tr2CurveConstant } from "../../npm/dist/trinity/curves/curve/Tr2CurveConstant.js";
 import { TriRigidOrientation, TriTorque } from "../../npm/dist/trinity/core/index.js";

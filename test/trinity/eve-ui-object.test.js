@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EveSpaceObject2, EveUiObject, Tr2Lod, Tr2TranslationAdapter, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { UpdateContext, FixedFrustum } from "../support/eveUpdateContext.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";

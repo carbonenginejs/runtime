@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
-import { meta, type } from "../../npm/dist/global/schema/index.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { BeObjectMetadata } from "../../npm/dist/global/blue/BlueObjectMetadata.js";
-import { registerClass, unregisterClass } from "../../npm/dist/global/blueexposure/classes/registry.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/CjsSchema.js";
+import { meta, type } from "../../npm/dist/blue/schema/index.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { BeObjectMetadata } from "../../npm/dist/blue/blue/BlueObjectMetadata.js";
+import { registerClass, unregisterClass } from "../../npm/dist/blue/blueexposure/classes/registry.js";
 
 let sequence = 0;
 const name = () => `DeclaredConstruction${++sequence}`;

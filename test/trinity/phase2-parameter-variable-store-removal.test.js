@@ -1,9 +1,9 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { blue, BlueResMan, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { blue, BlueResMan, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/blue/blue/index.js";
 import { Tr2MaterialParameterStore, Tr2VariableStore, TriVariable } from "../../npm/dist/trinity/core/index.js";
 import { TriVariableParameter } from "../../npm/dist/trinity/shader/parameter/TriVariableParameter.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";

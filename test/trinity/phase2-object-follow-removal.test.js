@@ -1,9 +1,9 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { BlueList, DictReader, DictWriter, Copier, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { BlueList, DictReader, DictWriter, Copier, IInitialize, INotify } from "../../npm/dist/blue/blue/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { IWorldPosition } from "../../npm/dist/trinity/core/IWorldPosition.js";
 import { ITr2FollowCurveKey } from "../../npm/dist/trinity/curves/ITr2FollowCurveKey.js";

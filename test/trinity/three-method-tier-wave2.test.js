@@ -13,7 +13,7 @@ import { Tr2TexturePipelineStepPack, Tr2TexturePackChannel } from "../../npm/dis
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 
 /**
  * The three-method-tier wave-2 ports, each pinned to the donor body re-read

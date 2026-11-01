@@ -1,10 +1,10 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, DictReader, DictWriter, Copier, BlueList, ITriFunction, ITriScalarFunction, ITriCurveLength, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { blue, DictReader, DictWriter, Copier, BlueList, ITriFunction, ITriScalarFunction, ITriCurveLength, IInitialize, INotify } from "../../npm/dist/blue/blue/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { TriPerlinCurve } from "../../npm/dist/trinity/curves/curve/TriPerlinCurve.js";
 import { Tr2DistanceTracker } from "../../npm/dist/trinity/curves/curve/Tr2DistanceTracker.js";

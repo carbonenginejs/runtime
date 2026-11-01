@@ -1,5 +1,5 @@
 ﻿import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import assert from "node:assert/strict";
 import { EveSpriteSet, EveSpriteSetItem } from "../../npm/dist/trinity/index.js";
 import { num } from "../../npm/dist/global/math/num.js";

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { MarkerTag } from "../support/markerTags.js";
 

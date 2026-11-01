@@ -3,7 +3,7 @@
 // Tr2Renderer's compute helpers replaced by recorders. No GPU.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { RenderingMode } from "../../npm/dist/global/consts/graphics/index.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/index.js";

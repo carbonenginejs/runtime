@@ -7,8 +7,8 @@
 // Update every millisecond until the file's tests finish. A test that drives
 // Update itself, on its own clock, holds the loop for its duration.
 import { after } from "node:test";
-import { blue, BlueResMan } from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { blue, BlueResMan } from "../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 
 let held = 0;
 

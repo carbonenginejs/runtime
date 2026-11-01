@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue, BlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan } from "../../npm/dist/blue/blue/index.js";
 import { CjsLoadingObject } from "../../npm/dist/resource/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { Tr2Controller, Tr2ControllerReference, UnlinkReason } from "../../npm/dist/trinity/index.js";
 import "../support/frameLoop.js";
 

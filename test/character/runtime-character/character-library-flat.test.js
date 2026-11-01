@@ -4,8 +4,8 @@ import {
     CjsCharacterLibrary, CjsCharacterLibraryBuilder, CjsCharacterLibraryManager,
     CjsCharacterObjectBuilder, CjsCharacterCamera, CjsCharacterColorVariation
 } from "../../../npm/dist/character/index.js";
-import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
-import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
+import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/blue/index.js";
+import { installBlueServices } from "../../../npm/dist/blue/blue/blue.js";
 import "../../support/frameLoop.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/topmiddle/shirtcf01";

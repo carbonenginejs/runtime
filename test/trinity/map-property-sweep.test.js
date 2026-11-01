@@ -32,7 +32,7 @@ import {
   EveSOFDataHullChildSet,
   EveSOFDataHullController
 } from "../../npm/dist/sof/hull/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 /** The class's property declaration for an exposed name. */

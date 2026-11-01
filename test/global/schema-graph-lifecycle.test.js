@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import "../../src/global/blue/values.js";
-import { IInitialize } from "../../src/global/blueexposure/IInitialize.js";
-import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { type } from "../../src/global/schema/index.js";
-import { blue } from "../../src/global/blue/index.js";
+import "../../src/blue/blue/values.js";
+import { IInitialize } from "../../src/blue/blueexposure/IInitialize.js";
+import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
+import { type } from "../../src/blue/schema/index.js";
+import { blue } from "../../src/blue/blue/index.js";
 
 // Preorder over blue.EnumerateChildren, once per object.
 function preorder(root)
@@ -22,7 +22,7 @@ function preorder(root)
     if (root) visit(root);
     return visited;
 }
-import { GetResources } from "../../src/global/blue/getResources.js";
+import { GetResources } from "../../src/blue/blue/getResources.js";
 
 let fixtureId = 0;
 function fixture()

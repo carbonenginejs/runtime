@@ -2,12 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { carbonInterfaceDecorator } from "../../src/global/compose/interface.js";
-import { IInitialize } from "../../src/global/blueexposure/IInitialize.js";
-import { INotify } from "../../src/global/blueexposure/INotify.js";
-import { CjsBlackReader } from "../../src/global/blue/formats/black/core/CjsBlackReader.js";
-import { CjsBlackSchemaRegistry } from "../../src/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
+import { carbonInterfaceDecorator } from "../../src/blue/compose/interface.js";
+import { IInitialize } from "../../src/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../src/blue/blueexposure/INotify.js";
+import { CjsBlackReader } from "../../src/blue/blue/formats/black/core/CjsBlackReader.js";
+import { CjsBlackSchemaRegistry } from "../../src/blue/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 
 const member = (name, kind, extra = {}) => ({
     name, key: name, role: "member", type: { kind }, edit: { persist: true }, ...extra

@@ -19,9 +19,9 @@ const bundled = new Set(workerBundles.map(config => config.input.replaceAll("\\"
 
 test("every registered callback module (bcn, image decode) exists, exports its callback, and is published and bundled", async () =>
 {
-  const entry = "./src/global/blue/worker/blueCallbackManWorkerEntry.js";
+  const entry = "./src/blue/blue/worker/blueCallbackManWorkerEntry.js";
   assert.ok(published.has(entry), "the default worker entry is a package export");
-  assert.ok([ ...bundled ].some(input => input.endsWith("npm/dist/global/blue/worker/blueCallbackManWorkerEntry.js")), "the worker build bundles the worker entry");
+  assert.ok([ ...bundled ].some(input => input.endsWith("npm/dist/blue/blue/worker/blueCallbackManWorkerEntry.js")), "the worker build bundles the worker entry");
 
   for (const [ name, url ] of Object.entries({ ...BCN_CALLBACK_MODULES, ...IMAGE_DECODE_CALLBACK_MODULES }))
   {

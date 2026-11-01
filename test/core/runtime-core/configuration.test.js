@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsLibrary, DefaultConfiguration } from "../../../npm/dist/core/index.js";
-import { blue, BlueResMan, BluePaths, BlueOS, CjsBlueResFileSystemCallback, IBlueDynamicResourceConstructor } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan, BluePaths, BlueOS, CjsBlueResFileSystemCallback, IBlueDynamicResourceConstructor } from "../../../npm/dist/blue/blue/index.js";
 import { ImageIO } from "../../../npm/dist/resource/imageio/ImageIO.js";
 import { CjsPngFormat } from "../../../npm/dist/resource/formats/png/CjsPngFormat.js";
 import { CjsVtaFormat } from "../../../npm/dist/resource/formats/vta/CjsVtaFormat.js";
 import { TriSettingsRegistrar } from "../../../npm/dist/trinity/core/TriSettingsRegistrar.js";
-import { CreateBlackObjectBuilder } from "../../../npm/dist/global/blue/formats/black/CreateBlackObjectBuilder.js";
+import { CreateBlackObjectBuilder } from "../../../npm/dist/blue/blue/formats/black/CreateBlackObjectBuilder.js";
 import { TriGeometryRes } from "../../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
 import { TriGrannyRes } from "../../../npm/dist/trinity/resources/geometry/granny/TriGrannyRes.js";
 import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";

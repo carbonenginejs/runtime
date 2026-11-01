@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BlueList } from "../../src/global/blueexposure/BlueList.js";
-import { IList } from "../../src/global/blueexposure/IList.js";
-import { IListNotify } from "../../src/global/blueexposure/IListNotify.js";
-import { Copier } from "../../src/global/blueexposure/Copier.js";
-import { ICopier } from "../../src/global/blueexposure/ICopier.js";
-import { IInitialize } from "../../src/global/blueexposure/IInitialize.js";
-import { INotify } from "../../src/global/blueexposure/INotify.js";
-import { CjsSchema, type, blue } from "../../src/global/schema/index.js";
+import { BlueList } from "../../src/blue/blueexposure/BlueList.js";
+import { IList } from "../../src/blue/blueexposure/IList.js";
+import { IListNotify } from "../../src/blue/blueexposure/IListNotify.js";
+import { Copier } from "../../src/blue/blueexposure/Copier.js";
+import { ICopier } from "../../src/blue/blueexposure/ICopier.js";
+import { IInitialize } from "../../src/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../src/blue/blueexposure/INotify.js";
+import { CjsSchema, type, blue } from "../../src/blue/schema/index.js";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
 
 const { FALLBACK, FAILURE, SUCCESS } = ICopier.OverrideResult;

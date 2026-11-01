@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { ITr2MultiPassScene, ITr2VisualizationModeRenderer } from "../../npm/dist/trinity/core/index.js";
 import { PassType, RenderPassResult } from "../../npm/dist/trinity/generated/include/enums.js";
 

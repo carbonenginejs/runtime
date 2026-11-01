@@ -1,4 +1,4 @@
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 import test from "node:test";
 import { CjsPerObjectLayouts } from "../../src/trinity/core/rawData/CjsPerObjectLayouts.js";
 import assert from "node:assert/strict";
@@ -6,7 +6,7 @@ import { existsSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import {
   EveLocator2,
   EveLocatorSets,

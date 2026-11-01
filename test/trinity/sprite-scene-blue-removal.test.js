@@ -1,11 +1,11 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue, INotify, IListNotify, BlueList } from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
+import { blue, INotify, IListNotify, BlueList } from "../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { DictWriter } from "../../npm/dist/blue/blue/DictWriter.js";
 import { ITr2Scene } from "../../npm/dist/trinity/core/ITr2Scene.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
 import { ITr2SpriteObject } from "../../npm/dist/trinity/sprite2d/ITr2SpriteObject.js";
@@ -22,7 +22,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const context={GetViewTransform:()=>mat4.create()};

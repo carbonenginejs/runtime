@@ -1,7 +1,7 @@
 import { composeStubResMan } from "../support/stubResMan.js";
 ﻿import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";

@@ -1,13 +1,13 @@
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 ﻿import test from "node:test";
 import { CjsPerObjectLayouts } from "../../src/trinity/core/rawData/CjsPerObjectLayouts.js";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { Tr2Renderer, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/index.js";
 import {

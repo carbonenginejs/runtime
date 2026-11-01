@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { EveChildContainer, EveShip2 } from "../../npm/dist/trinity/index.js";
 
 test("values list refill detaches old children and registers replacements on the existing parent", () =>

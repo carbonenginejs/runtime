@@ -1031,7 +1031,7 @@
   },
   {
     "name": "BlueCallbackManThreadData",
-    "source": "src/global/blue/BlueCallbackManThreadData.js",
+    "source": "src/blue/blue/BlueCallbackManThreadData.js",
     "carbon": [
       "BlueCallbackMan::ThreadData"
     ],

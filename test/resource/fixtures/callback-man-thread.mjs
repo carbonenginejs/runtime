@@ -2,7 +2,7 @@
 // the generic callback host, which imports each registered callback module the
 // first time one of its callbacks runs.
 import { parentPort } from "node:worker_threads";
-import { BlueCallbackManWorker } from "../../../npm/dist/global/blue/worker/BlueCallbackManWorker.js";
+import { BlueCallbackManWorker } from "../../../npm/dist/blue/blue/worker/BlueCallbackManWorker.js";
 if (parentPort)
 {
     BlueCallbackManWorker.install({

@@ -1,4 +1,4 @@
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
@@ -11,7 +11,7 @@ import {
   RasterizeGradient,
   RegisterGradientTexture
 } from "../../npm/dist/trinity/core/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { BlueResMan, TriTextureRes } from "../../npm/dist/resource/index.js";
 
 // Carbon's wire shape (GradientTexture.cpp:10-23, Tr2CurveScalar.h:54-70):

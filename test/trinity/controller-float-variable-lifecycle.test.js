@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";
 import { Tr2TimelineController } from "../../npm/dist/trinity/controllers/timeline/Tr2TimelineController.js";

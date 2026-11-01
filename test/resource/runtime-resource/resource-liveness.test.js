@@ -1,7 +1,7 @@
 // Renewal stands in for Carbon's reference-counted MotherLode lifetime.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BlueAsyncRes, BlueResMan, blue } from "../../../npm/dist/global/blue/index.js";
+import { BlueAsyncRes, BlueResMan, blue } from "../../../npm/dist/blue/blue/index.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
 import "../../support/frameLoop.js";
 

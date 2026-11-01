@@ -2,7 +2,7 @@
 // and ITr2SoundEmitterOwner bases (EveChildPlug.h:21-32, EveChildSocket.h:21-31).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { ITr2DebugRenderable } from "../../npm/dist/global/interfaces/index.js";
 import { EveChildPlug, EveChildSocket, EveChildRef, EveChildParticleSystem, ITr2SoundEmitterOwner } from "../../npm/dist/trinity/index.js";
 

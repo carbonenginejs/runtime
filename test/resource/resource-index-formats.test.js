@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { CjsResourceGroupFormat as Group } from "@carbonenginejs/runtime/resource/formats/resourcegroup";
 import { CjsResFileIndexFormat as Index } from "@carbonenginejs/runtime/resource/formats/resfileindex";
 import { CjsFormat } from "../../src/resource/format/CjsFormat.js";
-import { CjsFormatStore } from "../../src/global/blue/CjsFormatStore.js";
+import { CjsFormatStore } from "../../src/blue/blue/CjsFormatStore.js";
 
 const fixture = name => readFileSync(new URL("../tools/fixtures/carbon-resources/" + name, import.meta.url), "utf8");
 const example = "res:/A,aa/file,abc,18446744073709551615,9007199254740993,4294967295\nres:/B,aa/other,def,0,0\n";

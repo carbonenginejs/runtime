@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {projectShared} from '../../../../../src/resource/formats/gr2/core/shared.js';
 import {buildCmfFromShared} from '../../../../../src/resource/formats/cmf/core/shared.js';
-import {CjsResManWorker} from '../../../../../src/global/blue/worker/CjsResManWorker.js';
+import {CjsResManWorker} from '../../../../../src/blue/blue/worker/CjsResManWorker.js';
 
 function fixture() {
     const vertices = [

@@ -1,5 +1,5 @@
 import { random as carbonRandom } from "../../npm/dist/global/math/random.js";
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 import {Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
 import { EveSpaceObjectDecal } from "../../npm/dist/trinity/eve/attachment/decal/EveSpaceObjectDecal.js";
@@ -7,7 +7,7 @@ import test from "node:test";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLocator2, EveLocatorSets, EveSpaceObject2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2DynamicBinding, Tr2Vector3Parameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
@@ -22,7 +22,7 @@ import { EveChildInstanceContainer } from "../../npm/dist/trinity/eve/child/EveC
 import { EveChildPlug } from "../../npm/dist/trinity/eve/child/EveChildPlug.js";
 import { EveChildParticleSphere } from "../../npm/dist/trinity/eve/child/EveChildParticleSphere.js";
 import { EveChildRef } from "../../npm/dist/trinity/eve/child/EveChildRef.js";
-import { blue, BlueList } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueList } from "../../npm/dist/blue/blue/index.js";
 import { EveChildSocket } from "../../npm/dist/trinity/eve/child/EveChildSocket.js";
 import { EveCloudVolumeBall } from "../../npm/dist/trinity/eve/child/EveCloudVolumeBall.js";
 import { EveSpaceObjectChild } from "../../npm/dist/trinity/eve/child/EveSpaceObjectChild.js";

@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { Copier, DictReader } from "../../npm/dist/global/blue/index.js";
-import { GetResources } from "../../npm/dist/global/blue/getResources.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { Copier, DictReader } from "../../npm/dist/blue/blue/index.js";
+import { GetResources } from "../../npm/dist/blue/blue/getResources.js";
 import { Tr2SamplerOverrideData, Tr2SamplerOverride, Tr2Effect } from "../../npm/dist/trinity/index.js";
 import { Tr2SamplerStateAL } from "../../npm/dist/trinityal/index.js";
 

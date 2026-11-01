@@ -2,7 +2,7 @@ import { Tr2RenderContextALStub, Tr2TextureAL } from "../../npm/dist/trinityal/i
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildVta } from "../support/vtaFixture.js";
-import { blue } from "../../npm/dist/global/blue/blue.js";
+import { blue } from "../../npm/dist/blue/blue/blue.js";
 import { Tr2TextureAnimation } from "../../npm/dist/trinity/core/animation/Tr2TextureAnimation.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/CjsVtaFormat.js";

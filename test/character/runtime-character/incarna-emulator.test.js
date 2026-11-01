@@ -1,7 +1,7 @@
 import { prepareResourceFixture, resourceIdentityFixture } from "../../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test, { beforeEach, afterEach } from "node:test";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
 import { BlueResMan, TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { CjsCmfFormat } from "../../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { CjsIncarnaEmulator, Tr2InteriorStatic } from "../../../npm/dist/character/index.js";

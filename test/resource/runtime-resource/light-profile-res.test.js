@@ -5,8 +5,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Tr2LightProfileRes } from "../../../npm/dist/resource/index.js";
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
-import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
-import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
+import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem } from "../../../npm/dist/blue/blue/index.js";
+import { installBlueServices } from "../../../npm/dist/blue/blue/blue.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { num } from "../../../npm/dist/global/math/num.js";
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { BlueResMan, RegisterVideoPlaylists, TriTextureRes, VideoPlaylistController } from "../../../npm/dist/resource/index.js";
 
 function countingManager()

@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue } from "../../npm/dist/global/blue/index.js";
-import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
+import { DictWriter } from "../../npm/dist/blue/blue/DictWriter.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import "../../npm/dist/trinity/index.js";
 import "../../npm/dist/audio/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";

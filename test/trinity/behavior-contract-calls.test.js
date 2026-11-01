@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { BehaviorGroup, EveComponentRegistry, PlayFX, SpawnDrones, ProcessLifetime, EveStretch3 } from "../../npm/dist/trinity/index.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 
 test("PlayFX clones authored firing effects through Blue's copier", () =>
 {

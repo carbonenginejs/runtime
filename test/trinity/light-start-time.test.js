@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { LightData, Tr2Light, Tr2PointLight } from "../../npm/dist/trinity/index.js";
 
 

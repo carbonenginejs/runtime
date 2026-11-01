@@ -1,6 +1,6 @@
-import "../../../src/global/blue/values.js";
-import { Copier } from "../../../src/global/blueexposure/Copier.js";
-import { blue } from "../../../src/global/blue/index.js";
+import "../../../src/blue/blue/values.js";
+import { Copier } from "../../../src/blue/blueexposure/Copier.js";
+import { blue } from "../../../src/blue/blue/index.js";
 
 // Preorder over blue.EnumerateChildren, once per object.
 function preorder(root)
@@ -18,14 +18,14 @@ function preorder(root)
     if (root) visit(root);
     return visited;
 }
-import { GetResources } from "../../../src/global/blue/getResources.js";
-import { ensureRuntimeState, getRuntimeState } from "../../../src/global/compose/runtimeState.js";
+import { GetResources } from "../../../src/blue/blue/getResources.js";
+import { ensureRuntimeState, getRuntimeState } from "../../../src/blue/compose/runtimeState.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as lifecycle from "../../../src/global/model/lifecycle/index.js";
 import * as model from "../../../src/global/model/index.js";
-import * as schema from "../../../src/global/schema/index.js";
-import * as types from "../../../src/global/schema/types/index.js";
+import * as schema from "../../../src/blue/schema/index.js";
+import * as types from "../../../src/blue/schema/types/index.js";
 
 const coreTypes = { ...lifecycle, ...model, ...schema, ...types };
 const {

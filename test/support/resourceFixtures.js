@@ -1,5 +1,5 @@
 // Fixtures drive native hooks directly; production acquisition goes through blue.resMan.
-import { blue, BlueAsyncRes } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueAsyncRes } from "../../npm/dist/blue/blue/index.js";
 
 /** Complete a synthetic load and broadcast the native persistent notification. */
 export function prepareResourceFixture(resource)

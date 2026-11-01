@@ -1,11 +1,11 @@
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue } from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { DictWriter } from "../../npm/dist/blue/blue/DictWriter.js";
 import { Tr2Sprite2dVertexBase } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dVertexBase.js";
 import { Tr2Sprite2dVertex } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dVertex.js";
 import { Tr2Sprite2dD3DVertex } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dD3DVertex.js";

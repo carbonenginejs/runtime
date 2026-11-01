@@ -1,8 +1,8 @@
-import "../../npm/dist/global/blue/values.js";
+import "../../npm/dist/blue/blue/values.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
 import { Tr2HostBitmap } from "../../npm/dist/trinity/core/Tr2HostBitmap.js";

@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import "../../../npm/dist/global/blue/values.js";
-import { IInitialize } from "../../../npm/dist/global/blueexposure/IInitialize.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import "../../../npm/dist/blue/blue/values.js";
+import { IInitialize } from "../../../npm/dist/blue/blueexposure/IInitialize.js";
 import { Tr2ControllerFloatVariable } from "../../../npm/dist/trinity/index.js";
 
 test("CjsSchema.setValues and getValues are the model transport, called through the schema", () =>

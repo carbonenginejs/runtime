@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, meta, blue } from "../../src/global/schema/index.js";
+import { CjsSchema, meta, blue } from "../../src/blue/schema/index.js";
 import { CjsUnusedMethodError, CJS_UNUSED_METHOD, CjsError } from "../../src/global/utils/errors/index.js";
-import { BlueClasses } from "../../src/global/blueexposure/BlueClasses.js";
+import { BlueClasses } from "../../src/blue/blueexposure/BlueClasses.js";
 
 test("define({ unused }) installs throwers raising CjsUnusedMethodError", () =>
 {

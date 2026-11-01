@@ -1,4 +1,4 @@
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 import { BlueResMan, CjsMeshConstructor, MeshPrefix, RegisterMeshConstructor, TriGeometryRes } from "../../npm/dist/resource/index.js";

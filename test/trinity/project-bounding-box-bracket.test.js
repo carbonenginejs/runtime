@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext, TriViewport } from "../../npm/dist/trinity/core/index.js";
 import { TriCurveSet } from "../../npm/dist/trinity/curves/index.js";
 import { Tr2ProjectBoundingBoxBracket } from "../../npm/dist/trinity/ui/index.js";

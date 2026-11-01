@@ -10,7 +10,7 @@ import {
   Tr2Transform,
   Tr2RenderContext
 } from "../../npm/dist/trinity/core/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { ITr2FroxelFogSettings } from "../../npm/dist/trinity/eve/child/ITr2FroxelFogSettings.js";
 import { TriRenderStep } from "../../npm/dist/trinity/renderJob/index.js";
 import { Tr2SpriteObjectBase } from "../../npm/dist/trinity/sprite2d/Tr2SpriteObjectBase.js";

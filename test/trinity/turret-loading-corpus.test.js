@@ -1,12 +1,12 @@
-import { removeChild, addChild } from "../../npm/dist/global/blue/children.js";
+import { removeChild, addChild } from "../../npm/dist/blue/blue/children.js";
 // Synthetic child callers load an unmodified published FX. The real turret
 // set uses its native caller-owned SetFiringEffect API; no automatic set load.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { blue, BlueResMan } from "../../npm/dist/global/blue/index.js";
-import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { blue, BlueResMan } from "../../npm/dist/blue/blue/index.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/blue/formats/black/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { EveChildTurret, EveTurretSet, EveTurretFiringFX, EveStretch3, EveLocalPositionCurve, EveUpdateContext, EveComponentRegistry, EveComponentType, TriFrustum, Tr2ControllerEventHandler, Tr2ActionSetValue, Tr2DynamicBinding } from "../../npm/dist/trinity/index.js";
 import "../../npm/dist/audio/index.js"; // The published FX owns AudEventCurve/AudEmitter objects.
 import { StubResMan } from "../support/stubResMan.js";

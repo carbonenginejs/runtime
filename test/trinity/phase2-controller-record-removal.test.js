@@ -1,10 +1,10 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema, blue as legacyBlue } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { BlueList, Copier, DictReader, IInitialize, INotify, IListNotify, blue } from "../../npm/dist/global/blue/index.js";
-import { GetResources } from "../../npm/dist/global/blue/getResources.js";
+import { CjsSchema, blue as legacyBlue } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { BlueList, Copier, DictReader, IInitialize, INotify, IListNotify, blue } from "../../npm/dist/blue/blue/index.js";
+import { GetResources } from "../../npm/dist/blue/blue/getResources.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { Tr2ControllerReference } from "../../npm/dist/trinity/controllers/Tr2ControllerReference.js";
 import { Tr2ControllerEventHandler } from "../../npm/dist/trinity/controllers/Tr2ControllerEventHandler.js";

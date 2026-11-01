@@ -1,9 +1,9 @@
 import { prepareResourceFixture } from "../../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { CjsBlackReader } from "../../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import { CjsBlackReader } from "../../../npm/dist/blue/blue/formats/black/core/CjsBlackReader.js";
 import { ITr2Interior, ITr2InteriorDynamic, Tr2HighLevelShader, Tr2InteriorScene, Tr2InteriorStatic, Tr2ShaderFloat4Desc, Tr2ShaderManager, Tr2ShaderMaterial, Tr2ShaderPermuteTag, Tr2ShaderTexDesc } from "../../../npm/dist/character/index.js";
 import { Tr2Effect, Tr2FloatParameter, TriTextureParameter } from "../../../npm/dist/trinity/shader/index.js";
 import { ITr2Renderable, Tr2Mesh, Tr2MeshArea, Tr2RenderContext_GetMainThreadRenderContext, TriPoolAllocator } from "../../../npm/dist/trinity/index.js";

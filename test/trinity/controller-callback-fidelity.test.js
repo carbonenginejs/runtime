@@ -5,7 +5,7 @@ import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.
 import { Tr2TimelineController } from "../../npm/dist/trinity/controllers/timeline/Tr2TimelineController.js";
 import { Tr2ActionSetExternalControllerVariable } from "../../npm/dist/trinity/controllers/action/Tr2ActionSetExternalControllerVariable.js";
 import { TriCurveSet } from "../../npm/dist/trinity/curves/TriCurveSet.js";
-import { BlueScriptCallback } from "../../npm/dist/global/blue/index.js";
+import { BlueScriptCallback } from "../../npm/dist/blue/blue/index.js";
 
 for (const Constructor of [Tr2Controller, Tr2TimelineController])
 {

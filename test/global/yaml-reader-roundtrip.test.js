@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { YamlWriter, BeObjectMetadata, blue } from "../../npm/dist/global/blue/index.js";
-import { getDictionaryDeclarations, readDictionaryValue } from "../../npm/dist/global/blue/dictionaryDeclarations.js";
-import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
-import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { YamlWriter, BeObjectMetadata, blue } from "../../npm/dist/blue/blue/index.js";
+import { getDictionaryDeclarations, readDictionaryValue } from "../../npm/dist/blue/blue/dictionaryDeclarations.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/blue/formats/black/index.js";
+import { YamlReader } from "../../npm/dist/blue/blue/YamlReader.js";
 import "../../npm/dist/trinity/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 

@@ -1,12 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import CjsRedFormat, * as entry from "../../../../../npm/dist/global/blue/formats/red/index.js";
+import CjsRedFormat, * as entry from "../../../../../npm/dist/blue/blue/formats/red/index.js";
 import { CjsFormat } from "../../../../../npm/dist/resource/format/CjsFormat.js";
-import { CjsSchema } from "../../../../../npm/dist/global/schema/index.js";
-import { YamlReader } from "../../../../../npm/dist/global/blue/YamlReader.js";
-import { IInitialize } from "../../../../../npm/dist/global/blueexposure/IInitialize.js";
-import { BeObjectMetadata } from "../../../../../npm/dist/global/blue/BlueObjectMetadata.js";
-import "../../../../../npm/dist/global/blue/values.js";
+import { CjsSchema } from "../../../../../npm/dist/blue/schema/index.js";
+import { YamlReader } from "../../../../../npm/dist/blue/blue/YamlReader.js";
+import { IInitialize } from "../../../../../npm/dist/blue/blueexposure/IInitialize.js";
+import { BeObjectMetadata } from "../../../../../npm/dist/blue/blue/BlueObjectMetadata.js";
+import "../../../../../npm/dist/blue/blue/values.js";
 
 class RedContractLeaf
 {

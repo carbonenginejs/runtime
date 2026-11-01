@@ -11,7 +11,7 @@
 //
 // GetResource serves Res classes only; plain decoded data has no resource
 // (resman-in-the-browser.md, 2026-11-01).
-import { BlueAsyncRes, blue } from "../../npm/dist/global/blue/index.js";
+import { BlueAsyncRes, blue } from "../../npm/dist/blue/blue/index.js";
 
 /** A test resource holding its reader's decoded value. */
 export class TestDataRes extends BlueAsyncRes

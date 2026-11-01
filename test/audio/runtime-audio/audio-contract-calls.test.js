@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { AudEmitter, AudGameObjResource, AudListener, AudManager, AudUIPlayer, SoundPrioritization, Tr2AudioStretchBase } from "../../../npm/dist/audio/index.js";
-import { BlueScriptCallback } from "../../../npm/dist/global/blueexposure/BlueScriptCallback.js";
+import { BlueScriptCallback } from "../../../npm/dist/blue/blueexposure/BlueScriptCallback.js";
 import { WwiseSoundEngineStubWith, AudioManagerWith } from "../../support/audioStub.js";
 
 for (const missing of [ "IsCulled", "Wake" ])

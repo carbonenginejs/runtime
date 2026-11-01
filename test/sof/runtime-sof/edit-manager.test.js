@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSOFEditManager } from "../../../npm/dist/sof/CjsSOFEditManager.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import "../../../npm/dist/global/blue/values.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import "../../../npm/dist/blue/blue/values.js";
 import { EveSOFDataGenericString } from "../../../npm/dist/sof/generic/EveSOFDataGenericString.js";
 import { EveSOFDataParameterColor } from "../../../npm/dist/sof/shared/EveSOFDataParameterColor.js";
 

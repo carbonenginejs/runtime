@@ -1,14 +1,14 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
-import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { IListNotify } from "../../npm/dist/global/blueexposure/IListNotify.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { ISimTimeRebaseNotify } from "../../npm/dist/global/blue/ISimTimeRebaseNotify.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { BlueList } from "../../npm/dist/blue/blueexposure/BlueList.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { IListNotify } from "../../npm/dist/blue/blueexposure/IListNotify.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { ISimTimeRebaseNotify } from "../../npm/dist/blue/blue/ISimTimeRebaseNotify.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { Tr2StateMachine } from "../../npm/dist/trinity/controllers/state/Tr2StateMachine.js";
 import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";
 import { Tr2ControllerEventHandler } from "../../npm/dist/trinity/controllers/Tr2ControllerEventHandler.js";
@@ -133,12 +133,12 @@ test("concrete child tables retain exact exposure in a fresh process", () =>
     ...process.execArgv,
     "--input-type=module", "--eval", `
       import assert from "node:assert/strict";
-      import { meta, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
-      import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
-      import { IRoot } from ${JSON.stringify(moduleURL("global/blueexposure/IRoot.js"))};
-      import { IInitialize } from ${JSON.stringify(moduleURL("global/blueexposure/IInitialize.js"))};
-      import { IListNotify } from ${JSON.stringify(moduleURL("global/blueexposure/IListNotify.js"))};
-      import { INotify } from ${JSON.stringify(moduleURL("global/blueexposure/INotify.js"))};
+      import { meta, CjsSchema } from ${JSON.stringify(moduleURL("blue/schema/index.js"))};
+      import { mappedInterfaces } from ${JSON.stringify(moduleURL("blue/compose/interface.js"))};
+      import { IRoot } from ${JSON.stringify(moduleURL("blue/blueexposure/IRoot.js"))};
+      import { IInitialize } from ${JSON.stringify(moduleURL("blue/blueexposure/IInitialize.js"))};
+      import { IListNotify } from ${JSON.stringify(moduleURL("blue/blueexposure/IListNotify.js"))};
+      import { INotify } from ${JSON.stringify(moduleURL("blue/blueexposure/INotify.js"))};
       const { Tr2StateMachine } = await import(${JSON.stringify(moduleURL("trinity/controllers/state/Tr2StateMachine.js"))});
       const { Tr2ControllerFloatVariable } = await import(${JSON.stringify(moduleURL("trinity/controllers/expression/Tr2ControllerFloatVariable.js"))});
       const { Tr2ControllerEventHandler } = await import(${JSON.stringify(moduleURL("trinity/controllers/Tr2ControllerEventHandler.js"))});

@@ -1,7 +1,7 @@
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { EveChildSocket, EveChildPlug, EveChildContainer } from "../../npm/dist/trinity/index.js";
 import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 

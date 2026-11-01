@@ -1,4 +1,4 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 // Texture parameters ask blue.resMan for their texture as Carbon asks BeResMan,
@@ -9,9 +9,9 @@ composeStubResMan();
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { DictReader, IInitialize, INotify, IListNotify, ICopierCustomAssignment } from "../../npm/dist/global/blue/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { DictReader, IInitialize, INotify, IListNotify, ICopierCustomAssignment } from "../../npm/dist/blue/blue/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { Tr2Effect, Tr2Material, TriTextureParameter, Tr2Matrix4Parameter, Tr2Vector4Parameter, Tr2TextureReference } from "../../npm/dist/trinity/index.js";
 
 const host = JSON.parse(readFileSync(new URL("../support/crisisParticleHost.json", import.meta.url), "utf8"));

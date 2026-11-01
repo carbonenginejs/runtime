@@ -1,10 +1,10 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { Copier, DictReader, INotify, IInitialize } from "../../npm/dist/global/blue/index.js";
-import { GetResources } from "../../npm/dist/global/blue/getResources.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { Copier, DictReader, INotify, IInitialize } from "../../npm/dist/blue/blue/index.js";
+import { GetResources } from "../../npm/dist/blue/blue/getResources.js";
 import { Tr2TextureReference, ITr2TextureProvider, Tr2Event } from "../../npm/dist/trinity/core/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { Tr2TextureAL } from "../../npm/dist/trinityal/index.js";

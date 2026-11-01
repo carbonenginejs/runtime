@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
-import { IList } from "../../npm/dist/global/blueexposure/IList.js";
-import { IListNotify } from "../../npm/dist/global/blueexposure/IListNotify.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { CjsSchema, meta, blue } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { BlueList } from "../../npm/dist/blue/blueexposure/BlueList.js";
+import { IList } from "../../npm/dist/blue/blueexposure/IList.js";
+import { IListNotify } from "../../npm/dist/blue/blueexposure/IListNotify.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { CjsSchema, meta, blue } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
-import { CjsBlueReader } from "../../npm/dist/global/blue/CjsBlueReader.js";
-import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
-import "../../npm/dist/global/blue/values.js";
+import { CjsBlueReader } from "../../npm/dist/blue/blue/CjsBlueReader.js";
+import { YamlReader } from "../../npm/dist/blue/blue/YamlReader.js";
+import "../../npm/dist/blue/blue/values.js";
 
 const { BELIST_UNLOADSTART, BELIST_LOADFINISHED } = BLUELISTEVENT;
 const itemName = "BlueReaderPlainListItem";

@@ -20,7 +20,7 @@ import {
   Tr2PostProcessRenderer,
   Tr2SSAO
 } from "../../npm/dist/trinity/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import { MarkerTag } from "../support/markerTags.js";
 

@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsSchema, type, blue } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { CjsSchema, type, blue } from "../../npm/dist/blue/schema/index.js";
+import { CjsBlackReader } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackReader.js";
 import { EveBoosterSet2, EveEntity, EveMobile, EveShip2, EveSpaceObject2, TriDevice, trinity, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 import { ITr2ShLightingReceiver } from "../../npm/dist/trinity/core/lighting/ITr2ShLightingReceiver.js";
 import { ITr2SecondaryLightSource } from "../../npm/dist/trinity/core/lighting/ITr2SecondaryLightSource.js";

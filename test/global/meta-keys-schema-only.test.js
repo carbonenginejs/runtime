@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, meta, type, blue } from "../../src/global/schema/index.js";
+import { CjsSchema, meta, type, blue } from "../../src/blue/schema/index.js";
 
 test("schema-only values use canonical member names without Blue services", () =>
 {

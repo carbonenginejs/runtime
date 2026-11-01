@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { type } from "../../src/global/schema/index.js";
-import { Copier } from "../../src/global/blueexposure/Copier.js";
-import { CjsBlackReader } from "../../src/global/blue/formats/black/core/CjsBlackReader.js";
-import { CjsBlackSchemaRegistry } from "../../src/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
-import { classStructureLayout } from "../../src/global/blue/formats/black/core/blackClassStructures.js";
+import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
+import { type } from "../../src/blue/schema/index.js";
+import { Copier } from "../../src/blue/blueexposure/Copier.js";
+import { CjsBlackReader } from "../../src/blue/blue/formats/black/core/CjsBlackReader.js";
+import { CjsBlackSchemaRegistry } from "../../src/blue/blue/formats/black/core/CjsBlackSchemaRegistry.js";
+import { classStructureLayout } from "../../src/blue/blue/formats/black/core/blackClassStructures.js";
 
 
 const member = (name, kind, extra = {}) => ({

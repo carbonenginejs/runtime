@@ -6,7 +6,7 @@ import { test } from "node:test";
 
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import * as core from "../../npm/dist/trinity/core/index.js";
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedCore from "../../npm/dist/trinity/generated/trinityCore/index.js";

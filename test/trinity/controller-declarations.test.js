@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
-import { IRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
-import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { IListNotify } from "../../npm/dist/global/blueexposure/IListNotify.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { BlueList } from "../../npm/dist/blue/blueexposure/BlueList.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { IListNotify } from "../../npm/dist/blue/blueexposure/IListNotify.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { ITr2ActionController } from "../../npm/dist/trinity/controllers/ITr2Controller/ITr2ActionController.js";
 import { ITr2Controller } from "../../npm/dist/trinity/controllers/ITr2Controller/ITr2Controller.js";
@@ -79,8 +79,8 @@ test("controller exposure follows its explicit EveThrottleable parent table", ()
   const moduleURL = path => new URL(`../../npm/dist/${path}`, import.meta.url).href;
   execFileSync(process.execPath, ["--input-type=module", "--eval", `
     import assert from "node:assert/strict";
-    import { meta, blue } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
-    import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
+    import { meta, blue } from ${JSON.stringify(moduleURL("blue/schema/index.js"))};
+    import { mappedInterfaces } from ${JSON.stringify(moduleURL("blue/compose/interface.js"))};
     import { EveThrottleable } from ${JSON.stringify(moduleURL("trinity/eve/EveThrottleable.js"))};
     import { Tr2Controller } from ${JSON.stringify(moduleURL("trinity/controllers/Tr2Controller.js"))};
     class ParentInterface {}

@@ -1,18 +1,18 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { AudParameter } from "../../npm/dist/audio/trinity/audio/AudParameter.js";
 import { AudGameObjResource } from "../../npm/dist/audio/trinity/audio/AudGameObjResource.js";
 import { AudManager } from "../../npm/dist/audio/trinity/audio/AudManager.js";
 import { CjsWwiseSoundEngineStub } from "../../npm/dist/global/audio/CjsWwiseSoundEngineStub.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { BlueList } from "../../npm/dist/blue/blueexposure/BlueList.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { DictWriter } from "../../npm/dist/blue/blue/DictWriter.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
+import { CjsSchema, blue } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 
 function WithServices(run)
 {

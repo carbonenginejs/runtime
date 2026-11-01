@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { EveShip2, EveSpaceObjectDecal, Tr2Mesh } from "../../npm/dist/trinity/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
-import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/blue/formats/black/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 const corpus = process.env.ANGBC2_DECAL_CORPUS_DIR;

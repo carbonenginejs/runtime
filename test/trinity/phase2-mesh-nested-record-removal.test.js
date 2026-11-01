@@ -1,10 +1,10 @@
-import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
+import { getRegisteredClassName } from "../../npm/dist/blue/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { Copier, DictReader } from "../../npm/dist/global/blue/index.js";
-import { GetResources } from "../../npm/dist/global/blue/getResources.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { Copier, DictReader } from "../../npm/dist/blue/blue/index.js";
+import { GetResources } from "../../npm/dist/blue/blue/getResources.js";
 import { ITr2InstanceDataInstanceData, ITr2ImpostorSourceImpostorHash, ITr2InstanceData, ITr2ImpostorSource, Tr2RuntimeInstanceData } from "../../npm/dist/trinity/core/index.js";
 
 test("nested mesh records retain flattened identities without inheriting their enclosing interfaces", () =>

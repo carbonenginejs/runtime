@@ -1,10 +1,10 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { CjsBlackReader } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackReader.js";
 import { EveSOFDataHullSoundEmitter } from "../../npm/dist/sof/hull/EveSOFDataHullSoundEmitter.js";
 
 const members = [ "name", "prefix", "position", "rotation", "attenuationScalingFactor" ];

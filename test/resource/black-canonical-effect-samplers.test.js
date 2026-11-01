@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
-import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
-import { CjsBlackSchemaRegistry } from "../../npm/dist/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/CjsSchema.js";
+import { CjsBlackReader } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackReader.js";
+import { CjsBlackSchemaRegistry } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { Tr2SamplerOverride } from "../../npm/dist/trinity/shader/sampler/Tr2SamplerOverride.js";
 

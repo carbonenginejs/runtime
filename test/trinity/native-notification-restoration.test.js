@@ -5,7 +5,7 @@ import { EveComponentType } from "../../npm/dist/trinity/eve/EntityComponents.js
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
-import { NotifyModified } from "../../npm/dist/global/blue/index.js";
+import { NotifyModified } from "../../npm/dist/blue/blue/index.js";
 
 test("primitive color notification updates real line endpoints; unrelated edits preserve them", t =>
 {

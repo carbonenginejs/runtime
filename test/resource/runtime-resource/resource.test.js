@@ -6,16 +6,16 @@ import {
   getResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { ICacheable } from "../../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import { ICacheable } from "../../../npm/dist/blue/blue/index.js";
 import * as runtimeResource from "../../../npm/dist/resource/index.js";
-import { CjsBlackFormat } from "../../../npm/dist/global/blue/formats/black/index.js";
-import { CjsRedFormat } from "../../../npm/dist/global/blue/formats/red/index.js";
+import { CjsBlackFormat } from "../../../npm/dist/blue/blue/formats/black/index.js";
+import { CjsRedFormat } from "../../../npm/dist/blue/blue/formats/red/index.js";
 import { CjsEventEmitter, Tr2ImageRes, TriGeometryRes, TriTextureRes, MotherLode, CjsLoadingObject, BlueResMan, BlueAsyncRes, CjsResourceProbe, ResourceHandlerMode, Tr2GrannyStateRes, Tr2LightProfileRes, TriGrannyRes, getMotherLodeKey } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes, Tr2MaterialRes } from "../../../npm/dist/trinity/shader/index.js";
 import { LoadData } from "../../support/loadData.js";
 import { RegisterDataLoader, TestDataRes } from "../../support/testDataRes.js";
-import {blue} from "../../../npm/dist/global/blue/index.js";
+import {blue} from "../../../npm/dist/blue/blue/index.js";
 import "../../support/frameLoop.js";
 import { MarkerTag } from "../../support/markerTags.js";
 

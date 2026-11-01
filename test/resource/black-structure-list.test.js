@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsBlackBinaryReader } from "../../src/global/blue/formats/black/core/CjsBlackBinaryReader.js";
-import { CjsBlackPropertyReaders } from "../../src/global/blue/formats/black/core/CjsBlackPropertyReaders.js";
+import { CjsBlackBinaryReader } from "../../src/blue/blue/formats/black/core/CjsBlackBinaryReader.js";
+import { CjsBlackPropertyReaders } from "../../src/blue/blue/formats/black/core/CjsBlackPropertyReaders.js";
 
 const structure = { name: "Tr2ConstantEffectParameter", size: 24, members: [
     { name: "name", offset: 0, type: "string" },

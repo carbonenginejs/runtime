@@ -13,7 +13,7 @@ import {
   EveSpaceScene,
   Tr2RenderContext
 } from "../../npm/dist/trinity/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 // Test fixture standing in for `@carbon.inherit(X)` as a base-class

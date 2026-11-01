@@ -2,9 +2,9 @@ import { prepareResourceFixture, pendingResourceFixture, purgeResourceFixture, f
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { blue, IInitialize, INotify, NotifyModified } from "../../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { finalizeReaderObject } from "../../../npm/dist/global/schema/hydration.js";
+import { blue, IInitialize, INotify, NotifyModified } from "../../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import { finalizeReaderObject } from "../../../npm/dist/blue/schema/hydration.js";
 import { Tr2InteriorPlaceable, Tr2Model, WodPlaceableRes } from "../../../npm/dist/character/index.js";
 import { Tr2Mesh, Tr2MeshArea, Tr2RenderContext_GetMainThreadRenderContext } from "../../../npm/dist/trinity/index.js";
 import { BlueResMan, CjsLoadingObject, TriGeometryRes } from "../../../npm/dist/resource/index.js";

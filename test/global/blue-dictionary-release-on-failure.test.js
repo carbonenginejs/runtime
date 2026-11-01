@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/CjsSchema.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
 
 // Carbon populates a new object through a local smart pointer
 // (DictReader.cpp:34-90); a thrown read unwinds it and runs the destructor.

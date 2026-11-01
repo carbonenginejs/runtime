@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2Mesh, Tr2MeshBase } from "../../npm/dist/trinity/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 
 test("Tr2Mesh maps the path-clearing wrapper as SetGeometryRes", () =>
 {

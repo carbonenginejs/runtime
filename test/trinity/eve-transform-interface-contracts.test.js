@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { IWorldPosition } from "../../npm/dist/trinity/core/IWorldPosition.js";
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { ITr2BoundingBox } from "../../npm/dist/global/interfaces/ITr2BoundingBox.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { applyReaderMember, finalizeReaderObject } from "../../npm/dist/global/schema/hydration.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { applyReaderMember, finalizeReaderObject } from "../../npm/dist/blue/schema/hydration.js";
 import { Tr2Mesh } from "../../npm/dist/trinity/core/mesh/Tr2Mesh.js";
 import { IEveSpaceObject2 } from "../../npm/dist/trinity/eve/IEveSpaceObject2.js";
 import { IEveTransform } from "../../npm/dist/trinity/eve/IEveTransform.js";

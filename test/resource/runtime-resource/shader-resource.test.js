@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 
 import { CjsCarbonEffectWriter } from "../../../npm/dist/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { CARBON_ANNOTATION_TYPE } from "../../../npm/dist/resource/format/carbonEffect/carbonEffectRecords.js";

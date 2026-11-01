@@ -1,7 +1,7 @@
 // EveShip2 CPU behavior: speed derivation, booster drive, per-object glow.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { EveShip2, EveUpdateContext } from "../../npm/dist/trinity/index.js";
 
 test("EveShip2 derives speed and drives boosters from the position curve", () =>

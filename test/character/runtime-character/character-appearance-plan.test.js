@@ -1,5 +1,5 @@
-import { Copier } from "../../../npm/dist/global/blueexposure/Copier.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { Copier } from "../../../npm/dist/blue/blueexposure/Copier.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {

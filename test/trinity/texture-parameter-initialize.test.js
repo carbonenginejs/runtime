@@ -2,7 +2,7 @@ import { prepareResourceFixture } from "../support/resourceFixtures.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 import { localFileSystem } from "../support/localFileSystem.js";

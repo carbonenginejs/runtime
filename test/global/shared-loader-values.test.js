@@ -1,17 +1,17 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
-import { createChild } from "../../npm/dist/global/blue/children.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
+import { createChild } from "../../npm/dist/blue/blue/children.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { BlueResMan } from "../../npm/dist/global/blue/BlueResMan.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { BlueResMan } from "../../npm/dist/blue/blue/BlueResMan.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/blue/formats/black/index.js";
 import { EveSOFData, EveSOFDataGeneric, EveSOFDataHullDecalSetItem } from "../../npm/dist/sof/index.js";
 import { Tr2DynamicEmitter, ITr2GenericEmitter, EveThrottleable, Tr2Effect, Tr2Controller, Tr2TimelineController } from "../../npm/dist/trinity/index.js";
-import { blue, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { blue, IInitialize, INotify } from "../../npm/dist/blue/blue/index.js";
 import { StubResMan } from "../support/stubResMan.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { clientResources } from "../support/clientResources.js";
 
 // The client's SOF data.black through BePaths; its bytes change per build, so none are pinned.

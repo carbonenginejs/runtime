@@ -364,7 +364,7 @@ ${registration}
 
 test("enum parity CLI credits exact definition-site registration without a module citation", () =>
 {
-  for (const importSource of ["#blue/enums/CjsBlueEnumRegistry", "../../global/blue/enums/CjsBlueEnumRegistry.js"])
+  for (const importSource of ["#blue/enums/CjsBlueEnumRegistry", "../../blue/blue/enums/CjsBlueEnumRegistry.js"])
   {
     const files = enumFixture('// Source: native/Probe.h\nblueEnums.Create("trinity.Status", Status);');
     files["src/trinity/generated/enums.js"] = files["src/trinity/generated/enums.js"]

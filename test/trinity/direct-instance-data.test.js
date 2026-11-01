@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2DirectInstanceData, Tr2InstancedMesh, Tr2EffectStateManager, Tr2VertexDefinition,
   Tr2RenderContext_GetMainThreadRenderContext, TriDevice, trinity, EveShip2, ITr2InstanceData } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub, ALResult } from "../../npm/dist/trinityal/index.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
-import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/blue/formats/black/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 import "../../npm/dist/audio/index.js";
 import { clientResources } from "../support/clientResources.js";

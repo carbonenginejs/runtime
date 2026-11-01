@@ -12,7 +12,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { EveSpaceScene, Tr2PostProcessRenderer, Tr2Renderer, TriFrustum } from "../../npm/dist/trinity/index.js";
 import { EntityComponents } from "../../npm/dist/trinity/eve/EntityComponents.js";
-import { meta } from "../../npm/dist/global/schema/index.js";
+import { meta } from "../../npm/dist/blue/schema/index.js";
 
 // Import the platform owner so its three explicitly approved settings register.
 import { Tr2PlatformInfo } from "../../npm/dist/core/platform/Tr2PlatformInfo.js";

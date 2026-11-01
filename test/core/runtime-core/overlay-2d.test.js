@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CjsOverlay2D, CjsLibrary } from "../../../npm/dist/core/index.js";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
 
 function fakeView()
 {

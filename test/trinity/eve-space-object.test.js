@@ -7,8 +7,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { UpdateContext, FixedFrustum } from "../support/eveUpdateContext.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
 import {
   EveEffectRoot2,

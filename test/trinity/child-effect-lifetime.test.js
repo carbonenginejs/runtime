@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { Tr2ActionChildEffect, EveChildContainer, EveChildBehaviorSystem, EveChildParticleSystem, Tr2ParticleSystem, Tr2InstancedMesh, TriDevice, trinity } from "../../npm/dist/trinity/index.js";
 
 /** A fresh loaded child with the same particle-to-mesh ownership as an ad. */

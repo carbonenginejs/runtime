@@ -5,7 +5,7 @@ import {
   ITr2ActionController,
   ITr2Controller
 } from "../../npm/dist/trinity/controllers/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 
 // Test fixture standing in for `@carbon.inherit(X)` as a base-class
 // expression, because these files are plain scripts and carry no decorators.

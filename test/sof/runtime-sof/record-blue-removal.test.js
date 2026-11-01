@@ -1,9 +1,9 @@
-import { IRoot as ExposureRoot } from "../../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { blue, ICustomPersist, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
-import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import { blue, ICustomPersist, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/blue/blue/index.js";
+import { mappedInterfaces } from "../../../npm/dist/blue/compose/interface.js";
 import { EveSOFDataGenericString as StringRecord } from "../../../npm/dist/sof/generic/EveSOFDataGenericString.js";
 import { EveSOFDataTexture as Texture } from "../../../npm/dist/sof/shared/EveSOFDataTexture.js";
 import { EveSOFDataDecalIndexBuffer as Indices } from "../../../npm/dist/sof/shared/EveSOFDataDecalIndexBuffer.js";

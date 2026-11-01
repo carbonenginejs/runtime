@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { IRoot, BlueClasses, ClassInfo } from "../../src/global/blue/index.js";
-import { CjsSchema, blue } from "../../src/global/schema/index.js";
+import { IRoot, BlueClasses, ClassInfo } from "../../src/blue/blue/index.js";
+import { CjsSchema, blue } from "../../src/blue/schema/index.js";
 
 class RootTestObject extends IRoot
 {

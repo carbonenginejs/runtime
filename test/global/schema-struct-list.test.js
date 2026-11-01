@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
-import { type } from "../../npm/dist/global/schema/index.js";
-import { Copier } from "../../npm/dist/global/blue/index.js";
-import { DictReader, CreateAnchorTable } from "../../npm/dist/global/blue/DictReader.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { CjsBlackSchemaRegistry } from "../../npm/dist/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/CjsSchema.js";
+import { type } from "../../npm/dist/blue/schema/index.js";
+import { Copier } from "../../npm/dist/blue/blue/index.js";
+import { DictReader, CreateAnchorTable } from "../../npm/dist/blue/blue/DictReader.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { CjsBlackSchemaRegistry } from "../../npm/dist/blue/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 import "../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 

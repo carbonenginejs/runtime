@@ -1,8 +1,8 @@
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {CjsSchema} from '../../npm/dist/global/schema/index.js';
-import {INotify,NotifyModified} from '../../npm/dist/global/blue/index.js';
+import {CjsSchema} from '../../npm/dist/blue/schema/index.js';
+import {INotify,NotifyModified} from '../../npm/dist/blue/blue/index.js';
 import {mat4} from '../../npm/dist/global/math/mat4.js';
 import {Tr2CurveLineSet,EveCurveLineSet,TriDevice,trinity,Tr2EffectStateManager,Tr2RenderContext,Tr2RenderContext_GetMainThreadRenderContext} from '../../npm/dist/trinity/index.js';
 import {Tr2RenderContextALStub,ALResult} from '../../npm/dist/trinityal/index.js';

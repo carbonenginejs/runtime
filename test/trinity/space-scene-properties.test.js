@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { EveEffectRoot2, EveSpaceScene, Tr2QuadRenderer, Tr2ShLightingManager } from "../../npm/dist/trinity/index.js";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { StubContext } from "../support/stubContext.js";
 
 /** A real manager whose register/unregister calls are counted. */

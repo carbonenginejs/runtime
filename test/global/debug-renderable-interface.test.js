@@ -1,4 +1,4 @@
-import { IRoot as ExposureRoot } from "../../src/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../src/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -12,7 +12,7 @@ import { ITr2DebugRenderable as DirectDebugRenderable } from "../../src/global/i
 import { ITr2DebugRenderer2 as DirectDebugRenderer } from "../../src/global/interfaces/ITr2DebugRenderer2.js";
 import { Tr2DebugColor } from "../../src/global/interfaces/Tr2DebugColor.js";
 import { Tr2DebugObjectReference } from "../../src/global/interfaces/Tr2DebugObjectReference.js";
-import { mappedInterfaces } from "../../src/global/compose/interface.js";
+import { mappedInterfaces } from "../../src/blue/compose/interface.js";
 import { MarkerTag } from "../support/markerTags.js";
 
 test("ITr2DebugRenderable has one registered identity and its two native abstract methods", () =>

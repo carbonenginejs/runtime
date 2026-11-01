@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { AudEmitter, AudGameObjResource, AudioCurveSetDriver, CjsAudioSystem } from "../../npm/dist/audio/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 
 class AudioGraph
 {

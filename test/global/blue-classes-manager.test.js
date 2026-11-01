@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { type } from "../../src/global/schema/index.js";
-import { blue } from "../../src/global/blue/index.js";
+import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
+import { type } from "../../src/blue/schema/index.js";
+import { blue } from "../../src/blue/blue/index.js";
 import { MarkerTag } from "../support/markerTags.js";
 
 class Effect

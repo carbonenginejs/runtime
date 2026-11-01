@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { Copier, DictReader, IInitialize, IRoot } from "../../npm/dist/global/blue/index.js";
-import { GetResources } from "../../npm/dist/global/blue/getResources.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
+import { Copier, DictReader, IInitialize, IRoot } from "../../npm/dist/blue/blue/index.js";
+import { GetResources } from "../../npm/dist/blue/blue/getResources.js";
 import { Tr2ExpressionTermInfo, TriFloat, TriVariable, Tr2VariableStore } from "../../npm/dist/trinity/index.js";
 import { ITr2EffectValue, ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
 import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";

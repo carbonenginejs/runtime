@@ -1,8 +1,8 @@
-import * as schemaExports from "../../src/global/schema/index.js";
+import * as schemaExports from "../../src/blue/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { exposure as be } from "#be";
-import { CjsSchema, meta, type, blue } from "../../src/global/schema/index.js";
+import { CjsSchema, meta, type, blue } from "../../src/blue/schema/index.js";
 
 function withoutOwners(entries)
 {

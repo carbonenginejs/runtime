@@ -8,7 +8,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { ITr2BoundingBox } from "../../npm/dist/global/interfaces/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
 import {
   EveChildContainer,

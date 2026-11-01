@@ -6,7 +6,7 @@ import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { color } from "../../npm/dist/global/math/color.js";
 import { ITr2DebugRenderer2 } from "../../npm/dist/global/interfaces/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { EveBannerItem, EveBannerSet, IEveSpaceObjectAttachment, Tr2Effect, TriFrustum } from "../../npm/dist/trinity/index.js";
 import { MarkerTag } from "../support/markerTags.js";
 

@@ -4,7 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-// A "#blue/<file>" import resolves to npm/dist/global/blue/<file>.js in the
+// A "#blue/<file>" import resolves to npm/dist/blue/blue/<file>.js in the
 // published package, but rollup keeps "#" imports external and only emits
 // modules the export graph reaches (plus privateInputs). A target nothing else
 // reaches would be missing from the package, and fail only for consumers.
@@ -39,7 +39,7 @@ test("every #blue/* import target is emitted to npm/dist", () =>
     const exact = imports[`#blue/${target}`];
     const emitted = exact
       ? path.join(root, "npm", exact)
-      : path.join(root, "npm", "dist", "global", "blue", `${target}.js`);
+      : path.join(root, "npm", "dist", "blue", "blue", `${target}.js`);
     assert.ok(fs.existsSync(emitted), `#blue/${target} has no emitted ${path.relative(root, emitted)}; add it to privateInputs in rollup.config.mjs`);
   }
 });

@@ -1,10 +1,10 @@
-import "../../npm/dist/global/blueexposure/IRoot.js";
+import "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import test from "node:test";
 import * as model from "../../npm/dist/global/model/index.js";
-import * as schema from "../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import * as schema from "../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import "../../npm/dist/trinity/index.js";
 
 test("the deleted model class, state, brand and registration cannot leak through the built package", () =>

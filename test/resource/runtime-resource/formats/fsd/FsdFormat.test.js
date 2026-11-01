@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsFormatStore } from "../../../../../src/global/blue/CjsFormatStore.js";
+import { CjsFormatStore } from "../../../../../src/blue/blue/CjsFormatStore.js";
 import {
     CjsFsd32Format,
     CjsFsd64Format,

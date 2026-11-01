@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { sph3 } from "../../npm/dist/global/math/sph3.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import {
   EveBoosterSet2,

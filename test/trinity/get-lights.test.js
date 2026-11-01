@@ -9,13 +9,13 @@
 // EveChildMesh.cpp:1638-1652).
 import { TriTextureRes } from "../../npm/dist/resource/index.js";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { noise } from "../../npm/dist/global/math/noise.js";
-import { CcpTime } from "../../npm/dist/global/blue/CcpTime.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { CcpTime } from "../../npm/dist/blue/blue/CcpTime.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { InitializeTrinityStub } from "../support/trinityStub.js";
 
 // The renderer clock reads trinity.device.

@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { CjsSchema, type } from "#schema";
 import { resolveHydrationAdapter } from "#schema/hydration";
-import { YamlReader } from "../../src/global/blue/YamlReader.js";
+import { YamlReader } from "../../src/blue/blue/YamlReader.js";
 
 // Declared classes without their own SetValues populate through the schema.
 // The reader supplies ctx.declared from class registration; undeclared caller

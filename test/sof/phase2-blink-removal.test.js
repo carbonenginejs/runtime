@@ -1,9 +1,9 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { DictReader, DictWriter, Copier, blue } from "../../npm/dist/global/blue/index.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { DictReader, DictWriter, Copier, blue } from "../../npm/dist/blue/blue/index.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { EveSOFDataBlink } from "../../npm/dist/sof/shared/EveSOFDataBlink.js";
 import { EveSOFDataBlinkType } from "../../npm/dist/sof/shared/EveSOFDataBlinkType.js";
 import { EveSOFDataHull } from "../../npm/dist/sof/hull/EveSOFDataHull.js";

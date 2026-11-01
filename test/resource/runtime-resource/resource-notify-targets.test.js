@@ -6,7 +6,7 @@ import { EveTurretSet } from "../../../npm/dist/trinity/eve/attachment/turrets/E
 // BlueAsyncRes.cpp:261-334; completion does not surrender owner subscriptions.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BlueAsyncRes, blue, BlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { BlueAsyncRes, blue, BlueResMan } from "../../../npm/dist/blue/blue/index.js";
 import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { Tr2Mesh } from "../../../npm/dist/trinity/core/mesh/Tr2Mesh.js";
 import { Tr2GrannyAnimation } from "../../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";

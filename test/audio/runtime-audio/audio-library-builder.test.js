@@ -6,7 +6,7 @@ import {
     CjsAudioLibraryBuilder,
 } from "../../../npm/dist/audio/library-builder/index.js";
 import { CjsAudioLibrary } from "../../../npm/dist/audio/library/index.js";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
 import {
     CjsFsd64SchemaDecoder,
     CjsFsd64SchemaReader,

@@ -1,10 +1,10 @@
-import { IRoot as ExposureRoot } from "../../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../../npm/dist/blue/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
-import { BlueList, IInitialize, INotify, IListNotify, ITriFunction, ITriCurveLength } from "../../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import { mappedInterfaces } from "../../../npm/dist/blue/compose/interface.js";
+import { BlueList, IInitialize, INotify, IListNotify, ITriFunction, ITriCurveLength } from "../../../npm/dist/blue/blue/index.js";
 import { ITr2DebugRenderable } from "../../../npm/dist/global/interfaces/index.js";
 import { AudEventCurve, AudEmitter, AudGameObjResource, AudParameter, Tr2AudioStretchBase, Tr2AudioStretchAuto, ITr2Audio } from "../../../npm/dist/audio/index.js";
 import "../../../npm/dist/trinity/index.js";

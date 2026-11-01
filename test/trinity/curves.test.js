@@ -1,10 +1,10 @@
 import { EveSpaceObject2 } from "../../npm/dist/trinity/eve/spaceObject/EveSpaceObject2.js";
 import { EveLocatorSets } from "../../npm/dist/trinity/eve/locator/EveLocatorSets.js";
-import { ITriVectorFunction, ITriColorFunction, ITriCurveLength } from "../../npm/dist/global/blue/index.js";
-import { ITriFunction } from "../../npm/dist/global/blue/ITriFunction.js";
+import { ITriVectorFunction, ITriColorFunction, ITriCurveLength } from "../../npm/dist/blue/blue/index.js";
+import { ITriFunction } from "../../npm/dist/blue/blue/ITriFunction.js";
 import { ITriDuration } from "../../npm/dist/trinity/curves/ITriDuration.js";
 import { ITr2ValueBinding } from "../../npm/dist/trinity/curves/ITr2ValueBinding.js";
-import { blue } from "../../npm/dist/global/schema/index.js";
+import { blue } from "../../npm/dist/blue/schema/index.js";
 import test from "node:test";
 import { TRIEXTRAPOLATION } from "../../npm/dist/global/consts/graphics/index.js";
 import { CjsGrannyCurves, Tr2BoneMatrixCurve, Tr2CameraFollowCurveKey, Tr2CurveColor, Tr2CurveColorMixer, Tr2CurveCombiner, Tr2CurveConstant, Tr2CurveEulerRotation, Tr2CurveEulerRotationExpression, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveQuaternion, Tr2CurveQuaternionKey, Tr2CurveRandomAxisRotation, Tr2CurveScalar, Tr2CurveScalarExpression, Tr2CurveScalarKey, Tr2CurveSetRange, Tr2CurveVector2, Tr2CurveVector3, Tr2CurveVector3Expression, Tr2CurveVector3Lerp, Tr2CurveVector3LerpKeyInterpolation, Tr2DistanceTracker, Tr2FollowCurve, Tr2FollowCurveKeyInterpolation, Tr2GrannyEventTrack, Tr2GrannyTrack, Tr2GrannyTransformTrack, Tr2GrannyVectorTrack, Tr2MatrixKey, Tr2ObjectFollowCurveKey, Tr2ObjectFollowCurveKeyRotationSetting, Tr2QuaternionLerpCurve, Tr2RotationAdapter, Tr2ScalarExprKey, Tr2ScalarExprKeyCurve, Tr2ScalarFader, Tr2TranslationAdapter, TriColorSequencer, TriCurveSet, TriEventCurve, TriPerlinCurve, TriVectorSequencer } from "../../npm/dist/trinity/index.js";
@@ -15,7 +15,7 @@ import { vec2 } from "../../npm/dist/global/math/vec2.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { color } from "../../npm/dist/global/math/color.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { MarkerTag } from "../support/markerTags.js";
 
 

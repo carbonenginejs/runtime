@@ -7,7 +7,7 @@ import test from "node:test";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { Tr2PickType } from "../../npm/dist/global/consts/graphics/tr2PickType.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import {
   EveChildUpdateParams, EveEllipseDefinition, EveEllipseSet, EveUpdateContext, Tr2Effect, Tr2EffectStateManager, Tr2Lod,
   TriSettingsRegistrar, Tr2RenderContext_GetMainThreadRenderContext

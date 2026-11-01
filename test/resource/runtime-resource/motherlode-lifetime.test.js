@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {test, beforeEach, afterEach} from "node:test";
-import {CjsSchema, blue as exposure} from "../../../npm/dist/global/schema/index.js";
-import {blue, BlueAsyncRes, BlueResMan, MotherLode, ICacheable, getMotherLodeKey} from "../../../npm/dist/global/blue/index.js";
+import {CjsSchema, blue as exposure} from "../../../npm/dist/blue/schema/index.js";
+import {blue, BlueAsyncRes, BlueResMan, MotherLode, ICacheable, getMotherLodeKey} from "../../../npm/dist/blue/blue/index.js";
 import {TriTextureRes} from "../../../npm/dist/resource/index.js";
 import {normalizeResourcePath} from "#utils/path";
 

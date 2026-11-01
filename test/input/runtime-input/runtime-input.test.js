@@ -8,8 +8,8 @@ import {
     Tr2MouseCursor,
     UIScancode
 } from "../../../npm/dist/input/index.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
 
 class FakeTarget
 {

@@ -1,11 +1,11 @@
-import { IRoot as ExposureRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, BlueList, IListNotify, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { blue, BlueList, IListNotify, IInitialize, INotify } from "../../npm/dist/blue/blue/index.js";
 import { StubResMan } from "../support/stubResMan.js";
-import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { Tr2MeshBase, Tr2Mesh, Tr2InstancedMesh, Tr2MeshArea } from "../../npm/dist/trinity/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 

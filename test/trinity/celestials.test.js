@@ -8,7 +8,7 @@ import { vec3 } from '../../npm/dist/global/math/vec3.js';
 import { Tr2Lod } from '../../npm/dist/trinity/eve/EveLODHelper.js';
 import { ITr2Controller } from '../../npm/dist/trinity/controllers/ITr2Controller/ITr2Controller.js';
 import { UnlinkReason } from '../../npm/dist/trinity/controllers/enums.js';
-import { blue } from '../../npm/dist/global/schema/index.js';
+import { blue } from '../../npm/dist/blue/schema/index.js';
 import { TriBatchType } from '../../npm/dist/global/consts/graphics/index.js';
 
 function close(actual, expected, epsilon = 1e-5)

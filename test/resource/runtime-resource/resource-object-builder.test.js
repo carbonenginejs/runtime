@@ -1,7 +1,7 @@
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import {
   CjsLoadingObject,
   MotherLode,

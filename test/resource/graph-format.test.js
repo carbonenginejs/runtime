@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsGraphFormat as Format, opaqueBytes } from "../../src/global/blue/formats/graph/index.js";
-import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { registerClass } from "../../src/global/blueexposure/classes/registry.js";
+import { CjsGraphFormat as Format, opaqueBytes } from "../../src/blue/blue/formats/graph/index.js";
+import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
+import { registerClass } from "../../src/blue/blueexposure/classes/registry.js";
 import { fixtures } from "./graph-fixtures.js";
 
 const { Node, name } = fixtures("GraphText");

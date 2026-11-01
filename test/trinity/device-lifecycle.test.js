@@ -1,8 +1,8 @@
-import { addChild, removeChild } from "../../npm/dist/global/blue/children.js";
+import { addChild, removeChild } from "../../npm/dist/blue/blue/children.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import {
   trinity,
   Tr2RenderContext_GetMainThreadRenderContext,
@@ -342,7 +342,7 @@ test("scene and context setters preserve a shared system until its final caller 
 
 test("TriDevice.minimumModelLOD is an accessor over Get/SetMinimumModelLOD (TriDevice.cpp:1501-1528)", async () =>
 {
-  const { CjsSchema } = await import("../../npm/dist/global/schema/index.js");
+  const { CjsSchema } = await import("../../npm/dist/blue/schema/index.js");
   const device = new TriDevice();
   assert.equal(device.GetMinimumModelLOD(), 0, "m_minimumModelLOD starts at 0 (TriDevice.cpp:176)");
 

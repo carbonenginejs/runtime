@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { getClassRegistrations } from "../../npm/dist/global/blueexposure/classes/registry.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { getClassRegistrations } from "../../npm/dist/blue/blueexposure/classes/registry.js";
 import "../../npm/dist/trinity/index.js";
 import "../../npm/dist/sof/index.js";
 import "../../npm/dist/audio/index.js";

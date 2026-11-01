@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { CjsPaperDollDefinition, PaperDollPass } from "../../../npm/dist/character/index.js";
 
 test("component fields are independent engine inputs and schema notification only dirties", () =>

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue, Copier, ICopier, ICopierCustomAssignment, IInitialize, INotify } from "../../src/global/blue/index.js";
-import { CjsSchema, CJS_CLASS_NAME, type } from "../../src/global/schema/index.js";
+import { blue, Copier, ICopier, ICopierCustomAssignment, IInitialize, INotify } from "../../src/blue/blue/index.js";
+import { CjsSchema, CJS_CLASS_NAME, type } from "../../src/blue/schema/index.js";
 
 // Blue's Copier (blueexposure/Copier.cpp), reached through blue.classes.CopyTo
 // as BlueClasses.cpp:498-516 does.

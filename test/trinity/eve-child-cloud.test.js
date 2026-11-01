@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { mat4, quat, vec3 } from "../../npm/dist/global/math/index.js";
 import { RenderingMode, TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import {

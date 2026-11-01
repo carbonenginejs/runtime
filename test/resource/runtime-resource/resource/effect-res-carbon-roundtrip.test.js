@@ -1,5 +1,5 @@
 import { readEffectFixture } from "../../../support/resourceFixtures.js";
-import { CjsSchema } from "../../../../src/global/schema/index.js";
+import { CjsSchema } from "../../../../src/blue/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 

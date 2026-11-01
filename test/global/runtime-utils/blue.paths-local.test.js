@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
 import { localFileSystem } from "../../support/localFileSystem.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
 import "../../support/frameLoop.js";

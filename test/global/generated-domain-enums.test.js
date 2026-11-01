@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const inputs = JSON.parse(await readFile(new URL("../../scripts/trinity/enum-registration-inputs.json", import.meta.url), "utf8"));
@@ -19,7 +19,7 @@ test("generated definition registers without domain classes: " + module.file, ()
   const result = spawnSync(process.execPath, [
     "--experimental-loader", "data:text/javascript," + encodeURIComponent(guard), "--input-type=module", "--eval",
     `import assert from "node:assert/strict";
-      import {blueEnums} from "./npm/dist/global/blue/enums/CjsBlueEnumRegistry.js";
+      import {blueEnums} from "./npm/dist/blue/blue/enums/CjsBlueEnumRegistry.js";
       for (const name of ["fetch", "setTimeout", "setInterval", "requestAnimationFrame"])
         globalThis[name] = () => { throw new Error("Enum import activated " + name); };
       const module = ${JSON.stringify(module)};

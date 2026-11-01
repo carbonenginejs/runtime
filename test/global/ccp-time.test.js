@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue, CcpDateTime, CcpTime } from "../../npm/dist/global/blue/index.js";
+import { blue, CcpDateTime, CcpTime } from "../../npm/dist/blue/blue/index.js";
 
 
 // core/CcpTime.cpp:271-286. The threshold is a strict `>`, so the constant

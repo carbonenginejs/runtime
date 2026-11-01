@@ -1,4 +1,4 @@
-import { blue, BlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan } from "../../../npm/dist/blue/blue/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 

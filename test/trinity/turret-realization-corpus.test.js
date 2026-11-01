@@ -11,9 +11,9 @@ import { createHash } from "node:crypto";
 import { clientResources } from "../support/clientResources.js";
 import "../../npm/dist/sof/index.js"; // data.black hydrates EveSOFData classes.
 import test from "node:test";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
-import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/blue/formats/black/index.js";
 import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
 import { TriGeometryResSkeletonData } from "../../npm/dist/trinity/resources/geometry/TriGeometryResSkeletonData.js";
 import { EveShip2, EveLocator2, EveTurretSet, EveTurretAiming, EveTurretFiringFX, EveComponentRegistry, Tr2RenderContext, Tr2RingBuffer, TriDevice, trinity, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
@@ -23,9 +23,9 @@ import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import "../../npm/dist/audio/index.js";
 import { StubResMan } from "../support/stubResMan.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { Copier } from "../../npm/dist/global/blueexposure/Copier.js";
-import { GetResources } from "../../npm/dist/global/blue/getResources.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { Copier } from "../../npm/dist/blue/blueexposure/Copier.js";
+import { GetResources } from "../../npm/dist/blue/blue/getResources.js";
 import { Tr2Controller, TriObserverLocal, IEveSpaceObject2ParentData } from "../../npm/dist/trinity/index.js";
 
 /** A hull record carrying only a transform, as EveMobile publishes it to its turret sets. */

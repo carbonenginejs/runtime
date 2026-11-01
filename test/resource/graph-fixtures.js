@@ -1,4 +1,4 @@
-import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
+import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
 
 /** CPU-only declared fixtures; no runtime domain or format registration is needed. */
 export function fixtures(prefix)

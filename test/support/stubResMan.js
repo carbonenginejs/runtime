@@ -1,5 +1,5 @@
 import { CjsAudioRes } from "../../npm/dist/audio/resources/index.js";
-import { blue, BlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueResMan } from "../../npm/dist/blue/blue/index.js";
 import { getResourceExtension, normalizeResourcePath } from "../../npm/dist/global/utils/path.js";
 import { Tr2ImageRes, Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriGrannyRes, TriTextureRes } from "../../npm/dist/resource/index.js";
 import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";

@@ -8,7 +8,7 @@ import {
     Tr2VideoAdapters,
     Tr2VideoDriver
 } from "../../../npm/dist/core/index.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { MarkerTag } from "../../support/markerTags.js";
 
 function fakeAdapter()

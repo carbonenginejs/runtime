@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsSchema, meta, type } from "../../../src/global/schema/index.js";
+import { CjsSchema, meta, type } from "../../../src/blue/schema/index.js";
 
 
 test("decorators install nothing per instance; getDefaults reads one instance without Initialize", () =>

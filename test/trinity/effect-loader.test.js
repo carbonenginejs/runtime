@@ -2,9 +2,9 @@ import { configureResourceManager } from "../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { BlueResMan } from "../../npm/dist/global/blue/BlueResMan.js";
-import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { BlueResMan } from "../../npm/dist/blue/blue/BlueResMan.js";
+import { blue, IBlueResMan } from "../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/index.js";
 import { SetEffectPathDefaults } from "../../npm/dist/global/utils/effectPath.js";

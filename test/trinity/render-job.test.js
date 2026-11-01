@@ -2,7 +2,7 @@ import { StubTarget } from "../support/stubContext.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { ITr2Scene, ITr2MultiPassScene, ITr2VisualizationModeRenderer, Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults, TriProjection } from "../../npm/dist/trinity/core/index.js";
 import { ALResult, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2RenderTarget } from "../../npm/dist/trinity/core/device/Tr2RenderTarget.js";

@@ -131,7 +131,7 @@ test("public parity keeps previously clean subjects and adds newly promoted obli
     "trinity/generated/core/B.js": 'export class B {}'
   }, Object.fromEntries(["A", "B"].map(blueClass => [`core/${blueClass}`, {blueClass,family:"core",nativeMethods:[{cppName:"Tick"}]}])));
   const root = path.dirname(options.sourceRoot);
-  for (const directory of ["scripts/trinity", "src/trinity/dropped", "src/global/blue", "src/global/interfaces", "src/trinityal"])
+  for (const directory of ["scripts/trinity", "src/trinity/dropped", "src/blue/blue", "src/global/interfaces", "src/trinityal"])
     await fs.mkdir(path.join(root,directory),{recursive:true});
   await fs.writeFile(path.join(root,"package.json"),'{"type":"module"}');
   await fs.writeFile(path.join(root,"scripts/trinity-parity-baseline.json"),'{"findings":[]}');

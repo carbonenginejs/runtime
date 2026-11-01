@@ -1,5 +1,5 @@
-import { blue } from "../../../npm/dist/global/blue/index.js";
-import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
+import { blue } from "../../../npm/dist/blue/blue/index.js";
+import { getRegisteredClassName } from "../../../npm/dist/blue/compose/className.js";
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 import { pathToFileURL } from "node:url";
@@ -12,7 +12,7 @@ import {
   BlueResMan,
   BlueResManQueue
 } from "../../../npm/dist/resource/index.js";
-import { CjsResManWorker } from "../../../npm/dist/global/blue/worker/CjsResManWorker.js";
+import { CjsResManWorker } from "../../../npm/dist/blue/blue/worker/CjsResManWorker.js";
 import { LoadData } from "../../support/loadData.js";
 import { RegisterDataLoader, TestDataRes } from "../../support/testDataRes.js";
 
@@ -402,7 +402,7 @@ test("BlueResMan sends worker-safe reads off the main queue and publishes on it"
 
 test("Black, BNK, and WEM format facades declare worker module identities", async () => {
   const [{ CjsBlackFormat }, { CjsBnkFormat }, { CjsWemFormat }] = await Promise.all([
-    import("../../../npm/dist/global/blue/formats/black/index.js"),
+    import("../../../npm/dist/blue/blue/formats/black/index.js"),
     import("../../../npm/dist/resource/formats/bnk/index.js"),
     import("../../../npm/dist/resource/formats/wem/index.js")
   ]);

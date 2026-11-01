@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EveSOF, CjsSofLibraryBuilder } from "../../../npm/dist/sof/index.js";
-import { BeObjectMetadata } from "../../../npm/dist/global/blue/BlueObjectMetadata.js";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { BeObjectMetadata } from "../../../npm/dist/blue/blue/BlueObjectMetadata.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { EveSpaceObjectDecal } from "../../../npm/dist/trinity/index.js";
 
 const dna = "hull:faction:race";

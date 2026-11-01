@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Tr2Sprite2d, Tr2Sprite2dScene, Tr2Sprite2dContainer, Tr2Sprite2dTexture, Tr2Sprite2dD3DVertex, ITr2Sprite2dTexture } from '../../npm/dist/trinity/index.js';
-import { CjsSchema } from '../../npm/dist/global/schema/index.js';
+import { CjsSchema } from '../../npm/dist/blue/schema/index.js';
 import { mat4 } from '../../npm/dist/global/math/index.js';
 
 class RecordingScene extends Tr2Sprite2dScene

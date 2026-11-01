@@ -1,4 +1,4 @@
-import { IRoot as ExposureRoot } from "../../src/global/blueexposure/IRoot.js";
+import { IRoot as ExposureRoot } from "../../src/blue/blueexposure/IRoot.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -8,15 +8,15 @@ import {
   ITriColorFunction, ITriCurveLength, blue
 } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
-import { ITriFunction as DirectFunction } from "../../src/global/blue/ITriFunction.js";
-import { ITriScalarFunction as DirectScalar } from "../../src/global/blue/ITriScalarFunction.js";
-import { ITriVectorFunction as DirectVector } from "../../src/global/blue/ITriVectorFunction.js";
-import { ITriQuaternionFunction as DirectQuaternion } from "../../src/global/blue/ITriQuaternionFunction.js";
-import { ITriColorFunction as DirectColor } from "../../src/global/blue/ITriColorFunction.js";
-import { ITriCurveLength as DirectLength } from "../../src/global/blue/ITriCurveLength.js";
+import { ITriFunction as DirectFunction } from "../../src/blue/blue/ITriFunction.js";
+import { ITriScalarFunction as DirectScalar } from "../../src/blue/blue/ITriScalarFunction.js";
+import { ITriVectorFunction as DirectVector } from "../../src/blue/blue/ITriVectorFunction.js";
+import { ITriQuaternionFunction as DirectQuaternion } from "../../src/blue/blue/ITriQuaternionFunction.js";
+import { ITriColorFunction as DirectColor } from "../../src/blue/blue/ITriColorFunction.js";
+import { ITriCurveLength as DirectLength } from "../../src/blue/blue/ITriCurveLength.js";
 import { ITriDuration } from "../../src/trinity/curves/ITriDuration.js";
 import { ITr2ValueBinding } from "../../src/trinity/curves/ITr2ValueBinding.js";
-import { mappedInterfaces } from "../../src/global/compose/interface.js";
+import { mappedInterfaces } from "../../src/blue/compose/interface.js";
 import { MarkerTag } from "../support/markerTags.js";
 
 const contracts = [

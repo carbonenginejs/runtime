@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2ParticleSystem } from "../../npm/dist/trinity/index.js";
-import { blue, BlueOS, NotifyModified } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueOS, NotifyModified } from "../../npm/dist/blue/blue/index.js";
 
 test("particle batch handles sorting, clock rebasing and both emitter notifications", () =>
 {

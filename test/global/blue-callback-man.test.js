@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { BeCallbackMan, BlueCallbackMan, BlueCallbackManTicker, BlueCallbackManWorker, BlueResManQueue, BlueResMan, IBlueCallbackMan } from "../../src/global/blue/index.js";
+import { BeCallbackMan, BlueCallbackMan, BlueCallbackManTicker, BlueCallbackManWorker, BlueResManQueue, BlueResMan, IBlueCallbackMan } from "../../src/blue/blue/index.js";
 
 // blue/src/CallbackMan.cpp: urgent before regular, fences after every thread
 // drained what came before, cancel removes a queued entry and discards one in
@@ -645,7 +645,7 @@ test("a started manager without workers keeps Carbon's one Update slot, so a tic
 
 test("BeThreadMonitor shows a worker working while its entry runs, and the main thread during an Update entry", async () =>
 {
-  const { BeThreadMonitor, IBlueThreadMonitor } = await import("../../src/global/blue/index.js");
+  const { BeThreadMonitor, IBlueThreadMonitor } = await import("../../src/blue/blue/index.js");
   const statusOf = thread => new Map(BeThreadMonitor.GetStatus()).get(thread);
 
   let release;

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsSchema } from "#schema";
-import { isWritableField } from "../../src/global/compose/values.js";
+import { isWritableField } from "../../src/blue/compose/values.js";
 
 // The state-free transport: coercion, the writability gate and a changed set.
 // The dirty flag, the settle, the modified event and child mutation are the

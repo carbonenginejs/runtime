@@ -4,8 +4,8 @@
 // growing that list is a regression, shrinking it should update the list.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue } from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
 
 // All enum fields resolve through the registry or existing class statics.

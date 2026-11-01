@@ -1,5 +1,5 @@
 import { configureResourceManager } from "../support/configuredResMan.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
 import assert from "node:assert/strict";
@@ -289,7 +289,7 @@ test("VTA textures load the first volume frame through the ordinary texture reso
 
 test("SetTextureFromRT wraps a render target as a live view (TriTextureRes.cpp:871-892)", async () =>
 {
-  const { CjsSchema } = await import("../../npm/dist/global/schema/index.js");
+  const { CjsSchema } = await import("../../npm/dist/blue/schema/index.js");
   const { Tr2Event } = await import("../../npm/dist/trinity/index.js");
 
   /** A render target with Carbon's IsValid / GetRenderTarget / OnTextureChange. */

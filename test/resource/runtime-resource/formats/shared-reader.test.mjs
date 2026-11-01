@@ -1,20 +1,20 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsBlueReader } from "../../../../src/global/blue/CjsBlueReader.js";
+import { CjsBlueReader } from "../../../../src/blue/blue/CjsBlueReader.js";
 import { CjsByteReader } from "../../../../src/resource/format/CjsByteReader.js";
 import { CjsReader } from "../../../../src/resource/format/CjsReader.js";
 import { CjsCarbonEffectReader } from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import { HlslReader } from "../../../../src/resource/formats/hlsl/core/HlslReader.js";
 import { DxbcReader } from "../../../../src/resource/formats/dxbc/core/DxbcReader.js";
 import { DxbcReadError } from "../../../../src/resource/formats/dxbc/core/DxbcReadError.js";
-import { CjsBlackReader } from "../../../../src/global/blue/formats/black/core/CjsBlackReader.js";
+import { CjsBlackReader } from "../../../../src/blue/blue/formats/black/core/CjsBlackReader.js";
 import {
     CJS_BLACK_FOURCC,
     CJS_BLACK_VERSION
-} from "../../../../src/global/blue/formats/black/core/blackConstants.js";
-import { YamlReader } from "../../../../src/global/blue/YamlReader.js";
-import { IRootReaderBase } from "../../../../src/global/blue/IRootReaderBase.js";
+} from "../../../../src/blue/blue/formats/black/core/blackConstants.js";
+import { YamlReader } from "../../../../src/blue/blue/YamlReader.js";
+import { IRootReaderBase } from "../../../../src/blue/blue/IRootReaderBase.js";
 import { CjsYamlReader } from "../../../../src/resource/formats/yaml/core/CjsYamlReader.js";
 
 test("Black retains its hydration backend while YamlReader uses native IRootReaderBase", () =>

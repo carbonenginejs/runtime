@@ -7,9 +7,9 @@ import { ImportAllDistModules, ImportDist } from "../support/allDistClasses.js";
 // what the schema answers, and its Blue view must be what PyGetTypeInfo reports.
 
 await ImportAllDistModules();
-const { CjsSchema } = await ImportDist("global/schema/CjsSchema.js");
-const { getClassRegistrations } = await ImportDist("global/blueexposure/classes/registry.js");
-const { ClassInfo, BlueClasses } = await ImportDist("global/blue/index.js");
+const { CjsSchema } = await ImportDist("blue/schema/CjsSchema.js");
+const { getClassRegistrations } = await ImportDist("blue/blueexposure/classes/registry.js");
+const { ClassInfo, BlueClasses } = await ImportDist("blue/blue/index.js");
 
 const classes = new BlueClasses();
 const registrations = getClassRegistrations();

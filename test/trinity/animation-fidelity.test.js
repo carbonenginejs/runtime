@@ -1,8 +1,8 @@
 import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
-import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
+import { DictReader } from "../../npm/dist/blue/blue/DictReader.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/blue/blue/index.js";
 import { Tr2ControllerReference, Tr2SyncToAnimation, Tr2TimelineController, Tr2StateMachineTransition, Tr2StateMachineState, Tr2StateMachine, Tr2Controller, Tr2ActionPlayCurveSet, TriCurveSet, TriRigidOrientation, TriTorque } from "../../npm/dist/trinity/index.js";
 
 test("animation finalizer preserves the native remaining-time comparison", () =>

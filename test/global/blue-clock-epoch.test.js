@@ -8,7 +8,7 @@ import {
   BlueOS,
   IBlueEvents,
   CcpTime
-} from "../../npm/dist/global/blue/index.js";
+} from "../../npm/dist/blue/blue/index.js";
 
 
 class TestTicker extends IBlueEvents

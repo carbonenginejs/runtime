@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CjsSchema } from '../../npm/dist/global/schema/index.js';
-import { NotifyModified, BlueList } from '../../npm/dist/global/blue/index.js';
+import { CjsSchema } from '../../npm/dist/blue/schema/index.js';
+import { NotifyModified, BlueList } from '../../npm/dist/blue/blue/index.js';
 import { BLUELISTEVENT as Event } from '../../npm/dist/global/consts/blue.js';
 import { PixelFormat } from '../../npm/dist/global/consts/renderContext/index.js';
 import { EveCloudEditableVolume, EveCloudVolumeBall, Tr2HostBitmap, TriCurveSet } from '../../npm/dist/trinity/index.js';

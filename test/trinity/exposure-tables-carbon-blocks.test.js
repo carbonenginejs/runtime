@@ -3,9 +3,9 @@ import test from "node:test";
 
 import * as trinity from "../../npm/dist/trinity/index.js";
 import * as audio from "../../npm/dist/audio/index.js";
-import { IRoot, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { IRoot, IInitialize, INotify } from "../../npm/dist/blue/blue/index.js";
 import { ITr2BoundingBox } from "../../npm/dist/global/interfaces/index.js";
-import { hasOwnInterfaceTable, mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { hasOwnInterfaceTable, mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 
 const X = { ...audio, ...trinity };
 

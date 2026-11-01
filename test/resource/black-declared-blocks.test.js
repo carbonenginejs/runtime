@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsBlackBinaryReader } from "../../src/global/blue/formats/black/core/CjsBlackBinaryReader.js";
-import { CjsBlackPropertyReaders as Readers } from "../../src/global/blue/formats/black/core/CjsBlackPropertyReaders.js";
-import { CjsBlackSchemaRegistry } from "../../src/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
-import { DEFAULT_VALUES, normalizeValues } from "../../src/global/blue/formats/black/core/helpers.js";
-import { CLASS_KEYS } from "../../src/global/blue/formats/black/core/schema.js";
+import { CjsBlackBinaryReader } from "../../src/blue/blue/formats/black/core/CjsBlackBinaryReader.js";
+import { CjsBlackPropertyReaders as Readers } from "../../src/blue/blue/formats/black/core/CjsBlackPropertyReaders.js";
+import { CjsBlackSchemaRegistry } from "../../src/blue/blue/formats/black/core/CjsBlackSchemaRegistry.js";
+import { DEFAULT_VALUES, normalizeValues } from "../../src/blue/blue/formats/black/core/helpers.js";
+import { CLASS_KEYS } from "../../src/blue/blue/formats/black/core/schema.js";
 
 function cursor(bytes, length = bytes.length, options = {})
 {

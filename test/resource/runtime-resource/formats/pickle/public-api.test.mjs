@@ -190,7 +190,7 @@ test("pickle profiles strictly validate options and resource limits", () =>
 
 test("ResMan routes lowercase pickle resource context without domain coupling", async t =>
 {
-  const { blue } = await import("../../../../../npm/dist/global/blue/blue.js");
+  const { blue } = await import("../../../../../npm/dist/blue/blue/blue.js");
   const previous = blue.resMan;
   t.after(() => { blue.resMan = previous; });
   const input = bytes("(dp0\nVvalue\np1\nI7\ns.");

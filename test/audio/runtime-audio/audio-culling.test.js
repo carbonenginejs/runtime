@@ -1,7 +1,7 @@
 import test from "node:test";
 import { WwiseSoundEngineStubWith, AudioManagerWith } from "../../support/audioStub.js";
 import assert from "node:assert/strict";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import {
   AudEmitter,
   AudGameObjResource,

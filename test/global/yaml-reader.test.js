@@ -1,18 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
-import { YamlWriter } from "../../npm/dist/global/blue/YamlWriter.js";
-import { IInitialize } from "../../npm/dist/global/blueexposure/IInitialize.js";
-import { INotify } from "../../npm/dist/global/blueexposure/INotify.js";
-import { ICustomPersist } from "../../npm/dist/global/blueexposure/ICustomPersist.js";
-import { IBlueObjectProxy } from "../../npm/dist/global/blue/IBlueObjectProxy.js";
-import { IRoot } from "../../npm/dist/global/blueexposure/IRoot.js";
-import { IListNotify } from "../../npm/dist/global/blueexposure/IListNotify.js";
-import { BlueList } from "../../npm/dist/global/blueexposure/BlueList.js";
+import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
+import { YamlReader } from "../../npm/dist/blue/blue/YamlReader.js";
+import { YamlWriter } from "../../npm/dist/blue/blue/YamlWriter.js";
+import { IInitialize } from "../../npm/dist/blue/blueexposure/IInitialize.js";
+import { INotify } from "../../npm/dist/blue/blueexposure/INotify.js";
+import { ICustomPersist } from "../../npm/dist/blue/blueexposure/ICustomPersist.js";
+import { IBlueObjectProxy } from "../../npm/dist/blue/blue/IBlueObjectProxy.js";
+import { IRoot } from "../../npm/dist/blue/blueexposure/IRoot.js";
+import { IListNotify } from "../../npm/dist/blue/blueexposure/IListNotify.js";
+import { BlueList } from "../../npm/dist/blue/blueexposure/BlueList.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
-import { BeObjectMetadata } from "../../npm/dist/global/blue/BlueObjectMetadata.js";
-import "../../npm/dist/global/blue/values.js";
+import { BeObjectMetadata } from "../../npm/dist/blue/blue/BlueObjectMetadata.js";
+import "../../npm/dist/blue/blue/values.js";
 
 let serial = 0;
 function register(Constructor, fields, extra = {})

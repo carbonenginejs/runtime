@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
-import { blue, BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
-import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
+import { blue, BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/blue/index.js";
+import { installBlueServices } from "../../../npm/dist/blue/blue/blue.js";
 import "../../support/frameLoop.js";
 
 // Expected values recorded from Graphene's readYaml (resourceListing.js at graphene 8597c52) over build

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsSchema } from "#schema";
-import { composedContracts, installInterface } from "../../src/global/compose/interface.js";
+import { composedContracts, installInterface } from "../../src/blue/compose/interface.js";
 
 // Carbon declares additional bases with MAP_INTERFACE; JS has one `extends`
 // slot. These pin the behaviour the mixin towers had, so the 33 sites that

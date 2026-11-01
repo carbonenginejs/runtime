@@ -41,7 +41,7 @@ export async function ImportAllDistModules()
 /**
  * Imports one module of the built runtime by its path under npm/dist.
  *
- * @param {string} path Path under npm/dist, e.g. "global/schema/CjsSchema.js".
+ * @param {string} path Path under npm/dist, e.g. "blue/schema/CjsSchema.js".
  * @returns {Promise<object>} The module.
  */
 export function ImportDist(path)

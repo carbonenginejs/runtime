@@ -4,7 +4,7 @@ import {createHash} from "node:crypto";
 import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import test from "node:test";
-import {BlueResMan, MotherLode} from "../../npm/dist/global/blue/index.js";
+import {BlueResMan, MotherLode} from "../../npm/dist/blue/blue/index.js";
 
 import {Tr2Mesh, Tr2MeshArea, Tr2RenderContext} from "../../npm/dist/trinity/index.js";
 

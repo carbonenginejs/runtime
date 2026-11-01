@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterLibraryConfiguration } from "../../../npm/dist/character/index.js";
-import { BluePaths, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/global/blue/index.js";
+import { BluePaths, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/blue/index.js";
 
 test("every character matcher accepts its scope and rejects an adjacent extension", () =>
 {
