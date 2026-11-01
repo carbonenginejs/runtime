@@ -1,5 +1,5 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
-import { hydrateShared } from "../../geometry/hydrateShared.js";
+import { hydrateShared } from "../../shared/hydrateShared.js";
 import { canCloneFormatOptions } from "../../format/workerOptions.js";
 import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
 
