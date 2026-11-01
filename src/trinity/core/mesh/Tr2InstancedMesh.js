@@ -281,7 +281,14 @@ export class Tr2InstancedMesh extends Tr2Mesh
     // rebuilds what preparing makes.
     this.IsGood();
     const provider = this.GetInstanceGeometryResource();
-    if (!provider || !provider.IsInstanceDataReady()) return false;
+    if (!provider) return false;
+    // The provider's use (Tr2DeviceResource.IsGood registers and renews it) is asked here, by its consumer, before
+    // its readiness: readiness is false until preparing has run, and stays a pure query, as Carbon's const
+    // IsInstanceDataReady is. A provider that owns device objects is a Tr2DeviceResource (Tr2DirectInstanceData.h,
+    // Tr2RuntimeInstanceData.h, Tr2ParticleSystem.h); a geometry resource is not and is skipped.
+    const deviceProvider = CjsSchema.cast(provider, Tr2DeviceResource);
+    if (deviceProvider) deviceProvider.IsGood();
+    if (!provider.IsInstanceDataReady()) return false;
     const instanceGeometry = CjsSchema.cast(provider, TriGeometryRes);
     if (instanceGeometry && !CreateLodAllocations(instanceGeometry, this.instanceMeshIndex,
       instanceGeometry.GetMeshLod__ScreenSize(this.instanceMeshIndex, screenSize), Tr2RenderContext_GetMainThreadRenderContext())) return false;

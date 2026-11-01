@@ -113,9 +113,6 @@ export class Tr2DirectInstanceData
 
   IsInstanceDataReady()
   {
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Asked here because a consumer asks this
-    // before it reads the buffer, and it is false until preparing has run.
-    this.IsGood();
     return this._vertexDeclaration !== Tr2EffectStateManager.Unknown && this._vertexBuffer.IsValid();
   }
 

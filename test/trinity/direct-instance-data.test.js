@@ -54,7 +54,9 @@ test("direct instance buffer implements Carbon allocation, mapping and reset lif
   const provider = new Tr2DirectInstanceData();
   assert.equal(trinity.GetResourcesRegistered().includes(provider), false, "built and never asked: not registered");
   assert.equal(provider.IsInstanceDataReady(), false);
-  assert.ok(trinity.GetResourcesRegistered().includes(provider), "asking for the instance data is its use");
+  assert.equal(trinity.GetResourcesRegistered().includes(provider), false, "readiness is a pure query, as Carbon's const one is");
+  provider.IsGood();
+  assert.ok(trinity.GetResourcesRegistered().includes(provider), "its consumer's use registers it");
   assert.equal(provider.GetInstanceBufferVertexDeclaration(), Tr2EffectStateManager.Unknown);
   assert.equal(provider.GetData(3), null, "no stride means no allocation (cpp:175-178)");
   provider.SetLayout(layout());
@@ -92,6 +94,34 @@ test("direct instance buffer implements Carbon allocation, mapping and reset lif
   assert.equal(provider.GetInstanceBufferVertexDeclaration(), declaration);
   provider.Destruct();
   assert.equal(trinity.GetResourcesRegistered().includes(provider), false);
+});
+
+test("asking a destructed provider whether it is ready does not register it again", t =>
+{
+  setup(t);
+  const provider = new Tr2DirectInstanceData();
+  provider.SetLayout(layout());
+  provider.GetData(1);
+  provider.UpdateData();
+  provider.IsGood();
+  assert.ok(trinity.GetResourcesRegistered().includes(provider));
+  provider.Destruct();
+  assert.equal(provider.IsInstanceDataReady(), false);
+  assert.equal(trinity.GetResourcesRegistered().includes(provider), false, "a readiness query is not a use");
+  trinity._ReleaseIdleResources();
+  assert.equal(trinity._resourcesRegistered.includes(provider), false, "the pass drops the destructed provider");
+});
+
+test("an instanced mesh's draw is its provider's use", t =>
+{
+  setup(t);
+  const provider = new Tr2DirectInstanceData(), mesh = new Tr2InstancedMesh();
+  mesh.SetInstanceGeometryRes(provider);
+  // Past the geometry gate, which is not what this tests.
+  t.mock.method(mesh, "GetGeometryResource", () => ({ IsGood: () => true }));
+  assert.equal(trinity.GetResourcesRegistered().includes(provider), false);
+  mesh.GetBatches({ Commit() {} }, [], null);
+  assert.ok(trinity.GetResourcesRegistered().includes(provider), "GetBatches asks IsGood on the provider before its readiness");
 });
 
 test("direct instance allocation and mapping failures remain visible", t =>
