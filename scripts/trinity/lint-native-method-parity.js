@@ -112,6 +112,12 @@ for (const [ className, records ] of schema)
   if (!declared.size) continue;
 
   const provided = ResolveProvidedMethods(className, classes);
+  // A nested Carbon class's methods, which the schema files under this class (NestedCarbonOuter).
+  for (const nested of classes.values())
+  {
+    if (nested.nestedIn !== className) continue;
+    for (const name of nested.methods) provided.add(name);
+  }
   const missing = [ ...declared ].filter(name => !provided.has(name)).sort();
   if (missing.length)
   {
@@ -163,6 +169,30 @@ const shrunk = Object.keys(baseline).filter(className => (report.get(className)?
 if (shrunk.length)
 {
   console.log(`${shrunk.length} class(es) are below baseline - re-record with --write to lock the gain in.`);
+}
+
+/**
+ * The outer Carbon class of a nested-class port, read from its
+ * `meta.define({ carbon: "Outer::Inner" })`; null for any other class. The
+ * schema files a nested class's methods under the outer class
+ * (EveInstancedMeshManager::InstanceBuffer's Allocate, TrimRegions, ...), while
+ * the port keeps them on the nested class's own JS class, so the outer class is
+ * credited with them.
+ */
+function NestedCarbonOuter(declaration)
+{
+  for (const decorator of declaration.decorators ?? [])
+  {
+    const argument = decorator.expression?.arguments?.[0];
+    if (argument?.type !== "ObjectExpression") continue;
+    for (const property of argument.properties)
+    {
+      const key = property.key?.name ?? property.key?.value;
+      const value = property.value?.value;
+      if (key === "carbon" && typeof value === "string" && value.includes("::")) return value.slice(0, value.indexOf("::"));
+    }
+  }
+  return null;
 }
 
 /** Resolves every method a class answers: own, base chain, contract mixins. */
@@ -357,7 +387,7 @@ async function ReadJavaScriptClasses(directory)
       // through `@carbon.inherit(A, B)`, which states the same Carbon fact.
       contracts.push(...InheritedBases(declaration, carbonImports));
       for (const original of defineRenamed.get(className) ?? []) methods.add(original);
-      const record = { className, baseClass, contracts, methods, file: relativeFile, sources: SourceHeaders(ast) };
+      const record = { className, baseClass, contracts, methods, file: relativeFile, sources: SourceHeaders(ast), nestedIn: NestedCarbonOuter(declaration) };
       const existing = records.get(className);
       if (!existing || existing.file.includes("/generated/")) records.set(className, record);
     }

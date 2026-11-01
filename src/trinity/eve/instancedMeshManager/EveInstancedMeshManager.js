@@ -843,6 +843,35 @@ export class EveInstancedMeshManager
   }
 
   /**
+   * Carbon GetPickedObject (h:101). Current Carbon declares it with no body,
+   * so there is nothing to port; picking resolves through the readback
+   * framework (GetPickingBatches).
+   *
+   * @notSupported
+   * @throws {TypeError} Always.
+   */
+  GetPickedObject()
+  {
+    throw new TypeError("EveInstancedMeshManager.GetPickedObject is declared by Carbon (EveInstancedMeshManager.h:101) but has no Carbon body; picking resolves through GetPickingBatches.");
+  }
+
+  /**
+   * Carbon ReplaceHandle, its three overloads (h:106, :111, :147; cpp:160-167,
+   * :222-229, :385-395). Carbon re-points the manager's stored `DataHandle*`
+   * when a provider's vector reallocates and its value-member handle moves. A
+   * JavaScript handle is an object reference that never moves, so the
+   * manager's reference stays valid and there is nothing to replace
+   * (EveInstancedMeshManagerDataHandle head).
+   *
+   * @notSupported
+   * @throws {TypeError} Always.
+   */
+  ReplaceHandle()
+  {
+    throw new TypeError("EveInstancedMeshManager.ReplaceHandle is not needed in JavaScript: a handle is an object reference that never moves, so the manager's reference stays valid.");
+  }
+
+  /**
    * Carbon ReportUsedScreenSizes (h:102, cpp:988-1000): tells each drawn
    * mesh's material the largest screen size it was drawn at this pass, so its
    * textures can stream the mips that size needs.
