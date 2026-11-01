@@ -87,6 +87,10 @@
       "WemBitstreamError",
       "BitReader",
       "OggPageWriter"
+    ],
+    "src/trinity/core/variable/Tr2VariableStore.js": [
+      "Tr2VariableStore",
+      "Tr2GlobalVariableStore"
     ]
   },
   "missingClass": {

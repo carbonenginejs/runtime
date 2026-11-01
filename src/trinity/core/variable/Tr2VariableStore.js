@@ -423,8 +423,14 @@ export class Tr2VariableStore
  * `GlobalStore()` creates once (Tr2VariableStore.cpp:450-457, :459-463). It is
  * built through the base's protected no-parent constructor
  * (Tr2VariableStore.cpp:21-24), so constructing the root does not ask for the
- * root. Carbon declares it in the .cpp beside the base, and so does this file: a
- * separate module would be a cycle, the base creating its subclass.
+ * root.
+ *
+ * TWO CLASSES IN ONE FILE, ON PURPOSE (scripts/class-file-naming-baseline.json,
+ * Ruru 2026-11-01). Carbon keeps both in Tr2VariableStore.h/.cpp, and the load
+ * order forces it here: the base imports `trinity` (its constructor parents to
+ * `trinity.variableStore`) and CjsTrinity creates this subclass, so a module of its
+ * own would evaluate `extends Tr2VariableStore` before the base exists whenever
+ * Tr2VariableStore.js is loaded first.
  *
  * Carbon: Tr2GlobalVariableStore (trinity/trinity/Tr2VariableStore.cpp:450)
  */
