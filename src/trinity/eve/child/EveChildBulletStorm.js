@@ -23,6 +23,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 
 /** BulletStormVertex (cpp:20-23): one float corner id. */
 const CORNER_STRIDE = 4;
@@ -33,6 +34,7 @@ const INSTANCE_STRIDE = 40;
 /** Locator-driven bullet-storm child: instances, target blobs, and the clip-sphere state machine. */
 @be.define("EveChildBulletStorm")
 @be.inherit(ITr2Renderable)
+@be.inherit(Tr2DeviceResource)
 @be.inherit(IInitialize)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
@@ -43,11 +45,17 @@ const INSTANCE_STRIDE = 40;
 export class EveChildBulletStorm extends EveSpaceObjectChild
 {
 
-  /** Registers the device-resource lifetime and prepares its buffers, as Carbon's constructor does (cpp:35-50). */
+  /**
+   * Carbon's constructor (cpp:35-50): prepares its buffers.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
+   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   */
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -182,16 +190,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   {
     this.PrepareResources();
     return true;
-  }
-
-  /**
-   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /**
@@ -391,9 +389,11 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
-    if (!this._vertexBuffer.IsValid() || !this._perInstanceBuffer.IsValid() || !this.effect) return;
+    if (!this.display || !this.effect) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
+    if (!this.IsGood()) return;
+    if (!this._vertexBuffer.IsValid() || !this._perInstanceBuffer.IsValid()) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
-    if (!this.display) return;
     const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indexBuffer.IsValid()) return;
     if (!this.effect.IsGood()) return;

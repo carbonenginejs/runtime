@@ -146,11 +146,17 @@ export class EveChildCloud extends EveSpaceObjectChild
 
   _declaration = Tr2EffectStateManager.Unknown;
 
-  /** Registers the native device-resource lifetime and prepares its grid. */
+  /**
+   * Carbon's constructor: prepares its grid.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
+   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   */
   constructor()
   {
     super();
-    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -290,8 +296,9 @@ export class EveChildCloud extends EveSpaceObjectChild
 
   GetRenderables(renderables)
   {
-    if (!this.isVisible || !this.hasUpdated || !this._indexBuffers.length ||
-      this._declaration === Tr2EffectStateManager.Unknown) return;
+    if (!this.isVisible || !this.hasUpdated) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the grid checks: preparing builds it.
+    if (!this.IsGood() || !this._indexBuffers.length || this._declaration === Tr2EffectStateManager.Unknown) return;
     renderables.push(this);
   }
 

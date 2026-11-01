@@ -265,6 +265,9 @@ test("particle final-owner Destruct detaches nine effect stores once and unregis
 {
   const system = new Tr2GpuParticleSystem();
   const other = new Tr2GpuParticleSystem();
+  // Both in use, so both are registered device resources.
+  system.IsGood();
+  other.IsGood();
   const events = [];
   const slots = [ "emit", "update", "render", "clear", "setDrawParameters", "setSortParameters", "sort", "sortStep", "sortInner" ];
   for (const slot of slots)
@@ -302,6 +305,9 @@ test("scene and context setters preserve a shared system until its final caller 
 {
   const scene = new EveSpaceScene(), context = new EveUpdateContext();
   const shared = new Tr2GpuParticleSystem(), replacement = new Tr2GpuParticleSystem();
+  // Both in use, so both are registered device resources.
+  shared.IsGood();
+  replacement.IsGood();
   const slots = ["emit", "update", "render", "clear", "setDrawParameters", "setSortParameters", "sort", "sortStep", "sortInner"];
   for (const slot of slots) { shared[slot] = new Tr2Effect(); shared.SetVariableStore(shared[slot]); }
   const store = shared._variableStore;

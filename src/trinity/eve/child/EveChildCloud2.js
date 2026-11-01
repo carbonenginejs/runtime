@@ -376,6 +376,11 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /**
    * Owns the lightmap bindings from EveChildCloud2.cpp:103-109.
    * Adapted: explicit ownership replaces native by-value resource destruction.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
+   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
   {
@@ -389,7 +394,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     this.depthShadowMapHandle.SetValue(null);
     this.lights.SetNotify(this);
     this._lightmapPerObjectData.data = RawData.create("EveChildCloud2PerObjectData");
-    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -958,6 +962,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       return false;
     }
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the cube checks: preparing builds it.
+    if (!this.IsGood()) return false;
     if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown ||
       !this.effect || !this.effect.IsGood()) return false;
 
@@ -1295,6 +1301,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       return false;
     }
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the cube checks: preparing builds it.
+    if (!this.IsGood()) return false;
     if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown ||
       !this.reflectionEffect || !this.reflectionEffect.IsGood()) return false;
 

@@ -311,12 +311,15 @@ export class Tr2GpuParticleSystem
 
   /**
    * Carbon's constructor (cpp:79-104): the buffers and their variables, then
-   * the default capacity. As a Tr2DeviceResource it registers with the device,
-   * which Carbon's base class constructor does.
+   * the default capacity.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
+   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
   {
-    trinity.RegisterResource(this, Infinity);
     this.InitializeBuffers();
     this.RegisterVariables();
     this.SetMaxParticles(this.maxParticles);
@@ -549,6 +552,9 @@ export class Tr2GpuParticleSystem
     {
       return;
     }
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the clear, emit,
+    // simulate and sort, which run on the buffers preparing builds; Carbon's flow continues either way.
+    this.IsGood();
 
     let dt = (this._previousTime === -1 || !this.enableUpdate) ? 0 : CcpTime.timeAsFloat(time - this._previousTime);
     dt = Math.min(dt, MAXIMUM_FRAME_TIME);

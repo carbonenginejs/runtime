@@ -36,7 +36,7 @@ import {
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
-import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 
 // Tr2ChildBoosterInstanceData (Tr2RingBuffer.h:19-26): Float4x3 transform
 // (COLUMN-stride rows), intensity, wavePhase, atlasIndex0, atlasIndex1 -
@@ -75,7 +75,7 @@ const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
  */
 @be.define("EveChildBoosterSet")
 @be.inherit(ITr2Renderable)
-@be.inherit(INotify, IInitialize, ITr2ControllerOwner, ITr2DebugRenderable)
+@be.inherit(INotify, IInitialize, Tr2DeviceResource, ITr2ControllerOwner, ITr2DebugRenderable)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(INotify)
@@ -297,18 +297,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   _vertexDeclHandle = Tr2EffectStateManager.Unknown;
 
   /**
-   * Registers with the device, as Carbon's Tr2DeviceResource base does
-   * (EveChildBoosterSet.h:81), so a set built before the device exists is
-   * prepared when it comes up. JavaScript has no destructor, so the set is
-   * never unregistered.
-   */
-  constructor()
-  {
-    super();
-    trinity.RegisterResource(this, Infinity);
-  }
-
-  /**
    * Carbon Initialize (cpp:72-76) prepares the device resources.
    *
    * @adapted a set whose boosters arrived as records rather than through Add
@@ -346,20 +334,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
         Math.hypot(transform[0], transform[1], transform[2]),
         Math.hypot(transform[4], transform[5], transform[6])));
     }
-  }
-
-  /**
-   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32).
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed())
-    {
-      if (!this.OnPrepareResources()) return false;
-    }
-    return true;
   }
 
   /**
@@ -928,9 +902,10 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
     if (!this.display) return;
     if (this._CurrentFrameOffset() === INVALID_RING_OFFSET) return;
-    if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     if (!this._singleBoosters.length) return;
     if (!this._boostersVisible) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the declaration check: preparing makes it.
+    if (!this.IsGood() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
 
     const effect = (this._boosterHighLod || !this.effectFar) ? this.effect : this.effectFar;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.

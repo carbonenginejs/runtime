@@ -24,7 +24,7 @@ import { Tr2ProceduralBuffer } from "../../../core/Tr2ProceduralBuffer.js";
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
-import { trinity } from "../../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 
 /**
  * Carbon GetEveStretch2Quads (EveStretch2.cpp:51-72): MAX_QUAD_COUNT quads of
@@ -57,7 +57,7 @@ const STRETCH_VERTEX_DECL = [ { usage: Tr2VertexUsageCode.POSITION, usageIndex: 
  * of hosting child objects.
  */
 @be.define("EveStretch2")
-@be.inherit(ITr2Renderable, IInitialize, INotify, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
+@be.inherit(ITr2Renderable, Tr2DeviceResource, IInitialize, INotify, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IEveFiringEffectElement)
 @be.mapInterface(IInitialize)
@@ -141,16 +141,6 @@ export class EveStretch2 extends IEveFiringEffectElement
   _vertexDeclHandle = Tr2EffectStateManager.Unknown;
 
   /**
-   * A Tr2DeviceResource (EveStretch2.h:28): registered with the device so a
-   * stretch built before the device is prepared once it exists.
-   */
-  constructor()
-  {
-    super();
-    trinity.RegisterResource(this, Infinity);
-  }
-
-  /**
    * Carbon Initialize (cpp:96-100): prepares the device half.
    *
    * @implemented
@@ -178,16 +168,6 @@ export class EveStretch2 extends IEveFiringEffectElement
       this.PrepareResources();
     }
     return true;
-  }
-
-  /**
-   * Carbon Tr2DeviceResource::PrepareResources: prepare when a device allows it.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
   }
 
   /**
@@ -545,12 +525,15 @@ export class EveStretch2 extends IEveFiringEffectElement
 
   GetBatches(batches, batchType, perObjectData, _reason)
   {
-    // The shared allocation is null until a device has run the factory (Tr2ProceduralBuffer.GetSharedResource).
-    const vb = this._vb.GetSharedResource();
-    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this.effect || !this.effect.GetShaderStateInterface() || !vb || !vb.IsValid())
+    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this.effect || !this.effect.GetShaderStateInterface())
     {
       return false;
     }
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the draw: preparing makes the declaration and reserves the quad-list indices.
+    if (!this.IsGood()) return false;
+    // The shared allocation is null until a device has run the factory (Tr2ProceduralBuffer.GetSharedResource).
+    const vb = this._vb.GetSharedResource();
+    if (!vb || !vb.IsValid()) return false;
 
     const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indexBuffer.IsValid()) return false;

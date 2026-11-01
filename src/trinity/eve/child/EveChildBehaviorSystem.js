@@ -31,12 +31,14 @@ import { CreateLodAllocations } from "../../core/mesh/TriGeometryResAllocations.
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { ITr2DebugRenderable } from "#interfaces";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 
 /**
  * A child that drives behaviour groups - swarms, drones and the like - from its
  * own placement under the hull.
  */
 @be.define("EveChildBehaviorSystem")
+@be.inherit(Tr2DeviceResource)
 @be.inherit(ITr2Renderable)
 @be.inherit(INotify, IInitialize, IListNotify, ITr2DebugRenderable)
 @be.mapInterface(EveSpaceObjectChild)
@@ -131,14 +133,20 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
   _boosterStride = 48;
 
-  /** Registers the inherited native device-resource lifetime. */
+  /**
+   * Carbon's constructor: zeroes its per-object records and prepares.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
+   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   */
   constructor()
   {
     super();
     // Carbon's constructor memsets these records; child-mesh defaults differ.
     this._perObjectData.vs.Zero();
     this._perObjectData.ps.Zero();
-    trinity.RegisterResource(this, Infinity);
     this.PrepareResources();
   }
 
@@ -165,16 +173,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
   ReleaseResources()
   {
-  }
-
-  /**
-   * Carbon Tr2DeviceResource::PrepareResources resource-creation guard.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /**
@@ -442,6 +440,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
       return renderables;
     }
 
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). UpdateBuffer fills, and GetBatches draws, the streams preparing builds.
+    this.IsGood();
     renderables.push(this);
 
     this.UpdateBuffer(Tr2RenderContext_GetMainThreadRenderContext());

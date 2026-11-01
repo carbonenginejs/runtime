@@ -57,6 +57,8 @@ test("a retained sibling keeps its shared particle provider alive", async t =>
   let destroyed = 0;
   const child = particleChild(() => destroyed++), sibling = new EveChildParticleSystem();
   sibling.particleSystems.push(child.particleSystems[0]);
+  // In use, so registered.
+  child.particleSystems[0].IsGood();
   t.mock.method(blue.resMan, "LoadObject", async () => child);
   const owner = new EveChildContainer(), action = new Tr2ActionChildEffect();
   const controller = { GetOwner: () => owner };

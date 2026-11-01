@@ -7,6 +7,7 @@ import {
   EveChildBoosterSet,
   INVALID_RING_OFFSET
 } from "../../npm/dist/trinity/eve/child/EveChildBoosterSet.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 import { InitializeTrinityStub } from "../support/trinityStub.js";
@@ -104,8 +105,9 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
   set.SetRingBuffer(ring, offsets);
   set.effect = FixtureEffect({ name: "booster-effect" });
   // Carbon draws only once OnPrepareResources has made the vertex declaration
-  // (EveChildBoosterSet.cpp:267-286, :483-486); headless, nothing prepares it.
-  assert.equal(set.OnPrepareResources(), true);
+  // (EveChildBoosterSet.cpp:267-286, :483-486). With a device, the draw's own
+  // use (IsGood) registers and prepares the set.
+  Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
   set.UpdateAsyncronous(null, updateParams());
   set.UpdateVisibility({
     GetFrustum: () => ({

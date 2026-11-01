@@ -16,10 +16,11 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import { trinity } from "../../CjsTrinity.js";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 
 /** Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls. */
 @be.define("EveStarfield")
-@be.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 export class EveStarfield
@@ -97,12 +98,6 @@ export class EveStarfield
 
   _vertexBuffer = new Tr2BufferAL();
 
-  /** Registers the inherited native device-resource lifetime. */
-  constructor()
-  {
-    trinity.RegisterResource(this, Infinity);
-  }
-
   /**
    * Explicit final-owner cleanup replaces C++ resource destruction.
    *
@@ -126,16 +121,6 @@ export class EveStarfield
   {
     this.PrepareResources();
     return true;
-  }
-
-  /**
-   * Inherited Tr2DeviceResource.cpp:21-32 creation guard.
-   *
-   * @implemented
-   */
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /**
@@ -237,8 +222,10 @@ export class EveStarfield
 
   GetBatches(accumulator, perObjectData)
   {
-    if (!this._vertexBuffer.IsValid() || !this.effect || !this.display || this.numStars <= 0) return;
-    if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+    if (!this.effect || !this.display || this.numStars <= 0) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
+    if (!this.IsGood()) return;
+    if (!this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const indices = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indices.IsValid()) return;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.

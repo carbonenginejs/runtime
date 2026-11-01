@@ -24,6 +24,8 @@ function setup(t, cpuPosition = false, withPosition = true)
   const args = new ITr2GenericEmitterUpdateArguments(); args.time = 10_000_000;
   system.Update(args);
   t.after(() => {system.ReleaseResources(); context.SetRenderContextAL(previous); Tr2Renderer.SetViewTransform(view);});
+  // In use, so registered and prepared: the first use would otherwise replace the buffer watched below.
+  system.IsGood();
   const buffer = system.GetGpuBuffer();
   const map = buffer.MapForWriting.bind(buffer), unmap = buffer.UnmapForWriting.bind(buffer);
   const state = {maps: 0, unmaps: 0, bytes: null, fail: false};

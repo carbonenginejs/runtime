@@ -55,12 +55,18 @@ export class Tr2ParticleSystem
   }
 
 
-  /** Registers the inherited device-resource lifetime (Tr2DeviceResource.cpp:8-12). */
+  /**
+   * Carbon's constructor: joins the system list and binds the constraint list.
+   *
+   * @adapted Carbon registers with the device here, as the Tr2DeviceResource
+   *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
+   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
+   */
   constructor()
   {
     Tr2ParticleSystem.getAllSystems().add(this);
     this.constraints.SetNotify(this);
-    trinity.RegisterResource(this, Infinity);
   }
 
   /**
@@ -1334,6 +1340,9 @@ export class Tr2ParticleSystem
   {
     this._shouldSortVisible = false;
     mat4.copy(this._worldTransform, worldTransform);
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the dirty gate, so a system in view that is not changing
+    // stays registered, and before the buffer check: preparing builds it.
+    this.IsGood();
     if (!this._bufferDirty && !this.requiresSorting) return;
     if (!this._vertexBuffer || !this._vertexBuffer.IsValid()) return;
     this._shouldSortVisible = true;
