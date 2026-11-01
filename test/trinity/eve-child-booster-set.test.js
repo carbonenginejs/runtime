@@ -7,7 +7,7 @@ import {
   EveChildBoosterSet,
   INVALID_RING_OFFSET
 } from "../../npm/dist/trinity/eve/child/EveChildBoosterSet.js";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
+import { Tr2RenderContext_GetMainThreadRenderContext, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 import { InitializeTrinityStub } from "../support/trinityStub.js";
@@ -108,6 +108,9 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
   // (EveChildBoosterSet.cpp:267-286, :483-486). With a device, the draw's own
   // use (IsGood) registers and prepares the set.
   Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
+  // The device's prepare makes the shared box (Tr2ProceduralBuffer) and reserves the quad-list indices
+  // (Tr2Renderer.cpp:1300-1301), as a real device does when it comes up.
+  InitializeTrinityStub().PrepareDeviceResources();
   set.UpdateAsyncronous(null, updateParams());
   set.UpdateVisibility({
     GetFrustum: () => ({
@@ -121,7 +124,24 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
   assert.equal(committed.length, 1);
   assert.equal(committed[0].indexCountPerInstance, 36);
   assert.equal(committed[0].instanceCount, 1);
-  assert.equal(committed[0].proceduralVertexBufferName, "ChildBoosterBoxVB");
+  // cpp:506-515: the shared box on stream 0 and the quad-list indices.
+  const box = set._vertexBuffer.GetSharedResource();
+  assert.equal(committed[0].vertexStreams[0], box.GetBuffer());
+  assert.equal(committed[0].indexBuffer, Tr2Renderer.GetQuadListIndexBuffer().GetBuffer());
+  assert.equal(committed[0].startIndexLocation, Tr2Renderer.GetQuadListIndexBuffer().GetStartIndex());
+
+  // cpp:123, :496: a mirrored parent draws with the reversed-winding indices.
+  const mirrored = updateParams();
+  mirrored.localToWorldTransform[0] = -1;
+  set.UpdateAsyncronous(null, mirrored);
+  committed.length = 0;
+  set.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_ADDITIVE, null);
+  assert.equal(committed[0].indexBuffer, Tr2Renderer.GetReversedQuadListIndexBuffer().GetBuffer());
+  assert.equal(committed[0].startIndexLocation, Tr2Renderer.GetReversedQuadListIndexBuffer().GetStartIndex());
+  assert.notEqual(Tr2Renderer.GetReversedQuadListIndexBuffer().GetStartIndex(), Tr2Renderer.GetQuadListIndexBuffer().GetStartIndex());
+  set.UpdateAsyncronous(null, updateParams());
+  committed.length = 0;
+  set.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_ADDITIVE, null);
   set.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_OPAQUE, null);
   assert.equal(committed.length, 1, "additive-only");
 

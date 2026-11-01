@@ -132,6 +132,9 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /** m_vertexCount: 24 per haze, a box of six quads. */
   _vertexCount = 0;
 
+  /** m_parentMirrored (h:112): the parent transform flips winding, so the reversed quad indices draw. */
+  _parentMirrored = false;
+
   /** m_vertexBuffer (h:110): the shared-buffer allocation, invalid until prepared. */
   _vertexBuffer = new Tr2SuballocatedBufferAllocation();
 
@@ -308,7 +311,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!this.effect.IsGood()) return;
 
-    const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
+    // cpp:278.
+    const indexBuffer = this._parentMirrored ? Tr2Renderer.GetReversedQuadListIndexBuffer() : Tr2Renderer.GetQuadListIndexBuffer();
     if (!indexBuffer.IsValid()) return;
 
     const vertices = this._vertexBuffer;
@@ -344,6 +348,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
+    // Carbon IsMirrored (Utilities/MatrixUtils.cpp:28-31): Determinant( m ) < 0; a transpose keeps it.
+    this._parentMirrored = mat4.determinant(parentTransform) < 0;
     const aabb = GetItemSetAabb(
       EveHazeSet._aabbScratch,
       this._staticBounds,

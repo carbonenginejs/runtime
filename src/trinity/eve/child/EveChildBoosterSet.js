@@ -28,9 +28,9 @@ import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectR
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import {
   AddBoosterLights,
-  CHILD_BOOSTER_BOX_BUFFER_NAME,
   CreateBoosterFlares,
   GenerateBoosterLightPhase,
+  MakeChildBoosterBoxBuffer,
   PadBoosterBoundingSphere
 } from "../attachment/booster/boosterUtilities.js";
 import { TriStorageFlags } from "#consts/graphics";
@@ -296,6 +296,12 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   /** m_vertexDeclHandle: the box's declaration, made by OnPrepareResources. */
   _vertexDeclHandle = Tr2EffectStateManager.Unknown;
 
+  /** m_vertexBuffer (h:196): the shared box, as Carbon's constructor makes it (cpp:48). */
+  _vertexBuffer = MakeChildBoosterBoxBuffer();
+
+  /** m_parentMirrored (h:231): the parent transform flips winding, so the reversed quad indices draw. */
+  _parentMirrored = false;
+
   /**
    * Carbon Initialize (cpp:72-76) prepares the device resources.
    *
@@ -517,6 +523,8 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     {
       mat4.copy(this._parentTransform, parentTransform);
     }
+    // cpp:123. Carbon IsMirrored (Utilities/MatrixUtils.cpp:28-31): Determinant( m ) < 0; a transpose keeps it.
+    this._parentMirrored = mat4.determinant(this._parentTransform) < 0;
 
     // Scale with the highest axis factor - single sqrt of the max squared
     // basis-row length (Carbon cpp:123-128; keep the shape).
@@ -907,15 +915,24 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the declaration check: preparing makes it.
     if (!this.IsGood() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
 
+    // cpp:496.
+    const indexBuffer = this._parentMirrored ? Tr2Renderer.GetReversedQuadListIndexBuffer() : Tr2Renderer.GetQuadListIndexBuffer();
+    if (!indexBuffer.IsValid()) return;
+
     const effect = (this._boosterHighLod || !this.effectFar) ? this.effect : this.effectFar;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!effect || !effect.IsGood()) return;
+    // The shared allocation is null until a device has run the factory (Tr2ProceduralBuffer.GetSharedResource).
+    const vb = this._vertexBuffer.GetSharedResource();
+    if (!vb) return;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(effect);
     batch.SetPerObjectData(perObjectData);
     batch.SetVertexDeclaration(this._vertexDeclHandle);
-    batch.SetDrawIndexedInstanced(3 * 2 * 6, this._singleBoosters.length, 0, 0, 0);
-    batch.proceduralVertexBufferName = CHILD_BOOSTER_BOX_BUFFER_NAME;
+    // cpp:506-515: Carbon's SetStreamSource( index, Allocation& ) and SetInidices( Allocation& ) take buffer and stride from the allocation.
+    batch.SetStreamSource(0, vb.GetBuffer(), vb.GetStride());
+    batch.SetIndices(indexBuffer.GetBuffer(), indexBuffer.GetStride());
+    batch.SetDrawIndexedInstanced(3 * 2 * 6, this._singleBoosters.length, indexBuffer.GetStartIndex(), vb.GetOffset() / vb.GetStride(), 0);
     batches.Commit(batch);
   }
 
