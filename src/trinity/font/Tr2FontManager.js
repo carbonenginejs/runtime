@@ -49,6 +49,7 @@ import { TriStorageFlags } from "#consts/graphics";
 import { blue, IBlueEvents } from "#blue";
 import { type, blue as legacyBlue } from "#schema";
 import { trinity } from "../CjsTrinity.js";
+import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
 
 /**
  * Carbon's `TR2_FONT_FALLBACK` (Tr2FontManager.h:23, value at
@@ -81,7 +82,7 @@ const INT_MAX = 0x7fffffff;
  * @abstract
  */
 @be.define("Tr2FontManager")
-@legacyBlue.inherit(IRoot, IBlueEvents)
+@legacyBlue.inherit(IRoot, IBlueEvents, Tr2DeviceResource)
 @be.abstract
 export class Tr2FontManager extends IRoot
 {

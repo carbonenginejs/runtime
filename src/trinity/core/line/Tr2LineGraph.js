@@ -4,9 +4,11 @@ import { exposure as be } from "#be";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
+import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 
 /** A rolling sample history with named markers and running statistics, drawn as a line graph. */
 @be.define("Tr2LineGraph")
+@be.inherit(Tr2DeviceResource)
 
 export class Tr2LineGraph extends IRoot
 {

@@ -5,12 +5,13 @@ import { exposure as be } from "#be";
 import { type } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 import { ITr2FontMeasurerNotifyTarget } from "../font/ITr2FontMeasurerNotifyTarget.js";
+import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 
 /** Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag. */
 @be.define("Tr2Sprite2dTextObject")
 @be.exposureChainTo(Tr2SpriteObject)
-@be.inherit(ITr2FontMeasurerNotifyTarget)
+@be.inherit(ITr2FontMeasurerNotifyTarget, Tr2DeviceResource)
 export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 {
 

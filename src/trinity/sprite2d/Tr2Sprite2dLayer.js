@@ -10,11 +10,11 @@ import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions } from "#imageio";
 import { Failed, Tr2TextureAL } from "#trinityal";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
-import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
 import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 import { Tr2Sprite2dContainer } from "./Tr2Sprite2dContainer.js";
 import { trinity } from "../CjsTrinity.js";
+import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
 
 /**
  * Carbon's `(uint32_t)` cast of a float display extent (Tr2Sprite2dLayer.cpp:96, 119): truncation
@@ -34,21 +34,14 @@ function toUint32(value)
  * Tr2Sprite2dLayer renders its children into its own render target, then draws that target into
  * the parent as one sprite with the layer's colour, effect and blend mode (Tr2Sprite2dLayer.h:16-62).
  * It is a Tr2Sprite2dContainer, a Tr2DeviceResource and an ITr2Sprite2dTextureNotifyTarget. JS
- * has one base class, so the device resource is the `TriDevice` registration in the constructor
- * plus `PrepareResources`/`ReleaseResources` here, as on the other Trinity device resources.
+ * has one base class, so the device resource comes through `@be.inherit`, and the layer
+ * registers with `trinity` on use (IsGood in GatherSprites), as the other device resources do.
  */
 @be.define("Tr2Sprite2dLayer")
 @be.exposureChainTo(Tr2Sprite2dContainer)
-@be.inherit(ITr2Sprite2dTextureNotifyTarget)
+@be.inherit(Tr2DeviceResource, ITr2Sprite2dTextureNotifyTarget)
 export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 {
-
-  /** Carbon Tr2DeviceResource::Tr2DeviceResource (Tr2DeviceResource.cpp:10-13) registers with the device. */
-  constructor()
-  {
-    super();
-    trinity.RegisterResource(this, Infinity);
-  }
 
   /** m_backgroundColor (Color) [READWRITE, PERSIST, NOTIFY]: clear colour when `clearBackground` is set. */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
@@ -160,6 +153,9 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 
     if (!this.display) return;
 
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). A bare call: the
+    // allocation below prepares the render target itself.
+    this.IsGood();
     this._AllocateRenderTarget();
     if (!this._renderTarget.IsValid()) return;
 
@@ -184,23 +180,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
     renderer.EndLayer(this.displayX, this.displayY, this.displayWidth, this.displayHeight, this._textureSecondary);
 
     renderer.SetAccumulatedAlpha(oldOpacity);
-  }
-
-  /**
-   * Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-33): creates nothing
-   * while resource creation is disallowed, and reports success.
-   *
-   * @implemented
-   * @returns {boolean} False only when `OnPrepareResources` fails.
-   */
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed())
-    {
-      if (!this._OnPrepareResources()) return false;
-    }
-
-    return true;
   }
 
   /**

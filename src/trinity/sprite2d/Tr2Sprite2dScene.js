@@ -37,6 +37,7 @@ import { Tr2SpriteObjectPickState, Tr2SpriteObjectEffect, Tr2Sprite2dTextureSett
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import "./Tr2SpriteObjectBase.js";
+import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
 
 /** Carbon's effect path for the 2D UI ubershader (Tr2Sprite2dScene.cpp:52). @type {string} */
 const EFFECT_UBERSHADER_RESPATH = "res:/Graphics/Effect/UI/UberShader.fx";
@@ -103,7 +104,7 @@ const s_layerIndices = [0, 1, 3, 3, 1, 2];
     {"carbon":{"member":true},"name":"gammaCorrectText","type":{"kind":"boolean"},"property":{"persisted":false}}
   ]
 })
-@be.inherit(INotify)
+@be.inherit(INotify, Tr2DeviceResource)
 @be.mapInterface(ITr2Scene)
 @be.mapInterface(ITr2Updateable)
 @be.mapInterface(INotify)
