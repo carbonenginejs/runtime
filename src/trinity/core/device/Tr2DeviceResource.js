@@ -1,18 +1,21 @@
 // Source: trinity/trinity/Tr2DeviceResource.h
 // Source: trinity/trinity/Tr2DeviceResource.cpp
 //
-// Carbon's base for objects that own device resources. TriDevice keeps every
-// one registered, prepares them when resources may be created and releases
-// them before a reset or shutdown.
+// Carbon's base for objects that own device resources. The registry (on
+// `trinity`; TriDevice forwards Carbon's names) prepares them when resources may
+// be created and releases them before a reset or shutdown.
 //
 // Carbon notes this is "not a proper Blue interface - it does not inherit
 // from IRoot" (h:19-21): a class takes it as one of several C++ bases. In
 // JavaScript a class has one base, so the Eve and Trinity classes take it the
-// way they take their other secondary bases, through `@blue.inherit`, which
-// installs PrepareResources and GetDescription where the class has none.
-// That route has no constructor, so such a class registers itself in its own
-// constructor (`trinity.RegisterResource(this, Infinity)`) as this constructor does,
-// and unregisters in its Destroy, where Carbon's destructor would (cpp:11-14).
+// way they take their other secondary bases, through `@be.inherit`, which
+// installs PrepareResources, IsGood and GetDescription where the class has none.
+// That route has no constructor. Most such classes register on use, through
+// IsGood at their use site, and are released when idle; infrastructure (scene,
+// render driver, pools, managers) registers in its own constructor with
+// `trinity.RegisterResource(this, Infinity)`, as this constructor does, and
+// unregisters in its Destruct, where Carbon's destructor would (cpp:11-14)
+// (docs internal/decisions/device-resource-registration.md).
 import { CjsSchema, meta } from "#schema";
 import { trinity } from "../../CjsTrinity.js";
 
