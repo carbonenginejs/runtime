@@ -81,6 +81,9 @@ export class Tr2InteriorScene extends ITr2PickableScene
   // Carbon m_dynamicsPendingLoad retains dynamics awaiting AddToScene success.
   _dynamicsPendingLoad = [];
 
+  /** Carbon m_lastUpdateTime (h:271): the simulation time Update last ran at; another call at that time is ignored. */
+  _lastUpdateTime = 0;
+
   /** Native forward-pass accumulator; its allocator is bound to the active context. */
   _primaryRenderBatches = new TriRenderBatchAccumulator(Tr2IntKeyGenerator);
 
@@ -729,14 +732,62 @@ export class Tr2InteriorScene extends ITr2PickableScene
   }
 
   /**
-   * Carbon method UpdateScene -> UpdateSceneFromScript (MAP_METHOD_AND_WRAP).
+   * Carbon Update (h:84, cpp:405-486): once per simulation time, publishes this scene's own sun direction (negated,
+   * normalized), sun diffuse and specular colours, ambient colour and the camera position into the shared variables
+   * its shaders read (Sun.DirWorld, Sun.WodDiffuseColor, Sun.SpecularColor, Scene.AmbientColor, Camera.eyePosWorld),
+   * so each scene renders with its own values; then updates its curve sets, retries dynamics still waiting to join
+   * the scene, and updates its lights.
    *
-   * @notImplemented
-   * @renamed UpdateSceneFromScript
+   * @adapted The dynamics' PrePhysicsUpdate and PostPhysicsUpdate (cpp:455-475) are not called: our
+   *   Tr2IntSkinnedObject cannot run them yet (they need the unported Tr2SkinnedObject base and throw), and the
+   *   host drives the skinned objects' animation and bones itself.
+   * @param {number} realTime Real time in Blue ticks.
+   * @param {number} simTime Simulation time in Blue ticks.
+   * @returns {void}
    */
-  UpdateScene(...args)
+  Update(realTime, simTime)
   {
-    throw new Error("Tr2InteriorScene.UpdateScene is not implemented in CarbonEngineJS.");
+    if (simTime === this._lastUpdateTime) return;
+    this._lastUpdateTime = simTime;
+
+    const store = Tr2VariableStore.globalStore();
+    const { vec3_0 } = Tr2InteriorScene.scratch;
+    vec3.normalize(vec3_0, this.sunDirection);
+    vec3.negate(vec3_0, vec3_0);
+    store.FindVariable("Sun.DirWorld").SetValue(vec3_0);
+    store.FindVariable("Sun.WodDiffuseColor").SetValue(this.sunDiffuseColor);
+    store.FindVariable("Sun.SpecularColor").SetValue(this.sunSpecularColor);
+    store.FindVariable("Scene.AmbientColor").SetValue(this.ambientColor);
+    store.FindVariable("Camera.eyePosWorld").SetValue(Tr2Renderer.GetViewPosition());
+
+    for (let i = 0; i < this.curveSets.length; i++) this.curveSets[i].Update__RealTimeSimTime(realTime, simTime);
+
+    const added = [];
+    for (let i = 0; i < this._dynamicsPendingLoad.length; i++)
+    {
+      if (this._dynamicsPendingLoad[i].AddToScene(this._apexScene)) added.push(this._dynamicsPendingLoad[i]);
+    }
+    for (let i = 0; i < added.length; i++)
+    {
+      const index = this._dynamicsPendingLoad.indexOf(added[i]);
+      if (index !== -1) this._dynamicsPendingLoad.splice(index, 1);
+    }
+
+    for (let i = 0; i < this.lights.length; i++) this.lights[i].Update(simTime);
+  }
+
+  /**
+   * Carbon UpdateSceneFromScript (h:116, cpp:1423-1426), exposed as UpdateScene (Tr2InteriorScene_Blue.cpp:462):
+   * runs Update with one time for both clocks.
+   *
+   * @implemented
+   * @param {number} time The current time in Blue ticks.
+   * @returns {void}
+   */
+  @be.mapMethodAndWrap("UpdateScene")
+  UpdateSceneFromScript(time)
+  {
+    this.Update(time, time);
   }
 
   /** Native depth-stencil owner, replaced whenever shadow targets are rebuilt. */

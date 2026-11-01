@@ -100,12 +100,13 @@ test("IsInFrustum gates on primaryLighting and tests the position box", () =>
     assert.equal(source.IsInFrustum(frustum), false, "non-primary lights are never in frustum");
 });
 
-test("Update forwards time to every curve set", () =>
+test("Update forwards the time in seconds to every curve set", () =>
 {
     const source = new Tr2InteriorLightSource();
     const times = [];
     source.curveSets.push({ Update: t => times.push(t) }, { Update: t => times.push(t * 2) });
-    source.Update(1.5);
+    // Carbon takes Blue ticks and passes TimeAsDouble to each curve set (Tr2InteriorLightSource.cpp:146-152).
+    source.Update(15000000);
     assert.deepEqual(times, [ 1.5, 3 ]);
 });
 

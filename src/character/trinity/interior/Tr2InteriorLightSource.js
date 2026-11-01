@@ -5,7 +5,7 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
 import { type, blue } from "#schema";
-import { IInitialize, INotify, IsMatch } from "#blue";
+import { CcpTime, IInitialize, INotify, IsMatch } from "#blue";
 import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
@@ -274,17 +274,18 @@ export class Tr2InteriorLightSource extends IRoot
   }
 
   /**
-   * Carbon Update (cpp:146-152): forward the time to every curve set.
+   * Carbon Update (cpp:146-152): forward the time, in seconds (TimeAsDouble), to every curve set.
    *
    * @implemented
-   * @param {number} time Seconds.
+   * @param {number} time Blue ticks, as Tr2InteriorScene.Update passes its simulation time.
+   * @returns {void}
    */
-
   Update(time)
   {
+    const seconds = CcpTime.timeAsDouble(time);
     for (let i = 0; i < this.curveSets.length; i++)
     {
-      this.curveSets[i].Update(time);
+      this.curveSets[i].Update(seconds);
     }
   }
 
