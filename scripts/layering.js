@@ -123,20 +123,25 @@ function validatePackageMap(field, map, root, problems)
 }
 
 /**
- * Expand the one alias the config uses: `"global"` in a `mayImport` list
- * means every `global/*` layer. Nine layers restated the same eight globals
- * before this; the direction rules are what matter, not the bookkeeping.
+ * Expand the two aliases the config uses: `"global"` in a `mayImport` list
+ * means every `global/*` layer, and `"blue"` every `blue/*` layer (Blue, its
+ * exposure, the schema and compose, which lived under global until package
+ * separation step 4). Nine layers restated the same eight globals before
+ * this; the direction rules are what matter, not the bookkeeping.
  *
  * @param {object} layers The layers map, edited in place.
  */
 function expandGlobalAlias(layers)
 {
-    const globals = Object.keys(layers).filter(name => name.startsWith("global/"));
+    const aliases = {
+        global: Object.keys(layers).filter(name => name.startsWith("global/")),
+        blue: Object.keys(layers).filter(name => name.startsWith("blue/"))
+    };
 
     for (const layer of Object.values(layers))
     {
-        if (!Array.isArray(layer?.mayImport) || !layer.mayImport.includes("global")) continue;
-        layer.mayImport = [ ...new Set(layer.mayImport.flatMap(target => target === "global" ? globals : [ target ])) ];
+        if (!Array.isArray(layer?.mayImport) || !layer.mayImport.some(target => Object.hasOwn(aliases, target))) continue;
+        layer.mayImport = [ ...new Set(layer.mayImport.flatMap(target => Object.hasOwn(aliases, target) ? aliases[target] : [ target ])) ];
     }
 }
 

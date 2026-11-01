@@ -38,8 +38,8 @@
         "global/math",
         "global/consts",
         "global/interfaces",
-        "global/blue",
-        "global/schema",
+        "blue/blue",
+        "blue/schema",
         "global/model",
         "resource",
         "trinity",
@@ -51,7 +51,7 @@
         "global/logging",
         "global/audio",
         "trinityal",
-        "global/blueexposure"
+        "blue/blueexposure"
       ]
     },
     "global/index.js": {
@@ -60,18 +60,18 @@
         "global/math",
         "global/consts",
         "global/interfaces",
-        "global/blue",
-        "global/schema",
+        "blue/blue",
+        "blue/schema",
         "global/model",
         "global/logging",
-        "global/blueexposure"
+        "blue/blueexposure"
       ]
     },
     "resource/index.js": {
       "mayImport": [
         "resource",
         "global/model",
-        "global/blue",
+        "blue/blue",
         "trinity",
         "trinityal",
         "character",
@@ -106,9 +106,9 @@
     "yaml"
   ],
   "externalDynamicImports": [
-    "global/blue/worker/CjsResManWorker.js",
-    "global/blue/BlueCallbackMan.js",
-    "global/blue/worker/BlueCallbackManWorker.js"
+    "blue/blue/worker/CjsResManWorker.js",
+    "blue/blue/BlueCallbackMan.js",
+    "blue/blue/worker/BlueCallbackManWorker.js"
   ],
   "layers": {
     "global/logging": {
@@ -131,13 +131,13 @@
     },
     "global/consts": {
       "mayImport": [
-        "global/blue/enums"
+        "blue/blue/enums"
       ]
     },
     "global/imageio": {
       "mayImport": [
         "global/consts",
-        "global/schema",
+        "blue/schema",
         "global/logging"
       ],
       "why": [
@@ -147,14 +147,14 @@
         "handlers that call format readers live in resource/imageio."
       ]
     },
-    "global/compose": {
+    "blue/compose": {
       "mayImport": []
     },
-    "global/schema": {
+    "blue/schema": {
       "mayImport": [
-        "global/blue/enums",
-        "global/blueexposure/classes",
-        "global/compose",
+        "blue/blue/enums",
+        "blue/blueexposure/classes",
+        "blue/compose",
         "global/utils",
         "global/math",
         "global/consts",
@@ -167,36 +167,36 @@
     },
     "global/model": {
       "mayImport": [
-        "global/compose",
+        "blue/compose",
         "global/utils",
         "global/math",
         "global/consts",
-        "global/schema",
-        "global/blue",
-        "global/blueexposure"
+        "blue/schema",
+        "blue/blue",
+        "blue/blueexposure"
       ],
       "why": [
         "CjsModel.get/set delegate to Blue's values engine (DictReader,",
         "DictWriter): the reader and writer are Blue's, CjsModel only wraps",
-        "the editing contract around them. global/blue does not import model."
+        "the editing contract around them. blue/blue does not import model."
       ]
     },
     "global/interfaces": {
       "mayImport": [
-        "global/schema",
+        "blue/schema",
         "global/math",
-        "global/blue",
-        "global/blueexposure"
+        "blue/blue",
+        "blue/blueexposure"
       ],
       "why": [
         "Interface roots use schema implementation metadata so required",
         "methods carry @impl.abstract as well as their throwing body.",
         "Tr2DebugColor, declared in the same Carbon header as ITr2DebugRenderer2,",
         "converts Carbon Colors to packed words through global/math/color.",
-        "Carbon interfaces derive from IRoot (BLUE_INTERFACE( X ) : IRoot), so they import global/blueexposure/IRoot."
+        "Carbon interfaces derive from IRoot (BLUE_INTERFACE( X ) : IRoot), so they import blue/blueexposure/IRoot."
       ]
     },
-    "global/blueexposure/classes": {
+    "blue/blueexposure/classes": {
       "mayImport": [
         "global/logging"
       ],
@@ -204,38 +204,38 @@
         "Complete class-registration storage shared by blueexposure and schema, and Carbon's global BeClasses; logging depends only on constants and its plain channel record. This leaf never imports either facade or a domain."
       ]
     },
-    "global/blueexposure": {
+    "blue/blueexposure": {
       "mayImport": [
         "global/consts",
-        "global/blueexposure/classes",
-        "global/compose",
-        "global/schema",
+        "blue/blueexposure/classes",
+        "blue/compose",
+        "blue/schema",
         "global/utils",
         "global/logging"
       ],
       "why": [
         "Carbon's blueexposure layer (decorator-upgrade.md § 000): IRoot, BlueClasses, the exposure decorators (be),",
         "Copier, BlueList, BlueScriptCallback and the interfaces Carbon declares there. Carbon's blueexposure links",
-        "only CcpCore and Python and blue links it, never the reverse, so this imports nothing from global/blue."
+        "only CcpCore and Python and blue links it, never the reverse, so this imports nothing from blue/blue."
       ]
     },
-    "global/blue/enums": {
+    "blue/blue/enums": {
       "mayImport": [],
       "why": [
         "Dependency-free enum identity and registration shared by constant definition sites, schema and Blue. Constants may not import the Blue holder or services."
       ]
     },
-    "global/blue": {
+    "blue/blue": {
       "mayImport": [
         "global/consts",
-        "global/blue/enums",
-        "global/blueexposure/classes",
-        "global/compose",
-        "global/schema",
+        "blue/blue/enums",
+        "blue/blueexposure/classes",
+        "blue/compose",
+        "blue/schema",
         "global/utils",
         "global/logging",
         "global/audio",
-        "global/blueexposure"
+        "blue/blueexposure"
       ],
       "why": [
         "Ports of Carbon's blueexposure layer - facilities Blue provides to every",
@@ -247,7 +247,7 @@
     },
     "global/dropped": {
       "mayImport": [
-        "global/schema",
+        "blue/schema",
         "global/model"
       ],
       "why": [
@@ -265,12 +265,14 @@
         "Only the named compatibility barrels may re-export their former public APIs."
       ],
       "mayImport": [
-        "global"
+        "global",
+        "blue"
       ]
     },
     "trinityal": {
       "mayImport": [
-        "global"
+        "global",
+        "blue"
       ],
       "why": [
         "Carbon's abstraction layer, a sibling of trinity rather than a part of it",
@@ -282,6 +284,7 @@
     "trinity": {
       "mayImport": [
         "global",
+        "blue",
         "resource",
         "trinityal"
       ]
@@ -289,6 +292,7 @@
     "sof": {
       "mayImport": [
         "global",
+        "blue",
         "resource"
       ],
       "why": [
@@ -302,12 +306,14 @@
     "audio": {
       "mayImport": [
         "global",
+        "blue",
         "resource"
       ]
     },
     "character": {
       "mayImport": [
         "global",
+        "blue",
         "resource",
         "trinity",
         "trinityal"
@@ -319,12 +325,14 @@
     },
     "input": {
       "mayImport": [
-        "global"
+        "global",
+        "blue"
       ]
     },
     "trinityal/webgpu": {
       "mayImport": [
         "global",
+        "blue",
         "resource",
         "trinity",
         "trinityal"
@@ -337,6 +345,7 @@
     "trinityal/webgl2": {
       "mayImport": [
         "global",
+        "blue",
         "resource",
         "trinityal"
       ],
@@ -349,6 +358,7 @@
     "wrap": {
       "mayImport": [
         "global",
+        "blue",
         "resource",
         "trinity",
         "sof",
@@ -363,6 +373,7 @@
     "core": {
       "mayImport": [
         "global",
+        "blue",
         "resource",
         "trinity",
         "sof",
@@ -379,7 +390,7 @@
     "tools": {
       "mayImport": [
         "global/utils",
-        "global/schema"
+        "blue/schema"
       ],
       "why": [
         "Acquisition only. The demo suite left for the separate",
@@ -393,14 +404,14 @@
         "a demo, which belongs in the demos repository, or a runtime value that",
         "belongs lower down.",
         "It also holds Carbon's resources library (tools/fileindex/carbon: ResourceGroup,",
-        "ResourceInfo and their data), which needs global/schema for its carbon: identities",
+        "ResourceInfo and their data), which needs blue/schema for its carbon: identities",
         "and @impl markers like every other port (operator, 2026-09-27). Formats are",
         "reached through layers.json standalone, not through this list."
       ]
     },
     "global/audio": {
       "mayImport": [
-        "global/schema"
+        "blue/schema"
       ],
       "why": [
         "Only the shared silent sound-engine contract and stub. Blue can provide silent graph audio without importing playback, WebAudio, or an audio domain."
