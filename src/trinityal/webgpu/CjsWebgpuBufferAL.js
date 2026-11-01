@@ -67,6 +67,7 @@ import { ALResult } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { ForgetBindingResource } from "./core/bindingIndex.js";
+import { Tr2MemoryCounterAL } from "../Tr2MemoryCounterAL.js";
 
 
 /** Carbon's "no descriptor heap index", as the stub buffer spells it. */
@@ -106,6 +107,14 @@ function cpuReadUsage(cpuUsage, usage)
  */
 export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
 {
+  /**
+   * Carbon m_memory (Tr2BufferALDx11.h:49): this buffer's bytes on the GPU memory
+   * counters, set when it is created and taken back when it is released.
+   *
+   * @type {Tr2MemoryCounterAL}
+   */
+  _memory = new Tr2MemoryCounterAL();
+
   /** m_desc */
   _desc = null;
 
@@ -207,6 +216,8 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
       webgpu.WriteDeviceBuffer(this._handle, this._shadow);
     }
 
+    // Carbon Tr2BufferALDx11.cpp:176: stride times count.
+    this._memory.Set__Size(Tr2MemoryCounterAL.MemoryType.BUFFER, desc.stride * desc.count);
     return ALResult.S_OK;
   }
 
@@ -378,6 +389,8 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
   /** Retires storage while retaining the implementation registry entry. */
   _Reset()
   {
+    // Carbon Tr2BufferALDx11.cpp:185, Tr2TextureALDx11.cpp:833: released storage leaves the counters.
+    this._memory.Reset();
     // Cached bind groups that bind any of this buffer's GPUBuffers go with it.
     if (this._webgpu)
     {

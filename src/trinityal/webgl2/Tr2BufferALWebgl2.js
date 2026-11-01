@@ -54,6 +54,7 @@ import {
   Tr2CpuUsage,
   Tr2GpuUsage
 } from "../../global/consts/renderContext/index.js";
+import { Tr2MemoryCounterAL } from "../Tr2MemoryCounterAL.js";
 
 
 /** Carbon's "no descriptor heap index". */
@@ -111,6 +112,14 @@ export function DataTextureLayout(gl, format, structured)
  */
 export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
 {
+  /**
+   * Carbon m_memory (Tr2BufferALDx11.h:49): this buffer's bytes on the GPU memory
+   * counters, set when it is created and taken back when it is released.
+   *
+   * @type {Tr2MemoryCounterAL}
+   */
+  _memory = new Tr2MemoryCounterAL();
+
   /** m_buffer: the `WebGLBuffer`, or null. */
   _buffer = null;
 
@@ -223,6 +232,8 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
     this._desc = Object.assign(new Tr2BufferDescriptionAL(), desc);
     this._desc.stride = stride;
 
+    // Carbon Tr2BufferALDx11.cpp:176: stride times count.
+    this._memory.Set__Size(Tr2MemoryCounterAL.MemoryType.BUFFER, desc.stride * desc.count);
     return ALResult.S_OK;
   }
 
@@ -254,6 +265,8 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   /** Carbon's impl `Destroy`, before the registry is left. */
   _Reset()
   {
+    // Carbon Tr2BufferALDx11.cpp:185, Tr2TextureALDx11.cpp:833: released storage leaves the counters.
+    this._memory.Reset();
     const gl = this._gl;
 
     if (gl)

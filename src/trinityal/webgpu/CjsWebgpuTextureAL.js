@@ -29,6 +29,7 @@ import { ForgetBindingResource } from "./core/bindingIndex.js";
 import { CjsWebgpuVideoColorSampler } from "./CjsWebgpuVideoColorSampler.js";
 import { Tr2ReadbackALWebgpu } from "./Tr2ReadbackALWebgpu.js";
 import { IsCompressedFormat, GetBytesPerPixel } from "#consts/render-context";
+import { Tr2MemoryCounterAL } from "../Tr2MemoryCounterAL.js";
 
 const NO_HEAP_INDEX = 0xffffffff;
 
@@ -82,6 +83,15 @@ function StorageFormatFor(format)
  */
 export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 {
+  /**
+   * Carbon m_memory (Tr2TextureALDx11.h:128): this texture's bytes on the GPU memory
+   * counters, every mip of every slice per sample, set when it is created and
+   * taken back when it is released.
+   *
+   * @type {Tr2MemoryCounterAL}
+   */
+  _memory = new Tr2MemoryCounterAL();
+
   /** m_desc, a `Tr2BitmapDimensions`. */
   _desc = null;
 
@@ -288,6 +298,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
       }
     }
 
+    // Carbon Tr2TextureALDx11.cpp:539: the description and multisampling.
+    this._memory.Set__Bitmap(Tr2MemoryCounterAL.MemoryType.TEXTURE, desc, msaa);
     return ALResult.S_OK;
   }
 
@@ -989,6 +1001,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /** Retires platform storage after queued commands have been submitted. */
   _Reset()
   {
+    // Carbon Tr2BufferALDx11.cpp:185, Tr2TextureALDx11.cpp:833: released storage leaves the counters.
+    this._memory.Reset();
     if (this._videoSampler) this._videoSampler.Destruct();
     this._videoSampler = null;
     // Cached bind groups that bind any of this texture's views go with it.

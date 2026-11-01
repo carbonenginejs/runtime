@@ -49,6 +49,7 @@ import {
   Tr2CpuUsage,
   Tr2GpuUsage
 } from "../../global/consts/renderContext/index.js";
+import { Tr2MemoryCounterAL } from "../Tr2MemoryCounterAL.js";
 
 
 /** Carbon's "no descriptor heap index", returned by both heap accessors. */
@@ -62,6 +63,15 @@ const NO_HEAP_INDEX = 0xffffffff;
  */
 export class Tr2TextureALStub extends Tr2DeviceResourceAL
 {
+  /**
+   * Carbon m_memory (Tr2TextureALDx11.h:128): this texture's bytes on the GPU memory
+   * counters, every mip of every slice per sample, set when it is created and
+   * taken back when it is released.
+   *
+   * @type {Tr2MemoryCounterAL}
+   */
+  _memory = new Tr2MemoryCounterAL();
+
   /** m_desc */
   _desc = new Tr2BitmapDimensions();
 
@@ -167,6 +177,8 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
     this._cpuUsage = cpuUsage;
     this._msaa = msaa;
 
+    // Carbon Tr2TextureALDx11.cpp:539: the description and multisampling.
+    this._memory.Set__Bitmap(Tr2MemoryCounterAL.MemoryType.TEXTURE, desc, msaa);
     return ALResult.S_OK;
   }
 
@@ -186,6 +198,8 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /** Carbon's impl `Destroy`: clears the description without unregistering. */
   _Reset()
   {
+    // Carbon Tr2BufferALDx11.cpp:185, Tr2TextureALDx11.cpp:833: released storage leaves the counters.
+    this._memory.Reset();
     this._desc = new Tr2BitmapDimensions();
     this._msaa = new Tr2MsaaDesc();
     this._gpuUsage = Tr2GpuUsage.NONE;

@@ -33,6 +33,7 @@ import {
   Tr2CpuUsage,
   Tr2GpuUsage
 } from "../../global/consts/renderContext/index.js";
+import { Tr2MemoryCounterAL } from "../Tr2MemoryCounterAL.js";
 
 
 /** Carbon's "no descriptor heap index". */
@@ -46,6 +47,14 @@ const NO_HEAP_INDEX = 0xffffffff;
  */
 export class Tr2BufferALStub extends Tr2DeviceResourceAL
 {
+  /**
+   * Carbon m_memory (Tr2BufferALDx11.h:49): this buffer's bytes on the GPU memory
+   * counters, set when it is created and taken back when it is released.
+   *
+   * @type {Tr2MemoryCounterAL}
+   */
+  _memory = new Tr2MemoryCounterAL();
+
   /** m_desc */
   _desc = new Tr2BufferDescriptionAL();
 
@@ -76,12 +85,16 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
     this._desc = Object.assign(new Tr2BufferDescriptionAL(), desc);
     this._buffer = new Uint8Array(desc.GetSizeInBytes());
 
+    // Carbon Tr2BufferALDx11.cpp:176: stride times count.
+    this._memory.Set__Size(Tr2MemoryCounterAL.MemoryType.BUFFER, desc.stride * desc.count);
     return ALResult.S_OK;
   }
 
   /** Carbon's impl `Destroy`: empties without unregistering. */
   _Reset()
   {
+    // Carbon Tr2BufferALDx11.cpp:185, Tr2TextureALDx11.cpp:833: released storage leaves the counters.
+    this._memory.Reset();
     this._desc.count = 0;
     this._buffer = new Uint8Array(0);
   }

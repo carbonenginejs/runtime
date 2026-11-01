@@ -71,6 +71,7 @@ import {
   Tr2CpuUsage,
   Tr2GpuUsage
 } from "../../global/consts/renderContext/index.js";
+import { Tr2MemoryCounterAL } from "../Tr2MemoryCounterAL.js";
 
 
 /** Carbon's "no descriptor heap index". */
@@ -273,6 +274,15 @@ function PixelsFor(gl, type, bytes)
 export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
 {
   /**
+   * Carbon m_memory (Tr2TextureALDx11.h:128): this texture's bytes on the GPU memory
+   * counters, every mip of every slice per sample, set when it is created and
+   * taken back when it is released.
+   *
+   * @type {Tr2MemoryCounterAL}
+   */
+  _memory = new Tr2MemoryCounterAL();
+
+  /**
    * dx11's `DepthOption::Type` (Tr2TextureALDx11.h:71-79): which depth-stencil
    * view `CreateViews` makes, writable or read-only. WebGL2 attaches the
    * texture itself (`AttachToFramebuffer`) and has no views, so nothing here
@@ -402,6 +412,8 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     this._gpuUsage = gpuUsage;
     this._cpuUsage = cpuUsage;
     this._msaa = msaa;
+    // Carbon Tr2TextureALDx11.cpp:539: the description and multisampling.
+    this._memory.Set__Bitmap(Tr2MemoryCounterAL.MemoryType.TEXTURE, desc, msaa);
 
     if (msaa.samples > 1)
     {
@@ -683,6 +695,8 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   /** Carbon's impl `Destroy`, before the registry is left. */
   _Reset()
   {
+    // Carbon Tr2BufferALDx11.cpp:185, Tr2TextureALDx11.cpp:833: released storage leaves the counters.
+    this._memory.Reset();
     const gl = this._gl;
 
     if (gl)
