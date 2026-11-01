@@ -160,6 +160,10 @@ export class Tr2RuntimeInstanceData
   /**
    * Allocates the native shared stream and interns its layout (cpp:210-231).
    *
+   * Nothing prepares this during a build, as in Carbon (constructor, cpp:16-23): the stream holds
+   * the data set afterwards, so UpdateData prepares it when the stream is not valid
+   * (cpp:445-457).
+   *
    * @adapted
    */
   _OnPrepareResources()

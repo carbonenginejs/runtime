@@ -206,6 +206,10 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /**
    * Recreates declarations when the device can prepare resources (cpp:89-93).
    *
+   * Nothing prepares this during a build, as in Carbon (constructor cpp:31-45, Initialize
+   * cpp:60-70): the combined declaration needs both the geometry and the instance provider, which
+   * load later, so it is made when they are ready (RebuildCachedData, cpp:160-164) or at the draw.
+   *
    * @implemented
    */
 

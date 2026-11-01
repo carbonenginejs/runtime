@@ -187,6 +187,10 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * render target the size of the display rectangle, readable as a shader resource. Carbon's
    * memory statistic is not ported.
    *
+   * Nothing prepares this during a build, as in Carbon (constructor, cpp:11-19): the target is
+   * the size of the display rectangle, known only when the layer gathers its sprites, so
+   * AllocateRenderTarget prepares it there (cpp:117-129).
+   *
    * @implemented
    * @returns {boolean} Whether the render target exists.
    */

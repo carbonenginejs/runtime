@@ -102,6 +102,9 @@ export class EveTacticalTrails
 
   /**
    * Carbon OnPrepareResources (cpp:78-81): nothing to prepare; the buffer is built on demand.
+   * Nothing prepares during a build, as in Carbon (constructor, cpp:69-72): the vertex buffer is
+   * sized by the segment count, so the update creates or grows it where it fills it
+   * (cpp:244-247).
    *
    * @implemented
    */

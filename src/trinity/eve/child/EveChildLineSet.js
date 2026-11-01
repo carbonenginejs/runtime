@@ -553,6 +553,11 @@ export class EveChildLineSet extends EveChildTransform
   /**
    * Creates Carbon's initial instance capacity using the AL description overload.
    *
+   * Nothing prepares this during a build, as in Carbon: the constructor (cpp:44-70) runs
+   * Initialize (cpp:76-104), which builds only the CPU line set. The instance buffer is sized by the
+   * line objects, so it is made here, when the device prepares, and grown where it is filled when
+   * invalid or too small (UpdateBuffer, cpp:304-312).
+   *
    * @adapted
    */
 

@@ -83,6 +83,10 @@ export class Tr2DirectInstanceData
    * Recreates the buffer and declaration (cpp:39-65). JavaScript supplies an
    * AL description object instead of the native stride/count overload.
    *
+   * Nothing prepares this during a build, as in Carbon (constructor, cpp:12-19): the buffer is
+   * stride times count, which SetLayout and GetData set afterwards, and Carbon creates it only once
+   * both are non-zero (cpp:41-43).
+   *
    * @adapted
    */
 
