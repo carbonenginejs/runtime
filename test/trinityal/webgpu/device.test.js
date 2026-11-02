@@ -165,3 +165,26 @@ test("CjsWebgpuDevice counts the bytes WriteDeviceBuffer passes to the queue", (
   webgpu.WriteDeviceBuffer(handle, new Float32Array(4));
   assert.equal(CjsWebgpuDevice.bufferBytesWritten - before, 32);
 });
+
+test("WriteDeviceBuffer passes a range as the ArrayBuffer and byte offsets, with no view", () =>
+{
+  const { device } = fakeDevice("write-range");
+  const seen = [];
+  device.queue.writeBuffer = (...args) => seen.push(args);
+  device.createBuffer = descriptor => ({ kind: "buffer", descriptor });
+  const webgpu = new CjsWebgpuDevice({ device, bufferUsage: { COPY_DST: 8 } });
+  const handle = webgpu.CreateDeviceBuffer({ size: 64, usage: 128 });
+  const shadow = new Uint8Array(new ArrayBuffer(80), 16, 64);
+  const before = CjsWebgpuDevice.bufferBytesWritten;
+
+  webgpu.WriteDeviceBuffer(handle, shadow, 8, 8, 12);
+  const [ , offset, data, dataOffset, size ] = seen[0];
+  assert.equal(offset, 8);
+  assert.equal(data, shadow.buffer, "the shadow's own ArrayBuffer, not a new view");
+  assert.equal(dataOffset, 16 + 8, "byte offset within it, the view's own offset included");
+  assert.equal(size, 12);
+  assert.equal(CjsWebgpuDevice.bufferBytesWritten - before, 12);
+
+  assert.throws(() => webgpu.WriteDeviceBuffer(handle, shadow, 0, 60, 8), /past the end of the data/u);
+  assert.throws(() => webgpu.WriteDeviceBuffer(handle, shadow, 0, 0, 6), /four-byte words/u);
+});

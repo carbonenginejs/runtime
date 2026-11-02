@@ -389,7 +389,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
     this._mapped = false;
     const start = offset & ~3;
     const end = Math.min((offset + size + 3) & ~3, this._shadow.length);
-    if (end > start) this._webgpu.WriteDeviceBuffer(this._handle, this._shadow.subarray(start, end), start);
+    if (end > start) this._webgpu.WriteDeviceBuffer(this._handle, this._shadow, start, start, end - start);
   }
 
   /**
@@ -436,7 +436,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
     const start = offset & ~3;
     const end = Math.min((offset + size + 3) & ~3, this._shadow.length);
 
-    this._webgpu.WriteDeviceBuffer(this._handle, this._shadow.subarray(start, end), start);
+    this._webgpu.WriteDeviceBuffer(this._handle, this._shadow, start, start, end - start);
 
     return ALResult.S_OK;
   }

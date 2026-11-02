@@ -16,9 +16,13 @@ function fakeDevice()
   const device = {
     calls,
     queue: {
-      writeBuffer(buffer, offset, data)
+      // GPUQueue.writeBuffer(buffer, bufferOffset, data, dataOffset, size): for an ArrayBuffer, offsets count bytes.
+      writeBuffer(buffer, offset, data, dataOffset = 0, size = undefined)
       {
-        calls.push([ "writeBuffer", buffer, offset, new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice() ]);
+        const bytes = ArrayBuffer.isView(data)
+          ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+          : new Uint8Array(data, dataOffset, size ?? data.byteLength - dataOffset);
+        calls.push([ "writeBuffer", buffer, offset, bytes.slice() ]);
       }
     },
     createBuffer(descriptor)

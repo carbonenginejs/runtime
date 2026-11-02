@@ -322,25 +322,32 @@ export class CjsWebgpuDevice
   }
 
   /**
-   * Uploads bytes into a device buffer.
+   * Uploads bytes into a device buffer: all of `bytes`, or the `size` bytes
+   * from `dataOffset` within it. A range is passed to `queue.writeBuffer` as
+   * its ArrayBuffer and byte offsets, so a caller writing part of a large
+   * shadow per frame allocates no view.
    *
    * @param {object} handle A `CreateDeviceBuffer` handle.
-   * @param {ArrayBufferView} bytes The bytes to write.
+   * @param {ArrayBufferView} bytes The bytes to write, or the view holding them.
    * @param {number} [offset] Byte offset into the buffer.
+   * @param {number} [dataOffset] Byte offset of the range within `bytes`.
+   * @param {number} [size] Bytes to write from `dataOffset`; all the rest of `bytes` when omitted.
    * @returns {object} The handle.
    */
-  WriteDeviceBuffer(handle, bytes, offset = 0)
+  WriteDeviceBuffer(handle, bytes, offset = 0, dataOffset = 0, size = bytes.byteLength - dataOffset)
   {
     const record = DEVICE_BUFFERS.get(handle);
 
     if (!record) fail("that is not a live device buffer");
     if (!ArrayBuffer.isView(bytes)) fail("device buffer data must be an ArrayBufferView");
     if (offset % 4 !== 0) fail("a device buffer write must start on a four-byte boundary");
-    if (bytes.byteLength % 4 !== 0) fail("a device buffer write must be a whole number of four-byte words");
-    if (offset + bytes.byteLength > record.size) fail("that write runs past the end of the device buffer");
+    if (size % 4 !== 0) fail("a device buffer write must be a whole number of four-byte words");
+    if (dataOffset < 0 || dataOffset + size > bytes.byteLength) fail("that range runs past the end of the data");
+    if (offset + size > record.size) fail("that write runs past the end of the device buffer");
 
-    this.GetDevice().queue.writeBuffer(record.buffer, offset, bytes);
-    CjsWebgpuDevice.bufferBytesWritten += bytes.byteLength;
+    if (dataOffset === 0 && size === bytes.byteLength) this.GetDevice().queue.writeBuffer(record.buffer, offset, bytes);
+    else this.GetDevice().queue.writeBuffer(record.buffer, offset, bytes.buffer, bytes.byteOffset + dataOffset, size);
+    CjsWebgpuDevice.bufferBytesWritten += size;
 
     return handle;
   }
