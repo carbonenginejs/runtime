@@ -588,7 +588,8 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
   assert.equal(geometry.GetMeshCount(), 1);
   assert.equal(geometry.GetAnimationCount(), 0);
   assert.equal(geometry.GetSkeletonCount(), 1);
-  assert.equal(geometry.GetSkeletonData(0), geometryPayload.skeletons[0]);
+  assert.equal(geometry.GetSkeletonData(0).name, geometryPayload.skeletons[0].name);
+  assert.equal(geometry.GetSkeletonData(0).joints.length, 0, "a skeleton without bones has no joints");
   assert.equal(geometry.GetSkeletonData(1), null);
   assert.equal(geometry.GetSkeletonData(-1), null);
   assert.equal(geometry.GetMeshAreaCount(0), 1);

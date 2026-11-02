@@ -1364,9 +1364,9 @@ export class EveTurretSet extends EveEntity
     for (const mesh of cmfData.meshes)
     {
       if (mesh.skeleton !== 0) continue;
-      for (let boneIndex = 0; boneIndex < skeleton.bones.length; boneIndex++)
+      for (let boneIndex = 0; boneIndex < skeleton.joints.length; boneIndex++)
       {
-        const binding = mesh.boneBindings.find(item => item.name === skeleton.bones[boneIndex]);
+        const binding = mesh.boneBindings.find(item => item.name === skeleton.joints[boneIndex].name);
         if (binding)
         {
           const min = binding.bounds.min, max = binding.bounds.max;

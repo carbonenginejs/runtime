@@ -32,8 +32,8 @@ test("real angbc2 crisis decals follow flat mesh binding 8 through the hull visi
   ship.SetMesh(mesh);
   const updater = ship.animationUpdater;
   assert.equal(updater.GetMeshBoneCount(), 45);
-  assert.equal(geometry.GetMeshData(0).boneBindings[8].name, "thrusterCover_01");
-  assert.equal(geometry.GetSkeletonData(0).bones.indexOf("thrusterCover_01"), 10,
+  assert.equal(geometry.GetMeshData(0).jointBindings[8].name, "thrusterCover_01");
+  assert.equal(geometry.GetSkeletonData(0).FindJoint("thrusterCover_01"), 10,
     "binding 8 already selects skeleton joint 10; no consumer remapping");
   ship.decals = items.map(item =>
   {

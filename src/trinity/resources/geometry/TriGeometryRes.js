@@ -520,7 +520,7 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   GetSkeletonCount()
   {
-    return this._cmfData?.skeletons?.length || 0;
+    return this._skeletons.length;
   }
 
   /**
@@ -539,7 +539,7 @@ export class TriGeometryRes extends BlueAsyncRes
       return null;
     }
 
-    return this._cmfData?.skeletons?.[index] || null;
+    return this._skeletons[index] ?? null;
   }
 
   /**
@@ -734,10 +734,10 @@ export class TriGeometryRes extends BlueAsyncRes
     const mesh = this.GetMeshData(meshIx);
     if (!mesh) throw new Error("Mesh index out of range, or invalid mesh");
 
-    const areas = TriGeometryRes.getMeshAreas(mesh);
-    if (areaIx < 0 || !areas || areaIx >= areas.length) throw new Error("Area index out of range");
+    const areas = mesh.lods[0]?.areas ?? [];
+    if (areaIx < 0 || areaIx >= areas.length) throw new Error("Area index out of range");
 
-    return boundsPair(TriGeometryRes.getBounds(areas[areaIx]));
+    return boundsPair({ min: areas[areaIx].minBounds, max: areas[areaIx].maxBounds });
   }
 
   /**
@@ -749,22 +749,19 @@ export class TriGeometryRes extends BlueAsyncRes
    *
    * @adapted the `std::pair<Vector3, Vector3>` out parameter is the return
    *   value and a failed `Be::Result` is thrown as an `Error` with Carbon's
-   *   message. A payload mesh that holds no bounds yields zeros, as an unfilled
-   *   `Vector3` member does. Unlike `GetBoundingBox` it never falls back to the
-   *   payload's own bounds.
+   *   message.
    * @param {number} meshIx Mesh index.
    * @returns {Array<number[]>} `[min, max]`, each a three-element array.
    * @throws {Error} "Mesh index out of bounds" or "Invalid mesh".
    */
   GetBoundingBoxFromScript(meshIx)
   {
-    const meshes = this._cmfData?.meshes;
-    if (!meshes || !(meshIx < meshes.length)) throw new Error("Mesh index out of bounds");
+    if (!(meshIx < this._meshes.length)) throw new Error("Mesh index out of bounds");
 
-    const mesh = meshes[meshIx];
+    const mesh = this._meshes[meshIx];
     if (!mesh) throw new Error("Invalid mesh");
 
-    return boundsPair(TriGeometryRes.getBounds(mesh));
+    return boundsPair({ min: mesh.minBounds, max: mesh.maxBounds });
   }
 
   /**
@@ -776,28 +773,27 @@ export class TriGeometryRes extends BlueAsyncRes
    *
    * @adapted the `std::pair<Vector3, float>` out parameter is the return value
    *   and a failed `Be::Result` is thrown as an `Error` with Carbon's message.
-   *   A mesh holding no sphere yields zeros, as a granny mesh does until
-   *   `RecalculateBoundingSphere` (cpp:1019-1020).
    * @param {number} meshIx Mesh index.
    * @returns {Array} `[center, radius]`: a three-element array and a number.
    * @throws {Error} "Mesh index out of range" or "Invalid mesh".
    */
   GetBoundingSphereFromScript(meshIx)
   {
-    const meshes = this._cmfData?.meshes;
-    if (!meshes || !(meshIx < meshes.length)) throw new Error("Mesh index out of range");
+    if (!(meshIx < this._meshes.length)) throw new Error("Mesh index out of range");
 
-    const mesh = meshes[meshIx];
+    const mesh = this._meshes[meshIx];
     if (!mesh) throw new Error("Invalid mesh");
 
-    const sphere = TriGeometryRes.getSphere(mesh) || [ 0, 0, 0, 0 ];
+    const sphere = mesh.boundingSphere;
     return [ [ sphere[0], sphere[1], sphere[2] ], sphere[3] ];
   }
 
   /**
-   * Get area bounding box from geometry payload data.
+   * Carbon GetAreaBoundingBox (TriGeometryRes.cpp:433-456): the bounds of one
+   * area of the mesh's first LOD.
    *
-   * @adapted
+   * @adapted without out vectors the bounds are returned (null when absent);
+   *   with them, they are filled and the result is whether the area exists.
    * @param {number} meshIndex
    * @param {number} areaIndex
    * @param {ArrayLike<number>|null} outMin
@@ -806,15 +802,16 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   GetAreaBoundingBox(meshIndex = 0, areaIndex = 0, outMin = null, outMax = null)
   {
-    const area = TriGeometryRes.getMeshAreas(this._cmfData?.meshes?.[meshIndex])?.[areaIndex];
-    const bounds = TriGeometryRes.getBounds(area);
+    const area = this._meshes[meshIndex]?.lods[0]?.areas[areaIndex];
+    const bounds = area ? { min: area.minBounds, max: area.maxBounds } : null;
     return TriGeometryRes.copyBounds(bounds, outMin, outMax);
   }
 
   /**
-   * Get mesh bounding box from geometry payload data.
+   * Carbon GetBoundingBox (TriGeometryRes.cpp:402-414): the mesh record's box.
    *
-   * @adapted
+   * @adapted without out vectors the bounds are returned (null when the mesh is
+   *   absent); with them, they are filled and the result is whether it exists.
    * @param {number} meshIndex
    * @param {ArrayLike<number>|null} outMin
    * @param {ArrayLike<number>|null} outMax
@@ -822,29 +819,24 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   GetBoundingBox(meshIndex = 0, outMin = null, outMax = null)
   {
-    const payload = this._cmfData;
-    const bounds = TriGeometryRes.getBounds(payload?.meshes?.[meshIndex])
-      || TriGeometryRes.getBounds(payload);
+    const mesh = this._meshes[meshIndex];
+    const bounds = mesh ? { min: mesh.minBounds, max: mesh.maxBounds } : null;
     return TriGeometryRes.copyBounds(bounds, outMin, outMax);
   }
 
   /**
-   * Get mesh bounding sphere from geometry payload data.
+   * Carbon GetBoundingSphere (TriGeometryRes.cpp:458-469): the mesh record's
+   * sphere, zero for a granny mesh until RecalculateBoundingSphere (cpp:1039).
    *
-   * @adapted
+   * @adapted without an out vector the sphere is returned (null when the mesh is
+   *   absent); with one, it is filled and the result is whether the mesh exists.
    * @param {number} meshIndex
    * @param {ArrayLike<number>|null} out
    * @returns {*|boolean}
    */
   GetBoundingSphere(meshIndex = 0, out = null)
   {
-    const payload = this._cmfData;
-    const mesh = payload?.meshes?.[meshIndex];
-    let sphere = TriGeometryRes.getSphere(mesh) || TriGeometryRes.getSphere(payload);
-    // Carbon (TriGeometryRes.cpp:439-450) answers for any existing mesh with the
-    // sphere it holds; a granny mesh holds zero until RecalculateBoundingSphere
-    // (cpp:1019-1020). Returning nothing made EveChildInstanceMeshRenderer throw.
-    if (!sphere && mesh) sphere = [ 0, 0, 0, 0 ];
+    const sphere = this._meshes[meshIndex]?.boundingSphere ?? null;
     if (!out) return sphere;
     if (!sphere) return false;
     vec4.copy(out, sphere);
@@ -898,10 +890,12 @@ export class TriGeometryRes extends BlueAsyncRes
   }
 
   /**
-   * Recalculate bounding sphere data from canonical CPU vertex positions.
+   * Carbon RecalculateBoundingSphere (TriGeometryRes.cpp:1347-1426): each mesh
+   * record's sphere from its vertex positions.
    *
-   * @adapted
-   * @returns {boolean}
+   * @adapted the positions are read from the CMF source, falling back to its
+   *   bounds box when it holds none.
+   * @returns {boolean} Whether any sphere was set.
    */
   RecalculateBoundingSphere()
   {
@@ -911,10 +905,12 @@ export class TriGeometryRes extends BlueAsyncRes
       point = vec3.alloc();
     try
     {
-      for (const mesh of this._cmfData?.meshes || [])
+      const cmfMeshes = this._cmfData?.meshes ?? [];
+      for (let meshIndex = 0; meshIndex < this._meshes.length; meshIndex++)
       {
-        if (!TriGeometryRes.calculateMeshSphere(sphere, mesh, point)) continue;
-        TriGeometryRes.setMeshSphere(mesh, sphere);
+        const cmfMesh = cmfMeshes[meshIndex];
+        if (!cmfMesh || !TriGeometryRes.calculateMeshSphere(sphere, cmfMesh, point)) continue;
+        vec4.copy(this._meshes[meshIndex].boundingSphere, sphere);
         updated = true;
       }
       return updated;
@@ -1915,7 +1911,7 @@ export class TriGeometryRes extends BlueAsyncRes
       {
         const joint = new TriGeometryResJointData();
         joint.name = typeof bone === "string" ? bone : bone?.name ?? "";
-        joint.parentJoint = skel.parents?.[jointIx] ?? -1;
+        joint.parentJoint = (skel.parents?.[jointIx] ?? 0xffffffff) >>> 0;
         const inverse = skel.invBindTransforms?.[jointIx];
         if (inverse) mat4.copy(joint.inverseWorldTransform, inverse);
         return joint;

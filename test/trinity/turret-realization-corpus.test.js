@@ -302,14 +302,14 @@ test("real turret aiming samples before yaw/pitch/height through a rotated scale
       const target=inversePoint(world,Array.from(set.target.position));targets.push(target);
       const yaw=Math.atan2(target[0],target[2])*influence;
       expected[2].rotation=scalarQuaternionProduct([0,Math.sin(yaw/2),0,Math.cos(yaw/2)],expected[2].rotation);
-      const pitchPosition=updatePitchPose?Array.from(scalarPoseWorld(expected,resource.GetSkeletonData(0).parents)[4].slice(12,15)):[0,0,0];
+      const pitchPosition=updatePitchPose?Array.from(scalarPoseWorld(expected,resource.GetSkeletonData(0).joints.map(joint=>joint.parentJoint))[4].slice(12,15)):[0,0,0];
       const relative=target.map((v,i)=>v-pitchPosition[i]);let pitch=Math.asin(relative[1]/Math.hypot(...relative));
       if(updatePitchPose){const length=Math.hypot(...pitchPosition);const along=pitchPosition.reduce((sum,value,i)=>sum+value*target[i],0)/length;if(along<length)pitch=(relative[1]<0?-1:1)*Math.PI-pitch;}
       pitch=(.6*Math.min(80*Math.PI/180,Math.max(-80*Math.PI/180,pitch))+7*Math.PI/180)*influence;
       expected[4].rotation=scalarQuaternionProduct([-Math.sin(pitch/2),0,0,Math.cos(pitch/2)],expected[4].rotation);
       expected[3].position[1]+=Math.min(1,Math.max(0,target[1]/Math.hypot(...target)))*influence*4;
       for(const joint of [2,3,4]){assertScalars(turret.pose.boneTransforms[joint].rotation,expected[joint].rotation,"EveTurretAiming.cpp:45-146 rotation");assertScalars(turret.pose.boneTransforms[joint].position,expected[joint].position,"native height");}
-      const expectedWorld=scalarPoseWorld(expected,resource.GetSkeletonData(0).parents);
+      const expectedWorld=scalarPoseWorld(expected,resource.GetSkeletonData(0).joints.map(joint=>joint.parentJoint));
       assertScalars(turret.worldTransforms[10],expectedWorld[10],"full current muzzle joint before world placement");
     }
     assert.notDeepEqual(targets[0],targets[1],"paired mounts see distinct target-local coordinates");
@@ -549,7 +549,7 @@ test("GR2 and CMF turret bounds follow donor traversal, animated world joints an
   {
     resources.set(geometryPath,geometry);set.Initialize();set.useDynamicBounds=true;set.OnModified("useDynamicBounds");
     set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous(updateContext({deltaTime:.8}),set._parentData);
-    const turret=set.GetTurrets()[0],names=set._skeleton.bones;
+    const turret=set.GetTurrets()[0],names=set._skeleton.joints.map(joint=>joint.name);
     const bindings=[];
     if(label==="CMF")for(const mesh of geometry.GetCMFData().meshes){if(mesh.skeleton===0)for(let joint=0;joint<names.length;joint++){const b=mesh.boneBindings.find(x=>x.name===names[joint]);if(b)bindings.push({joint,lo:b.bounds.min,hi:b.bounds.max});}}
     else {const fi=geometry.GetGrannyInfo();for(const index of fi.models[0].meshBindings)for(const b of fi.meshes[index].boneBindings)bindings.push({joint:names.indexOf(b.name),lo:b.minBounds,hi:b.maxBounds});}
@@ -627,7 +627,7 @@ test("instance container native copier, bone wrapper, reset and boundary quirk",
 test("controlled bounds projection distinguishes all CMF meshes from GR2 model zero",{skip},async t=>
 {
   const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();set.useDynamicBounds=true;set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);
-  const names=set._skeleton.bones,lo=[-2,-3,-4],hi=[5,6,7];
+  const names=set._skeleton.joints.map(joint=>joint.name),lo=[-2,-3,-4],hi=[5,6,7];
   const cmfBinding=name=>({name,bounds:{min:lo,max:hi}});
   const projection={skeletons:[set._skeleton],meshes:[{skeleton:0,boneBindings:[cmfBinding(names[4]),cmfBinding(names[0])]},{skeleton:1,boneBindings:[cmfBinding(names[2])]},{skeleton:0,boneBindings:[cmfBinding(names[3]),cmfBinding(names[1])]}]};
   set.InitializeDynamicBounds(projection,set._skeleton);

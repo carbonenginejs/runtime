@@ -331,7 +331,8 @@ test("Tr2SkinnedModel selects exact resource skeletons and resets bindings", () 
   model.geometryRes = geometryRes;
   model.skeletonName = "Hero";
   model.RebuildCachedData(geometryRes);
-  assert.equal(model.GetSkeleton(), skeletons[1]);
+  assert.equal(model.GetSkeleton(), geometryRes.GetSkeletonData(1));
+  assert.equal(model.GetSkeleton().name, "Hero");
 
   model.skeletonName = "hero";
   model.RebuildCachedData(geometryRes);
@@ -339,11 +340,11 @@ test("Tr2SkinnedModel selects exact resource skeletons and resets bindings", () 
 
   model.skeletonName = "Other";
   model.RebuildCachedData(geometryRes);
-  assert.equal(model.GetSkeleton(), skeletons[0]);
+  assert.equal(model.GetSkeleton(), geometryRes.GetSkeletonData(0));
   model.ReleaseCachedData(geometryRes);
   assert.equal(model.GetSkeleton(), null);
   model.RebuildCachedData(geometryRes);
-  assert.equal(model.GetSkeleton(), skeletons[0]);
+  assert.equal(model.GetSkeleton(), geometryRes.GetSkeletonData(0));
 
   const bindCalls = [];
   const boneNames = [ "Root" ];

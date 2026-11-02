@@ -198,12 +198,11 @@ export class Tr2MeshBase
    * boneList; a joint the rig lacks falls back through its render-rig parents until one is found. Every area then
    * shares the mapping and its joint count.
    *
-   * @adapted renderRig is the decoded payload skeleton, { name, bones: [names], parents }, so Carbon's
-   *   renderRig->FindJoint and m_joints[i].m_parentJoint / m_name read bones.indexOf, parents[i] and bones[i]; the mesh's
-   *   m_jointBindings are the mesh record's jointBindings. Carbon's CCP_LOGWARN on an unknown joint is not reproduced.
+   * @adapted the mesh's m_jointBindings are the mesh record's jointBindings and renderRig is the geometry's
+   *   TriGeometryResSkeletonData. Carbon's CCP_LOGWARN on an unknown joint is not reproduced.
    * @param {string[]} boneList - the animation rig's bone names
    * @param {number} numBones
-   * @param {object} renderRig - the geometry resource's skeleton
+   * @param {TriGeometryResSkeletonData} renderRig - the geometry resource's skeleton
    * @param {boolean} [forceRebind]
    * @returns {boolean} false while the geometry is not prepared
    */
@@ -243,17 +242,17 @@ export class Tr2MeshBase
 
       while (this._jointMappingAnimRig[j] === 0xffffffff)
       {
-        const renderIndex = renderRig.bones.indexOf(name);
-        if (renderIndex === -1)
+        const renderIndex = renderRig.FindJoint(name);
+        if (renderIndex === 0xffffffff)
         {
           break;
         }
-        const parentIndex = renderRig.parents[renderIndex];
+        const parentIndex = renderRig.joints[renderIndex].parentJoint;
         if (parentIndex === 0xffffffff)
         {
           break;
         }
-        const parentName = renderRig.bones[parentIndex];
+        const parentName = renderRig.joints[parentIndex].name;
         this._jointMappingAnimRig[j] = this.FindJoint(boneList, numBones, parentName);
         name = parentName;
       }
