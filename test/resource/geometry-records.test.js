@@ -103,3 +103,14 @@ test("the bare SetupMeshes refuses a granny file info until the Granny overload 
 {
   assert.throws(() => new TriGeometryRes().SetupMeshes({ grannyFileFormatRevision: 7, meshes: [] }), /granny_file_info/);
 });
+
+test("a CMF LOD's threshold is its max screen size, so LOD selection follows it (cpp:905, 294-319)", () =>
+{
+  const geometry = new TriGeometryRes();
+  const lod = threshold => ({ threshold, areas: [ { firstElement: 0, elementCount: 1 } ], vertex: { position: new Float32Array(9) } });
+  geometry.ReadCMFFile({ meshes: [ { name: "m", areas: [ { name: "a" } ], lods: [ lod(1000), lod(100), lod(10) ] } ] });
+  assert.deepEqual(geometry.GetMeshData(0).lods.map(record => record.maxScreenSize), [ 1000, 100, 10 ]);
+  assert.equal(geometry.GetLodIndexForScreenSize(0, 500), 0);
+  assert.equal(geometry.GetLodIndexForScreenSize(0, 50), 1);
+  assert.equal(geometry.GetLodIndexForScreenSize(0, 5), 2);
+});

@@ -222,10 +222,11 @@ export class TriGeometryRes extends BlueAsyncRes
    *   onto the records. The records follow the payload shapes the reader and the
    *   tests produce: a mesh with no `lods` is its own only LOD; an area takes its
    *   name, flags and bounds from the mesh area and its range from the LOD area,
-   *   under either the CMF or the Carbon field name. Three fields keep today's
-   *   values rather than Carbon's: `maxScreenSize` is the LOD's own
-   *   `maxScreenSize` (Carbon: `threshold`, cpp:905), the sphere is the payload's
-   *   (Carbon: from the bounds box, cpp:874-875), and the declaration handle and
+   *   under either the CMF or the Carbon field name, and so does a LOD's
+   *   screen size: the CMF `threshold` as Carbon reads it (cpp:905), or a
+   *   payload's own `maxScreenSize`. Two fields keep our values rather than
+   *   Carbon's: the sphere is the payload's (Carbon: from the bounds box,
+   *   cpp:874-875), and the declaration handle and
    *   stride are set when a LOD is first allocated (Carbon: here, cpp:863-865,
    *   from the CMF stride; ours is packed and aligned then). The minimum model
    *   LOD (cpp:889) is not applied; TriDevice's is always 0 here.
@@ -315,7 +316,7 @@ export class TriGeometryRes extends BlueAsyncRes
       lod.mesh = mesh;
       lod.grannyMeshIndex = -1;
       lod.name = mesh.name;
-      lod.maxScreenSize = cmfLod.maxScreenSize ?? 0;
+      lod.maxScreenSize = cmfLod.threshold !== undefined ? Math.fround(cmfLod.threshold) : cmfLod.maxScreenSize ?? 0;
       lod.vertexCount = TriGeometryRes._GetLodVertexCount(cmfMesh, cmfLod);
       lod.primitiveCount = TriGeometryRes.getLodPrimitiveCount(cmfLod);
       lod.uvDensities = Array.from(cmfMesh.uvDensities ?? []);
