@@ -85,10 +85,13 @@ export class CjsProjectedDecal extends CjsCharacterRecord
     @type.int32
     layer = 0;
 
-    /** Optional scene-recipe spelling, preserved separately from layer when authored. */
+    /**
+     * Optional scene-recipe spelling, preserved separately from layer when authored. Layer indices start at 0, so
+     * -1 means the scene recipe did not author it.
+     */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32
-    layeres = null;
+    layeres = -1;
 
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

@@ -70,7 +70,8 @@ test("tag hydration normalizes declared null strings/lists without changing othe
     assert.equal(decal.textureResource, "");
     assert.equal(decal.layeres, 2);
     assert.equal(decal.layer, 0);
-    assert.equal(Read("!!python/object:paperDoll.ProjectedDecal {}").layeres, null);
+    // Not authored: the reader leaves the field's default, -1.
+    assert.equal(Read("!!python/object:paperDoll.ProjectedDecal {}").layeres, -1);
 });
 
 test("only the two reviewed light YAML flags accept numeric boolean normalization", () =>
