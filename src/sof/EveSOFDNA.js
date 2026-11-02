@@ -174,7 +174,6 @@ export class EveSOFDNA extends IRoot
         // ccpwgl's legacy reader indexing `commands.mesh[materialIndex]`
         // against `generic.materialPrefixes` for independent confirmation.
         case "mesh":
-        case "material":
           if (args.length !== this.genericData.materialPrefixes.length) return false;
           if (args.some(value => value !== "none" && !this.dataMgr.HasMaterialData(value))) return false;
           break;
