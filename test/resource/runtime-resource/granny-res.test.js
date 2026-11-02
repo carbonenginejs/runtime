@@ -5,7 +5,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { TriGrannyRes, Tr2GrannyIntersectionResult } from "../../../npm/dist/resource/index.js";
-import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem, BlueResMan, blue } from "../../../npm/dist/blue/blue/index.js";
+import { BlueResFileSystemForm, BluePaths, IBlueResFileSystem, BlueResMan, MotherLode, getMotherLodeKey, blue } from "../../../npm/dist/blue/blue/index.js";
+import { clientResources } from "../../support/clientResources.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue/blue.js";
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
@@ -15,6 +16,8 @@ import { MarkerTag } from "../../support/markerTags.js";
 // Our own generated GR2, made for the racing demo: not a client asset, and the
 // only GR2 we have generated that loads correctly (operator, 2026-10-25).
 const TRACK = new URL("./fixtures/track.gr2", import.meta.url);
+// Client files through the local tools-core service; the test that reads them skips without it.
+const client = await clientResources();
 
 /** A res file system answering from a map of path to bytes. */
 function memoryFileSystem(files)
@@ -133,6 +136,65 @@ test("Load reads a GR2 through blue.paths, decodes it and marks the resource goo
   const cmf = new TriGrannyRes();
   assert.equal(await cmf.Load("res:/a.cmf"), false, "Tr2CmfContents is not ported");
   assert.equal(cmf.IsUsingCMF(), false, "unregistered CMF fails before decoder state changes");
+
+  assert.equal(junk.GetMemoryUsage(), 0, "a failed load reports no memory");
+  assert.equal(cmf.GetMemoryUsage(), 0, "a .cmf cannot load here, so it reports no memory");
+});
+
+/**
+ * The sum of a GR2 header's section expanded sizes, read here from the file layout rather than through our
+ * reader: the section array starts at 32 + header[12], holds header[16] entries of 44 bytes, and each entry's
+ * expanded size is at +12.
+ */
+function expandedSectionBytes(bytes)
+{
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const sectionArray = 32 + view.getUint32(32 + 12, true), count = view.getUint32(32 + 16, true);
+  let total = 0;
+  for (let i = 0; i < count; i++) total += view.getUint32(sectionArray + i * 44 + 12, true);
+  return total;
+}
+
+test("a loaded GR2 reports the sum of its expanded section sizes, and MotherLode caches it (cpp:253-258, 1727-1735)", async t =>
+{
+  const bytes = new Uint8Array(readFileSync(TRACK));
+  withFiles(t, new Map([ [ "res:/track.gr2", bytes ] ]));
+  const resource = new TriGrannyRes();
+  assert.equal(await resource.Load("res:/track.gr2"), true);
+  const expected = expandedSectionBytes(bytes);
+  assert.ok(expected > 0);
+  assert.equal(resource.IsMemoryUsageKnown(), true);
+  assert.equal(resource.GetMemoryUsage(), expected);
+
+  // Idle, it enters the ICacheable cache by that size instead of being purged (MotherLode.cpp:329-401).
+  const motherLode = new MotherLode();
+  const key = getMotherLodeKey(resource.GetPath());
+  motherLode.Insert(key, resource, { time: 0 });
+  const sweep = motherLode.PurgeInactive({ time: 10, maxIdleMilliseconds: 5 });
+  assert.deepEqual(sweep.cachedKeys, [ key ]);
+  assert.deepEqual(sweep.purgedKeys, []);
+  assert.equal(motherLode.GetStats().cached, 1);
+  assert.equal(motherLode.GetStats().bytes, expected);
+});
+
+test("client GR2 files report their expanded section sizes: a hull, a paperdoll part and an animation", { skip: client.skip ?? false }, async t =>
+{
+  const paths = {
+    hull: "res:/dx9/model/ship/minmatar/destroyer/mde3/mde3_t3.gr2",
+    // Lower case: resource paths are normalized, and the memory file system matches exactly.
+    paperdoll: "res:/graphics/character/female/paperdoll/head/head_generic/head_generic.gr2",
+    animation: "res:/animation/charactercreatorv2/female/granny/female_additive_breathing.gr2"
+  };
+  const files = new Map();
+  for (const path of Object.values(paths)) files.set(path, new Uint8Array(await client.Read(path)));
+  withFiles(t, files);
+  for (const [ family, path ] of Object.entries(paths))
+  {
+    const bytes = files.get(path), resource = new TriGrannyRes();
+    assert.equal(await resource.Load(path), true, path);
+    assert.equal(resource.GetMemoryUsage(), expandedSectionBytes(bytes), path);
+    t.diagnostic(`${family}: ${bytes.byteLength} bytes on disk, ${resource.GetMemoryUsage()} expanded (${path})`);
+  }
 });
 
 test("model, mesh and animation counts and names (cpp:959-1007, 1547-1725)", () =>
@@ -319,8 +381,17 @@ test("a superseded direct tools load cannot finish or close its successor", asyn
   blue.resMan = manager;
   class DelayedGrannyFormat extends CjsGr2Format
   {
-    async ReadDataAsync(bytes) { return { models: [{ name: String(bytes[0]) }], meshes: [], animations: [] }; }
+    async ReadDataAsync(bytes) { return { models: [{ name: String(bytes[TAG]) }], meshes: [], animations: [] }; }
   }
+  // A Granny header with no sections (the resource reads its section array, cpp:253-258), tagged after it.
+  const TAG = 64;
+  const grannyFile = tag =>
+  {
+    const bytes = new Uint8Array(TAG + 1);
+    bytes.set([ 0x29, 0xde, 0x6c, 0xc0, 0xba, 0xa4, 0x53, 0x2b, 0x25, 0xf5, 0xb7, 0xa5, 0xf6, 0x66, 0xe2, 0xee ]);
+    bytes[TAG] = tag;
+    return bytes;
+  };
   manager.RegisterExtension("gr2raw", TriGrannyRes, { instance: new DelayedGrannyFormat().SetWorkerEnabled(false) });
   t.after(() => { manager.Clear(); blue.resMan = previous; });
   const resource = new TriGrannyRes();
@@ -329,11 +400,11 @@ test("a superseded direct tools load cannot finish or close its successor", asyn
   const second = resource.Load("res:/second.gr2");
   while (pending.length < 2) await new Promise(resolve => setImmediate(resolve));
   const secondAttempt = manager._GetResourceLoad(resource);
-  pending[0](new Uint8Array([1]));
+  pending[0](grannyFile(1));
   assert.equal(await first, false);
   assert.equal(manager._GetResourceLoad(resource), secondAttempt);
   assert.equal(resource.IsLoading(), true);
-  pending[1](new Uint8Array([2]));
+  pending[1](grannyFile(2));
   assert.equal(await second, true);
   assert.equal(resource.GetGrannyFile().models[0].name, "2");
   assert.equal(resource.IsGood(), true);

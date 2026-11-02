@@ -6,6 +6,7 @@ import { CjsSchema, type } from "#schema";
 import { BlueAsyncRes, ICacheable, blue as blueService } from "#blue";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { CjsGr2Format } from "../../../../resource/formats/gr2/CjsGr2Format.js";
+import { readGr2Sections } from "../../../../resource/formats/gr2/core/reader.js";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
 import { Failed } from "../../../../trinityal/ALResult.js";
 import { TriGeometryRes } from "../TriGeometryRes.js";
@@ -180,9 +181,11 @@ function FloatToHalf(value)
 export class TriGrannyRes extends BlueAsyncRes
 {
   /**
-   * m_memoryUsage: the file's expanded section sizes (TriGrannyRes.cpp:253-258),
-   * or the CMF stream's size (:213). Nothing loads this resource yet, so it
-   * stays 0 and the cache does not keep it (MotherLode.cpp:381-387).
+   * m_memoryUsage: the sum of the file's expanded section sizes, set once the
+   * Granny file is read (TriGrannyRes.cpp:253-258), so MotherLode can cache
+   * the resource by size. A `.cmf` would take the stream's size (:213), but a
+   * `.cmf` cannot load here, so it stays 0 and the cache does not keep it
+   * (MotherLode.cpp:381-387), as for any failed load.
    */
   _memoryUsage = 0;
 
@@ -221,6 +224,8 @@ export class TriGrannyRes extends BlueAsyncRes
     const resMan = blueService.resMan;
     const attempt = resMan._GetResourceLoad(this);
     const descriptor = blueService.resMan.GetResourceFormat(this);
+    // The section array is read from the header first: the read may transfer the bytes to a worker.
+    const sections = readGr2Sections(this._dataStream.data);
     const payload = await resMan.ReadFormatOnce(this, descriptor, this._dataStream.data,
       resMan._GetResourceRequest(this));
     resMan._AssertResourceLoad(this, attempt);
@@ -247,6 +252,8 @@ export class TriGrannyRes extends BlueAsyncRes
       );
     }
     this._grannyFile = payload;
+    this._memoryUsage = 0;
+    for (let i = 0; i < sections.length; i++) this._memoryUsage += sections[i].expandedSize;
     return BlueAsyncRes.LoadingResult.LR_SUCCESS;
   }
 
