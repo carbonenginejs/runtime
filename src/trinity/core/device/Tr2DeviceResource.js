@@ -108,9 +108,10 @@ export class Tr2DeviceResource
    *
    * @cjs Carbon's Tr2DeviceResource has no IsGood: it registers in its
    *   constructor and lives in the registry until its destructor. JavaScript has
-   *   no destructor, so registration follows use, and asking is the use; this
-   *   extends the resources' "IsGood renews" to device resources (non-Carbon
-   *   extensions register, *Resource keep-alive through IsGood*).
+   *   no destructor, so registration follows use, and asking is the use (device
+   *   resource registration decision). Unlike `BlueAsyncRes.IsGood`, which is
+   *   Carbon's pure question and leaves renewal to `EnsureGood`, this method is
+   *   ours, so it keeps that use in it.
    * @returns {boolean} Whether the device objects exist now.
    */
   IsGood()
