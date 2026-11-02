@@ -137,6 +137,22 @@ export class Tr2BufferAL
   }
 
   /**
+   * Forwards UnmapForWriting__WrittenRange to the implementation: closes the
+   * map, telling the backend the bytes written.
+   *
+   * @cjs A backend that writes mapped memory in place ignores the range; one
+   *   that must copy (WebGPU) copies only it. Registered in
+   *   non-carbon-extensions.md.
+   * @param {number} offset Byte offset of the written range.
+   * @param {number} size Bytes written.
+   * @param {object} renderContext The context the map was made against.
+   */
+  UnmapForWriting__WrittenRange(offset, size, renderContext)
+  {
+    return this._buffer ? this._buffer.implementation.UnmapForWriting__WrittenRange(offset, size, renderContext) : undefined;
+  }
+
+  /**
    * Forwards UpdateBuffer to the implementation, preserving the empty-value result.
    *
    * @implemented

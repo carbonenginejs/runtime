@@ -503,6 +503,39 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /**
+   * Ends a write mapping by uploading only `size` bytes at `offset`.
+   *
+   * A discarding map (`WRITE_OFTEN` without `NON_SYNCRONIZED_WRITE`) orphans
+   * the storage with `bufferData`, which needs every byte, so it is
+   * `UnmapForWriting`. Otherwise the old storage stays and `bufferSubData`
+   * writes the range from the retained shadow.
+   *
+   * @cjs See Tr2BufferAL.UnmapForWriting__WrittenRange.
+   * @param {number} offset Byte offset of the written range.
+   * @param {number} size Bytes written.
+   * @param {object} renderContext The context the map was made against.
+   */
+  UnmapForWriting__WrittenRange(offset, size, renderContext)
+  {
+    const cpu = this._desc.cpuUsage;
+    if (HasFlag(cpu, Tr2CpuUsage.WRITE_OFTEN) && !HasFlag(cpu, Tr2CpuUsage.NON_SYNCRONIZED_WRITE))
+    {
+      this.UnmapForWriting(renderContext);
+      return;
+    }
+
+    const al = RenderContextALOf(renderContext);
+    if (!al || !al.IsValid() || !this.IsValid()) return;
+
+    const gl = this._gl;
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, this._buffer);
+    gl.bufferSubData(gl.COPY_WRITE_BUFFER, offset, this._writeLockMemory, offset, size);
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
+
+    if (this._srv) this._srvDirty = true;
+  }
+
+  /**
    * Writes a range of the buffer.
    *
    * dx11's two routes (`Tr2BufferALDx11.cpp:405-440`): a `WRITE_OFTEN` buffer

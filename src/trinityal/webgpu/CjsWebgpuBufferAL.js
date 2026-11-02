@@ -21,7 +21,8 @@ import { Tr2BufferDescriptionAL } from "../Tr2BufferAL/Tr2BufferDescriptionAL.js
 // whole buffer on unmap.
 //
 // This is the second family for plain WRITE. For WRITE_OFTEN it is not enough,
-// and the buffer renames as the first family does. `queue.writeBuffer` lands
+// and the buffer renames as the first family does - unless the buffer also
+// carries NON_SYNCRONIZED_WRITE (below). `queue.writeBuffer` lands
 // before the next SUBMIT, but a frame's draws are recorded into one command
 // buffer submitted at EndScene - so every write in the frame lands before ANY
 // of its draws run, and all of them read the last one. The blitter's quad
@@ -31,6 +32,26 @@ import { Tr2BufferDescriptionAL } from "../Tr2BufferAL/Tr2BufferDescriptionAL.js
 // DX11's WRITE_DISCARD does (`Tr2BufferALDx11.cpp:419-429`); see
 // `MapForWriting`. Storage is reused from the next frame on, which is safe
 // because that frame's writes are queued after this frame's submit.
+//
+// NON_SYNCRONIZED_WRITE IS THE CALLER'S PROMISE NOT TO OVERWRITE BYTES IN USE,
+// and every backend answers it by writing in place: DX11 maps
+// WRITE_NO_OVERWRITE (`Tr2BufferALDx11.cpp:329-333`), Metal maps the same
+// buffer with no renaming (`Tr2BufferALMetal.mm:186-200`), DX12 takes a
+// NON_SYNCHRONIZED lock (`Tr2BufferALDx12.cpp:291`). Its callers - the rings
+// (`Tr2DynamicRingBuffer.cpp:421,466`, `Tr2RingBuffer.cpp:107`) and the
+// instanced-mesh instance buffer (`EveInstancedMeshManager.cpp:416`) - write a
+// fresh, fenced region on each put, so no draw recorded this frame reads bytes
+// a later write in the frame replaces. Such a buffer is not renamed: it keeps
+// one storage, as on every backend. The fence is submission-ordered
+// (CjsWebgpuFenceAL), which is what makes rewriting a submitted frame's
+// region safe here.
+//
+// A map hands back the whole shadow, so the backend cannot see which bytes the
+// caller wrote, and WebGPU has no in-place write: the only way to the device is
+// `queue.writeBuffer` of named bytes. `UnmapForWriting` therefore uploads the
+// whole shadow, and `UnmapForWriting__WrittenRange` (ours) uploads only the
+// range a caller that knows it passes - the ring's put, which was 4 MB per put
+// through the whole-buffer unmap.
 //
 // The shadow is RETAINED, not reallocated per map - which is DX11's behaviour
 // specifically, not the family's. DX11 allocates `m_writeLockMemory` once and
@@ -273,7 +294,8 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
     // nested map here would upload twice and hide which write won.
     if (this._mapped) return { result: ALResult.E_INVALIDCALL, data: null };
 
-    if (HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) this._Rename();
+    // NON_SYNCRONIZED_WRITE writes in place on every backend (head comment), so only a discarding map renames.
+    if (HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN) && !HasFlag(this._desc.cpuUsage, Tr2CpuUsage.NON_SYNCRONIZED_WRITE)) this._Rename();
 
     this._mapped = true;
 
@@ -312,12 +334,15 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
   /**
    * Closes the map and uploads the whole buffer.
    *
-   * Uploading everything rather than a dirty range matches all three real
-   * backends: DX11 `UpdateSubresource` on the whole buffer (cpp:400), DX12
-   * `CopyBufferRegion` of `m_size` (Tr2ResourceHelper.cpp:234), Metal a blit of
-   * `m_mtlBuffer.length` (mm:259).
+   * For plain WRITE this is what the backends do: DX11 `UpdateSubresource` of
+   * the whole buffer (cpp:400), DX12 `CopyBufferRegion` of `m_size`
+   * (Tr2ResourceHelper.cpp:234), Metal a blit of `m_mtlBuffer.length` (mm:259).
+   * For WRITE_OFTEN they upload nothing: the caller wrote into GPU-visible
+   * memory and the unmap only unmaps (dx11 cpp:384-391, mm:249-251).
    *
-   * @adapted
+   * @adapted WebGPU cannot write in place, and a map does not tell the backend
+   *   which bytes were written, so every unmap uploads the whole shadow. A
+   *   caller that knows its range uses `UnmapForWriting__WrittenRange`.
    */
   UnmapForWriting()
   {
@@ -330,6 +355,41 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
     CjsWebgpuDevice.bufferWholeUploadBytes += bytes;
     CjsWebgpuDevice.bufferWholeUploads += 1;
     CjsWebgpuDevice.bufferWholeUploadBytesByName.set(name, (CjsWebgpuDevice.bufferWholeUploadBytesByName.get(name) ?? 0) + bytes);
+  }
+
+  /**
+   * Closes the map and uploads only `size` bytes at `offset`, the range the
+   * caller wrote.
+   *
+   * A renamed (discarding) map moved to fresh storage that holds none of the
+   * shadow's other bytes, so it uploads the whole shadow as `UnmapForWriting`
+   * does. Otherwise the storage is the one already on the device and only the
+   * range changed. Widened outward to four-byte bounds for `writeBuffer`, as
+   * `UpdateBuffer` does; the extra bytes are the retained shadow's own.
+   *
+   * @cjs Carbon's AL has no ranged unmap: its backends write mapped memory in
+   *   place, so the range never needs naming. WebGPU's only write is
+   *   `queue.writeBuffer` of named bytes, and a map cannot say which bytes
+   *   were written. The nearest precedent is D3D12's own
+   *   `ID3D12Resource::Unmap(subresource, pWrittenRange)`. Registered in
+   *   non-carbon-extensions.md.
+   * @param {number} offset Byte offset of the written range.
+   * @param {number} size Bytes written.
+   * @param {object} _renderContext Unused; the device came from Create.
+   */
+  UnmapForWriting__WrittenRange(offset, size, _renderContext)
+  {
+    if (!this._mapped) return;
+    if (HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN) && !HasFlag(this._desc.cpuUsage, Tr2CpuUsage.NON_SYNCRONIZED_WRITE))
+    {
+      this.UnmapForWriting();
+      return;
+    }
+
+    this._mapped = false;
+    const start = offset & ~3;
+    const end = Math.min((offset + size + 3) & ~3, this._shadow.length);
+    if (end > start) this._webgpu.WriteDeviceBuffer(this._handle, this._shadow.subarray(start, end), start);
   }
 
   /**

@@ -246,6 +246,19 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   }
 
   /**
+   * The ranged unmap: the stub moves no bytes, so it is `UnmapForWriting`.
+   *
+   * @cjs See Tr2BufferAL.UnmapForWriting__WrittenRange.
+   * @param {number} _offset Byte offset of the written range.
+   * @param {number} _size Bytes written.
+   * @param {object} renderContext The context the map was made against.
+   */
+  UnmapForWriting__WrittenRange(_offset, _size, renderContext)
+  {
+    this.UnmapForWriting(renderContext);
+  }
+
+  /**
    * Validates a buffer update. IT MOVES NO BYTES - see the head comment.
    *
    * A buffer mapped often is written through a map, so Carbon refuses

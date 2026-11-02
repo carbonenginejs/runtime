@@ -395,3 +395,54 @@ test("the device-resource surface Carbon's backends share is answered", () =>
   const [ , , created ] = fake.calls.find(call => call[0] === "createBuffer");
   assert.equal(created.label, "quad");
 });
+
+const ringDescription = () =>
+  Tr2BufferDescriptionAL.create__Stride(1, 1024, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE);
+
+test("a NON_SYNCRONIZED_WRITE buffer is written in place: two maps in a frame keep one storage", () =>
+{
+  const { context } = deviceAndContext();
+  const buffer = new CjsWebgpuBufferAL();
+  buffer.Create(ringDescription(), null, context);
+
+  // Carbon's rings map no-overwrite (Tr2BufferALDx11.cpp:332, Tr2BufferALMetal.mm:186-200):
+  // each put writes a fresh region of the same storage, so renaming would only multiply buffers.
+  buffer.MapForWriting(context).data[0] = 1;
+  buffer.UnmapForWriting();
+  const first = buffer.GetDeviceBuffer();
+  buffer.MapForWriting(context).data[512] = 2;
+  buffer.UnmapForWriting();
+
+  assert.equal(buffer.GetDeviceBuffer(), first);
+});
+
+test("the ranged unmap uploads only the written range, widened to four-byte bounds", () =>
+{
+  const { fake, context } = deviceAndContext();
+  const buffer = new CjsWebgpuBufferAL();
+  buffer.Create(ringDescription(), null, context);
+
+  const { data } = buffer.MapForWriting(context);
+  data.set([ 9, 8, 7 ], 101);
+  buffer.UnmapForWriting__WrittenRange(101, 3, context);
+
+  const uploaded = writes(fake.calls);
+  assert.equal(uploaded.length, 1);
+  assert.equal(uploaded[0][2], 100);
+  assert.equal(uploaded[0][3].length, 4);
+  assert.deepEqual([ ...uploaded[0][3] ], [ 0, 9, 8, 7 ]);
+});
+
+test("the ranged unmap of a discarding map uploads whole, because its storage is fresh", () =>
+{
+  const { fake, context } = deviceAndContext();
+  const buffer = new CjsWebgpuBufferAL();
+  buffer.Create(quadDescription(), null, context);
+
+  buffer.MapForWriting(context).data[4] = 5;
+  buffer.UnmapForWriting__WrittenRange(4, 1, context);
+
+  const uploaded = writes(fake.calls);
+  assert.equal(uploaded.length, 1);
+  assert.equal(uploaded[0][3].length, 96);
+});

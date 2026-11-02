@@ -328,7 +328,11 @@ export class Tr2DynamicRingBuffer
   /**
    * Carbon UpdateBuffer (cpp:368-382): map, copy, unmap.
    *
-   * @implemented
+   * @adapted The unmap names the range copied (Tr2BufferAL's
+   *   `UnmapForWriting__WrittenRange`, ours). Carbon's backends write the
+   *   mapped memory in place, so its plain unmap costs nothing; WebGPU must
+   *   copy through `queue.writeBuffer`, and without the range it copied the
+   *   whole ring on every put.
    * @returns {number} An `ALResult`.
    */
   UpdateBuffer(data, offset, size, renderContext)
@@ -339,7 +343,7 @@ export class Tr2DynamicRingBuffer
 
     mapped.set(new Uint8Array(data.buffer, data.byteOffset, size), offset);
     Tr2DynamicRingBuffer.bytesWritten += size;
-    this._buffer.UnmapForWriting(renderContext);
+    this._buffer.UnmapForWriting__WrittenRange(offset, size, renderContext);
 
     return ALResult.S_OK;
   }
