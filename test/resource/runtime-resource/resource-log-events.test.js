@@ -6,12 +6,16 @@ import * as CcpLog from "../../../npm/dist/global/logging/ccpLog.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
 import "../../support/frameLoop.js";
 
-// resMan logs each resource's load at its events on its "ResMan" channel, with
-// the resource's MotherLode key as the saga (resman-in-the-browser.md).
+// While resource monitoring is on, resMan logs each resource's load at its
+// events on its "ResMan" channel, with the resource's MotherLode key as the
+// saga (resman-in-the-browser.md).
 
-/** Collects resMan's resource lines until the test ends. */
-function recordResourceLines(t)
+/** Collects resMan's resource lines until the test ends; monitoring on unless told otherwise. */
+function recordResourceLines(t, monitoring = true)
 {
+  const previous = BlueResMan.resourceMonitoring;
+  BlueResMan.resourceMonitoring = monitoring;
+  t.after(() => { BlueResMan.resourceMonitoring = previous; });
   const lines = [];
   const echo = (channel, type, userData, message) =>
   {
@@ -80,4 +84,19 @@ test("a reload continues the same saga", async t =>
 
   const events = lines.filter(line => line.saga === getMotherLodeKey(path, "")).map(line => line.event);
   assert.deepEqual(events, [ "requested", "read", "decoded", "prepared", "reloaded", "read", "decoded", "prepared" ]);
+});
+
+test("with resource monitoring off, a load logs nothing even while an echo listens", async t =>
+{
+  const lines = recordResourceLines(t, false);
+  const resMan = manager(t, bytes => bytes.length);
+
+  await resMan.FetchResource("res:/log/quiet.bin");
+
+  assert.deepEqual(lines, []);
+});
+
+test("resource monitoring is off by default", () =>
+{
+  assert.equal(BlueResMan.resourceMonitoring, false);
 });

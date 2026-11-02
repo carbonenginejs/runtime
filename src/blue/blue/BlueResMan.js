@@ -247,6 +247,18 @@ export class BlueResMan
    */
   static resManLoadObjectCalls = 0;
 
+  /**
+   * Resource monitoring: while true, `_LogResourceEvent` logs each step of
+   * every resource's load. Off by default.
+   *
+   * @cjs Formatting a line per request, read, decode and prepare costs about
+   *   250 ms of main thread per 24 s scene load once any echo listens at
+   *   `LOGTYPE_INFO`, and a log view always does, so the lines are opt-in. A
+   *   static, as `BlueCallbackMan.CALLBACKMAN_DEBUGGING` is, because the log
+   *   channel it feeds is process-wide.
+   */
+  static resourceMonitoring = false;
+
   // The manager is no longer reachable from itself. Carbon's process-wide
   // handle is an extern beside the interface it points at, not a static on
   // the implementation (`blue/include/IBlueResMan.h:135`), and the port of
@@ -3110,8 +3122,8 @@ export class BlueResMan
    *
    * Ours: Carbon logs only its own lines (`No factory found for extension` and
    * the rest), which stay as they are. These are additional, at
-   * `LOGTYPE_INFO`, Carbon's lowest severity, and cost one check when no echo
-   * listens.
+   * `LOGTYPE_INFO`, Carbon's lowest severity, and only while
+   * `BlueResMan.resourceMonitoring` is on; off, they cost one check.
    *
    * @cjs
    * @implemented
@@ -3123,6 +3135,7 @@ export class BlueResMan
    */
   _LogResourceEvent(resource, event, format, ...args)
   {
+    if (!BlueResMan.resourceMonitoring) return;
     if (!CcpLog.IsLogging(CcpLog.LogType.LOGTYPE_INFO)) return;
     // A resource made directly, with no path, has no MotherLode identity and
     // so no saga; it is not logged, and logging never throws.
