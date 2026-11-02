@@ -176,7 +176,8 @@ export const DEFAULT_VALUES = {
     rebuildMissingBounds: false,
     classes: {},
     meshIndex: null,
-    lodIndex: null
+    lodIndex: null,
+    grannyFileInfo: false
 };
 
 const OPTION_KEYS = new Set([
@@ -189,7 +190,8 @@ const OPTION_KEYS = new Set([
     "rebuildMissingBounds",
     "classes",
     "meshIndex",
-    "lodIndex"
+    "lodIndex",
+    "grannyFileInfo"
 ]);
 
 /**
@@ -236,6 +238,7 @@ function cloneValues(values)
         rebuildMissingTangents: values.rebuildMissingTangents,
         rebuildMissingBiNormals: values.rebuildMissingBiNormals,
         rebuildMissingBounds: values.rebuildMissingBounds,
+        grannyFileInfo: values.grannyFileInfo,
         classes: { ...classMap(values) },
         meshIndex: values.meshIndex,
         lodIndex: values.lodIndex
@@ -376,6 +379,7 @@ function optionValue(options, keys)
  * @param {Object<string, Function>} [options.classes] Constructors to merge into the class map.
  * @param {number|null} [options.meshIndex] Mesh to keep; null or undefined keeps all.
  * @param {number|null} [options.lodIndex] LOD to keep in each mesh; null or undefined keeps all.
+ * @param {boolean} [options.grannyFileInfo] Our internal read answers the file info itself (readFileInfoData).
  * @returns {Gr2Values} A new values object.
  * @throws {TypeError} When an option is unknown or invalid, or "gr2"/"cmf" output has no classes.
  * @throws {Error} When `emit` or a class key is unknown.
@@ -395,6 +399,10 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {})
     if (Object.hasOwn(options, "decompressCurves"))
     {
         values.decompressCurves = validateBoolean("decompressCurves", options.decompressCurves);
+    }
+    if (Object.hasOwn(options, "grannyFileInfo"))
+    {
+        values.grannyFileInfo = validateBoolean("grannyFileInfo", options.grannyFileInfo);
     }
 
     const unpackTangents = optionValue(options, [ "unpackTangents" ]);
@@ -908,6 +916,21 @@ export function inspectRawGr2Result(parsed)
  * @param {Gr2Values} values Effective decode values.
  * @returns {object} Shared geometry with typed channel and index storage.
  */
+/**
+ * The file info itself, as Carbon's TriGeometryRes reads it (`GrannyGetFileInfo`): the reflected
+ * graph, with each vertex array kept as its bytes, stride and reflected member list, and each index
+ * array as a typed array (readGr2Raw's rawArrays). Mesh selection applies as for shared data.
+ *
+ * @param {*} input GR2 bytes or a raw read result.
+ * @param {Gr2Values} values Effective read values.
+ * @returns {{grannyFileInfo: object, version: number}} The file info and the file's version.
+ */
+export function readFileInfoData(input, values)
+{
+    const raw = selectFileMeshes(isRawGr2Result(input) ? input : readGr2Raw(toBytes(input), { rawArrays: true }), values.meshIndex);
+    return { grannyFileInfo: raw.fileInfo, version: raw.version };
+}
+
 export function readSharedData(reader, input, values)
 {
     if (values.lodIndex !== null) throw new TypeError("GR2 shared data keeps each LOD as its own mesh.");

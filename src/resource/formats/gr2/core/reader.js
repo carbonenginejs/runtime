@@ -157,8 +157,10 @@ export function decompressGr2Section(format, bytes, expandedSize, sec)
  * @throws {Error} If the file magic, compression format, or reflected graph is
  * unsupported or malformed.
  */
-export function readGr2Raw(buf)
+export function readGr2Raw(buf, options = {})
 {
+    // Keeps vertex and index arrays as their bytes rather than one object per element (readRawArray).
+    const rawArrays = options.rawArrays === true;
     const dv0 = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
     /**
      * Read a little-endian uint32 from the original file bytes.
@@ -546,6 +548,67 @@ export function readGr2Raw(buf)
         };
     }
 
+    /** Typed array per numeric member type, for an index array kept whole. */
+    const TYPED_ARRAYS = {
+        [M.Int8]: Int8Array, [M.UInt8]: Uint8Array, [M.Int16]: Int16Array, [M.UInt16]: Uint16Array,
+        [M.Int32]: Int32Array, [M.UInt32]: Uint32Array, [M.Real32]: Float32Array
+    };
+
+    /**
+     * Whether every member of a reflected type is a plain number or fixed-width numeric array, so its
+     * instances are flat bytes (a Granny vertex type).
+     *
+     * @param {object[]} members Member descriptors.
+     * @returns {boolean} True for a flat numeric type.
+     */
+    function isFlatNumeric(members)
+    {
+        return members.length > 0 && members.every(m => m.type >= M.Real32 && m.type <= M.Real16);
+    }
+
+    /**
+     * A vertex array kept as Granny stores it: the elements' bytes, their stride and count, and the
+     * reflected member list that describes them (Granny's `granny_data_type_definition` array, which
+     * Carbon's `BuildFromGrannyVertexDecl` reads).
+     *
+     * @param {number} typeOff Global type-definition offset of one element.
+     * @param {number} p Global offset of the first element.
+     * @param {number} count Element count.
+     * @returns {{count: number, stride: number, type: object[], bytes: Uint8Array}|null} The array, or
+     *     null when its type is not flat numeric.
+     */
+    function readRawArray(typeOff, p, count)
+    {
+        const members = readType(typeOff);
+        if (!isFlatNumeric(members)) return null;
+        const stride = objectSize(typeOff);
+        return {
+            count,
+            stride,
+            type: members.map(m => ({ name: m.name, type: m.type, arrayWidth: m.arrayWidth })),
+            bytes: count > 0 && p >= 0 ? mem.slice(p, p + count * stride) : new Uint8Array(0)
+        };
+    }
+
+    /**
+     * An index array kept as a typed array, when each element is one numeric value (Granny's
+     * `Indices` and `Indices16`).
+     *
+     * @param {number} typeOff Global type-definition offset of one element.
+     * @param {number} p Global offset of the first element.
+     * @param {number} count Element count.
+     * @returns {ArrayBufferView|null} The values, or null for any other element type.
+     */
+    function readTypedArray(typeOff, p, count)
+    {
+        const members = readType(typeOff);
+        if (members.length !== 1 || members[0].arrayWidth > 1) return null;
+        const Typed = TYPED_ARRAYS[members[0].type];
+        if (!Typed) return null;
+        if (count <= 0 || p < 0) return new Typed(0);
+        return new Typed(mem.slice(p, p + count * Typed.BYTES_PER_ELEMENT).buffer);
+    }
+
     let depth = 0;
     const objCache = new Map(); // typeOff -> Map<objOff, object>
 
@@ -629,6 +692,12 @@ export function readGr2Raw(buf)
                         p = ptr(field + 4),
                         os = objectSize(m.refType),
                         a = [];
+                    const typed = rawArrays ? readTypedArray(m.refType, p, count) : null;
+                    if (typed)
+                    {
+                        obj[name] = typed;
+                        break;
+                    }
                     for (let i = 0; i < count; i++)
                     {
                         a.push(readObject(m.refType, p + i * os));
@@ -661,6 +730,12 @@ export function readGr2Raw(buf)
                         p = ptr(field + P + 4),
                         a = [],
                         os = vt >= 0 ? objectSize(vt) : 0;
+                    const raw = rawArrays && vt >= 0 ? readRawArray(vt, p, count) : null;
+                    if (raw)
+                    {
+                        obj[name] = raw;
+                        break;
+                    }
                     for (let i = 0; i < count; i++)
                     {
                         a.push(readObject(vt, p + i * os));

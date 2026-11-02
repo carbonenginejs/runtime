@@ -21,6 +21,7 @@ import {
     readRawInput,
     readWithValues,
     readSharedData,
+    readFileInfoData,
     toJsonValue,
 } from "./core/helpers.js";
 
@@ -86,6 +87,9 @@ export class CjsGr2Format extends CjsGeometryFormat
     /** LOD a read keeps in each mesh, or null for all; "cmf" output only. */
     _lodIndex = DEFAULT_VALUES.lodIndex;
 
+    /** Whether our internal read answers the granny file info rather than shared data. */
+    _grannyFileInfo = DEFAULT_VALUES.grannyFileInfo;
+
     /**
      * Create a reusable format profile.
      *
@@ -117,6 +121,7 @@ export class CjsGr2Format extends CjsGeometryFormat
         this._classes = values.classes;
         this._meshIndex = values.meshIndex;
         this._lodIndex = values.lodIndex;
+        this._grannyFileInfo = values.grannyFileInfo;
 
         return this;
     }
@@ -139,7 +144,8 @@ export class CjsGr2Format extends CjsGeometryFormat
             rebuildMissingBounds: this._rebuildMissingBounds,
             classes: this._classes,
             meshIndex: this._meshIndex,
-            lodIndex: this._lodIndex
+            lodIndex: this._lodIndex,
+            grannyFileInfo: this._grannyFileInfo
         }, options);
     }
 
@@ -157,14 +163,16 @@ export class CjsGr2Format extends CjsGeometryFormat
     }
 
     /**
-     * Our internal GR2 read returns typed shared data, independent of standalone emit.
+     * Our internal GR2 read returns typed shared data, independent of standalone emit, or the
+     * granny file info when `grannyFileInfo` is set (the geometry route's read).
      * @param {*} input GR2 bytes or reflected file data.
      * @param {object} [options={}] Per-call decode values.
-     * @returns {Promise<object>} Shared geometry data.
+     * @returns {Promise<object>} Shared geometry data, or `{ grannyFileInfo, version }`.
      */
     async ReadDataAsync(input, options = {})
     {
-        return readSharedData(this, input, this.GetValues(options));
+        const values = this.GetValues(options);
+        return values.grannyFileInfo ? readFileInfoData(input, values) : readSharedData(this, input, values);
     }
 
     /**
@@ -190,6 +198,7 @@ export class CjsGr2Format extends CjsGeometryFormat
     FinishRead(data, options = {})
     {
         const { classes } = this.GetValues(options);
+        if (data.grannyFileInfo) return data;
         return this._blue && Object.keys(classes).length ? hydrateShared(data, { classes }) : data;
     }
 
