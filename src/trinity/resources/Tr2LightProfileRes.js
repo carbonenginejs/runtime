@@ -192,15 +192,15 @@ export class Tr2LightProfileRes extends BlueAsyncRes
 
   /**
    * Carbon `GetMemoryUsage` (Tr2LightProfileRes.cpp:58-61): `PROFILE_LIGHTMAP_SIZE`
-   * once good, otherwise 0.
+   * once good, otherwise 0. `IsGood` only asks, so the cache asking does not
+   * renew the resource.
    *
-   * @adapted asks `IsPrepared`, because `IsGood` here also renews the
-   *   resource, which would take it back out of the cache that is asking.
+   * @implemented
    * @returns {number} Bytes.
    */
   GetMemoryUsage()
   {
-    return this.IsPrepared() ? Tr2LightProfileRes.PROFILE_LIGHTMAP_SIZE : 0;
+    return this.IsGood() ? Tr2LightProfileRes.PROFILE_LIGHTMAP_SIZE : 0;
   }
 
   /** `PROFILE_LIGHTMAP_SIZE` (Tr2LightProfileRes.cpp:14): the profile strip's width. */
