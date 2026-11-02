@@ -54,7 +54,7 @@ test("native attempts settle on one handle and retain no event or manager callba
   assert.equal(await manager.ReloadResource(resource.GetPath()), resource);
   assert.equal(resource.value, 2);
   assert.deepEqual(events, [["rebuild", 1], ["release"], ["rebuild", 2]]);
-  assert.deepEqual(resource._reloadNotifyTargets, [target]);
+  assert.deepEqual(resource._reloadNotifyTargets.map(ref => ref.deref()), [target]);
   for (const key of ["__reloadHook", "__objectLoader", "__lifecycleController", "__state", "state", "object"])
     assert.equal(Object.hasOwn(resource, key), false, key);
   for (const key of ["OnEvent", "Ready", "GetPayload", "SetState", "IsCurrent"])
@@ -243,7 +243,11 @@ test("automatic identity purge follows the configured cadence", async t =>
   });
   manager.RegisterObjectLoader("plain", () => 1);
   manager.RegisterExtension("plain", ValueResource);
-  assert.equal(manager.IsAutoPurgeEnabled(), false);
+  // On by default: a second's cadence and 30 s of identity idleness, with no payload release.
+  assert.equal(manager.IsAutoPurgeEnabled(), true);
+  assert.equal(manager.GetAutoPurgePolicy().intervalMilliseconds, 1000);
+  assert.equal(manager.GetAutoPurgePolicy().maxIdleMilliseconds, 30000);
+  assert.equal(manager.GetAutoPurgePolicy().payloadMaxIdleMilliseconds, undefined);
   manager.SetAutoPurgePolicy({ intervalMilliseconds: 10, maxIdleMilliseconds: 20,
     payloadMaxIdleMilliseconds: 5, now: () => time });
   const resource = manager.GetResource("res:/auto.plain");
@@ -261,4 +265,15 @@ test("automatic identity purge follows the configured cadence", async t =>
   assert.equal(manager.Lookup(resource.GetPath()), null);
   manager.SetAutoPurgePolicy(false);
   assert.equal(manager.PumpAutoPurge({time: 100}), null);
+});
+
+test("an automatic purge policy naming no limit takes the default identity limit", t =>
+{
+  const manager = managerFor(t, () => new Uint8Array([1]));
+  manager.SetAutoPurgePolicy({ intervalMilliseconds: 50 });
+  assert.equal(manager.GetAutoPurgePolicy().maxIdleMilliseconds, BlueResMan.defaultAutoPurgePolicy.maxIdleMilliseconds);
+  manager.SetAutoPurgePolicy({ payloadMaxIdleMilliseconds: 500 });
+  assert.equal(manager.GetAutoPurgePolicy().maxIdleMilliseconds, undefined, "a payload-only policy keeps identities");
+  manager.SetAutoPurgePolicy(null);
+  assert.equal(manager.IsAutoPurgeEnabled(), false);
 });

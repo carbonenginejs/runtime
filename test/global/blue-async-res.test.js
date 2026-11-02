@@ -228,5 +228,5 @@ test("RemoveNotifyTarget removes a registered target and ignores an unknown one"
   res.AddNotifyTarget(b);
   res.RemoveNotifyTarget(a);
   res.RemoveNotifyTarget(new Target());
-  assert.deepEqual(res._reloadNotifyTargets, [ b ]);
+  assert.deepEqual(res._reloadNotifyTargets.map(ref => ref.deref()), [ b ]);
 });

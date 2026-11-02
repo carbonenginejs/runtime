@@ -31,7 +31,7 @@ test("both outcomes notify persistent targets with Carbon's prepared flag", () =
     resource._SetGood(good);
     resource._NotifyRebuildCachedData();
     assert.deepEqual(seen, [["rebuild", true, good]]);
-    assert.deepEqual(resource._reloadNotifyTargets, [target]);
+    assert.deepEqual(resource._reloadNotifyTargets.map(ref => ref.deref()), [target]);
     resource._NotifyReleaseCachedData();
     assert.deepEqual(seen[1], ["release", true, good]);
     resource.RemoveNotifyTarget(target);
@@ -82,8 +82,8 @@ test("a mesh rebinds and destructs both native geometry subscriptions", () =>
   mesh.SetLowResGeometryRes(low);
   mesh.SetGeometryRes(second);
   first.AssertNoNotifyTargets();
-  assert.deepEqual(second._reloadNotifyTargets, [mesh]);
-  assert.deepEqual(low._reloadNotifyTargets, [mesh]);
+  assert.deepEqual(second._reloadNotifyTargets.map(ref => ref.deref()), [mesh]);
+  assert.deepEqual(low._reloadNotifyTargets.map(ref => ref.deref()), [mesh]);
   mesh.Destruct();
   second.AssertNoNotifyTargets();
   low.AssertNoNotifyTargets();
@@ -95,7 +95,7 @@ test("a shared-geometry animation detaches on rebinding and destruction", () =>
   animation.SetSharedGeometryRes(first);
   animation.SetSharedGeometryRes(second);
   first.AssertNoNotifyTargets();
-  assert.deepEqual(second._reloadNotifyTargets, [animation]);
+  assert.deepEqual(second._reloadNotifyTargets.map(ref => ref.deref()), [animation]);
   animation.Destruct();
   second.AssertNoNotifyTargets();
 });
@@ -119,7 +119,7 @@ test("trails detach old geometry when rebound and current geometry when destruct
   owner.SetGeometryResource(first);
   owner.SetGeometryResource(second);
   first.AssertNoNotifyTargets();
-  assert.deepEqual(second._reloadNotifyTargets, [owner]);
+  assert.deepEqual(second._reloadNotifyTargets.map(ref => ref.deref()), [owner]);
   owner.Destruct();
   second.AssertNoNotifyTargets();
 });
@@ -141,12 +141,12 @@ test("skinned models, primitive sets and turrets detach their path-acquired reso
     owner[field] = "res:/first.gr2";
     const first = next = new TriGeometryRes();
     owner[method]();
-    assert.deepEqual(first._reloadNotifyTargets, [owner]);
+    assert.deepEqual(first._reloadNotifyTargets.map(ref => ref.deref()), [owner]);
     owner[field] = "res:/second.gr2";
     const second = next = new TriGeometryRes();
     owner[method]();
     first.AssertNoNotifyTargets();
-    assert.deepEqual(second._reloadNotifyTargets, [owner]);
+    assert.deepEqual(second._reloadNotifyTargets.map(ref => ref.deref()), [owner]);
     owner.Destruct();
     second.AssertNoNotifyTargets();
   }
