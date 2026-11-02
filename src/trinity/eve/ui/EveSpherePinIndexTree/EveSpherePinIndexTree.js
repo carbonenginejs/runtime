@@ -109,12 +109,14 @@ export class EveSpherePinIndexTree
   {
     this.initialized = 0;
     if (!this.granny || !this.granny.IsGood()) return 0;
-    const mesh = this.granny.GetCMFData()?.meshes?.[0];
+    // Mesh 0's first LOD, from whichever reader ran (GetLodPositions / GetLodIndices); its triangles
+    // are walked as one list.
+    const mesh = this.granny.GetMeshData(0);
     if (!mesh) return 0;
-    const lod = mesh.lods?.[0] ?? mesh;
-    const positions = (lod.vertex ?? mesh.vertex)?.position;
-    const groups = lod.indices ?? mesh.indices;
-    if (!positions || !groups) return 0;
+    const positions = this.granny.GetLodPositions(0, mesh.lods[0]);
+    const indices = this.granny.GetLodIndices(0, mesh.lods[0]);
+    if (!positions || !indices) return 0;
+    const groups = [ { faces: indices } ];
     this.tree = CreateTree(null, 9);
     this.faces = [];
     this.markedFaces.length = 0;

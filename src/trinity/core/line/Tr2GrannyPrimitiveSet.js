@@ -20,6 +20,8 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { trinity } from "../../CjsTrinity.js";
 import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
+import { GetMeshVertexPosition, GetVertexPositionOffsetAndType, GrannyGetTotalTypeSize } from "../../utilities/GeometryUtils.js";
+import { TriGeometryRes } from "#trinity/resources/geometry";
 
 /** Granny/CMF debug geometry rendered as colored triangle edges, solids, or picking triangles. */
 @be.define("Tr2GrannyPrimitiveSet")
@@ -219,8 +221,17 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     if (!this.grannyRes) return;
     const meshes = [], resource = this.grannyRes;
     let picking = null, vertexCount = 0, indexCount = 0;
-    for (let index = 0; index < resource.GetMeshCount(); index++)
+    // Carbon's Granny branch walks the file's meshes (CreatePrimitiveFromGranny); each is decoded here.
+    const entries = granny ? (resource.GetGrannyInfo()?.Meshes ?? []).map(DecodeGrannyMesh) : null;
+    for (let index = 0; index < (entries ? entries.length : resource.GetMeshCount()); index++)
     {
+      if (entries)
+      {
+        const entry = entries[index];
+        if (entry.mesh.name.startsWith("picking")) picking = entry;
+        else { meshes.push(entry); indexCount += entry.faces.length; }
+        continue;
+      }
       // The vertices are the CMF source's, as Carbon's CreatePrimitiveFromCMF reads them (GetCMFData).
       const mesh = resource.GetCMFData().meshes[index], lod = resource.GetCMFLod(index, resource.GetMeshLod__LodIndex(index, 0));
       if (!lod || !lod.vertex?.position) throw new Error(`Tr2GrannyPrimitiveSet: mesh ${index} has no LOD-zero position stream`);
@@ -435,6 +446,51 @@ function ReadIndices(payload, _mesh, lod)
   else for (const group of lod.indices) for (const index of group.faces) indices.push(index);
   if (indices.length % 3) throw new Error("Tr2GrannyPrimitiveSet: incomplete triangle index stream");
   return indices;
+}
+
+/** Bytes and decoder per Granny member type, for the members a primitive reads as floats. */
+const GRANNY_FLOAT_READERS = {
+  10: [ 4, (view, offset) => view.getFloat32(offset, true) ],
+  13: [ 1, (view, offset) => view.getInt8(offset) / 127 ],
+  14: [ 1, (view, offset) => view.getUint8(offset) / 255 ],
+  17: [ 2, (view, offset) => view.getInt16(offset, true) / 32767 ],
+  18: [ 2, (view, offset) => view.getUint16(offset, true) / 65535 ]
+};
+
+/**
+ * One Granny mesh as the primitive reads it: its name, positions (GetMeshVertexPosition), its
+ * Normal member as floats when it has one, and its triangle indices.
+ *
+ * @param {object} grannyMesh Granny mesh from the file info.
+ * @returns {{mesh: {name: string}, lod: {vertex: object}, count: number, faces: number[]}} The entry.
+ */
+function DecodeGrannyMesh(grannyMesh)
+{
+  const vertices = grannyMesh.PrimaryVertexData.Vertices, count = vertices.count;
+  const view = new DataView(vertices.bytes.buffer, vertices.bytes.byteOffset, vertices.bytes.byteLength);
+  const { positionOffset, positionType } = GetVertexPositionOffsetAndType(grannyMesh);
+  const position = new Float32Array(count * 3), point = [ 0, 0, 0 ]; // alloc: decoded once per primitive build
+  for (let index = 0; index < count; index++)
+  {
+    GetMeshVertexPosition(grannyMesh, index, point, vertices.stride, positionOffset, positionType);
+    position.set(point, index * 3);
+  }
+  let normal = null, memberOffset = 0;
+  for (const member of vertices.type)
+  {
+    const reader = GRANNY_FLOAT_READERS[member.type];
+    if (member.name === "Normal" && reader)
+    {
+      normal = new Float32Array(count * 3); // alloc: decoded once per primitive build
+      for (let index = 0; index < count; index++)
+        for (let axis = 0; axis < 3; axis++)
+          normal[index * 3 + axis] = reader[1](view, index * vertices.stride + memberOffset + axis * reader[0]);
+      break;
+    }
+    memberOffset += GrannyGetTotalTypeSize(member);
+  }
+  return { mesh: { name: grannyMesh.Name ?? "" }, lod: { vertex: normal ? { position, normal } : { position } }, count,
+    faces: Array.from(TriGeometryRes.grannyIndices(grannyMesh)) };
 }
 
 /** Native CMF packed-tangent precedence (TriGrannyRes.cpp:25-105); Granny reads its normal channel. */

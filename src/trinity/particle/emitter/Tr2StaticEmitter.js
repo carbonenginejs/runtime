@@ -10,7 +10,9 @@ import { type } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 import { Tr2ParticleElementDeclarationName } from "../element/Tr2ParticleElementDeclarationName.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
-import { CarbonUsageFromChannel, CarbonUsageFromCmf } from "../../core/vertex/vertexUsage.js";
+import { BuildFromGrannyVertexDecl, CarbonUsageFromChannel, CarbonUsageFromCmf } from "../../core/vertex/vertexUsage.js";
+import { Tr2VertexUsageCode } from "../../core/vertex/usageCode.js";
+import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 
 /**
  * One particle element's source in the geometry: Carbon's DeclarationMapping
@@ -24,6 +26,27 @@ import { CarbonUsageFromChannel, CarbonUsageFromCmf } from "../../core/vertex/ve
  * @property {number} length Element length (dimension).
  * @property {boolean} isEmpty Whether the element has no source and is zero-filled.
  */
+
+/** Decoded channel names (CarbonUsageFromChannel's vocabulary) for the usages a Granny vertex carries. */
+const GRANNY_CHANNEL_NAMES = {
+  [Tr2VertexUsageCode.POSITION]: "position", [Tr2VertexUsageCode.NORMAL]: "normal", [Tr2VertexUsageCode.TANGENT]: "tangent",
+  [Tr2VertexUsageCode.BITANGENT]: "binormal", [Tr2VertexUsageCode.COLOR]: "color", [Tr2VertexUsageCode.TEXCOORD]: "texcoord"
+};
+
+/**
+ * IEEE half to float.
+ *
+ * @param {number} h Half bits.
+ * @returns {number} The value.
+ */
+function HalfToFloat(h)
+{
+  const sign = h & 0x8000 ? -1 : 1, exponent = (h >> 10) & 0x1f, fraction = h & 0x3ff;
+  if (exponent === 0) return sign * fraction * 2 ** -24;
+  if (exponent === 31) return fraction ? NaN : sign * Infinity;
+  return sign * (1 + fraction / 1024) * 2 ** (exponent - 15);
+}
+
 
 /** A one-shot particle emitter that spawns one particle per vertex of a geometry mesh on first update. */
 @be.define("Tr2StaticEmitter")
@@ -118,13 +141,18 @@ export class Tr2StaticEmitter extends IRoot
 
     this.hasSpawnedParticles = true;
 
-    if (this.meshIndex >= geometry.GetMeshCount())
+    // Carbon's Granny branch counts and indexes the file's meshes (TriGrannyRes, cpp:229-237).
+    const grannyMeshes = geometry.IsUsingCMF() ? null : geometry.GetGrannyInfo().Meshes;
+    if (this.meshIndex >= (grannyMeshes ? grannyMeshes.length : geometry.GetMeshCount()))
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Invalid mesh index for Tr2StaticEmitter with geometry path %s", this.geometryResourcePath);
       return;
     }
 
-    const mesh = geometry.GetCMFData().meshes[this.meshIndex];
+    const mesh = grannyMeshes
+      ? Tr2StaticEmitter.DecodeGrannyMesh(grannyMeshes[this.meshIndex], this.geometryResourcePath)
+      : geometry.GetCMFData().meshes[this.meshIndex];
+    if (!mesh) return;
     const mappings = Tr2StaticEmitter.CreateDeclarationMap(mesh, system.GetElementDeclaration(), this.geometryResourcePath);
     if (!mappings) return;
 
@@ -280,6 +308,49 @@ export class Tr2StaticEmitter extends IRoot
       mappings.push(mapping);
     }
     return mappings;
+  }
+
+  /**
+   * Carbon's Granny branch reads the vertex bytes through BuildFromGrannyVertexDecl (cpp:236-259);
+   * this decodes each float element of a Granny mesh's vertices into a channel the mapping reads,
+   * with a declaration in the decoded-mesh shape CreateDeclarationMap takes.
+   *
+   * @cjs the emitter's mapping reads decoded channels rather than vertex bytes.
+   * @param {object|null} grannyMesh Granny mesh from the file info.
+   * @param {string} path Geometry path, for messages.
+   * @returns {{decl: object[], vertex: Object<string, Float32Array>}|null} The decoded mesh, or null.
+   */
+  static DecodeGrannyMesh(grannyMesh, path)
+  {
+    if (!grannyMesh || !grannyMesh.PrimaryVertexData)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Invalid granny file for Tr2StaticEmitter with geometry path %s", path);
+      return null;
+    }
+    const vertices = grannyMesh.PrimaryVertexData.Vertices;
+    const view = new DataView(vertices.bytes.buffer, vertices.bytes.byteOffset, vertices.bytes.byteLength);
+    const decl = [], vertex = {};
+    for (const item of BuildFromGrannyVertexDecl(vertices.type).items)
+    {
+      const match = /^(FLOAT32|FLOAT16)_(d)$/u.exec(item.type);
+      const elementCount = match ? Number(match[2]) : Tr2VertexDefinition.getDataTypeSizeInMembers(item.type);
+      decl.push({ usage: item.usage, usageIndex: item.usageIndex, elementCount,
+        type: match ? (match[1] === "FLOAT32" ? "Float32" : "Float16") : item.type });
+      const channelName = GRANNY_CHANNEL_NAMES[item.usage];
+      if (!match || !channelName) continue;
+      const channel = new Float32Array(vertices.count * elementCount); // alloc: decoded once per spawn
+      for (let index = 0; index < vertices.count; index++)
+      {
+        for (let component = 0; component < elementCount; component++)
+        {
+          const offset = index * vertices.stride + item.offset + component * (match[1] === "FLOAT32" ? 4 : 2);
+          channel[index * elementCount + component] = match[1] === "FLOAT32"
+            ? view.getFloat32(offset, true) : HalfToFloat(view.getUint16(offset, true));
+        }
+      }
+      vertex[channelName + item.usageIndex] = channel;
+    }
+    return { decl, vertex };
   }
 
   /**

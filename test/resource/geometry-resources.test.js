@@ -63,7 +63,7 @@ test("IsUsingCMF follows the reader that ran, not the payload's shape", (t) =>
 
   assert.equal(resource.IsUsingCMF(), true, "Carbon's default (cpp:210)");
 
-  resource.ReadGrannyFile(new Uint8Array(4));
+  resource.ReadGrannyFile({ grannyFileInfo: { Meshes: [], Skeletons: [] }, version: 7 });
   assert.equal(resource.IsUsingCMF(), false, "a granny file, although its payload is CMF-shaped");
   assert.ok(resource.GetGrannyInfo());
 
@@ -77,12 +77,12 @@ test("the granny file goes with its payload: releasing or replacing it forgets t
   WithStubbedReaders(t);
   const resource = new TriGeometryRes();
 
-  resource.ReadGrannyFile(new Uint8Array(4));
+  resource.ReadGrannyFile({ grannyFileInfo: { Meshes: [], Skeletons: [] }, version: 7 });
   resource.Shutdown();
   assert.equal(resource.GetGrannyInfo(), null);
   assert.equal(resource.IsUsingCMF(), true);
 
-  resource.ReadGrannyFile(new Uint8Array(4));
+  resource.ReadGrannyFile({ grannyFileInfo: { Meshes: [], Skeletons: [] }, version: 7 });
   resource.ReadCMFFile({ meshes: [] });
   assert.equal(resource.GetGrannyInfo(), null, "a payload no granny read produced");
   assert.equal(resource.IsUsingCMF(), true);

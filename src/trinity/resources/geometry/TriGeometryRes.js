@@ -21,6 +21,8 @@ import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
 import { CjsGr2Format } from "../../../resource/formats/gr2/index.js";
 import { CjsCmfFormat } from "../../../resource/formats/cmf/index.js";
+import { projectShared } from "../../../resource/formats/gr2/core/shared.js";
+import { readGr2Raw } from "../../../resource/formats/gr2/core/reader.js";
 import { TriGeometryResMeshData } from "./TriGeometryResMeshData.js";
 import { TriGeometryResLodData } from "./TriGeometryResLodData.js";
 import { TriGeometryResAreaData } from "./TriGeometryResAreaData.js";
@@ -98,6 +100,42 @@ function boundsPair(bounds)
     [ bounds.min[0], bounds.min[1], bounds.min[2] ],
     [ bounds.max[0], bounds.max[1], bounds.max[2] ]
   ];
+}
+
+/** The shared GR2 projection's channel names for Granny vertex members (formats/gr2/core/shared.js). */
+const GRANNY_CHANNEL_NAMES = {
+  Position: "position", BoneIndices: "blendIndice", Tangent: "tangent", Normal: "normal",
+  TextureCoordinates0: "texcoord0", TextureCoordinates1: "texcoord1", Binormal: "binormal", BoneWeights: "blendWeight"
+};
+
+/** Bytes and float reader per Granny member type, dequantized as the shared GR2 projection does. */
+const GRANNY_DEQUANTIZE = {
+  10: [ 4, (view, offset) => view.getFloat32(offset, true) ],
+  11: [ 1, (view, offset) => view.getInt8(offset) ],
+  12: [ 1, (view, offset) => view.getUint8(offset) ],
+  13: [ 1, (view, offset) => view.getInt8(offset) * Math.fround(1 / 127) ],
+  14: [ 1, (view, offset) => view.getUint8(offset) * Math.fround(1 / 255) ],
+  15: [ 2, (view, offset) => view.getInt16(offset, true) ],
+  16: [ 2, (view, offset) => view.getUint16(offset, true) ],
+  17: [ 2, (view, offset) => view.getInt16(offset, true) * Math.fround(1 / 32767) ],
+  18: [ 2, (view, offset) => view.getUint16(offset, true) * Math.fround(1 / 65535) ],
+  19: [ 4, (view, offset) => view.getInt32(offset, true) ],
+  20: [ 4, (view, offset) => view.getUint32(offset, true) ],
+  21: [ 2, (view, offset) => HalfToFloat(view.getUint16(offset, true)) ]
+};
+
+/**
+ * IEEE half to float.
+ *
+ * @param {number} h Half bits.
+ * @returns {number} The value.
+ */
+function HalfToFloat(h)
+{
+  const sign = h & 0x8000 ? -1 : 1, exponent = (h >> 10) & 0x1f, fraction = h & 0x3ff;
+  if (exponent === 0) return sign * fraction * 2 ** -24;
+  if (exponent === 31) return fraction ? NaN : sign * Infinity;
+  return sign * (1 + fraction / 1024) * 2 ** (exponent - 15);
 }
 
 /**
@@ -417,16 +455,18 @@ export class TriGeometryRes extends BlueAsyncRes
       const extended = grannyMesh.ExtendedData;
       const mbi = extended && extended.typeName === "MeshBoundsInfo" ? extended : null;
 
+      // GrannyConvertTree zero-fills members an older MeshBoundsInfo lacks (cpp:986).
+      const mbiMaxScreenSize = mbi?.maxScreenSize ?? 0;
       let mesh = null;
       let maxScreenSize = Infinity;
-      const mainLod = !mbi || mbi.maxScreenSize <= 0;
+      const mainLod = !mbi || mbiMaxScreenSize <= 0;
 
       if (!mainLod)
       {
         // We are an LOD of an existing mesh. Add ourselves to it.
-        mesh = grannyMeshIndexToMeshMap[mbi.sourceMeshIndex];
+        mesh = grannyMeshIndexToMeshMap[mbi.sourceMeshIndex ?? 0];
         if (mesh.vertexDeclarationHandle !== vertexDeclarationHandle || mesh.bytesPerVertex !== bytesPerVertex) continue;
-        maxScreenSize = mbi.maxScreenSize;
+        maxScreenSize = mbiMaxScreenSize;
       }
       else
       {
@@ -460,12 +500,13 @@ export class TriGeometryRes extends BlueAsyncRes
       lod.maxScreenSize = maxScreenSize;
       lod.vertexCount = grannyMesh.PrimaryVertexData.Vertices.count;
       lod.primitiveCount = 0;
+      this._SetupGrannyMorphTables(lod, grannyMesh);
 
       if (mbi)
       {
         // The UV densities, if available, are used for texture streaming.
         if (mbi.uvDensities?.length) lod.uvDensities = Array.from(mbi.uvDensities);
-        if (mainLod) TriGeometryRes._BoundingBoxUpdate(mesh.minBounds, mesh.maxBounds, mbi.bounds.min, mbi.bounds.max);
+        if (mainLod && mbi.bounds) TriGeometryRes._BoundingBoxUpdate(mesh.minBounds, mesh.maxBounds, mbi.bounds.min, mbi.bounds.max);
       }
 
       const topology = grannyMesh.PrimaryTopology;
@@ -479,10 +520,12 @@ export class TriGeometryRes extends BlueAsyncRes
         lod.primitiveCount += area.primitiveCount;
         area.isSkinned = this.IsAreaSkinned(area, grannyMesh, gi, bytesPerVertex);
         area.isMorphed = this.IsAreaMorphed(area, grannyMesh, gi);
-        if (mbi)
+        // Carbon asserts the MeshBoundsInfo covers every area (cpp:1129); one that does not is read from the vertices.
+        const areaInfo = mbi?.areaInfo?.[groupIndex];
+        if (areaInfo)
         {
-          vec3.copy(area.minBounds, mbi.areaInfo[groupIndex].bounds.min);
-          vec3.copy(area.maxBounds, mbi.areaInfo[groupIndex].bounds.max);
+          vec3.copy(area.minBounds, areaInfo.bounds.min);
+          vec3.copy(area.maxBounds, areaInfo.bounds.max);
         }
         else
         {
@@ -514,6 +557,54 @@ export class TriGeometryRes extends BlueAsyncRes
     this._cmfData = null;
     this._meshes = meshes;
     return true;
+  }
+
+  /**
+   * A Granny LOD's morph tables, which Carbon fills while building its buffers (CreateLodFromGrannyMesh,
+   * TriGeometryRes.cpp:2260-2293): each target's ScalarName less the exporter's "Shape" suffix, a
+   * cleared baked flag, and CalculateMorphDeformationAmount (cpp:2008-2023), the largest distance a
+   * target moves a vertex, each read through its own declaration.
+   *
+   * @adapted filled at load, as the CMF branch's are, because GetBounds reads the amounts before the
+   *   buffers exist (they are built at the first draw).
+   * @param {TriGeometryResLodData} lod LOD record, updated.
+   * @param {object} grannyMesh Granny mesh.
+   */
+  _SetupGrannyMorphTables(lod, grannyMesh)
+  {
+    const targets = grannyMesh.MorphTargets ?? [];
+    lod.morphTargetNames = targets.map(target => TriGeometryRes.stripShapeSuffix(target.ScalarName ?? ""));
+    lod.isBakedMorphTarget = targets.map(() => false);
+    if (!targets.length)
+    {
+      lod.morphTargetDeformationAmounts = [];
+      return;
+    }
+    const baseData = TriGeometryRes._InitMorphToBaseData(BuildFromGrannyVertexDecl(grannyMesh.PrimaryVertexData.Vertices.type));
+    const base = grannyMesh.PrimaryVertexData.Vertices;
+    const baseView = new DataView(base.bytes.buffer, base.bytes.byteOffset, base.bytes.byteLength);
+    const vertex = [ 0, 0, 0 ], morphVertex = [ 0, 0, 0 ];
+    lod.morphTargetDeformationAmounts = targets.map(target =>
+    {
+      const morphData = TriGeometryRes._InitMorphToBaseData(BuildFromGrannyVertexDecl(target.VertexData.Vertices.type));
+      const morph = target.VertexData.Vertices;
+      const morphView = new DataView(morph.bytes.buffer, morph.bytes.byteOffset, morph.bytes.byteLength);
+      let maxAmount = 0;
+      for (let index = 0; index < base.count; index++)
+      {
+        ConvertDataToVector3(baseData.declType, baseView, baseData.positionByteOffset + index * baseData.bytesPerVertex, vertex);
+        ConvertDataToVector3(morphData.declType, morphView, morphData.positionByteOffset + index * morphData.bytesPerVertex, morphVertex);
+        let x = morphVertex[0], y = morphVertex[1], z = morphVertex[2];
+        if (!target.DataIsDeltas)
+        {
+          x -= vertex[0];
+          y -= vertex[1];
+          z -= vertex[2];
+        }
+        maxAmount = Math.max(maxAmount, x * x + y * y + z * z);
+      }
+      return Math.fround(Math.sqrt(maxAmount));
+    });
   }
 
   /**
@@ -788,11 +879,13 @@ export class TriGeometryRes extends BlueAsyncRes
   }
 
   /**
-   * Carbon ReadGrannyFile (TriGeometryRes.cpp:1245-1299). Adapted: preserve the
-   * decoded Granny graph and project shared CMF channels for the JS mesh path.
+   * Carbon ReadGrannyFile (TriGeometryRes.cpp:1264-1299): keeps the granny file info and sets up the
+   * meshes and skeletons from it (SetupMeshes__GrannyFileInfo, SetupSkeletons__GrannyFileInfo).
    *
-   * @adapted
-   * @param {object|ArrayBufferView} bytes Decoded Granny graph or its bytes.
+   * @adapted the file info is the GR2 reader's (`{ grannyFileInfo, version }`, the geometry route's
+   *   read); bytes are read into it here. A shared GR2 projection, which TriGrannyRes hands over, is
+   *   still projected to CMF data, because TriGrannyRes keeps no file info.
+   * @param {object|ArrayBufferView} bytes The file info read, a shared projection, or the file's bytes.
    * @returns {boolean} Whether meshes and skeletons were installed.
    */
   ReadGrannyFile(bytes)
@@ -804,15 +897,25 @@ export class TriGeometryRes extends BlueAsyncRes
       this.SetupSkeletons__GrannyFileInfo(gi);
       this._useCMF = false;
       this._grannyFile = gi;
+      this._grannyVersion = bytes.version;
       return true;
     }
-    const granny = bytes?.grannyFileFormatRevision !== undefined
-      ? bytes : CjsGr2Format.read(bytes, { rebuildMissingBounds: true });
+    // Bytes are read as the granny file info, as the geometry route reads them.
+    if (bytes?.grannyFileFormatRevision === undefined)
+    {
+      const raw = readGr2Raw(bytes, { rawArrays: true });
+      return this.ReadGrannyFile({ grannyFileInfo: raw.fileInfo, version: raw.version });
+    }
+    // A shared projection handed in (TriGrannyRes, which reads the gr2raw route as shared data) is
+    // still projected to CMF; TriGrannyRes does not keep the file info.
+    const granny = bytes;
     const data = CjsCmfFormat.loadShared(granny);
     if (!this.SetupMeshes__CmfData(data)) return false;
     this.SetupSkeletons__CmfData(data);
     this._useCMF = false;
     this._grannyFile = granny;
+    // A shared projection read is already the shape GetGrannySharedInfo answers.
+    this._grannySharedInfo = granny;
     return true;
   }
 
@@ -845,6 +948,151 @@ export class TriGeometryRes extends BlueAsyncRes
   }
 
   /**
+   * The shared GR2 projection of the granny file's animations, models and skeletons, with the
+   * meshes' bone bindings and none of their vertex data; built once per file.
+   *
+   * @cjs our animation sampler and the turret's dynamic bounds read the shared projection's
+   *   shape, not granny_file_info; Carbon reads the file info itself. Vertex data is left out, since
+   *   no such reader needs it and the file keeps it as bytes.
+   * @returns {object|null} The projection, or null without a granny file.
+   */
+  GetGrannySharedInfo()
+  {
+    if (!this._grannyFile) return null;
+    if (this._grannySharedInfo) return this._grannySharedInfo;
+    const fi = this._grannyFile;
+    const stripped = new Map((fi.Meshes ?? []).map(mesh =>
+      [ mesh, mesh && { ...mesh, PrimaryVertexData: null, PrimaryTopology: null, MorphTargets: [] } ]));
+    const view = {
+      ...fi,
+      Meshes: (fi.Meshes ?? []).map(mesh => stripped.get(mesh)),
+      Models: (fi.Models ?? []).map(model => model && {
+        ...model,
+        MeshBindings: (model.MeshBindings ?? []).map(binding => ({ ...binding, Mesh: stripped.get(binding.Mesh) ?? binding.Mesh }))
+      })
+    };
+    this._grannySharedInfo = projectShared(view, this._grannyVersion);
+    return this._grannySharedInfo;
+  }
+
+  /**
+   * One LOD's vertex positions as a flat xyz list, from whichever reader ran: the Granny mesh's
+   * vertex bytes (read through GetMeshVertexPosition) or the CMF source's position channel.
+   *
+   * @cjs the CPU readers of positions (bounds, spheres, decal selection, ray queries) read
+   *   Carbon's data through this rather than one shape each.
+   * @param {number} meshIndex Mesh index.
+   * @param {TriGeometryResLodData} lod LOD record of that mesh.
+   * @returns {ArrayLike<number>|null} Positions, or null when the data is not resident.
+   */
+  GetLodPositions(meshIndex, lod)
+  {
+    if (this._useCMF)
+    {
+      const cmfLod = this.GetCMFLod(meshIndex, lod);
+      return cmfLod?.vertex?.position ?? this._cmfData?.meshes?.[meshIndex]?.vertex?.position ?? null;
+    }
+    const grannyMesh = this._grannyFile?.Meshes?.[lod.grannyMeshIndex];
+    if (!grannyMesh) return null;
+    let positions = this._grannyPositions.get(grannyMesh);
+    if (!positions)
+    {
+      const { positionOffset, positionType } = GetVertexPositionOffsetAndType(grannyMesh);
+      const vertices = grannyMesh.PrimaryVertexData.Vertices;
+      positions = new Float32Array(vertices.count * 3); // alloc: cached per granny mesh for the file's life
+      const point = [ 0, 0, 0 ];
+      for (let index = 0; index < vertices.count; index++)
+      {
+        GetMeshVertexPosition(grannyMesh, index, point, vertices.stride, positionOffset, positionType);
+        positions[index * 3] = point[0];
+        positions[index * 3 + 1] = point[1];
+        positions[index * 3 + 2] = point[2];
+      }
+      this._grannyPositions.set(grannyMesh, positions);
+    }
+    return positions;
+  }
+
+  /**
+   * One LOD's triangle indices, from whichever reader ran.
+   *
+   * @cjs as GetLodPositions.
+   * @param {number} meshIndex Mesh index.
+   * @param {TriGeometryResLodData} lod LOD record of that mesh.
+   * @returns {ArrayLike<number>|null} Indices, or null when the data is not resident.
+   */
+  GetLodIndices(meshIndex, lod)
+  {
+    if (this._useCMF)
+    {
+      const cmfMesh = this._cmfData?.meshes?.[meshIndex];
+      const packed = cmfMesh ? TriGeometryRes.packLodIndices(cmfMesh, cmfMesh.lods?.length ? lod.originalLodIndex : 0) : null;
+      return packed ? new (packed.format === "uint32" ? Uint32Array : Uint16Array)(packed.bytes.buffer, packed.bytes.byteOffset, packed.count) : null;
+    }
+    const grannyMesh = this._grannyFile?.Meshes?.[lod.grannyMeshIndex];
+    return grannyMesh ? TriGeometryRes.grannyIndices(grannyMesh) : null;
+  }
+
+  /**
+   * One mesh as decoded vertex channels and per-area triangle lists, the shape our own CPU readers
+   * take (the Incarna emulator, Graphene's character tools): the CMF mesh itself, or for a Granny
+   * mesh its first LOD's vertex members decoded as the shared GR2 projection names and dequantizes
+   * them (position, normal, tangent, binormal, texcoord0/1, blendIndice, blendWeight), with one
+   * index group per area of the record's first LOD.
+   *
+   * @cjs Carbon's readers take the vertex bytes; these readers of ours take channels.
+   * @param {number} meshIndex Mesh index.
+   * @returns {{vertex: Object<string, Float32Array>, indices: Array<{faces: ArrayLike<number>}>}|null} The mesh, or null.
+   */
+  GetDecodedMesh(meshIndex)
+  {
+    if (this._useCMF) return this._cmfData?.meshes?.[meshIndex] ?? null;
+    const mesh = this._meshes[meshIndex];
+    const grannyMesh = mesh ? this._grannyFile?.Meshes?.[mesh.lods[0].grannyMeshIndex] : null;
+    if (!grannyMesh) return null;
+    let decoded = this._grannyDecoded.get(grannyMesh);
+    if (decoded) return decoded;
+    const vertices = grannyMesh.PrimaryVertexData.Vertices;
+    const view = new DataView(vertices.bytes.buffer, vertices.bytes.byteOffset, vertices.bytes.byteLength);
+    const vertex = {};
+    let memberOffset = 0;
+    for (const member of vertices.type)
+    {
+      const channelName = GRANNY_CHANNEL_NAMES[member.name];
+      const reader = GRANNY_DEQUANTIZE[member.type];
+      const width = Math.max(1, member.arrayWidth);
+      if (channelName && reader)
+      {
+        const channel = new Float32Array(vertices.count * width); // alloc: cached per granny mesh for the file's life
+        for (let index = 0; index < vertices.count; index++)
+          for (let component = 0; component < width; component++)
+            channel[index * width + component] = reader[1](view, index * vertices.stride + memberOffset + component * reader[0]);
+        vertex[channelName] = channel;
+      }
+      memberOffset += GrannyGetTotalTypeSize(member);
+    }
+    const all = TriGeometryRes.grannyIndices(grannyMesh);
+    decoded = {
+      vertex,
+      indices: mesh.lods[0].areas.map(area => ({ faces: all.subarray(area.firstIndex, area.firstIndex + area.primitiveCount * 3) }))
+    };
+    this._grannyDecoded.set(grannyMesh, decoded);
+    return decoded;
+  }
+
+  /** Decoded meshes per granny mesh, for GetDecodedMesh. */
+  _grannyDecoded = new WeakMap();
+
+  /** Decoded positions per granny mesh, for GetLodPositions. */
+  _grannyPositions = new WeakMap();
+
+  /** The shared projection GetGrannySharedInfo built, or null. */
+  _grannySharedInfo = null;
+
+  /** The granny file's version, which the shared projection records. */
+  _grannyVersion = 0;
+
+  /**
    * Drops the kept granny file; the resource reads as CMF again, Carbon's default.
    *
    * @cjs
@@ -854,6 +1102,7 @@ export class TriGeometryRes extends BlueAsyncRes
   {
     this._useCMF = true;
     this._grannyFile = null;
+    this._grannySharedInfo = null;
 
   }
 
@@ -1227,10 +1476,10 @@ export class TriGeometryRes extends BlueAsyncRes
     {
       throw new TypeError("TriGeometryRes transform must contain 16 matrix elements.");
     }
-    const mesh = this._cmfData?.meshes?.[meshIndex];
+    const mesh = this.GetDecodedMesh(meshIndex);
     if (!mesh) return null;
     const positions = TriGeometryRes.getMeshPositions(mesh);
-    const sourceBounds = TriGeometryRes.getBounds(mesh);
+    const sourceBounds = TriGeometryRes.getBounds(this._useCMF ? mesh : null);
     if (!positions && !sourceBounds) return null;
 
     const
@@ -1275,9 +1524,15 @@ export class TriGeometryRes extends BlueAsyncRes
       const cmfMeshes = this._cmfData?.meshes ?? [];
       for (let meshIndex = 0; meshIndex < this._meshes.length; meshIndex++)
       {
-        const cmfMesh = cmfMeshes[meshIndex];
-        if (!cmfMesh || !TriGeometryRes.calculateMeshSphere(sphere, cmfMesh, point)) continue;
-        vec4.copy(this._meshes[meshIndex].boundingSphere, sphere);
+        const mesh = this._meshes[meshIndex];
+        if (this._useCMF)
+        {
+          const cmfMesh = cmfMeshes[meshIndex];
+          if (!cmfMesh || !TriGeometryRes.calculateMeshSphere(sphere, cmfMesh, point)) continue;
+        }
+        // Carbon reads the first LOD's positions (cpp:1363-1384); a Granny LOD's are its file bytes.
+        else if (!TriGeometryRes.setSphereFromPositions(sphere, this.GetLodPositions(meshIndex, mesh.lods[0]), point)) continue;
+        vec4.copy(mesh.boundingSphere, sphere);
         updated = true;
       }
       return updated;
@@ -1538,7 +1793,9 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   RequireIntersectionMeshes()
   {
-    const meshes = this._cmfData?.meshes;
+    // A Granny file's meshes are read through GetDecodedMesh, which carries the same positions and groups.
+    const meshes = this._useCMF ? this._cmfData?.meshes
+      : this._grannyFile ? this._meshes.map((_mesh, meshIndex) => this.GetDecodedMesh(meshIndex)) : null;
     if (!Array.isArray(meshes))
     {
       throw new Error(
@@ -1551,14 +1808,23 @@ export class TriGeometryRes extends BlueAsyncRes
   }
 
   /**
-   * Get vertex element descriptors for a mesh.
+   * Carbon GetMeshVertexElements (TriGeometryRes.cpp:2939-2966): a mesh's vertex elements. For a
+   * Granny mesh, the items of the declaration SetupMeshes interned (m_vertexDeclarationHandle).
    *
-   * @adapted
+   * @adapted a CMF mesh answers its CMF declaration (usage names), which the callers translate
+   *   with CarbonVertexElements; Carbon reads both from the interned declaration and answers
+   *   (usage, index) pairs. An absent mesh answers an empty list rather than an error.
    * @param {number} meshIndex
    * @returns {Array<*>}
    */
   GetMeshVertexElements(meshIndex = 0)
   {
+    if (!this._useCMF)
+    {
+      const mesh = this._meshes[meshIndex];
+      const definition = mesh ? Tr2EffectStateManager.getVertexDeclarationElements(mesh.vertexDeclarationHandle) : null;
+      return definition ? definition.items ?? definition : [];
+    }
     // The CMF reader emits the element list as `decl`, matching the CMF struct
     // field; this accessor read only `vertexElements`, which no reader in this
     // package populates, so it returned an empty list for every real decoded
@@ -2312,7 +2578,7 @@ export class TriGeometryRes extends BlueAsyncRes
           ...options, formatOptions: { ...options.formatOptions, meshIndex: request.meshIndex }
         });
         resMan._AssertResourceLoad(this, attempt);
-        data = CjsCmfFormat.loadShared(shared);
+        data = shared.grannyFileInfo ? shared : CjsCmfFormat.loadShared(shared);
       }
     }
     else
@@ -2330,13 +2596,15 @@ export class TriGeometryRes extends BlueAsyncRes
   }
 
   /**
-   * Carbon DoPrepare; device allocations are deferred to the first draw in JS.
+   * Carbon DoPrepare (TriGeometryRes.cpp:607-673): ready once either reader has set up the meshes.
    *
-   * @adapted
+   * @adapted each LOD's buffers are made at its first draw (CreateLodAllocations), not here; and
+   *   the granny file is kept rather than freed when it has no animations or bone bindings
+   *   (cpp:650-668), since CPU readers (bounds, picking, decals) read it.
    */
   _DoPrepare()
   {
-    return this._cmfData !== null;
+    return this._cmfData !== null || this._grannyFile !== null;
   }
 
   /**

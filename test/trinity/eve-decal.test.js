@@ -255,6 +255,7 @@ function visibleDecal()
 
 /** A hull geometry resource of the shape GetRenderables reads. */
 const hullOf = (lodMask = 1, lodCount = 1) => ({
+  GetLodPositions: () => null, GetLodIndices: () => null,
   GetCMFData() { return { meshes: [ this.GetMeshData(0) ] }; }, GetMeshData: () => ({ lodMask, lods: Array.from({ length: lodCount }, () => ({})) }),
   GetLodIndexForScreenSize: () => 0
 });

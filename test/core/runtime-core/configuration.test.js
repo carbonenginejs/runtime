@@ -80,7 +80,7 @@ test("Initialize configures the chosen owners and preserves loader and geometry 
   assert.equal(owners.resMan.GetExtensionRoute("gr2").instance, blue.resMan.GetFormat("gr2"));
   assert.equal(owners.resMan.GetExtensionRoute("gr2raw").instance, blue.resMan.GetFormat("gr2", "raw"));
   assert.notEqual(blue.resMan.GetFormat("gr2"), blue.resMan.GetFormat("gr2", "raw"));
-  assert.equal(blue.resMan.GetFormat("gr2").GetValues().rebuildMissingBounds, true);
+  assert.equal(blue.resMan.GetFormat("gr2").GetValues().grannyFileInfo, true, "geometry reads the granny file info");
   assert.equal(blue.resMan.GetFormat("gr2", "raw").GetValues().rebuildMissingBounds, true);
   assert.equal(owners.resMan.GetObjectLoader("red"), CreateBlackObjectBuilder);
   assert.equal(owners.resMan.GetObjectLoader("black"), CreateBlackObjectBuilder);

@@ -411,7 +411,7 @@ export class Tr2GrannyAnimation extends IRoot
   GetFileInfo()
   {
     if (!this.grannyRes) return null;
-    if (this._sharedGeometry) return this._getSource(this.grannyRes.GetGrannyInfo());
+    if (this._sharedGeometry) return this._getSource(this.grannyRes);
     return this._getSource(this.grannyRes);
   }
 
@@ -1817,7 +1817,8 @@ export class Tr2GrannyAnimation extends IRoot
   {
     const geometry = CjsSchema.cast(resource, TriGeometryRes);
     const granny = CjsSchema.cast(resource, TriGrannyRes);
-    let value = geometry ? geometry.GetGrannyInfo() : granny ? granny.GetGrannyFile() : resource;
+    // A geometry read as Granny keeps granny_file_info; the sampler reads its shared projection.
+    let value = geometry ? (geometry.IsUsingCMF() ? geometry.GetGrannyInfo() : geometry.GetGrannySharedInfo()) : granny ? granny.GetGrannyFile() : resource;
     const seen = new Set();
     while (value && typeof value === "object" && !seen.has(value))
     {

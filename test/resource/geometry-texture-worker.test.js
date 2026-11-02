@@ -57,7 +57,6 @@ test("GR2 worker decode feeds the native load hook without fetching existing byt
 {
   const { loader, messages } = workerLoader(t);
   const bytes = grannyBytes();
-  const expected = CjsGr2Format.read(bytes, { emit: "json", rebuildMissingBounds: true });
   const manager = new BlueResMan({ workerLoader: loader });
   await configureResourceManager(manager);
   let reads = 0;
@@ -71,10 +70,10 @@ test("GR2 worker decode feeds the native load hook without fetching existing byt
   CjsGr2Format.prototype.ReadDataAsync = () => { throw new Error("main-thread GR2 decode must not execute"); };
   try { assert.equal(await resource._DoLoad(), resource.constructor.LoadingResult.LR_SUCCESS); }
   finally { CjsGr2Format.prototype.ReadDataAsync = original; resource._dataStream = null; manager._CancelResourceLoad(resource); }
-  assert.deepEqual(resource.GetGrannyInfo(), expected);
-  assert.ok(resource.GetGrannyInfo().meshes[0].vertex.position instanceof Float32Array);
-  assert.equal(resource.GetCMFData().meshes[0].vertex.position,
-    resource.GetGrannyInfo().meshes[0].vertex.position, "publication borrows the transferred vertex storage");
+  // The geometry keeps the granny file info, its vertices as the file's bytes, and no CMF data.
+  assert.equal(resource.GetGrannyInfo().Meshes.length, 1);
+  assert.ok(resource.GetGrannyInfo().Meshes[0].PrimaryVertexData.Vertices.bytes instanceof Uint8Array);
+  assert.equal(resource.GetCMFData(), null);
   assert.equal(resource.IsUsingCMF(), false);
   assert.equal(resource.GetMeshCount(), 1);
   assert.equal(reads, 0);
@@ -436,7 +435,7 @@ test("GR2 registrations keep distinct options and cached results for the same so
   ]);
   assert.equal(reads, 1);
   assert.equal(messages.filter(message => message.operation === "format.read").length, 2);
-  assert.deepEqual(geometry.GetGrannyInfo().meshes[0].vertex.normal, []);
+  assert.equal(geometry.GetGrannyInfo().Meshes[0].PrimaryVertexData.Vertices.type.some(member => member.name === "Normal"), false, "the geometry reads the file's own vertices, with no rebuilt normals");
   assert.deepEqual(Array.from(granny.GetGrannyFile().meshes[0].vertex.normal), [0,0,1, 0,0,1, 0,0,1]);
   assert.throws(() => manager.GetFormat("gr2").SetValues({ rebuildMissingNormals: true }), TypeError);
 });
@@ -469,7 +468,7 @@ test("captured geometry routes preserve explicit extensions and different ex pro
     manager.FetchResource("res:/opaque", { ext: "gr2" }),
     manager.FetchResource("res:/opaque", { ext: "gr2", ex: "normals" })
   ]);
-  assert.deepEqual(base.GetGrannyInfo().meshes[0].vertex.normal, []);
+  assert.equal(base.GetGrannyInfo().Meshes[0].PrimaryVertexData.Vertices.type.some(member => member.name === "Normal"), false, "the geometry reads the file's own vertices, with no rebuilt normals");
   assert.deepEqual(Array.from(normals.GetGrannyInfo().meshes[0].vertex.normal), [0,0,1, 0,0,1, 0,0,1]);
 });
 
@@ -496,7 +495,7 @@ test("dynamic single-mesh GR2 reads use the configured native-data worker", asyn
   await configureResourceManager(manager);
   const resource = await manager.FetchResource("dynamic:/mesh/0/res:/single.gr2");
   assert.equal(resource.GetMeshCount(), 1);
-  assert.equal(resource.GetCMFData().meshes[0].vertex.position.length, 9);
+  assert.equal(resource.GetLodPositions(0, resource.GetMeshLod__LodIndex(0, 0)).length, 9);
   const request = messages.find(message => message.operation === "format.read");
   assert.equal(request.payload.nativeData, true);
   assert.equal(request.payload.options.meshIndex, 0);

@@ -105,7 +105,7 @@ test("Apocalypse/type462 geometry ownership caches mesh0 and exact native bone I
   ship.RebuildTurretPositions();assert.equal(set.GetTurrets().length,2);
   set.boundingSphere.fill(0);set.Initialize();
   assert.ok(set.geometryResource===resource,"the requested handle is owned by the turret");assert.equal(set._turretVertexDeclElementCount,resource.GetMeshVertexElements(0).length+1);
-  assert.ok(set.boundingSphere[3]>0);assert.equal(resource.GetMeshCount(),6);
+  assert.ok(set.boundingSphere[3]>0);assert.equal(resource.GetMeshCount(),1,"the six granny meshes are one mesh and its LODs (cpp:995-1020)");
   const b=EveTurretAiming.SystemBones;assert.equal(set._systemBoneID[b.SYSBONE_ROTATION],2);assert.equal(set._systemBoneID[b.SYSBONE_PITCH],4);
   assert.equal(resource.GetMeshData(0).jointBindings.length,9,"11 skeleton bones are not the 9 mesh-bound bones");
   assert.equal(TriGeometryResSkeletonData.prototype.FindJoint.call(resource.GetSkeletonData(0),"Pos_Fire01"),10);
@@ -552,10 +552,10 @@ test("GR2 and CMF turret bounds follow donor traversal, animated world joints an
     const turret=set.GetTurrets()[0],names=set._skeleton.joints.map(joint=>joint.name);
     const bindings=[];
     if(label==="CMF")for(const mesh of geometry.GetCMFData().meshes){if(mesh.skeleton===0)for(let joint=0;joint<names.length;joint++){const b=mesh.boneBindings.find(x=>x.name===names[joint]);if(b)bindings.push({joint,lo:b.bounds.min,hi:b.bounds.max});}}
-    else {const fi=geometry.GetGrannyInfo();for(const index of fi.models[0].meshBindings)for(const b of fi.meshes[index].boneBindings)bindings.push({joint:names.indexOf(b.name),lo:b.minBounds,hi:b.maxBounds});}
+    else {const fi=geometry.GetGrannySharedInfo();for(const index of fi.models[0].meshBindings)for(const b of fi.meshes[index].boneBindings)bindings.push({joint:names.indexOf(b.name),lo:b.minBounds,hi:b.maxBounds});}
     assert.deepEqual(set._boneBounds.map(x=>x.boneIndex),bindings.map(x=>x.joint),label+" cpp:524/595 native traversal");
     assert.ok(bindings.length>=9,"fixture retains its actual model-zero/skeleton-zero bindings");
-    const placement=label==="GR2"?geometry.GetGrannyInfo().models[0].initialPlacement.position:[0,0,0];
+    const placement=label==="GR2"?geometry.GetGrannySharedInfo().models[0].initialPlacement.position:[0,0,0];
     const oracle=poseBoundsOracle(bindings,turret.worldTransforms,placement);
     const sphere=new Float32Array(4),min=new Float32Array(3),max=new Float32Array(3);
     assert.equal(set.GetDynamicBounds(turret,sphere,min,max),true);
@@ -636,7 +636,7 @@ test("controlled bounds projection distinguishes all CMF meshes from GR2 model z
   set.InitializeGrannyDynamicBounds({models:[{meshBindings:[0]},{meshBindings:[1]}],meshes:[{boneBindings:[grannyBinding(names[4]),grannyBinding(names[0])]},{boneBindings:[grannyBinding(names[2])]}]},set._skeleton);
   assert.deepEqual(set._boneBounds.map(b=>b.boneIndex),[4,0],"cpp:625 only model zero, preserving binding order");
   const min=new Float32Array(3),max=new Float32Array(3),sphere=new Float32Array(4),turret=set.GetTurrets()[0];
-  const position=resource.GetGrannyInfo().models[0].initialPlacement.position,previous=Array.from(position);
+  const position=resource.GetGrannySharedInfo().models[0].initialPlacement.position,previous=Array.from(position);
   try
   {
     for(let i=0;i<3;i++)position[i]=[70,-30,11][i];

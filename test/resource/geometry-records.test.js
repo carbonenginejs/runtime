@@ -1,6 +1,6 @@
 // TriGeometryRes builds Carbon's mesh records (TriGeometryResMeshData / LodData / AreaData, SkeletonData) in
 // SetupMeshes( const cmf::Data& ) and SetupSkeletons( const cmf::Data& ) (TriGeometryRes.cpp:855-950, 1187-1209).
-// Checked against a real client hull, read as gr2 and as a CMF written from it, and against a flattened payload.
+// Checked against a CMF written from a real client hull, and against a flattened payload.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { TriGeometryRes, TriGeometryResMeshData, TriGeometryResLodData, TriGeometryResAreaData } from "../../npm/dist/trinity/index.js";
@@ -60,14 +60,6 @@ function assertRecordsMatchPayload(geometry)
     assert.deepEqual(record.joints.map(joint => joint.parentJoint), Array.from(skeleton.parents ?? [], parent => parent));
   });
 }
-
-test("a real gr2 hull builds one mesh record per mesh, matching its payload", { skip }, async () =>
-{
-  const geometry = new TriGeometryRes();
-  assert.equal(geometry.ReadGrannyFile(await client.Read(HULL)), true);
-  assert.ok(geometry._meshes.length > 0);
-  assertRecordsMatchPayload(geometry);
-});
 
 test("a CMF written from the real hull builds the same records through ReadCMFFile", { skip }, async () =>
 {

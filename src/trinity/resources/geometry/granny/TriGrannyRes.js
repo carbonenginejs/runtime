@@ -9,6 +9,7 @@ import { CjsGr2Format } from "../../../../resource/formats/gr2/CjsGr2Format.js";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
 import { Failed } from "../../../../trinityal/ALResult.js";
 import { TriGeometryRes } from "../TriGeometryRes.js";
+import { GrannyGetTotalTypeSize } from "../../../utilities/GeometryUtils.js";
 import { CjsCmfFormat } from "../../../../resource/formats/cmf/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { Tr2GrannyIntersectionResult } from "./Tr2GrannyIntersectionResult.js";
@@ -81,6 +82,85 @@ function IntersectTri(v0, v1, v2, pos, dir)
   if (t < 0) return null;
 
   return { u: uu, v: vv, dist: t };
+}
+
+/**
+ * Offsets of the Position and Normal members of a Granny vertex type, and whether each is Real16
+ * (BakeBlendshape's DatatypeInfo, TriGrannyRes.cpp:638-700).
+ *
+ * @param {Array<{name: string, type: number, arrayWidth: number}>} members Granny vertex type.
+ * @returns {Object<string, {offset: number, half: boolean}>} Info by member name.
+ */
+function GrannyMemberInfos(members)
+{
+  const infos = {};
+  let offset = 0;
+  for (const member of members)
+  {
+    if (member.name === "Position" || member.name === "Normal") infos[member.name] = { offset, half: member.type === 21 };
+    offset += GrannyGetTotalTypeSize(member);
+  }
+  return infos;
+}
+
+/**
+ * One float component, Real32 or Real16 (Vector3_16).
+ *
+ * @param {DataView} view Bytes.
+ * @param {number} offset Element offset.
+ * @param {number} axis Component.
+ * @param {boolean} half Whether the element is Real16.
+ * @returns {number} The value.
+ */
+function ReadGrannyFloat(view, offset, axis, half)
+{
+  return half ? HalfToFloat(view.getUint16(offset + axis * 2, true)) : view.getFloat32(offset + axis * 4, true);
+}
+
+/**
+ * Writes one float component, Real32 or Real16 (Vector3_16).
+ *
+ * @param {DataView} view Bytes.
+ * @param {number} offset Element offset.
+ * @param {number} axis Component.
+ * @param {boolean} half Whether the element is Real16.
+ * @param {number} value The value.
+ */
+function WriteGrannyFloat(view, offset, axis, half, value)
+{
+  if (half) view.setUint16(offset + axis * 2, FloatToHalf(value), true);
+  else view.setFloat32(offset + axis * 4, value, true);
+}
+
+/**
+ * IEEE half to float.
+ *
+ * @param {number} h Half bits.
+ * @returns {number} The value.
+ */
+function HalfToFloat(h)
+{
+  const sign = h & 0x8000 ? -1 : 1, exponent = (h >> 10) & 0x1f, fraction = h & 0x3ff;
+  if (exponent === 0) return sign * fraction * 2 ** -24;
+  if (exponent === 31) return fraction ? NaN : sign * Infinity;
+  return sign * (1 + fraction / 1024) * 2 ** (exponent - 15);
+}
+
+/**
+ * Float to IEEE half, rounding to nearest; subnormals flush to zero.
+ *
+ * @param {number} value The value.
+ * @returns {number} Half bits.
+ */
+function FloatToHalf(value)
+{
+  const u = new Uint32Array(new Float32Array([ value ]).buffer)[0];
+  const sign = (u >> 16) & 0x8000, exponent = ((u >> 23) & 0xff) - 127 + 15, mantissa = u & 0x7fffff;
+  if (exponent <= 0) return sign;
+  if (exponent >= 31) return sign | 0x7c00;
+  // Added, not or-ed: a mantissa that rounds up to 1024 carries into the exponent.
+  const half = sign + (exponent << 10) + Math.round(mantissa / 0x2000);
+  return half;
 }
 
 /**
@@ -1074,6 +1154,86 @@ export class TriGrannyRes extends BlueAsyncRes
   }
 
   /**
+   * Carbon BakeBlendshape's Granny branch (TriGrannyRes.cpp:566-900) for a destination geometry
+   * read as Granny: the base vertices as Granny stores them, plus each weighted target's Position and
+   * Normal (Real32 or Real16, either side), from morph targets or, without them, the vertex
+   * annotation sets; uploaded into the destination's LOD-zero allocation, whose size must match.
+   *
+   * @adapted the Granny mesh is the destination geometry's own granny file (the same file this
+   *   resource reads as shared data), since Carbon bakes from the file's vertex bytes and this
+   *   resource does not keep them. Name-to-weight and delta-only baking are not reached here.
+   * @param {number} meshIx Granny mesh index in the file.
+   * @param {ArrayLike<number>} weights One weight per target.
+   * @param {TriGeometryRes} geom Destination geometry read as Granny.
+   * @returns {boolean} True after a successful vertex upload.
+   * @throws {Error} With Carbon's messages, when the mesh, weights or destination do not fit.
+   */
+  _BakeBlendshape__GrannyFile(meshIx, weights, geom)
+  {
+    const mesh = geom.GetGrannyInfo()?.Meshes?.[meshIx];
+    if (!mesh) throw new Error("Mesh index out of range");
+    const lod = geom.GetMeshLod__LodIndex(meshIx, 0);
+    if (!lod) throw new Error("Trying to bake using geometryRes with NULL lod");
+    if (!lod.allocationsValid) throw new Error("Trying to bake to a null vertex buffer");
+    const vertices = mesh.PrimaryVertexData.Vertices;
+    const vertexCount = vertices.count, bytesPerVertex = vertices.stride;
+    if (vertexCount * bytesPerVertex !== lod.vertexCount * lod.mesh.bytesPerVertex) throw new Error("TriGrannyRes::BakeBlendshape: Incorrect vertex buffer size");
+
+    const annotations = mesh.PrimaryVertexData.VertexAnnotationSets ?? [];
+    const fromAnnotations = !(mesh.MorphTargets ?? []).length;
+    const numBlends = fromAnnotations ? annotations.length : mesh.MorphTargets.length;
+    if (numBlends === 0) return true;
+    if (weights.length !== numBlends)
+    {
+      throw new Error("TriGrannyRes::BakeBlendshape: Incorrect number of weights - " + weights.length + " given, " + numBlends + " expected");
+    }
+    const blendFormat = fromAnnotations
+      ? annotations.find(set => set.VertexAnnotations?.type)?.VertexAnnotations?.type
+      : mesh.MorphTargets[0].VertexData.Vertices.type;
+
+    const local = new Uint8Array(vertices.bytes); // alloc: Carbon's localVertexData
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+    if (!blendFormat)
+    {
+      if (Failed(lod.vertexAllocation.Update(local, context))) throw new Error("Blendshape vertex upload failed");
+      return true;
+    }
+    const infos = GrannyMemberInfos(vertices.type), blendInfos = GrannyMemberInfos(blendFormat);
+    const baseView = new DataView(local.buffer);
+    for (let j = 0; j < numBlends; ++j)
+    {
+      const weight = Math.fround(weights[j]);
+      if (weight < Math.fround(1e-4)) continue;
+      const blend = fromAnnotations ? annotations[j].VertexAnnotations : mesh.MorphTargets[j].VertexData.Vertices;
+      const vertexIndices = fromAnnotations ? annotations[j].VertexAnnotationIndices : null;
+      const count = fromAnnotations ? vertexIndices?.length ?? 0 : blend.count;
+      if (!fromAnnotations && count !== vertexCount)
+      {
+        throw new Error("TriGrannyRes::BakeBlendshape: Vertex count of morph target doesn't match vertex count of base vertex data");
+      }
+      const blendView = new DataView(blend.bytes.buffer, blend.bytes.byteOffset, blend.bytes.byteLength);
+      for (const name of [ "Position", "Normal" ])
+      {
+        const base = infos[name], delta = blendInfos[name];
+        if (!base || !delta) continue;
+        for (let i = 0; i < count; ++i)
+        {
+          const vertexIx = vertexIndices ? vertexIndices[i] : i;
+          const baseOffset = vertexIx * bytesPerVertex + base.offset, deltaOffset = i * blend.stride + delta.offset;
+          for (let axis = 0; axis < 3; axis++)
+          {
+            const value = ReadGrannyFloat(baseView, baseOffset, axis, base.half)
+              + weight * ReadGrannyFloat(blendView, deltaOffset, axis, delta.half);
+            WriteGrannyFloat(baseView, baseOffset, axis, base.half, value);
+          }
+        }
+      }
+    }
+    if (Failed(lod.vertexAllocation.Update(local, context))) throw new Error("Blendshape vertex upload failed");
+    return true;
+  }
+
+  /**
    * Bakes weights from immutable source channels into an allocated destination.
    * Carbon: TriGrannyRes.cpp:423-565,1754-1798. Adapted: Granny is normalized
    * to CMF by the JS reader, so its absolute-target arithmetic is used even
@@ -1090,6 +1250,7 @@ export class TriGrannyRes extends BlueAsyncRes
    */
   BakeBlendshapeFromScript(meshIx, weights, geom)
   {
+    if (!geom.IsUsingCMF()) return this._BakeBlendshape__GrannyFile(meshIx, weights, geom);
     const source = CanonicalMorphSource(this.GetGrannyFile()).meshes[meshIx];
     const destination = geom.GetMeshData(meshIx);
     const lod = geom.GetMeshLod__LodIndex(meshIx, 0);

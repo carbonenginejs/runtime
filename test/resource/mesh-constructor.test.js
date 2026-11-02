@@ -63,10 +63,11 @@ for (const [ label, path, bytes ] of [
     await resMan.Ready(geometry);
 
     assert.equal(geometry.IsGood(), true);
-    const meshes = geometry.GetCMFData().meshes;
-    assert.deepEqual(meshes.map(mesh => mesh.name), [ "walkway" ]);
-    assert.deepEqual(Array.from(meshes[0].bounds.min), [ 10, 0, 0 ]);
-    assert.deepEqual(Array.from(meshes[0].bounds.max), [ 11, 1, 0 ]);
+    assert.equal(geometry.GetMeshCount(), 1);
+    const mesh = geometry.GetMeshData(0);
+    assert.equal(mesh.name, "walkway");
+    assert.deepEqual(Array.from(mesh.minBounds), [ 10, 0, 0 ]);
+    assert.deepEqual(Array.from(mesh.maxBounds), [ 11, 1, 0 ]);
     assert.equal(resMan.GetResource(`dynamic:/mesh/1/${path}`), geometry, "one resource per path");
     assert.notEqual(resMan.GetResource(`dynamic:/mesh/0/${path}`), geometry, "the index is in the identity");
   });

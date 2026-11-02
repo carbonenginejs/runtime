@@ -38,7 +38,8 @@ export const DefaultConfiguration = {
   formatOptions: { buildClasses: true },
 
   formats: {
-    gr2: { Format: CjsGr2Format, options: { rebuildMissingBounds: true },
+    // TriGeometryRes reads the granny file info itself, as Carbon's does (GrannyGetFileInfo).
+    gr2: { Format: CjsGr2Format, options: { grannyFileInfo: true },
       routes: [{ extension: "gr2", Res: TriGeometryRes }] },
     gr2raw: { Format: CjsGr2Format, options: { rebuildMissingBounds: true },
       routes: [{ extension: "gr2", ex: "raw", Res: TriGrannyRes }] },

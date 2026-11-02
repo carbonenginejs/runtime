@@ -7,16 +7,25 @@ import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { Tr2Mesh } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { clientResources } from "../support/clientResources.js";
+import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
+import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/index.js";
 
 // Real client files through BePaths (test/support/clientResources.js).
 const client = await clientResources();
+
+// These check the CMF branch's tables (cpp:2134), so the client heads are read as CMF written from them: read as
+// Granny, their facial morphs are vertex annotation sets, and Carbon fills a LOD's tables only from morph targets.
+async function AsCmf(path)
+{
+  return CjsCmfFormat.writeShared(CjsGr2Format.read(await client.Read(path), { rebuildMissingBounds: true }));
+}
 const skip = client.skip ?? false;
 const HEAD = "res:/graphics/character/female/paperdoll/head/head_generic/head_generic.gr2";
 
 test("every LOD carries one deformation amount per morph target, Carbon's largest morph-to-base distance", { skip }, async () =>
 {
   const geometry = new TriGeometryRes();
-  geometry.ReadGrannyFile(await client.Read(HEAD));
+  geometry.ReadCMFFile(await AsCmf(HEAD));
   const meshes = geometry.GetCMFData().meshes;
   const meshIndex = meshes.findIndex(mesh => mesh.morphTargets?.targets?.length);
   assert.ok(meshIndex >= 0, "the head has facial morph targets");
@@ -56,7 +65,7 @@ test("every LOD carries one deformation amount per morph target, Carbon's larges
 test("Tr2MeshBase.GetBounds grows by the loaded morph amounts (Tr2MeshBase.cpp:263-270)", { skip }, async () =>
 {
   const geometry = new TriGeometryRes();
-  geometry.ReadGrannyFile(await client.Read(HEAD));
+  geometry.ReadCMFFile(await AsCmf(HEAD));
   prepareResourceFixture(geometry);
   const meshIndex = geometry.GetCMFData().meshes.findIndex(mesh => mesh.morphTargets?.targets?.length);
   const mesh = new Tr2Mesh();
@@ -82,7 +91,7 @@ const FACE = "res:/graphics/character/female/paperdoll/head/head_faceonly/head_g
 async function FaceGeometry()
 {
   const geometry = new TriGeometryRes();
-  geometry.ReadGrannyFile(await client.Read(FACE));
+  geometry.ReadCMFFile(await AsCmf(FACE));
   prepareResourceFixture(geometry);
   const meshIndex = geometry.GetCMFData().meshes.findIndex(mesh => (mesh.morphTargets?.targets ?? []).some(target => target.name.endsWith("Shape")));
   return { geometry, meshIndex };

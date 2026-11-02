@@ -1399,7 +1399,7 @@ export class EveTurretSet extends EveEntity
     if (!fi)
     {
       if (!this.geometryResource) return;
-      fi = this.geometryResource.GetGrannyInfo();
+      fi = this.geometryResource.GetGrannySharedInfo();
       if (!fi) return;
     }
     if (!skeleton)
@@ -1464,7 +1464,7 @@ export class EveTurretSet extends EveEntity
     }
     if (!this.geometryResource.IsUsingCMF())
     {
-      const fi = this.geometryResource.GetGrannyInfo();
+      const fi = this.geometryResource.GetGrannySharedInfo();
       const placement = fi ? fi.models[0].initialPlacement : null;
       if (placement)
       {
@@ -1697,15 +1697,25 @@ export class EveTurretSet extends EveEntity
   InitializeAnimation()
   {
     if (!this._skeleton || !this.geometryResource || !this.geometryResource.IsPrepared()) return;
-    let mesh = null;
-    for (let index = 0; index < this.geometryResource.GetMeshCount(); index++)
+    let bindings = null;
+    if (this.geometryResource.IsUsingCMF())
     {
       // The skeleton index is the CMF mesh's; the mesh record has no such field.
-      const candidate = this.geometryResource.GetCMFData().meshes[index];
-      if (candidate.skeleton === 0) { mesh = candidate; break; }
+      for (let index = 0; index < this.geometryResource.GetMeshCount(); index++)
+      {
+        const candidate = this.geometryResource.GetCMFData().meshes[index];
+        if (candidate.skeleton === 0) { bindings = candidate.boneBindings; break; }
+      }
     }
-    if (!mesh || !mesh.boneBindings.length) return;
-    this._skeletonBoneIndices = mesh.boneBindings.map(binding =>
+    else
+    {
+      // A Granny file binds its skinned mesh through model 0, whose skeleton is skeleton 0.
+      const shared = this.geometryResource.GetGrannySharedInfo();
+      const meshIndex = shared?.models?.[0]?.meshBindings?.[0] ?? -1;
+      bindings = meshIndex >= 0 ? shared.meshes[meshIndex].boneBindings : null;
+    }
+    if (!bindings || !bindings.length) return;
+    this._skeletonBoneIndices = bindings.map(binding =>
       TriGeometryResSkeletonData.prototype.FindJoint.call(this._skeleton, binding.name));
     for (const turret of this._turrets)
     {

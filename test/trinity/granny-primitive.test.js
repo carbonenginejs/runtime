@@ -8,6 +8,7 @@ import {finalizeReaderObject} from '../../npm/dist/blue/schema/hydration.js';
 import {Tr2GrannyPrimitiveSet,Tr2PrimitiveSet,Tr2LineSet,Tr2SolidSet,TriDevice,trinity,Tr2EffectStateManager,
   Tr2RenderContext_GetMainThreadRenderContext,RawData} from '../../npm/dist/trinity/index.js';
 import {TriGeometryRes} from '../../npm/dist/resource/index.js';
+import {CjsGr2Format} from '../../npm/dist/resource/formats/gr2/index.js';
 import {Tr2RenderContextALStub,Tr2BufferAL,ALResult} from '../../npm/dist/trinityal/index.js';
 import {TriBatchType} from '../../npm/dist/global/consts/graphics/index.js';
 import {Topology} from '../../npm/dist/global/consts/renderContext/index.js';
@@ -100,7 +101,8 @@ test('CMF packed normal precedence and missing-normal zero preserve the native e
 test('source provenance selects CMF exact versus Granny prefix picking names',t=>{
  const resource=geometry([mesh('picking_extra',20),mesh('visible')]);setup(t,()=>resource);const p=make();
  assert.equal(p._pickingPrimitiveCount,0);
- // Exercise the native Granny builder on the existing decoded shared shape.
+ // The Granny builder reads the granny file's meshes: the same meshes written as a gr2 and read back.
+ resource.ReadGrannyFile(CjsGr2Format.writeShared({meshes:[mesh('picking_extra',20),mesh('visible')],skeletons:[],animations:[]}));
  p.CleanUp();p.CreatePrimitiveFromGranny();p.PrepareResources();assert.equal(p._pickingPrimitiveCount,1);assert.equal(p._pickingIndexOffset,3);
  assert.equal(p._points[0],0);assert.equal(p._points[30],20);
 });

@@ -862,11 +862,14 @@ export class EveSpaceObjectDecal
     const cached = FindCachedDecalGeometry(mesh.decals, this._inverseDecalMatrix);
     if (cached) return cached;
 
-    // The triangles are read from the CMF source; the record keeps the decal cache and the LOD mask.
-    const cmfMesh = this._baseGeometryResource.GetCMFData().meshes[0];
+    // The static lists follow the record's LODs by their original index, as Carbon's do; selecting
+    // triangles reads each LOD's positions and indices from whichever reader ran (GetLodPositions).
+    const geometry = this._baseGeometryResource;
     const built = this.HasStaticIndexBuffers()
-      ? BuildStaticDecalGeometry(cmfMesh, this.staticIndexBuffers)
-      : BuildDecalGeometry(cmfMesh, this._decalMatrix, this._inverseDecalMatrix);
+      ? BuildStaticDecalGeometry(mesh, this.staticIndexBuffers)
+      : BuildDecalGeometry({ lods: mesh.lods.map(lod => ({
+        vertex: { position: geometry.GetLodPositions(0, lod) }, indexBuffer: geometry.GetLodIndices(0, lod) })) },
+      this._decalMatrix, this._inverseDecalMatrix);
 
     if (!built.indices.length) return null;
 
