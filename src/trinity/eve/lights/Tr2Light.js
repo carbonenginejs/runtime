@@ -10,7 +10,7 @@ import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { Tr2LightFlags } from "#consts/graphics";
 import { LightData } from "./LightData.js";
 import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
-import { CreateLightRecord, MatrixCopyFrom3x4 } from "./lightConversion.js";
+import { CreateLightRecord, MatrixCopyFrom3x4, ReleaseLightRecord } from "./lightConversion.js";
 import { LightFeatures } from "./LightFeatures.js";
 
 
@@ -253,6 +253,7 @@ export class Tr2Light
     record.lightProfile = this.lightProfile;
     record.owner = this;
     lightManager?.AddLight(record);
+    ReleaseLightRecord(record);
   }
 
   /**
@@ -349,6 +350,13 @@ export class Tr2Light
 
   static _featuresScratch = new LightFeatures();
 
+  /**
+   * Per-light scratch (Tr2LightManager::PerLightData, Tr2LightManager.h:55-85).
+   *
+   * @adapted A reused static record stands in for Carbon's per-call local;
+   *   ReleaseLightRecord clears its object references after each submission
+   *   to keep the local's lifetime.
+   */
   static _lightRecord = CreateLightRecord();
 
 }

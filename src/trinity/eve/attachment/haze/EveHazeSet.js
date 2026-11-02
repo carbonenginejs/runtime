@@ -15,7 +15,7 @@ import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveHazeSetLight } from "./EveHazeSetLight.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
-import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { CreateLightRecord, MatrixCopyFrom3x4, ReleaseLightRecord } from "../../lights/lightConversion.js";
 import { LightFeatures } from "../../lights/LightFeatures.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { TriBatchType } from "#consts/graphics";
@@ -603,6 +603,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
       record.lightProfile = light.lightProfile;
       record.owner = this;
       lightManager.AddLight(record);
+      ReleaseLightRecord(record);
     }
   }
 
@@ -611,6 +612,13 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   static _features = new LightFeatures();
 
+  /**
+   * Per-light scratch (Tr2LightManager::PerLightData, Tr2LightManager.h:55-85).
+   *
+   * @adapted A reused static record stands in for Carbon's per-call local;
+   *   ReleaseLightRecord clears its object references after each submission
+   *   to keep the local's lifetime.
+   */
   static _lightRecord = CreateLightRecord();
 }
 

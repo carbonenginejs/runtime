@@ -33,6 +33,24 @@ export function CreateLightRecord()
   };
 }
 
+/**
+ * Drops a per-light record's object references once it has been submitted.
+ * Carbon's PerLightData is a local of each AddLight/GetLights call
+ * (Tr2LightManager.h:55-85), so nothing it names outlives the call; ours is a
+ * static scratch reused per submission, and without this the last submitted
+ * light, and the whole object above it, stayed alive after leaving the scene.
+ * Tr2LightManager.AddLight has already copied what it keeps.
+ *
+ * @param {object} record A record from CreateLightRecord or the same shape.
+ * @returns {void}
+ */
+export function ReleaseLightRecord(record)
+{
+  record.owner = null;
+  record.lightData = null;
+  record.lightProfile = null;
+}
+
 /** Carbon TriMatrixCopyFrom3x4 (Utilities/MatrixUtils.cpp:81-96): unpacks a
  * 12-float Float4x3 bone (elements[b*4+r], column-stride - skill gotcha 7)
  * into a mat4, leaving the 4th column untouched: gl m[0]=e[0], m[4]=e[1],

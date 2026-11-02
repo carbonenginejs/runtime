@@ -449,3 +449,36 @@ test("EveSpaceObject2.GetLights: one-frame activation-strength lag (cpp:3549-355
   object.GetLights(manager);
   assertVecClose(manager.added[1].color, [0.5, 0.5, 0.5], "second pass uses the stamped strength");
 });
+
+test("a submitted light's static scratch record keeps no object afterwards (PerLightData is a per-call local)", () =>
+{
+  const assertReleased = (record, name) =>
+  {
+    assert.equal(record.owner, null, `${name}: owner released`);
+    assert.equal(record.lightData, null, `${name}: lightData released`);
+    assert.equal(record.lightProfile, null, `${name}: lightProfile released`);
+  };
+
+  const light = new Tr2PointLight();
+  light.SetLightData(Object.assign(new LightData(), { position: [1, 0, 0], radius: 5, brightness: 1, color: [1, 1, 1, 1], flags: 1 }));
+  const manager = MakeLightManager();
+  light.AddLight(manager, mat4.create(), 1);
+  assert.equal(manager.added.length, 1);
+  assert.equal(manager.added[0].owner, light, "the manager saw the owner during the call");
+  assertReleased(Tr2PointLight._lightRecord, "Tr2Light");
+
+  const parent = mat4.create();
+  for (const Set of [ EveSpriteSet, EveSpriteLineSet, EveSpotlightSet, EvePlaneSet, EveHazeSet, EveBannerSet ])
+  {
+    const set = new Set();
+    set.lights.push({ lightData: MakeLightData(), boneMatrix: mat4.create(), boosterGainInfluence: false, lightProfile: null });
+    // A banner's light colour is its texture's average, so it needs one to submit (cpp:466-491).
+    if (Set === EveBannerSet) set.primaryTextureParameter = { GetResource: () => AverageTexture(0.25, 0.5, 0.75, 1) };
+    set.UpdateLights(parent, null, 0, 1, 0);
+    const setManager = MakeLightManager();
+    set.GetLights(setManager);
+    assert.ok(setManager.added.length > 0, `${Set.name}: a light was submitted`);
+    assert.equal(setManager.added[0].owner, set, `${Set.name}: the manager saw the owner`);
+    assertReleased(Set._lightRecord, Set.name);
+  }
+});

@@ -49,7 +49,7 @@ function TransformNormal(out, v, m)
   out[2] = x * m[2] + y * m[6] + z * m[10];
   return out;
 }
-import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { CreateLightRecord, MatrixCopyFrom3x4, ReleaseLightRecord } from "../../lights/lightConversion.js";
 import { LightFeatures } from "../../lights/LightFeatures.js";
 import { LightData } from "../../lights/LightData.js";
 import { trinity } from "../../../CjsTrinity.js";
@@ -1055,6 +1055,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
       record.lightProfile = light.lightProfile;
       record.owner = this;
       lightManager.AddLight(record);
+      ReleaseLightRecord(record);
     }
   }
 
@@ -1090,6 +1091,13 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
   static _features = new LightFeatures();
 
+  /**
+   * Per-light scratch (Tr2LightManager::PerLightData, Tr2LightManager.h:55-85).
+   *
+   * @adapted A reused static record stands in for Carbon's per-call local;
+   *   ReleaseLightRecord clears its object references after each submission
+   *   to keep the local's lifetime.
+   */
   static _lightRecord = CreateLightRecord();
 
   static _lightDataScratch = new LightData();

@@ -25,7 +25,7 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
 import { num } from "#math/num";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
-import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { CreateLightRecord, MatrixCopyFrom3x4, ReleaseLightRecord } from "../../lights/lightConversion.js";
 import { LightFeatures } from "../../lights/LightFeatures.js";
 import { LightData } from "../../lights/LightData.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
@@ -762,6 +762,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
       record.lightProfile = light.lightProfile;
       record.owner = this;
       lightManager.AddLight(record);
+      ReleaseLightRecord(record);
     }
   }
 
@@ -779,6 +780,13 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   /** Per-frame scratch - UpdateVisibility must not allocate. */
   static _aabbScratch = box3.create();
 
+  /**
+   * Per-light scratch (Tr2LightManager::PerLightData, Tr2LightManager.h:55-85).
+   *
+   * @adapted A reused static record stands in for Carbon's per-call local;
+   *   ReleaseLightRecord clears its object references after each submission
+   *   to keep the local's lifetime.
+   */
   static _lightRecord = CreateLightRecord();
 
   static _lightDataScratch = new LightData();

@@ -17,6 +17,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { Tr2Light } from "../lights/Tr2Light.js";
+import { ReleaseLightRecord } from "../lights/lightConversion.js";
 import { EveComponentType } from "../EntityComponents.js";
 import { LightData } from "../lights/LightData.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -508,6 +509,7 @@ export class EveSmartLightPointLight extends EveEntity
       {
         lightManager.AddLight(record);
       }
+      ReleaseLightRecord(record);
     }
   }
 
@@ -615,8 +617,13 @@ export class EveSmartLightPointLight extends EveEntity
 
   static _debugTranslation = vec3.create();
 
-  // Scratch per-light record (Carbon Tr2LightManager::PerLightData,
-  // Tr2LightManager.h:55-68) - reused across placements; the manager copies.
+  /**
+   * Per-light scratch (Tr2LightManager::PerLightData, Tr2LightManager.h:55-85).
+   *
+   * @adapted A reused static record stands in for Carbon's per-call local;
+   *   ReleaseLightRecord clears its object references after each submission
+   *   to keep the local's lifetime.
+   */
   static _lightRecord = {
     owner: null,
     lightData: null,
