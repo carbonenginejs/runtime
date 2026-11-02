@@ -45,7 +45,7 @@ function getName(value)
 const NO_BONES = Object.freeze({ bones: null, boneCount: 0 });
 
 /**
- * Renews one animation resource's use through `IsGood`, which keeps it from
+ * Renews one animation resource's use through `KeepAlive`, which keeps it from
  * expiring under BlueResMan's automatic purge; anything that is not a
  * geometry or Granny resource (decoded data, null) is passed over.
  *
@@ -54,7 +54,7 @@ const NO_BONES = Object.freeze({ bones: null, boneCount: 0 });
 function RenewAnimationResource(resource)
 {
   const owner = CjsSchema.cast(resource, TriGeometryRes) ?? CjsSchema.cast(resource, TriGrannyRes);
-  if (owner) owner.IsGood();
+  if (owner) owner.KeepAlive();
 }
 
 
@@ -165,6 +165,9 @@ export class Tr2GrannyAnimation extends IRoot
 
   /** Whether grannyRes was borrowed from the mesh rather than resolved here. */
   _sharedGeometry = false;
+
+  /** What this controller last built from, per slot (`BlueAsyncRes.ensureDependency`). */
+  _dependencyRevisions = new Map();
 
 
   _morphAnimations = new Map();
@@ -302,7 +305,6 @@ export class Tr2GrannyAnimation extends IRoot
    */
   SetGrannyResource(resource)
   {
-    if (this._sharedGeometry && this.grannyRes) this.grannyRes.RemoveNotifyTarget(this);
     this.grannyRes = resource ?? null;
     this._sharedGeometry = false;
     this._resolvedPath = "";
@@ -329,16 +331,15 @@ export class Tr2GrannyAnimation extends IRoot
     {
       return this._initialized;
     }
-    // Carbon cpp:288-294: leave the old geometry's notify targets, join the
-    // new one's, so a geometry still loading rebuilds this updater when it
-    // arrives - otherwise a ship bound before its .gr2 loaded never animates.
-    if (this._sharedGeometry) this.grannyRes.RemoveNotifyTarget(this);
+    // Carbon cpp:288-294 moves its notify target to the new geometry, so a
+    // geometry still loading rebuilds this updater when it arrives. Here
+    // _RenewResources pulls that rebuild at each Update (slot "geometry").
     this.grannyRes = resource ?? null;
     this._sharedGeometry = !!resource;
     this.resPath_ = "";
     this._resolvedPath = "";
     const initialized = this.RebuildCachedData();
-    if (resource) resource.AddNotifyTarget(this);
+    BlueAsyncRes.ensureDependency(this.grannyRes, this, "geometry");
     return initialized;
   }
 
@@ -785,7 +786,10 @@ export class Tr2GrannyAnimation extends IRoot
    */
   _RenewResources()
   {
-    RenewAnimationResource(this.grannyRes);
+    // Borrowed geometry stands in for Carbon's notify target: its changes are
+    // pulled here (Tr2GrannyAnimation.cpp:288-294, 513-520).
+    if (this._sharedGeometry) BlueAsyncRes.ensureDependency(this.grannyRes, this, "geometry");
+    else RenewAnimationResource(this.grannyRes);
     for (const resource of this._secondaryResources.values()) RenewAnimationResource(resource);
   }
 
@@ -2300,11 +2304,10 @@ export class Tr2GrannyAnimation extends IRoot
    */
   Destruct()
   {
-    if (this._sharedGeometry && this.grannyRes) this.grannyRes.RemoveNotifyTarget(this);
     this.grannyRes = null;
     this._sharedGeometry = false;
     this._runtimeModel = null;
-    BlueAsyncRes.markNotifyTargetDestructed(this);
+    this._dependencyRevisions.clear();
   }
 }
 

@@ -1184,6 +1184,10 @@ test("EveSpaceObject2 restores Carbon world bounds, visibility, renderables, and
     {
       return true;
     },
+    EnsureGood()
+    {
+      return true;
+    },
     GetLodIndexForScreenSize(meshIndex, screenSize)
     {
       calls.push(["lod", meshIndex, screenSize]);
@@ -1291,6 +1295,10 @@ test("EveSpaceObject2 rebuilds the authored bounding sphere from ready geometry"
     {
       return {
         IsGood()
+        {
+          return true;
+        },
+        EnsureGood()
         {
           return true;
         },

@@ -33,7 +33,7 @@ function setup(t,resolve=null){
  al.CreateBuffer=(description,data,...args)=>{if(description.stride===4&&data)indices.push(new Uint32Array(data.buffer,data.byteOffset,data.byteLength/4).slice());return create(description,data,...args);};
  al.DrawIndexedInstanced=(...args)=>{draws.push(args);return draw(...args);};
  const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
- const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
+ const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true, EnsureGood: () => true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
  t.after(()=>{for(const r of trinity.GetResourcesRegistered())if(!before.has(r)&&r.constructor===Tr2GrannyPrimitiveSet)r.Destruct();blue.resMan=manager;context.SetRenderContextAL(previous);});
  return {context,al,maps,indices,draws,effect,manager:blue.resMan};
 }
@@ -56,16 +56,16 @@ test('nominal reader initialization acquires geometry after population and uploa
 
 test('coalesced path/color changes acquire once and retain old storage while replacement is pending',t=>{
  const a=geometry(),b=geometry([mesh('new',50)],false);const {manager,effect}=setup(t,path=>path.endsWith('a.gr2')?a:b),p=make('res:/a.gr2');
- const old=p._points;
+ const old=p._points;p.effect=effect;
  CjsSchema.setValues(p,{grannyResPath:'res:/b.gr2',color:[1,0,0,1]});
  assert.equal(manager.requests.length,2);assert.equal(p._points,old);near(p._points.slice(6,10),[1,0,0,1]);
  a._NotifyRebuildCachedData();purgeResourceFixture(a);assert.equal(p._points,old,'stale handle must not clear or rebuild');
- prepareResourceFixture(b);assert.notEqual(p._points,old);assert.equal(p._points[0],50);near(p._points.slice(6,10),[1,0,0,1]);
- // A purge reaches nobody (targets are released on completion); the next draw
- // asks IsGood, releases what it built, and re-registers for the reload.
- const bound=p.boundingSphere.slice();p.effect=effect;purgeResourceFixture(b);assert.equal(batches(p).length,0);
+ // The set pulls the completion at its next draw (BlueAsyncRes.ensureDependency).
+ prepareResourceFixture(b);batches(p);assert.notEqual(p._points,old);assert.equal(p._points[0],50);near(p._points.slice(6,10),[1,0,0,1]);
+ // The next draw after a purge releases what the set built from it.
+ const bound=p.boundingSphere.slice();purgeResourceFixture(b);assert.equal(batches(p).length,0);
  assert.equal(p._points.length,0);assert.equal(p._vertexBuffer.IsValid(),false);near(p.boundingSphere,bound);
- prepareResourceFixture(b);assert.equal(p._points[0],50,'the owner re-registered while purged and rebuilt on reload');
+ prepareResourceFixture(b);batches(p);assert.equal(p._points[0],50,'the owner rebuilt from the reload at its next draw');
  CjsSchema.setValues(p,{grannyResPath:''});assert.equal(p.grannyRes,null);assert.equal(p._points.length,0);
  purgeResourceFixture(b);prepareResourceFixture(b);assert.equal(p._points.length,0,'a detached owner hears nothing');
 });
@@ -160,7 +160,8 @@ test('active draws renew the manager lease and recover a purged handle before th
  const manager=blue.resMan,renew=manager._KeepResourceAlive;
  t.mock.method(manager,"_KeepResourceAlive",function(resource,options){renewals++;return renew.call(this,resource,options);});
  t.mock.method(r,"Reload",()=>{reloads++;pendingResourceFixture(r);return true;});
- assert.equal(batches(p).length,1);assert.equal(renewals,1);
+ // EnsureGood renews; until IsGood goes pure, its IsGood renews again.
+ assert.equal(batches(p).length,1);assert.ok(renewals>=1);
  r.Shutdown();purgeResourceFixture(r);
  assert.equal(batches(p).length,0);assert.equal(p._vertexBuffer.IsValid(),false);assert.equal(reloads,1);assert.equal(r.IsLoading(),true);
  batches(p);assert.equal(reloads,1,'pending reload must not restart per frame');

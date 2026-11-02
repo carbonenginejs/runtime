@@ -42,6 +42,7 @@ export class Tr2SkinnedModel extends Tr2Model
   @legacyBlue.method
   GetBatches(batches, batchType, m, data)
   {
+    BlueAsyncRes.ensureDependency(this.geometryRes, this, "geometry");
     for (const mesh of this.meshes)
     {
       if (!mesh) continue;
@@ -64,7 +65,7 @@ export class Tr2SkinnedModel extends Tr2Model
   {
     if (!mesh.GetDisplay()) return;
     const geometry = mesh.GetGeometryResource();
-    if (!geometry || !geometry.IsGood()) return;
+    if (!geometry || !geometry.EnsureGood()) return;
     const meshIndex = mesh.GetMeshIndex();
     const lod = geometry.GetMeshLod__LodIndex(meshIndex, 0);
     if (!lod || !CreateLodAllocations(geometry, meshIndex, lod, Tr2RenderContext_GetMainThreadRenderContext())) return;
@@ -112,6 +113,9 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** m_skeletonIx: the index of skeletonName in the geometry resource, or NO_SKELETON. */
   _skeletonIx = NO_SKELETON;
+
+  /** What this model last built from, per slot (`BlueAsyncRes.ensureDependency`). */
+  _dependencyRevisions = new Map();
 
   /** m_geometryResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
   @legacyBlue.notify
@@ -174,20 +178,18 @@ export class Tr2SkinnedModel extends Tr2Model
 
 
 
-    if (this.geometryRes)
-    {
-      this.geometryRes.RemoveNotifyTarget(this);
-      this.geometryRes = null;
-    }
+    this.geometryRes = null;
+    // Carbon registers the model as a notify target below, which rebuilds at
+    // once when the resource is prepared, even the same one. The pull does
+    // that here, and later changes are pulled at use
+    // (BlueAsyncRes.ensureDependency, slot "geometry").
+    this._dependencyRevisions.delete("geometry");
     if (!this.geometryResPath)
     {
       return true;
     }
     this.geometryRes = blue.resMan.GetResource(this.geometryResPath);
-    if (this.geometryRes)
-    {
-      this.geometryRes.AddNotifyTarget(this);
-    }
+    BlueAsyncRes.ensureDependency(this.geometryRes, this, "geometry");
     return true;
   }
 
@@ -252,6 +254,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   GetSkeleton()
   {
+    BlueAsyncRes.ensureDependency(this.geometryRes, this, "geometry");
     if (this._skeletonIx === NO_SKELETON)
     {
       return null;
@@ -277,6 +280,7 @@ export class Tr2SkinnedModel extends Tr2Model
       return;
     }
 
+    BlueAsyncRes.ensureDependency(this.geometryRes, this, "geometry");
     if (this._skeletonIx === NO_SKELETON)
     {
       return;
@@ -401,10 +405,9 @@ export class Tr2SkinnedModel extends Tr2Model
    */
   Destruct()
   {
-    if (this.geometryRes) this.geometryRes.RemoveNotifyTarget(this);
     this.geometryRes = null;
+    this._dependencyRevisions.clear();
     this.ReleaseCachedData();
-    BlueAsyncRes.markNotifyTargetDestructed(this);
   }
 }
 

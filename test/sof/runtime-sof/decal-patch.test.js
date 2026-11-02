@@ -99,16 +99,14 @@ test("decal shader-path patch keeps the effect and replaces its acquired resourc
 {
   const { ship, values, checkVfx } = await Fixture();
   const decal = ship.decals[0], effect = decal.decalEffect, old = effect.effectResource;
-  let detached = 0;
-  const remove = old.RemoveNotifyTarget.bind(old);
-  old.RemoveNotifyTarget = target => { if (target === effect) detached++; return remove(target); };
   values.decals[0].decalEffect.effectFilePath = "res:/decal/b.sm_depth";
   assert.equal(SetShipValues(ship, values, patch), true);
   assert.equal(ship.decals[0], decal);
   assert.equal(decal.decalEffect, effect);
   assert.notEqual(effect.effectResource, old);
   assert.equal(effect.effectResource.GetPath(), "res:/decal/b.sm_depth");
-  assert.equal(detached, 1);
+  assert.equal(effect._acquiredEffectResource, effect.effectResource);
+  old.AssertNoNotifyTargets();
   assert.equal(ship.decals[1].decalEffect.effectResource, old);
   assert.equal(SetShipValues(ship, values, patch), false);
   checkVfx();

@@ -71,46 +71,36 @@ test("effect path edits replace internal acquisitions and clearing releases the 
       stageInput: [{ constantBuffer: { Destroy() { bindingsReleased++; } } }],
       resourceSet: { Destroy() { bindingsReleased++; } }
     }] });
-    let detached = 0;
-    const remove = first.RemoveNotifyTarget.bind(first);
-    first.RemoveNotifyTarget = target => { detached++; return remove(target); };
     effect.SetEffectPathName("res:/b.sm_depth");
     assert.notEqual(effect.effectResource, first);
     assert.equal(effect.effectResource.GetPath(), "res:/b.sm_depth");
-    assert.equal(detached, 1);
     assert.equal(bindingsReleased, 2);
     assert.equal(effect.parametersForPasses.length, 0);
     const second = effect.effectResource;
-    let secondDetached = 0;
-    const removeSecond = second.RemoveNotifyTarget.bind(second);
-    second.RemoveNotifyTarget = target => { secondDetached++; return removeSecond(target); };
     effect.SetEffectPathName("res:/b.sm_depth");
     assert.equal(effect.effectResource, second);
-    assert.equal(secondDetached, 0);
     effect.SetEffectPathName("");
     assert.equal(effect.effectResource, null);
     assert.equal(effect.shader, null);
-    assert.equal(secondDetached, 1);
+    // The effect pulls its resource's changes at use, so it registers on neither.
+    first.AssertNoNotifyTargets();
+    second.AssertNoNotifyTargets();
   });
 });
 
-test("external resource replacement detaches the earlier acquisition and keeps the caller's resource", async () =>
+test("external resource replacement drops the earlier acquisition and keeps the caller's resource", async () =>
 {
   await withGlobalManager(() =>
   {
     const effect = new Tr2Effect();
     effect.SetEffectPathName("res:/a.sm_depth");
     const first = effect.effectResource, manual = new Tr2EffectRes();
-    let detached = 0, manualDetached = 0;
-    const remove = first.RemoveNotifyTarget.bind(first);
-    first.RemoveNotifyTarget = target => { detached++; return remove(target); };
-    const removeManual = manual.RemoveNotifyTarget.bind(manual);
-    manual.RemoveNotifyTarget = target => { manualDetached++; return removeManual(target); };
     effect.effectResource = manual;
     effect.SetEffectPathName("res:/b.sm_depth");
     assert.equal(effect.effectResource, manual);
-    assert.equal(detached, 1);
-    assert.equal(manualDetached, 0);
+    assert.equal(effect._acquiredEffectResource, null);
+    first.AssertNoNotifyTargets();
+    manual.AssertNoNotifyTargets();
   });
 });
 

@@ -218,10 +218,11 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
 
     assert.ok(mesh.GetGeometryResource() === mesh.lowResGeometry, "the stand-in renders while the authored mesh loads");
 
-    // The authored resource finishing notifies its targets, which retires the
-    // stand-in (cpp:192-195).
+    // The authored resource finishing retires the stand-in (cpp:192-195): Carbon
+    // pushes that to its notify targets; the mesh pulls it at its next use.
     assert.ok(mesh.geometry === authored && authored.IsLoading(), "the authored load is bound and still pending");
     prepareResourceFixture(authored);
+    assert.ok(mesh.GetGeometryResource() === authored, "the authored mesh renders once prepared");
     assert.ok(mesh.lowResGeometry === null, "the stand-in outlived the authored mesh");
 
     // Negative control: when the authored file IS here, no

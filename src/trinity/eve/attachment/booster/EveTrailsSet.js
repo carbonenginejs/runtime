@@ -82,6 +82,9 @@ export class EveTrailsSet
   /** m_instanceBuffer: a shared-buffer allocation, null until built. */
   _instanceBuffer = null;
 
+  /** What this set last built from, per slot (`BlueAsyncRes.ensureDependency`). */
+  _dependencyRevisions = new Map();
+
   /**
    * Carbon Initialize (cpp:38-43): load the trail mesh.
    *
@@ -98,21 +101,24 @@ export class EveTrailsSet
    * Carbon InitializeGeometryResource (cpp:50-72): detach from the old mesh,
    * forget its declaration, request the new one and rebuild when it has loaded.
    *
-   * The set is the resource's notify target (AddNotifyTarget), as in Carbon.
+   * Carbon makes the set the resource's notify target (AddNotifyTarget); here
+   * GetBatches pulls the rebuild (`BlueAsyncRes.ensureDependency`, slot
+   * "geometry").
    *
-   * @implemented
+   * @adapted JavaScript has no destructor to unregister a notify target, so
+   *   the set pulls the resource's changes at use instead.
    */
 
   InitializeGeometryResource()
   {
-    this.geometryResource?.RemoveNotifyTarget(this);
     this.Cleanup();
+    // Carbon's AddNotifyTarget rebuilds at once even for the same resource.
+    this._dependencyRevisions.delete("geometry");
 
     this.geometryResource = this.geometryResPath
       ? blue.resMan.GetResource(this.geometryResPath)
       : null;
-
-    this.geometryResource?.AddNotifyTarget(this);
+    BlueAsyncRes.ensureDependency(this.geometryResource, this, "geometry");
   }
 
   /**
@@ -309,17 +315,14 @@ export class EveTrailsSet
   GetBatches(accumulator, perObjectData)
   {
     if (!this.display) return;
-    // Ask both before combining, so neither is left unrenewed while the other
-    // loads. A pending geometry re-registers this set, because the resource
-    // released it when it last completed; a failed one is not, or it would
-    // call back every frame.
-    const geometry = this.geometryResource;
-    const geometryGood = geometry ? geometry.IsGood() : false;
-
-    const effectGood = this.effect ? this.effect.IsGood() : false;
+    // Ask every dependency before combining, so none is left unrenewed while
+    // another loads. The geometry's changes are pulled here.
+    let good = true;
+    if (!BlueAsyncRes.ensureDependency(this.geometryResource, this, "geometry")) good = false;
+    if (!this.effect || !this.effect.EnsureGood()) good = false;
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Asked with the others, before the instance buffer preparing builds.
-    const good = this.IsGood();
-    if (!geometryGood || !effectGood || !good) return;
+    if (!this.IsGood()) good = false;
+    if (!good) return;
     if (!this._instanceBuffer) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     if (!this.geometryResource.GetMeshCount()) return;
@@ -361,10 +364,10 @@ export class EveTrailsSet
   SetGeometryResource(resource)
   {
     if (this.geometryResource === resource) return;
-    this.geometryResource?.RemoveNotifyTarget(this);
     this.Cleanup();
+    this._dependencyRevisions.delete("geometry");
     this.geometryResource = resource ?? null;
-    this.geometryResource?.AddNotifyTarget(this);
+    BlueAsyncRes.ensureDependency(this.geometryResource, this, "geometry");
   }
 
   /** The trail placements as copies, for diagnostics. */
@@ -385,8 +388,7 @@ export class EveTrailsSet
   Destruct()
   {
     this.Cleanup();
-    if (this.geometryResource) this.geometryResource.RemoveNotifyTarget(this);
     this.geometryResource = null;
-    BlueAsyncRes.markNotifyTargetDestructed(this);
+    this._dependencyRevisions.clear();
   }
 }

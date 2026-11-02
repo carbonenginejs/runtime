@@ -68,6 +68,9 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   _lineIndexBuffer = new Tr2BufferAL();
   _destroyed = false;
 
+  /** What this set last built from, per slot (`BlueAsyncRes.ensureDependency`). */
+  _dependencyRevisions = new Map();
+
   /**
    * Acquires the authored resource after reader population (cpp:38-44).
    *
@@ -107,26 +110,19 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   SetGrannyResource()
   {
-    this.#DetachResource();
     this.grannyRes = null;
+    this._dependencyRevisions.delete("granny");
     if (this._destroyed) return;
     if (!this.grannyResPath)
     {
       this.ReleaseCachedData(null);
       return;
     }
-    const resource = blue.resMan.GetResource(this.grannyResPath);
-    this.grannyRes = resource;
-    // Carbon registers a notify target here; a resource that has already
-    // finished calls RebuildCachedData at once.
-    if (resource) resource.AddNotifyTarget(this);
-  }
-
-  /** Remove only this owner's pending notification; shared resource ownership stays with the manager. */
-  #DetachResource()
-  {
-    if (!this.grannyRes) return;
-    this.grannyRes.RemoveNotifyTarget(this);
+    // Carbon registers a notify target here, which rebuilds at once when the
+    // resource has already finished; the pull does the same, and GetBatchesImpl
+    // pulls later changes (BlueAsyncRes.ensureDependency, slot "granny").
+    this.grannyRes = blue.resMan.GetResource(this.grannyResPath);
+    if (this.grannyRes) BlueAsyncRes.ensureDependency(this.grannyRes, this, "granny");
   }
 
   /**
@@ -354,12 +350,10 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   /**
    * Emits native ordinary or dedicated picking ranges (cpp:135-171).
    *
-   * @adapted asking `IsGood()` before the storage guard renews the resource
-   *   and revives a purged one, standing in for Carbon's retained handle. While
-   *   the source is not good this set releases what it built from it and
-   *   re-registers as its notify target, because the resource released the set
-   *   when it last completed; the rebuild on completion replaces the data. A
-   *   failed source is not re-registered, or it would call back every frame.
+   * @adapted the resource is asked first, through `BlueAsyncRes.ensureDependency`,
+   *   which renews it (standing in for Carbon's retained handle) and pulls
+   *   Carbon's notify-target calls: RebuildCachedData when it is prepared or
+   *   reloaded, ReleaseCachedData once when it goes bad.
    * @param {Tr2BatchAccumulator} accumulator Batch destination.
    * @param {object} perObjectData Owner per-object constants.
    * @param {Tr2Effect|null} effect Explicit effect override.
@@ -369,11 +363,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   GetBatchesImpl(accumulator, perObjectData, effect, reason)
   {
     const resource = this.grannyRes;
-    if (resource && !resource.IsGood())
-    {
-      if (this._vertexBuffer.IsValid()) this.ReleaseCachedData(resource);
-      return;
-    }
+    if (resource && !BlueAsyncRes.ensureDependency(resource, this, "granny")) return;
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
     if (!this.IsGood()) return;
     if (!this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
@@ -411,10 +401,9 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    */
   Destruct()
   {
-    BlueAsyncRes.markNotifyTargetDestructed(this);
     this._destroyed = true;
-    this.#DetachResource();
     this.grannyRes = null;
+    this._dependencyRevisions.clear();
     this.CleanUp();
     trinity.UnregisterResource(this);
   }

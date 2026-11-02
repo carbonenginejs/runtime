@@ -116,18 +116,20 @@ test("Apocalypse/type462 geometry ownership caches mesh0 and exact native bone I
   const bounds=[1,2,3,200];set.boundingSphere.set(bounds);set.Initialize();assert.deepEqual(Array.from(set.boundingSphere),bounds);
 });
 
-test("late old completion cannot replace current cache; an update after a purge re-registers once and LOD clears geometry",{skip},async t=>
+test("late old completion cannot replace current cache; an update after a purge rebuilds once and LOD clears geometry",{skip},async t=>
 {
   const {set,ship,makeResource,resources}=await assets(t);ship.RebuildTurretPositions();
+  // Completions are pulled at the set's next update (BlueAsyncRes.ensureDependency).
+  const frame=()=>set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));
   const old=makeResource(false),next=makeResource(false);resources.set(geometryPath,old);
   set.Initialize();const second="res:/controlled-replacement.gr2";resources.set(second,next);set.geometryResPath=second;set.OnModified("geometryResPath");
-  prepareResourceFixture(old);assert.ok(set.geometryResource===next,"replacement handle remains current");assert.ok(set._skeleton===null,"stale completion must not rebuild");
-  prepareResourceFixture(next);assert.ok(set._skeleton===next.GetSkeletonData(0),"current resource owns cached skeleton");
+  prepareResourceFixture(old);frame();assert.ok(set.geometryResource===next,"replacement handle remains current");assert.ok(set._skeleton===null,"stale completion must not rebuild");
+  prepareResourceFixture(next);frame();assert.ok(set._skeleton===next.GetSkeletonData(0),"current resource owns cached skeleton");
   let rebuilds=0;const rebuild=set.RebuildCachedData.bind(set);set.RebuildCachedData=value=>{rebuilds++;return rebuild(value);};
   set.Initialize();set.Initialize();const before=rebuilds;
-  purgeResourceFixture(next);const frame=()=>set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));
-  frame();assert.ok(set._skeleton===null,"the update after a purge releases the cache and asks again");frame();
-  prepareResourceFixture(next);assert.equal(rebuilds,before+1,"repeated re-registration while pending rebuilds once");
+  purgeResourceFixture(next);
+  frame();assert.ok(set._skeleton===null,"the update after a purge releases the cache");frame();
+  prepareResourceFixture(next);frame();frame();assert.equal(rebuilds,before+1,"repeated updates while pending rebuild once on reload");
   const matrices=set.GetTurrets().map(item=>Array.from(item.localMatrix));set.lodLevel=EveTurretSet.LOD.LOD_EMPTY;set.InitializeGeometryResource();
   assert.equal(set.geometryResource,null);assert.equal(set._turretVertexDeclElementCount,0);assert.ok(Array.from(set._systemBoneID).every(value=>value===0xffffffff));
   assert.deepEqual(set.GetTurrets().map(item=>Array.from(item.localMatrix)),matrices,"resource cleanup preserves mount placement");
@@ -183,7 +185,9 @@ test("pending native requests replay without delay and late mounts initialize im
   const {set,ship,resources,makeResource}=await assets(t);const pending=makeResource(false);resources.set(geometryPath,pending);
   ship.RebuildTurretPositions();set.Initialize();
   assert.equal(set.PlayAnimation(0,"Deploy","Active",5),0);assert.equal(set._animationQueue.length,1);
-  set.UpdateAsyncronous(updateContext({deltaTime:2}),set._parentData);prepareResourceFixture(pending);set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);
+  set.UpdateAsyncronous(updateContext({deltaTime:2}),set._parentData);prepareResourceFixture(pending);
+  // The completion is pulled at the set's next update (BlueAsyncRes.ensureDependency).
+  set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);
   const first=set.GetTurrets()[0].sequencer.GetAnimationLayer(null).queue[0];
   assert.equal(first.name,"Deploy");assert.equal(first.elapsed,0,"cpp:2483 AnimationRequest omits delay");
   assert.equal(set._animationQueue.length,0);
@@ -470,7 +474,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   // Only pass execution is stubbed: geometry, metadata, declaration conversion,
   // allocations, batch submission and final AL draw are the real Node path.
   const shader={GetTechniqueIndex:name=>{currentInputs=metadata.effect.techniques.find(item=>item.name===name).passes[0].stageInputs.find(item=>item?.stageName==="vertex").signature.pipelineInputs;return 0;},GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
-  set.turretEffect={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){},IsGood:()=>true};
+  set.turretEffect={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){},IsGood:()=>true, EnsureGood: () => true};
   set.displayEffects=false;
   const coefficients=ship._psData.Get("shLightingCoefficients");for(let i=0;i<coefficients.length;i++)coefficients[i]=i+.25;
   const renderables=ship.GetRenderables__Impostors([]);assert.ok(renderables.includes(set),"EveMobile.cpp:291 forwards the turret renderable and SH span");
@@ -567,7 +571,7 @@ test("GR2 and CMF turret bounds follow donor traversal, animated world joints an
     const expectedCenter=Array.from({length:3},(_,i)=>sphere[0]*turret.worldMatrix[i]+sphere[1]*turret.worldMatrix[i+4]+sphere[2]*turret.worldMatrix[i+8]+turret.worldMatrix[i+12]);
     assertScalars(captured.slice(0,3),expectedCenter,"dynamic sphere transformed by mount for culling");
     purgeResourceFixture(geometry);set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));sphere.fill(17);assert.equal(set.GetDynamicBounds(turret,sphere),false);assert.deepEqual(Array.from(sphere),[17,17,17,17]);
-    prepareResourceFixture(geometry);assert.ok(set._boneBounds.length);set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);assert.equal(set.GetDynamicBounds(turret,sphere),true);
+    prepareResourceFixture(geometry);set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));assert.ok(set._boneBounds.length);set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);assert.equal(set.GetDynamicBounds(turret,sphere),true);
     set.useDynamicBounds=false;set.OnModified("useDynamicBounds");assert.equal(set._boneBounds.length,0);min.fill(8);assert.equal(set.GetLocalBoundingBox(min,max),false);assert.deepEqual(Array.from(min),[8,8,8]);
   }
 });

@@ -50,6 +50,9 @@ export class Tr2Mesh extends Tr2MeshBase
   @type.object.ref("TriGeometryRes")
   lowResGeometry = null;
 
+  /** What this mesh last built from, per slot (`BlueAsyncRes.ensureDependency`). */
+  _dependencyRevisions = new Map();
+
   /**
    * Reads the mesh load fence through its native property target.
    * Source: trinity/trinity/Tr2Mesh_Blue.cpp:71-74; Tr2Mesh.cpp:222-225
@@ -196,32 +199,23 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /**
-   * Carbon: SetGeometryRes (trinity/trinity/Tr2Mesh.cpp:60-74).
-   * Detach from the old resource, bind the
-   * new one, attach to it with AddNotifyTarget, whose contract is that an
-   * already-prepared resource calls back immediately (BlueAsyncRes.cpp:274-276),
-   * so a resource that is already good rebuilds here rather than on a later frame.
+   * Carbon: SetGeometryRes (trinity/trinity/Tr2Mesh.cpp:60-74). Binds the new
+   * resource. Carbon also attaches with AddNotifyTarget, which rebuilds at once
+   * when the resource is already prepared; the pull here does the same, and
+   * later changes are pulled by GetGeometryResource.
    *
-   * @implemented
+   * @adapted JavaScript has no destructor to unregister a notify target, so
+   *   the mesh pulls the resource's changes at use instead.
    */
   SetGeometryRes(resource)
   {
-    const next = resource ?? null;
-    const previous = this.geometry;
-    if (previous === next) return;
-
-    if (previous) previous.RemoveNotifyTarget(this);
-
-    this.geometry = next;
-    // Direct mutation bypasses SetValues, so schedule the declared consequence
-    // explicitly; maintained class code may add declared rebuild tokens.
-
-
-    if (next) next.AddNotifyTarget(this);
+    this.geometry = resource ?? null;
+    BlueAsyncRes.ensureDependency(this.geometry, this, "geometry");
   }
 
   /**
-   * Carbon RebuildCachedData (cpp:185-196): the notify target's rebuild half -
+   * Carbon RebuildCachedData (cpp:185-196): the dependency rebuild, pulled by
+   * GetGeometryResource -
    * re-cache the bounds and the morph targets when the resource that finished
    * is one of ours, and drop the low-detail stand-in once the real one arrives.
    *
@@ -244,22 +238,16 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /**
-   * Carbon SetLowResGeometryRes (cpp:76-90): the same detach/bind/attach as
-   * SetGeometryRes, for the stand-in shown while the authored mesh loads.
+   * Carbon SetLowResGeometryRes (cpp:76-90): binds the stand-in shown while the
+   * authored mesh loads, as SetGeometryRes does.
    *
-   * @implemented
+   * @adapted As SetGeometryRes: no notify target; changes are pulled at use.
    */
 
   SetLowResGeometryRes(resource)
   {
-    const next = resource ?? null;
-    const previous = this.lowResGeometry;
-    if (previous === next) return;
-
-    if (previous) previous.RemoveNotifyTarget(this);
-
-    this.lowResGeometry = next;
-    if (next) next.AddNotifyTarget(this);
+    this.lowResGeometry = resource ?? null;
+    BlueAsyncRes.ensureDependency(this.lowResGeometry, this, "lowResGeometry");
   }
 
   /**
@@ -290,16 +278,18 @@ export class Tr2Mesh extends Tr2MeshBase
    * Checks primary liveness before selecting the low-detail stand-in
    * (Tr2Mesh.cpp:213-219).
    *
-   * @adapted while the primary is pending or reviving from a purge, the mesh
-   *   re-registers as its notify target, because the resource released it when it
-   *   last completed (`BlueAsyncRes.AddNotifyTarget`). A failed primary is not
-   *   re-registered, or it would call back every frame.
+   * @adapted it is also the mesh's use: both slots are renewed and their
+   *   changes pulled (`BlueAsyncRes.ensureDependency`), standing in for Carbon's
+   *   notify-target calls. The primary goes first, since its rebuild retires
+   *   the stand-in.
    */
 
   GetGeometryResource()
   {
     const geometry = this.geometry;
-    if (geometry && geometry.IsGood()) return geometry;
+    const good = BlueAsyncRes.ensureDependency(geometry, this, "geometry");
+    BlueAsyncRes.ensureDependency(this.lowResGeometry, this, "lowResGeometry");
+    if (good) return geometry;
     return this.lowResGeometry ?? geometry;
   }
 
@@ -536,9 +526,9 @@ export class Tr2Mesh extends Tr2MeshBase
   _loadFenceGeneration = 0;
 
   /**
-   * Carbon destructor (Tr2Mesh.cpp:14-22): detach both geometry subscriptions.
+   * Carbon destructor (Tr2Mesh.cpp:14-22): releases both geometry slots.
    *
-   * @adapted
+   * @adapted There are no notify targets to detach; the slots are cleared.
    */
   Destruct()
   {
@@ -547,7 +537,7 @@ export class Tr2Mesh extends Tr2MeshBase
     this._loadFenceReached = true;
     this.SetGeometryRes(null);
     this.SetLowResGeometryRes(null);
-    BlueAsyncRes.markNotifyTargetDestructed(this);
+    this._dependencyRevisions.clear();
   }
 }
 

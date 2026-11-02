@@ -136,9 +136,8 @@ test("each update renews the resources a controller samples, every one, decoded 
     resource.ReadGrannyFile({ models: [], animations: [], grannyFileFormatRevision: 7 });
     prepareResourceFixture(resource);
     resource.asked = 0;
-    // The first answers false: no later resource may be skipped because of it.
-    const good = resource.IsGood.bind(resource);
-    resource.IsGood = () => { resource.asked += 1; return resource === rig ? false : good(); };
+    const keepAlive = resource.KeepAlive.bind(resource);
+    resource.KeepAlive = () => { resource.asked += 1; return keepAlive(); };
     return resource;
   };
   const rig = make(), clip = make(), other = make();
