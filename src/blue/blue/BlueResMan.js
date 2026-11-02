@@ -117,16 +117,17 @@ let nextLocalValueIdentity = 1;
  */
 
 /**
- * Opt-in time-based inactivity policy run by {@link BlueResMan#Update}.
+ * Time-based inactivity policy run by {@link BlueResMan#Update}.
  *
  * Automatic policy deliberately uses elapsed milliseconds rather than
  * MotherLode activity frames: the latter count explicit activity observations
- * and are not guaranteed to match renderer frames. At least one identity or
- * payload limit is required. The policy is disabled by default.
+ * and are not guaranteed to match renderer frames. The policy is on by
+ * default ({@link BlueResMan.defaultAutoPurgePolicy}); a policy that names
+ * neither limit gets the default identity limit.
  *
  * @typedef {object} CjsResManAutoPurgePolicy
  * @property {number} [intervalMilliseconds=1000] Minimum elapsed milliseconds between automatic sweeps; `0` permits every update.
- * @property {number} [maxIdleMilliseconds] Elapsed milliseconds after which an unlocked canonical identity is removed and cleaned.
+ * @property {number} [maxIdleMilliseconds=30000] Elapsed milliseconds after which an unlocked canonical identity is removed and cleaned. Defaults only when `payloadMaxIdleMilliseconds` is also unset.
  * @property {number} [payloadMaxIdleMilliseconds] Elapsed milliseconds after which an unlocked CPU payload is released.
  * @property {boolean} [destroyAdapters=true] Whether identity cleanup destroys adapter allocations.
  * @property {boolean} [releasePayload=true] Whether sweeps may release CPU payloads.
@@ -259,6 +260,21 @@ export class BlueResMan
    */
   static resourceMonitoring = false;
 
+  /**
+   * The automatic inactivity policy every resource manager starts with: a
+   * sweep at most once a second, and an identity unused for 30 seconds expires
+   * (into MotherLode's cache when its class maps `ICacheable`, otherwise
+   * purged). CPU payloads are not released by default. `SetAutoPurgePolicy`
+   * replaces it, and `false` or `null` turns sweeping off.
+   *
+   * @cjs JavaScript cannot see a resource's last reference go, so the
+   *   inactivity sweep stands in for Carbon's `WeakRefNotify`
+   *   (MotherLode.cpp:329-401), which needs no configuration. Off by default,
+   *   nothing was ever released (operator, 2026-11-02: "Resman should be on
+   *   autopurge by default, in case no-one passes any options").
+   */
+  static defaultAutoPurgePolicy = { intervalMilliseconds: 1000, maxIdleMilliseconds: 30000 };
+
   // The manager is no longer reachable from itself. Carbon's process-wide
   // handle is an extern beside the interface it points at, not a static on
   // the implementation (`blue/include/IBlueResMan.h:135`), and the port of
@@ -382,7 +398,7 @@ export class BlueResMan
   /** `m_urgentResourceLoads( false )` (BlueResMan.h:128, BlueResMan.cpp:73). */
   urgentResourceLoads = false;
 
-  _autoPurgePolicy = null;
+  _autoPurgePolicy = normalizeAutoPurgePolicy(BlueResMan.defaultAutoPurgePolicy);
   _activeResourceOperations = 0;
 
   _lastAutoPurgeTime = null;
@@ -2210,7 +2226,8 @@ export class BlueResMan
   }
 
   /**
-   * Replace or disable the opt-in automatic inactivity policy. Configuration
+   * Replace or disable the automatic inactivity policy, which is on by
+   * default ({@link BlueResMan.defaultAutoPurgePolicy}). Configuration
    * resets cadence, so the first subsequent pump performs a sweep immediately.
    * Frame-based limits are rejected because manager updates are not a reliable
    * renderer-frame clock. The normalized policy is a fresh object and never
@@ -4097,11 +4114,10 @@ function normalizeAutoPurgePolicy(policy)
       assertNonNegativeNumber(policy[name], `BlueResMan autoPurgePolicy.${name}`);
     }
   }
-  if (policy.maxIdleMilliseconds === undefined
-    && policy.payloadMaxIdleMilliseconds === undefined)
-  {
-    throw new TypeError("BlueResMan autoPurgePolicy requires an identity or payload inactivity limit.");
-  }
+  // A policy naming neither limit expires identities at the default limit, rather than sweeping nothing.
+  const maxIdleMilliseconds = policy.maxIdleMilliseconds === undefined && policy.payloadMaxIdleMilliseconds === undefined
+    ? BlueResMan.defaultAutoPurgePolicy.maxIdleMilliseconds
+    : policy.maxIdleMilliseconds;
   for (const name of [ "destroyAdapters", "releasePayload" ])
   {
     if (policy[name] !== undefined && typeof policy[name] !== "boolean")
@@ -4122,7 +4138,7 @@ function normalizeAutoPurgePolicy(policy)
 
   return {
     intervalMilliseconds,
-    maxIdleMilliseconds: policy.maxIdleMilliseconds,
+    maxIdleMilliseconds,
     payloadMaxIdleMilliseconds: policy.payloadMaxIdleMilliseconds,
     destroyAdapters: policy.destroyAdapters ?? true,
     releasePayload: policy.releasePayload ?? true,
