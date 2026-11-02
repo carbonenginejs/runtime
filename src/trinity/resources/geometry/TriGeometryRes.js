@@ -27,6 +27,11 @@ import { TriGeometryResAreaData } from "./TriGeometryResAreaData.js";
 import { TriGeometryResSkeletonData } from "./TriGeometryResSkeletonData.js";
 import { TriGeometryResJointData } from "./TriGeometryResJointData.js";
 import { TriJointBinding } from "./TriJointBinding.js";
+import { BuildFromGrannyVertexDecl } from "../../core/vertex/vertexUsage.js";
+import { Tr2VertexUsageCode } from "../../core/vertex/usageCode.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { ConvertDataToVector3, GetMeshVertexPosition, GetVertexPositionOffsetAndType, GrannyGetTotalTypeSize } from "../../utilities/GeometryUtils.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import {
   assertResourcePayloadArray,
   assertResourcePayloadObject,
@@ -138,6 +143,18 @@ export class TriGeometryRes extends BlueAsyncRes
     const vertex = AlignStride(packVertexBuffer(decl, channels));
 
     return { decl, vertex, index: TriGeometryRes.packLodIndices(mesh, lodIndex) };
+  }
+
+  /**
+   * Pads a vertex buffer's stride to WebGPU's four-byte alignment (AlignStride).
+   *
+   * @cjs shared by the CMF and Granny allocation paths.
+   * @param {{bytes: Uint8Array, stride: number, count: number}} packed Vertex bytes.
+   * @returns {{bytes: Uint8Array, stride: number, count: number}} The input when already aligned.
+   */
+  static alignStride(packed)
+  {
+    return AlignStride(packed);
   }
 
   /**
@@ -359,6 +376,357 @@ export class TriGeometryRes extends BlueAsyncRes
   }
 
   /**
+   * Carbon SetupMeshes( granny_file_info* ) (TriGeometryRes.cpp:953-1184): one mesh record per main
+   * mesh, each Granny LOD mesh folded into the mesh its MeshBoundsInfo names (`sourceMeshIndex`) at
+   * its `maxScreenSize`, with the authored bounds and UV densities, area names from the material
+   * bindings, and each mesh's LODs sorted from the largest screen size down.
+   *
+   * @adapted the file info is the GR2 reader's granny_file_info view (vertex arrays as their bytes and
+   *   reflected type), and MeshBoundsInfo is read from the reflected ExtendedData by Carbon's member
+   *   names rather than through GrannyConvertTree. The minimum model LOD (cpp:1153-1171) is not
+   *   applied; TriDevice's is always 0 here.
+   * @param {object} gi The granny_file_info.
+   * @returns {boolean} False when a mesh has no primary vertex data or topology.
+   */
+  SetupMeshes__GrannyFileInfo(gi)
+  {
+    if (this._raycastUsers !== 0) throw new Error("TriGeometryRes data cannot change during an active raycast session.");
+    this._OnShutdown();
+    this._raycastGeometry = null;
+    this._raycastPreparationFailed = false;
+
+    const meshes = [];
+    // Used by LOD meshes to find the model they belong to.
+    const grannyMeshIndexToMeshMap = new Array(gi.Meshes.length).fill(null);
+
+    for (let meshIndex = 0; meshIndex < gi.Meshes.length; ++meshIndex)
+    {
+      const grannyMesh = gi.Meshes[meshIndex];
+
+      if (!grannyMesh || !grannyMesh.PrimaryVertexData || !grannyMesh.PrimaryTopology)
+      {
+        CcpLog.CCP_LOGWARN("Trying to load geometry with no primary vertex data and/or topology");
+        return false;
+      }
+
+      const vertexDefinition = BuildFromGrannyVertexDecl(grannyMesh.PrimaryVertexData.Vertices.type);
+      const vertexDeclarationHandle = Tr2EffectStateManager.getVertexDeclarationHandle(vertexDefinition);
+      const bytesPerVertex = vertexDefinition.nextOffset[0];
+
+      // Look for mesh bounds info in the Granny file.
+      const extended = grannyMesh.ExtendedData;
+      const mbi = extended && extended.typeName === "MeshBoundsInfo" ? extended : null;
+
+      let mesh = null;
+      let maxScreenSize = Infinity;
+      const mainLod = !mbi || mbi.maxScreenSize <= 0;
+
+      if (!mainLod)
+      {
+        // We are an LOD of an existing mesh. Add ourselves to it.
+        mesh = grannyMeshIndexToMeshMap[mbi.sourceMeshIndex];
+        if (mesh.vertexDeclarationHandle !== vertexDeclarationHandle || mesh.bytesPerVertex !== bytesPerVertex) continue;
+        maxScreenSize = mbi.maxScreenSize;
+      }
+      else
+      {
+        // We are the main LOD of a mesh, so we need to create a new mesh.
+        mesh = new TriGeometryResMeshData();
+        mesh.name = grannyMesh.Name ?? "";
+        vec3.set(mesh.minBounds, Infinity, Infinity, Infinity);
+        vec3.set(mesh.maxBounds, -Infinity, -Infinity, -Infinity);
+        vec4.set(mesh.boundingSphere, 0, 0, 0, 0);
+        mesh.vertexDeclarationHandle = vertexDeclarationHandle;
+        mesh.bytesPerVertex = bytesPerVertex;
+        mesh.jointBindings = (grannyMesh.BoneBindings ?? []).map(source =>
+        {
+          const binding = new TriJointBinding();
+          binding.name = source.BoneName ?? "";
+          vec3.copy(binding.obbMin, source.OBBMin);
+          vec3.copy(binding.obbMax, source.OBBMax);
+          return binding;
+        });
+        mesh.lods = [];
+        meshes.push(mesh);
+      }
+
+      // A LOD mesh references the granny mesh index of its "parent" mesh.
+      grannyMeshIndexToMeshMap[meshIndex] = mesh;
+
+      const lod = new TriGeometryResLodData();
+      lod.mesh = mesh;
+      lod.grannyMeshIndex = meshIndex;
+      lod.name = grannyMesh.Name ?? "";
+      lod.maxScreenSize = maxScreenSize;
+      lod.vertexCount = grannyMesh.PrimaryVertexData.Vertices.count;
+      lod.primitiveCount = 0;
+
+      if (mbi)
+      {
+        // The UV densities, if available, are used for texture streaming.
+        if (mbi.uvDensities?.length) lod.uvDensities = Array.from(mbi.uvDensities);
+        if (mainLod) TriGeometryRes._BoundingBoxUpdate(mesh.minBounds, mesh.maxBounds, mbi.bounds.min, mbi.bounds.max);
+      }
+
+      const topology = grannyMesh.PrimaryTopology;
+      lod.areas = topology.Groups.map((group, groupIndex) =>
+      {
+        const area = new TriGeometryResAreaData();
+        const binding = grannyMesh.MaterialBindings?.[group.MaterialIndex];
+        area.name = binding && binding.Material ? binding.Material.Name ?? "" : "";
+        area.firstIndex = group.TriFirst * 3;
+        area.primitiveCount = group.TriCount;
+        lod.primitiveCount += area.primitiveCount;
+        area.isSkinned = this.IsAreaSkinned(area, grannyMesh, gi, bytesPerVertex);
+        area.isMorphed = this.IsAreaMorphed(area, grannyMesh, gi);
+        if (mbi)
+        {
+          vec3.copy(area.minBounds, mbi.areaInfo[groupIndex].bounds.min);
+          vec3.copy(area.maxBounds, mbi.areaInfo[groupIndex].bounds.max);
+        }
+        else
+        {
+          this.DetermineAreaBoundsAndVertCount(area, grannyMesh, bytesPerVertex);
+          // An area without vertices has an invalid box, so it is not included.
+          if (mainLod && area.primitiveCount)
+          {
+            TriGeometryRes._BoundingBoxUpdate(mesh.minBounds, mesh.maxBounds, area.minBounds, area.maxBounds);
+          }
+        }
+        return area;
+      });
+
+      mesh.lods.push(lod);
+    }
+
+    for (const mesh of meshes)
+    {
+      mesh.lods.sort((a, b) => b.maxScreenSize - a.maxScreenSize);
+      let lodMask = 0;
+      mesh.lods.forEach((lod, index) =>
+      {
+        lod.originalLodIndex = index;
+        lodMask |= 1 << index;
+      });
+      mesh.lodMask = lodMask >>> 0;
+    }
+
+    this._cmfData = null;
+    this._meshes = meshes;
+    return true;
+  }
+
+  /**
+   * Carbon BoundingBoxUpdate with a box: grows min/max to include another box.
+   *
+   * @cjs Carbon's math helper, kept beside its callers.
+   * @param {vec3} min Box minimum, updated.
+   * @param {vec3} max Box maximum, updated.
+   * @param {ArrayLike<number>} otherMin Other minimum.
+   * @param {ArrayLike<number>} otherMax Other maximum.
+   */
+  static _BoundingBoxUpdate(min, max, otherMin, otherMax)
+  {
+    for (let axis = 0; axis < 3; axis++)
+    {
+      if (otherMin[axis] < min[axis]) min[axis] = otherMin[axis];
+      if (otherMax[axis] > max[axis]) max[axis] = otherMax[axis];
+    }
+  }
+
+  /**
+   * A Granny mesh's index array as Carbon reads it: Indices16 as unsigned 16-bit when present,
+   * otherwise the 32-bit Indices.
+   *
+   * @cjs the reader reflects Indices16 as Int16 members; Carbon reads the storage as granny_uint16.
+   * @param {object} grannyMesh Granny mesh.
+   * @returns {Uint16Array|Int32Array} The index array.
+   */
+  static grannyIndices(grannyMesh)
+  {
+    const { Indices16, Indices } = grannyMesh.PrimaryTopology;
+    if (Indices16 && Indices16.length) return new Uint16Array(Indices16.buffer, Indices16.byteOffset, Indices16.length);
+    return Indices;
+  }
+
+  /**
+   * Carbon GetVertexComponentOffset (TriGeometryRes.cpp:377-400): the byte offset of a named member
+   * in a Granny mesh's vertex, or -1.
+   *
+   * @implemented
+   * @param {object} grannyMesh Granny mesh.
+   * @param {string} componentName Granny member name.
+   * @returns {number} Offset, or -1.
+   */
+  GetVertexComponentOffset(grannyMesh, componentName)
+  {
+    let offset = 0;
+    for (const member of grannyMesh.PrimaryVertexData.Vertices.type)
+    {
+      if (member.name === componentName) return offset;
+      offset += GrannyGetTotalTypeSize(member);
+    }
+    return -1;
+  }
+
+  /**
+   * Carbon DetermineAreaBoundsAndVertCount (TriGeometryRes.cpp:676-713): an area's box from the
+   * positions its triangles reference.
+   *
+   * @implemented
+   * @param {TriGeometryResAreaData} area Area, updated.
+   * @param {object} grannyMesh Granny mesh.
+   * @param {number} bytesPerVertex Vertex stride.
+   */
+  DetermineAreaBoundsAndVertCount(area, grannyMesh, bytesPerVertex)
+  {
+    const { positionOffset, positionType } = GetVertexPositionOffsetAndType(grannyMesh);
+    vec3.set(area.minBounds, Infinity, Infinity, Infinity);
+    vec3.set(area.maxBounds, -Infinity, -Infinity, -Infinity);
+    const indices = TriGeometryRes.grannyIndices(grannyMesh);
+    const position = [ 0, 0, 0 ];
+    for (let vIx = 0; vIx < area.primitiveCount * 3; ++vIx)
+    {
+      GetMeshVertexPosition(grannyMesh, indices[vIx + area.firstIndex], position, bytesPerVertex, positionOffset, positionType);
+      TriGeometryRes._BoundingBoxUpdate(area.minBounds, area.maxBounds, position, position);
+    }
+  }
+
+  /**
+   * Carbon IsAreaSkinned (TriGeometryRes.cpp:716-798): whether any vertex of the area is bound to a
+   * bone other than the root of the first model whose skeleton has more than one bone.
+   *
+   * @implemented
+   * @param {TriGeometryResAreaData} area Area.
+   * @param {object} grannyMesh Granny mesh.
+   * @param {object} gi The granny_file_info.
+   * @param {number} bytesPerVertex Vertex stride.
+   * @returns {boolean} Whether the area is skinned.
+   */
+  IsAreaSkinned(area, grannyMesh, gi, bytesPerVertex)
+  {
+    const boneIndexOffset = this.GetVertexComponentOffset(grannyMesh, "BoneIndices");
+    // If there are no bone indices, we are done.
+    if (boneIndexOffset === -1) return false;
+
+    let rootBone = null;
+    for (const model of gi.Models ?? [])
+    {
+      if (model.Skeleton && model.Skeleton.Bones.length > 1 && model.MeshBindings.length > 0)
+      {
+        rootBone = model.Skeleton.Bones[0].Name;
+        break;
+      }
+    }
+    const rootBoneIndex = rootBone === null ? -1
+      : (grannyMesh.BoneBindings ?? []).findIndex(binding => binding.BoneName && binding.BoneName === rootBone);
+    if (rootBoneIndex < 0) return true;
+
+    const bytes = grannyMesh.PrimaryVertexData.Vertices.bytes;
+    const indices = TriGeometryRes.grannyIndices(grannyMesh);
+    for (let vIx = 0; vIx < area.primitiveCount * 3; ++vIx)
+    {
+      const base = indices[vIx + area.firstIndex] * bytesPerVertex + boneIndexOffset;
+      for (let bone = 0; bone < 4; bone++)
+      {
+        // Found it attached to a bone, so return early.
+        if (bytes[base + bone] !== rootBoneIndex) return true;
+      }
+    }
+    // No vertex has a valid bone index.
+    return false;
+  }
+
+  /**
+   * Carbon IsAreaMorphed (TriGeometryRes.cpp:800-852): whether any morph target moves a vertex of
+   * the area by more than sqrt(0.001).
+   *
+   * Carbon reads the delta flag from the first morph target for every target
+   * (`myMesh->MorphTargets->DataIsDeltas`, cpp:823); so does this (quirk).
+   *
+   * @implemented
+   * @param {TriGeometryResAreaData} area Area.
+   * @param {object} myMesh Granny mesh.
+   * @param {object} _gi The granny_file_info (unused, as in Carbon).
+   * @returns {boolean} Whether the area is morphed.
+   */
+  IsAreaMorphed(area, myMesh, _gi)
+  {
+    const targets = myMesh.MorphTargets ?? [];
+    if (targets.length === 0) return false;
+
+    const EPSILON = Math.fround(0.001);
+    const baseData = TriGeometryRes._InitMorphToBaseData(BuildFromGrannyVertexDecl(myMesh.PrimaryVertexData.Vertices.type));
+    const morphData = TriGeometryRes._InitMorphToBaseData(BuildFromGrannyVertexDecl(targets[0].VertexData.Vertices.type));
+    const dataIsDeltas = Boolean(targets[0].DataIsDeltas);
+    const base = myMesh.PrimaryVertexData.Vertices.bytes;
+    const baseView = new DataView(base.buffer, base.byteOffset, base.byteLength);
+    const indices = TriGeometryRes.grannyIndices(myMesh);
+    const vertex = [ 0, 0, 0 ], morphVertex = [ 0, 0, 0 ];
+    for (const target of targets)
+    {
+      const morph = target.VertexData.Vertices.bytes;
+      const morphView = new DataView(morph.buffer, morph.byteOffset, morph.byteLength);
+      for (let vIx = 0; vIx < area.primitiveCount * 3; ++vIx)
+      {
+        const index = indices[vIx + area.firstIndex];
+        ConvertDataToVector3(baseData.declType, baseView, baseData.positionByteOffset + index * baseData.bytesPerVertex, vertex);
+        ConvertDataToVector3(morphData.declType, morphView, morphData.positionByteOffset + index * morphData.bytesPerVertex, morphVertex);
+        let x = morphVertex[0], y = morphVertex[1], z = morphVertex[2];
+        if (!dataIsDeltas)
+        {
+          x -= vertex[0];
+          y -= vertex[1];
+          z -= vertex[2];
+        }
+        if (x * x + y * y + z * z > EPSILON) return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Carbon InitMorphToBaseData (TriGeometryRes.cpp:146-155): a definition's stride and its POSITION 0
+   * item's offset and type.
+   *
+   * @cjs Carbon's file-local helper, kept on its caller.
+   * @param {Tr2VertexDefinition} decl Vertex definition.
+   * @returns {{bytesPerVertex: number, positionByteOffset: number, declType: string}} The data.
+   */
+  static _InitMorphToBaseData(decl)
+  {
+    const position = decl.items.find(item => item.usage === Tr2VertexUsageCode.POSITION && item.usageIndex === 0);
+    return { bytesPerVertex: decl.nextOffset[0], positionByteOffset: position ? position.offset : 0,
+      declType: position ? position.type : "DT_UNKNOWN_TYPE" };
+  }
+
+  /**
+   * Carbon SetupSkeletons( granny_file_info* ) (TriGeometryRes.cpp:1212-1241): one skeleton record
+   * per Granny skeleton, a joint per bone with its parent index and inverse world transform.
+   *
+   * @implemented
+   * @param {object} gi The granny_file_info.
+   */
+  SetupSkeletons__GrannyFileInfo(gi)
+  {
+    this._skeletons = (gi.Skeletons ?? []).map(skel =>
+    {
+      const record = new TriGeometryResSkeletonData();
+      record.name = skel.Name ?? "";
+      record.joints = skel.Bones.map(bone =>
+      {
+        const joint = new TriGeometryResJointData();
+        joint.name = bone.Name ?? "";
+        joint.parentJoint = bone.ParentIndex >>> 0;
+        // Granny's InverseWorld4x4, reflected in the file as InverseWorldTransform.
+        mat4.copy(joint.inverseWorldTransform, bone.InverseWorldTransform);
+        return joint;
+      });
+      return record;
+    });
+  }
+
+  /**
    * Explicitly release the LOD allocations owned by Carbon's resource destructor.
    *
    * @adapted explicit JS teardown replaces native destruction; the existing
@@ -429,6 +797,15 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   ReadGrannyFile(bytes)
   {
+    if (bytes?.grannyFileInfo)
+    {
+      const gi = bytes.grannyFileInfo;
+      if (!this.SetupMeshes__GrannyFileInfo(gi)) return false;
+      this.SetupSkeletons__GrannyFileInfo(gi);
+      this._useCMF = false;
+      this._grannyFile = gi;
+      return true;
+    }
     const granny = bytes?.grannyFileFormatRevision !== undefined
       ? bytes : CjsGr2Format.read(bytes, { rebuildMissingBounds: true });
     const data = CjsCmfFormat.loadShared(granny);
@@ -1947,7 +2324,7 @@ export class TriGeometryRes extends BlueAsyncRes
         resMan._GetResourceRequest(this));
       resMan._AssertResourceLoad(this, attempt);
     }
-    const loaded = data?.grannyFileFormatRevision !== undefined
+    const loaded = data?.grannyFileInfo || data?.grannyFileFormatRevision !== undefined
       ? this.ReadGrannyFile(data) : this.ReadCMFFile(data);
     return loaded ? BlueAsyncRes.LoadingResult.LR_SUCCESS : BlueAsyncRes.LoadingResult.LR_FAILED;
   }

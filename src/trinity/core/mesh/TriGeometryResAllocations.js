@@ -111,6 +111,8 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
 {
   if (!lod) return false;
   if (lod.allocationsValid) return true;
+  // Carbon chooses by the reader that ran (CreateMeshesFromCMFFile or CreateMeshesFromGrannyFile, cpp:607-669).
+  if (!geometry.IsUsingCMF()) return CreateLodFromGrannyMesh(geometry, lod, renderContext);
 
   const mesh = geometry ? geometry.GetCMFData()?.meshes?.[meshIndex] : null;
 
@@ -182,6 +184,78 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
 
 
 /**
+ * A Granny mesh's indices at Carbon's width: 16-bit indices as they are; 32-bit ones narrowed to
+ * 16 bits unless the mesh has more than 65535 vertices (TriGeometryRes.cpp:2179-2196, where
+ * GrannyCopyMeshIndices does the narrowing).
+ *
+ * @param {object} grannyMesh Granny mesh from the file info.
+ * @returns {{bytes: Uint8Array, format: string, count: number}|null} Index bytes, or null without indices.
+ */
+function GrannyIndexBytes(grannyMesh)
+{
+  const indices = TriGeometryRes.grannyIndices(grannyMesh);
+  if (!indices || !indices.length) return null;
+  const vertexCount = grannyMesh.PrimaryVertexData.Vertices.count;
+  const Typed = indices instanceof Uint16Array || vertexCount <= 65535 ? Uint16Array : Uint32Array;
+  const copy = Typed.from(indices); // alloc: Carbon's tempBuffer, uploaded and reversed
+  return { bytes: new Uint8Array(copy.buffer), format: Typed === Uint16Array ? "uint16" : "uint32", count: copy.length };
+}
+
+/**
+ * Carbon CreateLodFromGrannyMesh (TriGeometryRes.cpp:2152-2308): a LOD's vertex, index and reversed
+ * index allocations from its Granny mesh, the vertices uploaded as Granny stores them.
+ *
+ * @adapted made at the LOD's first draw, as the CMF branch is. The morph target allocation
+ *   (cpp:2233-2298) is not made here, as the CMF branch's is not (morphs are built by their
+ *   consumers). A stride that is not a multiple of four is padded for WebGPU, and the record's stride
+ *   follows it.
+ * @param {object} geometry The `TriGeometryRes`.
+ * @param {TriGeometryResLodData} lod The LOD record.
+ * @param {object} renderContext The `Tr2RenderContext` to allocate through.
+ * @returns {boolean} Whether the LOD's allocations are valid afterwards.
+ */
+function CreateLodFromGrannyMesh(geometry, lod, renderContext)
+{
+  const grannyMesh = geometry.GetGrannyInfo()?.Meshes?.[lod.grannyMeshIndex];
+  if (!grannyMesh) return false;
+  const vertices = grannyMesh.PrimaryVertexData.Vertices;
+  const packed = TriGeometryRes.alignStride({ bytes: vertices.bytes, stride: vertices.stride, count: vertices.count });
+  const index = GrannyIndexBytes(grannyMesh);
+  if (!index) return false;
+
+  const shared = SharedGeometryBuffer(renderContext);
+  const stride = index.format === "uint32" ? 4 : 2;
+  try
+  {
+    lod.vertexAllocation = shared.Allocate(packed.stride, packed.count, packed.bytes, renderContext);
+    if (!lod.vertexAllocation) return false;
+    lod.indexAllocation = shared.Allocate(stride, index.count, index.bytes, renderContext);
+    if (!lod.indexAllocation) return false;
+    lod.reversedIndexAllocation = shared.Allocate(stride, index.count, ReversedIndices(index.bytes, index.format), renderContext);
+    if (!lod.reversedIndexAllocation) return false;
+    lod.reversedIndicesValid = true;
+    lod.mesh.bytesPerVertex = packed.stride;
+    lod.allocationsValid = true;
+    // Memory use is only approximate, as a hint for the resource cache (cpp:2302-2305).
+    geometry._memoryUse += packed.bytes.byteLength + index.bytes.byteLength * 2;
+    return true;
+  }
+  finally
+  {
+    if (!lod.allocationsValid)
+    {
+      for (const field of [ "vertexAllocation", "indexAllocation", "reversedIndexAllocation" ])
+      {
+        const allocation = lod[field];
+        if (allocation?._parent) allocation._parent.Free(allocation);
+        lod[field] = null;
+      }
+      lod.reversedIndicesValid = false;
+    }
+  }
+}
+
+/**
  * Expands a triangle list into its edge list: each triangle (a, b, c) becomes
  * the three lines a-b, b-c, c-a, so index i of the triangle list starts at
  * index 2i of the edge list.
@@ -231,9 +305,18 @@ export function CreateLodWireframeIndices(geometry, meshIndex, lod, renderContex
 {
   if (lod.wireframeIndexAllocation) return true;
 
-  const mesh = geometry.GetCMFData()?.meshes?.[meshIndex];
-  const lodIndex = mesh?.lods?.length ? lod.originalLodIndex : 0;
-  const indices = mesh ? TriGeometryRes.packLodIndices(mesh, lodIndex) : null;
+  let indices;
+  if (geometry.IsUsingCMF())
+  {
+    const mesh = geometry.GetCMFData()?.meshes?.[meshIndex];
+    const lodIndex = mesh?.lods?.length ? lod.originalLodIndex : 0;
+    indices = mesh ? TriGeometryRes.packLodIndices(mesh, lodIndex) : null;
+  }
+  else
+  {
+    const grannyMesh = geometry.GetGrannyInfo()?.Meshes?.[lod.grannyMeshIndex];
+    indices = grannyMesh ? GrannyIndexBytes(grannyMesh) : null;
+  }
 
   if (!indices)
   {

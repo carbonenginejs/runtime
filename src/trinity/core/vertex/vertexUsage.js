@@ -37,6 +37,7 @@
 // This lives beside Tr2VertexDefinition because matching is its job, and
 // because the resource layer may not import Trinity to reach the usage codes.
 import { Tr2VertexUsageCode } from "./usageCode.js";
+import { Tr2VertexDefinition } from "./Tr2VertexDefinition/Tr2VertexDefinition.js";
 
 
 const { POSITION, COLOR, NORMAL, TANGENT, BITANGENT, TEXCOORD, BLENDINDICES, BLENDWEIGHTS } =
@@ -205,4 +206,88 @@ export function CarbonUsageFromChannel(channel)
   if (usage === undefined) return null;
 
   return { usage, usageIndex: match[2] ? Number(match[2]) : 0 };
+}
+
+
+/** Granny member type ids (granny_member_type), as the GR2 reader reflects them. */
+const GRANNY_MEMBER = Object.freeze({
+  Real32: 10, Int8: 11, UInt8: 12, BinormalInt8: 13, NormalUInt8: 14, Int16: 15, UInt16: 16,
+  BinormalInt16: 17, NormalUInt16: 18, Int32: 19, UInt32: 20, Real16: 21
+});
+
+/** Carbon DataType values (Tr2VertexDefinition.h:31-120), as their member names. */
+const DATA_TYPE_NAMES = new Map(Object.entries(Tr2VertexDefinition.DataType)
+  .filter(([ name ]) => !name.startsWith("DT_"))
+  .map(([ name, value ]) => [ value, name ]));
+
+/**
+ * Carbon ConvertGrannyTypeToDataType (Tr2VertexDefinitionUtilities.cpp:13-55): one Granny member's
+ * type and width as a Carbon DataType, named as declaration items name it ("FLOAT32_3",
+ * "UBYTE_4_NORM").
+ *
+ * Granny's BinormalInt8 and BinormalInt16 have no case in Carbon's switch and convert to
+ * DT_UNKNOWN_TYPE (a quirk, reproduced: such a member then occupies no bytes in the declaration).
+ *
+ * @param {{type: number, arrayWidth: number}} member Reflected Granny member.
+ * @returns {string} Data type name, or "DT_UNKNOWN_TYPE".
+ */
+export function ConvertGrannyTypeToDataType(member)
+{
+  const { DT_INT8, DT_INT16, DT_INT32, DT_FLOAT16, DT_FLOAT32, DT_UNSIGNED_BIT, DT_NORMALIZED_BIT, DT_SIZE_OFFSET } =
+    Tr2VertexDefinition.DataType;
+  let type;
+  switch (member.type)
+  {
+    case GRANNY_MEMBER.Int8: type = DT_INT8; break;
+    case GRANNY_MEMBER.UInt8: type = DT_INT8 | DT_UNSIGNED_BIT; break;
+    case GRANNY_MEMBER.Int16: type = DT_INT16; break;
+    case GRANNY_MEMBER.UInt16: type = DT_INT16 | DT_UNSIGNED_BIT; break;
+    case GRANNY_MEMBER.Int32: type = DT_INT32; break;
+    case GRANNY_MEMBER.UInt32: type = DT_INT32 | DT_UNSIGNED_BIT; break;
+    case GRANNY_MEMBER.Real16: type = DT_FLOAT16; break;
+    case GRANNY_MEMBER.NormalUInt8: type = DT_INT8 | DT_UNSIGNED_BIT | DT_NORMALIZED_BIT; break;
+    case GRANNY_MEMBER.NormalUInt16: type = DT_INT16 | DT_UNSIGNED_BIT | DT_NORMALIZED_BIT; break;
+    case GRANNY_MEMBER.Real32: type = DT_FLOAT32; break;
+    default: return "DT_UNKNOWN_TYPE";
+  }
+  type |= (Math.max(1, member.arrayWidth) - 1) << DT_SIZE_OFFSET;
+  return DATA_TYPE_NAMES.get(type) ?? "DT_UNKNOWN_TYPE";
+}
+
+/** Granny vertex member names Carbon matches by prefix, with their usage (granny.h Granny*Name). */
+const GRANNY_PREFIX_USAGES = [
+  [ "Position", POSITION ], [ "DiffuseColor", COLOR ], [ "Normal", NORMAL ], [ "Tangent", TANGENT ],
+  [ "Binormal", BITANGENT ], [ "TextureCoordinates", TEXCOORD ]
+];
+
+/**
+ * Carbon BuildFromGrannyVertexDecl (Tr2VertexDefinitionUtilities.cpp:66-125): a vertex definition
+ * from a Granny vertex type, one stream-0 item per member at consecutive offsets.
+ *
+ * The usage is matched by name prefix, and the character after the prefix is the usage index;
+ * BoneIndices and BoneWeights match whole. A member matching none keeps Item's default usage,
+ * POSITION (Tr2VertexDefinition.cpp:21), as Carbon's does.
+ *
+ * @param {Array<{name: string, type: number, arrayWidth: number}>} members Reflected Granny vertex type.
+ * @returns {Tr2VertexDefinition} The definition; `nextOffset[0]` is the vertex stride.
+ */
+export function BuildFromGrannyVertexDecl(members)
+{
+  const definition = new Tr2VertexDefinition();
+  for (const member of members)
+  {
+    let usage = POSITION, usageIndex = 0;
+    const name = member.name ?? "";
+    const prefix = GRANNY_PREFIX_USAGES.find(([ text ]) => name.startsWith(text));
+    if (prefix)
+    {
+      usage = prefix[1];
+      const next = name.charCodeAt(prefix[0].length);
+      usageIndex = Number.isNaN(next) ? 0 : (next - 48) >>> 0;
+    }
+    else if (name === "BoneIndices") usage = BLENDINDICES;
+    else if (name === "BoneWeights") usage = BLENDWEIGHTS;
+    definition.Add(ConvertGrannyTypeToDataType(member), usage, usageIndex);
+  }
+  return definition;
 }
