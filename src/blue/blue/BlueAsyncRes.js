@@ -435,19 +435,22 @@ export class BlueAsyncRes
       entry = undefined;
     }
     const good = dependency.EnsureGood();
+    // The slot is recorded before the owner is called: a rebuild that asks for
+    // the same dependency again (Tr2Mesh's morph targets read its geometry)
+    // then finds it current instead of rebuilding without end.
     if (good)
     {
       if (!entry || !entry.built || entry.revision !== dependency._revision)
       {
-        owner.RebuildCachedData(dependency);
         revisions.set(slotKey, { resource: dependency, revision: dependency._revision, built: true });
+        owner.RebuildCachedData(dependency);
       }
     }
     else if (entry && entry.built)
     {
-      owner.ReleaseCachedData(dependency);
       entry.built = false;
       entry.revision = dependency._revision;
+      owner.ReleaseCachedData(dependency);
     }
     return good;
   }

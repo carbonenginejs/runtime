@@ -131,3 +131,27 @@ test("ensureDependency renews the dependency and needs the owner's record", () =
 
   assert.throws(() => BlueAsyncRes.ensureDependency(resource, { RebuildCachedData() {}, ReleaseCachedData() {} }, "slot"), /_dependencyRevisions/u);
 });
+
+test("ensureDependency is re-entrant: a rebuild that asks for the same dependency finds it current", () =>
+{
+  const resource = prepared(true), user = owner();
+  let depth = 0;
+  user.RebuildCachedData = function (dependency)
+  {
+    this.calls.push([ "rebuild", dependency ]);
+    if (++depth > 3) throw new Error("rebuilt without end");
+    // As Tr2Mesh's morph targets read its geometry during its rebuild.
+    assert.equal(BlueAsyncRes.ensureDependency(dependency, this, "geometry"), true);
+  };
+  BlueAsyncRes.ensureDependency(resource, user, "geometry");
+  assert.equal(user.calls.length, 1);
+
+  resource._isGood = false;
+  user.ReleaseCachedData = function (dependency)
+  {
+    this.calls.push([ "release", dependency ]);
+    assert.equal(BlueAsyncRes.ensureDependency(dependency, this, "geometry"), false);
+  };
+  BlueAsyncRes.ensureDependency(resource, user, "geometry");
+  assert.deepEqual(user.calls.map(call => call[0]), [ "rebuild", "release" ], "released once, even when asked again inside");
+});

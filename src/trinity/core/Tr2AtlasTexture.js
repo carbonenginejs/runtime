@@ -210,7 +210,8 @@ export class Tr2AtlasTexture extends IRoot
 
     if (this._texture.IsValid()) return this._texture;
 
-    if (this._textureRes && this._textureRes.IsGood()) return this._textureRes.GetTexture();
+    // The texture is about to be drawn with, so its resource is renewed (EnsureGood), not only asked.
+    if (this._textureRes && this._textureRes.EnsureGood()) return this._textureRes.GetTexture();
 
     return null;
   }
