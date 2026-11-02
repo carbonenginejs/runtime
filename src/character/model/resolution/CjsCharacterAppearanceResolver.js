@@ -575,9 +575,9 @@ function ResolveModifier(
     });
     const part = plan.CreatePart({
         configurationPath: modelBundle?.configurationPath
-            ?? (hasConfiguration ? version.configurationCandidates[0] : null),
+            || (hasConfiguration ? version.configurationCandidates[0] : ""),
         geometryPath: modelBundle?.geometryPath
-            ?? (hasGeometry ? version.geometryCandidates[0] : null),
+            || (hasGeometry ? version.geometryCandidates[0] : ""),
         texturePaths: [ ...version.textureCandidates ],
         requestedLod,
         resolvedLod: modelBundle?.lod ?? null,
@@ -1182,9 +1182,9 @@ function ResolvePartDependencies(
         });
         const part = plan.CreatePart({
             configurationPath: modelBundle?.configurationPath
-                ?? (hasConfiguration ? version.configurationCandidates[0] : null),
+                || (hasConfiguration ? version.configurationCandidates[0] : ""),
             geometryPath: modelBundle?.geometryPath
-                ?? (hasGeometry ? version.geometryCandidates[0] : null),
+                || (hasGeometry ? version.geometryCandidates[0] : ""),
             texturePaths: [ ...version.textureCandidates ],
             requestedLod,
             resolvedLod: modelBundle?.lod ?? null,

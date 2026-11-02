@@ -29,7 +29,7 @@ export class CjsCharacterOrigin
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.path
-    resourcePath = null;
+    resourcePath = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

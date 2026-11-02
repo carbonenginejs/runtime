@@ -164,7 +164,7 @@ test("requires strict version identity and preserves ambiguous candidate invento
 
     assert.equal(ambiguousPlan.parts.length, 1);
     assert.equal(ambiguousPlan.layers.length, 1);
-    assert.equal(ambiguousPlan.parts[0].configurationPath, null);
+    assert.equal(ambiguousPlan.parts[0].configurationPath, "");
     assert.equal(ambiguousPlan.parts[0].geometryPath, "res:/character/top.gr2");
     assert.equal(ambiguousPlan.parts[0].origin.rule, "exact-source-version");
     assert.deepEqual(ambiguousPlan.diagnostics.map(item => item.code), [
@@ -233,8 +233,8 @@ test("retains multiple verified model bundles without guessing a default model",
         library.Get("paperdolls", "30")
     );
 
-    assert.equal(plan.parts[0].configurationPath, null);
-    assert.equal(plan.parts[0].geometryPath, null);
+    assert.equal(plan.parts[0].configurationPath, "");
+    assert.equal(plan.parts[0].geometryPath, "");
     assert.equal(plan.parts[0].origin.rule, "exact-source-version");
     assert.equal(
         plan.diagnostics.some(item => item.code === "PART_CANDIDATES_UNRESOLVED"),
@@ -367,7 +367,7 @@ test("refuses candidate inheritance while preserving the exact source-version co
 
     assert.equal(plan.parts.length, 1);
     assert.equal(plan.layers.length, 1);
-    assert.equal(plan.parts[0].configurationPath, null);
+    assert.equal(plan.parts[0].configurationPath, "");
     assert.equal(plan.parts[0].geometryPath, "res:/character/top.gr2");
     assert.deepEqual(plan.diagnostics.map(item => item.code), [
         "PART_CANDIDATES_UNRESOLVED",
@@ -393,8 +393,8 @@ test("preserves a texture-only exact source version as a plan contribution", () 
     assert.equal(plan.selections.length, 1);
     assert.equal(plan.parts.length, 1);
     assert.equal(plan.layers.length, 1);
-    assert.equal(plan.parts[0].configurationPath, null);
-    assert.equal(plan.parts[0].geometryPath, null);
+    assert.equal(plan.parts[0].configurationPath, "");
+    assert.equal(plan.parts[0].geometryPath, "");
     assert.equal(plan.parts[0].origin.recordID, "source/top");
     assert.equal(plan.parts[0].origin.jsonPointer, "/versions/0");
     assert.deepEqual(plan.diagnostics.map(item => item.code), [

@@ -9,12 +9,12 @@ export class CjsCharacterResolvedPart
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.path
-    configurationPath = null;
+    configurationPath = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.path
-    geometryPath = null;
+    geometryPath = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

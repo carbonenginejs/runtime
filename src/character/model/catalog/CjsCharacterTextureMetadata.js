@@ -20,7 +20,7 @@ export class CjsCharacterTextureMetadata extends CjsCharacterRecord
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.path
-    sourcePath = null;
+    sourcePath = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

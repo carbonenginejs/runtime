@@ -45,7 +45,7 @@ export class CjsCharacterMaterialProfile extends CjsCharacterRecord
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.path
-    patternTexturePath = null;
+    patternTexturePath = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterOrigin")

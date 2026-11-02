@@ -345,7 +345,7 @@ export class CjsCharacterLibraryBuilder
                 profile = { recordID: path, ...projected };
                 profiles.push(profile);
             }
-            profile.patternTexturePath = null;
+            profile.patternTexturePath = "";
             profile.patternOrigin = null;
             if (profile.pattern)
             {
