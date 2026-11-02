@@ -15,8 +15,8 @@ import { BLUELISTEVENT } from "#consts/blue";
  * EveSmartLightBaseGroup secondary base (EveSmartLightBaseGroup.cpp:43-53):
  * the selected faction color when enabled and in range, otherwise the custom
  * color. Carbon's bound is SOFDataFactionColorChooser::TYPE_MAX; the inherited
- * JS accepts Carbon's array and the combined runtime's named SOF colour-set
- * model. The resolved value is copied into caller-owned storage.
+ * colour set is Carbon's array, so its length is the bound. The resolved value
+ * is copied into caller-owned storage.
  * @param {Float32Array} customColor
  * @param {Boolean} useFactionColor
  * @param {Number} factionColor

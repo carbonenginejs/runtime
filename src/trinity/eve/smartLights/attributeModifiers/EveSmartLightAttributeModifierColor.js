@@ -96,8 +96,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * SOFDataFactionColorChooser::TYPE_MAX; the inherited JS color set is
    * exactly that array, so its length is the bound.
    *
-   * @adapted JS accepts Carbon's indexed colour array and the combined runtime's named SOF
-   *   colour-set model through one direct two-representation boundary.
+   * @implemented
    */
 
   GetGroupColor()

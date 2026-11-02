@@ -404,21 +404,11 @@ test("smart-light modifiers receive a nominal detached placement and RGB-only co
 });
 
 
-test("named SOF faction colors resolve across groups, modifiers, and faction lights", () =>
+test("SOF faction colors resolve across groups, modifiers, and faction lights", () =>
 {
-  class NamedColorSet
-  {
-    static Types = Object.freeze(["Primary", "Secondary"]);
-
-    colors = [vec4.fromValues(1, 0, 0, 1), vec4.fromValues(0.1, 0.2, 0.3, 0.4)];
-
-    Get(index, out)
-    {
-      return vec4.copy(out, this.colors[index]);
-    }
-  }
-
-  const set = new NamedColorSet();
+  // Carbon's SetInheritProperties( const Color* colorSet ) palette, indexed by
+  // SOFDataFactionColorChooser::ColorType (EveSmartLightBaseGroup.cpp:30-53).
+  const set = [vec4.fromValues(1, 0, 0, 1), vec4.fromValues(0.1, 0.2, 0.3, 0.4)];
   const group = new EveSmartLightBaseGroup();
   group.useFactionColor = true;
   group.factionColor = 1;
@@ -437,14 +427,8 @@ test("named SOF faction colors resolve across groups, modifiers, and faction lig
   light.SetInheritProperties(set);
   assertArrayClose(light.color, [0.1, 0.2, 0.3, 0.4]);
 
-  assert.throws(
-    () =>
-    {
-      group.SetInheritProperties({});
-      group.GetGroupColor();
-    },
-    TypeError
-  );
+  group.factionColor = -1;
+  assertArrayClose(group.GetGroupColor(), group.customColor);
 });
 
 
