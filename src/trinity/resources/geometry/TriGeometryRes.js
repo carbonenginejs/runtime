@@ -14,12 +14,19 @@ import { ray3 } from "#math/ray3";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { mat4 } from "#math/mat4";
 import { BlueAsyncRes, ICacheable, IBlueResource } from "#blue";
 import { ITr2InstanceData } from "../../core/mesh/ITr2InstanceData/ITr2InstanceData.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
 import { CjsGr2Format } from "../../../resource/formats/gr2/index.js";
 import { CjsCmfFormat } from "../../../resource/formats/cmf/index.js";
+import { TriGeometryResMeshData } from "./TriGeometryResMeshData.js";
+import { TriGeometryResLodData } from "./TriGeometryResLodData.js";
+import { TriGeometryResAreaData } from "./TriGeometryResAreaData.js";
+import { TriGeometryResSkeletonData } from "./TriGeometryResSkeletonData.js";
+import { TriGeometryResJointData } from "./TriGeometryResJointData.js";
+import { TriJointBinding } from "./TriJointBinding.js";
 import {
   assertResourcePayloadArray,
   assertResourcePayloadObject,
@@ -181,15 +188,51 @@ export class TriGeometryRes extends BlueAsyncRes
   _memoryUse = 0;
 
 
+  /** m_meshes: the mesh records SetupMeshes builds, one per mesh (TriGeometryRes.h). */
+  _meshes = [];
+
+  /** m_skeletons: the skeleton records SetupSkeletons builds (TriGeometryRes.h). */
+  _skeletons = [];
+
   /**
-   * Carbon SetupMeshes (TriGeometryRes.cpp:855-1019). Adapted: the registered
-   * reader already projects CMF channels, so retain those owned mesh records.
+   * Carbon SetupMeshes, which overloads on `const cmf::Data&` (cpp:855) and
+   * `granny_file_info*` (cpp:953). Routes CMF data to SetupMeshes__CmfData;
+   * engine code calls the specific name.
    *
-   * @adapted
+   * @adapted the Granny overload is not ported yet: a Granny file info throws.
+   * @param {object} payload Decoded CMF data.
+   * @returns {boolean} Whether the mesh records were installed.
+   * @throws {Error} For a Granny file info.
+   */
+  SetupMeshes(payload)
+  {
+    if (payload?.grannyFileFormatRevision !== undefined)
+    {
+      throw new Error("TriGeometryRes.SetupMeshes: the granny_file_info overload (cpp:953) is not ported yet.");
+    }
+    return this.SetupMeshes__CmfData(payload);
+  }
+
+  /**
+   * Carbon SetupMeshes( const cmf::Data& ) (TriGeometryRes.cpp:855-950): builds
+   * one TriGeometryResMeshData per mesh, with its LODs and areas.
+   *
+   * @adapted the payload is also kept whole as `_cmfData` (Carbon's
+   *   m_cmfContents), because consumers still read the CMF shape until they move
+   *   onto the records. The records follow the payload shapes the reader and the
+   *   tests produce: a mesh with no `lods` is its own only LOD; an area takes its
+   *   name, flags and bounds from the mesh area and its range from the LOD area,
+   *   under either the CMF or the Carbon field name. Three fields keep today's
+   *   values rather than Carbon's: `maxScreenSize` is the LOD's own
+   *   `maxScreenSize` (Carbon: `threshold`, cpp:905), the sphere is the payload's
+   *   (Carbon: from the bounds box, cpp:874-875), and the declaration handle and
+   *   stride are set when a LOD is first allocated (Carbon: here, cpp:863-865,
+   *   from the CMF stride; ours is packed and aligned then). The minimum model
+   *   LOD (cpp:889) is not applied; TriDevice's is always 0 here.
    * @param {object} payload Decoded CMF data.
    * @returns {boolean} Whether the mesh records were installed.
    */
-  SetupMeshes(payload)
+  SetupMeshes__CmfData(payload)
   {
     if (this._raycastUsers !== 0) throw new Error("TriGeometryRes data cannot change during an active raycast session.");
     assertResourcePayloadObject("TriGeometryRes", payload);
@@ -221,7 +264,105 @@ export class TriGeometryRes extends BlueAsyncRes
       }
     }
     this._cmfData = payload;
+    this._meshes = payload.meshes.map(cmfMesh => TriGeometryRes._BuildMeshRecord(cmfMesh));
     return true;
+  }
+
+  /**
+   * One mesh record from one CMF mesh: the loop body of Carbon SetupMeshes(
+   * const cmf::Data& ) (TriGeometryRes.cpp:867-946).
+   *
+   * @cjs Split out of SetupMeshes__CmfData so the loop reads as Carbon's.
+   * @param {object} cmfMesh Decoded CMF mesh.
+   * @returns {TriGeometryResMeshData} The mesh record.
+   */
+  static _BuildMeshRecord(cmfMesh)
+  {
+    const mesh = new TriGeometryResMeshData();
+    mesh.name = cmfMesh.name ?? "";
+
+    const bounds = TriGeometryRes.getBounds(cmfMesh);
+    if (bounds)
+    {
+      vec3.copy(mesh.minBounds, bounds.min);
+      vec3.copy(mesh.maxBounds, bounds.max);
+    }
+    const sphere = TriGeometryRes.getSphere(cmfMesh);
+    if (sphere) vec4.copy(mesh.boundingSphere, sphere);
+
+    mesh.jointBindings = (cmfMesh.boneBindings ?? []).map(joint =>
+    {
+      const binding = new TriJointBinding();
+      binding.name = joint.name ?? "";
+      const jointBounds = TriGeometryRes.getBounds(joint);
+      if (jointBounds)
+      {
+        vec3.copy(binding.obbMin, jointBounds.min);
+        vec3.copy(binding.obbMax, jointBounds.max);
+      }
+      return binding;
+    });
+
+    const targets = cmfMesh.morphTargets?.targets ?? [];
+    const cmfLods = cmfMesh.lods?.length ? cmfMesh.lods : [ cmfMesh ];
+    mesh.lods = [];
+    for (let i = 0; i < cmfLods.length; i++)
+    {
+      const cmfLod = cmfLods[i];
+      const lod = new TriGeometryResLodData();
+      lod.mesh = mesh;
+      lod.grannyMeshIndex = -1;
+      lod.name = mesh.name;
+      lod.maxScreenSize = cmfLod.maxScreenSize ?? 0;
+      lod.vertexCount = TriGeometryRes._GetLodVertexCount(cmfMesh, cmfLod);
+      lod.primitiveCount = TriGeometryRes.getLodPrimitiveCount(cmfLod);
+      lod.uvDensities = Array.from(cmfMesh.uvDensities ?? []);
+      lod.areas = (cmfLod.areas ?? []).map((cmfLodArea, groupIndex) =>
+      {
+        const cmfMeshArea = cmfMesh.areas?.[groupIndex] ?? cmfLodArea;
+        const area = new TriGeometryResAreaData();
+        area.name = cmfMeshArea.name ?? "";
+        area.firstIndex = TriGeometryRes.getAreaFirstIndex(cmfLodArea);
+        area.primitiveCount = TriGeometryRes.getAreaPrimitiveCount(cmfLodArea);
+        area.isSkinned = Boolean(cmfMeshArea.affectedByBones);
+        area.isMorphed = Boolean(cmfMeshArea.affectedByMorphTargets);
+        const areaBounds = TriGeometryRes.getBounds(cmfMeshArea);
+        if (areaBounds)
+        {
+          vec3.copy(area.minBounds, areaBounds.min);
+          vec3.copy(area.maxBounds, areaBounds.max);
+        }
+        return area;
+      });
+      lod.morphTargetNames = targets.map(target => TriGeometryRes.stripShapeSuffix(target.name));
+      lod.isBakedMorphTarget = targets.map(() => false);
+      lod.morphTargetDeformationAmounts = targets.map(target => target.maxDisplacement);
+      lod.originalLodIndex = i;
+      mesh.lods.push(lod);
+    }
+
+    let lodMask = 0;
+    for (const lod of mesh.lods) lodMask |= 1 << lod.originalLodIndex;
+    mesh.lodMask = lodMask >>> 0;
+    return mesh;
+  }
+
+  /**
+   * A CMF LOD's vertex count: Carbon's `GetStreamElementCount( cmfLod.vb )`
+   * (TriGeometryRes.cpp:907) where the payload keeps the buffer view, otherwise
+   * the decoded position channel's count.
+   *
+   * @cjs our payload may hold decoded channels instead of a buffer view.
+   * @param {object} cmfMesh Decoded CMF mesh.
+   * @param {object} cmfLod Decoded LOD, or the mesh when it is its own LOD.
+   * @returns {number} Vertex count; 0 when the payload holds no vertices.
+   */
+  static _GetLodVertexCount(cmfMesh, cmfLod)
+  {
+    if (cmfLod.vertexCount !== undefined) return cmfLod.vertexCount;
+    if (cmfLod.vb?.stride > 0) return Math.floor(cmfLod.vb.size / cmfLod.vb.stride);
+    if (cmfMesh.vertexCount !== undefined) return cmfMesh.vertexCount;
+    return TriGeometryRes.getPositionCount(cmfLod.vertex?.position ?? cmfMesh.vertex?.position ?? null);
   }
 
   /**
@@ -260,6 +401,8 @@ export class TriGeometryRes extends BlueAsyncRes
     this._ForgetGrannyFile();
     this._memoryUse = 0;
     this._cmfData = null;
+    this._meshes = [];
+    this._skeletons = [];
   }
 
   /**
@@ -298,8 +441,8 @@ export class TriGeometryRes extends BlueAsyncRes
     const granny = bytes?.grannyFileFormatRevision !== undefined
       ? bytes : CjsGr2Format.read(bytes, { rebuildMissingBounds: true });
     const data = CjsCmfFormat.loadShared(granny);
-    if (!this.SetupMeshes(data)) return false;
-    this.SetupSkeletons(data);
+    if (!this.SetupMeshes__CmfData(data)) return false;
+    this.SetupSkeletons__CmfData(data);
     this._useCMF = false;
     this._grannyFile = granny;
     return true;
@@ -315,8 +458,8 @@ export class TriGeometryRes extends BlueAsyncRes
   ReadCMFFile(bytes)
   {
     const data = bytes?.meshes ? bytes : CjsCmfFormat.read(bytes);
-    if (!this.SetupMeshes(data)) return false;
-    this.SetupSkeletons(data);
+    if (!this.SetupMeshes__CmfData(data)) return false;
+    this.SetupSkeletons__CmfData(data);
     this._useCMF = true;
     return true;
   }
@@ -1720,15 +1863,52 @@ export class TriGeometryRes extends BlueAsyncRes
   _cmfData = null;
 
   /**
-   * Carbon SetupSkeletons (TriGeometryRes.cpp:1187-1242). The JS format reader
-   * already constructs the joint records retained with the mesh projection.
+   * Carbon SetupSkeletons, which overloads on `const cmf::Data&` (cpp:1187) and
+   * `granny_file_info*` (cpp:1212). Routes CMF data to
+   * SetupSkeletons__CmfData; engine code calls the specific name.
    *
-   * @adapted
-   * @param {object} data Decoded CMF records.
+   * @adapted the Granny overload is not ported yet: a Granny file info throws.
+   * @param {object} data Decoded CMF data.
+   * @throws {Error} For a Granny file info.
    */
   SetupSkeletons(data)
   {
-    if (this._cmfData) this._cmfData.skeletons = data.skeletons || [];
+    if (data?.grannyFileFormatRevision !== undefined)
+    {
+      throw new Error("TriGeometryRes.SetupSkeletons: the granny_file_info overload (cpp:1212) is not ported yet.");
+    }
+    this.SetupSkeletons__CmfData(data);
+  }
+
+  /**
+   * Carbon SetupSkeletons( const cmf::Data& ) (TriGeometryRes.cpp:1187-1209):
+   * one TriGeometryResSkeletonData per skeleton, a joint per bone with its
+   * parent index and inverse bind transform.
+   *
+   * @adapted the decoded skeletons are also kept on `_cmfData`, which consumers
+   *   still read until they move onto the records. A skeleton without
+   *   `invBindTransforms` keeps identity joints.
+   * @param {object} data Decoded CMF data.
+   */
+  SetupSkeletons__CmfData(data)
+  {
+    const skeletons = data.skeletons || [];
+    if (this._cmfData) this._cmfData.skeletons = skeletons;
+    this._skeletons = skeletons.map(skel =>
+    {
+      const record = new TriGeometryResSkeletonData();
+      record.name = skel.name ?? "";
+      record.joints = (skel.bones ?? []).map((bone, jointIx) =>
+      {
+        const joint = new TriGeometryResJointData();
+        joint.name = typeof bone === "string" ? bone : bone?.name ?? "";
+        joint.parentJoint = skel.parents?.[jointIx] ?? -1;
+        const inverse = skel.invBindTransforms?.[jointIx];
+        if (inverse) mat4.copy(joint.inverseWorldTransform, inverse);
+        return joint;
+      });
+      return record;
+    });
   }
 
   /**
@@ -1795,8 +1975,8 @@ export class TriGeometryRes extends BlueAsyncRes
     const source = resource.GetGrannyFile();
     if (!source) return;
     const data = structuredClone(CjsCmfFormat.loadShared(source));
-    this.SetupMeshes(data);
-    this.SetupSkeletons(data);
+    this.SetupMeshes__CmfData(data);
+    this.SetupSkeletons__CmfData(data);
     this._useCMF = false;
     this._isPrepared = this._isGood = true;
   }
