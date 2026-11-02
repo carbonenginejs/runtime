@@ -12,8 +12,19 @@ import { ICacheable } from "./ICacheable.js";
 import { IBlueResource } from "./IBlueResource.js";
 import { IRoot } from "../blueexposure/IRoot.js";
 
-/** mMaxMemUsage's initial value (MotherLode.cpp:44). */
-const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
+/** Bytes in one megabyte, for the cache sizes below. */
+const MEGABYTE = 1024 * 1024;
+
+/**
+ * The initial cache budget: 256 MB, where Carbon's `mMaxMemUsage` starts at
+ * 32 MB (MotherLode.cpp:44). Adapted: Carbon counts native memory with
+ * textures on the GPU, while ours counts resources whose CPU-side copies are
+ * far larger, so 32 MB held only a handful of entries and purged the rest
+ * (operator, 2026-11-02: "we can try 256MB").
+ */
+const DEFAULT_CACHE_SIZE = 256 * MEGABYTE;
+
+
 
 /**
  * `BlueClasses.BLUEQIOPT.BEQI_SILENT`, written out because importing
@@ -152,6 +163,15 @@ export class MotherLode
 
   _active = false;
   _activityFrame = 0;
+  /**
+   * The cache sizes a settings UI offers, in bytes, stepping by a factor of 4
+   * (operator, 2026-11-02: "something you set in units of 4"). Any non-negative
+   * integer is still accepted by `SetCacheSize`.
+   *
+   * @cjs Carbon has a single budget and no presets.
+   */
+  static cacheSizePresets = [ 16 * MEGABYTE, 64 * MEGABYTE, 256 * MEGABYTE, 1024 * MEGABYTE, 4096 * MEGABYTE ];
+
   _cacheSize = DEFAULT_CACHE_SIZE;
   _entries = new Map();
   _nextCacheSequence = 1;
