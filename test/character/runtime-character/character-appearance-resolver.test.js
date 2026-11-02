@@ -353,7 +353,7 @@ test("refuses candidate inheritance while preserving the exact source-version co
     };
     version.configurationCandidates = [];
     documents.characterPartSources["source/top"].versions.unshift({
-        resourceVersion: null,
+        resourceVersion: "",
         configurationCandidates: [ "res:/character/top.black" ],
         geometryCandidates: [],
         textureCandidates: []
@@ -544,7 +544,7 @@ test("projects exact typed dependencies as requester-owned source contributions"
         sex: "female",
         partPath: "dependants/tuck/basic",
         versions: [ {
-            resourceVersion: null,
+            resourceVersion: "",
             metadata: null,
             configurationCandidates: [ "res:/character/support.black" ],
             geometryCandidates: [ "res:/character/support.gr2" ],
@@ -557,7 +557,7 @@ test("projects exact typed dependencies as requester-owned source contributions"
         sex: "female",
         partPath: "dependants/masktuck/tuckmaskmid",
         versions: [ {
-            resourceVersion: null,
+            resourceVersion: "",
             metadata: null,
             configurationCandidates: [],
             geometryCandidates: [],
@@ -573,7 +573,7 @@ test("projects exact typed dependencies as requester-owned source contributions"
         sex: "female",
         partPath: "dependants/waisttucking/standard",
         versions: [ {
-            resourceVersion: null,
+            resourceVersion: "",
             metadata: null,
             configurationCandidates: [],
             geometryCandidates: [],
@@ -691,7 +691,7 @@ test("uses the unique unversioned dependency when the owner version has no peer"
         sex: "female",
         partPath: "dependants/drape/standard",
         versions: [ {
-            resourceVersion: null,
+            resourceVersion: "",
             metadata: null,
             configurationCandidates: [ "res:/character/support-default.black" ],
             geometryCandidates: [ "res:/character/support-default.gr2" ],
@@ -737,7 +737,7 @@ test("resolves an exact weighted part dependency without dropping its authored w
         sex: "female",
         partPath: "makeup/eyelashes/eyelashes_02",
         versions: [ {
-            resourceVersion: null,
+            resourceVersion: "",
             metadata: null,
             configurationCandidates: [],
             geometryCandidates: [],

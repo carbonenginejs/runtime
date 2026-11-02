@@ -389,7 +389,7 @@ export class CjsCharacterLibraryBuilder
             }
             source.materialBindings = materialBindings;
 
-            const baseline = source.versions.find(value => value.resourceVersion === null);
+            const baseline = source.versions.find(value => value.resourceVersion === "");
             const qualify = version =>
             {
                 const input = version.textureCandidateInput;

@@ -21,9 +21,10 @@ export class CjsCharacterCatalogTextureBinding
     @type.string
     quality = "";
 
+    /** The resource version of the source version this binding was qualified from; "" is the baseline, unversioned source. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    sourceVersion = null;
+    sourceVersion = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterOrigin")

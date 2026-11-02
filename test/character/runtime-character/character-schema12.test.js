@@ -24,7 +24,7 @@ function fixture()
         },
         characterPartTypes: { trousers: {partSource: "female/pants", partPath: "pants", sex: "female", colorVariant: "black", resourceVersion: "v2"} },
         characterPartSources: { "female/pants": { sourcePath: root, sex: "female", partPath: "pants", versions: [
-            {resourceVersion: null, textureCandidates: paths, textureCandidateInput: input("complete", paths)},
+            {resourceVersion: "", textureCandidates: paths, textureCandidateInput: input("complete", paths)},
             {resourceVersion: "v2", textureCandidates: overrides, textureCandidateInput: input("channel-overrides", overrides)},
             {resourceVersion: "omitted", textureCandidates: paths, textureCandidateInput: input("omitted", [])},
             {resourceVersion: "empty", textureCandidates: [], textureCandidateInput: input("complete", [])}
@@ -54,7 +54,7 @@ test("schema12 preserves raw inputs and qualified channels through JSON/manager/
     const resolved = CjsCharacterAppearanceResolver.resolveCatalog(library, {partSource, partType, resourceVersion: "v2"});
     assert.equal(resolved.materialProfile.patternTexturePath, "res:/test/hexagon.dds");
     assert.deepEqual(new Set(resolved.textureBindings.map(value => value.path)), new Set([paths[1], paths[2], ...overrides]));
-    assert.equal(resolved.textureBindings.find(value => value.path === paths[2]).sourceVersion, null);
+    assert.equal(resolved.textureBindings.find(value => value.path === paths[2]).sourceVersion, "");
     assert.equal(resolved.textureBindings.find(value => value.path === overrides[0]).sourceVersion, "v2");
     assert.equal(partSource.versions.find(value => value.resourceVersion === "omitted").effectiveTextureBindings.length, 4);
     assert.equal(partSource.versions.find(value => value.resourceVersion === "empty").effectiveTextureBindings.length, 0);
@@ -63,7 +63,7 @@ test("schema12 preserves raw inputs and qualified channels through JSON/manager/
 test("schema11 emission omits all schema12 defaults and rejects mislabeled input", () =>
 {
     const documents = Object.fromEntries(CjsCharacterLibraryDocuments.listDocumentNames().map(name => [name, {}]));
-    documents.characterPartSources.example = {versions: [{resourceVersion: null}]};
+    documents.characterPartSources.example = {versions: [{resourceVersion: ""}]};
     documents.characterDefinitions.example = {values: {patternTexturePath: "raw field must survive"}};
     const old = CjsCharacterLibraryBuilder.build(documents);
     const emitted = CjsSchema.getValues(CjsCharacterLibrary.from(old), {}, {refs: true});

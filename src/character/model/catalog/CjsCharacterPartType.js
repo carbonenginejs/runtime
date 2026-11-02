@@ -34,10 +34,11 @@ export class CjsCharacterPartType extends CjsCharacterRecord
     @type.string
     partPath = "";
 
+    /** The resource version of the part source this type uses; "" is the baseline, unversioned source. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    resourceVersion = null;
+    resourceVersion = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 

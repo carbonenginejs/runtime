@@ -23,7 +23,7 @@ export class CjsCharacterAppearanceResolver
      * applications. A/BC profiles remain separate; this does not combine colors
      * or establish shader bindings. Defaults require a real typed dependency.
      */
-    static resolveCatalog(library, { partSource, resourceVersion = null, partType = null,
+    static resolveCatalog(library, { partSource, resourceVersion = "", partType = null,
         colorLocation = null, colorNameA = null, colorNameBC = null, dependency = null } = {})
     {
         if (library.schemaVersion !== 12 || library.Get("characterPartSources", partSource.recordID) !== partSource)
@@ -1093,7 +1093,7 @@ function ResolvePartDependencies(
             value.resourceVersion === requestingVersion.resourceVersion);
         const versions = exactVersions.length
             ? exactVersions
-            : retainedVersions.filter(value => value.resourceVersion === null);
+            : retainedVersions.filter(value => value.resourceVersion === "");
         const relationOrigin = AddOrigin(plan, {
             kind: "authored",
             document: "characterPartMetadata",

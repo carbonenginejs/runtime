@@ -646,7 +646,7 @@ test("hydrates direct lists of sex-specific part-source relationships", () =>
             ],
             sex: "",
             partPath: "hair/shared",
-            resourceVersion: null,
+            resourceVersion: "",
             colorVariant: null,
             bloodlineIDs: [],
             partSource: null,
@@ -661,7 +661,7 @@ test("hydrates direct lists of sex-specific part-source relationships", () =>
             sex,
             partPath: "hair/shared",
             versions: [ {
-                resourceVersion: null,
+                resourceVersion: "",
                 configurationCandidates: [],
                 geometryCandidates: [],
                 textureCandidates: []

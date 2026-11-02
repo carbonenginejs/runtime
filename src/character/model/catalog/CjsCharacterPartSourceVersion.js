@@ -15,10 +15,11 @@ import { meta, type } from "#schema";
 export class CjsCharacterPartSourceVersion
 {
 
+    /** The resource version this source version is for; "" is the baseline, unversioned source. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
     @type.string
-    resourceVersion = null;
+    resourceVersion = "";
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
 
