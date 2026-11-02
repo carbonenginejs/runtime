@@ -74,6 +74,56 @@ export class BlueAsyncRes
   _isForcedSynchronous = false;
 
   /**
+   * The browser request options beside Carbon's `m_path`, `m_ext`,
+   * `m_queryArguments`, `m_isUrgent` and `m_isForcedSynchronous`: source,
+   * format options and loader options, as resMan captured them.
+   *
+   * @cjs Carbon reads from its file system by path alone; a browser read also
+   *   names its source and decoding options, and a released or purged
+   *   resource needs them to load again.
+   * @type {object}
+   */
+  _request = {};
+
+  /**
+   * The current load attempt, while load or prepare is scheduled: the browser
+   * form of Carbon's `m_loadCbId`/`m_prepareCbId`, or null.
+   *
+   * @cjs The promise behind `Ready` and the token late asynchronous results
+   *   are checked against; Carbon's callback ids cancel a queued call, but a
+   *   browser read is already in flight and can only be ignored.
+   * @type {object|null}
+   */
+  _loadAttempt = null;
+
+  /**
+   * Why the last attempt failed or was cancelled, or null.
+   *
+   * @cjs Carbon logs a failure and keeps only `m_isGood`; callers here await
+   *   `Ready` and need the reason it rejects with.
+   * @type {Error|null}
+   */
+  _loadError = null;
+
+  /**
+   * resMan's purge dropped this resource's data; the next renewal revives it.
+   *
+   * @cjs Carbon's purge releases the object itself; ours keeps the handle its
+   *   owners hold and reloads it in place.
+   * @type {boolean}
+   */
+  _isPurged = false;
+
+  /**
+   * Automatic revivals since the last good load, capped by
+   * `BlueResMan.maxReloadAttempts`.
+   *
+   * @cjs Belongs with `_isPurged`; Carbon has no revival.
+   * @type {number}
+   */
+  _revivalAttempts = 0;
+
+  /**
    * `m_reloadNotifyTargets` (BlueAsyncRes.h:189) - the registered
    * `IBlueAsyncResNotifyTarget`s, each held through a WeakRef.
    *

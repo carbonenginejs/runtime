@@ -1446,8 +1446,7 @@ export class BlueResMan
       if (notifications) notifications.OnResourceFromCache(existing);
       if (options.reload === true)
       {
-        const record = this._GetResourceRecord(existing);
-        record.request = mergeResourceLoaderOptions(record.request, options);
+        existing._request = mergeResourceLoaderOptions(existing._request, options);
 
         existing.Reload();
       }
@@ -1572,8 +1571,7 @@ export class BlueResMan
       this.loadObjectCache.KeepAlive(cacheKey);
       if (options.reload === true)
       {
-        const record = this._GetResourceRecord(existing);
-        record.request = mergeResourceLoaderOptions(record.request, options);
+        existing._request = mergeResourceLoaderOptions(existing._request, options);
         existing.Reload();
       }
       return existing;
@@ -2462,7 +2460,7 @@ export class BlueResMan
     {
       resource.KeepAlive();
       const status = this.GetResourceStatus(resource);
-      if (status.phase === "empty" && !resource._isLoading && !resource._isPrepared)
+      if (status.phase === "empty")
       {
         if (!watch.emptySince.has(resource)) watch.emptySince.set(resource, time);
         const waited = time - watch.emptySince.get(resource);
@@ -2737,8 +2735,7 @@ export class BlueResMan
     {
       this._resourceExtensionRoutes.set(resource, extensionRoute);
     }
-    const record = this._GetResourceRecord(resource);
-    record.request = { ...options, ...getResourceLoaderOptions(options, options.source || this.source) };
+    resource._request = { ...options, ...getResourceLoaderOptions(options, options.source || this.source) };
     if (options.values) CjsSchema.setValues(resource, options.values);
     // Carbon (BlueResMan.cpp:281-286): created, not yet Initialize()'d.
     if (notifications) notifications.OnResourceCreated(resource);
@@ -2856,7 +2853,10 @@ export class BlueResMan
     return record.promise;
   }
 
-  /** Manager-owned request, plain data and current asynchronous attempt. */
+  /**
+   * A loading object's retained payload (`_GetResourceRecord`). Request,
+   * attempt, error, purge and revival state live on the resource.
+   */
   _resourceRecords = new WeakMap();
 
   /** Current MotherLode time, published once per manager tick for fast renewal. */
@@ -2866,16 +2866,20 @@ export class BlueResMan
   maxReloadAttempts = 3;
 
   /**
+   * The loading object's retained payload record. Everything else about a
+   * resource's load lives on the resource itself (BlueAsyncRes `_request`,
+   * `_loadAttempt`, `_loadError`, `_isPurged`, `_revivalAttempts`).
+   *
    * @cjs
    * @implemented
-   * @param {BlueAsyncRes} resource @returns {object} Mutable manager-only record.
+   * @param {BlueAsyncRes} resource @returns {{payload: *}} Mutable manager-only record.
    */
   _GetResourceRecord(resource)
   {
     let record = this._resourceRecords.get(resource);
     if (!record)
     {
-      record = { request: {}, payload: null, error: null, phase: "empty", purged: false, attempts: 0, operation: null };
+      record = { payload: null };
       this._resourceRecords.set(resource, record);
     }
     return record;
@@ -2884,12 +2888,11 @@ export class BlueResMan
   /**
    * @cjs
    * @implemented
-   * @param {BlueAsyncRes} resource @returns {object} Captured request; never stored on the resource.
+   * @param {BlueAsyncRes} resource @returns {object} The current attempt's request, else the retained one.
    */
   _GetResourceRequest(resource)
   {
-    const record = this._GetResourceRecord(resource);
-    return record.operation?.request || record.request;
+    return resource._loadAttempt?.request || resource._request;
   }
 
   /**
@@ -2899,7 +2902,7 @@ export class BlueResMan
    */
   _GetResourceLoad(resource)
   {
-    return this._GetResourceRecord(resource).operation;
+    return resource._loadAttempt;
   }
 
   /**
@@ -2909,7 +2912,7 @@ export class BlueResMan
    */
   _IsResourceLoadCurrent(resource, attempt)
   {
-    return attempt !== null && this._GetResourceRecord(resource).operation === attempt;
+    return attempt !== null && resource._loadAttempt === attempt;
   }
 
   /**
@@ -2943,14 +2946,12 @@ export class BlueResMan
   _StartResourceLoad(resource)
   {
     this._CancelResourceLoad(resource);
-    const record = this._GetResourceRecord(resource);
-    record.error = null;
-    record.phase = "loading";
-    record.purged = false;
-    record.payload = null;
+    resource._loadError = null;
+    resource._isPurged = false;
+    this._GetResourceRecord(resource).payload = null;
     this._objectBuilders.delete(resource);
-    const operation = { request: record.request, promise: null, resolve: null, reject: null, locked: false, finish: this._BeginResourceOperation() };
-    record.request = getResourceLoaderOptions(record.request, record.request.source);
+    const operation = { request: resource._request, promise: null, resolve: null, reject: null, locked: false, finish: this._BeginResourceOperation() };
+    resource._request = getResourceLoaderOptions(resource._request, resource._request.source);
     operation.promise = new Promise((resolve, reject) =>
     {
       operation.resolve = resolve;
@@ -2958,7 +2959,7 @@ export class BlueResMan
     });
     // GetResource starts the attempt even when nobody awaits it.
     operation.promise.catch(noop);
-    record.operation = operation;
+    resource._loadAttempt = operation;
     if (resource.GetPath() && this._LodeOf(resource).Lookup(getMotherLodeKey(resource.GetPath(), resource.GetExt())) === resource)
     {
       this.LockResource(resource);
@@ -2978,14 +2979,12 @@ export class BlueResMan
    */
   _CancelResourceLoad(resource)
   {
-    const record = this._GetResourceRecord(resource);
-    const operation = record.operation;
+    const operation = resource._loadAttempt;
     if (!operation) return;
-    record.operation = null;
+    resource._loadAttempt = null;
     const error = new Error("Cancelled resource load: " + resource.GetPath());
     error.code = "CJS_RESOURCE_LOAD_CANCELLED";
-    record.error = error;
-    record.phase = "cancelled";
+    resource._loadError = error;
     operation.reject(error);
     if (operation.locked) this.UnlockResource(resource);
     operation.locked = false;
@@ -3004,7 +3003,7 @@ export class BlueResMan
    */
   _RecordResourceFailure(resource, error)
   {
-    this._GetResourceRecord(resource).error = error;
+    resource._loadError = error;
   }
 
   /**
@@ -3017,25 +3016,23 @@ export class BlueResMan
    */
   _FinishResourceLoad(resource)
   {
-    const record = this._GetResourceRecord(resource);
-    const operation = record.operation;
-    record.operation = null;
-    record.phase = resource._isGood ? "prepared" : "failed";
+    const operation = resource._loadAttempt;
+    resource._loadAttempt = null;
     if (resource._isGood)
     {
-      record.error = null;
-      record.attempts = 0;
+      resource._loadError = null;
+      resource._revivalAttempts = 0;
       this.KeepPayloadAlive(resource);
     }
-    else if (!record.error)
+    else if (!resource._loadError)
     {
-      record.error = new Error("Resource preparation failed: " + resource.GetPath());
+      resource._loadError = new Error("Resource preparation failed: " + resource.GetPath());
     }
     if (resource._isGood) this._LogResourceEvent(resource, "prepared", "Prepared %s", resource.GetPath());
-    else this._LogResourceEvent(resource, "failed", "Failed %s: %s", resource.GetPath(), record.error.message);
+    else this._LogResourceEvent(resource, "failed", "Failed %s: %s", resource.GetPath(), resource._loadError.message);
     if (!operation) return;
-    if (resource._isGood) operation.resolve(resource.isResource ? resource : record.payload);
-    else operation.reject(record.error);
+    if (resource._isGood) operation.resolve(resource.isResource ? resource : this._GetResourceRecord(resource).payload);
+    else operation.reject(resource._loadError);
     if (operation.locked) this.UnlockResource(resource);
     operation.locked = false;
     operation.finish();
@@ -3072,32 +3069,35 @@ export class BlueResMan
    */
   Ready(resource)
   {
-    const record = this._GetResourceRecord(resource);
-    if (record.purged)
+    if (resource._isPurged)
     {
       resource.KeepAlive();
     }
-    if (record.operation) return record.operation.promise;
+    if (resource._loadAttempt) return resource._loadAttempt.promise;
     if (resource._isPrepared && !resource._isGood)
     {
-      return Promise.reject(record.error || new Error("Resource failed: " + resource.GetPath()));
+      return Promise.reject(resource._loadError || new Error("Resource failed: " + resource.GetPath()));
     }
     if (resource._isPrepared && resource._isGood)
     {
+      const record = this._GetResourceRecord(resource);
       if (resource.isResource || record.payload !== null)
       {
         this.KeepPayloadAlive(resource);
         return Promise.resolve(resource.isResource ? resource : record.payload);
       }
       resource.Reload();
-      return this._GetResourceRecord(resource).operation.promise;
+      return resource._loadAttempt.promise;
     }
     if (resource._isLoading) return this._StartResourceLoad(resource).promise;
-    return Promise.reject(record.error || new Error("Resource has not been initialized: " + resource.GetPath()));
+    return Promise.reject(resource._loadError || new Error("Resource has not been initialized: " + resource.GetPath()));
   }
 
   /**
-   * Pure inspection of native flags plus manager-only failure and purge data.
+   * Pure inspection of the resource's own state. `phase` is derived from it,
+   * so it cannot drift: purged; loading (an attempt or Carbon's `m_isLoading`);
+   * prepared or failed (Carbon's `m_isPrepared`, `m_isGood`); cancelled (the
+   * last attempt was cancelled); otherwise empty.
    *
    * @cjs
    * @implemented
@@ -3106,10 +3106,15 @@ export class BlueResMan
    */
   GetResourceStatus(resource)
   {
-    const record = this._GetResourceRecord(resource);
-    return { phase: record.phase, error: record.error, purged: record.purged,
+    const error = resource._loadError ?? null;
+    const phase = resource._isPurged ? "purged"
+      : resource._loadAttempt || resource._isLoading ? "loading"
+        : resource._isPrepared ? (resource._isGood ? "prepared" : "failed")
+          : error?.code === "CJS_RESOURCE_LOAD_CANCELLED" ? "cancelled"
+            : "empty";
+    return { phase, error, purged: resource._isPurged === true,
       loading: resource._isLoading, prepared: resource._isPrepared, good: resource._isGood,
-      reloadAttempts: record.attempts };
+      reloadAttempts: resource._revivalAttempts ?? 0 };
   }
 
   /**
@@ -3252,7 +3257,7 @@ export class BlueResMan
    */
   GetReloadAttempts(resource)
   {
-    return this._GetResourceRecord(resource).attempts;
+    return resource._revivalAttempts;
   }
 
   /**
@@ -3265,7 +3270,7 @@ export class BlueResMan
    */
   ResetReloadAttempts(resource)
   {
-    this._GetResourceRecord(resource).attempts = 0;
+    resource._revivalAttempts = 0;
   }
 
   /**
@@ -3283,14 +3288,13 @@ export class BlueResMan
     if (!resource.GetPath()) return;
     if (options === undefined && this.activityTime > 0) resource._lastUsedTime = this.activityTime;
     else this._LodeOf(resource).KeepAlive(getMotherLodeKey(resource.GetPath(), resource.GetExt()), options || {});
-    const record = this._resourceRecords.get(resource);
-    if (!record?.purged || record.attempts >= this.maxReloadAttempts) return;
+    if (!resource._isPurged || resource._revivalAttempts >= this.maxReloadAttempts) return;
 
     const lode = this._LodeOf(resource);
     const key = getMotherLodeKey(resource.GetPath(), resource.GetExt());
     const current = lode.Lookup(key);
     if (current && current !== resource) return;
-    record.attempts += 1;
+    resource._revivalAttempts += 1;
     resource.Reload();
     // Carbon initializes before insertion. The queued async load begins later.
     if (!current)
@@ -3317,10 +3321,8 @@ export class BlueResMan
   {
     this._LogResourceEvent(resource, "purged", "Purged %s", resource.GetPath());
     this._CancelResourceLoad(resource);
-    const record = this._GetResourceRecord(resource);
-    record.purged = true;
-    record.phase = "purged";
-    record.error = null;
+    resource._isPurged = true;
+    resource._loadError = null;
     resource._isGood = false;
     resource._isPrepared = false;
     resource._isLoading = false;

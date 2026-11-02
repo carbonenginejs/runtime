@@ -72,7 +72,7 @@ test("a failed native resource is prepared, stays bad and never retries on use",
 test("retry counters belong to the manager and reset explicitly", t =>
 {
   const manager = managerFor(t), resource = new BlueAsyncRes();
-  manager._GetResourceRecord(resource).attempts = manager.maxReloadAttempts;
+  resource._revivalAttempts = manager.maxReloadAttempts;
   manager.ResetReloadAttempts(resource);
   assert.equal(manager.GetReloadAttempts(resource), 0);
 });

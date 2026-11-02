@@ -28,9 +28,11 @@ registered with ResMan; they are not additional Blue slots.
 
 Concrete resources inherit `BlueAsyncRes`. Their native load and prepare hooks
 retain family data on the owner: bitmaps, mesh/Granny projections, animation
-state, effect readers and audio backing bytes. The global `blue.resMan` owns
-asynchronous attempts and promises. No resource stores a manager attachment or
-a bundle of callbacks back into its manager.
+state, effect readers and audio backing bytes. Each resource also holds its own
+load state: the request options, the current attempt and its promise, the last
+failure, and purge with its revival count. The global `blue.resMan` drives that
+state; `GetResourceStatus` reads it and derives `phase` from it. No resource
+stores a manager attachment or a bundle of callbacks back into its manager.
 
 `GetResource(path, { ex })` selects by extension plus Carbon's suffix, initializes
 the handle and then inserts it into MotherLode. `Ready(resource)` waits for the

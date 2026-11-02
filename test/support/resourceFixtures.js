@@ -7,7 +7,7 @@ export function prepareResourceFixture(resource)
   resource._isLoading = false;
   resource._isPrepared = true;
   resource._isGood = true;
-  blue.resMan._GetResourceRecord(resource).purged = false;
+  resource._isPurged = false;
   blue.resMan._FinishResourceLoad(resource);
   resource._NotifyRebuildCachedData();
   return resource;

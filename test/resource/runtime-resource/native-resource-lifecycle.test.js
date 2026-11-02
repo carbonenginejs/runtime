@@ -61,7 +61,7 @@ test("native attempts settle on one handle and retain no event or manager callba
     assert.equal(key in resource, false, key);
   resource.RemoveNotifyTarget(target);
   resource.AssertNoNotifyTargets();
-  const operation = manager._GetResourceRecord(resource).operation;
+  const operation = resource._loadAttempt;
   assert.equal(operation, null);
 });
 
@@ -105,7 +105,7 @@ test("an inactivity purge revives the same handle and respects the retry cap", a
   assert.equal(manager.Lookup(resource.GetPath()), resource);
   assert.equal(reads, 2);
   manager._MarkResourcePurged(resource);
-  manager._GetResourceRecord(resource).attempts = manager.maxReloadAttempts;
+  resource._revivalAttempts = manager.maxReloadAttempts;
   resource.KeepAlive();
   assert.equal(resource.IsGood(), false);
   assert.equal(reads, 2);
