@@ -199,6 +199,25 @@ export class CjsPaperDollCompositor
     }
 
     /**
+     * Renews every effect this compositor holds, with its effect resource and textures, and answers whether all
+     * of them can draw now.
+     *
+     * The effects are made once and drawn again whenever the character recomposes (an edit, a layer, a garment),
+     * which can come long after the last draw; between them nothing else asks for their resources, so resMan's
+     * automatic purge expired them and the next `Draw` found them reloading and threw ("Composition draw failed").
+     * A live character therefore renews its compositors as part of its update, and a hidden one that should stay
+     * ready through `CjsPaperDoll.EnsureGood`. Rejected: having `Draw` wait for its inputs, which would make the
+     * synchronous draw calls in Graphene's composers (about 20 sites) asynchronous.
+     * @returns {boolean} Whether every held effect is good.
+     */
+    EnsureGood()
+    {
+        let good = true;
+        for (const value of this.effects) if (!value.EnsureGood()) good = false;
+        return good;
+    }
+
+    /**
      * Releases every target and effect this compositor made, and its blitter. Textures it loaded are resMan's and
      * stay. Nothing it produced may be drawn or bound after this; a second call does nothing.
      * @returns {void}
