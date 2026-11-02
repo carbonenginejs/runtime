@@ -22,7 +22,7 @@ function setup(t) {
 }
 
 // In use, as a drawn ship's is: nothing prepares during a build.
-function make(values={}) {const stars=CjsSchema.from('EveStarfield',{numStars:3,...values});stars.IsGood();return stars;}
+function make(values={}) {const stars=CjsSchema.from('EveStarfield',{numStars:3,...values});stars.EnsureGood();return stars;}
 function collect(stars) {const batches=[];stars.GetBatches({Commit:b=>batches.push(b)},null);return batches;}
 
 test('mapped starfield initialization uploads seeded native sprite records',t=>{

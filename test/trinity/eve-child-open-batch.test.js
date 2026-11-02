@@ -63,7 +63,7 @@ test("EveBoosterSet2 is a Tr2DeviceResource that registers on use, frees its ins
   const set = new EveBoosterSet2();
   assert.equal(CjsSchema.cast(set, Tr2DeviceResource), set, "EveBoosterSet2.h:177");
   assert.equal(trinity.GetResourcesRegistered().includes(set), false, "built and never used: not registered");
-  set.IsGood();
+  set.EnsureGood();
   assert.ok(trinity.GetResourcesRegistered().includes(set), "registered by its first use");
   assert.equal(typeof set.PrepareResources, "function", "PrepareResources comes from the base");
 
@@ -97,7 +97,7 @@ test("EveHazeSet is a Tr2DeviceResource whose vertex range is an embedded alloca
   assert.equal(CjsSchema.cast(set, Tr2DeviceResource), set, "EveHazeSet.h:43");
   assert.equal(trinity.GetResourcesRegistered().includes(set), false, "registration follows use");
   assert.equal(set._vertexBuffer.IsValid(), false, "h:110 by value: present and invalid until prepared");
-  set.IsGood();
+  set.EnsureGood();
   assert.ok(trinity.GetResourcesRegistered().includes(set));
 
   const range = allocate();
@@ -117,7 +117,7 @@ test("EveTurretSet is a Tr2DeviceResource and Destruct follows Carbon's destruct
   const set = new EveTurretSet();
   assert.equal(CjsSchema.cast(set, Tr2DeviceResource), set, "EveTurretSet.h:104");
   assert.equal(trinity.GetResourcesRegistered().includes(set), false, "registration follows use");
-  set.IsGood();
+  set.EnsureGood();
   assert.ok(trinity.GetResourcesRegistered().includes(set));
 
   const calls = [];

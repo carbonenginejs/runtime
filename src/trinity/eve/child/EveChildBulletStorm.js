@@ -51,7 +51,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    *
    * @adapted Carbon registers with the device and prepares here, as the
    *   Tr2DeviceResource base constructor registers (Tr2DeviceResource.cpp:6-9).
-   *   Here it does both on its first use (IsGood at its use site), so one built
+   *   Here it does both on its first use (EnsureGood at its use site), so one built
    *   and never drawn is never listed and holds no device objects, and one left
    *   unused is released (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
@@ -398,7 +398,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
 
   /**
    * Carbon EveChildBulletStorm::GetBatches (cpp:313-350): additive only; the corner quad on stream 0 drawn once per
-   * instance from stream 1 over the shared quad-list index buffer. Adapted: the effect is asked IsGood before drawing,
+   * instance from stream 1 over the shared quad-list index buffer. Adapted: the effect is asked EnsureGood before drawing,
    * as the other instanced draws do.
    *
    * @adapted
@@ -408,8 +408,8 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
     if (!this.display || !this.effect) return;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
-    if (!this.IsGood()) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the buffer checks: preparing builds them.
+    if (!this.EnsureGood()) return;
     if (!this._vertexBuffer.IsValid() || !this._perInstanceBuffer.IsValid()) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();

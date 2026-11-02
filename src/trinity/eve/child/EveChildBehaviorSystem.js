@@ -139,7 +139,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
    *
    * @adapted Carbon registers with the device and prepares here, as the
    *   Tr2DeviceResource base constructor registers (Tr2DeviceResource.cpp:6-9).
-   *   Here it does both on its first use (IsGood at its use site), so one built
+   *   Here it does both on its first use (EnsureGood at its use site), so one built
    *   and never drawn is never listed and holds no device objects, and one left
    *   unused is released (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
@@ -442,8 +442,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
       return renderables;
     }
 
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). UpdateBuffer fills, and GetBatches draws, the streams preparing builds.
-    this.IsGood();
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). UpdateBuffer fills, and GetBatches draws, the streams preparing builds.
+    this.EnsureGood();
     renderables.push(this);
 
     this.UpdateBuffer(Tr2RenderContext_GetMainThreadRenderContext());

@@ -53,7 +53,7 @@ export class CjsTrinity extends IBlueEvents
 
   /**
    * The one idle rule for scene content: seconds of Blue frame time a prepared
-   * scene-content device resource may go unused (no `IsGood`, no `KeepAlive`)
+   * scene-content device resource may go unused (no `EnsureGood`, no `KeepAlive`)
    * before the sweep releases it.
    *
    * @cjs Configured through `CjsLibrary` (`deviceResources.idleRule`); a
@@ -291,7 +291,7 @@ export class CjsTrinity extends IBlueEvents
    * Registers a device resource with Trinity, Carbon's registry
    * (`TriDevice::RegisterResource`, TriDevice.h:135, TriDevice.cpp:1087-1091).
    * Infrastructure calls it from its constructor, as Carbon's base constructor
-   * does; scene content is registered by its own `IsGood` while prepared.
+   * does; scene content is registered by its own `EnsureGood` while prepared.
    * Works before `Initialize`: `Initialize` prepares what is registered.
    *
    * Carbon: TriDevice::RegisterResource (TriDevice.h:135)
@@ -317,7 +317,7 @@ export class CjsTrinity extends IBlueEvents
    * Carbon (`TriDevice::UnregisterResource`, TriDevice.h:136,
    * TriDevice.cpp:1093-1106): the resource is destructed. A scene-content
    * resource's state becomes `DESTRUCTED` and its generation moves on, so its
-   * entry in the sweep's array is stale and its `IsGood` never prepares again.
+   * entry in the sweep's array is stale and its `EnsureGood` never prepares again.
    *
    * Carbon: TriDevice::UnregisterResource (TriDevice.h:136)
    * @adapted Carbon erases it, or queues it while a release walk iterates; here
@@ -356,7 +356,7 @@ export class CjsTrinity extends IBlueEvents
   /**
    * Lists a scene-content resource that has just been prepared: an entry in the
    * sweep's array with its current generation, and Carbon's registry, so a
-   * device swap or reset reaches it. Called by `Tr2DeviceResource.IsGood`.
+   * device swap or reset reaches it. Called by `Tr2DeviceResource.EnsureGood`.
    *
    * @cjs
    * @param {object} resource The prepared resource.

@@ -26,7 +26,7 @@ function system(t)
   ]) value.elements.push(Object.assign(new Tr2ParticleElementDeclaration(), fields));
   value.Initialize();
   // In use, as a drawn ship's is: nothing prepares during a build.
-  value.IsGood();
+  value.EnsureGood();
   t.after(() => value.ReleaseResources());
   return value;
 }

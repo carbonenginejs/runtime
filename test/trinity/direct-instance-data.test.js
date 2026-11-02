@@ -55,7 +55,7 @@ test("direct instance buffer implements Carbon allocation, mapping and reset lif
   assert.equal(trinity.GetResourcesRegistered().includes(provider), false, "built and never asked: not registered");
   assert.equal(provider.IsInstanceDataReady(), false);
   assert.equal(trinity.GetResourcesRegistered().includes(provider), false, "readiness is a pure query, as Carbon's const one is");
-  provider.IsGood();
+  provider.EnsureGood();
   assert.ok(trinity.GetResourcesRegistered().includes(provider), "its consumer's use registers it");
   assert.equal(provider.GetInstanceBufferVertexDeclaration(), Tr2EffectStateManager.Unknown);
   assert.equal(provider.GetData(3), null, "no stride means no allocation (cpp:175-178)");
@@ -103,7 +103,7 @@ test("asking a destructed provider whether it is ready does not register it agai
   provider.SetLayout(layout());
   provider.GetData(1);
   provider.UpdateData();
-  provider.IsGood();
+  provider.EnsureGood();
   assert.ok(trinity.GetResourcesRegistered().includes(provider));
   provider.Destruct();
   assert.equal(provider.IsInstanceDataReady(), false);

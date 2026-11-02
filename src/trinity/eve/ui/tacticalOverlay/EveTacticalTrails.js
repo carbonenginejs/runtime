@@ -409,8 +409,8 @@ export class EveTacticalTrails
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT) return;
     if (this.segments === 0) return;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing makes the declaration.
-    if (!this.IsGood() || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the buffer checks: preparing makes the declaration.
+    if (!this.EnsureGood() || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.trailEffect);
     batch.SetPerObjectData(perObjectData);

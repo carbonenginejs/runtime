@@ -35,7 +35,7 @@ function toUint32(value)
  * the parent as one sprite with the layer's colour, effect and blend mode (Tr2Sprite2dLayer.h:16-62).
  * It is a Tr2Sprite2dContainer, a Tr2DeviceResource and an ITr2Sprite2dTextureNotifyTarget. JS
  * has one base class, so the device resource comes through `@be.inherit`, and the layer
- * registers with `trinity` on use (IsGood in GatherSprites), as the other device resources do.
+ * registers with `trinity` on use (EnsureGood in GatherSprites), as the other device resources do.
  */
 @be.define("Tr2Sprite2dLayer")
 @be.exposureChainTo(Tr2Sprite2dContainer)
@@ -153,9 +153,9 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 
     if (!this.display) return;
 
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). A bare call: the
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). A bare call: the
     // allocation below prepares the render target itself.
-    this.IsGood();
+    this.EnsureGood();
     this._AllocateRenderTarget();
     if (!this._renderTarget.IsValid()) return;
 

@@ -163,12 +163,12 @@ export class Tr2CurveLineSet
    * Carbon's constructor: prepares the empty set.
    *
    * Carbon prepares here (its constructor); here nothing prepares during a build: the
-   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * first use (EnsureGood) does, so a build that fails or is never drawn holds no
    * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted Carbon registers with the device here, as the Tr2DeviceResource
    *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
-   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   use (EnsureGood at its use site), so one built and never drawn is never listed
    *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
@@ -232,7 +232,7 @@ export class Tr2CurveLineSet
    * @adapted refills now, as Carbon does, rather than on first use: the fill
    *   re-tessellates every line at the new width, resets
    *   currentSubmittedLineCount and rebuilds boundingSphere, which the next draw
-   *   counts and culls by. KeepAlive then stamps the set as in use, since a width
+   *   counts and culls by. EnsureGood then lists and stamps the set as in use, since a width
    *   edit is made to lines being shown; one edited and never drawn is still
    *   released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
@@ -242,7 +242,7 @@ export class Tr2CurveLineSet
     if (IsMatch(name, "lineWidthFactor"))
     {
       this.FillVertexBuffer();
-      this.KeepAlive();
+      this.EnsureGood();
     }
     return true;
   }
@@ -580,7 +580,7 @@ export class Tr2CurveLineSet
    * @adapted fills now, as Carbon does, rather than on first use: the fill
    *   tessellates the submitted lines into the vertex buffer (growing it to fit),
    *   records currentSubmittedLineCount and rebuilds boundingSphere from the line
-   *   points, which the next draw counts and culls by. KeepAlive then stamps the
+   *   points, which the next draw counts and culls by. EnsureGood then lists and stamps the
    *   set as in use, since submitted lines are about to be drawn; one submitted
    *   and never drawn is still released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
@@ -588,7 +588,7 @@ export class Tr2CurveLineSet
   SubmitChanges()
   {
     this.FillVertexBuffer();
-    this.KeepAlive();
+    this.EnsureGood();
     return true;
   }
 
@@ -837,8 +837,8 @@ export class Tr2CurveLineSet
   GetBatchImpl(accumulator, perObjectData, effect)
   {
     if (!effect) return;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
-    const good = this.IsGood();
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the buffer checks: preparing builds them.
+    const good = this.EnsureGood();
     // Asked with it, not after: renews what the effect holds, and skips it while its resource is not good.
     const effectGood = effect.EnsureGood();
     if (!good || !effectGood || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;

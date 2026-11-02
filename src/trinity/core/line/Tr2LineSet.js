@@ -130,7 +130,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * uploads the submitted lines and picking triangles, records
    * currentSubmittedLineCount and currentSubmittedTriangleCount, and rebuilds
    * boundingSphere from the line end points, and the next draw's culling and
-   * vertex counts read those. KeepAlive then stamps the set as in use, since
+   * vertex counts read those. EnsureGood then lists and stamps the set as in use, since
    * submitted lines are about to be drawn; one submitted and never drawn is
    * still released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
@@ -147,7 +147,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
     }
     this.ReleaseResources();
     this.PrepareResources();
-    this.KeepAlive();
+    this.EnsureGood();
     return true;
   }
 
@@ -171,7 +171,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * Prepares existing geometry after reader population; JS arrays need no reserve.
    *
    * Carbon prepares here (Tr2LineSet::Initialize); here nothing prepares during a build: the
-   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * first use (EnsureGood) does, so a build that fails or is never drawn holds no
    * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
@@ -285,8 +285,8 @@ export class Tr2LineSet extends Tr2PrimitiveSet
 
   GetBatchesImpl(accumulator, perObjectData, effect, reason)
   {
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
-    if (!this.IsGood() || !this._vertexBuffer.IsValid()) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the buffer checks: preparing builds them.
+    if (!this.EnsureGood() || !this._vertexBuffer.IsValid()) return;
     const picking = reason === Tr2PrimitiveSet.GetBatchesReason.Picking && this.currentSubmittedTriangleCount > 0;
     const declaration = picking ? this.pickingVertexDeclHandle : this._vertexDeclHandle;
     if (declaration === Tr2EffectStateManager.Unknown) return;

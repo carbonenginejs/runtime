@@ -71,7 +71,7 @@ test("native staggered grid retains alternating winding and LODs above sixteen",
   const { uploads } = setup(t);
   const cloud = CjsSchema.from("EveChildCloud", { preTesselationLevel: 64 });
   // In use, as a drawn ship's is: nothing prepares during a build.
-  cloud.IsGood();
+  cloud.EnsureGood();
   const vertices = uploads.filter(item => item.description.stride === 8).at(-1).data;
   assert.equal(vertices.length, 65 * 65 * 2);
   near(vertices.slice(0, 4), [-1 - 1 / 63.5, -1, -1 + 1 / 63.5, -1]);
@@ -92,7 +92,7 @@ test("notified tessellation edits and device release rebuild owned storage", t =
   setup(t);
   const cloud = CjsSchema.from("EveChildCloud", { preTesselationLevel: 64 });
   // In use, as a drawn ship's is: nothing prepares during a build.
-  cloud.IsGood();
+  cloud.EnsureGood();
   const vertex = cloud._vertexBuffer, oldIndex = cloud._indexBuffers[0];
   CjsSchema.setValues(cloud, { preTesselationLevel: 16 });
   assert.equal(oldIndex.IsValid(), false);
@@ -199,7 +199,7 @@ test("LOD preserves Carbon's width-for-both-axes quirk and near-plane clipping",
   const { accumulator } = setup(t);
   const cloud = CjsSchema.from("EveChildCloud", { preTesselationLevel: 128, cellScreenSize: 1 });
   // In use, as a drawn ship's is: nothing prepares during a build.
-  cloud.IsGood();
+  cloud.EnsureGood();
   mat4.fromScaling(cloud.worldTransform, [1, 4, 1]); cloud.worldTransform[14] = -100;
   const record = cloud.GetPerObjectData(accumulator);
   assert.equal(cloud.currentLod, 2);
@@ -221,7 +221,7 @@ test("native transparent batch reaches AL indexed draw and constants use the ver
   const { context, accumulator, draws, effect } = setup(t);
   const cloud = new EveChildCloud();
   // In use, as a drawn ship's is: nothing prepares during a build.
-  cloud.IsGood();
+  cloud.EnsureGood();
   cloud.effect = effect;
   mat4.fromTranslation(cloud.worldTransform, [0, 0, -10]);
   const record = cloud.GetPerObjectData(accumulator);

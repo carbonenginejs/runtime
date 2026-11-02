@@ -71,7 +71,7 @@ test("a banner set initialized before the device exists is prepared on its first
   assert.equal(set._vertexBuffer, null, "no device yet");
 
   Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
-  assert.equal(set.IsGood(), true);
+  assert.equal(set.EnsureGood(), true);
 
   assert.notEqual(set._vertexBuffer, null);
   assert.notEqual(set._vertexDeclaration, 0xFFFFFFFF);

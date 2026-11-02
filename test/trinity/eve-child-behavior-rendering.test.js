@@ -181,7 +181,7 @@ test("allocation resize, empty groups, mapping failures and teardown obey owners
 {
   const value = system(t, [group()]);
   // In use, as a drawn ship's is: nothing prepares during a build.
-  value.IsGood();
+  value.EnsureGood();
   const a = value.behaviorGroups[0];
   a.SetVertexFunctionReferance(() => value.ChangeBufferInstanceCount());
   a.SetCount(4);

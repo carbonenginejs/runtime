@@ -9,9 +9,9 @@
 // from IRoot" (h:19-21): a class takes it as one of several C++ bases. In
 // JavaScript a class has one base, so the Eve and Trinity classes take it the
 // way they take their other secondary bases, through `@be.inherit`, which
-// installs PrepareResources, IsGood and GetDescription where the class has none.
-// That route has no constructor. Most such classes register on use, through
-// IsGood at their use site, and are released when idle; infrastructure (scene,
+// installs PrepareResources, IsGood, KeepAlive, EnsureGood and GetDescription
+// where the class has none. That route has no constructor. Most such classes
+// register on use, through EnsureGood at their use site, and are released when idle; infrastructure (scene,
 // render driver, pools, managers) registers in its own constructor with
 // `trinity.RegisterResource(this)`, as this constructor does, and
 // unregisters in its Destruct, where Carbon's destructor would (cpp:11-14)
@@ -97,41 +97,27 @@ export class Tr2DeviceResource
   }
 
   /**
-   * Whether this device resource has everything it needs to work, and a use: it
-   * stamps Blue's current frame time, prepares its device objects if it has
-   * none, lists itself with `trinity` once prepared (the sweep's array and
-   * Carbon's registry), and answers whether its device objects exist now (docs
-   * internal/decisions/device-resource-registration.md, *Where `IsGood` lives*,
-   * *Revised lifecycle* § 3-4). Asked at each use site, after the gates; a
-   * resource asked nowhere goes idle and is released by the sweep. A destructed
-   * resource answers false and never prepares again.
+   * Whether this device resource's device objects exist now. Only asks: it
+   * neither stamps, prepares nor lists, so a status or harness can look without
+   * keeping anything alive. A destructed resource answers false.
    *
-   * @cjs Carbon's Tr2DeviceResource has no IsGood: it registers in its
-   *   constructor and lives in the registry until its destructor. JavaScript has
-   *   no destructor, so registration follows use, and asking is the use (device
-   *   resource registration decision). Unlike `BlueAsyncRes.IsGood`, which is
-   *   Carbon's pure question and leaves renewal to `EnsureGood`, this method is
-   *   ours, so it keeps that use in it.
+   * @cjs Carbon's Tr2DeviceResource has no IsGood (h:22-62): its device objects
+   *   live from registration to destructor. The question exists here because a
+   *   JavaScript resource is prepared at use and released when idle (docs
+   *   internal/decisions/device-resource-registration.md); it answers as
+   *   `BlueAsyncRes.IsGood` does, and use goes through `EnsureGood`.
    * @returns {boolean} Whether the device objects exist now.
    */
   IsGood()
   {
-    if (this._state === Tr2DeviceResourceState.DESTRUCTED) return false;
-    const now = blue.os.GetCurrentFrameTime();
-    if (!(this._stamp >= now)) this._stamp = now;
-    // A failed prepare waits PREPARE_RETRY_SECONDS before trying again, unlisted.
-    if (this._state !== Tr2DeviceResourceState.PREPARED && !(now < this._retryAt))
-    {
-      if (!this.PrepareResources()) this._retryAt = now + PREPARE_RETRY_SECONDS * TICKS_PER_SECOND;
-    }
-    if (this._state === Tr2DeviceResourceState.PREPARED && this._listed !== true) trinity._ListSceneResource(this);
     return this._state === Tr2DeviceResourceState.PREPARED;
   }
 
   /**
-   * Keeps this resource: the same stamp as a use, Blue's current frame time,
-   * and prepares it if it has no device objects (prepare-ahead). A holder that
-   * wants it kept renews it at least once per idle rule; it never stamps ahead.
+   * Marks this resource as in use now: stamps Blue's current frame time, so the
+   * sweep does not release it before its idle rule has passed. Never stamps
+   * ahead and does nothing else; a holder that wants a resource kept renews it at
+   * least once per idle rule.
    *
    * @cjs MotherLode's name for the same thing on resources (`MotherLode.KeepAlive`);
    *   Carbon's device resources live until their destructor (*Revised lifecycle* § 4).
@@ -139,7 +125,37 @@ export class Tr2DeviceResource
    */
   KeepAlive()
   {
-    this.IsGood();
+    if (this._state === Tr2DeviceResourceState.DESTRUCTED) return;
+    const now = blue.os.GetCurrentFrameTime();
+    if (!(this._stamp >= now)) this._stamp = now;
+  }
+
+  /**
+   * Uses this resource: renews it (`KeepAlive`), prepares its device objects if
+   * it has none, lists it with `trinity` once prepared (the sweep's array and
+   * Carbon's registry), then answers `IsGood()`. Called at each draw or update
+   * site, after the gates; a resource used nowhere goes idle and is released by
+   * the sweep. A failed prepare waits `PREPARE_RETRY_SECONDS` before trying
+   * again, unlisted. A destructed resource answers false and never prepares again.
+   *
+   * @cjs Carbon registers a device resource in its constructor and prepares it
+   *   when the device can create resources; JavaScript has no destructor to
+   *   unregister it, so registration and preparing follow use (device resource
+   *   registration decision, *Where `IsGood` lives*, *Revised lifecycle* § 3-4),
+   *   as `BlueAsyncRes.EnsureGood` renews a resource at use.
+   * @returns {boolean} Whether the device objects exist now.
+   */
+  EnsureGood()
+  {
+    if (this._state === Tr2DeviceResourceState.DESTRUCTED) return false;
+    this.KeepAlive();
+    const now = blue.os.GetCurrentFrameTime();
+    if (this._state !== Tr2DeviceResourceState.PREPARED && !(now < this._retryAt))
+    {
+      if (!this.PrepareResources()) this._retryAt = now + PREPARE_RETRY_SECONDS * TICKS_PER_SECOND;
+    }
+    if (this._state === Tr2DeviceResourceState.PREPARED && this._listed !== true) trinity._ListSceneResource(this);
+    return this.IsGood();
   }
 
   /**

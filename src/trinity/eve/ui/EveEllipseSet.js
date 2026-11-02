@@ -161,13 +161,13 @@ export class EveEllipseSet extends EveChildTransform
    *
    * Carbon's Tr2DeviceResource base registers with the device in its own
    * constructor (Tr2DeviceResource.cpp:6-9); here the set registers on use
-   * (IsGood in GetBatches; docs internal/decisions/device-resource-registration.md). Carbon
+   * (EnsureGood in GetBatches; docs internal/decisions/device-resource-registration.md). Carbon
    * also makes the set its ellipse list's notify target (cpp:73); a JavaScript
    * array has no notify slot, so list events reach OnListModified from the
    * Blue loader and the set's own list methods bind definitions explicitly.
    *
    * Carbon prepares here (its constructor); here nothing prepares during a build: the
-   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * first use (EnsureGood) does, so a build that fails or is never drawn holds no
    * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
@@ -556,8 +556,8 @@ export class EveEllipseSet extends EveChildTransform
       return;
     }
 
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood).
-    this.IsGood();
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood).
+    this.EnsureGood();
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
     {
       this.PrepareResources();

@@ -1,7 +1,7 @@
-// Tr2DeviceResource.IsGood and KeepAlive (docs internal/decisions/device-resource-registration.md,
-// Revised lifecycle): a use stamps Blue's current frame time, prepares and lists a
-// resource that has no device objects, and answers whether they exist; the sweep
-// releases what goes unused past the rule and the next use prepares it again; a
+// Tr2DeviceResource.IsGood, KeepAlive and EnsureGood (docs internal/decisions/device-resource-registration.md,
+// Revised lifecycle): a use (EnsureGood) stamps Blue's current frame time, prepares and lists a
+// resource that has no device objects, and answers IsGood; KeepAlive only stamps; IsGood only asks.
+// The sweep releases what goes unused past the rule and the next use prepares it again; a
 // destructed resource never prepares again.
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -50,17 +50,17 @@ function clock(t)
   return { at(seconds) { now = (1000 + seconds) * SECOND; } };
 }
 
-test("the first IsGood prepares and lists; later ones only stamp the current frame", t =>
+test("the first EnsureGood prepares and lists; later ones only stamp the current frame", t =>
 {
   const time = clock(t);
   const r = resource();
   assert.equal(trinity.GetResourcesRegistered().includes(r), false, "built and never used: not registered");
-  assert.equal(r.IsGood(), true);
+  assert.equal(r.EnsureGood(), true);
   assert.equal(r.prepares, 1);
   assert.equal(trinity.GetResourcesRegistered().includes(r), true);
   assert.equal(trinity._sceneResources.filter(x => x === r).length, 1);
   time.at(3);
-  assert.equal(r.IsGood(), true);
+  assert.equal(r.EnsureGood(), true);
   assert.equal(r.prepares, 1, "no second prepare while prepared");
   assert.equal(r._stamp, 1003 * SECOND, "Blue's current frame time");
   assert.equal(trinity._sceneResources.filter(x => x === r).length, 1, "listed once");
@@ -72,7 +72,7 @@ test("a failed prepare answers false and lists nothing", t =>
 {
   clock(t);
   const r = resource(false);
-  assert.equal(r.IsGood(), false);
+  assert.equal(r.EnsureGood(), false);
   assert.equal(trinity._sceneResources.includes(r), false);
 });
 
@@ -80,26 +80,26 @@ test("a failed prepare backs off for a second of frame time before the next use 
 {
   const time = clock(t);
   const r = resource(false);
-  r.IsGood();
-  r.IsGood();
+  r.EnsureGood();
+  r.EnsureGood();
   assert.equal(r.prepares, 1, "no retry within the back-off");
   time.at(1.5);
-  r.IsGood();
+  r.EnsureGood();
   assert.equal(r.prepares, 2, "retried after it");
   assert.equal(trinity._sceneResources.includes(r), false, "never listed while failing");
 });
 
-test("unused past the rule it is released and dropped; the next IsGood prepares and lists it again", t =>
+test("unused past the rule it is released and dropped; the next EnsureGood prepares and lists it again", t =>
 {
   const time = clock(t);
   const r = resource();
-  r.IsGood();
+  r.EnsureGood();
   time.at(trinity.resourceIdleRule + 1);
   trinity.CollectResources();
   assert.equal(r.releases, 1);
   assert.equal(trinity.GetResourcesRegistered().includes(r), false);
   assert.equal(r._state, 0, "NONE");
-  assert.equal(r.IsGood(), true);
+  assert.equal(r.EnsureGood(), true);
   assert.equal(r.prepares, 2);
   assert.equal(trinity.GetResourcesRegistered().includes(r), true);
   trinity.UnregisterResource(r);
@@ -113,7 +113,7 @@ test("used within the rule it survives every sweep", t =>
   for (let i = 0; i < 30; i++)
   {
     time.at(i * trinity.resourceIdleRule / 2);
-    r.IsGood();
+    r.EnsureGood();
     trinity.CollectResources();
   }
   assert.equal(r.releases, 0);
@@ -122,18 +122,39 @@ test("used within the rule it survives every sweep", t =>
   trinity.CollectResources();
 });
 
-test("KeepAlive is a use: it stamps the current frame and prepares", t =>
+test("KeepAlive only stamps the current frame: it neither prepares nor lists, and keeps a prepared resource through the sweep", t =>
 {
   const time = clock(t);
   const r = resource();
   r.KeepAlive();
-  assert.equal(r.prepares, 1, "prepare-ahead");
+  assert.equal(r.prepares, 0, "no prepare");
+  assert.equal(trinity._sceneResources.includes(r), false, "not listed");
+  assert.equal(r._stamp, 1000 * SECOND);
+  r.EnsureGood();
   time.at(trinity.resourceIdleRule - 1);
   r.KeepAlive();
   time.at(2 * trinity.resourceIdleRule - 2);
   trinity.CollectResources();
   assert.equal(r.releases, 0, "renewed within the rule");
+  assert.equal(r.prepares, 1);
   trinity.UnregisterResource(r);
+  trinity.CollectResources();
+});
+
+test("IsGood only asks: no stamp, no prepare, no listing", t =>
+{
+  const time = clock(t);
+  const r = resource();
+  assert.equal(r.IsGood(), false);
+  assert.equal(r.prepares, 0);
+  assert.equal(r._stamp, undefined, "not stamped");
+  assert.equal(trinity._sceneResources.includes(r), false);
+  r.EnsureGood();
+  time.at(5);
+  assert.equal(r.IsGood(), true);
+  assert.equal(r._stamp, 1000 * SECOND, "asking does not renew");
+  trinity.UnregisterResource(r);
+  assert.equal(r.IsGood(), false, "destructed");
   trinity.CollectResources();
 });
 
@@ -141,9 +162,9 @@ test("a destructed resource answers false and never prepares again", t =>
 {
   clock(t);
   const r = resource();
-  r.IsGood();
+  r.EnsureGood();
   trinity.UnregisterResource(r);
-  assert.equal(r.IsGood(), false);
+  assert.equal(r.EnsureGood(), false);
   assert.equal(r.prepares, 1);
   trinity.CollectResources();
   assert.equal(trinity._sceneResources.includes(r), false);
@@ -153,12 +174,12 @@ test("a device release drops the state until the device prepares it again, keepi
 {
   clock(t);
   const r = resource();
-  r.IsGood();
+  r.EnsureGood();
   trinity.device.ReleaseDeviceResources();
   assert.equal(r._state, 0, "NONE");
   trinity.device.PrepareDeviceResources();
   assert.equal(r._state, 1, "PREPARED");
-  assert.equal(r.IsGood(), true);
+  assert.equal(r.EnsureGood(), true);
   assert.equal(r.prepares, 2);
   assert.equal(trinity._sceneResources.filter(x => x === r).length, 1);
   trinity.UnregisterResource(r);

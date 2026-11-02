@@ -191,7 +191,7 @@ export class EveChildLineSet extends EveChildTransform
    *
    * @adapted Carbon registers with the device here, as the Tr2DeviceResource
    *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
-   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   use (EnsureGood at its use site), so one built and never drawn is never listed
    *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
@@ -504,8 +504,8 @@ export class EveChildLineSet extends EveChildTransform
   {
     if (!this.display) return;
     if ((this.renderType !== EveChildLineSet.lineSetType.OBJECT_RENDER && this.renderType !== EveChildLineSet.lineSetType.BOTH) || !this.mesh) return;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the instance buffer check: preparing builds it.
-    if (!this.IsGood()) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the instance buffer check: preparing builds it.
+    if (!this.EnsureGood()) return;
     if (this._cachedSVD === Tr2EffectStateManager.Unknown || this._vertexDeclarationHandle === Tr2EffectStateManager.Unknown || !this._vertexBuffer.IsValid()) return;
     const geometry = this.mesh.GetGeometryResource();
     if (!geometry || !geometry.EnsureGood()) return;

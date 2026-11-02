@@ -144,7 +144,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Carbon Initialize (cpp:96-100): prepares the device half.
    *
    * Carbon prepares here (cpp:96-100); here nothing prepares during a build: the
-   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * first use (EnsureGood) does, so a build that fails or is never drawn holds no
    * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
@@ -162,7 +162,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    *
    * Prepares now, as Carbon does, rather than on first use: preparing reserves
    * the shared quad-list index buffer for the new quadCount, which the next
-   * draw indexes into, and holds no CPU state of its own. KeepAlive then stamps
+   * draw indexes into, and holds no CPU state of its own. EnsureGood then lists and stamps
    * the stretch as in use, since a quad-count edit is made to one being shown;
    * one edited and never drawn is still released by the sweep (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
@@ -175,7 +175,7 @@ export class EveStretch2 extends IEveFiringEffectElement
     {
       this.ReleaseResources();
       this.PrepareResources();
-      this.KeepAlive();
+      this.EnsureGood();
     }
     return true;
   }
@@ -539,8 +539,8 @@ export class EveStretch2 extends IEveFiringEffectElement
     {
       return false;
     }
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the draw: preparing makes the declaration and reserves the quad-list indices.
-    if (!this.IsGood()) return false;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the draw: preparing makes the declaration and reserves the quad-list indices.
+    if (!this.EnsureGood()) return false;
     // The shared allocation is null until a device has run the factory (Tr2ProceduralBuffer.GetSharedResource).
     const vb = this._vb.GetSharedResource();
     if (!vb || !vb.IsValid()) return false;

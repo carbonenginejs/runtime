@@ -121,7 +121,7 @@ export class EveLineSet
    * the line vector; a JavaScript array needs no reserve.
    *
    * Carbon prepares here (EveLineSet::Initialize); here nothing prepares during a build: the
-   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * first use (EnsureGood) does, so a build that fails or is never drawn holds no
    * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
@@ -391,7 +391,7 @@ export class EveLineSet
    * writes into the vertex buffer that preparing creates at maxCurrentLineCount,
    * and without it the submit returns false before recording
    * currentSubmittedLineCount and rebuilding boundingSphere, which the next draw
-   * counts and culls by. KeepAlive then stamps the set as in use, since submitted lines are about
+   * counts and culls by. EnsureGood then lists and stamps the set as in use, since submitted lines are about
    * to be drawn; one submitted and never drawn is still released by the sweep
    * (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
@@ -411,7 +411,7 @@ export class EveLineSet
 
     // Make sure the resources are prepared.
     this.PrepareResources();
-    this.KeepAlive();
+    this.EnsureGood();
 
     if (!this._vertexBuffer.IsValid()) return false;
 
@@ -452,8 +452,8 @@ export class EveLineSet
     if (!(batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT && this.renderTransparent)
       && !(batchType === TriBatchType.TRIBATCHTYPE_ADDITIVE && !this.renderTransparent)) return;
     if (!this.display) return;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds and fills them.
-    if (!this.IsGood()) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the buffer checks: preparing builds and fills them.
+    if (!this.EnsureGood()) return;
     if (!this._vertexBuffer.IsValid()) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
 

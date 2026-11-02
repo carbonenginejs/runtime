@@ -115,7 +115,7 @@ export class EveStarfield
    * Initializes device storage when creation is allowed (cpp:98-102).
    *
    * Carbon prepares here (cpp:98-102); here nothing prepares during a build: the
-   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * first use (EnsureGood) does, so a build that fails or is never drawn holds no
    * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted
@@ -226,8 +226,8 @@ export class EveStarfield
   GetBatches(accumulator, perObjectData)
   {
     if (!this.effect || !this.display || this.numStars <= 0) return;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
-    if (!this.IsGood()) return;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the buffer checks: preparing builds them.
+    if (!this.EnsureGood()) return;
     if (!this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const indices = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indices.IsValid()) return;

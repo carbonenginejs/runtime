@@ -147,7 +147,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    *
    * @adapted Carbon registers with the device here, as the Tr2DeviceResource
    *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
-   *   on use (IsGood at its use site), so one built and never drawn is never
+   *   on use (EnsureGood at its use site), so one built and never drawn is never
    *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
@@ -189,7 +189,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon Initialize (cpp:77-82): the device half, then the bounds.
    *
    * @adapted Carbon prepares here (cpp:79); here nothing prepares during a
-   *   build: the first use (IsGood) does, so a build that fails or is never drawn
+   *   build: the first use (EnsureGood) does, so a build that fails or is never drawn
    *   holds no device objects (docs internal/decisions/device-resource-registration.md,
    *   Revised lifecycle § 2).
    */
@@ -310,8 +310,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION) return;
     if (!this.display || !this.effect) return;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
-    const good = this.IsGood();
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the buffer checks: preparing builds them.
+    const good = this.EnsureGood();
     // Asked with it, not after: renews what the effect holds, and skips it while its resource is not good.
     const effectGood = this.effect.EnsureGood();
     if (!good || !effectGood) return;

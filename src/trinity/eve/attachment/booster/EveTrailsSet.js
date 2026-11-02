@@ -260,7 +260,7 @@ export class EveTrailsSet
    * Carbon OnPrepareResources (cpp:224-242): the declaration once the mesh is in, then the instances.
    *
    * Carbon's constructor registers with the device and prepares (cpp:13-20). Here
-   * the set has no constructor: it registers and prepares on its first use (IsGood
+   * the set has no constructor: it registers and prepares on its first use (EnsureGood
    * at its use site), so a build that fails or is never drawn holds no device
    * objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
@@ -320,8 +320,8 @@ export class EveTrailsSet
     let good = true;
     if (!BlueAsyncRes.ensureDependency(this.geometryResource, this, "geometry")) good = false;
     if (!this.effect || !this.effect.EnsureGood()) good = false;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Asked with the others, before the instance buffer preparing builds.
-    if (!this.IsGood()) good = false;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Asked with the others, before the instance buffer preparing builds.
+    if (!this.EnsureGood()) good = false;
     if (!good) return;
     if (!this._instanceBuffer) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;

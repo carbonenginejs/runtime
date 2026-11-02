@@ -325,7 +325,7 @@ export class EveBoosterSet2 extends EveEntity
    *
    * @adapted Carbon registers with the device here, as the Tr2DeviceResource
    *   base constructor does (Tr2DeviceResource.cpp:6-9). Here the set registers
-   *   on use (IsGood at its use site), so one built and never drawn is never
+   *   on use (EnsureGood at its use site), so one built and never drawn is never
    *   listed and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
@@ -379,7 +379,7 @@ export class EveBoosterSet2 extends EveEntity
    * @adapted a set whose boosters arrived as records rather than through Add
    *   derives what Add derives from them: the flares, the bounding sphere and
    *   the max size. Every renderable instance is bound back to this set. Nothing
-   *   prepares here: the first use (IsGood) does, so a build that fails or is
+   *   prepares here: the first use (EnsureGood) does, so a build that fails or is
    *   never drawn holds no device objects (docs internal/decisions/device-resource-registration.md,
    *   Revised lifecycle § 2).
    */
@@ -944,8 +944,8 @@ export class EveBoosterSet2 extends EveEntity
     this._glowsVisible = false;
     if (this.display)
     {
-      // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Its renderables draw from the buffers preparing builds.
-      this.IsGood();
+      // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Its renderables draw from the buffers preparing builds.
+      this.EnsureGood();
       for (const renderable of this.instances)
       {
         renderable.UpdateVisibility(updateContext);

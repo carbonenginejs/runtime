@@ -189,12 +189,12 @@ export class EveSpherePin
    * Carbon's constructor: creates its effects and bounds, and prepares.
    *
    * Carbon prepares here (its constructor); here nothing prepares during a build: the
-   * first use (IsGood) does, so a build that fails or is never drawn holds no
+   * first use (EnsureGood) does, so a build that fails or is never drawn holds no
    * device objects (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    *
    * @adapted Carbon registers with the device here, as the Tr2DeviceResource
    *   base constructor does (Tr2DeviceResource.cpp:6-9). Here it registers on
-   *   use (IsGood at its use site), so one built and never drawn is never listed
+   *   use (EnsureGood at its use site), so one built and never drawn is never listed
    *   and one left unused is released (docs internal/decisions/device-resource-registration.md).
    */
   constructor()
@@ -577,8 +577,8 @@ export class EveSpherePin
     let good = true;
     if (!geometry || !geometry.EnsureGood()) good = false;
     if (!effect || !effect.EnsureGood()) good = false;
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the index buffer check: preparing builds it.
-    if (!this.IsGood()) good = false;
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the index buffer check: preparing builds it.
+    if (!this.EnsureGood()) good = false;
     if (!good || geometry.GetMeshCount() < 1) return;
     const lod = geometry.GetMeshLod__LodIndex(0, 0);
     if (!lod || !this._indexBuffer.IsValid()) return;

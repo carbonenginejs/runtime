@@ -48,7 +48,7 @@ function stormOverOneLocator(multiplier)
     GetBoundingSphere(out) { out.set([ 0, 0, 0, 50 ]); return true; }
   };
   // In use, as a drawn ship's is: nothing prepares during a build.
-  storm.IsGood();
+  storm.EnsureGood();
   assert.equal(storm.Rebuild(), true);
   return storm;
 }

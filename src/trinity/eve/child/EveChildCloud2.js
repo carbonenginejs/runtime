@@ -380,7 +380,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    *
    * @adapted Carbon registers with the device and prepares here, as the
    *   Tr2DeviceResource base constructor registers (Tr2DeviceResource.cpp:6-9).
-   *   Here it does both on its first use (IsGood at its use site), so one built
+   *   Here it does both on its first use (EnsureGood at its use site), so one built
    *   and never drawn is never listed and holds no device objects, and one left
    *   unused is released (docs internal/decisions/device-resource-registration.md, Revised lifecycle § 2).
    */
@@ -964,8 +964,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       return false;
     }
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the cube checks: preparing builds it.
-    const good = this.IsGood();
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the cube checks: preparing builds it.
+    const good = this.EnsureGood();
     // Asked with it, not after: renews what the effect holds, and skips it while its resource is not good.
     const effectGood = !!this.effect && this.effect.EnsureGood();
     if (!good || !effectGood) return false;
@@ -1305,8 +1305,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       return false;
     }
-    // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the cube checks: preparing builds it.
-    const good = this.IsGood();
+    // Registers with trinity on first use and renews it (Tr2DeviceResource.EnsureGood). Before the cube checks: preparing builds it.
+    const good = this.EnsureGood();
     // Asked with it, not after: renews what the effect holds, and skips it while its resource is not good.
     const effectGood = !!this.reflectionEffect && this.reflectionEffect.EnsureGood();
     if (!good || !effectGood) return false;
