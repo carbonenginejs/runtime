@@ -163,10 +163,10 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /**
    * Carbon Initialize (Tr2SkinnedModel.cpp:202-223): resets the skeleton and bindings, then acquires the geometry
-   * resource and becomes its notify target, so RebuildCachedData selects the skeleton once it is prepared (at once
-   * when it already is).
+   * resource, and RebuildCachedData selects the skeleton once it is prepared (at once when it already is).
    *
-   * @implemented
+   * @adapted Carbon registers the model as the geometry's notify target; ours pulls the geometry's changes at use
+   *   (BlueAsyncRes.ensureDependency, slot "geometry"), because JavaScript has no destructor to unregister it.
    * @returns {boolean} true
    */
 
@@ -175,9 +175,6 @@ export class Tr2SkinnedModel extends Tr2Model
   {
     this._skeletonIx = NO_SKELETON;
     this._areAllMeshesBound = false;
-
-
-
     this.geometryRes = null;
     // Carbon registers the model as a notify target below, which rebuilds at
     // once when the resource is prepared, even the same one. The pull does

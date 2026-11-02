@@ -1096,8 +1096,9 @@ export class Tr2Effect extends Tr2Material
 
   /**
    * Drops the resolved shader and clears every parameter's and resource's effect
-   * handles by rebuilding them against null. As a notify target
-   * (Tr2Effect.cpp:842-855) it acts only for this effect's own resource.
+   * handles by rebuilding them against null. Called for a dependency
+   * (Tr2Effect.cpp:842-855; pulled through `BlueAsyncRes.ensureDependency`), it
+   * acts only for this effect's own resource.
    *
    * @param {object} [resource] Resource that released its payload.
    */

@@ -119,8 +119,8 @@ export class Tr2PrimitiveSet extends IRoot
   /**
    * Native opaque/picking dispatch (cpp:52), despite its stale transparent comment.
    *
-   * @adapted the effect is asked `IsGood()` first, which renews what it holds
-   *   and skips it while its resource is not good (Tr2Effect.IsGood).
+   * @adapted the effect is asked `EnsureGood()` first, which renews what it
+   *   holds and skips it while its resource is not good (Tr2Effect.EnsureGood).
    */
 
   GetBatches(accumulator, batchType, perObjectData, _reason)

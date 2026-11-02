@@ -1017,8 +1017,8 @@ export class EveSpaceObject2 extends EveEntity
    * skinned hull animates from the granny file that geometry keeps.
    *
    * Carbon `PrepareForAnimation` (cpp:3176-3199). Carbon also moves the ship's
-   * own notify target to the new geometry; the updater's rebuild on load is
-   * the updater's own subscription here (Tr2GrannyAnimation.SetSharedGeometryRes),
+   * own notify target to the new geometry; here the updater pulls the
+   * geometry's changes itself at use (Tr2GrannyAnimation.SetSharedGeometryRes),
    * and the audio geometry is not ported.
    *
    * @adapted

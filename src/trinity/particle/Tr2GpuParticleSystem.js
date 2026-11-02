@@ -83,8 +83,8 @@ const EFFECT_SLOTS = [ "emit", "update", "render", "clear", "setDrawParameters",
 
 /**
  * Carbon CheckEffect (cpp:51-54): whether the effect is usable.
- * Adapted: asks `IsGood()`, which also renews what the effect holds and is
- * false while its resource is not good (Tr2Effect.IsGood).
+ * Adapted: asks `EnsureGood()`, which also renews what the effect holds and is
+ * false while its resource is not good (Tr2Effect.EnsureGood).
  *
  * @param {object|null} effect A Tr2Effect.
  * @returns {boolean} Whether it can be used now.
