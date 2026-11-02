@@ -201,10 +201,12 @@ export class Tr2PostProcessRenderer extends IRoot
    *
    * @cjs An option between the two Carbon versions, which carry no switch
    *   (operator, 2026-11-01: "we leave as an option"); HEAD's at strength 1 is
-   *   much closer to the in-game crop. Registered in
+   *   much closer to the in-game crop. On by default (operator, 2026-11-02:
+   *   HEAD's sharpening is the default), at the post process's own strength,
+   *   Carbon's default 0.5. Registered in
    *   docs/architecture/non-carbon-extensions.md.
    */
-  useSharpeningStrength = false;
+  useSharpeningStrength = true;
 
   /**
    * The depth-of-field layers the space render driver drew this frame, each
