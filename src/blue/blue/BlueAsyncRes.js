@@ -124,6 +124,17 @@ export class BlueAsyncRes
   _revivalAttempts = 0;
 
   /**
+   * How many times this resource has finished preparing, good or failed: the
+   * change owners compare against at use (`ensureDependency`). Not bumped when
+   * a reload starts or a purge drops data.
+   *
+   * @cjs Carbon tells owners of a change by calling them at once; ours lets
+   *   owners notice it at their next use, which needs something to compare.
+   * @type {number}
+   */
+  _revision = 0;
+
+  /**
    * `m_reloadNotifyTargets` (BlueAsyncRes.h:189) - the registered
    * `IBlueAsyncResNotifyTarget`s, each held through a WeakRef.
    *
@@ -367,6 +378,78 @@ export class BlueAsyncRes
   {
     this.KeepAlive();
     return this._isGood;
+  }
+
+  /**
+   * Renews this resource for use, then answers `IsGood()`. Use it where the
+   * resource is about to be used; `IsGood()` only asks.
+   *
+   * @cjs Carbon's MotherLode keeps a resource alive by reference
+   *   (MotherLode.h:31-39); ours expires it after inactivity, so use renews it.
+   *   KeepAlive also revives a policy-purged resource within resMan's cap.
+   * @implemented
+   * @returns {boolean} Whether the resource is good.
+   */
+  EnsureGood()
+  {
+    this.KeepAlive();
+    return this.IsGood();
+  }
+
+  /**
+   * Renews `dependency` for `owner`'s use and brings the owner's cached data up
+   * to date with it: Carbon's `RebuildCachedData(dependency)` when the
+   * dependency is good and its revision differs from the one the owner built
+   * from, and `ReleaseCachedData(dependency)` once when a dependency the owner
+   * had built from is no longer good (IBlueAsyncResNotifyTarget,
+   * BlueAsyncRes.h:26-27). The owner records what it built from in its own
+   * `_dependencyRevisions` Map, one entry per slot. A slot bound to another
+   * resource starts again: the new one is rebuilt from when good, and nothing
+   * is released for the old one (the owner's setter owns that, as Carbon's do).
+   * Call it at draw-readiness sites, for every dependency, without
+   * short-circuiting, so every dependency is renewed.
+   *
+   * @cjs Carbon pushes these calls from the resource to persistent notify
+   *   targets, which its destructors unregister; JavaScript has no destructors,
+   *   so the owner pulls them at its next use and nothing holds the owner.
+   * @implemented
+   * @param {BlueAsyncRes|null} dependency The resource in the slot, or null.
+   * @param {object} owner The owner: Carbon's two methods and a `_dependencyRevisions` Map.
+   * @param {string} slotKey Which of the owner's slots this is (`"geometry"`, `"lowResGeometry"`).
+   * @returns {boolean} The dependency's `EnsureGood()`; false for an empty slot.
+   * @throws {TypeError} When the owner has no `_dependencyRevisions` Map.
+   */
+  static ensureDependency(dependency, owner, slotKey)
+  {
+    const revisions = owner._dependencyRevisions;
+    if (!(revisions instanceof Map)) throw new TypeError(`${CjsSchema.getClassName(owner.constructor)} needs a _dependencyRevisions Map to track its dependencies.`);
+    let entry = revisions.get(slotKey);
+    if (!dependency)
+    {
+      revisions.delete(slotKey);
+      return false;
+    }
+    if (entry && entry.resource !== dependency)
+    {
+      revisions.delete(slotKey);
+      entry = undefined;
+    }
+    const good = dependency.EnsureGood();
+    if (good)
+    {
+      if (!entry || !entry.built || entry.revision !== dependency._revision)
+      {
+        owner.RebuildCachedData(dependency);
+        revisions.set(slotKey, { resource: dependency, revision: dependency._revision, built: true });
+      }
+    }
+    else if (entry && entry.built)
+    {
+      owner.ReleaseCachedData(dependency);
+      entry.built = false;
+      entry.revision = dependency._revision;
+    }
+    return good;
   }
 
   /**
@@ -635,6 +718,8 @@ export class BlueAsyncRes
    */
   _NotifyRebuildCachedData()
   {
+    // Owners pull this change at their next use (ensureDependency).
+    this._revision++;
     this._PruneNotifyTargets();
     for (let i = 0; i < this._reloadNotifyTargets.length; ++i)
     {

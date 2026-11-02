@@ -126,6 +126,15 @@ export class Tr2AtlasTexture extends IRoot
   /** BlueAsyncRes m_isPrepared */
   _isPrepared = false;
 
+  /**
+   * BlueAsyncRes `_revision`: bumped each time this texture becomes good, so
+   * owners using it through `BlueAsyncRes.ensureDependency` rebuild from it.
+   *
+   * @cjs As BlueAsyncRes `_revision`.
+   * @type {number}
+   */
+  _revision = 0;
+
   /** BlueAsyncRes loading state; nothing sets it until the load path is ported. */
   _isLoading = false;
 
@@ -230,6 +239,7 @@ export class Tr2AtlasTexture extends IRoot
     this._renderTarget = rt;
     this._isGood = true;
     this._isPrepared = true;
+    this._revision++;
     if (this._renderTarget)
     {
       this.width = rt.GetWidth();
@@ -612,6 +622,7 @@ export class Tr2AtlasTexture extends IRoot
 
     this._isLocked = false;
     this._isGood = true;
+    this._revision++;
 
     this._NotifyListenersOfChange();
   }
@@ -757,6 +768,7 @@ export class Tr2AtlasTexture extends IRoot
     this._textureRes = p;
     this._isPrepared = true;
     this._isGood = true;
+    this._revision++;
 
     this.x = 0;
     this.y = 0;
@@ -789,6 +801,19 @@ export class Tr2AtlasTexture extends IRoot
   IsGood()
   {
     return this._isGood;
+  }
+
+  /**
+   * BlueAsyncRes `EnsureGood`: nothing to renew (an atlas texture has no
+   * MotherLode identity; its owner keeps it), so it answers `IsGood()`.
+   *
+   * @cjs As BlueAsyncRes `EnsureGood`.
+   * @implemented
+   * @returns {boolean} Whether the texture holds valid pixels.
+   */
+  EnsureGood()
+  {
+    return this.IsGood();
   }
 
   /**
