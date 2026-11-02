@@ -231,7 +231,7 @@ export class CjsIncarnaEmulator
       const mask = masks.get(source);
       if (!mask || mask.max < threshold * 255) continue;
       const toAssembly = mat4.multiply(mat4.create(), toRoot, transform);
-      CjsIncarnaEmulator.gatherGlow(cells, mesh.GetGeometryResource().GetMeshData(mesh.GetMeshIndex()), area, mask, toAssembly, { threshold, cell, mirror });
+      CjsIncarnaEmulator.gatherGlow(cells, mesh.GetGeometryResource().GetCMFData().meshes[mesh.GetMeshIndex()], area, mask, toAssembly, { threshold, cell, mirror });
     }
     return CjsIncarnaEmulator.glowPositions(cells, { cell, spacing, distance, mirror });
   }
@@ -297,7 +297,7 @@ export class CjsIncarnaEmulator
     for (const { mesh, transform } of meshes)
     {
       const toAssembly = mat4.multiply(mat4.create(), toRoot, transform);
-      const data = mesh.GetGeometryResource().GetMeshData(mesh.GetMeshIndex());
+      const data = mesh.GetGeometryResource().GetCMFData().meshes[mesh.GetMeshIndex()];
       const { position } = data.vertex;
       for (const area of [ ...mesh.opaquePrepassAreas, ...mesh.transparentAreas ])
       {

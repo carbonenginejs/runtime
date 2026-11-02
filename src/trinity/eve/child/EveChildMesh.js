@@ -1215,7 +1215,7 @@ export class EveChildMesh extends EveChildTransform
 
     const meshIndex = Number(this.mesh.GetMeshIndex()) >>> 0;
     const mesh = geometry.GetMeshData(meshIndex);
-    const boneCount = Math.max(mesh?.boneBindings?.length ?? 0, 1);
+    const boneCount = Math.max(mesh?.jointBindings.length ?? 0, 1);
 
     if (!this._restPoseBoneTransforms || this._restPoseBoneTransforms.length !== boneCount * 12)
     {

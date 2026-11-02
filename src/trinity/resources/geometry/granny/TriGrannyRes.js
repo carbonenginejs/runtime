@@ -1097,7 +1097,8 @@ export class TriGrannyRes extends BlueAsyncRes
     if (weights.length !== source.morphTargets.targets.length) throw new RangeError("Blendshape weight count does not match targets");
     if (source.decl.some(element => /PackedTangent/.test(element.usage))) throw new Error("Packed tangent blendshape baking is not implemented");
     const base = source.lods[0].vertex;
-    if (!base.position || !lod.vertex || lod.vertex.position.length !== base.position.length) throw new Error("Blendshape destination layout mismatch");
+    const destinationVertex = geom.GetCMFLod(meshIx, lod)?.vertex;
+    if (!base.position || !destinationVertex || destinationVertex.position.length !== base.position.length) throw new Error("Blendshape destination layout mismatch");
     const vertex = Object.fromEntries(Object.entries(base).map(([key, value]) => [key, value.slice()]));
 
     for (let index = 0; index < weights.length; index++)

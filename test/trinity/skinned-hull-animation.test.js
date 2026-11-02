@@ -264,7 +264,7 @@ test("a child mesh without an updater uploads the identity rest pose", (t) =>
 
   // Carbon GetRestPoseBoneTransforms: one identity even with no bindings.
   const child = new EveChildMesh();
-  child.mesh = { GetGeometryResource: () => ({ GetMeshData: () => ({ boneBindings: [] }) }), GetMeshIndex: () => 0 };
+  child.mesh = { GetGeometryResource: () => ({ GetMeshData: () => ({ jointBindings: [] }) }), GetMeshIndex: () => 0 };
 
   assert.deepEqual(BoneOffsets(child.GetPerObjectData()).slice(0, 3), [ 0, 0, 1 ]);
   assert.equal(ring.head, 1);

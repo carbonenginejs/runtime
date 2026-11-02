@@ -98,9 +98,12 @@ function ReversedIndices(bytes, format)
  * Adapted: the lazy JS submit path explicitly unwinds partial allocations on
  * failure or throw; Carbon releases failed index allocations before returning.
  *
+ * The CMF source is the record's `originalLodIndex`, as Carbon's
+ * CreateMeshesFromCMFFile reads it (TriGeometryRes.cpp:2326).
+ *
  * @param {object} geometry The `TriGeometryRes`.
  * @param {number} meshIndex The mesh.
- * @param {object} lod The LOD object the batch's area belongs to.
+ * @param {TriGeometryResLodData} lod The LOD record the batch's area belongs to.
  * @param {object} renderContext The `Tr2RenderContext` to allocate through.
  * @returns {boolean} Whether the LOD's allocations are valid afterwards.
  */
@@ -113,7 +116,7 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
 
   if (!mesh) return false;
 
-  const lodIndex = Array.isArray(mesh.lods) ? Math.max(0, mesh.lods.indexOf(lod)) : 0;
+  const lodIndex = mesh.lods?.length ? lod.originalLodIndex : 0;
   let packed;
 
   try
@@ -149,8 +152,8 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
 
     // Carbon stores these on the mesh/LOD at resource preparation. Geometry
     // providers use the same packed layout as ordinary mesh draws.
-    mesh.vertexDeclarationHandle = Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(packed.decl));
-    mesh.bytesPerVertex = packed.vertex.stride;
+    lod.mesh.vertexDeclarationHandle = Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(packed.decl));
+    lod.mesh.bytesPerVertex = packed.vertex.stride;
     lod.vertexCount = packed.vertex.count;
     lod.allocationsValid = true;
 
@@ -229,7 +232,7 @@ export function CreateLodWireframeIndices(geometry, meshIndex, lod, renderContex
   if (lod.wireframeIndexAllocation) return true;
 
   const mesh = geometry.GetCMFData()?.meshes?.[meshIndex];
-  const lodIndex = mesh && Array.isArray(mesh.lods) ? Math.max(0, mesh.lods.indexOf(lod)) : 0;
+  const lodIndex = mesh?.lods?.length ? lod.originalLodIndex : 0;
   const indices = mesh ? TriGeometryRes.packLodIndices(mesh, lodIndex) : null;
 
   if (!indices)

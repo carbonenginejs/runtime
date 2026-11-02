@@ -94,8 +94,9 @@ test("switching ships lets the idle owner's GPU objects expire while the current
     geometry.ReadCMFFile({ meshes: [mesh] });
     prepareResourceFixture(geometry);
     manager.motherLode.Insert(geometry.GetPath(), geometry);
-    CreateLodAllocations(geometry, 0, mesh, render);
-    const allocation = mesh.vertexAllocation;
+    const lod = geometry.GetMeshLod__LodIndex(0, 0);
+    CreateLodAllocations(geometry, 0, lod, render);
+    const allocation = lod.vertexAllocation;
     // A private adapter buffer exercises physical buffer destruction separately
     // from Carbon's shared geometry pool, whose surviving slices must stay valid.
     const privateResource = new TriGeometryRes();

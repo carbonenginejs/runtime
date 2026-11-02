@@ -200,7 +200,7 @@ export class Tr2MeshBase
    *
    * @adapted renderRig is the decoded payload skeleton, { name, bones: [names], parents }, so Carbon's
    *   renderRig->FindJoint and m_joints[i].m_parentJoint / m_name read bones.indexOf, parents[i] and bones[i]; the mesh's
-   *   m_jointBindings are the payload mesh's boneBindings. Carbon's CCP_LOGWARN on an unknown joint is not reproduced.
+   *   m_jointBindings are the mesh record's jointBindings. Carbon's CCP_LOGWARN on an unknown joint is not reproduced.
    * @param {string[]} boneList - the animation rig's bone names
    * @param {number} numBones
    * @param {object} renderRig - the geometry resource's skeleton
@@ -231,7 +231,7 @@ export class Tr2MeshBase
       return true;
     }
 
-    const bindings = meshData.boneBindings;
+    const bindings = meshData.jointBindings;
     const n = bindings.length;
     this._jointMappingAnimRig = new Uint32Array(n); // alloc: the binding table the areas share until the next bind
 
@@ -285,8 +285,8 @@ export class Tr2MeshBase
    *
    * @adapted Carbon returns its cached box; here the box is read from the geometry, and null when there is none.
    *   Bone transforms are mat4s whose memory matches Carbon's row-vector Matrix, so rows 0-2 are elements 0-2, 4-6
-   *   and 8-10 and the translation is 12-14. The payload's boneBindings carry the joint OBB as bounds or
-   *   minBounds/maxBounds. Morph growth reads the LOD's morphTargetDeformationAmounts, which Carbon fills at load
+   *   and 8-10 and the translation is 12-14. The mesh record's jointBindings carry the joint OBB
+   *   (TriJointBinding m_obbMin/m_obbMax). Morph growth reads the LOD's morphTargetDeformationAmounts, which Carbon fills at load
    *   (TriGeometryRes.cpp:2134, 2293) and our decoders do not yet produce.
    * @param {mat4[]|null} [boneTransforms]
    * @param {ArrayLike<number>|null} [meshBindingIndices] - each binding's index into boneTransforms
@@ -358,7 +358,7 @@ export class Tr2MeshBase
     vec3.set(max, -Infinity, -Infinity, -Infinity);
     for (let i = 0; i < boneCount; ++i)
     {
-      const joint = TriGeometryRes.getBounds(meshData.boneBindings[i]);
+      const joint = meshData.jointBindings[i];
       const m = boneTransforms[meshBindingIndices[i]];
       for (let axis = 0; axis < 3; ++axis)
       {
@@ -367,8 +367,8 @@ export class Tr2MeshBase
         let high = m[12 + axis];
         for (let row = 0; row < 3; ++row)
         {
-          const fromMin = m[4 * row + axis] * joint.min[row];
-          const fromMax = m[4 * row + axis] * joint.max[row];
+          const fromMin = m[4 * row + axis] * joint.obbMin[row];
+          const fromMax = m[4 * row + axis] * joint.obbMax[row];
           low += Math.min(fromMin, fromMax);
           high += Math.max(fromMin, fromMax);
         }

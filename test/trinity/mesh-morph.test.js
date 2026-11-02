@@ -10,20 +10,18 @@ import { localFileSystem } from "../support/localFileSystem.js";
 
 function CreateGeometry(names, baked = names.map(() => false), { loading = false } = {})
 {
-  const lod = {
-    morphTargetNames: names.slice(),
-    isBakedMorphTarget: baked.slice()
-  };
-
   // A real resource lifecycle: the mesh is its notify target, and the prepare
   // fence waits on it. Already prepared unless the caller asks for one still
   // loading, which it finishes later with MarkPrepared().
   const resource = new TriGeometryRes();
+  resource.SetupMeshes({ meshes: [ { lods: [ {} ] } ] });
+  const lod = resource.GetMeshLod__LodIndex(0, 0);
+  lod.morphTargetNames = names.slice();
+  lod.isBakedMorphTarget = baked.slice();
   if (loading) pendingResourceFixture(resource);
   else prepareResourceFixture(resource);
   return Object.assign(resource, {
     lod,
-    _cmfData: { meshes: [ { lods: [ lod ] } ] },
     GetBoundingBox(_meshIndex, outMin = null, outMax = null)
     {
       const min = [ -1, -1, -1 ];

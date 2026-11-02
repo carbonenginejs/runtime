@@ -98,7 +98,7 @@ test("a LOD's allocations are made once, with a reversed index copy, and the bat
   const lod = geometry.GetMeshLod__LodIndex(0, 0);
 
   assert.ok(lod, "a single-LOD mesh is its own LOD");
-  assert.equal(lod.allocationsValid, undefined);
+  assert.equal(lod.allocationsValid, false);
 
   // The shared buffer is per backend; a first allocation sits at offset zero,
   // so the start indices are zero - which is why the batch's arguments would

@@ -790,10 +790,7 @@ export class EveSpaceObjectDecal
 
     const mesh = geometryResource.GetMeshData(0);
 
-    // The decoded payload carries no lodMask; the build stores `?? 0`, so the
-    // comparison defaults the same way. Comparing the raw undefined rebuilt the
-    // geometry on every call, which leaks now that a build allocates.
-    if (!this._decalGeometry || (mesh && (mesh.lodMask ?? 0) !== this._decalGeometry.lodMask))
+    if (!this._decalGeometry || (mesh && mesh.lodMask !== this._decalGeometry.lodMask))
     {
       this._decalGeometry = this._BuildGeometry(mesh);
     }
@@ -854,7 +851,7 @@ export class EveSpaceObjectDecal
    * behind g_buildDecalBuffers (default false, cpp:22-23, :203-206); this runs
    * it whenever there are no static lists. Shipped hull decals all carry them.
    *
-   * @param {object} mesh Decoded mesh data (Carbon's TriGeometryResMeshData).
+   * @param {TriGeometryResMeshData} mesh The base geometry's mesh 0 record.
    * @returns {MeshDecalData|null} Built geometry, or null when there is nothing to draw.
    */
   _BuildGeometry(mesh)
@@ -865,15 +862,17 @@ export class EveSpaceObjectDecal
     const cached = FindCachedDecalGeometry(mesh.decals, this._inverseDecalMatrix);
     if (cached) return cached;
 
+    // The triangles are read from the CMF source; the record keeps the decal cache and the LOD mask.
+    const cmfMesh = this._baseGeometryResource.GetCMFData().meshes[0];
     const built = this.HasStaticIndexBuffers()
-      ? BuildStaticDecalGeometry(mesh, this.staticIndexBuffers)
-      : BuildDecalGeometry(mesh, this._decalMatrix, this._inverseDecalMatrix);
+      ? BuildStaticDecalGeometry(cmfMesh, this.staticIndexBuffers)
+      : BuildDecalGeometry(cmfMesh, this._decalMatrix, this._inverseDecalMatrix);
 
     if (!built.indices.length) return null;
 
     const decalGeometry = new MeshDecalData();
     mat4.copy(decalGeometry.inverseDecalMatrix, this._inverseDecalMatrix);
-    decalGeometry.lodMask = mesh.lodMask ?? 0;
+    decalGeometry.lodMask = mesh.lodMask;
     decalGeometry.lods = built.lods;
 
     // USE_MAIN_THREAD_RENDER_CONTEXT, then g_sharedBuffer.Allocate( 4, ... ).

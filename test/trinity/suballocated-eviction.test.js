@@ -170,7 +170,7 @@ test(`${source} geometry evict/reload cycles return every LOD's used bytes to th
     const multi = { ...mesh(), lods: [ mesh(), mesh() ] };
     geometry.ReadCMFFile({ meshes: [ flat, multi ] });
     prepareResourceFixture(geometry);
-    const lods = [ flat, ...multi.lods ];
+    const lods = [ geometry.GetMeshLod__LodIndex(0, 0), ...geometry.GetMeshData(1).lods ];
     const allocations = [];
     for (let index = 0; index < lods.length; index += 1)
     {

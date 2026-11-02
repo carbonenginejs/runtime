@@ -221,7 +221,8 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     let picking = null, vertexCount = 0, indexCount = 0;
     for (let index = 0; index < resource.GetMeshCount(); index++)
     {
-      const mesh = resource.GetMeshData(index), lod = resource.GetMeshLod__LodIndex(index, 0);
+      // The vertices are the CMF source's, as Carbon's CreatePrimitiveFromCMF reads them (GetCMFData).
+      const mesh = resource.GetCMFData().meshes[index], lod = resource.GetCMFLod(index, resource.GetMeshLod__LodIndex(index, 0));
       if (!lod || !lod.vertex?.position) throw new Error(`Tr2GrannyPrimitiveSet: mesh ${index} has no LOD-zero position stream`);
       const count = lod.vb?.stride ? lod.vb.size / lod.vb.stride : lod.vertexCount ?? mesh.vertexCount ?? lod.vertex.position.length / 3;
       const faces = ReadIndices(resource.GetCMFData(), mesh, lod);

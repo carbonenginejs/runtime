@@ -66,6 +66,13 @@ export class TriGeometryResLodData
   /** m_reversedIndexAllocation (Tr2SuballocatedBuffer::Allocation) */
   reversedIndexAllocation = null;
 
+  /**
+   * Ours: the edge-list allocation wireframe draws use, built on the first
+   * wireframe draw (TriGeometryResAllocations.CreateLodWireframeIndices). Carbon
+   * draws wireframe through the fill-mode render state and needs none.
+   */
+  wireframeIndexAllocation = null;
+
 }
 
 CjsSchema.decorateField(TriGeometryResLodData, "mesh", type.rawStruct("TriGeometryResMeshData"));

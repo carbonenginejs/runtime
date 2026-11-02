@@ -83,7 +83,7 @@ test("cold instanced mesh merges declarations and preserves suballocation/instan
     assert.equal(merged[i+1].usageIndex,original.items[i].usageIndex+8,"Tr2InstancedMesh.cpp:482 native semantic offset");
   }
   assert.deepEqual(original.items.map(item=>({...item})),saved,"merge leaves source declaration unchanged");
-  const lod=g.GetMeshLod__ScreenSize(0,Infinity);assert.equal(lod.allocationsValid,undefined);
+  const lod=g.GetMeshLod__ScreenSize(0,Infinity);assert.equal(lod.allocationsValid,false);
   const batches=collect(mesh,[area]);assert.equal(batches.length,1);assert.equal(lod.allocationsValid,true,"cold base realized before stream1 binding");
   const b=batches[0];assert.equal(b.vertexStreams[1],data.buffer);assert.equal(b.instanceCount,2);assert.equal(b.startInstanceLocation,3);
   assert.ok(b.baseVertexLocation>0);assert.equal(b.startIndexLocation,lod.indexAllocation.GetStartIndex()+3);
@@ -218,8 +218,8 @@ test("cold geometry providers bind aligned uploaded data for assigned and loaded
   const {context,draws,material,uploads}=setup(t);
   for(const loaded of [false,true]) {
     const provider=geometry(),mesh=new Tr2InstancedMesh(),area=new Tr2MeshArea();area.SetMaterial(material);
-    const payload=provider.GetMeshData(0);
-    payload.bounds={min:[-2,-3,-4],max:[5,6,7]};
+    const payload=provider.GetCMFData().meshes[0];
+    payload.bounds={min:[-2,-3,-4],max:[5,6,7]};provider.ReadCMFFile(provider.GetCMFData());
     assert.equal(provider.IsInstanceDataReady(),true);
     assert.deepEqual(provider.GetInstanceData(),{buffer:null,offset:0,stride:0,count:0});
     assert.equal(provider.GetInstanceBufferVertexDeclaration(),Tr2EffectStateManager.Unknown);
@@ -247,14 +247,14 @@ test("cold geometry providers bind aligned uploaded data for assigned and loaded
 test("requested cold instance LOD draws without preparing a broken full-detail LOD", t => {
   const {context,draws,material,uploads}=setup(t),provider=geometry(),mesh=new Tr2InstancedMesh(),area=new Tr2MeshArea();
   area.SetMaterial(material);
-  const payload=provider.GetMeshData(0);
+  const payload=provider.GetCMFData().meshes[0];
   payload.lods=[{vertex:{position:[]},areas:[]},{maxScreenSize:20,vertex:{position:[8,9,10,11,12,13]},areas:[]}];
-  delete payload.vertex;delete payload.indices;delete payload.areas;
+  delete payload.vertex;delete payload.indices;delete payload.areas;provider.ReadCMFFile(provider.GetCMFData());
   mesh.instanceGeometryResource=provider;mesh.SetGeometryRes(geometry());
   const batches=[];
   assert.equal(mesh.GetBatches({Commit(b){batches.push(b);return true;}},[area],null,10),true);
   const data=provider.GetInstanceData(0,10);assert.equal(data.count,2);
-  assert.equal(payload.lods[0].allocationsValid,undefined,"LOD0 is not needed for an LOD1 draw");
+  assert.equal(provider.GetMeshLod__LodIndex(0,0).allocationsValid,false,"LOD0 is not needed for an LOD1 draw");
   context.RenderBatches({GetBatches:()=>batches});assert.equal(draws.at(-1)[1],2);
   assert.ok(uploads.some(upload=>upload.buffer===data.buffer && upload.args.some(value=>ArrayBuffer.isView(value) && value.byteLength===24 && new Float32Array(value.buffer,value.byteOffset,6)[0]===8)));
 });

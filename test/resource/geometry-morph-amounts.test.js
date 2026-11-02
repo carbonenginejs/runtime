@@ -23,14 +23,15 @@ test("every LOD carries one deformation amount per morph target, Carbon's larges
   const mesh = meshes[meshIndex];
   const targets = mesh.morphTargets.targets;
 
-  for (const lod of mesh.lods?.length ? mesh.lods : [ mesh ])
+  for (const lod of geometry.GetMeshData(meshIndex).lods)
   {
     assert.deepEqual(lod.morphTargetDeformationAmounts, targets.map(target => target.maxDisplacement));
   }
 
   // Carbon's CalculateMorphDeformationAmount (cpp:2240-2256 helpers): sqrt of the largest squared distance from each
   // base position to its morph position, re-derived here from the decoded vertices.
-  const lod = geometry.GetMeshLod__LodIndex(meshIndex, 0);
+  // The vertices are the CMF source's; the LOD record holds the amounts.
+  const lod = geometry.GetCMFLod(meshIndex, geometry.GetMeshLod__LodIndex(meshIndex, 0));
   const base = (lod.vertex ?? mesh.vertex).position;
   for (const index of [ 0, Math.floor(targets.length / 2), targets.length - 1 ])
   {
@@ -62,7 +63,7 @@ test("Tr2MeshBase.GetBounds grows by the loaded morph amounts (Tr2MeshBase.cpp:2
   mesh.SetGeometryRes(geometry);
   mesh.meshIndex = meshIndex;
 
-  const bindings = geometry.GetMeshData(meshIndex).boneBindings;
+  const bindings = geometry.GetMeshData(meshIndex).jointBindings;
   const bones = bindings.map(() => mat4.create());
   const indices = bindings.map((_binding, index) => index);
   const rest = mesh.GetBounds(bones, indices, bindings.length);

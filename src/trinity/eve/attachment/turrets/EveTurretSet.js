@@ -1700,7 +1700,8 @@ export class EveTurretSet extends EveEntity
     let mesh = null;
     for (let index = 0; index < this.geometryResource.GetMeshCount(); index++)
     {
-      const candidate = this.geometryResource.GetMeshData(index);
+      // The skeleton index is the CMF mesh's; the mesh record has no such field.
+      const candidate = this.geometryResource.GetCMFData().meshes[index];
       if (candidate.skeleton === 0) { mesh = candidate; break; }
     }
     if (!mesh || !mesh.boneBindings.length) return;

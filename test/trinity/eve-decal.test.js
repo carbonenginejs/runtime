@@ -255,7 +255,7 @@ function visibleDecal()
 
 /** A hull geometry resource of the shape GetRenderables reads. */
 const hullOf = (lodMask = 1, lodCount = 1) => ({
-  GetMeshData: () => ({ lodMask, lods: Array.from({ length: lodCount }, () => ({})) }),
+  GetCMFData() { return { meshes: [ this.GetMeshData(0) ] }; }, GetMeshData: () => ({ lodMask, lods: Array.from({ length: lodCount }, () => ({})) }),
   GetLodIndexForScreenSize: () => 0
 });
 
@@ -339,7 +339,7 @@ test("a new hull invalidates the built geometry rather than reusing it", () =>
 
   // A hull with no mesh data at all. If the old build were kept, this would
   // still report true.
-  const empty = { GetMeshData: () => null, GetLodIndexForScreenSize: () => 0 };
+  const empty = { GetCMFData() { return { meshes: [ this.GetMeshData(0) ] }; }, GetMeshData: () => null, GetLodIndexForScreenSize: () => 0 };
 
   assert.equal(decal.GetRenderables([], null, empty, 100), false, "a new hull discards the old build");
 });
@@ -354,7 +354,7 @@ test("a changed LOD mask rebuilds against the same hull", () =>
 
   let mask = 1;
   const shifting = {
-    GetMeshData: () => ({ lodMask: mask, lods: mask === 1 ? [ {} ] : [] }),
+    GetCMFData() { return { meshes: [ this.GetMeshData(0) ] }; }, GetMeshData: () => ({ lodMask: mask, lods: mask === 1 ? [ {} ] : [] }),
     GetLodIndexForScreenSize: () => 0
   };
 
@@ -373,7 +373,7 @@ test("SetHighDetailDecalState pins the decal to LOD zero (cpp:514-517)", () =>
 
   // Unfrozen, the hull picks LOD 1, which carries no triangles.
   const hull = {
-    GetMeshData: () => ({ lodMask: 1, lods: [ {}, {} ] }),
+    GetCMFData() { return { meshes: [ this.GetMeshData(0) ] }; }, GetMeshData: () => ({ lodMask: 1, lods: [ {}, {} ] }),
     GetLodIndexForScreenSize: () => 1
   };
 
@@ -422,7 +422,7 @@ test("a mesh with no lodMask builds the decal once, not on every call", () =>
 
   decal.SetIndices([ [ 0, 1, 2 ] ]);
 
-  const hull = { GetMeshData: () => ({ lods: [ {} ] }), GetLodIndexForScreenSize: () => 0 };
+  const hull = { GetCMFData() { return { meshes: [ this.GetMeshData(0) ] }; }, GetMeshData: () => ({ lods: [ {} ] }), GetLodIndexForScreenSize: () => 0 };
   const allocations = countAllocations(() =>
   {
     for (let frame = 0; frame < 5; frame++) assert.equal(decal.GetRenderables([], null, hull, 100), true);
@@ -434,7 +434,7 @@ test("a mesh with no lodMask builds the decal once, not on every call", () =>
 test("decals sharing a hull mesh and a decal matrix share one index allocation (cpp:852-856)", () =>
 {
   const mesh = { lodMask: 1, lods: [ {} ] };
-  const hull = { GetMeshData: () => mesh, GetLodIndexForScreenSize: () => 0 };
+  const hull = { GetCMFData() { return { meshes: [ this.GetMeshData(0) ] }; }, GetMeshData: () => mesh, GetLodIndexForScreenSize: () => 0 };
   const first = visibleDecal();
   const second = visibleDecal();
 
@@ -462,7 +462,7 @@ test("GetBatches commits the hull LOD's vertices with the decal's own indices (c
 
   const vertexAllocation = { GetBuffer: () => "hull-vb", GetStride: () => 28, GetOffset: () => 28 * 100, GetStartIndex: () => 100, IsValid: () => true };
   const hull = {
-    GetMeshData: () => ({ lodMask: 1, lods: [ {} ] }),
+    GetCMFData() { return { meshes: [ this.GetMeshData(0) ] }; }, GetMeshData: () => ({ lodMask: 1, lods: [ {} ] }),
     GetLodIndexForScreenSize: () => 0,
     IsGood: () => true,
     GetMeshCount: () => 1,

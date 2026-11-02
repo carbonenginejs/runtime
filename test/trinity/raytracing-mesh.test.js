@@ -19,7 +19,10 @@ function geometry()
   });
   const resource = new TriGeometryRes();
   resource.ReadCMFFile({meshes:[{lods}]}); prepareResourceFixture(resource);
-  return {resource,lods};
+  // The LOD records carry the allocations, as Carbon's do.
+  const records = resource.GetMeshData(0).lods;
+  records.forEach((lod,index) => { lod.vertexAllocation = lods[index].vertexAllocation; lod.indexAllocation = lods[index].indexAllocation; });
+  return {resource,lods:records};
 }
 
 test("raytracing dirty state starts set and explicit invalidation is consumed once", () =>

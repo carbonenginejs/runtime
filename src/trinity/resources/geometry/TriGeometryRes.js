@@ -280,6 +280,8 @@ export class TriGeometryRes extends BlueAsyncRes
   {
     const mesh = new TriGeometryResMeshData();
     mesh.name = cmfMesh.name ?? "";
+    // Unknown until the first allocation sets it (see the method's @adapted note).
+    mesh.vertexDeclarationHandle = 0xFFFFFFFF;
 
     const bounds = TriGeometryRes.getBounds(cmfMesh);
     if (bounds)
@@ -380,11 +382,9 @@ export class TriGeometryRes extends BlueAsyncRes
     if (options.destroyAdapters !== false) this.DestroyAdapterResources();
     if (options.releasePayload === false) return;
     this.DestroyRayCaster();
-    const payload = this._cmfData;
-    for (const mesh of payload?.meshes ?? [])
+    for (const mesh of this._meshes)
     {
-      const lods = mesh.lods?.length ? mesh.lods : [ mesh ];
-      for (const lod of lods)
+      for (const lod of mesh.lods)
       {
         // wireframeIndexAllocation: the lazy edge list wireframe draws build
         // (TriGeometryResAllocations.CreateLodWireframeIndices).
@@ -497,7 +497,7 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   GetMeshCount()
   {
-    return this._cmfData?.meshes?.length || 0;
+    return this._meshes.length;
   }
 
   /**
@@ -550,20 +550,39 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   GetMeshAreaCount(meshIndex = 0)
   {
-    const mesh = this._cmfData?.meshes?.[meshIndex];
-    return mesh?.areas?.length || 0;
+    const mesh = this._meshes[meshIndex];
+    return mesh ? mesh.lods[0]?.areas.length ?? 0 : 0;
   }
 
   /**
-   * Returns one decoded CPU mesh record, or null when the index is absent.
+   * Carbon GetMeshData (TriGeometryRes.cpp:300-308): the mesh record, or null
+   * when the index is absent.
    *
-   * @adapted
-   * @param {number} meshIndex Mesh index within the retained projection.
-   * @returns {object|null} Mesh data, or null when absent.
+   * @implemented
+   * @param {number} meshIndex Mesh index.
+   * @returns {TriGeometryResMeshData|null} Mesh record, or null when absent.
    */
   GetMeshData(meshIndex = 0)
   {
-    return this._cmfData?.meshes?.[meshIndex] ?? null;
+    return this._meshes[meshIndex] ?? null;
+  }
+
+  /**
+   * The CMF source of one LOD record: the decoded LOD it was built from, or
+   * the mesh itself when the mesh was its own LOD. Carbon reads the same
+   * through `cmfContents.GetData()->meshes[i].lods[lod->m_originalLodIndex]`
+   * (TriGeometryRes.cpp:2326).
+   *
+   * @cjs our payload may flatten a single-LOD mesh.
+   * @param {number} meshIndex Mesh index.
+   * @param {TriGeometryResLodData} lod LOD record of that mesh.
+   * @returns {object|null} The decoded CMF LOD, or null without CMF data.
+   */
+  GetCMFLod(meshIndex, lod)
+  {
+    const cmfMesh = this._cmfData?.meshes?.[meshIndex];
+    if (!cmfMesh) return null;
+    return cmfMesh.lods?.length ? cmfMesh.lods[lod.originalLodIndex] ?? null : cmfMesh;
   }
 
   /**
@@ -608,14 +627,12 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   GetLodIndexForScreenSize(meshIndex = 0, screenSize = Infinity)
   {
-    const mesh = this._cmfData?.meshes?.[meshIndex];
+    const mesh = this._meshes[meshIndex];
 
     if (!mesh) return -1;
 
-    // A decoder may flatten a single-LOD mesh, putting the areas on the mesh
-    // itself; that mesh IS its own only LOD (see getMeshAreas).
-    const lods = mesh.lods?.length ? mesh.lods : null;
-    const lastLod = lods ? lods.length - 1 : 0;
+    const lods = mesh.lods;
+    const lastLod = lods.length - 1;
 
     if (this.forceLod && this.forcedLodIndex >= 0)
     {
@@ -624,7 +641,7 @@ export class TriGeometryRes extends BlueAsyncRes
 
     for (let index = lastLod; index >= 0; index--)
     {
-      const maxScreenSize = (lods ? lods[index]?.maxScreenSize : mesh.maxScreenSize) ?? 0;
+      const maxScreenSize = lods[index].maxScreenSize;
       if (maxScreenSize >= screenSize) return index;
     }
 
@@ -662,16 +679,11 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   GetMeshLod__LodIndex(meshIndex, lodIndex)
   {
-    const mesh = this._cmfData?.meshes?.[meshIndex];
+    const mesh = this._meshes[meshIndex];
 
     if (!mesh || lodIndex < 0) return null;
 
-    if (mesh.lods?.length)
-    {
-      return lodIndex < mesh.lods.length ? mesh.lods[lodIndex] : null;
-    }
-
-    return lodIndex === 0 && mesh.areas ? mesh : null;
+    return lodIndex < mesh.lods.length ? mesh.lods[lodIndex] : null;
   }
 
   /**
@@ -683,7 +695,7 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   GetMeshName(meshIndex = 0)
   {
-    return this._cmfData?.meshes?.[meshIndex]?.name || "";
+    return this._meshes[meshIndex]?.name ?? "";
   }
 
   /**
@@ -696,7 +708,7 @@ export class TriGeometryRes extends BlueAsyncRes
    */
   GetMeshAreaName(meshIndex = 0, areaIndex = 0)
   {
-    return this._cmfData?.meshes?.[meshIndex]?.areas?.[areaIndex]?.name || "";
+    return this._meshes[meshIndex]?.lods[0]?.areas[areaIndex]?.name ?? "";
   }
 
   /**

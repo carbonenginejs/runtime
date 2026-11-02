@@ -107,7 +107,7 @@ test("Apocalypse/type462 geometry ownership caches mesh0 and exact native bone I
   assert.ok(set.geometryResource===resource,"the requested handle is owned by the turret");assert.equal(set._turretVertexDeclElementCount,resource.GetMeshVertexElements(0).length+1);
   assert.ok(set.boundingSphere[3]>0);assert.equal(resource.GetMeshCount(),6);
   const b=EveTurretAiming.SystemBones;assert.equal(set._systemBoneID[b.SYSBONE_ROTATION],2);assert.equal(set._systemBoneID[b.SYSBONE_PITCH],4);
-  assert.equal(resource.GetMeshData(0).boneBindings.length,9,"11 skeleton bones are not the 9 mesh-bound bones");
+  assert.equal(resource.GetMeshData(0).jointBindings.length,9,"11 skeleton bones are not the 9 mesh-bound bones");
   assert.equal(TriGeometryResSkeletonData.prototype.FindJoint.call(resource.GetSkeletonData(0),"Pos_Fire01"),10);
   assert.equal(TriGeometryResSkeletonData.prototype.FindJoint.call(resource.GetSkeletonData(0),"Pos_Fire99"),0xffffffff);
   const positions=set.GetTurrets().map(item=>Array.from(item.localPosition));

@@ -279,11 +279,14 @@ test("model integer-zero overload selects LOD index zero even when screen-size-z
   const fine = { ...data, maxScreenSize: 1, indices: [{ faces: [0, 1, 2, 0, 2, 1] }], areas: [{ firstElement: 0, elementCount: 2 }] };
   const coarse = { ...data, maxScreenSize: 0.1 };
   data.lods = [fine, coarse];
+  // The LODs drawn are the records built from this payload.
+  resource.ReadCMFFile(payload);
+  const [ fineLod, coarseLod ] = resource.GetMeshData(0).lods;
   const item = new Tr2Mesh(), area = new Tr2MeshArea(), model = new Tr2Model();
   item.SetGeometryRes(resource); area.SetMaterial(material); item.opaqueAreas.push(area); model.AddMesh(item);
-  assert.equal(resource.GetMeshLod__ScreenSize(0, 0), coarse);
+  assert.equal(resource.GetMeshLod__ScreenSize(0, 0), coarseLod);
   const batches = []; model.GetBatches({ Commit(batch) { batches.push(batch); return true; } }, TriBatchType.TRIBATCHTYPE_OPAQUE, mat4.create(), null);
-  assert.equal(batches.length, 1); assert.equal(batches[0].geometrySource.lod === fine, true, "native int overload must choose the fine LOD");
+  assert.equal(batches.length, 1); assert.equal(batches[0].geometrySource.lod === fineLod, true, "native int overload must choose the fine LOD");
   context.RenderBatches({ GetBatches: () => batches }); assert.equal(draws[0][0], 6);
-  assert.equal(coarse.allocationsValid, undefined, "unused coarse LOD should not be allocated");
+  assert.equal(coarseLod.allocationsValid, false, "unused coarse LOD should not be allocated");
 });
