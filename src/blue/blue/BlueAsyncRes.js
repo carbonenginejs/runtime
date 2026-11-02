@@ -3,7 +3,6 @@
 // Source: blue/src/BlueAsyncRes_Blue.cpp
 import { exposure as be } from "#be";
 import { CjsSchema, type } from "#schema";
-import * as CcpLog from "../../global/logging/ccpLog.js";
 import { blue } from "./blue.js";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { BlueResManQueue } from "./IBlueResMan.js";
@@ -16,9 +15,9 @@ import { IBlueResource } from "./IBlueResource.js";
  * Carbon: BlueAsyncRes (blue/include/BlueAsyncRes.h:30-191)
  *
  * Subclasses provide `_DoLoad` and `_DoPrepare`. JavaScript is single-threaded,
- * so Carbon's `CcpAtomic<uint32_t>` flags are plain booleans, and the
- * hand-grown notify-target block (`m_reloadNotifyTargets` plus its count) is an
- * Array of WeakRefs.
+ * so Carbon's `CcpAtomic<uint32_t>` flags are plain booleans. Carbon's
+ * notify-target block is not ported: owners pull a resource's changes at use
+ * (`EnsureGood`, `_revision`, `ensureDependency`).
  *
  * @abstract
  */
@@ -135,20 +134,6 @@ export class BlueAsyncRes
   _revision = 0;
 
   /**
-   * `m_reloadNotifyTargets` (BlueAsyncRes.h:189) - the registered
-   * `IBlueAsyncResNotifyTarget`s, each held through a WeakRef.
-   *
-   * @adapted Carbon's block holds raw, non-owning pointers and each target's
-   *   destructor unregisters (Tr2Mesh.cpp:14-23). JavaScript has no
-   *   deterministic destructor, so a strong reference here kept every consumer
-   *   that was never Destructed alive through its resource. WeakRef keeps the
-   *   block non-owning, as Tr2Event does for BlueWeakRefBase; dead entries are
-   *   dropped when the block is walked.
-   * @type {WeakRef<import("./IBlueAsyncResNotifyTarget.js").IBlueAsyncResNotifyTarget>[]}
-   */
-  _reloadNotifyTargets = [];
-
-  /**
    * `isGood` (MAP_PROPERTY_READONLY, _Blue.cpp:15-23).
    *
    * @implemented
@@ -231,68 +216,29 @@ export class BlueAsyncRes
   /**
    * Carbon: BlueAsyncRes::AddNotifyTarget (blue/src/BlueAsyncRes.cpp:261-290)
    *
-   * A target added to a prepared resource is notified at once.
-   *
-   * @adapted Carbon's duplicate-registration check is an assertion compiled
-   *   out of release builds, so, as in a release build, a duplicate is not
-   *   rejected. An Array of WeakRefs replaces Carbon's capacity-rounded block
-   *   of non-owning pointers (see `_reloadNotifyTargets`).
-   * @param {import("./IBlueAsyncResNotifyTarget.js").IBlueAsyncResNotifyTarget} target The target.
+   * @notUsed Owners pull a dependency's changes at their next use
+   *   (`BlueAsyncRes.ensureDependency`) instead of registering here. Carbon's
+   *   destructors unregister their targets; JavaScript has none, so a
+   *   registration kept its owner alive. Calling it is an error.
+   * @param {import("./IBlueAsyncResNotifyTarget.js").IBlueAsyncResNotifyTarget} _target The target.
+   * @throws {Error} Always.
    */
-  AddNotifyTarget(target)
+  AddNotifyTarget(_target)
   {
-    if (this._isPrepared)
-    {
-      target.RebuildCachedData(this);
-    }
-
-    this._reloadNotifyTargets.push(new WeakRef(target));
+    throw new Error("BlueAsyncRes.AddNotifyTarget is not used: owners call BlueAsyncRes.ensureDependency at use.");
   }
 
   /**
    * Carbon: BlueAsyncRes::RemoveNotifyTarget (blue/src/BlueAsyncRes.cpp:292-347)
    *
-   * @adapted the Array of WeakRefs replaces Carbon's capacity-rounded block
-   *   and is compacted in place in one pass, as Carbon's copy loop does; every
-   *   entry equal to the target is removed, and so is every collected one. In
-   *   place matters at scale: building a new array per call made tearing down
-   *   20,000 owners of one resource take over a second.
-   * @param {import("./IBlueAsyncResNotifyTarget.js").IBlueAsyncResNotifyTarget} target The target.
+   * @notUsed Nothing registers (see `AddNotifyTarget`), so there is nothing
+   *   to remove. Calling it is an error.
+   * @param {import("./IBlueAsyncResNotifyTarget.js").IBlueAsyncResNotifyTarget} _target The target.
+   * @throws {Error} Always.
    */
-  RemoveNotifyTarget(target)
+  RemoveNotifyTarget(_target)
   {
-    const targets = this._reloadNotifyTargets;
-    let found = false;
-    let kept = 0;
-    for (let i = 0; i < targets.length; ++i)
-    {
-      const current = targets[i].deref();
-      if (current === target) found = true;
-      else if (current !== undefined) targets[kept++] = targets[i];
-    }
-    targets.length = kept;
-    if (!found) CcpLog.CCP_LOGERR("BlueAsyncRes::RemoveNotifyTarget - target not registered");
-  }
-
-  /**
-   * Drops the WeakRefs of collected targets, in place, in one pass.
-   *
-   * @cjs Carbon's targets unregister in their destructors, so its block never
-   *   holds a dead entry; ours only learns of a collected target by looking.
-   *   The notify walks call this, and so does resMan's auto-purge sweep for
-   *   every live resource, because most resources never reload and their dead
-   *   entries would otherwise stay for the session.
-   * @implemented
-   */
-  _PruneNotifyTargets()
-  {
-    const targets = this._reloadNotifyTargets;
-    let kept = 0;
-    for (let i = 0; i < targets.length; ++i)
-    {
-      if (targets[i].deref() !== undefined) targets[kept++] = targets[i];
-    }
-    targets.length = kept;
+    throw new Error("BlueAsyncRes.RemoveNotifyTarget is not used: owners call BlueAsyncRes.ensureDependency at use.");
   }
 
   /**
@@ -368,15 +314,17 @@ export class BlueAsyncRes
   }
 
   /**
-   * Native good flag, with browser inactivity renewal before use.
+   * Carbon: BlueAsyncRes::IsGood (blue/include/BlueAsyncRes.h:92-95)
    *
-   * @adapted MotherLode.h:31-39 uses reference lifetime; JavaScript renews a timestamp.
-   *   A failed resource stays failed until an explicit Reload.
+   * Only asks: it renews nothing. Where the resource is about to be used,
+   * call `EnsureGood()`. A failed resource stays failed until an explicit
+   * Reload.
+   *
+   * @implemented
    * @returns {boolean}
    */
   IsGood()
   {
-    this.KeepAlive();
     return this._isGood;
   }
 
@@ -715,41 +663,27 @@ export class BlueAsyncRes
   }
 
   /**
-   * Notify the persistent native targets; diagnose an owner that missed teardown.
+   * Carbon: BlueAsyncRes::NotifyRebuildCachedData (blue/src/BlueAsyncRes.cpp:354-360)
    *
-   * @adapted collected targets are skipped and dropped (see `_reloadNotifyTargets`).
+   * @adapted Carbon calls every registered target's RebuildCachedData here;
+   *   ours records the change (`_revision`) and each owner pulls it at its
+   *   next use (`ensureDependency`), so nothing holds the owners.
    */
   _NotifyRebuildCachedData()
   {
-    // Owners pull this change at their next use (ensureDependency).
     this._revision++;
-    this._PruneNotifyTargets();
-    for (let i = 0; i < this._reloadNotifyTargets.length; ++i)
-    {
-      // The dereferenced target stays live for its callback.
-      const target = this._reloadNotifyTargets[i].deref();
-      if (target === undefined) continue;
-      if (BlueAsyncRes._destructedNotifyTargets.has(target))
-      {
-        throw new Error("Destructed resource notify target: " + CjsSchema.getClassName(target.constructor));
-      }
-      target.RebuildCachedData(this);
-    }
   }
 
   /**
    * Carbon: BlueAsyncRes::NotifyReleaseCachedData (blue/src/BlueAsyncRes.cpp:362-368)
    *
-   * @adapted collected targets are skipped and dropped (see `_reloadNotifyTargets`).
+   * @adapted Carbon calls every registered target's ReleaseCachedData here;
+   *   ours has no targets. An owner releases at its next use, when
+   *   `ensureDependency` finds the dependency no longer good, which a reload or
+   *   purge makes it. Kept at Carbon's call sites for the parity checks.
    */
   _NotifyReleaseCachedData()
   {
-    this._PruneNotifyTargets();
-    for (let i = 0; i < this._reloadNotifyTargets.length; ++i)
-    {
-      const target = this._reloadNotifyTargets[i].deref();
-      if (target !== undefined) target.ReleaseCachedData(this);
-    }
   }
 
   /**
@@ -826,9 +760,6 @@ export class BlueAsyncRes
   /** Schema resource discovery; an internal CjsLoadingObject overrides this. */
   static isResource = true;
 
-  /** Destroyed owner identities, retained weakly only for notification diagnostics. */
-  static _destructedNotifyTargets = new WeakSet();
-
   /** Browser renewal timestamp, read by MotherLode without allocating per frame. */
   _lastUsedTime = 0;
 
@@ -852,32 +783,6 @@ export class BlueAsyncRes
   {
     blue.resMan._KeepResourceAlive(this, options);
   }
-
-  /**
-   * Mark an owner's completed destruction for the next-notify diagnostic.
-   * Ours: JavaScript has no native destructor assertion.
-   *
-   * @cjs
-   * @implemented
-   * @param {object} target
-   */
-  static markNotifyTargetDestructed(target)
-  {
-    BlueAsyncRes._destructedNotifyTargets.add(target);
-  }
-
-  /**
-   * Assert the native destructor's empty-target invariant in teardown tests.
-   *
-   * @cjs
-   * @implemented
-   */
-  AssertNoNotifyTargets()
-  {
-    this._PruneNotifyTargets();
-    if (this._reloadNotifyTargets.length) throw new Error("Resource still has notify targets: " + this.GetPath());
-  }
-
 }
 
 // Declared as data rather than with decorators, so Blue sources import without

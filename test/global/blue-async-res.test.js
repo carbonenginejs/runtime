@@ -54,6 +54,7 @@ class TestRes extends BlueAsyncRes
 
 class Target extends IBlueAsyncResNotifyTarget
 {
+  _dependencyRevisions = new Map();
   calls = [];
   RebuildCachedData(resource) { this.calls.push([ "rebuild", resource ]); }
   ReleaseCachedData(resource) { this.calls.push([ "release", resource ]); }
@@ -117,7 +118,6 @@ test("a successful load opens the file without its query, prepares and notifies"
   const { resMan, paths } = setup(t);
   paths.files.set("res:/a.bin", { form: "bytes", data: new Uint8Array(12) });
   const res = new TestRes(), target = new Target();
-  res.AddNotifyTarget(target);
   res.Initialize("res:/a.bin?q=1", "");
 
   await resMan.Run(resMan.queued[0]);
@@ -133,12 +133,10 @@ test("a successful load opens the file without its query, prepares and notifies"
   assert.equal(res.IsGood(), true);
   assert.equal(res.IsLoading(), false);
   assert.equal(res._loadCbId, 0);
-  assert.deepEqual(target.calls, [ [ "rebuild", res ] ]);
-
-  // A target added to a prepared resource hears at once (cpp:274-277).
-  const late = new Target();
-  res.AddNotifyTarget(late);
-  assert.deepEqual(late.calls, [ [ "rebuild", res ] ]);
+  assert.equal(res._revision, 1, "a finished prepare is one change");
+  assert.deepEqual(target.calls, [], "nothing is pushed to owners");
+  assert.equal(BlueAsyncRes.ensureDependency(res, target, "data"), true);
+  assert.deepEqual(target.calls, [ [ "rebuild", res ] ], "the owner pulls it at use");
 });
 
 test("a data stream loads through the global manager without a new memory budget", async t =>
@@ -148,8 +146,7 @@ test("a data stream loads through the global manager without a new memory budget
   blue.resMan = resMan;
   const bytes = new Uint8Array([ 1, 2, 3 ]);
   paths.files.set("res:/budget.bin", { form: "bytes", data: bytes });
-  const res = new TestRes(), target = new Target();
-  res.AddNotifyTarget(target);
+  const res = new TestRes();
   res.Initialize("res:/budget.bin", "");
   await resMan.Ready(res);
   assert.equal(res.loadedBytes, bytes);
@@ -157,19 +154,18 @@ test("a data stream loads through the global manager without a new memory budget
   assert.equal(res.IsLoading(), false);
   assert.equal(res._dataStream, null);
   assert.equal(res._reservedMemory, 0);
-  assert.deepEqual(target.calls, [ [ "rebuild", res ] ]);
+  assert.equal(res._revision, 1);
   for (const method of [ "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
     assert.equal(CjsSchema.getMethod(BlueResMan, method).impl.status, "noop");
 });
 
-test("prepare is budgeted on the logical main queue; DONTNOTIFY skips the targets", async t =>
+test("prepare is budgeted on the logical main queue; DONTNOTIFY is not a change", async t =>
 {
   const { resMan, paths } = setup(t);
   resMan.mainThread = false;
   paths.files.set("res:/a.bin", { form: "bytes", data: new Uint8Array(4) });
-  const res = new TestRes(), target = new Target();
+  const res = new TestRes();
   res.loadResult = BlueAsyncRes.LoadingResult.LR_SUCCESS_DONTNOTIFY;
-  res.AddNotifyTarget(target);
   res.Initialize("res:/a.bin", "");
 
   await resMan.Run(resMan.queued[0]);
@@ -181,14 +177,13 @@ test("prepare is budgeted on the logical main queue; DONTNOTIFY skips the target
   assert.equal(res.IsPrepared(), true);
   assert.equal(res.IsGood(), true);
   assert.equal(res._prepareCbId, 0);
-  assert.deepEqual(target.calls, []);
+  assert.equal(res._revision, 0, "Carbon's m_notify: owners are not told");
 });
 
-test("a missing file queues the failure notice, which finishes and notifies", async t =>
+test("a missing file queues the failure notice, which finishes as a change", async t =>
 {
   const { resMan } = setup(t);
-  const res = new TestRes(), target = new Target();
-  res.AddNotifyTarget(target);
+  const res = new TestRes();
   res.Initialize("res:/missing.bin", "");
 
   await resMan.Run(resMan.queued[0]);
@@ -200,33 +195,29 @@ test("a missing file queues the failure notice, which finishes and notifies", as
   assert.equal(res.IsLoading(), false);
   assert.equal(res._loadSucceeded, false);
   assert.equal(res.cleanups, 1);
-  assert.deepEqual(target.calls, [ [ "rebuild", res ] ]);
+  assert.equal(res._revision, 1, "a failed prepare is a change too");
 });
 
-test("Reload cancels, releases the targets' data and queues a fresh load", t =>
+test("Reload cancels and queues a fresh load; starting it is not a change", t =>
 {
   const { resMan } = setup(t);
-  const res = new TestRes(), target = new Target();
+  const res = new TestRes();
   res.Initialize("res:/a.bin", "ddsraw");
-  res.AddNotifyTarget(target);
   const firstId = res._loadCbId;
 
   res.Reload();
 
   assert.deepEqual(resMan.cancelled, [ { queue: BlueResManQueue.BRMQ_BACKGROUND, id: firstId } ]);
-  assert.deepEqual(target.calls, [ [ "release", res ] ]);
+  assert.equal(res._revision, 0);
   assert.equal(resMan.queued.length, 2);
   assert.equal(res.GetExt(), "ddsraw");
   assert.equal(res._loadCbId, resMan.queued[1].id);
 });
 
-test("RemoveNotifyTarget removes a registered target and ignores an unknown one", t =>
+test("Carbon's AddNotifyTarget and RemoveNotifyTarget are kept, unused: owners pull at use", t =>
 {
   setup(t);
-  const res = new TestRes(), a = new Target(), b = new Target();
-  res.AddNotifyTarget(a);
-  res.AddNotifyTarget(b);
-  res.RemoveNotifyTarget(a);
-  res.RemoveNotifyTarget(new Target());
-  assert.deepEqual(res._reloadNotifyTargets.map(ref => ref.deref()), [ b ]);
+  const res = new TestRes(), target = new Target();
+  assert.throws(() => res.AddNotifyTarget(target), /ensureDependency/u);
+  assert.throws(() => res.RemoveNotifyTarget(target), /ensureDependency/u);
 });

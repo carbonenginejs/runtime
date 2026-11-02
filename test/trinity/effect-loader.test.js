@@ -82,9 +82,6 @@ test("effect path edits replace internal acquisitions and clearing releases the 
     effect.SetEffectPathName("");
     assert.equal(effect.effectResource, null);
     assert.equal(effect.shader, null);
-    // The effect pulls its resource's changes at use, so it registers on neither.
-    first.AssertNoNotifyTargets();
-    second.AssertNoNotifyTargets();
   });
 });
 
@@ -99,8 +96,6 @@ test("external resource replacement drops the earlier acquisition and keeps the 
     effect.SetEffectPathName("res:/b.sm_depth");
     assert.equal(effect.effectResource, manual);
     assert.equal(effect._acquiredEffectResource, null);
-    first.AssertNoNotifyTargets();
-    manual.AssertNoNotifyTargets();
   });
 });
 

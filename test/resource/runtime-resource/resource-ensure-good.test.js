@@ -155,3 +155,17 @@ test("ensureDependency is re-entrant: a rebuild that asks for the same dependenc
   BlueAsyncRes.ensureDependency(resource, user, "geometry");
   assert.deepEqual(user.calls.map(call => call[0]), [ "rebuild", "release" ], "released once, even when asked again inside");
 });
+
+test("IsGood only asks: it renews nothing (Carbon's BlueAsyncRes::IsGood)", async t =>
+{
+  const resMan = manager(t);
+  const resource = await resMan.FetchResource("res:/ensure/pure.bin");
+  let renewed = 0;
+  resource.KeepAlive = () => { renewed++; };
+
+  assert.equal(resource.IsGood(), true);
+  assert.equal(resource.isGood, true);
+  assert.equal(renewed, 0, "asking does not renew");
+  assert.equal(resource.EnsureGood(), true);
+  assert.equal(renewed, 1, "only EnsureGood renews");
+});

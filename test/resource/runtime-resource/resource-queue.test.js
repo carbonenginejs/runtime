@@ -306,7 +306,6 @@ test("Clear during an active source read prevents late loading, preparation, and
 
 test("Delete during an active native reader cancels its late completion", async () => {
   let releaseRead;
-  let rebuilds = 0;
   const resMan = new BlueResMan({
     source: { Read() { return new Uint8Array([ 7 ]); } }
   });
@@ -318,8 +317,6 @@ test("Delete during an active native reader cancels its late completion", async 
   const path = "res:/queue/stale-prepare.bin";
   const operation = LoadData(resMan, path);
   const resource = resMan.Lookup(path);
-  const target = {RebuildCachedData() { rebuilds++; }, ReleaseCachedData() {}};
-  resource.AddNotifyTarget(target);
   const operationFailure = assert.rejects(
     operation,
     error => error.code === "CJS_RESOURCE_LOAD_CANCELLED"
@@ -336,8 +333,7 @@ test("Delete during an active native reader cancels its late completion", async 
   assert.equal(resource.IsPrepared(), false);
   assert.equal(resMan.GetResourceStatus(resource).error.code, "CJS_RESOURCE_LOAD_CANCELLED");
   assert.equal(resource.value, null);
-  assert.equal(rebuilds, 0);
-  resource.RemoveNotifyTarget(target);
+  assert.equal(resource._revision, 0, "a cancelled prepare is not a change");
   assert.equal(resMan.GetPendingPrepares(), 0);
 });
 

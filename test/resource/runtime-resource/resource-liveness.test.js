@@ -16,19 +16,20 @@ function managerFor(t)
   return manager;
 }
 
-test("IsGood renews while pure inspection leaves activity unchanged", async t =>
+test("EnsureGood renews while IsGood and pure inspection leave activity unchanged", async t =>
 {
   const manager = managerFor(t), resource = manager.GetResource("res:/renew.json");
   await manager.Ready(resource);
   manager.activityTime = 100;
-  resource.IsGood();
+  resource.EnsureGood();
   assert.equal(resource._lastUsedTime, 100);
   manager.activityTime = 200;
+  resource.IsGood();
   resource.IsPrepared();
   resource.IsLoading();
   manager.GetResourceStatus(resource);
   assert.equal(resource._lastUsedTime, 100);
-  resource.IsGood();
+  resource.EnsureGood();
   assert.equal(resource._lastUsedTime, 200);
 });
 
@@ -51,7 +52,9 @@ test("a purged handle revives on use and successful preparation resets the retry
   manager.PurgeInactive({ maxIdleFrames: 0, maxIdleMilliseconds: 0 });
   assert.equal(manager.GetResourceStatus(resource).purged, true);
   assert.equal(resource.IsGood(), false);
-  assert.equal(manager.GetReloadAttempts(resource), 1);
+  assert.equal(manager.GetReloadAttempts(resource), 0, "asking does not revive");
+  assert.equal(resource.EnsureGood(), false);
+  assert.equal(manager.GetReloadAttempts(resource), 1, "use revives");
   await manager.Ready(resource);
   assert.equal(manager.GetReloadAttempts(resource), 0);
   assert.equal(manager.Lookup(resource.GetPath()), resource);

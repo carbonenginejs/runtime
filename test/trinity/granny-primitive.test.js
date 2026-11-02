@@ -161,7 +161,7 @@ test('active draws renew the manager lease and recover a purged handle before th
  t.mock.method(manager,"_KeepResourceAlive",function(resource,options){renewals++;return renew.call(this,resource,options);});
  t.mock.method(r,"Reload",()=>{reloads++;pendingResourceFixture(r);return true;});
  // EnsureGood renews; until IsGood goes pure, its IsGood renews again.
- assert.equal(batches(p).length,1);assert.ok(renewals>=1);
+ assert.equal(batches(p).length,1);assert.equal(renewals,1);
  r.Shutdown();purgeResourceFixture(r);
  assert.equal(batches(p).length,0);assert.equal(p._vertexBuffer.IsValid(),false);assert.equal(reloads,1);assert.equal(r.IsLoading(),true);
  batches(p);assert.equal(reloads,1,'pending reload must not restart per frame');

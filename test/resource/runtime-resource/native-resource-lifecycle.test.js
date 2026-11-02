@@ -45,22 +45,14 @@ test("native attempts settle on one handle and retain no event or manager callba
   assert.equal(await manager.Ready(resource), resource);
   assert.equal(resource.value, 1);
   assert.equal(manager.GetResourcePayload(resource), null);
-  const events = [];
-  const target = {
-    RebuildCachedData(value) { events.push([ "rebuild", value.value ]); },
-    ReleaseCachedData() { events.push([ "release" ]); }
-  };
-  resource.AddNotifyTarget(target);
+  assert.equal(resource._revision, 1);
   assert.equal(await manager.ReloadResource(resource.GetPath()), resource);
   assert.equal(resource.value, 2);
-  assert.deepEqual(events, [["rebuild", 1], ["release"], ["rebuild", 2]]);
-  assert.deepEqual(resource._reloadNotifyTargets.map(ref => ref.deref()), [target]);
+  assert.equal(resource._revision, 2, "the reload's prepare is one more change for owners to pull");
   for (const key of ["__reloadHook", "__objectLoader", "__lifecycleController", "__state", "state", "object"])
     assert.equal(Object.hasOwn(resource, key), false, key);
   for (const key of ["OnEvent", "Ready", "GetPayload", "SetState", "IsCurrent"])
     assert.equal(key in resource, false, key);
-  resource.RemoveNotifyTarget(target);
-  resource.AssertNoNotifyTargets();
   const operation = resource._loadAttempt;
   assert.equal(operation, null);
 });
@@ -160,22 +152,6 @@ test("background concurrency one cannot deadlock a native source read", async t 
   const resources = [manager.GetResource("res:/one.val"), manager.GetResource("res:/two.val")];
   await Promise.all(resources.map(resource => manager.Ready(resource)));
   assert.deepEqual(resources.map(resource => resource.value), [5, 5]);
-});
-
-test("notify targets persist, duplicate removals balance, and destroyed owners are diagnosed", t =>
-{
-  managerFor(t, () => new Uint8Array([1]));
-  const resource = new ValueResource();
-  const target = { RebuildCachedData() {}, ReleaseCachedData() {} };
-  resource.AddNotifyTarget(target);
-  resource.AddNotifyTarget(target);
-  assert.equal(resource._reloadNotifyTargets.length, 2);
-  resource.RemoveNotifyTarget(target);
-  resource.AssertNoNotifyTargets();
-  resource.AddNotifyTarget(target);
-  BlueAsyncRes.markNotifyTargetDestructed(target);
-  assert.throws(() => resource._NotifyRebuildCachedData(), /Destructed resource notify target/);
-  resource.RemoveNotifyTarget(target);
 });
 
 test("pending native loads pin their identity and release the pin on completion", async t =>

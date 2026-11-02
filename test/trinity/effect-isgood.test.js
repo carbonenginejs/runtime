@@ -35,7 +35,7 @@ function addTexture(effect, name, state)
 }
 
 
-test("IsGood renews every texture, with no early exit at the first one not ready", () =>
+test("EnsureGood renews every texture, with no early exit at the first one not ready; IsGood renews none", () =>
 {
   const effect = new Tr2Effect();
   const pending = addTexture(effect, "pending", "pending");
@@ -43,8 +43,10 @@ test("IsGood renews every texture, with no early exit at the first one not ready
   const ready = addTexture(effect, "ready", "ready");
 
   effect.IsGood();
+  assert.deepEqual([ pending.count, failed.count, ready.count ], [ 0, 0, 0 ]);
+  effect.EnsureGood();
   assert.deepEqual([ pending.count, failed.count, ready.count ], [ 1, 1, 1 ]);
-  effect.IsGood();
+  effect.EnsureGood();
   assert.deepEqual([ pending.count, failed.count, ready.count ], [ 2, 2, 2 ]);
 });
 
@@ -65,32 +67,24 @@ test("an effect without a resolved shader is not good", () =>
 });
 
 
-test("a pending effect resource is not good, and registers the effect once", () =>
+test("a pending effect resource is not good; once prepared, the effect rebuilds once at use", () =>
 {
-  let registrations = 0;
-  class CountingEffectRes extends Tr2EffectRes
-  {
-    AddNotifyTarget(target)
-    {
-      registrations += 1;
-      return super.AddNotifyTarget(target);
-    }
-  }
   const effect = new Tr2Effect();
-  const resource = new CountingEffectRes();
+  const resource = new Tr2EffectRes();
   pendingResourceFixture(resource);
   effect.effectResource = resource;
-  resource.AddNotifyTarget(effect);
   effect.shader = new Tr2Shader();      // stale: from before a purge, say
 
   assert.equal(effect.IsGood(), false, "the resource answers, not a leftover shader");
   assert.equal(effect.IsGood(), false);
-  assert.equal(registrations, 1, "the owner subscribes once, never during IsGood");
 
   let rebuilds = 0;
   effect.RebuildCachedDataInternal = () => { rebuilds += 1; };
   prepareResourceFixture(resource);
-  assert.equal(rebuilds, 1, "told once when the resource finished");
+  assert.equal(rebuilds, 0, "nothing is pushed when the resource finishes");
+  effect.EnsureGood();
+  effect.EnsureGood();
+  assert.equal(rebuilds, 1, "the effect pulls the change once, at use");
 });
 
 
@@ -118,11 +112,11 @@ test("pure queries on a purged resource do not revive it", () =>
   const resource = new CountingResource();
   resource._path = "res:/thing.dds";
   blue.resMan._MarkResourcePurged(resource);
-  resource.IsPrepared(); resource.IsLoading(); blue.resMan.GetResourceStatus(resource);
+  resource.IsPrepared(); resource.IsLoading(); resource.IsGood(); blue.resMan.GetResourceStatus(resource);
   assert.equal(resource.reloads, 0);
   assert.equal(blue.resMan.GetResourceStatus(resource).purged, true);
-  resource.IsGood();
-  assert.equal(resource.reloads, 1);
+  resource.EnsureGood();
+  assert.equal(resource.reloads, 1, "use revives");
 });
 
 
@@ -176,7 +170,7 @@ test("the light manager asks a profile IsGood where it packs it, and packs none 
 
   assert.equal(manager._ProfileSlot(profile), 0, "loading: no profile");
   // EnsureGood renews; until IsGood goes pure, its IsGood renews again.
-  assert.ok(renewals >= 1, "and asking renewed it");
+  assert.equal(renewals, 1, "and asking renewed it once");
 });
 
 

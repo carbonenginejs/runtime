@@ -1047,7 +1047,7 @@ export class Tr2Effect extends Tr2Material
 
   /**
    * Whether this effect is good to draw - its effect resource is good and its
-   * shader resolved - after renewing every cached resource it holds.
+   * shader resolved. Only asks: it renews nothing and rebuilds nothing.
    *
    * Ours: Carbon has no Tr2Effect::IsGood. Its effect stays registered as a
    * notify target, and a released resource nulls `m_shader` through
@@ -1056,16 +1056,15 @@ export class Tr2Effect extends Tr2Material
    * destructor, so the effect pulls instead, and draw-readiness sites ask
    * `EnsureGood`.
    *
-   * Until resources' IsGood stops renewing, this answers `EnsureGood()`, so a
-   * caller that still asks IsGood keeps its renewal and its shader rebuild.
-   *
    * @cjs
    * @adapted
    * @returns {boolean} Whether the effect can be drawn now.
    */
   IsGood()
   {
-    return this.EnsureGood();
+    const resource = this.effectResource;
+    if (resource !== null && !resource.IsGood()) return false;
+    return this.shader !== null;
   }
 
   /**
