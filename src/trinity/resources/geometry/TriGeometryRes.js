@@ -907,12 +907,14 @@ export class TriGeometryRes extends BlueAsyncRes
       return this.ReadGrannyFile({ grannyFileInfo: raw.fileInfo, version: raw.version });
     }
     // A shared projection handed in (TriGrannyRes, which reads the gr2raw route as shared data) is
-    // still projected to CMF; TriGrannyRes does not keep the file info.
+    // still projected to CMF; TriGrannyRes does not keep the file info. The installed data is CMF,
+    // so the geometry reads as CMF: the device path and readers take the CMF branch. The
+    // projection is kept as the granny file for the animation sampler (GetGrannyInfo).
     const granny = bytes;
     const data = CjsCmfFormat.loadShared(granny);
     if (!this.SetupMeshes__CmfData(data)) return false;
     this.SetupSkeletons__CmfData(data);
-    this._useCMF = false;
+    this._useCMF = true;
     this._grannyFile = granny;
     // A shared projection read is already the shape GetGrannySharedInfo answers.
     this._grannySharedInfo = granny;
@@ -2611,7 +2613,11 @@ export class TriGeometryRes extends BlueAsyncRes
    * Carbon PrepareFromGrannyRes (TriGeometryRes.cpp:1301-1344). JS baking mutates
    * projected channels, so clone them before installing independently owned meshes.
    *
-   * @adapted
+   * @adapted Carbon takes m_useCMF from its TriGrannyRes and sets up from whichever data
+   *   that holds. Ours holds the shared GR2 projection, which is always converted to CMF
+   *   data here, so the geometry reads as CMF: its device path, blendshape bake and readers
+   *   take the CMF branch (with `false`, the Granny branch found no granny file info and
+   *   every draw and the archetype-morph allocation failed).
    * @param {TriGrannyRes} resource Source Granny resource.
    */
   PrepareFromGrannyRes(resource)
@@ -2621,7 +2627,7 @@ export class TriGeometryRes extends BlueAsyncRes
     const data = structuredClone(CjsCmfFormat.loadShared(source));
     this.SetupMeshes__CmfData(data);
     this.SetupSkeletons__CmfData(data);
-    this._useCMF = false;
+    this._useCMF = true;
     this._isPrepared = this._isGood = true;
   }
 

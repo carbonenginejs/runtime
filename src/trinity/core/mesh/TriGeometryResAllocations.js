@@ -116,24 +116,17 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
 
   const mesh = geometry ? geometry.GetCMFData()?.meshes?.[meshIndex] : null;
 
-  if (!mesh) return false;
+  // Carbon indexes its CMF contents unguarded (cpp:2326); missing data is an error, not a quiet miss.
+  if (!mesh) return LogLodFailure("no CMF mesh to build from", geometry, meshIndex, lod);
 
   const lodIndex = mesh.lods?.length ? lod.originalLodIndex : 0;
-  let packed;
-
-  try
-  {
-    packed = TriGeometryRes.packLodGeometry(mesh, lodIndex);
-  }
-  catch
-  {
-    return false;
-  }
+  const packed = TriGeometryRes.packLodGeometry(mesh, lodIndex);
 
   const shared = SharedGeometryBuffer(renderContext);
   const vertices = shared.Allocate(packed.vertex.stride, packed.vertex.count, packed.vertex.bytes, renderContext);
 
-  if (!vertices) return false;
+  // CR_RETURN_VAL( g_sharedBuffer.Allocate( ... ), false ) logs the failure (cpp:2048).
+  if (!vertices) return LogLodFailure("vertex allocation failed", geometry, meshIndex, lod);
 
   lod.vertexAllocation = vertices;
   lod.indexAllocation = null;
@@ -184,6 +177,25 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
 
 
 /**
+ * Logs why a LOD's allocations could not be made, naming the resource, mesh and LOD, and answers
+ * false.
+ *
+ * Ours: Carbon logs a failed Allocate through CR_RETURN_VAL and asserts on the missing data it
+ * indexes unguarded; a JS frame must not die at a draw, so both log here and the batch is not drawn.
+ *
+ * @param {string} reason What failed.
+ * @param {object} geometry The `TriGeometryRes`.
+ * @param {number} meshIndex The mesh (CMF) or granny mesh index.
+ * @param {TriGeometryResLodData} lod The LOD record.
+ * @returns {boolean} False.
+ */
+function LogLodFailure(reason, geometry, meshIndex, lod)
+{
+  CcpLog.CCP_LOGERR(`TriGeometryRes ${geometry.GetPath()}: mesh ${meshIndex} LOD ${lod.originalLodIndex}: ${reason}; not drawn`);
+  return false;
+}
+
+/**
  * A Granny mesh's indices at Carbon's width: 16-bit indices as they are; 32-bit ones narrowed to
  * 16 bits unless the mesh has more than 65535 vertices (TriGeometryRes.cpp:2179-2196, where
  * GrannyCopyMeshIndices does the narrowing).
@@ -217,7 +229,8 @@ function GrannyIndexBytes(grannyMesh)
 function CreateLodFromGrannyMesh(geometry, lod, renderContext)
 {
   const grannyMesh = geometry.GetGrannyInfo()?.Meshes?.[lod.grannyMeshIndex];
-  if (!grannyMesh) return false;
+  // Carbon indexes gi->Meshes unguarded (cpp:2372); missing data is an error, not a quiet miss.
+  if (!grannyMesh) return LogLodFailure("no granny mesh to build from", geometry, lod.grannyMeshIndex, lod);
   const vertices = grannyMesh.PrimaryVertexData.Vertices;
   const packed = TriGeometryRes.alignStride({ bytes: vertices.bytes, stride: vertices.stride, count: vertices.count });
   const index = GrannyIndexBytes(grannyMesh);
@@ -228,7 +241,8 @@ function CreateLodFromGrannyMesh(geometry, lod, renderContext)
   try
   {
     lod.vertexAllocation = shared.Allocate(packed.stride, packed.count, packed.bytes, renderContext);
-    if (!lod.vertexAllocation) return false;
+    // CR_RETURN_VAL( g_sharedBuffer.Allocate( ... ), false ) logs the failure (cpp:2198).
+    if (!lod.vertexAllocation) return LogLodFailure("vertex allocation failed", geometry, lod.grannyMeshIndex, lod);
     lod.indexAllocation = shared.Allocate(stride, index.count, index.bytes, renderContext);
     if (!lod.indexAllocation) return false;
     lod.reversedIndexAllocation = shared.Allocate(stride, index.count, ReversedIndices(index.bytes, index.format), renderContext);

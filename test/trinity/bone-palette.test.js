@@ -45,6 +45,9 @@ function geometryOf(grannyFile)
 {
   const resource = new TriGeometryRes();
   resource.ReadGrannyFile({ ...grannyFile, grannyFileFormatRevision: 7 });
+  // A handed-in shared projection installs CMF data and reads as CMF; these tests sample the
+  // geometry's Granny animations, so the resource reads as Granny, as a gr2 geometry does.
+  resource._useCMF = false;
   prepareResourceFixture(resource);
   return resource;
 }

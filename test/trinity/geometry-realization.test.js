@@ -5,6 +5,8 @@ import { Tr2RenderBatch, Tr2RenderContext } from "../../npm/dist/trinity/core/in
 import { Tr2SuballocatedBuffer } from "../../npm/dist/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBuffer.js";
 import { CreateLodAllocations, RealizeBatchGeometry, SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
 import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
+import { TriGrannyRes } from "../../npm/dist/resource/index.js";
+import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { Tr2BufferAL, Tr2BufferALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { ALResult } from "../../npm/dist/trinityal/index.js";
@@ -220,4 +222,23 @@ test("a descriptor batch whose area has no primitives is not realized or drawn",
     assert.equal(renderContext.SubmitGeometry(batch), false);
   }
   assert.equal(draws, 0);
+});
+
+test("geometry a TriGrannyRes prepares reads as CMF, so its LODs allocate (PrepareFromGrannyRes)", async () =>
+{
+  // TriGrannyRes holds the shared GR2 projection; CreateGeometryRes converts it to CMF data, so the
+  // geometry must take the CMF device branch. With IsUsingCMF false it took the Granny branch, found no
+  // granny file info, and every draw and archetype-morph allocation failed.
+  const bytes = CjsGr2Format.writeShared({
+    meshes: [ { name: "quad", vertex: { position: [ 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0 ] },
+      indices: [ { name: "hull", bytesPerIndex: 2, faces: [ 0, 1, 2, 0, 2, 3 ] } ], boneBindings: [], morphTargets: [] } ],
+    skeletons: [], animations: []
+  });
+  const granny = new TriGrannyRes();
+  granny._grannyFile = await new CjsGr2Format().ReadDataAsync(bytes);
+  const geometry = granny.CreateGeometryRes();
+  assert.equal(geometry.IsUsingCMF(), true);
+  const lod = geometry.GetMeshLod__LodIndex(0, 0);
+  assert.equal(CreateLodAllocations(geometry, 0, lod, context()), true);
+  assert.equal(lod.allocationsValid, true);
 });
