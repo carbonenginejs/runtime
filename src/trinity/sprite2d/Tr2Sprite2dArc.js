@@ -277,12 +277,12 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
       if (this.spriteEffect >= effects.TR2_SFX_ONE_TEXTURE)
       {
         // Don't draw if no texture is set, or it is still loading (or failed).
-        if (!this.texturePrimary || !this.texturePrimary.IsGood()) return;
+        if (!this.texturePrimary || !this.texturePrimary.EnsureGood()) return;
         this.texturePrimary.Apply(renderer, 0);
 
         if (this.spriteEffect >= effects.TR2_SFX_TWO_TEXTURES)
         {
-          if (!this.textureSecondary || !this.textureSecondary.IsGood()) return;
+          if (!this.textureSecondary || !this.textureSecondary.EnsureGood()) return;
           this.textureSecondary.Apply(renderer, 1);
         }
       }

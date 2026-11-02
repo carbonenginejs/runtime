@@ -200,7 +200,7 @@ export class Tr2Model extends IRoot
     const areas = mesh.GetAreas(batchType);
     if (!areas) return;
     const geometry = mesh.GetGeometryResource();
-    if (!geometry || !geometry.IsGood()) return;
+    if (!geometry || !geometry.EnsureGood()) return;
     // Native literal 0 selects the int lodIndex overload, not float screenSize.
     const lod = geometry.GetMeshLod__LodIndex(mesh.GetMeshIndex(), 0);
     if (!lod || !CreateLodAllocations(geometry, mesh.GetMeshIndex(), lod, Tr2RenderContext_GetMainThreadRenderContext())) return;

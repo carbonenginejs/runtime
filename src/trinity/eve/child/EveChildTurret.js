@@ -649,7 +649,7 @@ export class EveChildTurret extends EveChildMesh
     const geometryRes = this.GetGeometryRes();
     if (geometryRes === this._cachedGeometryRes) return;
     this.ReleaseCachedGeometryData();
-    if (geometryRes && geometryRes.IsGood())
+    if (geometryRes && geometryRes.EnsureGood())
     {
       this.BuildCachedGeometryData(geometryRes);
       this._cachedGeometryRes = geometryRes;

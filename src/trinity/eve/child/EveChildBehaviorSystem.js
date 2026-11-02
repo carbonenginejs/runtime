@@ -853,7 +853,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   {
     if (!group.display || !mesh) return;
     const geometry = mesh.GetGeometryResource();
-    if (!geometry || !geometry.IsGood()) return;
+    if (!geometry || !geometry.EnsureGood()) return;
     const lod = geometry.GetMeshLod__LodIndex(mesh.GetMeshIndex(), 0);
     if (!lod || !CreateLodAllocations(geometry, mesh.GetMeshIndex(), lod, Tr2RenderContext_GetMainThreadRenderContext())) return;
     group.CreateVertexDeclaration();
@@ -863,7 +863,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
       const material = area.GetMaterialInterface();
       if (!material) continue;
       // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-      if (!material.IsGood()) continue;
+      if (!material.EnsureGood()) continue;
       const reversed = area.GetReversed();
       if (reversed && !lod.reversedIndicesValid) continue;
       const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);

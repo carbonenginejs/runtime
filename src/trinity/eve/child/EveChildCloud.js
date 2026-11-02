@@ -332,7 +332,7 @@ export class EveChildCloud extends EveSpaceObjectChild
     if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT || !this.effect ||
       this._declaration === Tr2EffectStateManager.Unknown || !this._indexBuffers.length) return;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!this.effect.IsGood()) return;
+    if (!this.effect.EnsureGood()) return;
     const indexBuffer = this._indexBuffers[Math.min(this.currentLod, this._indexBuffers.length - 1)];
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);

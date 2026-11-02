@@ -311,10 +311,11 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION) return;
     if (!this.display || !this.effect) return;
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
-    if (!this.IsGood()) return;
+    const good = this.IsGood();
+    // Asked with it, not after: renews what the effect holds, and skips it while its resource is not good.
+    const effectGood = this.effect.EnsureGood();
+    if (!good || !effectGood) return;
     if (!this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
-    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!this.effect.IsGood()) return;
 
     // cpp:278.
     const indexBuffer = this._parentMirrored ? Tr2Renderer.GetReversedQuadListIndexBuffer() : Tr2Renderer.GetQuadListIndexBuffer();

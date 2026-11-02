@@ -30,6 +30,7 @@ function materialStub(shader, applied = [])
     applied,
     GetShaderStateInterface: () => shader,
     IsGood: () => shader !== null,
+    EnsureGood: () => shader !== null,
     ApplyMaterialDataForPass: (technique, pass) => applied.push(`${technique}:${pass}`)
   };
 }

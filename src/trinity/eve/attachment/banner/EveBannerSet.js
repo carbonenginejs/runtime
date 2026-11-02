@@ -286,10 +286,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && !this.isPickable) return;
     if (!this.display || !this._isVisible || !this.effect) return;
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer check: preparing builds it.
-    if (!this.IsGood() || !this._vertexBuffer) return;
+    const good = this.IsGood();
+    // Asked with it, not after: renews what the effect holds, and skips it while its resource is not good.
+    const effectGood = this.effect.EnsureGood();
+    if (!good || !effectGood || !this._vertexBuffer) return;
     if (this.primaryTextureParameter && !this.primaryTextureParameter.GetResource()) return;
-    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!this.effect.IsGood()) return;
 
     const vertices = this._vertexBuffer;
     const indices = this._indexBuffer;

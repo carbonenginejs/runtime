@@ -1519,7 +1519,7 @@ export class EveChildMesh extends EveChildTransform
     if (!this.mesh || (!damageEffect && !this.overlayEffects.length && !parentOverlays?.length)) return false;
 
     const geometry = this.mesh.GetGeometryResource();
-    if (!geometry || geometry.IsGood() === false) return false;
+    if (!geometry || geometry.EnsureGood() === false) return false;
 
     if (!this._overlayAreaBlocksBuilt) this.RebuildOverlayAreaBlocks();
 

@@ -332,7 +332,7 @@ export class Tr2QuadRenderer
     {
       // Asked last, so only effects about to draw are renewed: see Tr2Effect.IsGood.
       if (record.count && record.batchType === batchType && record.vertexDeclHandle !== Tr2EffectStateManager.Unknown
-        && record.effect.IsGood())
+        && record.effect.EnsureGood())
       {
         const batch = accumulator.Allocate(Tr2RenderBatch);
         batch.SetMaterial(record.effect);

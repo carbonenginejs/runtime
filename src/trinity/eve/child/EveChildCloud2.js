@@ -659,7 +659,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         this.lightmapDepth = 0;
       }
       // Asked before reading its shader: renews the effect while the cloud updates.
-      const shader = this.effect.IsGood() ? this.effect.GetShaderStateInterface() : null;
+      const shader = this.effect.EnsureGood() ? this.effect.GetShaderStateInterface() : null;
       if (this._lightmapDirty && this.lightmapWidth === 0 && shader)
       {
         if (shader.GetResource("LightMap"))
@@ -965,9 +965,11 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       return false;
     }
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the cube checks: preparing builds it.
-    if (!this.IsGood()) return false;
-    if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown ||
-      !this.effect || !this.effect.IsGood()) return false;
+    const good = this.IsGood();
+    // Asked with it, not after: renews what the effect holds, and skips it while its resource is not good.
+    const effectGood = !!this.effect && this.effect.EnsureGood();
+    if (!good || !effectGood) return false;
+    if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown) return false;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
@@ -1139,7 +1141,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     // (Tr2Shader.GetTechniqueIndex) returns an INDEX: -1 for missing, 0..n
     // for found - 0 is a valid technique (compare < 0, never truthiness).
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!this.effect.IsGood()) return false;
+    if (!this.effect.EnsureGood()) return false;
     const shader = this.effect.GetShaderStateInterface();
     if (!shader) return false;
     if (shader.GetTechniqueIndex("Shadow") < 0)
@@ -1304,9 +1306,11 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       return false;
     }
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the cube checks: preparing builds it.
-    if (!this.IsGood()) return false;
-    if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown ||
-      !this.reflectionEffect || !this.reflectionEffect.IsGood()) return false;
+    const good = this.IsGood();
+    // Asked with it, not after: renews what the effect holds, and skips it while its resource is not good.
+    const effectGood = !!this.reflectionEffect && this.reflectionEffect.EnsureGood();
+    if (!good || !effectGood) return false;
+    if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown) return false;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.reflectionEffect);

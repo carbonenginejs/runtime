@@ -573,16 +573,18 @@ export class EveSpherePin
   GetBatchWithEffect(accumulator, perObjectData, effect)
   {
     const geometry = this._geometryResource;
-    if (!geometry || !geometry.IsGood() || geometry.GetMeshCount() < 1) return;
+    // Ask everything before drawing, so nothing is left unrenewed while another loads.
+    let good = true;
+    if (!geometry || !geometry.EnsureGood()) good = false;
+    if (!effect || !effect.EnsureGood()) good = false;
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the index buffer check: preparing builds it.
-    if (!this.IsGood()) return;
+    if (!this.IsGood()) good = false;
+    if (!good || geometry.GetMeshCount() < 1) return;
     const lod = geometry.GetMeshLod__LodIndex(0, 0);
     if (!lod || !this._indexBuffer.IsValid()) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     if (!CreateLodAllocations(geometry, 0, lod, context)) return;
     const vertices = lod.vertexAllocation;
-    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!effect || !effect.IsGood()) return;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(effect);
     batch.SetPerObjectData(perObjectData);

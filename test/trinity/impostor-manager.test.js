@@ -70,7 +70,7 @@ test('billboards pack 36 bytes and reach the real quad upload and instanced batc
   const record=quad.GetEffectRecords().get(m._effectKey),bytes=record.pending[0],view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
   assert.equal(bytes.byteLength,36);assert.deepEqual(Array.from({length:8},(_,i)=>view.getFloat32(i*4,true)),[1,2,3,4,5,6,7,8]);
   assert.equal(view.getUint16(32,true),0x3900);assert.equal(view.getUint16(34,true),0x3900);
-  t.mock.method(m.effect,'GetShaderStateInterface',()=>({GetSortValue:()=>1}));t.mock.method(m.effect,'IsGood',()=>true);quad.BeginRendering(context);const batches=new TriRenderBatchAccumulator();quad.GetBatches(TriBatchType.TRIBATCHTYPE_OPAQUE,batches);
+  t.mock.method(m.effect,'GetShaderStateInterface',()=>({GetSortValue:()=>1}));t.mock.method(m.effect,'EnsureGood',()=>true);quad.BeginRendering(context);const batches=new TriRenderBatchAccumulator();quad.GetBatches(TriBatchType.TRIBATCHTYPE_OPAQUE,batches);
   assert.equal(batches.GetBatchCount(),1);const batch=batches.GetBatches()[0];assert.equal(batch.instanceCount,1);assert.equal(batch.indexCountPerInstance,6);
   assert.equal(record.count,1);assert.equal(batch.vertexStreams[1],quad._vertexBuffer.GetBuffer());quad.DoneRendering(context);
   const store=Tr2VariableStore.globalStore();assert.equal(store.FindVariable('ImposterAtlasMap').GetValue(),m.atlas);assert.deepEqual([...store.FindVariable('ImposterItemSize').GetValue()],[.5,.5,0,0]);

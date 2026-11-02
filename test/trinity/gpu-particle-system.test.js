@@ -20,7 +20,7 @@ function effect(name, passes = 1)
       GetPassCount: () => passes,
       ApplyAllStateForPass: (technique, pass) => applied.push([ technique, pass ])
     }),
-    IsGood: () => true,
+    IsGood: () => true, EnsureGood: () => true,
     ApplyMaterialDataForPass() {},
     StartUpdate() {},
     SetVariableStore(store) { this.store = store; },

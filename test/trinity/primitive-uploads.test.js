@@ -20,7 +20,7 @@ function setup(t){
   t.mock.method(Tr2BufferAL.prototype,"MapForWriting",function(...args){const result=map.apply(this,args);if(result.data)maps.set(this,result.data);return result;});
   al.DrawInstanced=(...args)=>{draws.push(args);return draw(...args);};
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
-  const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
+  const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true, EnsureGood: () => true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
   t.after(()=>{for(const item of trinity.GetResourcesRegistered())if(!before.has(item))item.Destruct();context.SetRenderContextAL(old);});
   return {context,maps,draws,effect};
 }

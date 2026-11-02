@@ -149,7 +149,7 @@ for (const indirect of [false, true])
       ApplyAllStateForPass: (technique, index) => applied.push(["shader", technique, index])
     };
     const effect = {
-      IsGood: () => true,
+      IsGood: () => true, EnsureGood: () => true,
       GetShaderStateInterface: () => shader,
       ApplyMaterialDataForPass: (technique, index) => applied.push(["material", technique, index])
     };

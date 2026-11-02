@@ -118,7 +118,7 @@ test("an instanced mesh's draw is its provider's use", t =>
   const provider = new Tr2DirectInstanceData(), mesh = new Tr2InstancedMesh();
   mesh.SetInstanceGeometryRes(provider);
   // Past the geometry gate, which is not what this tests.
-  t.mock.method(mesh, "GetGeometryResource", () => ({ IsGood: () => true }));
+  t.mock.method(mesh, "GetGeometryResource", () => ({ IsGood: () => true, EnsureGood: () => true }));
   assert.equal(trinity.GetResourcesRegistered().includes(provider), false);
   mesh.GetBatches({ Commit() {} }, [], null);
   assert.ok(trinity.GetResourcesRegistered().includes(provider), "GetBatches asks IsGood on the provider before its readiness");

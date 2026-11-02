@@ -861,7 +861,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   {
     for (let i = 0; i < this._numTexturesUsed; i++)
     {
-      if (!this._texture[i] || !this._texture[i].IsGood()) return false;
+      if (!this._texture[i] || !this._texture[i].EnsureGood()) return false;
     }
 
     return true;
@@ -1565,7 +1565,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
     // Effect is still loading - can't render any UI
     if (!effectRes || effectRes.IsLoading()) return false;
 
-    if (!effectRes.IsGood())
+    if (!effectRes.EnsureGood())
     {
       // Effect load failed - can't render any UI
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s: Effect used for rendering failed to load - attempting to reload", "Tr2Sprite2dScene::PrepareResourcesForRender");

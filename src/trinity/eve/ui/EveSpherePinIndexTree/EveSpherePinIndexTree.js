@@ -108,7 +108,7 @@ export class EveSpherePinIndexTree
   Initialize()
   {
     this.initialized = 0;
-    if (!this.granny || !this.granny.IsGood()) return 0;
+    if (!this.granny || !this.granny.EnsureGood()) return 0;
     // Mesh 0's first LOD, from whichever reader ran (GetLodPositions / GetLodIndices); its triangles
     // are walked as one list.
     const mesh = this.granny.GetMeshData(0);

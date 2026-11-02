@@ -91,7 +91,7 @@ const EFFECT_SLOTS = [ "emit", "update", "render", "clear", "setDrawParameters",
  */
 function CheckEffect(effect)
 {
-  return !!effect && effect.IsGood();
+  return !!effect && effect.EnsureGood();
 }
 
 /** Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages. */

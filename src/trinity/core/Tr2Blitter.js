@@ -433,7 +433,7 @@ export class Tr2Blitter
   #DrawMaterial(renderContext, material, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
   {
     if (!material) return false;
-    if (!material.IsGood()) return false;
+    if (!material.EnsureGood()) return false;
 
     return this.DrawHelper(renderContext, material.GetShaderStateInterface(), material, texture, false,
       tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);

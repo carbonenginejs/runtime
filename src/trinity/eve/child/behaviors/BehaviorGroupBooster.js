@@ -637,7 +637,7 @@ export class BehaviorGroupBooster extends IRoot
     const indices = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indices.IsValid()) return batch;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!this.boosterEffect || !this.boosterEffect.IsGood()) return batch;
+    if (!this.boosterEffect || !this.boosterEffect.EnsureGood()) return batch;
     batch.SetMaterial(this.boosterEffect);
     batch.SetVertexDeclaration(this.GetVertexDeclaration());
     batch.SetIndices(indices.GetBuffer(), indices.GetStride());

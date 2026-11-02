@@ -125,9 +125,9 @@ export class Tr2PrimitiveSet extends IRoot
 
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
-    if (batchType === TriBatchType.TRIBATCHTYPE_OPAQUE && this.effect && this.effect.IsGood())
+    if (batchType === TriBatchType.TRIBATCHTYPE_OPAQUE && this.effect && this.effect.EnsureGood())
       this.GetBatchesImpl(accumulator, perObjectData, this.effect, Tr2PrimitiveSet.GetBatchesReason.Draw);
-    else if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && this.pickEffect && this.pickEffect.IsGood())
+    else if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && this.pickEffect && this.pickEffect.EnsureGood())
       this.GetBatchesImpl(accumulator, perObjectData, this.pickEffect, Tr2PrimitiveSet.GetBatchesReason.Picking);
   }
 

@@ -1137,7 +1137,7 @@ export class Tr2RenderContext
     if (!batches) return 0;
     // An override material draws every batch, so it is asked once here.
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (overrideMaterial && !overrideMaterial.IsGood()) return 0;
+    if (overrideMaterial && !overrideMaterial.EnsureGood()) return 0;
 
     // Carbon's override walk substitutes the override material - and its
     // shader - for every batch's (`RenderBatchesWithOverride`, cpp:810-814);

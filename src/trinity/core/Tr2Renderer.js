@@ -794,7 +794,7 @@ export class Tr2Renderer
 
     if (!effect) return false;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!effect.IsGood()) return false;
+    if (!effect.EnsureGood()) return false;
 
     const shader = effect.GetShaderStateInterface();
 
@@ -846,7 +846,7 @@ export class Tr2Renderer
   {
     if (!effect) return false;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!effect.IsGood()) return false;
+    if (!effect.EnsureGood()) return false;
 
     const shader = effect.GetShaderStateInterface();
 

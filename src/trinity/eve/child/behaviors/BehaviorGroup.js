@@ -907,7 +907,7 @@ export class BehaviorGroup extends EveEntity
   {
     const geometry = this.mesh ? this.mesh.GetGeometryResource() : null;
     if (this.mesh && !geometry) return;
-    if (geometry && geometry.IsGood())
+    if (geometry && geometry.EnsureGood())
     {
       const elements = CarbonVertexElements(geometry.GetMeshVertexElements(this.mesh.GetMeshIndex()));
       if (elements !== this._cachedVD)

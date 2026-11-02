@@ -368,7 +368,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     }
 
     const geometry = this.mesh.GetGeometryResource();
-    if (!geometry || !geometry.IsGood())
+    if (!geometry || !geometry.EnsureGood())
     {
       return false;
     }

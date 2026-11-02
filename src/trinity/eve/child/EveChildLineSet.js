@@ -302,7 +302,7 @@ export class EveChildLineSet extends EveChildTransform
     if (this.renderType !== EveChildLineSet.lineSetType.LINE_RENDER && this.mesh)
     {
       const geometry = this.mesh.GetGeometryResource();
-      if (geometry && geometry.IsGood())
+      if (geometry && geometry.EnsureGood())
       {
         const { vec4_0 } = EveChildLineSet.scratch;
         geometry.GetBoundingSphere(this.mesh.GetMeshIndex(), vec4_0);
@@ -465,7 +465,7 @@ export class EveChildLineSet extends EveChildTransform
     {
       const geometry = this.mesh.GetGeometryResource();
       if (!geometry) return;
-      if (geometry.IsGood())
+      if (geometry.EnsureGood())
       {
         const index = this.mesh.GetMeshIndex();
         if (!CreateLodAllocations(geometry, index, geometry.GetMeshLod__LodIndex(index, 0), Tr2RenderContext_GetMainThreadRenderContext())) return;
@@ -508,7 +508,7 @@ export class EveChildLineSet extends EveChildTransform
     if (!this.IsGood()) return;
     if (this._cachedSVD === Tr2EffectStateManager.Unknown || this._vertexDeclarationHandle === Tr2EffectStateManager.Unknown || !this._vertexBuffer.IsValid()) return;
     const geometry = this.mesh.GetGeometryResource();
-    if (!geometry || !geometry.IsGood()) return;
+    if (!geometry || !geometry.EnsureGood()) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     const lod = geometry.GetMeshLod__LodIndex(0, 0);
     if (!lod || !CreateLodAllocations(geometry, 0, lod, context)) return;

@@ -70,6 +70,16 @@ export class ITr2Sprite2dTexture extends IRoot
   IsGood() {}
 
   /**
+   * Renews the texture's resource and reports whether it is ready: IsGood
+   * asked at a draw.
+   *
+   * @cjs As BlueAsyncRes `EnsureGood`.
+   * @abstract
+   */
+  @meta.abstract
+  EnsureGood() {}
+
+  /**
    * Registers a change listener.
    *
    * @abstract

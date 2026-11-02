@@ -247,7 +247,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
       const areas = mesh.GetAreas(batchType);
       if (!areas) continue;
       const geometry = mesh.GetGeometryResource();
-      if (!geometry || !geometry.IsGood()) continue;
+      if (!geometry || !geometry.EnsureGood()) continue;
       const meshIndex = mesh.GetMeshIndex();
       if (meshIndex < 0 || meshIndex >= geometry.GetMeshCount()) continue;
       const lod = geometry.GetMeshLod__LodIndex(meshIndex, 0);

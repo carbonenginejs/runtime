@@ -80,6 +80,18 @@ export class Tr2ShaderMaterial extends IRoot
   }
 
   /**
+   * Always false, as IsGood: the batch path's draw-readiness question
+   * (Tr2Effect.EnsureGood). A material holds nothing to renew.
+   *
+   * @cjs As Tr2Effect `EnsureGood`.
+   * @returns {boolean} false.
+   */
+  EnsureGood()
+  {
+    return false;
+  }
+
+  /**
    * The Tr2Effect this material becomes. Textures go to its `resources` and
    * constants to its `parameters`, as Tr2Effect keeps them. The parameter
    * objects move rather than copy, so the material is spent; its owner drops

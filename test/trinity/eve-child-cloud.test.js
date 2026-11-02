@@ -47,7 +47,7 @@ function setup(t)
   const pool = new TriPoolAllocator().RegisterCatalog();
   const accumulator = new TriRenderBatchAccumulator().SetTriPoolAllocator(pool);
   const shader = { GetTechniqueIndex: () => 0, GetPassCount: () => 1, GetShaderTypeMask: () => 3, ApplyAllStateForPass() {} };
-  const effect = { GetShaderStateInterface: () => shader, IsGood: () => true, CompatibleWithGdr: () => false, ApplyMaterialDataForPass() {} };
+  const effect = { GetShaderStateInterface: () => shader, IsGood: () => true, EnsureGood: () => true, CompatibleWithGdr: () => false, ApplyMaterialDataForPass() {} };
   t.after(() =>
   {
     for (const resource of trinity.GetResourcesRegistered())

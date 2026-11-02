@@ -201,7 +201,7 @@ test("EveTurretSet fills the VS/PS pair from its turrets and parent data", t =>
   al.CreateDevice({ mode: { width: 64, height: 64 } });
   context.SetRenderContextAL(al);
   Tr2RingBuffer.GetInstance("Float4x3", 48, context);
-  set.geometryResource = { IsGood: () => true, GetMeshCount: () => 1 };
+  set.geometryResource = { IsGood: () => true, EnsureGood: () => true, GetMeshCount: () => 1 };
   set.bottomClipHeight = 1.5;
   set.SetLocalTransform(0, mat4.fromTranslation(mat4.create(), [ 1, 2, 3 ]));
   set.SetLocalTransform(1, mat4.fromTranslation(mat4.create(), [ 9, 9, 9 ]));

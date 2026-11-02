@@ -925,7 +925,12 @@ export class EveSpaceObjectDecal
     if (batchType !== this.batchType) return;
     if (!this._baseGeometryResource || !this.decalEffect) return;
     if (!this.display) return;
-    if (!this._baseGeometryResource.IsGood()) return;
+    // Ask both before drawing, so neither is left unrenewed while the other
+    // loads: the effect's renewal and shader rebuild, and the geometry's.
+    let good = true;
+    if (!this._baseGeometryResource.EnsureGood()) good = false;
+    if (!this.decalEffect.EnsureGood()) good = false;
+    if (!good) return;
     if (this._baseGeometryResource.GetMeshCount() < 1) return;
 
     const decalGeometry = this._decalGeometry;
@@ -939,8 +944,6 @@ export class EveSpaceObjectDecal
     // Carbon GetMeshLod( 0, int ) is the index overload.
     const lod = this._baseGeometryResource.GetMeshLod__LodIndex(0, this._geometryLodIndex);
     if (!lod.allocationsValid) return;
-    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!this.decalEffect || !this.decalEffect.IsGood()) return;
 
     const batch = new Tr2RenderBatch();
     batch.SetPriority(this._priority);

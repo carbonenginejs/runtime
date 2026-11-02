@@ -733,11 +733,11 @@ export class Tr2MeshBase
 
     const effect = area.GetMaterialInterface();
     if (!effect) return null;
-    // Ours: asking renews the effect's resources and re-registers it while its
-    // resource is pending (Tr2Effect.IsGood). Carbon reaches the same skip
+    // Ours: asking renews the effect's resources and pulls its shader rebuild
+    // (Tr2Effect.EnsureGood). Carbon reaches the same skip
     // through the batch's null shader below. One area whose effect is not good
     // is skipped; the mesh's other areas still draw.
-    if (!effect.IsGood()) return null;
+    if (!effect.EnsureGood()) return null;
 
     // Carbon XORs the area's authored winding with the caller's request
     // (Tr2MeshBase.cpp:373); it is not a property of the area alone. The

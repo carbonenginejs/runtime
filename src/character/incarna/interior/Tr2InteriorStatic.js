@@ -354,7 +354,7 @@ export class Tr2InteriorStatic extends IRoot
       if (!mesh.GetDisplay()) continue;
 
       const geometry = mesh.GetGeometryResource();
-      if (!geometry || !geometry.IsGood()) continue;
+      if (!geometry || !geometry.EnsureGood()) continue;
       const meshIndex = mesh.GetMeshIndex();
       if (meshIndex < 0 || meshIndex >= geometry.GetMeshCount()) continue;
       const lod = geometry.GetMeshLod__LodIndex(meshIndex, 0);

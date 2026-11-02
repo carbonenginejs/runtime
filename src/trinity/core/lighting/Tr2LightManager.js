@@ -1156,8 +1156,8 @@ export class Tr2LightManager
     if (!profile) return 0;
     // Asked where it is used, once per packed light per frame: renews the
     // profile and packs "no profile" while it is not good, which is what a
-    // loading profile without a bitmap already packed (BlueAsyncRes.IsGood).
-    if (!profile.IsGood()) return 0;
+    // loading profile without a bitmap already packed (BlueAsyncRes.EnsureGood).
+    if (!profile.EnsureGood()) return 0;
     let index = profile.GetTextureIndex();
     if (index < 0)
     {

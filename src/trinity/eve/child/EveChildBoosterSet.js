@@ -923,7 +923,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
     const effect = (this._boosterHighLod || !this.effectFar) ? this.effect : this.effectFar;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!effect || !effect.IsGood()) return;
+    if (!effect || !effect.EnsureGood()) return;
     // The shared allocation is null until a device has run the factory (Tr2ProceduralBuffer.GetSharedResource).
     const vb = this._vertexBuffer.GetSharedResource();
     if (!vb) return;

@@ -69,14 +69,14 @@ export class Tr2RaytracingMesh
       this.geometry = geometry;
       this.meshIndex = meshIndex;
       this.screenSize = screenSize;
-      this.lodIndex = geometry && geometry.IsGood() ? geometry.GetLodIndexForScreenSize(meshIndex, screenSize) : -1;
+      this.lodIndex = geometry && geometry.EnsureGood() ? geometry.GetLodIndexForScreenSize(meshIndex, screenSize) : -1;
       this.transforms = new Float32Array(0); // alloc: variable-length native transform snapshot
       this.isDirty = true;
     }
     else if (this.screenSize !== screenSize || this.lodIndex === -1)
     {
       this.screenSize = screenSize;
-      const lodIndex = geometry && geometry.IsGood() ? geometry.GetLodIndexForScreenSize(meshIndex, screenSize) : -1;
+      const lodIndex = geometry && geometry.EnsureGood() ? geometry.GetLodIndexForScreenSize(meshIndex, screenSize) : -1;
       this.isDirty ||= lodIndex !== this.lodIndex;
       this.lodIndex = lodIndex;
     }

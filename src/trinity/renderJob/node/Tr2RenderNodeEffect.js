@@ -57,7 +57,7 @@ export class Tr2RenderNodeEffect extends IRoot
       return false;
     }
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!this.effect || !this.effect.IsGood())
+    if (!this.effect || !this.effect.EnsureGood())
     {
       return false;
     }

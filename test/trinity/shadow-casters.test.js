@@ -171,7 +171,7 @@ test("EveTurretSet.GetPerObjectData: null without geometry (legal on batches), f
 {
   const set = new EveTurretSet();
   assert.equal(set.GetPerObjectData(), null, "null without geometry");
-  set.geometryResource = { IsGood: () => true, GetMeshCount: () => 1 };
+  set.geometryResource = { IsGood: () => true, EnsureGood: () => true, GetMeshCount: () => 1 };
   // Carbon allocates the record from the accumulator, so no accumulator means
   // no record - the same legal null the batch path already tolerates.
   assert.equal(set.GetShadowPerObjectData(), null, "null without an accumulator");

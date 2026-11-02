@@ -232,7 +232,7 @@ export class EveStarfield
     const indices = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indices.IsValid()) return;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!this.effect.IsGood()) return;
+    if (!this.effect.EnsureGood()) return;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
     batch.SetPerObjectData(perObjectData);

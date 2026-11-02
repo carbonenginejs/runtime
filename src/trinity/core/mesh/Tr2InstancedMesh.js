@@ -280,7 +280,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   {
     if (!this.display) return false;
     const geometry = this.GetGeometryResource();
-    if (!geometry || !geometry.IsGood()) return false;
+    if (!geometry || !geometry.EnsureGood()) return false;
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). A bare call: the declaration check below
     // rebuilds what preparing makes.
     this.IsGood();
@@ -315,7 +315,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
       const material = area.GetMaterialInterface();
       if (!material) continue;
       // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-      if (!material.IsGood()) continue;
+      if (!material.EnsureGood()) continue;
       const reversed = area.GetReversed() !== reverseAreas;
       if (reversed && !lod.reversedIndicesValid) continue;
       const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);
@@ -361,7 +361,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
     if (!definition) return;
     const instances = definition.items ?? definition;
     const geometry = this.GetGeometryResource();
-    if (!geometry || !geometry.IsGood()) return;
+    if (!geometry || !geometry.EnsureGood()) return;
     const mesh = CarbonVertexElements(geometry.GetMeshVertexElements(this.meshIndex));
     if (!mesh.length || !instances.length) return;
     const merged = mesh.map(item => ({ ...item }));

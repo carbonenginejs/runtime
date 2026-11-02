@@ -548,7 +548,7 @@ export class EveStretch2 extends IEveFiringEffectElement
     const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indexBuffer.IsValid()) return false;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!this.effect.IsGood()) return false;
+    if (!this.effect.EnsureGood()) return false;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);

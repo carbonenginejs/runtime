@@ -126,12 +126,12 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
   {
     if (this.spriteEffect >= Tr2SpriteObjectEffect.TR2_SFX_ONE_TEXTURE)
     {
-      if (!this._texturePrimary || !this._texturePrimary.IsGood()) return false;
+      if (!this._texturePrimary || !this._texturePrimary.EnsureGood()) return false;
 
       this._texturePrimary.Apply(renderer, 0);
       if (this.spriteEffect >= Tr2SpriteObjectEffect.TR2_SFX_TWO_TEXTURES)
       {
-        if (!this._textureSecondary || !this._textureSecondary.IsGood()) return false;
+        if (!this._textureSecondary || !this._textureSecondary.EnsureGood()) return false;
 
         this._textureSecondary.Apply(renderer, 1);
       }

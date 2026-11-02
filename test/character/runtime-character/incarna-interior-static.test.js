@@ -257,7 +257,7 @@ function renderSetup(t)
     Tr2Renderer.SetViewTransform(oldView); al.Destroy();
   });
   const shader = { GetTechniqueIndex: () => 0, GetPassCount: () => 1, GetShaderTypeMask: () => 3, ApplyAllStateForPass() {} };
-  const material = { GetShaderStateInterface: () => shader, IsGood: () => true, ApplyMaterialDataForPass() {} };
+  const material = { GetShaderStateInterface: () => shader, IsGood: () => true, EnsureGood: () => true, ApplyMaterialDataForPass() {} };
   return { context, material, scene: () => { const scene = new Tr2InteriorScene(); scenes.push(scene); return scene; } };
 }
 

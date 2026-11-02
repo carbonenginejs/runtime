@@ -414,7 +414,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indexBuffer.IsValid()) return;
-    if (!this.effect.IsGood()) return;
+    if (!this.effect.EnsureGood()) return;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);

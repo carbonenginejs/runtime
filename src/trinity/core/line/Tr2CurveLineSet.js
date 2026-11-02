@@ -838,9 +838,10 @@ export class Tr2CurveLineSet
   {
     if (!effect) return;
     // Registers with trinity on first use and renews it (Tr2DeviceResource.IsGood). Before the buffer checks: preparing builds them.
-    if (!this.IsGood() || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
-    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!effect.IsGood()) return;
+    const good = this.IsGood();
+    // Asked with it, not after: renews what the effect holds, and skips it while its resource is not good.
+    const effectGood = effect.EnsureGood();
+    if (!good || !effectGood || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(effect);
     batch.SetPerObjectData(perObjectData);

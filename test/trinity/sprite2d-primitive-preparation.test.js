@@ -100,7 +100,7 @@ test('base-only submission starts from base vertices with zero-based indices', (
 test('texture validation requires both slots and clean draws reapply bindings', () =>
 {
   const sprite = new Tr2Sprite2d(), renderer = new RecordingScene(), calls = [];
-  const texture = good => ({ RegisterForChangeNotification() {}, UnregisterForChangeNotification() {}, IsGood() { return good; }, Apply(_renderer, index) { calls.push(index); } });
+  const texture = good => ({ RegisterForChangeNotification() {}, UnregisterForChangeNotification() {}, IsGood() { return good; }, EnsureGood() { return good; }, Apply(_renderer, index) { calls.push(index); } });
   sprite.spriteEffect = 64;
   sprite.texturePrimary = texture(true);
   sprite.textureSecondary = texture(false);
@@ -109,7 +109,7 @@ test('texture validation requires both slots and clean draws reapply bindings', 
   assert.equal(renderer.draws.length, 0);
   sprite.textureSecondary = texture(true);
   // Provide ready atlas inputs to the scene independently of the wrapper contract under test.
-  renderer._texture = [{ IsGood: () => true }, { IsGood: () => true }];
+  renderer._texture = [{ IsGood: () => true, EnsureGood: () => true }, { IsGood: () => true, EnsureGood: () => true }];
   sprite.GatherSprites(renderer);
   assert.equal(sprite.isDirty, false);
   assert.deepEqual(calls, [0,0,1,0,1]);
@@ -122,7 +122,7 @@ test('UV preparation applies tile scale, transform, then atlas window', () =>
 {
   const renderer = new Tr2Sprite2dScene();
   renderer.SetSpriteEffect(32);
-  renderer._texture[0] = { IsGood: () => true, GetWidthReciprocal: () => 1/10, GetHeightReciprocal: () => 1/20 };
+  renderer._texture[0] = { IsGood: () => true, EnsureGood: () => true, GetWidthReciprocal: () => 1/10, GetHeightReciprocal: () => 1/20 };
   const setting = renderer._textureSettings[0];
   setting.tileX = setting.tileY = true;
   setting.textureWindow.set([0.25,0.125,0.5,0.25]);
@@ -139,7 +139,7 @@ test('UV preparation applies tile scale, transform, then atlas window', () =>
 test('glow expands by one atlas texel and outline retains the opposite original UV', () =>
 {
   const renderer = new Tr2Sprite2dScene();
-  renderer._texture[0] = { IsGood: () => true, GetTextureWidth: () => 100, GetTextureHeight: () => 200 };
+  renderer._texture[0] = { IsGood: () => true, EnsureGood: () => true, GetTextureWidth: () => 100, GetTextureHeight: () => 200 };
   const vertices = Array.from({length:4}, () => new Tr2Sprite2dD3DVertex());
   renderer.SetSpriteEffect(42);
   renderer.PrepareSpriteVerts(vertices, [10,20], 30,40,42);

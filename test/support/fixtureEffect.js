@@ -22,7 +22,7 @@
 //
 // A mesh area also asks its effect `IsGood()` before building a batch, so the
 // fixture answers that too: good exactly when it has a shader. A fixture that
-// passes its own `IsGood` keeps it.
+// passes its own `IsGood` keeps it, and `EnsureGood` answers as it.
 
 /**
  * Makes an object answer the material contract a batch asks for.
@@ -54,6 +54,12 @@ export function FixtureEffect(values = {})
   if (typeof values.IsGood !== "function")
   {
     values.IsGood = () => values.GetShaderStateInterface() !== null;
+  }
+
+  // Draw paths ask EnsureGood (Tr2Effect.EnsureGood); it answers as IsGood.
+  if (typeof values.EnsureGood !== "function")
+  {
+    values.EnsureGood = () => values.IsGood();
   }
 
   if (typeof values.CompatibleWithGdr !== "function")

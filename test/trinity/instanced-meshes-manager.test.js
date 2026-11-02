@@ -78,7 +78,7 @@ function MakeManager()
 }
 
 const GEOMETRY = {
-  IsGood: () => true,
+  IsGood: () => true, EnsureGood: () => true,
   GetMeshData: () => ({ minBounds: [-1, -1, -1], maxBounds: [1, 1, 1] })
 };
 
@@ -126,7 +126,7 @@ function createEffect(name)
     GetHashValue: () => name.length,
     GetEffectPathName: () => `res:/fx/${name}.fx`,
     GetShaderStateInterface: () => ({ name }),
-    IsGood: () => true
+    IsGood: () => true, EnsureGood: () => true
   };
 }
 

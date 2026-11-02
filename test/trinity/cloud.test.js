@@ -475,7 +475,7 @@ test("UpdateSyncronous: effect-hash invalidation and the renderedLastFrame anima
 {
   const cloud = new EveChildCloud2();
   let hash = 1;
-  cloud.effect = { GetHashValue: () => hash, GetShaderStateInterface: () => null, IsGood: () => false };
+  cloud.effect = { GetHashValue: () => hash, GetShaderStateInterface: () => null, IsGood: () => false, EnsureGood: () => false };
   cloud.lightmapDirty = false;
   cloud.lightmapWidth = 64;
 
@@ -640,7 +640,7 @@ test("DensityMap supplies native 3D dimensions; missing LightMap selects the gra
   let hasLightMap = true;
   cloud.effect = { GetHashValue: () => hasLightMap ? 1 : 2,
     GetShaderStateInterface: () => ({ GetResource: () => hasLightMap ? {} : null }),
-    IsGood: () => true,
+    IsGood: () => true, EnsureGood: () => true,
     GetResourceByName: name => { assert.equal(name, "DensityMap"); return parameter; } };
   cloud.UpdateSyncronous(UpdateContext());
   assert.deepEqual([cloud.lightmapWidth, cloud.lightmapHeight, cloud.lightmapDepth], [64, 32, 16]);

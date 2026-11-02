@@ -134,7 +134,7 @@ export class Tr2StaticEmitter extends IRoot
   {
     const system = this.particleSystem;
     const geometry = this.geometryResource;
-    if (!system || !system.IsValid() || !geometry || !geometry.IsGood() || !Tr2Renderer.IsResourceCreationAllowed())
+    if (!system || !system.IsValid() || !geometry || !geometry.EnsureGood() || !Tr2Renderer.IsResourceCreationAllowed())
     {
       return;
     }

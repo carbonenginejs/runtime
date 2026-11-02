@@ -33,7 +33,7 @@ import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js
 function maskDuck()
 {
   return {
-    IsGood: () => true,
+    IsGood: () => true, EnsureGood: () => true,
     // Carbon samples the mask HostBitmap: GetPixel returns r,g,b,a floats
     // (imageio HostBitmap.cpp:1350-1353); channel 2 reads b (CE-136).
     GetBitmap: () => ({ GetWidth: () => 4, GetHeight: () => 4, GetFormat: () => 87,

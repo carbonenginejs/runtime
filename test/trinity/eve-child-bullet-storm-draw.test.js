@@ -26,7 +26,7 @@ function setup(t)
   };
   al.DrawIndexedInstanced = (...args) => { draws.push(args); return draw(...args); };
   const shader = { GetTechniqueIndex: () => 0, GetPassCount: () => 1, GetShaderTypeMask: () => 3, ApplyAllStateForPass() {} };
-  const effect = { GetShaderStateInterface: () => shader, IsGood: () => true, CompatibleWithGdr: () => false, ApplyMaterialDataForPass() {} };
+  const effect = { GetShaderStateInterface: () => shader, IsGood: () => true, EnsureGood: () => true, CompatibleWithGdr: () => false, ApplyMaterialDataForPass() {} };
   t.after(() =>
   {
     for (const resource of trinity.GetResourcesRegistered())

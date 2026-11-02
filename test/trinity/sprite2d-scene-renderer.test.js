@@ -24,7 +24,7 @@ function texture(window = [0.25, 0.5, 0.5, 0.25])
 {
   const al = { GetWidth: () => 128, GetHeight: () => 64 };
   return {
-    GetTexture: () => al, GetRenderTarget: () => null, IsGood: () => true,
+    GetTexture: () => al, GetRenderTarget: () => null, IsGood: () => true, EnsureGood: () => true,
     GetTextureWindow: out => { for (let i = 0; i < 4; i++) out[i] = window[i]; },
     GetTextureWidth: () => 128, GetTextureHeight: () => 64
   };
@@ -108,7 +108,7 @@ test("PrepareTriangleVerts refuses unready textures and copies raw UVs when anti
 
   // cpp:929-933 with TexturesReady (cpp:811-826): a needed texture that is not good stops the call.
   scene.SetSpriteEffect(32);
-  const notReady = { ...texture(), IsGood: () => false };
+  const notReady = { ...texture(), IsGood: () => false, EnsureGood: () => false };
   scene.SetTexture(0, notReady, 0);
   const dest = [new Tr2Sprite2dD3DVertex()];
   assert.equal(scene.PrepareTriangleVerts(dest, [sourceVertex([5, 5, 5], [1, 1, 1, 1], [0, 0], [0, 0])], 32, 1), false);
@@ -279,7 +279,7 @@ test("an EndLayer whose PrepareSpriteVerts fails draws an all-zero quad, even af
     // zero-construct (math/include/Vector3_inline.h:5-9, Color_inline.h:6-12): all positions and
     // colours are 0, not the previous layer's quad.
     scene.SetSpriteEffect(64);
-    const notReady = { ...texture(), IsGood: () => false };
+    const notReady = { ...texture(), IsGood: () => false, EnsureGood: () => false };
     scene.StartLayer(target);
     scene.EndLayer(4, 5, 6, 7, { Apply: (renderer, index) => renderer.SetTexture(index, notReady, 0) });
     assert.equal(drawn.length, 2);
