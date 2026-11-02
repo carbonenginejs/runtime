@@ -22,6 +22,16 @@ test("an unconfigured manager has no factory for an unknown extension", () =>
   assert.equal(blue.resMan.GetResource("res:/model/holder-unconfigured.gr2"), null);
 });
 
+test("GetResource and LoadObject count their calls in Carbon's resMan counters", async () =>
+{
+  const resources = BlueResMan.resManGetResourceCalls, objects = BlueResMan.resManLoadObjectCalls;
+  blue.resMan.GetResource("res:/model/holder-counted.gr2");
+  blue.resMan.GetResource("res:/model/holder-counted.gr2");
+  assert.equal(BlueResMan.resManGetResourceCalls, resources + 2);
+  await blue.resMan.LoadObject("res:/model/holder-counted.red").catch(() => null);
+  assert.equal(BlueResMan.resManLoadObjectCalls, objects + 1);
+});
+
 test("the manager waits for explicit initialization before registering for ticks", () =>
 {
   assert.ok(CjsSchema.cast(blue.resMan, IBlueEvents), "it is an IBlueEvents");

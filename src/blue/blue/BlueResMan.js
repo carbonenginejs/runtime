@@ -224,6 +224,28 @@ function dynamicResourceError(path, name, code, message)
  */
 export class BlueResMan
 {
+  /**
+   * `resManGetResourceCalls` (BlueResMan.cpp:39, incremented at :175): every
+   * `GetResource` call with a non-empty path.
+   *
+   * @adapted Carbon's `CCP_STATS_DECLARE` counters belong to its statistics
+   *   registry, which this runtime does not have; this is the class's own
+   *   static field under Carbon's counter symbol name, as Tr2MemoryCounterAL's
+   *   are. Its siblings `resManGetResourceCacheHit` and
+   *   `resManGetResourceShared` split hits by `LOOKUP_CACHED` and
+   *   `LOOKUP_SUCCESS`, which our `MotherLode.Lookup` does not report, so
+   *   they are not ported.
+   */
+  static resManGetResourceCalls = 0;
+
+  /**
+   * `resManLoadObjectCalls` (BlueResMan.cpp:36, incremented at :656): every
+   * `LoadObject` call.
+   *
+   * @adapted A static field under Carbon's counter symbol name, as
+   *   `resManGetResourceCalls`.
+   */
+  static resManLoadObjectCalls = 0;
 
   // The manager is no longer reachable from itself. Carbon's process-wide
   // handle is an extern beside the interface it points at, not a static on
@@ -1376,6 +1398,7 @@ export class BlueResMan
   _GetResource(path, options = {})
   {
     if (typeof path !== "string" || !path) throw new TypeError("Resource path must be non-empty.");
+    BlueResMan.resManGetResourceCalls++;
     const key = normalizeResourcePath(path);
     const ex = this.GetResourceVariant(options);
     const cacheKey = getMotherLodeKey(key, ex);
@@ -1446,6 +1469,7 @@ export class BlueResMan
    */
   LoadObject(path, options = {})
   {
+    BlueResMan.resManLoadObjectCalls++;
     return this._LoadObject(path, options, true);
   }
 
