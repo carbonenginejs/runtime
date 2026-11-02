@@ -37,14 +37,24 @@ stores a manager attachment or a bundle of callbacks back into its manager.
 `GetResource(path, { ex })` selects by extension plus Carbon's suffix, initializes
 the handle and then inserts it into MotherLode. `Ready(resource)` waits for the
 current attempt. Reload and purge revival refill that same handle. Failed loads
-are prepared but not good; `IsGood()` and `KeepAlive()` do not retry them. Only an
+are prepared but not good; `EnsureGood()` and `KeepAlive()` do not retry them. Only an
 explicit reload retries failure. A policy purge can revive on use within the
 manager's retry cap. `GetResourceStatus` inspects flags without renewing use.
 
-Notify targets persist across rebuilds. Owners add once when binding, remove
-when rebinding or destroying, and release derived state when notified.
-`IsGood()` renews use and then returns the native good flag. This timestamp
-renewal stands in for Carbon's reference lifetime; it does not imply success.
+`IsGood()` only asks: it returns the native good flag and renews nothing.
+`EnsureGood()` renews use (`KeepAlive()`), then answers `IsGood()`; call it
+where the resource is about to be used. This timestamp renewal stands in for
+Carbon's reference lifetime; it does not imply success.
+
+Owners pull a resource's changes at use instead of registering notify targets.
+Each resource counts its finished prepares in `_revision`. An owner records,
+per dependency slot, the revision it built from in its own
+`_dependencyRevisions` Map, and calls
+`BlueAsyncRes.ensureDependency(dependency, owner, slotKey)` at draw readiness:
+it renews the dependency, calls the owner's `RebuildCachedData(dependency)`
+when the revision changed, and `ReleaseCachedData(dependency)` once when the
+dependency is no longer good. Nothing holds the owner. `AddNotifyTarget` and
+`RemoveNotifyTarget` are kept for Carbon parity and throw.
 
 The internal `CjsLoadingObject` retains decoded plain data or a cached builder
 through the manager. `LoadObject` constructs a fresh graph per caller and does
@@ -53,7 +63,7 @@ not expose that handler. `GetResourcePayload`, `HasResourcePayload` and
 through its native owner, such as `GetBitmap` or `GetCMFData`. Releasing plain
 data preserves handle identity; the next explicit `Ready` reconstructs it.
 
-Full MotherLode cleanup cancels an attempt, releases targets' cached data and
-calls the owner's cleanup hook. Its existing `releasePayload` and
+Full MotherLode cleanup cancels an attempt and calls the owner's cleanup hook;
+owners release their derived data at their next use. Its existing `releasePayload` and
 `destroyAdapters` switches remain independent. Device-only release and
 plain-data expiry have narrower scopes than full resource cleanup.
