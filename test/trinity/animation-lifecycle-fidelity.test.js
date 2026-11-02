@@ -127,3 +127,27 @@ test("texture animation material registrations retain duplicates and invalidate 
   parameter.OnModified("animation");
   assert.equal(invalidations, 3);
 });
+
+test("each update renews the resources a controller samples, every one, decoded data passed over", () =>
+{
+  const make = () =>
+  {
+    const resource = new TriGeometryRes();
+    resource.ReadGrannyFile({ models: [], animations: [], grannyFileFormatRevision: 7 });
+    prepareResourceFixture(resource);
+    resource.asked = 0;
+    // The first answers false: no later resource may be skipped because of it.
+    const good = resource.IsGood.bind(resource);
+    resource.IsGood = () => { resource.asked += 1; return resource === rig ? false : good(); };
+    return resource;
+  };
+  const rig = make(), clip = make(), other = make();
+  const animation = new Tr2GrannyAnimation();
+  animation.SetGrannyResource(rig);
+  animation.SetSecondaryGrannyResource("res:/tests/renew/clip.gr2", clip);
+  animation.SetSecondaryGrannyResource("res:/tests/renew/other.gr2", other);
+  animation.SetSecondaryGrannyResource("res:/tests/renew/data.gr2", { animations: [] });
+  for (const resource of [ rig, clip, other ]) resource.asked = 0;
+  animation.Update(0.016);
+  assert.deepEqual([ rig.asked, clip.asked, other.asked ], [ 1, 1, 1 ]);
+});

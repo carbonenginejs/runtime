@@ -44,6 +44,19 @@ function getName(value)
 /** No bones: the shape every consumer already handles, per Carbon's else branch. */
 const NO_BONES = Object.freeze({ bones: null, boneCount: 0 });
 
+/**
+ * Renews one animation resource's use through `IsGood`, which keeps it from
+ * expiring under BlueResMan's automatic purge; anything that is not a
+ * geometry or Granny resource (decoded data, null) is passed over.
+ *
+ * @param {*} resource The resource a controller samples, or its decoded data.
+ */
+function RenewAnimationResource(resource)
+{
+  const owner = CjsSchema.cast(resource, TriGeometryRes) ?? CjsSchema.cast(resource, TriGrannyRes);
+  if (owner) owner.IsGood();
+}
+
 
 /**
  * The mesh bone palette of an animation updater, or nulls when it has none.
@@ -715,6 +728,7 @@ export class Tr2GrannyAnimation extends IRoot
    */
   Update(dt = 0)
   {
+    this._RenewResources();
     if (!this._initialized || !this.animationEnabled)
     {
       return false;
@@ -752,6 +766,27 @@ export class Tr2GrannyAnimation extends IRoot
     this._ApplyBoneOffsets();
     this._composePose();
     return true;
+  }
+
+  /**
+   * Marks the resources this controller samples as in use, once an update:
+   * the Granny or geometry resource it animates from and every secondary
+   * animation resource. Each is asked, none skipped by an earlier answer.
+   * A secondary given as decoded data rather than a resource carries no
+   * lifetime and is passed over.
+   *
+   * @cjs Carbon's `m_grannyRes`, `m_geometryRes` and `m_secondaryGrannyRes`
+   *   are BluePtrs, so their reference counts keep the resources alive, and
+   *   Carbon asks `IsGood` only when an animation starts
+   *   (Tr2GrannyAnimation.cpp:1487-1500). Our MotherLode expires a resource no
+   *   use renews (BlueResMan's automatic purge), so a controller renews what it
+   *   reads: without it a character's skeleton was purged 30 s in and dropped
+   *   to its bind pose.
+   */
+  _RenewResources()
+  {
+    RenewAnimationResource(this.grannyRes);
+    for (const resource of this._secondaryResources.values()) RenewAnimationResource(resource);
   }
 
   /**
