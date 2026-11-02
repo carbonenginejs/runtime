@@ -8,6 +8,7 @@ import { MotherLode, getMotherLodeKey } from "./MotherLode.js";
 import { BlueOS } from "./BlueOS.js";
 import { blue as blueService } from "./blue.js";
 import { CjsLoadingObject } from "./CjsLoadingObject.js";
+import { BlueAsyncRes } from "./BlueAsyncRes.js";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { CjsSchema, meta, blue } from "#schema";
 import { BlueResManQueue, IBlueResMan } from "./IBlueResMan.js";
@@ -2266,8 +2267,30 @@ export class BlueResMan
   }
 
   /**
+   * Compacts every cached resource's notify-target list, dropping targets the
+   * garbage collector has taken (`BlueAsyncRes._PruneNotifyTargets`).
+   *
+   * @cjs Our notify targets are WeakRefs where Carbon's destructors
+   *   unregister; most resources never reload, so without this sweep each
+   *   cleared consumer would leave a dead entry for the session.
+   * @implemented
+   * @returns {void}
+   */
+  _PruneNotifyTargets()
+  {
+    for (const lode of [ this.motherLode, this.loadObjectCache ])
+    {
+      for (const resource of lode.GetValues())
+      {
+        if (CjsSchema.cast(resource, BlueAsyncRes)) resource._PruneNotifyTargets();
+      }
+    }
+  }
+
+  /**
    * Run the configured automatic sweep when its minimum time interval has
-   * elapsed. The first pump after configuration runs immediately. A regressing
+   * elapsed. Each due sweep first compacts the cached resources' notify
+   * targets (`_PruneNotifyTargets`). The first pump after configuration runs immediately. A regressing
    * clock rebases cadence and skips that pump; failures consume the interval so
    * repeated updates cannot form a cleanup-error storm. This method never
    * creates, fetches, prepares, or reloads a resource.
@@ -2300,6 +2323,7 @@ export class BlueResMan
     }
 
     this._lastAutoPurgeTime = time;
+    this._PruneNotifyTargets();
     return this.PurgeInactive({
       time,
       maxIdleMilliseconds: policy.maxIdleMilliseconds,

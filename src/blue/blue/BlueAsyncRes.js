@@ -214,9 +214,13 @@ export class BlueAsyncRes
   }
 
   /**
-   * Drops the WeakRefs of collected targets, in place.
+   * Drops the WeakRefs of collected targets, in place, in one pass.
    *
-   * @cjs
+   * @cjs Carbon's targets unregister in their destructors, so its block never
+   *   holds a dead entry; ours only learns of a collected target by looking.
+   *   The notify walks call this, and so does resMan's auto-purge sweep for
+   *   every live resource, because most resources never reload and their dead
+   *   entries would otherwise stay for the session.
    * @implemented
    */
   _PruneNotifyTargets()
