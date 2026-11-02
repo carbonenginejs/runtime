@@ -447,3 +447,28 @@ test("real Deathless layout runtime instances reach draw submission", {
   }
   t.diagnostic(JSON.stringify({meshGroups:meshes.length,instances,draws:draws.length}));
 });
+
+test("an unchanged transform stream updates in place: same allocation, same bytes as a repack", t => {
+  const {uploads}=setup(t);
+  const provider=new Tr2RuntimeInstanceData(),fresh=new Tr2RuntimeInstanceData();
+  const first=mat4.fromTranslation(mat4.create(),[1,2,3]),second=mat4.fromRotationTranslationScale(mat4.create(),[0,0,0,1],[4,5,6],[2,2,2]);
+  provider.SetTransformInstances([{transform:first,boneIndex:3},{transform:first}]);
+  const allocation=provider.GetInstanceData().buffer,offset=provider.GetInstanceData().offset,rows=provider.rows,row0=provider.rows[0];
+  const before=uploads.length;
+  // Carbon copies into the same stream each update (EveChildInstanceMeshRenderer.cpp:354-380).
+  const scale=provider.SetTransformInstances([{transform:second,previousTransform:first,boneIndex:5},{transform:second}]);
+  assert.equal(provider.GetInstanceData().buffer,allocation);
+  assert.equal(provider.GetInstanceData().offset,offset);
+  assert.equal(provider.rows,rows);assert.equal(provider.rows[0],row0);
+  assert.equal(uploads.length,before+1);
+  fresh.SetTransformInstances([{transform:second,previousTransform:first,boneIndex:5},{transform:second}]);
+  assert.deepEqual(provider.GetData(),fresh.GetData());
+  assert.deepEqual(provider.GetItem(0),fresh.GetItem(0));
+  assert.deepEqual(Array.from(provider.aabbMin),Array.from(fresh.aabbMin));
+  assert.equal(scale,2);
+  // A new count repacks.
+  provider.SetTransformInstances([{transform:first}]);
+  assert.equal(provider.GetCount(),1);
+  assert.notEqual(provider.rows,rows);
+  fresh.ReleaseResources();provider.ReleaseResources();
+});

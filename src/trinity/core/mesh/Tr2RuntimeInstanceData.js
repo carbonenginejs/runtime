@@ -120,6 +120,12 @@ export class Tr2RuntimeInstanceData
 
   #data = null;
 
+  /** A view over `#data`, made once per packed buffer, for in-place writes. */
+  #view = null;
+
+  /** True while the layout is `TransformLayout`, set by SetTransformInstances; any other layout clears it. */
+  #transformLayout = false;
+
   #bytes = null;
 
   #stride = 0;
@@ -714,6 +720,14 @@ export class Tr2RuntimeInstanceData
       throw new TypeError("Transform instances must be an array");
     }
 
+    // Carbon sets the layout once (ConfigureInstanceData, EveChildInstanceMeshRenderer.cpp:334-352)
+    // and each update copies into the same stream (GetData + memcpy + UpdateData, :354-380). With the
+    // layout and count unchanged, write in place; only a new count repacks.
+    if (this.#transformLayout && this.#view && instances.length && this.count === instances.length)
+    {
+      return this.#updateTransformInstances(instances);
+    }
+
     const rows = [];
     const min = vec3.fromValues(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
     const max = vec3.fromValues(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
@@ -754,6 +768,7 @@ export class Tr2RuntimeInstanceData
     }
 
     this.SetElementLayout(Tr2RuntimeInstanceData.TransformLayout);
+    this.#transformLayout = true;
     this.SetData(rows);
     this.SetBoundingBox(
       instances.length ? min : Tr2RuntimeInstanceData.#zero,
@@ -810,6 +825,62 @@ export class Tr2RuntimeInstanceData
     this.layout = normalized.map(Tr2RuntimeInstanceData.#describeElement);
     this.#layout = normalized;
     this.#stride = offset;
+    this.#transformLayout = false;
+  }
+
+  /**
+   * SetTransformInstances for an unchanged layout and count: rewrites the
+   * existing rows and packed bytes in place and updates the live allocation,
+   * allocating nothing. Validation and results match the repacking path.
+   *
+   * @param {Array<object|ArrayLike<number>>} instances As SetTransformInstances.
+   * @returns {number} Maximum instance scale.
+   */
+  #updateTransformInstances(instances)
+  {
+    const min = Tr2RuntimeInstanceData.#scratchMin, max = Tr2RuntimeInstanceData.#scratchMax;
+    min[0] = min[1] = min[2] = Number.POSITIVE_INFINITY;
+    max[0] = max[1] = max[2] = Number.NEGATIVE_INFINITY;
+    let maxScale = 0;
+    for (let index = 0; index < instances.length; index++)
+    {
+      const value = instances[index];
+      const transform = Array.isArray(value) || ArrayBuffer.isView(value)
+        ? value
+        : value?.transform;
+      const previousTransform = value?.previousTransform ?? transform;
+      if (!transform || transform.length !== 16)
+      {
+        throw new TypeError(`Transform instance ${index} must contain 16 transform values`);
+      }
+      if (!previousTransform || previousTransform.length !== 16)
+      {
+        throw new TypeError(`Transform instance ${index} must contain 16 previous-transform values`);
+      }
+
+      const row = this.rows[index];
+      Tr2RuntimeInstanceData.#packTransformInto(transform, row, 0, index);
+      Tr2RuntimeInstanceData.#packTransformInto(previousTransform, row, 3, index);
+      row[6] = Number(value?.boneIndex ?? 0) | 0;
+      this.#writeRow(this.#view, index, row);
+
+      for (let axis = 0; axis < 3; axis++)
+      {
+        const component = Number(transform[12 + axis]) || 0;
+        if (component < min[axis]) min[axis] = component;
+        if (component > max[axis]) max[axis] = component;
+      }
+      for (let axis = 0; axis < 3; axis++)
+      {
+        const packed = row[axis];
+        maxScale = Math.max(maxScale, Math.hypot(packed[0], packed[1], packed[2]));
+      }
+    }
+
+    this.SetBoundingBox(min, max);
+    this.#dirty = true;
+    this.UpdateData();
+    return maxScale;
   }
 
   /**
@@ -838,6 +909,7 @@ export class Tr2RuntimeInstanceData
     if (this.count !== normalizedRows.length) this.#freeAllocation();
     this.rows = normalizedRows;
     this.#data = data;
+    this.#view = data ? view : null;
     this.#bytes = data ? new Uint8Array(data) : null; // alloc: one byte view per repacked instance stream
     this.count = normalizedRows.length;
     this.#dirty = true;
@@ -980,6 +1052,27 @@ export class Tr2RuntimeInstanceData
       type: value.type,
       name: value.name
     };
+  }
+
+  /**
+   * As #packTransform, into a row's existing float4 arrays from `first`, with
+   * the repacking path's finiteness check.
+   */
+  static #packTransformInto(value, row, first, index)
+  {
+    for (let axis = 0; axis < 3; axis++)
+    {
+      const target = row[first + axis];
+      for (let column = 0; column < 4; column++)
+      {
+        const component = Number(value[column * 4 + axis]);
+        if (!Number.isFinite(component))
+        {
+          throw new TypeError(`Instance ${index} element ${first + axis} components must be numeric`);
+        }
+        target[column] = component;
+      }
+    }
   }
 
   /**
@@ -1150,6 +1243,10 @@ export class Tr2RuntimeInstanceData
   ]);
 
   static #zero = vec3.create();
+
+  /** Scratch bounds for the in-place transform update; copied out by SetBoundingBox. */
+  static #scratchMin = vec3.create();
+  static #scratchMax = vec3.create();
 
   static UsageCode = Tr2VertexUsageCode;
 
