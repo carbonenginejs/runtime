@@ -34,16 +34,17 @@ export class IBlueResMan extends IRoot
    * resource to its `resource` output parameter and returns whether it did;
    * the output parameter is the return value here.
    *
-   * Adapted: a resource-options object carries the extension (`ext`) and the
-   * requested kind (`requirement`, standing for the IID) with the browser's
-   * own request settings.
+   * Adapted: a resource-options object carries Carbon's `ex` and the
+   * requested interface (`iid`) with the browser's own request settings.
+   * `notifications` stays its own argument with Carbon's default.
    *
    * @abstract
    * @param {string} _path Resource path.
    * @param {object} [_options] Resource options.
+   * @param {IBlueResManNotifications|null} [_notifications=null] Told whether the resource came from the cache or was created.
    * @returns {*} The resource.
    */
-  GetResource(_path, _options) {}
+  GetResource(_path, _options, _notifications = null) {}
 
   /**
    * `GetResourceW` - `GetResource` for a wide-character path; identical in
@@ -52,9 +53,10 @@ export class IBlueResMan extends IRoot
    * @abstract
    * @param {string} _path Resource path.
    * @param {object} [_options] Resource options, as `GetResource`.
+   * @param {IBlueResManNotifications|null} [_notifications=null] As `GetResource`.
    * @returns {*} The resource.
    */
-  GetResourceW(_path, _options) {}
+  GetResourceW(_path, _options, _notifications = null) {}
 
   /**
    * `LoadObject( const char* name, Be::LOADOBJECT_INIT_FLAG init = Be::LDOBJ_INITIALIZE )`

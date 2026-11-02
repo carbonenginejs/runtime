@@ -1,16 +1,16 @@
-// Source: blue/include/IBlueResMan.h:20-34
+// Source: blue/include/IBlueResMan.h:20-35
 //
 // Optional callbacks a caller may pass to GetResource to learn which of the two
 // things happened. Carbon's comment states the rule: "All callbacks are
 // guaranteed to be made during the (blocking) call to GetResource on the main
 // thread, so temporary lifetime objects that implement the callbacks are
-// valid."
+// valid." BlueResMan makes them at Carbon's sites: OnResourceFromCache on a
+// cache hit (BlueResMan.cpp:188-210), OnResourceCreated after the factory and
+// before Initialize (:237-240 for dynamic:, :281-286 otherwise).
 //
 // Both have empty bodies in Carbon rather than being pure virtual, so an
-// implementer overrides only the half it cares about. So they are marked
-// `impl.noop` at the foot of this file and never `impl.abstract`: doing
-// nothing IS the declared default, and a caller who supplied the object still
-// gets the other callback.
+// implementer overrides only the half it cares about, and neither is abstract:
+// doing nothing IS the declared default.
 import { CjsSchema } from "#schema";
 
 /** `IBlueResManNotifications` - optional per-call notice of how GetResource answered. */
@@ -22,14 +22,18 @@ export class IBlueResManNotifications
    * Carbon is precise about when: the instance exists but has NOT yet been
    * Initialize()'d.
    *
-   * @adapted
+   * @implemented
+   * @param {BlueAsyncRes} _resource The new resource (Carbon's `void*`).
+   * @returns {void}
    */
   OnResourceCreated(_resource) {}
 
   /**
    * `OnResourceFromCache` - the resource was already in the cache.
    *
-   * @adapted
+   * @implemented
+   * @param {BlueAsyncRes} _resource The cached resource (Carbon's `void*`).
+   * @returns {void}
    */
   OnResourceFromCache(_resource) {}
 }
@@ -42,7 +46,5 @@ CjsSchema.meta.carbon("IBlueResManNotifications")(IBlueResManNotifications);
 //     virtual void OnResourceFromCache( void* ) {}
 //                                      // IBlueResMan.h:28,31
 //
-// So an implementer overrides only the half it cares about, and neither is a
-// divergence when left alone. That is `impl.noop`, not `impl.abstract`, and
-// declaring it is what stops `@carbon.inherit` falling back to abstract and
-// writing "Carbon leaves this unimplemented" onto every consumer.
+// Carbon's protected non-virtual destructor (:33-34) only stops deletion
+// through the interface; JavaScript has no destructor to port.

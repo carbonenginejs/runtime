@@ -1370,13 +1370,17 @@ export class BlueResMan
    * @param {object} [options={}] Factory suffix, source provenance and explicit reload settings.
    * @param {string} [options.ex=""] Carbon factory suffix, appended to the source extension.
    * @param {Function} [options.iid=IBlueResource] Carbon interface identity, checked after factory selection.
+   * @param {IBlueResManNotifications|null} [notifications=null] Carbon's
+   *   `IBlueResManNotifications* notifications = nullptr` (IBlueResMan.h:50):
+   *   told, during this call, whether the resource came from the cache or was
+   *   newly created.
    * Carbon: BlueResMan::GetResourceW/GetResourceHelper (blue/src/BlueResMan.cpp:143-290).
    * @returns {BlueAsyncRes|null} Cached or newly initialized handle, or null for an unsupported factory/interface.
    * @throws {TypeError} If the path, identity settings, or resource constructor are invalid.
    * @throws {Error} If MotherLode is inactive or displaced-resource cleanup fails.
    */
-  GetResource(path, options = {}) {
-    const resource = this._GetResource(path, options);
+  GetResource(path, options = {}, notifications = null) {
+    const resource = this._GetResource(path, options, notifications);
     // Carbon: BlueResMan::GetResourceW (blue/src/BlueResMan.cpp:143-163).
     // The requested interface validates the selected resource; it never selects
     // another factory or changes MotherLode identity.
@@ -1390,11 +1394,12 @@ export class BlueResMan
    * @adapted
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] As `GetResource`.
+   * @param {IBlueResManNotifications|null} [notifications=null] As `GetResource`.
    * @returns {BlueAsyncRes} As `GetResource`.
    */
-  GetResourceW(path, options = {}) {
+  GetResourceW(path, options = {}, notifications = null) {
     // Carbon (BlueResMan.cpp:130-141): GetResource widens its strings and calls GetResourceW; a JS string is both.
-    return this.GetResource(path, options);
+    return this.GetResource(path, options, notifications);
   }
 
   /**
@@ -1405,9 +1410,10 @@ export class BlueResMan
    * @implemented
    * @param {string} path
    * @param {object} [options={}]
+   * @param {IBlueResManNotifications|null} [notifications=null]
    * @returns {BlueAsyncRes|null}
    */
-  _GetResource(path, options = {})
+  _GetResource(path, options = {}, notifications = null)
   {
     if (typeof path !== "string" || !path) throw new TypeError("Resource path must be non-empty.");
     BlueResMan.resManGetResourceCalls++;
@@ -1418,6 +1424,9 @@ export class BlueResMan
     if (existing)
     {
       this.motherLode.KeepAlive(cacheKey);
+      // Carbon (BlueResMan.cpp:188-210): LOOKUP_CACHED and LOOKUP_SUCCESS both
+      // report the hit; our Lookup does not tell them apart.
+      if (notifications) notifications.OnResourceFromCache(existing);
       if (options.reload === true)
       {
         const record = this._GetResourceRecord(existing);
@@ -1427,7 +1436,7 @@ export class BlueResMan
       }
       return existing;
     }
-    if (isDynamicResourcePath(key)) return this._CreateDynamicResource(key, cacheKey);
+    if (isDynamicResourcePath(key)) return this._CreateDynamicResource(key, cacheKey, notifications);
 
     const ext = normalizeResourceExtension((options.ext || getResourceExtension(key)) + ex);
     const route = this.GetExtensionRoute(ext);
@@ -1437,7 +1446,7 @@ export class BlueResMan
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "No factory found for extension (%s, %s)", path, ex);
       return null;
     }
-    const resource = this.CreateResource(Constructor, key, ex, options, route);
+    const resource = this.CreateResource(Constructor, key, ex, options, route, notifications);
     this.motherLode.Insert(cacheKey, resource);
     this._LogResourceEvent(resource, "requested", "Requested %s", path);
     const operation = this._GetResourceLoad(resource);
@@ -2021,10 +2030,12 @@ export class BlueResMan
    * @adapted
    * @param {string} key Normalized `dynamic:/<name>/<query>` path.
    * @param {string} cacheKey MotherLode key.
+   * @param {IBlueResManNotifications|null} [notifications=null] Told of the
+   *   new resource before insertion (BlueResMan.cpp:237-240).
    * @returns {BlueAsyncRes} Canonical dynamic resource.
    * @throws {Error} If no constructor is registered or it yields no resource.
    */
-  _CreateDynamicResource(key, cacheKey)
+  _CreateDynamicResource(key, cacheKey, notifications = null)
   {
     const rest = key.slice(DYNAMIC_PREFIX_LENGTH);
     const slash = rest.indexOf("/");
@@ -2042,6 +2053,7 @@ export class BlueResMan
       throw dynamicResourceError(key, name, "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE",
         `dynamic constructor "${name}" returned no IBlueResource-compatible resource`);
     }
+    if (notifications) notifications.OnResourceCreated(resource);
     this._dynamicResources.add(resource);
 
     const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true, cacheable: constructor.IsCacheable() });
@@ -2672,9 +2684,11 @@ export class BlueResMan
    * @param {string} ext
    * @param {object} [options={}]
    * @param {object|null} [extensionRoute=null]
+   * @param {IBlueResManNotifications|null} [notifications=null] Told of the new
+   *   resource before Initialize, as Carbon does (BlueResMan.cpp:281-286).
    * @returns {BlueAsyncRes}
    */
-  CreateResource(Constructor, path, ext, options = {}, extensionRoute = null)
+  CreateResource(Constructor, path, ext, options = {}, extensionRoute = null, notifications = null)
   {
     const resource = new Constructor();
     if (!CjsSchema.cast(resource, IBlueResource)) throw new TypeError("Resource factory must implement IBlueResource.");
@@ -2685,6 +2699,8 @@ export class BlueResMan
     const record = this._GetResourceRecord(resource);
     record.request = { ...options, ...getResourceLoaderOptions(options, options.source || this.source) };
     if (options.values) CjsSchema.setValues(resource, options.values);
+    // Carbon (BlueResMan.cpp:281-286): created, not yet Initialize()'d.
+    if (notifications) notifications.OnResourceCreated(resource);
     resource.Initialize(path, ext);
     return resource;
   }
