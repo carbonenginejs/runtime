@@ -146,6 +146,48 @@ export function decompressGr2Section(format, bytes, expandedSize, sec)
  */
 
 /**
+ * One entry of a Granny file's section array, as its header stores it.
+ *
+ * @typedef {object} Gr2SectionHeader
+ * @property {number} format Compression format id (`GR2_COMPRESSION_*`).
+ * @property {number} dataOffset Byte offset of the section's stored data in the file.
+ * @property {number} dataSize Stored (compressed) byte length.
+ * @property {number} expandedSize Byte length once decompressed.
+ * @property {number} first16 Oodle1 16-bit stop.
+ * @property {number} first8 Oodle1 8-bit stop.
+ * @property {number} pFixOff Byte offset of the pointer fixups.
+ * @property {number} pFixCnt Number of pointer fixups.
+ */
+
+/**
+ * Reads a `.gr2` file's section array from its header, without decompressing anything: what
+ * `GrannyGetGRNSectionArray` gives `TriGrannyRes::DoLoad` (TriGrannyRes.cpp:253-258).
+ *
+ * @param {Uint8Array} buf Raw `.gr2` file bytes.
+ * @returns {Gr2SectionHeader[]} The sections, in file order.
+ * @throws {Error} If the file magic is not a supported Granny magic.
+ */
+export function readGr2Sections(buf)
+{
+    const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    const fu32 = o => dv.getUint32(o, true);
+    const magic = bytesToHex(buf.subarray(0, 16));
+    if (!MAGICS[magic]) throw new Error("unknown gr2 magic " + magic);
+    const H = 32, secBase = H + fu32(H + 12), secCount = fu32(H + 16);
+    const secs = [];
+    for (let i = 0; i < secCount; i++)
+    {
+        const b = secBase + i * 44;
+        secs.push({
+            format: fu32(b), dataOffset: fu32(b + 4), dataSize: fu32(b + 8), expandedSize: fu32(b + 12),
+            first16: fu32(b + 20), first8: fu32(b + 24),
+            pFixOff: fu32(b + 28), pFixCnt: fu32(b + 32)
+        });
+    }
+    return secs;
+}
+
+/**
  * Parse raw `.gr2` bytes into the reflected Granny object graph.
  *
  * This is the low-level reader used by the package entry point. It decompresses
@@ -179,23 +221,13 @@ export function readGr2Raw(buf, options = {})
         MEMBER_DEF_SIZE = 20 + 3 * P,
         H = 32,
         version = fu32(H),
-        secBase = H + fu32(H + 12),
         secCount = fu32(H + 16),
         rootTypeSec = fu32(H + 20),
         rootTypeOff = fu32(H + 24),
         rootObjSec = fu32(H + 28),
         rootObjOff = fu32(H + 32);
 
-    const secs = [];
-    for (let i = 0; i < secCount; i++)
-    {
-        const b = secBase + i * 44;
-        secs.push({
-            format: fu32(b), dataOffset: fu32(b + 4), dataSize: fu32(b + 8), expandedSize: fu32(b + 12),
-            first16: fu32(b + 20), first8: fu32(b + 24),
-            pFixOff: fu32(b + 28), pFixCnt: fu32(b + 32)
-        });
-    }
+    const secs = readGr2Sections(buf);
 
     const sectionBase = new Array(secCount);
     let total = 0;
