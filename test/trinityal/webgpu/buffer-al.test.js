@@ -103,6 +103,23 @@ test("the upload happens on unmap, not on map", () =>
   assert.equal(uploaded[0][3][95], 9);
 });
 
+test("an unmap counts a whole-buffer upload, by the buffer's name", () =>
+{
+  const { context } = deviceAndContext();
+  const buffer = new CjsWebgpuBufferAL();
+  buffer.Create(quadDescription(), null, context);
+  const name = buffer.GetDeviceBuffer().label;
+  const bytes = CjsWebgpuDevice.bufferWholeUploadBytes, count = CjsWebgpuDevice.bufferWholeUploads;
+  const named = CjsWebgpuDevice.bufferWholeUploadBytesByName.get(name) ?? 0;
+
+  buffer.MapForWriting(context).data[0] = 1;
+  buffer.UnmapForWriting();
+
+  assert.equal(CjsWebgpuDevice.bufferWholeUploadBytes - bytes, 96);
+  assert.equal(CjsWebgpuDevice.bufferWholeUploads - count, 1);
+  assert.equal(CjsWebgpuDevice.bufferWholeUploadBytesByName.get(name) - named, 96);
+});
+
 test("the shadow is retained across maps, so a partial rewrite keeps the rest", () =>
 {
   const { fake, context } = deviceAndContext();

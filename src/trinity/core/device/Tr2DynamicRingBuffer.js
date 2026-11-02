@@ -30,6 +30,16 @@ function Align(offset, alignment)
 @be.abstract
 export class Tr2DynamicRingBuffer
 {
+  /**
+   * Bytes copied into every ring by `UpdateBuffer`, since the page loaded:
+   * what the ring's users actually wrote, to set beside what the backend
+   * uploads for them (CjsWebgpuDevice's `bufferWholeUploadBytes`). A running
+   * total; a reader takes per-frame deltas.
+   *
+   * @cjs Carbon declares no counter for ring writes.
+   */
+  static bytesWritten = 0;
+
   /** _bufferSize - bytes. */
   @type.uint32
   _bufferSize = 0;
@@ -328,6 +338,7 @@ export class Tr2DynamicRingBuffer
     if (!mapped) return ALResult.E_FAIL;
 
     mapped.set(new Uint8Array(data.buffer, data.byteOffset, size), offset);
+    Tr2DynamicRingBuffer.bytesWritten += size;
     this._buffer.UnmapForWriting(renderContext);
 
     return ALResult.S_OK;

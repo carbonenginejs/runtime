@@ -68,6 +68,7 @@ import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { ForgetBindingResource } from "./core/bindingIndex.js";
 import { Tr2MemoryCounterAL } from "../Tr2MemoryCounterAL.js";
+import { CjsWebgpuDevice } from "./CjsWebgpuDevice.js";
 
 
 /** Carbon's "no descriptor heap index", as the stub buffer spells it. */
@@ -324,6 +325,11 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
 
     this._mapped = false;
     this._webgpu.WriteDeviceBuffer(this._handle, this._shadow);
+
+    const bytes = this._shadow.byteLength, name = this._handles[0].label;
+    CjsWebgpuDevice.bufferWholeUploadBytes += bytes;
+    CjsWebgpuDevice.bufferWholeUploads += 1;
+    CjsWebgpuDevice.bufferWholeUploadBytesByName.set(name, (CjsWebgpuDevice.bufferWholeUploadBytesByName.get(name) ?? 0) + bytes);
   }
 
   /**

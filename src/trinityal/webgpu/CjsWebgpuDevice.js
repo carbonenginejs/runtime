@@ -63,6 +63,33 @@ export class CjsWebgpuDevice
   static shaderModulesCreated = 0;
 
   /**
+   * Of `bufferBytesWritten`, the bytes uploaded whole when a mapped buffer is
+   * unmapped (`CjsWebgpuBufferAL.UnmapForWriting`): the buffer's full size,
+   * whatever the caller wrote into it.
+   *
+   * @cjs As `bufferBytesWritten`. Set beside what callers wrote (for the
+   *   ring, `Tr2DynamicRingBuffer.bytesWritten`), it shows how much of the
+   *   upload traffic is whole-buffer padding.
+   */
+  static bufferWholeUploadBytes = 0;
+
+  /**
+   * How many whole-buffer uploads `bufferWholeUploadBytes` counts.
+   *
+   * @cjs As `bufferWholeUploadBytes`.
+   */
+  static bufferWholeUploads = 0;
+
+  /**
+   * `bufferWholeUploadBytes` by buffer name (its first device buffer's
+   * label), so the buffers that dominate can be named.
+   *
+   * @cjs As `bufferWholeUploadBytes`.
+   * @type {Map<string, number>}
+   */
+  static bufferWholeUploadBytesByName = new Map();
+
+  /**
    * The GPU provider (`navigator.gpu` or an injected one), kept for
    * Recreate. Set by the constructor.
    * @type {GPU|null}
