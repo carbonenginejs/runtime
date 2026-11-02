@@ -835,6 +835,20 @@ export class MotherLode
    * :371-380). Carbon also refuses a size that would overflow its running
    * total; a JavaScript number cannot overflow at any size a budget allows.
    *
+   * KNOWN GAP (2026-11-02, not built): a size of 0 means "do not cache", so an
+   * expired resource that reports 0 is purged outright instead of cached. Ours
+   * report 0 more often than Carbon's: `TriGeometryRes` builds a LOD's buffers on
+   * first draw, so geometry that is never drawn itself (animation clips,
+   * paper-doll sources) reports 0 forever, where Carbon's would report its built
+   * size. Measured: all 25 character and clip .gr2 files report 0 and are purged
+   * at expiry (.agents report kiwi-tpose-2026-11-02.md). Agreed direction, both
+   * needed: (1) a class reports a real size when it knows one (geometry: its
+   * vertex and index data at load, from any source); (2) when a resource still
+   * reports 0 and its path is a res file, use that file's size from `blue.paths`
+   * as the estimate. Neither covers resources with no res-file entry
+   * (`dynamic:`, generated, URL or callback sources); whether those keep the
+   * zero-size purge or get a default size is undecided.
+   *
    * @param {number} size `ICacheable.GetMemoryUsage`.
    * @returns {number} The size to count, or 0.
    * @throws {TypeError} If the size is not a non-negative safe integer.

@@ -871,6 +871,11 @@ export class TriGeometryRes extends BlueAsyncRes
    *
    * @adapted Carbon builds every LOD's buffers while preparing; they are built
    *   here when a LOD is first drawn, so the figure counts the LODs drawn so far.
+   *   KNOWN GAP (2026-11-02, not built): geometry never drawn itself (animation
+   *   clips, paper-doll sources) reports 0 forever, and MotherLode purges a
+   *   zero-size entry instead of caching it (see MotherLode._AcceptedSize).
+   *   Agreed direction: report the vertex and index data held at load, so the
+   *   size is real from any source before a LOD is built.
    * @returns {number} Bytes.
    */
   GetMemoryUsage()
