@@ -218,8 +218,8 @@ export class TriGeometryRes extends BlueAsyncRes
    * one TriGeometryResMeshData per mesh, with its LODs and areas.
    *
    * @adapted the payload is also kept whole as `_cmfData` (Carbon's
-   *   m_cmfContents), because consumers still read the CMF shape until they move
-   *   onto the records. The records follow the payload shapes the reader and the
+   *   m_cmfContents), where readers of vertices and indices find them, as
+   *   Carbon's CMF branches read m_cmfContents. The records follow the payload shapes the reader and the
    *   tests produce: a mesh with no `lods` is its own only LOD; an area takes its
    *   name, flags and bounds from the mesh area and its range from the LOD area,
    *   under either the CMF or the Carbon field name, and so does a LOD's
@@ -249,21 +249,6 @@ export class TriGeometryRes extends BlueAsyncRes
     this._raycastGeometry = null;
     this._raycastPreparationFailed = false;
 
-    // Carbon fills each LOD's morph tables while building it (TriGeometryRes.cpp:2110-2134 for CMF, :2260-2293 for
-    // Granny): the target names, less the exporter's "Shape" suffix; a cleared baked flag per target; and the
-    // deformation amount, the CMF target's maxDisplacement or, for Granny, the largest morph-to-base distance, which
-    // the gr2 conversion has already reduced to the same maxDisplacement. A mesh without morphs gets empty tables; one
-    // with no lods is its own LOD (GetMeshLod__LodIndex).
-    for (const mesh of payload.meshes)
-    {
-      const targets = mesh.morphTargets?.targets ?? [];
-      for (const lod of mesh.lods?.length ? mesh.lods : [ mesh ])
-      {
-        lod.morphTargetNames = targets.map(target => TriGeometryRes.stripShapeSuffix(target.name));
-        lod.isBakedMorphTarget = targets.map(() => false);
-        lod.morphTargetDeformationAmounts = targets.map(target => target.maxDisplacement);
-      }
-    }
     this._cmfData = payload;
     this._meshes = payload.meshes.map(cmfMesh => TriGeometryRes._BuildMeshRecord(cmfMesh));
     return true;
@@ -337,6 +322,11 @@ export class TriGeometryRes extends BlueAsyncRes
         }
         return area;
       });
+      // Carbon fills these while building the LOD's buffers (cpp:2110-2134 for CMF, :2260-2293 for Granny): the target
+      // names less the exporter's "Shape" suffix, a cleared baked flag per target, and the deformation amount, the CMF
+      // target's maxDisplacement (for Granny, the largest morph-to-base distance, which the gr2 conversion has
+      // already reduced to the same maxDisplacement). They are filled here, at load, because the buffers are built at
+      // the first draw and GetBounds reads the amounts before it.
       lod.morphTargetNames = targets.map(target => TriGeometryRes.stripShapeSuffix(target.name));
       lod.isBakedMorphTarget = targets.map(() => false);
       lod.morphTargetDeformationAmounts = targets.map(target => target.maxDisplacement);

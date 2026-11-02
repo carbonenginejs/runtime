@@ -42,9 +42,9 @@ test("every LOD carries one deformation amount per morph target, Carbon's larges
       const dx = morph[v] - base[v], dy = morph[v + 1] - base[v + 1], dz = morph[v + 2] - base[v + 2];
       maxSquared = Math.max(maxSquared, dx * dx + dy * dy + dz * dz);
     }
-    assert.ok(Math.abs(lod.morphTargetDeformationAmounts[index] - Math.sqrt(maxSquared)) < 1e-6, `target ${index}`);
+    assert.ok(Math.abs(geometry.GetMeshLod__LodIndex(meshIndex, 0).morphTargetDeformationAmounts[index] - Math.sqrt(maxSquared)) < 1e-6, `target ${index}`);
   }
-  assert.ok(lod.morphTargetDeformationAmounts.some(amount => amount > 0));
+  assert.ok(geometry.GetMeshLod__LodIndex(meshIndex, 0).morphTargetDeformationAmounts.some(amount => amount > 0));
 
   const plain = meshes.findIndex(other => !other.morphTargets?.targets?.length);
   if (plain >= 0)
