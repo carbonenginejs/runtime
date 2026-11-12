@@ -13,8 +13,11 @@ import { PaperDollTarget } from "./paperDollOrder.js";
  * `Update` decides what each target bakes and calls that target's binding only when it changed: it collects the
  * target's parts in bake order (`GetLayerOrder`), applies the bake rules (suppression, below) and hands the binding a
  * ready capture: each part's settings, `lists` (the ready lists the composition draws, `order` and for the head
- * `brow`), `suppressed` and `cyclic`. The compositor draws only those lists. Bindings are synchronous and run outside a
- * render pass.
+ * `brow`), `suppressed` and `cyclic`. The compositor draws only those lists. The head's capture also carries
+ * `headOccluded`: whether a worn item occludes the foundation's generic head (its `occludesModifiers` name `head` or a
+ * folder above it), so the host hides the head as it hides a suppressed hair part. A target re-captures whenever the
+ * suppression or the occlusion targets change, whichever target's part changed them. Bindings are synchronous and run
+ * outside a render pass.
  *
  * An application class; no Carbon
  * donor.
@@ -122,10 +125,15 @@ export class CjsPaperDollInstance
             // A shape-dependent part (a tattoo baked from the morphed face) rebuilds on any foundation edit.
             const reshaped = foundationPending && names.some(name => definition[name].constructor.shapeDependent && definition[name].enabled && definition[name].option !== "");
             const passForced = forced || reshaped || (dirtyTargets & target) !== 0 || (changedTargets & reads) !== 0;
-            const pending = passForced || !previous || names.some(name => definition[name].IsDirty());
+            // Another target's part can change what this one hides (a robe resolving its occludes hides the hair and head).
+            const occlusionChanged = previous !== null && (suppression.suppressed.join() !== previous.suppressed.join()
+                || definition.GetOccluded().join() !== previous.occluded.join());
+            const pending = passForced || !previous || occlusionChanged || names.some(name => definition[name].IsDirty());
             const state = pending ? CjsPaperDollInstance.ready(definition, target, names, suppression) : previous;
+            // No archetype selected resolves no foundation, and so no generic head to occlude.
+            if (pending && target === PaperDollTarget.HEAD) state.headOccluded = foundation !== null && CjsPaperDollDefinition.occludes(state.occluded, foundation.genericHead);
             const selected = !whenSelected || names.some(name => state[name].option || (previous !== null && previous[name].option));
-            const changed = pending && selected && (passForced || !previous || state.lists.order.join() !== previous.lists.order.join() || state.occluded.join() !== previous.occluded.join() || names.some(name => this._Changed(state[name], previous[name])));
+            const changed = pending && selected && (passForced || !previous || state.lists.order.join() !== previous.lists.order.join() || state.occluded.join() !== previous.occluded.join() || state.suppressed.join() !== previous.suppressed.join() || names.some(name => this._Changed(state[name], previous[name])));
             if (changed) changedTargets |= target;
             plans.push({ target, binding, names, state, changed });
         }
