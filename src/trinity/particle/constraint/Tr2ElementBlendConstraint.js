@@ -22,7 +22,7 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
 {
 
-  #element = null;
+  _element = null;
 
   /**
    * m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM]
@@ -59,10 +59,10 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
 
   Bind(particleSystem)
   {
-    this.#element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
+    this._element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
       ? particleSystem.GetElement(this.customName)
       : particleSystem.GetElement(this.elementType);
-    this.isValid = !!this.#element;
+    this.isValid = !!this._element;
     return this.isValid;
   }
 
@@ -74,16 +74,16 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
 
   ApplyConstraint(_arguments, buffers, strides, count, _dt)
   {
-    if (!this.isValid || !this.#element)
+    if (!this.isValid || !this._element)
     {
       return;
     }
-    const buffer = buffers[this.#element.bufferIndex];
-    const stride = strides[this.#element.bufferIndex];
+    const buffer = buffers[this._element.bufferIndex];
+    const stride = strides[this._element.bufferIndex];
     for (let index = 0; index < count; index++)
     {
-      const offset = this.#element.startOffset + index * stride;
-      for (let component = 0; component < this.#element.dimension; component++)
+      const offset = this._element.startOffset + index * stride;
+      for (let component = 0; component < this._element.dimension; component++)
       {
         buffer[offset + component] = buffer[offset + component] * this.originalFactor + this.value[component];
       }

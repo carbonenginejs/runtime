@@ -68,13 +68,13 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
     this.onCollisionEmitters.SetNotify(this);
   }
 
-  #normalizedPlane = vec4.fromValues(0, 1, 0, 0);
+  _normalizedPlane = vec4.fromValues(0, 1, 0, 0);
 
-  #positionElement = null;
+  _positionElement = null;
 
-  #velocityElement = null;
+  _velocityElement = null;
 
-  #radiusElement = null;
+  _radiusElement = null;
 
   /** m_affectPosition (bool) [READWRITE, PERSIST] */
 
@@ -139,7 +139,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 
   Initialize()
   {
-    this.#normalizePlane();
+    this._normalizePlane();
     for (const emitter of this.onCollisionEmitters)
     {
       emitter.SetThreadSafeFlag();
@@ -157,7 +157,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   {
     if (IsMatch(propertyName, "plane"))
     {
-      this.#normalizePlane();
+      this._normalizePlane();
     }
     return true;
   }
@@ -188,12 +188,12 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   Bind(particleSystem)
   {
     this.isValid = false;
-    this.#positionElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.POSITION);
-    this.#velocityElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.VELOCITY);
-    this.#radiusElement = this.particleRadiusComponent
+    this._positionElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.POSITION);
+    this._velocityElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.VELOCITY);
+    this._radiusElement = this.particleRadiusComponent
       ? particleSystem.GetElement(this.particleRadiusComponent)
       : null;
-    if (!this.#positionElement || (this.particleRadiusComponent && !this.#radiusElement))
+    if (!this._positionElement || (this.particleRadiusComponent && !this._radiusElement))
     {
       return false;
     }
@@ -205,7 +205,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
         return false;
       }
     }
-    this.#normalizePlane();
+    this._normalizePlane();
     this.isValid = true;
     return true;
   }
@@ -222,14 +222,14 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
     {
       return 0;
     }
-    const normal = this.#normalizedPlane;
+    const normal = this._normalizedPlane;
     let collisions = 0;
     for (let index = 0; index < count; index++)
     {
-      const position = this.#view(this.#positionElement, index);
-      const velocity = this.#velocityElement ? this.#view(this.#velocityElement, index) : null;
-      const radius = this.#radiusElement
-        ? this.#dotRadius(this.#view(this.#radiusElement, index))
+      const position = this._view(this._positionElement, index);
+      const velocity = this._velocityElement ? this._view(this._velocityElement, index) : null;
+      const radius = this._radiusElement
+        ? this._dotRadius(this._view(this._radiusElement, index))
         : 0;
       const distance = normal[0] * position[0] + normal[1] * position[1]
         + normal[2] * position[2] + normal[3] - radius;
@@ -256,7 +256,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
         velocity[0] = normal[0] * bounceScale + slideX;
         velocity[1] = normal[1] * bounceScale + slideY;
         velocity[2] = normal[2] * bounceScale + slideZ;
-        this.#addReflectionNoise(velocity, normal);
+        this._addReflectionNoise(velocity, normal);
       }
       for (const generator of this.generators)
       {
@@ -295,7 +295,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
     }
 
     const f = Math.fround;
-    const plane = this.#normalizedPlane;
+    const plane = this._normalizedPlane;
     const translation = mat4.fromTranslation(DEBUG_TRANSLATION, vec3.set(DEBUG_AXIS, 0, 0, -plane[3]));
     const basis = mat4.orthoNormalBasisZCarbon(DEBUG_BASIS, vec3.set(DEBUG_AXIS, plane[0], plane[1], plane[2]));
     // Carbon (row-vector): TranslationMatrix( 0, 0, -d ) * OrthoNormalBasisZ( a, b, c ).
@@ -342,23 +342,23 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   /**
    * Recomputes the cached unit-normal plane, falling back to the default up plane when the normal is degenerate.
    */
-  #normalizePlane()
+  _normalizePlane()
   {
     const length = Math.hypot(this.plane[0], this.plane[1], this.plane[2]);
     if (length > 0)
     {
-      vec4.scale(this.#normalizedPlane, this.plane, 1 / length);
+      vec4.scale(this._normalizedPlane, this.plane, 1 / length);
     }
     else
     {
-      vec4.set(this.#normalizedPlane, 0, 1, 0, 0);
+      vec4.set(this._normalizedPlane, 0, 1, 0, 0);
     }
   }
 
   /**
    * A typed-array view onto one particle's slot within a bound element's buffer.
    */
-  #view(element, index)
+  _view(element, index)
   {
     const offset = element.startOffset + index * element.instanceStride;
     return element.buffer.subarray(offset, offset + element.dimension);
@@ -367,7 +367,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   /**
    * The effective particle radius, from the radius element dotted against the radius coefficient.
    */
-  #dotRadius(value)
+  _dotRadius(value)
   {
     let result = 0;
     for (let component = 0; component < Math.min(4, value.length); component++)
@@ -381,13 +381,13 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    * Carbon adds tangential noise scaled by the post-bounce speed to the
    * reflected velocity (Tr2PlaneConstraint.cpp:154-165).
    */
-  #addReflectionNoise(velocity, normal)
+  _addReflectionNoise(velocity, normal)
   {
     if (this.reflectionNoise <= 0)
     {
       return;
     }
-    const noise = Tr2PlaneConstraint.#noise;
+    const noise = Tr2PlaneConstraint._noise;
     // MSVC evaluates the native vector-constructor arguments right to left.
     for (let axis = 2; axis >= 0; axis--)
     {
@@ -398,6 +398,6 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
     vec3.scaleAndAdd(velocity, velocity, noise, vec3.length(velocity));
   }
 
-  static #noise = vec3.create();
+  static _noise = vec3.create();
 
 }

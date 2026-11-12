@@ -24,7 +24,7 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
 
   // Per-instance scratch: volumes can nest other volumes, so a class-static
   // accumulator would alias between the outer and inner GetForce calls.
-  #contribution = vec3.create();
+  _contribution = vec3.create();
 
   /** m_exponent (float) [READWRITE, PERSIST] */
 
@@ -71,14 +71,14 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
   GetForce(position, velocity, dt, mass, out)
   {
     vec3.set(out, 0, 0, 0);
-    const delta = Tr2ForceSphereVolume.#delta;
+    const delta = Tr2ForceSphereVolume._delta;
     vec3.subtract(delta, position, this.position);
     const distance = vec3.length(delta);
     if (!(distance < this.radius))
     {
       return out;
     }
-    const contribution = this.#contribution;
+    const contribution = this._contribution;
     for (const force of this.forces)
     {
       vec3.set(contribution, 0, 0, 0);
@@ -115,8 +115,8 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
     }
   }
 
-  // #delta is consumed into a scalar before any child GetForce runs, so a
+  // _delta is consumed into a scalar before any child GetForce runs, so a
   // class-static scratch cannot alias across nested volumes.
-  static #delta = vec3.create();
+  static _delta = vec3.create();
 
 }

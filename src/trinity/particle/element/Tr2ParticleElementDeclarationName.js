@@ -82,7 +82,7 @@ export class Tr2ParticleElementDeclarationName
     {
       return this.name;
     }
-    return Tr2ParticleElementDeclarationName.#typeNames[this.type];
+    return Tr2ParticleElementDeclarationName._typeNames[this.type];
   }
 
   /**
@@ -92,13 +92,13 @@ export class Tr2ParticleElementDeclarationName
    */
   GetD3DUsage()
   {
-    return Tr2ParticleElementDeclarationName.#usageCodes[this.type];
+    return Tr2ParticleElementDeclarationName._usageCodes[this.type];
   }
 
-  static #typeNames = Object.freeze(["LIFETIME", "POSITION", "VELOCITY", "MASS"]);
+  static _typeNames = Object.freeze(["LIFETIME", "POSITION", "VELOCITY", "MASS"]);
 
   /** Tr2VertexDefinition::UsageCode values (shared with Tr2RuntimeInstanceData.UsageCode). */
-  static #usageCodes = Object.freeze([3, 0, 2, 4, 5]);
+  static _usageCodes = Object.freeze([3, 0, 2, 4, 5]);
 
   static Type = {
     LIFETIME: 0,

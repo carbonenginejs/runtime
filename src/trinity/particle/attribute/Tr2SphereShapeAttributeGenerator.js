@@ -36,9 +36,9 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
 {
 
-  #positionElement = null;
+  _positionElement = null;
 
-  #velocityElement = null;
+  _velocityElement = null;
 
   /** m_minPhi (float) [READWRITE, PERSIST] */
 
@@ -135,22 +135,22 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    */
   Bind(particleSystem, boundElements)
   {
-    this.#positionElement = this.controlPosition
+    this._positionElement = this.controlPosition
       ? bindParticleElement(
         particleSystem,
         Tr2ParticleElementDeclaration.Type.POSITION,
         boundElements
       )
       : null;
-    this.#velocityElement = this.controlVelocity
+    this._velocityElement = this.controlVelocity
       ? bindParticleElement(
         particleSystem,
         Tr2ParticleElementDeclaration.Type.VELOCITY,
         boundElements
       )
       : null;
-    this.valid = (!this.controlPosition || !!this.#positionElement)
-      && (!this.controlVelocity || !!this.#velocityElement);
+    this.valid = (!this.controlPosition || !!this._positionElement)
+      && (!this.controlVelocity || !!this._velocityElement);
     return this.valid;
   }
 
@@ -170,7 +170,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
     }
     const phi = (this.minPhi + carbonRandom.particleRandFloat() * (this.maxPhi - this.minPhi)) * Math.PI / 180;
     const theta = (this.minTheta + carbonRandom.particleRandFloat() * (this.maxTheta - this.minTheta)) * Math.PI / 180;
-    const direction = Tr2SphereShapeAttributeGenerator.#direction;
+    const direction = Tr2SphereShapeAttributeGenerator._direction;
     vec3.set(
       direction,
       Math.sin(phi) * Math.cos(theta),
@@ -181,26 +181,26 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
     // (Tr2SphereShapeAttributeGenerator.cpp:87-89) is the standard active
     // rotation q * v * q^-1 - exactly vec3.transformQuat.
     vec3.transformQuat(direction, direction, this.rotation);
-    if (this.#velocityElement)
+    if (this._velocityElement)
     {
       const speed = this.minSpeed + carbonRandom.particleRandFloat() * (this.maxSpeed - this.minSpeed);
-      const offset = this.#velocityElement.startOffset + index * this.#velocityElement.instanceStride;
+      const offset = this._velocityElement.startOffset + index * this._velocityElement.instanceStride;
       for (let component = 0; component < 3; component++)
       {
-        this.#velocityElement.buffer[offset + component] = direction[component] * speed
+        this._velocityElement.buffer[offset + component] = direction[component] * speed
           + (parentVelocity?.[component] ?? 0) * this.parentVelocityFactor;
       }
     }
-    if (this.#positionElement)
+    if (this._positionElement)
     {
       // frand(min, max, exponent) = min + (max - min) * pow(rand, exponent)
       // (Tr2SphereShapeAttributeGenerator.cpp:21-24).
       const radius = this.minRadius
         + (this.maxRadius - this.minRadius) * Math.pow(carbonRandom.particleRandFloat(), this.distributionExponent);
-      const offset = this.#positionElement.startOffset + index * this.#positionElement.instanceStride;
+      const offset = this._positionElement.startOffset + index * this._positionElement.instanceStride;
       for (let component = 0; component < 3; component++)
       {
-        this.#positionElement.buffer[offset + component] = direction[component] * radius
+        this._positionElement.buffer[offset + component] = direction[component] * radius
           + this.position[component]
           + (parentPosition?.[component] ?? 0);
       }
@@ -245,6 +245,6 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
     quat.copy(this.rotation, rotation);
   }
 
-  static #direction = vec3.create();
+  static _direction = vec3.create();
 
 }

@@ -67,7 +67,7 @@ function HalfToFloat(h)
 export class Tr2StaticEmitter extends IRoot
 {
 
-  #isThreadSafe = false;
+  _isThreadSafe = false;
 
   /** Carbon's internal one-shot spawn state. */
   @type.boolean
@@ -191,7 +191,7 @@ export class Tr2StaticEmitter extends IRoot
   Initialize()
   {
     if (this.geometryResourcePath) this.geometryResource = Tr2StaticEmitter.GetGeometry(this.geometryResourcePath);
-    if (this.particleSystem && this.#isThreadSafe)
+    if (this.particleSystem && this._isThreadSafe)
     {
       this.particleSystem.SetThreadSafeFlag();
     }
@@ -213,7 +213,7 @@ export class Tr2StaticEmitter extends IRoot
     {
       this.geometryResource = Tr2StaticEmitter.GetGeometry(this.geometryResourcePath);
     }
-    else if (IsMatch(propertyName, "particleSystem") && this.#isThreadSafe && this.particleSystem)
+    else if (IsMatch(propertyName, "particleSystem") && this._isThreadSafe && this.particleSystem)
     {
       this.particleSystem.SetThreadSafeFlag();
     }
@@ -230,7 +230,7 @@ export class Tr2StaticEmitter extends IRoot
 
   SetThreadSafeFlag()
   {
-    this.#isThreadSafe = true;
+    this._isThreadSafe = true;
     if (this.particleSystem) this.particleSystem.SetThreadSafeFlag();
   }
 

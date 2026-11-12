@@ -22,7 +22,7 @@ import { vec4 } from "#math/vec4";
 export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
 {
 
-  #time = 0;
+  _time = 0;
 
   /** m_amplitude (Vector3) [READWRITE, PERSIST] */
 
@@ -66,7 +66,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
     let x = (position?.[0] ?? 0) * this.frequency[0];
     let y = (position?.[1] ?? 0) * this.frequency[1];
     let z = (position?.[2] ?? 0) * this.frequency[2];
-    let w = this.#time * this.frequency[3];
+    let w = this._time * this.frequency[3];
     let sum = 0;
     let power = 0.5;
     const frequency = 1 / ratio;
@@ -94,7 +94,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
 
   Update(dt)
   {
-    this.#time += dt;
+    this._time += dt;
   }
 
 }

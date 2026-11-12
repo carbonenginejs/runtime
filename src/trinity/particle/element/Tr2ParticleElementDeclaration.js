@@ -78,10 +78,10 @@ export class Tr2ParticleElementDeclaration extends IRoot
     {
       return this.dimension;
     }
-    return Tr2ParticleElementDeclaration.#sizes[this.elementType];
+    return Tr2ParticleElementDeclaration._sizes[this.elementType];
   }
 
-  static #sizes = Object.freeze([2, 3, 3, 1]);
+  static _sizes = Object.freeze([2, 3, 3, 1]);
 
   /**
    * Returns the authored custom name for CUSTOM elements, and the semantic's

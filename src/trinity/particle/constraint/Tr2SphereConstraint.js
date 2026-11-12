@@ -73,11 +73,11 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   }
 
 
-  #positionElement = null;
+  _positionElement = null;
 
-  #velocityElement = null;
+  _velocityElement = null;
 
-  #radiusElement = null;
+  _radiusElement = null;
 
   /** m_affectPosition (bool) [READWRITE, PERSIST] */
 
@@ -167,12 +167,12 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   Bind(particleSystem)
   {
     this.isValid = false;
-    this.#positionElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.POSITION);
-    this.#velocityElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.VELOCITY);
-    this.#radiusElement = this.particleRadiusComponent
+    this._positionElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.POSITION);
+    this._velocityElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.VELOCITY);
+    this._radiusElement = this.particleRadiusComponent
       ? particleSystem.GetElement(this.particleRadiusComponent)
       : null;
-    if (!this.#positionElement || (this.particleRadiusComponent && !this.#radiusElement))
+    if (!this._positionElement || (this.particleRadiusComponent && !this._radiusElement))
     {
       return false;
     }
@@ -211,16 +211,16 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
     // Tr2SphereConstraint.cpp:112); the per-particle radius only shifts the
     // projection target.
     const radiusCmp = this.radius * this.radius * invert;
-    const offset = Tr2SphereConstraint.#offset;
+    const offset = Tr2SphereConstraint._offset;
     let processed = 0;
     for (let index = 0; index < count; index++)
     {
-      const position = this.#view(this.#positionElement, index);
-      const velocity = this.#velocityElement ? this.#view(this.#velocityElement, index) : null;
+      const position = this._view(this._positionElement, index);
+      const velocity = this._velocityElement ? this._view(this._velocityElement, index) : null;
       let radius = this.radius;
-      if (this.#radiusElement)
+      if (this._radiusElement)
       {
-        const particleRadius = this.#dotRadius(this.#view(this.#radiusElement, index));
+        const particleRadius = this._dotRadius(this._view(this._radiusElement, index));
         radius += this.invertSphere ? -particleRadius : particleRadius;
       }
       vec3.subtract(offset, position, this.position);
@@ -237,7 +237,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
           if (this.affectVelocity && velocity)
           {
             vec3.scale(offset, offset, invert);
-            this.#reflectVelocity(velocity, offset);
+            this._reflectVelocity(velocity, offset);
           }
         }
       }
@@ -266,7 +266,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
             vec3.subtract(offset, position, this.position);
             vec3.normalize(offset, offset);
             vec3.scale(offset, offset, invert);
-            this.#reflectVelocity(velocity, offset);
+            this._reflectVelocity(velocity, offset);
           }
         }
       }
@@ -319,23 +319,23 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * tangential noise scaled by the post-bounce speed (cpp:162-173) - unlike
    * the plane constraint, which adds it.
    */
-  #reflectVelocity(velocity, normal)
+  _reflectVelocity(velocity, normal)
   {
     const velocityDot = vec3.dot(velocity, normal);
     if (velocityDot >= 0)
     {
       return;
     }
-    const bounce = Tr2SphereConstraint.#bounce;
+    const bounce = Tr2SphereConstraint._bounce;
     vec3.scale(bounce, normal, -velocityDot);
-    const slide = Tr2SphereConstraint.#slide;
+    const slide = Tr2SphereConstraint._slide;
     vec3.add(slide, velocity, bounce);
     vec3.scale(bounce, bounce, this.elasticity);
     vec3.scale(slide, slide, this.friction);
     vec3.add(velocity, bounce, slide);
     if (this.reflectionNoise > 0)
     {
-      const noise = Tr2SphereConstraint.#noise;
+      const noise = Tr2SphereConstraint._noise;
       // MSVC evaluates the native vector-constructor arguments right to left.
       for (let axis = 2; axis >= 0; axis--)
       {
@@ -350,7 +350,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   /**
    * A typed-array view onto one particle's slot within a bound element's buffer.
    */
-  #view(element, index)
+  _view(element, index)
   {
     const offset = element.startOffset + index * element.instanceStride;
     return element.buffer.subarray(offset, offset + element.dimension);
@@ -359,7 +359,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   /**
    * The effective particle radius, from the radius element dotted against the radius coefficient.
    */
-  #dotRadius(value)
+  _dotRadius(value)
   {
     let result = 0;
     for (let component = 0; component < Math.min(4, value.length); component++)
@@ -369,12 +369,12 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
     return result;
   }
 
-  static #bounce = vec3.create();
+  static _bounce = vec3.create();
 
-  static #noise = vec3.create();
+  static _noise = vec3.create();
 
-  static #offset = vec3.create();
+  static _offset = vec3.create();
 
-  static #slide = vec3.create();
+  static _slide = vec3.create();
 
 }

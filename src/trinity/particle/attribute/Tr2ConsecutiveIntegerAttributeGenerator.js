@@ -25,9 +25,9 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenerator
 {
 
-  #currentValues = new Uint32Array(4);
+  _currentValues = new Uint32Array(4);
 
-  #element = null;
+  _element = null;
 
   /**
    * m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM]
@@ -90,10 +90,10 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
 
   Bind(particleSystem, boundElements)
   {
-    this.#element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
+    this._element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
       ? bindParticleElement(particleSystem, this.customName, boundElements)
       : bindParticleElement(particleSystem, this.elementType, boundElements);
-    this.valid = !!this.#element;
+    this.valid = !!this._element;
     return this.valid;
   }
 
@@ -109,13 +109,13 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
     {
       return;
     }
-    const offset = this.#element.startOffset + index * this.#element.instanceStride;
-    for (let component = 0; component < this.#element.dimension; component++)
+    const offset = this._element.startOffset + index * this._element.instanceStride;
+    for (let component = 0; component < this._element.dimension; component++)
     {
-      this.#currentValues[component]++;
+      this._currentValues[component]++;
       const range = Math.max(0, Math.trunc(this.maxRange[component] - this.minRange[component]));
-      this.#element.buffer[offset + component] = range
-        ? this.minRange[component] + this.#currentValues[component] % range
+      this._element.buffer[offset + component] = range
+        ? this.minRange[component] + this._currentValues[component] % range
         : this.minRange[component];
     }
   }
@@ -128,7 +128,7 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
 
   GetDimension()
   {
-    return this.valid ? this.#element.dimension : 0;
+    return this.valid ? this._element.dimension : 0;
   }
 
   /**

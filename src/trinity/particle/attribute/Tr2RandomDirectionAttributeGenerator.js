@@ -23,7 +23,7 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 {
 
-  #element = null;
+  _element = null;
 
   /**
    * m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM]
@@ -76,10 +76,10 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 
   Bind(particleSystem, boundElements)
   {
-    this.#element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
+    this._element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
       ? bindParticleElement(particleSystem, this.customName, boundElements)
       : bindParticleElement(particleSystem, this.elementType, boundElements);
-    this.valid = !!this.#element;
+    this.valid = !!this._element;
     return this.valid;
   }
 
@@ -97,8 +97,8 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
     {
       return;
     }
-    const dimension = this.#element.dimension;
-    const value = Tr2RandomDirectionAttributeGenerator.#value;
+    const dimension = this._element.dimension;
+    const value = Tr2RandomDirectionAttributeGenerator._value;
     let lengthSquared = 0;
     for (let component = 0; component < dimension; component++)
     {
@@ -117,10 +117,10 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
         value[component] *= inverseLength;
       }
     }
-    const offset = this.#element.startOffset + index * this.#element.instanceStride;
+    const offset = this._element.startOffset + index * this._element.instanceStride;
     for (let component = 0; component < dimension; component++)
     {
-      this.#element.buffer[offset + component] = value[component];
+      this._element.buffer[offset + component] = value[component];
     }
   }
 
@@ -132,7 +132,7 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 
   GetDimension()
   {
-    return this.valid ? this.#element.dimension : 0;
+    return this.valid ? this._element.dimension : 0;
   }
 
   /**
@@ -150,6 +150,6 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 
   static Type = Tr2ParticleElementDeclaration.Type;
 
-  static #value = new Float32Array(4);
+  static _value = new Float32Array(4);
 
 }

@@ -28,16 +28,16 @@ import { ITr2AttributeGenerator } from "../attribute/ITr2AttributeGenerator.js";
 export class Tr2DynamicEmitter extends ITr2GenericEmitter
 {
 
-  #accumulatedRate = 0;
+  _accumulatedRate = 0;
 
-  #declarationHash = 0;
+  _declarationHash = 0;
 
-  #emittedParticles = 0;
+  _emittedParticles = 0;
 
-  #isThreadSafe = false;
+  _isThreadSafe = false;
 
   /** m_lastUpdate (Be::Time, Blue 100ns ticks). */
-  #lastUpdate = 0;
+  _lastUpdate = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
 
@@ -90,8 +90,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    */
   Rebind()
   {
-    this.#emittedParticles = 0;
-    this.#accumulatedRate = 0;
+    this._emittedParticles = 0;
+    this._accumulatedRate = 0;
     this.isValid = false;
     if (!this.particleSystem?.isValid)
     {
@@ -109,7 +109,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
     {
       return false;
     }
-    this.#declarationHash = this.particleSystem.GetElementDeclarationHash();
+    this._declarationHash = this.particleSystem.GetElementDeclarationHash();
     this.isValid = true;
     return true;
   }
@@ -138,12 +138,12 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
     {
       return;
     }
-    if (this.#lastUpdate === 0)
+    if (this._lastUpdate === 0)
     {
-      this.#lastUpdate = updateArguments.time;
+      this._lastUpdate = updateArguments.time;
     }
-    const dt = Math.min(CcpTime.timeAsFloat(updateArguments.time - this.#lastUpdate), Math.fround(0.3));
-    this.#lastUpdate = updateArguments.time;
+    const dt = Math.min(CcpTime.timeAsFloat(updateArguments.time - this._lastUpdate), Math.fround(0.3));
+    this._lastUpdate = updateArguments.time;
 
     this.UpdateSimulation(dt * updateArguments.emitCountFactor);
   }
@@ -159,7 +159,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
     if (this.particleSystem)
     {
       this.Rebind();
-      if (this.#isThreadSafe)
+      if (this._isThreadSafe)
       {
         this.particleSystem.SetThreadSafeFlag();
       }
@@ -179,7 +179,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
     if (IsMatch(propertyName, "particleSystem"))
     {
       this.Rebind();
-      if (this.#isThreadSafe && this.particleSystem)
+      if (this._isThreadSafe && this.particleSystem)
       {
         this.particleSystem.SetThreadSafeFlag();
       }
@@ -196,7 +196,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 
   SetThreadSafeFlag()
   {
-    this.#isThreadSafe = true;
+    this._isThreadSafe = true;
     if (this.particleSystem) this.particleSystem.SetThreadSafeFlag();
   }
 
@@ -218,7 +218,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
     {
       return 0;
     }
-    if (this.particleSystem.GetElementDeclarationHash() !== this.#declarationHash)
+    if (this.particleSystem.GetElementDeclarationHash() !== this._declarationHash)
     {
       this.isValid = false;
       return 0;
@@ -227,16 +227,16 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
     {
       return 0;
     }
-    this.#accumulatedRate += this.rate * Math.max(0, Number(rateModifier) || 0);
-    let count = Math.floor(this.#accumulatedRate);
-    this.#accumulatedRate -= count;
+    this._accumulatedRate += this.rate * Math.max(0, Number(rateModifier) || 0);
+    let count = Math.floor(this._accumulatedRate);
+    this._accumulatedRate -= count;
     // Carbon counts the whole batch against maxParticles before inserting
     // (Tr2DynamicEmitter.cpp:175-179), even when the system fills up mid-batch.
-    if (this.maxParticles >= 0 && this.#emittedParticles + count > this.maxParticles)
+    if (this.maxParticles >= 0 && this._emittedParticles + count > this.maxParticles)
     {
-      count = Math.max(this.maxParticles - this.#emittedParticles, 0);
+      count = Math.max(this.maxParticles - this._emittedParticles, 0);
     }
-    this.#emittedParticles += count;
+    this._emittedParticles += count;
     let spawned = 0;
     for (let index = 0; index < count; index++)
     {
@@ -290,7 +290,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 
   GetEmittedParticleCount()
   {
-    return this.#emittedParticles;
+    return this._emittedParticles;
   }
 
   /**
@@ -301,7 +301,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 
   ResetEmittedParticleCount()
   {
-    this.#emittedParticles = 0;
+    this._emittedParticles = 0;
   }
 
 }
