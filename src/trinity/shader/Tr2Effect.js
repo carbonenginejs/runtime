@@ -1011,27 +1011,29 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Renews this effect's device residency (its constant buffers) and every resource parameter it holds.
+   * Renews this effect itself, and nothing below it: its device residency (its constant buffers) and its own
+   * link to its effect resource. It never goes down. What the effect holds (the effect resource, its texture
+   * parameters and their textures) is renewed by whoever reaches those objects: IsGood for an effect that is
+   * drawn, a walk from the root for one that is hidden.
    *
    * Ours: Carbon has no KeepAlive. It keeps things by reference counts and destructors and has no timed sweep.
-   * JavaScript has no destructors, so residency is timed and use is the signal. An effect is the one owner that
-   * renews its children here without asking whether they are good: a texture that is not loaded falls back, so it
-   * must not make the effect bad.
+   * JavaScript has no destructors, so residency is timed and use is the signal.
    *
    * @cjs
-   * @adapted No destructors, so residency is timed and renewed by use; textures are renewed without gating because they fall back.
+   * @adapted No destructors, so residency is timed and renewed by use; the link to the effect resource belongs to this owner, so only it can renew it.
    * @returns {void}
    */
   KeepAlive()
   {
     // Use registers the effect as a device resource; Carbon's constructor does (Tr2DeviceResource.cpp:6-9).
     Tr2DeviceResource.prototype.KeepAlive.call(this);
-    for (const parameter of this.resources) parameter.KeepAlive();
+    if (this.effectResource) blue.resMan.notify.KeepAlive(this, this.effectResource);
   }
 
   /**
    * Whether this effect is good to draw: its effect resource is good and its shader resolved. Asking is the use
-   * signal, so it renews the effect and its textures first.
+   * signal, so it renews the effect and what it directly needs first. Its textures are renewed and never decide
+   * the answer: one that is not loaded falls back, and one that lapsed while drawn would show as black.
    *
    * Ours: Carbon has no Tr2Effect::IsGood. Its effect holds m_effectResource for its whole life, and a released
    * resource nulls `m_shader` through ReleaseCachedData (Tr2Effect.cpp:842-848). Here the resource can expire and
@@ -1039,13 +1041,14 @@ export class Tr2Effect extends Tr2Material
    * the resource; the effect answers false until the new resource is ready.
    *
    * @cjs
-   * @adapted No destructors, so residency is timed: IsGood is the use signal and re-initializes an effect whose resource expired.
+   * @adapted No destructors, so residency is timed: IsGood is the use signal, renews the textures it draws with, and re-initializes an effect whose resource expired.
    * @returns {boolean} Whether the effect can be drawn now.
    */
   IsGood()
   {
     if (this._destroyed) return false;
     this.KeepAlive();
+    for (const parameter of this.resources) parameter.KeepAlive();
 
     // An effect with no path has nothing to acquire and must not rebuild on every ask.
     if (!this.effectResource && this.effectFilePath) this.Initialize();

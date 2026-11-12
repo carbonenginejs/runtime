@@ -69,10 +69,29 @@ test("a texture that failed or is still loading does not make the effect bad; it
   const missing = addTexture(effect, "missing", "failed");
   const loading = addTexture(effect, "loading", "pending");
   assert.equal(effect.IsGood(), true);
-  assert.deepEqual([ missing.count, loading.count ], [ 1, 1 ], "KeepAlive renews textures without gating on them");
+  assert.deepEqual([ missing.count, loading.count ], [ 1, 1 ], "IsGood renews the textures it draws with, without gating on them");
 
   effect.KeepAlive();
-  assert.deepEqual([ missing.count, loading.count ], [ 2, 2 ], "the effect's KeepAlive is where its children are renewed");
+  assert.deepEqual([ missing.count, loading.count ], [ 1, 1 ], "KeepAlive is for the effect itself and goes no further");
+});
+
+
+test("KeepAlive renews the effect's own link to its effect resource, and only that", t =>
+{
+  const effect = makeGood(new Tr2Effect());
+  const resource = effect.effectResource;
+  blue.resMan.notify.Add(effect, resource, effect, "effectResource");
+  let resourceRenewals = 0;
+  resource.KeepAlive = () => { resourceRenewals += 1; };
+  const links = [];
+  t.mock.method(blue.resMan.notify, "KeepAlive", (owner, linked) => { links.push([ owner, linked ]); return true; });
+
+  effect.KeepAlive();
+  assert.deepEqual(links, [ [ effect, resource ] ], "the link belongs to the owner, so the owner renews it");
+  assert.equal(resourceRenewals, 0, "the resource itself is renewed by whoever reaches it, not by the effect's KeepAlive");
+
+  new Tr2Effect().KeepAlive();
+  assert.equal(links.length, 1, "an effect with no resource has no link to renew");
 });
 
 
