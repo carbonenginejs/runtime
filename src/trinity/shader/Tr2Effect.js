@@ -337,7 +337,7 @@ export class Tr2Effect extends Tr2Material
    * @param {string} name Variable name.
    * @returns {object|null} The variable, reserved if it did not exist.
    */
-  static #GlobalVariable(name)
+  static _GlobalVariable(name)
   {
     return Tr2VariableStore.globalStore().GetVariable(name);
   }
@@ -431,7 +431,7 @@ export class Tr2Effect extends Tr2Material
     {
       for (const constant of stage.constants ?? [])
       {
-        if (!Tr2Effect.getBool(this.shader, constant.name, "SasUiVisible", false) || this.#hasParameterLike(constant.name))
+        if (!Tr2Effect.getBool(this.shader, constant.name, "SasUiVisible", false) || this._hasParameterLike(constant.name))
         {
           continue;
         }
@@ -443,7 +443,7 @@ export class Tr2Effect extends Tr2Material
       }
       for (const resource of Tr2Effect.iterateResources(stage.resources))
       {
-        if (!Tr2Effect.getBool(this.shader, resource.name, "SasUiVisible", false) || this.#hasParameterLike(resource.name))
+        if (!Tr2Effect.getBool(this.shader, resource.name, "SasUiVisible", false) || this._hasParameterLike(resource.name))
         {
           continue;
         }
@@ -451,7 +451,7 @@ export class Tr2Effect extends Tr2Material
       }
       for (const resource of Tr2Effect.iterateResources(stage.uavs))
       {
-        if (!Tr2Effect.getBool(this.shader, resource.name, "SasUiVisible", false) || this.#hasParameterLike(resource.name))
+        if (!Tr2Effect.getBool(this.shader, resource.name, "SasUiVisible", false) || this._hasParameterLike(resource.name))
         {
           continue;
         }
@@ -491,13 +491,13 @@ export class Tr2Effect extends Tr2Material
     }
     for (let y = 0; y < this.parameters.length;)
     {
-      if (this.#isShaderParameterVisible(getNamedValue(this.parameters[y]))) y++;
+      if (this._isShaderParameterVisible(getNamedValue(this.parameters[y]))) y++;
       else this.parameters.Remove(y);
     }
-    this.constParameters = this.constParameters.filter(parameter => this.#isShaderParameterVisible(parameter?.name));
+    this.constParameters = this.constParameters.filter(parameter => this._isShaderParameterVisible(parameter?.name));
     for (let y = 0; y < this.resources.length;)
     {
-      if (this.#isShaderParameterVisible(getNamedValue(this.resources[y]))) y++;
+      if (this._isShaderParameterVisible(getNamedValue(this.resources[y]))) y++;
       else this.resources.Remove(y);
     }
     this._PruneOwnedProviders();
@@ -573,7 +573,7 @@ export class Tr2Effect extends Tr2Material
 
     this._DetachEffectResource();
     this.actualEffectFilePath = this.effectFilePath ? Tr2Effect.convertEffectPath(this.effectFilePath) : "";
-    this.#AcquireEffectResource();
+    this._AcquireEffectResource();
     this.RebuildCachedDataInternal();
     return true;
   }
@@ -598,7 +598,7 @@ export class Tr2Effect extends Tr2Material
    *   context.
    * @returns {void}
    */
-  #BuildParametersForPasses()
+  _BuildParametersForPasses()
   {
     this._ClearPassBindings();
 
@@ -705,9 +705,9 @@ export class Tr2Effect extends Tr2Material
       if (constParameters.some(parameter => parameter?.name === name)) continue;
 
       const value = this.FindParameterByName(name)
-        ?? this.#ResolveResourceValue(name, passParameters)
+        ?? this._ResolveResourceValue(name, passParameters)
         ?? this.GetVariableStore().FindVariable(name)
-        ?? (constant.isAutoregister ? Tr2Effect.#GlobalVariable(name) : null)
+        ?? (constant.isAutoregister ? Tr2Effect._GlobalVariable(name) : null)
         ?? null;
 
       if (value)
@@ -723,7 +723,7 @@ export class Tr2Effect extends Tr2Material
     const mirror = new Uint8Array(constantSize);
 
     mirror.set(defaults.subarray(0, Math.min(defaults.length, constantSize)));
-    Tr2Effect.#BakeConstantParameters(mirror, constants, constParameters);
+    Tr2Effect._BakeConstantParameters(mirror, constants, constParameters);
 
     if (!hasVariableParams)
     {
@@ -822,7 +822,7 @@ export class Tr2Effect extends Tr2Material
         else
         {
           value = this.GetVariableStore().FindVariable(name)
-            ?? (resource.isAutoregister ? Tr2Effect.#GlobalVariable(name) : null)
+            ?? (resource.isAutoregister ? Tr2Effect._GlobalVariable(name) : null)
             ?? null;
         }
       }
@@ -846,7 +846,7 @@ export class Tr2Effect extends Tr2Material
    * @param {object} passParameters Owning pass parameters.
    * @returns {object|null} Resolved value.
    */
-  #ResolveResourceValue(name, passParameters)
+  _ResolveResourceValue(name, passParameters)
   {
     const resource = this.GetResourceByName(name);
 
@@ -865,7 +865,7 @@ export class Tr2Effect extends Tr2Material
    * @param {Array} constParameters Authored constant parameters.
    * @returns {void}
    */
-  static #BakeConstantParameters(mirror, constants, constParameters)
+  static _BakeConstantParameters(mirror, constants, constParameters)
   {
     for (const constant of constants)
     {
@@ -901,7 +901,7 @@ export class Tr2Effect extends Tr2Material
    *   JavaScript has no destructor to remove one.
    * @returns {void}
    */
-  #AcquireEffectResource()
+  _AcquireEffectResource()
   {
     if (!this.actualEffectFilePath) return;
 
@@ -991,7 +991,7 @@ export class Tr2Effect extends Tr2Material
     // it (Tr2Effect.cpp:676). Keeping the assignment is right; what was missing
     // is everything that clears it.
     this.compatibleWithGdr = true;
-    this.#BuildParametersForPasses();
+    this._BuildParametersForPasses();
     for (const parameter of this.parameters)
     {
       if (parameter instanceof TriVariableParameter)
@@ -1246,7 +1246,7 @@ export class Tr2Effect extends Tr2Material
 
   SetResourceTexture2D(name, resourcePath = "")
   {
-    const updated = this.#setNamedTexture(name, resourcePath);
+    const updated = this._setNamedTexture(name, resourcePath);
     if (updated)
     {
       this.RebuildCachedDataInternal();
@@ -1368,12 +1368,12 @@ export class Tr2Effect extends Tr2Material
       if (value === undefined) continue;
       if (value === null)
       {
-        const removedParameter = this.#removeNamed(this.parameters, name);
-        const removedResource = this.#removeNamed(this.resources, name);
+        const removedParameter = this._removeNamed(this.parameters, name);
+        const removedResource = this._removeNamed(this.resources, name);
         updated = removedParameter || removedResource || updated;
         continue;
       }
-      updated = this.#setNamedParameter(name, value) || updated;
+      updated = this._setNamedParameter(name, value) || updated;
     }
     return updated;
   }
@@ -1394,7 +1394,7 @@ export class Tr2Effect extends Tr2Material
 
   SetParameter(name, value)
   {
-    this.#SetValueParameter(name, Tr2FloatParameter, value);
+    this._SetValueParameter(name, Tr2FloatParameter, value);
   }
 
   /**
@@ -1410,7 +1410,7 @@ export class Tr2Effect extends Tr2Material
 
   SetParameter__UInt32(name, value)
   {
-    this.#SetValueParameter(name, Tr2FloatParameter, float32FromBits(value));
+    this._SetValueParameter(name, Tr2FloatParameter, float32FromBits(value));
   }
 
   /**
@@ -1456,7 +1456,7 @@ export class Tr2Effect extends Tr2Material
 
   SetParameter__Vector4(name, value)
   {
-    this.#SetValueParameter(name, Tr2Vector4Parameter, value);
+    this._SetValueParameter(name, Tr2Vector4Parameter, value);
   }
 
   /**
@@ -1471,7 +1471,7 @@ export class Tr2Effect extends Tr2Material
 
   SetParameter__Matrix(name, value)
   {
-    this.#SetValueParameter(name, Tr2Matrix4Parameter, value);
+    this._SetValueParameter(name, Tr2Matrix4Parameter, value);
   }
 
   /**
@@ -1513,7 +1513,7 @@ export class Tr2Effect extends Tr2Material
 
   SetParameter__TextureProvider(name, texture, uavMipLevel = 0)
   {
-    this.#SetTextureParameter(String(name ?? ""), texture, uavMipLevel);
+    this._SetTextureParameter(String(name ?? ""), texture, uavMipLevel);
   }
 
   /**
@@ -1531,7 +1531,7 @@ export class Tr2Effect extends Tr2Material
 
   SetParameter__TextureAL(name, texture, uavMipLevel = 0)
   {
-    this.#SetTextureALParameter(String(name ?? ""), texture, uavMipLevel);
+    this._SetTextureALParameter(String(name ?? ""), texture, uavMipLevel);
   }
 
   /**
@@ -1547,7 +1547,7 @@ export class Tr2Effect extends Tr2Material
 
   SetParameter__BufferAL(name, buffer)
   {
-    this.#SetBufferParameter(String(name ?? ""), buffer);
+    this._SetBufferParameter(String(name ?? ""), buffer);
   }
 
   /**
@@ -1559,7 +1559,7 @@ export class Tr2Effect extends Tr2Material
    * BELIST_INSERTED does through OnListModified; a value change does not,
    * since an existing parameter writes through to its bound destination.
    */
-  #SetValueParameter(name, Parameter, value)
+  _SetValueParameter(name, Parameter, value)
   {
     const parameterName = String(name ?? "");
     const existing = findByName(this.parameters, parameterName);
@@ -1578,7 +1578,7 @@ export class Tr2Effect extends Tr2Material
    * Carbon's buffer overload (`Tr2Effect.cpp:2228-2255`): a named geometry
    * buffer parameter holding a runtime GPU buffer, reused when the slot exists.
    */
-  #SetBufferParameter(parameterName, buffer)
+  _SetBufferParameter(parameterName, buffer)
   {
     // Carbon casts both (BlueCastPtr, cpp:2231, 2234).
     const parameter = CjsSchema.cast(this.GetResourceByName(parameterName), Tr2GeometryBufferParameter);
@@ -1611,7 +1611,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon's Tr2TextureAL overload (`Tr2Effect.cpp:2191-2226`). */
-  #SetTextureALParameter(parameterName, texture, uavMipLevel)
+  _SetTextureALParameter(parameterName, texture, uavMipLevel)
   {
     const parameter = CjsSchema.cast(this.GetResourceByName(parameterName), Tr2RuntimeTextureParameter);
 
@@ -1652,7 +1652,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon's texture overload: a named slot fed by a live texture. */
-  #SetTextureParameter(parameterName, texture, uavMipLevel)
+  _SetTextureParameter(parameterName, texture, uavMipLevel)
   {
     const existing = this.GetResourceByName(parameterName);
 
@@ -1722,10 +1722,10 @@ export class Tr2Effect extends Tr2Material
       if (value === undefined) continue;
       if (value === null)
       {
-        updated = this.#removeNamed(this.resources, name) || updated;
+        updated = this._removeNamed(this.resources, name) || updated;
         continue;
       }
-      updated = this.#setNamedTexture(name, value) || updated;
+      updated = this._setNamedTexture(name, value) || updated;
     }
     return updated;
   }
@@ -1756,10 +1756,10 @@ export class Tr2Effect extends Tr2Material
       if (value === undefined) continue;
       if (value === null)
       {
-        updated = this.#removeNamed(this.constParameters, name) || updated;
+        updated = this._removeNamed(this.constParameters, name) || updated;
         continue;
       }
-      const vector = Tr2Effect.#toConstVector4(value);
+      const vector = Tr2Effect._toConstVector4(value);
       if (!vector)
       {
         throw new TypeError(`Tr2Effect.SetConstParameters cannot read a vec4 value for "${name}".`);
@@ -1818,7 +1818,7 @@ export class Tr2Effect extends Tr2Material
       if (value === undefined) continue;
       if (value === null)
       {
-        updated = this.#removeNamed(this.samplerOverrides, name) || updated;
+        updated = this._removeNamed(this.samplerOverrides, name) || updated;
         continue;
       }
       const existing = findByName(this.samplerOverrides, name);
@@ -1883,7 +1883,7 @@ export class Tr2Effect extends Tr2Material
   {
     if (value && typeof value === "object" && !Array.isArray(value) && !ArrayBuffer.isView(value))
     {
-      const ExplicitClass = Tr2Effect.#resolveExplicitParameterClass(value);
+      const ExplicitClass = Tr2Effect._resolveExplicitParameterClass(value);
       if (!ExplicitClass)
       {
         return null;
@@ -1923,7 +1923,7 @@ export class Tr2Effect extends Tr2Material
    * event detaches a resource from the material. Returns whether anything was
    * removed.
    */
-  #removeNamed(list, name)
+  _removeNamed(list, name)
   {
     const existing = findByName(list, name);
     if (!existing)
@@ -1941,11 +1941,11 @@ export class Tr2Effect extends Tr2Material
    * entry; string values route to the texture resource list instead. Throws
    * TypeError when no registered parameter class can represent the value.
    */
-  #setNamedParameter(name, value)
+  _setNamedParameter(name, value)
   {
     if (typeof value === "string")
     {
-      return this.#setNamedTexture(name, value);
+      return this._setNamedTexture(name, value);
     }
     const existing = findByName(this.parameters, name);
     if (existing && existing.constructor.isValue?.(value))
@@ -1988,7 +1988,7 @@ export class Tr2Effect extends Tr2Material
    * TriTextureParameter when absent; returns false when the path is already that
    * value, and throws TypeError for non-string values.
    */
-  #setNamedTexture(name, value)
+  _setNamedTexture(name, value)
   {
     if (typeof value !== "string")
     {
@@ -2015,7 +2015,7 @@ export class Tr2Effect extends Tr2Material
    * constructor, directly or through the schema registry; returns null when no
    * type field is present and throws TypeError for an unregistered class name.
    */
-  static #resolveExplicitParameterClass(value)
+  static _resolveExplicitParameterClass(value)
   {
     const explicit = value?.Type ?? value?.type ?? value?._type;
     if (!explicit)
@@ -2039,7 +2039,7 @@ export class Tr2Effect extends Tr2Material
    * a `{ value }` wrapper into a new vec4; returns null when no vec4 can be
    * read.
    */
-  static #toConstVector4(value)
+  static _toConstVector4(value)
   {
     if (typeof value === "number")
     {
@@ -2051,7 +2051,7 @@ export class Tr2Effect extends Tr2Material
     }
     if (value && typeof value === "object" && !Array.isArray(value) && "value" in value)
     {
-      return Tr2Effect.#toConstVector4(value.value);
+      return Tr2Effect._toConstVector4(value.value);
     }
     return null;
   }
@@ -2189,7 +2189,7 @@ export class Tr2Effect extends Tr2Material
    * Whether any collection - parameters, resources or constant parameters -
    * already claims the name; the duplicate guard PopulateParameters uses.
    */
-  #hasParameterLike(name)
+  _hasParameterLike(name)
   {
     return !!(this.GetParameterByName(name) || this.HasParameter(name));
   }
@@ -2198,7 +2198,7 @@ export class Tr2Effect extends Tr2Material
    * Whether the resolved shader both marks the name SasUiVisible and exposes it
    * as a constant or resource; the predicate PruneParameters filters on.
    */
-  #isShaderParameterVisible(name)
+  _isShaderParameterVisible(name)
   {
     if (!name)
     {
