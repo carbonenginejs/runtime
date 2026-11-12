@@ -181,7 +181,7 @@ export class CjsWebGLProbe
         {
             try
             {
-                owned = CjsWebGLProbe.#createCanvas(options);
+                owned = CjsWebGLProbe._createCanvas(options);
                 context = owned?.getContext?.("webgl2", options.contextAttributes) ?? null;
             }
             catch (error)
@@ -197,7 +197,7 @@ export class CjsWebGLProbe
             return new CjsWebGLProbe({
                 available: true,
                 contextType: "webgl2",
-                limits: CjsWebGLProbe.#readLimits(context),
+                limits: CjsWebGLProbe._readLimits(context),
                 extensions: context.getSupportedExtensions?.() ?? []
             });
         }
@@ -212,12 +212,12 @@ export class CjsWebGLProbe
         {
             // Only release what this probe created. A caller's context is the
             // caller's to keep.
-            if (owned) CjsWebGLProbe.#release(context);
+            if (owned) CjsWebGLProbe._release(context);
         }
     }
 
     /** The canvas to probe against, preferring an offscreen one. */
-    static #createCanvas(options)
+    static _createCanvas(options)
     {
         if (options.canvas) return options.canvas;
 
@@ -233,7 +233,7 @@ export class CjsWebGLProbe
      * context itself so an unsupported name is simply absent rather than a
      * hardcoded constant read against the wrong context.
      */
-    static #readLimits(context)
+    static _readLimits(context)
     {
         const limits = {};
 
@@ -262,7 +262,7 @@ export class CjsWebGLProbe
     // keeps only privacy-filtered adapter information.
 
     /** Returns a probe-created context to the browser. */
-    static #release(context)
+    static _release(context)
     {
         try
         {

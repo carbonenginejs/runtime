@@ -50,14 +50,14 @@ export class Tr2VideoAdapters
      */
     probeError = null;
 
-    #options = {};
+    _options = {};
 
     static DEFAULT_ADAPTER = 0;
 
     /** Creates an adapter and display-mode facade with optional injected hosts. */
     constructor(options = {})
     {
-        this.#options = { ...options };
+        this._options = { ...options };
     }
 
     /**
@@ -68,23 +68,23 @@ export class Tr2VideoAdapters
      */
     async Refresh(options = {})
     {
-        this.#options = { ...this.#options, ...options };
-        const navigatorObject = this.#options.navigator ?? globalThis.navigator ?? null;
-        const windowObject = this.#options.window ?? globalThis.window ?? null;
-        const screen = this.#options.screen ?? windowObject?.screen ?? null;
-        const gpu = Object.prototype.hasOwnProperty.call(this.#options, "gpu")
-            ? this.#options.gpu
+        this._options = { ...this._options, ...options };
+        const navigatorObject = this._options.navigator ?? globalThis.navigator ?? null;
+        const windowObject = this._options.window ?? globalThis.window ?? null;
+        const screen = this._options.screen ?? windowObject?.screen ?? null;
+        const gpu = Object.prototype.hasOwnProperty.call(this._options, "gpu")
+            ? this._options.gpu
             : navigatorObject?.gpu;
-        let adapter = Object.prototype.hasOwnProperty.call(this.#options, "adapter")
-            ? this.#options.adapter
+        let adapter = Object.prototype.hasOwnProperty.call(this._options, "adapter")
+            ? this._options.adapter
             : null;
         this.probeError = null;
 
-        if (!Object.prototype.hasOwnProperty.call(this.#options, "adapter") && gpu?.requestAdapter)
+        if (!Object.prototype.hasOwnProperty.call(this._options, "adapter") && gpu?.requestAdapter)
         {
             try
             {
-                adapter = await gpu.requestAdapter(this.#options.adapterOptions);
+                adapter = await gpu.requestAdapter(this._options.adapterOptions);
             }
             catch (error)
             {
@@ -94,18 +94,18 @@ export class Tr2VideoAdapters
 
         this.adapters = adapter ? [ await Tr2VideoAdapter.FromGPUAdapter(adapter, { index: 0 }) ] : [];
         this.displayModes = screen ? [ Tr2DisplayMode.FromScreen(screen, windowObject, {
-            format: this.#preferredCanvasFormat(gpu)
+            format: this._preferredCanvasFormat(gpu)
         }) ] : [];
         this.platformInfo = await Tr2PlatformInfo.Detect({
             adapter,
             gpu: null,
-            taa: this.#options.taa,
+            taa: this._options.taa,
             // Forwarded so a caller controls the WebGL probe from one place;
             // `false` skips acquiring a context, and an existing probe is reused.
-            webgl: this.#options.webgl,
-            canvas: this.#options.canvas,
-            document: this.#options.document,
-            contextAttributes: this.#options.contextAttributes
+            webgl: this._options.webgl,
+            canvas: this._options.canvas,
+            document: this._options.document,
+            contextAttributes: this._options.contextAttributes
         });
         if (this.probeError && !this.platformInfo.probeError) this.platformInfo.probeError = this.probeError;
         return this;
@@ -181,7 +181,7 @@ export class Tr2VideoAdapters
     SupportsBackBufferFormat(adapterIndex, format)
     {
         if (!this.adapters[adapterIndex]) return false;
-        return this.#supportsFormat("backBufferFormats", format);
+        return this._supportsFormat("backBufferFormats", format);
     }
 
     /**
@@ -192,7 +192,7 @@ export class Tr2VideoAdapters
     SupportsRenderTargetFormat(adapterIndex, format)
     {
         if (!this.adapters[adapterIndex]) return false;
-        return this.#supportsFormat("renderTargetFormats", format);
+        return this._supportsFormat("renderTargetFormats", format);
     }
 
     /**
@@ -213,9 +213,9 @@ export class Tr2VideoAdapters
     }
 
     /** Returns the configured or browser-preferred canvas format. */
-    #preferredCanvasFormat(gpu)
+    _preferredCanvasFormat(gpu)
     {
-        if (this.#options.preferredCanvasFormat) return this.#options.preferredCanvasFormat;
+        if (this._options.preferredCanvasFormat) return this._options.preferredCanvasFormat;
         try
         {
             return typeof gpu?.getPreferredCanvasFormat === "function" ? gpu.getPreferredCanvasFormat() : null;
@@ -227,9 +227,9 @@ export class Tr2VideoAdapters
     }
 
     /** Reports whether a configured format collection accepts a format. */
-    #supportsFormat(optionName, format)
+    _supportsFormat(optionName, format)
     {
-        const configured = this.#options[optionName];
+        const configured = this._options[optionName];
         if (typeof configured === "function") return configured(format) === true;
         if (configured && typeof configured.has === "function") return configured.has(format);
         if (Array.isArray(configured)) return configured.includes(format);

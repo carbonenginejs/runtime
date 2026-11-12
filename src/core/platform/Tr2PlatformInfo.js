@@ -159,7 +159,7 @@ export class Tr2PlatformInfo
      */
     webCodecs = false;
 
-    #staticCaps = new Map();
+    _staticCaps = new Map();
 
     static StaticCap = PlatformStaticCap;
 
@@ -296,7 +296,7 @@ export class Tr2PlatformInfo
         this.webgl = values.webgl ?? null;
         this.probeError = values.probeError ?? null;
         this.webCodecs = values.webCodecs ?? false;
-        for (const name of Object.keys(PlatformStaticCap)) this.#staticCaps.set(name, values.staticCaps?.[name] === true);
+        for (const name of Object.keys(PlatformStaticCap)) this._staticCaps.set(name, values.staticCaps?.[name] === true);
     }
 
     /**
@@ -394,7 +394,7 @@ export class Tr2PlatformInfo
         const name = typeof capability === "string"
             ? capability
             : CAPABILITY_NAMES[capability];
-        return name ? this.#staticCaps.get(name) === true : false;
+        return name ? this._staticCaps.get(name) === true : false;
     }
 
     // The WebGL keys are SEPARATE keys, not a reinterpretation of the WebGPU
