@@ -150,7 +150,7 @@ export class EveStarfield
   _OnPrepareResources()
   {
     if (this.numStars <= 0) return true;
-    const declaration = EveStarfield.#declaration;
+    const declaration = EveStarfield._declaration;
     if (declaration.empty())
     {
       declaration.Add("FLOAT32_3", "POSITION");
@@ -245,7 +245,7 @@ export class EveStarfield
     accumulator.Commit(batch);
   }
 
-  static #declaration = new Tr2VertexDefinition();
+  static _declaration = new Tr2VertexDefinition();
 }
 
 /**

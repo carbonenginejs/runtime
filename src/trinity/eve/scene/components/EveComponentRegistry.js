@@ -24,7 +24,7 @@ import { ITr2PostProcessOwner } from "../../../postProcess/ITr2PostProcessOwner.
 export class EveComponentRegistry extends IRoot
 {
 
-  #componentCollections = [];
+  _componentCollections = [];
 
   /** m_componentCollectionLoopGuard (mutable std::shared_mutex) */
   componentCollectionLoopGuard = null;
@@ -41,7 +41,7 @@ export class EveComponentRegistry extends IRoot
 
   Clear()
   {
-    for (const collection of this.#componentCollections)
+    for (const collection of this._componentCollections)
     {
       collection.Clear();
     }
@@ -152,7 +152,7 @@ export class EveComponentRegistry extends IRoot
 
   UnRegisterAllComponents(entity)
   {
-    for (const collection of this.#componentCollections)
+    for (const collection of this._componentCollections)
     {
       this.RemoveFromCollection(collection, entity);
     }
@@ -167,7 +167,7 @@ export class EveComponentRegistry extends IRoot
 
   GetComponentCollection(componentName)
   {
-    return this.#componentCollections.find(collection => collection.name === componentName) ?? null;
+    return this._componentCollections.find(collection => collection.name === componentName) ?? null;
   }
 
   /**
@@ -266,14 +266,14 @@ export class EveComponentRegistry extends IRoot
 
   AddCollection(componentName)
   {
-    if (this.#componentCollections.length >= 32)
+    if (this._componentCollections.length >= 32)
     {
       throw new RangeError("EveComponentRegistry supports at most 32 component collections.");
     }
     const collection = new EveComponentCollection();
     collection.name = String(componentName);
-    collection.bit = 2 ** this.#componentCollections.length;
-    this.#componentCollections.push(collection);
+    collection.bit = 2 ** this._componentCollections.length;
+    this._componentCollections.push(collection);
     return collection;
   }
 
@@ -402,7 +402,7 @@ export class EveComponentRegistry extends IRoot
    */
   GetComponentInfo()
   {
-    return this.#componentCollections.map(collection => [collection.name, collection.Size()]);
+    return this._componentCollections.map(collection => [collection.name, collection.Size()]);
   }
 
 }
