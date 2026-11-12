@@ -16,20 +16,20 @@
  * the rewritten tree calls, such as `matrixRow` and `MatrixRow3LH`).
  */
 export const MSL_INCLUDE = `
-#include <metal_stdlib>
+_include <metal_stdlib>
 using namespace metal;
 
-#define clip(x) if (any((x) < 0)) discard_fragment()
+_define clip(x) if (any((x) < 0)) discard_fragment()
 
-#define any(x) any((x) != 0)
-#define mul(a, b) ((a) * (b))
-#define sincos(x, s, c) do { float cc; ( s ) = sincos( ( x ), cc ); ( c ) = cc; } while( false )
-#define countbits(x) popcount(x)
+_define any(x) any((x) != 0)
+_define mul(a, b) ((a) * (b))
+_define sincos(x, s, c) do { float cc; ( s ) = sincos( ( x ), cc ); ( c ) = cc; } while( false )
+_define countbits(x) popcount(x)
 
 // These values must be synchronized with defines in TrinityAL/metal/MetalWorkQueue.h
-#define CBUFFER(i) buffer(4 + i)
-#define SRV(i) buffer(4 + i)
-#define UAV(i) buffer(4 + i)
+_define CBUFFER(i) buffer(4 + i)
+_define SRV(i) buffer(4 + i)
+_define UAV(i) buffer(4 + i)
 
 template< typename T, int n >
 vec<float, n> mix( vec<T, n> x, vec<T, n> y, float a )
@@ -236,7 +236,7 @@ struct MatrixRow2LH
 	{
 		return float2( m_matrix[0][m_row], m_matrix[1][m_row] );
 	}
-#define ROW_ASSIGN_OP( op )                          \\
+_define ROW_ASSIGN_OP( op )                          \\
 	thread MatrixRow2LH& operator op( float2 value ) \\
 	{                                                \\
 		m_matrix[0][m_row] op value[0];              \\
@@ -250,7 +250,7 @@ struct MatrixRow2LH
 	ROW_ASSIGN_OP( *= )
 	ROW_ASSIGN_OP( /= )
 
-#undef ROW_ASSIGN_OP
+_undef ROW_ASSIGN_OP
 
 	thread matrix<float, 2, Rows>& m_matrix;
 	int m_row;
@@ -267,7 +267,7 @@ struct MatrixRow3LH
 	{
 		return float3( m_matrix[0][m_row], m_matrix[1][m_row], m_matrix[2][m_row] );
 	}
-#define ROW_ASSIGN_OP( op )                          \\
+_define ROW_ASSIGN_OP( op )                          \\
 	thread MatrixRow3LH& operator op( float3 value ) \\
 	{                                                \\
 		m_matrix[0][m_row] op value[0];              \\
@@ -282,7 +282,7 @@ struct MatrixRow3LH
 	ROW_ASSIGN_OP( *= )
 	ROW_ASSIGN_OP( /= )
 
-#undef ROW_ASSIGN_OP
+_undef ROW_ASSIGN_OP
 
 	thread matrix<float, 3, Rows>& m_matrix;
 	int m_row;
@@ -299,7 +299,7 @@ struct MatrixRow4LH
 	{
 		return float4( m_matrix[0][m_row], m_matrix[1][m_row], m_matrix[2][m_row], m_matrix[3][m_row] );
 	}
-#define ROW_ASSIGN_OP( op )                          \\
+_define ROW_ASSIGN_OP( op )                          \\
 	thread MatrixRow4LH& operator op( float4 value ) \\
 	{                                                \\
 		m_matrix[0][m_row] op value[0];              \\
@@ -315,7 +315,7 @@ struct MatrixRow4LH
 	ROW_ASSIGN_OP( *= )
 	ROW_ASSIGN_OP( /= )
 
-#undef ROW_ASSIGN_OP
+_undef ROW_ASSIGN_OP
 
 	thread matrix<float, 4, Rows>& m_matrix;
 	int m_row;
@@ -448,7 +448,7 @@ struct _ResourceRef
 };
 
 
-#if __METAL_VERSION__ >= 300
+_if __METAL_VERSION__ >= 300
 
 using namespace raytracing;
 
@@ -460,17 +460,17 @@ struct RayDesc
     float TMax;
 };
 
-#define RAY_FLAG_NONE                            0x00
-#define RAY_FLAG_FORCE_OPAQUE                    0x01
-#define RAY_FLAG_FORCE_NON_OPAQUE                0x02
-#define RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH 0x04
-#define RAY_FLAG_SKIP_CLOSEST_HIT_SHADER         0x08
-#define RAY_FLAG_CULL_BACK_FACING_TRIANGLES      0x10
-#define RAY_FLAG_CULL_FRONT_FACING_TRIANGLES     0x20
-#define RAY_FLAG_CULL_OPAQUE                     0x40
-#define RAY_FLAG_CULL_NON_OPAQUE                 0x80
-#define RAY_FLAG_SKIP_TRIANGLES                  0x100
-#define RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES      0x200
+_define RAY_FLAG_NONE                            0x00
+_define RAY_FLAG_FORCE_OPAQUE                    0x01
+_define RAY_FLAG_FORCE_NON_OPAQUE                0x02
+_define RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH 0x04
+_define RAY_FLAG_SKIP_CLOSEST_HIT_SHADER         0x08
+_define RAY_FLAG_CULL_BACK_FACING_TRIANGLES      0x10
+_define RAY_FLAG_CULL_FRONT_FACING_TRIANGLES     0x20
+_define RAY_FLAG_CULL_OPAQUE                     0x40
+_define RAY_FLAG_CULL_NON_OPAQUE                 0x80
+_define RAY_FLAG_SKIP_TRIANGLES                  0x100
+_define RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES      0x200
 
 
 struct __MetalHitSV
@@ -486,7 +486,7 @@ struct __MetalHitSV
 	float4x3 object_to_world_transform;
 };
 
-#define __INTERSECION_TAGS instancing, triangle_data, world_space_data
+_define __INTERSECION_TAGS instancing, triangle_data, world_space_data
 
 struct __RtLocalMaterial
 {
@@ -498,7 +498,7 @@ struct RaytracingAccelerationStructureT
     instance_acceleration_structure tlas;
 };
 
-#define RaytracingAccelerationStructure const RaytracingAccelerationStructureT*
+_define RaytracingAccelerationStructure const RaytracingAccelerationStructureT*
 
 template <typename payload_t, typename global_input_t>
 struct ShaderTableT
@@ -579,21 +579,21 @@ void TraceRay(
 
 
 
-#define DispatchRaysIndex() (__dispatchRaysIndex)
-#define DispatchRaysDimensions() (__dispatchRaysDimensions)
+_define DispatchRaysIndex() (__dispatchRaysIndex)
+_define DispatchRaysDimensions() (__dispatchRaysDimensions)
 
 
-#define InstanceID() (__metalHitSV.instance_id)
-#define PrimitiveIndex() (__metalHitSV.primitive_id)
-#define ObjectRayOrigin() (__metalHitSV.origin)
-#define ObjectRayDirection() (__metalHitSV.direction)
-#define RayTMin() (__metalHitSV.min_distance)
-#define RayTCurrent() (__metalHitSV.distance)
-#define ObjectToWorld4x3() (transpose(__metalHitSV.object_to_world_transform))
-#define WorldToObject4x3() (transpose(__metalHitSV.world_to_object_transform))
+_define InstanceID() (__metalHitSV.instance_id)
+_define PrimitiveIndex() (__metalHitSV.primitive_id)
+_define ObjectRayOrigin() (__metalHitSV.origin)
+_define ObjectRayDirection() (__metalHitSV.direction)
+_define RayTMin() (__metalHitSV.min_distance)
+_define RayTCurrent() (__metalHitSV.distance)
+_define ObjectToWorld4x3() (transpose(__metalHitSV.object_to_world_transform))
+_define WorldToObject4x3() (transpose(__metalHitSV.world_to_object_transform))
 
-#define IgnoreHit() return false
+_define IgnoreHit() return false
 
-#endif
+_endif
 
 `;
