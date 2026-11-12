@@ -1,6 +1,7 @@
 import { blue } from "#blue";
 import { CjsPaperDollCompositor } from "../compositor/CjsPaperDollCompositor.js";
 import { CjsPaperDollDefinition } from "../CjsPaperDollDefinition.js";
+import { CjsPaperDollInstance } from "../CjsPaperDollInstance.js";
 import { PaperDollBlend, PaperDollTarget } from "../paperDollOrder.js";
 
 /**
@@ -146,14 +147,18 @@ export class CjsPaperDollMaterialSource
         const [ part, { maps, masks, skipped, maskedNormal } ] = await Promise.all([ build.Ready(library.FetchOptionPart(option.option)), build.Ready(library.FetchOptionMaps(option.option)) ]);
         const defaultPalette = records.length ? (await build.Ready(library.ResolveColors(option.option))).palette : null;
         const colorAreas = maps.detail && maps.zone && defaultPalette ? await build.Ready(library.FetchColorAreas(option.option)) : [];
+        // The option occludes what its dependants' metadata occludes as well (CjsPaperDollInstance.dependantOccludes).
+        const dependantParts = await build.Ready(Promise.all(part.dependants.filter(path => !/^utilityshapes\//iu.test(path))
+            .map(path => library.FetchDependantPart(build.content.sex, path, part.variation))));
+        const occludes = [ ...new Set([ ...part.occludes, ...CjsPaperDollInstance.dependantOccludes(dependantParts.filter(Boolean)) ]) ];
         const resolved = { id: option.id, path: option.path, type: option.type, base: part.folders.at(-1), folders: part.folders, variation: part.variation,
-            dependants: part.dependants, occludes: part.occludes, defaultPalette, maps, masks, skipped, maskedNormal };
+            dependants: part.dependants, occludes, defaultPalette, maps, masks, skipped, maskedNormal };
         if (this._hook !== null) await this._hook(this.name, resolved);
         // Drawn from here on: the maps load on the next draw.
         option.resolved = resolved;
         return {
             path: option.path,
-            occludes: part.occludes,
+            occludes,
             colorAreas,
             defaultPalette: colorAreas.length ? defaultPalette : undefined,
             palettes: colorAreas.length ? records : []

@@ -401,6 +401,31 @@ export class CjsCharacterLibraryManager
     }
 
     /**
+     * A dependant's metadata, read once: the dependant folder's `metadata.yaml` for the owner's variation where that
+     * folder has one, else the unversioned one, with its two lists as authored (weights kept). Null where neither exists.
+     *
+     * Ours, as `FetchOptions`.
+     *
+     * @param {string} sex The paper doll's sex (`female`).
+     * @param {string} path The dependant's modifier path as the owner names it (`accessories/masks/mask_big_F`).
+     * @param {string} variation The owner's variation (`v6`), or "".
+     * @returns {Promise<?{ path: string, metadataPath: string, dependantModifiers: string[], occludesModifiers: string[] }>}
+     *   The lower-case path, the file read and its lists; the caller's own copy.
+     */
+    FetchDependantPart(sex, path, variation)
+    {
+        const lower = path.toLowerCase();
+        return this._Query("dependant|" + sex + "|" + lower + "|" + variation, async () =>
+        {
+            const folder = CjsCharacterLibraryManager.paperDollRoot(sex) + lower + "/", files = this._PaperDollFiles(folder);
+            const metadataPath = [ ...(variation ? [ folder + variation + "/" ] : []), folder ].map(value => value + "metadata.yaml").find(value => files.includes(value));
+            if (!metadataPath) return null;
+            const metadata = await this.FetchAvatarPartMetaData(metadataPath);
+            return { path: lower, metadataPath, dependantModifiers: [ ...metadata.dependantModifiers ], occludesModifiers: [ ...metadata.occludesModifiers ] };
+        });
+    }
+
+    /**
      * An option's maps at the character texture quality, by its category's rule (`categories`):
      * - `name`: `{ paths }`, one map per name, a variation's replacing the part folder's;
      * - `composed`: `{ roles, skipped }`, the option folder's composed maps by role, and those not named so;

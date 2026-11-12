@@ -307,8 +307,8 @@ export class CjsPaperDollInstance
      * authored, with no filtering by kind or target (operator, 2026-11-12: "we just do exactly what the garments
      * say"). `hidesBootShin` does not select them; both directions set it differently. The result goes to
      * `resolveUtilityShapes` with the worn items' own requests and occlusions. Every entry a dependant's metadata
-     * states has a rule or throws (operator, 2026-11-12: "all rules must be handled"): one that names no utility shape
-     * (`dependants/tuck`, `dependants/bootmasks`, `hair`) and one that does not decode throw.
+     * states has a rule or throws (operator, 2026-11-12: "all rules must be handled"): a request that names no utility shape and a
+     * utility shape that does not decode throw; an occlude outside `utilityshapes/` is the owner's (`dependantOccludes`).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
      * @param {Array<{ path: string, metadataPath: string, dependantModifiers: string[], occludesModifiers: string[] }>}
@@ -329,7 +329,8 @@ export class CjsPaperDollInstance
                 if (request === null) throw CjsPaperDollInstance._MissingRule(dependant.path, "dependantModifiers", entry, dependant.metadataPath);
                 result.requests.push(request);
             }
-            for (const entry of dependant.occludesModifiers)
+            // Its other occludes are the suppression walk's, through the owner (`dependantOccludes`).
+            for (const entry of dependant.occludesModifiers.filter(value => /^utilityshapes\//iu.test(value)))
             {
                 const occlusion = CjsCharacterAppearanceResolver.decodeUtilityOcclusion(entry);
                 if (occlusion === null) throw CjsPaperDollInstance._MissingRule(dependant.path, "occludesModifiers", entry, dependant.metadataPath);
@@ -337,6 +338,26 @@ export class CjsPaperDollInstance
             }
         }
         return result;
+    }
+
+    /**
+     * What a worn item's dependants occlude, for the suppression walk: every entry of each dependant's
+     * `occludesModifiers` outside `utilityshapes/` (those are `dependantShapes`'), cut to its path as the owner's own
+     * occludes are. The owner occludes them as if it stated them: `outer/vanguardf01` v6 brings
+     * `accessories/masks/mask_big_f`, whose metadata occludes `accessories/chin`, `accessories/lips` and
+     * `accessories/nose`, so the suit with that mask suppresses those piercings (operator, 2026-11-13: follow every
+     * instruction the content gives).
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
+     * @param {Array<{ occludesModifiers: string[] }>} dependants The dependants' metadata lists (`FetchDependantPart`).
+     * @returns {string[]} The occluded paths, each once, in order.
+     */
+    static dependantOccludes(dependants)
+    {
+        const paths = [];
+        for (const dependant of dependants) for (const entry of dependant.occludesModifiers)
+            if (!/^utilityshapes\//iu.test(entry)) paths.push(entry.split("#")[0]);
+        return [ ...new Set(paths) ];
     }
 
     /**
