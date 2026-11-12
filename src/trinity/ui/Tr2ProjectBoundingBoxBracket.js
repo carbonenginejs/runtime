@@ -272,7 +272,7 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
     const viewport = Tr2Renderer.GetViewport();
     if (boundingBoxContainsPoint(boundsMin, boundsMax, viewPosition))
     {
-      this.#SetFullViewportProjection(viewport);
+      this._SetFullViewportProjection(viewport);
       return;
     }
 
@@ -293,8 +293,8 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
     this.containsCamera = false;
     this.extendsOffscreen = projectedBounds.extendsOffscreen;
     this.coversViewport = projectedBounds.coversViewport;
-    this.#ConstrainProjection(center, viewProjection, viewport);
-    this.#PublishProjection(viewport);
+    this._ConstrainProjection(center, viewProjection, viewport);
+    this._PublishProjection(viewport);
   }
 
   /**
@@ -334,14 +334,14 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
 
   /** Publishes a projection covering the full active viewport. */
 
-  #SetFullViewportProjection(viewport)
+  _SetFullViewportProjection(viewport)
   {
     this.projectedX = viewport.x;
     this.projectedY = viewport.y;
     this.projectedZ = viewport.minZ;
     this.projectedWidth = viewport.width;
     this.projectedHeight = viewport.height;
-    if (!this.#ClampToScreenMargin(viewport))
+    if (!this._ClampToScreenMargin(viewport))
     {
       this.SetEmptyProjection();
       return;
@@ -355,7 +355,7 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
 
   /** Applies authored size and integer-coordinate constraints. */
 
-  #ConstrainProjection(boxCenter, matrix, viewport)
+  _ConstrainProjection(boxCenter, matrix, viewport)
   {
     let centerX = this.projectedX + this.projectedWidth * 0.5;
     let centerY = this.projectedY + this.projectedHeight * 0.5;
@@ -385,9 +385,9 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
 
   /** Validates and publishes the current projected rectangle. */
 
-  #PublishProjection(viewport)
+  _PublishProjection(viewport)
   {
-    if (this.projectedWidth <= 0 || this.projectedHeight <= 0 || !this.#ClampToScreenMargin(viewport))
+    if (this.projectedWidth <= 0 || this.projectedHeight <= 0 || !this._ClampToScreenMargin(viewport))
     {
       this.SetEmptyProjection();
       return;
@@ -399,7 +399,7 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
   }
 
   /** Clips the projected rectangle to the configured screen margin. */
-  #ClampToScreenMargin(viewport)
+  _ClampToScreenMargin(viewport)
   {
     if (this.screenMargin <= 0) return true;
     const left = viewport.x + this.screenMargin;
