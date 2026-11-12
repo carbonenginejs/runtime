@@ -54,7 +54,7 @@ export class Tr2MouseCursor
      * Object URL this cursor created and must revoke, or null.
      * @type {string|null}
      */
-    #objectUrl = null;
+    _objectUrl = null;
 
     /** Creates an optional browser CSS cursor from one or more representations. */
     constructor(bitmap = null, hotspotX = 0, hotspotY = 0, representations = [])
@@ -89,11 +89,11 @@ export class Tr2MouseCursor
      */
     Create(bitmap, hotspotX = 0, hotspotY = 0, representations = [])
     {
-        if (this.#objectUrl && typeof globalThis.URL?.revokeObjectURL === "function")
+        if (this._objectUrl && typeof globalThis.URL?.revokeObjectURL === "function")
         {
-            globalThis.URL.revokeObjectURL(this.#objectUrl);
+            globalThis.URL.revokeObjectURL(this._objectUrl);
         }
-        this.#objectUrl = null;
+        this._objectUrl = null;
         this.cssCursor = null;
 
         const candidates = [ bitmap, ...(representations ?? []) ];
@@ -101,7 +101,7 @@ export class Tr2MouseCursor
         let selected = null;
         for (const candidate of candidates)
         {
-            source = this.#resolveSource(candidate);
+            source = this._resolveSource(candidate);
             if (source)
             {
                 selected = candidate;
@@ -161,16 +161,16 @@ export class Tr2MouseCursor
      */
     OnDestruct()
     {
-        if (this.#objectUrl && typeof globalThis.URL?.revokeObjectURL === "function")
+        if (this._objectUrl && typeof globalThis.URL?.revokeObjectURL === "function")
         {
-            globalThis.URL.revokeObjectURL(this.#objectUrl);
+            globalThis.URL.revokeObjectURL(this._objectUrl);
         }
-        this.#objectUrl = null;
+        this._objectUrl = null;
         this.cssCursor = null;
     }
 
     /** Resolves one cursor representation to a CSS-compatible source. */
-    #resolveSource(bitmap)
+    _resolveSource(bitmap)
     {
         if (typeof bitmap === "string")
         {
@@ -190,8 +190,8 @@ export class Tr2MouseCursor
         {
             try
             {
-                this.#objectUrl = globalThis.URL.createObjectURL(bitmap.blob ?? bitmap);
-                return this.#objectUrl;
+                this._objectUrl = globalThis.URL.createObjectURL(bitmap.blob ?? bitmap);
+                return this._objectUrl;
             }
             catch
             {

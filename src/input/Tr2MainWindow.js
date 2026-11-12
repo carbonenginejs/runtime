@@ -45,25 +45,25 @@ export class Tr2MainWindow
      */
     imeState_MacOS = Tr2ImeState_MacOS.DISABLED;
 
-    #window = null;
-    #document = null;
-    #target = null;
-    #screen = null;
-    #state = new Tr2MainWindowState();
-    #storedStates = new Map();
-    #minimumSize = { width: 100, height: 100 };
-    #pressed = new Set();
-    #toggled = new Set();
-    #cursor = null;
-    #cursorPosition = [ 0, 0 ];
-    #listeners = [];
-    #closed = false;
-    #backBufferFormat = null;
-    #callbacks = new Map();
-    #callbackValues = new Map();
+    _window = null;
+    _document = null;
+    _target = null;
+    _screen = null;
+    _state = new Tr2MainWindowState();
+    _storedStates = new Map();
+    _minimumSize = { width: 100, height: 100 };
+    _pressed = new Set();
+    _toggled = new Set();
+    _cursor = null;
+    _cursorPosition = [ 0, 0 ];
+    _listeners = [];
+    _closed = false;
+    _backBufferFormat = null;
+    _callbacks = new Map();
+    _callbackValues = new Map();
 
     // The callback fields are prototype accessors so every assignment is
-    // normalized once through #setCallback.
+    // normalized once through _setCallback.
 
     /**
      * Key-down callback. Reads return the assigned value; writes normalize it once.
@@ -71,12 +71,12 @@ export class Tr2MainWindow
      */
     get onKeyDown()
     {
-        return this.#callbackValues.get("onKeyDown");
+        return this._callbackValues.get("onKeyDown");
     }
 
     set onKeyDown(value)
     {
-        this.#setCallback("onKeyDown", value);
+        this._setCallback("onKeyDown", value);
     }
 
     /**
@@ -85,12 +85,12 @@ export class Tr2MainWindow
      */
     get onKeyUp()
     {
-        return this.#callbackValues.get("onKeyUp");
+        return this._callbackValues.get("onKeyUp");
     }
 
     set onKeyUp(value)
     {
-        this.#setCallback("onKeyUp", value);
+        this._setCallback("onKeyUp", value);
     }
 
     /**
@@ -99,12 +99,12 @@ export class Tr2MainWindow
      */
     get onChar()
     {
-        return this.#callbackValues.get("onChar");
+        return this._callbackValues.get("onChar");
     }
 
     set onChar(value)
     {
-        this.#setCallback("onChar", value);
+        this._setCallback("onChar", value);
     }
 
     /**
@@ -113,12 +113,12 @@ export class Tr2MainWindow
      */
     get onMouseDown()
     {
-        return this.#callbackValues.get("onMouseDown");
+        return this._callbackValues.get("onMouseDown");
     }
 
     set onMouseDown(value)
     {
-        this.#setCallback("onMouseDown", value);
+        this._setCallback("onMouseDown", value);
     }
 
     /**
@@ -127,12 +127,12 @@ export class Tr2MainWindow
      */
     get onMouseUp()
     {
-        return this.#callbackValues.get("onMouseUp");
+        return this._callbackValues.get("onMouseUp");
     }
 
     set onMouseUp(value)
     {
-        this.#setCallback("onMouseUp", value);
+        this._setCallback("onMouseUp", value);
     }
 
     /**
@@ -141,12 +141,12 @@ export class Tr2MainWindow
      */
     get onMouseMove()
     {
-        return this.#callbackValues.get("onMouseMove");
+        return this._callbackValues.get("onMouseMove");
     }
 
     set onMouseMove(value)
     {
-        this.#setCallback("onMouseMove", value);
+        this._setCallback("onMouseMove", value);
     }
 
     /**
@@ -155,12 +155,12 @@ export class Tr2MainWindow
      */
     get onMouseWheel()
     {
-        return this.#callbackValues.get("onMouseWheel");
+        return this._callbackValues.get("onMouseWheel");
     }
 
     set onMouseWheel(value)
     {
-        this.#setCallback("onMouseWheel", value);
+        this._setCallback("onMouseWheel", value);
     }
 
     /**
@@ -169,12 +169,12 @@ export class Tr2MainWindow
      */
     get onClose()
     {
-        return this.#callbackValues.get("onClose");
+        return this._callbackValues.get("onClose");
     }
 
     set onClose(value)
     {
-        this.#setCallback("onClose", value);
+        this._setCallback("onClose", value);
     }
 
     /**
@@ -183,12 +183,12 @@ export class Tr2MainWindow
      */
     get onFocusChange()
     {
-        return this.#callbackValues.get("onFocusChange");
+        return this._callbackValues.get("onFocusChange");
     }
 
     set onFocusChange(value)
     {
-        this.#setCallback("onFocusChange", value);
+        this._setCallback("onFocusChange", value);
     }
 
     /**
@@ -197,12 +197,12 @@ export class Tr2MainWindow
      */
     get onWindowStateChange()
     {
-        return this.#callbackValues.get("onWindowStateChange");
+        return this._callbackValues.get("onWindowStateChange");
     }
 
     set onWindowStateChange(value)
     {
-        this.#setCallback("onWindowStateChange", value);
+        this._setCallback("onWindowStateChange", value);
     }
 
     /**
@@ -211,12 +211,12 @@ export class Tr2MainWindow
      */
     get onPointerCancel()
     {
-        return this.#callbackValues.get("onPointerCancel");
+        return this._callbackValues.get("onPointerCancel");
     }
 
     set onPointerCancel(value)
     {
-        this.#setCallback("onPointerCancel", value);
+        this._setCallback("onPointerCancel", value);
     }
 
     /**
@@ -225,20 +225,20 @@ export class Tr2MainWindow
      */
     get onCompositionStart()
     {
-        return this.#callbackValues.get("onCompositionStart");
+        return this._callbackValues.get("onCompositionStart");
     }
 
     set onCompositionStart(value)
     {
-        this.#setCallback("onCompositionStart", value);
+        this._setCallback("onCompositionStart", value);
     }
 
     /** Creates a browser main-window adapter and optionally attaches host listeners. */
     constructor(options = {})
     {
         for (const field of CALLBACK_FIELDS) this[field] = null;
-        if (options.state) this.#state = options.state.Clone();
-        this.#backBufferFormat = options.backBufferFormat ?? null;
+        if (options.state) this._state = options.state.Clone();
+        this._backBufferFormat = options.backBufferFormat ?? null;
         for (const field of CALLBACK_FIELDS)
         {
             if (Object.prototype.hasOwnProperty.call(options, field)) this[field] = options[field];
@@ -250,30 +250,30 @@ export class Tr2MainWindow
     Attach(options = {})
     {
         this.Detach();
-        this.#window = options.window ?? globalThis.window ?? null;
-        this.#document = options.document ?? this.#window?.document ?? globalThis.document ?? null;
-        this.#target = options.target ?? this.#document?.documentElement ?? this.#window ?? null;
-        this.#screen = options.screen ?? this.#window?.screen ?? null;
-        this.#closed = false;
+        this._window = options.window ?? globalThis.window ?? null;
+        this._document = options.document ?? this._window?.document ?? globalThis.document ?? null;
+        this._target = options.target ?? this._document?.documentElement ?? this._window ?? null;
+        this._screen = options.screen ?? this._window?.screen ?? null;
+        this._closed = false;
 
-        this.#listen(this.#window, "keydown", event => this.#onKeyDown(event));
-        this.#listen(this.#window, "keyup", event => this.#onKeyUp(event));
-        this.#listen(this.#window, "keypress", event => this.#invokeVoid("onChar", event.key, event));
-        this.#listen(this.#window, "focus", event => this.#invokeVoid("onFocusChange", true, event));
-        this.#listen(this.#window, "blur", event => this.#invokeVoid("onFocusChange", false, event));
-        this.#listen(this.#target, "blur", event => this.#invokeVoid("onFocusChange", false, event));
-        this.#listen(this.#target, "compositionstart", event => this.#invokeVoid("onCompositionStart", event));
-        this.#listen(this.#window, "resize", event => this.#onResize(event));
-        this.#listen(this.#window, "beforeunload", event => this.#onBeforeUnload(event));
-        this.#listen(this.#target, "pointermove", event => this.#onPointerMove(event));
-        this.#listen(this.#target, "pointerdown", event => this.#invokeVoid("onMouseDown", event.button, event.clientX, event.clientY, event));
-        this.#listen(this.#target, "pointerup", event => this.#invokeVoid("onMouseUp", event.button, event.clientX, event.clientY, event));
+        this._listen(this._window, "keydown", event => this._onKeyDown(event));
+        this._listen(this._window, "keyup", event => this._onKeyUp(event));
+        this._listen(this._window, "keypress", event => this._invokeVoid("onChar", event.key, event));
+        this._listen(this._window, "focus", event => this._invokeVoid("onFocusChange", true, event));
+        this._listen(this._window, "blur", event => this._invokeVoid("onFocusChange", false, event));
+        this._listen(this._target, "blur", event => this._invokeVoid("onFocusChange", false, event));
+        this._listen(this._target, "compositionstart", event => this._invokeVoid("onCompositionStart", event));
+        this._listen(this._window, "resize", event => this._onResize(event));
+        this._listen(this._window, "beforeunload", event => this._onBeforeUnload(event));
+        this._listen(this._target, "pointermove", event => this._onPointerMove(event));
+        this._listen(this._target, "pointerdown", event => this._invokeVoid("onMouseDown", event.button, event.clientX, event.clientY, event));
+        this._listen(this._target, "pointerup", event => this._invokeVoid("onMouseUp", event.button, event.clientX, event.clientY, event));
         // Browser capture can end without a mouse-up (touch cancellation, focus
         // changes or capture reassignment). The shared router must release drags.
-        this.#listen(this.#target, "pointercancel", event => this.#invokeVoid("onPointerCancel", event));
-        this.#listen(this.#target, "lostpointercapture", event => this.#invokeVoid("onPointerCancel", event));
-        this.#listen(this.#target, "wheel", event => this.#invokeVoid("onMouseWheel", event.deltaY, event));
-        this.#listen(this.#document, "visibilitychange", event => this.#invokeVoid("onFocusChange", !this.IsHidden(), event));
+        this._listen(this._target, "pointercancel", event => this._invokeVoid("onPointerCancel", event));
+        this._listen(this._target, "lostpointercapture", event => this._invokeVoid("onPointerCancel", event));
+        this._listen(this._target, "wheel", event => this._invokeVoid("onMouseWheel", event.deltaY, event));
+        this._listen(this._document, "visibilitychange", event => this._invokeVoid("onFocusChange", !this.IsHidden(), event));
         return this;
     }
 
@@ -290,9 +290,9 @@ export class Tr2MainWindow
     /** Removes attached host listeners and clears pressed-key state. */
     Detach()
     {
-        for (const [ target, type, listener ] of this.#listeners) target.removeEventListener(type, listener);
-        this.#listeners.length = 0;
-        this.#pressed.clear();
+        for (const [ target, type, listener ] of this._listeners) target.removeEventListener(type, listener);
+        this._listeners.length = 0;
+        this._pressed.clear();
         return this;
     }
 
@@ -314,7 +314,7 @@ export class Tr2MainWindow
      */
     HasFocus()
     {
-        return !this.#closed && (typeof this.#document?.hasFocus === "function" ? this.#document.hasFocus() : true);
+        return !this._closed && (typeof this._document?.hasFocus === "function" ? this._document.hasFocus() : true);
     }
 
     /**
@@ -336,7 +336,7 @@ export class Tr2MainWindow
      */
     IsHidden()
     {
-        return this.#document?.hidden === true || this.#state.showState === Tr2WindowShowState.MINIMIZED;
+        return this._document?.hidden === true || this._state.showState === Tr2WindowShowState.MINIMIZED;
     }
 
     /**
@@ -346,8 +346,8 @@ export class Tr2MainWindow
      */
     SetMinimumSize(width, height)
     {
-        this.#minimumSize.width = Math.max(0, Math.trunc(Number(width) || 0));
-        this.#minimumSize.height = Math.max(0, Math.trunc(Number(height) || 0));
+        this._minimumSize.width = Math.max(0, Math.trunc(Number(width) || 0));
+        this._minimumSize.height = Math.max(0, Math.trunc(Number(height) || 0));
         return this;
     }
 
@@ -362,9 +362,9 @@ export class Tr2MainWindow
     {
         const next = state.Clone();
         this.SanitizeState(next);
-        if (statesEqual(this.#state, next)) return true;
-        this.#state = next;
-        this.#invokeVoid("onWindowStateChange", this.#state.Clone());
+        if (statesEqual(this._state, next)) return true;
+        this._state = next;
+        this._invokeVoid("onWindowStateChange", this._state.Clone());
         return true;
     }
 
@@ -376,7 +376,7 @@ export class Tr2MainWindow
      */
     GetWindowState()
     {
-        return this.#state.Clone();
+        return this._state.Clone();
     }
 
     /**
@@ -388,11 +388,11 @@ export class Tr2MainWindow
     SanitizeState(state)
     {
         if (!(state instanceof Tr2MainWindowState)) throw new TypeError("Tr2MainWindow.SanitizeState requires Tr2MainWindowState.");
-        const maximumWidth = Number(this.#screen?.availWidth ?? this.#screen?.width ?? this.#window?.innerWidth) || 0;
-        const maximumHeight = Number(this.#screen?.availHeight ?? this.#screen?.height ?? this.#window?.innerHeight) || 0;
+        const maximumWidth = Number(this._screen?.availWidth ?? this._screen?.width ?? this._window?.innerWidth) || 0;
+        const maximumHeight = Number(this._screen?.availHeight ?? this._screen?.height ?? this._window?.innerHeight) || 0;
         state.adapter = 0;
-        state.width = sanitizeDimension(state.width, maximumWidth, this.#minimumSize.width);
-        state.height = sanitizeDimension(state.height, maximumHeight, this.#minimumSize.height);
+        state.width = sanitizeDimension(state.width, maximumWidth, this._minimumSize.width);
+        state.height = sanitizeDimension(state.height, maximumHeight, this._minimumSize.height);
         state.left = Math.trunc(Number(state.left) || 0);
         state.top = Math.trunc(Number(state.top) || 0);
         return state;
@@ -407,8 +407,8 @@ export class Tr2MainWindow
     {
         const state = new Tr2MainWindowState();
         state.windowMode = windowMode;
-        state.width = Number(windowMode === Tr2WindowMode.FULL_SCREEN ? this.#screen?.width : this.#window?.innerWidth) || 0;
-        state.height = Number(windowMode === Tr2WindowMode.FULL_SCREEN ? this.#screen?.height : this.#window?.innerHeight) || 0;
+        state.width = Number(windowMode === Tr2WindowMode.FULL_SCREEN ? this._screen?.width : this._window?.innerWidth) || 0;
+        state.height = Number(windowMode === Tr2WindowMode.FULL_SCREEN ? this._screen?.height : this._window?.innerHeight) || 0;
         return this.SanitizeState(state);
     }
 
@@ -419,7 +419,7 @@ export class Tr2MainWindow
      */
     StoreStateSettings(state)
     {
-        this.#storedStates.set(state.windowMode, state.Clone());
+        this._storedStates.set(state.windowMode, state.Clone());
         return this;
     }
 
@@ -431,9 +431,9 @@ export class Tr2MainWindow
     GetWindowSizeOptions()
     {
         const sizes = [
-            [ Number(this.#window?.innerWidth) || 0, Number(this.#window?.innerHeight) || 0 ],
-            [ Number(this.#screen?.availWidth) || 0, Number(this.#screen?.availHeight) || 0 ],
-            [ Number(this.#screen?.width) || 0, Number(this.#screen?.height) || 0 ]
+            [ Number(this._window?.innerWidth) || 0, Number(this._window?.innerHeight) || 0 ],
+            [ Number(this._screen?.availWidth) || 0, Number(this._screen?.availHeight) || 0 ],
+            [ Number(this._screen?.width) || 0, Number(this._screen?.height) || 0 ]
         ].filter(([ width, height ]) => width > 0 && height > 0);
         return sizes.filter(([ width, height ], index) => sizes.findIndex(item => item[0] === width && item[1] === height) === index);
     }
@@ -445,8 +445,8 @@ export class Tr2MainWindow
      */
     SetWindowTitle(title)
     {
-        if (!this.#document) return false;
-        this.#document.title = String(title ?? "");
+        if (!this._document) return false;
+        this._document.title = String(title ?? "");
         return true;
     }
 
@@ -457,7 +457,7 @@ export class Tr2MainWindow
      */
     GetWindowTitle()
     {
-        return this.#document?.title ?? "";
+        return this._document?.title ?? "";
     }
 
     /**
@@ -468,8 +468,8 @@ export class Tr2MainWindow
     SetMouseCursor(cursor)
     {
         if (cursor !== null && !(cursor instanceof Tr2MouseCursor)) throw new TypeError("Tr2MainWindow cursor must be a Tr2MouseCursor.");
-        this.#cursor = cursor;
-        return cursor ? cursor.Apply(this.#target) : true;
+        this._cursor = cursor;
+        return cursor ? cursor.Apply(this._target) : true;
     }
 
     /**
@@ -479,7 +479,7 @@ export class Tr2MainWindow
      */
     GetMouseCursor()
     {
-        return this.#cursor;
+        return this._cursor;
     }
 
     /**
@@ -491,8 +491,8 @@ export class Tr2MainWindow
      */
     ClipCursor()
     {
-        if (typeof this.#target?.requestPointerLock !== "function") return false;
-        const result = this.#target.requestPointerLock();
+        if (typeof this._target?.requestPointerLock !== "function") return false;
+        const result = this._target.requestPointerLock();
         return result && typeof result.then === "function" ? result.then(() => true) : true;
     }
 
@@ -503,8 +503,8 @@ export class Tr2MainWindow
      */
     UnclipCursor()
     {
-        if (typeof this.#document?.exitPointerLock !== "function") return false;
-        this.#document.exitPointerLock();
+        if (typeof this._document?.exitPointerLock !== "function") return false;
+        this._document.exitPointerLock();
         return true;
     }
 
@@ -515,7 +515,7 @@ export class Tr2MainWindow
      */
     GetCursorPos()
     {
-        return [ ...this.#cursorPosition ];
+        return [ ...this._cursorPosition ];
     }
 
     /**
@@ -539,7 +539,7 @@ export class Tr2MainWindow
     {
         const scancode = GetUIScancode(value);
         const code = scancode?.browserCode ?? String(value);
-        return this.#pressed.has(code);
+        return this._pressed.has(code);
     }
 
     /**
@@ -551,7 +551,7 @@ export class Tr2MainWindow
     {
         const scancode = GetUIScancode(value);
         const code = scancode?.browserCode ?? String(value);
-        return this.#toggled.has(code);
+        return this._toggled.has(code);
     }
 
     /**
@@ -573,7 +573,7 @@ export class Tr2MainWindow
      */
     GetBackBufferFormat()
     {
-        return this.#backBufferFormat;
+        return this._backBufferFormat;
     }
 
     /**
@@ -615,7 +615,7 @@ export class Tr2MainWindow
     ProcessMessages()
     {
         // The browser owns and drains its event loop.
-        return !this.#closed;
+        return !this._closed;
     }
 
     /**
@@ -625,15 +625,15 @@ export class Tr2MainWindow
      */
     RequestFullscreen(options)
     {
-        if (typeof this.#target?.requestFullscreen !== "function") return false;
-        return this.#target.requestFullscreen(options);
+        if (typeof this._target?.requestFullscreen !== "function") return false;
+        return this._target.requestFullscreen(options);
     }
 
     /** Exits browser fullscreen mode when supported. */
     ExitFullscreen()
     {
-        if (typeof this.#document?.exitFullscreen !== "function") return false;
-        return this.#document.exitFullscreen();
+        if (typeof this._document?.exitFullscreen !== "function") return false;
+        return this._document.exitFullscreen();
     }
 
     /**
@@ -643,85 +643,85 @@ export class Tr2MainWindow
      */
     Close()
     {
-        if (this.#closed) return true;
-        if (this.#invokeCall("onClose") === false) return false;
-        this.#closed = true;
+        if (this._closed) return true;
+        if (this._invokeCall("onClose") === false) return false;
+        this._closed = true;
         this.Detach();
         return true;
     }
 
     /** Registers one host listener for deterministic teardown. */
-    #listen(target, type, listener)
+    _listen(target, type, listener)
     {
         if (typeof target?.addEventListener !== "function") return;
         // Browser wheel consumers must be able to cancel page scrolling.
         target.addEventListener(type, listener, type === "wheel" ? { passive: false } : undefined);
-        this.#listeners.push([ target, type, listener ]);
+        this._listeners.push([ target, type, listener ]);
     }
 
     /** Normalizes one external callback assignment at its boundary. */
-    #setCallback(field, value)
+    _setCallback(field, value)
     {
         const callback = BlueScriptCallback.from(value);
-        this.#callbackValues.set(field, value ?? null);
-        this.#callbacks.set(field, callback ?? EMPTY_CALLBACK);
+        this._callbackValues.set(field, value ?? null);
+        this._callbacks.set(field, callback ?? EMPTY_CALLBACK);
     }
 
     /** Directly invokes one notification callback through its nominal target. */
-    #invokeVoid(field, ...args)
+    _invokeVoid(field, ...args)
     {
-        this.#callbacks.get(field).CallVoid(...args);
+        this._callbacks.get(field).CallVoid(...args);
     }
 
     /** Directly invokes one return-bearing callback through its nominal target. */
-    #invokeCall(field, ...args)
+    _invokeCall(field, ...args)
     {
-        return this.#callbacks.get(field).Call(...args);
+        return this._callbacks.get(field).Call(...args);
     }
 
     /** Applies browser close-cancellation semantics to a beforeunload event. */
-    #onBeforeUnload(event)
+    _onBeforeUnload(event)
     {
-        if (this.#invokeCall("onClose", event) !== false) return;
+        if (this._invokeCall("onClose", event) !== false) return;
         event.preventDefault?.();
         event.returnValue = "";
     }
 
     /** Updates pressed and toggled keys before forwarding a key-down event. */
-    #onKeyDown(event)
+    _onKeyDown(event)
     {
         const scancode = UIScancode.fromKeyboardEvent(event);
-        this.#pressed.add(scancode.browserCode);
+        this._pressed.add(scancode.browserCode);
         for (const key of [ "CapsLock", "NumLock", "ScrollLock" ])
         {
-            if (typeof event.getModifierState === "function" && event.getModifierState(key)) this.#toggled.add(key);
-            else this.#toggled.delete(key);
+            if (typeof event.getModifierState === "function" && event.getModifierState(key)) this._toggled.add(key);
+            else this._toggled.delete(key);
         }
-        this.#invokeVoid("onKeyDown", scancode.mDIK, event.repeat === true, event);
+        this._invokeVoid("onKeyDown", scancode.mDIK, event.repeat === true, event);
     }
 
     /** Clears one pressed key before forwarding its key-up event. */
-    #onKeyUp(event)
+    _onKeyUp(event)
     {
         const scancode = UIScancode.fromKeyboardEvent(event);
-        this.#pressed.delete(scancode.browserCode);
-        this.#invokeVoid("onKeyUp", scancode.mDIK, event);
+        this._pressed.delete(scancode.browserCode);
+        this._invokeVoid("onKeyUp", scancode.mDIK, event);
     }
 
     /** Records and forwards one browser pointer movement. */
-    #onPointerMove(event)
+    _onPointerMove(event)
     {
-        this.#cursorPosition[0] = Number(event.clientX) || 0;
-        this.#cursorPosition[1] = Number(event.clientY) || 0;
-        this.#invokeVoid("onMouseMove", this.#cursorPosition[0], this.#cursorPosition[1], Number(event.movementX) || 0, Number(event.movementY) || 0, event);
+        this._cursorPosition[0] = Number(event.clientX) || 0;
+        this._cursorPosition[1] = Number(event.clientY) || 0;
+        this._invokeVoid("onMouseMove", this._cursorPosition[0], this._cursorPosition[1], Number(event.movementX) || 0, Number(event.movementY) || 0, event);
     }
 
     /** Synchronizes the window state with one browser resize. */
-    #onResize(event)
+    _onResize(event)
     {
-        this.#state.width = Number(this.#window?.innerWidth) || this.#state.width;
-        this.#state.height = Number(this.#window?.innerHeight) || this.#state.height;
-        this.#invokeVoid("onWindowStateChange", this.#state.Clone(), event);
+        this._state.width = Number(this._window?.innerWidth) || this._state.width;
+        this._state.height = Number(this._window?.innerHeight) || this._state.height;
+        this._invokeVoid("onWindowStateChange", this._state.Clone(), event);
     }
 }
 
