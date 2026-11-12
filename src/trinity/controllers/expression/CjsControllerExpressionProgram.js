@@ -96,7 +96,7 @@ export class CjsControllerExpressionProgram
 
   functionNames = new Set();
 
-  #error = null;
+  _error = null;
 
   /**
    * Creates a program and immediately compiles the supplied source; compilation
@@ -117,7 +117,7 @@ export class CjsControllerExpressionProgram
     this.source = source || "";
     this.options = options || {};
     this.error = "";
-    this.#error = null;
+    this._error = null;
     this.variableNames.clear();
     this.functionNames.clear();
     if (!this.source && this.options.allowEmpty !== false)
@@ -138,8 +138,8 @@ export class CjsControllerExpressionProgram
     catch (err)
     {
       this.ast = null;
-      this.#error = err instanceof Error ? err : new Error(String(err));
-      this.error = this.#error.message;
+      this._error = err instanceof Error ? err : new Error(String(err));
+      this.error = this._error.message;
     }
     return this;
   }
@@ -151,9 +151,9 @@ export class CjsControllerExpressionProgram
   {
     if (!this.ast)
     {
-      if (this.#error)
+      if (this._error)
       {
-        throw this.#error;
+        throw this._error;
       }
       return 0;
     }
