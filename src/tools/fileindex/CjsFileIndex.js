@@ -26,7 +26,7 @@ export class CjsFileIndex
     /** The number of entries; set by the constructor. */
     count = 0;
 
-    #entriesByPath = null;
+    _entriesByPath = null;
 
     /**
      * Normalizes the entries and indexes them by logical path, rejecting a duplicate
@@ -48,7 +48,7 @@ export class CjsFileIndex
                 : new CjsFileIndexEntry({ ...entry, root: this.root })
         );
         this.count = this.entries.length;
-        this.#entriesByPath = new Map();
+        this._entriesByPath = new Map();
 
         for (const entry of this.entries)
         {
@@ -57,12 +57,12 @@ export class CjsFileIndex
                 throw new Error(`Invalid ${this.kind} entry root: ${entry.logicalPath}`);
             }
 
-            if (this.#entriesByPath.has(entry.logicalPath))
+            if (this._entriesByPath.has(entry.logicalPath))
             {
                 throw new Error(`Duplicate ${this.kind} resource: ${entry.logicalPath}`);
             }
 
-            this.#entriesByPath.set(entry.logicalPath, entry);
+            this._entriesByPath.set(entry.logicalPath, entry);
         }
     }
 
@@ -73,7 +73,7 @@ export class CjsFileIndex
      */
     Find(logicalPath)
     {
-        return this.#entriesByPath.get(
+        return this._entriesByPath.get(
             CjsFileIndexEntry.normalizeLogicalPath(logicalPath, this.root)
         ) ?? null;
     }

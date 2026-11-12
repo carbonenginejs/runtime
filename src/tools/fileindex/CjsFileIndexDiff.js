@@ -35,8 +35,8 @@ export class CjsFileIndexDiff
      */
     static Between(previous, next)
     {
-        const before = CjsFileIndexDiff.#addressesOf(previous);
-        const after = CjsFileIndexDiff.#addressesOf(next);
+        const before = CjsFileIndexDiff._addressesOf(previous);
+        const after = CjsFileIndexDiff._addressesOf(next);
 
         const added = [];
         const removed = [];
@@ -94,8 +94,8 @@ export class CjsFileIndexDiff
      */
     static MayHaveChanged(previous, next, logicalPaths)
     {
-        const before = CjsFileIndexDiff.#addressesOf(previous);
-        const after = CjsFileIndexDiff.#addressesOf(next);
+        const before = CjsFileIndexDiff._addressesOf(previous);
+        const after = CjsFileIndexDiff._addressesOf(next);
 
         for (const logicalPath of logicalPaths)
         {
@@ -120,17 +120,17 @@ export class CjsFileIndexDiff
      */
     static IsComparable(entry)
     {
-        return CjsFileIndexDiff.#addressOf(entry) !== null;
+        return CjsFileIndexDiff._addressOf(entry) !== null;
     }
 
     /** logicalPath -> content address, or null where there is not one. */
-    static #addressesOf(index)
+    static _addressesOf(index)
     {
         const out = new Map();
 
         for (const entry of index?.entries ?? [])
         {
-            out.set(String(entry.logicalPath).toLowerCase(), CjsFileIndexDiff.#addressOf(entry));
+            out.set(String(entry.logicalPath).toLowerCase(), CjsFileIndexDiff._addressOf(entry));
         }
 
         return out;
@@ -144,7 +144,7 @@ export class CjsFileIndexDiff
      * content-addressed location. Null when neither is present - a plain
      * overlay row.
      */
-    static #addressOf(entry)
+    static _addressOf(entry)
     {
         const parsed = parseResFileAddress(entry?.location);
 

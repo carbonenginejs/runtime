@@ -36,9 +36,9 @@ export class CjsFileIndexLibrary
     /** The overlay names; set by the constructor. @type {string[]} */
     overlayNames = [];
 
-    #overlaysByName = null;
-    #resFileIndexesByName = null;
-    #sourcesByID = null;
+    _overlaysByName = null;
+    _resFileIndexesByName = null;
+    _sourcesByID = null;
 
     /**
      * Composes one build's appfileindex, its loaded resfileindexes and any manual
@@ -72,38 +72,38 @@ export class CjsFileIndexLibrary
         ];
         this.indexNames = this.resFileIndexes.map(item => item.name);
         this.overlayNames = this.overlays.map(item => item.name);
-        this.#resFileIndexesByName = new Map();
-        this.#overlaysByName = new Map();
-        this.#sourcesByID = new Map();
+        this._resFileIndexesByName = new Map();
+        this._overlaysByName = new Map();
+        this._sourcesByID = new Map();
 
         for (const item of this.resFileIndexes)
         {
-            if (this.#resFileIndexesByName.has(item.name))
+            if (this._resFileIndexesByName.has(item.name))
             {
                 throw new Error(`Duplicate loaded resfileindex: ${item.name}`);
             }
 
-            this.#resFileIndexesByName.set(item.name, item);
+            this._resFileIndexesByName.set(item.name, item);
         }
 
         for (const overlay of this.overlays)
         {
-            if (this.#resFileIndexesByName.has(overlay.name) || this.#overlaysByName.has(overlay.name))
+            if (this._resFileIndexesByName.has(overlay.name) || this._overlaysByName.has(overlay.name))
             {
                 throw new Error(`Duplicate file-index layer name: ${overlay.name}`);
             }
 
-            this.#overlaysByName.set(overlay.name, overlay);
+            this._overlaysByName.set(overlay.name, overlay);
         }
 
         for (const source of this.sources)
         {
-            if (this.#sourcesByID.has(source.id))
+            if (this._sourcesByID.has(source.id))
             {
                 throw new Error(`Duplicate file-index source ID: ${source.id}`);
             }
 
-            this.#sourcesByID.set(source.id, source);
+            this._sourcesByID.set(source.id, source);
         }
     }
 
@@ -113,7 +113,7 @@ export class CjsFileIndexLibrary
      */
     GetResFileIndex(name)
     {
-        return this.#resFileIndexesByName.get(normalizeName(name))?.index ?? null;
+        return this._resFileIndexesByName.get(normalizeName(name))?.index ?? null;
     }
 
     /**
@@ -131,7 +131,7 @@ export class CjsFileIndexLibrary
      */
     GetOverlay(name)
     {
-        return this.#overlaysByName.get(normalizeName(name)) ?? null;
+        return this._overlaysByName.get(normalizeName(name)) ?? null;
     }
 
     /** Reports whether a manual overlay was registered under that name. */
@@ -155,21 +155,21 @@ export class CjsFileIndexLibrary
         if (options.indexName !== undefined)
         {
             const name = normalizeName(options.indexName);
-            const layer = this.#overlaysByName.get(name) ?? this.#resFileIndexesByName.get(name);
+            const layer = this._overlaysByName.get(name) ?? this._resFileIndexesByName.get(name);
 
             if (!layer) return null;
 
-            return this.#resolveLayer(normalizedPath, layer, this.#overlaysByName.has(name));
+            return this._resolveLayer(normalizedPath, layer, this._overlaysByName.has(name));
         }
 
-        const override = this.#findSingleOverlay(normalizedPath, "override");
-        if (override) return this.#resolveLayer(normalizedPath, override, true);
+        const override = this._findSingleOverlay(normalizedPath, "override");
+        if (override) return this._resolveLayer(normalizedPath, override, true);
 
-        const official = this.#findOfficial(normalizedPath);
-        if (official) return this.#resolveLayer(normalizedPath, official, false);
+        const official = this._findOfficial(normalizedPath);
+        if (official) return this._resolveLayer(normalizedPath, official, false);
 
-        const fallback = this.#findSingleOverlay(normalizedPath, "fallback");
-        return fallback ? this.#resolveLayer(normalizedPath, fallback, true) : null;
+        const fallback = this._findSingleOverlay(normalizedPath, "fallback");
+        return fallback ? this._resolveLayer(normalizedPath, fallback, true) : null;
     }
 
     /**
@@ -193,7 +193,7 @@ export class CjsFileIndexLibrary
      * Returns the last official resfileindex declaring the path, since a later
      * index clobbers earlier records of the same logical path.
      */
-    #findOfficial(logicalPath)
+    _findOfficial(logicalPath)
     {
         // Official resfileindexes layer in declaration order: a later index
         // clobbers earlier records of the same logical path, so the last
@@ -208,7 +208,7 @@ export class CjsFileIndexLibrary
      * when two overlays of that mode make it ambiguous rather than picking a
      * winner.
      */
-    #findSingleOverlay(logicalPath, mode)
+    _findSingleOverlay(logicalPath, mode)
     {
         const matches = this.overlays.filter(item => item.mode === mode && item.Has(logicalPath));
         ensureSingleMatch(matches, logicalPath, `${mode} overlays`);
@@ -220,7 +220,7 @@ export class CjsFileIndexLibrary
      * from the location prefix, else the layer sourceID, else "default", and
      * failing on an unknown source ID.
      */
-    #resolveLayer(logicalPath, layer, isOverlay)
+    _resolveLayer(logicalPath, layer, isOverlay)
     {
         const entry = layer.index.Find(logicalPath);
 
@@ -228,7 +228,7 @@ export class CjsFileIndexLibrary
 
         const parsed = CjsFileIndexSource.parseLocation(entry.location);
         const sourceID = parsed.sourceID ?? layer.sourceID ?? "default";
-        const source = this.#sourcesByID.get(sourceID);
+        const source = this._sourcesByID.get(sourceID);
 
         if (!source)
         {
