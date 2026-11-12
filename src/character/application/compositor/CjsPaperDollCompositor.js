@@ -359,7 +359,7 @@ export class CjsPaperDollCompositor
      * Prepares material-only sRGB resources for this compositor's diffuse and specular targets.
      * Not Carbon: WebGL2 has no texture views. The pipeline preserves encoded RGB, alpha and all existing mips;
      * working targets remain UNORM so later composition retains its authored blend behaviour.
-     * Requests are captured before the first await. The caller keeps its last completed bindings until all
+     * Requests are captured before the first await. The caller binds the live composed outputs until all
      * compositors finish, applies the returned bindings, then calls complete(true). On failure or closure it
      * calls complete(false). Completion releases the superseded or discarded resources exactly once.
      *
