@@ -1192,9 +1192,15 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
         if (this.optimizeShadows) this._MaximizeShadowMapUsage(lightProjection, lightView, cameraFrustum);
 
+        // Reading the surfaces renews them. One the idle sweep freed has no surface until the device tick prepares
+        // it; this light's shadow map is not drawn this frame, and binding nothing must not draw elsewhere.
         const renderTarget = this.lightRenderTargets[i];
-        esm.SetRenderTarget(0, renderTarget.GetRenderTarget());
-        esm.SetDepthStencilBuffer(this._lightDepthStencil.GetDepthStencil());
+        const surface = renderTarget.GetRenderTarget();
+        const depth = this._lightDepthStencil.GetDepthStencil();
+        if (!surface || !depth) continue;
+
+        esm.SetRenderTarget(0, surface);
+        esm.SetDepthStencilBuffer(depth);
         renderContext.Clear({ clearColor: true, clearDepth: true, color: 0xffffffff, depth: 1 });
 
         lightProjection.GetTransform(projection);
@@ -1383,15 +1389,12 @@ export class Tr2InteriorScene extends ITr2PickableScene
     for (let i = 0; i < this.lights.length && i < this.shadowCount; i++)
     {
       const target = new Tr2RenderTarget();
-      // The scene owns its shadow targets and replaces them here; the idle sweep must not release one under it.
-      target._neverPurge = true;
       target.SetName("ShadowMap");
       target.Create(this.shadowSize, this.shadowSize, 1, PixelFormat.PIXEL_FORMAT_R32_FLOAT, 1, 0, 0, undefined, renderContext);
       this.lightRenderTargets.push(target);
     }
     if (this._lightDepthStencil) this._lightDepthStencil.Destroy();
     this._lightDepthStencil = new Tr2DepthStencil();
-    this._lightDepthStencil._neverPurge = true;
     this._lightDepthStencil.Create(this.shadowSize, this.shadowSize, DepthStencilFormat.DSFMT_D32, 0, 0, 0, renderContext);
   }
 

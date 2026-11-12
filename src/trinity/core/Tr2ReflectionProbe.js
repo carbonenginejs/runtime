@@ -181,13 +181,6 @@ export class Tr2ReflectionProbe
   {
     this.unfilteredTexture = new Tr2RenderTarget();
     this.reflectionTexture = new Tr2RenderTarget();
-
-    // The probe is the unit the idle sweep releases: its ReleaseResources destroys these targets and its prepare
-    // creates them again. Swept one by one they would vanish under a probe that still counts itself initialized.
-    for (let face = 0; face < this._renderTargets.length; face++) this._renderTargets[face]._neverPurge = true;
-    this._preFilterTarget._neverPurge = true;
-    this.unfilteredTexture._neverPurge = true;
-    this.reflectionTexture._neverPurge = true;
   }
 
   /**
@@ -207,7 +200,8 @@ export class Tr2ReflectionProbe
    * probe's constructor and IsValid call (Tr2ReflectionProbe.cpp:55, 63-66).
    *
    * @adapted Called at use rather than construction, and renews JS residency; the base keeps the creation
-   *   gate and readiness state.
+   *   gate and readiness state. The targets the probe owns are not excluded from the idle sweep: DoPrepareResources
+   *   asks each one on every call, which renews it, and creates again any that has lost its surface.
    * @returns {boolean} False when OnPrepareResources fails.
    */
   PrepareResources()

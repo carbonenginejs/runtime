@@ -54,6 +54,8 @@ test('coalesced background, count and size edits acquire once and allocate final
 test('shadow allocation follows list length and count even when shadow rendering is disabled',t=>{
   const {scene}=setup(t),s=scene();s.shadowSize=32;s.shadowCount=7;fillLights(s,2);s.renderShadows=false;
   s.SetupShadowMaps();assert.equal(s.lightRenderTargets.length,2);
+  // The scene does not exclude its shadow targets from the idle sweep; a missing surface skips that light's draw.
+  assert.ok(s.lightRenderTargets.every(target=>target._neverPurge!==true)&&s._lightDepthStencil._neverPurge!==true);
   const oldTargets=s.lightRenderTargets.slice(),oldDepth=s._lightDepthStencil;
   s.shadowCount=0;NotifyModified(s,'shadowCount');assert.equal(s.lightRenderTargets.length,0);
   assert.ok(oldTargets.every(target=>!target.IsValid()));assert.equal(oldDepth.IsValid(),false);
