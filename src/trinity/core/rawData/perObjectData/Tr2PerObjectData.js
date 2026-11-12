@@ -347,7 +347,7 @@ export class Tr2PerObjectData
 
     const records = [];
 
-    for (const payload of Tr2PerObjectData.#payloadsOf(objectData))
+    for (const payload of Tr2PerObjectData._payloadsOf(objectData))
     {
       const stages = payload.GetLayout().stages;
 
@@ -387,7 +387,7 @@ export class Tr2PerObjectData
    * answers on `extends` lineage, so it separates the two without probing for
    * properties or methods.
    */
-  static #payloadsOf(objectData)
+  static _payloadsOf(objectData)
   {
     if (objectData instanceof CjsConstantPayload) return [ objectData ];
 

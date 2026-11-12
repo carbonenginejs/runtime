@@ -62,13 +62,13 @@ export class Tr2DepthStencil extends IRoot
   format = 7;
 
   /** m_depthStencil (Tr2TextureAL), the one resource this class exists to hold. */
-  #depthStencil = null;
+  _depthStencil = null;
 
   /** m_msaa (Tr2MsaaDesc), retained so OnPrepareResources can rebuild. */
-  #msaa = null;
+  _msaa = null;
 
   /** m_flags (Tr2RenderContextEnum::ExFlag), retained for the same reason. */
-  #flags = ExFlag.EX_NONE;
+  _flags = ExFlag.EX_NONE;
 
   /** m_width (uint32_t), retained so OnPrepareResources can rebuild; 0 when there is nothing to rebuild. */
   _width = 0;
@@ -121,13 +121,13 @@ export class Tr2DepthStencil extends IRoot
       return false;
     }
 
-    if (this.#depthStencil) this.#depthStencil.Destroy();
-    this.#depthStencil = texture;
+    if (this._depthStencil) this._depthStencil.Destroy();
+    this._depthStencil = texture;
     this._width = width;
     this._height = height;
     this.format = format;
-    this.#msaa = msaa;
-    this.#flags = flags;
+    this._msaa = msaa;
+    this._flags = flags;
     this.KeepAlive();
     this.SetName(this._name);
     this._Changed();
@@ -173,7 +173,7 @@ export class Tr2DepthStencil extends IRoot
   GetDepthStencil()
   {
     this.KeepAlive();
-    return this.#depthStencil;
+    return this._depthStencil;
   }
 
   /**
@@ -198,7 +198,7 @@ export class Tr2DepthStencil extends IRoot
 
   IsValid()
   {
-    return Boolean(this.#depthStencil?.IsValid());
+    return Boolean(this._depthStencil?.IsValid());
   }
 
   /**
@@ -209,8 +209,8 @@ export class Tr2DepthStencil extends IRoot
 
   IsReadable()
   {
-    if (!this.#depthStencil) return false;
-    return (this.#depthStencil.GetGpuUsage() & Tr2GpuUsage.SHADER_RESOURCE) !== 0;
+    if (!this._depthStencil) return false;
+    return (this._depthStencil.GetGpuUsage() & Tr2GpuUsage.SHADER_RESOURCE) !== 0;
   }
 
   /**
@@ -225,12 +225,12 @@ export class Tr2DepthStencil extends IRoot
 
   Destroy()
   {
-    if (this.#depthStencil) this.#depthStencil.Destroy();
-    this.#depthStencil = null;
+    if (this._depthStencil) this._depthStencil.Destroy();
+    this._depthStencil = null;
     this._width = 0;
     this._height = 0;
-    this.#msaa = null;
-    this.#flags = ExFlag.EX_NONE;
+    this._msaa = null;
+    this._flags = ExFlag.EX_NONE;
     this.format = DepthStencilFormat.DSFMT_AUTO;
     this._Changed();
   }
@@ -244,10 +244,10 @@ export class Tr2DepthStencil extends IRoot
    */
   ReleaseResources(storage)
   {
-    if (this.#depthStencil?.IsValid() && (storage & this.#depthStencil.GetMemoryClass()))
+    if (this._depthStencil?.IsValid() && (storage & this._depthStencil.GetMemoryClass()))
     {
-      this.#depthStencil.Destroy();
-      this.#depthStencil = null;
+      this._depthStencil.Destroy();
+      this._depthStencil = null;
       this._Changed();
     }
   }
@@ -262,15 +262,15 @@ export class Tr2DepthStencil extends IRoot
    */
   _OnPrepareResources()
   {
-    if (!this.#depthStencil?.IsValid() && this._width !== 0)
+    if (!this._depthStencil?.IsValid() && this._width !== 0)
     {
       let gpuUsage = Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE;
 
-      if ((this.#flags & ExFlag.EX_CREATE_SHARED) !== 0) gpuUsage |= Tr2GpuUsage.SHARED;
+      if ((this._flags & ExFlag.EX_CREATE_SHARED) !== 0) gpuUsage |= Tr2GpuUsage.SHARED;
 
-      this.#depthStencil = Tr2RenderContext_GetMainThreadRenderContext().CreateTexture(
+      this._depthStencil = Tr2RenderContext_GetMainThreadRenderContext().CreateTexture(
         Tr2BitmapDimensions.create__WidthHeightMipCountFormat(this._width, this._height, 1, ConvertDepthStencilFormat(this.format)),
-        { gpuUsage, msaa: this.#msaa }
+        { gpuUsage, msaa: this._msaa }
       );
       this._Changed();
     }
@@ -283,8 +283,8 @@ export class Tr2DepthStencil extends IRoot
    */
   OnDestruct()
   {
-    if (this.#depthStencil) this.#depthStencil.Destroy();
-    this.#depthStencil = null;
+    if (this._depthStencil) this._depthStencil.Destroy();
+    this._depthStencil = null;
   }
 
   /**
@@ -295,7 +295,7 @@ export class Tr2DepthStencil extends IRoot
 
   GetWidth()
   {
-    return this.#depthStencil?.GetWidth() ?? 0;
+    return this._depthStencil?.GetWidth() ?? 0;
   }
 
   /**
@@ -306,7 +306,7 @@ export class Tr2DepthStencil extends IRoot
 
   GetHeight()
   {
-    return this.#depthStencil?.GetHeight() ?? 0;
+    return this._depthStencil?.GetHeight() ?? 0;
   }
 
   /**
@@ -317,7 +317,7 @@ export class Tr2DepthStencil extends IRoot
 
   GetMsaaSamples()
   {
-    return this.#msaa?.samples ?? 0;
+    return this._msaa?.samples ?? 0;
   }
 
   /**
@@ -328,7 +328,7 @@ export class Tr2DepthStencil extends IRoot
 
   GetMsaaQuality()
   {
-    return this.#msaa?.quality ?? 0;
+    return this._msaa?.quality ?? 0;
   }
 
   /**
@@ -362,7 +362,7 @@ export class Tr2DepthStencil extends IRoot
   SetName(name)
   {
     this._name = name ?? "";
-    this.#depthStencil?.SetName(this._name);
+    this._depthStencil?.SetName(this._name);
   }
 
   /**

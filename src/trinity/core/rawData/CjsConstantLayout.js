@@ -85,7 +85,7 @@ export class CjsConstantLayout
     ]);
 
     /** Float lanes per declared type. */
-    static #lanes = Object.freeze({
+    static _lanes = Object.freeze({
         [TYPES.MATRIX4]: 16,
         [TYPES.QUATERNION]: 4,
         [TYPES.VECTOR4]: 4,
@@ -103,7 +103,7 @@ export class CjsConstantLayout
      * this module stays free of a cycle (RawData imports the catalogs, which
      * import this). Anything absent encodes as `"vector"`.
      */
-    static #encodings = Object.freeze({
+    static _encodings = Object.freeze({
         [TYPES.MATRIX4]: "matrix",
         [TYPES.UINT32]: "uint",
         [TYPES.INT32]: "int"
@@ -127,7 +127,7 @@ export class CjsConstantLayout
                     throw new Error(`${owner}: duplicate struct name "${buffer.struct}"`);
                 }
 
-                layouts.set(buffer.struct, CjsConstantLayout.#ResolveLayout(group, key, buffer, owner));
+                layouts.set(buffer.struct, CjsConstantLayout._ResolveLayout(group, key, buffer, owner));
             }
         }
 
@@ -153,7 +153,7 @@ export class CjsConstantLayout
                 offset: field.offset,
                 size: field.size,
                 elements: field.count,
-                encoding: CjsConstantLayout.#encodings[field.type] ?? "vector"
+                encoding: CjsConstantLayout._encodings[field.type] ?? "vector"
             };
 
             if (field.default)
@@ -171,14 +171,14 @@ export class CjsConstantLayout
     }
 
     /** Lays out one buffer, asserting Carbon's two register invariants. */
-    static #ResolveLayout(group, key, buffer, owner)
+    static _ResolveLayout(group, key, buffer, owner)
     {
         const fields = new Map();
         let offset = 0;
 
         for (const [name, declared] of Object.entries(buffer.fields))
         {
-            const lanes = CjsConstantLayout.#lanes[declared.type];
+            const lanes = CjsConstantLayout._lanes[declared.type];
 
             if (lanes === undefined)
             {

@@ -238,7 +238,7 @@ export class Tr2CurveLineSet
   {
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
     {
-      const declaration = Tr2CurveLineSet.#declaration;
+      const declaration = Tr2CurveLineSet._declaration;
       if (declaration.empty())
       {
         declaration.Add("FLOAT32_3", "POSITION");
@@ -351,7 +351,7 @@ export class Tr2CurveLineSet
    */
   AddCurvedLineCrt(position1, color1, position2, color2, middle, width, segments = 20)
   {
-    return this.#addLineData(this.#createLine(
+    return this._addLineData(this._createLine(
       Tr2CurveLineSet.LineType.LINETYPE_CURVED,
       position1,
       color1,
@@ -387,7 +387,7 @@ export class Tr2CurveLineSet
    */
   AddSpheredLineCrt(position1, color1, position2, color2, center, width)
   {
-    return this.#addLineData(this.#createLine(
+    return this._addLineData(this._createLine(
       Tr2CurveLineSet.LineType.LINETYPE_SPHERED,
       position1,
       color1,
@@ -423,7 +423,7 @@ export class Tr2CurveLineSet
    */
   AddStraightLine(position1, color1, position2, color2, width)
   {
-    return this.#addLineData(this.#createLine(
+    return this._addLineData(this._createLine(
       Tr2CurveLineSet.LineType.LINETYPE_STRAIGHT,
       position1,
       color1,
@@ -452,7 +452,7 @@ export class Tr2CurveLineSet
    */
   ChangeLineIntermediateCrt(id, intermediatePosition)
   {
-    if (this.#isValidLineID(id))
+    if (this._isValidLineID(id))
     {
       vec3.copy(this.lines[id].intermediatePosition, intermediatePosition);
     }
@@ -475,7 +475,7 @@ export class Tr2CurveLineSet
    */
   ChangeLinePositionCrt(id, position1, position2)
   {
-    if (this.#isValidLineID(id))
+    if (this._isValidLineID(id))
     {
       vec3.copy(this.lines[id].position1, position1);
       vec3.copy(this.lines[id].position2, position2);
@@ -489,7 +489,7 @@ export class Tr2CurveLineSet
    */
   ChangeLineAnimation(id, color, speed, scale)
   {
-    if (this.#isValidLineID(id))
+    if (this._isValidLineID(id))
     {
       vec4.copy(this.lines[id].overlayColor, color);
       this.lines[id].animationSpeed = speed;
@@ -504,7 +504,7 @@ export class Tr2CurveLineSet
    */
   ChangeLineMultiColor(id, color, border)
   {
-    if (this.#isValidLineID(id))
+    if (this._isValidLineID(id))
     {
       vec4.copy(this.lines[id].multiColor, color);
       this.lines[id].multiColorBorder = border;
@@ -518,7 +518,7 @@ export class Tr2CurveLineSet
    */
   ChangeLineSegmentation(id, numOfSegments)
   {
-    if (this.#isValidLineID(id) && this.lines[id].type !== Tr2CurveLineSet.LineType.LINETYPE_STRAIGHT)
+    if (this._isValidLineID(id) && this.lines[id].type !== Tr2CurveLineSet.LineType.LINETYPE_STRAIGHT)
     {
       this.lines[id].numOfSegments = Math.max(0, Math.trunc(numOfSegments));
     }
@@ -531,7 +531,7 @@ export class Tr2CurveLineSet
    */
   ChangeLineColor(id, color1, color2)
   {
-    if (this.#isValidLineID(id))
+    if (this._isValidLineID(id))
     {
       vec4.copy(this.lines[id].color1, color1);
       vec4.copy(this.lines[id].color2, color2);
@@ -545,7 +545,7 @@ export class Tr2CurveLineSet
    */
   ChangeLineWidth(id, width)
   {
-    if (this.#isValidLineID(id))
+    if (this._isValidLineID(id))
     {
       this.lines[id].width = width;
     }
@@ -569,7 +569,7 @@ export class Tr2CurveLineSet
    */
   RemoveLine(id)
   {
-    if (this.#isValidLineID(id))
+    if (this._isValidLineID(id))
     {
       this.lines[id].type = Tr2CurveLineSet.LineType.LINETYPE_INVALID;
       this.emptyLineID.push(id);
@@ -631,8 +631,8 @@ export class Tr2CurveLineSet
     }
     const buffer = this._vertexView;
     const { vec3_0, vec3_1, vec3_2, vec3_3, vec3_4, vec3_5, vec3_6, vec4_0, vec4_1 } = Tr2CurveLineSet.scratch;
-    const segmentPoints = Tr2CurveLineSet.#segmentPoints;
-    const absolutePoints = Tr2CurveLineSet.#absolutePoints;
+    const segmentPoints = Tr2CurveLineSet._segmentPoints;
+    const absolutePoints = Tr2CurveLineSet._absolutePoints;
     const types = Tr2CurveLineSet.LineType;
     for (let id = 0; id < this.lines.length; id++)
     {
@@ -970,7 +970,7 @@ export class Tr2CurveLineSet
    * Appends one tessellated segment's vertices to the line buffer.
    */
 
-  #addLineData(line)
+  _addLineData(line)
   {
     if (this.emptyLineID.length === 0)
     {
@@ -985,7 +985,7 @@ export class Tr2CurveLineSet
   /**
    * Builds a line record from its endpoints, colours and width.
    */
-  #createLine(type, position1, color1, position2, color2, intermediatePosition, width, numOfSegments)
+  _createLine(type, position1, color1, position2, color2, intermediatePosition, width, numOfSegments)
   {
     return {
       type,
@@ -1008,7 +1008,7 @@ export class Tr2CurveLineSet
    * Whether a line identifier still refers to a live line.
    */
 
-  #isValidLineID(id)
+  _isValidLineID(id)
   {
     return Number.isInteger(id) && id >= 0 && id < this.lines.length && this.lines[id].type !== Tr2CurveLineSet.LineType.LINETYPE_INVALID;
   }
@@ -1030,11 +1030,11 @@ export class Tr2CurveLineSet
     vec4_1: vec4.create()
   };
 
-  static #segmentPoints = [3, 4, 5, 6].map(index => Tr2CurveLineSet.scratch[`vec3_${index}`]);
+  static _segmentPoints = [3, 4, 5, 6].map(index => Tr2CurveLineSet.scratch[`vec3_${index}`]);
 
-  static #absolutePoints = [7, 8, 9, 10].map(index => Tr2CurveLineSet.scratch[`vec3_${index}`]);
+  static _absolutePoints = [7, 8, 9, 10].map(index => Tr2CurveLineSet.scratch[`vec3_${index}`]);
 
-  static #declaration = new Tr2VertexDefinition();
+  static _declaration = new Tr2VertexDefinition();
 
   static LineType = Object.freeze({
     LINETYPE_INVALID: 0,

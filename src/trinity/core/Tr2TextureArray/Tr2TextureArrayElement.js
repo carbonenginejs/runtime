@@ -17,33 +17,33 @@
 export class Tr2TextureArrayElement
 {
 
-    #array = null;
+    _array = null;
 
-    #index = 0;
+    _index = 0;
 
     /** Creates a handle; internal - only AddElement constructs valid ones. */
     constructor(array = null, index = 0)
     {
-        this.#array = array;
-        this.#index = index;
+        this._array = array;
+        this._index = index;
     }
 
     /** Reports whether this handle names a live slice. */
     IsValid()
     {
-        return this.#array !== null;
+        return this._array !== null;
     }
 
     /** The slice index inside the array; 0 when invalid (Carbon cpp:216-219). */
     GetElementIndex()
     {
-        return this.#array !== null ? this.#index : 0;
+        return this._array !== null ? this._index : 0;
     }
 
     /** The owning array, or null for an invalid handle. */
     GetArray()
     {
-        return this.#array;
+        return this._array;
     }
 
     /**
@@ -53,7 +53,7 @@ export class Tr2TextureArrayElement
      */
     GetTexture()
     {
-        return this.#array ? this.#array.texture : null;
+        return this._array ? this._array.texture : null;
     }
 
     /**
@@ -63,10 +63,10 @@ export class Tr2TextureArrayElement
      */
     Release()
     {
-        if (this.#array === null) return;
-        this.#array.RemoveElement(this.#index);
-        this.#array = null;
-        this.#index = 0;
+        if (this._array === null) return;
+        this._array.RemoveElement(this._index);
+        this._array = null;
+        this._index = 0;
     }
 
 }

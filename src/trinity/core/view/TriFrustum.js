@@ -353,8 +353,8 @@ export class TriFrustum
   GetPixelSizeAccross__AxisAlignedBox(box)
   {
     if (box3.isEmpty(box)) return 0;
-    const boxRadius = box3.toPositionRadius(box, TriFrustum.#boxCenterScratch);
-    return this.GetPixelSizeAccrossEst__CenterRadius(TriFrustum.#boxCenterScratch, boxRadius);
+    const boxRadius = box3.toPositionRadius(box, TriFrustum._boxCenterScratch);
+    return this.GetPixelSizeAccrossEst__CenterRadius(TriFrustum._boxCenterScratch, boxRadius);
   }
 
   /**
@@ -492,7 +492,7 @@ export class TriFrustum
   @meta.setting("frustumCullingDisabled", { category: "debugging" })
   static frustumCullingDisabled = false;
 
-  static #boxCenterScratch = vec3.create();
+  static _boxCenterScratch = vec3.create();
 }
 
 // States: each method is TriFrustum.cpp:26-325 statement for statement (DeconstructProjectionMatrix, MatrixUtils.cpp:48-59, inlined); _CacheTransformationData

@@ -13,11 +13,11 @@ import { Tr2DeviceResource } from "../device/Tr2DeviceResource.js";
 export class Tr2LineGraph extends IRoot
 {
 
-  #currentIndex = 0;
+  _currentIndex = 0;
 
-  #data = new Array(200).fill(0);
+  _data = new Array(200).fill(0);
 
-  #markers = [];
+  _markers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
@@ -126,15 +126,15 @@ export class Tr2LineGraph extends IRoot
   @be.mapMethodAndWrap()
   AddMarker(name)
   {
-    const last = this.#markers.at(-1);
-    if (last?.index === this.#currentIndex)
+    const last = this._markers.at(-1);
+    if (last?.index === this._currentIndex)
     {
       last.values.push(String(name));
       return;
     }
-    this.#markers.push({
-      index: this.#currentIndex,
-      ticksLeft: this.#data.length,
+    this._markers.push({
+      index: this._currentIndex,
+      ticksLeft: this._data.length,
       values: [String(name)]
     });
   }
@@ -147,7 +147,7 @@ export class Tr2LineGraph extends IRoot
   @be.mapMethodAndWrap()
   GetStatsHistory()
   {
-    return this.#data.slice(this.#currentIndex).concat(this.#data.slice(0, this.#currentIndex));
+    return this._data.slice(this._currentIndex).concat(this._data.slice(0, this._currentIndex));
   }
 
   /**
@@ -159,15 +159,15 @@ export class Tr2LineGraph extends IRoot
   SetSize(size)
   {
     const length = Math.max(0, Math.trunc(Number(size)) || 0);
-    if (length < this.#data.length)
+    if (length < this._data.length)
     {
-      this.#data.length = length;
+      this._data.length = length;
     }
     else
     {
-      while (this.#data.length < length) this.#data.push(0);
+      while (this._data.length < length) this._data.push(0);
     }
-    this.#currentIndex = 0;
+    this._currentIndex = 0;
   }
 
   /**
@@ -177,14 +177,14 @@ export class Tr2LineGraph extends IRoot
    */
   Add(value)
   {
-    if (!this.#data.length) return false;
-    for (let i = this.#markers.length - 1; i >= 0; i--)
+    if (!this._data.length) return false;
+    for (let i = this._markers.length - 1; i >= 0; i--)
     {
-      this.#markers[i].ticksLeft--;
-      if (!this.#markers[i].ticksLeft) this.#markers.splice(i, 1);
+      this._markers[i].ticksLeft--;
+      if (!this._markers[i].ticksLeft) this._markers.splice(i, 1);
     }
-    this.#data[this.#currentIndex] = Number(value);
-    this.#currentIndex = (this.#currentIndex + 1) % this.#data.length;
+    this._data[this._currentIndex] = Number(value);
+    this._currentIndex = (this._currentIndex + 1) % this._data.length;
     return true;
   }
 
@@ -195,7 +195,7 @@ export class Tr2LineGraph extends IRoot
    */
   GetSize()
   {
-    return this.#data.length;
+    return this._data.length;
   }
 
   /**
@@ -206,7 +206,7 @@ export class Tr2LineGraph extends IRoot
   GetMaxValue()
   {
     let maximum = 0;
-    for (const value of this.#data)
+    for (const value of this._data)
     {
       if (value > maximum) maximum = value;
     }

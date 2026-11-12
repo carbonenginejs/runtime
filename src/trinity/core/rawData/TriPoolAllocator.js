@@ -155,7 +155,7 @@ function tightLayout(normalized)
 export class TriPoolAllocator
 {
   /** Registered layouts: name -> { fields, stride, defaults }. */
-  #layouts = new Map();
+  _layouts = new Map();
 
   // Carbon's pool shape (TriPoolAllocator.h:38-49): ONE active pool, a list of
   // overflow pools from mid-frame growth, and an adaptive chunk size. Ours in
@@ -163,20 +163,20 @@ export class TriPoolAllocator
   // payload fields can be written as floats or raw bits.
 
   /** m_pool - the active arena (null until first use, and after a resize). */
-  #pool = null;
+  _pool = null;
 
-  #poolUints = null;
+  _poolUints = null;
 
   /** m_previousPools - overflow pools; retained so leased views stay alive. */
-  #previousPools = [];
+  _previousPools = [];
 
   /** m_chunkSize (ctor 256KB, cpp:12) - adaptive; ours defaults smaller. */
-  #chunkFloats = 8192;
+  _chunkFloats = 8192;
 
-  #cursor = 0;
+  _cursor = 0;
 
   /** m_totalBytesAllocated, in floats; drives Clear's resize policy. */
-  #totalFloatsAllocated = 0;
+  _totalFloatsAllocated = 0;
 
   /**
    * @param {object} [options]
@@ -186,7 +186,7 @@ export class TriPoolAllocator
   {
     if (Number.isInteger(options.chunkFloats) && options.chunkFloats > 0)
     {
-      this.#chunkFloats = options.chunkFloats;
+      this._chunkFloats = options.chunkFloats;
     }
   }
 
@@ -196,9 +196,9 @@ export class TriPoolAllocator
    */
   OnDestruct()
   {
-    this.#previousPools.length = 0;
-    this.#pool = this.#poolUints = null;
-    this.#cursor = 0;
+    this._previousPools.length = 0;
+    this._pool = this._poolUints = null;
+    this._cursor = 0;
   }
 
   // C++ needs no registration step: Allocate<T>() resolves the layout from the
@@ -305,7 +305,7 @@ export class TriPoolAllocator
       }
     }
 
-    this.#layouts.set(name, { fields: resolved.fields, stride: resolved.stride, defaults, stages });
+    this._layouts.set(name, { fields: resolved.fields, stride: resolved.stride, defaults, stages });
 
     return this;
   }
@@ -313,7 +313,7 @@ export class TriPoolAllocator
   /** Whether a struct has been registered on this store. */
   Has(name)
   {
-    return this.#layouts.has(name);
+    return this._layouts.has(name);
   }
 
   /**
@@ -329,7 +329,7 @@ export class TriPoolAllocator
    */
   Allocate(name)
   {
-    const layout = this.#layouts.get(name);
+    const layout = this._layouts.get(name);
 
     if (!layout)
     {
@@ -340,17 +340,17 @@ export class TriPoolAllocator
     // plus aligned sizes keeps every slot aligned.
     const stride = (layout.stride + 3) & ~3;
 
-    if (!this.#pool || this.#cursor + stride > this.#pool.length)
+    if (!this._pool || this._cursor + stride > this._pool.length)
     {
       this._GetMoreSystemMemory(stride);
     }
 
-    const start = this.#cursor;
-    this.#cursor += stride;
-    this.#totalFloatsAllocated += stride;
+    const start = this._cursor;
+    this._cursor += stride;
+    this._totalFloatsAllocated += stride;
 
-    const floats = this.#pool.subarray(start, start + layout.stride);
-    const uints = this.#poolUints.subarray(start, start + layout.stride);
+    const floats = this._pool.subarray(start, start + layout.stride);
+    const uints = this._poolUints.subarray(start, start + layout.stride);
 
     for (const preset of layout.defaults)
     {
@@ -383,29 +383,29 @@ export class TriPoolAllocator
    */
   Clear()
   {
-    this.#previousPools.length = 0;
+    this._previousPools.length = 0;
 
-    const currentChunkFloats = this.#pool ? this.#pool.length : 0;
+    const currentChunkFloats = this._pool ? this._pool.length : 0;
 
-    if (this.#totalFloatsAllocated < currentChunkFloats / 2)
+    if (this._totalFloatsAllocated < currentChunkFloats / 2)
     {
       // Pool is too large - free it and shrink the chunk size (cpp:63-73).
-      this.#pool = this.#poolUints = null;
-      this.#chunkFloats = TriPoolAllocator.#RoundChunkFloats(currentChunkFloats / 2);
+      this._pool = this._poolUints = null;
+      this._chunkFloats = TriPoolAllocator._RoundChunkFloats(currentChunkFloats / 2);
     }
-    else if (this.#totalFloatsAllocated > this.#chunkFloats)
+    else if (this._totalFloatsAllocated > this._chunkFloats)
     {
       // Pool is too small - free it and grow the chunk size (cpp:74-84).
-      this.#pool = this.#poolUints = null;
-      this.#chunkFloats = TriPoolAllocator.#RoundChunkFloats(this.#totalFloatsAllocated);
+      this._pool = this._poolUints = null;
+      this._chunkFloats = TriPoolAllocator._RoundChunkFloats(this._totalFloatsAllocated);
     }
     else
     {
       // Right-sized: rewind and reuse (cpp:85-92).
-      this.#cursor = 0;
+      this._cursor = 0;
     }
 
-    this.#totalFloatsAllocated = 0;
+    this._totalFloatsAllocated = 0;
   }
 
   /**
@@ -418,20 +418,20 @@ export class TriPoolAllocator
    */
   _GetMoreSystemMemory(strideFloats)
   {
-    if (this.#pool)
+    if (this._pool)
     {
-      this.#previousPools.push(this.#pool);
+      this._previousPools.push(this._pool);
     }
 
-    let request = this.#chunkFloats;
+    let request = this._chunkFloats;
     while (request < strideFloats)
     {
-      request += this.#chunkFloats;
+      request += this._chunkFloats;
     }
 
-    this.#pool = new Float32Array(request);
-    this.#poolUints = new Uint32Array(this.#pool.buffer);
-    this.#cursor = 0;
+    this._pool = new Float32Array(request);
+    this._poolUints = new Uint32Array(this._pool.buffer);
+    this._cursor = 0;
   }
 
   /**
@@ -439,7 +439,7 @@ export class TriPoolAllocator
    * eight bits, add one, shift back - always rounding UP past the next
    * 256-byte boundary. Floored at one 256-byte step.
    */
-  static #RoundChunkFloats(floats)
+  static _RoundChunkFloats(floats)
   {
     let bytes = Math.max(0, Math.floor(floats)) * 4;
     bytes = ((bytes >> 8) + 1) << 8;

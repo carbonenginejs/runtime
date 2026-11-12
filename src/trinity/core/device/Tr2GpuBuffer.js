@@ -88,7 +88,7 @@ export class Tr2GpuBuffer extends IRoot
 
   /** m_name - debug label; not Blue-exposed. */
   @type.string
-  #name = "";
+  _name = "";
 
   /**
    * Sets the debug label, coercing null to an empty string; Carbon keeps this
@@ -98,17 +98,17 @@ export class Tr2GpuBuffer extends IRoot
    */
   SetName(name)
   {
-    this.#name = String(name ?? "");
+    this._name = String(name ?? "");
   }
 
   /** JS accessor for the debug label; Carbon keeps m_name private with no getter. */
   GetName()
   {
-    return this.#name;
+    return this._name;
   }
 
   /** m_buffer: the AL buffer, null until CreateBuffer succeeds. */
-  #buffer = null;
+  _buffer = null;
 
   /**
    * Carbon Create (Tr2GpuBuffer.cpp:100-108): records the element count,
@@ -145,8 +145,8 @@ export class Tr2GpuBuffer extends IRoot
    */
   CreateBuffer(renderContext)
   {
-    if (this.#buffer) this.#buffer.Destroy();
-    this.#buffer = null;
+    if (this._buffer) this._buffer.Destroy();
+    this._buffer = null;
 
     if (!this.count || this.format === PixelFormat.PIXEL_FORMAT_UNKNOWN) return ALResult.E_INVALIDARG;
 
@@ -162,8 +162,8 @@ export class Tr2GpuBuffer extends IRoot
 
     if (!buffer) return ALResult.E_FAIL;
 
-    if (this.#name) buffer.SetName(this.#name);
-    this.#buffer = buffer;
+    if (this._name) buffer.SetName(this._name);
+    this._buffer = buffer;
     this.KeepAlive();
     return ALResult.S_OK;
   }
@@ -185,7 +185,7 @@ export class Tr2GpuBuffer extends IRoot
    */
   _OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    if (!this.#buffer?.IsValid() && this.format !== PixelFormat.PIXEL_FORMAT_UNKNOWN)
+    if (!this._buffer?.IsValid() && this.format !== PixelFormat.PIXEL_FORMAT_UNKNOWN)
     {
       return Succeeded(this.CreateBuffer(renderContext));
     }
@@ -199,8 +199,8 @@ export class Tr2GpuBuffer extends IRoot
    */
   OnDestruct()
   {
-    if (this.#buffer) this.#buffer.Destroy();
-    this.#buffer = null;
+    if (this._buffer) this._buffer.Destroy();
+    this._buffer = null;
   }
 
   /**
@@ -215,7 +215,7 @@ export class Tr2GpuBuffer extends IRoot
   GetGpuBuffer(_index = 0)
   {
     this.KeepAlive();
-    return this.#buffer;
+    return this._buffer;
   }
 
   /**
@@ -225,7 +225,7 @@ export class Tr2GpuBuffer extends IRoot
    */
   IsValid()
   {
-    return this.#buffer !== null;
+    return this._buffer !== null;
   }
 
   /**
@@ -248,7 +248,7 @@ export class Tr2GpuBuffer extends IRoot
    */
   GetCount()
   {
-    return this.#buffer ? this.#buffer.GetDesc().count : 0;
+    return this._buffer ? this._buffer.GetDesc().count : 0;
   }
 
   /**

@@ -103,35 +103,35 @@ export class Tr2RuntimeInstanceData
   aabbMax = vec3.create();
 
   /** m_layout (Tr2RuntimeInstanceData.h:99). */
-  #layout = new Tr2VertexDefinition();
+  _layout = new Tr2VertexDefinition();
 
   /** @cjs The normalized element descriptors behind m_layout, which rows are read and packed against. */
-  #elements = Object.freeze([]);
+  _elements = Object.freeze([]);
 
   /** @cjs The CPU rows, one array of element values per instance, that m_data is packed from. */
-  #rows = [];
+  _rows = [];
 
-  #data = null;
+  _data = null;
 
   /** A view over `#data`, made once per packed buffer, for in-place writes. */
-  #view = null;
+  _view = null;
 
   /** True while the layout is `TransformLayout`, set by SetTransformInstances; any other layout clears it. */
-  #transformLayout = false;
+  _transformLayout = false;
 
-  #bytes = null;
+  _bytes = null;
 
-  #stride = 0;
+  _stride = 0;
 
-  #dirty = false;
+  _dirty = false;
 
-  #dataRevision = 0;
+  _dataRevision = 0;
 
-  #instanceData = new ITr2InstanceDataInstanceData();
+  _instanceData = new ITr2InstanceDataInstanceData();
 
-  #allocation = null;
+  _allocation = null;
 
-  #vertexDeclaration = Tr2EffectStateManager.Unknown;
+  _vertexDeclaration = Tr2EffectStateManager.Unknown;
 
   /**
    * Explicit final-owner teardown replaces Carbon's resource destructor.
@@ -152,8 +152,8 @@ export class Tr2RuntimeInstanceData
    */
   ReleaseResources()
   {
-    this.#freeAllocation();
-    this.#vertexDeclaration = Tr2EffectStateManager.Unknown;
+    this._freeAllocation();
+    this._vertexDeclaration = Tr2EffectStateManager.Unknown;
   }
 
   /**
@@ -167,32 +167,32 @@ export class Tr2RuntimeInstanceData
    */
   _OnPrepareResources()
   {
-    if (this.#data && this.#stride && this.count && (!this.#allocation || !this.#allocation.IsValid()))
+    if (this._data && this._stride && this.count && (!this._allocation || !this._allocation.IsValid()))
     {
       const context = Tr2RenderContext_GetMainThreadRenderContext();
-      this.#allocation = SharedGeometryBuffer(context).Allocate(
-        this.#stride, this.count, this.#bytes, context
+      this._allocation = SharedGeometryBuffer(context).Allocate(
+        this._stride, this.count, this._bytes, context
       );
-      if (!this.#allocation) return false;
+      if (!this._allocation) return false;
     }
-    if (this.#vertexDeclaration === Tr2EffectStateManager.Unknown && !this.#layout.empty())
+    if (this._vertexDeclaration === Tr2EffectStateManager.Unknown && !this._layout.empty())
     {
-      this.#vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(this.#layout);
+      this._vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(this._layout);
     }
     return true;
   }
 
   /** Frees only this provider's range, leaving sibling allocations alive. */
-  #freeAllocation()
+  _freeAllocation()
   {
-    if (this.#allocation && this.#allocation.IsValid()) this.#allocation._parent.Free(this.#allocation);
-    this.#allocation = null;
+    if (this._allocation && this._allocation.IsValid()) this._allocation._parent.Free(this._allocation);
+    this._allocation = null;
   }
 
   /** True when rows or layout have changed since the last UpdateData. */
   get dirty()
   {
-    return this.#dirty;
+    return this._dirty;
   }
 
   /**
@@ -201,7 +201,7 @@ export class Tr2RuntimeInstanceData
    */
   get dataRevision()
   {
-    return this.#dataRevision;
+    return this._dataRevision;
   }
 
   /**
@@ -216,10 +216,10 @@ export class Tr2RuntimeInstanceData
   Initialize()
   {
     if (this._state === Tr2DeviceResourceState.PREPARED) this.UpdateData();
-    else if (this.#dirty)
+    else if (this._dirty)
     {
-      this.#dirty = false;
-      this.#dataRevision++;
+      this._dirty = false;
+      this._dataRevision++;
     }
     return true;
   }
@@ -235,17 +235,17 @@ export class Tr2RuntimeInstanceData
   {
     this.DestroyData();
     this.ReleaseResources();
-    this.#stride = 0;
-    this.#elements = Object.freeze([]);
+    this._stride = 0;
+    this._elements = Object.freeze([]);
 
     for (const item of layout.items)
     {
       if (item.stream !== 0) throw new TypeError("Tr2RuntimeInstanceData: vertex layout needs to reference stream 0 only");
-      this.#stride = Math.max(this.#stride, item.offset + Tr2VertexDefinition.getDataTypeSizeInBytes(item.type));
+      this._stride = Math.max(this._stride, item.offset + Tr2VertexDefinition.getDataTypeSizeInBytes(item.type));
     }
 
-    this.#layout = layout;
-    this.#vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(layout);
+    this._layout = layout;
+    this._vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(layout);
   }
 
   /**
@@ -256,7 +256,7 @@ export class Tr2RuntimeInstanceData
    */
   GetLayout()
   {
-    return this.#layout;
+    return this._layout;
   }
 
   /**
@@ -268,11 +268,11 @@ export class Tr2RuntimeInstanceData
    */
   GetOwnValues()
   {
-    if (this.#elements.length === 0) return {};
+    if (this._elements.length === 0) return {};
 
     return {
-      layout: this.#elements.map(Tr2RuntimeInstanceData.#describeElement),
-      rows: this.#rows.map(row => row.map(Tr2RuntimeInstanceData.#cloneValue))
+      layout: this._elements.map(Tr2RuntimeInstanceData._describeElement),
+      rows: this._rows.map(row => row.map(Tr2RuntimeInstanceData._cloneValue))
     };
   }
 
@@ -286,7 +286,7 @@ export class Tr2RuntimeInstanceData
   SetOwnValues({ layout, rows })
   {
     if (layout !== undefined) this.SetElementLayout(layout);
-    if (rows !== undefined && (rows.length || this.#rows.length)) this.#setData(rows);
+    if (rows !== undefined && (rows.length || this._rows.length)) this._setData(rows);
   }
 
   /**
@@ -325,7 +325,7 @@ export class Tr2RuntimeInstanceData
    */
   GetRows()
   {
-    return this.#rows;
+    return this._rows;
   }
 
   /**
@@ -337,7 +337,7 @@ export class Tr2RuntimeInstanceData
    */
   GetElementLayout()
   {
-    return this.#elements;
+    return this._elements;
   }
 
   /**
@@ -350,7 +350,7 @@ export class Tr2RuntimeInstanceData
   @meta.invalidates("#dirty")
   SetElementLayout(layout)
   {
-    this.#setElementLayout(layout);
+    this._setElementLayout(layout);
     this.DestroyData();
   }
 
@@ -364,7 +364,7 @@ export class Tr2RuntimeInstanceData
   @meta.invalidates("#dirty")
   SetData(rows)
   {
-    this.#setData(rows);
+    this._setData(rows);
   }
 
   /**
@@ -376,8 +376,8 @@ export class Tr2RuntimeInstanceData
   @be.mapMethod()
   GetItem(index)
   {
-    this.#assertItemIndex(index);
-    return this.#rows[index].map(Tr2RuntimeInstanceData.#cloneValue);
+    this._assertItemIndex(index);
+    return this._rows[index].map(Tr2RuntimeInstanceData._cloneValue);
   }
 
   /**
@@ -390,11 +390,11 @@ export class Tr2RuntimeInstanceData
   @meta.invalidates("#dirty")
   SetItem(index, row)
   {
-    this.#assertItemIndex(index);
-    const normalized = this.#normalizeRow(row, index);
-    this.#rows[index] = normalized;
-    this.#writeRow(new DataView(this.#data), index, normalized);
-    this.#dirty = true;
+    this._assertItemIndex(index);
+    const normalized = this._normalizeRow(row, index);
+    this._rows[index] = normalized;
+    this._writeRow(new DataView(this._data), index, normalized);
+    this._dirty = true;
   }
 
   /**
@@ -405,9 +405,9 @@ export class Tr2RuntimeInstanceData
   @be.mapMethod()
   GetItemElement(index, elementIndex)
   {
-    this.#assertItemIndex(index);
-    this.#assertElementIndex(elementIndex);
-    return Tr2RuntimeInstanceData.#cloneValue(this.#rows[index][elementIndex]);
+    this._assertItemIndex(index);
+    this._assertElementIndex(elementIndex);
+    return Tr2RuntimeInstanceData._cloneValue(this._rows[index][elementIndex]);
   }
 
   /**
@@ -420,16 +420,16 @@ export class Tr2RuntimeInstanceData
   @meta.invalidates("#dirty")
   SetItemElement(index, elementIndex, value)
   {
-    this.#assertItemIndex(index);
-    this.#assertElementIndex(elementIndex);
-    const normalized = Tr2RuntimeInstanceData.#normalizeElementValue(
-      this.#elements[elementIndex],
+    this._assertItemIndex(index);
+    this._assertElementIndex(elementIndex);
+    const normalized = Tr2RuntimeInstanceData._normalizeElementValue(
+      this._elements[elementIndex],
       value,
       `Instance ${index} element ${elementIndex}`
     );
-    this.#rows[index][elementIndex] = normalized;
-    this.#writeElement(new DataView(this.#data), index, elementIndex, normalized);
-    this.#dirty = true;
+    this._rows[index][elementIndex] = normalized;
+    this._writeElement(new DataView(this._data), index, elementIndex, normalized);
+    this._dirty = true;
   }
 
   /**
@@ -449,22 +449,22 @@ export class Tr2RuntimeInstanceData
   @be.mapMethodAndWrap()
   UpdateData()
   {
-    if (!this.#dirty)
+    if (!this._dirty)
     {
       return false;
     }
-    if (this.#data)
+    if (this._data)
     {
-      if (this.#allocation && this.#allocation.IsValid())
+      if (this._allocation && this._allocation.IsValid())
       {
         const context = Tr2RenderContext_GetMainThreadRenderContext();
-        if (Failed(this.#allocation.Update(this.#bytes, context))) return false;
+        if (Failed(this._allocation.Update(this._bytes, context))) return false;
       }
       else if (!this.PrepareResources()) return false;
       this.IsGood();
     }
-    this.#dirty = false;
-    this.#dataRevision++;
+    this._dirty = false;
+    this._dataRevision++;
     return true;
   }
 
@@ -484,7 +484,7 @@ export class Tr2RuntimeInstanceData
       return false;
     }
 
-    const positionIndex = this.#elements.findIndex(element =>
+    const positionIndex = this._elements.findIndex(element =>
       element.usage === "POSITION" && element.usageIndex === 0 && element.componentCount >= 3
     );
     if (positionIndex === -1 || this.count === 0)
@@ -496,7 +496,7 @@ export class Tr2RuntimeInstanceData
 
     vec3.set(this.aabbMin, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
     vec3.set(this.aabbMax, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
-    for (const row of this.#rows)
+    for (const row of this._rows)
     {
       const position = row[positionIndex];
       for (let axis = 0; axis < 3; axis++)
@@ -579,7 +579,7 @@ export class Tr2RuntimeInstanceData
    */
   GetStride()
   {
-    return this.#stride;
+    return this._stride;
   }
 
   /**
@@ -590,7 +590,7 @@ export class Tr2RuntimeInstanceData
    */
   GetData()
   {
-    return this.#data ? new Uint8Array(this.#data) : null;
+    return this._data ? new Uint8Array(this._data) : null;
   }
 
   /**
@@ -600,8 +600,8 @@ export class Tr2RuntimeInstanceData
    */
   IsInstanceDataReady()
   {
-    return this.#vertexDeclaration !== Tr2EffectStateManager.Unknown &&
-      this.#allocation !== null && this.#allocation.IsValid();
+    return this._vertexDeclaration !== Tr2EffectStateManager.Unknown &&
+      this._allocation !== null && this._allocation.IsValid();
   }
 
   /**
@@ -611,11 +611,11 @@ export class Tr2RuntimeInstanceData
    */
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
-    this.#instanceData.buffer = this.#allocation ? this.#allocation.GetBuffer() : null;
-    this.#instanceData.offset = this.#allocation ? this.#allocation.GetOffset() : 0;
-    this.#instanceData.stride = this.#stride;
-    this.#instanceData.count = this.count;
-    return this.#instanceData;
+    this._instanceData.buffer = this._allocation ? this._allocation.GetBuffer() : null;
+    this._instanceData.offset = this._allocation ? this._allocation.GetOffset() : 0;
+    this._instanceData.stride = this._stride;
+    this._instanceData.count = this.count;
+    return this._instanceData;
   }
 
   /**
@@ -625,7 +625,7 @@ export class Tr2RuntimeInstanceData
    */
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
-    return this.#vertexDeclaration;
+    return this._vertexDeclaration;
   }
 
   /**
@@ -635,7 +635,7 @@ export class Tr2RuntimeInstanceData
    */
   GetGpuBuffer(_bufferIndex = 0)
   {
-    return this.#allocation ? this.#allocation.GetBuffer() : null;
+    return this._allocation ? this._allocation.GetBuffer() : null;
   }
 
   /**
@@ -647,12 +647,12 @@ export class Tr2RuntimeInstanceData
   @meta.invalidates("#dirty")
   DestroyData()
   {
-    this.#freeAllocation();
-    this.#rows = [];
-    this.#data = null;
-    this.#bytes = null;
+    this._freeAllocation();
+    this._rows = [];
+    this._data = null;
+    this._bytes = null;
     this.count = 0;
-    this.#dirty = true;
+    this._dirty = true;
   }
 
   /**
@@ -666,7 +666,7 @@ export class Tr2RuntimeInstanceData
   Spawn()
   {
     const particleSystem = this.particleSystem;
-    if (!particleSystem?.isValid || !this.#elements.length || !this.#data)
+    if (!particleSystem?.isValid || !this._elements.length || !this._data)
     {
       return;
     }
@@ -680,11 +680,11 @@ export class Tr2RuntimeInstanceData
     const mappings = [];
     for (const element of declaration.values())
     {
-      const usage = Tr2RuntimeInstanceData.#particleUsageToVertexUsage(element.elementType);
+      const usage = Tr2RuntimeInstanceData._particleUsageToVertexUsage(element.elementType);
       const usageIndex = element.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
         ? element.usageIndex
         : 0;
-      const layoutIndex = this.#elements.findIndex(item =>
+      const layoutIndex = this._elements.findIndex(item =>
         item.usage === usage && item.usageIndex === usageIndex
       );
       if (layoutIndex === -1)
@@ -692,7 +692,7 @@ export class Tr2RuntimeInstanceData
         return;
       }
 
-      const layout = this.#elements[layoutIndex];
+      const layout = this._elements[layoutIndex];
       if (layout.baseType !== "FLOAT32" || layout.componentCount < element.dimension)
       {
         return;
@@ -701,7 +701,7 @@ export class Tr2RuntimeInstanceData
     }
 
     particleSystem.ClearParticles();
-    for (const row of this.#rows)
+    for (const row of this._rows)
     {
       const particleIndex = particleSystem.BeginSpawnParticle();
       if (particleIndex === null)
@@ -797,9 +797,9 @@ export class Tr2RuntimeInstanceData
     // Carbon sets the layout once (ConfigureInstanceData, EveChildInstanceMeshRenderer.cpp:334-352)
     // and each update copies into the same stream (GetData + memcpy + UpdateData, :354-380). With the
     // layout and count unchanged, write in place; only a new count repacks.
-    if (this.#transformLayout && this.#view && instances.length && this.count === instances.length)
+    if (this._transformLayout && this._view && instances.length && this.count === instances.length)
     {
-      return this.#updateTransformInstances(instances);
+      return this._updateTransformInstances(instances);
     }
 
     const rows = [];
@@ -822,8 +822,8 @@ export class Tr2RuntimeInstanceData
         throw new TypeError(`Transform instance ${index} must contain 16 previous-transform values`);
       }
 
-      const currentRows = Tr2RuntimeInstanceData.#packTransform(transform);
-      const previousRows = Tr2RuntimeInstanceData.#packTransform(previousTransform);
+      const currentRows = Tr2RuntimeInstanceData._packTransform(transform);
+      const previousRows = Tr2RuntimeInstanceData._packTransform(previousTransform);
       rows.push([
         ...currentRows,
         ...previousRows,
@@ -842,11 +842,11 @@ export class Tr2RuntimeInstanceData
     }
 
     this.SetElementLayout(Tr2RuntimeInstanceData.TransformLayout);
-    this.#transformLayout = true;
+    this._transformLayout = true;
     this.SetData(rows);
     this.SetBoundingBox(
-      instances.length ? min : Tr2RuntimeInstanceData.#zero,
-      instances.length ? max : Tr2RuntimeInstanceData.#zero
+      instances.length ? min : Tr2RuntimeInstanceData._zero,
+      instances.length ? max : Tr2RuntimeInstanceData._zero
     );
     this.UpdateData();
     return maxScale;
@@ -857,7 +857,7 @@ export class Tr2RuntimeInstanceData
    * the Tr2VertexDefinition they describe, which is Carbon's PySetElementLayout
    * (Tr2RuntimeInstanceData_Blue.cpp:11-75).
    */
-  #setElementLayout(layout)
+  _setElementLayout(layout)
   {
     if (!Array.isArray(layout))
     {
@@ -867,7 +867,7 @@ export class Tr2RuntimeInstanceData
     let offset = 0;
     const normalized = layout.map((value, index) =>
     {
-      const descriptor = Tr2RuntimeInstanceData.#normalizeElement(value, index, offset);
+      const descriptor = Tr2RuntimeInstanceData._normalizeElement(value, index, offset);
       offset += descriptor.byteSize;
       return descriptor;
     });
@@ -876,9 +876,9 @@ export class Tr2RuntimeInstanceData
     definition.Add__Items(normalized.map(element => ({ type: element.type, usage: element.usageCode, usageIndex: element.usageIndex })));
 
     this.SetLayout(definition);
-    this.#elements = normalized;
-    this.#stride = offset;
-    this.#transformLayout = false;
+    this._elements = normalized;
+    this._stride = offset;
+    this._transformLayout = false;
   }
 
   /**
@@ -889,9 +889,9 @@ export class Tr2RuntimeInstanceData
    * @param {Array<object|ArrayLike<number>>} instances As SetTransformInstances.
    * @returns {number} Maximum instance scale.
    */
-  #updateTransformInstances(instances)
+  _updateTransformInstances(instances)
   {
-    const min = Tr2RuntimeInstanceData.#scratchMin, max = Tr2RuntimeInstanceData.#scratchMax;
+    const min = Tr2RuntimeInstanceData._scratchMin, max = Tr2RuntimeInstanceData._scratchMax;
     min[0] = min[1] = min[2] = Number.POSITIVE_INFINITY;
     max[0] = max[1] = max[2] = Number.NEGATIVE_INFINITY;
     let maxScale = 0;
@@ -911,11 +911,11 @@ export class Tr2RuntimeInstanceData
         throw new TypeError(`Transform instance ${index} must contain 16 previous-transform values`);
       }
 
-      const row = this.#rows[index];
-      Tr2RuntimeInstanceData.#packTransformInto(transform, row, 0, index);
-      Tr2RuntimeInstanceData.#packTransformInto(previousTransform, row, 3, index);
+      const row = this._rows[index];
+      Tr2RuntimeInstanceData._packTransformInto(transform, row, 0, index);
+      Tr2RuntimeInstanceData._packTransformInto(previousTransform, row, 3, index);
       row[6] = Number(value?.boneIndex ?? 0) | 0;
-      this.#writeRow(this.#view, index, row);
+      this._writeRow(this._view, index, row);
 
       for (let axis = 0; axis < 3; axis++)
       {
@@ -931,7 +931,7 @@ export class Tr2RuntimeInstanceData
     }
 
     this.SetBoundingBox(min, max);
-    this.#dirty = true;
+    this._dirty = true;
     this.UpdateData();
     return maxScale;
   }
@@ -940,9 +940,9 @@ export class Tr2RuntimeInstanceData
    * Normalizes every row against the layout and packs them into one freshly
    * allocated little-endian buffer.
    */
-  #setData(rows)
+  _setData(rows)
   {
-    if (!this.#elements.length)
+    if (!this._elements.length)
     {
       throw new Error("SetElementLayout must be called before SetData");
     }
@@ -951,49 +951,49 @@ export class Tr2RuntimeInstanceData
       throw new TypeError("Instance data must be an array");
     }
 
-    const normalizedRows = rows.map((row, index) => this.#normalizeRow(row, index));
-    const data = normalizedRows.length ? new ArrayBuffer(this.#stride * normalizedRows.length) : null;
+    const normalizedRows = rows.map((row, index) => this._normalizeRow(row, index));
+    const data = normalizedRows.length ? new ArrayBuffer(this._stride * normalizedRows.length) : null;
     const view = data ? new DataView(data) : null;
     for (let index = 0; index < normalizedRows.length; index++)
     {
-      this.#writeRow(view, index, normalizedRows[index]);
+      this._writeRow(view, index, normalizedRows[index]);
     }
 
-    if (this.count !== normalizedRows.length) this.#freeAllocation();
-    this.#rows = normalizedRows;
-    this.#data = data;
-    this.#view = data ? view : null;
-    this.#bytes = data ? new Uint8Array(data) : null; // alloc: one byte view per repacked instance stream
+    if (this.count !== normalizedRows.length) this._freeAllocation();
+    this._rows = normalizedRows;
+    this._data = data;
+    this._view = data ? view : null;
+    this._bytes = data ? new Uint8Array(data) : null; // alloc: one byte view per repacked instance stream
     this.count = normalizedRows.length;
-    this.#dirty = true;
+    this._dirty = true;
   }
 
   /**
    * Coerces a row given either as an array or as a name-keyed object into layout
    * order and validates each element.
    */
-  #normalizeRow(row, rowIndex)
+  _normalizeRow(row, rowIndex)
   {
     const values = Array.isArray(row)
       ? row
-      : this.#elements.map(element => row?.[element.name]);
-    if (values.length !== this.#elements.length)
+      : this._elements.map(element => row?.[element.name]);
+    if (values.length !== this._elements.length)
     {
-      throw new TypeError(`Instance ${rowIndex} must contain ${this.#elements.length} elements`);
+      throw new TypeError(`Instance ${rowIndex} must contain ${this._elements.length} elements`);
     }
-    return values.map((value, elementIndex) => Tr2RuntimeInstanceData.#normalizeElementValue(
-      this.#elements[elementIndex],
+    return values.map((value, elementIndex) => Tr2RuntimeInstanceData._normalizeElementValue(
+      this._elements[elementIndex],
       value,
       `Instance ${rowIndex} element ${elementIndex}`
     ));
   }
 
   /** Writes every element of one normalized row into the packed buffer. */
-  #writeRow(view, rowIndex, row)
+  _writeRow(view, rowIndex, row)
   {
-    for (let elementIndex = 0; elementIndex < this.#elements.length; elementIndex++)
+    for (let elementIndex = 0; elementIndex < this._elements.length; elementIndex++)
     {
-      this.#writeElement(view, rowIndex, elementIndex, row[elementIndex]);
+      this._writeElement(view, rowIndex, elementIndex, row[elementIndex]);
     }
   }
 
@@ -1002,10 +1002,10 @@ export class Tr2RuntimeInstanceData
    * four-component INT8/UINT8 element is written as a single packed 32-bit word
    * (the bone-index case).
    */
-  #writeElement(view, rowIndex, elementIndex, value)
+  _writeElement(view, rowIndex, elementIndex, value)
   {
-    const element = this.#elements[elementIndex];
-    const offset = rowIndex * this.#stride + element.offset;
+    const element = this._elements[elementIndex];
+    const offset = rowIndex * this._stride + element.offset;
     if (!Array.isArray(value))
     {
       if (element.componentCount === 4 && element.baseType === "INT8")
@@ -1023,7 +1023,7 @@ export class Tr2RuntimeInstanceData
     const values = Array.isArray(value) ? value : [value];
     for (let index = 0; index < element.componentCount; index++)
     {
-      Tr2RuntimeInstanceData.#writeComponent(
+      Tr2RuntimeInstanceData._writeComponent(
         view,
         offset + index * element.componentByteSize,
         element.baseType,
@@ -1036,7 +1036,7 @@ export class Tr2RuntimeInstanceData
    * Throws RangeError unless the index is an integer inside the current instance
    * count.
    */
-  #assertItemIndex(index)
+  _assertItemIndex(index)
   {
     if (!Number.isInteger(index) || index < 0 || index >= this.count)
     {
@@ -1045,9 +1045,9 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Throws RangeError unless the index is an integer inside the current layout. */
-  #assertElementIndex(index)
+  _assertElementIndex(index)
   {
-    if (!Number.isInteger(index) || index < 0 || index >= this.#elements.length)
+    if (!Number.isInteger(index) || index < 0 || index >= this._elements.length)
     {
       throw new RangeError("Element index out of range");
     }
@@ -1058,7 +1058,7 @@ export class Tr2RuntimeInstanceData
    * usage, usageIndex, type, name } object or Carbon's legacy [particleUsage,
    * usageIndex, componentCount] triple.
    */
-  static #normalizeElement(value, index, offset)
+  static _normalizeElement(value, index, offset)
   {
     const legacy = Array.isArray(value);
     if (!legacy && (!value || typeof value !== "object"))
@@ -1067,9 +1067,9 @@ export class Tr2RuntimeInstanceData
     }
 
     const usageValue = legacy
-      ? Tr2RuntimeInstanceData.#particleUsageToVertexUsage(value[0])
+      ? Tr2RuntimeInstanceData._particleUsageToVertexUsage(value[0])
       : value.usage;
-    const usage = Tr2RuntimeInstanceData.#normalizeUsage(usageValue);
+    const usage = Tr2RuntimeInstanceData._normalizeUsage(usageValue);
     const usageIndex = Number(legacy ? value[1] : value.usageIndex ?? 0);
     if (!Number.isInteger(usageIndex) || usageIndex < 0 || usageIndex > 15)
     {
@@ -1077,7 +1077,7 @@ export class Tr2RuntimeInstanceData
     }
 
     const type = legacy ? `FLOAT32_${Number(value[2])}` : value.type;
-    const typeInfo = Tr2RuntimeInstanceData.#normalizeType(type);
+    const typeInfo = Tr2RuntimeInstanceData._normalizeType(type);
     return {
       usage,
       usageCode: Tr2RuntimeInstanceData.UsageCode[usage],
@@ -1097,7 +1097,7 @@ export class Tr2RuntimeInstanceData
    * The plain summary of an element descriptor: usage, usage index,
    * type and name.
    */
-  static #describeElement(value)
+  static _describeElement(value)
   {
     return {
       usage: value.usage,
@@ -1108,10 +1108,10 @@ export class Tr2RuntimeInstanceData
   }
 
   /**
-   * As #packTransform, into a row's existing float4 arrays from `first`, with
+   * As _packTransform, into a row's existing float4 arrays from `first`, with
    * the repacking path's finiteness check.
    */
-  static #packTransformInto(value, row, first, index)
+  static _packTransformInto(value, row, first, index)
   {
     for (let axis = 0; axis < 3; axis++)
     {
@@ -1132,7 +1132,7 @@ export class Tr2RuntimeInstanceData
    * Transposes a column-major 4x4 into the three float4 rows the transform
    * instance stream stores.
    */
-  static #packTransform(value)
+  static _packTransform(value)
   {
     return [
       [Number(value[0]), Number(value[4]), Number(value[8]), Number(value[12])],
@@ -1145,7 +1145,7 @@ export class Tr2RuntimeInstanceData
    * Maps a legacy particle element type index onto its vertex usage name; throws
    * for an out-of-range index.
    */
-  static #particleUsageToVertexUsage(value)
+  static _particleUsageToVertexUsage(value)
   {
     const usages = ["TANGENT", "POSITION", "NORMAL", "BITANGENT", "TEXCOORD"];
     const index = Number(value);
@@ -1160,7 +1160,7 @@ export class Tr2RuntimeInstanceData
    * Resolves a usage given as a name or as a UsageCode number to its canonical
    * name; throws when it matches neither.
    */
-  static #normalizeUsage(value)
+  static _normalizeUsage(value)
   {
     if (typeof value === "number")
     {
@@ -1180,7 +1180,7 @@ export class Tr2RuntimeInstanceData
    * component byte size by unpacking Carbon's type bit-field (low three bits the
    * type, bit 3 unsigned, bits 5-6 the component count minus one).
    */
-  static #normalizeType(value)
+  static _normalizeType(value)
   {
     let dataType;
     let name;
@@ -1223,7 +1223,7 @@ export class Tr2RuntimeInstanceData
    * integer element, anything else must supply exactly componentCount finite
    * numbers.
    */
-  static #normalizeElementValue(element, value, label)
+  static _normalizeElementValue(element, value, label)
   {
     if (
       !Array.isArray(value) &&
@@ -1260,7 +1260,7 @@ export class Tr2RuntimeInstanceData
    * Writes one little-endian component of the given base type; FLOAT16 has no
    * packer and throws.
    */
-  static #writeComponent(view, offset, baseType, value)
+  static _writeComponent(view, offset, baseType, value)
   {
     switch (baseType)
     {
@@ -1276,7 +1276,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Copies array-valued elements so returned rows never alias stored data. */
-  static #cloneValue(value)
+  static _cloneValue(value)
   {
     return Array.isArray(value) ? value.slice() : value;
   }
@@ -1295,11 +1295,11 @@ export class Tr2RuntimeInstanceData
     Object.freeze({ usage: "TEXCOORD", usageIndex: 6, type: "BYTE_4", name: "boneIndex" })
   ]);
 
-  static #zero = vec3.create();
+  static _zero = vec3.create();
 
   /** Scratch bounds for the in-place transform update; copied out by SetBoundingBox. */
-  static #scratchMin = vec3.create();
-  static #scratchMax = vec3.create();
+  static _scratchMin = vec3.create();
+  static _scratchMax = vec3.create();
 
   static UsageCode = Tr2VertexUsageCode;
 

@@ -122,16 +122,16 @@ export class Tr2Denoiser extends IRoot
   stepSize = 1;
 
   /** m_estimateNoise */
-  #estimateNoise = effectAt(ESTIMATE_NOISE_PATH);
+  _estimateNoise = effectAt(ESTIMATE_NOISE_PATH);
 
   /** m_denoiseEstimate */
-  #denoiseEstimate = effectAt(DENOISE_ESTIMATE_PATH);
+  _denoiseEstimate = effectAt(DENOISE_ESTIMATE_PATH);
 
   /** m_denoiseHoriz - Denoise1D with Axis (stepSize, 0). */
-  #denoiseHoriz = effectAt(DENOISE_1D_PATH);
+  _denoiseHoriz = effectAt(DENOISE_1D_PATH);
 
   /** m_denoiseVert - the SAME effect file with Axis (0, stepSize). */
-  #denoiseVert = effectAt(DENOISE_1D_PATH);
+  _denoiseVert = effectAt(DENOISE_1D_PATH);
 
   /**
    * m_parametersDirty - set by OnModified, cleared at the end of Apply.
@@ -139,7 +139,7 @@ export class Tr2Denoiser extends IRoot
    * The weights and the axis are only re-sent when something changed, which is
    * the one place this class caches anything.
    */
-  #parametersDirty = true;
+  _parametersDirty = true;
 
   /**
    * Runs the four passes and returns the denoised result.
@@ -194,14 +194,14 @@ export class Tr2Denoiser extends IRoot
     const hasNormals = Boolean(normals && normals.IsValid());
     const option = hasNormals ? NORMALS_INPUT_NORMALS : NORMALS_INPUT_NONE;
 
-    this.#denoiseVert.SetOption(NORMALS_INPUT, option);
-    this.#denoiseHoriz.SetOption(NORMALS_INPUT, option);
+    this._denoiseVert.SetOption(NORMALS_INPUT, option);
+    this._denoiseHoriz.SetOption(NORMALS_INPUT, option);
 
     const width = sourceTexture.GetWidth();
     const height = sourceTexture.GetHeight();
     const sourceSize = vec4.fromValues(width, height, 1 / width, 1 / height);
 
-    this.#denoiseEstimate.SetParameter__Vector4("SourceDimensions", sourceSize);
+    this._denoiseEstimate.SetParameter__Vector4("SourceDimensions", sourceSize);
 
     const esm = renderContext.GetEffectStateManager();
 
@@ -220,58 +220,58 @@ export class Tr2Denoiser extends IRoot
     {
       esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
 
-      estimate = this.#Pass(gpuResourcePool, "Tr2Denoiser Noise Estimate", width, height);
+      estimate = this._Pass(gpuResourcePool, "Tr2Denoiser Noise Estimate", width, height);
 
       esm.SetRenderTarget(0, estimate.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
-      this.#estimateNoise.SetParameter__TextureAL("Source", sourceTexture);
-      Tr2Renderer.drawScreenQuad(renderContext, this.#estimateNoise);
-      this.#estimateNoise.SetParameter__TextureAL("Source", null);
+      this._estimateNoise.SetParameter__TextureAL("Source", sourceTexture);
+      Tr2Renderer.drawScreenQuad(renderContext, this._estimateNoise);
+      this._estimateNoise.SetParameter__TextureAL("Source", null);
 
-      mask = this.#Pass(gpuResourcePool, "Tr2Denoiser Denoise Mask", width, height);
+      mask = this._Pass(gpuResourcePool, "Tr2Denoiser Denoise Mask", width, height);
 
-      this.#denoiseEstimate.SetParameter__TextureAL("Source", estimate.Get());
+      this._denoiseEstimate.SetParameter__TextureAL("Source", estimate.Get());
       esm.SetRenderTarget(0, mask.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
-      Tr2Renderer.drawScreenQuad(renderContext, this.#denoiseEstimate);
+      Tr2Renderer.drawScreenQuad(renderContext, this._denoiseEstimate);
 
       // Carbon releases the estimate here, before borrowing the next target, so
       // the pool can hand the same surface back rather than grow (`cpp:118`).
       gpuResourcePool.Free(estimate);
 
-      temp = this.#Pass(gpuResourcePool, "Tr2Denoiser Temp", width, height);
+      temp = this._Pass(gpuResourcePool, "Tr2Denoiser Temp", width, height);
 
-      this.#SetPassParameters(this.#denoiseHoriz, vec2.fromValues(1, 0), depth, normals, projection, sourceSize, upscaling);
-      this.#denoiseHoriz.SetParameter__TextureAL("Source", sourceTexture);
-      this.#denoiseHoriz.SetParameter__TextureAL("NoiseEstimate", mask.Get());
+      this._SetPassParameters(this._denoiseHoriz, vec2.fromValues(1, 0), depth, normals, projection, sourceSize, upscaling);
+      this._denoiseHoriz.SetParameter__TextureAL("Source", sourceTexture);
+      this._denoiseHoriz.SetParameter__TextureAL("NoiseEstimate", mask.Get());
       esm.SetRenderTarget(0, temp.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
-      Tr2Renderer.drawScreenQuad(renderContext, this.#denoiseHoriz);
-      this.#denoiseHoriz.SetParameter__TextureAL("Source", null);
-      this.#denoiseHoriz.SetParameter__TextureAL("NoiseEstimate", null);
+      Tr2Renderer.drawScreenQuad(renderContext, this._denoiseHoriz);
+      this._denoiseHoriz.SetParameter__TextureAL("Source", null);
+      this._denoiseHoriz.SetParameter__TextureAL("NoiseEstimate", null);
 
       gpuResourcePool.Free(source);
 
-      result = this.#Pass(gpuResourcePool, "Tr2Denoiser Result", width, height);
+      result = this._Pass(gpuResourcePool, "Tr2Denoiser Result", width, height);
 
-      this.#SetPassParameters(this.#denoiseVert, vec2.fromValues(0, 1), depth, normals, projection, sourceSize, upscaling);
-      this.#denoiseVert.SetParameter__TextureAL("Source", temp.Get());
-      this.#denoiseVert.SetParameter__TextureAL("NoiseEstimate", mask.Get());
+      this._SetPassParameters(this._denoiseVert, vec2.fromValues(0, 1), depth, normals, projection, sourceSize, upscaling);
+      this._denoiseVert.SetParameter__TextureAL("Source", temp.Get());
+      this._denoiseVert.SetParameter__TextureAL("NoiseEstimate", mask.Get());
       esm.SetRenderTarget(0, result.Get(), true, index);
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
-      Tr2Renderer.drawScreenQuad(renderContext, this.#denoiseVert);
-      this.#denoiseVert.SetParameter__TextureAL("Source", null);
-      this.#denoiseVert.SetParameter__TextureAL("NoiseEstimate", null);
+      Tr2Renderer.drawScreenQuad(renderContext, this._denoiseVert);
+      this._denoiseVert.SetParameter__TextureAL("Source", null);
+      this._denoiseVert.SetParameter__TextureAL("NoiseEstimate", null);
 
       // Both blur effects hold the depth and normal buffers until here, so a
       // later pass cannot inherit them (`cpp:155-158`).
-      for (const effect of [ this.#denoiseHoriz, this.#denoiseVert ])
+      for (const effect of [ this._denoiseHoriz, this._denoiseVert ])
       {
         effect.SetParameter__TextureAL("DepthBuffer", null);
         effect.SetParameter__TextureAL("NormalBuffer", null);
       }
 
-      this.#parametersDirty = false;
+      this._parametersDirty = false;
       completed = true;
       return result;
     }
@@ -302,7 +302,7 @@ export class Tr2Denoiser extends IRoot
   SetRadius(value)
   {
     this.radius = value >>> 0;
-    this.#parametersDirty = true;
+    this._parametersDirty = true;
   }
 
   /**
@@ -315,12 +315,12 @@ export class Tr2Denoiser extends IRoot
 
   OnModified()
   {
-    this.#parametersDirty = true;
+    this._parametersDirty = true;
     return true;
   }
 
   /** Borrows one R8 pass target of the source's size. */
-  #Pass(gpuResourcePool, name, width, height)
+  _Pass(gpuResourcePool, name, width, height)
   {
     return gpuResourcePool.GetTempTexture__WidthHeight(name, width, height, PixelFormat.PIXEL_FORMAT_R8_UNORM, TARGET_USAGE);
   }
@@ -333,9 +333,9 @@ export class Tr2Denoiser extends IRoot
    * arbitrary - the axis is per effect and constant, the radius divides by an
    * upscaling factor the caller may vary per frame.
    */
-  #SetPassParameters(effect, direction, depth, normals, projection, sourceSize, upscaling)
+  _SetPassParameters(effect, direction, depth, normals, projection, sourceSize, upscaling)
   {
-    if (this.#parametersDirty)
+    if (this._parametersDirty)
     {
       effect.SetParameter("DepthWeight", this.depthWeight);
       effect.SetParameter("NormalWeight", this.normalWeight);

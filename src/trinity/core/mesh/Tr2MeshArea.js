@@ -17,7 +17,7 @@ import { meta, type } from "#schema";
 export class Tr2MeshArea extends IRoot
 {
   // m_ownerMeshes (std::vector<Tr2MeshBase*>)
-  #ownerMeshes = [];
+  _ownerMeshes = [];
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
@@ -98,10 +98,10 @@ export class Tr2MeshArea extends IRoot
   minLod = -1;
 
   /** m_jointCount - skinning joint count, fed by Tr2MeshBase.BindToRig. */
-  #jointCount = 0;
+  _jointCount = 0;
 
   /** m_jointMappingAnimRig - shared joint mapping owned by the parent mesh. */
-  #jointMappingAnimRig = null;
+  _jointMappingAnimRig = null;
 
   /**
    * First geometry group of the area's range.
@@ -369,7 +369,7 @@ export class Tr2MeshArea extends IRoot
 
   GetJointCount()
   {
-    return this.#jointCount;
+    return this._jointCount;
   }
 
   /**
@@ -381,7 +381,7 @@ export class Tr2MeshArea extends IRoot
 
   SetJointCount(value)
   {
-    this.#jointCount = Number(value) >>> 0;
+    this._jointCount = Number(value) >>> 0;
   }
 
   /**
@@ -393,7 +393,7 @@ export class Tr2MeshArea extends IRoot
 
   GetJointMappingAnimRig()
   {
-    return this.#jointMappingAnimRig;
+    return this._jointMappingAnimRig;
   }
 
   /**
@@ -405,7 +405,7 @@ export class Tr2MeshArea extends IRoot
 
   SetJointMappingAnimRig(value)
   {
-    this.#jointMappingAnimRig = value ?? null;
+    this._jointMappingAnimRig = value ?? null;
   }
 
   /**
@@ -421,8 +421,8 @@ export class Tr2MeshArea extends IRoot
     this.count = other.count;
     this.reversed = other.reversed;
     this.effect = other.effect;
-    this.#jointCount = 0;
-    this.#jointMappingAnimRig = null;
+    this._jointCount = 0;
+    this._jointMappingAnimRig = null;
     this.display = other.display;
     this.useSHLighting = other.useSHLighting;
     this.generateDepthArea = other.GetGenerateDepthArea();
@@ -443,7 +443,7 @@ export class Tr2MeshArea extends IRoot
 
   AddOwnerMesh(mesh)
   {
-    if (mesh) this.#ownerMeshes.push(mesh);
+    if (mesh) this._ownerMeshes.push(mesh);
   }
 
   /**
@@ -456,16 +456,16 @@ export class Tr2MeshArea extends IRoot
 
   RemoveOwnerMesh(mesh)
   {
-    const index = this.#ownerMeshes.indexOf(mesh);
+    const index = this._ownerMeshes.indexOf(mesh);
     if (index === -1) throw new Error("Tr2MeshArea.RemoveOwnerMesh: that mesh does not own this area.");
-    this.#ownerMeshes[index] = this.#ownerMeshes[this.#ownerMeshes.length - 1];
-    this.#ownerMeshes.pop();
+    this._ownerMeshes[index] = this._ownerMeshes[this._ownerMeshes.length - 1];
+    this._ownerMeshes.pop();
   }
 
   /** The meshes that have taken this area. */
   GetOwnerMeshes()
   {
-    return this.#ownerMeshes;
+    return this._ownerMeshes;
   }
 }
 

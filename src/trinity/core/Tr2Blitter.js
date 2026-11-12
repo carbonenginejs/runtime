@@ -98,24 +98,24 @@ const BR_DEFAULT = [ 1, 1 ];
 export class Tr2Blitter
 {
   /** m_screenVertexDecl - interned once, and -1 until it is. */
-  #screenVertexDecl = -1;
+  _screenVertexDecl = -1;
 
   /**
    * Carbon's function-static CTr2TransientTextureReference in DrawHelper
    * (`cpp:136`): the blitted texture is published through it, never bare.
    */
-  #textureReference = new Tr2TextureReference();
+  _textureReference = new Tr2TextureReference();
 
   /** m_vertexBuffer - four Tr2ScreenVertex, rewritten per draw. */
-  #vertexBuffer = null;
+  _vertexBuffer = null;
 
   /** The quad staged on the CPU before it goes into the buffer. */
-  #quad = new Float32Array(SCREEN_QUAD_FLOATS);
+  _quad = new Float32Array(SCREEN_QUAD_FLOATS);
 
   /** m_blitEffect / m_blitFilteredEffect. */
-  #blitEffect = null;
+  _blitEffect = null;
 
-  #blitFilteredEffect = null;
+  _blitFilteredEffect = null;
 
   /** @cjs Infrastructure lives until explicit teardown, never idle purge. */
   _neverPurge = true;
@@ -140,12 +140,12 @@ export class Tr2Blitter
     // anything is published. A JS null has no type and registered an INVALID
     // variable whose binding was skipped, so every blit sampled nothing. The
     // empty reference is the typed null: same type, no texture.
-    Tr2VariableStore.globalStore().RegisterVariableInternal(BLIT_SOURCE, TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.#textureReference);
+    Tr2VariableStore.globalStore().RegisterVariableInternal(BLIT_SOURCE, TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._textureReference);
 
-    this.#blitEffect = new Tr2Effect();
-    this.#blitEffect.SetEffectPathName(BLIT_EFFECT_PATH);
-    this.#blitFilteredEffect = new Tr2Effect();
-    this.#blitFilteredEffect.SetEffectPathName(BLIT_FILTERED_EFFECT_PATH);
+    this._blitEffect = new Tr2Effect();
+    this._blitEffect.SetEffectPathName(BLIT_EFFECT_PATH);
+    this._blitFilteredEffect = new Tr2Effect();
+    this._blitFilteredEffect.SetEffectPathName(BLIT_FILTERED_EFFECT_PATH);
   }
 
   /**
@@ -157,8 +157,8 @@ export class Tr2Blitter
    */
   SetBlitEffects(blitEffect, blitFilteredEffect = null)
   {
-    this.#blitEffect = blitEffect;
-    this.#blitFilteredEffect = blitFilteredEffect;
+    this._blitEffect = blitEffect;
+    this._blitFilteredEffect = blitFilteredEffect;
 
     return this;
   }
@@ -171,13 +171,13 @@ export class Tr2Blitter
    */
   GetScreenVertexDeclaration()
   {
-    return this.#screenVertexDecl;
+    return this._screenVertexDecl;
   }
 
   /** Whether the blitter has what it needs to draw an untextured material. */
   IsPrepared()
   {
-    return this.#screenVertexDecl !== -1 && this.#vertexBuffer !== null;
+    return this._screenVertexDecl !== -1 && this._vertexBuffer !== null;
   }
 
   /**
@@ -207,11 +207,11 @@ export class Tr2Blitter
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
 
-    if (this.#screenVertexDecl === -1)
+    if (this._screenVertexDecl === -1)
     {
       // Carbon's exact spelling: m_screenVertexDecl =
       // Tr2EffectStateManager::GetVertexDeclarationHandle( vd ) (cpp:172).
-      this.#screenVertexDecl = Tr2EffectStateManager.getVertexDeclarationHandle(screenVertexDefinition());
+      this._screenVertexDecl = Tr2EffectStateManager.getVertexDeclarationHandle(screenVertexDefinition());
     }
 
     // Carbon's DrawHelper returns false when the buffer is invalid
@@ -219,12 +219,12 @@ export class Tr2Blitter
     // device DEGRADES rather than throws. A context with no backend installed
     // is that case; asking it for a buffer is a loud error everywhere else, and
     // should stay one.
-    if (!this.#vertexBuffer && renderContext.GetRenderContextAL())
+    if (!this._vertexBuffer && renderContext.GetRenderContextAL())
     {
       // WRITE_OFTEN because the quad is rewritten every draw; VERTEX_BUFFER
       // because that is all it is ever bound as. Carbon's own flags
       // (`Tr2Blitter.cpp:175`).
-      this.#vertexBuffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(
+      this._vertexBuffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(
         SCREEN_VERTEX_BYTES,
         SCREEN_QUAD_VERTICES,
         Tr2GpuUsage.VERTEX_BUFFER,
@@ -252,14 +252,14 @@ export class Tr2Blitter
     const store = Tr2VariableStore.globalStore();
     store.UnregisterVariable(BLIT_SOURCE);
     store.UnregisterVariable("mipLevel");
-    this.#textureReference.SetTexture(null);
-    if (this.#vertexBuffer) this.#vertexBuffer.Destroy();
-    this.#vertexBuffer = null;
-    this.#screenVertexDecl = -1;
-    if (this.#blitEffect) this.#blitEffect.Destruct();
-    if (this.#blitFilteredEffect) this.#blitFilteredEffect.Destruct();
-    this.#blitEffect = null;
-    this.#blitFilteredEffect = null;
+    this._textureReference.SetTexture(null);
+    if (this._vertexBuffer) this._vertexBuffer.Destroy();
+    this._vertexBuffer = null;
+    this._screenVertexDecl = -1;
+    if (this._blitEffect) this._blitEffect.Destruct();
+    if (this._blitFilteredEffect) this._blitFilteredEffect.Destruct();
+    this._blitEffect = null;
+    this._blitFilteredEffect = null;
   }
 
   /**
@@ -271,7 +271,7 @@ export class Tr2Blitter
    */
   ReleaseResources(_s)
   {
-    this.#screenVertexDecl = -1;
+    this._screenVertexDecl = -1;
   }
 
   /**
@@ -307,23 +307,23 @@ export class Tr2Blitter
     {
       // Carbon asserts the vertex coordinates are the full quad here
       // (`cpp:126-127`), because the camera-space builder ignores them.
-      Tr2RenderUtils.setupScreenQuadInCameraSpace(this.#quad, renderContext);
+      Tr2RenderUtils.setupScreenQuadInCameraSpace(this._quad, renderContext);
     }
     else
     {
-      Tr2RenderUtils.setupScreenQuad(this.#quad, renderContext, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
+      Tr2RenderUtils.setupScreenQuad(this._quad, renderContext, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
     }
 
-    const mapped = this.#vertexBuffer.MapForWriting(renderContext);
+    const mapped = this._vertexBuffer.MapForWriting(renderContext);
     if (!mapped.data) return false;
 
-    new Float32Array(mapped.data.buffer, mapped.data.byteOffset, SCREEN_QUAD_FLOATS).set(this.#quad);
-    this.#vertexBuffer.UnmapForWriting(renderContext);
+    new Float32Array(mapped.data.buffer, mapped.data.byteOffset, SCREEN_QUAD_FLOATS).set(this._quad);
+    this._vertexBuffer.UnmapForWriting(renderContext);
 
     const esm = renderContext.GetEffectStateManager();
 
-    esm.ApplyVertexDeclaration(this.#screenVertexDecl);
-    esm.ApplyStreamSource(0, this.#vertexBuffer, 0, SCREEN_VERTEX_BYTES);
+    esm.ApplyVertexDeclaration(this._screenVertexDecl);
+    esm.ApplyStreamSource(0, this._vertexBuffer, 0, SCREEN_VERTEX_BYTES);
 
     // Carbon publishes the source texture through the GLOBAL VARIABLE STORE
     // rather than binding it (`cpp:136-144`), because the blit shaders declare
@@ -334,8 +334,8 @@ export class Tr2Blitter
 
     if (blitSource)
     {
-      this.#textureReference.SetTexture(texture);
-      blitSource.SetValue(this.#textureReference);
+      this._textureReference.SetTexture(texture);
+      blitSource.SetValue(this._textureReference);
     }
 
     try
@@ -357,7 +357,7 @@ export class Tr2Blitter
     {
       if (blitSource)
       {
-        this.#textureReference.SetTexture(null);
+        this._textureReference.SetTexture(null);
         blitSource.Clear();
       }
     }
@@ -391,51 +391,51 @@ export class Tr2Blitter
     // Carbon's switch has no default and falls through to `return false` for an
     // unknown filter (`cpp:43-50`).
     let material = null;
-    if (filter === Filtering.FILTER_POINT) material = this.#blitEffect;
-    else if (filter === Filtering.FILTER_LINEAR) material = this.#blitFilteredEffect;
-    return this.#DrawMaterial(renderContext, material, texture, tlTexCoord, brTexCoord);
+    if (filter === Filtering.FILTER_POINT) material = this._blitEffect;
+    else if (filter === Filtering.FILTER_LINEAR) material = this._blitFilteredEffect;
+    return this._DrawMaterial(renderContext, material, texture, tlTexCoord, brTexCoord);
   }
 
   /** Carbon's Draw( renderContext, texture, tl, br, tlV, brV ) (cpp:54): the point blit effect. */
   Draw__TextureVertexCoords(renderContext, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
   {
-    return this.#DrawMaterial(renderContext, this.#blitEffect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
+    return this._DrawMaterial(renderContext, this._blitEffect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
   }
 
   /** Carbon's Draw( renderContext, effect, texture ) (cpp:59). */
   Draw__EffectTexture(renderContext, effect, texture)
   {
-    return this.#DrawMaterial(renderContext, effect, texture);
+    return this._DrawMaterial(renderContext, effect, texture);
   }
 
   /** Carbon's Draw( renderContext, effect, texture, tl, br ) (cpp:64). */
   Draw__EffectTextureTexCoords(renderContext, effect, texture, tlTexCoord, brTexCoord)
   {
-    return this.#DrawMaterial(renderContext, effect, texture, tlTexCoord, brTexCoord);
+    return this._DrawMaterial(renderContext, effect, texture, tlTexCoord, brTexCoord);
   }
 
   /** Carbon's Draw( renderContext, effect, texture, tl, br, tlV, brV ) (cpp:69). */
   Draw__EffectTextureVertexCoords(renderContext, effect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
   {
-    return this.#DrawMaterial(renderContext, effect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
+    return this._DrawMaterial(renderContext, effect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
   }
 
   /** Carbon's Draw( renderContext, material ) (cpp:82): a fullscreen shader. */
   Draw__Effect(renderContext, effect)
   {
-    return this.#DrawMaterial(renderContext, effect, null);
+    return this._DrawMaterial(renderContext, effect, null);
   }
 
   /** Carbon's Draw( renderContext, effect, tl, br ) (cpp:89). */
   Draw__EffectTexCoords(renderContext, effect, tlTexCoord, brTexCoord)
   {
-    return this.#DrawMaterial(renderContext, effect, null, tlTexCoord, brTexCoord);
+    return this._DrawMaterial(renderContext, effect, null, tlTexCoord, brTexCoord);
   }
 
   /** Carbon's Draw( renderContext, effect, tl, br, tlV, brV ) (cpp:36-39). */
   Draw__EffectVertexCoords(renderContext, effect, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
   {
-    return this.#DrawMaterial(renderContext, effect, null, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
+    return this._DrawMaterial(renderContext, effect, null, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
   }
 
   /**
@@ -443,7 +443,7 @@ export class Tr2Blitter
    * shader. Adapted: a null material, or one whose resource is not good, is not
    * drawn; asking renews what the effect holds.
    */
-  #DrawMaterial(renderContext, material, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
+  _DrawMaterial(renderContext, material, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
   {
     if (!material) return false;
     if (!material.IsGood()) return false;

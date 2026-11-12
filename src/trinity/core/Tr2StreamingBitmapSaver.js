@@ -61,13 +61,13 @@ export class Tr2StreamingBitmapSaver extends IRoot
   width = 0;
 
   /** m_output - Carbon's Blue IResFile stream; here any { Write(Uint8Array) } sink. */
-  #output = null;
+  _output = null;
 
   /** m_bytesPerPixel, derived from the format at StartSaving. */
-  #bytesPerPixel = 0;
+  _bytesPerPixel = 0;
 
   /** m_rowsPerBatch - non-zero only between StartBatch and FlushBatch. */
-  #rowsPerBatch = 0;
+  _rowsPerBatch = 0;
 
   /**
    * Carbon StartSaving (Tr2StreamingBitmapSaver.cpp:45-100): end any
@@ -124,11 +124,11 @@ export class Tr2StreamingBitmapSaver extends IRoot
 
     if (output.Write(header) !== header.length) return ALResult.E_FAIL;
 
-    this.#output = output;
+    this._output = output;
     this.width = width;
     this.height = height;
     this.format = pixelFormat;
-    this.#bytesPerPixel = GetBytesPerPixel(pixelFormat);
+    this._bytesPerPixel = GetBytesPerPixel(pixelFormat);
     this.currentOffset = this.height;
 
     return ALResult.S_OK;
@@ -142,7 +142,7 @@ export class Tr2StreamingBitmapSaver extends IRoot
 
   IsSaving()
   {
-    return this.#output !== null;
+    return this._output !== null;
   }
 
   /**
@@ -167,7 +167,7 @@ export class Tr2StreamingBitmapSaver extends IRoot
 
   HasStartedBatch()
   {
-    return this.#rowsPerBatch !== 0;
+    return this._rowsPerBatch !== 0;
   }
 
   /**

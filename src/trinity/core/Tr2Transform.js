@@ -127,9 +127,9 @@ export class Tr2Transform extends IRoot
    * @returns {mat4} The world transform.
    */
 
-  UpdateViewDependentData(_frustum, parentTransform = Tr2Transform.#identity)
+  UpdateViewDependentData(_frustum, parentTransform = Tr2Transform._identity)
   {
-    const scratch = Tr2Transform.#scratch;
+    const scratch = Tr2Transform._scratch;
     const finalScale = scratch.finalScale;
     vec3.copy(finalScale, this.scaling);
 
@@ -151,21 +151,21 @@ export class Tr2Transform extends IRoot
     {
       case Tr2TransformModifier.TR2TM_BILLBOARD:
       case Tr2TransformModifier.TR2TM_SIMPLE_HALO:
-        this.#ApplyBillboard(finalScale, parentTransform);
+        this._ApplyBillboard(finalScale, parentTransform);
         break;
 
       case Tr2TransformModifier.TR2TM_EVE_CAMERA_ROTATION:
-        this.#ApplyEveCameraRotation(finalScale, parentTransform);
+        this._ApplyEveCameraRotation(finalScale, parentTransform);
         break;
 
       case Tr2TransformModifier.TR2TM_EVE_CAMERA_ROTATION_ALIGNED:
       case Tr2TransformModifier.TR2TM_EVE_BOOSTER:
       case Tr2TransformModifier.TR2TM_EVE_SIMPLE_HALO:
-        this.#ApplyCompatibilityModifier(finalScale, parentTransform);
+        this._ApplyCompatibilityModifier(finalScale, parentTransform);
         break;
 
       case Tr2TransformModifier.TR2TM_LOOK_AT_CAMERA:
-        this.#ApplyLookAt(finalScale, parentTransform);
+        this._ApplyLookAt(finalScale, parentTransform);
         break;
 
       case Tr2TransformModifier.TR2TM_TRANSLATE_WITH_CAMERA:
@@ -311,9 +311,9 @@ export class Tr2Transform extends IRoot
   }
 
   /** Applies Carbon's billboard and squared-facing simple-halo basis. */
-  #ApplyBillboard(finalScale, parentTransform)
+  _ApplyBillboard(finalScale, parentTransform)
   {
-    const scratch = Tr2Transform.#scratch;
+    const scratch = Tr2Transform._scratch;
     vec3.set(
       scratch.scale,
       finalScale[0] * axisLength(parentTransform, 0),
@@ -341,9 +341,9 @@ export class Tr2Transform extends IRoot
   }
 
   /** Applies Carbon's EVE camera rotation while retaining world translation. */
-  #ApplyEveCameraRotation(finalScale, parentTransform)
+  _ApplyEveCameraRotation(finalScale, parentTransform)
   {
-    const scratch = Tr2Transform.#scratch;
+    const scratch = Tr2Transform._scratch;
     vec3.transformMat4(scratch.position, this.translation, parentTransform);
     mat4.fromRotationTranslationScale(this.localTransform, this.rotation, scratch.position, finalScale);
     vec3.set(
@@ -360,9 +360,9 @@ export class Tr2Transform extends IRoot
   }
 
   /** Applies the aligned, booster, and EVE simple-halo compatibility modes. */
-  #ApplyCompatibilityModifier(finalScale, parentTransform)
+  _ApplyCompatibilityModifier(finalScale, parentTransform)
   {
-    const scratch = Tr2Transform.#scratch;
+    const scratch = Tr2Transform._scratch;
     mat4.fromTranslation(scratch.translationMatrix, this.translation);
     mat4.multiply(this.worldTransform, parentTransform, scratch.translationMatrix);
 
@@ -431,16 +431,16 @@ export class Tr2Transform extends IRoot
   }
 
   /** Applies Carbon's look-at-camera basis, including its degenerate zero axes. */
-  #ApplyLookAt(finalScale, parentTransform)
+  _ApplyLookAt(finalScale, parentTransform)
   {
-    const scratch = Tr2Transform.#scratch;
+    const scratch = Tr2Transform._scratch;
     vec3.set(
       scratch.position,
       this.worldTransform[12],
       this.worldTransform[13],
       this.worldTransform[14]
     );
-    mat4.lookAtCarbon(scratch.lookAt, Tr2Renderer.GetViewPosition(), scratch.position, Tr2Transform.#worldUp);
+    mat4.lookAtCarbon(scratch.lookAt, Tr2Renderer.GetViewPosition(), scratch.position, Tr2Transform._worldUp);
     mat4.transpose(scratch.lookAt, scratch.lookAt);
     vec3.set(
       scratch.scale,
@@ -547,9 +547,9 @@ export class Tr2Transform extends IRoot
 
   static Tr2TransformModifier = Tr2TransformModifier;
 
-  static #identity = mat4.create();
-  static #worldUp = Object.freeze([0, 1, 0]);
-  static #scratch = {
+  static _identity = mat4.create();
+  static _worldUp = Object.freeze([0, 1, 0]);
+  static _scratch = {
     align: mat4.create(),
     lookAt: mat4.create(),
     rotationMatrix: mat4.create(),

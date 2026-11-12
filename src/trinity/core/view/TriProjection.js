@@ -75,7 +75,7 @@ export class TriProjection extends IRoot
     this.aspect = aspect;
     this.zn = zn;
     this.zf = zf;
-    TriProjection.#perspectiveFov(this.transform, fov, aspect, zn, zf);
+    TriProjection._perspectiveFov(this.transform, fov, aspect, zn, zf);
   }
 
   /**
@@ -94,7 +94,7 @@ export class TriProjection extends IRoot
     this.top = top;
     this.zn = zn;
     this.zf = zf;
-    TriProjection.#perspectiveOffCenter(this.transform, left, right, bottom, top, zn, zf);
+    TriProjection._perspectiveOffCenter(this.transform, left, right, bottom, top, zn, zf);
   }
 
   /**
@@ -111,7 +111,7 @@ export class TriProjection extends IRoot
     this.top = height;
     this.zn = front;
     this.zf = back;
-    TriProjection.#ortho(this.transform, width, height, front, back);
+    TriProjection._ortho(this.transform, width, height, front, back);
   }
 
   /**
@@ -235,11 +235,11 @@ export class TriProjection extends IRoot
     switch (this.projectionType)
     {
       case TriProjection.FOV:
-        return TriProjection.#perspectiveFov(out, this.fov, this.aspect, this.zn, this.zf);
+        return TriProjection._perspectiveFov(out, this.fov, this.aspect, this.zn, this.zf);
       case TriProjection.OFF_CENTER:
-        return TriProjection.#perspectiveOffCenter(out, this.left, this.right, this.bottom, this.top, this.zn, this.zf);
+        return TriProjection._perspectiveOffCenter(out, this.left, this.right, this.bottom, this.top, this.zn, this.zf);
       case TriProjection.ORTHO:
-        return TriProjection.#ortho(out, this.left, this.top, this.zn, this.zf);
+        return TriProjection._ortho(out, this.left, this.top, this.zn, this.zf);
       case TriProjection.CUSTOM:
         return mat4.copy(out, this.customTransform);
       default:
@@ -264,7 +264,7 @@ export class TriProjection extends IRoot
    * Builds the right-handed field-of-view perspective matrix with a zero-to-one
    * depth range (w takes -z).
    */
-  static #perspectiveFov(out, fov, aspect, zn, zf)
+  static _perspectiveFov(out, fov, aspect, zn, zf)
   {
     const yScale = 1 / Math.tan(fov * 0.5);
     const xScale = yScale / aspect;
@@ -282,7 +282,7 @@ export class TriProjection extends IRoot
    * frustum edges; the vertical terms follow Carbon's top-above-bottom
    * convention and so carry the opposite sign to the usual form.
    */
-  static #perspectiveOffCenter(out, left, right, bottom, top, zn, zf)
+  static _perspectiveOffCenter(out, left, right, bottom, top, zn, zf)
   {
     out.fill(0);
     out[0] = 2 * zn / (right - left);
@@ -299,7 +299,7 @@ export class TriProjection extends IRoot
    * Builds the orthographic matrix from width, height and the near/far planes,
    * with a zero-to-one depth range.
    */
-  static #ortho(out, width, height, zn, zf)
+  static _ortho(out, width, height, zn, zf)
   {
     mat4.identity(out);
     out[0] = 2 / width;

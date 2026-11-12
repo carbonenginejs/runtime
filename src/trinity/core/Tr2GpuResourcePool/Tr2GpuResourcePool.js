@@ -48,18 +48,18 @@ export class Tr2GpuResourcePool
   _neverPurge = true;
 
   /** m_outer - the pool a miss falls through to. */
-  #outer = null;
+  _outer = null;
 
-  #tempTextures = [];
+  _tempTextures = [];
 
-  #persistentTextures = [];
+  _persistentTextures = [];
 
-  #tempBuffers = [];
+  _tempBuffers = [];
 
-  #persistentBuffers = [];
+  _persistentBuffers = [];
 
   /** m_debugMode */
-  #debugMode = false;
+  _debugMode = false;
 
   /**
    * The backend resources are created against.
@@ -68,14 +68,14 @@ export class Tr2GpuResourcePool
    * This runtime has no process-wide device, so the context is handed in - the
    * same arrangement `Tr2EffectStateManager` uses.
    */
-  #renderContext = null;
+  _renderContext = null;
 
   /**
    * @param {Tr2GpuResourcePool} [outer] A pool to fall through to on a miss.
    */
   constructor(outer = null)
   {
-    this.#outer = outer;
+    this._outer = outer;
     allPools.add(this);
     CjsSchema.getConstructor("TriDevice").RegisterResource(this);
   }
@@ -88,7 +88,7 @@ export class Tr2GpuResourcePool
    */
   SetRenderContext(renderContext)
   {
-    this.#renderContext = renderContext;
+    this._renderContext = renderContext;
 
     return this;
   }
@@ -141,7 +141,7 @@ export class Tr2GpuResourcePool
    */
   GetTempTexture(name, desc, gpuUsage)
   {
-    return this.#Borrow(this.#tempTextures, name, { desc, gpuUsage }, SameTexture, () => this.#CreateTexture(name, desc, gpuUsage, null, false));
+    return this._Borrow(this._tempTextures, name, { desc, gpuUsage }, SameTexture, () => this._CreateTexture(name, desc, gpuUsage, null, false));
   }
 
   /**
@@ -185,17 +185,17 @@ export class Tr2GpuResourcePool
   GetPersistentTexture(name, desc, gpuUsage, initializer)
   {
     const description = { desc, gpuUsage };
-    const existing = this.#Find(this.#persistentTextures, name, description, SameTexture, false);
+    const existing = this._Find(this._persistentTextures, name, description, SameTexture, false);
 
     if (existing) return new GpuResourceHandle(existing);
 
     const initFunc = isFunction(initializer) ? initializer : null;
-    const texture = this.#CreateTexture(name, desc, gpuUsage, initFunc ? null : initializer, true);
+    const texture = this._CreateTexture(name, desc, gpuUsage, initFunc ? null : initializer, true);
 
     if (!texture) return new GpuResourceHandle();
-    if (initFunc) initFunc(texture, this.#renderContext);
+    if (initFunc) initFunc(texture, this._renderContext);
 
-    return new GpuResourceHandle(this.#Add(this.#persistentTextures, name, description, texture));
+    return new GpuResourceHandle(this._Add(this._persistentTextures, name, description, texture));
   }
 
   /**
@@ -207,7 +207,7 @@ export class Tr2GpuResourcePool
    */
   GetTempBuffer(name, description)
   {
-    return this.#Borrow(this.#tempBuffers, name, description, SameDescription, () => this.#CreateBuffer(description));
+    return this._Borrow(this._tempBuffers, name, description, SameDescription, () => this._CreateBuffer(description));
   }
 
   /**
@@ -225,17 +225,17 @@ export class Tr2GpuResourcePool
    */
   GetPersistentBuffer(name, description, initializer = null)
   {
-    const existing = this.#Find(this.#persistentBuffers, name, description, SameDescription, false);
+    const existing = this._Find(this._persistentBuffers, name, description, SameDescription, false);
 
     if (existing) return new GpuResourceHandle(existing);
 
     const initialData = ArrayBuffer.isView(initializer) ? initializer : null;
-    const buffer = this.#CreateBuffer(description, initialData);
+    const buffer = this._CreateBuffer(description, initialData);
 
     if (!buffer) return new GpuResourceHandle();
     if (typeof initializer === "function") initializer(buffer);
 
-    return new GpuResourceHandle(this.#Add(this.#persistentBuffers, name, description, buffer));
+    return new GpuResourceHandle(this._Add(this._persistentBuffers, name, description, buffer));
   }
 
   /**
@@ -260,9 +260,9 @@ export class Tr2GpuResourcePool
   ClearUnusedResources(frameThreshold = 3)
   {
     let dropped = 0;
-    const currentFrame = this.#renderContext ? this.#renderContext.GetRecordingFrameNumber() : 0;
+    const currentFrame = this._renderContext ? this._renderContext.GetRecordingFrameNumber() : 0;
 
-    for (const list of [ this.#tempTextures, this.#persistentTextures, this.#tempBuffers, this.#persistentBuffers ])
+    for (const list of [ this._tempTextures, this._persistentTextures, this._tempBuffers, this._persistentBuffers ])
     {
       for (let index = list.length - 1; index >= 0; index -= 1)
       {
@@ -293,8 +293,8 @@ export class Tr2GpuResourcePool
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
     allPools.delete(this);
-    this.#renderContext = null;
-    this.#outer = null;
+    this._renderContext = null;
+    this._outer = null;
   }
 
   /** Clears every pool once per device tick using each bound context clock. */
@@ -313,7 +313,7 @@ export class Tr2GpuResourcePool
   ReleaseResources(storage)
   {
     if (storage !== TriStorageFlags.TRISTORAGE_ALL) return;
-    for (const list of [ this.#tempTextures, this.#persistentTextures, this.#tempBuffers, this.#persistentBuffers ])
+    for (const list of [ this._tempTextures, this._persistentTextures, this._tempBuffers, this._persistentBuffers ])
     {
       for (const record of list)
       {
@@ -327,14 +327,14 @@ export class Tr2GpuResourcePool
   /** @param {boolean} enable Whether to keep debug detail. */
   SetDebugMode(enable)
   {
-    this.#debugMode = !!enable;
+    this._debugMode = !!enable;
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
   }
 
   /** @returns {boolean} Whether debug mode is on. */
   GetDebugMode()
   {
-    return this.#debugMode;
+    return this._debugMode;
   }
 
   /**
@@ -344,7 +344,7 @@ export class Tr2GpuResourcePool
    */
   DebugGetAllTempTextures()
   {
-    return this.#tempTextures.map(record => record.resource);
+    return this._tempTextures.map(record => record.resource);
   }
 
   /**
@@ -357,7 +357,7 @@ export class Tr2GpuResourcePool
    */
   GetHeldCount()
   {
-    return [ this.#tempTextures, this.#persistentTextures, this.#tempBuffers, this.#persistentBuffers ]
+    return [ this._tempTextures, this._persistentTextures, this._tempBuffers, this._persistentBuffers ]
       .reduce((total, list) => total + list.filter(record => record.lockCount > 0).length, 0);
   }
 
@@ -374,14 +374,14 @@ export class Tr2GpuResourcePool
    * error anywhere. Tr2Blitter's head comment names this exact defect.
    * `Tr2TextureAL.Create` asks the bound context for its implementation.
    */
-  #CreateTexture(name, desc, gpuUsage, initialData, persistent)
+  _CreateTexture(name, desc, gpuUsage, initialData, persistent)
   {
-    if (!this.#renderContext) fail("a pool creates against a render context; none is bound");
+    if (!this._renderContext) fail("a pool creates against a render context; none is bound");
 
     const texture = new Tr2TextureAL();
     const result = persistent
-      ? texture.Create__GpuUsageCpuUsageInitialData(desc, gpuUsage, Tr2CpuUsage.NONE, initialData ?? null, this.#renderContext)
-      : texture.Create__GpuUsage(desc, gpuUsage, this.#renderContext);
+      ? texture.Create__GpuUsageCpuUsageInitialData(desc, gpuUsage, Tr2CpuUsage.NONE, initialData ?? null, this._renderContext)
+      : texture.Create__GpuUsage(desc, gpuUsage, this._renderContext);
 
     if (Failed(result)) return null;
     texture.SetName(name);
@@ -393,53 +393,53 @@ export class Tr2GpuResourcePool
    * Creates a stub buffer from the description against the pool's render
    * context.
    */
-  #CreateBuffer(description, initialData = null)
+  _CreateBuffer(description, initialData = null)
   {
-    if (!this.#renderContext) fail("a pool creates against a render context; none is bound");
+    if (!this._renderContext) fail("a pool creates against a render context; none is bound");
 
-    // Through the context, which chooses the backend (see #CreateTexture). The
+    // Through the context, which chooses the backend (see _CreateTexture). The
     // previous form also passed the context as `initialData`, leaving
     // renderContext undefined and throwing a TypeError on the first line of
     // Create that touched it - which is why neither buffer accessor had ever
     // run. Both faults go together.
-    return this.#renderContext.CreateBuffer(description, initialData);
+    return this._renderContext.CreateBuffer(description, initialData);
   }
 
   /**
    * Borrows a matching free resource from this pool or its outer pool,
    * allocating when necessary.
    */
-  #Borrow(list, name, description, same, create)
+  _Borrow(list, name, description, same, create)
   {
-    const free = this.#Find(list, name, description, same, true);
+    const free = this._Find(list, name, description, same, true);
 
     if (free) return new GpuResourceHandle(free);
 
-    if (this.#outer) return this.#outer.#Borrow(list === this.#tempTextures
-      ? this.#outer.#tempTextures
-      : this.#outer.#tempBuffers, name, description, same, create);
+    if (this._outer) return this._outer._Borrow(list === this._tempTextures
+      ? this._outer._tempTextures
+      : this._outer._tempBuffers, name, description, same, create);
 
-    return new GpuResourceHandle(this.#Add(list, name, description, create()));
+    return new GpuResourceHandle(this._Add(list, name, description, create()));
   }
 
   /** Finds a matching pool record and updates its last-access frame. */
-  #Find(list, name, description, same, freeOnly)
+  _Find(list, name, description, same, freeOnly)
   {
     const match = list.find(record =>
       record.name === name
       && same(record.description, description)
       && (!freeOnly || record.lockCount === 0));
 
-    if (match) match.lastAccessFrame = (this.#renderContext ? this.#renderContext.GetRecordingFrameNumber() : 0);
+    if (match) match.lastAccessFrame = (this._renderContext ? this._renderContext.GetRecordingFrameNumber() : 0);
 
     return match ?? null;
   }
 
   /** Adds an unlocked resource record stamped with the current frame. */
-  #Add(list, name, description, resource)
+  _Add(list, name, description, resource)
   {
     if (!resource) return null;
-    const record = { resource, name, description, lockCount: 0, lastAccessFrame: (this.#renderContext ? this.#renderContext.GetRecordingFrameNumber() : 0), poolOwned: true };
+    const record = { resource, name, description, lockCount: 0, lastAccessFrame: (this._renderContext ? this._renderContext.GetRecordingFrameNumber() : 0), poolOwned: true };
 
     list.push(record);
 

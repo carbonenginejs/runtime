@@ -29,7 +29,7 @@ export class TriFrustumOrtho
   /** m_boundsMax (view space) */
   boundsMax = vec3.create();
 
-  #eyePos = vec3.create();
+  _eyePos = vec3.create();
 
   /**
    * Carbon's implicit copy assignment (TriFrustumOrtho.h:9-27 declares no
@@ -220,10 +220,10 @@ export class TriFrustumOrtho
    */
   GetEyePos()
   {
-    this.#eyePos[0] = this.view[12];
-    this.#eyePos[1] = this.view[13];
-    this.#eyePos[2] = this.view[14];
-    return this.#eyePos;
+    this._eyePos[0] = this.view[12];
+    this._eyePos[1] = this.view[13];
+    this._eyePos[2] = this.view[14];
+    return this._eyePos;
   }
 }
 

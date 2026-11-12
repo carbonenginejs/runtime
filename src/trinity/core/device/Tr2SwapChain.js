@@ -46,10 +46,10 @@ export class Tr2SwapChain extends IRoot
    * until `OnPrepareResources` creates it against the context, whose backend
    * supplies the implementation.
    */
-  #swapChain = new Tr2SwapChainAL();
+  _swapChain = new Tr2SwapChainAL();
 
   /** m_windowHandle */
-  #windowHandle = 0;
+  _windowHandle = 0;
 
   /** @cjs Presentation infrastructure lives until explicit teardown, never idle purge. */
   _neverPurge = true;
@@ -64,7 +64,7 @@ export class Tr2SwapChain extends IRoot
    */
   CreateForWindow(windowHandle)
   {
-    this.#windowHandle = windowHandle;
+    this._windowHandle = windowHandle;
 
     return this.PrepareResources();
   }
@@ -92,7 +92,7 @@ export class Tr2SwapChain extends IRoot
   _OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
-    if (!Succeeded(this.#swapChain.Create(this.#windowHandle, renderContext))) return false;
+    if (!Succeeded(this._swapChain.Create(this._windowHandle, renderContext))) return false;
 
     return true;
   }
@@ -112,7 +112,7 @@ export class Tr2SwapChain extends IRoot
 
   Present(renderContext)
   {
-    return Succeeded(this.#swapChain.Present(renderContext.GetRenderContextAL()));
+    return Succeeded(this._swapChain.Present(renderContext.GetRenderContextAL()));
   }
 
   /**
@@ -124,7 +124,7 @@ export class Tr2SwapChain extends IRoot
 
   GetWidth()
   {
-    return this.#swapChain.GetWidth();
+    return this._swapChain.GetWidth();
   }
 
   /**
@@ -136,7 +136,7 @@ export class Tr2SwapChain extends IRoot
 
   GetHeight()
   {
-    return this.#swapChain.GetHeight();
+    return this._swapChain.GetHeight();
   }
 
   /**
@@ -175,7 +175,7 @@ export class Tr2SwapChain extends IRoot
 
   ReleaseResources(_storage)
   {
-    this.#swapChain.Destroy();
+    this._swapChain.Destroy();
   }
 
   /**
@@ -189,15 +189,15 @@ export class Tr2SwapChain extends IRoot
    */
   SetSwapChainAL(al = null)
   {
-    this.#swapChain = al ?? new Tr2SwapChainAL();
+    this._swapChain = al ?? new Tr2SwapChainAL();
 
-    return this.#swapChain;
+    return this._swapChain;
   }
 
   /** The installed backend; never null. */
   GetSwapChainAL()
   {
-    return this.#swapChain;
+    return this._swapChain;
   }
 
 }

@@ -548,7 +548,7 @@ export class TriDevice extends IRoot
     }
     DestroyGlobalGpuResourcePool();
     this.DestroyRenderContext();
-    this.#hwnd = null;
+    this._hwnd = null;
     this.width = 0;
     this.height = 0;
     return this;
@@ -574,13 +574,13 @@ export class TriDevice extends IRoot
   // ==========================================================================
 
   /** Carbon mHwnd - the output window the device presents to. */
-  #hwnd = null;
+  _hwnd = null;
 
   /** Carbon mPresentParam - the present parameters the device was created with. */
-  #presentParam = null;
+  _presentParam = null;
 
   /** Carbon mDeviceLost. */
-  #deviceLost = false;
+  _deviceLost = false;
 
   /**
    * Whether this device made the main context's device, standing in for
@@ -588,10 +588,10 @@ export class TriDevice extends IRoot
    * removed device (made, now invalid) from none at all by it. Set by
    * InitD3DDevice, cleared by DestroyRenderContext.
    */
-  #hasDevice = false;
+  _hasDevice = false;
 
   /** Carbon m_postUpdateCallbacks (TriDevice.h:313). */
-  #postUpdateCallbacks = [];
+  _postUpdateCallbacks = [];
 
   /**
    * Whether a device exists at all (`TriDeviceStub.cpp:31-37`).
@@ -641,7 +641,7 @@ export class TriDevice extends IRoot
       this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
       Tr2RenderContext.DestroyMainThreadRenderContext();
     }
-    this.#hasDevice = false;
+    this._hasDevice = false;
     return this;
   }
 
@@ -875,7 +875,7 @@ export class TriDevice extends IRoot
    */
   SetPresentParameters(adapter, presentParameters)
   {
-    if (!this.#hwnd && presentParameters.software) return true;
+    if (!this._hwnd && presentParameters.software) return true;
 
     const al = Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL();
     const result = al ? al.SetPresentParameters(presentParameters, adapter) : ALResult.S_OK;
@@ -889,7 +889,7 @@ export class TriDevice extends IRoot
   }
 
   /** Carbon's function-static s_deviceLostCount (`TriDevice11.cpp:49`). */
-  static #deviceLostCount = 0;
+  static _deviceLostCount = 0;
 
   /**
    * Whether the device was removed and is not yet replaced (`TriDevice.h:193-196`).
@@ -899,7 +899,7 @@ export class TriDevice extends IRoot
    */
   IsDeviceLost()
   {
-    return this.#deviceLost;
+    return this._deviceLost;
   }
 
   /**
@@ -923,12 +923,12 @@ export class TriDevice extends IRoot
   {
     let resetOnly = true;
     const adaptersChanged = adapter !== this.adapter;
-    if (!this.DeviceExists() || hWnd !== this.#hwnd || adaptersChanged)
+    if (!this.DeviceExists() || hWnd !== this._hwnd || adaptersChanged)
     {
       resetOnly = false; // reset is not enough, we need to recreate the device.
     }
 
-    if (!pp) pp = this.#presentParam;
+    if (!pp) pp = this._presentParam;
 
     if (resetOnly && this.ResetDevice(adapter, pp)) return true;
 
@@ -945,12 +945,12 @@ export class TriDevice extends IRoot
     }
 
     this.adapter = adapter;
-    this.#hwnd = hWnd;
+    this._hwnd = hWnd;
     this.width = pp.mode.width;
     this.height = pp.mode.height;
-    this.#presentParam = pp;
+    this._presentParam = pp;
 
-    if (!this.SetPresentParameters(this.adapter, this.#presentParam)) return false;
+    if (!this.SetPresentParameters(this.adapter, this._presentParam)) return false;
 
     this.InitD3DDevice();
     if (adaptersChanged || this.supportedUpscalingTechniques.length === 0)
@@ -985,13 +985,13 @@ export class TriDevice extends IRoot
       return false;
     }
 
-    if (!pp) pp = this.#presentParam;
+    if (!pp) pp = this._presentParam;
 
     if (!this.SetPresentParameters(adapter, pp)) return false;
 
     this.width = pp.mode.width;
     this.height = pp.mode.height;
-    this.#presentParam = pp;
+    this._presentParam = pp;
 
     if (!this.InitD3DDevice())
     {
@@ -1020,8 +1020,8 @@ export class TriDevice extends IRoot
 
     this.viewport.__init__(0, 0, this.width, this.height, 0, 1);
 
-    this.#deviceLost = false;
-    this.#hasDevice = true;
+    this._deviceLost = false;
+    this._hasDevice = true;
     return true;
   }
 
@@ -1072,8 +1072,8 @@ export class TriDevice extends IRoot
     }
 
     const pp = {
-      ...(this.#presentParam ?? {}),
-      mode: { ...(this.#presentParam?.mode ?? {}), width, height },
+      ...(this._presentParam ?? {}),
+      mode: { ...(this._presentParam?.mode ?? {}), width, height },
       outputWindow: hwnd,
       software: this.deviceType === TriDevice.DeviceType.DEVICE_TYPE_SOFTWARE,
       windowed: type === TriDevice.DeviceScreenType.WINDOWED,
@@ -1092,11 +1092,11 @@ export class TriDevice extends IRoot
       return false;
     }
 
-    this.#presentParam = pp;
+    this._presentParam = pp;
     this.width = width;
     this.height = height;
-    this.#hwnd = hwnd;
-    this.#deviceLost = false;
+    this._hwnd = hwnd;
+    this._deviceLost = false;
 
     // Tr2VideoAdapterInfo::AreAdaptersDifferent (cpp:288). Adapters are indices
     // here, so the comparison is the identity Carbon's helper performs.
@@ -1104,7 +1104,7 @@ export class TriDevice extends IRoot
     this.adapter = adapter;
 
     if (type !== TriDevice.DeviceScreenType.NO_ADAPTER
-      && !this.SetPresentParameters(this.adapter, this.#presentParam))
+      && !this.SetPresentParameters(this.adapter, this._presentParam))
     {
       return false;
     }
@@ -1141,8 +1141,8 @@ export class TriDevice extends IRoot
     if (presentParameters)
     {
       this.adapter = adapter;
-      this.#presentParam = presentParameters;
-      this.#hwnd = presentParameters.outputWindow;
+      this._presentParam = presentParameters;
+      this._hwnd = presentParameters.outputWindow;
       this.width = presentParameters.mode.width;
       this.height = presentParameters.mode.height;
       // Carbon registers the device for ticks here (TriDevice.cpp:678); Trinity owns the tick.
@@ -1164,7 +1164,7 @@ export class TriDevice extends IRoot
    */
   GetPresentParameters()
   {
-    return this.#presentParam;
+    return this._presentParam;
   }
 
   /**
@@ -1177,7 +1177,7 @@ export class TriDevice extends IRoot
    */
   GetOutputWindow()
   {
-    return this.#hwnd;
+    return this._hwnd;
   }
 
   /**
@@ -1192,7 +1192,7 @@ export class TriDevice extends IRoot
    */
   AddPostUpdateCallback(callback, context = null)
   {
-    if (typeof callback === "function") this.#postUpdateCallbacks.push({ callback, context });
+    if (typeof callback === "function") this._postUpdateCallbacks.push({ callback, context });
     return this;
   }
 
@@ -1261,31 +1261,31 @@ export class TriDevice extends IRoot
   HandleRenderTick(realTime, simTime)
   {
     // TriDevice12.cpp:308-315: a lost device is replaced before anything else.
-    if (this.#deviceLost)
+    if (this._deviceLost)
     {
-      this.ChangeDevice(this.adapter, this.#hwnd, null);
+      this.ChangeDevice(this.adapter, this._hwnd, null);
       return this;
     }
 
     // A device this one made that is no longer valid has been removed.
-    if (this.#hasDevice && !this.DeviceExists())
+    if (this._hasDevice && !this.DeviceExists())
     {
-      TriDevice.#deviceLostCount += 1;
+      TriDevice._deviceLostCount += 1;
       const onDeviceRemoved = BlueScriptCallback.from(this.onDeviceRemoved);
       if (onDeviceRemoved && onDeviceRemoved.IsValid())
       {
-        onDeviceRemoved.CallVoid(ALResult.E_DEVICELOST, "Device lost", TriDevice.#deviceLostCount, "", "", "");
+        onDeviceRemoved.CallVoid(ALResult.E_DEVICELOST, "Device lost", TriDevice._deviceLostCount, "", "", "");
       }
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Device removed, reason: 0x%x", ALResult.E_DEVICELOST);
 
       this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
-      this.#deviceLost = true;
+      this._deviceLost = true;
       return this;
     }
 
-    this.#renderJobs?.RunUpdate(realTime, simTime);
+    this._renderJobs?.RunUpdate(realTime, simTime);
 
-    for (const { callback, context } of [ ...this.#postUpdateCallbacks ])
+    for (const { callback, context } of [ ...this._postUpdateCallbacks ])
     {
       callback(context);
     }
@@ -1405,7 +1405,7 @@ export class TriDevice extends IRoot
     Tr2Renderer.BeginRenderContext();
     Tr2Renderer.ReserveQuadListIndexBuffer(0);
 
-    this.#renderJobs?.Run(this.realTime, this.simTime);
+    this._renderJobs?.Run(this.realTime, this.simTime);
 
     // Tr2GpuProfiler::GetProfiler().EndFrame() belongs here - unported.
 
@@ -1442,7 +1442,7 @@ export class TriDevice extends IRoot
   @be.mapMethodAndWrap()
   SetRenderJobs(renderJobs)
   {
-    this.#renderJobs = renderJobs ?? null;
+    this._renderJobs = renderJobs ?? null;
     return this;
   }
 
@@ -1456,11 +1456,11 @@ export class TriDevice extends IRoot
    */
   GetRenderJobs()
   {
-    return this.#renderJobs;
+    return this._renderJobs;
   }
 
   /** Carbon m_renderJobs (TriDevice.h:311). */
-  #renderJobs = null;
+  _renderJobs = null;
 
   /**
    * Carbon method GetRenderingPlatformID (MAP_METHOD_AND_WRAP).

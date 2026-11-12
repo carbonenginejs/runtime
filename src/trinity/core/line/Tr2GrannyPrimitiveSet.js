@@ -230,7 +230,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   CreatePrimitiveFromCMF()
   {
-    this.#CreateDecodedPrimitive(false);
+    this._CreateDecodedPrimitive(false);
   }
 
   /**
@@ -243,11 +243,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   CreatePrimitiveFromGranny()
   {
-    this.#CreateDecodedPrimitive(true);
+    this._CreateDecodedPrimitive(true);
   }
 
   /** Packs the common TriangleVertex layout after moving the dedicated picking mesh last. */
-  #CreateDecodedPrimitive(granny)
+  _CreateDecodedPrimitive(granny)
   {
     if (!this.grannyRes) return;
     const meshes = [], resource = this.grannyRes;
@@ -347,7 +347,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   _OnPrepareResources()
   {
-    const declaration = Tr2GrannyPrimitiveSet.#declaration;
+    const declaration = Tr2GrannyPrimitiveSet._declaration;
     if (declaration.empty())
     {
       declaration.Add("FLOAT32_3", "POSITION");
@@ -428,7 +428,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
 
-  static #declaration = new Tr2VertexDefinition();
+  static _declaration = new Tr2VertexDefinition();
 }
 
 /**

@@ -21,7 +21,7 @@ export class Tr2VisibilityResults extends IRoot
 {
 
   // Carbon's m_events is private transient execution state, not Blue data.
-  #events = [];
+  _events = [];
 
   /**
    * Carbon destructor (Tr2VisibilityResults.cpp:12-16) clears the event set.
@@ -40,7 +40,7 @@ export class Tr2VisibilityResults extends IRoot
 
   AddVisibilityEvent(event)
   {
-    this.#events.push(event);
+    this._events.push(event);
   }
 
   /**
@@ -51,7 +51,7 @@ export class Tr2VisibilityResults extends IRoot
 
   GetEvents()
   {
-    return this.#events.slice();
+    return this._events.slice();
   }
 
   /**
@@ -61,7 +61,7 @@ export class Tr2VisibilityResults extends IRoot
    */
   Clear()
   {
-    this.#events.length = 0;
+    this._events.length = 0;
   }
 
   /**
@@ -71,7 +71,7 @@ export class Tr2VisibilityResults extends IRoot
    */
   GetNumVisibilityEvents()
   {
-    return this.#events.length;
+    return this._events.length;
   }
 
 }

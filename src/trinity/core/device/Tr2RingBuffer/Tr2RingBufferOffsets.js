@@ -55,10 +55,10 @@ export class Tr2RingBufferOffsets
   static INVALID_OFFSET = INVALID_OFFSET;
 
   /** m_currentFrameOffset */
-  #currentFrameOffset = INVALID_OFFSET;
+  _currentFrameOffset = INVALID_OFFSET;
 
   /** m_previousFrameOffset */
-  #previousFrameOffset = INVALID_OFFSET;
+  _previousFrameOffset = INVALID_OFFSET;
 
   /**
    * Where this frame's rows start, in elements.
@@ -68,7 +68,7 @@ export class Tr2RingBufferOffsets
    */
   GetCurrentFrameOffset()
   {
-    return this.#currentFrameOffset;
+    return this._currentFrameOffset;
   }
 
   /**
@@ -79,7 +79,7 @@ export class Tr2RingBufferOffsets
    */
   GetPreviousFrameOffset()
   {
-    return this.#previousFrameOffset;
+    return this._previousFrameOffset;
   }
 
   /**
@@ -97,15 +97,15 @@ export class Tr2RingBufferOffsets
    */
   UploadTransforms(buffer, transforms, count)
   {
-    if (this.#currentFrameOffset !== INVALID_OFFSET) return;
+    if (this._currentFrameOffset !== INVALID_OFFSET) return;
 
-    this.#currentFrameOffset = buffer.UploadTransforms(transforms, count);
+    this._currentFrameOffset = buffer.UploadTransforms(transforms, count);
 
     // First frame: last frame's rows are this frame's, so a shader reading the
     // previous offset reads something valid rather than nothing.
-    if (this.#previousFrameOffset === INVALID_OFFSET)
+    if (this._previousFrameOffset === INVALID_OFFSET)
     {
-      this.#previousFrameOffset = this.#currentFrameOffset;
+      this._previousFrameOffset = this._currentFrameOffset;
     }
   }
 
@@ -117,8 +117,8 @@ export class Tr2RingBufferOffsets
    */
   AdvanceFrame()
   {
-    this.#previousFrameOffset = this.#currentFrameOffset;
-    this.#currentFrameOffset = INVALID_OFFSET;
+    this._previousFrameOffset = this._currentFrameOffset;
+    this._currentFrameOffset = INVALID_OFFSET;
   }
 }
 

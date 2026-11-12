@@ -305,7 +305,7 @@ export class CjsPerFrameLayouts
     static SHADOW_FRUSTUM_COUNT = SHADOW_FRUSTUM_COUNT;
 
     /** Resolved layouts by struct name, built once. */
-    static #layouts = null;
+    static _layouts = null;
 
     /**
      * The layout for one struct name, or null when it is not catalogued. A
@@ -313,13 +313,13 @@ export class CjsPerFrameLayouts
      */
     static Get(struct)
     {
-        return CjsPerFrameLayouts.#Resolved().get(struct) ?? null;
+        return CjsPerFrameLayouts._Resolved().get(struct) ?? null;
     }
 
     /** Every catalogued struct name. */
     static Names()
     {
-        return [...CjsPerFrameLayouts.#Resolved().keys()];
+        return [...CjsPerFrameLayouts._Resolved().keys()];
     }
 
     /** A layout in the shape RawData consumes. */
@@ -351,14 +351,14 @@ export class CjsPerFrameLayouts
      * The resolved layout map, built once on first use and cached.
      * @returns {Map} struct name -> resolved layout
      */
-    static #Resolved()
+    static _Resolved()
     {
-        if (!CjsPerFrameLayouts.#layouts)
+        if (!CjsPerFrameLayouts._layouts)
         {
-            CjsPerFrameLayouts.#layouts = CjsConstantLayout.BuildLayouts(GROUPS, "CjsPerFrameLayouts");
+            CjsPerFrameLayouts._layouts = CjsConstantLayout.BuildLayouts(GROUPS, "CjsPerFrameLayouts");
         }
 
-        return CjsPerFrameLayouts.#layouts;
+        return CjsPerFrameLayouts._layouts;
     }
 
 }

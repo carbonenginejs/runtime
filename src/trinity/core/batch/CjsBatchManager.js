@@ -37,19 +37,19 @@ function fail(message)
  */
 export class CjsBatchManager
 {
-  #producers = new Map();
+  _producers = new Map();
 
-  #collectors = new Map();
+  _collectors = new Map();
 
-  #batchTypes = null;
+  _batchTypes = null;
 
-  #requiredTypes = null;
+  _requiredTypes = null;
 
-  #createAccumulator = null;
+  _createAccumulator = null;
 
-  #batchMap = null;
+  _batchMap = null;
 
-  #initialized = false;
+  _initialized = false;
 
   // batchTypes: TriBatchType values collected each frame. requiredTypes:
   // producer type names that MUST be registered before Initialize succeeds.
@@ -63,9 +63,9 @@ export class CjsBatchManager
    */
   constructor({ batchTypes = DEFAULT_BATCH_TYPES, requiredTypes = [], createAccumulator = null } = {})
   {
-    this.#batchTypes = Array.from(batchTypes);
-    this.#requiredTypes = Array.from(requiredTypes);
-    this.#createAccumulator = createAccumulator;
+    this._batchTypes = Array.from(batchTypes);
+    this._requiredTypes = Array.from(requiredTypes);
+    this._createAccumulator = createAccumulator;
   }
 
   // Registers producer hooks: [{ type, Build, Realize? }]. Build(renderable,
@@ -79,15 +79,15 @@ export class CjsBatchManager
    */
   Register(entries)
   {
-    if (this.#initialized) fail("Register must be called before Initialize");
+    if (this._initialized) fail("Register must be called before Initialize");
     if (!Array.isArray(entries)) fail("Register expects an array of { type, Build, Realize? } entries");
 
     for (const entry of entries)
     {
       const type = entry?.type;
       if (typeof type !== "string" || !type) fail("producer entry requires a non-empty string type");
-      if (this.#producers.has(type)) fail(`producer type "${type}" is already registered`);
-      this.#producers.set(type, { Build: entry.Build, Realize: entry.Realize ?? null });
+      if (this._producers.has(type)) fail(`producer type "${type}" is already registered`);
+      this._producers.set(type, { Build: entry.Build, Realize: entry.Realize ?? null });
     }
     return this;
   }
@@ -102,10 +102,10 @@ export class CjsBatchManager
    */
   RegisterCollector(name, collector)
   {
-    if (this.#initialized) fail("RegisterCollector must be called before Initialize");
+    if (this._initialized) fail("RegisterCollector must be called before Initialize");
     if (typeof name !== "string" || !name) fail("collector requires a non-empty string name");
-    if (this.#collectors.has(name)) fail(`collector "${name}" is already registered`);
-    this.#collectors.set(name, collector);
+    if (this._collectors.has(name)) fail(`collector "${name}" is already registered`);
+    this._collectors.set(name, collector);
     return this;
   }
 
@@ -118,23 +118,23 @@ export class CjsBatchManager
    */
   Initialize()
   {
-    if (this.#initialized) fail("Initialize was already called");
+    if (this._initialized) fail("Initialize was already called");
 
-    const missing = this.#requiredTypes.filter(type => !this.#producers.has(type));
+    const missing = this._requiredTypes.filter(type => !this._producers.has(type));
     if (missing.length)
     {
       fail(`required producer type(s) not registered: ${missing.join(", ")}`);
     }
 
-    this.#batchMap = new TriRenderBatchMap(this.#batchTypes, this.#createAccumulator);
-    this.#initialized = true;
+    this._batchMap = new TriRenderBatchMap(this._batchTypes, this._createAccumulator);
+    this._initialized = true;
     return this;
   }
 
   /** Whether Initialize has run and the batch map exists. */
   IsInitialized()
   {
-    return this.#initialized;
+    return this._initialized;
   }
 
   // The neutral per-frame CPU collection. Renderables are expected pre-culled
@@ -163,10 +163,10 @@ export class CjsBatchManager
    */
   Collect(renderables, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL, renderContext = null)
   {
-    if (!this.#initialized) fail("Collect requires Initialize");
+    if (!this._initialized) fail("Collect requires Initialize");
 
     const TRANSPARENT = TriBatchType.TRIBATCHTYPE_TRANSPARENT;
-    const batchMap = this.#batchMap;
+    const batchMap = this._batchMap;
     batchMap.Clear();
 
     // Bind the per-object-data store from the render context (built once from
@@ -175,19 +175,19 @@ export class CjsBatchManager
     const store = renderContext?.GetTriPoolAllocator();
     if (store) batchMap.SetTriPoolAllocator(store);
 
-    const collectsTransparent = this.#batchTypes.includes(TRANSPARENT);
+    const collectsTransparent = this._batchTypes.includes(TRANSPARENT);
     const transparents = [];
 
     if (renderables)
     {
       const poolAccumulator = batchMap.GetAccumulator(TriBatchType.TRIBATCHTYPE_OPAQUE)
-        ?? batchMap.GetAccumulator(this.#batchTypes[0]);
+        ?? batchMap.GetAccumulator(this._batchTypes[0]);
 
       for (const renderable of renderables)
       {
         if (!renderable) continue;
 
-        const producer = this.#ProducerFor(renderable);
+        const producer = this._ProducerFor(renderable);
         if (producer?.Realize) producer.Realize(renderable);
 
         const perObjectData = renderable.GetPerObjectData(poolAccumulator);
@@ -198,7 +198,7 @@ export class CjsBatchManager
         }
         else
         {
-          for (const batchType of this.#batchTypes)
+          for (const batchType of this._batchTypes)
           {
             if (batchType === TRANSPARENT) continue;
             renderable.GetBatches(
@@ -228,7 +228,7 @@ export class CjsBatchManager
       }
     }
 
-    for (const collector of this.#collectors.values())
+    for (const collector of this._collectors.values())
     {
       collector.Collect(renderables ?? [], batchMap, reason);
     }
@@ -240,19 +240,19 @@ export class CjsBatchManager
   /** The batch map created by Initialize, or null before it has run. */
   GetBatchMap()
   {
-    return this.#batchMap;
+    return this._batchMap;
   }
 
   /** The accumulator for one batch type, or null when that type is not collected. */
   GetAccumulator(batchType)
   {
-    return this.#batchMap?.GetAccumulator(batchType) ?? null;
+    return this._batchMap?.GetAccumulator(batchType) ?? null;
   }
 
   /** A copy of the collected batch-type list. */
   GetBatchTypes()
   {
-    return Array.from(this.#batchTypes);
+    return Array.from(this._batchTypes);
   }
 
   // A renderable DECLARES its producer type (a batchProducerType property); it
@@ -263,10 +263,10 @@ export class CjsBatchManager
    * Looks up the producer a renderable declares through its batchProducerType
    * property; null means the renderable's GetBatches path applies.
    */
-  #ProducerFor(renderable)
+  _ProducerFor(renderable)
   {
     const type = renderable.batchProducerType ?? null;
-    return type ? this.#producers.get(type) ?? null : null;
+    return type ? this._producers.get(type) ?? null : null;
   }
 
 }

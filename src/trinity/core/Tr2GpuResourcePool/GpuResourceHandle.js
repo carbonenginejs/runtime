@@ -66,7 +66,7 @@ import { fail } from "./Tr2GpuResourcePool.js";
  */
 export class GpuResourceHandle
 {
-  #record = null;
+  _record = null;
 
   /** Explicit copy of the native template value; Get borrows this handle’s value. */
   _resource = null;
@@ -76,7 +76,7 @@ export class GpuResourceHandle
    */
   constructor(record = null)
   {
-    this.#record = record;
+    this._record = record;
 
     if (record)
     {
@@ -98,13 +98,13 @@ export class GpuResourceHandle
   /** @returns {boolean} Whether this handle still holds a resource. */
   IsValid()
   {
-    return this.#record !== null;
+    return this._record !== null;
   }
 
   /** @returns {string} The resource's debug name. */
   GetName()
   {
-    return this.#record?.name ?? "";
+    return this._record?.name ?? "";
   }
 
   /**
@@ -117,13 +117,13 @@ export class GpuResourceHandle
    */
   Detach()
   {
-    if (!this.#record) fail("a handle freed twice");
+    if (!this._record) fail("a handle freed twice");
 
-    const record = this.#record;
+    const record = this._record;
     record.lockCount -= 1;
     this._resource.Destroy();
     this._resource = null;
-    this.#record = null;
+    this._record = null;
     if (!record.poolOwned && record.lockCount === 0) record.resource.Destroy();
 
     return true;

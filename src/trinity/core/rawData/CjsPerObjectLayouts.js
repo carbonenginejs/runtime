@@ -106,7 +106,7 @@ export class CjsPerObjectLayouts
     static Groups = GROUPS;
 
     /** Resolved layouts by struct name, built once. */
-    static #layouts = null;
+    static _layouts = null;
 
     /**
      * The layout for one struct name, or null when it is not catalogued. A
@@ -114,7 +114,7 @@ export class CjsPerObjectLayouts
      */
     static Get(struct)
     {
-        const layouts = CjsPerObjectLayouts.#Resolved();
+        const layouts = CjsPerObjectLayouts._Resolved();
 
         return layouts.get(struct) ?? null;
     }
@@ -122,7 +122,7 @@ export class CjsPerObjectLayouts
     /** Every catalogued struct name. */
     static Names()
     {
-        return [...CjsPerObjectLayouts.#Resolved().keys()];
+        return [...CjsPerObjectLayouts._Resolved().keys()];
     }
 
     /**
@@ -160,14 +160,14 @@ export class CjsPerObjectLayouts
      * The resolved layout map, built once on first use and cached.
      * @returns {Map} struct name -> resolved layout
      */
-    static #Resolved()
+    static _Resolved()
     {
-        if (!CjsPerObjectLayouts.#layouts)
+        if (!CjsPerObjectLayouts._layouts)
         {
-            CjsPerObjectLayouts.#layouts = CjsConstantLayout.BuildLayouts(GROUPS, "CjsPerObjectLayouts");
+            CjsPerObjectLayouts._layouts = CjsConstantLayout.BuildLayouts(GROUPS, "CjsPerObjectLayouts");
         }
 
-        return CjsPerObjectLayouts.#layouts;
+        return CjsPerObjectLayouts._layouts;
     }
 
 }
