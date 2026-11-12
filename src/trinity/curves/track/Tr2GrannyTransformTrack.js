@@ -38,13 +38,13 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   @type.vec3
   scale = vec3.create();
 
-  #positionCurve = null;
+  _positionCurve = null;
 
-  #orientationCurve = null;
+  _orientationCurve = null;
 
-  #scaleCurve = null;
+  _scaleCurve = null;
 
-  #scaleShearScratch = new Array(9).fill(0);
+  _scaleShearScratch = new Array(9).fill(0);
 
   /**
    * Checks whether transform track handles are ready.
@@ -54,7 +54,7 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 
   TracksReady()
   {
-    return this.#positionCurve !== null && this.#orientationCurve !== null && this.#scaleCurve !== null;
+    return this._positionCurve !== null && this._orientationCurve !== null && this._scaleCurve !== null;
   }
 
   /**
@@ -65,9 +65,9 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 
   ResetTracks()
   {
-    this.#positionCurve = null;
-    this.#orientationCurve = null;
-    this.#scaleCurve = null;
+    this._positionCurve = null;
+    this._orientationCurve = null;
+    this._scaleCurve = null;
   }
 
   /**
@@ -91,9 +91,9 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
       return;
     }
     this.duration = duration;
-    this.#positionCurve = positionCurve;
-    this.#orientationCurve = orientationCurve;
-    this.#scaleCurve = scaleCurve;
+    this._positionCurve = positionCurve;
+    this._orientationCurve = orientationCurve;
+    this._scaleCurve = scaleCurve;
     this.UpdateValue(0);
   }
 
@@ -108,28 +108,28 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 
   UpdateValueImpl(time)
   {
-    if (!this.#positionCurve || !this.#orientationCurve || !this.#scaleCurve)
+    if (!this._positionCurve || !this._orientationCurve || !this._scaleCurve)
     {
       return;
     }
-    if (this.#positionCurve.keyframed)
+    if (this._positionCurve.keyframed)
     {
-      CjsGrannyCurves.getKeyFrameAtT(this.translation, this.#positionCurve, time, this.duration);
+      CjsGrannyCurves.getKeyFrameAtT(this.translation, this._positionCurve, time, this.duration);
     }
     else
     {
-      CjsGrannyCurves.sampleGrannyCurve(this.translation, this.#positionCurve, time, this.cycle, this.duration);
+      CjsGrannyCurves.sampleGrannyCurve(this.translation, this._positionCurve, time, this.cycle, this.duration);
     }
-    if (this.#orientationCurve.keyframed)
+    if (this._orientationCurve.keyframed)
     {
-      CjsGrannyCurves.getKeyFrameAtT(this.rotation, this.#orientationCurve, time, this.duration);
+      CjsGrannyCurves.getKeyFrameAtT(this.rotation, this._orientationCurve, time, this.duration);
     }
     else
     {
-      CjsGrannyCurves.sampleGrannyCurve(this.rotation, this.#orientationCurve, time, this.cycle, this.duration);
+      CjsGrannyCurves.sampleGrannyCurve(this.rotation, this._orientationCurve, time, this.cycle, this.duration);
     }
     quat.normalize(this.rotation, this.rotation);
-    const scaleShear = CjsGrannyCurves.sampleGrannyCurve(this.#scaleShearScratch, this.#scaleCurve, time, this.cycle, this.duration);
+    const scaleShear = CjsGrannyCurves.sampleGrannyCurve(this._scaleShearScratch, this._scaleCurve, time, this.cycle, this.duration);
     this.scale[0] = Math.hypot(scaleShear[0], scaleShear[1], scaleShear[2]);
     this.scale[1] = Math.hypot(scaleShear[3], scaleShear[4], scaleShear[5]);
     this.scale[2] = Math.hypot(scaleShear[6], scaleShear[7], scaleShear[8]);

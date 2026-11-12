@@ -23,9 +23,9 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
   @type.float32
   value = 0;
 
-  #valueCurve = null;
+  _valueCurve = null;
 
-  #valueScratch = [0];
+  _valueScratch = [0];
 
   /**
    * Checks whether vector track handles are ready.
@@ -35,7 +35,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 
   TracksReady()
   {
-    return this.#valueCurve !== null;
+    return this._valueCurve !== null;
   }
 
   /**
@@ -46,7 +46,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 
   ResetTracks()
   {
-    this.#valueCurve = null;
+    this._valueCurve = null;
   }
 
   /**
@@ -68,7 +68,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
       return;
     }
     this.duration = duration;
-    this.#valueCurve = valueCurve;
+    this._valueCurve = valueCurve;
     this.UpdateValue(0);
   }
 
@@ -82,18 +82,18 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 
   UpdateValueImpl(time)
   {
-    if (!this.#valueCurve)
+    if (!this._valueCurve)
     {
       return;
     }
-    if (this.#valueCurve.keyframed)
+    if (this._valueCurve.keyframed)
     {
-      CjsGrannyCurves.getKeyFrameAtT(this.#valueScratch, this.#valueCurve, time, this.duration);
+      CjsGrannyCurves.getKeyFrameAtT(this._valueScratch, this._valueCurve, time, this.duration);
     }
     else
     {
-      CjsGrannyCurves.sampleGrannyCurve(this.#valueScratch, this.#valueCurve, time, this.cycle, this.duration);
+      CjsGrannyCurves.sampleGrannyCurve(this._valueScratch, this._valueCurve, time, this.cycle, this.duration);
     }
-    this.value = this.#valueScratch[0];
+    this.value = this._valueScratch[0];
   }
 }

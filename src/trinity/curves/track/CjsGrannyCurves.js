@@ -133,21 +133,21 @@ export class CjsGrannyCurves
     }
     if (options.keyframed)
     {
-      return CjsGrannyCurves.#copyControl(out, curve, CjsGrannyCurves.#sampleKeyframedCurve(count, time, duration));
+      return CjsGrannyCurves._copyControl(out, curve, CjsGrannyCurves._sampleKeyframedCurve(count, time, duration));
     }
-    const knot = CjsGrannyCurves.#findKnotIndex(knots, time);
+    const knot = CjsGrannyCurves._findKnotIndex(knots, time);
     if (curve.degree <= 0 || count === 1 || controlCount === 1)
     {
       const index = time >= knots[count - 1]
         ? count - 1
         : Math.max(0, knot - 1);
-      return CjsGrannyCurves.#copyControl(out, curve, Math.min(index, controlCount - 1));
+      return CjsGrannyCurves._copyControl(out, curve, Math.min(index, controlCount - 1));
     }
     if (curve.degree === 1)
     {
-      return CjsGrannyCurves.#sampleLinearCurve(out, curve, time, cycle, duration || knots[count - 1], knot);
+      return CjsGrannyCurves._sampleLinearCurve(out, curve, time, cycle, duration || knots[count - 1], knot);
     }
-    return CjsGrannyCurves.#sampleQuadraticCurve(out, curve, time, cycle, duration || knots[count - 1], knot);
+    return CjsGrannyCurves._sampleQuadraticCurve(out, curve, time, cycle, duration || knots[count - 1], knot);
   }
 
   /**
@@ -157,7 +157,7 @@ export class CjsGrannyCurves
    */
   static getTrackSource(value)
   {
-    return CjsGrannyCurves.#findTrackSource(value, 0);
+    return CjsGrannyCurves._findTrackSource(value, 0);
   }
 
   /**
@@ -166,7 +166,7 @@ export class CjsGrannyCurves
    */
   static getAnimations(source)
   {
-    return CjsGrannyCurves.#getArray(source, "animations", "Animations");
+    return CjsGrannyCurves._getArray(source, "animations", "Animations");
   }
 
   /**
@@ -175,7 +175,7 @@ export class CjsGrannyCurves
    */
   static getTrackGroups(animation)
   {
-    return CjsGrannyCurves.#getArray(animation, "trackGroups", "TrackGroups");
+    return CjsGrannyCurves._getArray(animation, "trackGroups", "TrackGroups");
   }
 
   /**
@@ -202,14 +202,14 @@ export class CjsGrannyCurves
    */
   static findTransformTrack(group, name)
   {
-    const trackGroup = CjsGrannyCurves.#asTrackGroup(group);
+    const trackGroup = CjsGrannyCurves._asTrackGroup(group);
     if (!trackGroup)
     {
       return null;
     }
-    const tracks = CjsGrannyCurves.#getArray(trackGroup, "transformTracks", "TransformTracks");
-    const track = tracks.find(item => CjsGrannyCurves.#getName(item) === name);
-    return track ? CjsGrannyCurves.#normalizeTransformTrack(track) : null;
+    const tracks = CjsGrannyCurves._getArray(trackGroup, "transformTracks", "TransformTracks");
+    const track = tracks.find(item => CjsGrannyCurves._getName(item) === name);
+    return track ? CjsGrannyCurves._normalizeTransformTrack(track) : null;
   }
 
   /**
@@ -218,26 +218,26 @@ export class CjsGrannyCurves
    */
   static findVectorTrack(group, name)
   {
-    const trackGroup = CjsGrannyCurves.#asTrackGroup(group);
+    const trackGroup = CjsGrannyCurves._asTrackGroup(group);
     if (!trackGroup)
     {
       return null;
     }
-    const tracks = CjsGrannyCurves.#getArray(trackGroup, "vectorTracks", "VectorTracks");
-    const track = tracks.find(item => CjsGrannyCurves.#getName(item) === name);
-    return track ? CjsGrannyCurves.#normalizeVectorTrack(track) : null;
+    const tracks = CjsGrannyCurves._getArray(trackGroup, "vectorTracks", "VectorTracks");
+    const track = tracks.find(item => CjsGrannyCurves._getName(item) === name);
+    return track ? CjsGrannyCurves._normalizeVectorTrack(track) : null;
   }
 
   /** Finds a named text (event) track in a track group, or null. */
   static findTextTrack(group, name)
   {
-    const trackGroup = CjsGrannyCurves.#asTrackGroup(group);
+    const trackGroup = CjsGrannyCurves._asTrackGroup(group);
     if (!trackGroup)
     {
       return null;
     }
-    const textTracks = CjsGrannyCurves.#getArray(trackGroup, "textTracks", "TextTracks");
-    return textTracks.find(track => CjsGrannyCurves.#getName(track) === name) ?? null;
+    const textTracks = CjsGrannyCurves._getArray(trackGroup, "textTracks", "TextTracks");
+    return textTracks.find(track => CjsGrannyCurves._getName(track) === name) ?? null;
   }
 
   /**
@@ -246,11 +246,11 @@ export class CjsGrannyCurves
    */
   static getTextTrackEntries(track)
   {
-    const entries = CjsGrannyCurves.#getArray(track, "entries", "Entries");
+    const entries = CjsGrannyCurves._getArray(track, "entries", "Entries");
     const out = [];
     for (const entry of entries)
     {
-      const time = CjsGrannyCurves.#getEntryTime(entry);
+      const time = CjsGrannyCurves._getEntryTime(entry);
       if (Number.isFinite(time))
       {
         out.push({ time, text: String(entry.text ?? entry.Text ?? "") });
@@ -271,8 +271,8 @@ export class CjsGrannyCurves
     {
       return null;
     }
-    const normalized = CjsGrannyCurves.#normalizeCurve(curve);
-    const decodedDirect = CjsGrannyCurves.#getDecodedCurve(normalized, dimension);
+    const normalized = CjsGrannyCurves._normalizeCurve(curve);
+    const decodedDirect = CjsGrannyCurves._getDecodedCurve(normalized, dimension);
     if (decodedDirect)
     {
       return decodedDirect;
@@ -389,11 +389,11 @@ export class CjsGrannyCurves
     {
       throw new RangeError(`GetKeyFrameAtT: frame ${frame} out of range, frame count is ${numFrames}.`);
     }
-    return CjsGrannyCurves.#copyControl(out, curve, frame);
+    return CjsGrannyCurves._copyControl(out, curve, frame);
   }
 
   /** Narrows a value to a non-null object, otherwise null. */
-  static #asRecord(value)
+  static _asRecord(value)
   {
     return value !== null && typeof value === "object" ? value : null;
   }
@@ -402,16 +402,16 @@ export class CjsGrannyCurves
    * Accepts a value as a Granny source only if it carries an animations array
    * under either casing.
    */
-  static #asTrackSource(value)
+  static _asTrackSource(value)
   {
-    const record = CjsGrannyCurves.#asRecord(value);
-    return CjsGrannyCurves.#hasArrayValue(record, "animations", "Animations") ? record : null;
+    const record = CjsGrannyCurves._asRecord(value);
+    return CjsGrannyCurves._hasArrayValue(record, "animations", "Animations") ? record : null;
   }
 
   /** Narrows a value to a non-null object usable as a track group. */
-  static #asTrackGroup(value)
+  static _asTrackGroup(value)
   {
-    return CjsGrannyCurves.#asRecord(value);
+    return CjsGrannyCurves._asRecord(value);
   }
 
   /**
@@ -419,21 +419,21 @@ export class CjsGrannyCurves
    * animations array, stopping past depth 8 to bound cyclic or deeply nested
    * loader results.
    */
-  static #findTrackSource(value, depth)
+  static _findTrackSource(value, depth)
   {
-    const direct = CjsGrannyCurves.#asTrackSource(value);
+    const direct = CjsGrannyCurves._asTrackSource(value);
     if (direct)
     {
       return direct;
     }
-    const record = CjsGrannyCurves.#asRecord(value);
+    const record = CjsGrannyCurves._asRecord(value);
     if (!record || depth > 8)
     {
       return null;
     }
     for (const key of ["json", "Json", "data", "Data", "value", "Value", "source", "Source", "fileInfo", "FileInfo"])
     {
-      const nested = CjsGrannyCurves.#findTrackSource(record[key], depth + 1);
+      const nested = CjsGrannyCurves._findTrackSource(record[key], depth + 1);
       if (nested)
       {
         return nested;
@@ -446,7 +446,7 @@ export class CjsGrannyCurves
    * Reads an array property under either the camel-case or Pascal-case key,
    * returning an empty array when neither holds one.
    */
-  static #getArray(value, lowerKey, upperKey)
+  static _getArray(value, lowerKey, upperKey)
   {
     const lower = value[lowerKey];
     if (Array.isArray(lower))
@@ -458,13 +458,13 @@ export class CjsGrannyCurves
   }
 
   /** Checks whether either the camel-case or Pascal-case key holds an array. */
-  static #hasArrayValue(value, lowerKey, upperKey)
+  static _hasArrayValue(value, lowerKey, upperKey)
   {
     return Array.isArray(value?.[lowerKey]) || Array.isArray(value?.[upperKey]);
   }
 
   /** Reads a name under either the camel-case or Pascal-case key. */
-  static #getName(value)
+  static _getName(value)
   {
     return value.name ?? value.Name;
   }
@@ -473,7 +473,7 @@ export class CjsGrannyCurves
    * Reads a text-track entry's time from timeStamp, TimeStamp, timestamp or
    * time, returning NaN when none is numeric.
    */
-  static #getEntryTime(entry)
+  static _getEntryTime(entry)
   {
     const value = entry.timeStamp ?? entry.TimeStamp ?? entry.timestamp ?? entry.time;
     return typeof value === "number" ? value : Number.NaN;
@@ -483,11 +483,11 @@ export class CjsGrannyCurves
    * Copies a transform track with its name and its orientation, position and
    * scaleShear curves exposed under camel-case keys.
    */
-  static #normalizeTransformTrack(track)
+  static _normalizeTransformTrack(track)
   {
     return {
       ...track,
-      name: CjsGrannyCurves.#getName(track),
+      name: CjsGrannyCurves._getName(track),
       orientation: track.orientation ?? track.Orientation,
       position: track.position ?? track.Position,
       scaleShear: track.scaleShear ?? track.ScaleShear
@@ -498,11 +498,11 @@ export class CjsGrannyCurves
    * Copies a vector track with its name and valueCurve exposed under camel-case
    * keys.
    */
-  static #normalizeVectorTrack(track)
+  static _normalizeVectorTrack(track)
   {
     return {
       ...track,
-      name: CjsGrannyCurves.#getName(track),
+      name: CjsGrannyCurves._getName(track),
       valueCurve: track.valueCurve ?? track.ValueCurve
     };
   }
@@ -512,12 +512,12 @@ export class CjsGrannyCurves
    * the format decoders can read one casing regardless of how the source was
    * produced.
    */
-  static #normalizeCurve(curve)
+  static _normalizeCurve(curve)
   {
     const normalized = { ...curve };
     for (const [key, value] of Object.entries(curve))
     {
-      const lowerKey = CjsGrannyCurves.#lowerFirst(key);
+      const lowerKey = CjsGrannyCurves._lowerFirst(key);
       if (!(lowerKey in normalized))
       {
         normalized[lowerKey] = value;
@@ -537,7 +537,7 @@ export class CjsGrannyCurves
    * rejecting it when the dimension does not match the track or the control
    * count is not a whole number of samples.
    */
-  static #getDecodedCurve(curve, dimension)
+  static _getDecodedCurve(curve, dimension)
   {
     const knots = curve.knots;
     const controls = curve.controls;
@@ -557,13 +557,13 @@ export class CjsGrannyCurves
   }
 
   /** Lower-cases the first character of a key name. */
-  static #lowerFirst(value)
+  static _lowerFirst(value)
   {
     return value ? value[0].toLowerCase() + value.slice(1) : value;
   }
 
   /** Copies one whole control sample into the caller-owned `out` array. */
-  static #copyControl(out, curve, index)
+  static _copyControl(out, curve, index)
   {
     const offset = index * curve.dimension;
     for (let i = 0; i < curve.dimension; i++)
@@ -577,7 +577,7 @@ export class CjsGrannyCurves
    * Binary-searches the knot array for the index of the first knot strictly
    * greater than the time.
    */
-  static #findKnotIndex(knots, time)
+  static _findKnotIndex(knots, time)
   {
     let low = 0;
     let high = knots.length - 1;
@@ -607,7 +607,7 @@ export class CjsGrannyCurves
    * Unverified: the Granny SDK is not in Carbon's source, so whether Granny
    * clamps here cannot be checked from source.
    */
-  static #sampleKeyframedCurve(count, time, duration)
+  static _sampleKeyframedCurve(count, time, duration)
   {
     const frame = duration > 0 ? Math.trunc(count * time / duration) : 0;
     return Math.max(0, Math.min(count - 1, frame));
@@ -618,7 +618,7 @@ export class CjsGrannyCurves
    * around the end of the knot array and shifting the times by one duration when
    * cycling.
    */
-  static #sampleLinearCurve(out, curve, time, cycle, duration, knot)
+  static _sampleLinearCurve(out, curve, time, cycle, duration, knot)
   {
     const knots = curve.knots;
     const count = knots.length;
@@ -650,7 +650,7 @@ export class CjsGrannyCurves
    * found knot, shifting out-of-order times by one duration so a cycling curve
    * stays monotonic.
    */
-  static #sampleQuadraticCurve(out, curve, time, cycle, duration, knot)
+  static _sampleQuadraticCurve(out, curve, time, cycle, duration, knot)
   {
     const knots = curve.knots;
     const count = knots.length;

@@ -23,11 +23,11 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
   @type.object.ref("IBlueEventListener")
   eventListener = null;
 
-  #entries = null;
+  _entries = null;
 
-  #previousTime = 0;
+  _previousTime = 0;
 
-  #previousIndex = 0;
+  _previousIndex = 0;
 
   /**
    * Checks whether event track handles are ready.
@@ -37,7 +37,7 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 
   TracksReady()
   {
-    return this.#entries !== null;
+    return this._entries !== null;
   }
 
   /**
@@ -48,9 +48,9 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 
   ResetTracks()
   {
-    this.#entries = null;
-    this.#previousTime = 0;
-    this.#previousIndex = 0;
+    this._entries = null;
+    this._previousTime = 0;
+    this._previousIndex = 0;
   }
 
   /**
@@ -67,9 +67,9 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
       return;
     }
     this.duration = duration;
-    this.#entries = CjsGrannyCurves.getTextTrackEntries(track);
-    this.#previousTime = 0;
-    this.#previousIndex = 0;
+    this._entries = CjsGrannyCurves.getTextTrackEntries(track);
+    this._previousTime = 0;
+    this._previousIndex = 0;
   }
 
   /**
@@ -80,20 +80,20 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 
   UpdateValueImpl(time)
   {
-    const entries = this.#entries;
+    const entries = this._entries;
     if (!entries)
     {
       return;
     }
-    if (time < this.#previousTime)
+    if (time < this._previousTime)
     {
-      this.#previousTime = 0;
-      this.#previousIndex = 0;
+      this._previousTime = 0;
+      this._previousIndex = 0;
     }
-    while (this.#previousIndex < entries.length)
+    while (this._previousIndex < entries.length)
     {
-      const entry = entries[this.#previousIndex];
-      if (entry.time >= this.#previousTime && entry.time <= time)
+      const entry = entries[this._previousIndex];
+      if (entry.time >= this._previousTime && entry.time <= time)
       {
         this.eventListener?.HandleEvent(entry.text);
       }
@@ -101,8 +101,8 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
       {
         break;
       }
-      this.#previousIndex++;
+      this._previousIndex++;
     }
-    this.#previousTime = time;
+    this._previousTime = time;
   }
 }
