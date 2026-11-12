@@ -387,10 +387,10 @@ export class Tr2EffectStateManager
   // instance fields here, in Carbon's own shape.
 
   /** m_currentValues - the redundancy cache (.h:193). */
-  #currentValues = NewCurrentValues();
+  _currentValues = NewCurrentValues();
 
   /** m_isManagedRendering (.h:195). */
-  #isManagedRendering = false;
+  _isManagedRendering = false;
 
   /**
    * m_renderStateOverrides (.h:209), as FLAGS rather than as value tables.
@@ -427,7 +427,7 @@ export class Tr2EffectStateManager
    * particles, the debug renderer) draw as they are. Carbon's override also
    * reaches them, through the fill mode.
    */
-  #overrides = { invertedDepthTest: false, invertedCullMode: false, wireframe: false };
+  _overrides = { invertedDepthTest: false, invertedCullMode: false, wireframe: false };
 
   /** m_renderTargetWidth (int) */
   @type.int32
@@ -971,7 +971,7 @@ export class Tr2EffectStateManager
   // takes the already-clipped device viewport.
 
   /** The render context this manager applies state to (Carbon's m_renderContext). */
-  #renderContext = null;
+  _renderContext = null;
 
   /**
    * Binds the render context this manager applies state through.
@@ -985,7 +985,7 @@ export class Tr2EffectStateManager
    */
   SetRenderContext(renderContext)
   {
-    this.#renderContext = renderContext;
+    this._renderContext = renderContext;
 
     return this;
   }
@@ -1007,8 +1007,8 @@ export class Tr2EffectStateManager
     this.viewportSizeVar = Tr2VariableStore.globalStore().RegisterVariableInternal(
       "ViewportSize", TriVariableContentType.TRIVARIABLE_FLOAT4, [ 0, 0, 1, 0 ]);
 
-    this.#currentValues = NewCurrentValues();
-    this.#isManagedRendering = false;
+    this._currentValues = NewCurrentValues();
+    this._isManagedRendering = false;
   }
 
   /**
@@ -1039,25 +1039,25 @@ export class Tr2EffectStateManager
    */
   ReleaseRealizedObjects()
   {
-    if (!this.#renderContext) return;
+    if (!this._renderContext) return;
 
     // s_shaders (cpp:998-1002).
-    for (const shader of (shaderObjects.get(this.#renderContext) ?? new Map()).values()) shader.Destroy();
+    for (const shader of (shaderObjects.get(this._renderContext) ?? new Map()).values()) shader.Destroy();
 
     // s_shaderPrograms (cpp:1003-1007). A cached null is a remembered refusal
     // and owns nothing.
-    for (const program of (shaderProgramObjects.get(this.#renderContext) ?? new Map()).values())
+    for (const program of (shaderProgramObjects.get(this._renderContext) ?? new Map()).values())
     {
       if (program) program.Destroy();
     }
 
-    for (const layout of (vertexLayoutObjects.get(this.#renderContext) ?? new Map()).values()) layout.Destroy();
+    for (const layout of (vertexLayoutObjects.get(this._renderContext) ?? new Map()).values()) layout.Destroy();
 
-    realizedShaderMaps.delete(shaderObjects.get(this.#renderContext));
-    realizedShaderProgramMaps.delete(shaderProgramObjects.get(this.#renderContext));
-    shaderObjects.delete(this.#renderContext);
-    shaderProgramObjects.delete(this.#renderContext);
-    vertexLayoutObjects.delete(this.#renderContext);
+    realizedShaderMaps.delete(shaderObjects.get(this._renderContext));
+    realizedShaderProgramMaps.delete(shaderProgramObjects.get(this._renderContext));
+    shaderObjects.delete(this._renderContext);
+    shaderProgramObjects.delete(this._renderContext);
+    vertexLayoutObjects.delete(this._renderContext);
   }
 
   /**
@@ -1080,13 +1080,13 @@ export class Tr2EffectStateManager
     if ((s & TriStorageFlags.TRISTORAGE_ALL) !== TriStorageFlags.TRISTORAGE_ALL) return;
 
     this._ReleaseBufferBindings();
-    this.#currentValues = NewCurrentValues();
+    this._currentValues = NewCurrentValues();
     Tr2EffectStateManager.releaseDeviceResources();
     this.ReleaseRealizedObjects();
 
     // m_perObjectConstantBuffers[i] = Tr2ConstantBufferAL() (cpp:1018-1021): the
     // by-value handles are reset, not removed.
-    for (const buffer of this.#renderContext._perObjectConstantBuffers) buffer.Destroy();
+    for (const buffer of this._renderContext._perObjectConstantBuffers) buffer.Destroy();
   }
 
   /**
@@ -1110,9 +1110,9 @@ export class Tr2EffectStateManager
     // was being dropped here. The WebGPU backend already accepts one, so a
     // caller rendering into a cascade or a cube face was silently writing
     // slice 0 - a correct-looking image in the wrong place.
-    const bound = !Failed(this.#renderContext.SetRenderTarget(index, renderTarget, slice));
+    const bound = !Failed(this._renderContext.SetRenderTarget(index, renderTarget, slice));
 
-    if (index === 0 && updateViewport) this.#RefreshRenderTargetViewport();
+    if (index === 0 && updateViewport) this._RefreshRenderTargetViewport();
 
     return bound;
   }
@@ -1127,7 +1127,7 @@ export class Tr2EffectStateManager
    */
   PushRenderTarget__Current(slot = 0)
   {
-    this.#renderContext.PushRenderTarget(slot);
+    this._renderContext.PushRenderTarget(slot);
     return true;
   }
 
@@ -1144,7 +1144,7 @@ export class Tr2EffectStateManager
    */
   PushRenderTarget__TextureAL(renderTarget, slot = 0)
   {
-    this.#renderContext.PushRenderTarget(slot);
+    this._renderContext.PushRenderTarget(slot);
     this.SetRenderTarget(slot, renderTarget);
     return true;
   }
@@ -1173,9 +1173,9 @@ export class Tr2EffectStateManager
    */
   PopRenderTarget(slot = 0)
   {
-    const popped = !Failed(this.#renderContext.PopRenderTarget(slot));
+    const popped = !Failed(this._renderContext.PopRenderTarget(slot));
 
-    if (slot === 0) this.#RefreshRenderTargetViewport();
+    if (slot === 0) this._RefreshRenderTargetViewport();
 
     return popped;
   }
@@ -1189,7 +1189,7 @@ export class Tr2EffectStateManager
    */
   SetDepthStencilBuffer(depthStencil)
   {
-    return !Failed(this.#renderContext.SetDepthStencil(depthStencil));
+    return !Failed(this._renderContext.SetDepthStencil(depthStencil));
   }
 
   /**
@@ -1201,7 +1201,7 @@ export class Tr2EffectStateManager
    */
   PushDepthStencilBuffer__Current()
   {
-    this.#renderContext.PushDepthStencil();
+    this._renderContext.PushDepthStencil();
     return true;
   }
 
@@ -1216,7 +1216,7 @@ export class Tr2EffectStateManager
    */
   PushDepthStencilBuffer__TextureAL(depthStencil)
   {
-    this.#renderContext.PushDepthStencil();
+    this._renderContext.PushDepthStencil();
     this.SetDepthStencilBuffer(depthStencil);
     return true;
   }
@@ -1244,13 +1244,13 @@ export class Tr2EffectStateManager
    */
   PopDepthStencilBuffer()
   {
-    return !Failed(this.#renderContext.PopDepthStencil());
+    return !Failed(this._renderContext.PopDepthStencil());
   }
 
   /** Reads the bound target's extent and resets the viewport to it. */
-  #RefreshRenderTargetViewport()
+  _RefreshRenderTargetViewport()
   {
-    const size = this.#renderContext.GetRenderTargetSize(0);
+    const size = this._renderContext.GetRenderTargetSize(0);
 
     if (Failed(size.result)) return;
 
@@ -1371,7 +1371,7 @@ export class Tr2EffectStateManager
       this.renderTargetHeight
     ]);
 
-    if (this.#renderContext) this.#renderContext.SetViewport(this.viewportOnDevice);
+    if (this._renderContext) this._renderContext.SetViewport(this.viewportOnDevice);
   }
 
   /**
@@ -1449,13 +1449,13 @@ export class Tr2EffectStateManager
    */
   _ReleaseBufferBindings()
   {
-    for (const stream of this.#currentValues.streams)
+    for (const stream of this._currentValues.streams)
     {
       if (stream.vertexBuffer) stream.vertexBuffer.Destroy();
       stream.vertexBuffer = null;
     }
-    if (this.#currentValues.indexBuffer) this.#currentValues.indexBuffer.Destroy();
-    this.#currentValues.indexBuffer = null;
+    if (this._currentValues.indexBuffer) this._currentValues.indexBuffer.Destroy();
+    this._currentValues.indexBuffer = null;
   }
 
   /**
@@ -1467,7 +1467,7 @@ export class Tr2EffectStateManager
   OnDestruct()
   {
     this._ReleaseBufferBindings();
-    this.#isManagedRendering = false;
+    this._isManagedRendering = false;
   }
 
   /**
@@ -1492,13 +1492,13 @@ export class Tr2EffectStateManager
   BeginManagedRendering(cullMode = CullMode.CULLMODE_CW)
   {
     this._ReleaseBufferBindings();
-    this.#currentValues = NewCurrentValues();
+    this._currentValues = NewCurrentValues();
 
     // m_renderContext.SetShaderProgram( Tr2ShaderProgramAL() ) (cpp:674). A
     // manager not yet bound to a context reaches nothing, as every apply does.
-    if (this.#renderContext) this.#renderContext.SetShaderProgram(new Tr2ShaderProgramAL());
+    if (this._renderContext) this._renderContext.SetShaderProgram(new Tr2ShaderProgramAL());
 
-    this.#isManagedRendering = true;
+    this._isManagedRendering = true;
 
     if (cullMode === CullMode.CULLMODE_CW) this.SetInvertedCullMode(false);
     else if (cullMode === CullMode.CULLMODE_CCW) this.SetInvertedCullMode(true);
@@ -1512,7 +1512,7 @@ export class Tr2EffectStateManager
    */
   EndManagedRendering()
   {
-    this.#isManagedRendering = false;
+    this._isManagedRendering = false;
   }
 
   /**
@@ -1522,7 +1522,7 @@ export class Tr2EffectStateManager
    */
   IsManagedRendering()
   {
-    return this.#isManagedRendering;
+    return this._isManagedRendering;
   }
 
   /**
@@ -1539,7 +1539,7 @@ export class Tr2EffectStateManager
    */
   SetInvertedDepthTest(inverted)
   {
-    this.#overrides.invertedDepthTest = !!inverted;
+    this._overrides.invertedDepthTest = !!inverted;
   }
 
   /**
@@ -1548,7 +1548,7 @@ export class Tr2EffectStateManager
    */
   IsDepthTestInverted()
   {
-    return this.#overrides.invertedDepthTest;
+    return this._overrides.invertedDepthTest;
   }
 
   /**
@@ -1561,7 +1561,7 @@ export class Tr2EffectStateManager
    */
   SetInvertedCullMode(inverted)
   {
-    this.#overrides.invertedCullMode = !!inverted;
+    this._overrides.invertedCullMode = !!inverted;
   }
 
   /**
@@ -1570,7 +1570,7 @@ export class Tr2EffectStateManager
    */
   IsCullModeInverted()
   {
-    return this.#overrides.invertedCullMode;
+    return this._overrides.invertedCullMode;
   }
 
   /**
@@ -1598,9 +1598,9 @@ export class Tr2EffectStateManager
    */
   SetWireframeRendering(enabled)
   {
-    this.#overrides.wireframe = !!enabled;
+    this._overrides.wireframe = !!enabled;
 
-    return this.#overrides.wireframe;
+    return this._overrides.wireframe;
   }
 
   /**
@@ -1608,7 +1608,7 @@ export class Tr2EffectStateManager
    */
   IsWireframeRendering()
   {
-    return this.#overrides.wireframe;
+    return this._overrides.wireframe;
   }
 
   /**
@@ -1632,7 +1632,7 @@ export class Tr2EffectStateManager
    */
   GetRenderStateOverrides()
   {
-    return { ...this.#overrides };
+    return { ...this._overrides };
   }
 
   /**
@@ -1665,8 +1665,8 @@ export class Tr2EffectStateManager
 
     if (carriesStates) this.DoApplyRenderStates(renderingMode);
 
-    this.#currentValues.renderingMode = renderingMode;
-    this.#currentValues.renderStateSetup = Tr2EffectStateManager.Unknown;
+    this._currentValues.renderingMode = renderingMode;
+    this._currentValues.renderStateSetup = Tr2EffectStateManager.Unknown;
 
     // Carbon returns void; the boolean is kept because callers already take it,
     // and it now reports what was applied rather than what could have been.
@@ -1688,19 +1688,19 @@ export class Tr2EffectStateManager
    */
   ApplyRenderStates(handle)
   {
-    if (this.#isManagedRendering && handle === this.#currentValues.renderStateSetup) return false;
+    if (this._isManagedRendering && handle === this._currentValues.renderStateSetup) return false;
 
     if (handle < Tr2EffectStateManager.getRenderStateSetupCount())
     {
-      this.ApplyStandardStates(this.#currentValues.renderingMode);
+      this.ApplyStandardStates(this._currentValues.renderingMode);
       this.DoApplyRenderStates(handle);
 
-      this.#currentValues.renderStateSetup = handle;
+      this._currentValues.renderStateSetup = handle;
 
       return true;
     }
 
-    this.#currentValues.renderStateSetup = handle;
+    this._currentValues.renderStateSetup = handle;
 
     return false;
   }
@@ -1740,9 +1740,9 @@ export class Tr2EffectStateManager
   {
     const setup = Tr2EffectStateManager.getRenderStateSetup(handle);
 
-    if (!setup || !this.#renderContext) return false;
+    if (!setup || !this._renderContext) return false;
 
-    return !Failed(this.#renderContext.SetRenderStates(this.#OverMode(handle, setup), this.GetRenderStateOverrides()));
+    return !Failed(this._renderContext.SetRenderStates(this._OverMode(handle, setup), this.GetRenderStateOverrides()));
   }
 
   /**
@@ -1773,9 +1773,9 @@ export class Tr2EffectStateManager
    * @param {object} setup The interpreted setup for that handle.
    * @returns {object} The setup to hand the backend.
    */
-  #OverMode(handle, setup)
+  _OverMode(handle, setup)
   {
-    const mode = this.#currentValues.renderingMode;
+    const mode = this._currentValues.renderingMode;
     const carriesStates = mode > RenderingMode.RM_ANY && mode < RenderingMode.RM_COUNT;
 
     // Only a mode applying ITS OWN block is left alone. An earlier version
@@ -1786,19 +1786,19 @@ export class Tr2EffectStateManager
     if (!carriesStates || handle === mode) return setup;
 
     const key = `${mode}:${handle}`;
-    const cached = this.#overMode.get(key);
+    const cached = this._overMode.get(key);
 
     if (cached) return cached;
 
     const merged = Tr2RenderStateSetup.Overlay(Tr2EffectStateManager.getRenderStateSetup(mode), setup);
 
-    this.#overMode.set(key, merged);
+    this._overMode.set(key, merged);
 
     return merged;
   }
 
   /** Merged mode-plus-pass setups, keyed by both handles. */
-  #overMode = new Map();
+  _overMode = new Map();
 
   /**
    * Whether this shader program needs binding.
@@ -1813,11 +1813,11 @@ export class Tr2EffectStateManager
    */
   ApplyShaderProgram(handle)
   {
-    if (this.#isManagedRendering)
+    if (this._isManagedRendering)
     {
-      if (handle === this.#currentValues.shaderProgram) return false;
+      if (handle === this._currentValues.shaderProgram) return false;
 
-      this.#currentValues.shaderProgram = handle;
+      this._currentValues.shaderProgram = handle;
     }
 
     // IT BINDS. This recorded the handle and reached no backend until
@@ -1825,13 +1825,13 @@ export class Tr2EffectStateManager
     // program, and an out-of-range one sets a DEFAULT-CONSTRUCTED program -
     // which unbinds. Both halves are here, because the else branch is what
     // stops a span inheriting the previous span's program.
-    if (!this.#renderContext) return true;
+    if (!this._renderContext) return true;
 
     const program = handle >= 0 && handle < shaderPrograms.length
       ? this.GetShaderProgram(handle)
       : null;
 
-    this.#renderContext.SetShaderProgram(program ?? new Tr2ShaderProgramAL());
+    this._renderContext.SetShaderProgram(program ?? new Tr2ShaderProgramAL());
 
     return true;
   }
@@ -1857,10 +1857,10 @@ export class Tr2EffectStateManager
    */
   GetShaderProgram(handle)
   {
-    if (!this.#renderContext) return null;
+    if (!this._renderContext) return null;
     if (!(handle >= 0 && handle < shaderPrograms.length)) return null;
 
-    const realized = shaderProgramObjects.get(this.#renderContext) ?? new Map();
+    const realized = shaderProgramObjects.get(this._renderContext) ?? new Map();
     const cached = realized.get(handle);
 
     // A cached NULL is a remembered refusal. Without this a program whose stage
@@ -1873,10 +1873,10 @@ export class Tr2EffectStateManager
     // that links it, linked into a `Tr2ShaderProgramAL` value; a refused
     // Create leaves no program (`CR_RETURN_VAL( ..., UNKNOWN )`). A refused
     // stage is not kept, as Carbon pushes no row for it (cpp:502-510).
-    const realizedShaders = shaderObjects.get(this.#renderContext) ?? new Map();
+    const realizedShaders = shaderObjects.get(this._renderContext) ?? new Map();
     const stages = [];
 
-    shaderObjects.set(this.#renderContext, realizedShaders);
+    shaderObjects.set(this._renderContext, realizedShaders);
     realizedShaderMaps.add(realizedShaders);
 
     for (const shaderHandle of shaderPrograms[handle].shaderHandles)
@@ -1888,7 +1888,7 @@ export class Tr2EffectStateManager
         const row = shaders[shaderHandle];
 
         stage = new Tr2ShaderAL();
-        if (!row || Failed(stage.Create(row.stageType, row.bytecode, row.signature ?? null, "", this.#renderContext))) { stages.length = 0; break; }
+        if (!row || Failed(stage.Create(row.stageType, row.bytecode, row.signature ?? null, "", this._renderContext))) { stages.length = 0; break; }
 
         realizedShaders.set(shaderHandle, stage);
       }
@@ -1901,11 +1901,11 @@ export class Tr2EffectStateManager
     if (stages.length > 0)
     {
       program = new Tr2ShaderProgramAL();
-      if (Failed(program.Create(stages, stages.length, this.#renderContext))) program = null;
+      if (Failed(program.Create(stages, stages.length, this._renderContext))) program = null;
     }
 
     realized.set(handle, program);
-    shaderProgramObjects.set(this.#renderContext, realized);
+    shaderProgramObjects.set(this._renderContext, realized);
     realizedShaderProgramMaps.add(realized);
 
     return program;
@@ -1920,9 +1920,9 @@ export class Tr2EffectStateManager
    */
   ApplyVertexDeclaration(handle)
   {
-    if (this.#isManagedRendering && handle === this.#currentValues.vertexDeclaration) return false;
+    if (this._isManagedRendering && handle === this._currentValues.vertexDeclaration) return false;
 
-    this.#currentValues.vertexDeclaration = handle;
+    this._currentValues.vertexDeclaration = handle;
 
     // IT BINDS. This recorded the handle and reached no backend until
     // 2026-09-09, so a draw ran with whatever layout the abstraction layer
@@ -1936,7 +1936,7 @@ export class Tr2EffectStateManager
     // A manager with no context records and reaches nothing, exactly as
     // DoApplyRenderStates does. Carbon's manager always has one; ours is
     // constructed before it is bound.
-    if (!this.#renderContext) return handle !== Tr2EffectStateManager.Unknown;
+    if (!this._renderContext) return handle !== Tr2EffectStateManager.Unknown;
 
     // TWO SENTINELS, AND THEY ARE NOT THE SAME ONE. Carbon asserts against
     // UNINITIALIZED_DECLARATION and unbinds on NULL_DECLARATION
@@ -1949,7 +1949,7 @@ export class Tr2EffectStateManager
     // what this did between two commits on 2026-09-09.
     if (handle === Tr2EffectStateManager.NullDeclaration)
     {
-      this.#renderContext.SetVertexLayout(new Tr2VertexLayoutAL());
+      this._renderContext.SetVertexLayout(new Tr2VertexLayoutAL());
 
       return true;
     }
@@ -1969,7 +1969,7 @@ export class Tr2EffectStateManager
     // definition before checking it.
     if (!elements) return false;
 
-    const realized = vertexLayoutObjects.get(this.#renderContext) ?? new Map();
+    const realized = vertexLayoutObjects.get(this._renderContext) ?? new Map();
 
     let layout = realized.get(handle) ?? null;
 
@@ -1978,14 +1978,14 @@ export class Tr2EffectStateManager
       layout = new Tr2VertexLayoutAL();
 
       realized.set(handle, layout);
-      vertexLayoutObjects.set(this.#renderContext, realized);
+      vertexLayoutObjects.set(this._renderContext, realized);
     }
 
     // Carbon's `if( !hvl.IsValid() ) hvl.Create( ... )` (cpp:899-906): a
     // layout whose Create refused is retried on the next apply.
-    if (!layout.IsValid()) layout.Create(elements, this.#renderContext);
+    if (!layout.IsValid()) layout.Create(elements, this._renderContext);
 
-    this.#renderContext.SetVertexLayout(layout);
+    this._renderContext.SetVertexLayout(layout);
 
     return true;
   }
@@ -2009,11 +2009,11 @@ export class Tr2EffectStateManager
    */
   ApplyStreamSource(stream, buffer, offset, stride)
   {
-    const current = this.#currentValues.streams[stream];
+    const current = this._currentValues.streams[stream];
 
     if (!current) throw new Error(`Tr2EffectStateManager: no vertex stream ${stream}.`);
 
-    if (this.#isManagedRendering)
+    if (this._isManagedRendering)
     {
       if ((buffer === current.vertexBuffer || (buffer && current.vertexBuffer && buffer.Equals(current.vertexBuffer))) && offset === current.offset && stride === current.stride)
       {
@@ -2027,7 +2027,7 @@ export class Tr2EffectStateManager
       current.stride = stride;
     }
 
-    this.#renderContext.SetStreamSource(stream, buffer, offset, stride);
+    this._renderContext.SetStreamSource(stream, buffer, offset, stride);
 
     return true;
   }
@@ -2064,20 +2064,20 @@ export class Tr2EffectStateManager
   {
     if (stride === 1) throw new Error("Tr2EffectStateManager: a one-byte index stride is never right.");
 
-    if (this.#isManagedRendering)
+    if (this._isManagedRendering)
     {
-      if ((indices === this.#currentValues.indexBuffer || (indices && this.#currentValues.indexBuffer && indices.Equals(this.#currentValues.indexBuffer))) && stride === this.#currentValues.indexStride)
+      if ((indices === this._currentValues.indexBuffer || (indices && this._currentValues.indexBuffer && indices.Equals(this._currentValues.indexBuffer))) && stride === this._currentValues.indexStride)
       {
         return false;
       }
 
       const next = indices ? new Tr2BufferAL({ copy: indices }) : null;
-      if (this.#currentValues.indexBuffer) this.#currentValues.indexBuffer.Destroy();
-      this.#currentValues.indexBuffer = next;
-      this.#currentValues.indexStride = stride;
+      if (this._currentValues.indexBuffer) this._currentValues.indexBuffer.Destroy();
+      this._currentValues.indexBuffer = next;
+      this._currentValues.indexStride = stride;
     }
 
-    this.#renderContext.SetIndices__Stride(indices, stride);
+    this._renderContext.SetIndices__Stride(indices, stride);
 
     return true;
   }
@@ -2090,7 +2090,7 @@ export class Tr2EffectStateManager
    */
   GetCurrentValues()
   {
-    return { ...this.#currentValues, streams: this.#currentValues.streams.map(s => ({ ...s })) };
+    return { ...this._currentValues, streams: this._currentValues.streams.map(s => ({ ...s })) };
   }
 
   /**

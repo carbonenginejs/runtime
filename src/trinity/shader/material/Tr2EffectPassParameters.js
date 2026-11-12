@@ -119,7 +119,7 @@ export class Tr2EffectPassParameters
    */
   AllocateConstantMirror(type, size)
   {
-    this.#stage(type).AllocateConstants(size);
+    this._stage(type).AllocateConstants(size);
   }
 
   /**
@@ -130,14 +130,14 @@ export class Tr2EffectPassParameters
    */
   GetSharedConstantBuffer(type, contents, size)
   {
-    this.#stage(type).GetSharedConstantBuffer(contents, size);
+    this._stage(type).GetSharedConstantBuffer(contents, size);
   }
 
   /**
    * The stage input at the given index, created on demand; negative or
    * non-numeric indices clamp to 0.
    */
-  #stage(type)
+  _stage(type)
   {
     const index = Math.max(0, Number(type) || 0);
     this.stageInput[index] ??= new Tr2MaterialStageInput();

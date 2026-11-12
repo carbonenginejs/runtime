@@ -37,9 +37,9 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   @type.string
   name = "";
 
-  #bindings = [];
+  _bindings = [];
 
-  #reroutedValue = null;
+  _reroutedValue = null;
 
   /**
    * The shader constant name this matrix binds to; empty until authored.
@@ -72,11 +72,11 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
 
   GetValue(out)
   {
-    if (this.#reroutedValue)
+    if (this._reroutedValue)
     {
       for (let i = 0; i < 16; i++)
       {
-        this.value[i] = this.#reroutedValue[i];
+        this.value[i] = this._reroutedValue[i];
       }
     }
     for (let i = 0; i < 16; i++)
@@ -99,11 +99,11 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
     {
       this.value[i] = value[i];
     }
-    if (this.#reroutedValue)
+    if (this._reroutedValue)
     {
       for (let i = 0; i < 16; i++)
       {
-        this.#reroutedValue[i] = this.value[i];
+        this._reroutedValue[i] = this.value[i];
       }
     }
   }
@@ -116,7 +116,7 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
 
   IsRerouted()
   {
-    return this.#reroutedValue !== null;
+    return this._reroutedValue !== null;
   }
 
   /**
@@ -130,7 +130,7 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   {
     if (size >= 64)
     {
-      this.#reroutedValue = dest;
+      this._reroutedValue = dest;
       for (let i = 0; i < 16; i++)
       {
         dest[i] = this.value[i];
@@ -138,10 +138,10 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
     }
     else
     {
-      this.#reroutedValue = null;
+      this._reroutedValue = null;
     }
     // Carbon notifies each binding of the effective destination (Tr2Matrix4Parameter.cpp:68).
-    for (const binding of this.#bindings)
+    for (const binding of this._bindings)
     {
       binding.RerouteDestination(this.GetDestination().dest);
     }
@@ -158,7 +158,7 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   GetDestination()
   {
     return {
-      dest: this.#reroutedValue ?? this.value,
+      dest: this._reroutedValue ?? this.value,
       size: 64
     };
   }
@@ -173,7 +173,7 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   RegisterBinding(binding)
   {
     // Carbon push_back (Tr2Matrix4Parameter.cpp:105).
-    this.#bindings.push(binding);
+    this._bindings.push(binding);
   }
 
   /**
@@ -185,10 +185,10 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   UnregisterBinding(binding)
   {
     // Carbon erases the first match (Tr2Matrix4Parameter.cpp:114).
-    const index = this.#bindings.indexOf(binding);
+    const index = this._bindings.indexOf(binding);
     if (index >= 0)
     {
-      this.#bindings.splice(index, 1);
+      this._bindings.splice(index, 1);
     }
   }
 
@@ -202,7 +202,7 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
 
   RebuildEffectHandles(effectRes)
   {
-    if (!effectRes && this.#reroutedValue)
+    if (!effectRes && this._reroutedValue)
     {
       this.SetDestination(null, 0);
     }
@@ -220,11 +220,11 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    */
   Initialize()
   {
-    if (this.#reroutedValue)
+    if (this._reroutedValue)
     {
       for (let i = 0; i < 16; i++)
       {
-        this.#reroutedValue[i] = this.value[i];
+        this._reroutedValue[i] = this.value[i];
       }
     }
     return true;

@@ -202,7 +202,7 @@ export class Tr2Material extends IRoot
       pass.resourceSetHash = pass.resourceSetDesc.ComputeHash();
       pass.resourceSetDirty = false;
 
-      this.#RebuildResourceSetHash();
+      this._RebuildResourceSetHash();
     }
 
     return !Failed(renderContext.SetResourceSet(pass.resourceSet));
@@ -460,7 +460,7 @@ export class Tr2Material extends IRoot
   }
 
   /** Rehashes every pass's resource-set hash into one, so a changed binding is seen. */
-  #RebuildResourceSetHash()
+  _RebuildResourceSetHash()
   {
     let hash = FNV1_INITIAL;
 

@@ -55,16 +55,16 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
    */
   linearValue = null;
 
-  #bindings = [];
+  _bindings = [];
 
-  #reroutedValue = null;
+  _reroutedValue = null;
 
   /** Blue MAP_PROPERTY "x"/"v1" - refreshes from the rerouted value on read. */
   @be.mapProperty()
   @type.float32
   get x()
   {
-    this.#RefreshFromReroute();
+    this._RefreshFromReroute();
     return this.value[0];
   }
 
@@ -74,7 +74,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
    */
   set x(component)
   {
-    this.#setComponent(0, component);
+    this._setComponent(0, component);
   }
 
   /** Blue MAP_PROPERTY "y"/"v2". */
@@ -82,7 +82,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   @type.float32
   get y()
   {
-    this.#RefreshFromReroute();
+    this._RefreshFromReroute();
     return this.value[1];
   }
 
@@ -92,7 +92,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
    */
   set y(component)
   {
-    this.#setComponent(1, component);
+    this._setComponent(1, component);
   }
 
   /** Blue MAP_PROPERTY "z"/"v3". */
@@ -100,7 +100,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   @type.float32
   get z()
   {
-    this.#RefreshFromReroute();
+    this._RefreshFromReroute();
     return this.value[2];
   }
 
@@ -110,7 +110,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
    */
   set z(component)
   {
-    this.#setComponent(2, component);
+    this._setComponent(2, component);
   }
 
   /** Blue MAP_PROPERTY "w"/"v4". */
@@ -118,7 +118,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   @type.float32
   get w()
   {
-    this.#RefreshFromReroute();
+    this._RefreshFromReroute();
     return this.value[3];
   }
 
@@ -128,7 +128,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
    */
   set w(component)
   {
-    this.#setComponent(3, component);
+    this._setComponent(3, component);
   }
 
   /** Blue MAP_PROPERTY alias reading `x`. */
@@ -226,7 +226,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
 
   GetValue(out)
   {
-    this.#RefreshFromReroute();
+    this._RefreshFromReroute();
     for (let i = 0; i < 4; i++)
     {
       out[i] = this.value[i];
@@ -235,13 +235,13 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   }
 
   /** Pulls the reroute destination into the stored value, without copying it out. */
-  #RefreshFromReroute()
+  _RefreshFromReroute()
   {
-    if (this.#reroutedValue)
+    if (this._reroutedValue)
     {
       for (let i = 0; i < 4; i++)
       {
-        this.value[i] = this.#reroutedValue[i];
+        this.value[i] = this._reroutedValue[i];
       }
     }
     return this.value;
@@ -260,12 +260,12 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
     {
       this.value[i] = value[i];
     }
-    this.#updateLinearValue();
-    if (this.#reroutedValue)
+    this._updateLinearValue();
+    if (this._reroutedValue)
     {
       for (let i = 0; i < 4; i++)
       {
-        this.#reroutedValue[i] = this.value[i];
+        this._reroutedValue[i] = this.value[i];
       }
     }
   }
@@ -280,7 +280,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
 
   IsRerouted()
   {
-    return !this.isSrgb && this.#reroutedValue !== null;
+    return !this.isSrgb && this._reroutedValue !== null;
   }
 
   /**
@@ -294,7 +294,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   {
     if (size >= 16 && !this.isSrgb)
     {
-      this.#reroutedValue = dest;
+      this._reroutedValue = dest;
       for (let i = 0; i < 4; i++)
       {
         dest[i] = this.value[i];
@@ -302,11 +302,11 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
     }
     else
     {
-      this.#reroutedValue = null;
-      this.#updateLinearValue();
+      this._reroutedValue = null;
+      this._updateLinearValue();
     }
     // Carbon notifies each binding of the effective destination (Tr2Vector4Parameter.cpp:261).
-    for (const binding of this.#bindings)
+    for (const binding of this._bindings)
     {
       binding.RerouteDestination(this.GetDestination().dest);
     }
@@ -323,7 +323,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   GetDestination()
   {
     return {
-      dest: this.#reroutedValue ?? this.value,
+      dest: this._reroutedValue ?? this.value,
       size: 16
     };
   }
@@ -338,7 +338,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   RegisterBinding(binding)
   {
     // Carbon push_back (Tr2Vector4Parameter.cpp:305).
-    this.#bindings.push(binding);
+    this._bindings.push(binding);
   }
 
   /**
@@ -350,10 +350,10 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   UnregisterBinding(binding)
   {
     // Carbon erases the first match (Tr2Vector4Parameter.cpp:314).
-    const index = this.#bindings.indexOf(binding);
+    const index = this._bindings.indexOf(binding);
     if (index >= 0)
     {
-      this.#bindings.splice(index, 1);
+      this._bindings.splice(index, 1);
     }
   }
 
@@ -368,7 +368,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   RebuildEffectHandles(effectRes)
   {
     this.isSrgb = false;
-    if (!effectRes && this.#reroutedValue)
+    if (!effectRes && this._reroutedValue)
     {
       this.SetDestination(null, 0);
     }
@@ -382,7 +382,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
     {
       this.SetDestination(null, 0);
     }
-    this.#updateLinearValue();
+    this._updateLinearValue();
   }
 
   /**
@@ -394,14 +394,14 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
 
   Initialize()
   {
-    if (this.#reroutedValue)
+    if (this._reroutedValue)
     {
       for (let i = 0; i < 4; i++)
       {
-        this.#reroutedValue[i] = this.value[i];
+        this._reroutedValue[i] = this.value[i];
       }
     }
-    this.#updateLinearValue();
+    this._updateLinearValue();
     return true;
   }
 
@@ -415,7 +415,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
    */
   CopyValueToEffect(_inputType, out)
   {
-    const source = this.#reroutedValue ?? (this.isSrgb ? this.linearValue : this.value);
+    const source = this._reroutedValue ?? (this.isSrgb ? this.linearValue : this.value);
     for (let i = 0; i < 4; i++)
     {
       out[i] = source[i];
@@ -427,7 +427,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
    * first three components, alpha passed through unchanged. Nothing reads the
    * mirror otherwise, so a non-sRGB parameter neither creates nor refreshes it.
    */
-  #updateLinearValue()
+  _updateLinearValue()
   {
     if (!this.isSrgb) return;
 
@@ -442,7 +442,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
    * Assigns one component in place and re-runs SetValue so the linear mirror and
    * any reroute stay in sync.
    */
-  #setComponent(index, component)
+  _setComponent(index, component)
   {
     this.value[index] = Number(component);
     this.SetValue(this.value);

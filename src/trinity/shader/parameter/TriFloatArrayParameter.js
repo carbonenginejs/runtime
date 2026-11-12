@@ -41,7 +41,7 @@ export class TriFloatArrayParameter extends ITriEffectParameter
   @type.string
   name = "";
 
-  #cachedEffect = null;
+  _cachedEffect = null;
 
   /**
    * The shader constant-array name these rows bind to.
@@ -89,7 +89,7 @@ export class TriFloatArrayParameter extends ITriEffectParameter
 
   OnModified(_options = {})
   {
-    this.RebuildEffectHandles(this.#cachedEffect);
+    this.RebuildEffectHandles(this._cachedEffect);
     return true;
   }
 
@@ -102,7 +102,7 @@ export class TriFloatArrayParameter extends ITriEffectParameter
 
   RebuildEffectHandles(effectRes)
   {
-    this.#cachedEffect = effectRes;
+    this._cachedEffect = effectRes;
     // TriFloatArrayParameter.cpp:82
     const used = !!this.name && !!effectRes && !!effectRes.GetConstant(this.name);
     this.usedByCurrentEffect = used;

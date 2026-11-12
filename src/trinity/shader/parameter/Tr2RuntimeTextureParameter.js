@@ -40,7 +40,7 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
   @type.uint32
   uavMipLevel = 0;
 
-  #materials = [];
+  _materials = [];
 
   /**
    * Blue construction form: forwards the name, provider and UAV mip level to
@@ -106,7 +106,7 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
 
   OnModified(propertyName)
   {
-    if (IsMatch(propertyName, "texture")) this.#invalidateResourceSets();
+    if (IsMatch(propertyName, "texture")) this._invalidateResourceSets();
     return true;
   }
 
@@ -247,9 +247,9 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
 
   OnAddedToMaterial(material)
   {
-    if (!this.#materials.includes(material))
+    if (!this._materials.includes(material))
     {
-      this.#materials.push(material);
+      this._materials.push(material);
     }
   }
 
@@ -292,17 +292,17 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
 
   OnRemovedFromMaterial(material)
   {
-    const index = this.#materials.indexOf(material);
+    const index = this._materials.indexOf(material);
     if (index >= 0)
     {
-      this.#materials.splice(index, 1);
+      this._materials.splice(index, 1);
     }
   }
 
   /** Invalidates every attached material directly (Tr2RuntimeTextureParameter.cpp:17-27). */
-  #invalidateResourceSets()
+  _invalidateResourceSets()
   {
-    for (const material of this.#materials)
+    for (const material of this._materials)
     {
       material.InvalidateResourceSets();
     }
