@@ -19,6 +19,7 @@ const STEPS = [
     "lint:undeclared-fields",
     "lint:instanceof",
     "lint:constructor-name",
+    "lint:hash-private",
     "lint:list-members",
     "lint:private-references",
     "lint:typed-array-alloc",

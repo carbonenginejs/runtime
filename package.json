@@ -350,6 +350,7 @@
     "lint:list-members": "node scripts/lint-list-members.js",
     "lint:typed-array-alloc": "node scripts/lint-typed-array-alloc.js",
     "lint:constructor-name": "node scripts/lint-constructor-name.js",
+    "lint:hash-private": "node scripts/lint-hash-private.js",
     "lint:private-references": "node scripts/lint-private-references.js",
     "test:minified": "node scripts/build-minified-mirror.js && node scripts/run-minified-suite.js",
     "test:bundle": "node --test scripts/tests/minified-bundle.cases.mjs"
