@@ -12,7 +12,7 @@ export class TriStepToggleCubemap extends TriRenderStep
 {
 
   /** Carbon-private Tr2InteriorScene pointer; runtime-only and not serialized. */
-  #scene = null;
+  _scene = null;
 
   /** m_showCubemap (bool) [READWRITE]; Carbon exposes the member name itself (TriStepToggleCubemap_Blue.cpp:17). */
   @be.mapAttribute(be.READWRITE, "m_showCubemap")
@@ -29,7 +29,7 @@ export class TriStepToggleCubemap extends TriRenderStep
   __init__(showCubemap = true, scene = null)
   {
     this.showCubemap = Boolean(showCubemap);
-    this.#scene = scene;
+    this._scene = scene;
   }
 
   /**
@@ -40,9 +40,9 @@ export class TriStepToggleCubemap extends TriRenderStep
 
   Execute(_realTime, _simTime, _renderContext)
   {
-    if (this.#scene)
+    if (this._scene)
     {
-      this.#scene.SetRenderBackgroundCubeMap(this.showCubemap);
+      this._scene.SetRenderBackgroundCubeMap(this.showCubemap);
     }
     return TriRenderStep.Result.RS_OK;
   }

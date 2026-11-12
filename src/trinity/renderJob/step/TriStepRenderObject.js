@@ -76,7 +76,7 @@ export class TriStepRenderObject extends TriRenderStep
   // ours reaches the allocator through the render context, so the map is built
   // on first Execute instead. Instance state, never serialized: the accumulators
   // are scratch that Execute fills and empties within the one call.
-  #batches = null;
+  _batches = null;
 
   /**
    * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
@@ -90,7 +90,7 @@ export class TriStepRenderObject extends TriRenderStep
   }
 
   /** Whether each of Carbon's four batch types is enabled, in ALL_TYPES order. */
-  #GetTypeEnabled()
+  _GetTypeEnabled()
   {
     return [ this.renderOpaque, this.renderDecal, this.renderTransparent, this.renderAdditive ];
   }
@@ -110,24 +110,24 @@ export class TriStepRenderObject extends TriRenderStep
   {
     if (!this.renderable) return TriRenderStep.Result.RS_OK;
 
-    if (!this.#batches) this.#batches = new TriRenderBatchMap(ALL_TYPES);
-    this.#batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
+    if (!this._batches) this._batches = new TriRenderBatchMap(ALL_TYPES);
+    this._batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
 
-    this.#batches.CollectFromRenderables([ this.renderable ]);
-    this.#batches.Finalize();
+    this._batches.CollectFromRenderables([ this.renderable ]);
+    this._batches.Finalize();
 
     const esm = renderContext.GetEffectStateManager();
-    const typeEnabled = this.#GetTypeEnabled();
+    const typeEnabled = this._GetTypeEnabled();
 
     for (let i = 0; i < ALL_TYPES.length; i++)
     {
       if (!typeEnabled[i]) continue;
 
       esm.ApplyStandardStates(RENDERING_MODES[i]);
-      renderContext.RenderBatchesWithOverride(this.#batches.GetAccumulator(ALL_TYPES[i]), this.effectOverride);
+      renderContext.RenderBatchesWithOverride(this._batches.GetAccumulator(ALL_TYPES[i]), this.effectOverride);
     }
 
-    this.#batches.Clear();
+    this._batches.Clear();
 
     return TriRenderStep.Result.RS_OK;
   }

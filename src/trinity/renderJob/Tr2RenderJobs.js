@@ -57,12 +57,12 @@ export class Tr2RenderJobs extends IRoot
     {
       context.BeginBatch(this);
       beganBatch = true;
-      for (const job of this.recurring.slice()) Tr2RenderJobs.#runJob(job, realTime, simTime, context);
+      for (const job of this.recurring.slice()) Tr2RenderJobs._runJob(job, realTime, simTime, context);
 
       const continuedOnce = [];
       for (const job of this.once.slice())
       {
-        const status = Tr2RenderJobs.#runJob(job, realTime, simTime, context);
+        const status = Tr2RenderJobs._runJob(job, realTime, simTime, context);
         if (status === TriRenderJob.Status.RJ_IN_PROGRESS) continuedOnce.push(job);
       }
       this.once.Clear();
@@ -73,7 +73,7 @@ export class Tr2RenderJobs extends IRoot
       for (let index = 0; index < chained.length; index++)
       {
         const job = chained[index];
-        const status = Tr2RenderJobs.#runJob(job, realTime, simTime, context);
+        const status = Tr2RenderJobs._runJob(job, realTime, simTime, context);
         if (status === TriRenderJob.Status.RJ_IN_PROGRESS)
         {
           continuedChained.push(...chained.slice(index));
@@ -104,13 +104,13 @@ export class Tr2RenderJobs extends IRoot
     {
       throw new TypeError("Tr2RenderJobs.RunUpdate expects a Tr2RenderContext.");
     }
-    for (const job of this.updateRecurring.slice()) Tr2RenderJobs.#runJob(job, realTime, simTime, context);
+    for (const job of this.updateRecurring.slice()) Tr2RenderJobs._runJob(job, realTime, simTime, context);
   }
 
   /**
    * Runs one scheduled job and rejects entries outside the owned job contract.
    */
-  static #runJob(job, realTime, simTime, executor)
+  static _runJob(job, realTime, simTime, executor)
   {
     if (!(job instanceof TriRenderJob))
     {

@@ -42,11 +42,11 @@ export class TriStepRenderFps extends TriRenderStep
   /** m_averageMSPerFrame - the same average expressed as milliseconds. */
   averageMSPerFrame = 0;
 
-  #sumFPSValues = 0;
+  _sumFPSValues = 0;
 
-  #fpsValuesCount = 0;
+  _fpsValuesCount = 0;
 
-  #nextCalculationTime = 0;
+  _nextCalculationTime = 0;
 
   // Carbon TriStepRenderFps.cpp:84-150. Every frame contributes one sample;
   // the average is only RECOMPUTED every quarter second, and the value in
@@ -72,16 +72,16 @@ export class TriStepRenderFps extends TriRenderStep
    */
   Sample(framesPerSecond, nowSeconds)
   {
-    this.#fpsValuesCount += 1;
-    this.#sumFPSValues += Number(framesPerSecond) || 0;
+    this._fpsValuesCount += 1;
+    this._sumFPSValues += Number(framesPerSecond) || 0;
 
-    if (nowSeconds >= this.#nextCalculationTime)
+    if (nowSeconds >= this._nextCalculationTime)
     {
-      this.#nextCalculationTime = nowSeconds + TriStepRenderFps.CALCULATION_INTERVAL;
-      this.averageFPS = this.#sumFPSValues / this.#fpsValuesCount;
+      this._nextCalculationTime = nowSeconds + TriStepRenderFps.CALCULATION_INTERVAL;
+      this.averageFPS = this._sumFPSValues / this._fpsValuesCount;
       this.averageMSPerFrame = this.averageFPS < 1e-5 ? 0 : 1 / this.averageFPS * 1000;
-      this.#sumFPSValues = 0;
-      this.#fpsValuesCount = 0;
+      this._sumFPSValues = 0;
+      this._fpsValuesCount = 0;
     }
 
     return this.averageFPS;

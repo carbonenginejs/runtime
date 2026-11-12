@@ -14,7 +14,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepRemoteSync extends TriRenderStep
 {
-  #id = -1;
+  _id = -1;
 
   /**
    * Blue's initializer: stores the identifier of the synchronization event the step would wait on (TriStepRemoteSync.cpp:48-51).
@@ -35,7 +35,7 @@ export class TriStepRemoteSync extends TriRenderStep
    */
   GetId()
   {
-    return this.#id;
+    return this._id;
   }
 
   /**
@@ -50,7 +50,7 @@ export class TriStepRemoteSync extends TriRenderStep
     {
       throw new TypeError("TriStepRemoteSync id must be an integer");
     }
-    this.#id = id;
+    this._id = id;
   }
 
   /**

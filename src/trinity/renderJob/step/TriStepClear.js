@@ -75,7 +75,7 @@ export class TriStepClear extends TriRenderStep
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.Clear({
-      color: Array.from(this.color, TriStepClear.#clampColor),
+      color: Array.from(this.color, TriStepClear._clampColor),
       depth: this.depth,
       stencil: this.stencil,
       clearColor: this.isColorCleared,
@@ -86,7 +86,7 @@ export class TriStepClear extends TriRenderStep
   }
 
   /** Clamps one colour component into 0..1, mapping non-numeric values to 0. */
-  static #clampColor(value)
+  static _clampColor(value)
   {
     return Math.max(0, Math.min(1, Number(value) || 0));
   }

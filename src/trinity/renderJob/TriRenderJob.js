@@ -76,7 +76,7 @@ export class TriRenderJob extends IRoot
   @type.list("TriRenderStep")
   steps = new BlueList(TriRenderStep, { className: "TriRenderStep" });
 
-  #currentStep = 0;
+  _currentStep = 0;
 
   /**
    * Carbon Steps (TriRenderJob.h:34-37): the step list by mutable reference.
@@ -113,24 +113,24 @@ export class TriRenderJob extends IRoot
       throw new TypeError("TriRenderJob.Run expects a Tr2RenderContext.");
     }
     const snapshot = this.steps.slice();
-    if (this.status !== TriRenderJob.Status.RJ_IN_PROGRESS || this.#currentStep >= snapshot.length)
+    if (this.status !== TriRenderJob.Status.RJ_IN_PROGRESS || this._currentStep >= snapshot.length)
     {
-      this.#currentStep = 0;
+      this._currentStep = 0;
     }
 
-    const preRT = TriRenderJob.#stackSize(context, "GetStackSizeRT");
-    const preDS = TriRenderJob.#stackSize(context, "GetStackSizeDS");
+    const preRT = TriRenderJob._stackSize(context, "GetStackSizeRT");
+    const preDS = TriRenderJob._stackSize(context, "GetStackSizeDS");
     let result = TriRenderJob.StepResult.RS_OK;
     let runError = null;
 
     try
     {
-      while (this.#currentStep < snapshot.length)
+      while (this._currentStep < snapshot.length)
       {
-        const step = snapshot[this.#currentStep];
-        if (!step || !TriRenderJob.#isStepEnabled(step))
+        const step = snapshot[this._currentStep];
+        if (!step || !TriRenderJob._isStepEnabled(step))
         {
-          this.#currentStep++;
+          this._currentStep++;
           continue;
         }
 
@@ -138,9 +138,9 @@ export class TriRenderJob extends IRoot
         let stepError = null;
         try
         {
-          TriRenderJob.#beginStep(context, step, realTime, simTime, this);
+          TriRenderJob._beginStep(context, step, realTime, simTime, this);
           began = true;
-          result = TriRenderJob.#executeStep(context, step, realTime, simTime, this);
+          result = TriRenderJob._executeStep(context, step, realTime, simTime, this);
         }
         catch (error)
         {
@@ -152,12 +152,12 @@ export class TriRenderJob extends IRoot
           {
             try
             {
-              TriRenderJob.#endStep(context, step, realTime, simTime, this);
+              TriRenderJob._endStep(context, step, realTime, simTime, this);
             }
             catch (error)
             {
               if (!stepError) stepError = error;
-              else TriRenderJob.#diagnose(context, "step-cleanup-error", { job: this, step, error });
+              else TriRenderJob._diagnose(context, "step-cleanup-error", { job: this, step, error });
             }
           }
         }
@@ -165,10 +165,10 @@ export class TriRenderJob extends IRoot
 
         if (this.stackGuard)
         {
-          TriRenderJob.#diagnoseUnderflow(context, preRT, preDS, this, step);
+          TriRenderJob._diagnoseUnderflow(context, preRT, preDS, this, step);
         }
         if (result !== TriRenderJob.StepResult.RS_OK || !this.enabled) break;
-        this.#currentStep++;
+        this._currentStep++;
       }
     }
     catch (error)
@@ -180,9 +180,9 @@ export class TriRenderJob extends IRoot
     {
       if (this.stackGuard)
       {
-        TriRenderJob.#diagnoseUnderflow(context, preRT, preDS, this, null);
-        TriRenderJob.#unwind(context, "GetStackSizeRT", "PopRenderTarget", preRT, this, "render-target");
-        TriRenderJob.#unwind(context, "GetStackSizeDS", "PopDepthStencil", preDS, this, "depth-stencil");
+        TriRenderJob._diagnoseUnderflow(context, preRT, preDS, this, null);
+        TriRenderJob._unwind(context, "GetStackSizeRT", "PopRenderTarget", preRT, this, "render-target");
+        TriRenderJob._unwind(context, "GetStackSizeDS", "PopDepthStencil", preDS, this, "depth-stencil");
       }
     }
 
@@ -207,7 +207,7 @@ export class TriRenderJob extends IRoot
         break;
       default:
         this.status = TriRenderJob.Status.RJ_FAILED;
-        TriRenderJob.#diagnose(context, "invalid-step-result", { job: this, result });
+        TriRenderJob._diagnose(context, "invalid-step-result", { job: this, result });
         break;
     }
     return this.status;
@@ -216,7 +216,7 @@ export class TriRenderJob extends IRoot
   /**
    * Validates the canonical step identity and reads its required enable method.
    */
-  static #isStepEnabled(step)
+  static _isStepEnabled(step)
   {
     if (!(step instanceof TriRenderStep))
     {
@@ -228,7 +228,7 @@ export class TriRenderJob extends IRoot
   /**
    * Delegates step setup to the canonical render context.
    */
-  static #beginStep(executor, step, realTime, simTime, job)
+  static _beginStep(executor, step, realTime, simTime, job)
   {
     return executor.BeginStep(step, realTime, simTime, job);
   }
@@ -236,7 +236,7 @@ export class TriRenderJob extends IRoot
   /**
    * Delegates step execution to the canonical render context.
    */
-  static #executeStep(executor, step, realTime, simTime, job)
+  static _executeStep(executor, step, realTime, simTime, job)
   {
     return executor.ExecuteStep(step, realTime, simTime, job);
   }
@@ -244,7 +244,7 @@ export class TriRenderJob extends IRoot
   /**
    * Delegates step teardown to the canonical render context.
    */
-  static #endStep(executor, step, realTime, simTime, job)
+  static _endStep(executor, step, realTime, simTime, job)
   {
     return executor.EndStep(step, realTime, simTime, job);
   }
@@ -252,7 +252,7 @@ export class TriRenderJob extends IRoot
   /**
    * Reads a stack depth from the canonical context and normalizes its value.
    */
-  static #stackSize(executor, method)
+  static _stackSize(executor, method)
   {
     const value = executor[method]();
     return Number.isFinite(value) && value >= 0 ? Math.trunc(value) : 0;
@@ -263,12 +263,12 @@ export class TriRenderJob extends IRoot
    * depth-stencil depth has dropped below the depth recorded at job entry, the
    * condition Carbon asserts on (TriRenderJob.cpp:63-64).
    */
-  static #diagnoseUnderflow(executor, preRT, preDS, job, step)
+  static _diagnoseUnderflow(executor, preRT, preDS, job, step)
   {
-    const rt = TriRenderJob.#stackSize(executor, "GetStackSizeRT");
-    const ds = TriRenderJob.#stackSize(executor, "GetStackSizeDS");
-    if (rt < preRT) TriRenderJob.#diagnose(executor, "stack-underflow", { stack: "render-target", job, step, expected: preRT, actual: rt });
-    if (ds < preDS) TriRenderJob.#diagnose(executor, "stack-underflow", { stack: "depth-stencil", job, step, expected: preDS, actual: ds });
+    const rt = TriRenderJob._stackSize(executor, "GetStackSizeRT");
+    const ds = TriRenderJob._stackSize(executor, "GetStackSizeDS");
+    if (rt < preRT) TriRenderJob._diagnose(executor, "stack-underflow", { stack: "render-target", job, step, expected: preRT, actual: rt });
+    if (ds < preDS) TriRenderJob._diagnose(executor, "stack-underflow", { stack: "depth-stencil", job, step, expected: preDS, actual: ds });
   }
 
   /**
@@ -276,14 +276,14 @@ export class TriRenderJob extends IRoot
    * mirroring Carbon's stack repair loop (TriRenderJob.cpp:85-92), and stops
    * early if a pop fails to reduce the depth.
    */
-  static #unwind(executor, sizeMethod, popMethod, baseline, job, stack)
+  static _unwind(executor, sizeMethod, popMethod, baseline, job, stack)
   {
-    let size = TriRenderJob.#stackSize(executor, sizeMethod);
-    if (size > baseline) TriRenderJob.#diagnose(executor, "stack-repair", { stack, job, expected: baseline, actual: size });
+    let size = TriRenderJob._stackSize(executor, sizeMethod);
+    if (size > baseline) TriRenderJob._diagnose(executor, "stack-repair", { stack, job, expected: baseline, actual: size });
     while (size > baseline)
     {
       executor[popMethod]();
-      const next = TriRenderJob.#stackSize(executor, sizeMethod);
+      const next = TriRenderJob._stackSize(executor, sizeMethod);
       if (next >= size) break;
       size = next;
     }
@@ -292,7 +292,7 @@ export class TriRenderJob extends IRoot
   /**
    * Forwards a typed diagnostic record to the canonical render context.
    */
-  static #diagnose(executor, type, detail)
+  static _diagnose(executor, type, detail)
   {
     executor.AddDiagnostic({ type, ...detail });
   }
