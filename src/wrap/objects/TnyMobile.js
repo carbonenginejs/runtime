@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import { BlueList } from "#blue";
 import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { EveMobile } from "../../trinity/eve/spaceObject/EveMobile.js";
 import { TnySpaceObject } from "./TnySpaceObject.js";
@@ -15,13 +16,13 @@ export class TnyMobile extends TnySpaceObject
 {
 
     /**
-     * The weapon slots (TnySlot) the hull's locators define; null when it has none.
-     * @type {object|null}
+     * The weapon slots (TnySlot) the hull's locators define; empty when it has none.
+     * @type {BlueList}
      * @cjs
      */
     @meta.mapAttribute(meta.READ)
     @type.list("TnySlot")
-    slots = null;
+    slots = new BlueList(TnySlot, { className: "TnySlot" });
 
     /**
      * Finds the slots once, then the rest.
@@ -31,11 +32,7 @@ export class TnyMobile extends TnySpaceObject
     _Discover(dna)
     {
         super._Discover(dna);
-        if (this.slots === null)
-        {
-            const slots = TnySlot.discover(this);
-            this.slots = slots.length ? slots : null;
-        }
+        if (this.slots.length === 0) for (const slot of TnySlot.discover(this)) this.slots.Append(slot);
     }
 
     /**
@@ -45,7 +42,7 @@ export class TnyMobile extends TnySpaceObject
      */
     _Interfaces()
     {
-        return this.slots ? [ ...super._Interfaces(), "weapons" ] : super._Interfaces();
+        return this.slots.length ? [ ...super._Interfaces(), "weapons" ] : super._Interfaces();
     }
 
     /**
@@ -56,7 +53,7 @@ export class TnyMobile extends TnySpaceObject
      */
     OnDestruct(options)
     {
-        for (const slot of this.slots ?? []) slot.Destruct();
+        for (const slot of this.slots) slot.Destruct();
         return super.OnDestruct(options);
     }
 

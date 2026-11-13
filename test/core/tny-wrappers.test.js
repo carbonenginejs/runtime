@@ -276,7 +276,7 @@ test("ship values: discovered once, null where unsupported, pushed to native own
     assert.equal(values.shield, null, "no impact overlay, no shield, armour or hull");
     assert.equal(values.alwaysOn, null, "no booster set");
     assert.equal(values.displayKillCounterValue, null, "no kill-counter decal");
-    assert.equal(values.slots, null, "no weapon locators");
+    assert.equal(values.slots.length, 0, "no weapon locators: the list stays, empty");
 
     const [ classInfo, interfaces, members ] = ship.GetTypeInfo();
     assert.equal(classInfo.classname, `TnyShip_${ship.id}`);
