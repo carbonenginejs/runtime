@@ -92,14 +92,14 @@ test("a weighted occlusion sets its morph while worn, over every request; two we
         /^Error: No paper doll rule for utilityshapes\/pinchhipsshape set to 0\.01 and 2 at once$/u);
 });
 
-test("a worn item's own utility shapes decode, weighted occlusions included", () =>
+test("a worn item's own utility shapes decode in the library, weighted occlusions included", () =>
 {
-    const item = (dependantModifiers, occludesModifiers) => ({ metadataPath: "res:/graphics/character/female/paperdoll/topmiddle/x/metadata.yaml", dependantModifiers, occludesModifiers });
-    const shapes = CjsPaperDollInstance.itemShapes(item([ "utilityshapes/pushhemmidshape###0.35", "dependants/drape/standard" ], [ "utilityshapes/tucktopshape", "dependants/tuck", "hair" ]));
+    const item = (dependantModifiers, occludesModifiers) => CjsCharacterLibraryManager.decodeModifiers({ dependantModifiers, occludesModifiers }, "res:/graphics/character/female/paperdoll/topmiddle/x/metadata.yaml");
+    const shapes = (item([ "utilityshapes/pushhemmidshape###0.35", "dependants/drape/standard" ], [ "utilityshapes/tucktopshape", "dependants/tuck", "hair" ])).shapes;
     assert.deepEqual(shapes.requests, [ decodeUtilityShape("utilityshapes/pushhemmidshape###0.35") ]);
     assert.deepEqual(shapes.occlusions.map(value => value.modifierPath), [ "utilityshapes/tucktopshape" ]);
-    assert.deepEqual(CjsPaperDollInstance.itemShapes(item([], [ "utilityshapes/pinchrighthipsshape#2.0" ])).occlusions,
+    assert.deepEqual((item([], [ "utilityshapes/pinchrighthipsshape#2.0" ])).shapes.occlusions,
         [ { modifierPath: "utilityshapes/pinchrighthipsshape", targetName: "pinchrighthipsshape", weight: 2 } ]);
-    assert.throws(() => CjsPaperDollInstance.itemShapes(item([], [ "utilityshapes/pinchrighthipsshape#2.0#1" ])),
+    assert.throws(() => (item([], [ "utilityshapes/pinchrighthipsshape#2.0#1" ])),
         /^Error: No paper doll rule for the occludesModifiers entry utilityshapes\/pinchrighthipsshape#2\.0#1 in res:\/graphics\/character\/female\/paperdoll\/topmiddle\/x\/metadata\.yaml$/u);
 });

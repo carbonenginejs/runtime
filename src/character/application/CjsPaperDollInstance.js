@@ -1,7 +1,6 @@
 import { CjsSchema, meta } from "#schema";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
-import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
 import { PaperDollTarget } from "./paperDollOrder.js";
 
 /**
@@ -304,26 +303,6 @@ export class CjsPaperDollInstance
         }
         const { cyclic, applied } = CjsCharacterAppearanceResolver.resolveSuppressions(worn, edges);
         return { suppressed: [ ...applied.keys() ].map(item => item.name).sort(), cyclic: cyclic.map(item => item.name) };
-    }
-
-    /**
-     * A worn item's own utility shapes: the `utilityshapes/` entries of its metadata's two lists, decoded
-     * (the library decodes them: `CjsCharacterLibraryManager.decodeModifiers`). Every such entry decodes or throws (operator, 2026-11-12:
-     * "all rules must be handled"); a weighted occlusion (`utilityshapes/pushhemshape#0.2`) sets its morph's weight
-     * (`resolveUtilityShapes`). Entries outside `utilityshapes/` (dependants, occluded parts) are other rules' and
-     * are not read here.
-     *
-     * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
-     * @param {{ metadataPath: string, dependantModifiers: string[], occludesModifiers: string[] }} item The
-     *   `metadata.yaml` read for the item and its two lists as authored. Decoded by the library
-     *   (`CjsCharacterLibraryManager.decodeModifiers`); this goes when Graphene's own metadata readers do (item 7b).
-     * @returns {{ requests: object[], occlusions: object[] }} The item's requests (`{ modifierPath, targetName,
-     *   weight, explicitWeight }`) and occlusions (`{ modifierPath, targetName, weight }`); the caller sets the owner.
-     * @throws {Error} For a utility-shape entry no rule reads, naming the entry and the file.
-     */
-    static itemShapes(item)
-    {
-        return CjsCharacterLibraryManager.decodeModifiers(item, item.metadataPath).shapes;
     }
 
     /**

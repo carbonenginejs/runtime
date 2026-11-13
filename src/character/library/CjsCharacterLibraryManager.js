@@ -414,14 +414,15 @@ export class CjsCharacterLibraryManager
     /**
      * An option's part facts, read once: its `.type`'s part, variation and colour variant (empty for a folder
      * option), its folders (the variation's own folder first where it has one, then the part folder), the first of
-     * those folders' metadata with its occludes and dependants (each entry cut to its path), its projection and its
+     * those folders' metadata with its occludes, dependants and utility shapes (`decodeModifiers`), its projection and its
      * models (the part folder's `.black` and `.gr2` files).
      *
      * Ours, as `FetchOptions`.
      *
      * @param {object} option An option from `FetchOptions`.
-     * @returns {Promise<{ part: string, variation: string, colorVariant: string, folders: string[], metadataPath: ?string, metadata: ?object, occludes: string[], dependants: string[], numColorAreas: number, projection: ?string, models: string[] }>}
+     * @returns {Promise<{ part: string, variation: string, colorVariant: string, folders: string[], metadataPath: ?string, metadata: ?object, occludes: string[], dependants: string[], numColorAreas: number, shapes: object, projection: ?string, models: string[] }>}
      *   The facts, the caller's own copy.
+     * @throws {Error} For a metadata entry no rule reads (`decodeModifiers`).
      */
     FetchOptionPart(option)
     {
@@ -448,12 +449,12 @@ export class CjsCharacterLibraryManager
             const files = this._PaperDollFiles(folders.at(-1));
             const metadataPath = folders.map(folder => folder + "metadata.yaml").find(path => files.includes(path)) ?? null;
             const metadata = metadataPath ? await this.FetchAvatarPartMetaData(metadataPath) : null;
-            const list = key => metadata ? [ ...new Set(metadata[key].map(value => value.split("#")[0])) ] : [];
+            const decoded = metadata ? CjsCharacterLibraryManager.decodeModifiers(metadata, metadataPath) : { occludes: [], dependants: [], shapes: { requests: [], occlusions: [] } };
             const base = folders.at(-1), direct = files.filter(path => path.lastIndexOf("/") === base.length - 1);
             return {
                 part, variation, colorVariant, folders, metadataPath, metadata,
-                occludes: list("occludesModifiers"), dependants: list("dependantModifiers"), numColorAreas: metadata ? metadata.numColorAreas : -1,
-                shapes: metadata ? CjsCharacterLibraryManager.decodeModifiers(metadata, metadataPath).shapes : { requests: [], occlusions: [] },
+                occludes: decoded.occludes, dependants: decoded.dependants, numColorAreas: metadata ? metadata.numColorAreas : -1,
+                shapes: decoded.shapes,
                 projection: files.includes(base + "projection.proj") ? base + "projection.proj" : null,
                 models: direct.filter(path => /\.(black|gr2)$/u.test(path))
             };
@@ -500,7 +501,7 @@ export class CjsCharacterLibraryManager
 
     /**
      * A dependant's metadata, read once: the dependant folder's `metadata.yaml` for the owner's variation where that
-     * folder has one, else the unversioned one, with its two lists as authored (weights kept). Null where neither exists.
+     * folder has one, else the unversioned one, decoded. Null where neither exists.
      *
      * Ours, as `FetchOptions`.
      *
@@ -521,6 +522,37 @@ export class CjsCharacterLibraryManager
             if (!metadataPath) return null;
             const metadata = await this.FetchAvatarPartMetaData(metadataPath);
             return { path: lower, metadataPath, ...CjsCharacterLibraryManager.decodeModifiers(metadata, metadataPath, lower) };
+        });
+    }
+
+    /**
+     * A part folder's metadata, read once: the first of the folders holding a `metadata.yaml`, decoded, for a consumer
+     * that names its folders itself (hair, beards, accessories, the foundation, the body carriers). Its occludes,
+     * dependants and utility shapes come from `decodeModifiers`; `dependantParts` are its dependants outside
+     * `utilityshapes/` with their weights (`parseModifier`: `archetypes/cdshape###1.0`), and its two scalar fields
+     * are as the file states them (`numColorAreas` -1 and an empty source path where it states none). Null where no
+     * folder holds one.
+     *
+     * Ours, as `FetchOptions`.
+     *
+     * @param {string[]} folders The folders' `res:` paths, most specific first, each with its trailing slash.
+     * @returns {Promise<?{ metadataPath: string, occludes: string[], dependants: string[], dependantParts: Array<{ path: string, weight: number }>, shapes: { requests: object[], occlusions: object[] }, numColorAreas: number, alternativeTextureSourcePath: string }>}
+     *   The decoded metadata, the caller's own copy.
+     * @throws {Error} For an entry no rule reads (`decodeModifiers`, `parseModifier`).
+     */
+    FetchPartMetadata(folders)
+    {
+        return this._Query("metadata|" + folders.join("|"), async () =>
+        {
+            const metadataPath = folders.map(folder => folder + "metadata.yaml").find(path => this._PaperDollFiles(path.slice(0, path.lastIndexOf("/") + 1)).includes(path));
+            if (!metadataPath) return null;
+            const metadata = await this.FetchAvatarPartMetaData(metadataPath);
+            const dependantParts = metadata.dependantModifiers.filter(entry => !/^utilityshapes\//iu.test(entry))
+                .map(entry => CjsCharacterLibraryManager.parseModifier(entry)).map(modifier => ({ path: modifier.path, weight: modifier.weight }));
+            return {
+                metadataPath, ...CjsCharacterLibraryManager.decodeModifiers(metadata, metadataPath), dependantParts,
+                numColorAreas: metadata.numColorAreas, alternativeTextureSourcePath: metadata.alternativeTextureSourcePath
+            };
         });
     }
 

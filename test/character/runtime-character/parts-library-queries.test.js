@@ -95,16 +95,31 @@ test("options come from the index alone, one per .type, per underwear folder, or
     assert.throws(() => CjsCharacterLibraryManager.paperDollRoot("other"), /Unknown character sex/);
 });
 
-test("an option's part: its type's tuple, the variation folder before the part folder, and its metadata cut to paths", async t =>
+test("an option's part: its type's tuple, the variation folder before the part folder, and its metadata decoded", async t =>
 {
     const { library } = fixture(t);
     const black = await library.FetchOptionPart(await option(library, "outer", "coat01_black"));
     assert.deepEqual([ black.part, black.variation, black.colorVariant ], [ "outer/coat01", "v1", "black" ], "the part lowercased");
     assert.deepEqual(black.folders, [ ROOT + "outer/coat01/v1/", ROOT + "outer/coat01/" ]);
-    assert.deepEqual([ black.dependants, black.occludes, black.numColorAreas ], [ [ "dependants/mask01", "utilityshapes/tuck" ], [ "outer/other" ], 2 ]);
+    assert.deepEqual([ black.dependants, black.occludes, black.numColorAreas ], [ [ "dependants/mask01" ], [ "outer/other" ], 2 ], "utility shapes are not dependants");
+    assert.deepEqual(black.shapes.requests.map(value => [ value.modifierPath, value.weight ]), [ [ "utilityshapes/tuck", 0.5 ] ]);
     assert.deepEqual((await library.FetchOptionPart(await option(library, "outer", "coat01_plain"))).folders, [ ROOT + "outer/coat01/" ]);
     const aging = await library.FetchOptionPart(await option(library, "makeup/aging", "aging_01_v1"));
     assert.deepEqual([ aging.metadataPath, aging.numColorAreas, aging.projection ], [ null, -1, null ]);
+});
+
+test("a part folder's metadata: the first folder holding one, decoded, with weighted dependant parts", async t =>
+{
+    const { library, reads } = fixture(t);
+    const coat = await library.FetchPartMetadata([ ROOT + "outer/coat01/v1/", ROOT + "outer/coat01/" ]);
+    assert.equal(coat.metadataPath, ROOT + "outer/coat01/metadata.yaml", "the variation folder has none");
+    assert.deepEqual([ coat.occludes, coat.dependants, coat.dependantParts, coat.numColorAreas, coat.alternativeTextureSourcePath ],
+        [ [ "outer/other" ], [ "dependants/mask01" ], [ { path: "dependants/mask01", weight: 1 } ], 2, "" ]);
+    assert.deepEqual(coat.shapes.requests.map(value => [ value.modifierPath, value.weight ]), [ [ "utilityshapes/tuck", 0.5 ] ]);
+    coat.occludes.push("changed");
+    assert.deepEqual((await library.FetchPartMetadata([ ROOT + "outer/coat01/v1/", ROOT + "outer/coat01/" ])).occludes, [ "outer/other" ], "the caller's own copy");
+    assert.equal(reads.filter(path => path.endsWith("metadata.yaml")).length, 1, "read once");
+    assert.equal(await library.FetchPartMetadata([ ROOT + "makeup/aging/aging_01/" ]), null, "no folder holds one");
 });
 
 test("each category's maps follow its own rule", async t =>
