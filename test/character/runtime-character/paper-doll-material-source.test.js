@@ -92,13 +92,14 @@ test("a typed option resolves its variation, colour variant and metadata; the ho
 {
   const { definition, sources } = await configured(t);
   const hooked = [];
-  sources.get("topMiddle").SetResolveHook(async (part, resolved) => { hooked.push([ part, resolved.id, resolved.type !== null, resolved.folders, resolved.dependants ]); });
+  sources.get("topMiddle").SetResolveHook(async (part, resolved) => { hooked.push([ part, resolved.id, resolved.type !== null, resolved.folders, resolved.dependants, resolved.shapes ]); });
   const option = await definition.topMiddle.ResolveOption("shirtaf01_amarr");
   assert.deepEqual(option.occludes, [ "topunderwear" ]);
   assert.deepEqual(option.colorAreas, [ 1, 2 ], "numColorAreas from the variation's metadata");
   assert.equal(option.defaultPalette, TOP + "amarr.color", "the colour variant");
   assert.deepEqual(option.palettes.map(record => record.name), [ "amarr", "default" ]);
-  assert.deepEqual(hooked, [ [ "topMiddle", "shirtaf01_amarr", true, [ TOP + "v1/", TOP ], [ "dependants/masktuck/standard", "utilityshapes/x" ] ] ]);
+  assert.deepEqual(hooked, [ [ "topMiddle", "shirtaf01_amarr", true, [ TOP + "v1/", TOP ], [ "dependants/masktuck/standard" ],
+    { requests: [ { modifierPath: "utilityshapes/x", targetName: "x", weight: 1, explicitWeight: false } ], occlusions: [] } ] ], "the utility shape decoded, not a dependant");
   assert.equal((await definition.topMiddle.ResolveOption("shirtaf01_plain")).defaultPalette, TOP + "default.color", "no variant: its default palette (ResolveColors)");
 });
 

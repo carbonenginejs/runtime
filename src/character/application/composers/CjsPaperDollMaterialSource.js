@@ -148,11 +148,11 @@ export class CjsPaperDollMaterialSource
         const defaultPalette = records.length ? (await build.Ready(library.ResolveColors(option.option))).palette : null;
         const colorAreas = maps.detail && maps.zone && defaultPalette ? await build.Ready(library.FetchColorAreas(option.option)) : [];
         // The option occludes what its dependants' metadata occludes as well (CjsPaperDollInstance.dependantOccludes).
-        const dependantParts = await build.Ready(Promise.all(part.dependants.filter(path => !/^utilityshapes\//iu.test(path))
+        const dependantParts = await build.Ready(Promise.all(part.dependants
             .map(path => library.FetchDependantPart(build.content.sex, path, part.variation))));
         const occludes = [ ...new Set([ ...part.occludes, ...CjsPaperDollInstance.dependantOccludes(dependantParts.filter(Boolean)) ]) ];
         const resolved = { id: option.id, path: option.path, type: option.type, base: part.folders.at(-1), folders: part.folders, variation: part.variation,
-            dependants: part.dependants, occludes, ownOccludes: part.occludes, defaultPalette, maps, masks, skipped, maskedNormal };
+            dependants: part.dependants, shapes: part.shapes, occludes, ownOccludes: part.occludes, defaultPalette, maps, masks, skipped, maskedNormal };
         if (this._hook !== null) await this._hook(this.name, resolved);
         // Drawn from here on: the maps load on the next draw.
         option.resolved = resolved;
