@@ -146,7 +146,7 @@ export class CjsPaperDollComposition
 
     /**
      * The size an output takes from its base map: the map's stored size over its atlas extent (a base covers the
-     * whole atlas, extent 1). Found: E:/ccpwgl/_dev/character-common/material-composer.mjs:174-177.
+     * whole atlas, extent 1). The earlier character demo's material composer sized its outputs the same way.
      * @param {{ width: number, height: number, cutoutWidth: number, cutoutHeight: number }} texture The base map's
      *   texture resource.
      * @returns {[number, number]} Width and height.

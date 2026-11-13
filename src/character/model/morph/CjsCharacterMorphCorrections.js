@@ -1,6 +1,6 @@
 /**
  * The engine that applies morph corrections: rules given as data, never held here. A correction is a setting with a
- * default, applied on top of the shipped morph data in memory (docs/internal/decisions/character-structure-and-plugins.md).
+ * default, applied on top of the shipped morph data in memory; the shipped files are never changed.
  * The rules in force come from the character library (`CjsCharacterLibraryManager.GetMorphCorrections`), whose
  * default is the defaults file `factory/defaults/morphCorrections.json`; a host replaces or clears them.
  *
@@ -10,7 +10,7 @@
  * or `carry` (the mirrored mesh whose smoothed change a riding mesh takes). Base meshes, files and other morphs stay.
  *
  * Ours (no Carbon counterpart: Carbon bakes shipped morph data; `TriGrannyRes.SetMorphTargetOffsets` is our `@cjs`
- * addition). Registered in docs/architecture/non-carbon-extensions.md, "Morph corrections".
+ * addition). A deliberate extension: Carbon applies shipped morph data as it is.
  */
 export class CjsCharacterMorphCorrections
 {

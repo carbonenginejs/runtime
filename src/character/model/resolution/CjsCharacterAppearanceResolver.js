@@ -149,8 +149,7 @@ export class CjsCharacterAppearanceResolver
      * @param {?(owner: any) => ?number} [layer=null] Each owner's layer rank (`CjsPaperDollDefinition.GetLayer`). When
      *   worn items set one morph to different weights, the one in the highest layer wins: the top's drape sets
      *   `pushdrapeshape#0.25` and `outer/jacketcm01` `#0.0`, and the jacket over it applies (operator, 2026-11-13: the
-     *   conflict crashed characters). Ours, provisional: no metadata orders them (docs/architecture/non-carbon-extensions.md,
-     *   "Highest layer wins a weighted morph").
+     *   conflict crashed characters). Ours, provisional: no metadata orders two weighted settings of one morph.
      * @returns {{modifierPath: string, suppressed: object[], retained: object[], conflict: boolean}[]} One record per path.
      * @throws {Error} For worn items setting one morph to different weights when no single highest layer holds one.
      */
