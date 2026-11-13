@@ -110,17 +110,23 @@ const MIN_GLOW_AREA = 1e-4;
 export class CjsIncarnaEmulator
 {
 
-  /** The EveSOFDataMgr the SOF data goes into; set by the constructor. */
+  /** The EveSOFDataMgr the SOF data goes into; set by `Initialize`. */
   _dataMgr = null;
 
   /**
+   * Attaches the emulator: the data manager its assemblies go into, and the resource manager that serves the areas'
+   * textures (`dynamic:/incarna` is registered on it). Construction is inert; this is the attaching step.
+   *
+   * @cjs Ours: the emulator has no Carbon counterpart.
    * @param {object} dataMgr The EveSOFDataMgr whose factory builds the result.
-   * @param {object} resourceManager The `BlueResMan` that serves the areas' textures; `dynamic:/incarna` is registered on it.
+   * @param {object} resourceManager The `BlueResMan` that serves the areas' textures.
+   * @returns {CjsIncarnaEmulator} This emulator.
    */
-  constructor(dataMgr, resourceManager)
+  Initialize(dataMgr, resourceManager)
   {
     this._dataMgr = dataMgr;
     RegisterIncarnaTextures(resourceManager);
+    return this;
   }
 
   /**
