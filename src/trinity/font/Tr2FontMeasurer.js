@@ -19,7 +19,7 @@ import { type } from "#schema";
 export class Tr2FontMeasurer extends IRoot
 {
   /**
-   * Carbon destructor Reset (trinity/trinity/Font/Tr2FontMeasurer.cpp:115-118,127-166).
+   * Carbon: ~Tr2FontMeasurer (trinity/trinity/Font/Tr2FontMeasurer.cpp:115-118,127-166): Reset.
    * @adapted Listener-set clearing replaces implicit member destruction (Tr2FontMeasurer.h:185), after Reset sends the final change notification.
    * @returns {void}
    */

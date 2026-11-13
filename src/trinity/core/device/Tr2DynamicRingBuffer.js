@@ -69,7 +69,7 @@ export class Tr2DynamicRingBuffer
   _name = "";
 
   /**
-   * Carbon destructor (Tr2DynamicRingBuffer.cpp:26-29).
+   * Carbon: ~Tr2DynamicRingBuffer (trinity/trinity/Tr2DynamicRingBuffer.cpp:26-29).
    * @adapted The destruction graph dispatches device-resource base teardown separately.
    */
   _Destructor()

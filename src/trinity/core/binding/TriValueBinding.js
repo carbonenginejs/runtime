@@ -38,7 +38,7 @@ export class TriValueBinding extends INotify
 {
   /**
    * Removes this binding from its current reroutable destination.
-   * Carbon: trinity/trinity/TriValueBinding.cpp:25-32.
+   * Carbon: ~TriValueBinding (trinity/trinity/TriValueBinding.cpp:25-32).
    * @implemented
    * @returns {void}
    */

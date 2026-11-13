@@ -905,7 +905,7 @@ export class Tr2LightManager
   }
 
   /**
-   * Carbon destructor (trinity/trinity/Tr2LightManager.cpp:174-177).
+   * Carbon: ~Tr2LightManager (trinity/trinity/Tr2LightManager.cpp:174-177).
    * @adapted Explicit Destroy releases the by-value constant-buffer share (Tr2LightManager.h:188; trinityal/include/Tr2ConstantBufferAL.h:52); reference members retain their existing lifetime policy.
    * @adapted Native raytracing value resources have no working JS members to release.
    * @returns {void}

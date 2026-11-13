@@ -52,14 +52,14 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
   /**
    * Carbon's destructor: the buffer members release with it, then the
-   * Tr2DeviceResource base unregisters (Tr2DeviceResource.cpp:11-14).
+   * Tr2DeviceResource base unregisters (Tr2DeviceResource.cpp:15-18).
    *
    * Ours: JavaScript has no destructor, so the owner calls this when it drops
    * the renderer. No owner in this package does: bracket renderers are made
    * and dropped by the client, so a dropped one stays registered until its
    * owner calls this.
    *
-   * Carbon: ~EveSprite2dBracketRenderer (trinity/trinity/EveSprite2dBracketRenderer.h:44-45 (AL members; implicit destructor)).
+   * Carbon: ~EveSprite2dBracketRenderer, implicit: m_vertexBuffer, m_indexBuffer (trinity/trinity/EveSprite2dBracketRenderer.h:44-45).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
   _Destructor()

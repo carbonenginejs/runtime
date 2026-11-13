@@ -104,7 +104,7 @@ export class EveStretch3 extends IEveFiringEffectElement
 
   /**
    * Unlinks controllers for deletion and detaches this owner's native back pointers.
-   * Carbon: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp:42-48.
+   * Carbon: ~EveStretch3 (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp:42-48).
    * @adapted Detaches owned list observers as BlueList member destruction does (blueexposure/include/BlueListUtil.h:198-204), retaining content.
    * @adapted Detaches JS strong back references; native BlueList destruction suppresses removal callbacks.
    * Native removal behavior: EveStretch3.cpp:369; blueexposure/include/BlueListUtil.h:198-204.

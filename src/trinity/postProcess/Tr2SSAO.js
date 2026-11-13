@@ -62,7 +62,7 @@ export class Tr2SSAO extends IRoot
 {
   /**
    * Releases the native by-value constant-buffer member.
-   * Carbon: Tr2SSAO member (trinity/trinity/Tr2SSAO.h:103).
+   * Carbon: ~Tr2SSAO, implicit: m_cortaoConstantBuffer (trinity/trinity/Tr2SSAO.h:103).
    * @adapted Explicit Destroy replaces implicit shared_ptr member release; referenced effects and textures retain their existing lifetime policy.
    * @returns {void}
    */

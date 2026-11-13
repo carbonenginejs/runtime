@@ -32,7 +32,7 @@ export class Tr2DeviceResource
   }
 
   /**
-   * Carbon destructor (Tr2DeviceResource.cpp:15-18): unregisters this owner.
+   * Carbon: ~Tr2DeviceResource (trinity/trinity/Tr2DeviceResource.cpp:15-18): unregisters this owner.
    * @adapted Explicit teardown marks the object dead so later use cannot re-register it.
    */
   _Destructor()

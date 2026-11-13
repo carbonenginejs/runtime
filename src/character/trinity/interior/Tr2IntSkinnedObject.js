@@ -525,7 +525,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   }
 
   /**
-   * Carbon destructor (Interior/Tr2IntSkinnedObject.cpp:42-48): RemoveFromApexScene.
+   * Carbon: ~Tr2IntSkinnedObject (trinity/trinity/Interior/Tr2IntSkinnedObject.cpp:42-48): RemoveFromApexScene.
    *
    * @adapted The wodIntSkinnedObjectsAlive stats counter is not kept.
    * @returns {void}

@@ -176,7 +176,7 @@ export class EveChildContainer extends EveChildTransform
 
   /**
    * Unlinks controllers for deletion and detaches this owner's native back pointers.
-   * Carbon: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp:56-63.
+   * Carbon: ~EveChildContainer (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp:56-63).
    * @adapted Detaches owned list observers as BlueList member destruction does (blueexposure/include/BlueListUtil.h:198-204), retaining content.
    * @implemented
    * @returns {void}

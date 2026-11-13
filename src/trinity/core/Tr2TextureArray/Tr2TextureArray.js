@@ -225,7 +225,7 @@ export class Tr2TextureArray extends IRoot
     }
 
     /**
-     * Carbon's class has no destructor body; this releases the Tr2TextureAL value member (h:71) its C++ destructor releases.
+     * Carbon: ~Tr2TextureArray, implicit: m_texture (trinity/trinity/Tr2TextureArray.h:72).
      * @adapted Explicit Destroy replaces the member destructor. Graph dispatch handles bases.
      */
     _Destructor()

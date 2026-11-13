@@ -1869,7 +1869,7 @@ export class EveTurretSet extends EveEntity
    * Stops firing, releases cached turret state and detaches resource ownership.
    * Shared geometry and firing effects remain caller-owned; only this owner
    * leaves the component registry and releases its instance allocation.
-   * Carbon: trinity/trinity/Eve/Turret/EveTurretSet.cpp:130-145.
+   * Carbon: ~EveTurretSet (trinity/trinity/Eve/Turret/EveTurretSet.cpp:130-145).
    * @adapted Manager-owned links replace Carbon's per-resource notify targets.
    * @adapted Retains existing explicit component unregister because the JS registry holds strong references.
    * @returns {void}

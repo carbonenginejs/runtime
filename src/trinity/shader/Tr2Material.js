@@ -79,7 +79,7 @@ export class Tr2Material extends IRoot
 
   /**
    * Releases technique-owned pass and library storage before the material is retired.
-   * Carbon: trinity/trinity/Shader/Tr2Material.h:248-249.
+   * Carbon: ~Tr2Material (trinity/trinity/Shader/Tr2Material.cpp:205-207), empty: m_parametersForPasses and m_parametersForLibraries end with it (Tr2Material.h:248-249).
    * @adapted Explicit owned-value hooks replace native vector member destruction in JavaScript.
    * @returns {void}
    */

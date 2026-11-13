@@ -164,7 +164,7 @@ export class EveEffectRoot2 extends EveEntity
 
   /**
    * Unlinks controllers for deletion and detaches this owner's native back pointers.
-   * Carbon: trinity/trinity/Eve/EveEffectRoot2.cpp:47-57.
+   * Carbon: ~EveEffectRoot2 (trinity/trinity/Eve/EveEffectRoot2.cpp:47-57).
    * @adapted Detaches owned list observers as BlueList member destruction does (blueexposure/include/BlueListUtil.h:198-204), retaining content.
    * @implemented
    * @returns {void}

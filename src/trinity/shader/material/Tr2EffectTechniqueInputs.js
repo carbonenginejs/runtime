@@ -19,7 +19,7 @@ export class Tr2EffectTechniqueInputs
 
   /**
    * Releases the pass and library values owned by this technique.
-   * Carbon: trinity/trinity/Shader/Tr2Material.h:183-196.
+   * Carbon: ~Tr2EffectTechniqueInputs (trinity/trinity/Shader/Tr2Material.h:183-196).
    * @adapted Explicit member hooks replace destruction of the native unique_ptr vectors.
    * @returns {void}
    */

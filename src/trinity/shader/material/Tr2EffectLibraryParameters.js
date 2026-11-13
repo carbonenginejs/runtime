@@ -57,7 +57,7 @@ export class Tr2EffectLibraryParameters
 
   /**
    * Releases the library's native stage and resource-set value members.
-   * Carbon: trinity/trinity/Shader/Tr2Material.h:156-167.
+   * Carbon: ~Tr2EffectLibraryParameters, implicit: m_localInput, m_globalInput, m_globalResourceSetDesc, m_globalResourceSet (trinity/trinity/Shader/Tr2Material.h:158-162).
    * @adapted Explicit owned-member calls replace C++ value destruction; the library has no written destructor body.
    * @adapted Bindless used-texture storage is unported and never acquired by this class.
    * @returns {void}

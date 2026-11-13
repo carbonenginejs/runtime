@@ -29,7 +29,7 @@ export class Tr2ControllerEventHandler extends IListNotify
 {
   /**
    * Detaches this handler's owned action-list observer.
-   * Carbon acquisition: trinity/trinity/Controllers/Tr2ControllerEventHandler.cpp:8-13.
+   * Carbon: ~Tr2ControllerEventHandler, implicit: m_actions (trinity/trinity/Controllers/Tr2ControllerEventHandler.h:29).
    * @adapted Explicit observer detach replaces implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining actions.
    * @returns {void}
    */

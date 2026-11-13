@@ -159,7 +159,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon's destructor (cpp:76-78) is empty; what it releases is its
    * members' and bases': the m_vertexBuffer Allocation destructor frees the
    * shared-buffer range (Tr2SuballocatedBuffer.cpp:184-190) and the
-   * Tr2DeviceResource destructor unregisters (Tr2DeviceResource.cpp:11-14).
+   * Tr2DeviceResource destructor unregisters (Tr2DeviceResource.cpp:15-18).
    *
    * JavaScript has no deterministic destructor, so the owner calls this
    * explicitly. No owner calls Destruct yet.

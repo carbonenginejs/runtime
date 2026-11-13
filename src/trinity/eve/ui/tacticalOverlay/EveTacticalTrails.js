@@ -125,7 +125,7 @@ export class EveTacticalTrails
   /**
    * Releases final ownership because JavaScript has no deterministic destructor.
    *
-   * Carbon: ~EveTacticalTrails (trinity/trinity/Eve/UI/EveTacticalTrails.h:62 (AL member; implicit destructor)).
+   * Carbon: ~EveTacticalTrails, implicit: m_vertexBuffer (trinity/trinity/Eve/UI/EveTacticalTrails.h:62).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
   _Destructor()

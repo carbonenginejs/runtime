@@ -230,7 +230,7 @@ export class Tr2PostProcessRenderer extends IRoot
   /**
    * Final owner teardown releases effect member values and the bloom constants.
    *
-   * Carbon: Tr2PostProcessRenderer members (trinity/trinity/PostProcess/Tr2PostProcessRenderer.h:161-255).
+   * Carbon: ~Tr2PostProcessRenderer, implicit: m_bloomConstantBuffer and the effect members (trinity/trinity/PostProcess/Tr2PostProcessRenderer.h:161-255).
    * @adapted Preserves explicit deduplicated effect and constant-buffer release in place of native member destruction.
    */
   _Destructor()

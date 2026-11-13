@@ -278,7 +278,7 @@ export class Tr2MainWindow
     }
 
     /**
-     * Carbon destructor (trinity/trinity/UI/Tr2MainWindow.cpp:207-212).
+     * Carbon: ~Tr2MainWindow (trinity/trinity/UI/Tr2MainWindow.cpp:207-212).
      * @adapted This adapter acquires browser event listeners, not a native window or Blue tick; Detach releases those listeners without invoking vetoable Close or closing the host browser.
      * @returns {void}
      */

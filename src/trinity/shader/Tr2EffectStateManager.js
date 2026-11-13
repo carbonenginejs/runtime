@@ -1461,7 +1461,7 @@ export class Tr2EffectStateManager
   /**
    * Explicitly releases values that Carbon releases with its state cache.
    *
-   * Carbon: Tr2EffectStateManager::CurrentValues (trinity/trinity/Shader/Tr2EffectStateManager.h:171-193).
+   * Carbon: ~Tr2EffectStateManager, implicit: m_currentValues (trinity/trinity/Shader/Tr2EffectStateManager.h:193).
    * @adapted Preserves explicit release of cached AL buffer values in place of native member destruction.
    */
   _Destructor()

@@ -642,7 +642,7 @@ export class EveSpaceSceneRenderDriver
    * Releases this driver's values after its render job has stopped. Carbon's
    * destructor deletes the upscaling context (cpp:162-165), and its
    * Tr2DeviceResource base unregisters from the device
-   * (Tr2DeviceResource.cpp:11-14).
+   * (Tr2DeviceResource.cpp:15-18).
    *
    * Carbon: ~EveSpaceSceneRenderDriver (trinity/trinity/Eve/EveSpaceSceneRenderDriver.cpp:162-165).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.

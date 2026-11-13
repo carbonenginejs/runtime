@@ -200,7 +200,7 @@ export class Tr2RenderContext
   /**
    * Explicit context teardown releases owned state values before its backend.
    *
-   * Carbon: Tr2RenderContextBase::m_esm (trinity/trinity/Tr2RenderContext.h:25-35).
+   * Carbon: ~Tr2RenderContextBase, implicit: m_esm (trinity/trinity/Tr2RenderContext.h:35).
    * @adapted Preserves existing context-owned state and geometry release before destroying the selected backend.
    */
   _Destructor()

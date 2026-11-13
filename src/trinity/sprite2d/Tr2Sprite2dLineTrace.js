@@ -48,7 +48,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
   /**
    * Releases this class's native destructor obligations.
-   * Carbon: Tr2Sprite2dLineTrace teardown (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.cpp:31-37).
+   * Carbon: ~Tr2Sprite2dLineTrace (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.cpp:34-37).
    * @adapted Explicit observer detach replaces implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining authored content.
    * @adapted Prepared JS geometry uses the existing ClearVertices port; native allocation shrinking is managed by GC.
    * @returns {void}

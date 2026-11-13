@@ -333,7 +333,7 @@ export class EveBoosterSet2 extends EveEntity
    * Carbon's destructor (cpp:646-648) is empty; what it releases is its
    * members' and bases': the m_instanceBuffer Allocation destructor frees the
    * shared-buffer range (Tr2SuballocatedBuffer.cpp:184-190) and the
-   * Tr2DeviceResource destructor unregisters (Tr2DeviceResource.cpp:11-14).
+   * Tr2DeviceResource destructor unregisters (Tr2DeviceResource.cpp:15-18).
    * m_vertexBuffer is a shared Tr2ProceduralBuffer handle and owns nothing.
    *
    * Adapted: JavaScript has no deterministic destructor, so the owner calls

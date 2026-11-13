@@ -45,7 +45,7 @@ export class EveChildSocket extends EveChildTransform
 {
   /**
    * Detaches the plug's parent and owner pointers.
-   * Carbon: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.cpp:23-26.
+   * Carbon: ~EveChildSocket (trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.cpp:23-26).
    * @implemented
    * @returns {void}
    */

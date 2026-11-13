@@ -127,7 +127,7 @@ export class HostBitmap extends BitmapDimensions
   }
 
   /**
-   * Carbon destructor (imageio/HostBitmap.cpp:59-62) releases image storage.
+   * Carbon: ~HostBitmap (imageio/HostBitmap.cpp:58-62): releases image storage.
    * @implemented
    */
   _Destructor()

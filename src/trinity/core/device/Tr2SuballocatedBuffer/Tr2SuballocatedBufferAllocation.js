@@ -36,7 +36,7 @@ export class Tr2SuballocatedBufferAllocation
 {
   /**
    * Returns this allocation's reservation to its parent.
-   * Carbon destructor: trinity/trinity/Tr2SuballocatedBuffer.cpp:184-190.
+   * Carbon: ~Allocation (trinity/trinity/Tr2SuballocatedBuffer.cpp:184-190).
    * @implemented
    * @returns {void}
    */

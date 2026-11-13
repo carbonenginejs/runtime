@@ -83,7 +83,7 @@ export class Tr2VolumetricsRenderer
 {
   /**
    * Releases the native by-value constant-buffer member.
-   * Carbon: Tr2VolumetricsRenderer member (trinity/trinity/Tr2VolumetricsRenderer.h:303).
+   * Carbon: ~Tr2VolumetricsRenderer, implicit: m_fogConstantBuffer (trinity/trinity/Tr2VolumetricsRenderer.h:303).
    * @adapted Explicit Destroy replaces implicit shared_ptr member release; referenced effects and textures retain their existing lifetime policy.
    * @adapted Native batch accumulator and shadow constant buffer (h:306-308) are not acquired by this JS class.
    * @returns {void}

@@ -156,7 +156,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   /**
    * Releases primitive buffers and removes device and resource registrations.
-   * Carbon: trinity/trinity/Tr2GrannyPrimitiveSet.cpp:24-33.
+   * Carbon: ~Tr2GrannyPrimitiveSet (trinity/trinity/Tr2GrannyPrimitiveSet.cpp:24-33).
    * @adapted Manager-owned links replace Carbon's per-resource notify targets.
    * @adapted JavaScript has no reference count to Unlock; IRoot.Unlock is unsupported.
    * @adapted The device base owns unregistration; repeating the native explicit call would increment the JS generation twice.

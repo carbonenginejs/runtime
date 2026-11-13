@@ -62,7 +62,7 @@ export class Tr2DirectInstanceData
   /**
    * Explicit JS teardown replaces the native resource destructor.
    *
-   * Carbon: ~Tr2DirectInstanceData (trinity/trinity/Tr2DirectInstanceData.h:46-54 (AL value member; implicit destructor)).
+   * Carbon: ~Tr2DirectInstanceData, implicit: m_vertexBuffer (trinity/trinity/Tr2DirectInstanceData.h:52).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @returns {void}
    */

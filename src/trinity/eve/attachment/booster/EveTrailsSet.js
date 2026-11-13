@@ -212,7 +212,7 @@ export class EveTrailsSet
 
   /**
    * Cleans the trail declaration, detaches geometry and releases device storage.
-   * Carbon: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp:31-41.
+   * Carbon: ~EveTrailsSet (trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp:31-41).
    * @adapted Manager-owned links replace Carbon's per-resource notify targets.
    * @returns {void}
    * @adapted Preserves the prior explicit Destruct fences and cached-slot clearing; graph dispatch owns base cleanup.

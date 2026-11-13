@@ -162,7 +162,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
 
   /**
    * Releases this class's native destructor obligations.
-   * Carbon: Tr2Sprite2dArc teardown (trinity/trinity/Sprite2d/Tr2Sprite2dArc.cpp:22-25).
+   * Carbon: ~Tr2Sprite2dArc (trinity/trinity/Sprite2d/Tr2Sprite2dArc.cpp:22-25).
    * @adapted Prepared JS geometry uses the existing ClearVertices port; native allocation shrinking is managed by GC.
    * @returns {void}
    */

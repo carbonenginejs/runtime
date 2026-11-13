@@ -55,7 +55,7 @@ export class Tr2Controller extends EveThrottleable
 {
   /**
    * Detaches this controller's owned list observers.
-   * Carbon acquisition: trinity/trinity/Controllers/Tr2Controller.cpp:21-33.
+   * Carbon: ~Tr2Controller, implicit: m_stateMachines, m_variables, m_eventHandlers (trinity/trinity/Controllers/Tr2Controller.h:69-71).
    * @adapted Explicit observer detach replaces implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining content.
    * @returns {void}
    */

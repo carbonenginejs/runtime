@@ -17,7 +17,7 @@ const EMPTY_DATA = new Uint8Array(0); // alloc: shared empty byte payload, never
 export class Tr2ShaderBuffer extends IRoot
 {
   /**
-   * Carbon destructor (trinity/trinity/Shader/Tr2ShaderBuffer.cpp:15-23).
+   * Carbon: ~Tr2ShaderBuffer (trinity/trinity/Shader/Tr2ShaderBuffer.cpp:15-23).
    * @adapted Dropping the owned byte view replaces CCP_FREE; context-owned GPU buffers are not released here.
    * @returns {void}
    */

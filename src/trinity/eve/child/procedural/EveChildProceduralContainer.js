@@ -58,7 +58,7 @@ export class EveChildProceduralContainer extends EveChildTransform
 {
   /**
    * Detaches the selected child's parent and owner pointers.
-   * Carbon: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/EveChildProceduralContainer.cpp:15-18.
+   * Carbon: ~EveChildProceduralContainer (trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/EveChildProceduralContainer.cpp:15-18).
    * @implemented
    * @returns {void}
    */

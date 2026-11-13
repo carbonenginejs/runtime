@@ -43,7 +43,7 @@ export class Tr2MaterialStageInput
 
   /**
    * Releases the native stage's constant-buffer value member.
-   * Carbon: trinity/trinity/Shader/Tr2Material.cpp:94-97 and Tr2Material.h:98.
+   * Carbon: ~Tr2MaterialStageInput (trinity/trinity/Shader/Tr2Material.cpp:94-97) and Tr2Material.h:98.
    * @adapted No shared-constant-buffer table is acquired here, so there is no shared key to release.
    * @adapted Explicit AL release replaces the native value member's destructor in JavaScript.
    * @returns {void}

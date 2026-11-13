@@ -319,7 +319,7 @@ export class Tr2AtlasTexture extends BlueAsyncRes
   }
 
   /**
-   * Carbon destructor (Tr2AtlasTexture.cpp:36-43): warns and unlocks a texture still locked.
+   * Carbon: ~Tr2AtlasTexture (trinity/trinity/Tr2AtlasTexture.cpp:36-43): warns and unlocks a texture still locked.
    *
    * quirk, CE-147 (`Tr2AtlasTexture.cpp:36-43` after :139-146): after Shutdown the
    * area and own texture are gone, so `UnlockBuffer` finds no texture and returns

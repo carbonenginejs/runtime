@@ -60,7 +60,7 @@ export class EveChildRef extends EveChildTransform
 {
   /**
    * Detaches the referenced child's parent and owner pointers.
-   * Carbon: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.cpp:17-20.
+   * Carbon: ~EveChildRef (trinity/trinity/Eve/SpaceObject/Children/EveChildRef.cpp:17-20).
    * @implemented
    * @returns {void}
    */

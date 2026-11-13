@@ -753,7 +753,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Releases damage-filter sessions, geometry notifications and owner back pointers.
-   * Carbon: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp:235-257.
+   * Carbon: ~EveSpaceObject2 (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp:235-257).
    * @adapted Detaches owned list observers as BlueList member destruction does (blueexposure/include/BlueListUtil.h:198-204), retaining content.
    * @adapted Removes any manager-owned geometry link; native notification acquisition is currently unported.
    * @adapted Audio geometry is unported and audio teardown is outside this task's scope.

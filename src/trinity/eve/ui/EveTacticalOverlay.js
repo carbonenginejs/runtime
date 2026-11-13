@@ -130,7 +130,7 @@ export class EveTacticalOverlay
 
   /**
    * Detaches the owned variable store from the three authored effects.
-   * Carbon: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp:92-99.
+   * Carbon: ~EveTacticalOverlay (trinity/trinity/Eve/UI/EveTacticalOverlay.cpp:92-99).
    * @implemented
    * @returns {void}
    */

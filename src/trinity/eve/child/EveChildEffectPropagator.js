@@ -107,7 +107,7 @@ export class EveChildEffectPropagator extends EveChildContainer
 {
   /**
    * Detaches the propagated effect's parent and owner pointers.
-   * Carbon: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp:40-43.
+   * Carbon: ~EveChildEffectPropagator (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp:40-43).
    * @implemented
    * @returns {void}
    */

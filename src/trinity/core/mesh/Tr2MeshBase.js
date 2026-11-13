@@ -140,7 +140,7 @@ export class Tr2MeshBase
 
   /**
    * Detaches this mesh from its retained areas and owned list observers.
-   * Carbon: trinity/trinity/Tr2MeshBase.cpp:65-74.
+   * Carbon: ~Tr2MeshBase (trinity/trinity/Tr2MeshBase.cpp:65-74).
    * @adapted Membership checks permit repeated teardown and non-notifying JS list population without weakening RemoveOwnerMesh.
    * @adapted Explicit observer detach replaces BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204); contents remain intact.
    * @returns {void}

@@ -201,7 +201,7 @@ export class EveEllipseSet extends EveChildTransform
   /**
    * Final release, where Carbon's destructor (EveEllipseSet.cpp:130-137) unbinds
    * every definition's dirty flag, since a definition may outlive the set,
-   * and Tr2DeviceResource's destructor unregisters it (Tr2DeviceResource.cpp:11-14).
+   * and Tr2DeviceResource's destructor unregisters it (Tr2DeviceResource.cpp:15-18).
    * JavaScript has no deterministic destructor, so the owner calls this.
    *
    *

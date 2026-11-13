@@ -1312,7 +1312,7 @@ export class TriDevice extends IRoot
   }
 
   /**
-   * Carbon destructor (TriDevice.cpp:224-228): clears m_scene and unregisters for sim-time rebase.
+   * Carbon: ~TriDevice (trinity/trinity/TriDevice.cpp:224-228): clears m_scene and unregisters for sim-time rebase.
    *
    * @adapted No UnregisterForSimTimeRebase: the constructor's registration (cpp:214) is not made, because
    *   BlueOS.RegisterForSimTimeRebase is unsupported in the browser.

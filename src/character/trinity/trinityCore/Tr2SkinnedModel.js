@@ -240,7 +240,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /**
    * Releases the selected skeleton before removing the geometry notification link.
-   * Carbon: trinity/trinity/Tr2SkinnedModel.cpp:23-30.
+   * Carbon: ~Tr2SkinnedModel (trinity/trinity/Tr2SkinnedModel.cpp:23-30).
    * @adapted Manager-owned links replace Carbon's per-resource notify targets.
    * @returns {void}
    * @adapted Preserves the prior explicit Destruct fences and cached-slot clearing; graph dispatch owns base cleanup.

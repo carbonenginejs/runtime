@@ -51,7 +51,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 
   /**
    * Releases this class's native destructor obligations.
-   * Carbon: Tr2PlaneConstraint teardown (trinity/trinity/Particle/Tr2PlaneConstraint.cpp:33-39).
+   * Carbon: ~Tr2PlaneConstraint, implicit: m_onCollisionEmitters (trinity/trinity/Particle/Tr2PlaneConstraint.h:91).
    * @adapted Explicit observer detach replaces implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining authored content.
    * @returns {void}
    */

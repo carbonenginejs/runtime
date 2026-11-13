@@ -1094,7 +1094,7 @@ export class EveChildTurret extends EveChildMesh
 
   /**
    * Releases the turret's pose hook, firing effect and cached geometry.
-   * Carbon: trinity/trinity/Eve/SpaceObject/Children/EveChildTurret.cpp:32-47.
+   * Carbon: ~EveChildTurret (trinity/trinity/Eve/SpaceObject/Children/EveChildTurret.cpp:32-47).
    * @adapted Existing CleanUp also cancels deferred JS firing-effect completions.
    * @adapted Inherited ReleaseResources (EveChildMesh.cpp:1839-1847) owns baked-morph allocations and a constant buffer absent from this port.
    * @returns {void}

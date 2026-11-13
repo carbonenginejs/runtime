@@ -73,7 +73,7 @@ export class Tr2EffectPassParameters
 
   /**
    * Disconnects rerouted values before releasing owned stage and resource-set storage.
-   * Carbon: trinity/trinity/Shader/Tr2Material.cpp:127-134 and Tr2Material.h:137-144.
+   * Carbon: ~Tr2EffectPassParameters (trinity/trinity/Shader/Tr2Material.cpp:127-134) and Tr2Material.h:137-144.
    * @adapted Explicit member teardown replaces C++ value destruction; reference-count Unlock is unsupported.
    * @adapted Bindless used-texture storage is unported and never acquired by this class.
    * @returns {void}

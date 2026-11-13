@@ -692,7 +692,7 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Releases the native owned callback during graph teardown.
-   * Carbon destructor: trinity/trinity/Curves/TriCurveSet.cpp:43-49.
+   * Carbon: ~TriCurveSet (trinity/trinity/Curves/TriCurveSet.cpp:43-49).
    * @adapted No sim-rebase registration is acquired in JS; retain its existing request-flag reset.
    * @adapted Explicit callback Destroy replaces native by-value member destruction (blueexposure/BlueScriptCallback.cpp:244-247).
    * @returns {void}

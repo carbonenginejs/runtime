@@ -56,7 +56,7 @@ export class EveMultiEffect extends IRoot
 
   /**
    * Unlinks controllers for deletion and detaches this owner's native back pointers.
-   * Carbon: trinity/trinity/Eve/EveMultiEffect.cpp:23-29.
+   * Carbon: ~EveMultiEffect (trinity/trinity/Eve/EveMultiEffect.cpp:23-29).
    * @adapted Detaches owned list observers as BlueList member destruction does (blueexposure/include/BlueListUtil.h:198-204), retaining content.
    * @adapted Detaches JS strong back references; native BlueList destruction suppresses removal callbacks.
    * Native removal behavior: EveMultiEffect.cpp:99,119; blueexposure/include/BlueListUtil.h:198-204.

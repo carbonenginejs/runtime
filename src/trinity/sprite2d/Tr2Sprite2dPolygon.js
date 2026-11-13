@@ -36,7 +36,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 
   /**
    * Releases this class's native destructor obligations.
-   * Carbon: Tr2Sprite2dPolygon teardown (trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp:13-19).
+   * Carbon: ~Tr2Sprite2dPolygon (trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp:17-19).
    * @adapted Explicit observer detach replaces implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining authored content.
    * @returns {void}
    */

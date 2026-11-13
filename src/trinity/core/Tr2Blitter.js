@@ -243,7 +243,7 @@ export class Tr2Blitter
 
   /**
    * Unregisters the blitter's global shader variables.
-   * Carbon: trinity/trinity/Tr2Blitter.cpp:31-35.
+   * Carbon: ~Tr2Blitter (trinity/trinity/Tr2Blitter.cpp:31-35).
    * @adapted Retains existing owned effect/buffer release after native global unregister.
    * @returns {void}
    */

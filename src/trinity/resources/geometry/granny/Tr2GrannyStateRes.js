@@ -39,7 +39,7 @@ export class Tr2GrannyStateRes extends BlueAsyncRes
   _dataSize = 0;
 
   /**
-   * Carbon destructor/Cleanup (Resources/Tr2GrannyStateRes.cpp:21-29,221-233).
+   * Carbon: ~Tr2GrannyStateRes (trinity/trinity/Resources/Tr2GrannyStateRes.cpp:22-29), which calls Cleanup (cpp:221-233).
    * @adapted Existing family cleanup releases the decoded JS file; no Granny file handle, animation lock or notify subscription is acquired by this port's explicit animation map.
    */
   _Destructor()

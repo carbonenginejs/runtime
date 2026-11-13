@@ -54,7 +54,7 @@ export class Tr2HostBitmap extends HostBitmap
 {
 
   /**
-   * Carbon destructor calls Destroy (Tr2HostBitmap.cpp:20-29).
+   * Carbon: ~Tr2HostBitmap (trinity/trinity/Tr2HostBitmap.cpp:20-29): calls Destroy.
    * @adapted SaveAsync is unsupported and acquires no queue callbacks; inherited ImageIO Destroy releases the bitmap bytes and invalidates its format.
    */
   _Destructor()

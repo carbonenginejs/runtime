@@ -804,7 +804,7 @@ export class Tr2InteriorStatic extends IRoot
 
   /**
    * Detaches the parent cell and removes the geometry notification link.
-   * Carbon: Trinity 24d033fa~1, Interior/Tr2InteriorStatic.cpp:47-56.
+   * Carbon: ~Tr2InteriorStatic (Trinity 24d033fa~1, Interior/Tr2InteriorStatic.cpp:47-56).
    * @adapted Manager-owned links replace Carbon's per-resource notify targets.
    * @adapted JavaScript has no reference count to Unlock; IRoot.Unlock is unsupported.
    * @returns {void}

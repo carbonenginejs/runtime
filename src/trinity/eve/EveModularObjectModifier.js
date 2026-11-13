@@ -35,7 +35,7 @@ export class EveModularObjectModifier extends IRoot
 {
   /**
    * Applies final bounds when an edit session has an object.
-   * Carbon: trinity/trinity/Eve/SpaceObject/Children/EveModularObjectModifier.cpp:41-50.
+   * Carbon: ~EveModularObjectModifier (trinity/trinity/Eve/SpaceObject/Children/EveModularObjectModifier.cpp:41-50).
    * @adapted Existing asynchronous edits also apply bounds as they finish; teardown adds no cancellation policy.
    * @returns {void}
    */

@@ -444,7 +444,7 @@ export class Tr2GrannyAnimation extends IRoot
 
   /**
    * Releases animation sampling state before removing primary and secondary resource links.
-   * Carbon: trinity/trinity/Tr2GrannyAnimation.cpp:99-120.
+   * Carbon: ~Tr2GrannyAnimation (trinity/trinity/Tr2GrannyAnimation.cpp:99-120).
    * @adapted Manager-owned links replace native targets; grannyRes also holds
    *   Carbon's borrowed geometry resource, selected by _sharedGeometry.
    * @adapted Native binding notifications remain absent: Tr2AnimationMeshBinding

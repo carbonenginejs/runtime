@@ -24,7 +24,7 @@ export class Tr2VisibilityResults extends IRoot
   _events = [];
 
   /**
-   * Carbon destructor (Tr2VisibilityResults.cpp:12-16) clears the event set.
+   * Carbon: ~Tr2VisibilityResults (trinity/trinity/Tr2VisibilityResults.cpp:12-16): clears the event set.
    * @implemented
    */
   _Destructor()

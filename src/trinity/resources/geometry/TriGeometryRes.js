@@ -856,7 +856,7 @@ export class TriGeometryRes extends BlueAsyncRes
   }
 
   /**
-   * Carbon destructor (Resources/TriGeometryRes.cpp:233-241): DestroyRayCaster,
+   * Carbon: ~TriGeometryRes (trinity/trinity/Resources/TriGeometryRes.cpp:233-241): DestroyRayCaster,
    * ReleaseResources(TRISTORAGE_ALL) (cpp:515-528), ClearGrannyData and ClearCMFData.
    *
    * @adapted The family cleanup frees the LOD allocations, Granny file and CMF data in one step; unlike

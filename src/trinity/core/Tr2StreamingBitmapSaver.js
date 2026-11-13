@@ -146,7 +146,7 @@ export class Tr2StreamingBitmapSaver extends IRoot
   }
 
   /**
-   * Carbon destructor (Tr2StreamingBitmapSaver.cpp:26-32): ends a save still in progress.
+   * Carbon: ~Tr2StreamingBitmapSaver (trinity/trinity/Tr2StreamingBitmapSaver.cpp:26-32): ends a save still in progress.
    *
    * @implemented
    * @returns {void}

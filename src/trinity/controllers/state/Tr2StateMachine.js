@@ -31,7 +31,7 @@ export class Tr2StateMachine
 {
   /**
    * Detaches this state machine's owned state-list observer.
-   * Carbon: trinity/trinity/Controllers/Tr2StateMachine.cpp:8-21.
+   * Carbon: ~Tr2StateMachine (trinity/trinity/Controllers/Tr2StateMachine.cpp:18-21).
    * @adapted Explicit observer detach replaces BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining states.
    * @adapted Native sim-time rebase registration is unsupported and never acquired in this port.
    * @returns {void}

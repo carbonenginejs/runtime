@@ -51,7 +51,7 @@ export class EveMeshOverlayEffect extends IRoot
 
   /**
    * Unlinks controllers for deletion and detaches this owner's native back pointers.
-   * Carbon: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.cpp:16-22.
+   * Carbon: ~EveMeshOverlayEffect (trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.cpp:16-22).
    * @adapted Detaches the owned controller-list observer as BlueList member destruction does (blueexposure/include/BlueListUtil.h:198-204).
    * @implemented
    * @returns {void}

@@ -87,7 +87,7 @@ const INT_MAX = 0x7fffffff;
 export class Tr2FontManager extends IRoot
 {
   /**
-   * Carbon destructor releases FreeType (trinity/trinity/Font/Tr2FontManager.cpp:133-137).
+   * Carbon: ~Tr2FontManager (trinity/trinity/Font/Tr2FontManager.cpp:133-137): releases FreeType.
    * @adapted Browser-owned font engines have no native release; the existing CPU glyph-cache cleanup is retained.
    * @adapted Shutdown tick removal (cpp:76-84) also runs here so direct destruction releases this manager's acquired registration.
    * @returns {void}

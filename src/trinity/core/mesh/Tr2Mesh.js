@@ -294,7 +294,7 @@ export class Tr2Mesh extends Tr2MeshBase
 
   /**
    * Removes both geometry notification links, the complete native destructor body.
-   * Carbon: trinity/trinity/Tr2Mesh.cpp:14-24.
+   * Carbon: ~Tr2Mesh (trinity/trinity/Tr2Mesh.cpp:14-24).
    * @adapted Manager-owned links replace Carbon's per-resource notify targets.
    * @returns {void}
    * @adapted Preserves the prior explicit Destruct fences and cached-slot clearing; graph dispatch owns base cleanup.

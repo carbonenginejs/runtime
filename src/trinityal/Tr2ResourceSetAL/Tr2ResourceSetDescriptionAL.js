@@ -315,7 +315,7 @@ export class Tr2ResourceSetDescriptionAL
 
   /**
    * Releases handles held by the native resource and sampler array members.
-   * Carbon: trinity/trinityal/include/Tr2ResourceSetAL.h:116-123.
+   * Carbon: ~Tr2ResourceSetDescriptionAL, implicit: m_srv, m_uav, m_samplers (trinity/trinityal/include/Tr2ResourceSetAL.h:121-123).
    * @adapted Explicit handle release replaces unique_ptr array destruction; moved-from arrays are null.
    * @returns {void}
    */

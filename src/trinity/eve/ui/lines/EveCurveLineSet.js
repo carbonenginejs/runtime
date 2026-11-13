@@ -40,7 +40,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /**
-   * Carbon destructor (Eve/UI/EveCurveLineSet.cpp:39-43): ReleaseResources(TRISTORAGE_ALL), which this class
+   * Carbon: ~EveCurveLineSet (trinity/trinity/Eve/UI/EveCurveLineSet.cpp:40-43): ReleaseResources(TRISTORAGE_ALL), which this class
    * does not override, so the Tr2CurveLineSet hook (Tr2CurveLineSet.cpp:37-40) releases a second time, as Carbon's does.
    *
    * @implemented

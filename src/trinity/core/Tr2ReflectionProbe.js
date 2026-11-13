@@ -266,7 +266,7 @@ export class Tr2ReflectionProbe
   }
 
   /**
-   * Carbon destructor (Tr2ReflectionProbe.cpp:58-61): ReleaseResources(TRISTORAGE_ALL).
+   * Carbon: ~Tr2ReflectionProbe (trinity/trinity/Tr2ReflectionProbe.cpp:58-61): ReleaseResources(TRISTORAGE_ALL).
    *
    * @implemented
    * @returns {void}

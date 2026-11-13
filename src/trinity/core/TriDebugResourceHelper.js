@@ -75,7 +75,7 @@ export class TriDebugResourceHelper
   }
 
   /**
-   * Carbon destructor (TriDebugResourceHelper.cpp:18-21): drops m_effect; the line effect is left to the member.
+   * Carbon: ~TriDebugResourceHelper (trinity/trinity/TriDebugResourceHelper.cpp:18-21): drops m_effect; the line effect is left to the member.
    *
    * @implemented
    * @returns {void}

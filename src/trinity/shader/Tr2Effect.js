@@ -1142,7 +1142,7 @@ export class Tr2Effect extends Tr2Material
 
   /**
    * Detaches material resources and releases this effect's cached shader handles.
-   * Carbon: trinity/trinity/Shader/Tr2Effect.cpp:266-280.
+   * Carbon: ~Tr2Effect (trinity/trinity/Shader/Tr2Effect.cpp:266-280).
    * @adapted Manager-owned links replace Carbon's per-resource notify targets.
    * @adapted No renderer effect registry exists here, so there is no UnregisterEffect call.
    * @adapted Explicitly releases minted provider adapters because JS has no member RAII.

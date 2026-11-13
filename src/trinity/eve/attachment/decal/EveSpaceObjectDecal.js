@@ -74,7 +74,7 @@ export class EveSpaceObjectDecal
 
   /**
    * Carbon's destructor (cpp:61-64) and its Tr2DeviceResource base's
-   * (Tr2DeviceResource.cpp:11-14): releases everything, then unregisters.
+   * (Tr2DeviceResource.cpp:15-18): releases everything, then unregisters.
    *
    * Ours: JavaScript has no destructor, so the owner calls this when it drops
    * the decal. No owner does yet: EveSpaceObject2, which holds decals, has no
