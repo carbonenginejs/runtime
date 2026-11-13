@@ -400,22 +400,23 @@ export class CjsPaperDollInstance
     }
 
     /**
-     * Which of a worn garment's dependants are there for the tuck rule (`dependantShapes`): those no worn,
-     * unsuppressed garment occludes, through its own metadata or its dependants' (the `occludes` its option resolves
-     * to). Visibility is resolved first, so an occluded dependant adds no utility shapes: a bottom's
-     * `dependants/waisttucking/standard` occludes `dependants/drape`, so with it worn the top's drape (v6 sets
-     * `pinchleftlowerhipsshape#0.2`) does not meet the waist tuck's `#2.0` (operator, 2026-11-13: "we have to resolve
-     * what is and isn't visible").
+     * Which of a worn garment's dependants are there for the tuck rule (`dependantShapes`): the same ones whose mesh
+     * draws (`dependantMeshShown`), those no worn, unsuppressed garment's own `occludesModifiers` remove. A dependant is
+     * there or not as a whole, mesh and shapes together (operator, 2026-11-13: "we have to resolve what is and isn't
+     * visible"). Dropping the shapes of a drape that still draws left `pushdrapeshape` unset, so a waistband (a
+     * bottom whose `dependants/waisttucking/standard` occludes `dependants/drape`) cut through it. The conflicts its
+     * shapes meet (the drape's `pinchleftlowerhipsshape#0.2` against the waist tuck's `#2.0`) resolve by layer
+     * (`CjsCharacterAppearanceResolver.resolveUtilityShapes`).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
      * @template {{ path: string }} T
      * @param {T[]} dependants The garment's dependants, each with its lower-case modifier path.
-     * @param {string[][]} occludes Each worn, unsuppressed garment's resolved occludes, its dependants' included.
-     * @returns {T[]} The dependants no list occludes, in order.
+     * @param {string[][]} ownOccludes Each worn, unsuppressed garment's own occludes (its option's `ownOccludes`).
+     * @returns {T[]} The dependants no list removes, in order.
      */
-    static shownDependants(dependants, occludes)
+    static shownDependants(dependants, ownOccludes)
     {
-        return dependants.filter(dependant => !occludes.some(list => CjsPaperDollDefinition.occludes(list, dependant.path)));
+        return dependants.filter(dependant => CjsPaperDollInstance.dependantMeshShown(dependant.path, ownOccludes));
     }
 
     /**

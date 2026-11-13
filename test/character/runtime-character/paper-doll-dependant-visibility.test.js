@@ -7,10 +7,13 @@ const drape = { path: "dependants/drape/standard" }, sleeves = { path: "dependan
 // pantsmilf01 resolves to its own occludes plus its waist tuck's (`dependantOccludes`); armorsuitcf01 states the drape itself.
 const pantsResolved = [ "bottominner", "dependants/drape" ], pantsOwn = [ "bottominner" ], armorOwn = [ "dependants/drape" ];
 
-test("a dependant another worn garment occludes adds no shapes", () =>
+test("a dependant is there for its shapes exactly when its mesh draws", () =>
 {
-    assert.deepEqual(CjsPaperDollInstance.shownDependants([ drape, sleeves ], [ pantsResolved ]), [ sleeves ]);
+    // The waist tuck's occlusion reaches the pants' resolved occludes only: the drape and its shapes stay.
+    assert.equal(pantsResolved.includes("dependants/drape"), true);
     assert.deepEqual(CjsPaperDollInstance.shownDependants([ drape, sleeves ], [ pantsOwn ]), [ drape, sleeves ]);
+    // A garment's own occlusion removes it, shapes and mesh alike.
+    assert.deepEqual(CjsPaperDollInstance.shownDependants([ drape, sleeves ], [ pantsOwn, armorOwn ]), [ sleeves ]);
     assert.deepEqual(CjsPaperDollInstance.shownDependants([ drape ], []), [ drape ]);
 });
 
