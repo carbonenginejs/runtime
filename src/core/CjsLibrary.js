@@ -715,7 +715,7 @@ function AudioIsEnabled(audio)
 }
 
 CjsSchema.meta.define(CjsLibrary, {
-  className: "CjsLibrary",
+  name: "CjsLibrary",
   fields: {},
   methods: { Initialize: [], Shutdown: [], Fetch: [], SetConfiguration: [], GetConfiguration: [],
     CreateOverlay2D: [] }
