@@ -34,12 +34,16 @@ export class Tr2PickBuffer
   /** Carbon `Tr2TextureAL m_depthBuffer`, by value (Tr2PickBuffer.h:57). */
   _depthBuffer = new Tr2TextureAL();
 
-  /** The native lock object is unnecessary in JavaScript. */
+  /**
+   * Carbon: Tr2PickBuffer::Tr2PickBuffer (trinity/trinity/Tr2PickBuffer.cpp:10-15).
+   * @adapted The native lock object is unnecessary in JavaScript. Carbon's Tr2DeviceResource base constructor
+   *   registers with the device (Tr2DeviceResource.cpp:10-13); here the class constructs inert and registers on
+   *   use, through KeepAlive in PrepareResources, as the base's IsGood does.
+   */
   constructor(format = PixelFormat.PIXEL_FORMAT_UNKNOWN, size = 1)
   {
     this._format = format;
     this._size = size;
-    CjsSchema.getConstructor("TriDevice").RegisterResource(this);
   }
 
   /**
@@ -97,10 +101,11 @@ export class Tr2PickBuffer
   /**
    * Explicit resource preparation replaces the absent native base-class drive.
    *
-   * @adapted
+   * @adapted Registers with the device on use (KeepAlive), in place of Carbon's base constructor.
    */
   PrepareResources(context = Tr2RenderContext_GetMainThreadRenderContext())
   {
+    this.KeepAlive();
     return this._pickTarget.IsValid() && this._depthBuffer.IsValid() || this._OnPrepareResources(context);
   }
 
