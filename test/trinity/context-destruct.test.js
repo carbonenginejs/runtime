@@ -24,7 +24,7 @@ test("context teardown retires state before the backend, preserving a borrowed b
   });
   context.Destruct();
   context.Destruct();
-  assert.equal(backendCalls, 2, "preserve the existing repeat-call contract");
+  assert.equal(backendCalls, 1, "Destruct runs once; the second call answers false");
   assert.equal(peer.IsValid(), true);
   peer.Destroy();
 });

@@ -94,10 +94,12 @@ CjsGraphRoot is the optional base class: thin forwards and `__cjs`, which is nul
 `CjsGraph.getState(object)` creates its CjsGraphState (`state`, `prepared`, `guid`). The state
 is never a member, so no value operation reads or copies it. `IsDestructed()` is true once
 `state` is above ALIVE, and false for an object with no state. Its Destruct
-forwards to CjsGraph.destruct: the object's `OnDestruct`, one method found by ordinary
-dispatch, then `finalDelete`. It does not traverse members, clear references, or change
-lifecycle state. An `OnDestruct` is repeat-safe and ends with `return super.OnDestruct(options)`,
-or `return true` in a class with no parent that has one.
+forwards to `CjsGraph.destruct(object, options)`, which runs once and returns whether it ran.
+An object already being destructed, or destructed, answers false. Otherwise its `OnDestruct(options)`
+runs, one method found by ordinary dispatch, while the object still reads as alive; an answer of
+false refuses, and nothing else happens. Then the state is DESTRUCTING, `finalDelete` runs, and
+the state is DESTRUCTED. It does not traverse members or clear references. An `OnDestruct` ends
+with `return super.OnDestruct(options)`, or `return true` in a class with no parent that has one.
 
 `CjsGraph.finalDelete(object)` runs an object's C++ destruction: each level's own
 `destructor` (the class's `_Destructor`, the body of its Carbon destructor), derived first,

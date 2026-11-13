@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { ImportAllDistModules } from "../support/allDistClasses.js";
-import { blue, BlueResMan } from "../../npm/dist/blue/index.js";
+import { blue, BlueAsyncRes, BlueResMan } from "../../npm/dist/blue/index.js";
 import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { getClassRegistrations } from "../../npm/dist/blue/exposure/classes/registry.js";
 import { Tr2RenderContext_GetMainThreadRenderContext, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
-// Item 4's "an OnDestruct is safe to run twice": every registered class with its own hook
-// (OnDestruct, or _Destructor on a Carbon class),
-// built bare on the stub backend, survives two Destruct calls.
+// Every registered class with its own hook (OnDestruct, or _Destructor on a Carbon class): Destruct runs once
+// and a second call answers false; a resource refuses; and the runner may run the destructors again,
+// each built bare on the stub backend.
 await ImportAllDistModules();
 
 /** Classes that cannot be built with no arguments, with the reason. */
@@ -46,8 +47,9 @@ for (const { name, type: Owner } of owners)
     try
     {
       const owner = new Owner();
-      owner.Destruct();
-      assert.doesNotThrow(() => owner.Destruct(), "second Destruct");
+      assert.equal(owner.Destruct(), !(owner instanceof BlueAsyncRes), "Destruct runs, unless the object is a resource");
+      assert.equal(owner.Destruct(), false, "second Destruct");
+      assert.doesNotThrow(() => CjsGraph.finalDelete(owner), "the destructors are safe to run again");
     }
     finally
     {

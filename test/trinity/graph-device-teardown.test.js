@@ -72,8 +72,8 @@ test("sprite layer runs layer, cached display and parent-detachment cleanup in o
   assert.equal(layer.background.length, 1, "does not introduce generic list clearing");
   assert.equal(layer.children.length, 1);
   events.length = 0;
-  layer.Destruct();
-  assert.deepEqual(events, ["layer", "background", "child"], "cached display is released only once");
+  assert.equal(layer.Destruct(), false);
+  assert.deepEqual(events, [], "a second Destruct repeats nothing");
 });
 
 

@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import { Tr2TextureAtlas, Tr2TextureAtlasMan, Tr2TextureAtlasArea, Tr2RenderContext_GetMainThreadRenderContext } from '../../npm/dist/trinity/index.js';
 import { Tr2RenderContextALStub } from '../../npm/dist/trinityal/index.js';
 import { PixelFormat } from '../../npm/dist/global/consts/renderContext/index.js';
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 const BGRA = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
 
@@ -232,13 +233,14 @@ test('destruction unlocks a locked texture, except after Shutdown (CE-147)', t =
   assert.ok(unlocked.LockBuffer());
   for (let repeat = 0; repeat < 2; repeat++)
   {
-    unlocked.Destruct();
+    CjsGraph.finalDelete(unlocked);
     assert.equal(unlocked._isLocked, false);
   }
   const shutDown = atlas.CreateTexture(8, 8);
   assert.ok(shutDown.LockBuffer());
   shutDown.OnShutdown();
   assert.equal(shutDown._isLocked, true, 'Shutdown leaves the lock for the destructor');
-  shutDown.Destruct();
+  CjsGraph.finalDelete(shutDown);
   assert.equal(shutDown._isLocked, true, 'CE-147: the unlock finds no texture');
+  assert.equal(unlocked.Destruct(), false, 'a resource refuses graph Destruct');
 });

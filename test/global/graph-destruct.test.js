@@ -25,9 +25,90 @@ test("Destruct calls the most derived OnDestruct, which reaches its parents thro
   object.Destruct(argument);
   assert.deepEqual(calls, [ [ "derived", 2, argument ], [ "middle", 2, argument ], [ "base", 2, argument ] ]);
   assert.deepEqual(object.values, [ 1, 2 ]);
-  assert.equal(object.__cjs, null, "dispatch adds no destruction-state policy");
-  assert.equal(object.IsDestructed(), false);
+  assert.equal(object.IsDestructed(), true);
   assert.equal(new Base().OnDestruct(), true, "the root's own OnDestruct answers true");
+});
+
+test("Destruct runs once: it answers true, moves the state, and a second call answers false", () =>
+{
+  const calls = [], seen = [];
+  class Owner extends CjsGraphRoot
+  {
+    OnDestruct(options) { calls.push([ "OnDestruct", options ]); seen.push(this.IsDestructed()); return super.OnDestruct(options); }
+  }
+  CjsGraph.define(Owner, { name: "OnceOwner", destructor() { calls.push("~Owner"); seen.push(this.__cjs.state); } });
+  const object = new Owner(), options = { reason: "test" };
+  assert.equal(object.Destruct(options), true);
+  assert.deepEqual(calls, [ [ "OnDestruct", options ], "~Owner" ]);
+  assert.deepEqual(seen, [ false, CjsGraphState.State.DESTRUCTING ], "alive while OnDestruct runs, DESTRUCTING while the destructors run");
+  assert.equal(object.__cjs.state, CjsGraphState.State.DESTRUCTED);
+  assert.equal(object.IsDestructed(), true);
+
+  assert.equal(object.Destruct(options), false);
+  assert.equal(CjsGraph.destruct(object), false);
+  assert.equal(calls.length, 2, "nothing runs again");
+});
+
+test("an OnDestruct that answers false refuses: no state changes and no destructor runs", () =>
+{
+  let destructed = 0, refuse = true;
+  class Shared extends CjsGraphRoot { OnDestruct(options) { return refuse ? false : super.OnDestruct(options); } }
+  CjsGraph.define(Shared, { name: "RefusingShared", destructor() { destructed++; } });
+  const object = new Shared();
+  assert.equal(object.Destruct(), false);
+  assert.equal(object.Destruct(), false);
+  assert.equal(object.__cjs, null, "a refusal creates no state");
+  assert.equal(object.IsDestructed(), false);
+  assert.equal(destructed, 0);
+
+  // Its manager still ends it through the runner, and the graph does once nothing refuses.
+  CjsGraph.finalDelete(object);
+  assert.equal(destructed, 1);
+  refuse = false;
+  assert.equal(object.Destruct(), true);
+  assert.equal(destructed, 2);
+});
+
+test("only an answer of exactly false refuses", () =>
+{
+  let destructed = 0;
+  class Quiet extends CjsGraphRoot { OnDestruct() {} }
+  CjsGraph.define(Quiet, { name: "QuietOwner", destructor() { destructed++; } });
+  assert.equal(new Quiet().Destruct(), true);
+  assert.equal(destructed, 1);
+});
+
+test("an OnDestruct that throws leaves the object alive; a destructor that throws leaves it DESTRUCTING", () =>
+{
+  let fail = true, destructed = 0;
+  class Fragile extends CjsGraphRoot { OnDestruct(options) { if (fail) throw new Error("hook failure"); return super.OnDestruct(options); } }
+  CjsGraph.define(Fragile, { name: "FragileOwner", destructor() { destructed++; } });
+  const object = new Fragile();
+  assert.throws(() => object.Destruct(), /hook failure/);
+  assert.equal(object.IsDestructed(), false);
+  assert.equal(destructed, 0);
+  fail = false;
+  assert.equal(object.Destruct(), true, "it can be destructed once the hook succeeds");
+
+  class Broken extends CjsGraphRoot {}
+  CjsGraph.define(Broken, { name: "BrokenOwner", destructor() { throw new Error("destructor failure"); } });
+  const broken = new Broken();
+  assert.throws(() => broken.Destruct(), /destructor failure/);
+  assert.equal(broken.__cjs.state, CjsGraphState.State.DESTRUCTING);
+  assert.equal(broken.Destruct(), false, "a retry answers false");
+});
+
+test("an object with no __cjs field gains its state on Destruct, and a re-entrant Destruct answers false", () =>
+{
+  const answers = [];
+  class Plain { value = 1; }
+  CjsGraph.define(Plain, { name: "StatelessPlain", destructor() { answers.push(CjsGraph.destruct(this)); } });
+  const object = new Plain();
+  assert.equal(Object.hasOwn(object, "__cjs"), false);
+  assert.equal(CjsGraph.destruct(object), true);
+  assert.deepEqual(answers, [ false ]);
+  assert.equal(object.__cjs.state, CjsGraphState.State.DESTRUCTED);
+  assert.equal(CjsGraph.destruct(object), false);
 });
 
 test("a root has no state until the graph is asked, and IsDestructed reads it without creating one", () =>
@@ -157,10 +238,10 @@ test("late base replacement invalidates cached teardown and hooks own idempotenc
   CjsGraph.define(Base, { name: "DestructLateBase" });
   CjsGraph.define(Child, { name: "DestructLateChild", bases: [ Base ] });
   const object = new Child();
-  CjsGraph.destruct(object);
+  CjsGraph.finalDelete(object);
   CjsGraph.define(Base, { name: "DestructLateBase", destructor() { if (this.held) { this.held = false; released++; } } });
-  CjsGraph.destruct(object);
-  CjsGraph.destruct(object);
+  CjsGraph.finalDelete(object);
+  CjsGraph.finalDelete(object);
   assert.equal(released, 1);
 });
 
@@ -194,10 +275,10 @@ test("lifetime-only records do not claim value definitions and retain identity w
   assert.equal(CjsGraph.isDefined(Owner), false);
   assert.throws(() => CjsGraph.getClassInfo(Owner), /Unknown graph class/);
   const object = new Owner();
-  CjsGraph.destruct(object);
+  CjsGraph.finalDelete(object);
   assert.equal(CjsGraph.define(Owner, { name: "LifetimeThenValues", members: [ { name: "value", type: "float32" } ] }), info);
   assert.equal(CjsGraph.isDefined(Owner), true);
-  CjsGraph.destruct(object);
+  CjsGraph.finalDelete(object);
   object.value = 7;
   assert.deepEqual(CjsGraph.get(object), { value: 7 });
   assert.deepEqual(calls, [ 3, 3 ]);

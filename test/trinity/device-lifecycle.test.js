@@ -14,6 +14,7 @@ import {
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { MarkerTag } from "../support/markerTags.js";
 import { InitializeTrinityStub } from "../support/trinityStub.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 // The renderer clock and the device size read trinity.device.
 InitializeTrinityStub();
@@ -361,7 +362,7 @@ test("TriDevice.minimumModelLOD is an accessor over Get/SetMinimumModelLOD (TriD
   }
   finally
   {
-    Tr2DeviceResource.prototype.Destruct.call(geometry);
+    CjsGraph.finalDelete(geometry);
   }
 
   const property = CjsSchema.getSchema(TriDevice).properties.find(entry => entry.name === "minimumModelLOD");

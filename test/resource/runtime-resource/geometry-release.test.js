@@ -8,6 +8,7 @@ import { TriGeometryRes } from "../../../npm/dist/trinity/resources/geometry/ind
 import { CjsCmfFormat } from "../../../npm/dist/resource/formats/cmf/CjsCmfFormat.js";
 import { configureResourceManager } from "../../support/configuredResMan.js";
 import "../../support/frameLoop.js";
+import { CjsGraph } from "../../../npm/dist/global/model/graph/CjsGraph.js";
 
 // One triangle is enough: the raycaster only has to build, not hit anything.
 function loadedGeometry()
@@ -140,7 +141,7 @@ test("destruction frees the payload and raycaster twice over without announcing 
   const announce = t.mock.method(res, "_NotifyReleaseCachedData");
   for (let repeat = 0; repeat < 2; repeat++)
   {
-    res.Destruct();
+    CjsGraph.finalDelete(res);
     assert.equal(res.GetCMFData(), null);
     assert.equal(res.IsRayCasterReady(), false);
     assert.equal(res.IsGood(), false);

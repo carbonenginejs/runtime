@@ -7,6 +7,7 @@ import { getClassRegistrations } from "../../npm/dist/blue/exposure/classes/regi
 import { Tr2DeviceResource, Tr2Renderer, Tr2RenderContext_GetMainThreadRenderContext, TriDevice } from "../../npm/dist/trinity/index.js";
 import { Tr2BaseDeviceResourceAL, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { TriStorageFlags } from "../../npm/dist/global/consts/graphics/index.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 // The idle sweep releases TRISTORAGE_ALL (device-resource-registration.md, 2026-11-12), so everything it can
 // reach must rebuild after ALL: OnPrepareResources creates what is missing (Tr2DeviceResource.h:47-62).
@@ -75,6 +76,7 @@ for (const { name, type: Resource } of candidates)
       assert.equal(resource.PrepareResources(), true, "prepares again after ALL");
       assert.equal(Tr2BaseDeviceResourceAL.GetResourceCount(), prepared, "same live AL objects as the first prepare");
     }
-    finally { resource.Destruct(); }
+    // A resource refuses graph Destruct; its manager runs its destruction.
+    finally { if (!resource.Destruct()) CjsGraph.finalDelete(resource); }
   }));
 }

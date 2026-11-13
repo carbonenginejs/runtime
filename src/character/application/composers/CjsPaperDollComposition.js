@@ -156,10 +156,13 @@ export class CjsPaperDollComposition
         return [ Math.round(texture.width / texture.cutoutWidth), Math.round(texture.height / texture.cutoutHeight) ];
     }
 
-    /** @cjs Thin public entry; this plain helper has no Blue schema or graph value exposure. */
+    /**
+     * @cjs Thin public entry; this plain helper has no Blue schema or graph value exposure.
+     * @returns {boolean} True if it ran; false on a second call.
+     */
     Destruct()
     {
-        CjsGraph.destruct(this);
+        return CjsGraph.destruct(this);
     }
 
     /**

@@ -235,10 +235,13 @@ export class Tr2Blitter
     return true;
   }
 
-  /** @cjs Thin public entry for this helper, without Blue schema/value exposure. */
+  /**
+   * @cjs Thin public entry for this helper, without Blue schema/value exposure.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
   Destruct()
   {
-    CjsGraph.destruct(this);
+    return CjsGraph.destruct(this);
   }
 
   /**

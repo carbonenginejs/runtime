@@ -36,7 +36,8 @@ export function assertNoComputeTeardown(t, throughSystem)
       for (const buffer of constants) assert.equal(buffer.IsValid(), false);
       for (const buffer of constantPeers) assert.equal(buffer.IsValid(), true);
     }
-    for (const effect of effects) assert.equal(effect.mock.callCount(), 2);
+    // The system's second Destruct answers false; the helper's own Destroy repeats.
+    for (const effect of effects) assert.equal(effect.mock.callCount(), throughSystem ? 1 : 2);
     assert.equal(system._noCompute, helper);
     assert.equal(helper.system, system);
   }

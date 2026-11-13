@@ -22,7 +22,8 @@ test("Blue declares own destructors without activating graph values or copying a
   CjsBlueGraph.define(Owner, "LifetimeBridgeOwner");
   assert.equal(CjsGraph.isDefined(Owner), true);
   calls.length = 0;
-  object.Destruct(argument);
+  assert.equal(object.Destruct(argument), false, "once only");
+  new Owner().Destruct(argument);
   assert.deepEqual(calls.map(row => row[0]), [ "owner", "secondary", "primary" ]);
 
   class Composed {}
@@ -53,10 +54,11 @@ test("late composed-base registration invalidates an already used teardown list"
   class Late { _Destructor() { calls.push("late"); } }
   CjsSchema.meta.define("LifetimeBridgeLateOwner")(Owner);
   CjsSchema.meta.define("LifetimeBridgeLateBase")(Late);
+  // The runner reads the list with no state in the way.
   const object = new Owner();
-  object.Destruct();
+  CjsGraph.finalDelete(object);
   CjsSchema.meta.inherit(Late)(Owner);
-  object.Destruct();
+  CjsGraph.finalDelete(object);
   assert.deepEqual(calls, [ "own", "own", "late" ]);
 });
 

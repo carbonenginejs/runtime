@@ -26,14 +26,14 @@ export class CjsGraphRoot
   }
 
   /**
-   * Runs the registered ancestry's teardown bodies without changing graph ownership or state.
-   * @cjs Thin forward to the graph; hooks own repeat-call safety.
-   * @param {...*} args Arguments required by this object's existing teardown contract.
-   * @returns {void}
+   * Ends this object, once: its OnDestruct, then its C++ destruction.
+   * @cjs Thin forward to the graph, which holds the steps and the state.
+   * @param {*} [options] Handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call, or if OnDestruct refused.
    */
-  Destruct(...args)
+  Destruct(options)
   {
-    CjsGraph.destruct(this, ...args);
+    return CjsGraph.destruct(this, options);
   }
 
   /**

@@ -39,6 +39,6 @@ test("interior skinned-object destruction leaves the apex flag as Carbon's empty
   object.AddToApexScene(null);
   object.Destruct();
   object.Destruct();
-  assert.equal(remove.mock.callCount(), 2);
+  assert.equal(remove.mock.callCount(), 1, "the second Destruct answers false");
   assert.equal(object._isInApexScene, true);
 });

@@ -17,8 +17,8 @@ test("nested status scopes restore their predecessor through graph teardown", ()
     outer.Destruct();
     assert.equal(current(), IBlueThreadMonitor.BTS_IDLE);
     BeThreadMonitor.SetThreadStatus(IBlueThreadMonitor.BTS_LOADING);
-    outer.Destruct();
-    assert.equal(current(), IBlueThreadMonitor.BTS_IDLE, "retains repeated restoration; no new one-shot flag");
+    assert.equal(outer.Destruct(), false);
+    assert.equal(current(), IBlueThreadMonitor.BTS_LOADING, "a second Destruct restores nothing: the graph holds the state");
   }
   finally { BeThreadMonitor.SetThreadStatus(prior); }
 });

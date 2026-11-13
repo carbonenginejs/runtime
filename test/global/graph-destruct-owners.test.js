@@ -132,8 +132,9 @@ for (const [name, file] of owners)
       const statements = owner.body.body.find(node => node.type === "ClassMethod" && node.key.name === "Destruct").body.body;
       const fluent = name === "CjsWebgpuRenderTarget";
       assert.equal(statements.length, fluent ? 2 : 1, "delegates contain no cleanup machinery");
-      const call = statements[0].expression;
-      assert.equal(statements[0].type, "ExpressionStatement");
+      // The render target calls and returns itself; the others return the graph's answer.
+      const call = fluent ? statements[0].expression : statements[0].argument;
+      assert.equal(statements[0].type, fluent ? "ExpressionStatement" : "ReturnStatement");
       assert.equal(call.type, "CallExpression");
       assert.equal(call.callee.type, "MemberExpression");
       assert.equal(call.callee.object.name, "CjsGraph");

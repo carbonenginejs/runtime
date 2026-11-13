@@ -299,19 +299,31 @@ export class CjsGraph
   }
 
   /**
-   * Ends a registered object: its OnDestruct, then its C++ destruction (finalDelete).
-   * @cjs OnDestruct is one method, the most derived, found by ordinary dispatch; a class that
-   * extends one with an OnDestruct calls super. No reference cascade, state change, or caller
-   * scheduling is implied. Hooks own their idempotence; errors propagate.
+   * Ends a registered object, once, and says whether it ran. In order:
+   * 1. An object that is being destructed or has been answers false; nothing runs again.
+   * 2. Its OnDestruct(options) runs while the object still reads as alive. If it answers false the
+   *    object refuses: no state changes and no destructor runs. One that throws leaves it alive.
+   * 3. The state becomes DESTRUCTING, each level's _Destructor runs (finalDelete), and the state
+   *    becomes DESTRUCTED.
+   * @cjs JavaScript ends nothing by itself, so the graph holds the state. OnDestruct is one method,
+   * the most derived, found by ordinary dispatch. No member is entered and no reference is cleared.
+   * A _Destructor that throws leaves the state at DESTRUCTING. Only an answer of exactly false
+   * refuses. An object with no __cjs field gains one here.
    * @param {object} target The registered object.
-   * @param {...*} args Existing teardown arguments, forwarded unchanged to OnDestruct.
-   * @returns {void}
+   * @param {*} [options] Whatever the caller gave Destruct, handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call or a refusal.
    */
-  static destruct(target, ...args)
+  static destruct(target, options)
   {
     const teardown = this._getTeardown(target);
-    if (teardown.onDestruct) target.OnDestruct(...args);
+    if (this.isDestructed(target)) return false;
+    if (teardown.onDestruct && target.OnDestruct(options) === false) return false;
+
+    const state = this.getState(target);
+    state.state = CjsGraphState.State.DESTRUCTING;
     for (let i = 0; i < teardown.destructors.length; i++) teardown.destructors[i].call(target);
+    state.state = CjsGraphState.State.DESTRUCTED;
+    return true;
   }
 
   /**

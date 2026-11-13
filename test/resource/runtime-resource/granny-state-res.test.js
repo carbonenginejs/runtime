@@ -6,6 +6,7 @@ import { CjsFormatStore, Tr2GrannyStateRes, TriGrannyRes } from "../../../npm/di
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
 import { configureResourceManager } from "../../support/configuredResMan.js";
 import "../../support/frameLoop.js";
+import { CjsGraph } from "../../../npm/dist/global/model/graph/CjsGraph.js";
 
 // The reader and the resource were never tested together, which is how a guard
 // demanding fields no reader emits survived. This asserts the join directly.
@@ -76,7 +77,7 @@ test("loaded GState destruction releases its file and map without destroying sha
   assert.equal(owner.IsFullyLoaded(), true);
   for (let repeat = 0; repeat < 2; repeat++)
   {
-    owner.Destruct();
+    CjsGraph.finalDelete(owner);
     assert.equal(owner.GetStateMachine(), null);
     assert.equal(owner.GetAnimationResource(path), null);
     assert.equal(owner.IsFullyLoaded(), false);
@@ -84,7 +85,7 @@ test("loaded GState destruction releases its file and map without destroying sha
     assert.equal(peer.GetAnimationResource(path), animation);
     assert.equal(destroy.mock.callCount(), 0);
   }
-  peer.Destruct();
+  CjsGraph.finalDelete(peer);
 });
 
 

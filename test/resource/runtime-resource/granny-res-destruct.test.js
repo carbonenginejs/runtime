@@ -4,6 +4,7 @@ import { BlueResMan } from "../../../npm/dist/blue/index.js";
 import { CjsGr2Format } from "../../../npm/dist/resource/formats/gr2/index.js";
 import { configureResourceManager } from "../../support/configuredResMan.js";
 import "../../support/frameLoop.js";
+import { CjsGraph } from "../../../npm/dist/global/model/graph/CjsGraph.js";
 
 test("prepared Granny resource destruction releases its decoded file without invalidating readers or peers", async () =>
 {
@@ -17,12 +18,14 @@ test("prepared Granny resource destruction releases its decoded file without inv
   assert.ok(owner.GetMemoryUsage() > 0);
   for (let repeat = 0; repeat < 2; repeat++)
   {
-    owner.Destruct();
+    CjsGraph.finalDelete(owner);
     assert.equal(owner.GetGrannyFile(), null);
     assert.equal(owner.GetMemoryUsage(), 0);
     assert.equal(retained.animations[0].name, "idle");
     assert.equal(peer.GetGrannyFile().animations[0].name, "idle");
     assert.ok(peer.GetMemoryUsage() > 0);
   }
-  peer.Destruct();
+  assert.equal(peer.Destruct(), false, "a resource refuses graph Destruct");
+  assert.ok(peer.GetMemoryUsage() > 0, "and a refusal changes nothing");
+  CjsGraph.finalDelete(peer);
 });

@@ -21,7 +21,7 @@ test("public interior teardown releases owned shadows before unregistering its d
     scene.lightRenderTargets.Append(target);
     scene.Destruct();
     scene.Destruct();
-    assert.deepEqual(order, ["shadow", "base", "base"]);
+    assert.deepEqual(order, ["shadow", "base"], "the second Destruct answers false and repeats nothing");
     assert.equal(scene.lightRenderTargets.length, 0);
     assert.equal(TriDevice.GetResourcesRegistered().includes(scene), false);
     assert.equal(scene.IsGood(), false, "final scene teardown must not re-register the device resource");
