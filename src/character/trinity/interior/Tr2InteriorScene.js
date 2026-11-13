@@ -526,7 +526,7 @@ export class Tr2InteriorScene extends ITr2PickableScene
    */
   SetupTransformsForPicking(fx, fy, projection, view, viewport)
   {
-    Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
+    Tr2Renderer.SetViewTransform(view.GetTransform(Tr2InteriorScene.pickingScratch.transform));
     projection.SetProjection();
     if (Tr2Renderer.GetCurrentProjectionType() === PROJECTION_TYPE.PT_ORTHOGONAL)
     {
@@ -1157,10 +1157,9 @@ export class Tr2InteriorScene extends ITr2PickableScene
     if (this._noiseTexture) store.RegisterVariableInternal("NoiseMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._noiseTexture);
 
     const esm = renderContext.GetEffectStateManager();
-    const { projection, view, viewProjection } = Tr2InteriorScene.shadowScratch;
+    const { projection, view, viewProjection, position, target } = Tr2InteriorScene.shadowScratch;
     const lightView = new TriView();
     const lightProjection = new TriProjection();
-    const position = vec3.create(), target = vec3.create();
 
     // The camera's frustum, for fitting each shadow map to the character.
     const cameraFrustum = new TriFrustum();
@@ -1270,12 +1269,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
     const obb = character.GetClippedWorldBoundingObb(character.GetSkinningTransform(), frustum);
     if (!obb) return;
 
-    const { fitProjection, fitView, fitViewProjection } = Tr2InteriorScene.shadowScratch;
+    const { fitProjection, fitView, fitViewProjection, fit: fitScratch, point, clip } = Tr2InteriorScene.shadowScratch;
     projection.GetTransform(fitProjection);
     view.GetTransform(fitView);
     // Carbon VP = view * projection (row-vector); gl-matrix reverses it.
     const viewProjection = mat4.multiply(fitViewProjection, fitProjection, fitView);
-    const point = vec4.create(), clip = vec4.create();
     let minX = 1, minY = 1, maxX = -1, maxY = -1;
     for (let i = 0; i < 8; i++)
     {
@@ -1301,7 +1299,7 @@ export class Tr2InteriorScene extends ITr2PickableScene
     const scaleX = 2 / (maxX - minX), scaleY = 2 / (maxY - minY);
     const biasX = (minX + maxX) / (minX - maxX), biasY = (minY + maxY) / (minY - maxY);
     // Carbon custom = projection * fit (row-vector); gl-matrix reverses it.
-    const fit = mat4.fromValues(scaleX, 0, 0, 0, 0, scaleY, 0, 0, 0, 0, 1, 0, biasX, biasY, 0, 1);
+    const fit = mat4.set(fitScratch, scaleX, 0, 0, 0, 0, scaleY, 0, 0, 0, 0, 1, 0, biasX, biasY, 0, 1);
     projection.CustomProjection(mat4.multiply(fit, fit, fitProjection));
   }
 
@@ -1576,11 +1574,12 @@ export class Tr2InteriorScene extends ITr2PickableScene
   /** RenderShadows' and MaximizeShadowMapUsage's matrices, apart from the shared scratch the passes they call use. */
   static shadowScratch = {
     projection: mat4.create(), view: mat4.create(), viewProjection: mat4.create(),
-    fitProjection: mat4.create(), fitView: mat4.create(), fitViewProjection: mat4.create()
+    fitProjection: mat4.create(), fitView: mat4.create(), fitViewProjection: mat4.create(), fit: mat4.create(),
+    position: vec3.create(), target: vec3.create(), point: vec4.create(), clip: vec4.create()
   };
 
   /** The picking query's view and projection, apart from the shared scratch _ResolveVisibility writes. */
-  static pickingScratch = { view: mat4.create(), projection: mat4.create(), focus: vec3.create(), up: vec3.create() };
+  static pickingScratch = { view: mat4.create(), projection: mat4.create(), focus: vec3.create(), up: vec3.create(), transform: mat4.create() };
 
   static scratch = {
     mat4_0: mat4.create(), mat4_1: mat4.create(), mat4_2: mat4.create(),

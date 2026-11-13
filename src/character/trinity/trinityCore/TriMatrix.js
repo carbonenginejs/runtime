@@ -6,6 +6,7 @@ import { IPythonMethods } from "#blue";
 import { ITriMatrix } from "./ITriMatrix.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
+import { vec3 } from "#math/vec3";
 
 /**
  * Carbon's Blue wrapper over a Matrix. Carbon's TriMatrix inherits Matrix, and its
@@ -649,5 +650,5 @@ export class TriMatrix extends IRoot
   static _factor = mat4.create();
 
   /** Scratch translation for Transformation. */
-  static _offset = new Float32Array(3);
+  static _offset = vec3.create();
 }

@@ -800,7 +800,7 @@ export class CjsPaperDollCompositor
      * Transparent black, the colour a cleared target starts with.
      * @type {Float32Array}
      */
-    static clear = new Float32Array(4);
+    static clear = vec4.create();
 
     /**
      * A texture resource's cutout in its image, as (x, y, width, height) in 0..1.

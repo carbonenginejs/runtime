@@ -144,8 +144,11 @@ export class Tr2InteriorStatic extends IRoot
 
   static scratch = {
     vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(), vec3_3: vec3.create(),
-    mat4_0: mat4.create(), identity: mat4.create()
+    vec3_4: vec3.create(), mat4_0: mat4.create()
   };
+
+  /** The identity mirror matrix, read only: outside a mirror pass the mirror is identity. */
+  static _identityMirror = mat4.create();
 
   /**
    * MAP_PROPERTY_READONLY( "worldTransform", GetWorldTransform ) (_Blue.cpp).
@@ -415,7 +418,7 @@ export class Tr2InteriorStatic extends IRoot
    */
   GetPerObjectData(accumulator)
   {
-    return this.GetPerObjectDataWithLightSet(accumulator, null, this.GetWorldTransform(), Tr2InteriorStatic.scratch.identity);
+    return this.GetPerObjectDataWithLightSet(accumulator, null, this.GetWorldTransform(), Tr2InteriorStatic._identityMirror);
   }
 
   /**
@@ -430,7 +433,7 @@ export class Tr2InteriorStatic extends IRoot
    */
   GetPerObjectDataWithPerInstanceLighting(accumulator, lightSet, objectToWorldMatrix)
   {
-    return this.GetPerObjectDataWithLightSet(accumulator, lightSet, objectToWorldMatrix, Tr2InteriorStatic.scratch.identity);
+    return this.GetPerObjectDataWithLightSet(accumulator, lightSet, objectToWorldMatrix, Tr2InteriorStatic._identityMirror);
   }
 
   /**
@@ -898,17 +901,20 @@ export class Tr2InteriorStatic extends IRoot
    */
   static _TransformBox(min, max, matrix)
   {
-    const corner = vec3.create();
-    const lo = vec3.fromValues(Infinity, Infinity, Infinity), hi = vec3.fromValues(-Infinity, -Infinity, -Infinity);
+    // vec3_0 and vec3_1 may be the caller's min and max (GetWorldBoundingBox). vec3_2: the corner; vec3_3 and vec3_4:
+    // the transformed box's minimum and maximum.
+    const { vec3_2, vec3_3, vec3_4 } = Tr2InteriorStatic.scratch;
+    vec3.set(vec3_3, Infinity, Infinity, Infinity);
+    vec3.set(vec3_4, -Infinity, -Infinity, -Infinity);
     for (let i = 0; i < 8; i++)
     {
-      vec3.set(corner, i & 1 ? max[0] : min[0], i & 2 ? max[1] : min[1], i & 4 ? max[2] : min[2]);
-      vec3.transformMat4(corner, corner, matrix);
-      vec3.min(lo, lo, corner);
-      vec3.max(hi, hi, corner);
+      vec3.set(vec3_2, i & 1 ? max[0] : min[0], i & 2 ? max[1] : min[1], i & 4 ? max[2] : min[2]);
+      vec3.transformMat4(vec3_2, vec3_2, matrix);
+      vec3.min(vec3_3, vec3_3, vec3_2);
+      vec3.max(vec3_4, vec3_4, vec3_2);
     }
-    vec3.copy(min, lo);
-    vec3.copy(max, hi);
+    vec3.copy(min, vec3_3);
+    vec3.copy(max, vec3_4);
   }
 
 }

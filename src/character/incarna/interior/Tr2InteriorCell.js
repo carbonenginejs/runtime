@@ -45,6 +45,8 @@ export class Tr2InteriorCell extends IRoot
   @type.string
   name = "";
 
+  static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create() };
+
   /** m_statics (PTr2InteriorStaticVector) [READWRITE, PERSIST]: the statics, "which receive secondary lighting from cube maps". */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.list("Tr2InteriorStatic")
@@ -586,13 +588,14 @@ export class Tr2InteriorCell extends IRoot
     vec3.set(this.maxBounds, -FLT_MAX, -FLT_MAX, -FLT_MAX);
     this._boundingBoxReady = false;
 
-    const min = vec3.create(), max = vec3.create();
+    // vec3_0 and vec3_1: each static's box minimum and maximum.
+    const { vec3_0, vec3_1 } = Tr2InteriorCell.scratch;
     for (const interiorStatic of this.statics)
     {
-      if (!interiorStatic.GetBoundingBox(min, max)) continue;
-      Tr2InteriorStatic._TransformBox(min, max, interiorStatic.GetTransform());
-      vec3.min(this.minBounds, this.minBounds, min);
-      vec3.max(this.maxBounds, this.maxBounds, max);
+      if (!interiorStatic.GetBoundingBox(vec3_0, vec3_1)) continue;
+      Tr2InteriorStatic._TransformBox(vec3_0, vec3_1, interiorStatic.GetTransform());
+      vec3.min(this.minBounds, this.minBounds, vec3_0);
+      vec3.max(this.maxBounds, this.maxBounds, vec3_1);
       this._boundingBoxReady = true;
     }
   }
