@@ -11,6 +11,8 @@ import { CjsCharacterPdpType } from "../formats/characterPdpType.js";
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
+import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" with { type: "json" };
+import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
 import { BlackReader } from "#blue/formats/black/BlackReader";
 import { CjsSchema } from "#schema";
@@ -108,6 +110,62 @@ export class CjsCharacterLibraryManager
         if (boundary < 0) throw new Error(`Type has no paperdoll source context: ${path}`);
         const target = normalizeResourcePath(path.slice(0, boundary + 11) + record.partPath + "/" + record.colorVariant + ".color");
         return this.GetColorVariation(target);
+    }
+
+    /**
+     * The morph corrections in force, by id: rules the morph bake applies on top of the shipped data
+     * (`CjsCharacterMorphCorrections`). A setting with a default (character-structure-and-plugins: a correction is a
+     * setting with a default): the defaults file `factory/defaults/morphCorrections.json` until a host sets its own.
+     * @type {Record<string, object>}
+     */
+    _morphCorrections = { ...morphCorrectionDefaults.corrections };
+
+    /**
+     * Replaces the morph corrections in force. Pass the defaults file's rules edited, other rules, or `{}` for none.
+     *
+     * Ours (no Carbon counterpart); see `CjsCharacterMorphCorrections`.
+     * @param {Record<string, object>} corrections The rules, by id.
+     * @returns {void}
+     */
+    SetMorphCorrections(corrections)
+    {
+        this._morphCorrections = { ...corrections };
+    }
+
+    /**
+     * The morph corrections in force, by id.
+     * @returns {Record<string, object>} A copy of the rules.
+     */
+    GetMorphCorrections()
+    {
+        return { ...this._morphCorrections };
+    }
+
+    /**
+     * One mesh's morph offsets as the library hands them out: the shipped offsets with the corrections in force
+     * applied, or null when no correction covers this morph (the shipped offsets then stand). The pipeline's morph
+     * bake applies these values and runs no correction rules itself (character-structure-and-plugins: the library
+     * has stuff, the engine builds from the values it is given).
+     *
+     * Ours (no Carbon counterpart); see `CjsCharacterMorphCorrections`.
+     * @param {object} source The model's `TriGrannyRes`.
+     * @param {string} path The model's resource path.
+     * @param {number} meshIndex The mesh.
+     * @param {number} morphIndex The morph target.
+     * @returns {?{ position: Float32Array, normal: ?Float32Array, changed: number }} Corrected offsets, or null.
+     */
+    GetCorrectedMorphOffsets(source, path, meshIndex, morphIndex)
+    {
+        return CjsCharacterMorphCorrections.offsetsFor(source, path, meshIndex, morphIndex, this._morphCorrections);
+    }
+
+    /**
+     * The shipped default morph corrections (`factory/defaults/morphCorrections.json`), by id.
+     * @returns {Record<string, object>} A copy of the rules.
+     */
+    static morphCorrectionDefaults()
+    {
+        return { ...morphCorrectionDefaults.corrections };
     }
 
     /**
