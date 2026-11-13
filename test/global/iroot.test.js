@@ -76,6 +76,8 @@ test("IRoot's reference-counting half is present and refused, and adds no serial
   // Serialized state is what the writer writes, not the object's own keys: an IRoot also holds the graph's
   // runtime state field, which is no member and is never written.
   assert.deepEqual(Object.keys(CjsSchema.getValues(value)), ["value"]);
+  // And no stray own field: apart from the graph's, the object holds its member and nothing else.
+  assert.deepEqual(Object.keys(value).filter(key => key !== "__cjs"), ["value"]);
   assert.deepEqual(CjsSchema.getValues(value), before);
   CjsSchema.setValues(value, { value: 12 });
   assert.equal(value.value, 12);

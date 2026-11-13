@@ -84,6 +84,8 @@ function assertPlainEmitter(emitter)
   // Its stored members are what the persistent writer writes. Own keys are not the measure: an IRoot also
   // holds the graph's runtime state field, which is no member.
   assert.deepEqual(Object.keys(new DictWriter().WriteObject(emitter, {}, { persistOnly: true })), members);
+  // And no stray own field: apart from the graph's, the object holds its members and nothing else.
+  assert.deepEqual(Object.keys(emitter).filter(key => key !== "__cjs"), members);
   assert.equal(Object.getPrototypeOf(EveSOFDataHullSoundEmitter.prototype), ExposureRoot.prototype);
   assert.equal("from" in EveSOFDataHullSoundEmitter, false);
   for (const name of [ "__state", "SetValues", "GetValues", "UpdateValues", "Initialize", "OnModified" ])

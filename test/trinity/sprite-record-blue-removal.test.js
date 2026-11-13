@@ -19,6 +19,8 @@ for(const [Class,fields,types,table]of [
  const value=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class));assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Class === Tr2Sprite2dLineTraceVertex ? ExposureRoot.prototype : Object.prototype);
  // Its declared fields are what its values hold; own keys also hold the graph's state field on an IRoot.
  assert.deepEqual(Object.keys(CjsSchema.getValues(value)),fields);
+ // And no stray own field: apart from the graph's, the object holds its declared fields and nothing else.
+ assert.deepEqual(Object.keys(value).filter(key=>key!=="__cjs"),fields);
  assert.deepEqual(fields.map(key=>CjsSchema.getField(Class,key).type.kind),types);assert.deepEqual([...mappedInterfaces(Class)],table.length ? [ExposureRoot, ...table] : []);
  for(const key of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(key in value,false);assert.equal("from" in Class,false);
 });

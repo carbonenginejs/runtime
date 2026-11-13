@@ -118,6 +118,8 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
         // The interface declares no member, so nothing is written for it, and Reset adds no state.
         assert.deepEqual(Object.keys(CjsSchema.getValues(instance)), []);
         const own = Object.keys(instance);
+        // And no stray own field: apart from the graph's, an interface instance holds nothing.
+        assert.deepEqual(own.filter(key => key !== "__cjs"), []);
         assert.equal(instance.Reset(), undefined);
         assert.deepEqual(Object.keys(instance), own);
       }
