@@ -156,16 +156,11 @@ export class CjsAudioBufferRes extends BlueAsyncRes
     /**
      * Release the physical byte window at final teardown.
      *
-     * @adapted explicit JS teardown replaces native destruction; the existing
-     *   MotherLode switches keep CPU data and opaque adapter cleanup independent.
-     * @param {object} [options={}] Existing MotherLode cleanup policy.
-     * @param {boolean} [options.releasePayload=true] Release owned family data.
-     * @param {boolean} [options.destroyAdapters=true] Destroy opaque device adapter slots.
+     * @adapted explicit JS teardown replaces native destruction.
      * @returns {void}
      */
-    _OnShutdown(options = {})
+    _OnShutdown()
     {
-    if (options.releasePayload === false) return;
         this._bytes = null;
     }
 }

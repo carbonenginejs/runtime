@@ -204,11 +204,7 @@ export class CjsLibrary
       {
         try
         {
-          // Register consumes related options together (for example cacheSize/cacheCleanup).
-          const options = { ...entries };
-          if (Object.hasOwn(options, "cacheSize") && !Object.hasOwn(options, "cacheCleanup")
-            && Object.hasOwn(this._configuration.resMan, "cacheCleanup")) options.cacheCleanup = this._configuration.resMan.cacheCleanup;
-          resMan.Register(options);
+          resMan.Register({ ...entries });
           this._configured.resMan = { ...this._configured.resMan, ...entries };
         }
         catch (error)
@@ -761,7 +757,7 @@ function CopyConfigurationData(value)
 function ValidateConfiguration(configuration)
 {
   const plain = value => value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
-  const options = new Set(["motherLode", "cacheSize", "cacheCleanup", "autoPurgePolicy", "source", "mainThreadLoader",
+  const options = new Set(["motherLode", "cacheSize", "autoPurgePolicy", "source", "mainThreadLoader",
     "workerLoader", "useWorkerLoading", "maxConcurrentLoads", "maxPrepareTime", "maxAllowedInPrepareQueue",
     "urgentResourceLoads"]);
   if (!plain(configuration)) throw new TypeError("Configuration must contain named sections.");

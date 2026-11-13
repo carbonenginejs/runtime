@@ -130,33 +130,28 @@ function plainResource(path, value)
 }
 
 
-test("MotherLode preserves independent family data and opaque adapter cleanup switches", () =>
+test("MotherLode removal releases family data and adapter allocations, once", () =>
 {
-  for (const releasePayload of [false, true])
-  for (const destroyAdapters of [false, true])
-  {
-    const { resource, bitmap, destroyed } = loadedTexture();
-    let adapters = 0;
-    resource.SetAdapterResource("test", { Destroy() { adapters++; } });
-    blue.resMan.motherLode.Insert(resource.GetPath(), resource);
-    blue.resMan.motherLode.Delete(resource.GetPath(), { releasePayload, destroyAdapters });
-    assert.equal(resource.GetBitmap(), releasePayload ? null : bitmap);
-    assert.equal(destroyed(), releasePayload ? 1 : 0);
-    assert.equal(adapters, destroyAdapters ? 1 : 0);
-    assert.equal(resource.HasAdapterResource("test"), !destroyAdapters);
-    resource.Shutdown();
-    assert.equal(adapters, 1, "final shutdown releases an intentionally retained adapter once");
-    assert.equal(destroyed(), 1);
-  }
+  const { resource, destroyed } = loadedTexture();
+  let adapters = 0;
+  resource.SetAdapterResource("test", { Destroy() { adapters++; } });
+  blue.resMan.motherLode.Insert(resource.GetPath(), resource);
+  blue.resMan.motherLode.Delete(resource.GetPath());
+  assert.equal(resource.GetBitmap(), null);
+  assert.equal(destroyed(), 1);
+  assert.equal(adapters, 1);
+  assert.equal(resource.HasAdapterResource("test"), false);
+  resource.Shutdown();
+  assert.equal(adapters, 1, "a later shutdown releases nothing twice");
+  assert.equal(destroyed(), 1);
 });
 
-test("MotherLode can remove a plain-data handle without releasing its retained values", () =>
+test("MotherLode removal releases a plain-data handle's payload", () =>
 {
   const value = { retained: true };
   const resource = plainResource("res:/retained.bin", value);
   blue.resMan.motherLode.Insert(resource.GetPath(), resource);
-  blue.resMan.motherLode.Delete(resource.GetPath(), { releasePayload: false });
   assert.equal(blue.resMan.GetResourcePayload(resource), value);
-  resource.Shutdown();
+  blue.resMan.motherLode.Delete(resource.GetPath());
   assert.equal(blue.resMan.GetResourcePayload(resource), null);
 });

@@ -37,18 +37,9 @@ const BEQI_SILENT = 0x1;
  */
 
 /**
- * Cleanup policy accepted by ownership-removal operations.
- *
- * @typedef {object} CjsMotherLodeMutationOptions
- * @property {false|Function} [cleanup] `false` retains ownership; a function replaces default cleanup.
- * @property {boolean} [destroyAdapters=true] Whether default cleanup destroys adapter allocations.
- * @property {boolean} [releasePayload=true] Whether default cleanup releases the complete CPU payload.
- */
-
-/**
  * Canonical insertion and record-metadata options.
  *
- * @typedef {CjsMotherLodeMutationOptions & object} CjsMotherLodeInsertOptions
+ * @typedef {object} CjsMotherLodeInsertOptions
  * @property {boolean} [replace=true] Whether an existing different resource may be displaced.
  * @property {boolean} [cacheable=true] Carbon's `allowCaching` (`IMotherLode::CACHING_ALLOWED`):
  *   whether the entry may enter the cache once unused, if its class is `ICacheable`.
@@ -61,7 +52,7 @@ const BEQI_SILENT = 0x1;
  * At least one identity or payload limit must be supplied for work to occur.
  * When both frame and time limits exist, reaching either limit is sufficient.
  *
- * @typedef {CjsMotherLodeMutationOptions & object} CjsMotherLodePurgeOptions
+ * @typedef {object} CjsMotherLodePurgeOptions
  * @property {number} [frame] Current non-negative activity frame; otherwise the registry advances once.
  * @property {number} [time] Current non-negative timestamp in milliseconds; otherwise `now()` is called.
  * @property {number} [maxIdleFrames] Frames after which an unlocked identity is removed and cleaned.
@@ -219,15 +210,14 @@ export class MotherLode
    * payloads. Repeated calls are idempotent after a successful cleanup.
    *
    * @adapted
-   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy applied to every entry.
    * @returns {MotherLode} This inactive registry.
    * @throws {AggregateError} If cleanup fails for one or more entries; registration is still stopped.
    */
-  Shutdown(options = {})
+  Shutdown()
   {
     try
     {
-      this.Clear(options);
+      this.Clear();
     }
     finally
     {
@@ -291,7 +281,7 @@ export class MotherLode
 
     if (existing)
     {
-      this._CleanupRecord(existing, options, "replace", true);
+      this._CleanupRecord(existing, "replace");
     }
     this._entries.set(key, record);
 
@@ -335,20 +325,19 @@ export class MotherLode
    *
    * @adapted
    * @param {string} key Canonical resolved key, or normalized source path with a variant.
-   * @param {string|CjsMotherLodeMutationOptions} [variantOrOptions] Compatibility variant or cleanup policy.
-   * @param {CjsMotherLodeMutationOptions} [maybeOptions] Cleanup policy when a variant is supplied.
+   * @param {string} [variant] Optional promised-output variant.
    * @returns {boolean} Whether an entry was removed.
-   * @throws {TypeError} If identity or cleanup options are invalid.
+   * @throws {TypeError} If the identity is invalid.
    * @throws {Error} If resource cleanup fails after the identity is removed.
    */
-  Delete(key, variantOrOptions = undefined, maybeOptions = undefined)
+  Delete(key, variant = undefined)
   {
-    const { resolvedKey, options } = MotherLode._normalizeDeleteArguments(key, variantOrOptions, maybeOptions);
+    const resolvedKey = MotherLode._normalizeLookupKey(key, variant);
     const record = this._entries.get(resolvedKey);
     if (!record) return false;
 
     this._entries.delete(resolvedKey);
-    this._CleanupRecord(record, options, "delete");
+    this._CleanupRecord(record, "delete");
     return true;
   }
 
@@ -357,12 +346,11 @@ export class MotherLode
    * All matching identities are forgotten before cleanup begins.
    *
    * @param {string} path Source resource path whose canonical variants are removed.
-   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for removed resources.
    * @returns {boolean} Whether at least one variant was removed.
    * @throws {TypeError} If the path is invalid.
    * @throws {AggregateError} If cleanup fails for one or more removed resources.
    */
-  DeleteAllVariants(path, options = {})
+  DeleteAllVariants(path)
   {
     const normalizedPath = MotherLode._normalizePath(path);
     const prefix = `${normalizedPath}\u0000`;
@@ -377,7 +365,7 @@ export class MotherLode
       }
     }
 
-    this._CleanupRecords(records, options, "delete variants");
+    this._CleanupRecords(records, "delete variants");
     return records.length > 0;
   }
 
@@ -386,15 +374,14 @@ export class MotherLode
    * the registry's active/inactive lifecycle state.
    *
    * @adapted
-   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for removed resources.
    * @returns {MotherLode} This empty registry.
    * @throws {AggregateError} If cleanup fails for one or more removed resources.
    */
-  Clear(options = {})
+  Clear()
   {
     const records = [ ...this._entries.values() ];
     this._entries.clear();
-    this._CleanupRecords(records, options, "clear");
+    this._CleanupRecords(records, "clear");
     return this;
   }
 
@@ -403,11 +390,10 @@ export class MotherLode
    * MotherLode.cpp:433-449).
    *
    * @adapted
-   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for removed cache entries.
    * @returns {number} Number of entries removed before cleanup.
    * @throws {AggregateError} If cleanup fails for one or more removed resources.
    */
-  ClearCached(options = {})
+  ClearCached()
   {
     const records = [];
     for (const [ key, record ] of this._entries)
@@ -418,7 +404,7 @@ export class MotherLode
         this._entries.delete(key);
       }
     }
-    this._CleanupRecords(records, options, "clear cached");
+    this._CleanupRecords(records, "clear cached");
     return records.length;
   }
 
@@ -595,9 +581,9 @@ export class MotherLode
    *
    * @cjs
    * @implemented
-   * @param {CjsMotherLodePurgeOptions} [options={}] Explicit sweep point, inactivity limits, and cleanup policy.
+   * @param {CjsMotherLodePurgeOptions} [options={}] Explicit sweep point and inactivity limits.
    * @returns {CjsMotherLodePurgeResult} Counts and affected canonical keys.
-   * @throws {TypeError} If the sweep point, limits, or cleanup policy are invalid.
+   * @throws {TypeError} If the sweep point or limits are invalid.
    * @throws {AggregateError} If one or more cleanup, payload-release, or purge-state operations fail.
    */
   PurgeInactive(options = {})
@@ -648,7 +634,7 @@ export class MotherLode
 
         try
         {
-          this._CleanupRecord(record, policy, "purge inactive", true);
+          this._CleanupRecord(record, "purge inactive");
         }
         catch (error)
         {
@@ -669,8 +655,7 @@ export class MotherLode
         continue;
       }
 
-      if (policy.releasePayload !== false
-        && MotherLode._hasOwnedPayload(record.resource)
+      if (MotherLode._hasOwnedPayload(record.resource)
         && MotherLode._isInactive(
           record.payloadLastUsedFrame,
           record.payloadLastUsedTime,
@@ -721,14 +706,11 @@ export class MotherLode
    *
    * @adapted
    * @renamed Housekeeping
-   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for dropped identities.
    * @returns {CjsMotherLodeCacheTrimResult} Byte totals and affected canonical keys.
-   * @throws {TypeError} If cleanup options are invalid.
    * @throws {AggregateError} If sizing, cleanup or purge-state publication fails for one or more candidates.
    */
-  TrimCache(options = {})
+  TrimCache()
   {
-    const policy = MotherLode._normalizeOptions(options, "cache trim");
     const evictedKeys = [];
     const failedKeys = [];
     const errors = [];
@@ -769,7 +751,7 @@ export class MotherLode
 
     for (const record of unwanted)
     {
-      this._EvictCached(record, policy, evictedKeys, failedKeys, errors);
+      this._EvictCached(record, evictedKeys, failedKeys, errors);
     }
 
     if (beforeBytes > this._cacheSize)
@@ -782,7 +764,7 @@ export class MotherLode
       for (const record of oldestFirst)
       {
         if (bytes <= this._cacheSize) break;
-        if (!this._EvictCached(record, policy, evictedKeys, failedKeys, errors)) continue;
+        if (!this._EvictCached(record, evictedKeys, failedKeys, errors)) continue;
         bytes -= record.bytes;
         evictedBytes += record.bytes;
       }
@@ -879,17 +861,16 @@ export class MotherLode
    *
    * @adapted
    * @param {object} record Cached record.
-   * @param {CjsMotherLodeMutationOptions} policy Cleanup policy.
    * @param {string[]} evictedKeys Receives the key on success.
    * @param {string[]} failedKeys Receives the key on failure.
    * @param {Error[]} errors Receives any failure.
    * @returns {boolean} Whether the entry was removed.
    */
-  _EvictCached(record, policy, evictedKeys, failedKeys, errors)
+  _EvictCached(record, evictedKeys, failedKeys, errors)
   {
     try
     {
-      this._CleanupRecord(record, policy, "trim cache", true);
+      this._CleanupRecord(record, "trim cache");
     }
     catch (error)
     {
@@ -921,17 +902,15 @@ export class MotherLode
    *
    * @adapted
    * @param {number} bytes Non-negative safe-integer byte budget.
-   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for entries displaced by the smaller budget.
    * @returns {MotherLode} This registry.
-   * @throws {TypeError} If `bytes` or cleanup options are invalid.
+   * @throws {TypeError} If `bytes` is invalid.
    * @throws {AggregateError} If enforcing the new budget cannot clean one or more cached entries.
    */
-  SetCacheSize(bytes, options = {})
+  SetCacheSize(bytes)
   {
     assertNonNegativeInteger(bytes, "MotherLode cache size");
-    const policy = MotherLode._normalizeOptions(options, "set cache size");
     this._cacheSize = bytes;
-    this.TrimCache(policy);
+    this.TrimCache();
     return this;
   }
 
@@ -1069,14 +1048,13 @@ export class MotherLode
   /**
    * Remove all variants through the temporary legacy API.
    *
-   * @deprecated Use `DeleteAllVariants(path, options)`.
+   * @deprecated Use `DeleteAllVariants(path)`.
    * @param {string} path Source resource path.
-   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for removed resources.
    * @returns {boolean} Whether at least one variant was removed.
    */
-  DeleteAll(path, options = {})
+  DeleteAll(path)
   {
-    return this.DeleteAllVariants(path, options);
+    return this.DeleteAllVariants(path);
   }
 
   /**
@@ -1171,15 +1149,14 @@ export class MotherLode
    * @cjs
    * @implemented
    * @param {object} record Removed cache record.
-   * @param {object} options Existing cleanup, adapter and payload switches.
    * @param {string} operation Operation name for contextual cleanup errors.
    * @returns {void}
    */
-  _CleanupRecord(record, options, operation)
+  _CleanupRecord(record, operation)
   {
     try
     {
-      MotherLode._cleanupOwnedResource(record.resource, options);
+      MotherLode._cleanupOwnedResource(record.resource);
     }
     catch (cause)
     {
@@ -1193,18 +1170,17 @@ export class MotherLode
    * @cjs
    * @implemented
    * @param {object[]} records Removed cache records.
-   * @param {object} options Existing cleanup, adapter and payload switches.
    * @param {string} operation Operation name for contextual cleanup errors.
    * @returns {void}
    */
-  _CleanupRecords(records, options, operation)
+  _CleanupRecords(records, operation)
   {
     const errors = [];
     for (const record of records)
     {
       try
       {
-        MotherLode._cleanupOwnedResource(record.resource, options);
+        MotherLode._cleanupOwnedResource(record.resource);
       }
       catch (cause)
       {
@@ -1212,21 +1188,6 @@ export class MotherLode
       }
     }
     if (errors.length) throw new AggregateError(errors, "MotherLode " + operation + " cleanup failed.");
-  }
-
-  static _normalizeDeleteArguments(key, variantOrOptions, maybeOptions)
-  {
-    if (variantOrOptions && typeof variantOrOptions === "object" && !Array.isArray(variantOrOptions))
-    {
-      return {
-        resolvedKey: MotherLode._normalizeResolvedKey(key),
-        options: MotherLode._normalizeOptions(variantOrOptions, "delete")
-      };
-    }
-    return {
-      resolvedKey: MotherLode._normalizeLookupKey(key, variantOrOptions),
-      options: MotherLode._normalizeOptions(maybeOptions || {}, "delete")
-    };
   }
 
   static _normalizeActivityArguments(key, variantOrOptions, maybeOptions)
@@ -1389,15 +1350,9 @@ export class MotherLode
   }
 
   /** Clean an owned native resource through the global manager. */
-  static _cleanupOwnedResource(resource, options)
+  static _cleanupOwnedResource(resource)
   {
-    if (options.cleanup === false) return;
-    if (typeof options.cleanup === "function")
-    {
-      options.cleanup(resource);
-      return;
-    }
-    if (MotherLode._CastResource(resource)) blueService.resMan._CleanupResource(resource, options);
+    if (MotherLode._CastResource(resource)) blueService.resMan._CleanupResource(resource);
   }
 
   static _assertResource(resource)

@@ -44,7 +44,7 @@ test("manager and device retention share active time, survive suspension, and st
   const previous = blue.resMan;
   blue.resMan = manager;
   t.after(() => { blue.resMan = previous; });
-  manager.SetAutoPurgePolicy({ intervalMilliseconds: 0, maxIdleMilliseconds: 30000, cleanup: false });
+  manager.SetAutoPurgePolicy({ intervalMilliseconds: 0, maxIdleMilliseconds: 30000 });
   const oldResources = TriDevice._resourcesRegistered, oldGenerations = TriDevice._registeredGenerations;
   TriDevice._resourcesRegistered = []; TriDevice._registeredGenerations = [];
   t.after(() => { TriDevice._resourcesRegistered = oldResources; TriDevice._registeredGenerations = oldGenerations; });

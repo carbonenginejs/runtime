@@ -129,9 +129,6 @@ let nextLocalValueIdentity = 1;
  * @property {number} [intervalMilliseconds=1000] Minimum elapsed milliseconds between automatic sweeps; `0` permits every update.
  * @property {number} [maxIdleMilliseconds=30000] Elapsed milliseconds after which an unlocked canonical identity is removed and cleaned. Defaults only when `payloadMaxIdleMilliseconds` is also unset.
  * @property {number} [payloadMaxIdleMilliseconds] Elapsed milliseconds after which an unlocked CPU payload is released.
- * @property {boolean} [destroyAdapters=true] Whether identity cleanup destroys adapter allocations.
- * @property {boolean} [releasePayload=true] Whether sweeps may release CPU payloads.
- * @property {false|Function} [cleanup] `false` retains owned state; a function replaces default identity cleanup.
  * @property {() => number} [now] Cadence clock; defaults to this manager's MotherLode activity clock. Use the MotherLode activity clock when supplying a custom clock.
  */
 
@@ -149,7 +146,7 @@ let nextLocalValueIdentity = 1;
  * @typedef {object} CjsResManUpdateOptions
  * @property {{maxTime?: number, now?: Function}} [prepare] The prepare loop's time slice in seconds (default
  *   `maxPrepareTime`) and a millisecond clock.
- * @property {false|object} [cache] `false` skips recorded-byte housekeeping; otherwise supplies cache-cleanup policy.
+ * @property {boolean} [cache=true] `false` skips recorded-byte housekeeping for this update.
  * @property {false|CjsResManAutoPurgePumpOptions} [purge] `false` skips this update's automatic sweep; otherwise supplies its timestamp.
  */
 
@@ -454,7 +451,6 @@ export class BlueResMan
    * @implemented
    * @param {object} [options={}] Additive source, registry, queue, format, and extension settings.
    * @param {number} [options.cacheSize] Recorded-byte budget immediately installed on the active MotherLode.
-   * @param {object} [options.cacheCleanup] Cleanup policy used if a smaller configured budget evicts cached identities.
    * @param {object} [options.mainThreadLoader] Direct execution strategy.
    * @param {object|Map|object[]} [options.extensions] Extension route registrations.
    * @param {CjsResManWorkerLoader|null} [options.workerLoader] Worker loader.
@@ -489,15 +485,12 @@ export class BlueResMan
           this._lastAutoPurgeTime = null;
         }
       },
-      cacheSize: value => this.motherLode.SetCacheSize(
-        value,
-        options.cacheCleanup || {}
-      ),
+      cacheSize: value => this.motherLode.SetCacheSize(value),
       loadObjectCacheSize: value =>
       {
         assertNonNegativeInteger(value, "BlueResMan loadObjectCacheSize");
         this.loadObjectCacheSize = value;
-        this.loadObjectCache.SetCacheSize(value, options.cacheCleanup || {});
+        this.loadObjectCache.SetCacheSize(value);
       },
       autoPurgePolicy: this.SetAutoPurgePolicy,
       source: this.SetSource,
@@ -931,15 +924,12 @@ export class BlueResMan
     const prepareResult = this._RunMainThreadQueue(options.prepare || options);
     const prepared = prepareResult.processed > 0;
     this._UpdateStatistics(prepareResult);
-    const cacheOptions = options.cache === true || options.cache === undefined
-      ? {}
-      : options.cache;
     const cacheResult = options.cache === false
       ? null
-      : this.motherLode.TrimCache(cacheOptions);
+      : this.motherLode.TrimCache();
     const objectCacheResult = options.cache === false
       ? null
-      : this.loadObjectCache.TrimCache(cacheOptions);
+      : this.loadObjectCache.TrimCache();
     const trimmed = Boolean((cacheResult && cacheResult.evicted > 0)
       || (objectCacheResult && objectCacheResult.evicted > 0));
     const purgeOptions = options.purge === true || options.purge === undefined
@@ -2162,7 +2152,7 @@ export class BlueResMan
    * This delegates policy and cleanup to MotherLode; it never fetches or
    * reloads a purged resource.
    *
-   * @param {object} [options={}] MotherLode frame/time limits and cleanup policy.
+   * @param {object} [options={}] MotherLode frame/time limits.
    * @returns {object} Immutable purge counts and affected canonical keys.
    * @throws {TypeError} If the configured MotherLode lacks purge support or policy is invalid.
    * @throws {AggregateError} If one or more candidate resources fail cleanup.
@@ -2281,10 +2271,7 @@ export class BlueResMan
     return this.PurgeInactive({
       time,
       maxIdleMilliseconds: policy.maxIdleMilliseconds,
-      payloadMaxIdleMilliseconds: policy.payloadMaxIdleMilliseconds,
-      destroyAdapters: policy.destroyAdapters,
-      releasePayload: policy.releasePayload,
-      ...(policy.cleanup === undefined ? {} : { cleanup: policy.cleanup })
+      payloadMaxIdleMilliseconds: policy.payloadMaxIdleMilliseconds
     });
   }
 
@@ -3292,14 +3279,13 @@ export class BlueResMan
    * @cjs
    * @implemented
    * @param {BlueAsyncRes} resource Cached resource.
-   * @param {object} [options] Existing MotherLode cleanup policy.
    */
-  _CleanupResource(resource, options = {})
+  _CleanupResource(resource)
   {
     resource.CancelPendingLoad();
     this.notify.Clear(resource);
-    resource._OnShutdown(options);
-    if (options.releasePayload !== false) this.ReleaseResourcePayload(resource);
+    resource._OnShutdown();
+    this.ReleaseResourcePayload(resource);
     resource._isGood = resource._isPrepared = false;
   }
 
@@ -4432,9 +4418,6 @@ function normalizeAutoPurgePolicy(policy, now)
     "intervalMilliseconds",
     "maxIdleMilliseconds",
     "payloadMaxIdleMilliseconds",
-    "destroyAdapters",
-    "releasePayload",
-    "cleanup",
     "now"
   ]);
   const unsupported = Object.keys(policy).filter(key => !allowed.has(key));
@@ -4456,19 +4439,6 @@ function normalizeAutoPurgePolicy(policy, now)
   const maxIdleMilliseconds = policy.maxIdleMilliseconds === undefined && policy.payloadMaxIdleMilliseconds === undefined
     ? BlueResMan.defaultAutoPurgePolicy.maxIdleMilliseconds
     : policy.maxIdleMilliseconds;
-  for (const name of [ "destroyAdapters", "releasePayload" ])
-  {
-    if (policy[name] !== undefined && typeof policy[name] !== "boolean")
-    {
-      throw new TypeError(`BlueResMan autoPurgePolicy.${name} must be a boolean.`);
-    }
-  }
-  if (policy.cleanup !== undefined
-    && policy.cleanup !== false
-    && typeof policy.cleanup !== "function")
-  {
-    throw new TypeError("BlueResMan autoPurgePolicy.cleanup must be a function or false.");
-  }
   if (policy.now !== undefined && typeof policy.now !== "function")
   {
     throw new TypeError("BlueResMan autoPurgePolicy.now must be a function.");
@@ -4478,9 +4448,6 @@ function normalizeAutoPurgePolicy(policy, now)
     intervalMilliseconds,
     maxIdleMilliseconds,
     payloadMaxIdleMilliseconds: policy.payloadMaxIdleMilliseconds,
-    destroyAdapters: policy.destroyAdapters ?? true,
-    releasePayload: policy.releasePayload ?? true,
-    ...(policy.cleanup === undefined ? {} : { cleanup: policy.cleanup }),
     now: policy.now || now
   };
 }

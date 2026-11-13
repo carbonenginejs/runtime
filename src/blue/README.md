@@ -92,7 +92,7 @@ through its native owner, such as `GetBitmap` or `GetCMFData`. Releasing plain
 data preserves handle identity; the next explicit `Ready` reconstructs it.
 
 Full MotherLode cleanup cancels an attempt, expires registered owner links, and
-calls the resource's cleanup hook. Legacy pull-based owners release their derived
-data at their next use. Its existing `releasePayload` and
-`destroyAdapters` switches remain independent. Device-only release and
-plain-data expiry have narrower scopes than full resource cleanup.
+calls the resource's cleanup hook, which destroys its adapter allocations and
+releases its payload. Legacy pull-based owners release their derived data at
+their next use. Device-only release and plain-data expiry have narrower scopes
+than full resource cleanup.

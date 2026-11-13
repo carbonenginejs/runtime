@@ -48,6 +48,17 @@ afterEach(() => { try { blue.resMan.Clear(); } finally { blue.resMan = previous;
 
 
 
+/**
+ * Removes an entry whose cleanup is rigged to fail, so a test leaves nothing behind. Delete removes
+ * the identity before it cleans, and reports a failed cleanup by throwing.
+ */
+function forget(motherLode, key)
+{
+  try { motherLode.Delete(key); }
+  catch (error) { assert.equal(error.code, "CJS_MOTHERLODE_CLEANUP_FAILED"); }
+  assert.equal(motherLode.Lookup(key), null);
+}
+
 test("MotherLode exposes canonical identity and activity diagnostics", () =>
 {
   let time = 100;
@@ -133,22 +144,6 @@ test("MotherLode replacement and removal clean displaced resource ownership", ()
   assert.equal((replacement.value !== null), false);
   assert.equal(motherLode.Delete(key), false);
 
-  const retainedKey = getMotherLodeKey("res:/data/retained.bin");
-  const retained = cacheResource("res:/data/retained.bin");
-  const retainedReplacement = cacheResource("res:/data/retained.bin");
-  let retainedDestroyed = 0;
-  retained.value = { retained: true };
-  retained.SetAdapterResource("test", { destroy() { retainedDestroyed += 1; } });
-  motherLode.Insert(retainedKey, retained);
-
-  const retainedResult = motherLode.Insert(retainedKey, retainedReplacement, { cleanup: false });
-
-  assert.equal(retainedResult.displaced, retained);
-  assert.equal(retainedDestroyed, 0);
-  assert.equal(retained.HasAdapterResource("test"), true);
-  assert.equal((retained.value !== null), true);
-  assert.equal(motherLode.Delete(retainedKey), true);
-
   const failingKey = getMotherLodeKey("res:/data/failing-cleanup.bin");
   const failingOwner = cacheResource("res:/data/failing-cleanup.bin");
   failingOwner._OnShutdown = () =>
@@ -165,7 +160,7 @@ test("MotherLode replacement and removal clean displaced resource ownership", ()
       && error.resource === failingOwner
   );
   assert.equal(motherLode.Lookup(failingKey), failingOwner);
-  assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
+  forget(motherLode, failingKey);
 });
 
 test("MotherLode clears cached entries and shuts down idempotently", () =>
@@ -256,14 +251,12 @@ test("MotherLode trims cached identities oldest-first by reported memory use", (
   assert.equal(motherLode.GetSize(), 0);
 });
 
-test("MotherLode validates cache-size cleanup options before changing policy", () =>
+test("MotherLode validates the cache size before changing policy", () =>
 {
   const motherLode = new MotherLode({ cacheSize: 128 });
 
-  assert.throws(
-    () => motherLode.SetCacheSize(64, []),
-    /set cache size options must be an object/u
-  );
+  assert.throws(() => motherLode.SetCacheSize(-1), /MotherLode cache size/u);
+  assert.throws(() => motherLode.SetCacheSize(1.5), /MotherLode cache size/u);
   assert.equal(motherLode.GetCacheSize(), 128);
 });
 
@@ -370,8 +363,8 @@ test("MotherLode cache trim preserves failed owners and reports partial pressure
   assert.equal(motherLode.Lookup(goodKey), null);
   assert.equal(blue.resMan.GetResourceStatus(failing).purged, false);
   assert.equal(blue.resMan.GetResourceStatus(good).purged, true);
-  assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
-  assert.equal(motherLode.Delete(stuckKey, { cleanup: false }), true);
+  forget(motherLode, failingKey);
+  forget(motherLode, stuckKey);
 });
 
 test("BlueResMan Update enforces cache pressure unless one update skips it", async () =>
@@ -418,5 +411,5 @@ test("MotherLode inactivity purge preserves failed owners and continues", () =>
   assert.equal(motherLode.Lookup(goodKey), null);
   assert.equal(blue.resMan.GetResourceStatus(failing).purged, false);
   assert.equal(blue.resMan.GetResourceStatus(good).purged, true);
-  assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
+  forget(motherLode, failingKey);
 });

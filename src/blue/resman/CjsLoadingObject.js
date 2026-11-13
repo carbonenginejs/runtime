@@ -38,15 +38,14 @@ export class CjsLoadingObject extends BlueAsyncRes
   }
 
   /**
-   * Drop retained builder data at explicit JS cleanup, honoring MotherLode policy.
+   * Drop retained builder data at explicit JS cleanup.
    *
    * @adapted
-   * @param {object} [options={}] Existing releasePayload switch.
    * @returns {void}
    */
-  _OnShutdown(options = {})
+  _OnShutdown()
   {
-    if (options.releasePayload !== false) blue.resMan.ReleaseResourcePayload(this);
+    blue.resMan.ReleaseResourcePayload(this);
   }
 }
 
