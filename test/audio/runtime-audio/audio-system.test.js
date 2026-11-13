@@ -2761,7 +2761,7 @@ test("graph adoption owns AudioCurveSetDriver monitored watchers", () =>
   second.Initialize();
   class WatcherGraph { drivers = [first, second]; }
   CjsSchema.define(WatcherGraph, {
-    className: "AudioSystemWatcherGraph",
+    name: "AudioSystemWatcherGraph",
     members: [{ name: "drivers", key: "drivers", type: { kind: "list", itemType: AudioCurveSetDriver } }],
   });
   const graph = new WatcherGraph();

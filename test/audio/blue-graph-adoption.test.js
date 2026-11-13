@@ -10,7 +10,7 @@ class AudioGraph
     drivers = new Set();
     Traverse() { throw new Error("audio must use canonical graph traversal"); }
 }
-CjsSchema.define(AudioGraph, { className: "BlueAudioAdoptionGraph", members: [
+CjsSchema.define(AudioGraph, { name: "BlueAudioAdoptionGraph", members: [
     { name: "child", key: "child", type: { kind: "rootRef", className: AudioGraph } },
     { name: "emitters", key: "emitters", type: { kind: "map", valueType: AudGameObjResource } },
     { name: "drivers", key: "drivers", type: { kind: "set", itemType: AudioCurveSetDriver } },
@@ -61,7 +61,7 @@ test("headless audio adoption/release reaches a declared non-model graph with cy
 test("an audio emitter root does not conceal declared descendant drivers", () =>
 {
     class ParentEmitter extends AudEmitter {}
-    CjsSchema.define(ParentEmitter, { className: "BlueAudioParentEmitter", members: [
+    CjsSchema.define(ParentEmitter, { name: "BlueAudioParentEmitter", members: [
         { name: "driver", key: "driver", type: { kind: "rootRef", className: AudioCurveSetDriver } }
     ] });
     const root = new ParentEmitter();
