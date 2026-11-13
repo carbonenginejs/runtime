@@ -25,7 +25,6 @@ function preorder(root)
 import { GetResources } from "../../src/blue/getResources.js";
 import { CjsGraph } from "../../src/global/model/graph/index.js";
 import { IRoot } from "../../src/blue/exposure/IRoot.js";
-import { exposure } from "../../src/blue/exposure/be.js";
 
 let fixtureId = 0;
 function fixture()
@@ -287,11 +286,8 @@ test("capabilities are declared in a definition: IRoot declares once, and the gr
     class Bad {}
     assert.throws(() => CjsSchema.define(Bad, { className: "CapabilityBadName", capabilities: [ "fly" ] }), /unknown capability fly/);
 
-    // An exposure bag carries the key as any definition does, and so does be.define given a className.
+    // An exposure bag carries the key as any definition does.
     class Bagged { _Destructor() {} }
     CjsSchema.be.define({ name: "CapabilityBagged", capabilities: [ "destruct" ] })(Bagged);
     assert.equal(CjsGraph.destruct(new Bagged()), true);
-    class Named { _Destructor() {} }
-    exposure.define({ className: "CapabilityNamedDefine", capabilities: [ "destruct" ] })(Named);
-    assert.equal(CjsGraph.destruct(new Named()), true);
 });

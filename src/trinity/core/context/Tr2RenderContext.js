@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2RenderContext.h (name/role)
-import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
+import { IRoot } from "../../../blue/exposure/IRoot.js";
 import { exposure as be } from "#be";
 //   trinity/trinityal/*/Tr2RenderContext*.h (command surface)
 // Hand-maintained amalgam of two Carbon surfaces (audited 2026-07-18):
@@ -39,8 +39,12 @@ const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 const DEFAULT_TECHNIQUE = "Main";
 
 /** Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7.... */
-@be.define({ className: "Tr2RenderContext", capabilities: [ "destruct" ] })
-export class Tr2RenderContext
+@be.define({
+  name: "Tr2RenderContext",
+  // Tr2RenderContext_Blue.cpp:310-313. The two methods that follow are Tr2PrimaryRenderContext's where the platform has one.
+  interfaces: [ IRoot ]
+})
+export class Tr2RenderContext extends IRoot
 {
   /**
    * Our selection between Carbon's pre-92483097 objectId picking and its
@@ -125,6 +129,7 @@ export class Tr2RenderContext
    */
   constructor()
   {
+    super();
     // Tr2RenderContext.cpp:112
     this._esm.Initialize();
 
@@ -196,17 +201,6 @@ export class Tr2RenderContext
     this._esm.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
 
     return this._al;
-  }
-
-  /**
-   * Ends this object, once: its C++ destruction, level by level.
-   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
-   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
-   * @returns {boolean} True if it ran; false on a second call.
-   */
-  Destruct(options)
-  {
-    return CjsGraph.destruct(this, options);
   }
 
   /**

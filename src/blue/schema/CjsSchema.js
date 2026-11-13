@@ -4321,19 +4321,15 @@ function exposureName(name)
  * A class identity by literal name: `meta.interface`, and with `blue` set `be.define` and `be.interface`. Carbon's `EXPOSURE_BEGIN`
  * creates the class's own interface table, including itself and the lazy IRoot entry; an interface identity does not.
  *
- * A definition with a `className` (and no exposure rows, so not a bag) registers the same identity and carries its other
- * keys, such as `capabilities`, as `meta.define` does.
- *
- * @param {string|object} name The registered name, or a definition holding it as `className`.
+ * @param {string} name The registered name.
  * @param {boolean} identityOnly Whether this is an interface identity, which has no table of its own.
  * @param {boolean} blue Whether the class is Carbon's exposure.
  * @returns {Function} The class decorator.
  */
 function exposureClassDecorator(name, identityOnly, blue)
 {
-    const rest = name !== null && typeof name === "object" ? name : null;
-    name = exposureName(rest ? rest.className : name);
-    const define = classDefinitionDecorator({ ...rest, className: name, ...(blue ? { blue: true } : {}), ...(identityOnly ? { interface: true } : {}) });
+    name = exposureName(name);
+    const define = classDefinitionDecorator({ className: name, ...(blue ? { blue: true } : {}), ...(identityOnly ? { interface: true } : {}) });
     if (!blue) return define;
     return function (Constructor, context)
     {
