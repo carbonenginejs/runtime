@@ -1318,7 +1318,7 @@ export class TriDevice extends IRoot
    *   BlueOS.RegisterForSimTimeRebase is unsupported in the browser.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.scene = null;
   }

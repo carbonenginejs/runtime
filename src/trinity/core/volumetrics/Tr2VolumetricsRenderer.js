@@ -88,7 +88,7 @@ export class Tr2VolumetricsRenderer
    * @adapted Native batch accumulator and shadow constant buffer (h:306-308) are not acquired by this JS class.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._fogConstantBuffer.Destroy();
   }

@@ -207,11 +207,11 @@ export class Tr2CurveLineSet
   /**
    * Explicit final-owner cleanup replaces the native destructor.
    *
-   * Carbon: Tr2CurveLineSet destructor (trinity/trinity/Tr2CurveLineSet.cpp:37-40).
+   * Carbon: ~Tr2CurveLineSet (trinity/trinity/Tr2CurveLineSet.cpp:37-40).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
   }

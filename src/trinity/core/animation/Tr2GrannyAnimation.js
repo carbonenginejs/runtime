@@ -452,7 +452,7 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {void}
    * @adapted Preserves existing explicit Destruct fences and owned-slot clearing after native cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.Cleanup();
     if (this.grannyRes) blue.resMan.notify.Remove(this, this.grannyRes);

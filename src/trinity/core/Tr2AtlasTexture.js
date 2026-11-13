@@ -302,7 +302,7 @@ export class Tr2AtlasTexture extends BlueAsyncRes
   /**
    * Removes the texture from its atlas and releases its resources
    * (`Tr2AtlasTexture.cpp:139-146`). Carbon runs the destructor right after;
-   * that body is OnDestruct.
+   * that body is _Destructor.
    *
    * Carbon calls `OnShutdown` when the last reference goes. JavaScript has no
    * destructors, so the caller must call this explicitly; a texture that is
@@ -328,7 +328,7 @@ export class Tr2AtlasTexture extends BlueAsyncRes
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._isLocked)
     {

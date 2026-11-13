@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { TriValueBinding, Tr2FloatParameter } from "../../npm/dist/trinity/index.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 for (const weak of [false, true])
 {
@@ -23,21 +24,21 @@ for (const weak of [false, true])
     destination.SetDestination(first);
     assert.equal(owner._reroutedDestination, first);
     assert.equal(peer._reroutedDestination, first);
-    owner.OnDestruct();
-    owner.OnDestruct();
+    CjsGraph.finalDelete(owner);
+    CjsGraph.finalDelete(owner);
     destination.SetDestination(second);
     assert.equal(owner._reroutedDestination, first);
     assert.equal(peer._reroutedDestination, second);
     assert.equal(owner.GetCurrentDestinationObject(), destination);
-    peer.OnDestruct();
+    CjsGraph.finalDelete(peer);
   });
 }
 
 test("value-binding teardown accepts absent and non-reroutable endpoints", () =>
 {
   const binding = new TriValueBinding();
-  binding.OnDestruct();
+  CjsGraph.finalDelete(binding);
   binding.SetDestination("value", { value: 0 });
-  binding.OnDestruct();
-  binding.OnDestruct();
+  CjsGraph.finalDelete(binding);
+  CjsGraph.finalDelete(binding);
 });

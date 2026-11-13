@@ -193,11 +193,11 @@ export class Tr2GpuBuffer extends IRoot
   }
 
   /**
-   * Carbon: Tr2GpuBuffer::~Tr2GpuBuffer (trinity/trinity/Tr2GpuBuffer.cpp:23-25).
+   * Carbon: ~Tr2GpuBuffer (trinity/trinity/Tr2GpuBuffer.cpp:23-25).
    * @adapted Explicitly destroys the AL value member (h:79); native Tr2BufferAL destruction
    * calls Destroy (trinity/trinityal/dx12/Tr2BufferALDx12.cpp:23-26). Graph dispatch handles bases.
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._buffer) this._buffer.Destroy();
     this._buffer = null;

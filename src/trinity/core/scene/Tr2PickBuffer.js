@@ -185,11 +185,11 @@ export class Tr2PickBuffer
   /**
    * Replaces the native destructor and base-class unregistration.
    *
-   * Carbon: Tr2PickBuffer destructor (trinity/trinity/Tr2PickBuffer.cpp:18-21).
+   * Carbon: ~Tr2PickBuffer (trinity/trinity/Tr2PickBuffer.cpp:18-21).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
   }

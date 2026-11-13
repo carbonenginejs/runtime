@@ -271,7 +271,7 @@ export class Tr2ReflectionProbe
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
   }

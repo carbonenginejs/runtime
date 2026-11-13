@@ -247,11 +247,11 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   /**
    * Owner teardown replaces the C++ destructor and automatic device unregistration.
    *
-   * Carbon: Tr2SolidSet destructor (trinity/trinity/Tr2SolidSet.cpp:20-23).
+   * Carbon: ~Tr2SolidSet (trinity/trinity/Tr2SolidSet.cpp:20-23).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._destroyed = true;
     this.ReleaseResources();

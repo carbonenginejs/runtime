@@ -247,7 +247,7 @@ export class Tr2Blitter
    * @adapted Retains existing owned effect/buffer release after native global unregister.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     const store = Tr2VariableStore.globalStore();
     store.UnregisterVariable(BLIT_SOURCE);

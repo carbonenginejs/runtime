@@ -35,7 +35,7 @@ export class Tr2DeviceResource
    * Carbon destructor (Tr2DeviceResource.cpp:15-18): unregisters this owner.
    * @adapted Explicit teardown marks the object dead so later use cannot re-register it.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._state = Tr2DeviceResourceState.DESTRUCTED;
     // CPU-only deep imports can be destroyed before a device class is loaded.

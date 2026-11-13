@@ -145,7 +145,7 @@ export class Tr2MeshBase
    * @adapted Explicit observer detach replaces BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204); contents remain intact.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const property of Tr2MeshBase._areaProperties)
     {

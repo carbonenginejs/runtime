@@ -151,7 +151,7 @@ export class Tr2StreamingBitmapSaver extends IRoot
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this.IsSaving())
     {

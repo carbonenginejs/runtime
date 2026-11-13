@@ -299,7 +299,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * @returns {void}
    * @adapted Preserves the prior explicit Destruct fences and cached-slot clearing; graph dispatch owns base cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._destroyed = true;
     this._loadFenceGeneration += 1;

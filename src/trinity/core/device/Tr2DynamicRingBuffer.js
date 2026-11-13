@@ -72,7 +72,7 @@ export class Tr2DynamicRingBuffer
    * Carbon destructor (Tr2DynamicRingBuffer.cpp:26-29).
    * @adapted The destruction graph dispatches device-resource base teardown separately.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
   }

@@ -163,7 +163,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * @returns {void}
    * @adapted Preserves the prior explicit Destruct fences and cached-slot clearing; graph dispatch owns base cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._destroyed = true;
     // Carbon ~Tr2GrannyPrimitiveSet (Tr2GrannyPrimitiveSet.cpp:24-33): RemoveNotifyTarget on the granny resource.

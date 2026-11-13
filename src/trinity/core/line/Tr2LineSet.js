@@ -304,11 +304,11 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   /**
    * Owner teardown replaces the C++ destructor and automatic device unregistration.
    *
-   * Carbon: Tr2LineSet destructor (trinity/trinity/Tr2LineSet.cpp:21-24).
+   * Carbon: ~Tr2LineSet (trinity/trinity/Tr2LineSet.cpp:21-24).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._destroyed = true;
     this.ReleaseResources();

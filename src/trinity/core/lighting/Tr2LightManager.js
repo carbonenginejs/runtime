@@ -910,7 +910,7 @@ export class Tr2LightManager
    * @adapted Native raytracing value resources have no working JS members to release.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     Tr2LightManager.ResetVariableStore();
     this._perFrameData.Destroy();

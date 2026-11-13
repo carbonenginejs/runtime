@@ -203,7 +203,7 @@ export class Tr2RenderContext
    * Carbon: Tr2RenderContextBase::m_esm (trinity/trinity/Tr2RenderContext.h:25-35).
    * @adapted Preserves existing context-owned state and geometry release before destroying the selected backend.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._esm.Destruct();
     this._esm.ReleaseRealizedObjects();

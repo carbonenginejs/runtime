@@ -86,10 +86,10 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Adapted: explicit JS teardown replaces the native mesh and device-resource
    * destructors, including base geometry completion subscriptions.
    *
-   * Carbon: Tr2InstancedMesh destructor (trinity/trinity/Tr2InstancedMesh.cpp:47-50).
+   * Carbon: ~Tr2InstancedMesh (trinity/trinity/Tr2InstancedMesh.cpp:47-50).
    * @adapted Retains instance/declaration cleanup; graph dispatch runs mesh and device cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._instanceGeometryResource = null;
     this._loadedGeometryResource = null;

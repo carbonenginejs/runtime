@@ -278,10 +278,10 @@ export class Tr2DepthStencil extends IRoot
   }
 
   /**
-   * Carbon: Tr2DepthStencil::~Tr2DepthStencil (trinity/trinity/Tr2DepthStencil.cpp:16-18).
+   * Carbon: ~Tr2DepthStencil (trinity/trinity/Tr2DepthStencil.cpp:16-18).
    * @adapted The body is empty in Carbon; this releases the Tr2TextureAL value member (h:61) its C++ destructor releases. Graph dispatch handles bases.
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._depthStencil) this._depthStencil.Destroy();
     this._depthStencil = null;

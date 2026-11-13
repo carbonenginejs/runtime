@@ -228,7 +228,7 @@ export class Tr2TextureArray extends IRoot
      * Carbon's class has no destructor body; this releases the Tr2TextureAL value member (h:71) its C++ destructor releases.
      * @adapted Explicit Destroy replaces the member destructor. Graph dispatch handles bases.
      */
-    OnDestruct()
+    _Destructor()
     {
         if (this.texture) this.texture.Destroy();
         this.texture = null;

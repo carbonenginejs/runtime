@@ -136,11 +136,11 @@ export class Tr2RuntimeInstanceData
   /**
    * Explicit final-owner teardown replaces Carbon's resource destructor.
    *
-   * Carbon: Tr2RuntimeInstanceData destructor (trinity/trinity/Tr2RuntimeInstanceData.cpp:189-191; Tr2RuntimeInstanceData.h:101 (allocation value member)).
+   * Carbon: ~Tr2RuntimeInstanceData (trinity/trinity/Tr2RuntimeInstanceData.cpp:189-191; Tr2RuntimeInstanceData.h:101 (allocation value member)).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
   }

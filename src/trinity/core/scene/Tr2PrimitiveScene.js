@@ -179,11 +179,11 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   /**
    * Explicit destruction releases the owned picker and device registration.
    *
-   * Carbon: Tr2PrimitiveScene destructor (trinity/trinity/Tr2PrimitiveScene.cpp:38-44).
+   * Carbon: ~Tr2PrimitiveScene (trinity/trinity/Tr2PrimitiveScene.cpp:38-44).
    * @adapted Explicit owned allocator destruction replaces CCP_DELETE; existing batch/picker cleanup remains, and the graph dispatches each base hook.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
     this._pickBuffer.Destruct();

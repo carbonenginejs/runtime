@@ -174,11 +174,11 @@ export class Tr2DynamicBinding extends INotify
    *   abandons a binding calls this; which owners do is pending the open teardown
    *   ruling (with TriDevice's registry and plan Q4).
    * @returns {void}
-   * Carbon: Tr2DynamicBinding destructor (trinity/trinity/Tr2DynamicBinding.cpp:185-190).
+   * Carbon: ~Tr2DynamicBinding (trinity/trinity/Tr2DynamicBinding.cpp:185-190).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    * @adapted No sim-time subscription is acquired by the JS constructor, so there is none to unregister (native cpp:182,187).
    */
-  OnDestruct()
+  _Destructor()
   {
     // blue.os.UnregisterForSimTimeRebase(this); // cpp:187; no TiDi sync reaches the browser.
     this._owner = null;

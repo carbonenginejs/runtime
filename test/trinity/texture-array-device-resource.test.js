@@ -85,7 +85,7 @@ test("AddElement registers the array and the device tick builds its texture", t 
 
   const last = array.GetTexture();
   array.Destruct();
-  assert.equal(last.IsValid(), false, "OnDestruct releases the texture member");
+  assert.equal(last.IsValid(), false, "_Destructor releases the texture member");
   assert.equal(registered(array), false);
 });
 

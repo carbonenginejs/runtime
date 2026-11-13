@@ -285,11 +285,11 @@ export class Tr2GpuResourcePool
    * Outstanding handles retain their record and their own resource value;
    * this drops the pool's membership and unregisters it from device sweeps.
    *
-   * Carbon: Tr2GpuResourcePool destructor (trinity/trinity/Tr2GpuResourcePool.cpp:87-95).
+   * Carbon: ~Tr2GpuResourcePool (trinity/trinity/Tr2GpuResourcePool.cpp:87-95).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
     allPools.delete(this);

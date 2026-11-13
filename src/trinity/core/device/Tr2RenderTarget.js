@@ -307,7 +307,7 @@ export class Tr2RenderTarget extends IRoot
    * Final owner teardown. Call after the owner has stopped using this render target.
    *
    * @cjs
-   * @adapted Forwards to Destruct, which runs OnDestruct and the device-resource base's unregistration.
+   * @adapted Forwards to Destruct, which runs _Destructor and the device-resource base's unregistration.
    */
   Dispose()
   {
@@ -315,11 +315,11 @@ export class Tr2RenderTarget extends IRoot
   }
 
   /**
-   * Carbon: Tr2RenderTarget::~Tr2RenderTarget (trinity/trinity/Tr2RenderTarget.cpp:40-42).
+   * Carbon: ~Tr2RenderTarget (trinity/trinity/Tr2RenderTarget.cpp:40-42).
    * @adapted The body is empty in Carbon; this releases the two Tr2TextureAL value members (h:114-115) their
    *   C++ destructors release, including the attached value native Detach/Destroy retain. Graph dispatch handles bases.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.Destroy();
     if (this._attachedRenderTarget) this._attachedRenderTarget.Destroy();

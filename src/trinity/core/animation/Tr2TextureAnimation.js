@@ -343,10 +343,10 @@ export class Tr2TextureAnimation extends IRoot
    *
    *
    * @returns {void}
-   * Carbon: Tr2TextureAnimation destructor (trinity/trinity/Tr2TextureAnimation.cpp:103-109).
+   * Carbon: ~Tr2TextureAnimation (trinity/trinity/Tr2TextureAnimation.cpp:103-109).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._clear();
   }

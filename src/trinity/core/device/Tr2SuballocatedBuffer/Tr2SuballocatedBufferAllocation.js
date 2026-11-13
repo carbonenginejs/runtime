@@ -40,7 +40,7 @@ export class Tr2SuballocatedBufferAllocation
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._parent) this._parent.Free(this);
   }

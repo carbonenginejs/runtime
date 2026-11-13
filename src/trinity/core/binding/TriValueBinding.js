@@ -42,7 +42,7 @@ export class TriValueBinding extends INotify
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     const destination = CjsSchema.cast(this.GetCurrentDestinationObject(), ITriReroutable);
     if (destination) destination.UnregisterBinding(this);

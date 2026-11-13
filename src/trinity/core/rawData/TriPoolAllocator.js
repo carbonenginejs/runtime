@@ -194,7 +194,7 @@ export class TriPoolAllocator
    * Carbon destructor (TriPoolAllocator.cpp:16-24) frees previous/current pools.
    * @adapted Dropping both typed-array views releases JS backing storage; GC replaces CCP_FREE without detaching retained external views.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._previousPools.length = 0;
     this._pool = this._poolUints = null;

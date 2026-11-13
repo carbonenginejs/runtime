@@ -80,7 +80,7 @@ test("Tr2RenderTarget takes the device-resource base and registers on creation",
   const texture = target._renderTarget;
   target.Destruct();
   assert.equal(registered(target), false, "the base's teardown unregisters");
-  assert.equal(texture.IsValid(), false, "OnDestruct releases the owned texture");
+  assert.equal(texture.IsValid(), false, "_Destructor releases the owned texture");
   target.Destruct();
 });
 
@@ -210,6 +210,6 @@ test("Tr2DepthStencil takes the base, expires idle, and is recreated from its ke
   assert.equal(changes, 2);
 
   depth.Destruct();
-  assert.equal(recreated.IsValid(), false, "OnDestruct releases the surface");
+  assert.equal(recreated.IsValid(), false, "_Destructor releases the surface");
   assert.equal(registered(depth), false);
 });

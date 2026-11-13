@@ -202,7 +202,7 @@ test("the device resource registry is prepared and released with the device", ()
   }
   finally
   {
-    Tr2DeviceResource.prototype.OnDestruct.call(resource);
+    Tr2DeviceResource.prototype._Destructor.call(resource);
   }
 
   assert.equal(TriDevice.GetResourcesRegistered().includes(resource), false);
@@ -255,11 +255,11 @@ test("device registry snapshots cannot mutate membership and retain their origin
     const independent = TriDevice.GetResourcesRegistered();
     independent.length = 0;
     assert.ok(TriDevice.GetResourcesRegistered().includes(resource), "editing a snapshot cannot unregister resources");
-    Tr2DeviceResource.prototype.OnDestruct.call(resource);
+    Tr2DeviceResource.prototype._Destructor.call(resource);
     assert.ok(before.includes(resource), "existing snapshot is not live");
     assert.equal(TriDevice.GetResourcesRegistered().includes(resource), false);
   }
-  finally { Tr2DeviceResource.prototype.OnDestruct.call(resource); }
+  finally { Tr2DeviceResource.prototype._Destructor.call(resource); }
 });
 
 test("particle final-owner Destruct detaches nine effect stores once and unregisters immediately", () =>

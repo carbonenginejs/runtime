@@ -80,7 +80,7 @@ export class TriDebugResourceHelper
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._effect = null;
   }

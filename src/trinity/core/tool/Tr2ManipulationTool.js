@@ -441,10 +441,10 @@ export class Tr2ManipulationTool extends IRoot
   /**
    * Explicit release of the native tool's owned primitive and effect references.
    *
-   * Carbon: Tr2ManipulationTool::~Tr2ManipulationTool (trinity/trinity/Tr2ManipulationTool.cpp:37-39; Tr2ManipulationTool.h:33-34).
+   * Carbon: ~Tr2ManipulationTool (trinity/trinity/Tr2ManipulationTool.cpp:37-39; Tr2ManipulationTool.h:33-34).
    * @adapted Preserves explicit owned primitive/effect cleanup in place of native member destruction.
    */
-  OnDestruct()
+  _Destructor()
   {
     const effects = new Set();
     for (const primitive of this.primitives)
