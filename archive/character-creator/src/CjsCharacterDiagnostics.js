@@ -86,4 +86,4 @@ export class CjsCharacterDiagnostics
 
 export default CjsCharacterDiagnostics;
 
-CjsSchema.meta.define(CjsCharacterDiagnostics, { className: "CjsCharacterDiagnostics" });
+CjsSchema.meta.define(CjsCharacterDiagnostics, { name: "CjsCharacterDiagnostics" });

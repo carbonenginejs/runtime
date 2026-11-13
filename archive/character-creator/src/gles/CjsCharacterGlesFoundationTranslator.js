@@ -253,4 +253,4 @@ function RequireResourcePath(value, label)
 
 export default CjsCharacterGlesFoundationTranslator;
 
-CjsSchema.meta.define(CjsCharacterGlesFoundationTranslator, { className: "CjsCharacterGlesFoundationTranslator" });
+CjsSchema.meta.define(CjsCharacterGlesFoundationTranslator, { name: "CjsCharacterGlesFoundationTranslator" });

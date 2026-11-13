@@ -400,4 +400,4 @@ function CloneReport(value)
 
 export default CjsCharacterGlesTriangleCoverage;
 
-CjsSchema.meta.define(CjsCharacterGlesTriangleCoverage, { className: "CjsCharacterGlesTriangleCoverage" });
+CjsSchema.meta.define(CjsCharacterGlesTriangleCoverage, { name: "CjsCharacterGlesTriangleCoverage" });

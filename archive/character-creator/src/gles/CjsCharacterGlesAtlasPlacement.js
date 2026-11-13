@@ -218,4 +218,4 @@ function ValidateTargetSize(size)
     return [ size[0], size[1] ];
 }
 
-CjsSchema.meta.define(CjsCharacterGlesAtlasPlacement, { className: "CjsCharacterGlesAtlasPlacement" });
+CjsSchema.meta.define(CjsCharacterGlesAtlasPlacement, { name: "CjsCharacterGlesAtlasPlacement" });

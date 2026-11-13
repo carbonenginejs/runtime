@@ -356,4 +356,4 @@ function GetShape(value)
 
 export default CjsCharacterWebgl2EffectRouter;
 
-CjsSchema.meta.define(CjsCharacterWebgl2EffectRouter, { className: "CjsCharacterWebgl2EffectRouter" });
+CjsSchema.meta.define(CjsCharacterWebgl2EffectRouter, { name: "CjsCharacterWebgl2EffectRouter" });

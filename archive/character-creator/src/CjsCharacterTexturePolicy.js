@@ -747,4 +747,4 @@ function SplitGroup(value)
 
 export default CjsCharacterTexturePolicy;
 
-CjsSchema.meta.define(CjsCharacterTexturePolicy, { className: "CjsCharacterTexturePolicy" });
+CjsSchema.meta.define(CjsCharacterTexturePolicy, { name: "CjsCharacterTexturePolicy" });

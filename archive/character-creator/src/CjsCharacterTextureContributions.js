@@ -48,4 +48,4 @@ export class CjsCharacterTextureContributions
 
 export default CjsCharacterTextureContributions;
 
-CjsSchema.meta.define(CjsCharacterTextureContributions, { className: "CjsCharacterTextureContributions" });
+CjsSchema.meta.define(CjsCharacterTextureContributions, { name: "CjsCharacterTextureContributions" });

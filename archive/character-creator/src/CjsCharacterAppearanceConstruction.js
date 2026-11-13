@@ -455,4 +455,4 @@ function OptionalResourcePath(value)
 
 export default CjsCharacterAppearanceConstruction;
 
-CjsSchema.meta.define(CjsCharacterAppearanceConstruction, { className: "CjsCharacterAppearanceConstruction" });
+CjsSchema.meta.define(CjsCharacterAppearanceConstruction, { name: "CjsCharacterAppearanceConstruction" });

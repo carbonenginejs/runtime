@@ -192,4 +192,4 @@ function ValidatePolicy(policy)
 
 export default CjsCharacterGlesPaletteCompatibility;
 
-CjsSchema.meta.define(CjsCharacterGlesPaletteCompatibility, { className: "CjsCharacterGlesPaletteCompatibility" });
+CjsSchema.meta.define(CjsCharacterGlesPaletteCompatibility, { name: "CjsCharacterGlesPaletteCompatibility" });

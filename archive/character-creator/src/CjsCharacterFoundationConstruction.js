@@ -609,4 +609,4 @@ function ResolvePaperdollSex(paperdoll)
 
 export default CjsCharacterFoundationConstruction;
 
-CjsSchema.meta.define(CjsCharacterFoundationConstruction, { className: "CjsCharacterFoundationConstruction" });
+CjsSchema.meta.define(CjsCharacterFoundationConstruction, { name: "CjsCharacterFoundationConstruction" });

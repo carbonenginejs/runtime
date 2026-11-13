@@ -43,4 +43,4 @@ export class CjsCharacterAtlasLayout
 
 export default CjsCharacterAtlasLayout;
 
-CjsSchema.meta.define(CjsCharacterAtlasLayout, { className: "CjsCharacterAtlasLayout" });
+CjsSchema.meta.define(CjsCharacterAtlasLayout, { name: "CjsCharacterAtlasLayout" });

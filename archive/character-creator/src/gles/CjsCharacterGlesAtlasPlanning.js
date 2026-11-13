@@ -331,4 +331,4 @@ function ValidateBoolean(value, name)
     }
 }
 
-CjsSchema.meta.define(CjsCharacterGlesAtlasPlanning, { className: "CjsCharacterGlesAtlasPlanning" });
+CjsSchema.meta.define(CjsCharacterGlesAtlasPlanning, { name: "CjsCharacterGlesAtlasPlanning" });

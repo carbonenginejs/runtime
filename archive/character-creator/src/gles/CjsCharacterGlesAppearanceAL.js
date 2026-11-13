@@ -429,4 +429,4 @@ function CloneResult(value)
 
 export default CjsCharacterGlesAppearanceAL;
 
-CjsSchema.meta.define(CjsCharacterGlesAppearanceAL, { className: "CjsCharacterGlesAppearanceAL" });
+CjsSchema.meta.define(CjsCharacterGlesAppearanceAL, { name: "CjsCharacterGlesAppearanceAL" });

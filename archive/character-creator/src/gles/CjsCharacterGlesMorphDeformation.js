@@ -595,4 +595,4 @@ function CloneReport(value)
 
 export default CjsCharacterGlesMorphDeformation;
 
-CjsSchema.meta.define(CjsCharacterGlesMorphDeformation, { className: "CjsCharacterGlesMorphDeformation" });
+CjsSchema.meta.define(CjsCharacterGlesMorphDeformation, { name: "CjsCharacterGlesMorphDeformation" });

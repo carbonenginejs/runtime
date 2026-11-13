@@ -623,4 +623,4 @@ function NormalizeSignatureValue(value, active)
 
 export default CjsCharacterAppearanceManager;
 
-CjsSchema.meta.define(CjsCharacterAppearanceManager, { className: "CjsCharacterAppearanceManager" });
+CjsSchema.meta.define(CjsCharacterAppearanceManager, { name: "CjsCharacterAppearanceManager" });

@@ -222,4 +222,4 @@ function TranslateMorphTarget(target, index)
 
 export default CjsCharacterGlesLegacyConstructionTranslator;
 
-CjsSchema.meta.define(CjsCharacterGlesLegacyConstructionTranslator, { className: "CjsCharacterGlesLegacyConstructionTranslator" });
+CjsSchema.meta.define(CjsCharacterGlesLegacyConstructionTranslator, { name: "CjsCharacterGlesLegacyConstructionTranslator" });

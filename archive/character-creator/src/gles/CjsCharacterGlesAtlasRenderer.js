@@ -235,4 +235,4 @@ function CloneReport(report)
     };
 }
 
-CjsSchema.meta.define(CjsCharacterGlesAtlasRenderer, { className: "CjsCharacterGlesAtlasRenderer" });
+CjsSchema.meta.define(CjsCharacterGlesAtlasRenderer, { name: "CjsCharacterGlesAtlasRenderer" });

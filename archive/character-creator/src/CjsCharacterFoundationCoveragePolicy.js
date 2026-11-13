@@ -286,4 +286,4 @@ function ResolveAuthoredFootwearHeight(metadata)
 
 export default CjsCharacterFoundationCoveragePolicy;
 
-CjsSchema.meta.define(CjsCharacterFoundationCoveragePolicy, { className: "CjsCharacterFoundationCoveragePolicy" });
+CjsSchema.meta.define(CjsCharacterFoundationCoveragePolicy, { name: "CjsCharacterFoundationCoveragePolicy" });

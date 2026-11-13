@@ -103,4 +103,4 @@ for (const method of [
     CjsSchema.decorateMethod(ICjsCharacterAppearanceAL, method, meta.abstract);
 }
 
-CjsSchema.meta.define(ICjsCharacterAppearanceAL, { className: "ICjsCharacterAppearanceAL", fields: {} });
+CjsSchema.meta.define(ICjsCharacterAppearanceAL, { name: "ICjsCharacterAppearanceAL", fields: {} });
