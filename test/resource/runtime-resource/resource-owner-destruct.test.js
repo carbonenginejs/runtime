@@ -7,14 +7,17 @@ import { IBlueAsyncResNotifyTarget } from "../../../npm/dist/blue/interfaces/IBl
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { getClassRegistrations, getRegisteredConstructor } from "../../../npm/dist/blue/exposure/classes/registry.js";
 
+/** A class's teardown hook: _Destructor on a Carbon class, OnDestruct on one of ours. */
+const hookOf = type => type.prototype._Destructor ?? type.prototype.OnDestruct;
+
 function checkOwner(name)
 {
   const Base = getRegisteredConstructor(name);
   test(`${name}: Destruct removes only its own notification links`, async t =>
   {
-    assert.equal(typeof Base.prototype.OnDestruct, "function");
+    assert.equal(typeof hookOf(Base), "function");
     const owners = getClassRegistrations().filter(({ type }) =>
-      type.prototype.OnDestruct === Base.prototype.OnDestruct && !CjsSchema.getSchema(type).abstract);
+      hookOf(type) === hookOf(Base) && !CjsSchema.getSchema(type).abstract);
     assert.ok(owners.length);
     for (const { name: ownerName, type: Owner } of owners)
     {
@@ -59,7 +62,8 @@ function checkOwner(name)
 // Both discovery directions matter: exercise hooks, and fail for an owner with
 // no hook. A future private map/nested holder also needs its own fixture.
 const hooks = getClassRegistrations().filter(({ type }) =>
-  Object.hasOwn(type.prototype, "OnDestruct") && typeof type.prototype.RemoveCachedData === "function");
+  (Object.hasOwn(type.prototype, "OnDestruct") || Object.hasOwn(type.prototype, "_Destructor"))
+  && typeof type.prototype.RemoveCachedData === "function");
 test("teardown discovery exercises registered hooks", () => assert.ok(hooks.length));
 for (const { name } of hooks) checkOwner(name);
 
@@ -68,7 +72,7 @@ test("every registered resource owner has a teardown hook, including abstract ba
   for (const { name, type } of getClassRegistrations())
   {
     if (type === IBlueAsyncResNotifyTarget || typeof type.prototype.RemoveCachedData !== "function") continue;
-    assert.equal(typeof type.prototype.OnDestruct, "function", `${name}: resource owner has no teardown hook`);
+    assert.equal(typeof hookOf(type), "function", `${name}: resource owner has no teardown hook`);
   }
 });
 

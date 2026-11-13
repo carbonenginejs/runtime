@@ -14,6 +14,9 @@ function propertyName(node)
   return node?.type === "Identifier" ? node.name : node?.type === "StringLiteral" ? node.value : null;
 }
 
+/** The two teardown functions the graph calls per level: OnDestruct, and _Destructor, the C++ destructor body. */
+const HOOKS = new Set([ "OnDestruct", "_Destructor" ]);
+
 /** Finds teardown hooks that manually call another ancestry level. */
 export function checkSource(code, file = "source.js")
 {
@@ -24,19 +27,20 @@ export function checkSource(code, file = "source.js")
   });
   const check = method =>
   {
-    if (propertyName(method.node.key) !== "OnDestruct") return;
+    const hook = propertyName(method.node.key);
+    if (!HOOKS.has(hook)) return;
     method.traverse({
       Class(nested) { nested.skip(); },
       Super(location)
       {
-        errors.push(`${file}:${location.node.loc.start.line}: OnDestruct must not call super; the graph visits each level.`);
+        errors.push(`${file}:${location.node.loc.start.line}: ${hook} must not call super; the graph visits each level.`);
       },
       MemberExpression(location)
       {
         const node = location.node, name = propertyName(node.property);
-        if ((name === "OnDestruct" || name === "Destruct") &&
+        if ((HOOKS.has(name) || name === "Destruct") &&
           node.object.type === "MemberExpression" && propertyName(node.object.property) === "prototype")
-          errors.push(`${file}:${node.loc.start.line}: OnDestruct must not invoke a prototype teardown; the graph visits each level.`);
+          errors.push(`${file}:${node.loc.start.line}: ${hook} must not invoke a prototype teardown; the graph visits each level.`);
       }
     });
   };

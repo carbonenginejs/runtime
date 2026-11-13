@@ -7,7 +7,8 @@ import { getClassRegistrations } from "../../npm/dist/blue/exposure/classes/regi
 import { Tr2RenderContext_GetMainThreadRenderContext, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
-// Item 4's "an OnDestruct is safe to run twice": every registered class with its own hook,
+// Item 4's "an OnDestruct is safe to run twice": every registered class with its own hook
+// (OnDestruct, or _Destructor on a Carbon class),
 // built bare on the stub backend, survives two Destruct calls.
 await ImportAllDistModules();
 
@@ -23,7 +24,7 @@ const SKIP = new Map([
 ]);
 
 const owners = getClassRegistrations().filter(({ type }) =>
-  Object.hasOwn(type.prototype, "OnDestruct") && !CjsSchema.getSchema(type)?.abstract);
+  (Object.hasOwn(type.prototype, "OnDestruct") || Object.hasOwn(type.prototype, "_Destructor")) && !CjsSchema.getSchema(type)?.abstract);
 
 test("discovery finds teardown hooks, and every skip names one", () =>
 {
