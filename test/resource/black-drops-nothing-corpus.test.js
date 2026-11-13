@@ -8,8 +8,14 @@
 // files with every class registered, builds every object a proxy defers, and fails on a read that throws or that
 // logs a warning or an error, unless DROPS lists it with its proof.
 //
+// What this does not prove: that a value placed is a value kept. A handler that read an attribute and threw its
+// value away would pass here. A byte-exact round trip of the same files through the Black writer would catch
+// that; it is the next Black test of the plan's step 19, and until it exists this is the residual.
+//
 // Game files are never committed (org rule). The files come from the tools-core service by res:/ path; the test
-// skips when it is not running (CJS_TOOLS_SERVER, default http://127.0.0.1:5510).
+// skips when it is not running (CJS_TOOLS_SERVER, default http://127.0.0.1:5510). It follows the build the service
+// calls latest, on purpose: a new build is where a new attribute appears. Set CJS_CLIENT_BUILD to repeat a run on
+// one build; the build read is printed with the result.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { clientResources } from "../support/clientResources.js";
