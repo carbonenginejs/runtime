@@ -60,6 +60,14 @@ export class Tr2TextureArray extends IRoot
     @type.enum("trinity.Tr2GpuUsage")
     gpuUsage = 16;
 
+    /**
+     * Tr2DeviceResource's state, declared here because `@be.inherit` copies its methods, not its fields.
+     *
+     * @cjs
+     * @type {number}
+     */
+    _state = Tr2DeviceResourceState.NONE;
+
 
     #revision = 0;
 
