@@ -8,7 +8,7 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  *
  * `dependantModifiers` and `occludesModifiers` keep the raw authored strings.
  */
-@meta.define({ className: "CjsAvatarPartMetaData", aliases: [ "paperDoll.AvatarPartMetaData" ] })
+@meta.define({ name: "CjsAvatarPartMetaData", aliases: [ "paperDoll.AvatarPartMetaData" ] })
 @meta.exposureChainTo(CjsCharacterRecord)
 export class CjsAvatarPartMetaData extends CjsCharacterRecord
 {

@@ -10,7 +10,7 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * read it; a consumer that needs a profile-to-part join must diagnose a
  * missing one rather than assume the catalog is populated.
  */
-@meta.define({ className: "CjsProjectedDecal", aliases: [ "paperDoll.ProjectedDecal", "eve.client.script.paperDoll.projectedDecals.ProjectedDecal" ] })
+@meta.define({ name: "CjsProjectedDecal", aliases: [ "paperDoll.ProjectedDecal", "eve.client.script.paperDoll.projectedDecals.ProjectedDecal" ] })
 @meta.exposureChainTo(CjsCharacterRecord)
 export class CjsProjectedDecal extends CjsCharacterRecord
 {
