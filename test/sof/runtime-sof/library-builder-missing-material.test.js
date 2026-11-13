@@ -68,5 +68,5 @@ test("lazy SOF catalog exports through schema values after model removal", () =>
 {
   const library = new CjsSofLibraryBuilder({ dataMgr: new EveSOFDataMgr(), source: async () => ({}) });
   assert.equal("GetValues" in library.data, false);
-  assert.equal(library.GetValues({ forceTypeTags: true })._type, "EveSOFData");
+  assert.equal(library.GetData({ forceTypeTags: true })._type, "EveSOFData");
 });

@@ -137,13 +137,13 @@ test("the SOF library builder keeps every record of a sample of the build as its
   // hydrated EveSOFData graph, EveSOFDataMgr.cpp:514-589), load them into a second builder and save it again.
   // The builder writes an item's class where its slot declares only an interface (a hull's locatorSets list
   // holds IEveSOFDataHullLocatorSet); without it the saved values could not build that item again.
-  const saved = builder.GetValues();
+  const saved = builder.GetData();
   const second = new CjsSofLibraryBuilder({
     dataMgr: new EveSOFDataMgr(),
     source: path => Promise.reject(new Error(`${path}: the saved library must need no file`)),
     data: CjsSchema.from("EveSOFData", saved)
   });
-  const difference = FirstDifference(saved, second.GetValues(), "library");
+  const difference = FirstDifference(saved, second.GetData(), "library");
   if (difference) report(`the saved library does not survive a reload at ${difference}`, "the library");
 
   t.diagnostic(`build ${resources.build}: ${Object.entries(counts).map(([ kind, count ]) => `${count} ${kind}`).join(", ")} records, with what each faction and the generic record name`);

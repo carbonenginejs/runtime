@@ -56,7 +56,7 @@ const CATALOGS = {
  * fetches only the records a DNA string needs: hulls, faction, race,
  * materials, patterns, the faction's default pattern and materials, and the
  * nested layout closure. Each record reaches the manager through its Carbon
- * `Update*` method and is kept in `data` for `GetValues` persistence.
+ * `Update*` method and is kept in `data`, which `GetData` hands out to be saved.
  * Concurrent requests for one named record share a single in-flight
  * operation; `{ force: true }` fetches and replaces a record already
  * installed. A failed or rejected record rejects the request; no guessed or
@@ -144,7 +144,7 @@ export class CjsSofLibraryBuilder
   /** Space-object-factory resource directory containing generic and named catalogs. */
   basePath = DEFAULT_BASE_PATH;
 
-  /** Mutable partial source catalog suitable for GetValues persistence. */
+  /** The mutable partial source catalog: installed by SetData, handed out by GetData. */
   data = null;
 
   /** Returns the exact manager receiving normalized catalog updates. */
@@ -197,11 +197,15 @@ export class CjsSofLibraryBuilder
   }
 
   /**
-   * Returns detached model values for caching or caller-managed transport.
+   * Returns the catalog this builder holds, for caching or caller-managed transport.
    * typeTags is on unless the caller turns it off: an item is written with its class where its slot declares
-   * only an interface (a hull's locatorSets), which is what lets the saved values build it again.
+   * only an interface (a hull's locatorSets), which is what lets the saved data build it again.
+   *
+   * @adapted Carbon's GetData returns the data an object holds (trinity/shadercompiler/EffectData.h:182); this returns a detached copy as plain data, so a caller cannot change the catalog through it.
+   * @param {object} [options={}] Export options; typeTags defaults to true.
+   * @returns {object} The catalog as plain data, which SetData takes back once built into an EveSOFData.
    */
-  GetValues(options = {})
+  GetData(options = {})
   {
     return CjsSchema.getValues(this.data, {}, { typeTags: true, ...options });
   }
