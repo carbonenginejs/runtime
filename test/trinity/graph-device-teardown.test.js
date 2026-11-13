@@ -19,31 +19,31 @@ for (const Type of [Tr2GpuResourcePool, Tr2LightManager])
   });
 }
 
-test("child line teardown forwards the managed set through generic dispatch", t =>
+test("child line teardown destructs its current and retired line sets once", t =>
 {
-  const owner = new EveChildLineSet(), shared = new EveCurveLineSet(), owned = new EveCurveLineSet();
-  owner._ownedLineSet = shared;
-  owner._retiredLineSets.add(owned);
-  const sharedDestruct = t.mock.method(shared, "Destruct");
-  const ownedDestruct = t.mock.method(owned, "Destruct");
-  owner.Destruct(new Set([shared]));
-  owner.Destruct(new Set([shared]));
-  assert.equal(sharedDestruct.mock.callCount(), 0);
-  assert.equal(ownedDestruct.mock.callCount(), 1);
+  const owner = new EveChildLineSet(), current = new EveCurveLineSet(), retired = new EveCurveLineSet();
+  owner._ownedLineSet = current;
+  owner._retiredLineSets.add(retired);
+  const currentDestruct = t.mock.method(current, "Destruct");
+  const retiredDestruct = t.mock.method(retired, "Destruct");
+  owner.Destruct();
+  owner.Destruct();
+  assert.equal(currentDestruct.mock.callCount(), 1);
+  assert.equal(retiredDestruct.mock.callCount(), 1);
   assert.equal(owner._ownedLineSet, null);
   assert.equal(owner._retiredLineSets.size, 0);
 });
 
 for (const Type of [EveSpherePin, Tr2ImpostorManager])
 {
-  test(`${Type.name}: managed effects remain owned by their caller`, t =>
+  test(`${Type.name}: teardown destructs each owned effect once`, t =>
   {
     const owner = new Type(), effects = [...owner._ownedEffects];
     assert.ok(effects.length);
     const counters = effects.map(effect => t.mock.method(effect, "Destruct"));
-    owner.Destruct(new Set(effects));
-    owner.Destruct(new Set(effects));
-    for (const counter of counters) assert.equal(counter.mock.callCount(), 0);
+    owner.Destruct();
+    owner.Destruct();
+    for (const counter of counters) assert.equal(counter.mock.callCount(), 1);
     assert.equal(owner._ownedEffects.size, 0);
   });
 }

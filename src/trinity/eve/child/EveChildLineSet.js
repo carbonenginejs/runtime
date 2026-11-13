@@ -205,21 +205,19 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /**
-   * Explicit destruction replaces C++ member destructors. The final graph owner
-   * may supply line sets whose lifetime it manages separately, including shared
-   * sets retained by another graph; JS has no BluePtr reference count.
+   * Explicit destruction replaces C++ member destructors: the body Carbon writes is empty.
    *
-   * Carbon: EveChildLineSet destructor (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.cpp:72-74).
+   * Carbon: ~EveChildLineSet (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.cpp:72-74).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct(managedLineSets = null)
+  _Destructor()
   {
     this.ReleaseResources();
     this._instanceCursor.view = null;
     if (this._ownedLineSet) this._retiredLineSets.add(this._ownedLineSet);
     for (const lineSet of this._retiredLineSets)
     {
-      if (!managedLineSets?.has(lineSet)) lineSet.Destruct();
+      lineSet.Destruct();
     }
     this._retiredLineSets.clear();
     this._ownedLineSet = null;
