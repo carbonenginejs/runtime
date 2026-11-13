@@ -78,6 +78,7 @@ export class CjsGraph
    * interfaces names classes an instance also counts as without inheriting from them.
    * bases is its C++ base list and chainTo the class its exposure table continues into, or null.
    * onDestruct is this level's own teardown function, or null; inherited hooks belong to bases.
+   * destructor is this level's own _Destructor, its C++ destructor body, or null.
    * whole means members is the class's complete list, so no base definition adds to it.
    * initialize, notify and listNotify say instances take Initialize, OnModified and
    * OnListModified. ownValues says instances hold values that are not members,
@@ -93,6 +94,8 @@ export class CjsGraph
     if (typeof name !== "string" || !name) throw new TypeError("Graph class requires a stable name.");
     if (definition.onDestruct != null && typeof definition.onDestruct !== "function")
       throw new TypeError("Graph onDestruct must be a function or null.");
+    if (definition.destructor != null && typeof definition.destructor !== "function")
+      throw new TypeError("Graph destructor must be a function or null.");
     const existing = this._classes.get(ctor);
     const named = this._names.get(name);
     if (named && named !== existing) throw new TypeError(`Graph class name already registered: ${name}`);
@@ -114,7 +117,8 @@ export class CjsGraph
     const info = existing ?? new CjsGraphClassInfo(ctor, declared);
     if (existing?.declared) this._names.delete(existing.declared.name);
     info.declared = declared;
-    if (!info.lifetimeExplicit) info.lifetime = { bases: declared.bases ?? [], onDestruct: declared.onDestruct ?? null };
+    if (!info.lifetimeExplicit)
+      info.lifetime = { bases: declared.bases ?? [], onDestruct: declared.onDestruct ?? null, destructor: declared.destructor ?? null };
     this._classes.set(ctor, info);
     this._names.set(name, info);
 
@@ -236,23 +240,26 @@ export class CjsGraph
   }
 
   /**
-   * Declares ancestry and an own teardown hook without claiming a value/member definition.
+   * Declares ancestry, an own teardown hook and an own destructor without claiming a value/member definition.
    * @cjs A host can register lifetime before opting into graph value operations, in the same record.
    * @param {Function} ctor The constructor.
-   * @param {{bases?: Function[], onDestruct?: Function|null}} definition Own ancestry and hook.
+   * @param {{bases?: Function[], onDestruct?: Function|null, destructor?: Function|null}} definition Own ancestry,
+   * hook and _Destructor.
    * @returns {CjsGraphClassInfo} The shared record, retained by subsequent full definitions.
    */
-  static defineLifetime(ctor, { bases = [], onDestruct = null })
+  static defineLifetime(ctor, { bases = [], onDestruct = null, destructor = null })
   {
     if (typeof ctor !== "function") throw new TypeError("Graph lifetime requires a constructor.");
     if (onDestruct !== null && typeof onDestruct !== "function") throw new TypeError("Graph onDestruct must be a function or null.");
+    if (destructor !== null && typeof destructor !== "function") throw new TypeError("Graph destructor must be a function or null.");
     if (!Array.isArray(bases) || bases.some(base => typeof base !== "function"))
       throw new TypeError("Graph lifetime bases must be constructors.");
     const info = this._classes.get(ctor) ?? new CjsGraphClassInfo(ctor, null);
     const previous = info.lifetime;
     info.lifetimeExplicit = true;
-    if (previous && previous.onDestruct === onDestruct && previous.bases.length === bases.length && previous.bases.every((base, i) => base === bases[i])) return info;
-    info.lifetime = { bases: bases.slice(), onDestruct };
+    if (previous && previous.onDestruct === onDestruct && previous.destructor === destructor
+      && previous.bases.length === bases.length && previous.bases.every((base, i) => base === bases[i])) return info;
+    info.lifetime = { bases: bases.slice(), onDestruct, destructor };
     this._classes.set(ctor, info);
     this._revision++;
     return info;
@@ -297,28 +304,67 @@ export class CjsGraph
    * Calls each declared teardown body, most-derived first, without releasing graph members.
    * @cjs Explicit JS counterpart of C++ destructor-body chaining. No reference cascade, state
    * change, or caller scheduling is implied. Hooks own their idempotence; errors propagate.
+   * A level's OnDestruct runs before its _Destructor, which takes no arguments, so a hook
+   * renamed to _Destructor keeps its place in the order.
    * @param {object} target The registered object.
-   * @param {...*} args Existing teardown arguments, forwarded unchanged to each hook.
+   * @param {...*} args Existing teardown arguments, forwarded unchanged to each OnDestruct.
    * @returns {void}
    */
   static destruct(target, ...args)
   {
-    const info = this._classes.get(target.constructor);
+    const levels = this._getTeardown(target);
+    for (let i = 0; i < levels.length; i += 2)
+    {
+      if (levels[i] !== null) levels[i].apply(target, args);
+      if (levels[i + 1] !== null) levels[i + 1].call(target);
+    }
+  }
+
+  /**
+   * Runs an object's C++ destruction: each level's own _Destructor, most derived first, along
+   * the class's base list, a shared ancestor once.
+   * Modelled on: RootRefLock::FinalDelete (blueexposure/include/BlueClass.h:157-161), which runs
+   * the destructor.
+   * @cjs JavaScript runs no destructor, so the graph calls each level's body in C++'s order. It
+   * reads no state, sets none and enters no member, so it runs for any registered object, more
+   * than once if asked; each _Destructor owns its repeat safety. Nothing is freed.
+   * @param {object} object The registered object.
+   * @returns {void}
+   */
+  static finalDelete(object)
+  {
+    const levels = this._getTeardown(object);
+    for (let i = 1; i < levels.length; i += 2)
+    {
+      if (levels[i] !== null) levels[i].call(object);
+    }
+  }
+
+  /**
+   * An object's compiled teardown levels, rebuilt after a registration change.
+   * @cjs
+   * @param {object} object The registered object.
+   * @returns {Array<Function|null>} OnDestruct and _Destructor per level, in destruction order.
+   */
+  static _getTeardown(object)
+  {
+    const info = this._classes.get(object.constructor);
     if (!info?.lifetime) throw new TypeError("Unknown graph lifetime.");
     if (!info.teardown || info.teardown.revision !== this._revision)
-      info.teardown = { revision: this._revision, hooks: this._getDestructors(info) };
-    for (const hook of info.teardown.hooks) hook.apply(target, args);
+      info.teardown = { revision: this._revision, levels: this._getDestructors(info) };
+    return info.teardown.levels;
   }
 
   /**
    * Compiles owning levels once, in reverse construction order, including declared base lists.
    * @cjs One JS object represents a shared ancestor once; exposure chains are not ancestry.
+   * A level with neither function is left out.
    * @param {CjsGraphClassInfo} info The most-derived class.
-   * @returns {Function[]} Own hooks in destruction order.
+   * @returns {Array<Function|null>} Each level's own OnDestruct then _Destructor, in destruction order.
    */
   static _getDestructors(info)
   {
-    const seen = new Set(), active = new Set(), hooks = [];
+    const seen = new Set(), active = new Set(), owners = [];
     const visit = owner =>
     {
       if (active.has(owner)) throw new TypeError("Cyclic graph ancestry.");
@@ -332,10 +378,13 @@ export class CjsGraph
       }
       active.delete(owner);
       seen.add(owner);
-      if (owner.lifetime.onDestruct) hooks.push(owner.lifetime.onDestruct);
+      if (owner.lifetime.onDestruct || owner.lifetime.destructor) owners.push(owner);
     };
     visit(info);
-    return hooks.reverse();
+
+    const levels = [];
+    for (let i = owners.length - 1; i >= 0; i--) levels.push(owners[i].lifetime.onDestruct ?? null, owners[i].lifetime.destructor ?? null);
+    return levels;
   }
 
   /**

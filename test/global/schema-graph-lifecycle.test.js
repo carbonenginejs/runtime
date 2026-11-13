@@ -23,6 +23,7 @@ function preorder(root)
     return visited;
 }
 import { GetResources } from "../../src/blue/getResources.js";
+import { CjsGraph } from "../../src/global/model/graph/index.js";
 
 let fixtureId = 0;
 function fixture()
@@ -186,4 +187,19 @@ test("method presence alone never opts a plain class into reader initialization"
     class Unmapped { Initialize() { assert.fail("unmapped hook called"); } }
     CjsSchema.define(Unmapped, { className: "ReaderUnmappedInitializer" });
     assert.ok(CjsSchema.from("ReaderUnmappedInitializer", {}) instanceof Unmapped);
+});
+
+test("class registration hands the graph a class's own _Destructor beside its OnDestruct", () =>
+{
+    const calls = [];
+    class Base { OnDestruct() { calls.push("Base.OnDestruct"); } _Destructor() { calls.push("~Base"); } }
+    class Owner extends Base { _Destructor() { calls.push("~Owner"); } }
+    CjsSchema.define(Base, { className: "LifetimeDestructorBase" });
+    CjsSchema.define(Owner, { className: "LifetimeDestructorOwner" });
+    const owner = new Owner();
+    CjsGraph.finalDelete(owner);
+    assert.deepEqual(calls, ["~Owner", "~Base"]);
+    calls.length = 0;
+    owner.Destruct();
+    assert.deepEqual(calls, ["~Owner", "Base.OnDestruct", "~Base"]);
 });

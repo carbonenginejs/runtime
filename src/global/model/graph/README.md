@@ -95,11 +95,15 @@ CjsGraphRoot is the optional base class: thin forwards and `__cjs`, which is nul
 is never a member, so no value operation reads or copies it. `IsDestructed()` is true once
 `state` is above ALIVE, and false for an object with no state. Its Destruct
 forwards to CjsGraph.destruct: declared own onDestruct hooks run derived-first,
-including bases, once per owning level. It does not traverse members, clear
-references, or change lifecycle state. Hooks must be repeat-safe and must not call
-super or another level's teardown manually.
+including bases, once per owning level, each level's `destructor` straight after its
+onDestruct. It does not traverse members, clear references, or change lifecycle state.
+Hooks must be repeat-safe and must not call super or another level's teardown manually.
 
-`defineLifetime(ctor, { bases, onDestruct })` registers constructor-based ancestry
+`CjsGraph.finalDelete(object)` runs an object's C++ destruction: each level's own
+`destructor` (the class's `_Destructor`, the body of its Carbon destructor) in the same
+order, and no onDestruct. It reads and sets no state and enters no member.
+
+`defineLifetime(ctor, { bases, onDestruct, destructor })` registers constructor-based ancestry
 on the same class record without claiming a value definition. `isDefined` remains
 false until `define` supplies the member definition; later value registration
 preserves the separately registered lifetime facts. Blue supplies these facts at

@@ -55,6 +55,62 @@ test("a root has no state until the graph is asked, and IsDestructed reads it wi
   assert.equal(object.IsDestructed(), true);
 });
 
+test("the runner calls each level's destructor once, derived first, and no OnDestruct", () =>
+{
+  const calls = [];
+  class A {} class B {} class C {} class D extends CjsGraphRoot {}
+  CjsGraph.define(A, { name: "RunnerA", destructor(...args) { calls.push([ "~A", this.constructor, args.length ]); } });
+  CjsGraph.define(B, { name: "RunnerB", bases: [ A ], onDestruct() { calls.push("B.OnDestruct"); } });
+  CjsGraph.define(C, { name: "RunnerC", bases: [ A ], destructor() { calls.push("~C"); }, onDestruct() { calls.push("C.OnDestruct"); } });
+  CjsGraph.define(D, { name: "RunnerD", bases: [ B, C ], destructor() { calls.push("~D"); } });
+
+  const object = new D();
+  CjsGraph.finalDelete(object);
+  assert.deepEqual(calls, [ "~D", "~C", [ "~A", D, 0 ] ]);
+  assert.equal(object.__cjs, null, "the runner creates and sets no state");
+  assert.equal(object.IsDestructed(), false);
+
+  CjsGraph.finalDelete(object);
+  assert.equal(calls.length, 6, "the runner keeps no record of having run");
+  assert.throws(() => CjsGraph.finalDelete({}), /Unknown graph lifetime/);
+});
+
+test("the teardown chain runs a level's destructor in the place of its OnDestruct, with no arguments", () =>
+{
+  const calls = [];
+  class Base {} class Middle {} class Derived {}
+  CjsGraph.define(Base, {
+    name: "ChainBase",
+    onDestruct(value) { calls.push([ "Base.OnDestruct", value ]); },
+    destructor(...args) { calls.push([ "~Base", args.length ]); }
+  });
+  CjsGraph.define(Middle, { name: "ChainMiddle", bases: [ Base ], onDestruct(value) { calls.push([ "Middle.OnDestruct", value ]); } });
+  CjsGraph.define(Derived, { name: "ChainDerived", bases: [ Middle ], destructor(...args) { calls.push([ "~Derived", args.length ]); } });
+  CjsGraph.destruct(new Derived(), 7);
+  assert.deepEqual(calls, [ [ "~Derived", 0 ], [ "Middle.OnDestruct", 7 ], [ "Base.OnDestruct", 7 ], [ "~Base", 0 ] ]);
+});
+
+test("a destructor is a function or null, and a lifetime record keeps it", () =>
+{
+  const calls = [];
+  class Owner {} class Late {}
+  assert.throws(() => CjsGraph.define(Owner, { name: "DestructorOwner", destructor: true }), /destructor must be a function or null/);
+  assert.throws(() => CjsGraph.defineLifetime(Owner, { destructor: true }), /destructor must be a function or null/);
+
+  const destructor = function() { calls.push("~Owner"); };
+  const info = CjsGraph.defineLifetime(Owner, { destructor });
+  assert.equal(CjsGraph.defineLifetime(Owner, { destructor }), info);
+  CjsGraph.finalDelete(new Owner());
+
+  // A destructor that arrives later replaces the cached levels.
+  CjsGraph.defineLifetime(Late, {});
+  const late = new Late();
+  CjsGraph.finalDelete(late);
+  CjsGraph.defineLifetime(Late, { bases: [ Owner ], destructor() { calls.push("~Late"); } });
+  CjsGraph.finalDelete(late);
+  assert.deepEqual(calls, [ "~Owner", "~Late", "~Owner" ]);
+});
+
 test("an object with no __cjs field is not destructed, and asking adds nothing to it", () =>
 {
   const plain = Object.seal({ value: 1 });
