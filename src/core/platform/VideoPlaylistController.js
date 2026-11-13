@@ -178,12 +178,13 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
   }
 
   /**
-   * Carbon _destroy; called by resource purge, never by an individual billboard.
+   * Ends playback: drops the player and the texture, and cancels what is pending.
    *
    * Carbon: _VideoPlaylistController._destroy (videoplayer/python/videoplayer/playlistresource.py:146-155).
    * @adapted Preserves existing asynchronous request and retry cancellation with owned browser-player teardown.
+   * @returns {void}
    */
-  OnDestruct()
+  _Destroy()
   {
     this._generation++;
     this._CancelRead();
@@ -193,6 +194,16 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
     this.video = null;
     this.currentPath = null;
     this._texture = null;
+  }
+
+  /**
+   * Graph destruction ends playback; called by resource purge, never by an individual billboard.
+   * @cjs Carbon's controller is ended by _destroy alone; ours is also a graph object.
+   * @returns {void}
+   */
+  OnDestruct()
+  {
+    this._Destroy();
   }
 }
 
