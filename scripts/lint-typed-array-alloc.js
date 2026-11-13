@@ -39,7 +39,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { RULE, scanTypedArrayAlloc } from "./typed-array-alloc.js";
-import { UNSHIPPED_SOURCE_DIRS } from "./lib/unshipped-source.js";
+import { QUARANTINE_SOURCE_DIRS } from "./lib/unshipped-source.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = path.join(root, "src");
@@ -52,7 +52,7 @@ async function sourceFiles(directory)
   for (const entry of await fs.readdir(directory, { withFileTypes: true }))
   {
     const target = path.join(directory, entry.name);
-    if (entry.isDirectory() && !UNSHIPPED_SOURCE_DIRS.has(entry.name)) files.push(...await sourceFiles(target));
+    if (entry.isDirectory() && !QUARANTINE_SOURCE_DIRS.has(entry.name)) files.push(...await sourceFiles(target));
     else if (entry.isFile() && entry.name.endsWith(".js")) files.push(target);
   }
   return files;
