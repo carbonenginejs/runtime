@@ -489,13 +489,14 @@ export class Tr2ImpostorManager
 
   /**
    * Explicit JS retirement unregisters the quad effect and device resource,
-   * destroys owned surfaces/effects and drops source references. Global
+   * destroys owned surfaces/effects and drops source references. Shared graph
+   * effect retirement can be supplied as for other Trinity owners. Global
    * variable bindings persist as in Carbon and may already name another manager.
    *
-   * Carbon: ~Tr2ImpostorManager, implicit: its members (trinity/trinity/Tr2ImpostorManager.h:58-70).
+   * Carbon: Tr2ImpostorManager implicit destructor (trinity/trinity/Tr2ImpostorManager.h:58-70).
    * @adapted Keeps existing JS ownership cleanup; the graph dispatches the device base.
    */
-  _Destructor()
+  OnDestruct(managedResources = null)
   {
     this._quadRenderer.UnregisterEffect(this._effectKey);
     this.atlas.Destroy();
@@ -503,7 +504,7 @@ export class Tr2ImpostorManager
     this._ds.Destroy();
     for (const effect of this._ownedEffects)
     {
-      effect.Destruct();
+      if (!managedResources?.has(effect)) effect.Destruct();
     }
     this._ownedEffects.clear();
     this._objects.clear();

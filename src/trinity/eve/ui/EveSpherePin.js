@@ -209,17 +209,18 @@ export class EveSpherePin
 
   /**
    * Explicit JS lifetime replaces native member destruction. Constructor effects
-   * stay owned after replacement.
+   * stay owned after replacement; a graph retirement walk can retain or retire
+   * shared effects itself by including them in managedResources.
    *
-   * Carbon: ~EveSpherePin (trinity/trinity/Eve/UI/EveSpherePin.cpp:61-70).
+   * Carbon: EveSpherePin destructor (trinity/trinity/Eve/UI/EveSpherePin.cpp:61-70).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  _Destructor()
+  OnDestruct(managedResources = null)
   {
     this.ReleaseResources();
     for (const effect of this._ownedEffects)
     {
-      effect.Destruct();
+      if (!managedResources?.has(effect)) effect.Destruct();
     }
     this._ownedEffects.clear();
     this._geometryResource = null;
