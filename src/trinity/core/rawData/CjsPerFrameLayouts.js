@@ -363,4 +363,4 @@ export class CjsPerFrameLayouts
 
 }
 
-CjsSchema.meta.define(CjsPerFrameLayouts, {"className": "CjsPerFrameLayouts"});
+CjsSchema.meta.define(CjsPerFrameLayouts, {"name": "CjsPerFrameLayouts"});

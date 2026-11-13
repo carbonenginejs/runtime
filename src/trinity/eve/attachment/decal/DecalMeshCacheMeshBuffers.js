@@ -7,7 +7,7 @@ import { meta } from "#schema";
  * had flattened these two members onto DecalMeshCache itself; corrected at
  * promotion to Carbon's nested struct shape.
  */
-@meta.define({"className":"DecalMeshCache::MeshBuffers","carbon":"DecalMeshCache::MeshBuffers"})
+@meta.define({"name":"DecalMeshCache::MeshBuffers","carbon":"DecalMeshCache::MeshBuffers"})
 export class DecalMeshCacheMeshBuffers
 {
 

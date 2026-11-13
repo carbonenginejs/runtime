@@ -11,7 +11,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
  *
  * Modelled on: EveSpaceObjectAttachmentUtils (trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpaceObjectAttachmentUtils.h:5)
  */
-@meta.define({ className: "EveSpaceObjectAttachmentUtils" })
+@meta.define({ name: "EveSpaceObjectAttachmentUtils" })
 export class EveSpaceObjectAttachmentUtils
 {
   /** Carbon FadeType (EveSpaceObjectAttachmentUtils.h:7-14). */

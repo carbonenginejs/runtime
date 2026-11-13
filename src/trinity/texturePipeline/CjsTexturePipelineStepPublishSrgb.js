@@ -63,7 +63,7 @@ export class CjsTexturePipelineStepPublishSrgb
 }
 
 CjsSchema.meta.define(CjsTexturePipelineStepPublishSrgb, {
-  className: "CjsTexturePipelineStepPublishSrgb",
+  name: "CjsTexturePipelineStepPublishSrgb",
   methods: { GetResourceDependencies: [], Execute: [] }
 });
 CjsSchema.be.interface(ITr2TexturePipelineStep)(CjsTexturePipelineStepPublishSrgb, { kind: "class" });

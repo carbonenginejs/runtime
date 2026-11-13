@@ -26,4 +26,4 @@ export class CjsEveChildParticleSphereLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveChildParticleSphereLayout, {"className": "CjsEveChildParticleSphereLayout"});
+CjsSchema.meta.define(CjsEveChildParticleSphereLayout, {"name": "CjsEveChildParticleSphereLayout"});

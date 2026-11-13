@@ -1135,7 +1135,7 @@ export class Tr2HostBitmap extends HostBitmap
 }
 
 CjsSchema.be.define(Tr2HostBitmap, {
-  className: "Tr2HostBitmap",
+  name: "Tr2HostBitmap",
   capabilities: [ "destruct" ],
   members: [
     { name: "format", key: "_format", exposure: { macro: "MAP_ATTRIBUTE_WITH_CHOOSER", flags: 1, chooser: "trinity.ImageIO.PixelFormat" }, type: { kind: "int32" }, enum: { enumType: "trinity.ImageIO.PixelFormat" }, edit: { read: true } },

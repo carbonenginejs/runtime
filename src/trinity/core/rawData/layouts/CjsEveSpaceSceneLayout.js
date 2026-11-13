@@ -19,4 +19,4 @@ export class CjsEveSpaceSceneLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSpaceSceneLayout, {"className": "CjsEveSpaceSceneLayout"});
+CjsSchema.meta.define(CjsEveSpaceSceneLayout, {"name": "CjsEveSpaceSceneLayout"});

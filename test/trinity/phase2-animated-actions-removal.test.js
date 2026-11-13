@@ -55,7 +55,7 @@ class AnimatedTarget
     return true;
   }
 }
-CjsSchema.define(AnimatedTarget, { className: "Phase2AnimatedTarget", fields: { value: type.float32 } });
+CjsSchema.define(AnimatedTarget, { name: "Phase2AnimatedTarget", fields: { value: type.float32 } });
 CjsSchema.be.interface(INotify)(AnimatedTarget);
 
 function AnimationFixture(Type)

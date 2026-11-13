@@ -96,4 +96,4 @@ export class CjsTr2VolumetricsRendererLayout
   static SHADOW_FRUSTUM_COUNT = SHADOW_FRUSTUM_COUNT;
 }
 
-CjsSchema.meta.define(CjsTr2VolumetricsRendererLayout, {"className": "CjsTr2VolumetricsRendererLayout"});
+CjsSchema.meta.define(CjsTr2VolumetricsRendererLayout, {"name": "CjsTr2VolumetricsRendererLayout"});

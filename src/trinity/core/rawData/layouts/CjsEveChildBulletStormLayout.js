@@ -28,4 +28,4 @@ export class CjsEveChildBulletStormLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveChildBulletStormLayout, {"className": "CjsEveChildBulletStormLayout"});
+CjsSchema.meta.define(CjsEveChildBulletStormLayout, {"name": "CjsEveChildBulletStormLayout"});

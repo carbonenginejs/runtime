@@ -46,4 +46,4 @@ export class CjsEveTurretSetLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveTurretSetLayout, {"className": "CjsEveTurretSetLayout"});
+CjsSchema.meta.define(CjsEveTurretSetLayout, {"name": "CjsEveTurretSetLayout"});

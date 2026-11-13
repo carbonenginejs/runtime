@@ -26,7 +26,7 @@ class Action extends ITr2ControllerAction
   Start(owner) { this.calls.push(["start", owner]); }
   Stop(owner) { this.calls.push(["stop", owner]); }
 }
-CjsSchema.define(Action, { className: "Phase2RecordAction", fields: { name: { type: "string", exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, edit: { read: true, write: true, persist: true } } } });
+CjsSchema.define(Action, { name: "Phase2RecordAction", fields: { name: { type: "string", exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, edit: { read: true, write: true, persist: true } } } });
 legacyBlue.interface(ITr2ControllerAction)(Action, { kind: "class" });
 
 test("three records have native bases without model conveniences or invented struct exposure", () =>

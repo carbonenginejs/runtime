@@ -25,4 +25,4 @@ export class CjsEveBasicLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveBasicLayout, {"className": "CjsEveBasicLayout"});
+CjsSchema.meta.define(CjsEveBasicLayout, {"name": "CjsEveBasicLayout"});

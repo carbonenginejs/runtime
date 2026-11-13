@@ -44,4 +44,4 @@ export class CjsEveBoosterSetLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveBoosterSetLayout, {"className": "CjsEveBoosterSetLayout"});
+CjsSchema.meta.define(CjsEveBoosterSetLayout, {"name": "CjsEveBoosterSetLayout"});

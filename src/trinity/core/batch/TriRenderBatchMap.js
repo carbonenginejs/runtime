@@ -132,4 +132,4 @@ export class TriRenderBatchMap
   }
 }
 
-CjsSchema.meta.define(TriRenderBatchMap, { className: "TriRenderBatchMap" });
+CjsSchema.meta.define(TriRenderBatchMap, { name: "TriRenderBatchMap" });

@@ -24,4 +24,4 @@ export class CjsEveMissileWarheadLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveMissileWarheadLayout, {"className": "CjsEveMissileWarheadLayout"});
+CjsSchema.meta.define(CjsEveMissileWarheadLayout, {"name": "CjsEveMissileWarheadLayout"});

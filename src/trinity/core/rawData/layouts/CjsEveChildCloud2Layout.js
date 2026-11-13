@@ -38,4 +38,4 @@ export class CjsEveChildCloud2Layout
   };
 }
 
-CjsSchema.meta.define(CjsEveChildCloud2Layout, {"className": "CjsEveChildCloud2Layout"});
+CjsSchema.meta.define(CjsEveChildCloud2Layout, {"name": "CjsEveChildCloud2Layout"});

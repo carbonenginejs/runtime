@@ -27,4 +27,4 @@ export class CjsEveStretch2Layout
   });
 }
 
-CjsSchema.meta.define(CjsEveStretch2Layout, {"className": "CjsEveStretch2Layout"});
+CjsSchema.meta.define(CjsEveStretch2Layout, {"name": "CjsEveStretch2Layout"});

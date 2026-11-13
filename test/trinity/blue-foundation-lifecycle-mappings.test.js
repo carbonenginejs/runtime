@@ -78,7 +78,7 @@ test("having lifecycle methods without native mappings does not opt into Black o
     OnModified() { throw new Error("an unmapped OnModified must not run"); }
   }
   CjsSchema.define(UnmappedLifecycle, {
-    className: "BlueFoundationUnmappedLifecycle",
+    name: "BlueFoundationUnmappedLifecycle",
     fields: { value: [ type.float32, be.mapAttribute(be.PERSIST | be.NOTIFY) ] }
   });
   const reader = blackBuilder(authoredUnmappedBytes());

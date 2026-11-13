@@ -187,7 +187,7 @@ class BindingTestTarget
     return true;
   }
 }
-CjsSchema.define(BindingTestTarget, { className: "BindingTestTarget", fields: {
+CjsSchema.define(BindingTestTarget, { name: "BindingTestTarget", fields: {
   name: type.string,
   value: type.float32,
   flag: type.boolean,

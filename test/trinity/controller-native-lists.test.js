@@ -184,7 +184,7 @@ test("notification payloads require exact self exposure even for nominal subclas
   class UnexposedHandler extends Tr2ControllerEventHandler {}
   for (const [Type, className] of [[UnexposedMachine, "ControllerListUnexposedMachine"], [UnexposedHandler, "ControllerListUnexposedHandler"]])
   {
-    CjsSchema.define(Type, { className });
+    CjsSchema.define(Type, { name: className });
     blue.interface()(Type);
   }
   const controller = new Tr2Controller(), machine = new UnexposedMachine(), handler = new UnexposedHandler(), calls = [];

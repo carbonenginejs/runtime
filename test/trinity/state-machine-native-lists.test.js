@@ -286,7 +286,7 @@ test("insert and remove notifications select their native event after masking lo
 test("state payload admission requires exact query exposure even for nominal subclasses", t =>
 {
   class UnexposedState extends Tr2StateMachineState {}
-  CjsSchema.define(UnexposedState, { className: "NativeStateListUnexposedState" });
+  CjsSchema.define(UnexposedState, { name: "NativeStateListUnexposedState" });
   legacyBlue.interface()(UnexposedState);
   const machine = new Tr2StateMachine(), state = new UnexposedState();
   Linked(t, machine, [state]);

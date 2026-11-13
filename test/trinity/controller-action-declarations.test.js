@@ -168,7 +168,7 @@ test("each concrete action exposes its own identity independently of action-inte
 test("the action-interface list rejects nominal-only, duck, null and wrong-child objects", () =>
 {
   class UnexposedControllerAction extends Tr2ActionCallback {}
-  CjsSchema.define(UnexposedControllerAction, { className: "ControllerActionDeclarationsUnexposed" });
+  CjsSchema.define(UnexposedControllerAction, { name: "ControllerActionDeclarationsUnexposed" });
   blue.interface()(UnexposedControllerAction);
   const nominalOnly = new UnexposedControllerAction();
   assert.equal(CjsSchema.cast(nominalOnly, Tr2ActionCallback), nominalOnly);

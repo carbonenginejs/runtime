@@ -63,4 +63,4 @@ CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "raymar
 /** Carbon: applyFroxels (trinity/trinity/Tr2VolumetricsRenderer.h:163).
  */
 CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "applyFroxels", type.object.ref("Tr2Effect"));
-CjsSchema.meta.define(Tr2VolumetricsRendererFogViewDependentResources, { className: "Tr2VolumetricsRendererFogViewDependentResources", carbon: "Tr2VolumetricsRenderer::FogViewDependentResources" });
+CjsSchema.meta.define(Tr2VolumetricsRendererFogViewDependentResources, { name: "Tr2VolumetricsRendererFogViewDependentResources", carbon: "Tr2VolumetricsRenderer::FogViewDependentResources" });

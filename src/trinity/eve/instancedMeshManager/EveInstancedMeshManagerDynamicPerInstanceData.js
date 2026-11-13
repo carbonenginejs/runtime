@@ -10,7 +10,7 @@ import { type, meta } from "#schema";
  * its picking indices. The manager reads the provider's array in place; it
  * never copies it at registration.
  */
-@meta.define({"className":"EveInstancedMeshManager::DynamicPerInstanceData","carbon":"EveInstancedMeshManager::DynamicPerInstanceData"})
+@meta.define({"name":"EveInstancedMeshManager::DynamicPerInstanceData","carbon":"EveInstancedMeshManager::DynamicPerInstanceData"})
 export class EveInstancedMeshManagerDynamicPerInstanceData
 {
 

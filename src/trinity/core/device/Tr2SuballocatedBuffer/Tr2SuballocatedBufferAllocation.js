@@ -154,4 +154,4 @@ CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_size", type.uint32);
 CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_stride", type.uint32);
 // States: Tr2SuballocatedBuffer.cpp:192-231. GetBuffer, GetStartIndex and Update are adapted: the buffer is held on the allocation rather than read through
 // m_parent, a zero stride yields index 0 where Carbon divides, and Update folds the two overloads into one with the bounds assert dropped.
-CjsSchema.meta.define(Tr2SuballocatedBufferAllocation, { className: "Tr2SuballocatedBufferAllocation", carbon: "Tr2SuballocatedBuffer::Allocation", capabilities: [ "destruct" ] });
+CjsSchema.meta.define(Tr2SuballocatedBufferAllocation, { name: "Tr2SuballocatedBufferAllocation", carbon: "Tr2SuballocatedBuffer::Allocation", capabilities: [ "destruct" ] });

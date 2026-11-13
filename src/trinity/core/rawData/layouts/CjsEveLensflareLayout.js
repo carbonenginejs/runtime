@@ -26,4 +26,4 @@ export class CjsEveLensflareLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveLensflareLayout, {"className": "CjsEveLensflareLayout"});
+CjsSchema.meta.define(CjsEveLensflareLayout, {"name": "CjsEveLensflareLayout"});

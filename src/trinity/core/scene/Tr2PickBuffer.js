@@ -212,7 +212,7 @@ CjsSchema.decorateField(Tr2PickBuffer, "_format", type.uint32);
 CjsSchema.decorateField(Tr2PickBuffer, "_clearColor", type.uint32);
 CjsSchema.decorateField(Tr2PickBuffer, "_pickTarget", type.rawStruct("Tr2TextureAL"));
 CjsSchema.decorateField(Tr2PickBuffer, "_depthBuffer", type.rawStruct("Tr2TextureAL"));
-CjsSchema.meta.define({ className: "Tr2PickBuffer", carbon: "Tr2PickBuffer", capabilities: [ "destruct" ] })(Tr2PickBuffer);
+CjsSchema.meta.define({ name: "Tr2PickBuffer", carbon: "Tr2PickBuffer", capabilities: [ "destruct" ] })(Tr2PickBuffer);
 
 CjsSchema.decorateMethod(Tr2PickBuffer, "SetSize");
 CjsSchema.decorateMethod(Tr2PickBuffer, "GetSize");

@@ -554,4 +554,4 @@ export class TriPoolAllocator
 // States: Clear is TriPoolAllocator.cpp:49-95 statement for statement (shrink under half, grow past one chunk, else rewind). Allocate is adapted:
 // Carbon's Allocate<T> sizes the block from the type, this takes a registered struct-layout name (cpp:26-47). _GetMoreSystemMemory is adapted:
 // the arena is a Float32Array chunk, not malloc, and a failed allocation has nothing to port (cpp:97-127).
-CjsSchema.meta.define({ className: "TriPoolAllocator", carbon: "TriPoolAllocator", capabilities: [ "destruct" ] })(TriPoolAllocator);
+CjsSchema.meta.define({ name: "TriPoolAllocator", carbon: "TriPoolAllocator", capabilities: [ "destruct" ] })(TriPoolAllocator);

@@ -24,4 +24,4 @@ export class CjsEveSceneStaticParticlesLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSceneStaticParticlesLayout, {"className": "CjsEveSceneStaticParticlesLayout"});
+CjsSchema.meta.define(CjsEveSceneStaticParticlesLayout, {"name": "CjsEveSceneStaticParticlesLayout"});

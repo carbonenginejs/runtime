@@ -188,7 +188,7 @@ test("the slot names the contract, not the implementation", async () =>
   }
   // Registered, because the refusal names the class that failed the contract
   // and an unregistered one answers with its nearest registered ancestor.
-  CjsSchema.define(MinimalResMan, { className: "MinimalResMan", fields: {} });
+  CjsSchema.define(MinimalResMan, { name: "MinimalResMan", fields: {} });
 
   const previous = blue.resMan;
   blue.resMan = new MinimalResMan();

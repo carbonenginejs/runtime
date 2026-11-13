@@ -92,7 +92,7 @@ class StateListObservedAction extends Tr2ActionCallback
   CanTransition() { this.calls.push(["CanTransition"]); return this.allowsTransition; }
   RebaseSimTime(diff) { this.calls.push(["RebaseSimTime", diff]); }
 }
-CjsSchema.define(StateListObservedAction, { className: "StateListObservedAction" });
+CjsSchema.define(StateListObservedAction, { name: "StateListObservedAction" });
 blue.interface(ITr2ControllerAction)(StateListObservedAction);
 
 class StateListObservedTransition extends Tr2StateMachineTransition
@@ -112,7 +112,7 @@ class StateListObservedTransition extends Tr2StateMachineTransition
     return this.onDestination ? this.onDestination() : this.destination;
   }
 }
-CjsSchema.define(StateListObservedTransition, { className: "StateListObservedTransition" });
+CjsSchema.define(StateListObservedTransition, { name: "StateListObservedTransition" });
 blue.interface(Tr2StateMachineTransition)(StateListObservedTransition);
 
 class StateListFinalizer extends ITr2StateMachineStateFinalizer
@@ -168,7 +168,7 @@ test("list admission and direct payload dispatch require exact query identities"
   class UnexposedTransition extends StateListObservedTransition {}
   for (const Type of [UnexposedAction, UnexposedTransition])
   {
-    CjsSchema.define(Type, { className: `StateNativeLists${Type.name}` });
+    CjsSchema.define(Type, { name: `StateNativeLists${Type.name}` });
     blue.interface()(Type);
   }
   const state = State();

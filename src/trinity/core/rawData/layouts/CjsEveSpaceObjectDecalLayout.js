@@ -45,4 +45,4 @@ export class CjsEveSpaceObjectDecalLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSpaceObjectDecalLayout, {"className": "CjsEveSpaceObjectDecalLayout"});
+CjsSchema.meta.define(CjsEveSpaceObjectDecalLayout, {"name": "CjsEveSpaceObjectDecalLayout"});

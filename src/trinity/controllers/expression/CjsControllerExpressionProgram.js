@@ -343,4 +343,4 @@ export class CjsControllerExpressionProgram
  * chain.
  */
 
-CjsSchema.meta.define(CjsControllerExpressionProgram, { className: "CjsControllerExpressionProgram" });
+CjsSchema.meta.define(CjsControllerExpressionProgram, { name: "CjsControllerExpressionProgram" });

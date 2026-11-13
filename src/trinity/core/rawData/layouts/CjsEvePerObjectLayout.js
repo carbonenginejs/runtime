@@ -29,4 +29,4 @@ export class CjsEvePerObjectLayout
   });
 }
 
-CjsSchema.meta.define(CjsEvePerObjectLayout, {"className": "CjsEvePerObjectLayout"});
+CjsSchema.meta.define(CjsEvePerObjectLayout, {"name": "CjsEvePerObjectLayout"});

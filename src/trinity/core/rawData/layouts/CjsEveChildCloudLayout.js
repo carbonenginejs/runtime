@@ -27,4 +27,4 @@ export class CjsEveChildCloudLayout
   };
 }
 
-CjsSchema.meta.define(CjsEveChildCloudLayout, {"className": "CjsEveChildCloudLayout"});
+CjsSchema.meta.define(CjsEveChildCloudLayout, {"name": "CjsEveChildCloudLayout"});

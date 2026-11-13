@@ -38,7 +38,7 @@ class SampleFunction extends ITriFunction
   Reset() { this.resets++; }
   UpdateValue(time) { this.samples.push([time]); }
 }
-CjsSchema.define(SampleFunction, { className: "Phase2CurveSetSampleFunction", fields: {
+CjsSchema.define(SampleFunction, { name: "Phase2CurveSetSampleFunction", fields: {
   name: { type: "string", exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, edit: { read: true, write: true, persist: true } }
 } });
 legacyBlue.interface(ITriFunction)(SampleFunction, { kind: "class" });
@@ -48,7 +48,7 @@ class SampleBinding extends ITr2ValueBinding
   copies = 0;
   CopyValue() { this.copies++; }
 }
-CjsSchema.define(SampleBinding, { className: "Phase2CurveSetSampleBinding" });
+CjsSchema.define(SampleBinding, { name: "Phase2CurveSetSampleBinding" });
 legacyBlue.interface(ITr2ValueBinding)(SampleBinding, { kind: "class" });
 
 test("curve-set and range have native bases and exact exposure without model conveniences", () =>

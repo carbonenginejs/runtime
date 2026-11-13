@@ -11,7 +11,7 @@ import { Tr2PickBuffer } from "../../../core/scene/Tr2PickBuffer.js";
 let nextSequence = 1;
 
 /** A request owns its retained objects and its independently copied GPU result. */
-@meta.define({ className: "EvePendingPickingReadback", carbon: "EvePendingPickingReadback", capabilities: [ "destruct" ] })
+@meta.define({ name: "EvePendingPickingReadback", carbon: "EvePendingPickingReadback", capabilities: [ "destruct" ] })
 export class EvePendingPickingReadback
 {
   pickedX = 0;

@@ -65,4 +65,4 @@ export class CjsTr2PerObjectLayout
   });
 }
 
-CjsSchema.meta.define(CjsTr2PerObjectLayout, {"className": "CjsTr2PerObjectLayout"});
+CjsSchema.meta.define(CjsTr2PerObjectLayout, {"name": "CjsTr2PerObjectLayout"});

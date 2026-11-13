@@ -9,7 +9,7 @@ import { vec4 } from "#math/vec4";
 
 
 /** Supplies owner bounds, visibility and damage-locator access to a damage overlay. */
-@meta.define({"className":"EveDamageOverlay::OwnerInfo","carbon":"EveDamageOverlay::OwnerInfo"})
+@meta.define({"name":"EveDamageOverlay::OwnerInfo","carbon":"EveDamageOverlay::OwnerInfo"})
 export class EveDamageOverlayOwnerInfo
 {
 

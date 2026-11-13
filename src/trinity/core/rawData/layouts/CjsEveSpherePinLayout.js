@@ -29,4 +29,4 @@ export class CjsEveSpherePinLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSpherePinLayout, {"className": "CjsEveSpherePinLayout"});
+CjsSchema.meta.define(CjsEveSpherePinLayout, {"name": "CjsEveSpherePinLayout"});

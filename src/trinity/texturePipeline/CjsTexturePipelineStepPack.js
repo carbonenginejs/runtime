@@ -70,7 +70,7 @@ export class CjsTexturePipelineStepPack extends Tr2TexturePipelineStepPack
 }
 
 CjsSchema.meta.define(CjsTexturePipelineStepPack, {
-  className: "CjsTexturePipelineStepPack",
+  name: "CjsTexturePipelineStepPack",
   methods: {
     Execute: []
   }

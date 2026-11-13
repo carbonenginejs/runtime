@@ -73,7 +73,7 @@ export class CjsTexturePipelineStepArray
 }
 
 CjsSchema.meta.define(CjsTexturePipelineStepArray, {
-  className: "CjsTexturePipelineStepArray",
+  name: "CjsTexturePipelineStepArray",
   fields: {
     paths: [ meta.mapAttribute(meta.PERSIST), type.list("string") ]
   },
