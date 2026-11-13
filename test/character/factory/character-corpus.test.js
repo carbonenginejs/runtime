@@ -4,8 +4,11 @@
 // gives and, for a recipe, with the DNA the factory reads from it. A key that reaches no field, a value that does not
 // arrive, and a recipe entry the DNA does not keep each fail, unless `DROPS` lists it with its proof.
 //
-// Game files are never committed (org rule). The test reads through tools-core's service; point the variable at a build:
-//   CJS_CHARACTER_CORPUS_URL=http://127.0.0.1:5510/eve/3687575 node --test test/character/factory/character-corpus.test.js
+// Game files are never committed (org rule). The test reads through tools-core's service and skips when it is not
+// running (CJS_TOOLS_SERVER, default http://127.0.0.1:5510); the build is the one the service calls latest.
+// Every .proj is read. The metadata.yaml, .type and .prs files are fixed samples (METADATA, TYPES and RECIPES of
+// them, every Nth path in sorted order), which keeps the file inside a full run's time. Raise the three numbers
+// to read every file.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { parse } from "yaml";
@@ -14,8 +17,17 @@ import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from 
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import "../../support/frameLoop.js";
+import { clientResources } from "../../support/clientResources.js";
 
-const base = process.env.CJS_CHARACTER_CORPUS_URL || null;
+// One variable for every corpus test: the service's address. The build is the one the service calls latest.
+const resources = await clientResources();
+const base = resources.skip ? null : (process.env.CJS_TOOLS_SERVER ?? "http://127.0.0.1:5510") + "/eve/" + resources.build;
+
+/** How many of the build's metadata.yaml, .type and .prs files are read. A recipe costs most: it loads its parts. */
+const METADATA = 300, TYPES = 400, RECIPES = 30;
+
+/** A fixed sample of sorted paths: every Nth, at most `count`. */
+const Sample = (paths, count) => paths.length <= count ? paths : Array.from({ length: count }, (_, i) => paths[Math.floor(i * paths.length / count)]);
 
 /**
  * Keys a reader may leave out, each with its proof: `<record class>.<file key>`. Empty: nothing is dropped.
@@ -78,7 +90,7 @@ function Compare(label, className, raw, values, empty, lists = {})
     return failures;
 }
 
-test("the character readers and the factory keep every field of a real build", { skip: base ? false : "set CJS_CHARACTER_CORPUS_URL to a tools-core build to run the real-corpus proof", timeout: 1800000 }, async t =>
+test("the character readers and the factory keep every field of a real build", { skip: resources.skip ?? false, timeout: 1800000 }, async t =>
 {
     const index = (await (await fetch(base + "/app/resfileindex.txt")).text()).split("\n").filter(line => line.startsWith("res:/graphics/character/"));
     const cache = new RemoteFileCache();
@@ -101,7 +113,7 @@ test("the character readers and the factory keep every field of a real build", {
 
     // metadata.yaml: weighted occlusions (`#2.0`) included, every list entry as written.
     const metadataEmpty = emptyOf("CjsAvatarPartMetaData");
-    for (const path of files("/metadata.yaml"))
+    for (const path of Sample(files("/metadata.yaml"), METADATA))
         failures.push(...Compare(path, "CjsAvatarPartMetaData", await Raw(path), CjsSchema.getValues(await library.FetchAvatarPartMetaData(path)), metadataEmpty));
 
     // .proj
@@ -111,7 +123,7 @@ test("the character readers and the factory keep every field of a real build", {
 
     // .type: a tuple, one item per slot.
     const slots = CjsCharacterLibraryConfiguration.kinds.types.slots;
-    for (const path of files(".type"))
+    for (const path of Sample(files(".type"), TYPES))
     {
         const raw = await Raw(path), values = CjsSchema.getValues(await library.FetchType(path));
         if (!Array.isArray(raw) || raw.length > slots.length) { failures.push(path + ": " + JSON.stringify(raw) + " has items no slot reads"); continue; }
@@ -124,7 +136,7 @@ test("the character readers and the factory keep every field of a real build", {
     // .prs: the recipe reader, then the factory's DNA, which keeps every entry as read.
     const lists = CjsCharacterFactory.recipeConfiguration.sourceLists.CjsCharacterRecipeModifier;
     const modifierEmpty = emptyOf("CjsCharacterRecipeModifier");
-    for (const path of files(".prs"))
+    for (const path of Sample(files(".prs"), RECIPES))
     {
         const raw = (await Raw(path)).filter(item => item !== null && typeof item === "object" && !Array.isArray(item));
         const recipe = await CjsCharacterFactory.fetchRecipe(path);

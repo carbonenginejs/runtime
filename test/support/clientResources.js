@@ -42,7 +42,8 @@ async function fetchRetryingOnce(input, init)
 /**
  * Composes the client's resources once per process.
  *
- * @returns {Promise<{build: string, cache: RemoteFileCache, Read: (resPath: string) => Promise<Uint8Array>} | {skip: string}>}
+ * @returns {Promise<{build: string, cache: RemoteFileCache, Read: (resPath: string) => Promise<Uint8Array>,
+ *   Paths: (extension: string) => string[], Sample: (extension: string, count: number) => string[]} | {skip: string}>}
  */
 export function clientResources()
 {
@@ -74,7 +75,9 @@ async function compose()
   cache.verifyContentsOnLoad = false;
   cache.SetServer(SERVER);
   cache.SetPrefix("/resfiles/");
-  cache.AddFileIndex(await index.text());
+  const indexText = await index.text();
+  cache.AddFileIndex(indexText);
+  let paths = null;
 
   // Effects are not in the app index; they are in the platform group
   // `resfileindex_windows.txt` (dx11/dx12 at sm_lo/sm_hi/sm_depth). Without it
@@ -95,6 +98,32 @@ async function compose()
   return {
     build,
     cache,
+    /**
+     * Every path of the app index with one extension, lower-cased and sorted, so a sample is the same each run.
+     *
+     * @param {string} extension The extension, with its dot, such as ".black".
+     * @returns {string[]} The paths.
+     */
+    Paths(extension)
+    {
+      paths ??= indexText.split(/\r?\n/).map(line => line.slice(0, line.indexOf(",")).toLowerCase()).filter(Boolean).sort();
+      return paths.filter(path => path.endsWith(extension));
+    },
+    /**
+     * A fixed sample of the paths with one extension: every Nth in sorted order, at most `count`.
+     *
+     * @param {string} extension The extension, with its dot.
+     * @param {number} count The most paths to return.
+     * @returns {string[]} The sample; all of them when there are no more than `count`.
+     */
+    Sample(extension, count)
+    {
+      const all = this.Paths(extension);
+      if (all.length <= count) return all;
+      const sample = [];
+      for (let i = 0; i < count; i++) sample.push(all[Math.floor(i * all.length / count)]);
+      return sample;
+    },
     /** The bytes of a client file; throws when the build does not ship it. */
     async Read(resPath)
     {
