@@ -3,6 +3,9 @@ import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacter
 import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
 import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
 import { PaperDollTarget } from "./paperDollOrder.js";
+import { TriGeometryRes } from "../../trinity/resources/geometry/TriGeometryRes.js";
+import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 
 /**
  * One built paper doll character: what was made from a definition. It owns
@@ -368,6 +371,136 @@ export class CjsPaperDollInstance
             const parameter = effect.FindParameterByName(name);
             if (parameter !== null) parameter.SetValue(Float32Array.from(value));
         }
+    }
+
+    static scratch = { vec3_0: vec3.create(), vec4_0: vec4.create() };
+
+    /** Each garment mesh's share of vertices on a carrier mesh, by garment mesh then carrier mesh (`meshCopyShare`). */
+    static _copyShares = new WeakMap();
+
+    /**
+     * A nude carrier's cut-mask shells, by the library's `cutMaskClip` rule: the meshes whose every area is transparent
+     * with the rule's influence parameter above its threshold (`torso_nude`'s `Torso5Shape`, `BridgeShape` and
+     * `Torso4Shape`). Whether they draw is the library's `shells.draw`.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {object[]} meshes The carrier's `Tr2Mesh`es.
+     * @param {{ influence: string, above: number }} rule The library's `cutMaskClip`.
+     * @returns {object[]} The shells, in the given order.
+     */
+    static carrierShells(meshes, rule)
+    {
+        return meshes.filter(mesh => !mesh.opaqueAreas.length && !mesh.decalAreas.length && mesh.transparentAreas.length > 0
+            && mesh.transparentAreas.every(area =>
+            {
+                const influence = area.effect.FindParameterByName(rule.influence);
+                return influence !== null && influence.GetValue() > rule.above;
+            }));
+    }
+
+    /**
+     * Sets the backing areas' cutout weight by the library's `backingCutout` rule: each opaque and decal area of the
+     * meshes whose cutout colour parameter has a weight above the rule's keeps its colour with the rule's weight, so it
+     * draws the composite instead of darkening towards its cutout colour.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {object[]} meshes A carrier's `Tr2Mesh`es.
+     * @param {{ parameter: string, alpha: number }} rule The library's `backingCutout`.
+     * @returns {void}
+     */
+    static clearBackingCutout(meshes, rule)
+    {
+        const { vec4_0 } = CjsPaperDollInstance.scratch;
+        for (const mesh of meshes) for (const area of [ ...mesh.opaqueAreas, ...mesh.decalAreas ])
+        {
+            const cutout = area.effect.FindParameterByName(rule.parameter);
+            if (cutout === null || cutout.value[3] <= rule.alpha) continue;
+            cutout.SetValue(vec4.set(vec4_0, cutout.value[0], cutout.value[1], cutout.value[2], rule.alpha));
+        }
+    }
+
+    /**
+     * A mesh's bind-pose vertex positions as keys at a position scale (`meshCopy.positionScale`: 10000 keys them to
+     * 0.1 mm), from its geometry's resident CPU payload.
+     *
+     * Ours (no Carbon counterpart).
+     * @param {object} mesh A loaded `Tr2Mesh`.
+     * @param {number} scale The position scale.
+     * @returns {Set<string>} The position keys.
+     */
+    static meshPositionKeys(mesh, scale)
+    {
+        const { vec3_0 } = CjsPaperDollInstance.scratch;
+        const positions = TriGeometryRes.getMeshPositions(mesh.GetGeometryResource().RequireIntersectionMeshes()[mesh.meshIndex]);
+        const keys = new Set();
+        for (let index = 0; index < TriGeometryRes.getPositionCount(positions); index++)
+            if (TriGeometryRes.copyPosition(vec3_0, positions, index)) keys.add(Math.round(vec3_0[0] * scale) + "," + Math.round(vec3_0[1] * scale) + "," + Math.round(vec3_0[2] * scale));
+        return keys;
+    }
+
+    /**
+     * The share of a garment mesh's bind-pose vertices that sit on a carrier mesh's (`meshPositionKeys`), cached per
+     * pair. A garment mesh of a carrier mesh's name is the carrier's copy at the library's `meshCopy.share` or above.
+     *
+     * Ours (no Carbon counterpart).
+     * @param {object} copy The garment's `Tr2Mesh`.
+     * @param {object} mesh The carrier's `Tr2Mesh`.
+     * @param {number} scale The position scale (`meshCopy.positionScale`).
+     * @returns {number} From 0 to 1.
+     */
+    static meshCopyShare(copy, mesh, scale)
+    {
+        let byMesh = CjsPaperDollInstance._copyShares.get(copy);
+        if (!byMesh) CjsPaperDollInstance._copyShares.set(copy, byMesh = new WeakMap());
+        if (!byMesh.has(mesh))
+        {
+            const keys = CjsPaperDollInstance.meshPositionKeys(mesh, scale), own = CjsPaperDollInstance.meshPositionKeys(copy, scale);
+            let on = 0;
+            for (const key of own) if (keys.has(key)) on++;
+            byMesh.set(mesh, own.size ? on / own.size : 0);
+        }
+        return byMesh.get(mesh);
+    }
+
+    /**
+     * Whether a garment's body piece replaces a whole nude carrier: one of its meshes has a carrier mesh's name and
+     * every one of its vertices on that mesh's (the collar's `Torso4Shape` is `torso_nude`'s). The carrier was cut down
+     * to make it, so it hides while the piece shows.
+     *
+     * Ours (no Carbon counterpart).
+     * @param {object[]} pieceMeshes The garment piece's `Tr2Mesh`es.
+     * @param {object[]} carrierMeshes The nude carrier's `Tr2Mesh`es.
+     * @param {number} scale The position scale (`meshCopy.positionScale`).
+     * @returns {boolean} Whether it replaces the carrier.
+     */
+    static meshReplacesWhole(pieceMeshes, carrierMeshes, scale)
+    {
+        return pieceMeshes.some(copy =>
+        {
+            const original = carrierMeshes.find(mesh => mesh.name === copy.name);
+            if (!original) return false;
+            const keys = CjsPaperDollInstance.meshPositionKeys(original, scale);
+            return [ ...CjsPaperDollInstance.meshPositionKeys(copy, scale) ].every(key => keys.has(key));
+        });
+    }
+
+    /**
+     * Whether a carrier mesh draws: its carrier is shown (`carrierShown`) and not replaced whole by a shown garment
+     * piece (`meshReplacesWhole`); it is not a shell while shells do not draw (`carrierShells`, `shells.draw`); and a
+     * nude carrier's mesh is not copied by a shown garment model (`meshCopyShare` at `meshCopy.share` or above). A
+     * garment's own body piece draws whole.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {{ shown: boolean, garment: boolean, replaced: boolean, shell: boolean, copyShares: number[] }} mesh The
+     *   mesh's facts: its carrier's state, whether it is a shell, and each same-named shown garment mesh's share.
+     * @param {{ meshCopy: { share: number }, shells: { draw: boolean } }} carriers The library's body carriers.
+     * @returns {boolean} Whether it draws.
+     */
+    static carrierMeshDrawn(mesh, carriers)
+    {
+        if (!mesh.shown || mesh.replaced) return false;
+        if (mesh.shell && !carriers.shells.draw) return false;
+        return mesh.garment || !mesh.copyShares.some(share => share >= carriers.meshCopy.share);
     }
 
     /**

@@ -14,6 +14,8 @@ test("the library hands out the default body carriers, a host replaces them, and
     assert.deepEqual(carriers.garmentDependants, [ "dependants/sleevesupper", "dependants/sleeveslower", "dependants/collar", "dependants/hood" ]);
     assert.deepEqual(carriers.cutMaskClip, { resource: "CutMaskMap", influence: "CutMaskInfluence", above: 0, clip: "DecalClip" });
     assert.deepEqual(carriers.meshCopy, { share: 0.1, positionScale: 10000 });
+    assert.deepEqual(carriers.shells, { draw: false });
+    assert.deepEqual(carriers.backingCutout, { parameter: "MaterialCutoutColor", alpha: 0 });
     assert.equal("description" in carriers, false, "the description is the file's, not a setting");
 
     carriers.parts.length = 0;
@@ -59,4 +61,37 @@ test("a carrier is shown unless a worn item fills or occludes it; a garment's bo
     assert.equal(CjsPaperDollInstance.carrierShown(collar, []), false, "a garment's piece needs a worn item that names it");
     assert.equal(CjsPaperDollInstance.carrierShown(collar, [ item("topouter", [], [ "dependants/collar/Standard" ]) ]), true, "named, in any case");
     assert.equal(CjsPaperDollInstance.carrierShown(collar, [ item("topouter", [], [ "dependants/collar/standard" ]), item("outer", [ "dependants/collar" ]) ]), false, "named but occluded");
+});
+
+test("carrier meshes: shells by the clip rule, backing cutouts cleared, and which meshes draw", () =>
+{
+    const carriers = CjsCharacterLibraryManager.bodyCarrierDefaults();
+    // A stand-in effect: one parameter object per name, as Tr2Effect.FindParameterByName returns.
+    const area = (influence, cutout) =>
+    {
+        const parameters = {};
+        if (influence !== undefined) parameters.CutMaskInfluence = { GetValue: () => influence };
+        if (cutout !== undefined) parameters.MaterialCutoutColor = { value: cutout, SetValue(value) { this.value = Float32Array.from(value); } };
+        return { effect: { FindParameterByName: name => parameters[name] ?? null } };
+    };
+    const mesh = (opaque, decal, transparent) => ({ opaqueAreas: opaque, decalAreas: decal, transparentAreas: transparent });
+    const shell = mesh([], [], [ area(0.999), area(0.5) ]);
+    const partly = mesh([], [], [ area(0.999), area(0) ]);
+    const solid = mesh([ area(0.999) ], [], [ area(0.999) ]);
+    assert.deepEqual(CjsPaperDollInstance.carrierShells([ shell, partly, solid ], carriers.cutMaskClip), [ shell ]);
+
+    const backing = area(undefined, [ 0.2, 0.3, 0.4, 0.7 ]), clean = area(undefined, [ 0.2, 0.3, 0.4, 0 ]);
+    CjsPaperDollInstance.clearBackingCutout([ mesh([ backing ], [ clean ], []) ], carriers.backingCutout);
+    const cutout = backing.effect.FindParameterByName("MaterialCutoutColor").value;
+    assert.deepEqual(Array.from(cutout, value => Math.round(value * 100) / 100), [ 0.2, 0.3, 0.4, 0 ], "colour kept, weight the rule's");
+
+    const facts = { shown: true, garment: false, replaced: false, shell: false, copyShares: [] };
+    assert.equal(CjsPaperDollInstance.carrierMeshDrawn(facts, carriers), true);
+    assert.equal(CjsPaperDollInstance.carrierMeshDrawn({ ...facts, shown: false }, carriers), false);
+    assert.equal(CjsPaperDollInstance.carrierMeshDrawn({ ...facts, replaced: true }, carriers), false);
+    assert.equal(CjsPaperDollInstance.carrierMeshDrawn({ ...facts, shell: true }, carriers), false, "shells do not draw");
+    assert.equal(CjsPaperDollInstance.carrierMeshDrawn({ ...facts, shell: true }, { ...carriers, shells: { draw: true } }), true, "unless the data says so");
+    assert.equal(CjsPaperDollInstance.carrierMeshDrawn({ ...facts, copyShares: [ 0.209 ] }, carriers), false, "a bottom's LegsShape copies it");
+    assert.equal(CjsPaperDollInstance.carrierMeshDrawn({ ...facts, copyShares: [ 0 ] }, carriers), true, "a robe's cloth TorsoShape does not");
+    assert.equal(CjsPaperDollInstance.carrierMeshDrawn({ ...facts, garment: true, copyShares: [ 1 ] }, carriers), true, "a garment's piece draws whole");
 });
