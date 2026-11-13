@@ -2453,7 +2453,7 @@ export class EveSOF extends IRoot
       // bug (Carbon, EveSOF.cpp:2252): reproduced. A controller's group defaults to "primary" (EveSOFData.cpp:300-302), and
       // this filter runs for every hull, with no UsingSof6 gate as the spotlight and plane sets have (:1038, :1198). It assumes
       // every ship uses the primary group, so a faction whose visibility group set lacks the controller's group loses the
-      // controller. Fixed in the SOF data, not here (docs/research/carbon-known-defects.md).
+      // controller. Fixed in the SOF data, not here; recorded as a known Carbon defect.
       if (!dna.IsInVisibilityData(controller.visibilityGroup)) continue;
 
       const descriptor = this._resolveObjectResource(controller.path, "controller");

@@ -6,7 +6,7 @@
 // API a page may have. Lifted from Graphene's working viewport startup
 // (graphene/src/features/viewport/runtime/demo/demo.js CreateWebgpuHost and
 // webgl2/webgl2Host.js), without its diagnostics, so Tny and Graphene start the
-// same way. Registered in docs/architecture/non-carbon-extensions.md.
+// same way. Carbon has no browser backend selection; this is our extension.
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2RenderContextALWebgl2 } from "../../trinityal/webgl2/Tr2RenderContextALWebgl2.js";
 import { CjsWebgpuDevice } from "../../trinityal/webgpu/CjsWebgpuDevice.js";
@@ -23,7 +23,7 @@ export const CjsBrowserBackendPreference = Object.freeze([ "webgpu", "webgl2" ])
 
 /**
  * Dx11 effects lowered to GLSL with packed lights and the sixteen texture units
- * WebGL2 guarantees each stage (docs/specifications/texture-limits.md).
+ * WebGL2 guarantees each stage.
  */
 const webgl2Translator = {
   buildEffect(bytes, options)
