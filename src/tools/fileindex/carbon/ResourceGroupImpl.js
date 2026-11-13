@@ -730,7 +730,7 @@ export class ResourceGroupImpl
 }
 
 CjsSchema.meta.define(ResourceGroupImpl, {
-  className: "ResourceGroupImpl",
+  name: "ResourceGroupImpl",
   carbon: "ResourceGroup::ResourceGroupImpl",
   fields: {},
   methods: {
