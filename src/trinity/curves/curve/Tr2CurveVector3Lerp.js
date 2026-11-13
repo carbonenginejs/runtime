@@ -18,11 +18,11 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
 {
   /**
    * Runs the native destructor body.
-   * Carbon: Tr2CurveVector3Lerp destructor (trinity/trinity/Curves/Tr2CurveVector3Lerp.cpp:16-19).
+   * Carbon: ~Tr2CurveVector3Lerp (trinity/trinity/Curves/Tr2CurveVector3Lerp.cpp:16-19).
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.curve = null;
   }

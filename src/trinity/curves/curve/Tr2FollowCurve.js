@@ -30,11 +30,11 @@ export class Tr2FollowCurve extends ITriVectorFunction
 {
   /**
    * Runs the native destructor body.
-   * Carbon: Tr2FollowCurve destructor (trinity/trinity/Curves/Tr2FollowCurve.cpp:13-16).
+   * Carbon: ~Tr2FollowCurve (trinity/trinity/Curves/Tr2FollowCurve.cpp:13-16).
    * @adapted Explicit observer detach follows native Clear and implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204).
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.keys.Clear();
     this.keys.SetNotify(null);

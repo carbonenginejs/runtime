@@ -200,7 +200,7 @@ export class TriGrannyRes extends BlueAsyncRes
    * Carbon destructor (Resources/TriGrannyRes.cpp:157-171) releases file/arena.
    * @adapted Existing family cleanup releases the decoded JS graph and morph overrides; no Granny file/arena handle or native CMF contents is acquired.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._OnShutdown();
   }

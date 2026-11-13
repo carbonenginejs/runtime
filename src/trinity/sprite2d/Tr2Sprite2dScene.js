@@ -1252,10 +1252,10 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /**
    * Explicit native destructor equivalent: JavaScript does not destroy owned AL values on scope exit.
    *
-   * Carbon: Tr2Sprite2dScene destructor (trinity/trinity/Sprite2d/Tr2Sprite2dScene.cpp:175-191).
+   * Carbon: ~Tr2Sprite2dScene (trinity/trinity/Sprite2d/Tr2Sprite2dScene.cpp:175-191).
    * @adapted Native capture allocations and deleted stacks become null; shipping-build assertions are omitted. Owned ring members dispatch their destructors explicitly; the graph handles this scene's bases.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._ResetCapture();
     this._captureIndexData = null;

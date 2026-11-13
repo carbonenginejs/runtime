@@ -66,7 +66,7 @@ export class Tr2SSAO extends IRoot
    * @adapted Explicit Destroy replaces implicit shared_ptr member release; referenced effects and textures retain their existing lifetime policy.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._cortaoConstantBuffer.Destroy();
   }

@@ -697,7 +697,7 @@ export class TriCurveSet extends IInitialize
    * @adapted Explicit callback Destroy replaces native by-value member destruction (blueexposure/BlueScriptCallback.cpp:244-247).
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._isUsingSimTimeRebase = false;
     this.DestroyStopCallback();

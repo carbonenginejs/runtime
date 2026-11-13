@@ -13,7 +13,7 @@ const spriteIndices = new Uint16Array([0, 1, 3, 3, 1, 2, 4, 5, 7, 7, 5, 6, 8, 9,
  * Adds opacity, saturation, texture-sized dimensions, and picking radius to a textured 2D sprite.
  *
  * Prepares and gathers sprite quads through the native Sprite2D renderer contract.
- * @adapted No own teardown hook: Tr2TexturedSpriteObject.OnDestruct already removes both texture listeners from the native body (Sprite2d/Tr2Sprite2d.cpp:42-52); remaining members are scalar/CPU vertex values.
+ * @adapted No own teardown hook: Tr2TexturedSpriteObject._Destructor already removes both texture listeners from the native body (Sprite2d/Tr2Sprite2d.cpp:42-52); remaining members are scalar/CPU vertex values.
  */
 @be.define({
   name: "Tr2Sprite2d",

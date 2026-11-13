@@ -59,7 +59,7 @@ export class Tr2TextureArrayElement
     /**
      * Frees the slice (Carbon's Data destructor, cpp:233-236). Idempotent.
      *
-     * @adapted This unregistered value handle uses explicit Release instead of shared_ptr<Data> final release (Tr2TextureArray.h:23-32); no graph OnDestruct hook is needed.
+     * @adapted This unregistered value handle uses explicit Release instead of shared_ptr<Data> final release (Tr2TextureArray.h:23-32); no _Destructor is needed.
      */
     Release()
     {

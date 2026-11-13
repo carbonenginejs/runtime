@@ -23,7 +23,7 @@ export class Tr2FontMeasurer extends IRoot
    * @adapted Listener-set clearing replaces implicit member destruction (Tr2FontMeasurer.h:185), after Reset sends the final change notification.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.Reset();
     this._changeListeners.clear();

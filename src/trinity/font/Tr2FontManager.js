@@ -92,7 +92,7 @@ export class Tr2FontManager extends IRoot
    * @adapted Shutdown tick removal (cpp:76-84) also runs here so direct destruction releases this manager's acquired registration.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     blue.os.UnregisterForTicks(this, s_cookie);
     this.ClearCachedGlyphs();

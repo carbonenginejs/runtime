@@ -65,11 +65,11 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 
   /**
    * Releases the cached display list before the base detaches children.
-   * Carbon: Tr2Sprite2dContainer destructor (trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp:100-106).
+   * Carbon: ~Tr2Sprite2dContainer (trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp:100-106).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._cachedDisplayList?.Destruct();
     this._cachedDisplayList = null;

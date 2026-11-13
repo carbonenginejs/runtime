@@ -55,7 +55,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    * @adapted Explicit observer detach replaces implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining authored content.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.onCollisionEmitters.SetNotify(null);
   }

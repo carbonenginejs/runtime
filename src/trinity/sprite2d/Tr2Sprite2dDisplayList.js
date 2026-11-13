@@ -55,11 +55,11 @@ export class Tr2Sprite2dDisplayList
   /**
    * Explicit equivalent of the native destructor: JS has no deterministic destruction.
    *
-   * Carbon: Tr2Sprite2dDisplayList destructor (trinity/trinity/Sprite2d/Tr2Sprite2dDisplayList.cpp:21-36).
+   * Carbon: ~Tr2Sprite2dDisplayList (trinity/trinity/Sprite2d/Tr2Sprite2dDisplayList.cpp:21-36).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    * @adapted Native device registration and memory counters (cpp:15-35) are not acquired in this JS helper; explicit buffer releases cover its active owned members.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.vertexBuffer.Destroy();
     this.indexBuffer.Destroy();

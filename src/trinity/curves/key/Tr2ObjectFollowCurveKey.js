@@ -44,11 +44,11 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 {
   /**
    * Runs the native destructor body.
-   * Carbon: Tr2ObjectFollowCurveKey destructor (trinity/trinity/Curves/Tr2FollowCurveKey.cpp:22-26).
+   * Carbon: ~Tr2ObjectFollowCurveKey (trinity/trinity/Curves/Tr2FollowCurveKey.cpp:22-26).
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.object = null;
     this._locator = null;

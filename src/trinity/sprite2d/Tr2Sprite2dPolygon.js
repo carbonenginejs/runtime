@@ -40,7 +40,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @adapted Explicit observer detach replaces implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining authored content.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.vertices.SetNotify(null);
     this.triangles.SetNotify(null);

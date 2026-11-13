@@ -53,7 +53,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @adapted Prepared JS geometry uses the existing ClearVertices port; native allocation shrinking is managed by GC.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._ClearVertices();
     this.vertices.SetNotify(null);

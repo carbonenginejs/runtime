@@ -233,7 +233,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * Carbon: Tr2PostProcessRenderer members (trinity/trinity/PostProcess/Tr2PostProcessRenderer.h:161-255).
    * @adapted Preserves explicit deduplicated effect and constant-buffer release in place of native member destruction.
    */
-  OnDestruct()
+  _Destructor()
   {
     const effects = new Set([ this.tonemappingEffect, this._reactiveMaskEffect, this._transparencyMaskEffect, this.bloomHighPassFilter, this._downSamplerLuminancePreserve, this._downSampler, this._upsamplerHorizontal, this._upsamplerVertical, this.dynamicExposureToTextureShader, this.dynamicExposureCreateHistogramShader, this.dynamicExposureMergeHistogramShader, this.dynamicExposureMeasureExposureShader, this._fidelityFxCasShader, this._downsampleDepthEffect, this.fogColorEffect, this.fogCompositeEffect, this.depthOfFieldBokehBlurShader, this.depthOfFieldBokehFillShader, this._depthOfFieldBokehTAAShader, this.depthOfFieldCoCShader, this.godrayEffect, this.signalLossEffect, this.taaEffect, this._taaCopyEffect, this._grainShader, this.bloomDebugShader, this._dynamicExposureDebugShader ]);
     for (const pair of this._blurEffects.values()) for (const effect of pair) effects.add(effect);

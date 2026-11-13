@@ -166,7 +166,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @adapted Prepared JS geometry uses the existing ClearVertices port; native allocation shrinking is managed by GC.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._ClearVertices();
   }

@@ -863,7 +863,7 @@ export class TriGeometryRes extends BlueAsyncRes
    *   our ReleaseResources it does not announce a cached-data release, which Carbon's does not.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.CancelPendingLoad();
     this._isGood = this._isPrepared = false;

@@ -136,7 +136,7 @@ export class Tr2GrannyTrack extends IRoot
    * @returns {void}
    * @adapted Preserves the prior explicit Destruct fences and cached-slot clearing; graph dispatch owns base cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._destroyed = true;
     // Carbon ~Tr2GrannyTrack (Curves/Tr2GrannyTrack.cpp:14-21): RemoveNotifyTarget on the granny resource.

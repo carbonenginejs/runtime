@@ -222,10 +222,10 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
    *
    *
    * @returns {void}
-   * Carbon: Tr2Sprite2dTextObject destructor (trinity/trinity/Sprite2d/Tr2Sprite2dTextObject.cpp:20-26).
+   * Carbon: ~Tr2Sprite2dTextObject (trinity/trinity/Sprite2d/Tr2Sprite2dTextObject.cpp:20-26).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._fontMeasurer) this._fontMeasurer.UnregisterForChangeNotification(this);
     this._fontMeasurer = null;

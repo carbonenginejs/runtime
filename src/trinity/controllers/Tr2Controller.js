@@ -59,7 +59,7 @@ export class Tr2Controller extends EveThrottleable
    * @adapted Explicit observer detach replaces implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining content.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.stateMachines.SetNotify(null);
     this.variables.SetNotify(null);

@@ -165,10 +165,10 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
   /**
    * Explicit cleanup adapts the native texture-listener destructor to JS.
    *
-   * Carbon: Tr2TexturedSpriteObject destructor (trinity/trinity/Sprite2d/Tr2SpriteObject.cpp:233-243).
+   * Carbon: ~Tr2TexturedSpriteObject (trinity/trinity/Sprite2d/Tr2SpriteObject.cpp:233-243).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._texturePrimary) this._texturePrimary.UnregisterForChangeNotification(this);
     if (this._textureSecondary) this._textureSecondary.UnregisterForChangeNotification(this);

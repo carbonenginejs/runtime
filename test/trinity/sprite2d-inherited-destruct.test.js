@@ -19,7 +19,7 @@ test("Sprite2d public destruction inherits both native texture listener removals
   secondary._SetDirty();
   assert.equal(changed.mock.callCount(), 2);
   assert.equal(peerChanged.mock.callCount(), 4);
-  assert.equal(Object.hasOwn(Tr2Sprite2d.prototype, "OnDestruct"), false);
+  assert.equal(Object.hasOwn(Tr2Sprite2d.prototype, "_Destructor"), false);
   assert.equal(owner.texturePrimary, null);
   assert.equal(owner.textureSecondary, null);
 });

@@ -88,14 +88,14 @@ export class Tr2ParticleSystem
    * 350-378). Adapted: explicit JS teardown replaces native destructors and
    * clears views of the owned CPU buffers; device reset retains that data.
    *
-   * Carbon: Tr2ParticleSystem destructor (trinity/trinity/Particle/Tr2ParticleSystem.cpp:89-99).
+   * Carbon: ~Tr2ParticleSystem (trinity/trinity/Particle/Tr2ParticleSystem.cpp:89-99).
    * @adapted Detaches the owned constraint-list observer as BlueList member destruction does (blueexposure/include/BlueListUtil.h:198-204).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @adapted Sim-time rebase registration is unsupported by BlueOS, so there is no callback to unregister.
    * @adapted The sorting point is a GC-owned typed array; native aligned free and the unneeded thread mutex have no JS release.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     Tr2ParticleSystem.getAllSystems().delete(this);
     this._DestroyBuffers();

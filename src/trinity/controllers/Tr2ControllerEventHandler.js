@@ -33,7 +33,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @adapted Explicit observer detach replaces implicit BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), retaining actions.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.actions.SetNotify(null);
   }

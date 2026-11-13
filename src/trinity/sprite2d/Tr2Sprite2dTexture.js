@@ -173,11 +173,11 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   /**
    * Explicit JS destruction replaces the native atlas-listener destructor.
    *
-   * Carbon: Tr2Sprite2dTexture destructor (trinity/trinity/Sprite2d/Tr2Sprite2dTexture.cpp:28-34).
+   * Carbon: ~Tr2Sprite2dTexture (trinity/trinity/Sprite2d/Tr2Sprite2dTexture.cpp:28-34).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    * @adapted Clearing the JS listener set replaces implicit destruction of native m_changeListeners (Tr2Sprite2dTexture.h:128); the shared atlas itself is not destroyed.
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._atlasTexture) this._atlasTexture.UnregisterForChangeNotification(this);
     this._atlasTexture = null;

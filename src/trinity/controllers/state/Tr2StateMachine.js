@@ -36,7 +36,7 @@ export class Tr2StateMachine
    * @adapted Native sim-time rebase registration is unsupported and never acquired in this port.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.states.SetNotify(null);
   }
