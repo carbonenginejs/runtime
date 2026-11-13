@@ -181,7 +181,7 @@ export class EveChildContainer extends EveChildTransform
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const controller of this.controllers) controller.Unlink(UnlinkReason.DELETING);
     this.UnregisterChildren(this.objects);

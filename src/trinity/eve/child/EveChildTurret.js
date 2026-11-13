@@ -1099,7 +1099,7 @@ export class EveChildTurret extends EveChildMesh
    * @adapted Inherited ReleaseResources (EveChildMesh.cpp:1839-1847) owns baked-morph allocations and a constant buffer absent from this port.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.CleanUp();
   }

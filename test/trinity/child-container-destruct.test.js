@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { EveChildContainer, EveChildTransform } from "../../npm/dist/trinity/index.js";
 import { assertControllerDestruct } from "../support/controllerDestruct.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 test("EveChildContainer teardown unlinks controllers and detaches retained children", () =>
 {
@@ -21,5 +22,5 @@ test("EveChildContainer teardown unlinks controllers and detaches retained child
   assert.equal(peerChild.GetParent(), peer);
   assert.equal(peerChild.GetOwner(), peer);
   assert.deepEqual(Array.from(owner.objects), [child]);
-  peer.OnDestruct();
+  CjsGraph.finalDelete(peer);
 });

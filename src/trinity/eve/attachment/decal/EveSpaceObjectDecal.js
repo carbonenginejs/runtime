@@ -80,10 +80,10 @@ export class EveSpaceObjectDecal
    * the decal. No owner does yet: EveSpaceObject2, which holds decals, has no
    * Destruct of its own, so a dropped decal stays registered until one is added.
    *
-   * Carbon: EveSpaceObjectDecal destructor (trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.cpp:61-64).
+   * Carbon: ~EveSpaceObjectDecal (trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.cpp:61-64).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
   }

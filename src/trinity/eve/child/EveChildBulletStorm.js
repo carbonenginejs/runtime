@@ -215,10 +215,10 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   /**
    * Releases final ownership because JavaScript has no deterministic destructor.
    *
-   * Carbon: EveChildBulletStorm destructor (trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.cpp:52-54).
+   * Carbon: ~EveChildBulletStorm (trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.cpp:52-54).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
   }

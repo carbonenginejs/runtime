@@ -62,7 +62,7 @@ export class EveMultiEffect extends IRoot
    * Native removal behavior: EveMultiEffect.cpp:99,119; blueexposure/include/BlueListUtil.h:198-204.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const controller of this.controllers) controller.Unlink(UnlinkReason.DELETING);
     for (const parameter of this.parameters) parameter.SetOwner(null);

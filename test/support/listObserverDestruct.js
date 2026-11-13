@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 /** Proves a retained list loses its owner observer, without depending on an empty-clear event. */
-export function assertListObserverDestruct(t, owner, fields, hook = owner.OnDestruct)
+export function assertListObserverDestruct(t, owner, fields, hook = owner._Destructor ?? owner.OnDestruct)
 {
   const lists = fields.map(field => owner[field]);
   const notifications = t.mock.method(owner, "OnListModified", () => {});

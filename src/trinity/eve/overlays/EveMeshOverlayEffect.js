@@ -56,7 +56,7 @@ export class EveMeshOverlayEffect extends IRoot
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const controller of this.controllers) controller.Unlink(UnlinkReason.DELETING);
     this.controllers.SetNotify(null);

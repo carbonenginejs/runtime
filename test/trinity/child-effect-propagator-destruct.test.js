@@ -2,11 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { EveChildEffectPropagator, EveChildTransform, Tr2Controller } from "../../npm/dist/trinity/index.js";
 import { assertChildOwnerDestruct } from "../support/childOwnerDestruct.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 test("effect-propagator teardown detaches its retained effect", () =>
 {
   const owner = new EveChildEffectPropagator();
-  owner.OnDestruct();
+  CjsGraph.finalDelete(owner);
   assertChildOwnerDestruct(owner, "_effect");
 });
 

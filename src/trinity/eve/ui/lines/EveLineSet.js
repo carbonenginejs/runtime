@@ -156,10 +156,10 @@ export class EveLineSet
   /**
    * Releases final ownership because JavaScript has no deterministic destructor.
    *
-   * Carbon: EveLineSet destructor (trinity/trinity/Eve/UI/EveLineSet.cpp:28-31).
+   * Carbon: ~EveLineSet (trinity/trinity/Eve/UI/EveLineSet.cpp:28-31).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
   }

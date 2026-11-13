@@ -206,10 +206,10 @@ export class EveEllipseSet extends EveChildTransform
    *
    *
    * @returns {void}
-   * Carbon: EveEllipseSet destructor (trinity/trinity/Eve/UI/EveEllipseSet.cpp:130-137).
+   * Carbon: ~EveEllipseSet (trinity/trinity/Eve/UI/EveEllipseSet.cpp:130-137).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const ellipse of this.ellipses)
     {

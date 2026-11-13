@@ -169,7 +169,7 @@ export class EveEffectRoot2 extends EveEntity
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const controller of this.controllers) controller.Unlink(UnlinkReason.DELETING);
     for (const child of this.effectChildren) child.SetOwner(null);

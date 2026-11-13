@@ -63,11 +63,11 @@ export class EveSwarmRenderable extends EveEntity
 
   /**
    * Drops the owner and mesh exactly as the native destructor does.
-   * Carbon: EveSwarmRenderable destructor (trinity/trinity/Eve/SpaceObject/EveSwarm.cpp:29-33).
+   * Carbon: ~EveSwarmRenderable (trinity/trinity/Eve/SpaceObject/EveSwarm.cpp:29-33).
    * @adapted Native persistent-buffer members (EveSwarm.h:83-84) are not acquired in JS; current per-object records are CPU data. The graph dispatches EveEntity teardown.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.owner = null;
     this.mesh = null;

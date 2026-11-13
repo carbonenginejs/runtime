@@ -26,7 +26,7 @@ test("space-object teardown closes only its raycast session and detaches control
     child.SetOwner(owner);
     peerChild.SetOwner(peer);
     assert.equal(geometry._raycastUsers, 2);
-    assertControllerDestruct(owner, EveSpaceObject2.prototype.OnDestruct);
+    assertControllerDestruct(owner, EveSpaceObject2.prototype._Destructor);
     assert.equal(geometry._raycastUsers, 1);
     assert.equal(owner._damageFilterOccluders.length, 0);
     assert.equal(owner._damageFilterAreas.length, 0);

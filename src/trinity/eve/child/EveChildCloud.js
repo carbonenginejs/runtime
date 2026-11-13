@@ -208,10 +208,10 @@ export class EveChildCloud extends EveSpaceObjectChild
   /**
    * Releases final ownership because JavaScript has no deterministic destructor.
    *
-   * Carbon: EveChildCloud destructor (trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp:188-190).
+   * Carbon: ~EveChildCloud (trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp:188-190).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
   }

@@ -165,10 +165,10 @@ export class EvePendingPickingReadback
    *
    *
    * @adapted
-   * Carbon: EvePendingPickingReadback destructor (trinity/trinity/Eve/EvePicking.h:14-25 (value member; implicit destructor)).
+   * Carbon: ~EvePendingPickingReadback (trinity/trinity/Eve/EvePicking.h:14-25 (value member; implicit destructor)).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.Unmap();
     if (this.mainPickBuffer) this.mainPickBuffer.Destruct();

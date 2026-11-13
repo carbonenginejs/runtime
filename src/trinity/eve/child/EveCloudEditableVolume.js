@@ -106,10 +106,10 @@ export class EveCloudEditableVolume
   /**
    * Cancels pending computation; shared bitmap and texture references remain usable.
    *
-   * Carbon: EveCloudEditableVolume destructor (trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp:54-62).
+   * Carbon: ~EveCloudEditableVolume (trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp:54-62).
    * @adapted Timer/generator cancellation replaces joining a native thread; graph dispatch retains the existing teardown.
    */
-  OnDestruct()
+  _Destructor()
   {
     clearTimeout(this._timer);
     this._timer = null;

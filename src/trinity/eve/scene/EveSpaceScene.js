@@ -1111,14 +1111,14 @@ export class EveSpaceScene
    * scene objects/managers remain caller-owned. Readback snapshots are
    * owned by their picking contexts and remain usable after the scene retires.
    *
-   * Carbon: EveSpaceScene destructor (trinity/trinity/Eve/EveSpaceScene.cpp:309-325).
+   * Carbon: ~EveSpaceScene (trinity/trinity/Eve/EveSpaceScene.cpp:309-325).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @adapted Native primary batches live in the caller-composed batch manager; this scene clears only its owned accumulators.
    * @adapted Native shared-index/baked-morph variable publications are absent; ClearVariableStore detaches the four maintained environment handles.
    * @adapted Explicitly detaches owned list observers, matching native BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), without clearing content.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._destroyed) return;
     this._destroyed = true;

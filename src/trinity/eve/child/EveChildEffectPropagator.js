@@ -111,7 +111,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.UnregisterChild(this._effect);
   }

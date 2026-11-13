@@ -46,7 +46,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
   }

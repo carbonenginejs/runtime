@@ -473,10 +473,10 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    *
    *
    * @adapted
-   * Carbon: EveChildCloud2 destructor (trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.cpp:120-122).
+   * Carbon: ~EveChildCloud2 (trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.cpp:120-122).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
     this.lights.SetNotify(null);

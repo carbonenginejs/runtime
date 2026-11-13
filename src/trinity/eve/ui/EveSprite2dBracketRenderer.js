@@ -59,10 +59,10 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
    * and dropped by the client, so a dropped one stays registered until its
    * owner calls this.
    *
-   * Carbon: EveSprite2dBracketRenderer destructor (trinity/trinity/EveSprite2dBracketRenderer.h:44-45 (AL members; implicit destructor)).
+   * Carbon: ~EveSprite2dBracketRenderer (trinity/trinity/EveSprite2dBracketRenderer.h:44-45 (AL members; implicit destructor)).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources(0);
   }

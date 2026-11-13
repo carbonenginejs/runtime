@@ -339,10 +339,10 @@ export class EveBoosterSet2 extends EveEntity
    * Adapted: JavaScript has no deterministic destructor, so the owner calls
    * this explicitly. No owner calls Destruct yet.
    *
-   * Carbon: EveBoosterSet2 destructor (trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.cpp:646-648).
+   * Carbon: ~EveBoosterSet2 (trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.cpp:646-648).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
   }

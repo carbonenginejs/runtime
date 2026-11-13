@@ -11,7 +11,7 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 /**
  * Builds distribution placements from a named locator set on the parent space object.
  * Carbon destructor: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorParentLocators.cpp:14-21.
- * @adapted No OnDestruct is needed: this port never replaces the locator-list notifier, so there is no saved notifier to restore.
+ * @adapted No _Destructor is needed: this port never replaces the locator-list notifier, so there is no saved notifier to restore.
  */
 @be.define({
   name: "EveDistributionPlacementGeneratorParentLocators",

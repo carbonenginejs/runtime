@@ -134,7 +134,7 @@ export class EveTacticalOverlay
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._variableStore = null;
     this._SetVariableStore(this.anchorEffect);

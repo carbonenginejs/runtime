@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { Tr2Controller } from "../../npm/dist/trinity/index.js";
 
 /** Checks the native DELETING unlink without touching an unrelated controller. */
-export function assertControllerDestruct(owner, hook = owner.OnDestruct)
+export function assertControllerDestruct(owner, hook = owner._Destructor ?? owner.OnDestruct)
 {
   const controller = new Tr2Controller(), peer = new Tr2Controller();
   const controllers = owner.controllers;

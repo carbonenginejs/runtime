@@ -64,7 +64,7 @@ export class EveChildRef extends EveChildTransform
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.UnregisterChild(this.child);
   }

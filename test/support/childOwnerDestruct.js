@@ -13,8 +13,8 @@ export function assertChildOwnerDestruct(owner, field, child = new EveChildTrans
   child.SetPartTag(123);
   assert.equal(child.GetParent(), owner);
   assert.equal(child.GetOwner(), owner);
-  owner.OnDestruct();
-  owner.OnDestruct();
+  (owner._Destructor ?? owner.OnDestruct).call(owner);
+  (owner._Destructor ?? owner.OnDestruct).call(owner);
   assert.equal(child.GetParent(), null);
   assert.equal(child.GetOwner(), null);
   assert.equal(child.partTag, 123);

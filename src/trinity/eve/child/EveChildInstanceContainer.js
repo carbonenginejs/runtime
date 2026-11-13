@@ -70,7 +70,7 @@ export class EveChildInstanceContainer extends EveChildTransform
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.UnregisterChildren(this.instances);
     this.UnregisterChild(this._source);

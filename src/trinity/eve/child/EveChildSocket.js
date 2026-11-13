@@ -49,7 +49,7 @@ export class EveChildSocket extends EveChildTransform
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.UnregisterChild(this.plug);
   }

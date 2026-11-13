@@ -104,10 +104,10 @@ export class EveStarfield
   /**
    * Explicit final-owner cleanup replaces C++ resource destruction.
    *
-   * Carbon: EveStarfield destructor (trinity/trinity/Eve/EveStarfield.cpp:56-58).
+   * Carbon: ~EveStarfield (trinity/trinity/Eve/EveStarfield.cpp:56-58).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
   }

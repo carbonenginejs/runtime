@@ -157,10 +157,10 @@ export class EveChildBehaviorSystem extends EveChildTransform
   /**
    * Explicit final ownership release replaces Carbon's member destructors.
    *
-   * Carbon: EveChildBehaviorSystem destructor (trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.cpp:63-65).
+   * Carbon: ~EveChildBehaviorSystem (trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.cpp:63-65).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
     for (const group of this.behaviorGroups) group.SetVertexFunctionReferance(null);

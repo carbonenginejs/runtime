@@ -32,7 +32,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.RemoveVolumeCallbacks();
   }

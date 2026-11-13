@@ -1875,7 +1875,7 @@ export class EveTurretSet extends EveEntity
    * @returns {void}
    * @adapted Preserves the prior explicit Destruct fences and cached-slot clearing; graph dispatch owns base cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._destroyed = true;
     this.UnRegister(this.GetComponentRegistry());

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EveChildTurret, EveTurretFiringFX, Tr2GrannyAnimation, TriGeometryRes } from "../../npm/dist/trinity/index.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 test("child-turret teardown detaches its surviving updater and stops its firing effect", () =>
 {
@@ -17,8 +18,8 @@ test("child-turret teardown detaches its surviving updater and stops its firing 
   turret._firingEffectMuzzlePosSet = true;
   turret._pendingFiringEffectCalls = [() => assert.fail("retired deferred call")];
   const request = turret._firingEffectRequest;
-  turret.OnDestruct();
-  turret.OnDestruct();
+  CjsGraph.finalDelete(turret);
+  CjsGraph.finalDelete(turret);
   assert.equal(updater.GetPoseModifier(), null);
   assert.equal(peerUpdater.GetPoseModifier(), peer);
   assert.equal(firing.isFiring, false);
@@ -27,7 +28,7 @@ test("child-turret teardown detaches its surviving updater and stops its firing 
   assert.equal(turret._firingEffectMuzzlePosSet, false);
   assert.equal(turret._pendingFiringEffectCalls, null);
   assert.ok(turret._firingEffectRequest > request);
-  peer.OnDestruct();
+  CjsGraph.finalDelete(peer);
 });
 
 test("child-turret teardown preserves a replacement modifier on the old updater", () =>
@@ -36,7 +37,7 @@ test("child-turret teardown preserves a replacement modifier on the old updater"
   const updater = new Tr2GrannyAnimation();
   turret._hookedUpdater = updater;
   updater.SetPoseModifier(replacement);
-  turret.OnDestruct();
-  turret.OnDestruct();
+  CjsGraph.finalDelete(turret);
+  CjsGraph.finalDelete(turret);
   assert.equal(updater.GetPoseModifier(), replacement);
 });

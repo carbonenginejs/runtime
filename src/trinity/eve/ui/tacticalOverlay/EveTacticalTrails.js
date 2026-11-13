@@ -125,10 +125,10 @@ export class EveTacticalTrails
   /**
    * Releases final ownership because JavaScript has no deterministic destructor.
    *
-   * Carbon: EveTacticalTrails destructor (trinity/trinity/Eve/UI/EveTacticalTrails.h:62 (AL member; implicit destructor)).
+   * Carbon: ~EveTacticalTrails (trinity/trinity/Eve/UI/EveTacticalTrails.h:62 (AL member; implicit destructor)).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.ReleaseResources();
   }

@@ -39,7 +39,7 @@ export class EveModularObjectModifier extends IRoot
    * @adapted Existing asynchronous edits also apply bounds as they finish; teardown adds no cancellation policy.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._object) this.ApplyBounds();
   }

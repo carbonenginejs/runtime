@@ -62,7 +62,7 @@ export class EveChildProceduralContainer extends EveChildTransform
    * @implemented
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.UnregisterChild(this.selectedObject);
   }

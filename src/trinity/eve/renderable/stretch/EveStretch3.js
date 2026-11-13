@@ -110,7 +110,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Native removal behavior: EveStretch3.cpp:369; blueexposure/include/BlueListUtil.h:198-204.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const controller of this.controllers) controller.Unlink(UnlinkReason.DELETING);
     for (const binding of this.dynamicBindings) binding.SetOwner(null);

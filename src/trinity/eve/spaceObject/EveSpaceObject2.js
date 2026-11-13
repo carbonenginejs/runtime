@@ -759,7 +759,7 @@ export class EveSpaceObject2 extends EveEntity
    * @adapted Audio geometry is unported and audio teardown is outside this task's scope.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this._ReleaseDamageFilterSessions();
     if (this._geometryResFromMesh) blue.resMan.notify.Remove(this, this._geometryResFromMesh);

@@ -34,11 +34,11 @@ export class EveEntity extends IRoot
 
   /**
    * Reports an entity destroyed while registered, then drops its registry pointer.
-   * Carbon: EveEntity destructor (trinity/trinity/Eve/EveEntity.cpp:43-50).
+   * Carbon: ~EveEntity (trinity/trinity/Eve/EveEntity.cpp:43-50).
    * @adapted console.error replaces CCP_LOGERR; native destruction does not unregister the entity or clear its component state.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this.registry)
     {

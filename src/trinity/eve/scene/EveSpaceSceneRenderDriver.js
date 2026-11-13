@@ -644,11 +644,11 @@ export class EveSpaceSceneRenderDriver
    * Tr2DeviceResource base unregisters from the device
    * (Tr2DeviceResource.cpp:11-14).
    *
-   * Carbon: EveSpaceSceneRenderDriver destructor (trinity/trinity/Eve/EveSpaceSceneRenderDriver.cpp:162-165).
+   * Carbon: ~EveSpaceSceneRenderDriver (trinity/trinity/Eve/EveSpaceSceneRenderDriver.cpp:162-165).
    * @adapted Retains existing JS teardown; the graph dispatches each base hook.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._destroyed) return;
     this._destroyed = true;

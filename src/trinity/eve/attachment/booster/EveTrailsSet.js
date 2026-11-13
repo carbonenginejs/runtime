@@ -217,7 +217,7 @@ export class EveTrailsSet
    * @returns {void}
    * @adapted Preserves the prior explicit Destruct fences and cached-slot clearing; graph dispatch owns base cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._destroyed = true;
     // Carbon ~EveTrailsSet (Eve/SpaceObject/Attachments/EveTrailsSet.cpp:31-41): RemoveNotifyTarget on the geometry.

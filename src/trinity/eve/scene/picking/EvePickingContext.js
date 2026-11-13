@@ -90,10 +90,10 @@ export class EvePickingContext extends IRoot
    *
    *
    * @adapted
-   * Carbon: EvePickingContext destructor (trinity/trinity/Eve/EvePicking.h:42 (owned requests; implicit destructor)).
+   * Carbon: ~EvePickingContext (trinity/trinity/Eve/EvePicking.h:42 (owned requests; implicit destructor)).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const request of this.readbacks) request.Destruct();
     this.readbacks.length = 0;
