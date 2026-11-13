@@ -35,6 +35,17 @@ test("decodes utility shapes and applies occlusion and weight conflicts without 
     const protectedGroups = CjsCharacterAppearanceResolver.resolveUtilityShapes([ request("top", "utilityshapes/pinchtuckshape") ],
         [ { modifierPath: "utilityshapes/pinchtuckshape", protectedOwner: "top" } ]);
     assert.equal(protectedGroups[0].retained.length, 1);
+
+    // The top's drape sets pushdrapeshape 0.25 and jacketcm01 sets 0: the higher layer applies.
+    const settings = [
+        { modifierPath: "utilityshapes/pushdrapeshape", targetName: "pushdrapeshape", weight: 0.25, protectedOwner: null, owner: "topMiddle" },
+        { modifierPath: "utilityshapes/pushdrapeshape", targetName: "pushdrapeshape", weight: 0, protectedOwner: null, owner: "outer" }
+    ];
+    const ranks = { topMiddle: 29, outer: 33 };
+    assert.throws(() => CjsCharacterAppearanceResolver.resolveUtilityShapes([], settings), /set to 0.25 and 0 at once/);
+    assert.equal(CjsCharacterAppearanceResolver.resolveUtilityShapes([], settings, owner => ranks[owner] ?? null)[0].retained[0].weight, 0);
+    // An owner with no layer leaves the conflict unresolved.
+    assert.throws(() => CjsCharacterAppearanceResolver.resolveUtilityShapes([], settings, owner => owner === "outer" ? 33 : null), /at once/);
 });
 
 test("suppression runs from the roots and leaves cycles active", () =>

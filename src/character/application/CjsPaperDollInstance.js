@@ -36,6 +36,9 @@ export class CjsPaperDollInstance
 
     _applying = false;
 
+    /** The part each `exclusive` group last wore, by group index (`exclusiveParts`). */
+    _exclusiveWorn = new Map();
+
     /** The last update's suppression walk: the suppressed parts and the parts a cycle kept active. */
     _suppression = { suppressed: [], cyclic: [] };
 
@@ -113,6 +116,7 @@ export class CjsPaperDollInstance
         // A geometry-only strength edit must not rebuild skin or cosmetic maps.
         const forced = definition.IsForced();
         const dirtyTargets = definition.GetDirtyTargets() | this._targetDirty;
+        CjsPaperDollInstance.exclusiveParts(definition, this._exclusiveWorn);
         for (const [ name, resolving ] of CjsPaperDollInstance.holdParts(definition))
             resolving.catch(error => this._bindings.error(name + " could not be held on: " + error.message));
         const suppression = this._suppression = CjsPaperDollInstance.suppress(definition);
@@ -174,6 +178,41 @@ export class CjsPaperDollInstance
     GetSuppression()
     {
         return this._suppression;
+    }
+
+    /**
+     * The parts that cannot be worn together, each group its definition member names: the top and the over top. No
+     * shipped recipe wears both (63 recipes: 30 with a top, 6 with an over top, none with both), and both list
+     * `dependants/drape`, so wearing both brought two drapes whose shapes conflict (`pinchleftmiddlehipsshape` 0.2
+     * and 0.5; operator, 2026-11-13: "i do not think they can be worn together").
+     *
+     * Ours (no Carbon counterpart, and no metadata states it): inferred from the recipes. Registered in
+     * docs/architecture/non-carbon-extensions.md.
+     * @type {string[][]}
+     */
+    static exclusive = [ [ "topMiddle", "topOuter" ] ];
+
+    /**
+     * Keeps at most one part of each `exclusive` group worn (on with an option): when two are, the one switched on
+     * last stays and the others are switched off. With no earlier state (a restored character wearing both), the later
+     * part in the group, the outer one, stays.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python. See `exclusive`.
+     * @param {import("./CjsPaperDollDefinition.js").CjsPaperDollDefinition} definition The settings.
+     * @param {Map<number, ?string>} last The part each group wore at the previous call, by group index; updated.
+     * @returns {string[]} The parts switched off.
+     */
+    static exclusiveParts(definition, last)
+    {
+        const off = [];
+        for (const [ index, group ] of CjsPaperDollInstance.exclusive.entries())
+        {
+            const worn = group.filter(name => definition[name].enabled && definition[name].option !== "");
+            const keep = worn.length > 1 ? worn.findLast(name => name !== last.get(index)) : worn[0] ?? null;
+            for (const name of worn) if (name !== keep) { CjsSchema.setValues(definition[name], { enabled: false }); off.push(name); }
+            last.set(index, keep);
+        }
+        return off;
     }
 
     /**

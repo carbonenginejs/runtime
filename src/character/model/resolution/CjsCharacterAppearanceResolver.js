@@ -146,10 +146,14 @@ export class CjsCharacterAppearanceResolver
      * @param {{modifierPath: string, weight: number, owner: any}[]} requests Decoded requests (decodeUtilityShape), each with its owner.
      * @param {{modifierPath: string, targetName: string, weight: ?number, protectedOwner: any, owner?: any}[]} occlusions
      *   Decoded occlusions (decodeUtilityOcclusion); `protectedOwner` is null when none, `owner` the item that sets a weight.
+     * @param {?(owner: any) => ?number} [layer=null] Each owner's layer rank (`CjsPaperDollDefinition.GetLayer`). When
+     *   worn items set one morph to different weights, the one in the highest layer wins: the top's drape sets
+     *   `pushdrapeshape#0.25` and `outer/jacketcm01` `#0.0`, and the jacket over it applies (operator, 2026-11-13: the
+     *   conflict crashed characters; ours, no metadata orders them).
      * @returns {{modifierPath: string, suppressed: object[], retained: object[], conflict: boolean}[]} One record per path.
-     * @throws {Error} For two worn items setting one morph to different weights: no rule chooses between them.
+     * @throws {Error} For worn items setting one morph to different weights when no single highest layer holds one.
      */
-    static resolveUtilityShapes(requests, occlusions)
+    static resolveUtilityShapes(requests, occlusions, layer = null)
     {
         const grouped = new Map();
 
@@ -168,9 +172,18 @@ export class CjsCharacterAppearanceResolver
         {
             const matchingOcclusions = occlusions.filter(value =>
                 value.modifierPath === modifierPath);
-            const settings = matchingOcclusions.filter(value => value.weight !== null && value.weight !== undefined);
+            let settings = matchingOcclusions.filter(value => value.weight !== null && value.weight !== undefined);
             if (settings.length)
             {
+                if (layer !== null && new Set(settings.map(value => value.weight)).size > 1)
+                {
+                    const ranks = settings.map(value => layer(value.owner));
+                    if (ranks.every(rank => typeof rank === "number"))
+                    {
+                        const top = Math.max(...ranks);
+                        settings = settings.filter((value, index) => ranks[index] === top);
+                    }
+                }
                 if (new Set(settings.map(value => value.weight)).size > 1)
                     throw new Error("No paper doll rule for " + modifierPath + " set to " + settings.map(value => value.weight).join(" and ") + " at once");
                 const { targetName, weight, owner = null } = settings[0];
