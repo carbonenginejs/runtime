@@ -306,6 +306,26 @@ export class CjsPaperDollInstance
     }
 
     /**
+     * The nude carrier area effects the composed cut mask clips, by the library's rule
+     * (`CjsCharacterLibraryManager.GetBodyCarriers().cutMaskClip`): those holding the rule's mask resource whose
+     * influence parameter is above its threshold. The caller sets the rule's clip parameter on them and passes only
+     * nude carriers' areas: a garment's own body piece is the garment's, and its mask would cut it away.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python. The library holds the rule; this applies it.
+     * @param {object[]} effects The nude carriers' area effects (`Tr2Effect`).
+     * @param {{ resource: string, influence: string, above: number }} rule The library's `cutMaskClip`.
+     * @returns {object[]} The effects to clip, in the given order.
+     */
+    static cutMaskClipEffects(effects, rule)
+    {
+        return effects.filter(effect =>
+        {
+            const influence = effect.FindParameterByName(rule.influence);
+            return effect.GetResourceByName(rule.resource) !== null && influence !== null && influence.GetValue() > rule.above;
+        });
+    }
+
+    /**
      * The utility shapes a worn garment's dependants add to its fitting (the tuck rule). Every dependant brings its
      * metadata's utility-shape requests, for the garment, and its occlusions, which protect no owner:
      * `dependants/boottucking/standard` suppresses its own garment's boot pinch as well as any other's, and

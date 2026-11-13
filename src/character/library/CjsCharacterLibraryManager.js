@@ -12,6 +12,7 @@ import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
 import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" with { type: "json" };
+import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
@@ -167,6 +168,47 @@ export class CjsCharacterLibraryManager
     static morphCorrectionDefaults()
     {
         return { ...morphCorrectionDefaults.corrections };
+    }
+
+    /**
+     * The body carriers in force: the nude parts every character wears under its garments (each with the dependant
+     * categories it names as its own carriers), the dependant categories a garment's own body pieces come from
+     * (`garmentDependants`), and which carrier areas the composed cut mask clips (`cutMaskClip`, applied by
+     * `CjsPaperDollInstance.cutMaskClipEffects`). A setting with a default: the defaults file
+     * `factory/defaults/bodyCarriers.json` until a host sets its own.
+     * @type {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: { resource: string, influence: string, above: number, clip: string } }}
+     */
+    _bodyCarriers = CjsCharacterLibraryManager.bodyCarrierDefaults();
+
+    /**
+     * Replaces the body carriers in force. Pass the defaults file's edited, or other carriers.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: object }} carriers The carriers.
+     * @returns {void}
+     */
+    SetBodyCarriers(carriers)
+    {
+        this._bodyCarriers = CjsCharacterLibraryManager.copy(carriers);
+    }
+
+    /**
+     * The body carriers in force (`_bodyCarriers`).
+     * @returns {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: object }} A copy.
+     */
+    GetBodyCarriers()
+    {
+        return CjsCharacterLibraryManager.copy(this._bodyCarriers);
+    }
+
+    /**
+     * The shipped default body carriers (`factory/defaults/bodyCarriers.json`), without its description.
+     * @returns {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: object }} A copy.
+     */
+    static bodyCarrierDefaults()
+    {
+        const { parts, garmentDependants, cutMaskClip } = bodyCarrierDefaults;
+        return CjsCharacterLibraryManager.copy({ parts, garmentDependants, cutMaskClip });
     }
 
     /**
