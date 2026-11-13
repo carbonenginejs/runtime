@@ -1,6 +1,6 @@
 import { meta, type } from "#schema";
 import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
-import { CjsGraphRoot } from "../../global/model/graph/CjsGraphRoot.js";
+import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 
 /**
  * A SKINR design a ship wears, read-only. Ours. Its look (pattern and mesh
@@ -8,8 +8,8 @@ import { CjsGraphRoot } from "../../global/model/graph/CjsGraphRoot.js";
  * @cjs
  */
 @meta.define({ className: "TnySkinrIdentity" })
-@meta.exposureChainTo(CjsGraphRoot)
-export class TnySkinrIdentity extends CjsGraphRoot
+@meta.exposureChainTo(ICjsGraphRoot)
+export class TnySkinrIdentity extends ICjsGraphRoot
 {
 
     /**

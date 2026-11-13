@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsGraph, CjsGraphRoot, CjsGraphState } from "../../src/global/model/graph/index.js";
+import { CjsGraph, ICjsGraphRoot, CjsGraphState } from "../../src/global/model/graph/index.js";
 
 test("Destruct calls the most derived OnDestruct, which reaches its parents through super, arguments intact", () =>
 {
   const calls = [], argument = new Set();
-  class Base extends CjsGraphRoot
+  class Base extends ICjsGraphRoot
   {
     values = [ 1, 2 ];
     OnDestruct(value) { calls.push([ "base", this.values.length, value ]); return super.OnDestruct(value); }
@@ -32,7 +32,7 @@ test("Destruct calls the most derived OnDestruct, which reaches its parents thro
 test("Destruct runs once: it answers true, moves the state, and a second call answers false", () =>
 {
   const calls = [], seen = [];
-  class Owner extends CjsGraphRoot
+  class Owner extends ICjsGraphRoot
   {
     OnDestruct(options) { calls.push([ "OnDestruct", options ]); seen.push(this.IsDestructed()); return super.OnDestruct(options); }
   }
@@ -52,7 +52,7 @@ test("Destruct runs once: it answers true, moves the state, and a second call an
 test("an OnDestruct that answers false refuses: no state changes and no destructor runs", () =>
 {
   let destructed = 0, refuse = true;
-  class Shared extends CjsGraphRoot { OnDestruct(options) { return refuse ? false : super.OnDestruct(options); } }
+  class Shared extends ICjsGraphRoot { OnDestruct(options) { return refuse ? false : super.OnDestruct(options); } }
   CjsGraph.define(Shared, { name: "RefusingShared", destructor() { destructed++; } });
   const object = new Shared();
   assert.equal(object.Destruct(), false);
@@ -72,7 +72,7 @@ test("an OnDestruct that answers false refuses: no state changes and no destruct
 test("only an answer of exactly false refuses", () =>
 {
   let destructed = 0;
-  class Quiet extends CjsGraphRoot { OnDestruct() {} }
+  class Quiet extends ICjsGraphRoot { OnDestruct() {} }
   CjsGraph.define(Quiet, { name: "QuietOwner", destructor() { destructed++; } });
   assert.equal(new Quiet().Destruct(), true);
   assert.equal(destructed, 1);
@@ -81,7 +81,7 @@ test("only an answer of exactly false refuses", () =>
 test("an OnDestruct that throws leaves the object alive; a destructor that throws leaves it DESTRUCTING", () =>
 {
   let fail = true, destructed = 0;
-  class Fragile extends CjsGraphRoot { OnDestruct(options) { if (fail) throw new Error("hook failure"); return super.OnDestruct(options); } }
+  class Fragile extends ICjsGraphRoot { OnDestruct(options) { if (fail) throw new Error("hook failure"); return super.OnDestruct(options); } }
   CjsGraph.define(Fragile, { name: "FragileOwner", destructor() { destructed++; } });
   const object = new Fragile();
   assert.throws(() => object.Destruct(), /hook failure/);
@@ -90,7 +90,7 @@ test("an OnDestruct that throws leaves the object alive; a destructor that throw
   fail = false;
   assert.equal(object.Destruct(), true, "it can be destructed once the hook succeeds");
 
-  class Broken extends CjsGraphRoot {}
+  class Broken extends ICjsGraphRoot {}
   CjsGraph.define(Broken, { name: "BrokenOwner", destructor() { throw new Error("destructor failure"); } });
   const broken = new Broken();
   assert.throws(() => broken.Destruct(), /destructor failure/);
@@ -113,7 +113,7 @@ test("an object with no __cjs field gains its state on Destruct, and a re-entran
 
 test("a root has no state until the graph is asked, and IsDestructed reads it without creating one", () =>
 {
-  class Rooted extends CjsGraphRoot {}
+  class Rooted extends ICjsGraphRoot {}
   CjsGraph.define(Rooted, { name: "DestructStateRooted" });
   const object = new Rooted();
   assert.equal(Object.hasOwn(object, "__cjs"), true);
@@ -141,7 +141,7 @@ test("the runner calls each level's destructor once, derived first, and no OnDes
 {
   const calls = [];
   class A {} class B {} class C {}
-  class D extends CjsGraphRoot { OnDestruct(options) { calls.push("D.OnDestruct"); return super.OnDestruct(options); } }
+  class D extends ICjsGraphRoot { OnDestruct(options) { calls.push("D.OnDestruct"); return super.OnDestruct(options); } }
   CjsGraph.define(A, { name: "RunnerA", destructor(...args) { calls.push([ "~A", this.constructor, args.length ]); } });
   CjsGraph.define(B, { name: "RunnerB", bases: [ A ] });
   CjsGraph.define(C, { name: "RunnerC", bases: [ A ], destructor() { calls.push("~C"); } });
@@ -161,7 +161,7 @@ test("the runner calls each level's destructor once, derived first, and no OnDes
 test("Destruct runs OnDestruct once with the arguments, then every level's destructor with none", () =>
 {
   const calls = [];
-  class Base extends CjsGraphRoot { OnDestruct(value) { calls.push([ "Base.OnDestruct", value ]); return super.OnDestruct(value); } }
+  class Base extends ICjsGraphRoot { OnDestruct(value) { calls.push([ "Base.OnDestruct", value ]); return super.OnDestruct(value); } }
   class Middle extends Base {}
   class Derived extends Middle { OnDestruct(value) { calls.push([ "Derived.OnDestruct", value ]); return super.OnDestruct(value); } }
   CjsGraph.define(Base, { name: "ChainBase", destructor(...args) { calls.push([ "~Base", args.length ]); } });

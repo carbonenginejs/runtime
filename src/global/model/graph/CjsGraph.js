@@ -276,6 +276,35 @@ export class CjsGraph
   }
 
   /**
+   * The check a class static adds to a door: the object is exactly that class, never a subclass.
+   * @cjs CjsGraph's own doors take any registered object; Foo.get(object) takes a Foo only.
+   * @param {Function} ctor The class whose static was called.
+   * @param {object} object The object handed in.
+   * @returns {object} The same object.
+   */
+  static door(ctor, object)
+  {
+    if (object === null || typeof object !== "object" || object.constructor !== ctor)
+      throw new TypeError(`${this.getClassInfo(ctor).declared.name} takes exactly its own class.`);
+    return object;
+  }
+
+  /**
+   * The check a class static adds to values: a _type they name is that class's.
+   * @cjs Values with no _type pass; whether they are plain is the door's own check.
+   * @param {Function} ctor The class whose static was called.
+   * @param {*} values The values handed in.
+   * @returns {*} The same values.
+   */
+  static doorValues(ctor, values)
+  {
+    const name = this.getClassInfo(ctor).declared.name;
+    if (values !== null && values !== undefined && values._type !== undefined && values._type !== name)
+      throw new TypeError(`${name} takes values of its own class, not _type ${values._type}.`);
+    return values;
+  }
+
+  /**
    * Returns an object's runtime state, creating it on the first ask. Nothing else creates one.
    * @cjs An object that is never asked keeps `__cjs` null and costs nothing.
    * @param {object} object The object.
@@ -482,26 +511,12 @@ export class CjsGraph
   }
 
   /**
-   * Returns one member's value in the same form get writes it.
-   * @cjs A binary or runtime-only member is unknown here.
-   */
-  static getValue(object, name, options = {})
-  {
-    const operation = this._beginGet({ ...options, full: true });
-    const info = this._getObjectInfo(object, this._noTypes);
-    const member = this._getMemberTable(info, GraphOperation.GET, operation).byName[name];
-    if (!member) throw new TypeError(`Unknown graph member: ${info.declared.name}.${name}`);
-
-    return this._getMember(object, member, operation);
-  }
-
-  /**
    * Writes values into an existing object: IsEqual skips what already matches, and each changed
    * member is recorded. A nested object read in place records a nested bag, a replaced reference
    * records the live object, and a changed list records its whole new plain array, so the
    * record can be replayed through set. Returns that record, or false when nothing changed.
    * Then, children first and once references resolve, each changed object is told
-   * updateValues(changedNames). Set never calls Initialize, unless initializeHeld is true.
+   * commitValues(changedNames). Set never calls Initialize, unless initializeHeld is true.
    * options: validate (default true) runs each handler's IsValidValue on the incoming value;
    * skipEquality writes every value; skipEvents tells nothing and writes lists raw; idMap, a Map
    * of id to object, is this set's _id table: its entries resolve _ref, and a record then holds
@@ -527,13 +542,13 @@ export class CjsGraph
    * A named member without NOTIFY is skipped. An unknown name throws unless
    * options.skipValidation, which SetValues passes for names it has already checked.
    * @cjs Our helper over Carbon's per-member INotify, for SetValues and for direct writes. It keeps
-   * no baseline and compares nothing. Options are opt-outs (skip...).
+   * no baseline and compares nothing. Options are opt-outs (skip...). Engine code never calls it.
    * @param {object} object The object whose members changed.
    * @param {string|string[]|null} [names=null] One member, several, or null for all.
    * @param {{skipValidation?: boolean}} [options={}] Opt-outs.
    * @returns {void}
    */
-  static updateValues(object, names = null, options = {})
+  static commitValues(object, names = null, options = {})
   {
     const info = this._getObjectInfo(object, this._noTypes);
     const list = typeof names === "string" ? [ names ] : names;
@@ -593,15 +608,6 @@ export class CjsGraph
     }
 
     return changes;
-  }
-
-  /**
-   * Writes one member through set.
-   * @cjs
-   */
-  static setValue(object, name, value, options)
-  {
-    return this.set(object, { [name]: value }, options);
   }
 
   /**
@@ -1176,7 +1182,7 @@ export class CjsGraph
   /**
    * Fires OnModified in member-table order for the NOTIFY members among names (every NOTIFY
    * member when names is null), or for every named member when all is set. Names that are not
-   * members are skipped; updateValues validates them first.
+   * members are skipped; commitValues validates them first.
    * @cjs Carbon's per-member INotify. Copier takes no NOTIFY flag (Copier.cpp:190), so a copy
    * passes all.
    */

@@ -147,7 +147,7 @@ test("UpdateValues with a name tells the same OnModified as Set", () =>
   const told = spy(transition);
 
   transition.name = "direct";
-  CjsGraph.updateValues(transition, "name");
+  CjsGraph.commitValues(transition, "name");
   assert.deepEqual(told, [ [ "OnModified", "name" ] ]);
 });
 

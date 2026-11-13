@@ -1,14 +1,14 @@
 import { meta, type } from "#schema";
 import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
-import { CjsGraphRoot } from "../../global/model/graph/CjsGraphRoot.js";
+import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 
 /**
  * A CCP skin a ship wears, read-only. Ours. Null where it is not known.
  * @cjs
  */
 @meta.define({ className: "TnySkinIdentity" })
-@meta.exposureChainTo(CjsGraphRoot)
-export class TnySkinIdentity extends CjsGraphRoot
+@meta.exposureChainTo(ICjsGraphRoot)
+export class TnySkinIdentity extends ICjsGraphRoot
 {
 
     /**

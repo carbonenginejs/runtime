@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { parse } from "@babel/parser";
 import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
-import { CjsGraphRoot } from "../../npm/dist/global/model/graph/CjsGraphRoot.js";
+import { ICjsGraphRoot } from "../../npm/dist/global/model/graph/ICjsGraphRoot.js";
 
 // All 86 maintained owner Destruct declarations at runtime089be93feed49cb892dcac51243f1930acab1d39.
 // The brief's91 was a stale count; a source AST audit of that revision found these86.
@@ -122,7 +122,7 @@ for (const [name, file] of owners)
     // One of ours: its cleanup is its OnDestruct, found by dispatch.
     else assert.equal(typeof Object.getOwnPropertyDescriptor(Constructor.prototype, "OnDestruct")?.value, "function");
     assert.equal(typeof Constructor.prototype.Destruct, "function");
-    if (!delegates.has(name)) assert.equal(Constructor.prototype.Destruct, CjsGraphRoot.prototype.Destruct);
+    if (!delegates.has(name)) assert.equal(Constructor.prototype.Destruct, ICjsGraphRoot.prototype.Destruct);
     else
     {
       assert.equal(Object.hasOwn(Constructor.prototype, "Destruct"), true);

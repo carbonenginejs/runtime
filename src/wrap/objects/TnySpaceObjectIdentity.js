@@ -1,6 +1,6 @@
 import { meta, type } from "#schema";
 import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
-import { CjsGraphRoot } from "../../global/model/graph/CjsGraphRoot.js";
+import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 
 /**
  * What a space object is, filled in by the library and read-only to a UI:
@@ -8,8 +8,8 @@ import { CjsGraphRoot } from "../../global/model/graph/CjsGraphRoot.js";
  * @cjs
  */
 @meta.define({ className: "TnySpaceObjectIdentity" })
-@meta.exposureChainTo(CjsGraphRoot)
-export class TnySpaceObjectIdentity extends CjsGraphRoot
+@meta.exposureChainTo(ICjsGraphRoot)
+export class TnySpaceObjectIdentity extends ICjsGraphRoot
 {
 
     /**

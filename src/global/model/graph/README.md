@@ -59,7 +59,7 @@ and `OnListModified` are methods on objects, and flags are data: a member carrie
 definition says `initialize`, `notify` and `listNotify`.
 Member tables are cached per class and choice of flags on the compiled record.
 
-- **Set on a live object:** IsEqual, then updateValues(changedNames), children first and once
+- **Set on a live object:** IsEqual, then commitValues(changedNames), children first and once
   references resolve. It never calls Initialize unless `initializeHeld` is true.
 - **from:** writes every value with no comparison and no change tracking, then Initialize once
   if the class has it, otherwise OnModified per NOTIFY member. Never both.
@@ -86,11 +86,11 @@ A definition may name `interfaces`, the classes an instance also counts as witho
 inheriting from them, and set `whole`, when its members are the class's complete list and
 no base definition may add to them.
 
-`CjsGraph.updateValues(object, names, options)` only touches its own object: OnModified per NOTIFY
+`CjsGraph.commitValues(object, names, options)` only touches its own object: OnModified per NOTIFY
 member in member-table order, for those named or, with no names, all. Unknown names throw unless
 `skipValidation`. It keeps no baseline and compares nothing.
 
-CjsGraphRoot is the optional base class: thin forwards and `__cjs`, which is null until
+ICjsGraphRoot is the optional base class: thin forwards and `__cjs`, which is null until
 `CjsGraph.getState(object)` creates its CjsGraphState (`state`, `prepared`, `guid`). The state
 is never a member, so no value operation reads or copies it. `IsDestructed()` is true once
 `state` is above ALIVE, and false for an object with no state. Its Destruct
@@ -191,4 +191,4 @@ and controller references remain unexpanded; dynamically created runtime content
 GPU preparation are not covered. Production schemas and resource enumeration are unchanged.
 
 graphTypes.js exports the sole Carbon VARTYPE enum with unchanged names and values.
-The handlers are under types/. CjsGraphRoot provides operation forwards.
+The handlers are under types/. ICjsGraphRoot provides operation forwards.

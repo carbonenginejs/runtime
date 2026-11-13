@@ -1,5 +1,5 @@
 import { CjsSchema, meta, type } from "#schema";
-import { CjsGraphRoot } from "../../global/model/graph/CjsGraphRoot.js";
+import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 import { INotify } from "../../blue/exposure/INotify.js";
 import { Copier } from "../../blue/exposure/Copier.js";
 import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
@@ -20,9 +20,9 @@ const FAMILIES = { turret: "turrets", launcher: "launchers", missile: "launchers
  * @cjs
  */
 @meta.define({ className: "TnySlot" })
-@meta.exposureChainTo(CjsGraphRoot)
+@meta.exposureChainTo(ICjsGraphRoot)
 @meta.mapInterface(INotify)
-export class TnySlot extends CjsGraphRoot
+export class TnySlot extends ICjsGraphRoot
 {
 
     /**

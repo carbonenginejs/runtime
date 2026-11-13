@@ -1,6 +1,6 @@
 import { CjsSchema, meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
-import { CjsGraphRoot } from "../../global/model/graph/CjsGraphRoot.js";
+import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 import { INotify } from "../../blue/exposure/INotify.js";
 import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { CjsLibrary } from "../../core/CjsLibrary.js";
@@ -61,9 +61,9 @@ let wrapperCount = 0;
  * @cjs
  */
 @meta.define({ className: "TnySpaceObject" })
-@meta.exposureChainTo(CjsGraphRoot)
+@meta.exposureChainTo(ICjsGraphRoot)
 @meta.mapInterface(INotify)
-export class TnySpaceObject extends CjsGraphRoot
+export class TnySpaceObject extends ICjsGraphRoot
 {
 
     /**

@@ -1,7 +1,7 @@
 import { EDITFLAGS } from "../../src/global/consts/blue.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsGraph, CjsGraphRoot, CjsGraphTypeFloat, GraphMemberFlags } from "../../src/global/model/graph/index.js";
+import { CjsGraph, ICjsGraphRoot, CjsGraphTypeFloat, GraphMemberFlags } from "../../src/global/model/graph/index.js";
 
 const float = new CjsGraphTypeFloat();
 
@@ -135,8 +135,6 @@ test("get omits an empty indexed slot and reads a filled one", () =>
   const values = CjsGraph.get(holder, { full: true });
   assert.equal(Object.hasOwn(values, "first"), false);
   assert.equal(values.second.name, "slot");
-  assert.equal(CjsGraph.getValue(holder, "second").name, "slot");
-  assert.equal(CjsGraph.getValue(holder, "first"), null);
 });
 
 test("get refuses an unregistered object rather than dropping it", () =>
@@ -617,39 +615,73 @@ test("clone rebuilds a separate graph, and copy writes into a target, keeping id
   assert.equal(target.items[0], target.child);
 });
 
-test("CjsGraphRoot forwards every operation and holds per-object state", () =>
+test("ICjsGraphRoot forwards every operation and holds per-object state", () =>
 {
-  class Rooted extends CjsGraphRoot
+  class Rooted extends ICjsGraphRoot
   {
     name = "";
     weight = 1;
   }
+  class Derived extends Rooted {}
   CjsGraph.define(Rooted, { name: "GraphValueRooted", members: [ { name: "name", type: "string" }, { name: "weight", type: "float32" } ] });
+  CjsGraph.define(Derived, { name: "GraphValueRootedDerived", chainTo: "GraphValueRooted" });
 
   const object = Rooted.from({ name: "a" });
   assert.equal(object.constructor, Rooted);
   assert.equal(object.__cjs, null);
   assert.deepEqual(object.GetValues({ full: true }), { name: "a", weight: 1 });
-  assert.equal(object.GetValue("name"), "a");
-  assert.deepEqual(object.SetValues({ weight: 2 }), { weight: 2 });
-  assert.deepEqual(object.SetValue("name", "b"), { name: "b" });
-  assert.equal(object.SetValue("name", "b"), false);
-  assert.equal(object.UpdateValues(), undefined);
-  assert.equal(object.UpdateValues("name"), undefined);
+  assert.deepEqual(object.SetValues({ weight: 2, name: "b" }), { weight: 2, name: "b" });
+  assert.equal(object.SetValues({ name: "b" }), false);
+  assert.equal(object.CommitValues(), undefined);
+  assert.equal(object.CommitValues("name"), undefined);
+  for (const gone of [ "GetValue", "SetValue", "UpdateValues", "Copy", "Clone" ]) assert.equal(gone in object, false, `${gone} is gone`);
 
   // The state is no member: values leave it out, and a clone or a copy starts with none.
   const state = CjsGraph.getState(object);
   assert.equal("__cjs" in object.GetValues({ full: true }), false);
 
-  const clone = object.Clone();
+  const clone = object.CloneValues();
   assert.notEqual(clone, object);
   assert.equal(clone.__cjs, null);
   assert.deepEqual(clone.GetValues({ full: true }), object.GetValues({ full: true }));
 
   const target = new Rooted();
-  assert.deepEqual(target.Copy(object), { name: "b", weight: 2 });
+  assert.deepEqual(target.CopyValues(object), { name: "b", weight: 2 });
   assert.equal(target.__cjs, null);
   assert.equal(object.__cjs, state);
+
+  const visited = [];
+  assert.equal(object.Traverse(visited.push.bind(visited)), 1);
+  assert.equal(visited[0], object);
+});
+
+test("a class static is the graph's door with one check: exactly that class, and a matching _type", () =>
+{
+  class Base extends ICjsGraphRoot { name = ""; }
+  class Derived extends Base {}
+  CjsGraph.define(Base, { name: "GraphDoorBase", members: [ { name: "name", type: "string" } ] });
+  CjsGraph.define(Derived, { name: "GraphDoorDerived", chainTo: "GraphDoorBase" });
+  const base = Base.from({ name: "a" }), derived = Derived.from({ name: "d", _type: "GraphDoorDerived" });
+  assert.equal(derived.constructor, Derived);
+
+  assert.deepEqual(Base.get(base, { full: true }), CjsGraph.get(base, { full: true }));
+  assert.deepEqual(Base.set(base, { name: "b" }), { name: "b" });
+  assert.equal(Base.set(base, { name: "b", _type: "GraphDoorBase" }), false);
+  const clone = Base.clone(base);
+  assert.equal(clone.constructor, Base);
+  assert.equal(clone.name, "b");
+  assert.deepEqual(Base.copy(base, new Base()), { name: "b" });
+
+  for (const refused of [
+    () => Base.get(derived), () => Base.set(derived, { name: "x" }), () => Base.clone(derived),
+    () => Base.copy(derived, new Base()), () => Base.copy(base, new Derived()), () => Base.get(null), () => Derived.get(base)
+  ]) assert.throws(refused, /takes exactly its own class/);
+  for (const refused of [ () => Base.from({ _type: "GraphDoorDerived" }), () => Base.set(base, { _type: "GraphDoorDerived" }) ])
+    assert.throws(refused, /takes values of its own class, not _type GraphDoorDerived/);
+  assert.equal(derived.name, "d", "a refused write changes nothing");
+
+  // The graph's own doors take any registered object.
+  assert.deepEqual(CjsGraph.get(derived, { full: true }), { name: "d" });
 });
 
 test("a definition marked whole takes nothing from its base", () =>
@@ -1096,11 +1128,11 @@ test("UpdateValues with names fires OnModified for those NOTIFY members on that 
 {
   const owner = watched("owner"), child = owner.child = watched("child");
 
-  assert.deepEqual(told(() => CjsGraph.updateValues(owner, "weight")), [ [ "OnModified", "owner", "weight" ] ]);
-  assert.deepEqual(told(() => CjsGraph.updateValues(owner, [ "name", "quiet" ])), [ [ "OnModified", "owner", "name" ] ]);
-  assert.deepEqual(told(() => CjsGraph.updateValues(child, "weight")), [ [ "OnModified", "child", "weight" ] ]);
-  assert.throws(() => CjsGraph.updateValues(owner, "nothing"), /Unknown graph member/);
-  assert.deepEqual(told(() => CjsGraph.updateValues(owner, [ "nothing", "weight" ], { skipValidation: true })),
+  assert.deepEqual(told(() => CjsGraph.commitValues(owner, "weight")), [ [ "OnModified", "owner", "weight" ] ]);
+  assert.deepEqual(told(() => CjsGraph.commitValues(owner, [ "name", "quiet" ])), [ [ "OnModified", "owner", "name" ] ]);
+  assert.deepEqual(told(() => CjsGraph.commitValues(child, "weight")), [ [ "OnModified", "child", "weight" ] ]);
+  assert.throws(() => CjsGraph.commitValues(owner, "nothing"), /Unknown graph member/);
+  assert.deepEqual(told(() => CjsGraph.commitValues(owner, [ "nothing", "weight" ], { skipValidation: true })),
     [ [ "OnModified", "owner", "weight" ] ], "skipValidation skips unknown names");
 });
 
@@ -1108,15 +1140,15 @@ test("UpdateValues notifies in member-table order, and with no names every NOTIF
 {
   const owner = watched("owner");
 
-  assert.deepEqual(told(() => CjsGraph.updateValues(owner, [ "weight", "name" ])),
+  assert.deepEqual(told(() => CjsGraph.commitValues(owner, [ "weight", "name" ])),
     [ [ "OnModified", "owner", "name" ], [ "OnModified", "owner", "weight" ] ]);
-  assert.deepEqual(told(() => CjsGraph.updateValues(owner)), [
+  assert.deepEqual(told(() => CjsGraph.commitValues(owner)), [
     [ "OnModified", "owner", "name" ],
     [ "OnModified", "owner", "weight" ],
     [ "OnModified", "owner", "child" ],
     [ "OnModified", "owner", "items" ]
   ]);
-  assert.deepEqual(told(() => CjsGraph.updateValues(new Bare())), [], "a class without notify is told nothing");
+  assert.deepEqual(told(() => CjsGraph.commitValues(new Bare())), [], "a class without notify is told nothing");
 });
 
 test("the three routes agree for the object changed", () =>
@@ -1135,7 +1167,7 @@ test("the three routes agree for the object changed", () =>
   assert.deepEqual(run(owner =>
   {
     owner.child.weight = 5;
-    CjsGraph.updateValues(owner.child, "weight");
+    CjsGraph.commitValues(owner.child, "weight");
   }), expected);
 });
 
@@ -1174,7 +1206,6 @@ test("get filters by flags, and a hidden derived declaration leaves the visible 
   assert.equal(CjsGraph.set(flags, { readOnly: 9, secret: 9 }), false, "skipped, as DictReader skips what it may not write");
   assert.equal(flags.readOnly, 3);
   assert.throws(() => CjsGraph.set(flags, { nothing: 1 }), /Unknown graph member/);
-  assert.throws(() => CjsGraph.getValue(flags, "secret"), /Unknown graph member/);
 });
 
 test("a registration change rebuilds the member tables", () =>

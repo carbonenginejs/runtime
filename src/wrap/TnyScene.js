@@ -1,5 +1,5 @@
 import { CjsSchema, meta, type } from "#schema";
-import { CjsGraphRoot } from "../global/model/graph/CjsGraphRoot.js";
+import { ICjsGraphRoot } from "../global/model/graph/ICjsGraphRoot.js";
 import { INotify } from "../blue/exposure/INotify.js";
 import { CjsBlueGraph } from "../blue/formats/graph/CjsBlueGraph.js";
 import { CjsLibrary } from "../core/CjsLibrary.js";
@@ -18,9 +18,9 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../trinity/core/con
  * @cjs
  */
 @meta.define({ className: "TnyScene" })
-@meta.exposureChainTo(CjsGraphRoot)
+@meta.exposureChainTo(ICjsGraphRoot)
 @meta.mapInterface(INotify)
-export class TnyScene extends CjsGraphRoot
+export class TnyScene extends ICjsGraphRoot
 {
 
     /**

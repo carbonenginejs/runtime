@@ -13,7 +13,7 @@
 import { EDITFLAGS, VARTYPE } from "../../global/consts/blue.js";
 import { baseList, exposureChainTo, mappedInterfaces, ownMappedInterfaces, setExposureChangeListener } from "../compose/interface.js";
 import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
-import { CjsGraphRoot } from "../../global/model/graph/CjsGraphRoot.js";
+import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 import { registerClass } from "../exposure/classes/registry.js";
 import { ClassInfo } from "../base/ClassInfo.js";
 import { ClassInfoMeta } from "../base/ClassInfoMeta.js";
@@ -361,7 +361,7 @@ function registerGraphLifetime(Constructor, visited = new Set())
   // An inherited legacy body must keep running until that owning class is migrated.
   if (!("Destruct" in Constructor.prototype))
     Object.defineProperty(Constructor.prototype, "Destruct", {
-      value: CjsGraphRoot.prototype.Destruct, configurable: true, writable: true
+      value: ICjsGraphRoot.prototype.Destruct, configurable: true, writable: true
     });
 }
 
