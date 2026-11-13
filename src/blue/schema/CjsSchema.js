@@ -3321,13 +3321,8 @@ function normalizeClassDefinition(Constructor, definition)
     }
 
     const result = { ...(definition || {}) };
-    // Transitional while the definitions are renamed (graph plan step 22); the last commit of the step makes it throw.
-    if (Object.hasOwn(result, "className"))
-    {
-        if (Object.hasOwn(result, "name")) throw new TypeError("CjsSchema.define takes name, not className as well.");
-        result.name = result.className;
-        delete result.className;
-    }
+    // A definition names its class with `name`, as an exposure bag does (graph plan step 22).
+    if (Object.hasOwn(result, "className")) throw new TypeError("CjsSchema.define takes name, not className.");
     if (typeof result.name !== "string" || !result.name.trim())
     {
         throw new TypeError("CjsSchema.define requires an explicit non-empty name.");
