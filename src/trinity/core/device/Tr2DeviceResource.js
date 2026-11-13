@@ -45,11 +45,12 @@ export class Tr2DeviceResource
 
   /**
    * Carbon: ~Tr2DeviceResource (trinity/trinity/Tr2DeviceResource.cpp:15-18): unregisters this owner.
-   * @adapted Explicit teardown marks the object dead so later use cannot re-register it.
+   * @adapted Its device objects are gone with it, so it is no longer prepared. What keeps a destructed resource
+   *   from registering again is the graph's state, which Destruct sets; the runner alone leaves it usable.
    */
   _Destructor()
   {
-    this._state = Tr2DeviceResourceState.DESTRUCTED;
+    this._state = Tr2DeviceResourceState.NONE;
     // CPU-only deep imports can be destroyed before a device class is loaded.
     if (this._registeredGeneration === undefined || this._registeredGeneration < 0) return;
     CjsSchema.getConstructor("TriDevice").UnregisterResource(this);
@@ -99,7 +100,7 @@ export class Tr2DeviceResource
       const prepared = this._OnPrepareResources() === true;
       // Ours: the state IsGood answers from (Revised lifecycle § 3). A destructed
       // resource stays destructed.
-      if (this._state !== Tr2DeviceResourceState.DESTRUCTED)
+      if (!CjsGraph.isDestructed(this))
       {
         this._state = prepared ? Tr2DeviceResourceState.PREPARED : Tr2DeviceResourceState.NONE;
       }
@@ -128,7 +129,7 @@ export class Tr2DeviceResource
    */
   KeepAlive()
   {
-    if (this._state === Tr2DeviceResourceState.DESTRUCTED) return;
+    if (CjsGraph.isDestructed(this)) return;
     const deviceClass = CjsSchema.getConstructor("TriDevice");
     if (deviceClass === null) return;
     const now = deviceClass.activeTime;
@@ -137,7 +138,7 @@ export class Tr2DeviceResource
   }
 
   /**
-   * `NONE`, `PREPARED` or `DESTRUCTED` (`Tr2DeviceResourceState`). Installed
+   * `NONE` or `PREPARED` (`Tr2DeviceResourceState`). Installed
    * classes take it on first use (`@be.inherit` copies methods, not fields), so
    * an undefined state reads as `NONE`.
    *

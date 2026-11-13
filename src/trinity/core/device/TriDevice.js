@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { exposure as be } from "#be";
 import { IRoot } from "../../../blue/exposure/IRoot.js";
 // Source: trinity/trinity/TriDevice.h
@@ -762,7 +763,7 @@ export class TriDevice extends IRoot
       const index = this._resourcePrepareCursor % resources.length;
       this._resourcePrepareCursor = index + 1;
       const resource = resources[index], generation = generations[index];
-      if ((resource._generation | 0) !== generation || resource._state === Tr2DeviceResourceState.DESTRUCTED ||
+      if ((resource._generation | 0) !== generation || CjsGraph.isDestructed(resource) ||
           resource._state === Tr2DeviceResourceState.PREPARED || now < resource._retryAt) continue;
       attempts++;
       let prepared = false;
@@ -772,7 +773,7 @@ export class TriDevice extends IRoot
         CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Device resource preparation failed: %s", error.message);
       }
       // A callback may destroy or unregister itself. Never resurrect it here.
-      if ((resource._generation | 0) !== generation || resource._state === Tr2DeviceResourceState.DESTRUCTED) continue;
+      if ((resource._generation | 0) !== generation || CjsGraph.isDestructed(resource)) continue;
       resource._state = prepared ? Tr2DeviceResourceState.PREPARED : Tr2DeviceResourceState.NONE;
       resource._retryAt = prepared ? 0 : now + PREPARE_RETRY_SECONDS * TICKS_PER_SECOND;
     }
@@ -788,7 +789,7 @@ export class TriDevice extends IRoot
     const storage = TriDevice.resourceSweepStorage;
     for (const resource of TriDevice.GetResourcesRegistered())
     {
-      if (resource._neverPurge || resource._state === Tr2DeviceResourceState.DESTRUCTED || !(resource._stamp < expiry)) continue;
+      if (resource._neverPurge || CjsGraph.isDestructed(resource) || !(resource._stamp < expiry)) continue;
       // Unregister first: a release callback may renew and register a new generation.
       TriDevice.UnregisterResource(resource);
       resource.ReleaseResources(storage);
@@ -805,7 +806,7 @@ export class TriDevice extends IRoot
   /** @adapted Carbon TriDevice registry API (TriDevice.h:135-136,266). */
   static RegisterResource(resource)
   {
-    if (resource._state === Tr2DeviceResourceState.DESTRUCTED) return;
+    if (CjsGraph.isDestructed(resource)) return;
     // An installed class takes the fields on first use (`@be.inherit` copies methods).
     const generation = resource._generation | 0;
     if (resource._registeredGeneration === generation) return;
@@ -825,7 +826,7 @@ export class TriDevice extends IRoot
   /** @adapted Carbon TriDevice registry API (TriDevice.h:135-136,266). */
   static UnregisterResource(resource)
   {
-    if (resource._state !== Tr2DeviceResourceState.DESTRUCTED) resource._state = Tr2DeviceResourceState.NONE;
+    resource._state = Tr2DeviceResourceState.NONE;
     resource._generation = (resource._generation | 0) + 1;
   }
 

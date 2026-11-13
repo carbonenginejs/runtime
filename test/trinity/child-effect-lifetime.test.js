@@ -67,7 +67,7 @@ test("a retained sibling keeps its shared particle provider alive", async t =>
   await new Promise(resolve => setImmediate(resolve));
   action.Stop(controller);
   assert.equal(destroyed, 0);
-  assert.notEqual(sibling.particleSystems[0]._state, 2, "not destructed (Tr2DeviceResourceState.DESTRUCTED)");
+  assert.equal(sibling.particleSystems[0].IsDestructed(), false, "not destructed");
   sibling.particleSystems[0].Destruct();
   assert.equal(destroyed, 1);
 });

@@ -6,14 +6,14 @@
 // *Revised lifecycle* § 3).
 
 /**
- * A scene-content device resource's state: `NONE` (no device objects), `PREPARED`
- * (its device objects exist) or `DESTRUCTED` (its owner tore it down; it never
- * prepares again).
+ * A scene-content device resource's state: `NONE` (no device objects) or `PREPARED`
+ * (its device objects exist). Whether its owner tore it down is not here: the graph
+ * holds that (`CjsGraph.isDestructed`), and a destructed resource never prepares again.
  *
  * @cjs
- * @type {{ NONE: number, PREPARED: number, DESTRUCTED: number }}
+ * @type {{ NONE: number, PREPARED: number }}
  */
-export const Tr2DeviceResourceState = { NONE: 0, PREPARED: 1, DESTRUCTED: 2 };
+export const Tr2DeviceResourceState = { NONE: 0, PREPARED: 1 };
 
 /**
  * Blue ticks per second: Blue's frame time counts 100 ns ticks (CcpTime).

@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { exposure as be } from "#be";
 import { ITr2TextureProvider } from "../ITr2TextureProvider.js";
 import { IRoot } from "../../../blue/exposure/IRoot.js";
@@ -124,7 +125,7 @@ export class Tr2TextureArray extends IRoot
         // build the new one.
         if (this.texture) this.texture.Destroy();
         this.texture = null;
-        if (this._state !== Tr2DeviceResourceState.DESTRUCTED) this._state = Tr2DeviceResourceState.NONE;
+        if (!CjsGraph.isDestructed(this)) this._state = Tr2DeviceResourceState.NONE;
         this.KeepAlive();
 
         this.#revision += 1;

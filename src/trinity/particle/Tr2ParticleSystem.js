@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { BlueList, IListNotify } from "#blue";
@@ -79,7 +80,7 @@ export class Tr2ParticleSystem
    */
   KeepAlive()
   {
-    if (this._state !== Tr2DeviceResourceState.DESTRUCTED) Tr2ParticleSystem.getAllSystems().add(this);
+    if (!CjsGraph.isDestructed(this)) Tr2ParticleSystem.getAllSystems().add(this);
     Tr2DeviceResource.prototype.KeepAlive.call(this);
   }
 

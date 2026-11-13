@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { blue } from "../../npm/dist/blue/index.js";
 import { TriDevice, trinity, Tr2DeviceResource, Tr2Renderer, EveTrailsSet } from "../../npm/dist/trinity/index.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 const SECOND = 10000000;
 function setup(t) {
   const oldResources = TriDevice._resourcesRegistered, oldGenerations = TriDevice._registeredGenerations;
@@ -79,7 +80,8 @@ test("resource creation gate and destruction during preparation are respected", 
   device._PreparePendingResources(); assert.equal(r.prepares, 0);
   Tr2Renderer.IsResourceCreationAllowed.mock.mockImplementation(() => true);
   r.PrepareResources = () => { Tr2DeviceResource.prototype.Destruct.call(r); return true; };
-  device._PreparePendingResources(); assert.equal(r._state, 2); assert.equal(r.IsGood(), false);
+  // Destructed is the graph's answer; the device state only says it is not prepared.
+  device._PreparePendingResources(); assert.equal(CjsGraph.isDestructed(r), true); assert.equal(r._state, 0); assert.equal(r.IsGood(), false);
 });
 test("release callback can renew without its new registration being removed", t => {
   const { device, at } = setup(t), r = resource(); r.KeepAlive(); device._PreparePendingResources();
