@@ -203,3 +203,22 @@ test("class registration hands the graph a class's own _Destructor beside its On
     owner.Destruct();
     assert.deepEqual(calls, ["~Owner", "Base.OnDestruct", "~Base"]);
 });
+
+test("an inherit row copies neither teardown function, so a base's _Destructor runs once", () =>
+{
+    const calls = [];
+    class Second { OnDestruct() { calls.push("Second.OnDestruct"); } _Destructor() { calls.push("~Second"); } Shared() {} }
+    class Owner {}
+    CjsSchema.meta.define("LifetimeInheritSecond")(Second);
+    CjsSchema.meta.inherit(Second)(Owner);
+    CjsSchema.meta.define("LifetimeInheritOwner")(Owner);
+    assert.equal(Object.hasOwn(Owner.prototype, "Shared"), true);
+    assert.equal(Object.hasOwn(Owner.prototype, "_Destructor"), false);
+    assert.equal(Object.hasOwn(Owner.prototype, "OnDestruct"), false);
+    const owner = new Owner();
+    CjsGraph.finalDelete(owner);
+    assert.deepEqual(calls, ["~Second"]);
+    calls.length = 0;
+    owner.Destruct();
+    assert.deepEqual(calls, ["Second.OnDestruct", "~Second"]);
+});
