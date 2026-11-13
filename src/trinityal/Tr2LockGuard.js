@@ -159,4 +159,4 @@ export class Tr2LockGuard
 
 // States: m_originalMemory, m_memory and m_size are Tr2LockGuard.h:7 members; className is the registered name this port adds. The class is adapted
 // because its methods are (the scratch block is a Uint8Array and there is no destructor).
-CjsSchema.meta.define({ className: "Tr2LockGuard", carbon: "Tr2LockGuard", capabilities: [ "destruct" ] })(Tr2LockGuard);
+CjsSchema.meta.define({ name: "Tr2LockGuard", carbon: "Tr2LockGuard", capabilities: [ "destruct" ] })(Tr2LockGuard);

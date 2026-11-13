@@ -341,4 +341,4 @@ export class Tr2MemoryCounterAL
 
 // States: MemoryType and m_memoryType/m_size are Tr2MemoryCounterAL.h:7; the four gpuMemory*Est counters are Tr2MemoryCounterAL.cpp:6-9's file-scope
 // statistics, moved onto the class (adapted); className is the registered name this port adds. The class is adapted because its methods are.
-CjsSchema.meta.define({ className: "Tr2MemoryCounterAL", carbon: "Tr2MemoryCounterAL", capabilities: [ "destruct" ] })(Tr2MemoryCounterAL);
+CjsSchema.meta.define({ name: "Tr2MemoryCounterAL", carbon: "Tr2MemoryCounterAL", capabilities: [ "destruct" ] })(Tr2MemoryCounterAL);

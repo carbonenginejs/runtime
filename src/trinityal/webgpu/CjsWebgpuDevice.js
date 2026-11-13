@@ -478,4 +478,4 @@ export class CjsWebgpuDevice
 }
 
 
-CjsSchema.meta.define({ className: "CjsWebgpuDevice", capabilities: [ "destruct" ] })(CjsWebgpuDevice);
+CjsSchema.meta.define({ name: "CjsWebgpuDevice", capabilities: [ "destruct" ] })(CjsWebgpuDevice);

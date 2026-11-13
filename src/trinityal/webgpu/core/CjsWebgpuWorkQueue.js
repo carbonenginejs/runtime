@@ -1308,4 +1308,4 @@ function LoadOp(action)
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
 // Donor: metal/MetalWorkQueue.h and MetalWorkQueue.mm. All 25 stamped methods are adapted: the encoder state machine (pending render-pass hint, pending clear, current encoder type, dirty state, per-draw state emission) is Metal's, run over a WebGPU GPUCommandEncoder with the frame's events recorded and drained, where Metal drives MTLCommandBuffer encoders directly. Notable differences: the render-pass hint takes a colour array and depth, ClearAttachment/SetRenderAttachments hold WebGPU attachment descriptors, a texture-to-buffer copy refuses waitForData (readback is awaited through its readback object), ClearBuffer uses clearBuffer rather than a compute kernel, and the dispatches and indirect draws use the WebGPU pass methods.
-CjsSchema.meta.define(CjsWebgpuWorkQueue, { className: "CjsWebgpuWorkQueue" });
+CjsSchema.meta.define(CjsWebgpuWorkQueue, { name: "CjsWebgpuWorkQueue" });

@@ -147,7 +147,7 @@ export class CjsWebgpuVideoColorSampler
 }
 
 CjsSchema.meta.define(CjsWebgpuVideoColorSampler, {
-  className: "CjsWebgpuVideoColorSampler",
+  name: "CjsWebgpuVideoColorSampler",
   capabilities: [ "destruct" ],
   methods: {
   Request: [], Destruct: [], _Read: []

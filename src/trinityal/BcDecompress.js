@@ -48,4 +48,4 @@ export class BcDecompress
 
 // Carbon's BcDecompress is a free function, not a class, so there is no class
 // surface to compare: the class is modelled on it and carries it as a static.
-CjsSchema.meta.define(BcDecompress, { className: "BcDecompress" });
+CjsSchema.meta.define(BcDecompress, { name: "BcDecompress" });
