@@ -174,10 +174,11 @@ export class CjsCharacterLibraryManager
     /**
      * The body carriers in force: the nude parts every character wears under its garments (each with the dependant
      * categories it names as its own carriers), the dependant categories a garment's own body pieces come from
-     * (`garmentDependants`), and which carrier areas the composed cut mask clips (`cutMaskClip`, applied by
-     * `CjsPaperDollInstance.cutMaskClipEffects`). A setting with a default: the defaults file
+     * (`garmentDependants`), which carrier areas the composed cut mask clips (`cutMaskClip`, applied by
+     * `CjsPaperDollInstance.cutMaskClipEffects`), and when a garment's mesh is its own copy of a carrier's
+     * (`meshCopy`: the vertex share and the position scale it is measured at). A setting with a default: the defaults file
      * `factory/defaults/bodyCarriers.json` until a host sets its own.
-     * @type {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: { resource: string, influence: string, above: number, clip: string } }}
+     * @type {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: { resource: string, influence: string, above: number, clip: string }, meshCopy: { share: number, positionScale: number } }}
      */
     _bodyCarriers = CjsCharacterLibraryManager.bodyCarrierDefaults();
 
@@ -208,8 +209,8 @@ export class CjsCharacterLibraryManager
      */
     static bodyCarrierDefaults()
     {
-        const { parts, garmentDependants, cutMaskClip } = bodyCarrierDefaults;
-        return CjsCharacterLibraryManager.copy({ parts, garmentDependants, cutMaskClip });
+        const { parts, garmentDependants, cutMaskClip, meshCopy } = bodyCarrierDefaults;
+        return CjsCharacterLibraryManager.copy({ parts, garmentDependants, cutMaskClip, meshCopy });
     }
 
     /**

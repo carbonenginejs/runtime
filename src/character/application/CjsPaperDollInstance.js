@@ -305,6 +305,25 @@ export class CjsPaperDollInstance
     }
 
     /**
+     * Whether a body carrier is shown: not while a worn item fills its category (a shoe is a `feet` option, as
+     * `feet_nude` is) or occludes its category or path (`bottomouter/spacesuit_01` occludes `bottominner`; jackets
+     * the sleeves); and a garment's own body piece (`garment`, from the library's `garmentDependants`) only while a
+     * worn item names it among its dependants.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {{ part: string, category: string, path: string, garment: boolean }} carrier The carrier: its lower-case
+     *   part path, its category and the path occlusions are matched against.
+     * @param {Array<{ category: string, occludes: string[], dependants: string[] }>} worn The worn items.
+     * @returns {boolean} Whether it is shown.
+     */
+    static carrierShown(carrier, worn)
+    {
+        if (carrier.garment && !worn.some(item => item.dependants.some(path => path.toLowerCase() === carrier.part))) return false;
+        return !worn.some(item => item.category === carrier.category
+            || item.occludes.some(target => target === carrier.category || CjsPaperDollDefinition.occludes([ target ], carrier.path)));
+    }
+
+    /**
      * The nude carrier area effects the composed cut mask clips, by the library's rule
      * (`CjsCharacterLibraryManager.GetBodyCarriers().cutMaskClip`): those holding the rule's mask resource whose
      * influence parameter is above its threshold. The caller sets the rule's clip parameter on them and passes only
