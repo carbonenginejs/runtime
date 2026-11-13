@@ -235,7 +235,7 @@ function declaredDonors(code)
     ];
     for (const [, body] of blocks)
     {
-        const name = body.match(/className:\s*"([^"]+)"/), carbon = body.match(/\bcarbon:\s*"([^"]+)"/);
+        const name = body.match(/\bname:\s*"([^"]+)"/), carbon = body.match(/\bcarbon:\s*"([^"]+)"/);
         if (name && carbon) declared.set(name[1], { carbon: carbon[1].split("::").pop(), modelledOn: null });
     }
     for (const c of classDonorComments(code))
