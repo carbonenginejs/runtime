@@ -1,0 +1,12 @@
+{
+  "description": "The dependant meshes the paper doll draws with their owner's diffuse. Ours: no content states which dependant meshes draw, with whose diffuse or with which overrides, and the client's paper doll is Python. Each entry: path, the dependant's modifier path; owner, the definition member whose worn garment lists it; state, the owner's field naming the version to draw (0 the folder's own model, n its vN); parameters, effect parameters set on each of its areas (an array on a parameter the effect has, a number through SetParameter); diffuseSize, the width and height of the target its owner's colourised detail is drawn into. The drape (a top's lower edge) samples the body atlas whole (TransformUV0 identity) and clips as a decal (DecalClip 1: the shader discards where the top's coverage is below 192/255; the drape authors none and the compiled value 0 drew the black below the hem). 2048 is the old body target's size. Edit freely: the engine reads this file as data.",
+  "dependants": [
+    {
+      "path": "dependants/drape/standard",
+      "owner": "topMiddle",
+      "state": "tuck",
+      "parameters": { "TransformUV0": [ 0, 0, 1, 1 ], "DecalClip": 1 },
+      "diffuseSize": [ 2048, 2048 ]
+    }
+  ]
+}

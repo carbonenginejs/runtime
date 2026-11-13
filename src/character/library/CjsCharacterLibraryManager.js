@@ -14,6 +14,7 @@ import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
 import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" with { type: "json" };
 import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
 import exclusivePartDefaults from "../factory/defaults/exclusiveParts.json" with { type: "json" };
+import meshDependantDefaults from "../factory/defaults/meshDependants.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
@@ -249,6 +250,44 @@ export class CjsCharacterLibraryManager
     static exclusivePartDefaults()
     {
         return CjsCharacterLibraryManager.copy(exclusivePartDefaults.groups);
+    }
+
+    /**
+     * The dependant meshes the paper doll draws with their owner's diffuse (`CjsPaperDollInstance.meshDependantStates`):
+     * each its path, owner member, the owner's state field, effect parameters and diffuse size. A setting with a
+     * default: the defaults file `factory/defaults/meshDependants.json` until a host sets its own.
+     * @type {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>}
+     */
+    _meshDependants = CjsCharacterLibraryManager.meshDependantDefaults();
+
+    /**
+     * Replaces the drawn dependant meshes in force. Pass the defaults file's edited, others, or `[]` for none.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>} dependants The entries.
+     * @returns {void}
+     */
+    SetMeshDependants(dependants)
+    {
+        this._meshDependants = CjsCharacterLibraryManager.copy(dependants);
+    }
+
+    /**
+     * The drawn dependant meshes in force (`_meshDependants`).
+     * @returns {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>} A copy.
+     */
+    GetMeshDependants()
+    {
+        return CjsCharacterLibraryManager.copy(this._meshDependants);
+    }
+
+    /**
+     * The shipped default drawn dependant meshes (`factory/defaults/meshDependants.json`).
+     * @returns {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>} A copy.
+     */
+    static meshDependantDefaults()
+    {
+        return CjsCharacterLibraryManager.copy(meshDependantDefaults.dependants);
     }
 
     /**

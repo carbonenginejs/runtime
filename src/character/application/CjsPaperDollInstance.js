@@ -324,6 +324,50 @@ export class CjsPaperDollInstance
     }
 
     /**
+     * Each drawn dependant mesh's state for one update, by the library's entries
+     * (`CjsCharacterLibraryManager.GetMeshDependants`): shown while its owner is worn with an option, not suppressed,
+     * its resolved garment lists the dependant, and no worn garment's own occludes remove it (`dependantMeshShown`);
+     * its version is the owner's state field while shown, else 0.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python. The library holds the entries; this applies them.
+     * @param {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>} entries The library's entries.
+     * @param {object} value The definition's values as the update applies them (`value[member].option` and the state field).
+     * @param {Set<string>} suppressed The suppressed members (`suppress`).
+     * @param {(member: string, option: string) => string[]} dependantsOf The resolved garment's dependants.
+     * @param {string[][]} ownOccludes The worn, unsuppressed garments' own occludes (`dependantMeshShown`).
+     * @returns {Array<{ path: string, owner: string, shown: boolean, state: number }>} One per entry, in order.
+     */
+    static meshDependantStates(entries, value, suppressed, dependantsOf, ownOccludes)
+    {
+        return entries.map(entry =>
+        {
+            const owner = value[entry.owner];
+            const shown = owner.option !== "" && !suppressed.has(entry.owner) && dependantsOf(entry.owner, owner.option).includes(entry.path)
+                && CjsPaperDollInstance.dependantMeshShown(entry.path, ownOccludes);
+            return { path: entry.path, owner: entry.owner, shown, state: shown ? owner[entry.state] : 0 };
+        });
+    }
+
+    /**
+     * Sets a drawn dependant mesh's effect parameters (an entry's `parameters`): an array on a parameter the effect
+     * has (`TransformUV0`), a number through `SetParameter` (`DecalClip`, which the drape does not author).
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {object} effect The area's `Tr2Effect`.
+     * @param {Object<string, number|number[]>} parameters The entry's parameters.
+     * @returns {void}
+     */
+    static applyEffectParameters(effect, parameters)
+    {
+        for (const [ name, value ] of Object.entries(parameters))
+        {
+            if (!Array.isArray(value)) { effect.SetParameter(name, value); continue; }
+            const parameter = effect.FindParameterByName(name);
+            if (parameter !== null) parameter.SetValue(Float32Array.from(value));
+        }
+    }
+
+    /**
      * The nude carrier area effects the composed cut mask clips, by the library's rule
      * (`CjsCharacterLibraryManager.GetBodyCarriers().cutMaskClip`): those holding the rule's mask resource whose
      * influence parameter is above its threshold. The caller sets the rule's clip parameter on them and passes only
