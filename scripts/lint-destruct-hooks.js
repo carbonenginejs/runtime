@@ -14,7 +14,7 @@ import { UNSHIPPED_SOURCE_DIRS } from "./lib/unshipped-source.js";
 //   - a refusal is the whole body: `return false`;
 //   - on super it calls OnDestruct and nothing else.
 // _Destructor is a class's C++ destruction. The graph's runner calls each level's:
-//   - it never calls super or another level's teardown;
+//   - it takes no arguments, returns nothing, and never calls super or another level's teardown;
 //   - its JSDoc names the destructor: `Carbon: ~Class (file:lines)`, or
 //     `Carbon: ~Class, implicit: members (file:lines)` where Carbon writes none.
 // Neither is called from anywhere but the graph (global/model/graph/CjsGraph.js).
@@ -96,6 +96,16 @@ export function checkSource(code, file = "source.js", { carbonRoot = null } = {}
   /** A _Destructor's JSDoc names Carbon's destructor. */
   const checkDestructor = method =>
   {
+    if (method.node.params.length) errors.push(`${at(method.node)}: _Destructor takes no arguments; the runner passes none.`);
+    method.traverse({
+      Function(nested) { nested.skip(); },
+      Class(nested) { nested.skip(); },
+      ReturnStatement(location)
+      {
+        if (location.node.argument) errors.push(`${at(location.node)}: _Destructor returns nothing; the runner reads no answer.`);
+      }
+    });
+
     const doc = (method.node.leadingComments ?? []).filter(comment => comment.type === "CommentBlock" && comment.value.startsWith("*")).pop();
     const cite = doc ? CITE.exec(doc.value) : null;
     if (!cite)

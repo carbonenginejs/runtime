@@ -59,6 +59,13 @@ test("a _Destructor never calls another level, and the finding names it", () =>
   assert.deepEqual(checkSource(destructor("this.buffer.Destroy(); CjsGraph.finalDelete(this.input);")), []);
 });
 
+test("a _Destructor takes no arguments and returns nothing", () =>
+{
+  assert.match(checkSource(`class Owner { ${DOC}_Destructor(managed) { this.buffer.Destroy(); } }`)[0], /takes no arguments/);
+  assert.match(checkSource(destructor("if (this._done) return; this._done = true; return this;"))[0], /returns nothing/);
+  assert.deepEqual(checkSource(destructor("if (this._done) return; this.list.map(item => { return item; });")), [], "a bare return leaves early");
+});
+
 test("a _Destructor's JSDoc names Carbon's destructor, written or implicit", () =>
 {
   for (const doc of [
