@@ -130,7 +130,7 @@ export class HostBitmap extends BitmapDimensions
    * Carbon destructor (imageio/HostBitmap.cpp:59-62) releases image storage.
    * @implemented
    */
-  OnDestruct()
+  _Destructor()
   {
     this.Destroy();
   }

@@ -76,14 +76,14 @@ export class Tr2LockGuard
   /**
    * Releases the scratch block, as the C++ destructor does.
    *
-   * Carbon: Tr2LockGuard::~Tr2LockGuard (trinity/trinityal/Tr2LockGuard.cpp:13-16)
+   * Carbon: ~Tr2LockGuard (trinity/trinityal/Tr2LockGuard.cpp:13-16)
    *
    * @adapted JavaScript has no deterministic destructor; the owner calls this
    *   when it releases the resource.
-   * Carbon: Tr2LockGuard destructor (trinity/trinityal/Tr2LockGuard.cpp:13-16).
+   * Carbon: ~Tr2LockGuard (trinity/trinityal/Tr2LockGuard.cpp:13-16).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._memory = null;
   }

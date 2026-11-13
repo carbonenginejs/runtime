@@ -156,10 +156,10 @@ export class Tr2MouseCursor
     /**
      * Releases any owned object URL and clears the cursor value.
      *
-     * Carbon: Tr2MouseCursor destructor (trinity/trinity/UI/Tr2MouseCursor.cpp:26-34).
+     * Carbon: ~Tr2MouseCursor (trinity/trinity/UI/Tr2MouseCursor.cpp:26-34).
      * @adapted Browser URL/CSS cleanup replaces native cursor deletion; graph dispatch retains the existing teardown.
      */
-    OnDestruct()
+    _Destructor()
     {
         if (this._objectUrl && typeof globalThis.URL?.revokeObjectURL === "function")
         {

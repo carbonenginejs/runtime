@@ -561,10 +561,10 @@ export class VideoPlayer
   /**
    * Explicit destructor for the shared resource owner; individual billboards never call it.
    *
-   * Carbon: VideoPlayer::~VideoPlayer (videoplayer/VideoPlayer.cpp:92-101).
+   * Carbon: ~VideoPlayer (videoplayer/VideoPlayer.cpp:92-101).
    * @adapted Preserves browser media cancellation and callback cleanup in place of native decoder ownership.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._ReleaseMedia();
     this.bgraTexture = null;

@@ -144,14 +144,14 @@ export class Tr2MemoryCounterAL
   /**
    * Releases what the counter holds, as the C++ destructor does.
    *
-   * Carbon: Tr2MemoryCounterAL::~Tr2MemoryCounterAL (trinity/trinityal/Tr2MemoryCounterAL.cpp:25-28)
+   * Carbon: ~Tr2MemoryCounterAL (trinity/trinityal/Tr2MemoryCounterAL.cpp:25-28)
    *
    * @adapted JavaScript has no deterministic destructor; the owner calls this
    *   when it releases the resource.
-   * Carbon: Tr2MemoryCounterAL destructor (trinity/trinityal/Tr2MemoryCounterAL.cpp:25-28).
+   * Carbon: ~Tr2MemoryCounterAL (trinity/trinityal/Tr2MemoryCounterAL.cpp:25-28).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.Reset();
   }

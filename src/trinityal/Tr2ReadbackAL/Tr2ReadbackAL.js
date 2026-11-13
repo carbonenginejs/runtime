@@ -53,10 +53,10 @@ export class Tr2ReadbackAL
    *
    *
    * @adapted
-   * Carbon: Tr2ReadbackAL destructor (trinity/trinityal/dx11/Tr2TextureALDx11.cpp:338-341).
+   * Carbon: ~Tr2ReadbackAL (trinity/trinityal/dx11/Tr2TextureALDx11.cpp:338-341).
    * @adapted Existing JS cleanup runs through graph dispatch; ownership and callers are unchanged.
    */
-  OnDestruct()
+  _Destructor()
   {
     const readback = this._readback;
     this._readback = null;

@@ -282,7 +282,7 @@ export class Tr2MainWindow
      * @adapted This adapter acquires browser event listeners, not a native window or Blue tick; Detach releases those listeners without invoking vetoable Close or closing the host browser.
      * @returns {void}
      */
-    OnDestruct()
+    _Destructor()
     {
         this.Detach();
     }
