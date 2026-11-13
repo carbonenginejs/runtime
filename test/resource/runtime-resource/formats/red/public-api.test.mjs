@@ -27,7 +27,7 @@ class RedContractRoot
 }
 function declare(Constructor, name, fields)
 {
-    CjsSchema.define(Constructor, { className: name, members: Object.entries(fields).map(([key, type]) => ({
+    CjsSchema.define(Constructor, { name: name, members: Object.entries(fields).map(([key, type]) => ({
         key, name: key, type: typeof type === "string" ? { kind: type } : type,
         exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, edit: { persist: true, read: true, write: true }
     })) });

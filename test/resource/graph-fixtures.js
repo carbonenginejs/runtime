@@ -27,9 +27,9 @@ export function fixtures(prefix)
         state = Uint8Array.of(0, 128, 255);
     }
     const field = (name, kind, extra = {}) => ({ name, key: name, type: typeof kind === "string" ? { kind } : kind, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true }, ...extra });
-    CjsSchema.define(Embedded, { className: `${prefix}Embedded`, members: [field("value", "int32")] });
+    CjsSchema.define(Embedded, { name: `${prefix}Embedded`, members: [field("value", "int32")] });
     CjsSchema.define(Node, {
-        className: `${prefix}Node`,
+        name: `${prefix}Node`,
         members: [
             field("name", "string"), field("peer", { kind: "rootRef", className: `${prefix}Node` }),
             field("weak", { kind: "rootWeak", className: `${prefix}Node` }),

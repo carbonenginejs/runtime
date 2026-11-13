@@ -99,16 +99,16 @@ test("define refuses type.binary without persistOnly or without ICustomPersist",
 
   class Persisting { bytes = new Uint8Array(0); AllocateReadBuffer() {} SetBufferAndSize() {} GetWriteBufferAndSize() {} ReleaseWriteBuffer() {} }
   blue.interface(ICustomPersist)(Persisting);
-  assert.throws(() => CjsSchema.define(Persisting, { className: "BinaryWithoutPersistOnly", fields: [ field({ persist: true }) ] }),
+  assert.throws(() => CjsSchema.define(Persisting, { name: "BinaryWithoutPersistOnly", fields: [ field({ persist: true }) ] }),
     /BinaryWithoutPersistOnly\.bytes: type\.binary requires be\.mapAttribute\(be\.PERSISTONLY\)/);
 
   class Plain { bytes = new Uint8Array(0); }
-  assert.throws(() => CjsSchema.define(Plain, { className: "BinaryWithoutCustomPersist", fields: [ field(persistOnly) ] }),
+  assert.throws(() => CjsSchema.define(Plain, { name: "BinaryWithoutCustomPersist", fields: [ field(persistOnly) ] }),
     /BinaryWithoutCustomPersist: type\.binary requires the class to map ICustomPersist/);
 
   class Valid { bytes = new Uint8Array(0); AllocateReadBuffer() {} SetBufferAndSize() {} GetWriteBufferAndSize() {} ReleaseWriteBuffer() {} }
   blue.interface(ICustomPersist)(Valid);
-  CjsSchema.define(Valid, { className: "BinaryValid", fields: [ field(persistOnly) ] });
+  CjsSchema.define(Valid, { name: "BinaryValid", fields: [ field(persistOnly) ] });
   assert.equal(CjsSchema.getField(Valid, "bytes").type.binary, true);
 });
 

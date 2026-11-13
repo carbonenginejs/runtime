@@ -32,13 +32,13 @@ class Owner {
     OnModified(name) { this.notifications.push(name); }
 }
 const field = (type, notify = false) => ({ type, exposure: { macro: "MAP_ATTRIBUTE", flags: notify ? 20 : 16 }, edit: { persist: true, notify } });
-CjsSchema.define(Item, { className: "BlackNativeListItem", fields: {
+CjsSchema.define(Item, { name: "BlackNativeListItem", fields: {
     value: field({ kind: "uint32" }, true), parent: field({ kind: "rootRef", className: "BlackNativeListOwner" })
 } });
 blue.interface(INotify)(Item);
-CjsSchema.define(WrongItem, { className: "BlackNativeListWrongItem" });
+CjsSchema.define(WrongItem, { name: "BlackNativeListWrongItem" });
 blue.interface()(WrongItem);
-CjsSchema.define(Owner, { className: "BlackNativeListOwner", fields: {
+CjsSchema.define(Owner, { name: "BlackNativeListOwner", fields: {
     items: field({ kind: "list", itemType: "BlackNativeListItem" }, true),
     after: field({ kind: "uint32" }),
     ordinary: field({ kind: "list", itemType: "BlackNativeListItem" }),
@@ -165,7 +165,7 @@ class NonArrayList {
     }
     Append(item) { assert.equal(this.notify,null); return this.storage.Append(item); }
 }
-CjsSchema.define(NonArrayList, { className: "BlackNativeNonArrayList" });
+CjsSchema.define(NonArrayList, { name: "BlackNativeNonArrayList" });
 blue.interface(IList)(NonArrayList);
 
 test("a non-Array exact mapped IList is populated once and retained through shared hydration", () => {
@@ -190,7 +190,7 @@ test("ordinary list, array and set retain their prior null and reference behavio
 });
 
 class UnmappedList extends BlueList {}
-CjsSchema.define(UnmappedList, { className: "BlackNativeUnmappedList" });
+CjsSchema.define(UnmappedList, { name: "BlackNativeUnmappedList" });
 blue.interface()(UnmappedList);
 test("Array inheritance without an exact IList mapping keeps the ordinary population path", () => {
     const list = new UnmappedList(Item);

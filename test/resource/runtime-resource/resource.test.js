@@ -155,7 +155,7 @@ test("BlueResMan ordered extension formats probe once and use only a final fallb
 test("BlueResMan uses Black-first content routing for both red and black suffixes", async () =>
 {
   class RedRouteRoot { name = ""; }
-  CjsSchema.define(RedRouteRoot, { className: "RedRouteRoot", fields: {
+  CjsSchema.define(RedRouteRoot, { name: "RedRouteRoot", fields: {
     name: { type: { kind: "string" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } }
   } });
   const encoded = new TextEncoder().encode("type: RedRouteRoot\nname: yaml-content\n");

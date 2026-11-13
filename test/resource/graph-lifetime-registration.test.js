@@ -14,7 +14,7 @@ test("Blue declares own destructors without activating graph values or copying a
   CjsSchema.meta.define("LifetimeBridgePrimary")(Primary);
   CjsSchema.meta.define("LifetimeBridgeSecondary")(Secondary);
   CjsSchema.meta.inherit(Secondary)(Owner);
-  CjsSchema.meta.define({ className: "LifetimeBridgeOwner", capabilities: [ "destruct" ] })(Owner);
+  CjsSchema.meta.define({ name: "LifetimeBridgeOwner", capabilities: [ "destruct" ] })(Owner);
   assert.equal(CjsGraph.isDefined(Owner), false);
   const object = new Owner();
   CjsGraph.destruct(object, argument);
@@ -28,7 +28,7 @@ test("Blue declares own destructors without activating graph values or copying a
 
   class Composed {}
   CjsSchema.meta.inherit(Secondary)(Composed);
-  CjsSchema.meta.define({ className: "LifetimeBridgeComposed", capabilities: [ "destruct" ] })(Composed);
+  CjsSchema.meta.define({ name: "LifetimeBridgeComposed", capabilities: [ "destruct" ] })(Composed);
   assert.equal(Object.hasOwn(Composed.prototype, "_Destructor"), false);
   calls.length = 0;
   CjsGraph.destruct(new Composed(), argument);

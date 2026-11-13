@@ -740,4 +740,4 @@ export async function writeCmfAsync(graph, options = {})
     return writeCmf(graph, { ...options, compress: options.compress !== false });
 }
 
-CjsSchema.meta.define(Flattener, { className: "Flattener" });
+CjsSchema.meta.define(Flattener, { name: "Flattener" });

@@ -20,12 +20,12 @@ class Thing extends Parent
 }
 
 const int32 = { kind: "int32" };
-CjsSchema.define(Parent, { className: "GraphFlagsParent", members: [] });
-CjsSchema.define(Face, { className: "GraphFlagsFace", members: [] });
-CjsSchema.define(Chained, { className: "GraphFlagsChained", members: [] });
+CjsSchema.define(Parent, { name: "GraphFlagsParent", members: [] });
+CjsSchema.define(Face, { name: "GraphFlagsFace", members: [] });
+CjsSchema.define(Chained, { name: "GraphFlagsChained", members: [] });
 CjsSchema.be.inherit(Face)(Thing, { kind: "class" });
 carbonChainToDecorator(Chained)(Thing, { kind: "class" });
-CjsSchema.define(Thing, { className: "GraphFlagsThing", members: [
+CjsSchema.define(Thing, { name: "GraphFlagsThing", members: [
   { name: "readable", key: "readable", type: int32, exposure: { macro: "MAP_ATTRIBUTE", flags: 1 }, edit: { read: true } },
   { name: "only", key: "only", type: int32, exposure: { macro: "MAP_ATTRIBUTE", flags: 24 }, edit: { persist: true, persistOnly: true, hidden: true } },
   { name: "load", key: "load", type: int32, exposure: { macro: "MAP_ATTRIBUTE", flags: 32 }, edit: { rpersist: true } },

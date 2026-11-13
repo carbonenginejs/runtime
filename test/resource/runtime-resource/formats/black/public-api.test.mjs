@@ -11,12 +11,12 @@ import { BlackReader } from "../../../../../npm/dist/blue/formats/black/BlackRea
 import { Fixture, f32 } from "../../../../support/blackFixture.js";
 
 class Child { name = ""; weight = 0; }
-CjsSchema.be.define(Child, { className: "BlackFormatApiChild", members: [
+CjsSchema.be.define(Child, { name: "BlackFormatApiChild", members: [
     { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, name: "name", key: "name", type: { kind: "string" }, edit: { persist: true } },
     { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, name: "weight", key: "weight", type: { kind: "float32" }, edit: { persist: true } }
 ] });
 class Parent { first = null; second = null; }
-CjsSchema.be.define(Parent, { className: "BlackFormatApiParent", members: [
+CjsSchema.be.define(Parent, { name: "BlackFormatApiParent", members: [
     { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, name: "first", key: "first", type: { kind: "rootRef" }, edit: { persist: true } },
     { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, name: "second", key: "second", type: { kind: "rootRef" }, edit: { persist: true } }
 ] });

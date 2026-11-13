@@ -43,7 +43,7 @@ test("declared kinds give Carbon's VARTYPE and destination", () =>
 test("persisted members keep their declared key and table order", () =>
 {
   class Owner { _boosters = null; baseName = ""; }
-  CjsSchema.be.define(Owner, { className: "BlackMetaFirstPersisted", members: [
+  CjsSchema.be.define(Owner, { name: "BlackMetaFirstPersisted", members: [
     { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, name: "boosters", key: "_boosters", type: { kind: "rootRef" }, edit: { persist: true } },
     { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, name: "baseName", key: "baseName", type: { kind: "wstring" }, edit: { persist: true } }
   ] });
@@ -57,7 +57,7 @@ test("persisted members keep their declared key and table order", () =>
 test("a structure list's item class must be registered and declare a structure", () =>
 {
   class Item { value = 0; }
-  CjsSchema.be.define(Item, { className: "BlackMetaNoStructItem", fields: { value: [ type.uint32, be.mapAttribute(be.PERSIST) ] } });
+  CjsSchema.be.define(Item, { name: "BlackMetaNoStructItem", fields: { value: [ type.uint32, be.mapAttribute(be.PERSIST) ] } });
   assert.throws(() => structureLayout("BlackMetaNoStructItem"), /BlackMetaNoStructItem has no structureDefinition/);
   assert.throws(() => structureLayout("BlackMetaNeverRegisteredItem"), /BlackMetaNeverRegisteredItem is not registered \(import its package\)/);
 });

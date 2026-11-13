@@ -22,11 +22,11 @@ class Leaf
     initialized = 0;
     Initialize() { this.initialized++; return true; }
 }
-CjsSchema.define(Leaf, { className: "BlackPortLeaf", fields: { value: field({ kind: "uint32" }) } });
+CjsSchema.define(Leaf, { name: "BlackPortLeaf", fields: { value: field({ kind: "uint32" }) } });
 blue.interface(Leaf, IInitialize)(Leaf);
 
 class Other {}
-CjsSchema.define(Other, { className: "BlackPortOther" });
+CjsSchema.define(Other, { name: "BlackPortOther" });
 
 class Record
 {
@@ -34,7 +34,7 @@ class Record
     weight = 0;
     name = "";
 }
-CjsSchema.define(Record, { className: "BlackPortRecord", struct: { size: 24 }, members: [
+CjsSchema.define(Record, { name: "BlackPortRecord", struct: { size: 24 }, members: [
     { name: "position", key: "position", struct: { dataType: "FLOAT32_3", offset: 0 } },
     { name: "weight", key: "weight", struct: { dataType: "FLOAT32_1", offset: 12 } },
     { name: "name", key: "name", struct: { dataType: "SHAREDSTRING_1", offset: 16 } }
@@ -45,7 +45,7 @@ class Inner
     value = 0;
     OnModified() {}
 }
-CjsSchema.define(Inner, { className: "BlackPortInner", fields: { value: field({ kind: "uint32" }) } });
+CjsSchema.define(Inner, { name: "BlackPortInner", fields: { value: field({ kind: "uint32" }) } });
 blue.interface()(Inner);
 
 class Owner
@@ -72,7 +72,7 @@ class Owner
     set prop(value) { this._prop = value + 1; }
     OnModified(name) { this.notified.push(name); }
 }
-CjsSchema.be.define(Owner, { className: "BlackPortOwner", fields: {
+CjsSchema.be.define(Owner, { name: "BlackPortOwner", fields: {
     count: field({ kind: "uint32" }, true),
     negative: field({ kind: "int16" }),
     big: field({ kind: "int64" }),
@@ -213,7 +213,7 @@ test("ReadList goes through the list's own methods, silently, then says load fin
     {
         constructor() { super(); this.list.SetNotify(new Observer()); }
     }
-    CjsSchema.define(Wired, { className: "BlackPortWired" });
+    CjsSchema.define(Wired, { name: "BlackPortWired" });
     // Its members are Owner's, reached as Carbon reaches a parent's: through EXPOSURE_CHAINTO.
     be.exposureChainTo(Owner)(Wired);
     blue.interface(INotify)(Wired);
@@ -396,7 +396,7 @@ class Numbers
     transform = new Float32Array(16);
     records = [];
 }
-CjsSchema.define(Numbers, { className: "BlackPortNumbers", fields: {
+CjsSchema.define(Numbers, { name: "BlackPortNumbers", fields: {
     single: field({ kind: "float32" }),
     wide: field({ kind: "float64" }),
     position: field({ kind: "vec3" }),
