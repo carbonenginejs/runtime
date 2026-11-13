@@ -21,6 +21,7 @@
 // dynamic offset must be a multiple of.
 
 
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { CjsSchema, type } from "#schema";
 import { CjsWebgpuDevice } from "../CjsWebgpuDevice.js";
 function fail(message)
@@ -165,6 +166,17 @@ export class CjsWebgpuConstantArena
   GetTotalUploadedSize()
   {
     return this._totalUploadedSize + this._offset;
+  }
+
+  /**
+   * Ends this object, once: its OnDestruct, then its destructors.
+   * @cjs Thin public entry; this class does not extend the graph root.
+   * @param {*} [options] Handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

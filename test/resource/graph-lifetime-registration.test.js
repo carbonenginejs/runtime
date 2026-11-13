@@ -17,13 +17,13 @@ test("Blue declares own destructors without activating graph values or copying a
   CjsSchema.meta.define("LifetimeBridgeOwner")(Owner);
   assert.equal(CjsGraph.isDefined(Owner), false);
   const object = new Owner();
-  object.Destruct(argument);
+  CjsGraph.destruct(object, argument);
   assert.deepEqual(calls, [ [ "owner", 0 ], [ "secondary", 0 ], [ "primary", 0 ] ], "a destructor takes no arguments");
   CjsBlueGraph.define(Owner, "LifetimeBridgeOwner");
   assert.equal(CjsGraph.isDefined(Owner), true);
   calls.length = 0;
-  assert.equal(object.Destruct(argument), false, "once only");
-  new Owner().Destruct(argument);
+  assert.equal(CjsGraph.destruct(object, argument), false, "once only");
+  CjsGraph.destruct(new Owner(), argument);
   assert.deepEqual(calls.map(row => row[0]), [ "owner", "secondary", "primary" ]);
 
   class Composed {}
@@ -31,7 +31,7 @@ test("Blue declares own destructors without activating graph values or copying a
   CjsSchema.meta.define("LifetimeBridgeComposed")(Composed);
   assert.equal(Object.hasOwn(Composed.prototype, "_Destructor"), false);
   calls.length = 0;
-  new Composed().Destruct(argument);
+  CjsGraph.destruct(new Composed(), argument);
   assert.deepEqual(calls, [ [ "secondary", 0 ] ]);
 });
 
@@ -69,7 +69,7 @@ test("unexposed composed classes acquire teardown before any Blue definition", (
   class Owner { OnDestruct(value) { calls.push(["owner", value]); return true; } _Destructor() { calls.push("~owner"); } }
   CjsSchema.meta.inherit(Base)(Owner);
   assert.equal(CjsGraph.isDefined(Owner), false);
-  new Owner().Destruct(7);
+  CjsGraph.destruct(new Owner(), 7);
   assert.deepEqual(calls, [["owner", 7], "~owner", "base"]);
 });
 

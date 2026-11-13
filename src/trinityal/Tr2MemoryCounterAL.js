@@ -22,6 +22,7 @@
 // layer is imported straight from source by its tests and raw Node cannot parse
 // decorator syntax.
 
+import { CjsGraph } from "../global/model/graph/CjsGraph.js";
 import { CjsSchema } from "#schema";
 import { isNumber } from "#utils/is";
 import { Tr2MsaaDesc } from "./Tr2HalHelperStructures/Tr2MsaaDesc.js";
@@ -139,6 +140,17 @@ export class Tr2MemoryCounterAL
     other._size = 0;
 
     return counter;
+  }
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Tr2GpuResourcePool.h
 // Source: trinity/trinity/Tr2GpuResourcePool.cpp
@@ -278,6 +279,17 @@ export class Tr2GpuResourcePool
     }
 
     return dropped;
+  }
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

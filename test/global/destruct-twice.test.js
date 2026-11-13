@@ -47,8 +47,10 @@ for (const { name, type: Owner } of owners)
     try
     {
       const owner = new Owner();
-      assert.equal(owner.Destruct(), !(owner instanceof BlueAsyncRes), "Destruct runs, unless the object is a resource");
-      assert.equal(owner.Destruct(), false, "second Destruct");
+      // A value class its owner ends through the runner has no Destruct of its own; the graph's door ends it.
+      const destruct = () => typeof owner.Destruct === "function" ? owner.Destruct() : CjsGraph.destruct(owner);
+      assert.equal(destruct(), !(owner instanceof BlueAsyncRes), "Destruct runs, unless the object is a resource");
+      assert.equal(destruct(), false, "second Destruct");
       assert.doesNotThrow(() => CjsGraph.finalDelete(owner), "the destructors are safe to run again");
     }
     finally

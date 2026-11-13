@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { CjsSchema, meta } from "#schema";
 
 // Ours: browsers do not expose VpxDecoder's CPU BGRA frame. Reduce the already
@@ -115,6 +116,17 @@ export class CjsWebgpuVideoColorSampler
       return color;
     }
     finally { this._pending = false; }
+  }
+
+  /**
+   * Ends this object, once: its OnDestruct, then its destructors.
+   * @cjs Thin public entry; this class does not extend the graph root.
+   * @param {*} [options] Handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

@@ -115,8 +115,12 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
       assert.equal(instance.QueryInterface(Contract, 1), null);
       if (hasReset)
       {
+        // A class that extends IRoot holds the graph's state field and nothing else of its own. One that takes
+        // the interface through an inherit row takes methods, not fields. Reset adds nothing to either.
+        const own = instance === composed ? [] : [ "__cjs" ];
+        assert.deepEqual(Object.keys(instance), own);
         assert.equal(instance.Reset(), undefined);
-        assert.deepEqual(Object.keys(instance), []);
+        assert.deepEqual(Object.keys(instance), own);
       }
       for (const method of [ "Initialize", "OnModified", "GetValues", "SetValues", "AssignTo" ])
       {

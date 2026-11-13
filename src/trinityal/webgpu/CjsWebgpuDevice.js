@@ -1,4 +1,5 @@
 const DEVICE_BUFFERS = new WeakMap();
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { CjsSchema, meta } from "#schema";
 import { setWgslDeviceFeatures } from "../../resource/formats/webgpu/core/wgsl/wgslDeviceFeatures.js";
 
@@ -411,6 +412,17 @@ export class CjsWebgpuDevice
     this._WatchDevice(device, this._generation);
     if (previous && previous !== device) previous.destroy();
     return this;
+  }
+
+  /**
+   * Ends this object, once: its OnDestruct, then its destructors.
+   * @cjs Thin public entry; this class does not extend the graph root.
+   * @param {*} [options] Handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

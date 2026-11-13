@@ -3,6 +3,7 @@
 import { CjsSchema } from "#schema/CjsSchema";
 import { BeClasses } from "./classes/registry.js";
 import { ClassInfo } from "../base/ClassInfo.js";
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 
 /**
  * Carbon's `IRoot`: the interface every Blue object implements. Carbon's is
@@ -15,6 +16,48 @@ import { ClassInfo } from "../base/ClassInfo.js";
  */
 export class IRoot
 {
+  /**
+   * Runtime graph state, null until something needs it; only CjsGraph.getState creates it.
+   * @cjs Carbon keeps no such record: an object ends with its last reference. This field and the three methods
+   * below are the graph root's; IRoot holds its own copies until it extends ICjsGraphRoot, when the value path moves.
+   * @type {?object}
+   */
+  __cjs = null;
+
+  /**
+   * Ends this object, once: its OnDestruct, then its C++ destruction.
+   * @cjs Thin forward to the graph, which holds the steps and the state.
+   * @param {*} [options] Handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call, or if OnDestruct refused.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
+  }
+
+  /**
+   * What graph Destruct must do for this class, before any C++ destruction. A class overrides it for state
+   * JavaScript added and ends with `return super.OnDestruct(options)`; one that must not be destructed returns
+   * false and does nothing else.
+   * @cjs Only Destruct calls it.
+   * @param {object} [options] What Destruct was given.
+   * @returns {boolean} True: IRoot has nothing to do and refuses nothing.
+   */
+  OnDestruct(options)
+  {
+    return true;
+  }
+
+  /**
+   * Whether this object is being destructed or has been.
+   * @cjs Thin forward to the graph.
+   * @returns {boolean} False for an object with no state.
+   */
+  IsDestructed()
+  {
+    return CjsGraph.isDestructed(this);
+  }
+
   /**
    * `ClassType()`: the class's Blue type information, from the class-info
    * store (`ClassInfo.exposeToBlue`), as Carbon's `ClassType_()` returns the

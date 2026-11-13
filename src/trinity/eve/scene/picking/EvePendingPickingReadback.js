@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/EvePicking.h
 // Source: trinity/trinity/Eve/EveSpaceScene.cpp (PerformPicking)
+import { CjsGraph } from "../../../../global/model/graph/CjsGraph.js";
 import { meta } from "#schema";
 import { Tr2ReadbackAL } from "#trinityal";
 import { PixelFormat } from "#consts/render-context";
@@ -158,6 +159,17 @@ export class EvePendingPickingReadback
   {
     this.readback.Destruct();
     this.debugReadback.Destruct();
+  }
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

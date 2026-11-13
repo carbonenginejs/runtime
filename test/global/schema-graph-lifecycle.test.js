@@ -24,6 +24,7 @@ function preorder(root)
 }
 import { GetResources } from "../../src/blue/getResources.js";
 import { CjsGraph } from "../../src/global/model/graph/index.js";
+import { IRoot } from "../../src/blue/exposure/IRoot.js";
 
 let fixtureId = 0;
 function fixture()
@@ -200,7 +201,7 @@ test("class registration hands the graph a class's own _Destructor; OnDestruct i
     CjsGraph.finalDelete(owner);
     assert.deepEqual(calls, ["~Owner", "~Base"]);
     calls.length = 0;
-    owner.Destruct();
+    CjsGraph.destruct(owner);
     assert.deepEqual(calls, ["Base.OnDestruct", "~Owner", "~Base"]);
 });
 
@@ -220,6 +221,40 @@ test("an inherit row copies neither teardown function, so a base's _Destructor r
     assert.deepEqual(calls, ["~Second"]);
     calls.length = 0;
     // OnDestruct is one method on the object's own prototype chain; a second base's is not copied, so not called.
-    owner.Destruct();
+    CjsGraph.destruct(owner);
     assert.deepEqual(calls, ["~Second"]);
+});
+
+test("IRoot holds the graph state and its own Destruct, and nothing pastes one onto another class", () =>
+{
+    const calls = [];
+    class Blue extends IRoot { _Destructor() { calls.push("~Blue"); } }
+    CjsSchema.define(Blue, { className: "LifetimeIRootBlue" });
+
+    const object = new Blue();
+    assert.equal(Object.hasOwn(object, "__cjs"), true);
+    assert.equal(object.__cjs, null);
+    assert.equal(object.IsDestructed(), false);
+    assert.equal(object.OnDestruct(), true, "IRoot's own OnDestruct refuses nothing");
+    assert.equal(object.Destruct(), true);
+    assert.equal(object.IsDestructed(), true);
+    assert.equal(object.Destruct(), false);
+    assert.deepEqual(calls, ["~Blue"]);
+
+    // An object made without its constructor has no state field; it reads as alive and can still be destructed.
+    const bare = Object.create(Blue.prototype);
+    assert.equal(Object.hasOwn(bare, "__cjs"), false);
+    assert.equal(bare.IsDestructed(), false);
+    assert.equal(bare.Destruct(), true);
+    assert.equal(bare.IsDestructed(), true);
+
+    // A class that is no IRoot gets no Destruct from registration; the graph's own door ends it.
+    class Plain { _Destructor() { calls.push("~Plain"); } }
+    CjsSchema.define(Plain, { className: "LifetimeIRootPlain" });
+    assert.equal("Destruct" in Plain.prototype, false);
+    assert.equal("IsDestructed" in Plain.prototype, false);
+    const plain = new Plain();
+    assert.equal(CjsGraph.destruct(plain), true);
+    assert.equal(CjsGraph.isDestructed(plain), true);
+    assert.deepEqual(calls, ["~Blue", "~Blue", "~Plain"]);
 });

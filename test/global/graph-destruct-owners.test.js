@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile } from "node:fs/promises";
-import { parse } from "@babel/parser";
 import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 import { ICjsGraphRoot } from "../../npm/dist/global/model/graph/ICjsGraphRoot.js";
+import { IRoot } from "../../npm/dist/blue/exposure/IRoot.js";
 
 // All 86 maintained owner Destruct declarations at runtime089be93feed49cb892dcac51243f1930acab1d39.
 // The brief's91 was a stale count; a source AST audit of that revision found these86.
@@ -98,12 +97,9 @@ const owners = [
   ["TnyOutlineHelper", "wrap/outline/TnyOutlineHelper.js"]
 ];
 
-// Four plain helpers deliberately avoid Blue/value exposure; the render target keeps its fluent return.
-// Their public-entry behavior is covered by compositor, blitter, sampler and render-target tests.
-const delegates = new Set([
-  "CjsPaperDollComposition", "CjsPaperDollCompositor", "Tr2Blitter",
-  "CjsWebgl2VideoColorSampler", "CjsWebgpuRenderTarget"
-]);
+// A class has one public entry: IRoot's Destruct, the graph root's, or a one-line method of its own (or of a class
+// it extends) that only calls the graph. The WebGPU render target's also returns itself.
+const ONE_LINE = /^Destruct\((options)?\) ?\{ ?(return )?CjsGraph\.destruct\(this(, options)?\);( return this;)? ?\}$/;
 
 for (const [name, file] of owners)
 {
@@ -121,31 +117,9 @@ for (const [name, file] of owners)
     }
     // One of ours: its cleanup is its OnDestruct, found by dispatch.
     else assert.equal(typeof Object.getOwnPropertyDescriptor(Constructor.prototype, "OnDestruct")?.value, "function");
-    assert.equal(typeof Constructor.prototype.Destruct, "function");
-    if (!delegates.has(name)) assert.equal(Constructor.prototype.Destruct, ICjsGraphRoot.prototype.Destruct);
-    else
-    {
-      assert.equal(Object.hasOwn(Constructor.prototype, "Destruct"), true);
-      const source = await readFile(new URL(`../../src/${file}`, import.meta.url), "utf8");
-      const ast = parse(source, { sourceType: "module", plugins: ["classProperties", "classPrivateMethods"] });
-      const owner = ast.program.body.map(node => node.declaration ?? node).find(node => node.type === "ClassDeclaration" && node.id.name === name);
-      const statements = owner.body.body.find(node => node.type === "ClassMethod" && node.key.name === "Destruct").body.body;
-      const fluent = name === "CjsWebgpuRenderTarget";
-      assert.equal(statements.length, fluent ? 2 : 1, "delegates contain no cleanup machinery");
-      // The render target calls and returns itself; the others return the graph's answer.
-      const call = fluent ? statements[0].expression : statements[0].argument;
-      assert.equal(statements[0].type, fluent ? "ExpressionStatement" : "ReturnStatement");
-      assert.equal(call.type, "CallExpression");
-      assert.equal(call.callee.type, "MemberExpression");
-      assert.equal(call.callee.object.name, "CjsGraph");
-      assert.equal(call.callee.property.name, "destruct");
-      assert.equal(call.arguments.length, 1);
-      assert.equal(call.arguments[0].type, "ThisExpression");
-      if (fluent)
-      {
-        assert.equal(statements[1].type, "ReturnStatement");
-        assert.equal(statements[1].argument.type, "ThisExpression");
-      }
-    }
+    const entry = Constructor.prototype.Destruct;
+    assert.equal(typeof entry, "function");
+    if (entry !== IRoot.prototype.Destruct && entry !== ICjsGraphRoot.prototype.Destruct)
+      assert.match(entry.toString().replace(/\s+/g, " "), ONE_LINE, "an own Destruct holds no cleanup machinery");
   });
 }

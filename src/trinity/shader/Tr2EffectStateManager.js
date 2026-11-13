@@ -1,4 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { meta, type } from "#schema";
 import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
 import { Tr2VertexLayoutAL } from "../../trinityal/Tr2VertexLayoutAL/index.js";
@@ -1456,6 +1457,17 @@ export class Tr2EffectStateManager
     }
     if (this._currentValues.indexBuffer) this._currentValues.indexBuffer.Destroy();
     this._currentValues.indexBuffer = null;
+  }
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

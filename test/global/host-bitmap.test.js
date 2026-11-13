@@ -4,6 +4,7 @@ import test from "node:test";
 import { HostBitmap, ImageUtility, BitmapDimensions } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat as F, TextureType as T } from "../../npm/dist/global/consts/renderContext/index.js";
 import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 const BGRA = F.PIXEL_FORMAT_B8G8R8A8_UNORM;
 const BGRX = F.PIXEL_FORMAT_B8G8R8X8_UNORM;
@@ -115,7 +116,8 @@ test("standalone ImageIO bitmap graph teardown releases bytes without invalidati
   retained.fill(19);
   for (let repeat = 0; repeat < 2; repeat++)
   {
-    owner.Destruct();
+    // ImageIO stands alone and imports no graph, so the bitmap has no Destruct of its own; the graph's door ends it.
+    CjsGraph.destruct(owner);
     assert.equal(owner.IsValid(), false);
     assert.equal(owner.GetRawData(), null);
     assert.equal(owner.GetFormat(), F.PIXEL_FORMAT_UNKNOWN);
@@ -123,7 +125,7 @@ test("standalone ImageIO bitmap graph teardown releases bytes without invalidati
     assert.equal(peer.IsValid(), true);
     assert.ok(retained.every(value => value === 19));
   }
-  peer.Destruct();
+  CjsGraph.destruct(peer);
 });
 
 test("Create sizes an uncompressed full chain, and refuses bad compressed sizes", () =>

@@ -1,4 +1,5 @@
 // Source: trinity/trinity/Tr2RenderContext.h (name/role)
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { exposure as be } from "#be";
 //   trinity/trinityal/*/Tr2RenderContext*.h (command surface)
 // Hand-maintained amalgam of two Carbon surfaces (audited 2026-07-18):
@@ -195,6 +196,17 @@ export class Tr2RenderContext
     this._esm.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
 
     return this._al;
+  }
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { random as carbonRandom } from "#math/random";
 // Source: videoplayer/python/videoplayer/playlistresource.py:24-165,231-254
 // One host-defined playlist owns one texture, player and colour sampler.
@@ -194,6 +195,17 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
     this.video = null;
     this.currentPath = null;
     this._texture = null;
+  }
+
+  /**
+   * Ends this object, once: its OnDestruct, then its destructors.
+   * @cjs Thin public entry; this class does not extend the graph root.
+   * @param {*} [options] Handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

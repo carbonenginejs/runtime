@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { CjsSchema, meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { TnyInputMan } from "../input/TnyInputMan.js";
@@ -753,6 +754,17 @@ export class TnyCameraControls
     this._gestureCaptured = false;
     this._held.clear();
     this.camera.SetOrbit(this.camera.yaw, this.camera.pitch);
+  }
+
+  /**
+   * Ends this object, once: its OnDestruct, then its destructors.
+   * @cjs Thin public entry; this class does not extend the graph root.
+   * @param {*} [options] Handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

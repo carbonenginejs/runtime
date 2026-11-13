@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { meta, type } from "#schema";
 import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
 
@@ -115,6 +116,17 @@ export class CjsPaperDoll
             }
         }
         return good;
+    }
+
+    /**
+     * Ends this object, once: its OnDestruct, then its destructors.
+     * @cjs Thin public entry; this class does not extend the graph root.
+     * @param {*} [options] Handed to OnDestruct unchanged.
+     * @returns {boolean} True if it ran; false on a second call.
+     */
+    Destruct(options)
+    {
+        return CjsGraph.destruct(this, options);
     }
 
     /**

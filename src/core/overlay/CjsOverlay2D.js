@@ -7,6 +7,7 @@
 //
 // Input is not this class's job: attach the input manager to this canvas (it
 // is on top, so it receives the pointer) and let its consumers route.
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { CjsSchema, meta } from "#schema";
 import { blue, IBlueEvents } from "#blue";
 
@@ -135,6 +136,17 @@ export class CjsOverlay2D extends IBlueEvents
   OnTick(_realTime, _simTime, _cookie)
   {
     this.Render();
+  }
+
+  /**
+   * Ends this object, once: its OnDestruct, then its destructors.
+   * @cjs Thin public entry; this class does not extend the graph root.
+   * @param {*} [options] Handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

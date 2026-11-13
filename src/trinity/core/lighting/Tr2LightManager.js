@@ -25,6 +25,7 @@
 // The packing below follows Carbon's PerLightData layout, packed flag word,
 // premultiply and fade band.
 
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { CjsSchema, meta, type } from "#schema";
 import { num } from "#math/num";
 import { mat4 } from "#math/mat4";
@@ -902,6 +903,17 @@ export class Tr2LightManager
     if (!instance) return;
     Tr2LightManager._instance = null;
     instance.Destruct();
+  }
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

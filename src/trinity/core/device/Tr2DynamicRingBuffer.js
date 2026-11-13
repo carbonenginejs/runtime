@@ -5,6 +5,7 @@
 // into the first region the GPU is no longer reading, DoneUsingData fences it,
 // and regions are reused once their fence is reached. Carbon's header also
 // declares Tr2RingVertexBuffer and Tr2RingIndexBuffer; each has its own file.
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 import { ALResult, Failed, Tr2FenceAL } from "#trinityal";
@@ -67,6 +68,17 @@ export class Tr2DynamicRingBuffer
   /** _name */
   @type.string
   _name = "";
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
+  }
 
   /**
    * Carbon: ~Tr2DynamicRingBuffer (trinity/trinity/Tr2DynamicRingBuffer.cpp:26-29).

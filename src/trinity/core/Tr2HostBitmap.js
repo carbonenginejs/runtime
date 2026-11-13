@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Tr2HostBitmap.h
 // Source: trinity/trinity/Tr2HostBitmap.cpp
 // Source: trinity/trinity/Tr2HostBitmap_Blue.cpp
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { exposure as be } from "#be";
 // Maintained promotion: native ImageIO storage replaces the generated model snapshots.
 // Async saving and the explicit unimplemented Trinity methods remain unsupported.
@@ -52,6 +53,17 @@ function parseIntTuple(tuple, count)
 /** Describes a CPU-resident bitmap's dimensions, format, mip count, image type, and diagnostic name. */
 export class Tr2HostBitmap extends HostBitmap
 {
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
+  }
 
   /**
    * Carbon: ~Tr2HostBitmap (trinity/trinity/Tr2HostBitmap.cpp:20-29): calls Destroy.

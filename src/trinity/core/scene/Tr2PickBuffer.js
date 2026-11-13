@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Tr2PickBuffer.h
 // Source: trinity/trinity/Tr2PickBuffer.cpp
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { CjsSchema, type } from "#schema";
 import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, ALResult } from "#trinityal";
 import { PixelFormat, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
@@ -180,6 +181,17 @@ export class Tr2PickBuffer
   UnmapForReading(context)
   {
     if (this._pickTarget.IsValid()) this._pickTarget.UnmapForReading(context);
+  }
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

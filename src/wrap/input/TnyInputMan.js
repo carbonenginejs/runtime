@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { CjsSchema, meta } from "#schema";
 import { Tr2MainWindow } from "#input/Tr2MainWindow";
 
@@ -224,6 +225,17 @@ export class TnyInputMan
     for (let i = 0; i < consumers.length; i++) consumers[i].cancel(reason);
     const target = this._attachment?.target;
     if (target && pointer !== null && target.hasPointerCapture?.(pointer)) target.releasePointerCapture(pointer);
+  }
+
+  /**
+   * Ends this object, once: its OnDestruct, then its destructors.
+   * @cjs Thin public entry; this class does not extend the graph root.
+   * @param {*} [options] Handed to OnDestruct unchanged.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

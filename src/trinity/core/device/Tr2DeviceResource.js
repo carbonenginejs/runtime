@@ -6,6 +6,7 @@
 // without preparing; idle scene content is purged, while explicitly flagged
 // infrastructure survives until teardown. Secondary bases use @be.inherit,
 // which installs methods without running this constructor or copying fields.
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { CjsSchema, meta } from "#schema";
 import { Tr2DeviceResourceState } from "./deviceResourceState.js";
 
@@ -29,6 +30,17 @@ export class Tr2DeviceResource
   constructor()
   {
     CjsSchema.getConstructor("TriDevice").RegisterResource(this);
+  }
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

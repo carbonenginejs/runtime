@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dDisplayList.cpp
 // Carbon's nested Tr2Sprite2dDisplayList::Entry is ported in
 // Tr2Sprite2dDisplayListEntry.js.
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { meta } from "#schema";
 import { Tr2BufferAL } from "#trinityal";
 import { Tr2Sprite2dDisplayListEntry } from "./Tr2Sprite2dDisplayListEntry.js";
@@ -50,6 +51,17 @@ export class Tr2Sprite2dDisplayList
   _OnPrepareResources()
   {
     return true;
+  }
+
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
   }
 
   /**

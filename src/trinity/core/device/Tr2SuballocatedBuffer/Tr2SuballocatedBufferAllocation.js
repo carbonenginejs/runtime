@@ -18,6 +18,7 @@
 //
 // Resource release and public allocation destruction return ranges through Free.
 // MapForReading remains unported.
+import { CjsGraph } from "../../../../global/model/graph/CjsGraph.js";
 import { CjsSchema, type } from "#schema";
 
 
@@ -34,6 +35,17 @@ export const SHARED_BUFFER_MAX_SIZE = 2048 * 1024 * 1024;
  */
 export class Tr2SuballocatedBufferAllocation
 {
+  /**
+   * Ends this object, once: its C++ destruction, level by level.
+   * @cjs Thin public entry. Carbon's class is not an IRoot, so it does not take IRoot's Destruct.
+   * @param {*} [options] Handed to an OnDestruct, where a class below this one has one.
+   * @returns {boolean} True if it ran; false on a second call.
+   */
+  Destruct(options)
+  {
+    return CjsGraph.destruct(this, options);
+  }
+
   /**
    * Returns this allocation's reservation to its parent.
    * Carbon: ~Allocation (trinity/trinity/Tr2SuballocatedBuffer.cpp:184-190).
