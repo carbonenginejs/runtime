@@ -385,5 +385,5 @@ CjsSchema.meta.inherit(BeInfo)(BlueOS);
 CjsSchema.decorateField(BlueOS, "frameClock", type.pyObject, be.mapAttribute(be.READWRITE));
 CjsSchema.decorateMethod(BlueOS, "PumpOS", CjsSchema.be.method);
 CjsSchema.be.define(BlueOS, {
-  className: "BlueOS"
+  name: "BlueOS"
 });

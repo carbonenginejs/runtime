@@ -322,7 +322,7 @@ CjsSchema.decorateField(BlueObjectProxy, "isResident", be.mapPropertyReadOnly(),
 CjsSchema.decorateMethod(BlueObjectProxy, "Freeze", be.mapMethodAndWrap());
 CjsSchema.decorateMethod(BlueObjectProxy, "SetObjectFromBuilder", be.mapMethodAndWrap());
 CjsSchema.be.define(BlueObjectProxy, {
-  className: "BlueObjectProxy",
+  name: "BlueObjectProxy",
   members: [ { name: "object", key: "_object", exposure: { macro: "MAP_ATTRIBUTE", flags: 24 }, type: { kind: "rootRef", className: "IRoot" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true } } ]
 });
 CjsSchema.exposure.mapInterface(IBlueObjectProxy)(BlueObjectProxy);

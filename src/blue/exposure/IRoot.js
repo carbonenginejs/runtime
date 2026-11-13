@@ -174,5 +174,5 @@ for (const name of [ "ClassType", "QueryInterface", "Lock", "Unlock", "GetFlags"
 {
   CjsSchema.decorateMethod(IRoot, name, blue.method);
 }
-CjsSchema.be.define(IRoot, { className: "IRoot", fields: {}, capabilities: [ "values", "destruct" ] });
+CjsSchema.be.define(IRoot, { name: "IRoot", fields: {}, capabilities: [ "values", "destruct" ] });
 blue.interface()(IRoot);

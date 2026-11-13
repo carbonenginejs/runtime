@@ -49,4 +49,4 @@ export class ScopedThreadStatus
   }
 }
 
-CjsSchema.meta.define(ScopedThreadStatus, { className: "ScopedThreadStatus", carbon: "ScopedThreadStatus", capabilities: [ "destruct" ] });
+CjsSchema.meta.define(ScopedThreadStatus, { name: "ScopedThreadStatus", carbon: "ScopedThreadStatus", capabilities: [ "destruct" ] });

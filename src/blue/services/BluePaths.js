@@ -537,7 +537,7 @@ CjsSchema.decorateMethod(BluePaths, "IsDirectory", CjsSchema.be.method);
 CjsSchema.decorateMethod(BluePaths, "FileExists", CjsSchema.be.method);
 CjsSchema.decorateMethod(BluePaths, "FileExistsLocally", CjsSchema.be.method);
 CjsSchema.be.define(BluePaths, {
-  className: "BluePaths",
+  name: "BluePaths",
   members: [ { name: "cacheFileExistance", key: "_cacheFileExistance", exposure: { macro: "MAP_ATTRIBUTE", flags: 3 }, type: { kind: "boolean" }, edit: { read: true, write: true }, carbon: { member: true } } ]
 });
 

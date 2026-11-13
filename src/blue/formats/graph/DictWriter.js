@@ -287,5 +287,5 @@ export class DictWriter extends IRootWriter
   }
 }
 
-CjsSchema.meta.define(DictWriter, { className: "DictWriter" });
+CjsSchema.meta.define(DictWriter, { name: "DictWriter" });
 CjsSchema.meta.exposureChainTo(IRootWriter)(DictWriter);

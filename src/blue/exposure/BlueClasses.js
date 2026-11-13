@@ -1149,7 +1149,7 @@ CjsSchema.decorateMethod(BlueClasses, "Find", CjsSchema.be.method);
 CjsSchema.decorateMethod(BlueClasses, "GetTypeInfo", CjsSchema.be.method);
 CjsSchema.decorateMethod(BlueClasses, "GetPersistedClassesReport", CjsSchema.be.method);
 CjsSchema.be.define(BlueClasses, {
-  className: "BlueClasses",
+  name: "BlueClasses",
   unused: [
     "FindVariable", "UpdateObjectCount",
     "ProcessPendingDeletes",

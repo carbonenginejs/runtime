@@ -178,7 +178,7 @@ export class CjsBlue
 }
 
 CjsSchema.meta.define(CjsBlue, {
-  className: "CjsBlue",
+  name: "CjsBlue",
   fields: {},
   methods: {
     Fetch: [],

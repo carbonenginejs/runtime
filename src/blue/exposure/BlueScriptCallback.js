@@ -127,4 +127,4 @@ export class BlueScriptCallback
 // declaration is the only thing tying it back to BlueScriptCallback. Without it
 // a deliberately renamed port is indistinguishable from an invention, which is
 // exactly how this class read before 2026-09-13.
-CjsSchema.be.define(BlueScriptCallback, { className: "BlueScriptCallback" });
+CjsSchema.be.define(BlueScriptCallback, { name: "BlueScriptCallback" });

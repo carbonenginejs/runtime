@@ -481,7 +481,7 @@ export class CjsBlueResFileSystemFetch extends IBlueResFileSystem
 }
 
 CjsSchema.meta.define(CjsBlueResFileSystemFetch, {
-  className: "CjsBlueResFileSystemFetch",
+  name: "CjsBlueResFileSystemFetch",
   fields: {},
   methods: {
     SetPath: [],

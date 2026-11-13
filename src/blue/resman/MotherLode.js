@@ -1515,6 +1515,6 @@ CjsSchema.decorateMethod(MotherLode, "GetKeys", CjsSchema.be.method);
 CjsSchema.decorateMethod(MotherLode, "GetValues", CjsSchema.be.method);
 CjsSchema.decorateMethod(MotherLode, "GetSize", CjsSchema.be.method);
 CjsSchema.be.define(MotherLode, {
-  className: "MotherLode"
+  name: "MotherLode"
 });
 

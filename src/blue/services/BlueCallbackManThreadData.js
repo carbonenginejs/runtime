@@ -42,4 +42,4 @@ export class BlueCallbackManThreadData
   }
 }
 
-CjsSchema.meta.define(BlueCallbackManThreadData, { className: "BlueCallbackManThreadData", carbon: "BlueCallbackMan::ThreadData" });
+CjsSchema.meta.define(BlueCallbackManThreadData, { name: "BlueCallbackManThreadData", carbon: "BlueCallbackMan::ThreadData" });
