@@ -3,6 +3,7 @@ import test from "node:test";
 import { Tr2MaterialStageInput } from "../../npm/dist/trinity/shader/material/Tr2MaterialStageInput.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { Tr2ConstantBufferAL } from "../../npm/dist/trinityal/index.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 test("stage teardown releases its constant-buffer share once without invalidating a peer", () =>
 {
@@ -17,8 +18,8 @@ test("stage teardown releases its constant-buffer share once without invalidatin
   const mirror = stage.constantMirror;
   try
   {
-    stage.OnDestruct();
-    stage.OnDestruct();
+    CjsGraph.finalDelete(stage);
+    CjsGraph.finalDelete(stage);
     assert.equal(stage.constantBuffer.IsValid(), false);
     assert.equal(peer.IsValid(), true);
     assert.equal(shared.owners, 1);

@@ -48,7 +48,7 @@ export class Tr2MaterialStageInput
    * @adapted Explicit AL release replaces the native value member's destructor in JavaScript.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.constantBuffer.Destroy();
   }

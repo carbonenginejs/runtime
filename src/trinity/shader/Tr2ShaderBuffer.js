@@ -21,7 +21,7 @@ export class Tr2ShaderBuffer extends IRoot
    * @adapted Dropping the owned byte view replaces CCP_FREE; context-owned GPU buffers are not released here.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this.data)
     {

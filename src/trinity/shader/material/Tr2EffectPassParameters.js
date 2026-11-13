@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { meta } from "#schema";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -77,12 +78,12 @@ export class Tr2EffectPassParameters
    * @adapted Bindless used-texture storage is unported and never acquired by this class.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const parameter of this.reroutedParameters) parameter.SetDestination(null, 0);
     this.resourceSet.Destroy();
-    this.resourceSetDesc.OnDestruct();
-    for (let i = this.stageInput.length - 1; i >= 0; i--) this.stageInput[i].OnDestruct();
+    CjsGraph.finalDelete(this.resourceSetDesc);
+    for (let i = this.stageInput.length - 1; i >= 0; i--) CjsGraph.finalDelete(this.stageInput[i]);
   }
 
   // States: AddUsedResource and AddReroutable are Tr2Material.cpp:136-146. AllocateConstantMirror and GetSharedConstantBuffer forward as cpp:148-156 do,

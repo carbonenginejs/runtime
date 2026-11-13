@@ -1464,7 +1464,7 @@ export class Tr2EffectStateManager
    * Carbon: Tr2EffectStateManager::CurrentValues (trinity/trinity/Shader/Tr2EffectStateManager.h:171-193).
    * @adapted Preserves explicit release of cached AL buffer values in place of native member destruction.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._ReleaseBufferBindings();
     this._isManagedRendering = false;

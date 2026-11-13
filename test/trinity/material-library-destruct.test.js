@@ -3,6 +3,7 @@ import test from "node:test";
 import { Tr2EffectLibraryParameters } from "../../npm/dist/trinity/shader/material/Tr2EffectLibraryParameters.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { Tr2ResourceSetAL } from "../../npm/dist/trinityal/index.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 test("library teardown releases both stage buffers and only its resource-set share", () =>
 {
@@ -19,8 +20,8 @@ test("library teardown releases both stage buffers and only its resource-set sha
   assert.equal(peer.IsValid(), true);
   try
   {
-    library.OnDestruct();
-    library.OnDestruct();
+    CjsGraph.finalDelete(library);
+    CjsGraph.finalDelete(library);
     assert.equal(local.constantBuffer.IsValid(), false);
     assert.equal(global.constantBuffer.IsValid(), false);
     assert.equal(library.globalResourceSet.IsValid(), false);

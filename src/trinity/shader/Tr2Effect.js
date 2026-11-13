@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -278,7 +279,7 @@ export class Tr2Effect extends Tr2Material
    */
   _ClearPassBindings()
   {
-    for (const technique of this.parametersForPasses) technique.OnDestruct();
+    for (const technique of this.parametersForPasses) CjsGraph.finalDelete(technique);
     this.parametersForPasses = [];
   }
 
@@ -1148,7 +1149,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    * @adapted Preserves existing explicit Destruct fences and owned-slot clearing after native cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     if (this._destroyed) return;
     this._destroyed = true;

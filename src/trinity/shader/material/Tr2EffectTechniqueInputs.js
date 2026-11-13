@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { meta } from "#schema";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -22,10 +23,10 @@ export class Tr2EffectTechniqueInputs
    * @adapted Explicit member hooks replace destruction of the native unique_ptr vectors.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
-    for (const library of this.libraries) library.OnDestruct();
-    for (const pass of this.passes) pass.OnDestruct();
+    for (const library of this.libraries) CjsGraph.finalDelete(library);
+    for (const pass of this.passes) CjsGraph.finalDelete(pass);
   }
 
 }

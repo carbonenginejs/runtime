@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { exposure as be } from "#be";
 import { IRoot } from "../../blue/exposure/IRoot.js";
 // Source: trinity/trinity/Shader/Tr2Material.h
@@ -82,10 +83,10 @@ export class Tr2Material extends IRoot
    * @adapted Explicit owned-value hooks replace native vector member destruction in JavaScript.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
-    for (const technique of this.parametersForLibraries) technique.OnDestruct();
-    for (const technique of this.parametersForPasses) technique.OnDestruct();
+    for (const technique of this.parametersForLibraries) CjsGraph.finalDelete(technique);
+    for (const technique of this.parametersForPasses) CjsGraph.finalDelete(technique);
   }
 
   /**

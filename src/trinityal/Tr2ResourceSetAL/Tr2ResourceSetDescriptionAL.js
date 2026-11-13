@@ -319,7 +319,7 @@ export class Tr2ResourceSetDescriptionAL
    * @adapted Explicit handle release replaces unique_ptr array destruction; moved-from arrays are null.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const records of [this._srv, this._uav])
     {

@@ -1,3 +1,4 @@
+import { CjsGraph } from "../../../global/model/graph/CjsGraph.js";
 import { meta } from "#schema";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -61,12 +62,12 @@ export class Tr2EffectLibraryParameters
    * @adapted Bindless used-texture storage is unported and never acquired by this class.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.globalResourceSet.Destroy();
-    this.globalResourceSetDesc.OnDestruct();
-    this.globalInput.OnDestruct();
-    this.localInput.OnDestruct();
+    CjsGraph.finalDelete(this.globalResourceSetDesc);
+    CjsGraph.finalDelete(this.globalInput);
+    CjsGraph.finalDelete(this.localInput);
   }
 
   // States: Tr2Material.cpp:108-117, statement for statement.

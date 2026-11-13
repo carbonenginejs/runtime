@@ -4,6 +4,7 @@ import { Tr2EffectTechniqueInputs } from "../../npm/dist/trinity/shader/material
 import { Tr2EffectPassParameters } from "../../npm/dist/trinity/shader/material/Tr2EffectPassParameters.js";
 import { Tr2EffectLibraryParameters } from "../../npm/dist/trinity/shader/material/Tr2EffectLibraryParameters.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 test("technique teardown releases both owned pass and library values with arrays intact", () =>
 {
@@ -19,8 +20,8 @@ test("technique teardown releases both owned pass and library values with arrays
     buffer.Create__Size(16, context);
     assert.equal(buffer.IsValid(), true);
   }
-  technique.OnDestruct();
-  technique.OnDestruct();
+  CjsGraph.finalDelete(technique);
+  CjsGraph.finalDelete(technique);
   for (const buffer of buffers) assert.equal(buffer.IsValid(), false);
   assert.deepEqual(technique.passes, [pass]);
   assert.deepEqual(technique.libraries, [library]);

@@ -106,10 +106,10 @@ export class Tr2DataTextureManager
    * the destructor (cpp:22-25) plus the base's unregistration
    * (Tr2DeviceResource.cpp:15-18).
    *
-   * Carbon: Tr2DataTextureManager destructor (trinity/trinity/Shader/Utils/Tr2DataTextureManager.cpp:22-25).
+   * Carbon: ~Tr2DataTextureManager (trinity/trinity/Shader/Utils/Tr2DataTextureManager.cpp:22-25).
    * @adapted Preserves explicit texture release; the graph dispatches base cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     Tr2VariableStore.globalStore().UnregisterVariable(IMPACT_SHIELD_DATA_MAP);
     this.ReleaseResources();

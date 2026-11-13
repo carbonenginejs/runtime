@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL, Tr2RenderContextALStub, Tr2BufferDescriptionAL, Tr2BitmapDimensions } from "../../npm/dist/trinityal/index.js";
 import { Tr2GpuUsage, Tr2CpuUsage, PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
+import { CjsGraph } from "../../npm/dist/global/model/graph/CjsGraph.js";
 
 test("resource-description teardown handles moved arrays and releases owned handles without damaging a copy", () =>
 {
@@ -25,11 +26,11 @@ test("resource-description teardown handles moved arrays and releases owned hand
   const moved = new Tr2ResourceSetDescriptionAL({ move: description });
   try
   {
-    description.OnDestruct();
-    description.OnDestruct();
+    CjsGraph.finalDelete(description);
+    CjsGraph.finalDelete(description);
     assert.equal(moved._srv[0].buffer.IsValid(), true);
-    moved.OnDestruct();
-    moved.OnDestruct();
+    CjsGraph.finalDelete(moved);
+    CjsGraph.finalDelete(moved);
     assert.equal(moved._srv[0].buffer.IsValid(), false);
     assert.equal(moved._uav[0].buffer.IsValid(), false);
     assert.equal(moved._srv[0].texture.IsValid(), false);
@@ -46,8 +47,8 @@ test("resource-description teardown handles moved arrays and releases owned hand
   }
   finally
   {
-    peer.OnDestruct();
-    moved.OnDestruct();
+    CjsGraph.finalDelete(peer);
+    CjsGraph.finalDelete(moved);
     buffer.Destroy();
     texture.Destroy();
     sampler.Destroy();
