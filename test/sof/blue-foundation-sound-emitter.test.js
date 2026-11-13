@@ -6,6 +6,7 @@ import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { blackBuilder, readBlack } from "../support/blackReader.js";
 import { CjsBlackFormat } from "../../npm/dist/blue/formats/black/index.js";
+import { DictWriter } from "../../npm/dist/blue/formats/graph/DictWriter.js";
 import { EveSOFDataHullSoundEmitter } from "../../npm/dist/sof/hull/EveSOFDataHullSoundEmitter.js";
 
 const members = [ "name", "prefix", "position", "rotation", "attenuationScalingFactor" ];
@@ -80,7 +81,9 @@ test("Blue copies the production sound emitter into fresh and existing native-sh
 
 function assertPlainEmitter(emitter)
 {
-  assert.deepEqual(Object.keys(emitter), members);
+  // Its stored members are what the persistent writer writes. Own keys are not the measure: an IRoot also
+  // holds the graph's runtime state field, which is no member.
+  assert.deepEqual(Object.keys(new DictWriter().WriteObject(emitter, {}, { persistOnly: true })), members);
   assert.equal(Object.getPrototypeOf(EveSOFDataHullSoundEmitter.prototype), ExposureRoot.prototype);
   assert.equal("from" in EveSOFDataHullSoundEmitter, false);
   for (const name of [ "__state", "SetValues", "GetValues", "UpdateValues", "Initialize", "OnModified" ])
