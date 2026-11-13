@@ -441,7 +441,7 @@ export class TnyOutlineHelper extends ITr2RenderNode
 CjsSchema.decorateMethod(TnyOutlineHelper, "Validate", CjsSchema.be.method);
 CjsSchema.decorateMethod(TnyOutlineHelper, "Execute", CjsSchema.be.method);
 CjsSchema.meta.define(TnyOutlineHelper, {
-  className: "TnyOutlineHelper",
+  name: "TnyOutlineHelper",
   methods: Object.fromEntries(["Validate", "Execute", "Destruct", "_LoadEffects", "_Modes", "_EnsureMask", "_Composite"].map(name => [name, []]))
 });
 CjsSchema.meta.exposureChainTo(ITr2RenderNode)(TnyOutlineHelper);

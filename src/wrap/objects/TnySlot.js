@@ -19,7 +19,7 @@ const FAMILIES = { turret: "turrets", launcher: "launchers", missile: "launchers
  * `resPath` mounts or (with "") unmounts; the actions are methods.
  * @cjs
  */
-@meta.define({ className: "TnySlot" })
+@meta.define({ name: "TnySlot" })
 @meta.exposureChainTo(ICjsGraphRoot)
 @meta.mapInterface(INotify)
 export class TnySlot extends ICjsGraphRoot

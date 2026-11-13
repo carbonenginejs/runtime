@@ -17,7 +17,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../trinity/core/con
  * `SetValues`, `GetTypeInfo`, and `_onModified(name)` after a change.
  * @cjs
  */
-@meta.define({ className: "TnyScene" })
+@meta.define({ name: "TnyScene" })
 @meta.exposureChainTo(ICjsGraphRoot)
 @meta.mapInterface(INotify)
 export class TnyScene extends ICjsGraphRoot

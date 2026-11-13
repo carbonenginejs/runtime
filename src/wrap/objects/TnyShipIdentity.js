@@ -7,7 +7,7 @@ import { TnySpaceObjectIdentity } from "./TnySpaceObjectIdentity.js";
  * CCP skin or a SKINR design, never both. Ours, read-only.
  * @cjs
  */
-@meta.define({ className: "TnyShipIdentity" })
+@meta.define({ name: "TnyShipIdentity" })
 @meta.exposureChainTo(TnySpaceObjectIdentity)
 export class TnyShipIdentity extends TnySpaceObjectIdentity
 {

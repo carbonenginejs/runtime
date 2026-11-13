@@ -46,7 +46,7 @@ const ENTRIES = [ "docked", "dock", "appear" ];
  *   origin; `me_generic_hangar_vfx_01a` animates the ship.
  * @cjs
  */
-@meta.define({ className: "TnyHangar" })
+@meta.define({ name: "TnyHangar" })
 @meta.exposureChainTo(TnyScene)
 export class TnyHangar extends TnyScene
 {

@@ -9,7 +9,7 @@ import { TnySlot } from "./TnySlot.js";
  * ccpwgl's TnyMobile. Slots are hull facts, found once from its locators.
  * @cjs
  */
-@meta.define({ className: "TnyMobile" })
+@meta.define({ name: "TnyMobile" })
 @meta.exposureChainTo(TnySpaceObject)
 export class TnyMobile extends TnySpaceObject
 {

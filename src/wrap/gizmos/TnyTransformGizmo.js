@@ -575,7 +575,7 @@ export class TnyTransformGizmo
 }
 
 CjsSchema.meta.define(TnyTransformGizmo, {
-  className: "TnyTransformGizmo",
+  name: "TnyTransformGizmo",
   capabilities: [ "destruct" ],
   methods: Object.fromEntries(["SetKeyBindings", "GetKeyBindings", "SetMode", "SetTarget", "Install", "Uninstall", "Sync", "Render", "HandleInput", "Cancel", "Destruct"].map(name => [name, []]))
 });

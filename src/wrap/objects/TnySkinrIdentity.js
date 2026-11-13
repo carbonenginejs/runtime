@@ -7,7 +7,7 @@ import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
  * colours) is DNA and values, not identity. Null where it is not known.
  * @cjs
  */
-@meta.define({ className: "TnySkinrIdentity" })
+@meta.define({ name: "TnySkinrIdentity" })
 @meta.exposureChainTo(ICjsGraphRoot)
 export class TnySkinrIdentity extends ICjsGraphRoot
 {

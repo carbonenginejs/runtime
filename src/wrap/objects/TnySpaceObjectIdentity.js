@@ -7,7 +7,7 @@ import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
  * separate from the user's writable `name`. Ours. Null where it is not known.
  * @cjs
  */
-@meta.define({ className: "TnySpaceObjectIdentity" })
+@meta.define({ name: "TnySpaceObjectIdentity" })
 @meta.exposureChainTo(ICjsGraphRoot)
 export class TnySpaceObjectIdentity extends ICjsGraphRoot
 {

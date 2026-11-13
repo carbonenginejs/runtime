@@ -60,7 +60,7 @@ let wrapperCount = 0;
  * are discovered once, after the object is built.
  * @cjs
  */
-@meta.define({ className: "TnySpaceObject" })
+@meta.define({ name: "TnySpaceObject" })
 @meta.exposureChainTo(ICjsGraphRoot)
 @meta.mapInterface(INotify)
 export class TnySpaceObject extends ICjsGraphRoot

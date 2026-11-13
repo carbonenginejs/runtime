@@ -7,7 +7,7 @@ import { TnySpaceObject } from "./TnySpaceObject.js";
  * A station or structure (EveStation2). Ours, after ccpwgl's TnyStationary.
  * @cjs
  */
-@meta.define({ className: "TnyStationary" })
+@meta.define({ name: "TnyStationary" })
 @meta.exposureChainTo(TnySpaceObject)
 export class TnyStationary extends TnySpaceObject
 {

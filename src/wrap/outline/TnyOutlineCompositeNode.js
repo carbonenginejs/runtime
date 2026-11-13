@@ -70,7 +70,7 @@ export class TnyOutlineCompositeNode extends ITr2RenderNode
 }
 
 CjsSchema.meta.define(TnyOutlineCompositeNode, {
-  className: "TnyOutlineCompositeNode",
+  name: "TnyOutlineCompositeNode",
   methods: { Validate: [], Execute: [] }
 });
 CjsSchema.meta.exposureChainTo(ITr2RenderNode)(TnyOutlineCompositeNode);

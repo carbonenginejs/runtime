@@ -38,7 +38,7 @@ const BOOSTER_MEMBERS = [ "alwaysOn", "alwaysOnIntensity", "warpIntensity", "sta
  * Ours, after ccpwgl's TnyShip.
  * @cjs
  */
-@meta.define({ className: "TnyShip" })
+@meta.define({ name: "TnyShip" })
 @meta.exposureChainTo(TnyMobile)
 export class TnyShip extends TnyMobile
 {
