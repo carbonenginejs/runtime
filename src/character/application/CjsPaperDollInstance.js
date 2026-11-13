@@ -361,6 +361,41 @@ export class CjsPaperDollInstance
     }
 
     /**
+     * Which of a worn garment's dependants are there for the tuck rule (`dependantShapes`): those no worn,
+     * unsuppressed garment occludes, through its own metadata or its dependants' (the `occludes` its option resolves
+     * to). Visibility is resolved first, so an occluded dependant adds no utility shapes: a bottom's
+     * `dependants/waisttucking/standard` occludes `dependants/drape`, so with it worn the top's drape (v6 sets
+     * `pinchleftlowerhipsshape#0.2`) does not meet the waist tuck's `#2.0` (operator, 2026-11-13: "we have to resolve
+     * what is and isn't visible").
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
+     * @template {{ path: string }} T
+     * @param {T[]} dependants The garment's dependants, each with its lower-case modifier path.
+     * @param {string[][]} occludes Each worn, unsuppressed garment's resolved occludes, its dependants' included.
+     * @returns {T[]} The dependants no list occludes, in order.
+     */
+    static shownDependants(dependants, occludes)
+    {
+        return dependants.filter(dependant => !occludes.some(list => CjsPaperDollDefinition.occludes(list, dependant.path)));
+    }
+
+    /**
+     * Whether a dependant's mesh draws (the drape a top lists): only a worn, unsuppressed garment's own
+     * `occludesModifiers` remove it (`armorsuitcf01` lists `dependants/drape`). A dependant's occlusion of it (a
+     * bottom's `dependants/waisttucking/standard`) cancels only its shapes (`shownDependants`), so a tucked tank top
+     * over trousers keeps its lower part (operator, 2026-11-13).
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
+     * @param {string} path The dependant's modifier path (`dependants/drape/standard`).
+     * @param {string[][]} ownOccludes Each worn, unsuppressed garment's own occludes (its option's `ownOccludes`).
+     * @returns {boolean} True while no garment's own metadata occludes it.
+     */
+    static dependantMeshShown(path, ownOccludes)
+    {
+        return !ownOccludes.some(list => CjsPaperDollDefinition.occludes(list, path));
+    }
+
+    /**
      * The error for a metadata entry no rule reads, worded as the library's missing category rules are
      * (`CjsCharacterLibraryManager._CategoryRule`).
      * @param {string} dependant The dependant's modifier path, whose first two folders name its kind; "" for a worn item.

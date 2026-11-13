@@ -152,7 +152,7 @@ export class CjsPaperDollMaterialSource
             .map(path => library.FetchDependantPart(build.content.sex, path, part.variation))));
         const occludes = [ ...new Set([ ...part.occludes, ...CjsPaperDollInstance.dependantOccludes(dependantParts.filter(Boolean)) ]) ];
         const resolved = { id: option.id, path: option.path, type: option.type, base: part.folders.at(-1), folders: part.folders, variation: part.variation,
-            dependants: part.dependants, occludes, defaultPalette, maps, masks, skipped, maskedNormal };
+            dependants: part.dependants, occludes, ownOccludes: part.occludes, defaultPalette, maps, masks, skipped, maskedNormal };
         if (this._hook !== null) await this._hook(this.name, resolved);
         // Drawn from here on: the maps load on the next draw.
         option.resolved = resolved;
