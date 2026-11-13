@@ -64,16 +64,16 @@ test("Carbon class comments declare a ported donor; Modelled on comments do not"
     await writeFile(join(packageRoot, "src", "Ported.js"), `
         /** Carbon: Replicated (donor/Owner.h:1) */
         export class CjsPorted {}
-        CjsSchema.be.define(CjsPorted, {className: "CjsPorted", fields: {}});
+        CjsSchema.be.define(CjsPorted, {name: "CjsPorted", fields: {}});
         /** Carbon: Decorated (donor/Owner.h:1) */
         @blue.define("CjsDecorated") export class CjsDecorated {}`);
     await writeFile(join(packageRoot, "src", "Modelled.js"), `
         /** Modelled on: Modelled (donor/Owner.h:1) */
         export class CjsModelled {}
-        CjsSchema.meta.define(CjsModelled, {className: "CjsModelled"});
-        @meta.define({className: "CjsNested", carbon: "Nested"}) export class CjsNested {}`);
+        CjsSchema.meta.define(CjsModelled, {name: "CjsModelled"});
+        @meta.define({name: "CjsNested", carbon: "Nested"}) export class CjsNested {}`);
     await writeFile(join(packageRoot, "src", "dropped", "Record.js"),
-        "@meta.define({ className: \"Record\", carbon: \"RecordDonor\" })\nexport class Record {}\n");
+        "@meta.define({ name: \"Record\", carbon: \"RecordDonor\" })\nexport class Record {}\n");
     const { classes } = await sourceIndex(packageRoot, carbonRoot);
     for (const donor of [ "Replicated", "Decorated", "Nested" ])
     {

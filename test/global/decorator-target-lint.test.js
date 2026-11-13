@@ -46,7 +46,7 @@ test("@cjs, renamed, static and private spellings resolve before a finding", () 
 test("literal imperative registrations carry native identity", () =>
 {
     const findings = inspect(`import {CjsSchema} from '#schema'; /** Carbon: Native (native/Native.h:1) */ class Example {Call(){} Extra(){}}
-        CjsSchema.be.define(Example,{className:'Example'});`);
+        CjsSchema.be.define(Example,{name:'Example'});`);
     assert.deepEqual(origin(findings), [ "Extra" ]);
 });
 

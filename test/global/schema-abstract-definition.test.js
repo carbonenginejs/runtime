@@ -164,7 +164,7 @@ test("invalid Stage-3 declaration does not consume field metadata before a corre
 test("inherited definition properties do not declare an abstract construction policy", () =>
 {
   class Concrete {}
-  const definition = Object.assign(Object.create({abstract: true}), {className: "InheritedDefinitionAbstract"});
+  const definition = Object.assign(Object.create({abstract: true}), {name: "InheritedDefinitionAbstract"});
   CjsSchema.define(Concrete, definition);
   try
   {

@@ -174,13 +174,13 @@ CjsSchema.define(ScannerUnusedProbe, ${definition});
 test("native-method CLI flags a missing Carbon method unless define lists it as unused", () =>
 {
   const flagged = runScanner("scripts/trinity/lint-native-method-parity.js",
-    unusedFixture(`{ className: "ScannerUnusedProbe", unused: [ "Other" ] }`));
+    unusedFixture(`{ name: "ScannerUnusedProbe", unused: [ "Other" ] }`));
   expectStatus(flagged, 1);
   assert.match(flagged.stdout, /1 ported classes checked, 1 with gaps, 1 missing methods/);
   assert.ok(flagged.stderr.includes("Dropped"), flagged.stderr);
 
   const credited = runScanner("scripts/trinity/lint-native-method-parity.js",
-    unusedFixture(`{ className: "ScannerUnusedProbe", unused: [ "Dropped" ] }`));
+    unusedFixture(`{ name: "ScannerUnusedProbe", unused: [ "Dropped" ] }`));
   expectStatus(credited, 0);
   assert.match(credited.stdout, /1 ported classes checked, 0 with gaps, 0 missing methods/);
 });
@@ -308,7 +308,7 @@ test("AL parity CLI recognizes type.define, meta.define and types.define donor d
   for (const namespace of [ "type", "meta", "types" ])
   {
     const probe = runScanner("scripts/lint-al-parity.js",
-      alFixture(`@${namespace}.define({ className: "RenamedProbe", carbon: "NativeProbe" })`));
+      alFixture(`@${namespace}.define({ name: "RenamedProbe", carbon: "NativeProbe" })`));
     expectStatus(probe, 0);
     assert.match(probe.stdout, /AL parity OK: 1 classes compared, 0 known gap\(s\)/);
     assert.doesNotMatch(probe.stdout, /SKIPPED/);
@@ -340,7 +340,7 @@ test("AL parity CLI does not assign donors from unrelated or computed define dec
   for (const decorator of [ "other.define", "meta['define']" ])
   {
     const probe = runScanner("scripts/lint-al-parity.js",
-      alFixture(`@(${decorator}({ className: "RenamedProbe", carbon: "NativeProbe" }))`));
+      alFixture(`@(${decorator}({ name: "RenamedProbe", carbon: "NativeProbe" }))`));
     expectStatus(probe, 1);
     assert.match(probe.stderr, /RenamedProbe matches no class in its cited donors/);
     assert.match(probe.stderr, /1 NEW AL parity problem\(s\)/);
