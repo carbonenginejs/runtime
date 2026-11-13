@@ -304,7 +304,7 @@ export class CjsPaperDollCompositor
      */
     TargetTexture(width, height, mips = false, targets = ~0)
     {
-        return new CjsPaperDollCompositionTarget(this, width, height, mips, targets);
+        return new CjsPaperDollCompositionTarget().Initialize(this, width, height, mips, targets);
     }
 
     /**

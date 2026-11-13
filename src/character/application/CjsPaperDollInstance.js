@@ -55,18 +55,21 @@ export class CjsPaperDollInstance
     objects = [];
 
     /**
+     * Attaches the instance to its target bindings and drawn objects; construction is inert.
      * @param {{error: Function, foundation: Function, skin: Function, surface: Function, eyes: Function, head: Function, body: Function}} bindings
      *   Prepared synchronous bindings, one per target: each receives that target's capture (the foundation binding the
      *   resolved foundation); and `error`, required, which receives the message of a failure the instance meets outside a
      *   target (a held part whose option fails to resolve, `holdParts`).
      * @param {object[]} [objects=[]] The skinned objects drawn for this character.
      * @throws {TypeError} For bindings without an `error` function.
+     * @returns {CjsPaperDollInstance} This instance.
      */
-    constructor(bindings, objects = [])
+    Initialize(bindings, objects = [])
     {
         if (typeof bindings.error !== "function") throw new TypeError("CjsPaperDollInstance needs an error binding");
         this._bindings = bindings;
         this.objects = objects;
+        return this;
     }
 
     /**

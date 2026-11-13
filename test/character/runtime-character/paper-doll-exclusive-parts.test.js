@@ -38,6 +38,6 @@ test("the groups are library data with a default; the paper doll applies the gro
     assert.deepEqual(library.GetExclusiveParts(), GROUPS);
     library.SetExclusiveParts([]);
     assert.deepEqual(library.GetExclusiveParts(), []);
-    assert.deepEqual(new CjsPaperDollInstance({ error() {} }).exclusive, GROUPS, "an instance starts with the defaults");
+    assert.deepEqual(new CjsPaperDollInstance().Initialize({ error() {} }).exclusive, GROUPS, "an instance starts with the defaults");
     assert.deepEqual(CjsPaperDollInstance.exclusiveParts(Tops([ true, "tshirtf01" ], [ true, "shirtmilf01" ]), new Map(), library.GetExclusiveParts()), [], "no groups: both worn");
 });

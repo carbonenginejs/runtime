@@ -31,7 +31,7 @@ test("sculpt weights reach the foundation binding as a shape-only edit", () =>
     const doll = new CjsPaperDollDefinition();
     doll.archetype.Configure([ Foundation() ], { option: "archetype", strength: 1 });
     const { foundations, bindings } = Bindings();
-    const instance = new CjsPaperDollInstance({ error: message => assert.fail(message), ...bindings });
+    const instance = new CjsPaperDollInstance().Initialize({ error: message => assert.fail(message), ...bindings });
     instance.Update(doll);
     assert.deepEqual(foundations.at(-1).sculpt, {});
 

@@ -7,7 +7,7 @@ import { CjsPaperDollDefinition, CjsPaperDollInstance, PaperDollLayer, PaperDoll
 const instances = new WeakMap();
 function Update(definition, bindings)
 {
-    if (!instances.has(bindings)) instances.set(bindings, new CjsPaperDollInstance({ error: message => assert.fail(message), ...bindings }));
+    if (!instances.has(bindings)) instances.set(bindings, new CjsPaperDollInstance().Initialize({ error: message => assert.fail(message), ...bindings }));
     return instances.get(bindings).Update(definition);
 }
 

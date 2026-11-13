@@ -40,14 +40,15 @@ export class CjsPaperDollCompositionTarget
     _compositor = null;
 
     /**
-     * Creates the target through its compositor, which releases it.
+     * Creates the target through its compositor, which releases it. Construction is inert; this attaches.
      * @param {import("./CjsPaperDollCompositor.js").CjsPaperDollCompositor} compositor The compositor that owns it.
      * @param {number} width Its width.
      * @param {number} height Its height.
      * @param {boolean} [mips=false] Whether it has a full mip chain (`Finish` regenerates it after drawing).
      * @param {number} [targets=~0] The `PaperDollTarget` bits to bake again when the idle sweep frees it.
+     * @returns {CjsPaperDollCompositionTarget} This target.
      */
-    constructor(compositor, width, height, mips = false, targets = ~0)
+    Initialize(compositor, width, height, mips = false, targets = ~0)
     {
         this._compositor = compositor;
         this.width = width;
@@ -55,6 +56,7 @@ export class CjsPaperDollCompositionTarget
         this.target = compositor.MakeTarget(width, height, mips, targets);
         this.resource = new TriTextureRes();
         this.resource.SetTextureFromRT(this.target);
+        return this;
     }
 
     /**

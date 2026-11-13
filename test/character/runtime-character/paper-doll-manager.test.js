@@ -23,7 +23,7 @@ function Doll(object)
     const doll = new CjsPaperDoll();
     doll.definition.lipstick.Configure([ { id: "lipstick_01", colorAreas: [] } ], { option: "" });
     const bindings = Bindings();
-    doll.front = new CjsPaperDollInstance({ error: message => assert.fail(message), ...bindings }, [ object ]);
+    doll.front = new CjsPaperDollInstance().Initialize({ error: message => assert.fail(message), ...bindings }, [ object ]);
     return { doll, bindings };
 }
 

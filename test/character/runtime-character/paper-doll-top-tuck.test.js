@@ -40,7 +40,7 @@ test("a top's tuck state is captured into the body pass and rebuilds it when cha
 {
     const doll = Doll();
     const { calls, bindings } = Bindings();
-    const instance = new CjsPaperDollInstance({ error: message => assert.fail(message), ...bindings });
+    const instance = new CjsPaperDollInstance().Initialize({ error: message => assert.fail(message), ...bindings });
     instance.Update(doll);
     assert.deepEqual(calls.body, [ 0 ]);
 

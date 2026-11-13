@@ -26,7 +26,7 @@ test("the head capture says whether a worn item occludes the generic head, and a
     doll.outer.Configure([ { id: "robe", path: "outer/vanguardf01", occludes: [ "head", "hair" ], colorAreas: [] } ]);
     const heads = [];
     const noop = () => {};
-    const instance = new CjsPaperDollInstance({ error: message => assert.fail(message), foundation: noop, skin: noop, surface: noop, eyes: noop,
+    const instance = new CjsPaperDollInstance().Initialize({ error: message => assert.fail(message), foundation: noop, skin: noop, surface: noop, eyes: noop,
         head: state => heads.push(state.headOccluded), body: noop });
     instance.Update(doll);
     assert.deepEqual(heads, [ false ]);
