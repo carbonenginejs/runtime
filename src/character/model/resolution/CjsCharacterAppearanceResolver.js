@@ -58,7 +58,8 @@ export class CjsCharacterAppearanceResolver
      * Decodes one authored `dependantModifiers` entry as a utility-shape
      * request: `utilityshapes/<target>` at weight 1, or
      * `utilityshapes/<target>###<number>` at that weight (zero and >1
-     * allowed, never clamped). Any other `#` form, a non-numeric suffix and a
+     * allowed, never clamped); a trailing `#` with no weight is the
+     * unweighted request. Any other `#` form, a non-numeric suffix and a
      * path outside `utilityshapes/` are unresolved.
      * @param {string} authoredValue The entry as authored.
      * @param {number|null} [relationWeight=null] A typed relation's weight; it wins over the suffix.
@@ -81,6 +82,12 @@ export class CjsCharacterAppearanceResolver
             if (!Number.isFinite(parsed)) return null;
             weight = weight === null || weight === undefined ? parsed : weight;
             explicitWeight = true;
+        }
+        else if (/^utilityshapes\/[^#]+#+$/iu.test(authored))
+        {
+            // A trailing `#` with no weight states none, so the entry is the unweighted request. The one such entry in the
+            // corpus is `outer/jacketmilf01`'s `utilityshapes/pinchrightouterlowerhipsshape#`.
+            base = authored.replace(/#+$/u, "");
         }
         else if (authored.includes("#"))
         {

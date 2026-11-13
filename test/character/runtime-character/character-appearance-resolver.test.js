@@ -9,7 +9,10 @@ test("decodes utility shapes and applies occlusion and weight conflicts without 
         { modifierPath: "utilityshapes/loosechestshape", targetName: "LooseChestShape", weight: 1, explicitWeight: false });
     assert.equal(decode("utilityshapes/pinchtuckshape###0.30").weight, 0.3);
     assert.equal(decode("utilityshapes/pinchtuckshape###0.30", 0.5).weight, 0.5);
-    assert.equal(decode("utilityshapes/pinchrightouterlowerhipsshape#"), null);
+    // outer/jacketmilf01 authors a trailing `#` with no weight: the unweighted request.
+    assert.deepEqual(decode("utilityshapes/pinchrightouterlowerhipsshape#"),
+        { modifierPath: "utilityshapes/pinchrightouterlowerhipsshape", targetName: "pinchrightouterlowerhipsshape", weight: 1, explicitWeight: false });
+    assert.equal(decode("utilityshapes/pinch#shape"), null);
     assert.equal(decode("utilityshapes/pinchtuckshape###x"), null);
     assert.equal(decode("dependants/drape/standard"), null);
     assert.deepEqual(CjsCharacterAppearanceResolver.decodeUtilityOcclusion("utilityshapes/TuckTopShape"), { modifierPath: "utilityshapes/tucktopshape", targetName: "TuckTopShape", weight: null });
