@@ -1,6 +1,7 @@
 import { CjsSchema, meta } from "#schema";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
+import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
 import { PaperDollTarget } from "./paperDollOrder.js";
 
 /**
@@ -307,35 +308,22 @@ export class CjsPaperDollInstance
 
     /**
      * A worn item's own utility shapes: the `utilityshapes/` entries of its metadata's two lists, decoded
-     * (`decodeUtilityShape`, `decodeUtilityOcclusion`). Every such entry decodes or throws (operator, 2026-11-12:
+     * (the library decodes them: `CjsCharacterLibraryManager.decodeModifiers`). Every such entry decodes or throws (operator, 2026-11-12:
      * "all rules must be handled"); a weighted occlusion (`utilityshapes/pushhemshape#0.2`) sets its morph's weight
      * (`resolveUtilityShapes`). Entries outside `utilityshapes/` (dependants, occluded parts) are other rules' and
      * are not read here.
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
      * @param {{ metadataPath: string, dependantModifiers: string[], occludesModifiers: string[] }} item The
-     *   `metadata.yaml` read for the item and its two lists as authored.
+     *   `metadata.yaml` read for the item and its two lists as authored. Decoded by the library
+     *   (`CjsCharacterLibraryManager.decodeModifiers`); this goes when Graphene's own metadata readers do (item 7b).
      * @returns {{ requests: object[], occlusions: object[] }} The item's requests (`{ modifierPath, targetName,
      *   weight, explicitWeight }`) and occlusions (`{ modifierPath, targetName, weight }`); the caller sets the owner.
      * @throws {Error} For a utility-shape entry no rule reads, naming the entry and the file.
      */
     static itemShapes(item)
     {
-        const result = { requests: [], occlusions: [] };
-        const isUtility = entry => /^utilityshapes\//iu.test(entry);
-        for (const entry of item.dependantModifiers.filter(isUtility))
-        {
-            const request = CjsCharacterAppearanceResolver.decodeUtilityShape(entry);
-            if (request === null) throw CjsPaperDollInstance._MissingRule("", "dependantModifiers", entry, item.metadataPath);
-            result.requests.push(request);
-        }
-        for (const entry of item.occludesModifiers.filter(isUtility))
-        {
-            const occlusion = CjsCharacterAppearanceResolver.decodeUtilityOcclusion(entry);
-            if (occlusion === null) throw CjsPaperDollInstance._MissingRule("", "occludesModifiers", entry, item.metadataPath);
-            result.occlusions.push(occlusion);
-        }
-        return result;
+        return CjsCharacterLibraryManager.decodeModifiers(item, item.metadataPath).shapes;
     }
 
     /**
@@ -350,33 +338,15 @@ export class CjsPaperDollInstance
      * utility shape that does not decode throw; an occlude outside `utilityshapes/` is the owner's (`dependantOccludes`).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
-     * @param {Array<{ path: string, metadataPath: string, dependantModifiers: string[], occludesModifiers: string[] }>}
-     *   dependants The garment's dependants: each one's lower-case modifier path, the `metadata.yaml` read for it and
-     *   that file's two lists as authored.
+     * @param {Array<{ path: string, shapes: { requests: object[], occlusions: object[] } }>} dependants The garment's
+     *   dependants as the library hands them out, decoded (`CjsCharacterLibraryManager.FetchDependantPart`).
      * @returns {{ requests: object[], occlusions: Array<{ modifierPath: string, targetName: string, weight: ?number,
      *   protectedOwner: null }> }} The shapes to add; the caller sets each request's owner and each weighted occlusion's.
      * @throws {Error} For an entry no rule reads, naming the dependant kind, the entry and the file.
      */
     static dependantShapes(dependants)
     {
-        const result = { requests: [], occlusions: [] };
-        for (const dependant of dependants)
-        {
-            for (const entry of dependant.dependantModifiers)
-            {
-                const request = CjsCharacterAppearanceResolver.decodeUtilityShape(entry);
-                if (request === null) throw CjsPaperDollInstance._MissingRule(dependant.path, "dependantModifiers", entry, dependant.metadataPath);
-                result.requests.push(request);
-            }
-            // Its other occludes are the suppression walk's, through the owner (`dependantOccludes`).
-            for (const entry of dependant.occludesModifiers.filter(value => /^utilityshapes\//iu.test(value)))
-            {
-                const occlusion = CjsCharacterAppearanceResolver.decodeUtilityOcclusion(entry);
-                if (occlusion === null) throw CjsPaperDollInstance._MissingRule(dependant.path, "occludesModifiers", entry, dependant.metadataPath);
-                result.occlusions.push({ ...occlusion, protectedOwner: null });
-            }
-        }
-        return result;
+        return { requests: dependants.flatMap(dependant => dependant.shapes.requests), occlusions: dependants.flatMap(dependant => dependant.shapes.occlusions) };
     }
 
     /**
@@ -388,15 +358,12 @@ export class CjsPaperDollInstance
      * instruction the content gives).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
-     * @param {Array<{ occludesModifiers: string[] }>} dependants The dependants' metadata lists (`FetchDependantPart`).
+     * @param {Array<{ occludes: string[] }>} dependants The dependants as the library hands them out, decoded (`FetchDependantPart`).
      * @returns {string[]} The occluded paths, each once, in order.
      */
     static dependantOccludes(dependants)
     {
-        const paths = [];
-        for (const dependant of dependants) for (const entry of dependant.occludesModifiers)
-            if (!/^utilityshapes\//iu.test(entry)) paths.push(entry.split("#")[0]);
-        return [ ...new Set(paths) ];
+        return [ ...new Set(dependants.flatMap(dependant => dependant.occludes)) ];
     }
 
     /**
@@ -435,20 +402,6 @@ export class CjsPaperDollInstance
         return !ownOccludes.some(list => CjsPaperDollDefinition.occludes(list, path));
     }
 
-    /**
-     * The error for a metadata entry no rule reads, worded as the library's missing category rules are
-     * (`CjsCharacterLibraryManager._CategoryRule`).
-     * @param {string} dependant The dependant's modifier path, whose first two folders name its kind; "" for a worn item.
-     * @param {string} list The metadata list holding the entry.
-     * @param {string} entry The entry as authored.
-     * @param {string} metadataPath The `metadata.yaml` holding it.
-     * @returns {Error} The error.
-     */
-    static _MissingRule(dependant, list, entry, metadataPath)
-    {
-        const kind = dependant ? dependant.split("/").slice(0, 2).join("/") + " " : "";
-        return new Error("No paper doll rule for the " + kind + list + " entry " + entry + " in " + metadataPath);
-    }
 
     /**
      * A target's ready capture: each part's settings (`CaptureTarget`), the suppression walk, and the ready lists the

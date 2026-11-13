@@ -13,6 +13,7 @@ import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
 import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
+import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
 import { BlackReader } from "#blue/formats/black/BlackReader";
 import { CjsSchema } from "#schema";
@@ -452,10 +453,49 @@ export class CjsCharacterLibraryManager
             return {
                 part, variation, colorVariant, folders, metadataPath, metadata,
                 occludes: list("occludesModifiers"), dependants: list("dependantModifiers"), numColorAreas: metadata ? metadata.numColorAreas : -1,
+                shapes: metadata ? CjsCharacterLibraryManager.decodeModifiers(metadata, metadataPath).shapes : { requests: [], occlusions: [] },
                 projection: files.includes(base + "projection.proj") ? base + "projection.proj" : null,
                 models: direct.filter(path => /\.(black|gr2)$/u.test(path))
             };
         });
+    }
+
+    /**
+     * A part's or dependant's `metadata.yaml` lists, decoded: the only place weights (`name###0.3`, `name#0.2`, an
+     * empty `name#`) are read, so the paper doll and every consumer take values, never strings to parse
+     * (character-structure-and-plugins: the library has stuff, the engine builds from the values it is given).
+     * `occludes` and `dependants` are the entries outside `utilityshapes/`, cut to their paths; `shapes` the utility
+     * requests (`CjsCharacterAppearanceResolver.decodeUtilityShape`) and occlusions (`decodeUtilityOcclusion`). A
+     * dependant's every `dependantModifiers` entry is a utility request (the tuck rule), and its occlusions protect no
+     * owner. Every entry decodes or throws (operator, 2026-11-12: "all rules must be handled").
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {{ dependantModifiers: string[], occludesModifiers: string[] }} metadata The two lists as authored.
+     * @param {string} metadataPath The file they were read from, for errors.
+     * @param {string} [dependant=""] The dependant's modifier path, or "" for a worn part.
+     * @returns {{ occludes: string[], dependants: string[], shapes: { requests: object[], occlusions: object[] } }}
+     * @throws {Error} For an entry no rule reads, naming the dependant kind, the entry and the file.
+     */
+    static decodeModifiers(metadata, metadataPath, dependant = "")
+    {
+        const isUtility = entry => /^utilityshapes\//iu.test(entry);
+        const cut = entries => [ ...new Set(entries.filter(entry => !isUtility(entry)).map(entry => entry.split("#")[0])) ];
+        const missing = (list, entry) => new Error("No paper doll rule for the " + (dependant ? dependant.split("/").slice(0, 2).join("/") + " " : "")
+            + list + " entry " + entry + " in " + metadataPath);
+        const requests = [], occlusions = [];
+        for (const entry of dependant ? metadata.dependantModifiers : metadata.dependantModifiers.filter(isUtility))
+        {
+            const request = CjsCharacterAppearanceResolver.decodeUtilityShape(entry);
+            if (request === null) throw missing("dependantModifiers", entry);
+            requests.push(request);
+        }
+        for (const entry of metadata.occludesModifiers.filter(isUtility))
+        {
+            const occlusion = CjsCharacterAppearanceResolver.decodeUtilityOcclusion(entry);
+            if (occlusion === null) throw missing("occludesModifiers", entry);
+            occlusions.push(dependant ? { ...occlusion, protectedOwner: null } : occlusion);
+        }
+        return { occludes: cut(metadata.occludesModifiers), dependants: dependant ? [] : cut(metadata.dependantModifiers), shapes: { requests, occlusions } };
     }
 
     /**
@@ -467,8 +507,9 @@ export class CjsCharacterLibraryManager
      * @param {string} sex The paper doll's sex (`female`).
      * @param {string} path The dependant's modifier path as the owner names it (`accessories/masks/mask_big_F`).
      * @param {string} variation The owner's variation (`v6`), or "".
-     * @returns {Promise<?{ path: string, metadataPath: string, dependantModifiers: string[], occludesModifiers: string[] }>}
-     *   The lower-case path, the file read and its lists; the caller's own copy.
+     * @returns {Promise<?{ path: string, metadataPath: string, occludes: string[], dependants: string[], shapes: object }>}
+     *   The lower-case path, the file read and its lists decoded (`decodeModifiers`); the caller's own copy.
+     * @throws {Error} For an entry no rule reads (`decodeModifiers`).
      */
     FetchDependantPart(sex, path, variation)
     {
@@ -479,7 +520,7 @@ export class CjsCharacterLibraryManager
             const metadataPath = [ ...(variation ? [ folder + variation + "/" ] : []), folder ].map(value => value + "metadata.yaml").find(value => files.includes(value));
             if (!metadataPath) return null;
             const metadata = await this.FetchAvatarPartMetaData(metadataPath);
-            return { path: lower, metadataPath, dependantModifiers: [ ...metadata.dependantModifiers ], occludesModifiers: [ ...metadata.occludesModifiers ] };
+            return { path: lower, metadataPath, ...CjsCharacterLibraryManager.decodeModifiers(metadata, metadataPath, lower) };
         });
     }
 
