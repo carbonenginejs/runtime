@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsGraph, CjsGraphRoot } from "../../src/global/model/graph/index.js";
+import { CjsGraph, CjsGraphRoot, CjsGraphState } from "../../src/global/model/graph/index.js";
 
 test("graph teardown runs three owning levels once with members and arguments intact", () =>
 {
@@ -25,7 +25,41 @@ test("graph teardown runs three owning levels once with members and arguments in
   object.Destruct(argument);
   assert.deepEqual(calls, [ [ "derived", 2, argument ], [ "middle", 2, argument ], [ "base", 2, argument ] ]);
   assert.deepEqual(object.values, [ 1, 2 ]);
-  assert.equal(object.__cjs.destructed, false, "dispatch adds no destruction-state policy");
+  assert.equal(object.__cjs, null, "dispatch adds no destruction-state policy");
+  assert.equal(object.IsDestructed(), false);
+});
+
+test("a root has no state until the graph is asked, and IsDestructed reads it without creating one", () =>
+{
+  class Rooted extends CjsGraphRoot {}
+  CjsGraph.define(Rooted, { name: "DestructStateRooted" });
+  const object = new Rooted();
+  assert.equal(Object.hasOwn(object, "__cjs"), true);
+  assert.equal(object.__cjs, null);
+  assert.equal(object.IsDestructed(), false);
+  assert.equal(object.__cjs, null);
+
+  const state = CjsGraph.getState(object);
+  assert.equal(state.constructor, CjsGraphState);
+  assert.equal(object.__cjs, state);
+  assert.equal(CjsGraph.getState(object), state, "one state per object");
+  assert.deepEqual({ ...state }, { state: CjsGraphState.State.ALIVE, prepared: false, guid: 0 });
+  assert.deepEqual(CjsGraphState.State, { ALIVE: 0, DESTRUCTING: 1, DESTRUCTED: 2 });
+  assert.equal(object.IsDestructed(), false);
+
+  state.prepared = true;
+  assert.equal(object.IsDestructed(), false, "prepared is apart from the state");
+  state.state = CjsGraphState.State.DESTRUCTING;
+  assert.equal(object.IsDestructed(), true);
+  state.state = CjsGraphState.State.DESTRUCTED;
+  assert.equal(object.IsDestructed(), true);
+});
+
+test("an object with no __cjs field is not destructed, and asking adds nothing to it", () =>
+{
+  const plain = Object.seal({ value: 1 });
+  assert.equal(CjsGraph.isDestructed(plain), false);
+  assert.equal(Object.hasOwn(plain, "__cjs"), false);
 });
 
 test("diamond and repeated base declarations put every derived hook before shared ancestors", () =>

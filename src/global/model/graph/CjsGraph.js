@@ -1,6 +1,7 @@
 import { BLUELISTEVENT, EDITFLAGS } from "../../consts/blue.js";
 import { CjsGraphClassInfo } from "./CjsGraphClassInfo.js";
 import { CjsGraphClassUIInfo } from "./CjsGraphClassUIInfo.js";
+import { CjsGraphState } from "./CjsGraphState.js";
 import { GRAPH_METADATA_KEY, GRAPH_TYPES, GRAPH_WRAPPERS, GraphMemberFlags, GraphOperation, VARTYPE } from "./graphTypes.js";
 import { getGraphHandler } from "./types/index.js";
 
@@ -267,6 +268,29 @@ export class CjsGraph
     if (!info?.declared) throw new TypeError("Unknown graph class.");
     if (!info.compiled || info.compiled.revision !== this._revision) info.compiled = this._compile(info);
     return info;
+  }
+
+  /**
+   * Returns an object's runtime state, creating it on the first ask. Nothing else creates one.
+   * @cjs An object that is never asked keeps `__cjs` null and costs nothing.
+   * @param {object} object The object.
+   * @returns {CjsGraphState} Its state.
+   */
+  static getState(object)
+  {
+    return object.__cjs ??= new CjsGraphState();
+  }
+
+  /**
+   * Whether an object is being destructed or has been: its state is above ALIVE.
+   * @cjs Creates nothing and checks no class, so any object may be asked.
+   * @param {object} object The object.
+   * @returns {boolean} False for an object with no state.
+   */
+  static isDestructed(object)
+  {
+    const state = object.__cjs;
+    return state != null && state.state > CjsGraphState.State.ALIVE;
   }
 
   /**

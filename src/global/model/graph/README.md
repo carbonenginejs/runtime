@@ -90,7 +90,10 @@ no base definition may add to them.
 member in member-table order, for those named or, with no names, all. Unknown names throw unless
 `skipValidation`. It keeps no baseline and compares nothing.
 
-CjsGraphRoot is the optional base class: thin forwards and `__cjs`. Its Destruct
+CjsGraphRoot is the optional base class: thin forwards and `__cjs`, which is null until
+`CjsGraph.getState(object)` creates its CjsGraphState (`state`, `prepared`, `guid`). The state
+is never a member, so no value operation reads or copies it. `IsDestructed()` is true once
+`state` is above ALIVE, and false for an object with no state. Its Destruct
 forwards to CjsGraph.destruct: declared own onDestruct hooks run derived-first,
 including bases, once per owning level. It does not traverse members, clear
 references, or change lifecycle state. Hooks must be repeat-safe and must not call

@@ -628,7 +628,7 @@ test("CjsGraphRoot forwards every operation and holds per-object state", () =>
 
   const object = Rooted.from({ name: "a" });
   assert.equal(object.constructor, Rooted);
-  assert.equal(object.__cjs.destructed, false);
+  assert.equal(object.__cjs, null);
   assert.deepEqual(object.GetValues({ full: true }), { name: "a", weight: 1 });
   assert.equal(object.GetValue("name"), "a");
   assert.deepEqual(object.SetValues({ weight: 2 }), { weight: 2 });
@@ -637,13 +637,19 @@ test("CjsGraphRoot forwards every operation and holds per-object state", () =>
   assert.equal(object.UpdateValues(), undefined);
   assert.equal(object.UpdateValues("name"), undefined);
 
+  // The state is no member: values leave it out, and a clone or a copy starts with none.
+  const state = CjsGraph.getState(object);
+  assert.equal("__cjs" in object.GetValues({ full: true }), false);
+
   const clone = object.Clone();
   assert.notEqual(clone, object);
-  assert.notEqual(clone.__cjs, object.__cjs);
+  assert.equal(clone.__cjs, null);
   assert.deepEqual(clone.GetValues({ full: true }), object.GetValues({ full: true }));
 
   const target = new Rooted();
   assert.deepEqual(target.Copy(object), { name: "b", weight: 2 });
+  assert.equal(target.__cjs, null);
+  assert.equal(object.__cjs, state);
 });
 
 test("a definition marked whole takes nothing from its base", () =>

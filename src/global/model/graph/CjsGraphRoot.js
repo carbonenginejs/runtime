@@ -1,5 +1,7 @@
 import { CjsGraph } from "./CjsGraph.js";
 
+/** @typedef {import("./CjsGraphState.js").CjsGraphState} CjsGraphState */
+
 /**
  * Base class for objects that take part in graph operations: thin forwards and per-object state.
  * @cjs Our class, above IRoot. Direct CjsGraph calls work without it.
@@ -7,8 +9,21 @@ import { CjsGraph } from "./CjsGraph.js";
 export class CjsGraphRoot
 {
 
-  /** Per-object state. */
-  __cjs = { destructed: false };
+  /**
+   * Runtime state, null until something needs it; only CjsGraph.getState creates it.
+   * @type {?CjsGraphState}
+   */
+  __cjs = null;
+
+  /**
+   * Whether this object is being destructed or has been.
+   * @cjs Thin forward to the graph.
+   * @returns {boolean} False for an object with no state.
+   */
+  IsDestructed()
+  {
+    return CjsGraph.isDestructed(this);
+  }
 
   /**
    * Runs the registered ancestry's teardown bodies without changing graph ownership or state.

@@ -4,4 +4,5 @@ export { CjsGraph } from "./CjsGraph.js";
 export { CjsGraphClassInfo } from "./CjsGraphClassInfo.js";
 export { CjsGraphClassUIInfo } from "./CjsGraphClassUIInfo.js";
 export { CjsGraphRoot } from "./CjsGraphRoot.js";
+export { CjsGraphState } from "./CjsGraphState.js";
 export * from "./types/index.js";
