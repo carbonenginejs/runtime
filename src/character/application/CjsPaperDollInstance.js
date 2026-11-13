@@ -1,6 +1,7 @@
 import { CjsSchema, meta } from "#schema";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
+import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
 import { PaperDollTarget } from "./paperDollOrder.js";
 
 /**
@@ -35,6 +36,14 @@ export class CjsPaperDollInstance
     _targetDirty = 0;
 
     _applying = false;
+
+    /**
+     * The parts that cannot be worn together, each group its definition members (`exclusiveParts`). The library's
+     * setting (`CjsCharacterLibraryManager.GetExclusiveParts`): its defaults file until the host sets the library's
+     * current groups here.
+     * @type {string[][]}
+     */
+    exclusive = CjsCharacterLibraryManager.exclusivePartDefaults();
 
     /** The part each `exclusive` group last wore, by group index (`exclusiveParts`). */
     _exclusiveWorn = new Map();
@@ -116,7 +125,7 @@ export class CjsPaperDollInstance
         // A geometry-only strength edit must not rebuild skin or cosmetic maps.
         const forced = definition.IsForced();
         const dirtyTargets = definition.GetDirtyTargets() | this._targetDirty;
-        CjsPaperDollInstance.exclusiveParts(definition, this._exclusiveWorn);
+        CjsPaperDollInstance.exclusiveParts(definition, this._exclusiveWorn, this.exclusive);
         for (const [ name, resolving ] of CjsPaperDollInstance.holdParts(definition))
             resolving.catch(error => this._bindings.error(name + " could not be held on: " + error.message));
         const suppression = this._suppression = CjsPaperDollInstance.suppress(definition);
@@ -181,31 +190,21 @@ export class CjsPaperDollInstance
     }
 
     /**
-     * The parts that cannot be worn together, each group its definition member names: the top and the over top. No
-     * shipped recipe wears both (63 recipes: 30 with a top, 6 with an over top, none with both), and both list
-     * `dependants/drape`, so wearing both brought two drapes whose shapes conflict (`pinchleftmiddlehipsshape` 0.2
-     * and 0.5; operator, 2026-11-13: "i do not think they can be worn together").
+     * Keeps at most one part of each group worn (on with an option): when two are, the one switched on last stays and
+     * the others are switched off. With no earlier state (a restored character wearing both), the later part in the
+     * group stays.
      *
-     * Ours (no Carbon counterpart, and no metadata states it): inferred from the recipes. Registered in
-     * docs/architecture/non-carbon-extensions.md.
-     * @type {string[][]}
-     */
-    static exclusive = [ [ "topMiddle", "topOuter" ] ];
-
-    /**
-     * Keeps at most one part of each `exclusive` group worn (on with an option): when two are, the one switched on
-     * last stays and the others are switched off. With no earlier state (a restored character wearing both), the later
-     * part in the group, the outer one, stays.
-     *
-     * Ours (no Carbon counterpart): the client's paper doll is Python. See `exclusive`.
+     * Ours (no Carbon counterpart): the client's paper doll is Python. The library holds the groups
+     * (`CjsCharacterLibraryManager.GetExclusiveParts`, defaults file `exclusiveParts.json`); this applies them.
      * @param {import("./CjsPaperDollDefinition.js").CjsPaperDollDefinition} definition The settings.
      * @param {Map<number, ?string>} last The part each group wore at the previous call, by group index; updated.
+     * @param {string[][]} groups The groups, each its definition members.
      * @returns {string[]} The parts switched off.
      */
-    static exclusiveParts(definition, last)
+    static exclusiveParts(definition, last, groups)
     {
         const off = [];
-        for (const [ index, group ] of CjsPaperDollInstance.exclusive.entries())
+        for (const [ index, group ] of groups.entries())
         {
             const worn = group.filter(name => definition[name].enabled && definition[name].option !== "");
             const keep = worn.length > 1 ? worn.findLast(name => name !== last.get(index)) : worn[0] ?? null;

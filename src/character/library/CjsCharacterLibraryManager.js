@@ -13,6 +13,7 @@ import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
 import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" with { type: "json" };
 import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
+import exclusivePartDefaults from "../factory/defaults/exclusiveParts.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
@@ -209,6 +210,44 @@ export class CjsCharacterLibraryManager
     {
         const { parts, garmentDependants, cutMaskClip } = bodyCarrierDefaults;
         return CjsCharacterLibraryManager.copy({ parts, garmentDependants, cutMaskClip });
+    }
+
+    /**
+     * The paper doll parts that cannot be worn together, as groups of definition members (applied by
+     * `CjsPaperDollInstance.exclusiveParts`). A setting with a default: the defaults file
+     * `factory/defaults/exclusiveParts.json` until a host sets its own.
+     * @type {string[][]}
+     */
+    _exclusiveParts = CjsCharacterLibraryManager.exclusivePartDefaults();
+
+    /**
+     * Replaces the exclusive part groups in force. Pass the defaults file's edited, other groups, or `[]` for none.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {string[][]} groups The groups, each its definition members.
+     * @returns {void}
+     */
+    SetExclusiveParts(groups)
+    {
+        this._exclusiveParts = CjsCharacterLibraryManager.copy(groups);
+    }
+
+    /**
+     * The exclusive part groups in force (`_exclusiveParts`).
+     * @returns {string[][]} A copy.
+     */
+    GetExclusiveParts()
+    {
+        return CjsCharacterLibraryManager.copy(this._exclusiveParts);
+    }
+
+    /**
+     * The shipped default exclusive part groups (`factory/defaults/exclusiveParts.json`).
+     * @returns {string[][]} A copy.
+     */
+    static exclusivePartDefaults()
+    {
+        return CjsCharacterLibraryManager.copy(exclusivePartDefaults.groups);
     }
 
     /**

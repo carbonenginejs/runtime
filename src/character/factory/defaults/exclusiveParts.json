@@ -1,0 +1,6 @@
+{
+  "description": "The paper doll parts that cannot be worn together: each group lists definition members of which at most one is worn (on with an option). When two are, the one switched on last stays; a character restored wearing both keeps the later part in its group. Ours: the client's paper doll is Python and no metadata states it. The top and the over top: no shipped recipe wears both (63 recipes, build 3687575: 30 with a top, 6 with an over top, none with both), and both list dependants/drape, so wearing both brought two drapes whose shapes conflict (operator, 2026-11-13: \"i do not think they can be worn together\"). Edit freely: the engine reads this file as data.",
+  "groups": [
+    [ "topMiddle", "topOuter" ]
+  ]
+}
