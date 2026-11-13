@@ -110,6 +110,7 @@ test("the SOF library builder keeps every record of a sample of the build as its
     const paths = Sample(all.filter(path => path.startsWith(ROOT + directory + "/")), SAMPLE[kind]);
     assert.ok(paths.length > 0, `the build ships ${kind} records`);
     counts[kind] = 0;
+    const before = unavailable.length;
     for (const path of paths)
     {
       logged.length = 0;
@@ -128,19 +129,21 @@ test("the SOF library builder keeps every record of a sample of the build as its
       if (difference) report(`the catalog's record differs from its file at ${difference}`, path);
       for (const message of logged) if (!NOT_THE_FILE.some(start => message.startsWith(start))) report(`logged: ${message}`, path);
     }
+    const read = paths.length - (unavailable.length - before);
+    assert.ok(read >= paths.length * 0.9, `the service handed over only ${read} of the ${paths.length} sampled ${kind} files`);
   }
 
   // The library a tool saves: build its objects again from the saved values, as a client does (SetData takes a
   // hydrated EveSOFData graph, EveSOFDataMgr.cpp:514-589), load them into a second builder and save it again.
-  // typeTags writes an item's class where its slot declares only an interface (a hull's locatorSets list holds
-  // IEveSOFDataHullLocatorSet); values saved without it cannot build that item again.
-  const saved = builder.GetValues({ typeTags: true });
+  // The builder writes an item's class where its slot declares only an interface (a hull's locatorSets list
+  // holds IEveSOFDataHullLocatorSet); without it the saved values could not build that item again.
+  const saved = builder.GetValues();
   const second = new CjsSofLibraryBuilder({
     dataMgr: new EveSOFDataMgr(),
     source: path => Promise.reject(new Error(`${path}: the saved library must need no file`)),
     data: CjsSchema.from("EveSOFData", saved)
   });
-  const difference = FirstDifference(saved, second.GetValues({ typeTags: true }), "library");
+  const difference = FirstDifference(saved, second.GetValues(), "library");
   if (difference) report(`the saved library does not survive a reload at ${difference}`, "the library");
 
   t.diagnostic(`build ${resources.build}: ${Object.entries(counts).map(([ kind, count ]) => `${count} ${kind}`).join(", ")} records, with what each faction and the generic record name`);

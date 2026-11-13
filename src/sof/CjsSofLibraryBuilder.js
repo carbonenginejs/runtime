@@ -196,10 +196,14 @@ export class CjsSofLibraryBuilder
     return this;
   }
 
-  /** Returns detached model values for caching or caller-managed transport. */
+  /**
+   * Returns detached model values for caching or caller-managed transport.
+   * typeTags is on unless the caller turns it off: an item is written with its class where its slot declares
+   * only an interface (a hull's locatorSets), which is what lets the saved values build it again.
+   */
   GetValues(options = {})
   {
-    return CjsSchema.getValues(this.data, {}, options);
+    return CjsSchema.getValues(this.data, {}, { typeTags: true, ...options });
   }
 
   /** Loads generic.black once and publishes it as the manager's generic data. */
