@@ -274,7 +274,7 @@ export class CjsPaperDollCompositor
     /**
      * Releases every target and effect this compositor made, and its blitter. Textures it loaded are resMan's and
      * stay. Nothing it produced may be drawn or bound after this; a second call does nothing.
-     * @returns {void}
+     * @returns {boolean} True: nothing here refuses.
      * @cjs Existing paper-doll composition ownership, with no native counterpart.
      */
     OnDestruct()
@@ -288,6 +288,7 @@ export class CjsPaperDollCompositor
         for (const value of this.effects.splice(0)) value.Destruct();
         this._mipped.clear();
         this.blitter.Destruct();
+        return true;
     }
 
     /**
@@ -839,4 +840,4 @@ export class CjsPaperDollCompositor
 
 }
 
-CjsGraph.defineLifetime(CjsPaperDollCompositor, { onDestruct: CjsPaperDollCompositor.prototype.OnDestruct });
+CjsGraph.defineLifetime(CjsPaperDollCompositor, {});

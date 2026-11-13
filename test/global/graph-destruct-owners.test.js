@@ -113,11 +113,14 @@ for (const [name, file] of owners)
     assert.equal(typeof Constructor, "function");
     const record = CjsGraph._classes.get(Constructor);
     assert.ok(record?.lifetime, "class registration must supply ancestry independent of value exposure");
-    const hook = (Object.getOwnPropertyDescriptor(Constructor.prototype, "_Destructor")
-      ?? Object.getOwnPropertyDescriptor(Constructor.prototype, "OnDestruct"))?.value;
-    assert.equal(typeof hook, "function");
-    const hooks = CjsGraph._getDestructors(record);
-    assert.equal(hooks.filter(value => value === hook).length, 1, "own cleanup appears once in the ancestry");
+    const destructor = Object.getOwnPropertyDescriptor(Constructor.prototype, "_Destructor")?.value;
+    if (destructor)
+    {
+      const destructors = CjsGraph._getDestructors(record);
+      assert.equal(destructors.filter(value => value === destructor).length, 1, "own destructor appears once in the ancestry");
+    }
+    // One of ours: its cleanup is its OnDestruct, found by dispatch.
+    else assert.equal(typeof Object.getOwnPropertyDescriptor(Constructor.prototype, "OnDestruct")?.value, "function");
     assert.equal(typeof Constructor.prototype.Destruct, "function");
     if (!delegates.has(name)) assert.equal(Constructor.prototype.Destruct, CjsGraphRoot.prototype.Destruct);
     else

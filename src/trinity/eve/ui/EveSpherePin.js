@@ -214,6 +214,7 @@ export class EveSpherePin
    *
    * Carbon: EveSpherePin destructor (trinity/trinity/Eve/UI/EveSpherePin.cpp:61-70).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct(managedResources = null)
   {
@@ -226,6 +227,7 @@ export class EveSpherePin
     this._geometryResource = null;
     this._tree = null;
     this.pinEffect = this.pickEffect = null;
+    return true;
   }
 
   /**

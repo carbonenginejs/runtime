@@ -121,6 +121,7 @@ export class CjsWebgpuVideoColorSampler
    * Cancel mapping and release the three owned buffers with their texture.
    *
    * @cjs Preserves this browser/wrapper owner's existing cleanup through graph lifetime dispatch.
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
@@ -129,6 +130,7 @@ export class CjsWebgpuVideoColorSampler
     this._result.destroy();
     this._staging.destroy();
     this._bindings = null;
+    return true;
   }
 }
 

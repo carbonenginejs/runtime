@@ -411,10 +411,11 @@ export class TnyOutlineHelper extends ITr2RenderNode
    *
    * @cjs Preserves this browser/wrapper owner's existing cleanup through graph lifetime dispatch.
    * @cjs
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
-    if (this._destroyed) return;
+    if (this._destroyed) return true;
     this._destroyed = true;
     this._ready = false;
     this._frame = null;
@@ -425,6 +426,7 @@ export class TnyOutlineHelper extends ITr2RenderNode
     this._context = null;
     for (const effect of Object.values(this._effects)) effect.Destruct();
     this._effects = {};
+    return true;
   }
 
   /**

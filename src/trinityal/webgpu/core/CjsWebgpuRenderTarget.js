@@ -416,10 +416,11 @@ export class CjsWebgpuRenderTarget
    * Releases every attachment this target created. The canvas is the caller's.
    *
    * @cjs Preserves the existing browser surface and attachment ownership.
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
-    if (this._destroyed) return this;
+    if (this._destroyed) return true;
     this._destroyed = true;
     if (this._frame) this._frame.valid = false;
     this._frame = null;
@@ -427,7 +428,7 @@ export class CjsWebgpuRenderTarget
     // Unconfiguring returns the surface; the canvas element itself is not ours
     // to remove, and a caller may configure a new target against it.
     this._context?.unconfigure?.();
-    return this;
+    return true;
   }
 
   /** Creates owned multisample and depth attachments for the current size. */

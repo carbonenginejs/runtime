@@ -199,11 +199,12 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
   /**
    * Graph destruction ends playback; called by resource purge, never by an individual billboard.
    * @cjs Carbon's controller is ended by _destroy alone; ours is also a graph object.
-   * @returns {void}
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
     this._Destroy();
+    return true;
   }
 }
 

@@ -495,6 +495,7 @@ export class Tr2ImpostorManager
    *
    * Carbon: Tr2ImpostorManager implicit destructor (trinity/trinity/Tr2ImpostorManager.h:58-70).
    * @adapted Keeps existing JS ownership cleanup; the graph dispatches the device base.
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct(managedResources = null)
   {
@@ -510,6 +511,7 @@ export class Tr2ImpostorManager
     this._objects.clear();
     this._renderQueue.length = 0;
     this._atlas._free.length = 0;
+    return true;
   }
 
   /** Native private nested record identities, with separate JS source files. */

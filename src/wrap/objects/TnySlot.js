@@ -258,10 +258,13 @@ export class TnySlot extends CjsGraphRoot
     /**
      * Detaches the UI.
      * @cjs
+     * @param {object} [options] What Destruct was given.
+     * @returns {boolean} What the parent's OnDestruct answers.
      */
-    OnDestruct()
+    OnDestruct(options)
     {
         this._onModified = null;
+        return super.OnDestruct(options);
     }
 
     /**

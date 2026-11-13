@@ -402,6 +402,17 @@ export class BlueAsyncRes
   _OnShutdown() {}
 
   /**
+   * Refuses graph Destruct: a resource is shared, and its manager ends it.
+   * @cjs No class below this one overrides it.
+   * @returns {boolean} False, always.
+   */
+  OnDestruct()
+  {
+    // Destroyed only by resMan.
+    return false;
+  }
+
+  /**
    * Carbon: BlueAsyncRes::CleanupLoadData (blue/include/BlueAsyncRes.h:127)
    *
    * @implemented

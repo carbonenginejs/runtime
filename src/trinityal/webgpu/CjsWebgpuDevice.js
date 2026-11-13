@@ -418,10 +418,11 @@ export class CjsWebgpuDevice
    * destroys the native device.
    *
    * @cjs Preserves this browser/wrapper owner's existing cleanup through graph lifetime dispatch.
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
-    if (this._state === "destroyed") return;
+    if (this._state === "destroyed") return true;
     const device = this._device;
     this._lifecycleVersion += 1;
     this._recreateSerial += 1;
@@ -429,6 +430,7 @@ export class CjsWebgpuDevice
     this._generation += 1;
     this._device = null;
     if (device) device.destroy();
+    return true;
   }
 
   /**

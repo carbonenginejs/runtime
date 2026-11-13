@@ -33,7 +33,10 @@ export function checkSource(code, file = "source.js")
       Class(nested) { nested.skip(); },
       Super(location)
       {
-        errors.push(`${file}:${location.node.loc.start.line}: ${hook} must not call super; the graph visits each level.`);
+        // An OnDestruct is one method found by ordinary dispatch, so it calls its parent's; nothing else.
+        const parent = location.parent;
+        if (hook === "OnDestruct" && parent.type === "MemberExpression" && propertyName(parent.property) === "OnDestruct") return;
+        errors.push(`${file}:${location.node.loc.start.line}: ${hook} must not call super${hook === "OnDestruct" ? " except super.OnDestruct" : ""}; the graph visits each level's _Destructor.`);
       },
       MemberExpression(location)
       {

@@ -51,10 +51,13 @@ export class TnyMobile extends TnySpaceObject
     /**
      * Detaches the slots too.
      * @cjs
+     * @param {object} [options] What Destruct was given.
+     * @returns {boolean} What the parent's OnDestruct answers.
      */
-    OnDestruct()
+    OnDestruct(options)
     {
         for (const slot of this.slots ?? []) slot.Destruct();
+        return super.OnDestruct(options);
     }
 
     /**

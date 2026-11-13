@@ -315,13 +315,15 @@ export class CjsWebgl2VideoColorSampler
    * Stops answering; a copy in flight resolves null.
    *
    * @cjs Preserves browser-owned sampling cancellation through graph lifetime dispatch.
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
     this._destroyed = true;
     this._bytes = new Uint8Array(0);
     this._ReleaseMip();
+    return true;
   }
 }
 
-CjsGraph.defineLifetime(CjsWebgl2VideoColorSampler, { onDestruct: CjsWebgl2VideoColorSampler.prototype.OnDestruct });
+CjsGraph.defineLifetime(CjsWebgl2VideoColorSampler, {});

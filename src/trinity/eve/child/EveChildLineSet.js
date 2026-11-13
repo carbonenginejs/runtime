@@ -211,6 +211,7 @@ export class EveChildLineSet extends EveChildTransform
    *
    * Carbon: EveChildLineSet destructor (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.cpp:72-74).
    * @adapted Retains existing explicit JS member cleanup; the graph dispatches base hooks.
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct(managedLineSets = null)
   {
@@ -223,6 +224,7 @@ export class EveChildLineSet extends EveChildTransform
     }
     this._retiredLineSets.clear();
     this._ownedLineSet = null;
+    return true;
   }
 
   /**

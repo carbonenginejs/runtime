@@ -340,7 +340,7 @@ export function compileClassInfo(Constructor)
 
 /**
  * Supplies own teardown facts at class registration, independently of graph value registration:
- * the base list, and the class's own OnDestruct and _Destructor.
+ * the base list, and the class's own _Destructor. OnDestruct is found by ordinary dispatch.
  * @cjs Constructor identities carry native base lists without loading readers or compiling values.
  * @param {Function} Constructor The class being compiled.
  * @param {Set<Function>} [visited] Current ancestry, including repeated/multiple bases.
@@ -354,11 +354,8 @@ function registerGraphLifetime(Constructor, visited = new Set())
   const bases = parent === Function.prototype || parent === Object || parent === null
     ? baseList(Constructor) : [ parent, ...baseList(Constructor) ];
   for (const base of bases) registerGraphLifetime(base, visited);
-  const descriptor = Object.getOwnPropertyDescriptor(Constructor.prototype, "OnDestruct");
   const destructor = Object.getOwnPropertyDescriptor(Constructor.prototype, "_Destructor");
-  CjsGraph.defineLifetime(Constructor, {
-    bases, onDestruct: descriptor ? descriptor.value : null, destructor: destructor ? destructor.value : null
-  });
+  CjsGraph.defineLifetime(Constructor, { bases, destructor: destructor ? destructor.value : null });
   // An interface never destroys itself; the concrete class does (blueexposure/include/BlueClass.h:70-100).
   if (Schema.getDeclaredSchema(Constructor)?.interface === true) return;
   // An inherited legacy body must keep running until that owning class is migrated.

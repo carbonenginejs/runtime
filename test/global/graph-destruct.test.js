@@ -2,31 +2,32 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsGraph, CjsGraphRoot, CjsGraphState } from "../../src/global/model/graph/index.js";
 
-test("graph teardown runs three owning levels once with members and arguments intact", () =>
+test("Destruct calls the most derived OnDestruct, which reaches its parents through super, arguments intact", () =>
 {
   const calls = [], argument = new Set();
   class Base extends CjsGraphRoot
   {
     values = [ 1, 2 ];
-    OnDestruct(value) { calls.push([ "base", this.values.length, value ]); }
+    OnDestruct(value) { calls.push([ "base", this.values.length, value ]); return super.OnDestruct(value); }
   }
   class Middle extends Base
   {
-    OnDestruct(value) { calls.push([ "middle", this.values.length, value ]); }
+    OnDestruct(value) { calls.push([ "middle", this.values.length, value ]); return super.OnDestruct(value); }
   }
   class Derived extends Middle
   {
-    OnDestruct(value) { calls.push([ "derived", this.values.length, value ]); }
+    OnDestruct(value) { calls.push([ "derived", this.values.length, value ]); return super.OnDestruct(value); }
   }
-  CjsGraph.define(Base, { name: "DestructBase", onDestruct: Base.prototype.OnDestruct });
-  CjsGraph.define(Middle, { name: "DestructMiddle", bases: [ Base ], onDestruct: Middle.prototype.OnDestruct });
-  CjsGraph.define(Derived, { name: "DestructDerived", bases: [ Middle ], onDestruct: Derived.prototype.OnDestruct });
+  CjsGraph.define(Base, { name: "DestructBase" });
+  CjsGraph.define(Middle, { name: "DestructMiddle", bases: [ Base ] });
+  CjsGraph.define(Derived, { name: "DestructDerived", bases: [ Middle ] });
   const object = new Derived();
   object.Destruct(argument);
   assert.deepEqual(calls, [ [ "derived", 2, argument ], [ "middle", 2, argument ], [ "base", 2, argument ] ]);
   assert.deepEqual(object.values, [ 1, 2 ]);
   assert.equal(object.__cjs, null, "dispatch adds no destruction-state policy");
   assert.equal(object.IsDestructed(), false);
+  assert.equal(new Base().OnDestruct(), true, "the root's own OnDestruct answers true");
 });
 
 test("a root has no state until the graph is asked, and IsDestructed reads it without creating one", () =>
@@ -58,10 +59,11 @@ test("a root has no state until the graph is asked, and IsDestructed reads it wi
 test("the runner calls each level's destructor once, derived first, and no OnDestruct", () =>
 {
   const calls = [];
-  class A {} class B {} class C {} class D extends CjsGraphRoot {}
+  class A {} class B {} class C {}
+  class D extends CjsGraphRoot { OnDestruct(options) { calls.push("D.OnDestruct"); return super.OnDestruct(options); } }
   CjsGraph.define(A, { name: "RunnerA", destructor(...args) { calls.push([ "~A", this.constructor, args.length ]); } });
-  CjsGraph.define(B, { name: "RunnerB", bases: [ A ], onDestruct() { calls.push("B.OnDestruct"); } });
-  CjsGraph.define(C, { name: "RunnerC", bases: [ A ], destructor() { calls.push("~C"); }, onDestruct() { calls.push("C.OnDestruct"); } });
+  CjsGraph.define(B, { name: "RunnerB", bases: [ A ] });
+  CjsGraph.define(C, { name: "RunnerC", bases: [ A ], destructor() { calls.push("~C"); } });
   CjsGraph.define(D, { name: "RunnerD", bases: [ B, C ], destructor() { calls.push("~D"); } });
 
   const object = new D();
@@ -75,19 +77,24 @@ test("the runner calls each level's destructor once, derived first, and no OnDes
   assert.throws(() => CjsGraph.finalDelete({}), /Unknown graph lifetime/);
 });
 
-test("the teardown chain runs a level's destructor in the place of its OnDestruct, with no arguments", () =>
+test("Destruct runs OnDestruct once with the arguments, then every level's destructor with none", () =>
 {
   const calls = [];
-  class Base {} class Middle {} class Derived {}
-  CjsGraph.define(Base, {
-    name: "ChainBase",
-    onDestruct(value) { calls.push([ "Base.OnDestruct", value ]); },
-    destructor(...args) { calls.push([ "~Base", args.length ]); }
-  });
-  CjsGraph.define(Middle, { name: "ChainMiddle", bases: [ Base ], onDestruct(value) { calls.push([ "Middle.OnDestruct", value ]); } });
+  class Base extends CjsGraphRoot { OnDestruct(value) { calls.push([ "Base.OnDestruct", value ]); return super.OnDestruct(value); } }
+  class Middle extends Base {}
+  class Derived extends Middle { OnDestruct(value) { calls.push([ "Derived.OnDestruct", value ]); return super.OnDestruct(value); } }
+  CjsGraph.define(Base, { name: "ChainBase", destructor(...args) { calls.push([ "~Base", args.length ]); } });
+  CjsGraph.define(Middle, { name: "ChainMiddle", bases: [ Base ] });
   CjsGraph.define(Derived, { name: "ChainDerived", bases: [ Middle ], destructor(...args) { calls.push([ "~Derived", args.length ]); } });
-  CjsGraph.destruct(new Derived(), 7);
-  assert.deepEqual(calls, [ [ "~Derived", 0 ], [ "Middle.OnDestruct", 7 ], [ "Base.OnDestruct", 7 ], [ "~Base", 0 ] ]);
+  new Derived().Destruct(7);
+  assert.deepEqual(calls, [ [ "Derived.OnDestruct", 7 ], [ "Base.OnDestruct", 7 ], [ "~Derived", 0 ], [ "~Base", 0 ] ]);
+
+  // A class with no OnDestruct anywhere is asked for none.
+  class Plain {}
+  CjsGraph.define(Plain, { name: "ChainPlain", destructor() { calls.push("~Plain"); } });
+  calls.length = 0;
+  CjsGraph.destruct(new Plain(), 7);
+  assert.deepEqual(calls, [ "~Plain" ]);
 });
 
 test("a destructor is a function or null, and a lifetime record keeps it", () =>
@@ -122,25 +129,25 @@ test("diamond and repeated base declarations put every derived hook before share
 {
   const calls = [];
   class A {} class B {} class C {} class D {}
-  CjsGraph.define(A, { name: "DestructDiamondA", onDestruct() { calls.push("A"); } });
-  CjsGraph.define(B, { name: "DestructDiamondB", bases: [ A ], onDestruct() { calls.push("B"); } });
-  CjsGraph.define(C, { name: "DestructDiamondC", bases: [ A ], onDestruct() { calls.push("C"); } });
-  CjsGraph.define(D, { name: "DestructDiamondD", bases: [ B, "DestructDiamondC", B ], onDestruct() { calls.push("D"); } });
+  CjsGraph.define(A, { name: "DestructDiamondA", destructor() { calls.push("A"); } });
+  CjsGraph.define(B, { name: "DestructDiamondB", bases: [ A ], destructor() { calls.push("B"); } });
+  CjsGraph.define(C, { name: "DestructDiamondC", bases: [ A ], destructor() { calls.push("C"); } });
+  CjsGraph.define(D, { name: "DestructDiamondD", bases: [ B, "DestructDiamondC", B ], destructor() { calls.push("D"); } });
   CjsGraph.destruct(new D());
   assert.deepEqual(calls, [ "D", "C", "B", "A" ]);
 });
 
-test("teardown declarations remain separate from exposure chains and inherited method lookup", () =>
+test("destructors follow the base list, never the exposure chain or method lookup", () =>
 {
   let calls = 0;
-  class Parent { OnDestruct() { calls++; } }
+  class Parent { _Destructor() { calls++; } }
   class Child extends Parent {}
   class ExposureOnly {}
-  CjsGraph.define(ExposureOnly, { name: "DestructExposureOnly", onDestruct() { throw new Error("not ancestry"); } });
-  CjsGraph.define(Parent, { name: "DestructParent", onDestruct: Parent.prototype.OnDestruct });
+  CjsGraph.define(ExposureOnly, { name: "DestructExposureOnly", destructor() { throw new Error("not ancestry"); } });
+  CjsGraph.define(Parent, { name: "DestructParent", destructor: Parent.prototype._Destructor });
   CjsGraph.define(Child, { name: "DestructChild", bases: [ Parent ], chainTo: "DestructExposureOnly" });
   CjsGraph.destruct(new Child());
-  assert.equal(calls, 1);
+  assert.equal(calls, 1, "Child inherits the method but has no destructor of its own");
 });
 
 test("late base replacement invalidates cached teardown and hooks own idempotence", () =>
@@ -151,7 +158,7 @@ test("late base replacement invalidates cached teardown and hooks own idempotenc
   CjsGraph.define(Child, { name: "DestructLateChild", bases: [ Base ] });
   const object = new Child();
   CjsGraph.destruct(object);
-  CjsGraph.define(Base, { name: "DestructLateBase", onDestruct() { if (this.held) { this.held = false; released++; } } });
+  CjsGraph.define(Base, { name: "DestructLateBase", destructor() { if (this.held) { this.held = false; released++; } } });
   CjsGraph.destruct(object);
   CjsGraph.destruct(object);
   assert.equal(released, 1);
@@ -161,17 +168,19 @@ test("malformed ancestry fails before invoking any teardown body", () =>
 {
   class A {} class B {}
   const onDestruct = () => assert.fail("partial teardown");
-  CjsGraph.define(A, { name: "DestructCycleA", bases: [ B ], onDestruct });
+  CjsGraph.define(A, { name: "DestructCycleA", bases: [ B ], destructor: onDestruct });
   assert.throws(() => CjsGraph.destruct(new A()), /Unknown graph base/);
-  CjsGraph.define(B, { name: "DestructCycleB", bases: [ A ], onDestruct });
+  CjsGraph.define(B, { name: "DestructCycleB", bases: [ A ], destructor: onDestruct });
   assert.throws(() => CjsGraph.destruct(new A()), /Cyclic graph ancestry/);
-  assert.throws(() => CjsGraph.define(B, { name: "DestructCycleB", onDestruct: true }), /function or null/);
+  assert.throws(() => CjsGraph.define(B, { name: "DestructCycleB", destructor: true }), /function or null/);
+  assert.throws(() => CjsGraph.define(B, { name: "DestructCycleB", onDestruct() {} }), /not a definition key/);
+  assert.throws(() => CjsGraph.defineLifetime(B, { onDestruct: null }), /not a definition key/);
 });
 
 test("hook errors propagate without introducing automatic member release", () =>
 {
   class Broken { held = { value: 1 }; }
-  CjsGraph.define(Broken, { name: "DestructBroken", onDestruct() { throw new Error("hook failure"); } });
+  CjsGraph.define(Broken, { name: "DestructBroken", destructor() { throw new Error("hook failure"); } });
   const object = new Broken();
   assert.throws(() => CjsGraph.destruct(object), /hook failure/);
   assert.deepEqual(object.held, { value: 1 });
@@ -181,7 +190,7 @@ test("lifetime-only records do not claim value definitions and retain identity w
 {
   const calls = [];
   class Owner { value = 3; }
-  const info = CjsGraph.defineLifetime(Owner, { onDestruct() { calls.push(this.value); } });
+  const info = CjsGraph.defineLifetime(Owner, { destructor() { calls.push(this.value); } });
   assert.equal(CjsGraph.isDefined(Owner), false);
   assert.throws(() => CjsGraph.getClassInfo(Owner), /Unknown graph class/);
   const object = new Owner();
@@ -198,10 +207,10 @@ test("late lifetime declarations keep full value definitions and update cached a
 {
   const calls = [];
   class Base {} class Owner { value = 4; }
-  CjsGraph.defineLifetime(Base, { onDestruct() { calls.push("base"); } });
+  CjsGraph.defineLifetime(Base, { destructor() { calls.push("base"); } });
   const info = CjsGraph.define(Owner, { name: "ValuesThenLifetime", members: [ { name: "value", type: "float32" } ] });
   CjsGraph.destruct(new Owner());
-  assert.equal(CjsGraph.defineLifetime(Owner, { bases: [ Base ], onDestruct() { calls.push("own"); } }), info);
+  assert.equal(CjsGraph.defineLifetime(Owner, { bases: [ Base ], destructor() { calls.push("own"); } }), info);
   CjsGraph.destruct(new Owner());
   assert.deepEqual(calls, [ "own", "base" ]);
   const object = new Owner();

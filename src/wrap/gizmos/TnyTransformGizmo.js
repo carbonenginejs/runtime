@@ -481,6 +481,7 @@ export class TnyTransformGizmo
    *
    * @cjs Preserves this browser/wrapper owner's existing cleanup through graph lifetime dispatch.
    * @cjs
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
@@ -489,6 +490,7 @@ export class TnyTransformGizmo
     this.tool = null;
     this.scene.Destruct();
     this.target = null;
+    return true;
   }
 
   /**

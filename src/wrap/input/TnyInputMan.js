@@ -231,11 +231,13 @@ export class TnyInputMan
    *
    * @cjs Preserves this browser/wrapper owner's existing cleanup through graph lifetime dispatch.
    * @cjs
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
     this.Detach();
     this._consumers.length = 0;
+    return true;
   }
 
   /**

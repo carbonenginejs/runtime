@@ -189,10 +189,10 @@ test("method presence alone never opts a plain class into reader initialization"
     assert.ok(CjsSchema.from("ReaderUnmappedInitializer", {}) instanceof Unmapped);
 });
 
-test("class registration hands the graph a class's own _Destructor beside its OnDestruct", () =>
+test("class registration hands the graph a class's own _Destructor; OnDestruct is found by dispatch", () =>
 {
     const calls = [];
-    class Base { OnDestruct() { calls.push("Base.OnDestruct"); } _Destructor() { calls.push("~Base"); } }
+    class Base { OnDestruct() { calls.push("Base.OnDestruct"); return true; } _Destructor() { calls.push("~Base"); } }
     class Owner extends Base { _Destructor() { calls.push("~Owner"); } }
     CjsSchema.define(Base, { className: "LifetimeDestructorBase" });
     CjsSchema.define(Owner, { className: "LifetimeDestructorOwner" });
@@ -201,13 +201,13 @@ test("class registration hands the graph a class's own _Destructor beside its On
     assert.deepEqual(calls, ["~Owner", "~Base"]);
     calls.length = 0;
     owner.Destruct();
-    assert.deepEqual(calls, ["~Owner", "Base.OnDestruct", "~Base"]);
+    assert.deepEqual(calls, ["Base.OnDestruct", "~Owner", "~Base"]);
 });
 
 test("an inherit row copies neither teardown function, so a base's _Destructor runs once", () =>
 {
     const calls = [];
-    class Second { OnDestruct() { calls.push("Second.OnDestruct"); } _Destructor() { calls.push("~Second"); } Shared() {} }
+    class Second { OnDestruct() { calls.push("Second.OnDestruct"); return true; } _Destructor() { calls.push("~Second"); } Shared() {} }
     class Owner {}
     CjsSchema.meta.define("LifetimeInheritSecond")(Second);
     CjsSchema.meta.inherit(Second)(Owner);
@@ -219,6 +219,7 @@ test("an inherit row copies neither teardown function, so a base's _Destructor r
     CjsGraph.finalDelete(owner);
     assert.deepEqual(calls, ["~Second"]);
     calls.length = 0;
+    // OnDestruct is one method on the object's own prototype chain; a second base's is not copied, so not called.
     owner.Destruct();
-    assert.deepEqual(calls, ["Second.OnDestruct", "~Second"]);
+    assert.deepEqual(calls, ["~Second"]);
 });

@@ -760,11 +760,13 @@ export class TnyCameraControls
    *
    * @cjs Preserves this browser/wrapper owner's existing cleanup through graph lifetime dispatch.
    * @cjs
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
     this.Uninstall();
     this._listeners.clear();
+    return true;
   }
 
   /**

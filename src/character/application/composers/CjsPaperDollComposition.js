@@ -164,14 +164,15 @@ export class CjsPaperDollComposition
 
     /**
      * Releases the compositor and everything it made.
-     * @returns {void}
+     * @returns {boolean} True: nothing here refuses.
      * @cjs Existing paper-doll composition ownership, with no native counterpart.
      */
     OnDestruct()
     {
         this.compositor.Destruct();
+        return true;
     }
 
 }
 
-CjsGraph.defineLifetime(CjsPaperDollComposition, { onDestruct: CjsPaperDollComposition.prototype.OnDestruct });
+CjsGraph.defineLifetime(CjsPaperDollComposition, {});

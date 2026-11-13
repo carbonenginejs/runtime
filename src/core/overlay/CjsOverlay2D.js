@@ -141,6 +141,7 @@ export class CjsOverlay2D extends IBlueEvents
    * Stops ticking and observing, and removes the canvas.
    *
    * @cjs Preserves this browser/wrapper owner's existing cleanup through graph lifetime dispatch.
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
@@ -150,6 +151,7 @@ export class CjsOverlay2D extends IBlueEvents
     this._observer = null;
     this._drawers.length = 0;
     this.canvas?.remove();
+    return true;
   }
 }
 

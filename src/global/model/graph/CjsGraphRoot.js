@@ -37,6 +37,19 @@ export class CjsGraphRoot
   }
 
   /**
+   * What graph Destruct must do for this class, before any C++ destruction. A class overrides it
+   * for state JavaScript added and ends with `return super.OnDestruct(options)`; one that must
+   * not be destructed returns false and does nothing else.
+   * @cjs Only Destruct calls it.
+   * @param {object} [options] What Destruct was given.
+   * @returns {boolean} True: the root has nothing to do and refuses nothing.
+   */
+  OnDestruct(options)
+  {
+    return true;
+  }
+
+  /**
    * Returns this object's values.
    * @cjs
    */

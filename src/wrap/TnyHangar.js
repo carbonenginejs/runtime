@@ -370,12 +370,15 @@ export class TnyHangar extends TnyScene
     /**
      * Removes the hangar's effects and timers; the ships and the hangar stay in the scene.
      * @cjs
+     * @param {object} [options] What Destruct was given.
+     * @returns {boolean} What the parent's OnDestruct answers.
      */
-    OnDestruct()
+    OnDestruct(options)
     {
         for (const timer of this._timers) clearTimeout(timer);
         this._timers.clear();
         for (const bay of this._bays) if (bay.ship) this._Release(bay, false);
+        return super.OnDestruct(options);
     }
 
     /**

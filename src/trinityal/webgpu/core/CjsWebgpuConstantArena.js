@@ -171,6 +171,7 @@ export class CjsWebgpuConstantArena
    * Releases every page.
    *
    * @cjs Preserves this browser/wrapper owner's existing cleanup through graph lifetime dispatch.
+   * @returns {boolean} True: nothing here refuses.
    */
   OnDestruct()
   {
@@ -178,6 +179,7 @@ export class CjsWebgpuConstantArena
 
     this._pages = [];
     this.Reset();
+    return true;
   }
 }
 

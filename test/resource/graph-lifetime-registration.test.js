@@ -5,12 +5,12 @@ import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { CjsGraph } from "../../npm/dist/global/model/graph/index.js";
 import { CjsBlueGraph } from "../../npm/dist/blue/formats/graph/index.js";
 
-test("Blue declares own hooks without activating graph values or copying mixin hooks", () =>
+test("Blue declares own destructors without activating graph values or copying a second base's", () =>
 {
   const calls = [], argument = new Set();
-  class Primary { OnDestruct(arg) { calls.push([ "primary", arg ]); } }
-  class Secondary { OnDestruct(arg) { calls.push([ "secondary", arg ]); } }
-  class Owner extends Primary { OnDestruct(arg) { calls.push([ "owner", arg ]); } }
+  class Primary { _Destructor(...args) { calls.push([ "primary", args.length ]); } }
+  class Secondary { _Destructor(...args) { calls.push([ "secondary", args.length ]); } }
+  class Owner extends Primary { _Destructor(...args) { calls.push([ "owner", args.length ]); } }
   CjsSchema.meta.define("LifetimeBridgePrimary")(Primary);
   CjsSchema.meta.define("LifetimeBridgeSecondary")(Secondary);
   CjsSchema.meta.inherit(Secondary)(Owner);
@@ -18,7 +18,7 @@ test("Blue declares own hooks without activating graph values or copying mixin h
   assert.equal(CjsGraph.isDefined(Owner), false);
   const object = new Owner();
   object.Destruct(argument);
-  assert.deepEqual(calls, [ [ "owner", argument ], [ "secondary", argument ], [ "primary", argument ] ]);
+  assert.deepEqual(calls, [ [ "owner", 0 ], [ "secondary", 0 ], [ "primary", 0 ] ], "a destructor takes no arguments");
   CjsBlueGraph.define(Owner, "LifetimeBridgeOwner");
   assert.equal(CjsGraph.isDefined(Owner), true);
   calls.length = 0;
@@ -28,10 +28,10 @@ test("Blue declares own hooks without activating graph values or copying mixin h
   class Composed {}
   CjsSchema.meta.inherit(Secondary)(Composed);
   CjsSchema.meta.define("LifetimeBridgeComposed")(Composed);
-  assert.equal(Object.hasOwn(Composed.prototype, "OnDestruct"), false);
+  assert.equal(Object.hasOwn(Composed.prototype, "_Destructor"), false);
   calls.length = 0;
   new Composed().Destruct(argument);
-  assert.deepEqual(calls, [ [ "secondary", argument ] ]);
+  assert.deepEqual(calls, [ [ "secondary", 0 ] ]);
 });
 
 test("registration preserves inherited legacy Destruct until its owner is migrated", () =>
@@ -49,8 +49,8 @@ test("registration preserves inherited legacy Destruct until its owner is migrat
 test("late composed-base registration invalidates an already used teardown list", () =>
 {
   const calls = [];
-  class Owner { OnDestruct() { calls.push("own"); } }
-  class Late { OnDestruct() { calls.push("late"); } }
+  class Owner { _Destructor() { calls.push("own"); } }
+  class Late { _Destructor() { calls.push("late"); } }
   CjsSchema.meta.define("LifetimeBridgeLateOwner")(Owner);
   CjsSchema.meta.define("LifetimeBridgeLateBase")(Late);
   const object = new Owner();
@@ -63,12 +63,12 @@ test("late composed-base registration invalidates an already used teardown list"
 test("unexposed composed classes acquire teardown before any Blue definition", () =>
 {
   const calls = [];
-  class Base { OnDestruct(value) { calls.push(["base", value]); } }
-  class Owner { OnDestruct(value) { calls.push(["owner", value]); } }
+  class Base { _Destructor() { calls.push("base"); } }
+  class Owner { OnDestruct(value) { calls.push(["owner", value]); return true; } _Destructor() { calls.push("~owner"); } }
   CjsSchema.meta.inherit(Base)(Owner);
   assert.equal(CjsGraph.isDefined(Owner), false);
   new Owner().Destruct(7);
-  assert.deepEqual(calls, [["owner", 7], ["base", 7]]);
+  assert.deepEqual(calls, [["owner", 7], "~owner", "base"]);
 });
 
 
