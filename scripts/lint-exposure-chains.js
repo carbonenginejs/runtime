@@ -40,6 +40,8 @@ const DIST = path.join(root, "npm", "dist");
 
 /** Blocks of classes retired from Carbon that we still port, read from the donor commit their files cite. */
 const RETIRED_BLOCKS = new Map([
+    [ "Tr2InteriorCell", { chainTo: null, at: "trinity 24d033fa~1 Interior/Tr2InteriorCell_Blue.cpp:12" } ],
+    [ "Tr2InteriorStatic", { chainTo: null, at: "trinity 24d033fa~1 Interior/Tr2InteriorStatic_Blue.cpp:59" } ],
     [ "Tr2InteriorFlare", { chainTo: null, at: "trinity 71329945~1 Interior/Tr2InteriorFlare_Blue.cpp:10" } ],
     [ "Tr2InteriorFlareData", { chainTo: null, at: "trinity 71329945~1 Interior/Tr2InteriorFlareData_Blue.cpp:9" } ],
     [ "Tr2InteriorParticleObject", { chainTo: null, at: "trinity 71329945~1 Interior/Tr2InteriorParticleObject_Blue.cpp:15" } ],
