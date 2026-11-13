@@ -530,7 +530,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * @adapted The wodIntSkinnedObjectsAlive stats counter is not kept.
    * @returns {void}
    */
-  OnDestruct()
+  _Destructor()
   {
     this.RemoveFromApexScene();
   }

@@ -309,10 +309,10 @@ export class Tr2InteriorPlaceable extends IRoot
    * Adapted native destruction: release the object reference and invalidate any
    * pending JavaScript load so a retired owner cannot publish its result.
    *
-   * Carbon: Tr2InteriorPlaceable::~Tr2InteriorPlaceable (trinity/trinity/Interior/Tr2InteriorPlaceable.cpp:59-62).
+   * Carbon: ~Tr2InteriorPlaceable (trinity/trinity/Interior/Tr2InteriorPlaceable.cpp:59-62).
    * @adapted Preserves the existing browser load-generation fence; native destruction only updates statistics.
    */
-  OnDestruct()
+  _Destructor()
   {
     ++this._loadRequest;
     this.placeableRes = null;

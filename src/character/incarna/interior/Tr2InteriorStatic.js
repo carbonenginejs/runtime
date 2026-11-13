@@ -810,7 +810,7 @@ export class Tr2InteriorStatic extends IRoot
    * @returns {void}
    * @adapted Preserves existing explicit Destruct fences and owned-slot clearing after native cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     this.RemoveFromCell();
     if (this.geometry) blue.resMan.notify.Remove(this, this.geometry);

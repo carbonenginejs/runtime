@@ -245,7 +245,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * @returns {void}
    * @adapted Preserves the prior explicit Destruct fences and cached-slot clearing; graph dispatch owns base cleanup.
    */
-  OnDestruct()
+  _Destructor()
   {
     this._destroyed = true;
     // Carbon ~Tr2SkinnedModel (Tr2SkinnedModel.cpp:23-30): ReleaseCachedData( m_geometryRes ), then

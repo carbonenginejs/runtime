@@ -1546,11 +1546,11 @@ export class Tr2InteriorScene extends ITr2PickableScene
   /**
    * Releases owned shadow wrappers, batches and picking data, then detaches shadow variables.
    *
-   * Carbon: Tr2InteriorScene::~Tr2InteriorScene (trinity/trinity/Interior/Tr2InteriorScene.cpp:188-200).
+   * Carbon: ~Tr2InteriorScene (trinity/trinity/Interior/Tr2InteriorScene.cpp:188-200).
    * @adapted Preserves explicit shadow and picking ownership; graph dispatch runs the device-resource base afterward.
    * @adapted Explicitly detaches owned list observers, matching native BlueList member destruction (blueexposure/include/BlueListUtil.h:198-204), without clearing content.
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const target of this.lightRenderTargets) target.Destroy();
     this.lightRenderTargets.Clear();

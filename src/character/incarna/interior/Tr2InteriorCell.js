@@ -730,10 +730,10 @@ export class Tr2InteriorCell extends IRoot
    *
    * @adapted JavaScript has no destructor; the scene or owner calls this.
    * @returns {void}
-   * Carbon: Tr2InteriorCell::~Tr2InteriorCell (Trinity 24d033fa~1 Interior/Tr2InteriorCell.cpp:41-56).
+   * Carbon: ~Tr2InteriorCell (Trinity 24d033fa~1 Interior/Tr2InteriorCell.cpp:41-56).
    * @adapted Explicitly detaches statics and clears the existing owned collections in JavaScript.
    */
-  OnDestruct()
+  _Destructor()
   {
     for (const interiorStatic of this.statics) interiorStatic.SetParentCell(null);
     this._lights.length = 0;
