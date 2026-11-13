@@ -1812,7 +1812,7 @@ function defineEntry(definitionOrConstructor, definition, carbon)
 /** Adds the legacy Carbon stamp without storing tooling-only donor comments. */
 function withCarbonStamp(definition, carbon)
 {
-    const result = typeof definition === "string" ? { className: definition } : { ...(definition || {}) };
+    const result = typeof definition === "string" ? { name: definition } : { ...(definition || {}) };
     if (carbon) result.blue = true;
     return result;
 }
@@ -2455,13 +2455,13 @@ function defineClassMetadata(Constructor, definition)
     const lineage = consumeLineageDecoratorMetadata(Constructor);
 
     const schema = getOrCreateClassSchema(Constructor);
-    if (definition.className)
+    if (definition.name)
     {
-        schema.className = definition.className;
+        schema.className = definition.name;
         // Non-enumerable and own-property, so it neither pollutes exported
         // values nor is mistaken for an inherited name further down the chain.
         Object.defineProperty(Constructor, CJS_CLASS_NAME, {
-            value: definition.className,
+            value: definition.name,
             configurable: true
         });
     }
@@ -3317,15 +3317,22 @@ function normalizeClassDefinition(Constructor, definition)
 {
     if (typeof definition === "string")
     {
-        definition = { className: definition };
+        definition = { name: definition };
     }
 
     const result = { ...(definition || {}) };
-    if (typeof result.className !== "string" || !result.className.trim())
+    // Transitional while the definitions are renamed (graph plan step 22); the last commit of the step makes it throw.
+    if (Object.hasOwn(result, "className"))
     {
-        throw new TypeError("CjsSchema.define requires an explicit non-empty className.");
+        if (Object.hasOwn(result, "name")) throw new TypeError("CjsSchema.define takes name, not className as well.");
+        result.name = result.className;
+        delete result.className;
     }
-    result.className = result.className.trim();
+    if (typeof result.name !== "string" || !result.name.trim())
+    {
+        throw new TypeError("CjsSchema.define requires an explicit non-empty name.");
+    }
+    result.name = result.name.trim();
     if (Object.hasOwn(result, "abstract") && typeof result.abstract !== "boolean")
     {
         throw new TypeError("CjsSchema.define abstract must be a boolean when provided.");
@@ -3352,7 +3359,7 @@ function normalizeClassDefinition(Constructor, definition)
         ...(result.aliases === undefined ? [] : Array.isArray(result.aliases) ? result.aliases : [result.aliases]),
         ...(result.alias === undefined ? [] : Array.isArray(result.alias) ? result.alias : [result.alias])
     ].filter(alias => typeof alias === "string" && alias.trim()).map(alias => alias.trim())
-        .filter(alias => alias !== result.className);
+        .filter(alias => alias !== result.name);
     result.aliases = aliases.length ? [...new Set(aliases)] : null;
     result.unused = normalizeUnused(result.unused);
     result.fields = normalizeManualMembers(result.fields, "fields");
@@ -3399,7 +3406,7 @@ function installUnusedMethods(Constructor, definition, schema)
         ...(definition.methods || []).map(method => method.name),
         ...(definition.fields || []).map(field => field.name)
     ]);
-    const className = definition.className || schema.className || "<undeclared>";
+    const className = definition.name || schema.className || "<undeclared>";
     for (const name of definition.unused)
     {
         if (declared.has(name) || Object.hasOwn(Constructor.prototype, name))
@@ -3947,7 +3954,7 @@ installClassInfoCompile(CjsSchema);
 // Install provenance here, after the schema exists. The registry core cannot
 // import schema: both Blue and schema need its storage during module loading.
 CjsSchema.meta.define(CjsBlueEnumRegistry, {
-    className: "CjsBlueEnumRegistry",
+    name: "CjsBlueEnumRegistry",
     fields: {},
     methods: Object.fromEntries([
         "Create", "Register", "Get", "Set", "GetValueName", "GetValueNameAsBitMask", "_Register",
@@ -3960,9 +3967,9 @@ CjsSchema.meta.carbon("CcpLogChannel_t")(CcpLogChannel_t);
 
 CjsSchema.meta.define("CjsSchema")(CjsSchema);
 
-CjsSchema.meta.define(CjsError, { className: "CjsError" });
+CjsSchema.meta.define(CjsError, { name: "CjsError" });
 
-CjsSchema.meta.define(CjsUnusedMethodError, { className: "CjsUnusedMethodError" });
+CjsSchema.meta.define(CjsUnusedMethodError, { name: "CjsUnusedMethodError" });
 CjsSchema.meta.exposureChainTo(CjsError)(CjsUnusedMethodError);
 
 /** Carbon's EDITFLAGS; masks are included for native table comparisons. */
@@ -4016,8 +4023,9 @@ const METHOD_MACROS = { [ROW.WRAP]: "MAP_METHOD_AND_WRAP", [ROW.WRAP_OPTIONAL_AR
 const PROPERTY_MACROS = { [ROW.PROP]: "MAP_PROPERTY", [ROW.PROP_RO]: "MAP_PROPERTY_READONLY", [ROW.PROP_PERSISTED]: "MAP_PROPERTY_PERSISTED" };
 
 /**
- * Whether a define argument is an exposure bag (`{ name, members: [ [kind, ...], ... ], ... }`) rather than a class name or the
- * older `{ className, ... }` definition.
+ * Whether a define argument is an exposure bag (`{ name, members: [ [kind, ...], ... ], ... }`) rather than a class name or a
+ * definition whose `members` are declaration records. A definition with no `members` reads the same either way: a bag
+ * with no rows registers as that definition does.
  *
  * @param {*} definition The define argument.
  * @returns {boolean} Whether it is a bag.
@@ -4025,7 +4033,8 @@ const PROPERTY_MACROS = { [ROW.PROP]: "MAP_PROPERTY", [ROW.PROP_RO]: "MAP_PROPER
 function isExposureBag(definition)
 {
     return definition !== null && typeof definition === "object" && !Array.isArray(definition)
-        && Object.hasOwn(definition, "name") && !Object.hasOwn(definition, "className");
+        && Object.hasOwn(definition, "name")
+        && (definition.members === undefined || (Array.isArray(definition.members) && definition.members.every(Array.isArray)));
 }
 
 /**
@@ -4154,7 +4163,7 @@ function exposureBagDecorator(bag, blue)
     if (!Array.isArray(members)) throw new TypeError(`${className}: exposure members are an array of rows.`);
     for (const list of [ inherit, interfaces ])
         if (list !== undefined && !Array.isArray(list)) throw new TypeError(`${className}: inherit and interfaces are arrays of classes.`);
-    const define = classDefinitionDecorator({ className, ...(blue ? { blue: true } : {}), ...rest });
+    const define = classDefinitionDecorator({ name: className, ...(blue ? { blue: true } : {}), ...rest });
     return function exposureBagClassDecorator(Constructor, context)
     {
         if (context && context.kind !== "class") throw new TypeError("An exposure bag decorates a class.");
@@ -4329,7 +4338,7 @@ function exposureName(name)
 function exposureClassDecorator(name, identityOnly, blue)
 {
     name = exposureName(name);
-    const define = classDefinitionDecorator({ className: name, ...(blue ? { blue: true } : {}), ...(identityOnly ? { interface: true } : {}) });
+    const define = classDefinitionDecorator({ name, ...(blue ? { blue: true } : {}), ...(identityOnly ? { interface: true } : {}) });
     if (!blue) return define;
     return function (Constructor, context)
     {
@@ -4344,7 +4353,7 @@ function carbonClassDecorator(names)
 {
     const identities = (Array.isArray(names) ? names : [ names ]).map(exposureName);
     if (!identities.length) throw new TypeError("meta.carbon requires at least one native name.");
-    return classDefinitionDecorator({ className: identities[0], carbon: Array.isArray(names) ? identities : identities[0] });
+    return classDefinitionDecorator({ name: identities[0], carbon: Array.isArray(names) ? identities : identities[0] });
 }
 
 /** Converts explicit native bits to the legacy flags without inferring ENUM/FLAGS from a type. */
