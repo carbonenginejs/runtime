@@ -178,4 +178,4 @@ export class CjsPaperDollComposition
 
 }
 
-CjsGraph.defineLifetime(CjsPaperDollComposition, {});
+CjsGraph.defineLifetime(CjsPaperDollComposition, { name: "CjsPaperDollComposition", capabilities: [ "destruct" ] });

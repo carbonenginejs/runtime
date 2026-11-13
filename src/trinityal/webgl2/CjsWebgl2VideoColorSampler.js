@@ -329,4 +329,4 @@ export class CjsWebgl2VideoColorSampler
   }
 }
 
-CjsGraph.defineLifetime(CjsWebgl2VideoColorSampler, {});
+CjsGraph.defineLifetime(CjsWebgl2VideoColorSampler, { name: "CjsWebgl2VideoColorSampler", capabilities: [ "destruct" ] });

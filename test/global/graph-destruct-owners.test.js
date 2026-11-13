@@ -112,7 +112,7 @@ for (const [name, file] of owners)
     const destructor = Object.getOwnPropertyDescriptor(Constructor.prototype, "_Destructor")?.value;
     if (destructor)
     {
-      const destructors = CjsGraph._getDestructors(record);
+      const { destructors } = CjsGraph._compileTeardown(record);
       assert.equal(destructors.filter(value => value === destructor).length, 1, "own destructor appears once in the ancestry");
     }
     // One of ours: its cleanup is its OnDestruct, found by dispatch.

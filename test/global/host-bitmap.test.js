@@ -116,8 +116,9 @@ test("standalone ImageIO bitmap graph teardown releases bytes without invalidati
   retained.fill(19);
   for (let repeat = 0; repeat < 2; repeat++)
   {
-    // ImageIO stands alone and imports no graph, so the bitmap has no Destruct of its own; the graph's door ends it.
-    CjsGraph.destruct(owner);
+    // ImageIO stands alone and imports no graph, so the bitmap has no Destruct and declares no capability; the
+    // runner ends it, as its owner does.
+    CjsGraph.finalDelete(owner);
     assert.equal(owner.IsValid(), false);
     assert.equal(owner.GetRawData(), null);
     assert.equal(owner.GetFormat(), F.PIXEL_FORMAT_UNKNOWN);
@@ -125,7 +126,7 @@ test("standalone ImageIO bitmap graph teardown releases bytes without invalidati
     assert.equal(peer.IsValid(), true);
     assert.ok(retained.every(value => value === 19));
   }
-  CjsGraph.destruct(peer);
+  CjsGraph.finalDelete(peer);
 });
 
 test("Create sizes an uncompressed full chain, and refuses bad compressed sizes", () =>

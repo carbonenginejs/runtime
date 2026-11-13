@@ -9,7 +9,7 @@ import { Tr2Sprite2dDisplayListEntry } from "./Tr2Sprite2dDisplayListEntry.js";
 
 /** Carbon's captured UI geometry. Device reset callers must explicitly release it;
  * the native Tr2DeviceResource registration base has not been ported yet. */
-@meta.carbon("Tr2Sprite2dDisplayList")
+@meta.define({ className: "Tr2Sprite2dDisplayList", carbon: "Tr2Sprite2dDisplayList", capabilities: [ "destruct" ] })
 export class Tr2Sprite2dDisplayList
 {
   vertexBuffer = new Tr2BufferAL();

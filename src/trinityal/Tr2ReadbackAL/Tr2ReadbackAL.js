@@ -82,4 +82,4 @@ CjsSchema.decorateField(Tr2ReadbackAL, "_readback", type.rawStruct("TrinityALImp
 CjsSchema.decorateMethod(Tr2ReadbackAL, "IsReady");
 CjsSchema.decorateMethod(Tr2ReadbackAL, "IsValid");
 CjsSchema.decorateMethod(Tr2ReadbackAL, "Map");
-CjsSchema.meta.carbon("Tr2ReadbackAL")(Tr2ReadbackAL);
+CjsSchema.meta.define({ className: "Tr2ReadbackAL", carbon: "Tr2ReadbackAL", capabilities: [ "destruct" ] })(Tr2ReadbackAL);

@@ -11,6 +11,7 @@
 // CjsSchema imports this file and hands itself over (installClassInfoCompile)
 // before it defines its own classes, so the two never import each other.
 import { EDITFLAGS, VARTYPE } from "../../global/consts/blue.js";
+import { CJS_CLASS_NAME } from "../compose/className.js";
 import { baseList, exposureChainTo, mappedInterfaces, ownMappedInterfaces, setExposureChangeListener } from "../compose/interface.js";
 import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { registerClass } from "../exposure/classes/registry.js";
@@ -339,7 +340,10 @@ export function compileClassInfo(Constructor)
 
 /**
  * Supplies own teardown facts at class registration, independently of graph value registration:
- * the base list, and the class's own _Destructor. OnDestruct is found by ordinary dispatch.
+ * the base list, the class's own _Destructor and its declared capabilities. OnDestruct is found by
+ * ordinary dispatch. A class with nothing to end gets no record: one that declares no capability,
+ * has no _Destructor of its own, and has no base with a record. A class Blue knows only by its
+ * JavaScript parent (no definition, no declared base list) keeps the record it gave the graph itself.
  * @cjs Constructor identities carry native base lists without loading readers or compiling values.
  * @param {Function} Constructor The class being compiled.
  * @param {Set<Function>} [visited] Current ancestry, including repeated/multiple bases.
@@ -353,8 +357,12 @@ function registerGraphLifetime(Constructor, visited = new Set())
   const bases = parent === Function.prototype || parent === Object || parent === null
     ? baseList(Constructor) : [ parent, ...baseList(Constructor) ];
   for (const base of bases) registerGraphLifetime(base, visited);
+  const name = Schema.getClassName(Constructor);
+  if (!Object.hasOwn(Constructor, CJS_CLASS_NAME) && !baseList(Constructor).length && CjsGraph.hasLifetime(Constructor)) return;
   const destructor = Object.getOwnPropertyDescriptor(Constructor.prototype, "_Destructor");
-  CjsGraph.defineLifetime(Constructor, { bases, destructor: destructor ? destructor.value : null });
+  const capabilities = CjsGraph.checkCapabilities(Schema.getCapabilities(Constructor), name);
+  if (!destructor && !capabilities.length && !CjsGraph.hasLifetime(Constructor) && !bases.some(base => CjsGraph.hasLifetime(base))) return;
+  CjsGraph.defineLifetime(Constructor, { name, bases, destructor: destructor ? destructor.value : null, capabilities });
 }
 
 /**

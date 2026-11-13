@@ -187,3 +187,6 @@ export class ICjsGraphRoot
   static className = "ICjsGraphRoot";
 
 }
+
+// The root declares its capabilities once; every class below has them along its base list.
+CjsGraph.defineLifetime(ICjsGraphRoot, { name: "ICjsGraphRoot", capabilities: [ "values", "destruct" ] });

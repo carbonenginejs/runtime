@@ -25,6 +25,7 @@ function preorder(root)
 import { GetResources } from "../../src/blue/getResources.js";
 import { CjsGraph } from "../../src/global/model/graph/index.js";
 import { IRoot } from "../../src/blue/exposure/IRoot.js";
+import { exposure } from "../../src/blue/exposure/be.js";
 
 let fixtureId = 0;
 function fixture()
@@ -196,7 +197,7 @@ test("class registration hands the graph a class's own _Destructor; OnDestruct i
     class Base { OnDestruct() { calls.push("Base.OnDestruct"); return true; } _Destructor() { calls.push("~Base"); } }
     class Owner extends Base { _Destructor() { calls.push("~Owner"); } }
     CjsSchema.define(Base, { className: "LifetimeDestructorBase" });
-    CjsSchema.define(Owner, { className: "LifetimeDestructorOwner" });
+    CjsSchema.define(Owner, { className: "LifetimeDestructorOwner", capabilities: [ "destruct" ] });
     const owner = new Owner();
     CjsGraph.finalDelete(owner);
     assert.deepEqual(calls, ["~Owner", "~Base"]);
@@ -212,7 +213,7 @@ test("an inherit row copies neither teardown function, so a base's _Destructor r
     class Owner {}
     CjsSchema.meta.define("LifetimeInheritSecond")(Second);
     CjsSchema.meta.inherit(Second)(Owner);
-    CjsSchema.meta.define("LifetimeInheritOwner")(Owner);
+    CjsSchema.meta.define({ className: "LifetimeInheritOwner", capabilities: [ "destruct" ] })(Owner);
     assert.equal(Object.hasOwn(Owner.prototype, "Shared"), true);
     assert.equal(Object.hasOwn(Owner.prototype, "_Destructor"), false);
     assert.equal(Object.hasOwn(Owner.prototype, "OnDestruct"), false);
@@ -248,13 +249,49 @@ test("IRoot holds the graph state and its own Destruct, and nothing pastes one o
     assert.equal(bare.Destruct(), true);
     assert.equal(bare.IsDestructed(), true);
 
-    // A class that is no IRoot gets no Destruct from registration; the graph's own door ends it.
+    // A class that is no IRoot gets no Destruct from registration; the graph's own door ends it, if it declares destruct.
     class Plain { _Destructor() { calls.push("~Plain"); } }
-    CjsSchema.define(Plain, { className: "LifetimeIRootPlain" });
+    CjsSchema.define(Plain, { className: "LifetimeIRootPlain", capabilities: [ "destruct" ] });
     assert.equal("Destruct" in Plain.prototype, false);
     assert.equal("IsDestructed" in Plain.prototype, false);
     const plain = new Plain();
     assert.equal(CjsGraph.destruct(plain), true);
     assert.equal(CjsGraph.isDestructed(plain), true);
     assert.deepEqual(calls, ["~Blue", "~Blue", "~Plain"]);
+});
+
+test("capabilities are declared in a definition: IRoot declares once, and the graph checks them", () =>
+{
+    assert.deepEqual(CjsSchema.getCapabilities(IRoot), [ "values", "destruct" ]);
+
+    // Below IRoot a class declares nothing and is destruct-capable along its base list.
+    class Blue extends IRoot {}
+    CjsSchema.define(Blue, { className: "CapabilityIRootBlue" });
+    assert.deepEqual(CjsSchema.getCapabilities(Blue), [], "a class's own declaration, not its bases'");
+    assert.equal(new Blue().Destruct(), true);
+
+    // Outside IRoot nothing is assumed.
+    class Value { _Destructor() {} }
+    CjsSchema.define(Value, { className: "CapabilityPlainValue" });
+    assert.throws(() => CjsGraph.destruct(new Value()), /CapabilityPlainValue does not declare the destruct capability/);
+    assert.doesNotThrow(() => CjsGraph.finalDelete(new Value()));
+
+    // A class with nothing to end has no lifetime record at all.
+    class Inert {}
+    CjsSchema.define(Inert, { className: "CapabilityInert" });
+    assert.equal(CjsGraph.hasLifetime(Inert), false);
+    assert.equal(CjsGraph.hasLifetime(Value), true);
+    assert.throws(() => CjsGraph.destruct(new Inert()), /does not declare the destruct capability/);
+
+    // A capability that does not exist is refused when the class is defined.
+    class Bad {}
+    assert.throws(() => CjsSchema.define(Bad, { className: "CapabilityBadName", capabilities: [ "fly" ] }), /unknown capability fly/);
+
+    // An exposure bag carries the key as any definition does, and so does be.define given a className.
+    class Bagged { _Destructor() {} }
+    CjsSchema.be.define({ name: "CapabilityBagged", capabilities: [ "destruct" ] })(Bagged);
+    assert.equal(CjsGraph.destruct(new Bagged()), true);
+    class Named { _Destructor() {} }
+    exposure.define({ className: "CapabilityNamedDefine", capabilities: [ "destruct" ] })(Named);
+    assert.equal(CjsGraph.destruct(new Named()), true);
 });

@@ -26,6 +26,8 @@ import { classInfoOf, compileClassInfo, installClassInfoCompile, recompileClassI
 setInterfaceClassResolver(getRegisteredConstructor);
 
 const CLASS_SCHEMA = new WeakMap();
+/** What getCapabilities answers for a class that declares none. */
+const NO_CAPABILITIES = [];
 
 // Exported schemas, memoized per class. SCHEMA_GENERATION is bumped by every
 // metadata definition (see getOrCreateClassSchema), which is what makes a stale
@@ -357,6 +359,17 @@ export class CjsSchema
         const schema = CLASS_SCHEMA.get(Constructor);
         if (schema?.registered) return schema.effectiveMethodsByName.get(methodName) || null;
         return schema?.methodsByName.get(methodName) || null;
+    }
+
+    /**
+     * The capabilities a class's own definition declares (CjsGraph.Capability names), not its bases'.
+     *
+     * @param {Function} Constructor The class.
+     * @returns {string[]} The declared list, empty when the class declares none or is not defined.
+     */
+    static getCapabilities(Constructor)
+    {
+        return CLASS_SCHEMA.get(Constructor)?.capabilities ?? NO_CAPABILITIES;
     }
 
     /** Returns the explicit stable serialized name registered for a constructor. */
@@ -2458,6 +2471,8 @@ function defineClassMetadata(Constructor, definition)
     if (definition.interface) schema.interface = true;
     if (definition.aliases) schema.aliases = [...definition.aliases];
     if (Object.hasOwn(definition, "abstract")) schema.abstract = definition.abstract;
+    // Ours, not Blue's: what instances can do (CjsGraph.Capability). compileClassInfo hands it to the graph, which checks it.
+    if (definition.capabilities !== undefined) schema.capabilities = definition.capabilities;
     if (definition.unused) installUnusedMethods(Constructor, definition, schema);
 
     for (const field of definition.fields || [])
@@ -4306,15 +4321,19 @@ function exposureName(name)
  * A class identity by literal name: `meta.interface`, and with `blue` set `be.define` and `be.interface`. Carbon's `EXPOSURE_BEGIN`
  * creates the class's own interface table, including itself and the lazy IRoot entry; an interface identity does not.
  *
- * @param {string} name The registered name.
+ * A definition with a `className` (and no exposure rows, so not a bag) registers the same identity and carries its other
+ * keys, such as `capabilities`, as `meta.define` does.
+ *
+ * @param {string|object} name The registered name, or a definition holding it as `className`.
  * @param {boolean} identityOnly Whether this is an interface identity, which has no table of its own.
  * @param {boolean} blue Whether the class is Carbon's exposure.
  * @returns {Function} The class decorator.
  */
 function exposureClassDecorator(name, identityOnly, blue)
 {
-    name = exposureName(name);
-    const define = classDefinitionDecorator({ className: name, ...(blue ? { blue: true } : {}), ...(identityOnly ? { interface: true } : {}) });
+    const rest = name !== null && typeof name === "object" ? name : null;
+    name = exposureName(rest ? rest.className : name);
+    const define = classDefinitionDecorator({ ...rest, className: name, ...(blue ? { blue: true } : {}), ...(identityOnly ? { interface: true } : {}) });
     if (!blue) return define;
     return function (Constructor, context)
     {

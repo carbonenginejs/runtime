@@ -104,9 +104,16 @@ with `return super.OnDestruct(options)`, or `return true` in a class with no par
 `CjsGraph.finalDelete(object)` runs an object's C++ destruction: each level's own
 `destructor` (the class's `_Destructor`, the body of its Carbon destructor), derived first,
 including bases, once per owning level. A `_Destructor` never calls super or another
-level's. It reads and sets no state and enters no member.
+level's. It reads and sets no state, checks no capability and enters no member; an object
+whose class has no lifetime record has nothing to run.
 
-`defineLifetime(ctor, { bases, destructor })` registers constructor-based ancestry
+A class declares what its instances can do in its definition: `capabilities`, a list of
+`CjsGraph.Capability` names (`values`, `destruct`, `events`). `CjsGraph.destruct` throws, naming
+the class, unless the class or one in its base list declares `destruct`; the exposure chain
+passes none. The root declares `values` and `destruct` once. Nothing reads `values` or
+`events` yet.
+
+`defineLifetime(ctor, { name, bases, destructor, capabilities })` registers constructor-based ancestry
 on the same class record without claiming a value definition. `isDefined` remains
 false until `define` supplies the member definition; later value registration
 preserves the separately registered lifetime facts. Blue supplies these facts at

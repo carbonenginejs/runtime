@@ -837,6 +837,7 @@ export class TnyCameraControls
 
 CjsSchema.meta.define(TnyCameraControls, {
   className: "TnyCameraControls",
+  capabilities: [ "destruct" ],
   methods: Object.fromEntries(["Install", "Uninstall", "SetKeyBindings", "GetKeyBindings", "HandleInput", "Update",
     "Orbit", "Pan", "Dolly", "SetFieldOfView", "AdjustFieldOfView", "GetPose", "SetPose", "Frame", "Resize", "Reset",
     "TargetChanged", "Subscribe", "Cancel", "Destruct"].map(name => [name, []]))

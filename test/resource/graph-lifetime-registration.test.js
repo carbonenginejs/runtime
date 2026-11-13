@@ -14,7 +14,7 @@ test("Blue declares own destructors without activating graph values or copying a
   CjsSchema.meta.define("LifetimeBridgePrimary")(Primary);
   CjsSchema.meta.define("LifetimeBridgeSecondary")(Secondary);
   CjsSchema.meta.inherit(Secondary)(Owner);
-  CjsSchema.meta.define("LifetimeBridgeOwner")(Owner);
+  CjsSchema.meta.define({ className: "LifetimeBridgeOwner", capabilities: [ "destruct" ] })(Owner);
   assert.equal(CjsGraph.isDefined(Owner), false);
   const object = new Owner();
   CjsGraph.destruct(object, argument);
@@ -28,7 +28,7 @@ test("Blue declares own destructors without activating graph values or copying a
 
   class Composed {}
   CjsSchema.meta.inherit(Secondary)(Composed);
-  CjsSchema.meta.define("LifetimeBridgeComposed")(Composed);
+  CjsSchema.meta.define({ className: "LifetimeBridgeComposed", capabilities: [ "destruct" ] })(Composed);
   assert.equal(Object.hasOwn(Composed.prototype, "_Destructor"), false);
   calls.length = 0;
   CjsGraph.destruct(new Composed(), argument);
@@ -69,8 +69,11 @@ test("unexposed composed classes acquire teardown before any Blue definition", (
   class Owner { OnDestruct(value) { calls.push(["owner", value]); return true; } _Destructor() { calls.push("~owner"); } }
   CjsSchema.meta.inherit(Base)(Owner);
   assert.equal(CjsGraph.isDefined(Owner), false);
-  CjsGraph.destruct(new Owner(), 7);
-  assert.deepEqual(calls, [["owner", 7], "~owner", "base"]);
+  // No definition, so no declared capability: the runner ends it, and the door refuses.
+  CjsGraph.finalDelete(new Owner());
+  assert.deepEqual(calls, ["~owner", "base"]);
+  assert.throws(() => CjsGraph.destruct(new Owner(), 7), /does not declare the destruct capability/);
+  assert.equal(calls.length, 2, "a refused call runs no OnDestruct");
 });
 
 

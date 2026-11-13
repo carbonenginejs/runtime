@@ -67,6 +67,16 @@ export class CjsGraph
   static _metadata = null;
 
   /**
+   * What a class's definition may say its instances can do. The graph gives none of them to a class:
+   * each is declared by the class, and a door checks the declaration.
+   * @cjs Carbon has no such list: an IRoot has all three by being one.
+   */
+  static Capability = { VALUES: "values", DESTRUCT: "destruct", EVENTS: "events" };
+
+  /** The teardown of an object whose class has no lifetime record: nothing to run. */
+  static _noTeardown = { revision: 0, destruct: false, onDestruct: false, destructors: [] };
+
+  /**
    * Registers or replaces a class's own definition while retaining its class-info identity.
    * Definition shape: { name, members: [{ name, key?, type?, edge?, flags? }], interfaces? }.
    * A member's type is a GRAPH_TYPES name; one with no type describes and walks, and refuses
@@ -78,6 +88,7 @@ export class CjsGraph
    * interfaces names classes an instance also counts as without inheriting from them.
    * bases is its C++ base list and chainTo the class its exposure table continues into, or null.
    * destructor is this level's own _Destructor, its C++ destructor body, or null; a base's belongs to the base.
+   * capabilities lists CjsGraph.Capability names; destruct reaches every class below along the base list.
    * OnDestruct is no definition key: it is a method of the class, found by ordinary dispatch.
    * whole means members is the class's complete list, so no base definition adds to it.
    * initialize, notify and listNotify say instances take Initialize, OnModified and
@@ -117,7 +128,12 @@ export class CjsGraph
     if (existing?.declared) this._names.delete(existing.declared.name);
     info.declared = declared;
     if (!info.lifetimeExplicit)
-      info.lifetime = { bases: declared.bases ?? [], destructor: declared.destructor ?? null };
+    {
+      info.lifetime = {
+        name, bases: declared.bases ?? [], destructor: declared.destructor ?? null,
+        capabilities: this.checkCapabilities(declared.capabilities ?? [], name)
+      };
+    }
     this._classes.set(ctor, info);
     this._names.set(name, info);
 
@@ -239,25 +255,60 @@ export class CjsGraph
   }
 
   /**
-   * Declares ancestry and an own destructor without claiming a value/member definition.
+   * Checks a declared capability list: an array of CjsGraph.Capability names, each once.
+   * @cjs The one place the names are checked, for the graph's own definitions and a host's.
+   * @param {*} capabilities The declared list.
+   * @param {string} name The declaring class, for the message.
+   * @returns {string[]} The same list.
+   */
+  static checkCapabilities(capabilities, name)
+  {
+    if (!Array.isArray(capabilities)) throw new TypeError(`${name}: capabilities is a list of capability names.`);
+    const known = Object.values(this.Capability);
+    for (let i = 0; i < capabilities.length; i++)
+    {
+      if (!known.includes(capabilities[i])) throw new TypeError(`${name}: unknown capability ${String(capabilities[i])}; the names are ${known.join(", ")}.`);
+      if (capabilities.indexOf(capabilities[i]) !== i) throw new TypeError(`${name}: capability ${capabilities[i]} is listed twice.`);
+    }
+    return capabilities;
+  }
+
+  /**
+   * Whether a constructor has a lifetime record.
+   * @cjs A class with nothing to end has none: see defineLifetime's caller.
+   * @param {Function} ctor The constructor.
+   * @returns {boolean} True when defineLifetime or define has recorded one.
+   */
+  static hasLifetime(ctor)
+  {
+    const info = this._classes.get(ctor);
+    return info !== undefined && info.lifetime !== null;
+  }
+
+  /**
+   * Declares ancestry, an own destructor and own capabilities without claiming a value/member definition.
    * @cjs A host can register lifetime before opting into graph value operations, in the same record.
    * @param {Function} ctor The constructor.
-   * @param {{bases?: Function[], destructor?: Function|null}} definition Own ancestry and _Destructor.
+   * @param {{name?: string|null, bases?: Function[], destructor?: Function|null, capabilities?: string[]}} definition
+   *   The class's stable name for messages, its own ancestry, _Destructor and declared capabilities.
    * @returns {CjsGraphClassInfo} The shared record, retained by subsequent full definitions.
    */
-  static defineLifetime(ctor, { bases = [], destructor = null, onDestruct })
+  static defineLifetime(ctor, { name = null, bases = [], destructor = null, capabilities = [], onDestruct })
   {
     if (typeof ctor !== "function") throw new TypeError("Graph lifetime requires a constructor.");
     if (onDestruct !== undefined) throw new TypeError("Graph onDestruct is not a definition key: write OnDestruct on the class.");
     if (destructor !== null && typeof destructor !== "function") throw new TypeError("Graph destructor must be a function or null.");
     if (!Array.isArray(bases) || bases.some(base => typeof base !== "function"))
       throw new TypeError("Graph lifetime bases must be constructors.");
+    this.checkCapabilities(capabilities, name ?? "Graph lifetime");
     const info = this._classes.get(ctor) ?? new CjsGraphClassInfo(ctor, null);
     const previous = info.lifetime;
     info.lifetimeExplicit = true;
-    if (previous && previous.destructor === destructor
-      && previous.bases.length === bases.length && previous.bases.every((base, i) => base === bases[i])) return info;
-    info.lifetime = { bases: bases.slice(), destructor };
+    if (previous && previous.destructor === destructor && previous.name === name
+      && previous.bases.length === bases.length && previous.bases.every((base, i) => base === bases[i])
+      && previous.capabilities.length === capabilities.length
+      && previous.capabilities.every((capability, i) => capability === capabilities[i])) return info;
+    info.lifetime = { name, bases: bases.slice(), destructor, capabilities: capabilities.slice() };
     this._classes.set(ctor, info);
     this._revision++;
     return info;
@@ -329,6 +380,7 @@ export class CjsGraph
 
   /**
    * Ends a registered object, once, and says whether it ran. In order:
+   * 0. Its class, or a class in its base list, must declare the destruct capability; otherwise this throws.
    * 1. An object that is being destructed or has been answers false; nothing runs again.
    * 2. Its OnDestruct(options) runs while the object still reads as alive. If it answers false the
    *    object refuses: no state changes and no destructor runs. One that throws leaves it alive.
@@ -345,6 +397,7 @@ export class CjsGraph
   static destruct(target, options)
   {
     const teardown = this._getTeardown(target);
+    if (!teardown.destruct) throw new TypeError(`${this._lifetimeName(target.constructor)} does not declare the destruct capability.`);
     if (this.isDestructed(target)) return false;
     if (teardown.onDestruct && target.OnDestruct(options) === false) return false;
 
@@ -361,9 +414,10 @@ export class CjsGraph
    * Modelled on: RootRefLock::FinalDelete (blueexposure/include/BlueClass.h:157-161), which runs
    * the destructor.
    * @cjs JavaScript runs no destructor, so the graph calls each level's body in C++'s order. It
-   * reads no state, sets none and enters no member, so it runs for any registered object, more
-   * than once if asked; each _Destructor owns its repeat safety. Nothing is freed.
-   * @param {object} object The registered object.
+   * reads no state, sets none, checks no capability and enters no member, so it runs for any
+   * object, more than once if asked; each _Destructor owns its repeat safety. An object whose class
+   * has no record has no destructor to run. Nothing is freed.
+   * @param {object} object The object.
    * @returns {void}
    */
   static finalDelete(object)
@@ -373,34 +427,46 @@ export class CjsGraph
   }
 
   /**
-   * An object's compiled teardown, rebuilt after a registration change: whether its class has an
-   * OnDestruct, and its destructors in destruction order.
-   * @cjs
-   * @param {object} object The registered object.
-   * @returns {{revision: number, onDestruct: boolean, destructors: Function[]}} The teardown.
+   * The name a message gives a class: its lifetime record's, its definition's, or its own className.
+   * @cjs Never Function.name, which a minifier rewrites.
+   * @param {Function} ctor The constructor.
+   * @returns {string} The name.
+   */
+  static _lifetimeName(ctor)
+  {
+    const info = this._classes.get(ctor);
+    return info?.lifetime?.name ?? info?.declared?.name ?? ctor.className ?? "A class with no graph record";
+  }
+
+  /**
+   * An object's compiled teardown, rebuilt after a registration change: whether its class is
+   * destruct-capable, whether it has an OnDestruct, and its destructors in destruction order.
+   * @cjs An object whose class has no lifetime record gets the empty teardown.
+   * @param {object} object The object.
+   * @returns {{revision: number, destruct: boolean, onDestruct: boolean, destructors: Function[]}} The teardown.
    */
   static _getTeardown(object)
   {
     const info = this._classes.get(object.constructor);
-    if (!info?.lifetime) throw new TypeError("Unknown graph lifetime.");
-    if (!info.teardown || info.teardown.revision !== this._revision)
-    {
-      info.teardown = {
-        revision: this._revision, onDestruct: "OnDestruct" in info.ctor.prototype, destructors: this._getDestructors(info)
-      };
-    }
+    if (!info?.lifetime) return this._noTeardown;
+    if (!info.teardown || info.teardown.revision !== this._revision) info.teardown = this._compileTeardown(info);
     return info.teardown;
   }
 
   /**
    * Compiles owning levels once, in reverse construction order, including declared base lists.
-   * @cjs One JS object represents a shared ancestor once; exposure chains are not ancestry.
+   * @cjs One JS object represents a shared ancestor once; exposure chains are not ancestry. A base
+   * given as a constructor with no record has nothing to end and is passed over; a base given by a
+   * name nothing registered is a mistake.
    * @param {CjsGraphClassInfo} info The most-derived class.
-   * @returns {Function[]} Each level's own _Destructor, in destruction order.
+   * @returns {{revision: number, destruct: boolean, onDestruct: boolean, destructors: Function[]}}
+   *   Whether any level declares destruct, whether the class has an OnDestruct, and each level's own
+   *   _Destructor in destruction order.
    */
-  static _getDestructors(info)
+  static _compileTeardown(info)
   {
     const seen = new Set(), active = new Set(), destructors = [];
+    let destruct = false;
     const visit = owner =>
     {
       if (active.has(owner)) throw new TypeError("Cyclic graph ancestry.");
@@ -409,15 +475,16 @@ export class CjsGraph
       for (const base of owner.lifetime.bases)
       {
         const parent = typeof base === "string" ? this._names.get(base) : this._classes.get(base);
-        if (!parent?.lifetime) throw new TypeError("Unknown graph base.");
-        visit(parent);
+        if (typeof base === "string" && !parent) throw new TypeError("Unknown graph base.");
+        if (parent?.lifetime) visit(parent);
       }
       active.delete(owner);
       seen.add(owner);
+      if (owner.lifetime.capabilities.includes(this.Capability.DESTRUCT)) destruct = true;
       if (owner.lifetime.destructor) destructors.push(owner.lifetime.destructor);
     };
     visit(info);
-    return destructors.reverse();
+    return { revision: this._revision, destruct, onDestruct: "OnDestruct" in info.ctor.prototype, destructors: destructors.reverse() };
   }
 
   /**

@@ -33,6 +33,20 @@ test("discovery finds teardown hooks, and every skip names one", () =>
   for (const name of SKIP.keys()) assert.ok(owners.some(owner => owner.name === name), `${name} has no own hook`);
 });
 
+test("every class with an OnDestruct is destruct-capable, and none below a resource overrides its refusal", () =>
+{
+  const lacking = [], overriding = [];
+  for (const { name, type } of getClassRegistrations())
+  {
+    if (!("OnDestruct" in type.prototype)) continue;
+    const record = CjsGraph._classes.get(type);
+    if (!record?.lifetime || !CjsGraph._compileTeardown(record).destruct) lacking.push(name);
+    if (type.prototype instanceof BlueAsyncRes && Object.hasOwn(type.prototype, "OnDestruct")) overriding.push(name);
+  }
+  assert.deepEqual(lacking, [], "an OnDestruct only Destruct calls needs the destruct capability in its base list");
+  assert.deepEqual(overriding, [], "BlueAsyncRes.OnDestruct refuses, and a class below it must not undo that");
+});
+
 for (const { name, type: Owner } of owners)
 {
   test(`${name}: Destruct is safe to run twice`, { skip: SKIP.get(name) ?? false }, t =>
@@ -47,10 +61,17 @@ for (const { name, type: Owner } of owners)
     try
     {
       const owner = new Owner();
-      // A value class its owner ends through the runner has no Destruct of its own; the graph's door ends it.
-      const destruct = () => typeof owner.Destruct === "function" ? owner.Destruct() : CjsGraph.destruct(owner);
-      assert.equal(destruct(), !(owner instanceof BlueAsyncRes), "Destruct runs, unless the object is a resource");
-      assert.equal(destruct(), false, "second Destruct");
+      if (typeof owner.Destruct === "function")
+      {
+        assert.equal(owner.Destruct(), !(owner instanceof BlueAsyncRes), "Destruct runs, unless the object is a resource");
+        assert.equal(owner.Destruct(), false, "second Destruct");
+      }
+      else
+      {
+        // A value class has no Destruct and declares no destruct capability: its owner ends it through the runner.
+        assert.throws(() => CjsGraph.destruct(owner), /does not declare the destruct capability/);
+        assert.doesNotThrow(() => CjsGraph.finalDelete(owner), "the owner's runner call");
+      }
       assert.doesNotThrow(() => CjsGraph.finalDelete(owner), "the destructors are safe to run again");
     }
     finally

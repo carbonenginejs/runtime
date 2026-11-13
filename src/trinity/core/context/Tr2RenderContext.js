@@ -39,7 +39,7 @@ const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 const DEFAULT_TECHNIQUE = "Main";
 
 /** Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7.... */
-@be.define("Tr2RenderContext")
+@be.define({ className: "Tr2RenderContext", capabilities: [ "destruct" ] })
 export class Tr2RenderContext
 {
   /**

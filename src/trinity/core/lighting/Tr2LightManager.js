@@ -141,7 +141,7 @@ function calculateShadowMapAtlasSettings(shadowQuality)
 const toHalf = num.toHalfFloatCarbon;
 
 /** Owns the frame's local-light records, their selection, and the packed light-buffer bytes the abstraction layer uploads. */
-@meta.carbon("Tr2LightManager")
+@meta.define({ className: "Tr2LightManager", carbon: "Tr2LightManager", capabilities: [ "destruct" ] })
 export class Tr2LightManager
 {
   /** @cjs Infrastructure lives until explicit teardown, never idle purge. */

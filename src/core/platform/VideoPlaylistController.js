@@ -220,7 +220,7 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
   }
 }
 
-CjsSchema.meta.define("VideoPlaylistController")(VideoPlaylistController);
+CjsSchema.meta.define({ className: "VideoPlaylistController", capabilities: [ "destruct" ] })(VideoPlaylistController);
 CjsSchema.meta.exposureChainTo(IBlueDynamicResourceConstructor)(VideoPlaylistController);
 
 /**

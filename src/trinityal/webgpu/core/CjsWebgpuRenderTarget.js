@@ -518,4 +518,4 @@ export class CjsWebgpuRenderTarget
 }
 
 
-CjsSchema.meta.define("CjsWebgpuRenderTarget")(CjsWebgpuRenderTarget);
+CjsSchema.meta.define({ className: "CjsWebgpuRenderTarget", capabilities: [ "destruct" ] })(CjsWebgpuRenderTarget);

@@ -19,7 +19,7 @@ import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
  * An application class; no Carbon
  * donor.
  */
-@meta.define("CjsPaperDoll")
+@meta.define({ className: "CjsPaperDoll", capabilities: [ "destruct" ] })
 export class CjsPaperDoll
 {
 
