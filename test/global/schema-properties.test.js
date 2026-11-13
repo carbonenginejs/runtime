@@ -33,7 +33,7 @@ class PropertyLeaf
   value = 0;
 }
 CjsSchema.be.interface()(PropertyLeaf);
-CjsSchema.be.define(PropertyLeaf, { className: "SchemaPropertyLeaf", members: [
+CjsSchema.be.define(PropertyLeaf, { name: "SchemaPropertyLeaf", members: [
   { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "value", key: "value", type: { kind: "int32" }, edit: { read: true, write: true, persist: true } }
 ] });
 
@@ -57,7 +57,7 @@ class PropertyProbe
   set scale(value) { this.SetScale(value); }
   get count() { return this.GetCount(); }
 }
-CjsSchema.define(PropertyProbe, { className: "SchemaPropertyProbe", fields: {
+CjsSchema.define(PropertyProbe, { name: "SchemaPropertyProbe", fields: {
   target: [ be.mapPropertyPersisted(), type.rootRef("SchemaPropertyLeaf") ],
   scale: [ be.mapProperty(), type.float32 ],
   count: [ meta.mapPropertyReadOnly("itemCount"), type.uint32 ]
@@ -156,20 +156,20 @@ test("graph round-trips only the persisted property, through its accessors", () 
 test("a property row needs a getter, and a persisted one a setter", () =>
 {
   class GetterOnly { get value() { return 1; } }
-  assert.throws(() => CjsSchema.define(GetterOnly, { className: "SchemaPropertyGetterOnly",
+  assert.throws(() => CjsSchema.define(GetterOnly, { name: "SchemaPropertyGetterOnly",
     fields: { value: [ be.mapPropertyPersisted(), type.int32 ] } }), /setter/);
   class Field { value = 1; }
-  assert.throws(() => CjsSchema.define(Field, { className: "SchemaPropertyField",
+  assert.throws(() => CjsSchema.define(Field, { name: "SchemaPropertyField",
     fields: { value: [ be.mapProperty(), type.int32 ] } }), /getter/);
 });
 
 test("attribute flags on a property are refused", () =>
 {
   class Mixed { get value() { return 1; } set value(_) {} }
-  assert.throws(() => CjsSchema.be.define(Mixed, { className: "SchemaPropertyMixedFlags",
+  assert.throws(() => CjsSchema.be.define(Mixed, { name: "SchemaPropertyMixedFlags",
     fields: { value: [ be.mapProperty(), be.mapAttribute(be.READWRITE), type.int32 ] } }), /flags are derived|property/);
   class Explicit { get value() { return 1; } set value(_) {} }
-  assert.throws(() => CjsSchema.define(Explicit, { className: "SchemaPropertyExplicitFlags",
+  assert.throws(() => CjsSchema.define(Explicit, { name: "SchemaPropertyExplicitFlags",
     properties: [ { exposure: { macro: "MAP_PROPERTY", flags: 3 }, name: "value", key: "value", type: { kind: "int32" }, edit: { read: true }, property: { persisted: false } } ] }),
   /flags are derived/);
 });
@@ -177,7 +177,7 @@ test("attribute flags on a property are refused", () =>
 test("an accessor with a type but no declaration is refused", () =>
 {
   class Undeclared { get value() { return 1; } }
-  assert.throws(() => CjsSchema.define(Undeclared, { className: "SchemaPropertyUndeclared",
+  assert.throws(() => CjsSchema.define(Undeclared, { name: "SchemaPropertyUndeclared",
     fields: { value: type.int32 } }), /declare it with be\.mapProperty\* or meta\.mapProperty\*/);
 });
 
@@ -194,7 +194,7 @@ class AttributeOwner
   set highDetailModel(value) { this.lod.highDetailProxy = value; }
   OnModified(name) { this.modified.push(name); return true; }
 }
-CjsSchema.define(AttributeOwner, { className: "SchemaAttributeAccessorOwner", fields: {
+CjsSchema.define(AttributeOwner, { name: "SchemaAttributeAccessorOwner", fields: {
   highDetailModel: [ be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY), type.rootRef("SchemaPropertyLeaf") ]
 } });
 CjsSchema.be.interface(INotify)(AttributeOwner);

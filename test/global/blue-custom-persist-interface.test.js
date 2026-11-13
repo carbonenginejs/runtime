@@ -49,7 +49,7 @@ test("ICustomPersist composition installs missing obligations without inventing 
 {
   class MissingPersist {}
   legacyBlue.inherit(ICustomPersist)(MissingPersist);
-  CjsSchema.define(MissingPersist, { className: "TestBlueCustomPersistMissing" });
+  CjsSchema.define(MissingPersist, { name: "TestBlueCustomPersistMissing" });
   const instance = new MissingPersist();
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
   assert.equal(mappedInterfaces(MissingPersist).has(ICustomPersist), false);
@@ -94,7 +94,7 @@ test("ICustomPersist preserves concrete methods and keeps nominal composition se
   }
   const originals = methods.map(method => Persist.prototype[method]);
   legacyBlue.inherit(ICustomPersist)(Persist);
-  CjsSchema.define(Persist, { className: "TestBlueCustomPersistProvider" });
+  CjsSchema.define(Persist, { name: "TestBlueCustomPersistProvider" });
   const instance = new Persist();
   assert.deepEqual(methods.map(method => Persist.prototype[method]), originals);
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
@@ -131,7 +131,7 @@ test("matching persistence method names alone grant neither nominal nor query id
     AllocateReadBuffer() { calls++; }
     SetBufferAndSize() { calls++; }
   }
-  CjsSchema.define(Decoy, { className: "TestBlueCustomPersistDecoy" });
+  CjsSchema.define(Decoy, { name: "TestBlueCustomPersistDecoy" });
   const instance = new Decoy();
   assert.equal(CjsSchema.cast(instance, ICustomPersist), null);
   assert.equal(mappedInterfaces(Decoy).has(ICustomPersist), false);

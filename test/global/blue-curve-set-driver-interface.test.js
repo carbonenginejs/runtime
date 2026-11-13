@@ -41,7 +41,7 @@ test("ICurveSetDriver composes without replacing the driver's numeric operation 
   }
   const implementation = Driver.prototype.GetCurveSetTime;
   legacyBlue.inherit(ICurveSetDriver)(Driver, { kind: "class" });
-  CjsSchema.define(Driver, { className: "TestBlueCurveSetDriver" });
+  CjsSchema.define(Driver, { name: "TestBlueCurveSetDriver" });
 
   const driver = new Driver();
   assert.equal(Driver.prototype.GetCurveSetTime, implementation);

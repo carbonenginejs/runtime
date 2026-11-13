@@ -87,7 +87,7 @@ test("multi-placement composition preserves the caller's ordered records without
   }
   const implementation = MultiObserver.prototype.UpdatePlacements;
   legacyBlue.inherit(IBlueMultiPlacementObserver)(MultiObserver, { kind: "class" });
-  CjsSchema.define(MultiObserver, { className: "TestBlueMultiPlacementObserverProvider" });
+  CjsSchema.define(MultiObserver, { name: "TestBlueMultiPlacementObserverProvider" });
   const observer = new MultiObserver();
   const first = new PositionDescription();
   first.front_z = 1;
@@ -128,7 +128,7 @@ test("Blue observer composition retains concrete calls and requires explicit que
   const handleEvent = Observer.prototype.HandleEvent;
   const updatePlacement = Observer.prototype.UpdatePlacement;
   legacyBlue.inherit(IBlueEventListener, IBluePlacementObserver)(Observer, { kind: "class" });
-  CjsSchema.define(Observer, { className: "TestBlueObserverInterfaceProvider" });
+  CjsSchema.define(Observer, { name: "TestBlueObserverInterfaceProvider" });
 
   const observer = new Observer();
   assert.equal(Observer.prototype.HandleEvent, handleEvent);

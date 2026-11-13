@@ -12,11 +12,11 @@ test("lookups on a registered class return the one table registration built", ()
 {
   class Base {}
   CjsSchema.decorateField(Base, "count", be.mapAttribute(be.PERSIST), type.uint32);
-  CjsSchema.define(Base, { className: "RegistrationBase" });
+  CjsSchema.define(Base, { name: "RegistrationBase" });
 
   class Derived extends Base {}
   CjsSchema.decorateField(Derived, "label", be.mapAttribute(be.PERSIST), type.string);
-  CjsSchema.define(Derived, { className: "RegistrationDerived" });
+  CjsSchema.define(Derived, { name: "RegistrationDerived" });
 
   const first = CjsSchema.getField(Derived, "count");
   assert.equal(CjsSchema.getField(Derived, "count"), first, "no merge per call: the same record comes back");
@@ -27,13 +27,13 @@ test("adding a field to a registered class is an error, not an invalidation", ()
 {
   class Sealed { Late() {} }
   CjsSchema.decorateField(Sealed, "value", be.mapAttribute(be.PERSIST), type.float32);
-  CjsSchema.define(Sealed, { className: "RegistrationSealed" });
+  CjsSchema.define(Sealed, { name: "RegistrationSealed" });
 
   assert.throws(() => CjsSchema.decorateField(Sealed, "late", be.mapAttribute(be.PERSIST), type.float32), /after it registered/u);
   assert.throws(() => CjsSchema.defineField(Sealed, "value", "edit", { readonly: true }), /after it registered/u);
   CjsSchema.decorateMethod(Sealed, "Late", meta.noop);
   assert.ok(CjsSchema.getMethod(Sealed, "Late"), "method provenance is not flattened, so it may still arrive");
-  assert.throws(() => CjsSchema.define(Sealed, { className: "RegistrationSealed" }), /already registered/u);
+  assert.throws(() => CjsSchema.define(Sealed, { name: "RegistrationSealed" }), /already registered/u);
   assert.equal(CjsSchema.getField(Sealed, "late"), null);
 });
 
@@ -41,14 +41,14 @@ test("a class registering below an unregistered base carries the base's fields",
 {
   class Root {}
   CjsSchema.decorateField(Root, "root", be.mapAttribute(be.PERSIST), type.uint32);
-  CjsSchema.define(Root, { className: "RegistrationRoot" });
+  CjsSchema.define(Root, { name: "RegistrationRoot" });
 
   class Middle extends Root {}
   CjsSchema.decorateField(Middle, "middle", be.mapAttribute(be.PERSIST), type.uint32);
 
   class Leaf extends Middle {}
   CjsSchema.decorateField(Leaf, "leaf", be.mapAttribute(be.PERSIST), type.uint32);
-  CjsSchema.define(Leaf, { className: "RegistrationLeaf" });
+  CjsSchema.define(Leaf, { name: "RegistrationLeaf" });
 
   assert.deepEqual(CjsSchema.getSchema(Leaf).fields.map(field => field.name), [ "root", "middle", "leaf" ]);
   assert.ok(CjsSchema.getField(Leaf, "middle"));
@@ -59,11 +59,11 @@ test("hidden inherited fields are fixed at registration too", () =>
   class Visible {}
   CjsSchema.decorateField(Visible, "shown", be.mapAttribute(be.PERSIST), type.uint32);
   CjsSchema.decorateField(Visible, "hidden", be.mapAttribute(be.PERSIST), type.uint32);
-  CjsSchema.define(Visible, { className: "RegistrationVisible" });
+  CjsSchema.define(Visible, { name: "RegistrationVisible" });
 
   class Hiding extends Visible {}
   CjsSchema.hideInherited([ "hidden" ])(Hiding);
-  CjsSchema.define(Hiding, { className: "RegistrationHiding" });
+  CjsSchema.define(Hiding, { name: "RegistrationHiding" });
 
   assert.equal(CjsSchema.getField(Hiding, "hidden"), null);
   assert.equal(CjsSchema.isFieldHidden(Hiding, "hidden"), true);

@@ -15,7 +15,7 @@ function probeInterface()
   }
   CjsSchema.decorateMethod(IProbe, "GetData", meta.abstract);
   CjsSchema.decorateMethod(IProbe, "Run", blue.abstract);
-  CjsSchema.define(IProbe, { className: "IProbe", fields: {} });
+  CjsSchema.define(IProbe, { name: "IProbe", fields: {} });
   return IProbe;
 }
 
@@ -36,7 +36,7 @@ test("an implementer that misses one is named as the one that failed", () =>
   {
     GetData() { return 42; }
   }
-  CjsSchema.define(RealProbe, { className: "RealProbe", fields: {} });
+  CjsSchema.define(RealProbe, { name: "RealProbe", fields: {} });
 
   assert.equal(new RealProbe().GetData(), 42);
   assert.throws(() => new RealProbe().Run(), /^Error: RealProbe does not implement IProbe\.Run\(count, out\)\.$/u);
@@ -47,7 +47,7 @@ test("a contract copied in by blue.inherit still names the contract", () =>
   const IProbe = probeInterface();
   class InheritingProbe {}
   blue.inherit(IProbe)(InheritingProbe, { kind: "class" });
-  CjsSchema.be.define(InheritingProbe, { className: "InheritingProbe" });
+  CjsSchema.be.define(InheritingProbe, { name: "InheritingProbe" });
 
   assert.throws(() => new InheritingProbe().Run(), /^Error: InheritingProbe does not implement IProbe\.Run\(count, out\)\.$/u);
 });
@@ -70,7 +70,7 @@ test("a define({ methods }) entry installs the body at registration", () =>
   {
     Endl() { return "not abstract"; }
   }
-  CjsSchema.be.define(IListed, { className: "IListed", methods: { Endl: blue.abstract } });
+  CjsSchema.be.define(IListed, { name: "IListed", methods: { Endl: blue.abstract } });
   assert.throws(() => new IListed().Endl(), /^Error: IListed\.Endl\(\) must be implemented\.$/u);
 });
 

@@ -9,7 +9,7 @@ let serial = 0;
 function register(Constructor, fields, extra = {})
 {
   CjsSchema.define(Constructor, {
-    className: "YamlWriterTest" + ++serial,
+    name: "YamlWriterTest" + ++serial,
     members: Object.entries(fields).map(([name, type]) => ({
       name, key: name, type: typeof type === "string" ? { kind: type } : type,
       exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, edit: { persist: true, read: true, write: true }
@@ -122,7 +122,7 @@ test("float vectors and matrix storage are flat flow sequences without changing 
 test("structure lists retain definition codes, offsets, order and typed rows", () => {
   class Row { time = 0; value = 0; }
   CjsSchema.define(Row, {
-    className: "YamlWriterStructRow", struct: { size: 8 },
+    name: "YamlWriterStructRow", struct: { size: 8 },
     members: [
       { name: "time", key: "time", struct: { dataType: "FLOAT32_1", offset: 0 } },
       { name: "value", key: "value", struct: { dataType: "UINT32_1", offset: 4 } }

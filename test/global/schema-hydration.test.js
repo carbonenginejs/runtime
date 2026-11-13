@@ -33,7 +33,7 @@ function declareBaseless(persist = false)
   CjsSchema.defineField(Fixture, "derived", "type", { kind: "string" });
   CjsSchema.defineField(Fixture, "derived", "exposure", { macro: "MAP_ATTRIBUTE", flags: 1 });
   CjsSchema.defineField(Fixture, "derived", "edit", { read: true });
-  CjsSchema.define(Fixture, { className });
+  CjsSchema.define(Fixture, { name: className });
   return Fixture;
 }
 
@@ -48,7 +48,7 @@ function declareParent(Child)
   CjsSchema.decorateField(Parent, "child", type.rootRef(Child.name));
   CjsSchema.decorateField(Parent, "children", type.list({ kind: "rootRef", className: Child.name }));
   CjsSchema.decorateField(Parent, "byName", type.map(Child.name));
-  CjsSchema.define(Parent, { className: `HydrationParent${next++}` });
+  CjsSchema.define(Parent, { name: `HydrationParent${next++}` });
   return Parent;
 }
 
@@ -137,7 +137,7 @@ test("a field that does not hold references copies a non-plain value", () =>
   const Child = declareBaseless();
   const Holder = class { payload = null; };
   CjsSchema.decorateField(Holder, "payload", type.unknown);
-  CjsSchema.define(Holder, { className: `HydrationHolder${next++}` });
+  CjsSchema.define(Holder, { name: `HydrationHolder${next++}` });
 
   const live = new Child();
   const holder = new Holder();

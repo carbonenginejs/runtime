@@ -21,7 +21,7 @@ class StructListRecord
     name = "";
     value = [0, 0, 0, 0];
 }
-CjsSchema.be.define(StructListRecord, { className: "StructListRecord", struct: { size: 24 }, fields: {
+CjsSchema.be.define(StructListRecord, { name: "StructListRecord", struct: { size: 24 }, fields: {
     name: [ be.mapAttribute(be.PERSIST), meta.struct.SHAREDSTRING_1(0) ],
     value: [ be.mapAttribute(be.PERSIST), meta.struct.FLOAT32_4(8) ]
 } });
@@ -30,7 +30,7 @@ class StructListOwner
 {
     records = [];
 }
-CjsSchema.be.define(StructListOwner, { className: "StructListOwner", fields: {
+CjsSchema.be.define(StructListOwner, { name: "StructListOwner", fields: {
     records: [ type.structList("StructListRecord"), be.mapAttribute(be.PERSIST) ]
 } });
 
@@ -138,7 +138,7 @@ for (const forward of [false, true]) test(`struct-list ${forward ? "forward" : "
 });
 
 class StructReferenceRoot { first = null; second = null; }
-CjsSchema.define(StructReferenceRoot, { className: "StructReferenceRoot", fields: {
+CjsSchema.define(StructReferenceRoot, { name: "StructReferenceRoot", fields: {
     first: { type: { kind: "rootRef", className: "StructListOwner" } },
     second: { type: { kind: "rootRef", className: "StructListOwner" } }
 } });
@@ -165,7 +165,7 @@ class StructReferenceLifecycle
     OnModified(name) { this.notifications.push([name, this.records.map(record => record.name)]); }
 }
 CjsSchema.be.interface(IInitialize, INotify)(StructReferenceLifecycle, { kind: "class" });
-CjsSchema.be.define(StructReferenceLifecycle, { className: "StructReferenceLifecycle", fields: {
+CjsSchema.be.define(StructReferenceLifecycle, { name: "StructReferenceLifecycle", fields: {
     records: [ type.structList("StructListRecord"), be.mapAttribute(be.NOTIFY | be.PERSIST) ]
 } });
 
@@ -215,7 +215,7 @@ test("new values-only owners notify after their struct references resolve", () =
         OnModified(name) { this.notifications.push([name, this.records.map(record => record.name)]); }
     }
     CjsSchema.be.interface(INotify)(NotifiedStructOwner, { kind: "class" });
-    CjsSchema.be.define(NotifiedStructOwner, { className: "NotifiedStructOwner", fields: {
+    CjsSchema.be.define(NotifiedStructOwner, { name: "NotifiedStructOwner", fields: {
         records: [ type.structList("StructListRecord"), be.mapAttribute(be.NOTIFY) ]
     } });
     const owner = CjsSchema.from("NotifiedStructOwner", {

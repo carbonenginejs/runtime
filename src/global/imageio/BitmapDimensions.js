@@ -424,6 +424,6 @@ export class BitmapDimensions
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
 CjsSchema.be.define(BitmapDimensions, {
-  className: "BitmapDimensions",
+  name: "BitmapDimensions",
   aliases: [ "Tr2BitmapDimensions" ]
 });

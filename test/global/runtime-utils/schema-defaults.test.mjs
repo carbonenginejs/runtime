@@ -41,7 +41,7 @@ test("decorators install nothing per instance; getDefaults reads one instance wi
         CjsSchema.defineField(SchemaDefaultCaptureProbe, name, "edit", { read: true });
     }
     CjsSchema.meta.define({
-        className: "SchemaDefaultCaptureProbe"
+        name: "SchemaDefaultCaptureProbe"
     })(SchemaDefaultCaptureProbe, { kind: "class", metadata });
 
     // Defaults are what a new instance holds, constructor state included.
@@ -80,7 +80,7 @@ test("CjsSchema.getDefaults reads a redeclaring subclass's own value", () =>
     }
 
     CjsSchema.meta.define({
-        className: "SchemaDefaultBaseProbe"
+        name: "SchemaDefaultBaseProbe"
     })(SchemaDefaultBaseProbe, { kind: "class", metadata: baseMetadata });
 
     class SchemaDefaultSubclassProbe extends SchemaDefaultBaseProbe
@@ -93,7 +93,7 @@ test("CjsSchema.getDefaults reads a redeclaring subclass's own value", () =>
     }
 
     CjsSchema.meta.define({
-        className: "SchemaDefaultSubclassProbe"
+        name: "SchemaDefaultSubclassProbe"
     })(SchemaDefaultSubclassProbe, { kind: "class", metadata: subclassMetadata });
 
     assert.deepEqual(CjsSchema.getDefaults(SchemaDefaultSubclassProbe), {
@@ -122,7 +122,7 @@ test("CjsSchema.getDefaults reads an explicitly registered schema accessor", () 
         type.color
     );
     CjsSchema.define(SchemaDefaultAccessorProbe, {
-        className: "SchemaDefaultAccessorProbe"
+        name: "SchemaDefaultAccessorProbe"
     });
 
     assert.deepEqual(CjsSchema.getDefaults(SchemaDefaultAccessorProbe), {
@@ -150,7 +150,7 @@ test("CjsSchema.applyDefaults expands typed values without constructing a live g
     CjsSchema.defineField(SchemaDefaultChild, "label", "type", { kind: "string" });
     CjsSchema.defineField(SchemaDefaultChild, "enabled", "type", { kind: "boolean" });
     CjsSchema.define(SchemaDefaultChild, {
-        className: "SchemaDefaultChild"
+        name: "SchemaDefaultChild"
     });
 
     class SchemaDefaultRoot
@@ -186,7 +186,7 @@ test("CjsSchema.applyDefaults expands typed values without constructing a live g
         className: "SchemaDefaultChild"
     });
     CjsSchema.define(SchemaDefaultRoot, {
-        className: "SchemaDefaultRoot"
+        name: "SchemaDefaultRoot"
     });
 
     const expanded = CjsSchema.applyDefaults({

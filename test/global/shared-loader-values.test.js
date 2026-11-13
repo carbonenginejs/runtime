@@ -53,7 +53,7 @@ test("dictionary editing diffs writes and suppresses notifications without queue
     calls = [];
     OnModified(member) { this.calls.push(member); return true; }
   }
-  CjsSchema.define(Record, { className: "SharedLoaderEditRecord", fields: [
+  CjsSchema.define(Record, { name: "SharedLoaderEditRecord", fields: [
     { name: "value", key: "value", type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 4 }, edit: { notify: true } }
   ] });
   const record = new Record();
@@ -84,7 +84,7 @@ test("a failed dictionary operation cannot leak anchors or completion into reade
 {
   const calls = [];
   class Record { name = ""; child = null; Initialize() { calls.push(this.name); } }
-  CjsSchema.define(Record, { className: "SharedLoaderReuseRecord", fields: [
+  CjsSchema.define(Record, { name: "SharedLoaderReuseRecord", fields: [
     { name: "name", key: "name", type: { kind: "string" } },
     { name: "child", key: "child", type: { kind: "rootRef", className: Record } }
   ] });
@@ -145,7 +145,7 @@ test("mapped initialization suppresses construction notifications while later ed
     OnModified(member) { this.calls.push([member, this.second]); return true; }
     Initialize() { this.calls.push(["initialize", this.second]); }
   }
-  CjsSchema.define(Record, { className: "SharedLoaderConstructionRecord", fields: [
+  CjsSchema.define(Record, { name: "SharedLoaderConstructionRecord", fields: [
     { name: "first", key: "first", type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 4 }, edit: { notify: true } },
     { name: "second", key: "second", type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 4 }, edit: { notify: true } }
   ] });
@@ -233,7 +233,7 @@ test("indexed members sharing one key stay distinct in notifications", () =>
     calls = [];
     OnModified(names) { this.calls.push(names); return true; }
   }
-  CjsSchema.define(Record, { className: "SharedLoaderNotificationIndexed", fields: [
+  CjsSchema.define(Record, { name: "SharedLoaderNotificationIndexed", fields: [
     { name: "value", key: "stored", type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 4 }, edit: { notify: true } },
     { name: "first", key: "slots", index: 0, type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 4 }, edit: { notify: true } },
     { name: "second", key: "slots", index: 1, type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 4 }, edit: { notify: true } }

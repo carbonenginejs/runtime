@@ -17,7 +17,7 @@ class Item
   peer = null;
 }
 CjsSchema.be.define(Item, {
-  className: "TestBlueListItem",
+  name: "TestBlueListItem",
   fields: {
     value: [ type.float64, be.mapAttribute(be.PERSIST) ],
     peer: [ type.rootRef("TestBlueListItem"), be.mapAttribute(be.PERSIST) ]
@@ -26,7 +26,7 @@ CjsSchema.be.define(Item, {
 legacyBlue.interface()(Item);
 
 class UnexposedItem extends Item {}
-CjsSchema.define(UnexposedItem, { className: "TestBlueListUnexposedItem" });
+CjsSchema.define(UnexposedItem, { name: "TestBlueListUnexposedItem" });
 legacyBlue.interface()(UnexposedItem);
 
 // This test class fixes the generic constructor arguments. Production generic
@@ -39,7 +39,7 @@ class ItemList extends BlueList
     super(Item, { className: "TestBlueListItem" });
   }
 }
-CjsSchema.define(ItemList, { className: "TestBlueListSpecialization" });
+CjsSchema.define(ItemList, { name: "TestBlueListSpecialization" });
 
 class Observer extends IListNotify
 {

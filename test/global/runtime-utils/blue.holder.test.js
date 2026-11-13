@@ -310,7 +310,7 @@ test("an implementation is installed into the holder, never captured from it", (
   // refusal below reports. An unregistered implementation currently answers
   // with its nearest registered ancestor - CjsSchema.getClassName walks the
   // prototype chain - so it would name the interface instead of itself.
-  CjsSchema.define(RecordingResMan, { className: "RecordingResMan", fields: {} });
+  CjsSchema.define(RecordingResMan, { name: "RecordingResMan", fields: {} });
 
   const previous = blue.resMan;
   blue.resMan = new RecordingResMan();

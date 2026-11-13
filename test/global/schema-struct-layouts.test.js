@@ -10,7 +10,7 @@ function register(fields, size)
     for (const [name, decorators] of Object.entries(fields))
         CjsSchema.decorateField(Record, name, ...[].concat(decorators));
     if (size !== undefined) meta.struct.define({ size })(Record);
-    CjsSchema.define(Record, { className });
+    CjsSchema.define(Record, { name: className });
     return CjsSchema.getSchema(Record);
 }
 
@@ -82,7 +82,7 @@ test("stage-3 member metadata builds the layout before any instance is construct
     const metadata = {};
     meta.struct.UINT32_1(4)(undefined, { kind: "field", name: "value", metadata, addInitializer() {} });
     meta.struct.define({ size: 8 })(Record);
-    meta.define({ className: "Stage3StructRegistration" })(Record, { kind: "class", metadata });
+    meta.define({ name: "Stage3StructRegistration" })(Record, { kind: "class", metadata });
     assert.deepEqual(CjsSchema.getSchema(Record).structureDefinition.members,
         [{ name: "value", offset: 4, dataType: "UINT32_1", type: "uint32" }]);
 });

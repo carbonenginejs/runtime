@@ -99,7 +99,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     class Derived extends Contract {}
     class Composed {}
     legacyBlue.inherit(Contract)(Composed);
-    CjsSchema.define(Composed, { className: `TestCurvePrerequisiteMissing${name}` });
+    CjsSchema.define(Composed, { name: `TestCurvePrerequisiteMissing${name}` });
     const composed = new Composed();
     assert.equal(CjsSchema.cast(composed, Contract), composed);
     if (base) assert.equal(CjsSchema.cast(composed, base), composed);
@@ -169,7 +169,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     class Consumer extends Operations {}
     const methods = hasReset ? [ ...required, "Reset" ] : required;
     legacyBlue.inherit(Contract)(Consumer);
-    CjsSchema.define(Consumer, { className: `TestCurvePrerequisiteConcrete${name}` });
+    CjsSchema.define(Consumer, { name: `TestCurvePrerequisiteConcrete${name}` });
     const instance = new Consumer();
     for (const method of methods) assert.equal(instance[method], Operations.prototype[method]);
     assert.equal(CjsSchema.cast(instance, Contract), instance);
@@ -225,7 +225,7 @@ test("curve method names alone grant no nominal or query identities", () =>
     Extrapolation() {}
     CopyValue() {}
   }
-  CjsSchema.define(Decoy, { className: "TestCurvePrerequisiteDecoy" });
+  CjsSchema.define(Decoy, { name: "TestCurvePrerequisiteDecoy" });
   const decoy = new Decoy();
   for (const { Contract } of contracts) assert.equal(CjsSchema.cast(decoy, Contract), null);
   assert.deepEqual(Array.from(mappedInterfaces(Decoy)), []);

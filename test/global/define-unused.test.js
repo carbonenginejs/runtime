@@ -10,7 +10,7 @@ const blue = CjsSchema.be;
 test("define({ unused }) installs throwers raising CjsUnusedMethodError", () =>
 {
   class UnusedHost { Used() { return 1; } }
-  CjsSchema.define(UnusedHost, { className: "DefineUnusedHost", unused: [ "Dropped", " Other " ], methods: { Used: [ blue.method ] } });
+  CjsSchema.define(UnusedHost, { name: "DefineUnusedHost", unused: [ "Dropped", " Other " ], methods: { Used: [ blue.method ] } });
   const host = new UnusedHost();
   assert.equal(host.Used(), 1);
   for (const name of [ "Dropped", "Other" ])
@@ -26,13 +26,13 @@ test("define({ unused }) installs throwers raising CjsUnusedMethodError", () =>
 test("a name cannot be both unused and declared or defined", () =>
 {
   class Declared {}
-  assert.throws(() => CjsSchema.define(Declared, { className: "DefineUnusedDeclared", unused: [ "Run" ], methods: { Run: [ blue.method ] } }), /also declares/);
+  assert.throws(() => CjsSchema.define(Declared, { name: "DefineUnusedDeclared", unused: [ "Run" ], methods: { Run: [ blue.method ] } }), /also declares/);
   class Defined { Run() {} }
-  assert.throws(() => CjsSchema.define(Defined, { className: "DefineUnusedDefined", unused: [ "Run" ] }), /also declares/);
+  assert.throws(() => CjsSchema.define(Defined, { name: "DefineUnusedDefined", unused: [ "Run" ] }), /also declares/);
   for (const unused of [ "Run", [ "" ], [ 3 ], [ "Run", "Run" ] ])
   {
     class Invalid {}
-    assert.throws(() => CjsSchema.define(Invalid, { className: "DefineUnusedInvalid", unused }), TypeError);
+    assert.throws(() => CjsSchema.define(Invalid, { name: "DefineUnusedInvalid", unused }), TypeError);
   }
 });
 

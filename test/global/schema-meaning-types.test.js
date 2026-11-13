@@ -33,7 +33,7 @@ test("Stage-3, decorator calls and manual declarations agree for compound flags 
   definitions.words = type.uint32Array;
   definitions.packed = [type.vec4, meta.ui.components(["speed", "size", "opacity", "age"]), meta.ui.description("Particle channels")];
   class Manual {}
-  CjsSchema.define(Manual, { className: "MeaningManual", fields: definitions });
+  CjsSchema.define(Manual, { name: "MeaningManual", fields: definitions });
   class Decorated {}
   const metadata = {};
   for (const [name, decorators] of Object.entries(definitions))
@@ -41,11 +41,11 @@ test("Stage-3, decorator calls and manual declarations agree for compound flags 
     for (const decorator of Array.isArray(decorators) ? decorators : [decorators])
       decorator(undefined, { kind: "field", name, metadata, addInitializer() {} });
   }
-  meta.define({ className: "MeaningStage3" })(Decorated, { kind: "class", metadata });
+  meta.define({ name: "MeaningStage3" })(Decorated, { kind: "class", metadata });
   class Applied {}
   for (const [name, decorators] of Object.entries(definitions))
     for (const decorator of Array.isArray(decorators) ? decorators : [decorators]) decorator(Applied.prototype, name);
-  CjsSchema.define(Applied, { className: "MeaningApplied" });
+  CjsSchema.define(Applied, { name: "MeaningApplied" });
   const records = Type => CjsSchema.getSchema(Type).members.map(({ declaringClass, ...field }) => field);
   assert.deepEqual(records(Decorated), records(Manual));
   assert.deepEqual(records(Applied), records(Manual));
@@ -64,7 +64,7 @@ test("object pointers are Carbon's rootRef and rootWeak; the retired kinds fail 
 {
   for (const retired of [ "model", "objectRef", "weakRef" ]) assert.equal(type[retired], undefined);
   class Pointers {}
-  CjsSchema.define(Pointers, { className: "RetiredKindsPointers", fields: {
+  CjsSchema.define(Pointers, { name: "RetiredKindsPointers", fields: {
     strong: type.rootRef("RetiredKindsPointers"), weak: type.object.weak("RetiredKindsPointers")
   } });
   assert.equal(CjsSchema.getField(Pointers, "strong").type.kind, "rootRef");
@@ -78,7 +78,7 @@ test("object pointers are Carbon's rootRef and rootWeak; the retired kinds fail 
   ])
   {
     class Stale {}
-    assert.throws(() => CjsSchema.define(Stale, { className: "RetiredKindsStale", fields: [ { name: "value", type } ] }), message);
+    assert.throws(() => CjsSchema.define(Stale, { name: "RetiredKindsStale", fields: [ { name: "value", type } ] }), message);
   }
 });
 
@@ -100,9 +100,9 @@ test("abstract methods throw while subclass implementations are preserved", () =
   class Contract { Existing() { return "existing"; } Missing(_value) {} Second() {} }
   CjsSchema.decorateMethod(Contract, "Missing", meta.abstract);
   CjsSchema.decorateMethod(Contract, "Second", meta.abstract);
-  CjsSchema.define(Contract, {className:"NamedRequirementContract"});
+  CjsSchema.define(Contract, {name:"NamedRequirementContract"});
   class Consumer extends Contract {}
-  CjsSchema.define(Consumer, {className:"NamedRequirementConsumer"});
+  CjsSchema.define(Consumer, {name:"NamedRequirementConsumer"});
   const value = new Consumer();
   assert.equal(value.Existing(), "existing");
   assert.throws(() => value.Missing(), /NamedRequirementConsumer does not implement NamedRequirementContract\.Missing\(value\)/);

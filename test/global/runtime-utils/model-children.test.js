@@ -21,7 +21,7 @@ CjsSchema.defineField(ChildModel, "name", "edit", { persist: true });
 CjsSchema.defineField(ChildModel, "deleteRequested", "type", { kind: "boolean" });
 CjsSchema.defineField(ChildModel, "deleteRequested", "exposure", { macro: "MAP_ATTRIBUTE", flags: 16 });
 CjsSchema.defineField(ChildModel, "deleteRequested", "edit", { persist: true });
-CjsSchema.define(ChildModel, { className: "ChildMutationTestChild" });
+CjsSchema.define(ChildModel, { name: "ChildMutationTestChild" });
 
 class ParentModel
 {
@@ -73,7 +73,7 @@ CjsSchema.defineField(ParentModel, "children", "type", {
 });
 CjsSchema.defineField(ParentModel, "children", "exposure", { macro: "MAP_ATTRIBUTE", flags: 20 });
 CjsSchema.defineField(ParentModel, "children", "edit", { persist: true, notify: true });
-CjsSchema.define(ParentModel, { className: "ChildMutationTestParent" });
+CjsSchema.define(ParentModel, { name: "ChildMutationTestParent" });
 
 test("Schema remove detaches without deleting and delete uses explicit teardown", () => {
     const parent = new ParentModel();
@@ -167,7 +167,7 @@ test("Schema child helpers reject non-child collections and values", () => {
 
     CjsSchema.defineField(InvalidParent, "bytes", "type", { kind: "typedArray", arrayType: "Uint8Array" });
     CjsSchema.defineField(InvalidParent, "value", "type", { kind: "float32" });
-    CjsSchema.define(InvalidParent, { className: "InvalidChildMutationParent" });
+    CjsSchema.define(InvalidParent, { name: "InvalidChildMutationParent" });
 
     const parent = new InvalidParent();
     assert.throws(() => children.addChild({}, "missing", {}), /registered schema instance/);

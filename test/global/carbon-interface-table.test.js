@@ -181,14 +181,14 @@ test("Copier throws on an unnamed listed interface and skips an unnamed class ca
 {
   class UnnamedInterface {}
   class ListsUnnamed { value = 1; }
-  CjsSchema.define(ListsUnnamed, { className: "InterfaceTableListsUnnamed", fields: {} });
+  CjsSchema.define(ListsUnnamed, { name: "InterfaceTableListsUnnamed", fields: {} });
   blue.interface(UnnamedInterface)(ListsUnnamed);
   assert.throws(() => new Copier().CopyTo(new ListsUnnamed()), /declared class identity/);
 
   class UnnamedTemplate {}
   blue.interface()(UnnamedTemplate);
   class ListsTemplate { value = 2; }
-  CjsSchema.define(ListsTemplate, { className: "InterfaceTableListsTemplate", fields: {} });
+  CjsSchema.define(ListsTemplate, { name: "InterfaceTableListsTemplate", fields: {} });
   blue.interface(UnnamedTemplate)(ListsTemplate);
   assert.ok(new Copier().CopyTo(new ListsTemplate()));
 });
@@ -201,7 +201,7 @@ class InterfaceLifecycleParent
   OnModified(name) { this.calls.push(["notify", name, this.value]); return true; }
 }
 CjsSchema.be.define(InterfaceLifecycleParent, {
-  className: "InterfaceTableLifecycleParent",
+  name: "InterfaceTableLifecycleParent",
   fields: { value: [ type.int32, be.mapAttribute(be.NOTIFY | be.PERSIST) ] }
 });
 blue.interface(IInitialize, INotify)(InterfaceLifecycleParent);
@@ -209,13 +209,13 @@ blue.interface(IInitialize, INotify)(InterfaceLifecycleParent);
 // Its table ends, so nothing of the parent's is exposed: it maps value again itself, as Carbon's would have to.
 class InterfaceLifecycleEnded extends InterfaceLifecycleParent {}
 CjsSchema.be.define(InterfaceLifecycleEnded, {
-  className: "InterfaceTableLifecycleEnded",
+  name: "InterfaceTableLifecycleEnded",
   fields: { value: [ type.int32, be.mapAttribute(be.NOTIFY | be.PERSIST) ] }
 });
 blue.interface(INotify, InterfaceLifecycleParent)(InterfaceLifecycleEnded);
 
 class InterfaceLifecycleChained extends InterfaceLifecycleParent {}
-CjsSchema.define(InterfaceLifecycleChained, { className: "InterfaceTableLifecycleChained" });
+CjsSchema.define(InterfaceLifecycleChained, { name: "InterfaceTableLifecycleChained" });
 blue.chainTo(InterfaceLifecycleParent)(InterfaceLifecycleChained);
 
 test("Copier selects notification or initialization from the exposure boundary", () =>

@@ -29,7 +29,7 @@ function declare(fields, { compose = true } = {})
     if (spec.edit) CjsSchema.defineField(Fixture, name, "edit", spec.edit);
   }
 
-  CjsSchema.define(Fixture, { className });
+  CjsSchema.define(Fixture, { name: className });
 
   if (compose) CjsSchema.meta.values(Fixture, { kind: "class" });
   return Fixture;

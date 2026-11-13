@@ -11,7 +11,7 @@ class RootTestObject extends IRoot
   value = 7;
 }
 CjsSchema.define(RootTestObject, {
-  className: "IRootTestObject", fields: { value: { type: "float" } }
+  name: "IRootTestObject", fields: { value: { type: "float" } }
 });
 blue.interface()(RootTestObject);
 blue.chainTo(IRoot)(RootTestObject);

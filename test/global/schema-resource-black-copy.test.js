@@ -16,7 +16,7 @@ class ResourceLeaf
 {
     value = 1;
 }
-CjsSchema.be.define(ResourceLeaf, { className: "ResourceBlackCopyLeaf", fields: {
+CjsSchema.be.define(ResourceLeaf, { name: "ResourceBlackCopyLeaf", fields: {
     value: [ type.int32, be.mapAttribute(be.PERSIST) ]
 } });
 
@@ -26,7 +26,7 @@ class ResourceHolder
     _cache = new ResourceLeaf();
     ordinary = null;
 }
-CjsSchema.be.define(ResourceHolder, { className: "ResourceBlackCopyHolder", fields: {
+CjsSchema.be.define(ResourceHolder, { name: "ResourceBlackCopyHolder", fields: {
     count: [ type.uint32, be.mapAttribute(be.PERSIST) ],
     // Contradictory persistence flags must never override the runtime-only fact.
     _cache: [ type.resource(ResourceLeaf), be.mapAttribute(be.PERSIST) ],
@@ -37,7 +37,7 @@ class ResourceBase
 {
     _baseCache = new ResourceLeaf();
 }
-CjsSchema.define(ResourceBase, { className: "ResourceBlackCopyBase", members: [
+CjsSchema.define(ResourceBase, { name: "ResourceBlackCopyBase", members: [
     member("cache", "rootRef", { key: "_baseCache", type: { kind: "rootRef", className: "ResourceBlackCopyLeaf" } })
 ] });
 
@@ -45,7 +45,7 @@ class ResourceDerived extends ResourceBase
 {
     _cache = new ResourceLeaf();
 }
-CjsSchema.define(ResourceDerived, { className: "ResourceBlackCopyDerived", members: [
+CjsSchema.define(ResourceDerived, { name: "ResourceBlackCopyDerived", members: [
     member("cache", "rootRef", {
         key: "_cache", type: { kind: "rootRef", className: "ResourceBlackCopyLeaf", runtimeOnly: true }, exposure: { macro: "MAP_ATTRIBUTE", flags: 0 }, edit: {}
     })
@@ -56,7 +56,7 @@ class ResourceProperty extends ResourceBase
 {
     get cache() { throw new Error("resource property getter must not run"); }
 }
-CjsSchema.be.define(ResourceProperty, { className: "ResourceBlackCopyProperty", properties: [
+CjsSchema.be.define(ResourceProperty, { name: "ResourceBlackCopyProperty", properties: [
     { exposure: { macro: "MAP_PROPERTY_READONLY", flags: 1 }, name: "cache", key: "cache", type: { kind: "rootRef", runtimeOnly: true }, property: { persisted: false } }
 ] });
 CjsSchema.meta.exposureChainTo(ResourceBase)(ResourceProperty);

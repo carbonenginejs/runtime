@@ -36,7 +36,7 @@ for (const [route, define] of routes)
     const before = CjsSchema.getSchema(Abstract);
     assert.equal(Object.hasOwn(before, "abstract"), false);
     define(Abstract, {
-      className: name, aliases: [alias, alias], alias: secondAlias,
+      name: name, aliases: [alias, alias], alias: secondAlias,
       abstract: true, fields: {value: type.float32},
     });
     try
@@ -80,10 +80,10 @@ test("abstract registration is own-class policy rather than inherited metadata o
   class AbstractChild extends Base {}
   class UnregisteredChild extends Base {}
   const names = ["OwnAbstractBase", "OwnConcreteChild", "OwnExplicitConcrete", "OwnAbstractChild"];
-  CjsSchema.define(Base, {className: names[0], abstract: true});
-  CjsSchema.define(Concrete, {className: names[1]});
-  meta.define({className: names[2], abstract: false})(ExplicitConcrete);
-  meta.define({className: names[3], abstract: true})(AbstractChild);
+  CjsSchema.define(Base, {name: names[0], abstract: true});
+  CjsSchema.define(Concrete, {name: names[1]});
+  meta.define({name: names[2], abstract: false})(ExplicitConcrete);
+  meta.define({name: names[3], abstract: true})(AbstractChild);
   try
   {
     assert.equal(CjsSchema.getSchema(Base).abstract, true);
@@ -107,7 +107,7 @@ test("abstract method provenance alone does not select class factory refusal", (
 {
   class MethodOnly { Work() {} }
   CjsSchema.decorateMethod(MethodOnly, "Work", meta.abstract);
-  CjsSchema.define(MethodOnly, {className: "AbstractMethodOnly"});
+  CjsSchema.define(MethodOnly, {name: "AbstractMethodOnly"});
   try
   {
     assert.equal(CjsSchema.getMethod(MethodOnly, "Work").impl.status, "abstract");
@@ -128,12 +128,12 @@ for (const [route, define] of routes)
       const name = `InvalidAbstract_${route}_${index}`;
       const alias = `${name}_alias`;
       const revision = getClassRegistrationRevision();
-      assert.throws(() => define(Invalid, {className: name, aliases: [alias], abstract: value}), /abstract must be a boolean/);
+      assert.throws(() => define(Invalid, {name: name, aliases: [alias], abstract: value}), /abstract must be a boolean/);
       assert.equal(registry.GetClassRegistration(name), null);
       assert.equal(registry.GetClassRegistration(alias), null);
       assert.equal(CjsSchema.getClassName(Invalid), null);
       assert.equal(getClassRegistrationRevision(), revision);
-      define(Invalid, {className: name, aliases: [alias], abstract: false});
+      define(Invalid, {name: name, aliases: [alias], abstract: false});
       try
       {
         assert.equal(CjsSchema.getSchema(Invalid).abstract, false);
@@ -150,9 +150,9 @@ test("invalid Stage-3 declaration does not consume field metadata before a corre
   const metadata = {};
   type.float32(undefined, {kind: "field", name: "value", metadata, addInitializer() {}});
   const context = {kind: "class", metadata};
-  assert.throws(() => meta.define({className: "InvalidAbstractStaged", abstract: null})(Staged, context), /abstract must be a boolean/);
+  assert.throws(() => meta.define({name: "InvalidAbstractStaged", abstract: null})(Staged, context), /abstract must be a boolean/);
   assert.deepEqual(CjsSchema.getSchema(Staged).members, []);
-  meta.define({className: "ValidAbstractStaged", abstract: true})(Staged, context);
+  meta.define({name: "ValidAbstractStaged", abstract: true})(Staged, context);
   try
   {
     assert.equal(CjsSchema.getSchema(Staged).members[0].type.kind, "float32");

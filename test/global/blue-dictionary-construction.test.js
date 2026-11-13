@@ -16,7 +16,7 @@ const reader = options => new DictReader({ declarations: true, strict: true, ...
 const define = (Constructor, fields = {}, interfaces = []) => {
   if (interfaces.length) CjsSchema.be.interface(...interfaces)(Constructor, { kind: "class" });
   const className = name();
-  CjsSchema.define(Constructor, { className, fields });
+  CjsSchema.define(Constructor, { name: className, fields });
   return className;
 };
 const ref = className => ({ type: { kind: "rootRef", className } });

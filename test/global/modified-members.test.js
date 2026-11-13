@@ -31,7 +31,7 @@ function fixture(model, liveB = false)
       CjsSchema.defineField(Probe, name, "edit", { persist: true, notify: name !== "quiet" });
     }
   }
-  CjsSchema.define(Probe, { className: `MemberNotificationProbe${serial++}` });
+  CjsSchema.define(Probe, { name: `MemberNotificationProbe${serial++}` });
   if (!model)
   {
     CjsSchema.meta.values(Probe, { kind: "class" });

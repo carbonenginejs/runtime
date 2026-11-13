@@ -8,7 +8,7 @@ import { DictReader } from "../../npm/dist/blue/formats/graph/DictReader.js";
 let sequence = 0;
 const define = (Constructor, fields = {}) => {
   const className = `ReleaseOnFailure${++sequence}`;
-  CjsSchema.define(Constructor, { className, fields });
+  CjsSchema.define(Constructor, { name: className, fields });
   return className;
 };
 

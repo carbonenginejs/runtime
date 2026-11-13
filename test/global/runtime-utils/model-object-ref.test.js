@@ -22,7 +22,7 @@ class Observed
 CjsSchema.defineField(Observed, "name", "type", { kind: "string" });
 CjsSchema.defineField(Observed, "name", "exposure", { macro: "MAP_ATTRIBUTE", flags: 16 });
 CjsSchema.defineField(Observed, "name", "edit", { persist: true });
-CjsSchema.define(Observed, { className: "ObjectRefTestObserved" });
+CjsSchema.define(Observed, { name: "ObjectRefTestObserved" });
 
 class Observer
 {
@@ -41,7 +41,7 @@ CjsSchema.defineField(Observer, "observer", "type", {
 });
 CjsSchema.defineField(Observer, "observer", "exposure", { macro: "MAP_ATTRIBUTE", flags: 16 });
 CjsSchema.defineField(Observer, "observer", "edit", { persist: true });
-CjsSchema.define(Observer, { className: "ObjectRefTestObserver" });
+CjsSchema.define(Observer, { name: "ObjectRefTestObserver" });
 
 test("SetValues aliases a live model in a rootRef field rather than copying it", () =>
 {
@@ -84,7 +84,7 @@ test("a model from another copy of this package is still recognised as a model",
 test("isInstanceOf answers by declared name rather than by constructor identity", () =>
 {
     class Derived extends Observed {}
-    CjsSchema.define(Derived, { className: "ObjectRefTestDerived" });
+    CjsSchema.define(Derived, { name: "ObjectRefTestDerived" });
     const derived = new Derived();
 
     assert.deepEqual(
@@ -165,11 +165,11 @@ class RegisteredResource
     path = "";
 }
 
-CjsSchema.define(RegisteredResource, { className: "ObjectRefTestResource" });
+CjsSchema.define(RegisteredResource, { name: "ObjectRefTestResource" });
 
 class ResourceInterface {}
 
-CjsSchema.define(ResourceInterface, { className: "IObjectRefTestResource" });
+CjsSchema.define(ResourceInterface, { name: "IObjectRefTestResource" });
 
 class ResourceHolder
 {
@@ -184,7 +184,7 @@ CjsSchema.defineField(ResourceHolder, "resource", "edit", { persist: true });
 CjsSchema.defineField(ResourceHolder, "resources", "type", { kind: "list", itemType: "IObjectRefTestResource" });
 CjsSchema.defineField(ResourceHolder, "resources", "exposure", { macro: "MAP_ATTRIBUTE", flags: 16 });
 CjsSchema.defineField(ResourceHolder, "resources", "edit", { persist: true });
-CjsSchema.define(ResourceHolder, { className: "ObjectRefTestResourceHolder" });
+CjsSchema.define(ResourceHolder, { name: "ObjectRefTestResourceHolder" });
 
 test("a live registered instance preserves identity when assigned to an object reference", () =>
 {

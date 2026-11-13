@@ -19,7 +19,7 @@ function register(Constructor, fields, extra = {})
 {
   // Carbon exposure rows (MAP_ATTRIBUTE): only exposed members are in the member table the reader walks.
   CjsSchema.be.define(Constructor, {
-    className: "YamlReaderTest" + ++serial,
+    name: "YamlReaderTest" + ++serial,
     members: Object.entries(fields).map(([key, type]) => ({
       key, name: key, type: typeof type === "string" ? { kind: type } : type,
       exposure: { macro: "MAP_ATTRIBUTE", flags: type?.binary ? 24 : 19 },
@@ -139,7 +139,7 @@ test("float arrays preserve storage and short tails, accept legacy vectors and r
 
 test("layout match appends typed rows; mismatch consumes rows but preserves existing list", () => {
   class Row { time = 0; value = 0; }
-  CjsSchema.define(Row, { className: "YamlReaderRow", struct: { size: 8 }, members: [
+  CjsSchema.define(Row, { name: "YamlReaderRow", struct: { size: 8 }, members: [
     { name: "time", key: "time", struct: { dataType: "FLOAT32_1", offset: 0 } },
     { name: "value", key: "value", struct: { dataType: "UINT32_1", offset: 4 } }
   ] });

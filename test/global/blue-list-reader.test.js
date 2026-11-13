@@ -15,12 +15,12 @@ const { BELIST_UNLOADSTART, BELIST_LOADFINISHED } = BLUELISTEVENT;
 const itemName = "BlueListReaderItem";
 
 class Item { value = 0; }
-CjsSchema.define(Item, { className: itemName, fields: { value: { type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } } } });
+CjsSchema.define(Item, { name: itemName, fields: { value: { type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } } } });
 blue.interface()(Item);
 
 class WrongItem extends Item {}
 // No chain: it is not an Item to the list. It maps value itself, as Carbon's table would have to.
-CjsSchema.define(WrongItem, { className: "BlueListReaderWrongItem", fields: { value: { type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } } } });
+CjsSchema.define(WrongItem, { name: "BlueListReaderWrongItem", fields: { value: { type: { kind: "int32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } } } });
 blue.interface()(WrongItem);
 
 class Owner
@@ -30,7 +30,7 @@ class Owner
   ordinary = [];
   numbers = [];
 }
-CjsSchema.define(Owner, { className: "BlueListReaderOwner", fields: {
+CjsSchema.define(Owner, { name: "BlueListReaderOwner", fields: {
   items: { type: { kind: "list", itemType: itemName }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } },
   target: { type: { kind: "rootRef", className: itemName }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } },
   ordinary: { type: { kind: "list", itemType: itemName }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } },
@@ -83,7 +83,7 @@ class LiveOwner extends Owner
     this.events.push({ event, key, value, items: [...list] });
   }
 }
-CjsSchema.define(LiveOwner, { className: "BlueListReaderLiveOwner" });
+CjsSchema.define(LiveOwner, { name: "BlueListReaderLiveOwner" });
 blue.interface(IListNotify)(LiveOwner); blue.chainTo(Owner)(LiveOwner);
 
 test("ordinary live lists publish resolved members progressively through the mapped owner", () =>
@@ -170,7 +170,7 @@ test("reentrant replacement supersedes an older refill during its callback", () 
 test("shared-context values notifications observe completed live lists", () =>
 {
   class NotifiedOwner extends LiveOwner {}
-  CjsSchema.define(NotifiedOwner, { className: "BlueListReaderNotifiedOwner", fields: {
+  CjsSchema.define(NotifiedOwner, { name: "BlueListReaderNotifiedOwner", fields: {
     ordinary: { type: { kind: "list", itemType: itemName }, exposure: { macro: "MAP_ATTRIBUTE", flags: 20 }, edit: { persist: true, notify: true } }
   } });
   blue.interface(IListNotify)(NotifiedOwner); blue.chainTo(LiveOwner)(NotifiedOwner);
@@ -187,7 +187,7 @@ test("shared-context values notifications observe completed live lists", () =>
 test("empty interface-typed refills detach objects even without a registered item class", () =>
 {
   class InterfaceOwner extends LiveOwner {}
-  CjsSchema.define(InterfaceOwner, { className: "BlueListReaderInterfaceOwner", fields: {
+  CjsSchema.define(InterfaceOwner, { name: "BlueListReaderInterfaceOwner", fields: {
     ordinary: { type: { kind: "list", itemType: "UnregisteredListItemInterface" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } }
   } });
   blue.interface(IListNotify)(InterfaceOwner); blue.chainTo(LiveOwner)(InterfaceOwner);
@@ -423,7 +423,7 @@ test("two declared fields addressing the same IList supersede its earlier pendin
       this.items.SetNotify(observer);
     }
   }
-  CjsSchema.define(AliasedOwner, { className: "BlueListReaderAliasedOwner", fields: {
+  CjsSchema.define(AliasedOwner, { name: "BlueListReaderAliasedOwner", fields: {
     replacement: { type: { kind: "list", itemType: itemName }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } }
   } });
   CjsSchema.meta.exposureChainTo(Owner)(AliasedOwner);
@@ -478,7 +478,7 @@ test("CreateObject failure also cancels this reader's deferred list writes", () 
       this.items.SetNotify(observer);
     }
   }
-  CjsSchema.define(CapturedOwner, { className: "BlueListReaderCapturedOwner" });
+  CjsSchema.define(CapturedOwner, { name: "BlueListReaderCapturedOwner" });
   CjsSchema.meta.exposureChainTo(Owner)(CapturedOwner);
   const reader = new DictReader({ importContext: anchors, strict: true });
   assert.throws(() => reader.CreateObject({ _type: "BlueListReaderCapturedOwner", items: [ { value: 1 }, { _ref: "late" } ], unknown: 1 }), /Invalid attribute/u);
@@ -506,7 +506,7 @@ test("existing explicit factory dispatch retains options and sees the muted dest
       return made;
     }
   }
-  CjsSchema.define(FactoryItem, { className: "BlueListReaderExplicitFactory" });
+  CjsSchema.define(FactoryItem, { name: "BlueListReaderExplicitFactory" });
   new DictReader({ importContext: anchors, token }).ReadInto(owner, { items: [ { _type: "BlueListReaderExplicitFactory", value: 7 } ] });
   assert.equal(list[0], made);
   assert.deepEqual(Events(observer), [ BELIST_UNLOADSTART, BELIST_LOADFINISHED ]);
@@ -519,7 +519,7 @@ test("unknown classes and explicit factory errors restore observers and cancel p
   {
     static from() { throw failure; }
   }
-  CjsSchema.define(FactoryItem, { className: "BlueListReaderFactoryFailure" });
+  CjsSchema.define(FactoryItem, { name: "BlueListReaderFactoryFailure" });
   for (const bad of [ { _type: "BlueListReaderUnknownClass" }, { _type: "BlueListReaderFactoryFailure" } ])
   {
     const anchors = CreateAnchorTable(), reader = new DictReader({ importContext: anchors });

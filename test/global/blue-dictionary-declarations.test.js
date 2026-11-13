@@ -18,7 +18,7 @@ test("same-owner stored members use exposed names without calling paired live ac
     set boosters(_) { assert.fail("paired setter"); }
     GetValues() { assert.fail("canonical declarations are not fieldless"); }
   }
-  CjsSchema.define(Pair, { className: identity(), members: [scalar("boosters", "_boosters", { exposure: { macro: "MAP_ATTRIBUTE", flags: 20 }, edit: { persist: true, notify: true } })],
+  CjsSchema.define(Pair, { name: identity(), members: [scalar("boosters", "_boosters", { exposure: { macro: "MAP_ATTRIBUTE", flags: 20 }, edit: { persist: true, notify: true } })],
     properties: [scalar("boosters", "boosters", { property: { persisted: false } })] });
   const value = new Pair();
   const calls = [];
@@ -38,7 +38,7 @@ test("declaring owner precedes role across inheritance and filters never fall th
     get otherLive() { this.liveCalls++; return this.otherBacking; }
     set otherLive(value) { this.liveCalls++; this.otherBacking = value; }
   }
-  CjsSchema.define(Base, { className: identity(), members: [scalar("value", "base", { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } })],
+  CjsSchema.define(Base, { name: identity(), members: [scalar("value", "base", { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } })],
     properties: [scalar("other", "otherLive", { property: { persisted: true } })] });
   class Derived extends Base {
     current = 30;
@@ -46,7 +46,7 @@ test("declaring owner precedes role across inheritance and filters never fall th
     get live() { return this.current; }
     set live(value) { this.current = value; }
   }
-  CjsSchema.define(Derived, { className: identity(), members: [scalar("other", "own", { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } })],
+  CjsSchema.define(Derived, { name: identity(), members: [scalar("other", "own", { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } })],
     properties: [scalar("value", "live", { property: { persisted: true } })] });
   const target = new Derived();
   read(target, { value: 7, other: 8 });
@@ -57,7 +57,7 @@ test("declaring owner precedes role across inheritance and filters never fall th
   assert.deepEqual(write(target, { persistOnly: true }), { other: 8, value: 7 });
   assert.equal(target.liveCalls, 0, "derived storage bypasses the inherited live property");
   class ReadOnly extends Base { readonly = 9; }
-  CjsSchema.define(ReadOnly, { className: identity(), members: [scalar("value", "readonly", { exposure: { macro: "MAP_ATTRIBUTE", flags: 1 }, edit: { read: true } })] });
+  CjsSchema.define(ReadOnly, { name: identity(), members: [scalar("value", "readonly", { exposure: { macro: "MAP_ATTRIBUTE", flags: 1 }, edit: { read: true } })] });
   const locked = new ReadOnly();
   assert.equal(read(locked, { value: 99 }).size, 0);
   assert.equal(locked.base, 10);
@@ -72,14 +72,14 @@ test("persisted property-only and legacy accessor declarations call through thei
     get actual() { return this.stored; }
     set actual(value) { this.stored = value + 1; }
   }
-  CjsSchema.define(Live, { className: identity(), properties: [scalar("publicValue", "actual", { property: { persisted: true } })] });
+  CjsSchema.define(Live, { name: identity(), properties: [scalar("publicValue", "actual", { property: { persisted: true } })] });
   const live = new Live();
   read(live, { publicValue: 4 });
   assert.equal(live.stored, 5);
   assert.deepEqual(write(live), { publicValue: 5 });
   assert.throws(() => read(live, { actual: 8 }), /Invalid attribute/);
   class Legacy extends Live {}
-  CjsSchema.define(Legacy, { className: identity(), fields: [scalar("extra")] });
+  CjsSchema.define(Legacy, { name: identity(), fields: [scalar("extra")] });
   CjsSchema.meta.exposureChainTo(Live)(Legacy);
   const legacy = new Legacy();
   read(legacy, { publicValue: 2, extra: 7 });
@@ -90,7 +90,7 @@ test("persisted property-only and legacy accessor declarations call through thei
     get exposed() { return this.value; }
     set exposed(value) { this.value = value; }
   }
-  CjsSchema.define(LegacyAccessor, { className: identity(), fields: [scalar("exposed", "exposed", { property: { persisted: true } })] });
+  CjsSchema.define(LegacyAccessor, { name: identity(), fields: [scalar("exposed", "exposed", { property: { persisted: true } })] });
   const accessor = new LegacyAccessor();
   read(accessor, { exposed: 11 });
   assert.equal(accessor.value, 11);
@@ -104,16 +104,16 @@ test("a property has no storage index", () => {
     get live() { return this.items; }
     set live(_) { assert.fail("not reached"); }
   }
-  assert.throws(() => CjsSchema.define(IndexedLive, { className: identity(),
+  assert.throws(() => CjsSchema.define(IndexedLive, { name: identity(),
     properties: [scalar("second", "live", { index: 1, property: { persisted: true } })] }), /no storage index/);
 });
 
 test("derived exposed names shadow inherited ones and hidden names disappear", () => {
   class Base { base = 1; hidden = 2; }
-  CjsSchema.define(Base, { className: identity(), members: [scalar("value", "base"), scalar("secret", "hidden")] });
+  CjsSchema.define(Base, { name: identity(), members: [scalar("value", "base"), scalar("secret", "hidden")] });
   class Derived extends Base { own = 3; exact = 4; }
   CjsSchema.hideInherited(["hidden"])(Derived);
-  CjsSchema.define(Derived, { className: identity(), members: [scalar("value", "own"), scalar("exact", "exact")] });
+  CjsSchema.define(Derived, { name: identity(), members: [scalar("value", "own"), scalar("exact", "exact")] });
   const target = new Derived();
   read(target, { exact: 6, value: 7 });
   assert.equal(target.exact, 6);
@@ -128,9 +128,9 @@ test("derived exposed names shadow inherited ones and hidden names disappear", (
 test("indexed scalars, references, deferred references and lists keep their addressed storage", () => {
   const rootName = identity(), leafName = identity();
   class Leaf { value = 0; parent = null; }
-  CjsSchema.define(Leaf, { className: leafName, members: [scalar("value"), { name: "parent", key: "parent", type: { kind: "rootRef", className: rootName } }] });
+  CjsSchema.define(Leaf, { name: leafName, members: [scalar("value"), { name: "parent", key: "parent", type: { kind: "rootRef", className: rootName } }] });
   class Root { slots = [null, null]; numbers = new Uint32Array([1, 2]); groups = [[]]; }
-  CjsSchema.define(Root, { className: rootName, members: [
+  CjsSchema.define(Root, { name: rootName, members: [
     { name: "first", key: "slots", index: 0, type: { kind: "rootRef", className: leafName } },
     { name: "second", key: "slots", index: 1, type: { kind: "rootRef", className: leafName } },
     scalar("number", "numbers", { index: 1 }),
@@ -157,7 +157,7 @@ test("indexed scalars, references, deferred references and lists keep their addr
 
 test("stored accessors and invalid indexed destinations fail without side effects", () => {
   class Invalid { get trap() { assert.fail("stored accessor invoked"); } slots = [0]; }
-  CjsSchema.define(Invalid, { className: identity(), members: [scalar("value", "trap"), scalar("beyond", "slots", { index: 2 })] });
+  CjsSchema.define(Invalid, { name: identity(), members: [scalar("value", "trap"), scalar("beyond", "slots", { index: 2 })] });
   const value = new Invalid();
   assert.throws(() => read(value, { value: 1 }), /accessor/);
   assert.throws(() => write(value), /accessor/);
@@ -168,12 +168,12 @@ test("declaration cache follows schema revisions and fieldless custom writers st
   class Later { value = 2; }
   const reader = new DictReader();
   assert.equal(reader.FindEntry("public", Later), null);
-  CjsSchema.define(Later, { className: identity(), members: [scalar("public", "value")] });
+  CjsSchema.define(Later, { name: identity(), members: [scalar("public", "value")] });
   assert.equal(reader.FindEntry("public", Later).name, "public");
   const target = new Later();
   read(target, { public: 6 });
   assert.deepEqual(write(target), { public: 6 });
   class Fieldless { GetValues() { return { custom: 8 }; } }
-  CjsSchema.define(Fieldless, { className: identity() });
+  CjsSchema.define(Fieldless, { name: identity() });
   assert.deepEqual(write(new Fieldless()), { custom: 8 });
 });

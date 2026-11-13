@@ -15,7 +15,7 @@ class ValuesInputChild
   value = 0;
 }
 CjsSchema.defineField(ValuesInputChild, "value", "type", { kind: "float32" });
-CjsSchema.define(ValuesInputChild, { className: "ValuesInputChild" });
+CjsSchema.define(ValuesInputChild, { name: "ValuesInputChild" });
 
 class ValuesInputParent
 {
@@ -24,7 +24,7 @@ class ValuesInputParent
 }
 CjsSchema.defineField(ValuesInputParent, "label", "type", { kind: "string" });
 CjsSchema.decorateField(ValuesInputParent, "child", type.rootRef("ValuesInputChild"));
-CjsSchema.define(ValuesInputParent, { className: "ValuesInputParent" });
+CjsSchema.define(ValuesInputParent, { name: "ValuesInputParent" });
 
 const NOT_VALUES = [
   [ "a live instance", () => CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "x" }) ],

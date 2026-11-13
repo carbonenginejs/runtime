@@ -86,12 +86,12 @@ test("objects nested in a raw struct's records keep their identity through a val
     CjsSchema.defineField(NestedParam, "name", "type", { kind: "string" });
     CjsSchema.defineField(NestedParam, "name", "exposure", { macro: "MAP_ATTRIBUTE", flags: 19 });
     CjsSchema.defineField(NestedParam, "name", "edit", { read: true, write: true, persist: true });
-    CjsSchema.define(NestedParam, { className: "NestedParam" });
+    CjsSchema.define(NestedParam, { name: "NestedParam" });
 
     class NestedHolder {}
     CjsSchema.defineField(NestedHolder, "records", "type", { kind: "rawStruct", className: "NestedRecord" });
     CjsSchema.defineField(NestedHolder, "params", "type", { kind: "list", itemType: "NestedParam" });
-    CjsSchema.define(NestedHolder, { className: "NestedHolder" });
+    CjsSchema.define(NestedHolder, { name: "NestedHolder" });
 
     const holder = new NestedHolder();
     const a = CjsSchema.from(CjsSchema.getClassName(NestedParam), { name: "a" });
@@ -124,12 +124,12 @@ test("clone keeps a member's concrete class and ignores read-only members", () =
     CjsSchema.defineField(BaseItem, "name", "type", { kind: "string" });
     CjsSchema.defineField(BaseItem, "name", "exposure", { macro: "MAP_ATTRIBUTE", flags: 19 });
     CjsSchema.defineField(BaseItem, "name", "edit", { read: true, write: true, persist: true });
-    CjsSchema.define(BaseItem, { className: "CloneBaseItem" });
+    CjsSchema.define(BaseItem, { name: "CloneBaseItem" });
     class DerivedItem extends BaseItem {}
     CjsSchema.defineField(DerivedItem, "extra", "type", { kind: "string" });
     CjsSchema.defineField(DerivedItem, "extra", "exposure", { macro: "MAP_ATTRIBUTE", flags: 19 });
     CjsSchema.defineField(DerivedItem, "extra", "edit", { read: true, write: true, persist: true });
-    CjsSchema.define(DerivedItem, { className: "CloneDerivedItem" });
+    CjsSchema.define(DerivedItem, { name: "CloneDerivedItem" });
     CjsSchema.meta.exposureChainTo(BaseItem)(DerivedItem);
 
     class Owner {}
@@ -139,7 +139,7 @@ test("clone keeps a member's concrete class and ignores read-only members", () =
     CjsSchema.defineField(Owner, "item", "type", { kind: "rootRef", className: "CloneBaseItem" });
     CjsSchema.defineField(Owner, "item", "exposure", { macro: "MAP_ATTRIBUTE", flags: 19 });
     CjsSchema.defineField(Owner, "item", "edit", { read: true, write: true, persist: true });
-    CjsSchema.define(Owner, { className: "CloneOwner" });
+    CjsSchema.define(Owner, { name: "CloneOwner" });
 
     const owner = new Owner();
     owner.item = CjsSchema.from(CjsSchema.getClassName(DerivedItem), { name: "a", extra: "b" });
@@ -155,12 +155,12 @@ test("a field-less model exports and clones inside a graph", () => {
     // Its GetValues is the writer itself; asking it for its own values must
     // not recurse (EveChildModifierHalo overflowed the stack on clone).
     class EmptyModel {}
-    CjsSchema.define(EmptyModel, { className: "EmptyModel" });
+    CjsSchema.define(EmptyModel, { name: "EmptyModel" });
     class HolderModel {}
     CjsSchema.defineField(HolderModel, "items", "type", { kind: "list", itemType: "EmptyModel" });
     CjsSchema.defineField(HolderModel, "items", "exposure", { macro: "MAP_ATTRIBUTE", flags: 19 });
     CjsSchema.defineField(HolderModel, "items", "edit", { read: true, write: true, persist: true });
-    CjsSchema.define(HolderModel, { className: "HolderModel" });
+    CjsSchema.define(HolderModel, { name: "HolderModel" });
 
     const holder = new HolderModel();
     holder.items = [ new EmptyModel(), new EmptyModel() ];
@@ -184,7 +184,7 @@ test("traversal children skip collections of values but keep interface-typed lis
     CjsSchema.defineField(BucketModel, "bindings", "type", { kind: "list", itemType: "ITr2ValueBinding" });
     CjsSchema.defineField(BucketModel, "items", "type", { kind: "list", itemType: "BucketModel" });
     CjsSchema.defineField(BucketModel, "loose", "type", { kind: "list" });
-    CjsSchema.define(BucketModel, { className: "BucketModel" });
+    CjsSchema.define(BucketModel, { name: "BucketModel" });
 
     const children = CjsSchema.getSchema(BucketModel).children.map(child => child.name);
     assert.deepEqual(children.sort(), ["bindings", "items", "loose"]);
@@ -192,7 +192,7 @@ test("traversal children skip collections of values but keep interface-typed lis
 
 test("EnumerateChildren walks are cycle-safe and GetResources visits every model", () => {
     class GraphResource { isResource = true; }
-    CjsSchema.define(GraphResource, { className: "CoreTypesGraphResource" });
+    CjsSchema.define(GraphResource, { name: "CoreTypesGraphResource" });
     class GraphModel {}
     for (const field of ["_geometryRes", "_textureRes", "_sharedRes"])
     {
@@ -204,7 +204,7 @@ test("EnumerateChildren walks are cycle-safe and GetResources visits every model
     CjsSchema.defineField(GraphModel, "peer", "type", { kind: "rootRef", className: "GraphModel" });
     CjsSchema.defineField(GraphModel, "peer", "exposure", { macro: "MAP_ATTRIBUTE", flags: 19 });
     CjsSchema.defineField(GraphModel, "peer", "edit", { read: true, write: true, persist: true });
-    CjsSchema.define(GraphModel, { className: "GraphModel" });
+    CjsSchema.define(GraphModel, { name: "GraphModel" });
 
     const root = new GraphModel();
     const branch = new GraphModel();
@@ -259,7 +259,7 @@ test("registers classes, structs, schema metadata, and enums", () => {
 
     CjsSchema.defineField(DemoNode, "name", "type", { kind: "string" });
     CjsSchema.define(DemoNode, {
-        className: "DemoNode",
+        name: "DemoNode",
         alias: "LegacyDemoNode"
     });
     CjsSchema.defineEnum(DemoEnum, {
@@ -273,7 +273,7 @@ test("registers classes, structs, schema metadata, and enums", () => {
 
     class InvalidPurpose {}
     assert.throws(
-        () => CjsSchema.define(InvalidPurpose, { className: "InvalidPurpose", purpose: "Retired option." }),
+        () => CjsSchema.define(InvalidPurpose, { name: "InvalidPurpose", purpose: "Retired option." }),
         /purpose is retired/
     );
 });
@@ -309,7 +309,7 @@ test("schema.hideInherited removes inherited fields only from the schema surface
     }
 
     CjsSchema.be.define(HideBase, {
-        className: "HideBase",
+        name: "HideBase",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "visible", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "hidden", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
@@ -321,7 +321,7 @@ test("schema.hideInherited removes inherited fields only from the schema surface
         metadata: Object.create(null)
     });
     CjsSchema.be.define(HideChild, {
-        className: "HideChild",
+        name: "HideChild",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "own", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
         ]
@@ -380,7 +380,7 @@ test("schema.hideInherited removes inherited fields only from the schema surface
         metadata: Object.create(null)
     });
     CjsSchema.be.define(HideGrandchild, {
-        className: "HideGrandchild",
+        name: "HideGrandchild",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "hidden", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "extra", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
@@ -427,7 +427,7 @@ test("schema.hideInherited registers through Stage-3 metadata and rejects typos"
     decorateField("visible", be.mapAttribute(be.PERSIST));
     decorateField("hidden", schema.type.string);
     decorateField("hidden", be.mapAttribute(be.PERSIST));
-    CjsSchema.meta.define({ className: "Stage3HideBase" })(Stage3HideBase, {
+    CjsSchema.meta.define({ name: "Stage3HideBase" })(Stage3HideBase, {
         kind: "class",
         metadata: baseMetadata
     });
@@ -438,7 +438,7 @@ test("schema.hideInherited registers through Stage-3 metadata and rejects typos"
         kind: "class",
         metadata: childMetadata
     });
-    CjsSchema.meta.define({ className: "Stage3HideChild" })(Stage3HideChild, {
+    CjsSchema.meta.define({ name: "Stage3HideChild" })(Stage3HideChild, {
         kind: "class",
         metadata: childMetadata
     });
@@ -488,7 +488,7 @@ test("registers Carbon method provenance and implementation metadata", () => {
         {}
     }
 
-    CjsSchema.define(MethodNode, { className: "MethodNode" });
+    CjsSchema.define(MethodNode, { name: "MethodNode" });
     CjsSchema.decorateMethod(
         MethodNode,
         "Reset",
@@ -538,7 +538,7 @@ test("registers component metadata and reads vector swizzles", () => {
             xyz: { name: "shipVisibleState" }
         })
     );
-    CjsSchema.define(PackedNode, { className: "PackedNode" });
+    CjsSchema.define(PackedNode, { name: "PackedNode" });
 
     const field = CjsSchema.getField(PackedNode, "shipData");
     assert.equal(field.components.x.name, "boosterGlowIntensity");
@@ -557,7 +557,7 @@ test("exposes canonical model descriptors", () => {
 
     CjsSchema.decorateField(DescriptorNode, "child", schema.type.rootRef("DescriptorChild"));
     CjsSchema.decorateField(DescriptorNode, "payload", schema.type.rawStruct("NativePayload"));
-    CjsSchema.define(DescriptorNode, { className: "DescriptorNode" });
+    CjsSchema.define(DescriptorNode, { name: "DescriptorNode" });
 
     assert.equal(CARBON_TYPE.ROOT_REF, "rootRef");
     assert.equal(CARBON_TYPE.MODEL, undefined);
@@ -599,7 +599,7 @@ test("stage-3 static method decorators register on the class constructor", () =>
     assert.deepEqual(initializers, []);
 
     CjsSchema.meta.define({
-        className: "StaticMethodNode"
+        name: "StaticMethodNode"
     })(StaticMethodNode, { kind: "class", metadata });
 
     const rasterize = CjsSchema.getMethod(StaticMethodNode, "Rasterize");
@@ -614,7 +614,7 @@ test("defines a complete hydratable schema from a manual JSON declaration", () =
     }
 
     CjsSchema.define(ManualSchemaNode, {
-        className: "ManualSchemaNode",
+        name: "ManualSchemaNode",
         alias: "LegacyManualSchemaNode",
         fields: [{
             name: "value",
@@ -654,7 +654,7 @@ test("uses schema metadata as the default schema value shape", () => {
     }
 
     CjsSchema.defineField(SchemaChild, "label", "type", { kind: "string" });
-    CjsSchema.define(SchemaChild, { className: "SchemaChild" });
+    CjsSchema.define(SchemaChild, { name: "SchemaChild" });
 
     CjsSchema.defineField(SchemaNode, "name", "type", { kind: "string" });
     CjsSchema.defineField(SchemaNode, "position", "type", { kind: "vec3" });
@@ -670,7 +670,7 @@ test("uses schema metadata as the default schema value shape", () => {
     CjsSchema.defineField(SchemaNode, "computed", "edit", { read: true });
     CjsSchema.defineField(SchemaNode, "uiLocked", "type", { kind: "string" });
     CjsSchema.defineField(SchemaNode, "uiLocked", "jessica", { readOnly: true });
-    CjsSchema.define(SchemaNode, { className: "SchemaNode" });
+    CjsSchema.define(SchemaNode, { name: "SchemaNode" });
 
     const node = new SchemaNode();
     CjsSchema.setValues(node, {
@@ -728,7 +728,7 @@ test("hydrates canonical model fields and lists without constructing raw objects
     }
 
     CjsSchema.defineField(CanonicalChild, "label", "type", { kind: "string" });
-    CjsSchema.define(CanonicalChild, { className: "CanonicalChild" });
+    CjsSchema.define(CanonicalChild, { name: "CanonicalChild" });
     CjsSchema.defineField(CanonicalParent, "child", "type", { kind: "rootRef", className: "CanonicalChild" });
     CjsSchema.defineField(CanonicalParent, "children", "type", {
         kind: "list",
@@ -742,7 +742,7 @@ test("hydrates canonical model fields and lists without constructing raw objects
         kind: "rootRef",
         className: "IRoot"
     });
-    CjsSchema.define(CanonicalParent, { className: "CanonicalParent" });
+    CjsSchema.define(CanonicalParent, { name: "CanonicalParent" });
 
     const parent = CjsSchema.from(CjsSchema.getClassName(CanonicalParent), {
         child: { label: "one" },
@@ -789,9 +789,9 @@ test("registered struct fields copy values into their constructor-owned instance
 
     CjsSchema.defineField(ValueStruct, "position", "type", { kind: "vec3" });
     CjsSchema.defineField(ValueStruct, "radius", "type", { kind: "float32" });
-    CjsSchema.define(ValueStruct, { className: "ValueStruct" });
+    CjsSchema.define(ValueStruct, { name: "ValueStruct" });
     CjsSchema.defineField(StructOwner, "data", "type", { kind: "root", className: "ValueStruct" });
-    CjsSchema.define(StructOwner, { className: "StructOwner" });
+    CjsSchema.define(StructOwner, { name: "StructOwner" });
 
     const owner = new StructOwner();
     const data = owner.data;
@@ -830,9 +830,9 @@ test("hydrates list schema items as registered model classes", () => {
     }
 
     CjsSchema.defineField(ListedChild, "label", "type", { kind: "string" });
-    CjsSchema.define(ListedChild, { className: "ListedChild" });
+    CjsSchema.define(ListedChild, { name: "ListedChild" });
     CjsSchema.defineField(ListedParent, "children", "type", { kind: "list", itemType: "ListedChild" });
-    CjsSchema.define(ListedParent, { className: "ListedParent" });
+    CjsSchema.define(ListedParent, { name: "ListedParent" });
 
     const parent = CjsSchema.from(CjsSchema.getClassName(ListedParent), { children: [{ label: "nested" }] });
     assert.equal(parent.children[0] instanceof ListedChild, true);
@@ -846,7 +846,7 @@ test("keeps unknown list item types as plain values", () => {
     }
 
     CjsSchema.defineField(UnknownListNode, "items", "type", { kind: "list", itemType: "unknown" });
-    CjsSchema.define(UnknownListNode, { className: "UnknownListNode" });
+    CjsSchema.define(UnknownListNode, { name: "UnknownListNode" });
 
     const node = CjsSchema.from(CjsSchema.getClassName(UnknownListNode), { items: [{ value: 7 }] });
     assert.deepEqual(node.items, [{ value: 7 }]);
@@ -860,7 +860,7 @@ test("GetValues export options control persistence, type tags and refs", () => {
         value = 0;
     }
     CjsSchema.be.define(ExportChild, {
-        className: "ExportChild",
+        name: "ExportChild",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "value", type: { kind: "float32" }, edit: { read: true, write: true, persist: true } }
@@ -871,7 +871,7 @@ test("GetValues export options control persistence, type tags and refs", () => {
     {
     }
     CjsSchema.be.define(ExportChildSpecial, {
-        className: "ExportChildSpecial",
+        name: "ExportChildSpecial",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "value", type: { kind: "float32" }, edit: { read: true, write: true, persist: true } }
@@ -887,7 +887,7 @@ test("GetValues export options control persistence, type tags and refs", () => {
         children = [];
     }
     CjsSchema.be.define(ExportRoot, {
-        className: "ExportRoot",
+        name: "ExportRoot",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 3 }, name: "runtimeFlag", type: { kind: "boolean" }, edit: { read: true, write: true } },
@@ -960,7 +960,7 @@ test("imports _ref identity: shared children, cycles, self and forward reference
         items = [];
     }
     CjsSchema.be.define(RefNode, {
-        className: "RefNode",
+        name: "RefNode",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "next", type: { kind: "rootRef", className: "RefNode" }, edit: { read: true, write: true, persist: true } },
@@ -1010,7 +1010,7 @@ test("from and singular imports honor polymorphic _type", () => {
         name = "";
     }
     CjsSchema.be.define(PolyBase, {
-        className: "PolyBase",
+        name: "PolyBase",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
         ]
@@ -1021,7 +1021,7 @@ test("from and singular imports honor polymorphic _type", () => {
         extra = 0;
     }
     CjsSchema.be.define(PolySpecial, {
-        className: "PolySpecial",
+        name: "PolySpecial",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "extra", type: { kind: "float32" }, edit: { read: true, write: true, persist: true } }
@@ -1034,7 +1034,7 @@ test("from and singular imports honor polymorphic _type", () => {
         child = null;
     }
     CjsSchema.be.define(PolyHost, {
-        className: "PolyHost",
+        name: "PolyHost",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "child", type: { kind: "rootRef", className: "PolyBase" }, edit: { read: true, write: true, persist: true } }
         ]
@@ -1069,7 +1069,7 @@ test("reference import errors are loud and specific", () => {
         name = "";
     }
     CjsSchema.be.define(StrictRefNode, {
-        className: "StrictRefNode",
+        name: "StrictRefNode",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
         ]
@@ -1080,7 +1080,7 @@ test("reference import errors are loud and specific", () => {
         name = "";
     }
     CjsSchema.be.define(StrictOther, {
-        className: "StrictOther",
+        name: "StrictOther",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
         ]
@@ -1093,7 +1093,7 @@ test("reference import errors are loud and specific", () => {
         others = [];
     }
     CjsSchema.be.define(StrictRefHost, {
-        className: "StrictRefHost",
+        name: "StrictRefHost",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "node", type: { kind: "rootRef", className: "StrictRefNode" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "nodes", type: { kind: "list", itemType: "StrictRefNode" }, edit: { read: true, write: true, persist: true } },
@@ -1132,7 +1132,7 @@ test("list items honor an explicit _type on input", () => {
         value = 0;
     }
     CjsSchema.be.define(MapChild, {
-        className: "MapChild",
+        name: "MapChild",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "value", type: { kind: "float32" }, edit: { read: true, write: true, persist: true } }
@@ -1143,7 +1143,7 @@ test("list items honor an explicit _type on input", () => {
     {
     }
     CjsSchema.be.define(MapChildAlt, {
-        className: "MapChildAlt",
+        name: "MapChildAlt",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "value", type: { kind: "float32" }, edit: { read: true, write: true, persist: true } }
@@ -1156,7 +1156,7 @@ test("list items honor an explicit _type on input", () => {
         children = [];
     }
     CjsSchema.be.define(MapHost, {
-        className: "MapHost",
+        name: "MapHost",
         fields: [
             { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "children", type: { kind: "list", itemType: "MapChild" }, edit: { read: true, write: true, persist: true } }
         ]
@@ -1183,7 +1183,7 @@ test("records carbon.contextual tier provenance", () => {
         {}
     }
 
-    CjsSchema.define(ContextualNode, { className: "ContextualNode" });
+    CjsSchema.define(ContextualNode, { name: "ContextualNode" });
     CjsSchema.decorateMethod(
         ContextualNode,
         "ApplyTransform",
@@ -1205,7 +1205,7 @@ test("records carbon.contextual tier provenance", () => {
     {
         ApplyTransform(abc, out = { readableProperty: true }) { return abc; }
     }
-    CjsSchema.define(MinifiedContextual, { className: "MinifiedContextual" });
+    CjsSchema.define(MinifiedContextual, { name: "MinifiedContextual" });
     assert.doesNotThrow(() => CjsSchema.decorateMethod(MinifiedContextual,
         "ApplyTransform", CjsSchema.be.contextual(["camera"])));
 
@@ -1214,7 +1214,7 @@ test("records carbon.contextual tier provenance", () => {
         Tick()
         {}
     }
-    CjsSchema.define(ZeroArgContextual, { className: "ZeroArgContextual" });
+    CjsSchema.define(ZeroArgContextual, { name: "ZeroArgContextual" });
     // ARITY, not naming: a method taking nothing cannot have been given a
     // context, and `fn.length` survives minification where parameter NAMES do
     // not. Source lint, rather than runtime reflection, checks parameter names.
@@ -1231,7 +1231,7 @@ test("marks CarbonEngineJS-original methods with implementation status", () => {
         {}
     }
 
-    CjsSchema.define(CustomMethodNode, { className: "CustomMethodNode", methods: { FoldModifiers: [] } });
+    CjsSchema.define(CustomMethodNode, { name: "CustomMethodNode", methods: { FoldModifiers: [] } });
 
     const method = CjsSchema.getMethod(CustomMethodNode, "FoldModifiers");
     // No blue stamp: this method has no Carbon counterpart, which is what makes it ours.
@@ -1265,8 +1265,8 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
 
     CjsSchema.decorateField(EnumViaSchema, "mode", schema.type.int32, CjsSchema.enum("EnumMode"));
     CjsSchema.decorateField(EnumViaType, "mode", schema.type.int32, schema.type.enum("EnumMode"));
-    CjsSchema.define(EnumViaSchema, { className: "EnumViaSchema" });
-    CjsSchema.define(EnumViaType, { className: "EnumViaType" });
+    CjsSchema.define(EnumViaSchema, { name: "EnumViaSchema" });
+    CjsSchema.define(EnumViaType, { name: "EnumViaType" });
 
     const viaSchema = CjsSchema.getSchema(EnumViaSchema).fields.find(field => field.name === "mode");
     const viaType = CjsSchema.getSchema(EnumViaType).fields.find(field => field.name === "mode");
@@ -1284,14 +1284,14 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
     class HideViaType extends HideParent {}
 
     CjsSchema.define(HideParent, {
-        className: "HideParent",
+        name: "HideParent",
         fields: [
             { name: "kept", type: { kind: "string" } },
             { name: "dropped", type: { kind: "string" } }
         ]
     });
     CjsSchema.meta.hideInherited(["dropped"])(HideViaType, { kind: "class", metadata: Object.create(null) });
-    CjsSchema.define(HideViaType, { className: "HideViaType" });
+    CjsSchema.define(HideViaType, { name: "HideViaType" });
     CjsSchema.meta.exposureChainTo(HideParent)(HideViaType);
 
     const names = CjsSchema.getSchema(HideViaType).fields.map(field => field.name);
@@ -1306,7 +1306,7 @@ test("an export estimated past sizeWarningBytes logs one warning naming its root
         name = "";
     }
     CjsSchema.be.define(SizedNode, {
-        className: "SizedNode",
+        name: "SizedNode",
         fields: [ { exposure: { macro: "MAP_ATTRIBUTE", flags: 19 }, name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } } ]
     });
     const node = new SizedNode();

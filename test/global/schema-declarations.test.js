@@ -59,7 +59,7 @@ test("the public decorator surface has one namespace per vocabulary and preserve
     assert.equal(Object.hasOwn(meta, "member"), false, "removed: meta.member");
     class Types {}
     CjsSchema.define(Types, {
-        className: "DeclarationTypes",
+        name: "DeclarationTypes",
         fields: { text: type.wstring, peer: type.object.weak("DeclarationTypes") }
     });
     assert.deepEqual(CjsSchema.getSchema(Types).members.map(entry => entry.type),
@@ -78,7 +78,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
     }
     applyStage3(metadata, "_boosters", "field", [ be.mapAttribute(be.PERSISTONLY, "boosters"), type.rootRef("Booster") ]);
     applyStage3(metadata, "boosters", "getter", [ type.rootRef("Booster"), be.mapProperty(), meta.note("probe") ]);
-    meta.define({ className: "DeclarationDecorated" })(Decorated, { kind: "class", metadata });
+    meta.define({ name: "DeclarationDecorated" })(Decorated, { kind: "class", metadata });
 
     class Explicit
     {
@@ -86,7 +86,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
         set boosters(value) {}
     }
     CjsSchema.define(Explicit, {
-        className: "DeclarationExplicit",
+        name: "DeclarationExplicit",
         members: [ { name: "boosters", key: "_boosters", type: { kind: "rootRef", className: "Booster" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true }, exposure: { macro: "MAP_ATTRIBUTE", flags: 24 } } ],
         properties: {
             boosters: [ type.rootRef("Booster"), be.mapProperty(), meta.note("probe") ]
@@ -111,12 +111,12 @@ test("meta.mapAttribute names a member as ours and be.mapAttribute__Index carrie
 {
     class Ours {}
     CjsSchema.define(Ours, {
-        className: "DeclarationAttributeOurs",
+        name: "DeclarationAttributeOurs",
         fields: { _ratio: [ meta.mapAttribute(meta.NONE, "ratio"), type.float32 ] }
     });
     class Carbon {}
     CjsSchema.define(Carbon, {
-        className: "DeclarationAttributeCarbon",
+        name: "DeclarationAttributeCarbon",
         fields: { dampingRatio: [ be.mapAttribute(be.NONE, "m_dampingRatio"), type.float32 ] }
     });
     const [ ours ] = CjsSchema.getSchema(Ours).members;
@@ -138,7 +138,7 @@ test("imperative metadata and explicit fields infer accessors without evaluating
     }
     const before = Object.getOwnPropertyDescriptor(Accessors.prototype, "value");
     CjsSchema.decorateField(Accessors, "value", meta.note("probe"), type.float32);
-    CjsSchema.define(Accessors, { className: "DeclarationAccessors", fields: { value: be.mapProperty() } });
+    CjsSchema.define(Accessors, { name: "DeclarationAccessors", fields: { value: be.mapProperty() } });
     assert.equal(reads, 0);
     assert.deepEqual(Object.getOwnPropertyDescriptor(Accessors.prototype, "value"), before);
     assert.equal(CjsSchema.getSchema(Accessors).properties[0].impl.note, "probe");
@@ -147,7 +147,7 @@ test("imperative metadata and explicit fields infer accessors without evaluating
     const metadata = {};
     class AutoAccessor {}
     applyStage3(metadata, "value", "accessor", [ meta.note("probe") ]);
-    meta.define({ className: "DeclarationAutoAccessor" })(AutoAccessor, { kind: "class", metadata });
+    meta.define({ name: "DeclarationAutoAccessor" })(AutoAccessor, { kind: "class", metadata });
     assert.equal(CjsSchema.getSchema(AutoAccessor).properties[0].role, "property");
 });
 
@@ -155,7 +155,7 @@ test("indexed declarations retain every route including index zero and reject ex
 {
     class Indexed {}
     CjsSchema.define(Indexed, {
-        className: "DeclarationIndexed",
+        name: "DeclarationIndexed",
         members: [
             { name: "x", key: "values", index: 0, type: { kind: "float32" } },
             { name: "y", key: "values", index: 1, type: { kind: "float32" } }
@@ -166,13 +166,13 @@ test("indexed declarations retain every route including index zero and reject ex
     assert.deepEqual(CjsSchema.getSchema(Indexed).fields, [], "canonical inputs do not fabricate a lossy compatibility field");
     class Duplicate {}
     assert.throws(() => CjsSchema.define(Duplicate, {
-        className: "DeclarationDuplicate",
+        name: "DeclarationDuplicate",
         members: [ { name: "x", key: "values", index: 0 }, { name: "x", key: "values", index: 0 } ]
     }), /duplicate member/u);
     assert.throws(() => be.mapAttribute__Index(be.NONE, "x", 0.5), /element index/u);
     class IndexedDecorator {}
     CjsSchema.define(IndexedDecorator, {
-        className: "DeclarationIndexedDecorator",
+        name: "DeclarationIndexedDecorator",
         fields: { values: [ be.mapAttribute__Index(be.NONE, "x", 0), type.float32 ] }
     });
     assert.equal(CjsSchema.getSchema(IndexedDecorator).members[0].index, 0);
@@ -182,13 +182,13 @@ test("explicit field declarations do not inherit a shadowed getter's live-proper
 {
     let reads = 0;
     class Base { get value() { reads++; throw new Error("getter read"); } }
-    CjsSchema.define(Base, { className: "DeclarationShadowBase", fields: { value: [ be.mapPropertyReadOnly(), type.int32 ] } });
+    CjsSchema.define(Base, { name: "DeclarationShadowBase", fields: { value: [ be.mapPropertyReadOnly(), type.int32 ] } });
     class Explicit extends Base { value = 2; }
-    CjsSchema.define(Explicit, { className: "DeclarationShadowExplicit", fields: { value: [ type.int32, be.mapAttribute(be.PERSIST) ] } });
+    CjsSchema.define(Explicit, { name: "DeclarationShadowExplicit", fields: { value: [ type.int32, be.mapAttribute(be.PERSIST) ] } });
     class Decorated extends Base { value = 2; }
     const metadata = {};
     applyStage3(metadata, "value", "field", [ type.int32, be.mapAttribute(be.PERSIST) ]);
-    meta.define({ className: "DeclarationShadowDecorated" })(Decorated, { kind: "class", metadata });
+    meta.define({ name: "DeclarationShadowDecorated" })(Decorated, { kind: "class", metadata });
     assert.deepEqual(withoutOwners(CjsSchema.getSchema(Explicit).members), withoutOwners(CjsSchema.getSchema(Decorated).members));
     assert.equal(CjsSchema.getSchema(Explicit).members[0].role, "member");
     assert.equal(CjsSchema.getSchema(Explicit).properties[0].declaringClass, Base);
@@ -200,12 +200,12 @@ test("canonical metadata cannot overwrite structural identity supplied by its de
     class WrongOwner {}
     class InvalidOwner {}
     assert.throws(() => CjsSchema.define(InvalidOwner, {
-        className: "DeclarationInvalidOwner",
+        name: "DeclarationInvalidOwner",
         members: [ { name: "value", key: "_value", declaringClass: WrongOwner } ]
     }), /reserved declaration identity/u);
     class InvalidKey {}
     assert.throws(() => CjsSchema.define(InvalidKey, {
-        className: "DeclarationInvalidKey",
+        name: "DeclarationInvalidKey",
         properties: { value: { key: "other" } }
     }), /reserved declaration identity/u);
 });
@@ -214,12 +214,12 @@ test("native tables keep class occurrences and derived-first ordering while lega
 {
     class Base {}
     CjsSchema.define(Base, {
-        className: "DeclarationBase",
+        name: "DeclarationBase",
         fields: { stored: [ meta.mapAttribute(meta.NONE, "shared"), type.float32, be.mapAttribute(be.PERSIST) ], baseOnly: type.uint32 }
     });
     class Derived extends Base { get shared() { throw new Error("getter read"); } }
     CjsSchema.define(Derived, {
-        className: "DeclarationDerived",
+        name: "DeclarationDerived",
         fields: { derivedOnly: type.uint32, shared: [ be.mapPropertyReadOnly(), type.float32 ] },
         members: [ { name: "shared", key: "derivedStorage", type: { kind: "float32" } } ]
     });
@@ -233,7 +233,7 @@ test("native tables keep class occurrences and derived-first ordering while lega
     assert.equal(CjsSchema.getField(Derived, "stored").edit.persist, true);
 
     class Repeated extends Base {}
-    CjsSchema.define(Repeated, { className: "DeclarationRepeated", members: [ { name: "shared", key: "stored", type: { kind: "float64" } } ] });
+    CjsSchema.define(Repeated, { name: "DeclarationRepeated", members: [ { name: "shared", key: "stored", type: { kind: "float64" } } ] });
     assert.equal(CjsSchema.getSchema(Repeated).members.filter(entry => entry.key === "stored").length, 2);
 });
 
@@ -241,7 +241,7 @@ test("namespace projections preserve structural routes and filter descriptive me
 {
     class Projected {}
     CjsSchema.define(Projected, {
-        className: "DeclarationProjected",
+        name: "DeclarationProjected",
         members: [ { name: "wireName", key: "array", index: 0, type: { kind: "uint32" }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true }, enum: { values: { Zero: 0 } } } ]
     });
     const schema = CjsSchema.getSchema(Projected, { namespaces: [ "type" ] });
@@ -256,21 +256,21 @@ test("hideInherited resolves exact JS keys before exposed aliases and remains mo
 {
     class Base {}
     CjsSchema.define(Base, {
-        className: "DeclarationHiddenBase",
+        name: "DeclarationHiddenBase",
         members: [ { name: "shared", key: "_left" }, { name: "shared", key: "_right" } ],
         properties: [ { name: "shared", key: "shared" } ]
     });
     class Exact extends Base {}
     meta.hideInherited([ "shared" ])(Exact);
-    CjsSchema.define(Exact, { className: "DeclarationHiddenExact" });
+    CjsSchema.define(Exact, { name: "DeclarationHiddenExact" });
     assert.equal(CjsSchema.getSchema(Exact).members.length, 2);
     assert.equal(CjsSchema.getSchema(Exact).properties.length, 0);
     class Alias extends Exact {}
     meta.hideInherited([ "shared" ])(Alias);
-    CjsSchema.define(Alias, { className: "DeclarationHiddenAlias" });
+    CjsSchema.define(Alias, { name: "DeclarationHiddenAlias" });
     assert.equal(CjsSchema.getSchema(Alias).members.length, 0);
     class Descendant extends Alias {}
-    CjsSchema.define(Descendant, { className: "DeclarationHiddenDescendant", fields: { _left: type.uint32 } });
+    CjsSchema.define(Descendant, { name: "DeclarationHiddenDescendant", fields: { _left: type.uint32 } });
     assert.equal(CjsSchema.getSchema(Descendant).members.length, 0);
     assert.equal(CjsSchema.getField(Descendant, "_left"), null);
     class Invalid extends Base {}
@@ -282,7 +282,7 @@ test("registration fixes canonical occurrences and invalidates cached exports wi
     class OpenBase {}
     CjsSchema.decorateField(OpenBase, "first", type.uint32);
     class Registered extends OpenBase {}
-    CjsSchema.define(Registered, { className: "DeclarationRegistered", fields: { own: type.uint32 } });
+    CjsSchema.define(Registered, { name: "DeclarationRegistered", fields: { own: type.uint32 } });
     const initial = CjsSchema.getSchema(Registered);
     assert.equal(CjsSchema.getSchema(Registered), initial);
     assert.throws(() => CjsSchema.decorateField(Registered, "late", type.uint32), /after it registered/u);
@@ -307,7 +307,7 @@ for (const kind of [ "list", "array" ])
         const itemType = { kind: "rootRef", className: "SyntheticChild" };
         class Legacy {}
         CjsSchema.define(Legacy, {
-            className: "DeclarationStructuredLegacy" + kind,
+            name: "DeclarationStructuredLegacy" + kind,
             fields: {
                 singleArgument: type[kind](itemType),
                 emptyOptions: type[kind](itemType, {}),

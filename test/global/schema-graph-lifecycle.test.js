@@ -36,7 +36,7 @@ function fixture()
         constructor(name = "leaf") { this.name = name; }
         Initialize() { calls.push(this.name); }
     }
-    CjsSchema.define(Leaf, { className: `${prefix}Leaf`, fields: [
+    CjsSchema.define(Leaf, { name: `${prefix}Leaf`, fields: [
         { name: "child", key: "child", type: { kind: "rootRef", className: Leaf } }
     ] });
     class Plain
@@ -45,7 +45,7 @@ function fixture()
         child = new Leaf("behindPlain");
         Initialize() { assert.fail("plain objects must not enter legacy initialization"); }
     }
-    CjsSchema.define(Plain, { className: `${prefix}Plain`, fields: [
+    CjsSchema.define(Plain, { name: `${prefix}Plain`, fields: [
         { name: "child", key: "child", type: { kind: "rootRef", className: Leaf } }
     ] });
     class Resource
@@ -56,7 +56,7 @@ function fixture()
         dependency = null;
         Initialize() { assert.fail("resources must not enter legacy initialization"); }
     }
-    CjsSchema.define(Resource, { className: `${prefix}Resource`, fields: [
+    CjsSchema.define(Resource, { name: `${prefix}Resource`, fields: [
         { name: "dependency", key: "dependency", type: { kind: "rootRef", className: Resource } }
     ] });
     class Root
@@ -71,7 +71,7 @@ function fixture()
         borrowed = new Leaf("borrowed");
         Initialize() { calls.push(this.name); }
     }
-    CjsSchema.define(Root, { className: `${prefix}Root`, fields: [
+    CjsSchema.define(Root, { name: `${prefix}Root`, fields: [
         { name: "child", key: "child", type: { kind: "rootRef", className: Leaf } },
         { name: "plain", key: "plain", type: { kind: "rootRef", className: Plain } },
         { name: "resource", key: "resource", type: { kind: "rootRef", className: `${prefix}Resource` } },
@@ -122,12 +122,12 @@ test("public inherited traversal order is independent of reader ownership", () =
         base = new Leaf("base");
         Initialize() { calls.push(this.name); }
     }
-    CjsSchema.define(Base, { className: `${prefix}Base`, fields: [
+    CjsSchema.define(Base, { name: `${prefix}Base`, fields: [
         { name: "base", key: "base", type: { kind: "rootRef", className: Leaf } }
     ] });
     CjsSchema.be.interface(IInitialize)(Base);
     class Derived extends Base { derived = new Leaf("derived"); }
-    CjsSchema.define(Derived, { className: `${prefix}Derived`, fields: [
+    CjsSchema.define(Derived, { name: `${prefix}Derived`, fields: [
         { name: "derived", key: "derived", type: { kind: "rootRef", className: Leaf } }
     ] });
     const root = CjsSchema.from(CjsSchema.getClassName(Derived), {});
@@ -142,7 +142,7 @@ test("values initialization is independent of public Traverse overrides", () =>
     {
         Traverse() { assert.fail("values initialization called public Traverse"); }
     }
-    CjsSchema.define(Overridden, { className: `${prefix}Overridden` });
+    CjsSchema.define(Overridden, { name: `${prefix}Overridden` });
     const root = CjsSchema.from(CjsSchema.getClassName(Overridden), {});
     assert.deepEqual(calls, ["root"]);
 });
@@ -155,7 +155,7 @@ test("public resource collection forwards independently of Traverse overrides ac
         Traverse() { assert.fail("resource collection called public Traverse override"); }
     }
     CjsSchema.decorateField(Overridden, "_geometryRes", type.resource(Resource));
-    CjsSchema.define(Overridden, { className: `${prefix}ResourceOverride` });
+    CjsSchema.define(Overridden, { name: `${prefix}ResourceOverride` });
     const root = new Overridden();
     const dependency = new Resource();
     dependency.name = "dependency";
@@ -176,7 +176,7 @@ test("native initialization ignores a false return but propagates a thrown failu
     class Throws { Initialize() { throw new Error("fixture initialization error"); } }
     for (const Type of [ReturnsFalse, Throws])
     {
-        CjsSchema.define(Type, { className: "ReaderCompletion" + Type.name });
+        CjsSchema.define(Type, { name: "ReaderCompletion" + Type.name });
         CjsSchema.be.interface(IInitialize)(Type);
     }
     assert.ok(CjsSchema.from("ReaderCompletionReturnsFalse", {}) instanceof ReturnsFalse);
@@ -186,7 +186,7 @@ test("native initialization ignores a false return but propagates a thrown failu
 test("method presence alone never opts a plain class into reader initialization", () =>
 {
     class Unmapped { Initialize() { assert.fail("unmapped hook called"); } }
-    CjsSchema.define(Unmapped, { className: "ReaderUnmappedInitializer" });
+    CjsSchema.define(Unmapped, { name: "ReaderUnmappedInitializer" });
     assert.ok(CjsSchema.from("ReaderUnmappedInitializer", {}) instanceof Unmapped);
 });
 
@@ -195,8 +195,8 @@ test("class registration hands the graph a class's own _Destructor; OnDestruct i
     const calls = [];
     class Base { OnDestruct() { calls.push("Base.OnDestruct"); return true; } _Destructor() { calls.push("~Base"); } }
     class Owner extends Base { _Destructor() { calls.push("~Owner"); } }
-    CjsSchema.define(Base, { className: "LifetimeDestructorBase" });
-    CjsSchema.define(Owner, { className: "LifetimeDestructorOwner", capabilities: [ "destruct" ] });
+    CjsSchema.define(Base, { name: "LifetimeDestructorBase" });
+    CjsSchema.define(Owner, { name: "LifetimeDestructorOwner", capabilities: [ "destruct" ] });
     const owner = new Owner();
     CjsGraph.finalDelete(owner);
     assert.deepEqual(calls, ["~Owner", "~Base"]);
@@ -212,7 +212,7 @@ test("an inherit row copies neither teardown function, so a base's _Destructor r
     class Owner {}
     CjsSchema.meta.define("LifetimeInheritSecond")(Second);
     CjsSchema.meta.inherit(Second)(Owner);
-    CjsSchema.meta.define({ className: "LifetimeInheritOwner", capabilities: [ "destruct" ] })(Owner);
+    CjsSchema.meta.define({ name: "LifetimeInheritOwner", capabilities: [ "destruct" ] })(Owner);
     assert.equal(Object.hasOwn(Owner.prototype, "Shared"), true);
     assert.equal(Object.hasOwn(Owner.prototype, "_Destructor"), false);
     assert.equal(Object.hasOwn(Owner.prototype, "OnDestruct"), false);
@@ -229,7 +229,7 @@ test("IRoot holds the graph state and its own Destruct, and nothing pastes one o
 {
     const calls = [];
     class Blue extends IRoot { _Destructor() { calls.push("~Blue"); } }
-    CjsSchema.define(Blue, { className: "LifetimeIRootBlue" });
+    CjsSchema.define(Blue, { name: "LifetimeIRootBlue" });
 
     const object = new Blue();
     assert.equal(Object.hasOwn(object, "__cjs"), true);
@@ -250,7 +250,7 @@ test("IRoot holds the graph state and its own Destruct, and nothing pastes one o
 
     // A class that is no IRoot gets no Destruct from registration; the graph's own door ends it, if it declares destruct.
     class Plain { _Destructor() { calls.push("~Plain"); } }
-    CjsSchema.define(Plain, { className: "LifetimeIRootPlain", capabilities: [ "destruct" ] });
+    CjsSchema.define(Plain, { name: "LifetimeIRootPlain", capabilities: [ "destruct" ] });
     assert.equal("Destruct" in Plain.prototype, false);
     assert.equal("IsDestructed" in Plain.prototype, false);
     const plain = new Plain();
@@ -265,26 +265,26 @@ test("capabilities are declared in a definition: IRoot declares once, and the gr
 
     // Below IRoot a class declares nothing and is destruct-capable along its base list.
     class Blue extends IRoot {}
-    CjsSchema.define(Blue, { className: "CapabilityIRootBlue" });
+    CjsSchema.define(Blue, { name: "CapabilityIRootBlue" });
     assert.deepEqual(CjsSchema.getCapabilities(Blue), [], "a class's own declaration, not its bases'");
     assert.equal(new Blue().Destruct(), true);
 
     // Outside IRoot nothing is assumed.
     class Value { _Destructor() {} }
-    CjsSchema.define(Value, { className: "CapabilityPlainValue" });
+    CjsSchema.define(Value, { name: "CapabilityPlainValue" });
     assert.throws(() => CjsGraph.destruct(new Value()), /CapabilityPlainValue does not declare the destruct capability/);
     assert.doesNotThrow(() => CjsGraph.finalDelete(new Value()));
 
     // A class with nothing to end has no lifetime record at all.
     class Inert {}
-    CjsSchema.define(Inert, { className: "CapabilityInert" });
+    CjsSchema.define(Inert, { name: "CapabilityInert" });
     assert.equal(CjsGraph.hasLifetime(Inert), false);
     assert.equal(CjsGraph.hasLifetime(Value), true);
     assert.throws(() => CjsGraph.destruct(new Inert()), /does not declare the destruct capability/);
 
     // A capability that does not exist is refused when the class is defined.
     class Bad {}
-    assert.throws(() => CjsSchema.define(Bad, { className: "CapabilityBadName", capabilities: [ "fly" ] }), /unknown capability fly/);
+    assert.throws(() => CjsSchema.define(Bad, { name: "CapabilityBadName", capabilities: [ "fly" ] }), /unknown capability fly/);
 
     // An exposure bag carries the key as any definition does.
     class Bagged { _Destructor() {} }

@@ -8,7 +8,7 @@ class Node
   constructor(name) { this.name = name; }
 }
 CjsSchema.define(Node, {
-  className: "BlueFindNode",
+  name: "BlueFindNode",
   members: [
     { name: "child", key: "child", type: { kind: "rootRef", className: Node } },
     { name: "items", key: "items", type: { kind: "list", itemType: "BlueFindNode" } },
@@ -91,12 +91,12 @@ test("FindReference answers reachability (Find.cpp:507-548)", () =>
 test("FindInterface tests only the object's own interface table, as Carbon's IsMatch does (Find.cpp:159-173)", () =>
 {
   class IMarker {}
-  CjsSchema.define(IMarker, { className: "BlueFindIMarker" });
+  CjsSchema.define(IMarker, { name: "BlueFindIMarker" });
   class Marked extends Node {}
-  CjsSchema.define(Marked, { className: "BlueFindMarked" });
+  CjsSchema.define(Marked, { name: "BlueFindMarked" });
   CjsSchema.be.interface(IMarker)(Marked);
   class Chained extends Node {}
-  CjsSchema.define(Chained, { className: "BlueFindChained" });
+  CjsSchema.define(Chained, { name: "BlueFindChained" });
   CjsSchema.be.chainTo(Marked)(Chained);
 
   const root = new Node("root");

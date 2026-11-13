@@ -51,7 +51,7 @@ test("abstract definitions preserve distinct existing canonical and alias factor
   blue.classes.RegisterClasses([canonical, alias]);
   const before = getClassRegistrationRevision();
   CjsSchema.define(Abstract, {
-    className: canonical.name, abstract: true, aliases: [alias.name, "AbstractFreeAlias"],
+    name: canonical.name, abstract: true, aliases: [alias.name, "AbstractFreeAlias"],
   });
   try
   {
@@ -86,7 +86,7 @@ test("independent aliases of an abstract type keep their explicitly selected fac
 {
   let constructions = 0;
   class Abstract { constructor() { constructions++; } }
-  CjsSchema.define(Abstract, {className: "AbstractFactoryIdentity", aliases: ["AbstractDefinitionAlias"], abstract: true});
+  CjsSchema.define(Abstract, {name: "AbstractFactoryIdentity", aliases: ["AbstractDefinitionAlias"], abstract: true});
   const made = {};
   const factory = () => made;
   blue.classes.RegisterClasses([{name: "AbstractCustomAlias", type: Abstract, createFn: factory, flags: 1}]);
@@ -144,7 +144,7 @@ test("RegisterClasses registers under the explicit name, not type.name", () =>
 test("Blue and CjsSchema share registrations in both directions", () =>
 {
   class Schemed {}
-  CjsSchema.define(Schemed, { className: "TestSchemed", fields: {} });
+  CjsSchema.define(Schemed, { name: "TestSchemed", fields: {} });
   assert.equal(blue.classes.GetClassRegistration("TestSchemed").type, Schemed);
 
   blue.classes.RegisterClasses([ { name: "TestUnschemed2", type: Unschemed } ]);
@@ -268,12 +268,12 @@ test("registration revisions refresh schemas through both facades; defaults are 
 {
   class Holder { reference = null; }
   CjsSchema.define(Holder, {
-    className: "RegistrationRevisionHolder",
+    name: "RegistrationRevisionHolder",
     fields: { reference: type.rootRef("LateRegisteredResource") }
   });
   let constructions = 0;
   class Defaults { constructor() { this.value = ++constructions; } }
-  CjsSchema.define(Defaults, { className: "RegistrationRevisionDefaults", fields: { value: type.uint32 } });
+  CjsSchema.define(Defaults, { name: "RegistrationRevisionDefaults", fields: { value: type.uint32 } });
   class Resource { static isResource = true; }
   class Ordinary {}
   const registry = new BlueClasses();
@@ -321,10 +321,10 @@ test("canonical and alias collisions resolve independently without erasing seale
   class Original {}
   class Other {}
   class Later { declared = 4; }
-  CjsSchema.define(Original, { className: "CanonicalCollision", aliases: [ "OriginalAlias" ] });
+  CjsSchema.define(Original, { name: "CanonicalCollision", aliases: [ "OriginalAlias" ] });
   registry.RegisterClasses([ { name: "OccupiedAlias", type: Other } ]);
   CjsSchema.meta.define({
-    className: "CanonicalCollision", aliases: [ "OccupiedAlias", "AvailableAlias" ], fields: { declared: type.uint32 }
+    name: "CanonicalCollision", aliases: [ "OccupiedAlias", "AvailableAlias" ], fields: { declared: type.uint32 }
   })(Later);
   try
   {
@@ -338,7 +338,7 @@ test("canonical and alias collisions resolve independently without erasing seale
     assert.equal(CjsSchema.getConstructor("OccupiedAlias"), Other);
     registry.UnregisterClasses([ { name: "CanonicalCollision" } ]);
     assert.equal(CjsSchema.getConstructor("OriginalAlias"), Original);
-    assert.throws(() => CjsSchema.define(Later, { className: "AnotherName" }), /already registered/);
+    assert.throws(() => CjsSchema.define(Later, { name: "AnotherName" }), /already registered/);
     assert.equal(CjsSchema.getField(Later, "declared").type.kind, "uint32");
     CjsSchema.setConstructor("CanonicalCollision", Later);
     assert.equal(registry.GetClassRegistration("CanonicalCollision").type, Later);
@@ -373,16 +373,16 @@ test("registration uses explicit names without inspecting Function.name and pres
 test("QueryThisInterface walks the exposure table and chain, logging a miss unless silent", (t) =>
 {
   class IThing {}
-  CjsSchema.define(IThing, { className: "IThing" });
+  CjsSchema.define(IThing, { name: "IThing" });
   class Parent {}
-  CjsSchema.define(Parent, { className: "QtiParent" });
+  CjsSchema.define(Parent, { name: "QtiParent" });
   CjsSchema.be.interface(IThing)(Parent);
   class Child extends Parent {}
-  CjsSchema.define(Child, { className: "QtiChild" });
+  CjsSchema.define(Child, { name: "QtiChild" });
   CjsSchema.be.interface()(Child);
   CjsSchema.be.chainTo(Parent)(Child);
   class Unrelated {}
-  CjsSchema.define(Unrelated, { className: "QtiUnrelated" });
+  CjsSchema.define(Unrelated, { name: "QtiUnrelated" });
 
   const errors = [];
   const sink = (_channel, _type, _userData, message) => errors.push(message);

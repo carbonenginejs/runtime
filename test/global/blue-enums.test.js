@@ -98,7 +98,7 @@ test("Blue and schema share registration and resolve qualified fields after regi
         assert.ok(MarkerTag("CjsBlueEnumRegistry", name));
     }
     class Host { mode = 1; }
-    CjsSchema.define(Host, { className: "RegistryEnumHost", fields: {
+    CjsSchema.define(Host, { name: "RegistryEnumHost", fields: {
         mode: [type.int32, type.enum("test.LateEnum"), be.mapAttribute(be.PERSIST)]
     } });
     assert.throws(() => CjsSchema.getSchema(Host), ReferenceError);
@@ -116,7 +116,7 @@ test("Blue and schema share registration and resolve qualified fields after regi
     class Derived extends Host {}
     assert.equal(CjsSchema.getSchema(Derived).fields[0].enum.members, values);
     class Legacy { static Choice = values; }
-    CjsSchema.define(Legacy, { className: "LegacyEnumHost", fields: { mode: [type.int32, type.enum("Choice")] } });
+    CjsSchema.define(Legacy, { name: "LegacyEnumHost", fields: { mode: [type.int32, type.enum("Choice")] } });
     class LegacyChild extends Legacy {}
     assert.equal(CjsSchema.getSchema(LegacyChild).fields[0].enum.identity, "LegacyEnumHost.Choice");
     const facadeValues = { VALUE: 3 };

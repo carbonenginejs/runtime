@@ -11,14 +11,14 @@ class Effect
   name = "";
 }
 CjsSchema.be.define(Effect, {
-  className: "BlueClassesManagerEffect",
+  name: "BlueClassesManagerEffect",
   fields: {
     name: [ be.mapAttribute(be.READWRITE | be.PERSIST), type.string ]
   }
 });
 
 class SpecialEffect extends Effect {}
-CjsSchema.define(SpecialEffect, { className: "BlueClassesManagerSpecialEffect" });
+CjsSchema.define(SpecialEffect, { name: "BlueClassesManagerSpecialEffect" });
 CjsSchema.be.chainTo(Effect)(SpecialEffect);
 
 class Holder
@@ -29,7 +29,7 @@ class Holder
   items = [];
 }
 CjsSchema.be.define(Holder, {
-  className: "BlueClassesManagerHolder",
+  name: "BlueClassesManagerHolder",
   fields: {
     name: [ be.mapAttribute(be.READWRITE | be.PERSIST), type.string ],
     persisted: [ be.mapAttribute(be.READWRITE | be.PERSIST), type.rootRef("IRoot") ],

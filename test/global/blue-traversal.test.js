@@ -10,7 +10,7 @@ class Graph
     constructor(name) { this.name = name; }
 }
 CjsSchema.define(Graph, {
-    className: "BlueTraversalGraph",
+    name: "BlueTraversalGraph",
     members: [
         { name: "child", key: "child", type: { kind: "rootRef", className: Graph } },
         { name: "list", key: "list", type: { kind: "list", itemType: "BlueTraversalGraph" } },
@@ -91,14 +91,14 @@ test("the filtered overload reports attributes, list items and map values separa
 test("native default is derived declarations before inherited storage, even under a live property", () =>
 {
     class Base {}
-    CjsSchema.define(Base, { className: "BlueTraversalBase", members: [
+    CjsSchema.define(Base, { name: "BlueTraversalBase", members: [
         { name: "child", key: "_baseChild", type: { kind: "rootRef", className: Graph } }
     ] });
     class Derived extends Base
     {
         get child() { throw new Error("live getter was invoked"); }
     }
-    CjsSchema.define(Derived, { className: "BlueTraversalDerived", members: [
+    CjsSchema.define(Derived, { name: "BlueTraversalDerived", members: [
         { name: "own", key: "_ownChild", type: { kind: "rootRef", className: Graph } }
     ], properties: [
         { name: "child", key: "child", type: { kind: "rootRef", className: Graph }, property: { persisted: false } }
@@ -117,7 +117,7 @@ test("stored aliases and indexed slots select backing data without accessor exec
         get visible() { throw new Error("property getter"); }
         get accessorStorage() { throw new Error("incorrect stored getter"); }
     }
-    CjsSchema.define(Slots, { className: "BlueTraversalSlots", members: [
+    CjsSchema.define(Slots, { name: "BlueTraversalSlots", members: [
         { name: "visible", key: "slots", index: 0, type: { kind: "rootRef", className: Graph } },
         { name: "other", key: "slots", index: 1, type: { kind: "rootRef", className: Graph } },
         { name: "ignored", key: "accessorStorage", type: { kind: "rootRef", className: Graph } },
@@ -149,7 +149,7 @@ test("declared Map/Set and Black record/array representations visit only data va
 test("explicit nested collection descriptors expand but opaque collection values do not", () =>
 {
     class Nested {}
-    CjsSchema.define(Nested, { className: "BlueTraversalNested", members: [
+    CjsSchema.define(Nested, { name: "BlueTraversalNested", members: [
         { name: "typed", key: "typed", type: { kind: "map", valueType: { kind: "list", itemType: Graph } } },
         { name: "opaque", key: "opaque", type: { kind: "map", valueType: { kind: "rawStruct" } } },
     ] });
@@ -173,7 +173,7 @@ class Resource extends Graph
 {
     isResource = true;
 }
-CjsSchema.define(Resource, { className: "BlueTraversalResource" });
+CjsSchema.define(Resource, { name: "BlueTraversalResource" });
 
 test("resource root and recursive resource dependencies are collected once", () =>
 {
@@ -194,7 +194,7 @@ test("runtime-only resource declarations are followed and collected once", () =>
     class Holder extends Graph {}
     CjsSchema.decorateField(Holder, "_geometryRes", type.resource(Resource));
     CjsSchema.decorateField(Holder, "_sharedRes", type.resource(Resource));
-    CjsSchema.define(Holder, { className: "BlueTraversalRuntimeResourceHolder" });
+    CjsSchema.define(Holder, { name: "BlueTraversalRuntimeResourceHolder" });
     const root = new Holder("root");
     const local = new Resource("local");
     const shared = new Resource("shared");
@@ -214,7 +214,7 @@ test("runtime-only resource declarations are followed and collected once", () =>
 test("resource references accept constructors and names without collecting impostors", () =>
 {
     class Holder {}
-    CjsSchema.define(Holder, { className: "BlueTraversalResourceHolder", members: [
+    CjsSchema.define(Holder, { name: "BlueTraversalResourceHolder", members: [
         { name: "ctor", key: "ctor", type: { kind: "rootRef", className: Resource } },
         { name: "named", key: "named", type: { kind: "rootRef", className: "BlueTraversalResource" } },
         { name: "impostor", key: "impostor", type: { kind: "rootRef", className: Resource } },

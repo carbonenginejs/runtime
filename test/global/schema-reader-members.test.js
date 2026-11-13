@@ -60,7 +60,7 @@ test("method presence and native base composition do not imply mapped reader int
 
 test("reader interface mappings use stable identities across constructor copies", () => {
   class OtherNotify {}
-  CjsSchema.define(OtherNotify, { className: "INotify" });
+  CjsSchema.define(OtherNotify, { name: "INotify" });
   class Target {
     value = 1;
     calls = [];

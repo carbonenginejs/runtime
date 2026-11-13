@@ -58,7 +58,7 @@ test("a plain decorated class without a setter goes through the state-free trans
   // transport landed 2026-09-08, so the third arm answers instead.
   class Plain { n = 0; }
   CjsSchema.defineField(Plain, "n", "type", { kind: "int32" });
-  CjsSchema.define(Plain, { className: "PlainStateFreeProbe" });
+  CjsSchema.define(Plain, { name: "PlainStateFreeProbe" });
 
   const plain = new Plain();
   assert.equal(typeof plain.SetValues, "undefined", "the class carries neither method");

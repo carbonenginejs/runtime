@@ -18,7 +18,7 @@ class RefWeakLeaf
 {
   value = 0;
 }
-CjsSchema.be.define(RefWeakLeaf, { className: "RefWeakLeaf", fields: {
+CjsSchema.be.define(RefWeakLeaf, { name: "RefWeakLeaf", fields: {
   value: [ type.int32, be.mapAttribute(be.PERSIST) ]
 } });
 
@@ -26,7 +26,7 @@ class OwnedHolder
 {
   target = null;
 }
-CjsSchema.be.define(OwnedHolder, { className: "RefWeakOwnedHolder", fields: {
+CjsSchema.be.define(OwnedHolder, { name: "RefWeakOwnedHolder", fields: {
   target: [ type.object.ref("RefWeakLeaf"), be.mapAttribute(be.PERSIST) ]
 } });
 
@@ -34,7 +34,7 @@ class UnownedHolder
 {
   target = null;
 }
-CjsSchema.be.define(UnownedHolder, { className: "RefWeakUnownedHolder", fields: {
+CjsSchema.be.define(UnownedHolder, { name: "RefWeakUnownedHolder", fields: {
   target: [ type.object.ref.weak("RefWeakLeaf"), be.mapAttribute(be.PERSIST) ]
 } });
 
@@ -62,7 +62,7 @@ test("ref.weak is the rootRef kind, with one more fact", () =>
 test("object.weak stays Carbon's weak reference", () =>
 {
   class Weak { target = null; }
-  CjsSchema.define(Weak, { className: "RefWeakRealWeak", fields: { target: type.object.weak("RefWeakLeaf") } });
+  CjsSchema.define(Weak, { name: "RefWeakRealWeak", fields: { target: type.object.weak("RefWeakLeaf") } });
 
   assert.deepEqual(field(Weak).type, { kind: "rootWeak", className: "RefWeakLeaf" });
 });
@@ -70,7 +70,7 @@ test("object.weak stays Carbon's weak reference", () =>
 test("a subclass that redeclares the member replaces the ownership fact", () =>
 {
   class Redeclared extends UnownedHolder {}
-  CjsSchema.be.define(Redeclared, { className: "RefWeakRedeclared", fields: {
+  CjsSchema.be.define(Redeclared, { name: "RefWeakRedeclared", fields: {
     target: [ type.object.ref("RefWeakLeaf"), be.mapAttribute(be.PERSIST) ]
   } });
 

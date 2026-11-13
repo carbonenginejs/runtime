@@ -57,9 +57,9 @@ function SelfAsToken(value, Constructor)
 test("meta.define with carbon records provenance and nothing else", () =>
 {
   const Plain = Shape();
-  CjsSchema.meta.define(Plain, { className: "DefineCarbonPlain", fields: FIELDS, methods: METHODS });
+  CjsSchema.meta.define(Plain, { name: "DefineCarbonPlain", fields: FIELDS, methods: METHODS });
   const Ported = Shape();
-  CjsSchema.meta.define(Ported, { className: "DefineCarbonPorted", carbon: "DefineCarbonOwner::Nested", fields: FIELDS, methods: METHODS });
+  CjsSchema.meta.define(Ported, { name: "DefineCarbonPorted", carbon: "DefineCarbonOwner::Nested", fields: FIELDS, methods: METHODS });
 
   const schema = CjsSchema.getSchema(Ported);
   assert.equal(schema.carbon, "DefineCarbonOwner::Nested", "the donor is recorded as replicated");
@@ -95,7 +95,7 @@ test("retired donor definition options fail before registering a class", () =>
     {
       const Constructor = Shape();
       const className = `RetiredDonor${option}${namespace === CjsSchema ? "schema" : namespace === CjsSchema.meta ? "meta" : "blue"}`;
-      assert.throws(() => namespace.define(Constructor, {className, [option]: option === "donors" ? ["Native"] : "Native"}), /retired.*JSDoc/);
+      assert.throws(() => namespace.define(Constructor, {name: className, [option]: option === "donors" ? ["Native"] : "Native"}), /retired.*JSDoc/);
       assert.equal(CjsSchema.getConstructor(className), null);
     }
 });

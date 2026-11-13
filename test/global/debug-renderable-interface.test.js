@@ -65,7 +65,7 @@ test("debug composition preserves caller-owned option accumulation and renderer 
   const getDebugOptions = DebugRenderable.prototype.GetDebugOptions;
   const renderDebugInfo = DebugRenderable.prototype.RenderDebugInfo;
   blue.inherit(ITr2DebugRenderable)(DebugRenderable, { kind: "class" });
-  CjsSchema.define(DebugRenderable, { className: "TestSharedDebugRenderableProvider" });
+  CjsSchema.define(DebugRenderable, { name: "TestSharedDebugRenderableProvider" });
 
   const renderable = new DebugRenderable();
   assert.equal(DebugRenderable.prototype.GetDebugOptions, getDebugOptions);
@@ -194,7 +194,7 @@ test("renderer composition preserves query booleans and caller-owned color outpu
   const implementations = ["HasOption", "IsSelected__Root", "GetColorForOption", "SetColorForOption"]
     .map(name => [name, Renderer.prototype[name]]);
   blue.inherit(ITr2DebugRenderer2)(Renderer, { kind: "class" });
-  CjsSchema.define(Renderer, { className: "TestSharedDebugRendererQueries" });
+  CjsSchema.define(Renderer, { name: "TestSharedDebugRendererQueries" });
   const renderer = new Renderer();
   for (const [name, implementation] of implementations) assert.equal(Renderer.prototype[name], implementation);
   const owner = {};
@@ -245,7 +245,7 @@ test("each DrawSphere overload is its own method and keeps native argument order
     };
   }
   blue.inherit(ITr2DebugRenderer2)(Renderer, { kind: "class" });
-  CjsSchema.define(Renderer, { className: "TestSharedDebugRendererOverloads" });
+  CjsSchema.define(Renderer, { name: "TestSharedDebugRendererOverloads" });
   const renderer = new Renderer();
   const owner = Tr2DebugObjectReference.create__Object({});
   const transform = mat4.create();
