@@ -19,7 +19,7 @@ import { IRoot } from "../exposure/IRoot.js";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { exportCarbonValue } from "../schema/types/index.js";
 import { ICustomPersist } from "../exposure/ICustomPersist.js";
-import { isWritableField } from "../compose/values.js";
+import { isWritableField } from "../compose/fieldFlags.js";
 import { BeObjectMetadata } from "../services/BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "../interfaces/IBlueObjectMetadata.js";
 

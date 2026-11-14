@@ -43,7 +43,7 @@ const CONTAINER_KINDS = new Set([ "list", "array", "map", "set" ]);
 
 /** Kinds read as a list of objects or values (BlueList). */
 const LIST_KINDS = new Set([ "list", "array" ]);
-import { isTransportedDeclaration } from "../compose/values.js";
+import { isTransportedDeclaration } from "../compose/fieldFlags.js";
 const VIEWS = new WeakMap();
 
 /**

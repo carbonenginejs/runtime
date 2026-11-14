@@ -13,7 +13,8 @@ import {
 import { claimAbstractMethods, decorateAbstractMethod, installAbstractMethod, isAbstractMethod } from "../compose/abstract.js";
 import { CJS_CLASS_NAME, getRegisteredClassName, requireRegisteredClassName } from "../compose/className.js";
 import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast, exposureChainTo, mappedInterfaces, setInterfaceClassResolver } from "../compose/interface.js";
-import { composeValuesDecorator, createValuesTransport, isExportableField, isTransportedDeclaration, isWritableField } from "../compose/values.js";
+import { composeValuesDecorator, createValuesTransport } from "../compose/values.js";
+import { isExportableField, isTransportedDeclaration, isWritableField } from "../compose/fieldFlags.js";
 import { blueEnums, CjsBlueEnumRegistry } from "../enums/CjsBlueEnumRegistry.js";
 import { EDITFLAGS } from "../../global/consts/blue.js";
 import { TriSettingNames } from "../../global/consts/trinity.js";

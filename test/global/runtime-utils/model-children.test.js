@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import * as children from "../../../src/blue/children.js";
 import { getRuntimeState } from "../../../src/blue/compose/runtimeState.js";
-import { NotifyModified } from "../../../src/blue/compose/values.js";
+import { NotifyModified } from "../../../src/blue/compose/modified.js";
 import { CjsSchema } from "../../../src/blue/schema/index.js";
 
 const BELIST_UNLOADSTART = 0x07;

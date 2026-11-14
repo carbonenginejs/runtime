@@ -77,7 +77,7 @@ export * from "./exposure/IList.js";
 export * from "./exposure/BlueList.js";
 export * from "./exposure/IListNotify.js";
 export * from "./exposure/INotify.js";
-export { NotifyModified } from "./compose/values.js";
+export { NotifyModified } from "./compose/modified.js";
 export * from "./interfaces/IBlueResFileSystem.js";
 export * from "./io/RemoteFileCache.js";
 export * from "./io/BlueResFileSystemRemote.js";

@@ -3,7 +3,7 @@ import { blue } from "./blue.js";
 import { BlueClasses } from "./exposure/BlueClasses.js";
 import { CjsSchema } from "./schema/index.js";
 import { ensureRuntimeState } from "./compose/runtimeState.js";
-import { NotifyModified } from "./compose/values.js";
+import { NotifyModified } from "./compose/modified.js";
 import { BLUELISTEVENT } from "../global/consts/blue.js";
 
 const CHILD_COLLECTION_KINDS = new Set([ "array", "list" ]);
