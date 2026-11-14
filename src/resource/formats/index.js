@@ -7,7 +7,7 @@
  * direct loading from source with a syntax error at the decorator rather than
  * at the offending import. The same lint forbids formats from importing
  * `CjsResourceProbe`, so `inspect`, `getSupport` and `verifySupport` return
- * plain objects; `CjsResourceProbe.from()` normalizes them in the resource
+ * plain objects; `CjsResourceProbe.create__Report()` normalizes them in the resource
  * layer.
  */
 export { CjsBmpFormat } from "./bmp/index.js";

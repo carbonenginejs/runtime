@@ -357,7 +357,7 @@ test("Tr2EffectRes overrides the native load hook", () =>
 });
 
 test("CjsResourceProbe preserves generalized output capabilities", () => {
-  const probe = CjsResourceProbe.from({
+  const probe = CjsResourceProbe.create__Report({
     format: "dds",
     source: "buffer",
     recognized: true,
@@ -395,8 +395,8 @@ test("CjsResourceProbe preserves generalized output capabilities", () => {
   assert.equal(probe.outputs[1].passthrough, false);
 });
 
-test("CjsResourceProbe.from normalizes plain reports without dropping handoff metadata", () => {
-  const probe = CjsResourceProbe.from({
+test("CjsResourceProbe.create__Report normalizes plain reports without dropping handoff metadata", () => {
+  const probe = CjsResourceProbe.create__Report({
     format: "webp",
     source: "buffer",
     recognized: true,

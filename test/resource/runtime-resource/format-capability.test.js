@@ -69,7 +69,7 @@ test("undeclared outputs fail without pretending a decoder ran", async () =>
 
 test("CjsResourceProbe normalizes the plain report at the resource boundary", () =>
 {
-  const probe = CjsResourceProbe.from(TestFormat.getSupport(new Uint8Array([ 0x42, 7 ])));
+  const probe = CjsResourceProbe.create__Report(TestFormat.getSupport(new Uint8Array([ 0x42, 7 ])));
   assert.equal(probe.recognized, true);
   assert.equal(probe.canUseSelected(), true);
   assert.equal(probe.canUseSelected({ verified: true }), false);

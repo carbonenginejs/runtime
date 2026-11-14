@@ -74,7 +74,7 @@ const READ_MODE_ASYNC = "async";
  *
  * The format subpaths must remain directly importable from authored source, so
  * this base carries no decorators. Formats return plain support reports;
- * CjsResourceProbe.from() is the optional resource-layer normalization.
+ * CjsResourceProbe.create__Report() is the optional resource-layer normalization.
  *
  * A concrete format declares these statics (checked by validateContract):
  * - `id`: stable format identity;

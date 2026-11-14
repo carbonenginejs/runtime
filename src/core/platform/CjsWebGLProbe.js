@@ -145,8 +145,11 @@ export class CjsWebGLProbe
         };
     }
 
-    /** Returns a detached record of the probed values. */
-    GetValues()
+    /**
+     * The probe's data: a detached record of what it found.
+     * @returns {{ available: boolean, contextType: ?string, limits: object, extensions: string[], probeError: ?string }} The record.
+     */
+    GetData()
     {
         return {
             available: this.available,

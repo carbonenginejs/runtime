@@ -63,12 +63,13 @@ export class CjsResourceProbe
   }
 
   /**
-   * Normalize a plain format report at the resource boundary.
+   * A probe from a plain format report, normalized at the resource boundary (a factory, as Carbon's non-default
+   * constructors port).
    *
    * @param {object|null} input Plain report, or an object with `toJSON()`.
    * @returns {CjsResourceProbe} The normalized report.
    */
-  static from(input)
+  static create__Report(input)
   {
     if (input && typeof input.toJSON === "function") return new this(input.toJSON());
     return new this(input);
