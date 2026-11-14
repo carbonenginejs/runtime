@@ -113,7 +113,7 @@ export class CjsSqliteFormat extends CjsFormat {
     if (output === "cjstables") {
       const data = new CjsTableData(options.metadata ?? {});
       for (const batch of this.readBatches(input, options)) data.Append(batch);
-      return data.GetValues();
+      return data.GetData();
     }
     const bytes = Normalize(input);
     const header = ReadHeader(bytes);

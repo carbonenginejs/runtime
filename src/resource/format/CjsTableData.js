@@ -2,7 +2,7 @@ import { CARBON_TYPE } from "../../blue/schema/types/carbonTypes.js";
 
 /**
  * Our common decoded table representation. The class is an in-process builder;
- * GetValues emits the same plain cjstables document in browsers, Node and workers.
+ * GetData emits the same plain cjstables document in browsers, Node and workers.
  * No persistence engine, schema registry, field renaming or hydration is involved.
  */
 export class CjsTableData
@@ -148,11 +148,11 @@ export class CjsTableData
     }
 
     /**
-     * Export the plain envelope. Values must be structured-cloneable; they are
-     * borrowed here, and postMessage/structuredClone owns transport copies.
+     * The table data: its plain cjstables document. Entries must be structured-cloneable; they are borrowed here, and
+     * postMessage/structuredClone owns transport copies. `SetData` reads it back.
      * @returns {object} A versioned cjstables document.
      */
-    GetValues()
+    GetData()
     {
         const tables = [];
         for (const table of this.tables.values())
@@ -177,12 +177,12 @@ export class CjsTableData
                 batch.Add(table.name, key, value);
                 if (++count === size)
                 {
-                    yield batch.GetValues();
+                    yield batch.GetData();
                     batch = new CjsTableData(this.metadata).AddTable(table.name, table);
                     count = 0;
                 }
             }
-            if (count || table.records.size === 0) yield batch.GetValues();
+            if (count || table.records.size === 0) yield batch.GetData();
         }
     }
 
@@ -222,13 +222,15 @@ export class CjsTableData
     }
 
     /**
-     * Wrap a plain document, including one delivered by a worker.
+     * Reads table data (`GetData`'s document, including one delivered by a worker) into this empty builder: its
+     * metadata, then its tables (`Append`).
      * @param {object} document A cjstables document.
-     * @returns {CjsTableData} The reconstructed table builder.
+     * @returns {CjsTableData} This builder.
      */
-    static from(document)
+    SetData(document)
     {
-        return new CjsTableData(document.metadata ?? {}).Append(document);
+        this.metadata = document.metadata ?? {};
+        return this.Append(document);
     }
 
     /**

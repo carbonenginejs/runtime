@@ -185,7 +185,7 @@ export class CjsFsd64Format extends CjsFormat
         {
             const result = new CjsTableData(options.metadata ?? {});
             for (const batch of this.readBatches(input, options)) result.Append(batch);
-            return result.GetValues();
+            return result.GetData();
         }
         if (options.schema)
         {
