@@ -46,6 +46,15 @@ export class CjsCharacterTextureRoles
     @meta.setting("characterTextureQuality", { applies: meta.setting.CREATE, values: [ "4k", "2k", "512", "256" ], category: "characters" })
     static characterTextureQuality = "4k";
 
+    /**
+     * Whether an accessory's map for a region and role may be one with no region in its name (`normal_n`, `spec_s`,
+     * `mask_f_n`) where it ships none named for the region or for accessories (`pickAccessoryMaps`). Derived, moved
+     * from Graphene's accessories: neither the `.type` nor the metadata names an item's maps. Ours, with no Carbon
+     * counterpart.
+     */
+    @meta.setting("characterAccessoryMapFallback", { applies: meta.setting.CREATE, category: "characters" })
+    static characterAccessoryMapFallback = true;
+
     static className = "CjsCharacterTextureRoles";
 
     /** The regions a file name can carry, as authored. */
@@ -370,6 +379,41 @@ export class CjsCharacterTextureRoles
      *   maps' roles, and the other map names.
      * @throws {Error} For a composed map name the lookup does not source.
      */
+    /**
+     * An accessory's maps by region (`regions`) and role (`l`, `z`, `d`, `n`, `s`), each at the character texture
+     * quality, searched across its folders in order: the name for the region (`colorize_<region>_l`,
+     * `comp_<region>_n`), else the accessory name (`colorize_acc_l`: a piercing's area may sit in the body region),
+     * else, while `characterAccessoryMapFallback` is on, a name with no region ending in the role (not `_mn` or `_tn`).
+     * Another region's named maps never stand in. Derived, moved from Graphene's accessories.
+     * @param {string[]} folders The item's folders, first searched first.
+     * @param {function(string): string[]} list The listed files below a folder.
+     * @returns {Object<string, Object<string, ?{ path: string, fallback: boolean }>>} Per region and role the map,
+     *   and whether it was not named for the region; null where none is found.
+     */
+    static pickAccessoryMaps(folders, list)
+    {
+        const all = folders.flatMap(dir => list(dir).filter(file => file.lastIndexOf("/") === dir.length - 1 && file.endsWith(".png")));
+        const tiers = CjsCharacterTextureRoles.tierOrder();
+        const stem = file => { const [ name ] = CjsCharacterTextureRoles.splitTier(file); return name.slice(name.lastIndexOf("/") + 1); };
+        const pick = test => tiers.map(tier => all.find(file => CjsCharacterTextureRoles.splitTier(file)[1] === tier && test(stem(file)))).find(Boolean) ?? null;
+        const qualified = new RegExp("^(colorize|comp)_(" + CjsCharacterTextureRoles.regions.join("|") + ")_", "u");
+        const result = {};
+        for (const region of CjsCharacterTextureRoles.regions)
+        {
+            result[region] = {};
+            for (const role of [ "l", "z", "d", "n", "s" ])
+            {
+                const family = role === "l" || role === "z" ? "colorize_" : "comp_";
+                const named = pick(name => name === family + region + "_" + role);
+                const found = named ?? pick(name => name === family + "acc_" + role) ?? (CjsCharacterTextureRoles.characterAccessoryMapFallback
+                    ? pick(name => name.endsWith("_" + role) && !/_(mn|tn)$/u.test(name) && !qualified.test(name)) : null);
+                result[region][role] = found ? { path: found, fallback: !named } : null;
+            }
+        }
+        return result;
+    }
+
+
     static readFolder(folder, files)
     {
         const maps = files.filter(file => file.startsWith(folder) && file.lastIndexOf("/") === folder.length - 1 && file.endsWith(".png"));

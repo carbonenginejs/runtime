@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
+import { CjsCharacterTextureRoles } from "../../../npm/dist/character/library/CjsCharacterTextureRoles.js";
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import "../../support/frameLoop.js";
@@ -10,7 +11,7 @@ const META = "!!python/object:paperDoll.AvatarPartMetaData\n";
 const COLOR = "colors: [!!python/tuple [0.5,0,0,1], !!python/tuple [0,0.5,0,1], !!python/tuple [0,0,0.5,1]]\npattern: ''\n";
 const OPAQUE = "opaque";
 
-/** A synthetic build of the categories whose rules moved from Graphene: hair. */
+/** A synthetic build of the categories whose rules moved from Graphene: hair and accessories. */
 function fixture(t)
 {
     const text = new Map([
@@ -28,7 +29,20 @@ function fixture(t)
         [ "hair/aura_hp/aura.color", COLOR ],
         [ "hair/aura_hp/comp_hair_d.png", OPAQUE ],
         [ "hair/colors/brown_a.color", COLOR ],
-        [ "hair/colors/brown_bc.color", COLOR ]
+        [ "hair/colors/brown_bc.color", COLOR ],
+        // An accessory with a variation folder and an alternative texture source.
+        [ "accessories/glasses/glasses01/types/glasses01.type", "!!python/tuple [accessories/glasses/glasses01, v1, gold]\n" ],
+        [ "accessories/glasses/glasses01/metadata.yaml", META + "numColorAreas: 2\nalternativeTextureSourcePath: accessories/shared/Metal\n" ],
+        [ "accessories/glasses/glasses01/v1/colorize_head_l.png", OPAQUE ],
+        [ "accessories/glasses/glasses01/colorize_acc_z.png", OPAQUE ],
+        [ "accessories/glasses/glasses01/normal_n.png", OPAQUE ],
+        [ "accessories/glasses/glasses01/gold.color", COLOR ],
+        [ "accessories/shared/metal/comp_acc_s.png", OPAQUE ],
+        [ "accessories/shared/metal/silver.color", COLOR ],
+        // A piercing type naming a part in another location; the part has no metadata.
+        [ "accessories/piercings/set01/types/stud02.type", "!!python/tuple [accessories/earslow/stud02, '', '']\n" ],
+        [ "accessories/piercings/set01/default.color", COLOR ],
+        [ "accessories/earslow/stud02/comp_acc_d.png", OPAQUE ]
     ].map(([ path, value ]) => [ ROOT + path, value ]));
     const cache = new RemoteFileCache();
     cache.AddFileIndex([ ...text.keys() ].map((path, index) => `${path},synthetic/${index},checksum,1`).join("\n"));
@@ -75,6 +89,8 @@ test("hair: one option per .type, maps from the variation folder else the style'
 
     assert.deepEqual(await library.FetchColorAreas(bob), [ 1, 2 ]);
     assert.deepEqual(await library.FetchColorAreas(aura), [ 1 ]);
+    assert.equal(local((await library.ResolveColors(bob)).palette), "hair/colors/brown_a.color", "with no palette named, the first area-1 swatch");
+    assert.equal(local((await library.ResolveColors(aura)).palette), "hair/aura_hp/aura.color");
 });
 
 test("a library's generic category overrides the shipped default of that name", async t =>
@@ -85,4 +101,40 @@ test("a library's generic category overrides the shipped default of that name", 
     library.InstallLibrary(installed);
     await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "hair", id: "x" }), /No maps rule for the paper doll category hair/);
     assert.equal(CjsCharacterLibraryManager.categories.hair.maps, "variation", "the defaults are not changed");
+});
+
+test("accessories: maps by region across the item's folders, palettes of those folders, areas as its metadata states", async t =>
+{
+    const library = fixture(t);
+    const [ glasses ] = await library.FetchOptions("female", "accessories/glasses");
+    const [ stud ] = await library.FetchOptions("female", "accessories/piercings");
+    const maps = await library.FetchOptionMaps(glasses);
+    assert.deepEqual(maps.folders.map(local), [ "accessories/glasses/glasses01/v1/", "accessories/glasses/glasses01/", "accessories/shared/metal/" ]);
+    const head = Object.fromEntries(Object.entries(maps.regions.head).map(([ role, map ]) => [ role, map && [ local(map.path), map.fallback ] ]));
+    assert.deepEqual(head, {
+        l: [ "accessories/glasses/glasses01/v1/colorize_head_l.png", false ],
+        z: [ "accessories/glasses/glasses01/colorize_acc_z.png", true ],
+        d: null,
+        n: [ "accessories/glasses/glasses01/normal_n.png", true ],
+        s: [ "accessories/shared/metal/comp_acc_s.png", true ]
+    }, "the region's name, else the accessory name, else an unqualified one");
+    assert.equal(maps.regions.body.l, null, "another region's named map never stands in");
+    assert.deepEqual((await library.FetchPalettes(glasses)).map(record => local(record.path)), [ "accessories/glasses/glasses01/gold.color", "accessories/shared/metal/silver.color" ]);
+    assert.deepEqual(await library.FetchColorAreas(glasses), [ 1, 2 ]);
+
+    assert.deepEqual((await library.FetchOptionMaps(stud)).folders.map(local), [ "accessories/earslow/stud02/", "accessories/piercings/set01/" ], "a piercing's maps follow the part its type names");
+    assert.deepEqual((await library.FetchPalettes(stud)).map(record => local(record.path)), [ "accessories/piercings/set01/default.color" ]);
+    assert.deepEqual(await library.FetchColorAreas(stud), [], "no metadata is no colour");
+});
+
+test("the unqualified accessory map fallback is a setting, on by default", async t =>
+{
+    assert.equal(CjsCharacterTextureRoles.characterAccessoryMapFallback, true);
+    CjsCharacterTextureRoles.characterAccessoryMapFallback = false;
+    t.after(() => { CjsCharacterTextureRoles.characterAccessoryMapFallback = true; });
+    const library = fixture(t);
+    const [ glasses ] = await library.FetchOptions("female", "accessories/glasses");
+    const { regions } = await library.FetchOptionMaps(glasses);
+    assert.equal(regions.head.n, null);
+    assert.equal(local(regions.head.s.path), "accessories/shared/metal/comp_acc_s.png", "the accessory name still stands in");
 });
