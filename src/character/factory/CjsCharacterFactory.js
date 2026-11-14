@@ -41,12 +41,12 @@ const DEFAULTS = { female, male };
  * `res:` path; `colors` are three RGBA quadruples and win over `palette`. A part the DNA does not name is as its
  * defaults have it. `modifiers` is the recipe a DNA was read from, every entry as read (`readRecipe`): the parts are
  * what the factory applies of it, and the entries it does not apply (shapes, dependants and their variations, parts not
- * applied yet) are kept there (operator, 2026-11-12: "The factory MUST provide the data").
- * PROVISIONAL: the colour fields (`palette`, `secondaryPalette`, `colors`) and their precedence wait on the operator's
+ * applied yet) are kept there: the factory provides the data.
+ * PROVISIONAL: the colour fields (`palette`, `secondaryPalette`, `colors`) and their precedence wait on a
  * colour ruling (the parts library's `ResolveColors` is provisional too).
  *
- * Ours (no Carbon counterpart): Carbon ships no paper doll; the client's is Python. Named after the factory role
- * (operator, 2026-11-09), as the space object factory is for ships.
+ * Ours (no Carbon counterpart): Carbon ships no paper doll; the client's is Python. Named after the factory role,
+ * as the space object factory is for ships.
  */
 export class CjsCharacterFactory
 {
@@ -239,7 +239,7 @@ export class CjsCharacterFactory
     }
 
     /**
-     * A part's colours. PROVISIONAL (the operator's colour ruling is open): the DNA's own colours win (and its own
+     * A part's colours. PROVISIONAL (the colour ruling is open): the DNA's own colours win (and its own
      * specular colours, where the part's surface reads them); else its palette's colours (and specular colours where the part's surface reads them), with a secondary palette's areas 2
      * and 3; else the resolved option's default palette where the option paints colour areas; else neutral grey.
      * @param {object} component The definition's component.
@@ -281,8 +281,8 @@ export class CjsCharacterFactory
      * Reads a `.prs` recipe into a DNA: each entry's category and option from the parts library
      * (`ResolveRecipeEntry`), set on, at its weight, with its own colours (and their specular colours) or the palette
      * its colour variation names. An archetype entry sets the archetype (the library's option path). An entry the library
-     * marks nude (`feet_nude`) turns its part off. An entry the paper doll does not apply throws (operator,
-     * 2026-11-12: a rule not handled throws), all of them named in one error: an entry in no category or one with no
+     * marks nude (`feet_nude`) turns its part off. An entry the paper doll does not apply throws (a rule not
+     * handled throws), all of them named in one error: an entry in no category or one with no
      * paper doll part, an entry no option presets that is not a garment (a garment takes the part's `recipe` option,
      * `FetchRecipeOption`, where the build ships its folder), an archetype entry with no archetype, and the entries of
      * parts not applied yet (`notAppliedYet`). What an applied entry cannot apply (a palette, a pattern's colours) is
@@ -319,9 +319,9 @@ export class CjsCharacterFactory
             if (CjsCharacterFactory.notAppliedYet.includes(name)) { unapplied.push(entry.path + ": " + name + " is not applied until the instance owns meshes (R6)"); continue; }
             if (found.option === null)
             {
-                // The operator's ruling (feet_nude): an entry naming a part's bare state turns the part off.
+                // An entry naming a part's bare state (feet_nude) turns the part off.
                 if (found.nude === true) { dna.parts[name] = { enabled: false }; continue; }
-                // The operator's ruling: a garment no `.type` presets takes the part's `recipe` option.
+                // A garment no `.type` presets takes the part's `recipe` option.
                 const recipeOption = CjsCharacterLibraryManager.categories[found.category].maps === "garment"
                     ? await library.FetchRecipeOption(recipeSex, found.category, entry) : null;
                 if (recipeOption === null)

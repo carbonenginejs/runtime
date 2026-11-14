@@ -72,7 +72,7 @@ sourceAttribute: string
 # Tr2Vector4Parameter: inline-owned, 1 occurrences. Wire example: first U32 object ID 4 plus inline payload at offset 717; no other pointer to this object observed in this file.
 # Wire source: res:/graphics/character/global/paperdolllibrary/curvesets/headskinglowcolor.black
 # → Tr2GStateParameter.yaml, Tr2Vector4Parameter.yaml
-# Binding target is a reference per the operator ruling; this file first defines its target inline. No additional pointer was observed; semantic ownership is not inferred.
+# Binding target is a reference; this file first defines its target inline. No additional pointer was observed; semantic ownership is not inferred.
 destinationObject: ref Tr2GStateParameter | Tr2Vector4Parameter
 # destinationAttribute: 18 of 54 objects (3 files); values "value".
 # Example: res:/graphics/character/global/paperdolllibrary/curvesets/2_default_0.black

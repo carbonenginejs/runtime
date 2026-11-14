@@ -263,8 +263,8 @@ export class CjsCharacterTextureRoles
      * name (a folder holding two such candidates at one tier throws). A name these lists do not hold is not drawn.
      *
      * Derived, every entry (no source states them; Carbon ships no paper doll). Today's look first: Graphene d2b1306
-     * `bodyComposition.js` `mapPaths` and `maskPaths`, with their exact precedence. Then the names the operator ruled
-     * drawn (2026-11-09, "if they exist, we should use them"), each after today's names for its map, so they draw only
+     * `bodyComposition.js` `mapPaths` and `maskPaths`, with their exact precedence. Then the names that are drawn
+     * where they exist, each after today's names for its map, so they draw only
      * where today's draw nothing: `comb_body_s` as a `comp` specular, `colorize_body_d` and `<part>_d` as an authored
      * diffuse, `colorize_body_n`, `<part>_body_n`/`_s`, `comp_body_mn` (a masked normal), `_tn` (a twist normal, added
      * over the normal), and any other `<name>_n`/`_s` (the part-name mismatches: `spacesuit01f_n`, `catsuitf01_s`,

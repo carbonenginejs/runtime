@@ -301,7 +301,7 @@ export class CjsPaperDollDefinition
     /**
      * The parts feeding a target, in bake order; parts with no rank come first,
      * equal ranks keep `parts` order. Occlusion does not reorder: an occluded
-     * part leaves the bake (`CjsPaperDollInstance.suppress`; operator, 2026-11-09).
+     * part leaves the bake (`CjsPaperDollInstance.suppress`).
      * @param {PaperDollTarget} target The target whose parts are ordered.
      * @returns {string[]} The parts' member names, first drawn first.
      */

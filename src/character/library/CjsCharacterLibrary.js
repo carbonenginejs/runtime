@@ -9,7 +9,7 @@ import "../model/index.js";
 /**
  * The character library's items, by kind: each kind a list of its records (`CjsCharacterLibraryConfiguration.kinds`)
  * beside the names they were stored under (`sourceNames`). Its data (`GetData`, `SetData`) is the items collected by
- * kind, and that is the library's whole format (operator, 2026-11-10): a prebuilt or cached library reads into the
+ * kind, and that is the library's whole format: a prebuilt or cached library reads into the
  * same record classes the readers make, through Blue's dict reader and writer.
  */
 @meta.define("CjsCharacterLibrary")

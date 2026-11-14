@@ -95,8 +95,8 @@ export class CjsCharacterAppearanceResolver
 
     /**
      * One `occludesModifiers` entry as a utility-shape occlusion. A weighted entry
-     * (`utilityshapes/pinchrighthipsshape#2.0`) sets the named morph to that weight while its item is worn (operator,
-     * 2026-11-12); one that states no weight suppresses it (weight null). The character format has read the entry
+     * (`utilityshapes/pinchrighthipsshape#2.0`) sets the named morph to that weight while its item is worn;
+     * one that states no weight suppresses it (weight null). The character format has read the entry
      * (`CjsCharacterYamlFormat.decodeModifier`).
      * @param {{ path: string, weight: ?number }} modifier The entry, as the character format reads it.
      * @param {string} [relationPath=""] A typed relation's modifier path; when not empty it wins over the entry's path.
@@ -115,8 +115,8 @@ export class CjsCharacterAppearanceResolver
      * Applies the utility-shape rule to the active selections' requests and
      * occlusions, grouped by path in first-request order, then the paths only
      * a weighted occlusion names. A weighted occlusion sets its morph to its
-     * weight while its item is worn, exactly as authored (operator,
-     * 2026-11-12): the path retains that setting, as `{ modifierPath,
+     * weight while its item is worn, exactly as authored:
+     * the path retains that setting, as `{ modifierPath,
      * targetName, weight, owner }`, and every request of it is suppressed.
      * Otherwise a request is suppressed by any unweighted occlusion of its
      * path, unless that occlusion's `protectedOwner` is the request's owner,
@@ -129,7 +129,7 @@ export class CjsCharacterAppearanceResolver
      *   Decoded occlusions (decodeUtilityOcclusion); `protectedOwner` is null when none, `owner` the item that sets a weight.
      * @param {?(owner: any) => ?number} [layer=null] Each owner's layer rank (`CjsPaperDollDefinition.GetLayer`). When
      *   worn items set one morph to different weights, the one in the highest layer wins: the top's drape sets
-     *   `pushdrapeshape#0.25` and `outer/jacketcm01` `#0.0`, and the jacket over it applies (operator, 2026-11-13: the
+     *   `pushdrapeshape#0.25` and `outer/jacketcm01` `#0.0`, and the jacket over it applies (the
      *   conflict crashed characters). Ours, provisional: no metadata orders two weighted settings of one morph.
      * @returns {{modifierPath: string, suppressed: object[], retained: object[], conflict: boolean}[]} One record per path.
      * @throws {Error} For worn items setting one morph to different weights when no single highest layer holds one.

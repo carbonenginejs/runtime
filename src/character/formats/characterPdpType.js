@@ -4,7 +4,7 @@
  * reader configuration names its kinds' values (`CjsCharacterLibraryConfiguration.kinds`, the character factory's
  * `recipeConfiguration`). `PART` is the parts library's join of a part folder, which has no file of its own.
  *
- * Ours (non-carbon-extensions.md § *The shared character library*; operator, 2026-11-10): the client's paper doll
+ * Ours (non-carbon-extensions.md § *The shared character library*): the client's paper doll
  * is Python, so Carbon has no counterpart.
  */
 export const CjsCharacterPdpType = Object.freeze({

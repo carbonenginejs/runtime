@@ -43,7 +43,7 @@ export class CjsPaperDollComponent
     color3 = Float32Array.of(.5, .5, .5, 1);
 
     /**
-     * Whether the user may switch the part off (operator, 2026-11-09). While nothing that remains occludes the part, a
+     * Whether the user may switch the part off. While nothing that remains occludes the part, a
      * part that is not overridable cannot be switched off by the user; an occluder still removes it from the bake. The
      * default character's data sets it false for the underwear (`CjsCharacterFactory`). The engine only holds the flag
      * and the UI honours it.
@@ -54,7 +54,7 @@ export class CjsPaperDollComponent
 
     /**
      * The part folder a `recipe` option names, below the paper doll root (a garment a recipe sets and no `.type`
-     * presets; operator, 2026-11-09); empty otherwise. The part's source reads it when the `recipe` option resolves.
+     * presets); empty otherwise. The part's source reads it when the `recipe` option resolves.
      * Persisted, not exposed to an editor (no READ): the character factory sets it from a recipe; it is not a choice.
      */
     @meta.mapAttribute(meta.PERSIST | meta.NOTIFY)

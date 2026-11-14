@@ -18,7 +18,7 @@ import { CjsCharacterLibraryManager } from "../../library/CjsCharacterLibraryMan
  * an area-1 `_a` swatch). An option is a `.type`, as in every part. Two male folders have none and are not options,
  * reported by `Describe`: `tattooface01` (a `projection.proj` alone) and `tattoofacetest` (a projection and a zone).
  * The arm folders (`tattoo/armleft/`, `tattoo/armright/`) project onto the body and are not composed here. No option
- * names a default ink: what starts on is the character factory's defaults (operator, 2026-11-09).
+ * names a default ink: what starts on is the character factory's defaults.
  *
  * The source owns the bake target and every option's paint over it. The bake draw itself (the head mesh drawn with
  * the shipped `skinnedavatartattoobaking` effect from the option's projection) is the host's until the instance owns

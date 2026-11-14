@@ -1,6 +1,6 @@
 {
   "sex": "male",
-  "description": "The default male paper doll: the clean character with the default bloodline (Caldari Deteis). The clean character (operator, 2026-11-09): eyebrows, head, body, eyes, bottom underwear on; lashes and tear ducts are head-mesh areas, not parts. Each part listed here starts in the values given; every other part starts switched off. A palette is a res: path whose colours the part takes. Edit freely: the engine reads this file as data.",
+  "description": "The default male paper doll: the clean character with the default bloodline (Caldari Deteis). The clean character: eyebrows, head, body, eyes, bottom underwear on; lashes and tear ducts are head-mesh areas, not parts. Each part listed here starts in the values given; every other part starts switched off. A palette is a res: path whose colours the part takes. Edit freely: the engine reads this file as data.",
   "parts": {
     "archetype": {
       "option": "archetypes/cdshape"

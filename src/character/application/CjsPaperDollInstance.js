@@ -221,14 +221,14 @@ export class CjsPaperDollInstance
     }
 
     /**
-     * Holds the parts that are not overridable (`CjsPaperDollComponent.overridable`; operator, 2026-11-09): a part
+     * Holds the parts that are not overridable (`CjsPaperDollComponent.overridable`): a part
      * switched off while no part that is still worn (on, resolved, and not itself suppressed: `suppress` over the parts as
      * they are) occludes it is switched back on, and its option resolved if it is not. Coverage is decided once, before the
      * held parts return, so holding and suppressing do not loop; an occluder still removes a held part from every bake
      * (`suppress`, run after). The host's switch only reflects this. `Update` reports a failed
      * resolution through the host's `error` binding.
      *
-     * Ours (no Carbon counterpart): the client's paper doll is Python. The rule is the operator's.
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
      * @param {import("./CjsPaperDollDefinition.js").CjsPaperDollDefinition} definition The settings.
      * @returns {Array<[ string, Promise<*> ]>} Each held part whose option is resolving, and the resolution.
      */
@@ -287,7 +287,7 @@ export class CjsPaperDollInstance
      * over every active part whose option is resolved, an edge where one's `occludesModifiers` names another's category
      * or option path. Suppression runs from the roots; a cycle stays active. An unresolved option is not walked until its
      * resolution rebuilds the part, as the earlier walks took only resolved items. A suppressed part leaves every
-     * target's bake (`ready`): occlusion drops, everywhere (operator, 2026-11-09).
+     * target's bake (`ready`): occlusion drops, everywhere.
      *
      * A part's path is its option's content path where the option states one (decals, garments, hair, beard,
      * accessories), else its category: the colourised parts, eyes, skin and tattoos, which the content's occluders name
@@ -529,10 +529,9 @@ export class CjsPaperDollInstance
      * metadata's utility-shape requests, for the garment, and its occlusions, which protect no owner:
      * `dependants/boottucking/standard` suppresses its own garment's boot pinch as well as any other's, and
      * `standard/v1` the boots' trouser tucks; a weighted one sets its morph (`resolveUtilityShapes`), exactly as
-     * authored, with no filtering by kind or target (operator, 2026-11-12: "we just do exactly what the garments
-     * say"). `hidesBootShin` does not select them; both directions set it differently. The result goes to
+     * authored, with no filtering by kind or target: what the garments' metadata says is done exactly. `hidesBootShin` does not select them; both directions set it differently. The result goes to
      * `resolveUtilityShapes` with the worn items' own requests and occlusions. Every entry a dependant's metadata
-     * states has a rule or throws (operator, 2026-11-12: "all rules must be handled"): a request that names no utility shape and a
+     * states has a rule or throws: a request that names no utility shape and a
      * utility shape that does not decode throw; an occlude outside `utilityshapes/` is the owner's (`dependantOccludes`).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
@@ -552,8 +551,8 @@ export class CjsPaperDollInstance
      * `occludesModifiers` outside `utilityshapes/` (those are `dependantShapes`'), cut to its path as the owner's own
      * occludes are. The owner occludes them as if it stated them: `outer/vanguardf01` v6 brings
      * `accessories/masks/mask_big_f`, whose metadata occludes `accessories/chin`, `accessories/lips` and
-     * `accessories/nose`, so the suit with that mask suppresses those piercings (operator, 2026-11-13: follow every
-     * instruction the content gives).
+     * `accessories/nose`, so the suit with that mask suppresses those piercings: every instruction the content
+     * gives is followed.
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
      * @param {Array<{ occludes: string[] }>} dependants The dependants as the library hands them out, decoded (`FetchDependantPart`).
@@ -567,8 +566,7 @@ export class CjsPaperDollInstance
     /**
      * Which of a worn garment's dependants are there for the tuck rule (`dependantShapes`): the same ones whose mesh
      * draws (`dependantMeshShown`), those no worn, unsuppressed garment's own `occludesModifiers` remove. A dependant is
-     * there or not as a whole, mesh and shapes together (operator, 2026-11-13: "we have to resolve what is and isn't
-     * visible"). Dropping the shapes of a drape that still draws left `pushdrapeshape` unset, so a waistband (a
+     * there or not as a whole, mesh and shapes together: what is and is not visible is resolved first. Dropping the shapes of a drape that still draws left `pushdrapeshape` unset, so a waistband (a
      * bottom whose `dependants/waisttucking/standard` occludes `dependants/drape`) cut through it. The conflicts its
      * shapes meet (the drape's `pinchleftlowerhipsshape#0.2` against the waist tuck's `#2.0`) resolve by layer
      * (`CjsCharacterAppearanceResolver.resolveUtilityShapes`).
@@ -588,7 +586,7 @@ export class CjsPaperDollInstance
      * Whether a dependant's mesh draws (the drape a top lists): only a worn, unsuppressed garment's own
      * `occludesModifiers` remove it (`armorsuitcf01` lists `dependants/drape`). A dependant's occlusion of it (a
      * bottom's `dependants/waisttucking/standard`) cancels only its shapes (`shownDependants`), so a tucked tank top
-     * over trousers keeps its lower part (operator, 2026-11-13).
+     * over trousers keeps its lower part.
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python. The library stores the metadata; this applies it.
      * @param {string} path The dependant's modifier path (`dependants/drape/standard`).
@@ -637,7 +635,7 @@ export class CjsPaperDollInstance
     /**
      * A target's ready capture: each part's settings (`CaptureTarget`), the suppression walk, and the ready lists the
      * composition draws. `order` is the bake order without the suppressed parts: an occluded part leaves every target's
-     * bake (operator, 2026-11-09). The head's `brow` list is the parts after the eyebrows: what covers the brows on the
+     * bake. The head's `brow` list is the parts after the eyebrows: what covers the brows on the
      * face covers them on the brow mesh.
      * @param {import("./CjsPaperDollDefinition.js").CjsPaperDollDefinition} definition The settings.
      * @param {number} target The target, a `PaperDollTarget` bit.

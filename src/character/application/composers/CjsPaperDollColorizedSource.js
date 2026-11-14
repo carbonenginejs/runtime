@@ -18,8 +18,8 @@ import { CjsCharacterLibraryManager } from "../../library/CjsCharacterLibraryMan
  * catalog's options, every option's `.color` files and the category's `colors/`). Each palette is a raw record: its path, its file name, its kind
  * (`PaperDollPaletteKind`: the areas it sets, from its `_a`/`_bc` name) and those areas. An option's default palette
  * is a content fact only: its `default.color` (or the type's colour variant), else none; which palettes a menu shows,
- * how they are merged and labelled, and a default where there is none, are the UI's (operator: the UI makes the
- * configuration and UI decisions, not the engine).
+ * how they are merged and labelled, and a default where there is none, are the UI's: the UI makes the
+ * configuration and UI decisions, not the engine.
  * An option's maps and colour areas are read the first time it is applied.
  *
  * An option with a specular map (`s`: lipstick) also draws into the head specular, in the applied palette's specular

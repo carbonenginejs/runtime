@@ -562,7 +562,7 @@ export class CjsCharacterLibraryManager
      * `occludes` and `dependants` are the entries outside `utilityshapes/`, cut to their paths; `shapes` the utility
      * requests (`CjsCharacterAppearanceResolver.decodeUtilityShape`) and occlusions (`decodeUtilityOcclusion`). A
      * dependant's every `dependantModifiers` entry is a utility request (the tuck rule), and its occlusions protect no
-     * owner. Every entry decodes or throws (operator, 2026-11-12: "all rules must be handled").
+     * owner. Every entry decodes or throws: every rule is handled.
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
      * @param {{ dependantModifiers: Array<{ path: string, weight: ?number }>, occludesModifiers: Array<{ path: string, weight: ?number }> }} metadata
@@ -1079,7 +1079,7 @@ export class CjsCharacterLibraryManager
 
     /**
      * A recipe option: the option a recipe entry selects when no `.type` presets it (a garment palette its type does
-     * not pair with that variation; the operator's ruling, 2026-11-09). It names the entry's part folder and variation
+     * not pair with that variation). It names the entry's part folder and variation
      * directly, as an option record the other queries take (`FetchOptionPart`, `FetchOptionMaps`, `FetchPalettes`), with
      * the id `recipe`. Null when the content has no such folder (a part the build does not ship).
      *
@@ -1227,8 +1227,8 @@ export class CjsCharacterLibraryManager
      * A caller's own copy of a library answer: a record rebuilt field by field over its declared fields (its `_pdpID`
      * and `_pdpType` among them), a typed array, array, Map or plain object copied item by item, any other value as it
      * is. Records are not copied through their values: those do not rebuild the records a Map holds
-     * (`CjsCharacterPart.colorVariations`). Every answer is one, so changing it never changes the library: that is an explicit library call
-     * (operator, 2026-11-10). Measured at about 15 µs per call over a character's queries (build 3670638).
+     * (`CjsCharacterPart.colorVariations`). Every answer is one, so changing it never changes the library: that is an explicit library call.
+     * Measured at about 15 µs per call over a character's queries (build 3670638).
      * @param {*} value The answer.
      * @returns {*} The copy.
      */

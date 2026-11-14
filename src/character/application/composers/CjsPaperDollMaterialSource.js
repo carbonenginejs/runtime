@@ -103,11 +103,11 @@ export class CjsPaperDollMaterialSource
             if (value.typePath === null && !records.length) throw new Error("Underwear without a palette " + value.folder);
             this._options.set(value.id, { id: value.id, option: value, base: value.folder, type: value.typePath, records, bloodlines: value.bloodlines, path: value.path, resolved: null, maps: null });
         }
-        // The `recipe` option: the part folder and variation a recipe sets when no `.type` presets them (operator,
-        // 2026-11-09). What it names is the component's `recipePath` and `recipeVariation`, read when it resolves.
+        // The `recipe` option: the part folder and variation a recipe sets when no `.type` presets them.
+        // What it names is the component's `recipePath` and `recipeVariation`, read when it resolves.
         this._options.set("recipe", { id: "recipe", option: null, base: "", type: null, records: [], bloodlines: [], path: "", resolved: null, maps: null, recipe: true });
-        // Every garment starts with no option and off: what starts on is the character factory's defaults (operator,
-        // 2026-11-09: no code-picked defaults; the underwear's bloodline pick went with them).
+        // Every garment starts with no option and off: what starts on is the character factory's defaults
+        // (no defaults picked in code; the underwear's bloodline pick went with them).
         const values = [ ...this._options.values() ];
         component.Configure(values.map(value => ({ id: value.id, path: value.path, palettes: [] })), {
             option: "",

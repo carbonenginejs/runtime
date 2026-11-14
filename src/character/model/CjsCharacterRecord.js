@@ -3,7 +3,7 @@ import { meta, type } from "#schema";
 /**
  * Base for one character library item: a record read from a file, or a join the parts library makes. `_pdpID` and
  * `_pdpType` travel with the item through its values, so a copy handed out can be matched back to its library item and
- * written in the shape it was read from (operator, 2026-11-10). Both are read-only: a reader or the library sets them
+ * written in the shape it was read from. Both are read-only: a reader or the library sets them
  * through values.
  */
 @meta.define("CjsCharacterRecord")

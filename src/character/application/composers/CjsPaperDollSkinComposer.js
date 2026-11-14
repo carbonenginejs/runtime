@@ -77,7 +77,7 @@ export class CjsPaperDollSkinComposer
         // Raw records (`FetchPalettes`): the panel labels them (Graphene paletteMenus.js).
         const records = (await build.Ready(library.FetchPalettes(option))).map(({ path, name }) => ({ path, name })).sort((a, b) => a.path.localeCompare(b.path));
         // The paint's colours until the first capture: neutral grey (the starting palette is the character factory's
-        // defaults; operator, 2026-11-09, no code-picked defaults).
+        // defaults; no defaults are picked in code).
         const initial = { colors: [ 0, 1, 2 ].map(() => Float32Array.of(.5, .5, .5, 1)) };
 
         const areas = new Set(), { roles, skipped } = await build.Ready(library.FetchOptionMaps(option));
