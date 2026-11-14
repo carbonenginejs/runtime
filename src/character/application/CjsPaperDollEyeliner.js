@@ -84,8 +84,6 @@ export class CjsPaperDollEyeliner extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD;
 
-    static category = "makeup/eyeliner";
-
     static blend = PaperDollBlend.COLORIZE;
 
     /** Its paint draws at its weight setting (`CjsPaperDollColorizedSource`). */

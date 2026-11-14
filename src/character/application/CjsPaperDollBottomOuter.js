@@ -57,8 +57,6 @@ export class CjsPaperDollBottomOuter extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.BODY | PaperDollTarget.SURFACE;
 
-    static category = "bottomouter";
-
     static blend = PaperDollBlend.MATERIAL;
 
     /** Where its palette files live: each option's own folder (`PaperDollPalettes`). */

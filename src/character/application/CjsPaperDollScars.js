@@ -22,8 +22,6 @@ export class CjsPaperDollScars extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD | PaperDollTarget.SURFACE;
 
-    static category = "scars";
-
     static blend = PaperDollBlend.DECAL;
 
 }

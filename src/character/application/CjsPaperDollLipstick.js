@@ -97,8 +97,6 @@ export class CjsPaperDollLipstick extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD | PaperDollTarget.SURFACE;
 
-    static category = "makeup/lipstick";
-
     static blend = PaperDollBlend.COLORIZE;
 
     /** Where its palette files live: each option's own folder (`PaperDollPalettes`). */

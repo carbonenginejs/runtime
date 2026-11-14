@@ -258,9 +258,6 @@ export class CjsPaperDollComponent
     /** Whether a foundation shape edit rebuilds this part while selected. */
     static shapeDependent = false;
 
-    /** Recipe category used by the option table and occlusion ordering. */
-    static category = "";
-
     /** UI hint that selecting an option also selects the palette it names. */
     static optionNamesPalette = false;
 

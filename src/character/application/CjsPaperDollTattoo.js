@@ -56,8 +56,6 @@ export class CjsPaperDollTattoo extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD;
 
-    static category = "tattoo";
-
     static blend = PaperDollBlend.PROJECTION;
 
     /** Where its palette files live: the category's `colors/` (`PaperDollPalettes`; `tattoo/head/colors/`). */

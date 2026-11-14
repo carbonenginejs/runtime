@@ -47,8 +47,6 @@ export class CjsPaperDollBeard extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD | PaperDollTarget.SURFACE;
 
-    static category = "beard";
-
     static blend = PaperDollBlend.MATERIAL;
 
 }

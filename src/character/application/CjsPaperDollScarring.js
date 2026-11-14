@@ -22,8 +22,6 @@ export class CjsPaperDollScarring extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.SURFACE;
 
-    static category = "makeup/scarring";
-
     static blend = PaperDollBlend.DECAL;
 
 }

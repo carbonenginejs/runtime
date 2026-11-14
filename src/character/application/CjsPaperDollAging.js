@@ -22,8 +22,6 @@ export class CjsPaperDollAging extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.SURFACE;
 
-    static category = "makeup/aging";
-
     static blend = PaperDollBlend.DECAL;
 
 }

@@ -97,7 +97,7 @@ export class CjsPaperDollMaterialSource
     {
         const component = definition[this.name], type = component.constructor, build = this._build, library = blue.characterLibrary, sex = build.content.sex;
         this._definition = definition;
-        for (const value of await build.Ready(library.FetchOptions(sex, type.category)))
+        for (const value of await build.Ready(library.FetchOptions(sex, CjsCharacterLibraryManager.partCategory(this.name))))
         {
             const records = await build.Ready(library.FetchPalettes(value));
             if (value.typePath === null && !records.length) throw new Error("Underwear without a palette " + value.folder);

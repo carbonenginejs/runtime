@@ -47,8 +47,6 @@ export class CjsPaperDollEyebrows extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD;
 
-    static category = "makeup/eyebrows";
-
     static blend = PaperDollBlend.COLORIZE;
 
     /** Where its palette files live: the category's catalog (`PaperDollPalettes`). */

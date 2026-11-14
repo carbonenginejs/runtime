@@ -57,8 +57,6 @@ export class CjsPaperDollOuter extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.BODY | PaperDollTarget.SURFACE;
 
-    static category = "outer";
-
     static blend = PaperDollBlend.MATERIAL;
 
     /** Where its palette files live: each option's own folder (`PaperDollPalettes`). */

@@ -45,8 +45,6 @@ export class CjsPaperDollEyes extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.EYES;
 
-    static category = "makeup/eyes";
-
     static blend = PaperDollBlend.COLORIZE;
 
 }

@@ -27,8 +27,6 @@ export class CjsPaperDollAugmentations extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD | PaperDollTarget.BODY | PaperDollTarget.SURFACE;
 
-    static category = "makeup/augmentations";
-
     static blend = PaperDollBlend.DECAL;
 
 }

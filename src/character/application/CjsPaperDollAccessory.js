@@ -56,8 +56,6 @@ export class CjsPaperDollAccessory extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD;
 
-    static category = "";
-
     static blend = PaperDollBlend.MESH;
 
     static optionNamesPalette = true;

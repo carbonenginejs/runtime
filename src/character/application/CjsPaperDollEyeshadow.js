@@ -99,8 +99,6 @@ export class CjsPaperDollEyeshadow extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD;
 
-    static category = "makeup/eyeshadow";
-
     static blend = PaperDollBlend.COLORIZE;
 
     /** Its paint draws at its weight setting (`CjsPaperDollColorizedSource`). */

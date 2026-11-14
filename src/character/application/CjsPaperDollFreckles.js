@@ -22,8 +22,6 @@ export class CjsPaperDollFreckles extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD | PaperDollTarget.BODY;
 
-    static category = "makeup/freckles";
-
     static blend = PaperDollBlend.DECAL;
 
 }

@@ -55,8 +55,6 @@ export class CjsPaperDollArmRight extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.BODY | PaperDollTarget.SURFACE;
 
-    static category = "makeup/armright";
-
     static blend = PaperDollBlend.MATERIAL;
 
     /** Where its palette files live: each option's own folder (`PaperDollPalettes`). */

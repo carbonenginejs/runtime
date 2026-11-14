@@ -7,6 +7,4 @@ import { CjsPaperDollAccessory } from "./CjsPaperDollAccessory.js";
 export class CjsPaperDollMask extends CjsPaperDollAccessory
 {
 
-    static category = "accessories/masks";
-
 }

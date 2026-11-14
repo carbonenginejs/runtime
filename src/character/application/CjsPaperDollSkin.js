@@ -47,8 +47,6 @@ export class CjsPaperDollSkin extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.SKIN;
 
-    static category = "skintone";
-
     static blend = PaperDollBlend.COLORIZE;
 
 }

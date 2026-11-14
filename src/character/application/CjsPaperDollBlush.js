@@ -77,8 +77,6 @@ export class CjsPaperDollBlush extends CjsPaperDollComponent
 
     static targets = PaperDollTarget.HEAD;
 
-    static category = "makeup/blush";
-
     static blend = PaperDollBlend.COLORIZE;
 
     /** Its paint draws at its weight setting (`CjsPaperDollColorizedSource`). */
