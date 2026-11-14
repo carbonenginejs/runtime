@@ -287,7 +287,8 @@ export class ClassInfo
   /**
    * Ours: whose a class, a member row or a method is. BLUE is Carbon's and exposed (`be.define`, a
    * `be.map*` row), CARBON is Carbon's and not exposed (`meta.carbon`), CJS is ours (`meta.define`,
-   * a `meta.map*` row).
+   * a `meta.map*` row). For a row or a method it names whose exposure wrote it, so neither is ever CARBON:
+   * a `meta.map*` row on a `meta.carbon` class is CJS.
    *
    * @cjs Carbon has one origin, itself.
    * @enum {string}

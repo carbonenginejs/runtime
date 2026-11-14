@@ -204,7 +204,8 @@ function findDescriptor(prototype, key)
 /**
  * The row a member already has in the table a recompile replaces, taken out of it, or a new row.
  * A member is the same one by exposed name, key and index. The graph's definition lists these rows,
- * so a recompile fills them again and never swaps them; what the graph wrote on one stays.
+ * so a recompile fills them again and never swaps them. What the graph wrote on one stays as it was
+ * until the class is defined again, even if the member's declaration changed.
  *
  * @param {VarEntry[]} previous The class's rows before this compile; a taken row is removed.
  * @param {object} member The schema's member or property record.
@@ -219,6 +220,7 @@ function rowFor(previous, member)
   const row = previous[at];
   previous.splice(at, 1);
   // What varEntryOf sets only for some members, and what the row resolved on a first read.
+  // The setter clears the chooser's source as well as its rows.
   row.chooserTable = null;
   row.getProperty = null;
   row.setProperty = null;
