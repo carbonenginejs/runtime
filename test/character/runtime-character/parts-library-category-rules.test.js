@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
+import { CjsCharacterDataCategory, CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
 import { CjsCharacterTextureRoles } from "../../../npm/dist/character/library/CjsCharacterTextureRoles.js";
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
@@ -42,6 +42,12 @@ function fixture(t)
         // A piercing type naming a part in another location; the part has no metadata.
         [ "accessories/piercings/set01/types/stud02.type", "!!python/tuple [accessories/earslow/stud02, '', '']\n" ],
         [ "accessories/piercings/set01/default.color", COLOR ],
+        // Lashes ship their maps and no palette; a folder without types/ is not an option.
+        [ "makeup/eyelashes/eyelashes_01/types/eyelashes_01.type", "!!python/tuple [makeup/eyelashes/eyelashes_01, '', '']\n" ],
+        [ "makeup/eyelashes/eyelashes_01/colorize_head_l.png", OPAQUE ],
+        [ "makeup/eyelashes/eyelashes_01/colorize_head_z.png", OPAQUE ],
+        [ "makeup/eyelashes/eyelashes_01/comp_head_s.png", OPAQUE ],
+        [ "makeup/eyelashes/eyelashes_02/colorize_head_l.png", OPAQUE ],
         [ "accessories/earslow/stud02/comp_acc_d.png", OPAQUE ]
     ].map(([ path, value ]) => [ ROOT + path, value ]));
     const cache = new RemoteFileCache();
@@ -97,10 +103,26 @@ test("a library's generic category overrides the shipped default of that name", 
 {
     const library = fixture(t);
     const installed = library.GetLibrary();
-    installed.generic.categories.set("hair", Object.assign(Object.create(null), { options: "type", maps: "", palettes: "own", areas: "none" }));
+    installed.generic.categories.set("hair", Object.assign(new CjsCharacterDataCategory(), { options: "type", maps: "", palettes: "own", areas: "none" }));
     library.InstallLibrary(installed);
     await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "hair", id: "x" }), /No maps rule for the paper doll category hair/);
     assert.equal(CjsCharacterLibraryManager.categories.hair.maps, "variation", "the defaults are not changed");
+});
+
+test("lashes: one option per .type, their composed maps, no palette, so the category's default colours", async t =>
+{
+    const library = fixture(t);
+    const options = await library.FetchOptions("female", "makeup/eyelashes");
+    assert.deepEqual(options.map(option => option.id), [ "eyelashes_01" ]);
+    assert.deepEqual((await library.FetchOptionMaps(options[0])).roles.map(role => local(role.path)).sort(), [
+        "makeup/eyelashes/eyelashes_01/colorize_head_l.png",
+        "makeup/eyelashes/eyelashes_01/colorize_head_z.png",
+        "makeup/eyelashes/eyelashes_01/comp_head_s.png"
+    ]);
+    assert.deepEqual(await library.FetchPalettes(options[0]), []);
+    const resolved = await library.ResolveColors(options[0]);
+    assert.equal(resolved.palette, null);
+    assert.deepEqual(resolved.colors.map(color => Array.from(color)), [ [ 0, 0, 0, 1 ], [ 0, 0, 0, 1 ], [ 0, 0, 0, 1 ] ]);
 });
 
 test("accessories: maps by region across the item's folders, palettes of those folders, areas as its metadata states", async t =>

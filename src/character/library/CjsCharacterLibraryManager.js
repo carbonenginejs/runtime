@@ -385,7 +385,7 @@ export class CjsCharacterLibraryManager
      * The shipped paper doll category rules (`factory/defaults/categories.json`, which says what each value means),
      * by category path below the sex's paper doll root. An empty rule is no rule. The parts library reads the rules
      * in force through `_Categories`, where a library's generic overrides these by name.
-     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"accessory"|"catalog"|"garment"), palettes: (""|"own"|"shared"|"variant"|"folders"), areas: (""|"zone"|"detail"|"count"|"stated"|"none") }>}
+     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"accessory"|"catalog"|"garment"), palettes: (""|"own"|"shared"|"variant"|"folders"), areas: (""|"zone"|"detail"|"count"|"stated"|"none"), defaultColors?: number[][] }>}
      */
     static categories = categoryDefaults.categories;
 
@@ -802,8 +802,8 @@ export class CjsCharacterLibraryManager
     /**
      * An option's colours: the library's own result, then the provided values laid over it. The library's result is
      * the named palette's colours, else the palette its `.type`'s colour variant names, else its `default` palette
-     * (`default_a` for a shared ink), else its category's fallback (`_FallbackPalette`), else none; a palette sets only its own areas
-     * (`paletteRecord`). Then each provided colour is laid over the area it is for, where the option paints that area
+     * (`default_a` for a shared ink), else its category's fallback (`_FallbackPalette`), else its category's
+     * `defaultColors` (the lashes' black), else none; a palette sets only its own areas (`paletteRecord`). Then each provided colour is laid over the area it is for, where the option paints that area
      * (`FetchColorAreas`); the rest are ignored. Provided values are not otherwise read.
      *
      * Ours, derived (non-carbon-extensions.md § *The shared character library*): Carbon has no counterpart. The shape
@@ -833,6 +833,11 @@ export class CjsCharacterLibraryManager
                 result.specularColors[area - 1] = values.specularColors[area - 1];
             }
             result.pattern = values.pattern;
+        }
+        else
+        {
+            const defaults = this._Categories().get(option.category).defaultColors;
+            for (let index = 0; index < defaults.length; index++) result.colors[index] = Float32Array.from(defaults[index]);
         }
         if (colors === null && specularColors === null) return result;
         for (const area of await this.FetchColorAreas(option))
@@ -1083,16 +1088,23 @@ export class CjsCharacterLibraryManager
 
     /**
      * The paper doll category rules in force, by category path: the shipped defaults (`categories`), each replaced by
-     * the installed library's generic category of the same name. Built once per install.
-     * @returns {Map<string, { options: string, maps: string, palettes: string, areas: string }>} The rules; not to be changed.
+     * the installed library's generic category of the same name. Built once per install. A default that lists no
+     * `defaultColors` has none.
+     * @returns {Map<string, { options: string, maps: string, palettes: string, areas: string, defaultColors: number[][] }>}
+     *   The rules; not to be changed.
      */
     _Categories()
     {
         if (this._categories === null || this._categoriesGeneration !== this._installGeneration)
         {
-            const rules = new Map(Object.entries(CjsCharacterLibraryManager.categories));
+            const rules = new Map(Object.entries(CjsCharacterLibraryManager.categories).map(([ name, rule ]) => [ name, { ...rule, defaultColors: rule.defaultColors ?? [] } ]));
             for (const [ name, category ] of this._library.generic.categories)
-                rules.set(name, { options: category.options, maps: category.maps, palettes: category.palettes, areas: category.areas });
+            {
+                rules.set(name, {
+                    options: category.options, maps: category.maps, palettes: category.palettes, areas: category.areas,
+                    defaultColors: category.defaultColors.map(color => Array.from(color))
+                });
+            }
             this._categories = rules;
             this._categoriesGeneration = this._installGeneration;
         }

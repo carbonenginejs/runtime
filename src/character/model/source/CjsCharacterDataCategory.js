@@ -32,4 +32,9 @@ export class CjsCharacterDataCategory
     @type.string
     areas = "";
 
+    /** The colours of areas 1 to 3 for an option that takes no palette (the lashes' black); empty for none. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.array("vec4")
+    defaultColors = [];
+
 }
