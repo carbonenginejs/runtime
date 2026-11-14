@@ -68,6 +68,22 @@ test("a part's metadata modifiers read as { path, weight } and write back as the
         assert.throws(() => CjsCharacterYamlFormat.decodeModifier(entry, separator, "f"), /^TypeError: f: no modifier form reads/u);
 });
 
+test("a recipe's colours text reads as its list and writes back as Python's repr", () =>
+{
+    const recipe = "- female\r\n- category: head\r\n  colors: '[(0.5, 0, 1.0, 1), (0.25, 0.5, 0.5, 1.0)]'\r\n  weight: 1.0\r\n";
+    const raw = CjsCharacterYamlFormat.readRaw(recipe, { sourceName: "res:/x.prs" });
+    assert.deepEqual(raw[1].colors.map(tuple => tuple.$yamlValue), [ [ 0.5, 0n, 1, 1n ], [ 0.25, 0.5, 0.5, 1 ] ]);
+    assert.equal(CjsCharacterYamlFormat.write(raw, { extension: ".prs" }), recipe);
+    // Plain values for hydration: tuples are arrays and ints numbers; a tuple of tuples ending in a number keeps its order.
+    const plain = { preservePythonTags: false, intAsBigInt: false };
+    assert.deepEqual(CjsCharacterYamlFormat.decodeRepr("((0.1, 0.2, 0.3, 1.0), 2.5)", { ...plain, tagField: "$yamlTag", valueField: "$yamlValue" }, "t"), [ [ 0.1, 0.2, 0.3, 1 ], 2.5 ]);
+    assert.equal(CjsCharacterYamlFormat.writeRepr(CjsCharacterYamlFormat.decodeRepr("((0.1, 2), 2.5)", { preservePythonTags: true, intAsBigInt: true, tagField: "$yamlTag", valueField: "$yamlValue" }, "t")), "((0.1, 2), 2.5)");
+    assert.equal(CjsCharacterYamlFormat.writeRepr(CjsCharacterYamlFormat.decodeRepr("((0.1, 0.2, 0.3, 1),)", { preservePythonTags: true, intAsBigInt: true, tagField: "$yamlTag", valueField: "$yamlValue" }, "t")), "((0.1, 0.2, 0.3, 1),)");
+    assert.throws(() => CjsCharacterYamlFormat.decodeRepr("[(0.1, x)]", { ...plain, tagField: "$yamlTag", valueField: "$yamlValue" }, "f colors"), /^TypeError: f colors: not a Python repr of numbers/u);
+    // Outside a recipe the text stays a string.
+    assert.equal(CjsCharacterYamlFormat.readRaw("colors: '[(1, 2)]'\n", { sourceName: "res:/x.color" }).colors, "[(1, 2)]");
+});
+
 test("floats are written as Python's repr, with PyYAML's .0e rule", () =>
 {
     const write = (value, floatDigits = null) => CjsCharacterYamlFormat.write([ value ], { defaultFlowStyle: null, lineBreak: "\n", floatDigits });

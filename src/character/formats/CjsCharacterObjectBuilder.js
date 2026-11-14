@@ -18,6 +18,9 @@ export class CjsCharacterObjectBuilder
 {
     _reader = null;
 
+    /** The character format this source is read through; it decodes the strings the file writes values into. */
+    _format = null;
+
     _kind = "";
 
     _path = "";
@@ -53,6 +56,7 @@ export class CjsCharacterObjectBuilder
             // the existing YAML conversion uses the last value when explicitly allowed.
             uniqueKeys: options.uniqueKeys ?? kind !== "sculptingLimits"
         });
+        this._format = format;
         this._reader = new CjsYamlReader(bytes, format.GetConfiguration());
         this._reader.AssertSyntax();
         this._reader.AssertAliasLimit();
@@ -66,7 +70,7 @@ export class CjsCharacterObjectBuilder
     CreateObject(objectMarker = 0)
     {
         if (objectMarker !== 0) throw new RangeError("Character text has only its root object marker.");
-        let raw = this._reader.ReadRaw();
+        let raw = this._format.DecodeValues(this._reader.ReadRaw());
         const { sourceLists } = this._configuration;
         const identified = CjsCharacterObjectBuilder.inspect(raw, this._kind, this._configuration.kinds);
         const Constructor = CjsSchema.getConstructor(identified.className);

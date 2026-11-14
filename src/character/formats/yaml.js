@@ -67,8 +67,9 @@ export function readCharacterYamlObject(values, context, sourceLists)
  * (`CjsCharacterFactory.recipeConfiguration`). For each file key, a form is one of:
  * - a field name: the key's value is that field's (`colorvariation` is `colorVariation`);
  * - field names: the key's list holds one item per field, in order (`TranslateSourceList`);
- * - `{ text, list, pattern }`: the key's value is a list written as Python tuple text; with the record's `pattern`
- *   set its items fill the `pattern` fields in order, else they are the `list` field's colours.
+ * - `{ list, pattern }`: the key's value is a list of tuples and numbers (the character format has read a recipe's
+ *   Python repr text, `CjsCharacterYamlFormat.decodeRepr`); with the record's `pattern` set its items fill the
+ *   `pattern` fields in order, else they are the `list` field's colours.
  * Tuples are colours (an RGB tuple gains alpha 1) or a vec4. The model classes hold the fields; how a file lays them
  * out is the format's.
  *
@@ -78,7 +79,7 @@ export function readCharacterYamlObject(values, context, sourceLists)
  *
  * @param {Function} Constructor Registered target declaration.
  * @param {object} values Authored plain values.
- * @param {Object<string, Object<string, (string|string[]|{ text: true, list: string, pattern: string[] })>>} sourceLists
+ * @param {Object<string, Object<string, (string|string[]|{ list: string, pattern: string[] })>>} sourceLists
  *   The caller's list forms, by record class.
  * @returns {object} Values suitable for the target's existing transport.
  */
@@ -117,7 +118,8 @@ export function normalizeCharacterYamlValues(Constructor, values, sourceLists)
         if (Array.isArray(form)) TranslateSourceList(className + "." + key, value, form, result);
         else if (value !== "")
         {
-            const items = ReadTupleText(className + "." + key, value);
+            if (!Array.isArray(value)) throw new TypeError(className + "." + key + " must be a list of tuples");
+            const items = value;
             if (result.pattern) TranslateSourceList(className + "." + key, items, form.pattern, result);
             else result[form.list] = items.map((item, i) => ReadTuple(className + "." + key + "[" + i + "]", item));
         }
@@ -152,21 +154,4 @@ function ReadTuple(label, tuple)
     if (!Array.isArray(tuple) || (tuple.length !== 3 && tuple.length !== 4) || !tuple.every(Number.isFinite))
         throw new TypeError(`${label} must be an RGB or RGBA tuple or a number`);
     return tuple.length === 3 ? [ tuple[0], tuple[1], tuple[2], 1 ] : tuple;
-}
-
-/**
- * A list written as Python tuple text (a recipe entry's `colors`: `'[(r, g, b, a), ...]'` or a tuple of tuples, then
- * any scalars): its tuples in order, then its scalars.
- * @param {string} label The file key, for errors.
- * @param {*} text The file's text.
- * @returns {Array<(number[]|number)>} The items.
- * @throws {TypeError} For a value that is not such text.
- */
-function ReadTupleText(label, text)
-{
-    if (typeof text !== "string") throw new TypeError(`${label} must be tuple text`);
-    const tuples = Array.from(text.matchAll(/\(([^()]*)\)/gu), match => match[1].split(",").map(Number));
-    const scalars = text.replace(/\(([^()]*)\)/gu, "").split(/[\[\],\s()]+/u).filter(token => token !== "").map(Number);
-    if (!scalars.every(Number.isFinite)) throw new TypeError(`${label} must be tuple text`);
-    return tuples.concat(scalars);
 }

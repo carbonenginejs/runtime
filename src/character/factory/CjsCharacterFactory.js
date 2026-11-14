@@ -388,7 +388,7 @@ export class CjsCharacterFactory
      * (`CjsCharacterLibraryConfiguration`): a recipe entry, with its colours and shape weights, is DNA, not part data
      * (Ruru, 2026-11-09). `kinds`: the `.prs` record, an envelope whose list's leading string is its `sex` and whose
      * mappings are its `modifiers`, `CjsCharacterRecipeModifier` records (`items`). `sourceLists`: the modifier's
-     * list forms (`normalizeCharacterYamlValues`). A modifier's `colors` text takes two shapes (every `.prs` under
+     * list forms (`normalizeCharacterYamlValues`). A modifier's `colors` (the file writes it as Python repr text, which the character format reads as its list) takes two shapes (every `.prs` under
      * `res:/graphics/character/` and `res:/animation_gstate/`, build 3670638, 380 recipes): three RGBA tuples, one per
      * colour area (3990 entries); or, for an entry that names a `pattern`, the pattern's items as a patterned palette
      * writes them (20 entries, all garments and arms). `match`: the character recipes `listRecipes` lists.
@@ -402,7 +402,7 @@ export class CjsCharacterFactory
                 decaldata: "decalData",
                 decalweight: "decalWeight",
                 specularcolors: [ "specularColor1", "specularColor2", "specularColor3" ],
-                colors: { text: true, list: "colors", pattern: [ "patternColor1", "patternColor2", "patternColor3", "patternAreaColor2", "patternAreaColor3", "patternTransform", "patternRotation" ] }
+                colors: { list: "colors", pattern: [ "patternColor1", "patternColor2", "patternColor3", "patternAreaColor2", "patternAreaColor3", "patternTransform", "patternRotation" ] }
             }
         },
         match: "res:/graphics/character/**/*.prs"

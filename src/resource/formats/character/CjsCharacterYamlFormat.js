@@ -19,7 +19,9 @@ const wrappedHandlers = new WeakSet();
  *
  * A part's metadata (`paperDoll.AvatarPartMetaData`) writes each modifier as one string: a path and, after a
  * separator, the weight it states (`modifierLists`). The format reads each as `{ path, weight }`, the weight null when
- * the file states none, and writes it back as the string.
+ * the file states none, and writes it back as the string. A recipe (`.prs`) writes each entry's `colors` as one
+ * string holding Python's repr of its list (`'[(0.5, 0.5, 0.5, 1.0), ...]'`, a tuple of tuples, or a patterned list
+ * ending in a number): the format reads it as that list (`decodeRepr`) and writes it back as the repr (`writeRepr`).
  *
  * Ours (no Carbon counterpart): the client's paper doll is Python.
  */
@@ -54,6 +56,9 @@ export class CjsCharacterYamlFormat extends CjsYamlFormat
         ".trif": { defaultFlowStyle: null, sortKeys: false, emptyNull: false, floatDigits: null, lineBreak: "\r\n" },
         ".type": { defaultFlowStyle: false, sortKeys: true, emptyNull: false, floatDigits: null, lineBreak: "\r\n" }
     };
+
+    /** The recipe keys whose value is a string holding a Python repr (`decodeRepr`). */
+    static reprKeys = [ "colors" ];
 
     /** The Python object whose modifier lists the format decodes. */
     static metadataTag = "tag:yaml.org,2002:python/object:paperDoll.AvatarPartMetaData";
@@ -95,6 +100,86 @@ export class CjsCharacterYamlFormat extends CjsYamlFormat
             else handlers[key] = decoding;
         }
         return this;
+    }
+
+    /**
+     * Decodes the strings these files write values into, in raw values read under this format's options: a recipe's
+     * repr strings (`reprKeys`, when the source is a `.prs`) and every metadata object's modifiers (`decodeMetadata`;
+     * a caller's metadata handler already has them). The object builder calls it after its own read.
+     * @param {*} raw Raw values, edited in place.
+     * @returns {*} The values.
+     */
+    DecodeValues(raw)
+    {
+        const options = this._values;
+        if (/\.prs$/iu.test(options.sourceName ?? "") && Array.isArray(raw))
+        {
+            for (const entry of raw)
+            {
+                if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+                for (const key of CjsCharacterYamlFormat.reprKeys)
+                    if (typeof entry[key] === "string" && /^[([]/u.test(entry[key])) entry[key] = CjsCharacterYamlFormat.decodeRepr(entry[key], options, options.sourceName + " " + key);
+            }
+        }
+        return CjsCharacterYamlFormat._DecodeRaw(raw, options.sourceName ?? null);
+    }
+
+    /**
+     * A Python repr of numbers in lists and tuples (`[(0.5, 0, 1.0), 2.5]`) as values: a list as an array, a tuple as
+     * an array too, or, under `preservePythonTags`, as a tuple envelope; an int as a bigint under `intAsBigInt`.
+     * @param {string} text The repr.
+     * @param {{ preservePythonTags: boolean, intAsBigInt: boolean, tagField: string, valueField: string }} options The
+     *   read options.
+     * @param {string} label The file and key, for errors.
+     * @returns {Array|object} The value.
+     * @throws {TypeError} For text that is not such a repr.
+     */
+    static decodeRepr(text, options, label)
+    {
+        const tokens = String(text).match(/[[\]()]|,|[^\s[\](),]+/gu) ?? [];
+        let at = 0;
+        const fail = () => { throw new TypeError(label + ": not a Python repr of numbers: " + text); };
+        const value = () =>
+        {
+            const token = tokens[at++];
+            if (token === "[" || token === "(")
+            {
+                const close = token === "[" ? "]" : ")", items = [];
+                while (tokens[at] !== close)
+                {
+                    if (at >= tokens.length) fail();
+                    items.push(value());
+                    if (tokens[at] === ",") at++;
+                    else if (tokens[at] !== close) fail();
+                }
+                at++;
+                return token === "(" && options.preservePythonTags ? { [options.tagField]: "tag:yaml.org,2002:python/tuple", [options.valueField]: items } : items;
+            }
+            if (!new RegExp("^" + NUMBER + "$", "u").test(token ?? "")) fail();
+            return options.intAsBigInt && /^[+-]?\d+$/u.test(token) ? BigInt(token) : Number(token);
+        };
+        const result = value();
+        if (at !== tokens.length) fail();
+        return result;
+    }
+
+    /**
+     * Values written back as their Python repr: a tuple envelope in parentheses (`(x,)` for one item), an array in brackets, a bigint as
+     * an int and a number as Python writes a float.
+     * @param {*} value The value, as `decodeRepr` reads it losslessly.
+     * @returns {string}
+     */
+    static writeRepr(value)
+    {
+        if (typeof value === "bigint") return value.toString();
+        if (typeof value === "number") return pythonFloat(value, null);
+        if (value && typeof value === "object" && !Array.isArray(value) && value[TAG_FIELD] === "tag:yaml.org,2002:python/tuple")
+        {
+            // Python writes a one-item tuple with a trailing comma: `(x,)`.
+            const items = value[VALUE_FIELD].map(CjsCharacterYamlFormat.writeRepr);
+            return "(" + items.join(", ") + (items.length === 1 ? ",)" : ")");
+        }
+        return "[" + value.map(CjsCharacterYamlFormat.writeRepr).join(", ") + "]";
     }
 
     /**
@@ -176,12 +261,26 @@ export class CjsCharacterYamlFormat extends CjsYamlFormat
     }
 
     /**
-     * A copy of raw values with every metadata object's modifiers joined back into strings; other nodes are shared.
+     * A copy of raw values with every metadata object's modifiers joined back into strings, and a recipe's repr
+     * values written back as their strings; other nodes are shared.
      * @param {*} raw Raw values, as a read gives them.
+     * @param {string} [extension=""] The file type being written.
      * @returns {*} The values to write.
      */
-    static _JoinRaw(raw)
+    static _JoinRaw(raw, extension = "")
     {
+        if (extension === ".prs" && Array.isArray(raw))
+        {
+            raw = raw.map(entry =>
+            {
+                if (!entry || typeof entry !== "object" || Array.isArray(entry)) return entry;
+                const reprs = CjsCharacterYamlFormat.reprKeys.filter(key => entry[key] !== null && typeof entry[key] === "object");
+                if (!reprs.length) return entry;
+                const copy = { ...entry };
+                for (const key of reprs) copy[key] = CjsCharacterYamlFormat.writeRepr(entry[key]);
+                return copy;
+            });
+        }
         const copies = new Map();
         const join = value =>
         {
@@ -223,7 +322,8 @@ export class CjsCharacterYamlFormat extends CjsYamlFormat
      */
     static read(input, options = {})
     {
-        return CjsCharacterYamlFormat._DecodeRaw(CjsYamlFormat.read(input, new CjsCharacterYamlFormat(options).GetConfiguration()), options.sourceName ?? null);
+        const format = new CjsCharacterYamlFormat(options);
+        return format.DecodeValues(CjsYamlFormat.read(input, format.GetConfiguration()));
     }
 
     /**
@@ -235,7 +335,8 @@ export class CjsCharacterYamlFormat extends CjsYamlFormat
      */
     static readRaw(input, options = {})
     {
-        return CjsCharacterYamlFormat._DecodeRaw(CjsYamlFormat.readRaw(input, new CjsCharacterYamlFormat(options).GetConfiguration()), options.sourceName ?? null);
+        const format = new CjsCharacterYamlFormat(options);
+        return format.DecodeValues(CjsYamlFormat.readRaw(input, format.GetConfiguration()));
     }
 
     /**
@@ -249,15 +350,16 @@ export class CjsCharacterYamlFormat extends CjsYamlFormat
     static write(value, options = {})
     {
         const { extension, ...overrides } = options;
-        let style = {};
+        let style = {}, type = "";
         if (extension !== undefined)
         {
             const key = String(extension).toLowerCase();
             if (!Object.hasOwn(CjsCharacterYamlFormat.dumpStyles, key)) throw new TypeError("CjsCharacterYamlFormat writes no " + (key || "file without an extension"));
             style = CjsCharacterYamlFormat.dumpStyles[key];
+            type = key;
         }
         const dump = { defaultFlowStyle: null, sortKeys: true, emptyNull: false, floatDigits: null, lineBreak: "\n", ...style, ...overrides };
-        return stringifyPyYaml(createPyYamlDocument(CjsCharacterYamlFormat._JoinRaw(value), dump), dump, CjsYamlFormat.write);
+        return stringifyPyYaml(createPyYamlDocument(CjsCharacterYamlFormat._JoinRaw(value, type), dump), dump, CjsYamlFormat.write);
     }
 
     static inputs = CjsFormat.defineInputs({

@@ -7,7 +7,8 @@
 //
 // Game files are never committed (org rule). The test reads through tools-core's service and skips when it is not
 // running (CJS_TOOLS_SERVER, default http://127.0.0.1:5510; CJS_CLIENT_BUILD pins the build). Every file of the small
-// types is read; `.type` and `.color` are fixed samples (SAMPLE of each, every Nth path in sorted order).
+// types is read, and every `.prs` (the scenes' recipes under `res:/animation_gstate/` too); `.type` and `.color` are
+// fixed samples (SAMPLE of each, every Nth path in sorted order).
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterYamlFormat } from "../../../../../src/resource/formats/character/index.js";
@@ -35,7 +36,7 @@ async function Corpus()
         const index = await fetch(`${SERVER}/eve/${build}/app/resfileindex.txt`, { signal: AbortSignal.timeout(120000) });
         if (!index.ok) return { skip: `no resfileindex for build ${build} (${index.status})` };
         const paths = (await index.text()).split("\n").map(line => line.split(",")[0].trim().toLowerCase())
-            .filter(path => path.startsWith("res:/graphics/character/")).sort();
+            .filter(path => path.startsWith("res:/graphics/character/") || path.startsWith("res:/animation_gstate/") && path.endsWith(".prs")).sort();
         return { build, paths };
     }
     catch (error)
@@ -94,7 +95,7 @@ for (const extension of CjsCharacterYamlFormat.extensions)
                 const text = await response.text();
                 const raw = CjsCharacterYamlFormat.readRaw(text, { sourceName: path });
                 const written = CjsCharacterYamlFormat.write(raw, { extension });
-                if (!Same(CjsCharacterYamlFormat.readRaw(written), raw)) failures.push(path + ": values differ after a write");
+                if (!Same(CjsCharacterYamlFormat.readRaw(written, { sourceName: path }), raw)) failures.push(path + ": values differ after a write");
                 const match = Match(text, raw, extension);
                 if (match) counts[match]++;
                 else if (!Object.hasOwn(EXCEPTIONS, path)) failures.push(path + ": text differs");

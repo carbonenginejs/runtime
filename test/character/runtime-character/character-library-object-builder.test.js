@@ -12,10 +12,10 @@ import { installPartsLibrary } from "../../support/partsLibrary.js";
 InitializeTrinityStub();
 
 /** A builder with the configuration that owns the kind: the factory's for recipes, the parts library's otherwise. */
-function Builder(source, kind)
+function Builder(source, kind, path = "res:/test/character/source.yaml")
 {
     const configuration = kind === "recipes" ? CjsCharacterFactory.recipeConfiguration : CjsCharacterLibraryConfiguration;
-    return new CjsCharacterObjectBuilder(source, kind, "res:/test/character/source.yaml", configuration);
+    return new CjsCharacterObjectBuilder(source, kind, path, configuration);
 }
 
 test("content inspection separates camera/post layouts without decoding other resources", () =>
@@ -56,7 +56,7 @@ test("root dictionaries hydrate typed records and preserve Number precision", ()
 
 test("recipes retain leading sex, typed modifiers, source refs and embedded decal spelling", () =>
 {
-    const recipe = Builder('- female\n- category: tattoo\n  path: tattoo/armleft/example\n  weight: 0.2\n  colorvariation: null\n  colors: "((0.1, 0.2, 0.3, 1),)"\n  decaldata: !!python/object:paperDoll.ProjectedDecal\n    layeres: 3\n    texturePath: res:/Original/Decal.dds\n', "recipes").CreateObject();
+    const recipe = Builder('- female\n- category: tattoo\n  path: tattoo/armleft/example\n  weight: 0.2\n  colorvariation: null\n  colors: "((0.1, 0.2, 0.3, 1),)"\n  decaldata: !!python/object:paperDoll.ProjectedDecal\n    layeres: 3\n    texturePath: res:/Original/Decal.dds\n', "recipes", "res:/test/character/source.prs").CreateObject();
     assert.equal(recipe.sex, "female");
     assert.equal(Object.getPrototypeOf(recipe.modifiers[0]), CjsCharacterRecipeModifier.prototype);
     assert.equal(recipe.modifiers[0].colorVariation, "");
