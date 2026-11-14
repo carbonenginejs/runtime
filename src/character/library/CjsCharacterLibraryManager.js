@@ -13,7 +13,6 @@ import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
 import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" with { type: "json" };
 import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
-import exclusivePartDefaults from "../factory/defaults/exclusiveParts.json" with { type: "json" };
 import meshDependantDefaults from "../factory/defaults/meshDependants.json" with { type: "json" };
 import categoryDefaults from "../factory/defaults/categories.json" with { type: "json" };
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
@@ -177,18 +176,6 @@ export class CjsCharacterLibraryManager
     GetBodyCarriers()
     {
         return CjsCharacterLibraryManager.copy(this._bodyCarriers);
-    }
-
-    /**
-     * The shipped exclusive part groups (`factory/defaults/exclusiveParts.json`). The paper doll owns them now
-     * (`CjsPaperDollInstance.exclusive`); this stays only until Graphene stops copying them from here, then goes.
-     *
-     * Ours (no Carbon counterpart): the client's paper doll is Python.
-     * @returns {string[][]} A copy.
-     */
-    GetExclusiveParts()
-    {
-        return CjsCharacterLibraryManager.copy(exclusivePartDefaults.groups);
     }
 
     /**

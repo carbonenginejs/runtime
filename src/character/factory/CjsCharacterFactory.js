@@ -86,17 +86,6 @@ export class CjsCharacterFactory
         return JSON.stringify(CjsCharacterFactory.readJSON(dna), null, 2);
     }
 
-    /**
-     * A sex's default paper doll, read as a DNA. The library holds it now (`CjsCharacterLibraryManager.defaultPaperDoll`);
-     * this stays only until Graphene's foundation asks the library, then goes.
-     * @param {string} sex The sex.
-     * @returns {{ sex: string, description: string, parts: Object<string, object> }} A copy the caller may change.
-     * @throws {Error} For a sex the library does not know.
-     */
-    static getDefaults(sex)
-    {
-        return CjsCharacterFactory.readJSON(CjsCharacterLibraryManager.defaultPaperDoll(sex));
-    }
 
     /**
      * Merges a DNA over its sex's defaults: every part the defaults name, then each DNA part over its default, and a

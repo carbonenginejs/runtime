@@ -36,8 +36,6 @@ test("the groups are the paper doll's, the defaults file their default; it appli
 {
     assert.deepEqual(GROUPS, [ [ "topMiddle", "topOuter" ] ]);
     assert.deepEqual(new CjsPaperDollInstance().Initialize({ error() {} }).exclusive, GROUPS, "an instance starts with the defaults");
-    // Kept on the library only until Graphene stops copying the groups from it.
-    assert.deepEqual(new CjsCharacterLibraryManager().GetExclusiveParts(), GROUPS);
-    assert.equal(typeof CjsCharacterLibraryManager.prototype.SetExclusiveParts, "undefined", "no library setter");
+    assert.equal(typeof CjsCharacterLibraryManager.prototype.GetExclusiveParts, "undefined", "the library holds no groups");
     assert.deepEqual(CjsPaperDollInstance.exclusiveParts(Tops([ true, "tshirtf01" ], [ true, "shirtmilf01" ]), new Map(), []), [], "no groups: both worn");
 });
