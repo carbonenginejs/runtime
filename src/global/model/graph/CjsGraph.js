@@ -1,5 +1,6 @@
 import { BLUELISTEVENT, EDITFLAGS } from "../../consts/blue.js";
 import { ClassInfo } from "./ClassInfo.js";
+import { VarEntry } from "./VarEntry.js";
 import { CjsGraphClassUIInfo } from "./CjsGraphClassUIInfo.js";
 import { CjsGraphState } from "./CjsGraphState.js";
 import { GRAPH_METADATA_KEY, GRAPH_TYPES, GRAPH_WRAPPERS, GraphMemberFlags, GraphOperation, VARTYPE } from "./graphTypes.js";
@@ -127,6 +128,7 @@ export class CjsGraph
     const info = existing ?? ClassInfo.of(ctor);
     if (existing?.declared) this._names.delete(existing.declared.name);
     info.declared = declared;
+    for (let i = 0; i < members.length; i++) members[i].owner = info;
     if (!info.lifetimeExplicit)
     {
       info.lifetime = {
@@ -156,30 +158,28 @@ export class CjsGraph
     const wrapped = member.wrapped === undefined ? null : GRAPH_WRAPPERS[member.wrapped];
     if (wrapped === undefined) throw new TypeError(`Unknown graph wrapper: ${member.wrapped}`);
 
-    return {
-      name: member.name,
-      key: member.key ?? member.name,
-      index: member.index,
-      role: member.role ?? "attribute",
-      type: member.type ?? "invalid",
-      vartype: (flags & GraphMemberFlags.BINARY) !== 0 ? VARTYPE.BINARYBLOCK : wrapped === null ? entry.storage : VARTYPE.IROOT,
-      handler: getGraphHandler(entry.handler),
-      direct: entry.direct === true,
-      length: wrapped === null ? member.length ?? entry.length ?? 0 : wrapped.elements.length,
-      bits: entry.bits ?? 0,
-      signed: entry.signed === true,
-      ctor: entry.ctor ?? null,
-      check: entry.check ?? null,
-      item: this._compileItem(member),
-      flags,
-      wrapped,
-      options: member.options ?? null,
-      edgeKind: edge === null ? null : edge.kind,
-      edgeType: edge === null ? this._noTypes : edge.types,
-      collection: edge === null ? member.collection ?? null : edge.collection,
-      destination: this._getDestination(edge, wrapped, member),
-      owner: null
-    };
+    const row = new VarEntry();
+    row.name = member.name;
+    row.key = member.key ?? member.name;
+    row.index = member.index ?? -1;
+    row.role = member.role ?? "attribute";
+    row.kind = member.type ?? "invalid";
+    row.type = (flags & GraphMemberFlags.BINARY) !== 0 ? VARTYPE.BINARYBLOCK : wrapped === null ? entry.storage : VARTYPE.IROOT;
+    row.handler = getGraphHandler(entry.handler);
+    row.direct = entry.direct === true;
+    row.length = wrapped === null ? member.length ?? entry.length ?? 0 : wrapped.elements.length;
+    row.bits = entry.bits ?? 0;
+    row.signed = entry.signed === true;
+    row.ctor = entry.ctor ?? null;
+    row.check = entry.check ?? null;
+    row.item = this._compileItem(member);
+    row.flags = flags;
+    row.wrapped = wrapped;
+    row.options = member.options ?? null;
+    row.edgeKind = edge === null ? null : edge.kind;
+    row.edgeType = edge === null ? this._noTypes : edge.types;
+    row.collection = edge === null ? member.collection ?? null : edge.collection;
+    return row;
   }
 
   /** The compiled entry for a member's items: a type name, or { type, item } for a nested list. @cjs */
@@ -197,17 +197,6 @@ export class CjsGraph
   static setMetadataStore(store)
   {
     this._metadata = store;
-  }
-
-  /** Where a reader puts this member's value. @cjs */
-  static _getDestination(edge, wrapped, member)
-  {
-    if (wrapped !== null) return "wrapper";
-    if (edge === null) return member.type === "values" ? "list" : member.type === "valuesMap" ? "dict" : null;
-    if (edge.collection === "map") return "dict";
-    if (edge.collection !== null) return edge.kind === "embed" ? "structureList" : "list";
-
-    return edge.kind === "embed" ? "embedded" : null;
   }
 
   /**
@@ -775,7 +764,7 @@ export class CjsGraph
     for (let i = 0; i < members.length; i++)
     {
       const member = members[i];
-      if (member.index !== undefined && object[member.key][member.index] === null) continue;
+      if (member.index >= 0 && object[member.key][member.index] === null) continue;
       if (defaults !== null)
       {
         if (this._isDefault(object, member, defaults, options)) continue;
@@ -955,8 +944,8 @@ export class CjsGraph
         return false;
       }
 
-      const holder = member.index === undefined ? object : object[member.key];
-      const key = member.index === undefined ? member.key : member.index;
+      const holder = member.index < 0 ? object : object[member.key];
+      const key = member.index < 0 ? member.key : member.index;
       if (!this._isValueLike(holder[key], member, value[name], options)) return false;
     }
 
@@ -1055,7 +1044,7 @@ export class CjsGraph
   /** Reads a member's storage, through its slot if it has one. @cjs */
   static _readMember(object, member)
   {
-    return member.index === undefined ? object[member.key] : object[member.key][member.index];
+    return member.index < 0 ? object[member.key] : object[member.key][member.index];
   }
 
   /**
@@ -1111,8 +1100,8 @@ export class CjsGraph
    */
   static _getMember(object, member, options)
   {
-    const holder = member.index === undefined ? object : object[member.key];
-    const key = member.index === undefined ? member.key : member.index;
+    const holder = member.index < 0 ? object : object[member.key];
+    const key = member.index < 0 ? member.key : member.index;
     const stored = holder[key];
 
     if (stored === null || member.direct) return stored;
@@ -1176,8 +1165,8 @@ export class CjsGraph
       if (options.validate && value !== null && !member.handler.IsValidValue(value, member))
         throw new TypeError(`Invalid value for graph member: ${info.declared.name}.${name}`);
 
-      const holder = member.index === undefined ? object : object[member.key];
-      const key = member.index === undefined ? member.key : member.index;
+      const holder = member.index < 0 ? object : object[member.key];
+      const key = member.index < 0 ? member.key : member.index;
 
       options.owner = object;
       const result = this._setMember(holder, key, value, member, options);
@@ -1707,9 +1696,9 @@ export class CjsGraph
 
         const member = frame.members[frame.memberIndex++];
         const stored = frame.object[member.key];
-        if (member.index !== undefined && (!Array.isArray(stored) || member.index >= stored.length))
+        if (member.index >= 0 && (!Array.isArray(stored) || member.index >= stored.length))
           throw new TypeError(`Graph member index is outside its storage: ${member.name}`);
-        const value = member.index === undefined ? stored : stored[member.index];
+        const value = member.index < 0 ? stored : stored[member.index];
         if (value === undefined) throw new TypeError(`Graph edge is undefined: ${member.name}`);
         if (member.collection !== null)
         {
@@ -1964,12 +1953,12 @@ export class CjsGraph
 
       for (const member of owner.declared.members)
       {
-        const compiled = { ...member, owner };
+        // The row itself, never a copy: every table lists the same objects.
         if (!Object.hasOwn(byName, member.name)) byName[member.name] = [];
-        byName[member.name].push(compiled);
-        members.push(compiled);
+        byName[member.name].push(member);
+        members.push(member);
 
-        if ((compiled.flags & this._persistNames) !== 0 && !Object.hasOwn(persistByName, member.name)) persistByName[member.name] = compiled;
+        if ((member.flags & this._persistNames) !== 0 && !Object.hasOwn(persistByName, member.name)) persistByName[member.name] = member;
       }
     }
 

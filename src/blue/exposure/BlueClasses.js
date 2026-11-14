@@ -642,7 +642,7 @@ export class BlueClasses extends IBlueClasses
     {
       for (const row of level.memberTable)
       {
-        if (level !== ci && ci.hiddenInherited.has(row.meta.key)) continue;
+        if (level !== ci && ci.hiddenInherited.has(row.key)) continue;
         // PyGetTypeInfo lists what Carbon's EXPOSURE table holds; our own rows are not in it.
         if (!row.meta.blue || completeExposureNames.has(row.name)) continue;
         const member = level.declarationOf(row);

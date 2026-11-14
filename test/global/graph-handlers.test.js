@@ -1,7 +1,7 @@
 import { EDITFLAGS } from "../../src/global/consts/blue.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsGraph, GRAPH_TYPES, GRAPH_WRAPPERS, VARTYPE, GraphMemberFlags } from "../../src/global/model/graph/index.js";
+import { CjsGraph, GRAPH_TYPES, GRAPH_WRAPPERS, VARTYPE, GraphMemberFlags, VarEntry } from "../../src/global/model/graph/index.js";
 
 /** A compiled member of a type, with its handler. */
 const member = (type, fields = {}) => CjsGraph.compileMember({ name: "value", type, ...fields });
@@ -27,12 +27,12 @@ test("the table is data: every name has a storage kind and a handler, and the ma
   assert.equal(vector.handler, colour.handler, "one handler per storage kind");
   assert.equal(vector.handler, matrix.handler);
   assert.deepEqual([ vector.length, colour.length, matrix.length ], [ 3, 4, 16 ]);
-  assert.equal(vector.vartype, VARTYPE.FLOATARRAY);
-  assert.equal(member("float32").vartype, VARTYPE.FLOAT);
-  assert.equal(member("uint8").vartype, VARTYPE.BYTE);
-  assert.equal(member("int16").vartype, VARTYPE.SHORT);
-  assert.equal(member("uint32").vartype, VARTYPE.ULONG);
-  assert.equal(member("rootWeak").vartype, VARTYPE.IROOTWEAKREF);
+  assert.equal(vector.type, VARTYPE.FLOATARRAY);
+  assert.equal(member("float32").type, VARTYPE.FLOAT);
+  assert.equal(member("uint8").type, VARTYPE.BYTE);
+  assert.equal(member("int16").type, VARTYPE.SHORT);
+  assert.equal(member("uint32").type, VARTYPE.ULONG);
+  assert.equal(member("rootWeak").type, VARTYPE.IROOTWEAKREF);
 });
 
 test("a compiled member is one flat shape, whatever its type", () =>
@@ -43,17 +43,16 @@ test("a compiled member is one flat shape, whatever its type", () =>
   assert.deepEqual(Object.keys(CjsGraph.compileMember({ name: "value" })), keys, "no type is the same shape");
 });
 
-test("a member says where a reader puts its value", () =>
+test("a compiled member is Carbon's row: its VARTYPE is type, its type name is kind, and no index is -1", () =>
 {
-  const destination = fields => CjsGraph.compileMember({ name: "value", ...fields }).destination;
+  const row = member("vec3");
 
-  assert.equal(destination({ type: "float32" }), null);
-  assert.equal(destination({ type: "rootRef", edge: { kind: "ref" } }), null);
-  assert.equal(destination({ type: "root", edge: { kind: "embed" } }), "embedded");
-  assert.equal(destination({ type: "list", edge: { kind: "ref", collection: true } }), "list");
-  assert.equal(destination({ type: "structList", edge: { kind: "embed", collection: true } }), "structureList");
-  assert.equal(destination({ type: "map", edge: { kind: "ref", collection: "map" } }), "dict");
-  assert.equal(destination({ type: "mat4", wrapped: "TriMatrix" }), "wrapper");
+  assert.equal(row.constructor, VarEntry);
+  assert.equal(row.kind, "vec3");
+  assert.equal(row.type, VARTYPE.FLOATARRAY);
+  assert.equal(row.key, "value");
+  assert.equal(row.index, -1);
+  assert.equal(member("float32", { index: 2, key: "stored" }).index, 2);
 });
 
 test("a wrapped member carries its wire class, elements in order, and defaults", () =>
@@ -327,7 +326,7 @@ test("a member with no type refuses every value operation before touching anythi
 {
   const entry = CjsGraph.compileMember({ name: "value" }), { handler } = entry, holder = { value: 1 };
 
-  assert.equal(entry.vartype, VARTYPE.INVALID);
+  assert.equal(entry.type, VARTYPE.INVALID);
   assert.throws(() => handler.Get(holder, "value", entry), /Invalid type handler cannot get property value/);
   assert.throws(() => handler.Set(holder, "value", 2, entry), /Invalid type handler cannot set property value/);
   assert.throws(() => handler.Write(holder, "value", 2, entry), /Invalid type handler cannot write property value/);
@@ -472,7 +471,7 @@ test("a path takes any text with no control characters, empty included, and keep
   assert.equal(handler.IsValidValue("res:/a\0b", path), false);
   assert.equal(handler.IsValidValue(1, path), false);
   assert.deepEqual(path.options.accepts, [ "TriTextureRes" ]);
-  assert.equal(member("wpath").vartype, VARTYPE.STDWSTRING);
+  assert.equal(member("wpath").type, VARTYPE.STDWSTRING);
   assert.equal(member("expression").handler.IsValidValue("a\nb", member("expression")), true, "an expression is not a path");
 });
 
@@ -529,7 +528,6 @@ test("a Map of plain values reads, writes and compares through its item, nested 
   assert.equal(built.weights.get("x"), 1);
   assert.throws(() => CjsGraph.set(object, { weights: { a: "no" } }), /Invalid value/);
   assert.throws(() => CjsGraph.set(object, { weights: { a: NaN } }), /Invalid value/);
-  assert.equal(CjsGraph.compileMember({ name: "x", type: "valuesMap", item: "float64" }).destination, "dict");
 });
 
 test("metadata travels with a get and a set through the store it is given, and copy leaves it", () =>

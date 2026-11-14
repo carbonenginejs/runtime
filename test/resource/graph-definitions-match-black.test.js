@@ -30,16 +30,25 @@ function expected(entry)
   };
 }
 
+/** Where a reader would put a graph-declared member's value, from the row's own facts. */
+function destinationOf(member)
+{
+  if (member.wrapped !== null) return "wrapper";
+  if (member.collection === "array" || member.collection === "set") return member.collection;
+  if (member.edgeKind === null) return member.kind === "values" ? "list" : member.kind === "valuesMap" ? "dict" : null;
+  if (member.collection === "map") return "dict";
+  if (member.collection !== null) return member.edgeKind === "embed" ? "structureList" : "list";
+  return null;
+}
+
 /** What the compiled definition says, for the same comparison. */
 function compiled(member)
 {
-  const object = member.edgeKind === "embed" && member.collection === null;
-
   return {
-    vartype: member.vartype,
-    length: member.vartype === VARTYPE.FLOATARRAY ? member.length : 0,
+    vartype: member.type,
+    length: member.type === VARTYPE.FLOATARRAY ? member.length : 0,
     wrapper: member.wrapped === null ? null : member.wrapped.wireClass,
-    destination: object ? null : member.collection === "array" || member.collection === "set" ? member.collection : member.destination
+    destination: destinationOf(member)
   };
 }
 

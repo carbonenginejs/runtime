@@ -214,7 +214,7 @@ function varEntryOf(Constructor, member)
   const type = member.type;
   const reference = type && (type.kind === "rootRef" || type.kind === "rootWeak") ? type.className : null;
   entry.name = member.name;
-  entry.meta.key = member.key ?? member.name;
+  entry.key = member.key ?? member.name;
   const declared = declaredMemberType(type);
   entry.type = declared.type;
   // Ours, beside Carbon's: what the readers need that a JavaScript property cannot say.
@@ -239,7 +239,7 @@ function varEntryOf(Constructor, member)
   else if (!member.exposure && member.enum?.enumType?.includes(".")) entry.setChooserSource(null, member.enum.enumType, false);
   if (member.role === "property" || member.property)
   {
-    const descriptor = findDescriptor(Constructor.prototype, entry.meta.key);
+    const descriptor = findDescriptor(Constructor.prototype, entry.key);
     entry.getProperty = descriptor?.get ?? null;
     entry.setProperty = descriptor?.set ?? null;
   }
@@ -290,7 +290,7 @@ export function compileClassInfo(Constructor)
   if (Chained) (CHAINED_FROM.get(Chained) ?? CHAINED_FROM.set(Chained, new Set()).get(Chained)).add(Constructor);
   for (let parent = ci.parentClassInfo; parent; parent = parent.parentClassInfo)
   {
-    for (const entry of parent.memberTable) if (Schema.isFieldHidden(Constructor, entry.meta.key)) ci.hiddenInherited.add(entry.meta.key);
+    for (const entry of parent.memberTable) if (Schema.isFieldHidden(Constructor, entry.key)) ci.hiddenInherited.add(entry.key);
   }
 
   const Parent = registeredParent(Constructor);
@@ -410,7 +410,7 @@ export function buildReaderEntries(ci)
     for (const row of type.memberTable)
     {
       if (entries.has(row.name)) continue;
-      if (type !== ci && ci.hiddenInherited.has(row.meta.key)) continue;
+      if (type !== ci && ci.hiddenInherited.has(row.key)) continue;
       const declaration = type.declarationOf(row);
       if (!(row.editFlags & EDITFLAGS.PERSIST) && declaration.edit?.persist !== true && declaration.edit?.persistOnly !== true) continue;
       entries.set(row.name, row);

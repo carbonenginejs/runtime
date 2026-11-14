@@ -71,7 +71,7 @@ export class BlueRttiType extends IBlueRtti
         const entry = memberTable[i];
         // Be::HIDDEN (BlueTypes.h:292).
         if (entry.editFlags & 0x008) continue;
-        if (type !== ci && ci.hiddenInherited.has(entry.meta.key)) continue;
+        if (type !== ci && ci.hiddenInherited.has(entry.key)) continue;
         const value = new BlueRttiValue();
         if (entry.getProperty)
         {

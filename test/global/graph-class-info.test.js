@@ -91,7 +91,7 @@ test("untyped members share the throwing Invalid handler until explicitly define
     { name: "first" }, { name: "second" }
   ] });
   const members = CjsGraph.getClassInfo(Untyped).compiled.members;
-  assert.equal(members[0].vartype, VARTYPE.INVALID);
+  assert.equal(members[0].type, VARTYPE.INVALID);
   assert.equal(members[0].handler, members[1].handler);
     assert.throws(() => members[0].handler.Get({}, "first"), /Invalid type handler.*first/);
   CjsGraph.define(Untyped, { name: "GraphDefaultHandler", members: [{ name: "first", type: "float32" }] });

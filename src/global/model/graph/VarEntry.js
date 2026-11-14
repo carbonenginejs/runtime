@@ -24,7 +24,7 @@ export const BLACK_DESTINATION = Object.freeze({
  * schema's compile at registration (`compileClassInfo`).
  *
  * Adapted: Carbon's `mOffset` and `mSize` locate the member's bytes in the
- * object; a JavaScript member is located by its property key, so `meta.key` stands
+ * object; a JavaScript member is located by its property key, so `key` stands
  * in for both. Carbon's table holds only Blue rows; ours also holds the rows
  * our own classes declare with `meta.map*`, and `meta.blue` says which a row is
  * (`be` is `meta` plus Blue, decorator-upgrade.md § 6.8).
@@ -32,11 +32,14 @@ export const BLACK_DESTINATION = Object.freeze({
  * Ours, on the same row: what Carbon reads from the C++ member type and a
  * JavaScript property cannot say - the element index, the sign, the float
  * count, what an IROOT member is, and the classes it accepts. The readers read
- * them here; names the compile cannot resolve yet resolve on first read.
+ * them here; names the compile cannot resolve yet resolve on first read. And what
+ * the graph's value operations and walks need: the type name, its handler, and
+ * how the member holds another object. A row belongs to one class; every table
+ * built from rows lists the same objects.
  *
  * Carbon: Be::VarEntry (blueexposure/include/BlueTypes.h:321-375)
  *
- * @adapted `meta.key` stands in for `mOffset` and `mSize`, and the table also carries our own `meta.map*` rows, flagged by `meta.blue`.
+ * @adapted `key` stands in for `mOffset` and `mSize`, and the table also carries our own `meta.map*` rows, flagged by `meta.blue`.
  */
 export class VarEntry
 {
@@ -56,14 +59,20 @@ export class VarEntry
   type = VARTYPE.INVALID;
 
   /**
-   * JavaScript-specific member metadata. `key` locates the value instead of
-   * a native byte offset; `blue` marks rows exposed to Blue rather than
+   * The member's JavaScript key.
+   *
+   * @cjs Stands in for mOffset: a JavaScript member is found by its key, not a byte offset.
+   */
+  key = "";
+
+  /**
+   * JavaScript-specific member metadata. `blue` marks rows exposed to Blue rather than
    * only our own metadata consumers. Each entry owns its metadata object.
    *
    * @cjs
    * @implemented
    */
-  meta = { key: "", blue: false };
+  meta = { blue: false };
 
   /**
    * `mIID`: the interface or class a reference member holds, by registered name, or null.
@@ -149,6 +158,70 @@ export class VarEntry
    */
   structClass = null;
 
+  /**
+   * Whether the row is an attribute or a property.
+   *
+   * @cjs
+   */
+  role = "attribute";
+
+  /**
+   * The member's type name, a key of GRAPH_TYPES ("float32", "vec3", "rootRef").
+   *
+   * @cjs Carbon has the C++ member type; `type` above is the VARTYPE it stores as.
+   */
+  kind = "invalid";
+
+  /**
+   * The graph handler for the member's storage kind, or null on a row no value operation reads.
+   *
+   * @cjs
+   */
+  handler = null;
+
+  /** Whether a value operation may assign the value with no handler call. @cjs */
+  direct = false;
+
+  /** An array member's element count, 0 for any length. @cjs */
+  length = 0;
+
+  /** An integer member's width in bits. @cjs */
+  bits = 0;
+
+  /** The typed-array class an array member stores, or null. @cjs */
+  ctor = null;
+
+  /** A check a value must pass, or null. @cjs */
+  check = null;
+
+  /** The compiled type of a values list's items, or null. @cjs */
+  item = null;
+
+  /**
+   * The member's Be::EDITFLAGS with ours merged in, and the graph's own bits (GraphMemberFlags).
+   *
+   * @cjs `editFlags` above keeps what Carbon's macro wrote.
+   */
+  flags = 0;
+
+  /** The GRAPH_WRAPPERS record a wrapped member is written through, or null. @cjs */
+  wrapped = null;
+
+  /** Anything rare the member's definition carries, or null. @cjs */
+  options = null;
+
+  /** How the member holds another object: "embed", "ref", "refWeak", "weak", or null for a value. @cjs */
+  edgeKind = null;
+
+  /** The class names an object member may hold, the declared one first; empty means any. @cjs */
+  edgeType = null;
+
+  /** The collection an object member is: "list", "array", "set", "map", or null. @cjs */
+  collection = null;
+
+  /** The class record that declares this row. @cjs */
+  owner = null;
+
   /** The resolved accepted classes, once every name has resolved. */
   _iids = null;
 
@@ -168,17 +241,6 @@ export class VarEntry
    * @type {((item: string|Function) => object)|null}
    */
   static structureResolver = null;
-
-  /**
-   * The member's JavaScript key.
-   *
-   * @cjs Stands in for mOffset.
-   * @returns {string} The key.
-   */
-  get key()
-  {
-    return this.meta.key;
-  }
 
   /**
    * Whether `mEditFlags` has NOTIFY.

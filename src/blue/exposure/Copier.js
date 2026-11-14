@@ -214,7 +214,7 @@ export class Copier extends ICopier
     {
       for (const row of level.memberTable)
       {
-        if (level !== ci && ci.hiddenInherited.has(row.meta.key)) continue;
+        if (level !== ci && ci.hiddenInherited.has(row.key)) continue;
         const declaration = level.declarationOf(row);
         if (declaration.role === "property" && declaration.property) continue;
         fields.push(declaration);

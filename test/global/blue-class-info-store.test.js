@@ -64,7 +64,7 @@ test("every exposed schema row is found by its exposed name with its flags and k
       const flags = getEditFlags(row);
       const entry = value.type === BlueRttiValue.Type.pyproperty ? value.pyProperty : value.var;
       if (entry.editFlags !== flags) problems.push(`${name}.${rowName}: flags ${entry.editFlags}, schema ${flags}`);
-      if (entry.meta.key !== (row.key ?? row.name)) problems.push(`${name}.${rowName}: key ${entry.meta.key}, schema ${row.key}`);
+      if (entry.key !== (row.key ?? row.name)) problems.push(`${name}.${rowName}: key ${entry.key}, schema ${row.key}`);
     }
     for (const varName of rtti.varMap.keys()) if (!byName.has(varName)) problems.push(`${name}.${varName}: not in the schema`);
   }
@@ -85,7 +85,7 @@ test("the Blue view is PyGetTypeInfo's members and methods", () =>
     {
       for (const entry of level.memberTable)
       {
-        if (!entry.meta.blue || (level !== ci && ci.hiddenInherited.has(entry.meta.key))) continue;
+        if (!entry.meta.blue || (level !== ci && ci.hiddenInherited.has(entry.key))) continue;
         rowCount.set(entry.name, (rowCount.get(entry.name) ?? 0) + 1);
         if (!blueRows.has(entry.name)) { blueRows.set(entry.name, entry); rowLevels.set(entry, level); }
       }
