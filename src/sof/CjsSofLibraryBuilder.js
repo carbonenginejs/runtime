@@ -1,6 +1,7 @@
-import { CjsSchema, meta } from "#schema";
+import { meta } from "#schema";
 import { normalizeResourcePath } from "#utils/path";
 import { EveSOFData } from "./EveSOFData.js";
+import { DictWriter } from "../blue/formats/graph/DictWriter.js";
 import * as CcpLog from "../global/logging/ccpLog.js";
 
 
@@ -197,7 +198,7 @@ export class CjsSofLibraryBuilder
   }
 
   /**
-   * Returns the catalog this builder holds, for caching or caller-managed transport.
+   * Returns the catalog this builder holds, for caching or caller-managed transport, written by Blue's dict writer.
    * typeTags is on unless the caller turns it off: an item is written with its class where its slot declares
    * only an interface (a hull's locatorSets), which is what lets the saved data build it again.
    *
@@ -207,7 +208,7 @@ export class CjsSofLibraryBuilder
    */
   GetData(options = {})
   {
-    return CjsSchema.getValues(this.data, {}, { typeTags: true, ...options });
+    return new DictWriter().WriteObject(this.data, {}, { typeTags: true, ...options });
   }
 
   /** Loads generic.black once and publishes it as the manager's generic data. */
