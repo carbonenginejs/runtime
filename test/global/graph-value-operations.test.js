@@ -684,21 +684,6 @@ test("a class static is the graph's door with one check: exactly that class, and
   assert.deepEqual(CjsGraph.get(derived, { full: true }), { name: "d" });
 });
 
-test("a definition marked whole takes nothing from its base", () =>
-{
-  class Base
-  {
-    shared = 1;
-    dropped = 2;
-  }
-  class Derived extends Base {}
-  CjsGraph.define(Base, { name: "GraphValueWholeBase", members: [ { name: "shared", type: "float32" }, { name: "dropped", type: "float32" } ] });
-  CjsGraph.define(Derived, { name: "GraphValueWholeDerived", chainTo: "GraphValueWholeBase", whole: true, members: [ { name: "shared", type: "float32" } ] });
-
-  assert.deepEqual(CjsGraph.get(new Derived(), { full: true }), { shared: 1 });
-  assert.equal(CjsGraph.getClassInfo(Derived).compiled.parent, CjsGraph.getClassInfo(Base), "the base is still its parent");
-});
-
 test("an interface a definition names counts as assignable, without inheritance", () =>
 {
   class Contract {}

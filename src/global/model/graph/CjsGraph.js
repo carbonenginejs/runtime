@@ -91,7 +91,6 @@ export class CjsGraph
    * destructor is this level's own _Destructor, its C++ destructor body, or null; a base's belongs to the base.
    * capabilities lists CjsGraph.Capability names; destruct reaches every class below along the base list.
    * OnDestruct is no definition key: it is a method of the class, found by ordinary dispatch.
-   * whole means members is the class's complete list, so no base definition adds to it.
    * initialize, notify and listNotify say instances take Initialize, OnModified and
    * OnListModified. ownValues says instances hold values that are not members,
    * through GetOwnValues, SetOwnValues and IsOwnValues. customPersist, list, proxy and abstract are
@@ -128,7 +127,7 @@ export class CjsGraph
     const info = existing ?? ClassInfo.of(ctor);
     if (existing?.declared) this._names.delete(existing.declared.name);
     info.declared = declared;
-    // A row the record already held keeps the class that made it.
+    // A row the record already held has its owner from the class that made it.
     for (let i = 0; i < members.length; i++) if (members[i].owner === null) members[i].owner = info;
     if (!info.lifetimeExplicit)
     {
@@ -1958,7 +1957,6 @@ export class CjsGraph
     for (const owner of this._GetExposureChain(info))
     {
       if (owner !== info && !parent) parent = owner;
-      if (owner !== info && info.declared.whole === true) continue;
 
       for (const member of owner.declared.members)
       {

@@ -74,31 +74,30 @@ test("a persisted member the graph compiled is the readers' own row, not a copy"
   assert.deepEqual(copies.slice(0, 40), [], `${copies.length} are copies`);
 });
 
-test("a row two classes list holds what each class's own declaration would compile to", () =>
+test("a class defines its own rows only, and the chain walk gives the readers' flattened list", () =>
 {
   const differences = [];
-  let shared = 0;
-  const facts = row => JSON.stringify([ row.kind, row.flags, row.edgeKind, row.edgeType, row.collection, row.length, row.wrapped?.wireClass ?? null, row.role ]);
+  let own = 0, inherited = 0;
 
   for (const { name, type } of getClassRegistrations())
   {
     const info = CjsGraph.getClassInfo(type);
-    const { fields } = IRootReaderBase.getDictionaryDeclarations(type);
-
-    for (let i = 0; i < fields.length; i++)
+    for (const row of info.declared.members)
     {
-      const row = info.declared.members[i];
-      if (row.owner === info) continue;
-
-      shared++;
-      // What this class alone would write on the row, compiled apart from it.
-      const own = CjsGraph.compileMember(CjsBlueGraph._getMember(fields[i]));
-      if (facts(own) !== facts(row)) differences.push(`${name}.${row.name}: ${facts(own)} / ${facts(row)}`);
+      if (row.owner === info) own++;
+      else differences.push(`${name}.${row.name}: defined by ${name}, owned by ${row.owner.classId}`);
     }
+
+    // Each name once, the nearest class first: what the readers' own selection gives, in its order.
+    const names = info.compiled.memberNames;
+    const want = IRootReaderBase.getDictionaryDeclarations(type).fields.map(field => field.name);
+    inherited += names.length - new Set(info.declared.members.map(row => row.name)).size;
+    if (names.join() !== want.join()) differences.push(`${name}: ${names.join()} / ${want.join()}`);
   }
 
-  assert.ok(shared > 1000, `shared ${shared}`);
-  assert.deepEqual(differences.slice(0, 40), [], `${differences.length} of ${shared} differ`);
+  assert.ok(own > 4000, `own ${own}`);
+  assert.ok(inherited > 1000, `inherited ${inherited}`);
+  assert.deepEqual(differences.slice(0, 40), [], `${differences.length} differ`);
 });
 
 test("a recompile keeps every row, so the graph's definition still lists the readers' rows", () =>

@@ -84,9 +84,8 @@ first ask, and `defineUI` layers a host's over it. No value operation reads eith
 A library has `Get(typeName)` and `Create(typeName)`. A failed operation completes
 nothing and rolls nothing back.
 
-A definition may name `interfaces`, the classes an instance also counts as without
-inheriting from them, and set `whole`, when its members are the class's complete list and
-no base definition may add to them.
+A definition lists its class's own members; the rest come along `chainTo`. It may name
+`interfaces`, the classes an instance also counts as without inheriting from them.
 
 `CjsGraph.commitValues(object, names, options)` only touches its own object: OnModified per NOTIFY
 member in member-table order, for those named or, with no names, all. Unknown names throw unless

@@ -49,8 +49,9 @@ export class CjsBlueGraph
   }
 
   /**
-   * Defines one class from its transported declarations. A member Blue's table has a row for is
-   * that row, which the graph fills; a typed member with no exposure has none, and the graph makes it.
+   * Defines one class from its own transported declarations; the graph walks the exposure chain
+   * for the rest. A member Blue's table has a row for is that row, which the graph fills; a typed
+   * member with no exposure has none, and the graph makes it.
    * A recompile of the class fills the same rows again, so the definition keeps holding them.
    * @param {Function} ctor The class.
    * @param {string} name Its registered name.
@@ -60,11 +61,12 @@ export class CjsBlueGraph
   {
     const { fields, levels } = IRootReaderBase.getDictionaryDeclarations(ctor);
     const mapped = mappedInterfaces(ctor);
-    const rows = this._getRows(levels);
+    // The class's own level: what it declares, and what unregistered helper classes below its registered parent do.
+    const own = new Set([ ...levels[0].members, ...levels[0].properties ]);
+    const rows = this._getRows(levels[0]);
 
     return CjsGraph.define(ctor, {
       name,
-      whole: true,
       initialize: mapped.has(IInitialize),
       notify: mapped.has(INotify),
       listNotify: mapped.has(IListNotify),
@@ -77,7 +79,7 @@ export class CjsBlueGraph
       interfaces: Array.from(mapped, item => CjsSchema.getClassName(item)),
       bases: this._getBases(ctor),
       chainTo: this._getChainTo(ctor),
-      members: fields.map(field =>
+      members: fields.filter(field => own.has(field)).map(field =>
       {
         const member = this._getMember(field);
         const row = rows.get(field);
@@ -88,26 +90,22 @@ export class CjsBlueGraph
   }
 
   /**
-   * The row Blue's member table holds for each declaration, by its level's class.
-   * @param {Array<{type: Function, members: object[], properties: object[]}>} levels The exposure levels, the class first.
+   * The row Blue's member table holds for each of a class's own declarations.
+   * @param {{type: Function, members: object[], properties: object[]}} level The class's own exposure level.
    * @returns {Map<object, object>} Declaration to row.
    */
-  static _getRows(levels)
+  static _getRows(level)
   {
     const rows = new Map();
+    const table = ClassInfo.exposeToBlue(level.type).memberTable;
 
-    for (const level of levels)
+    for (const declarations of [ level.members, level.properties ])
     {
-      const table = ClassInfo.exposeToBlue(level.type).memberTable;
-
-      for (const declarations of [ level.members, level.properties ])
+      for (const field of declarations)
       {
-        for (const field of declarations)
-        {
-          const key = field.key ?? field.name, index = field.index ?? -1;
-          const row = table.find(each => each.name === field.name && each.key === key && each.index === index);
-          if (row !== undefined) rows.set(field, row);
-        }
+        const key = field.key ?? field.name, index = field.index ?? -1;
+        const row = table.find(each => each.name === field.name && each.key === key && each.index === index);
+        if (row !== undefined) rows.set(field, row);
       }
     }
 
