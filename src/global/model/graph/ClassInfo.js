@@ -107,6 +107,7 @@ export class ClassInfo
    * A record the graph made first, for a lifetime, is not yet Blue's.
    *
    * @cjs
+   * @type {boolean}
    */
   exposed = false;
 
@@ -140,6 +141,7 @@ export class ClassInfo
    * Ours: true when a host supplies `lifetime` separately from the graph's definition.
    *
    * @cjs
+   * @type {boolean}
    */
   lifetimeExplicit = false;
 
@@ -169,22 +171,42 @@ export class ClassInfo
    */
   _entries = null;
 
-  /** Ours, built with `_entries`: whether instances are IInitialize. Carbon casts each object (BlackReader.cpp:397). */
+  /**
+   * Ours, built with `_entries`: whether instances are IInitialize.
+   *
+   * @cjs Carbon casts each object (BlackReader.cpp:397); ours answers once per class.
+   * @type {boolean}
+   */
   _isInitialize = false;
 
-  /** Ours, built with `_entries`: whether instances are INotify (BlackReader.cpp:420). */
+  /**
+   * Ours, built with `_entries`: whether instances are INotify.
+   *
+   * @cjs Carbon casts each object (BlackReader.cpp:420); ours answers once per class.
+   * @type {boolean}
+   */
   _isNotify = false;
 
-  /** Ours, built with `_entries`: whether instances are IBlueObjectProxy (BlackReader.cpp:355). */
+  /**
+   * Ours, built with `_entries`: whether instances are IBlueObjectProxy.
+   *
+   * @cjs Carbon casts each object (BlackReader.cpp:355); ours answers once per class.
+   * @type {boolean}
+   */
   _isProxy = false;
 
-  /** Ours, built with `_entries`: whether instances are ICustomPersist (IRootReader.cpp:84). */
+  /**
+   * Ours, built with `_entries`: whether instances are ICustomPersist.
+   *
+   * @cjs Carbon casts each object (IRootReader.cpp:84); ours answers once per class.
+   * @type {boolean}
+   */
   _isCustomPersist = false;
 
   /**
    * The persisted rows by exposed name.
    *
-   * @cjs
+   * @cjs The lazy face of `_entries`: built on the first ask after a compile.
    * @returns {Map<string, import("./VarEntry.js").VarEntry>} The rows.
    */
   get entries()
@@ -196,7 +218,7 @@ export class ClassInfo
   /**
    * Whether instances are IInitialize.
    *
-   * @cjs
+   * @cjs The lazy face of `_entries`: built on the first ask after a compile.
    * @returns {boolean} True when they are.
    */
   get isInitialize()
@@ -208,7 +230,7 @@ export class ClassInfo
   /**
    * Whether instances are INotify.
    *
-   * @cjs
+   * @cjs The lazy face of `_entries`: built on the first ask after a compile.
    * @returns {boolean} True when they are.
    */
   get isNotify()
@@ -220,7 +242,7 @@ export class ClassInfo
   /**
    * Whether instances are IBlueObjectProxy.
    *
-   * @cjs
+   * @cjs The lazy face of `_entries`: built on the first ask after a compile.
    * @returns {boolean} True when they are.
    */
   get isProxy()
@@ -232,7 +254,7 @@ export class ClassInfo
   /**
    * Whether instances are ICustomPersist.
    *
-   * @cjs
+   * @cjs The lazy face of `_entries`: built on the first ask after a compile.
    * @returns {boolean} True when they are.
    */
   get isCustomPersist()
@@ -256,7 +278,8 @@ export class ClassInfo
   /**
    * Ours: the one store, a record per class. The graph's class map and the registration hold the same objects.
    *
-   * @cjs A Map, because the graph walks every record when it compiles a selection.
+   * @cjs A Map, because the graph walks every record when it compiles a selection. It holds every class it is asked
+   *   about for the life of the process, so a class made at runtime is never collected; classes are module-level.
    * @type {Map<Function, ClassInfo>}
    */
   static _byType = new Map();
