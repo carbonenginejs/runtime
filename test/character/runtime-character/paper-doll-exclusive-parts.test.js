@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterLibraryManager, CjsPaperDollInstance, CjsPaperDollTopMiddle, CjsPaperDollTopOuter } from "../../../npm/dist/character/index.js";
+import file from "../../../npm/dist/character/factory/defaults/exclusiveParts.json.js";
 
 /** The shipped groups (`exclusiveParts.json`). */
-const GROUPS = CjsCharacterLibraryManager.exclusivePartDefaults();
+const GROUPS = structuredClone(file.groups);
 
 /** A definition holding only the two tops, each on or off with an option. */
 function Tops(topMiddle, topOuter)
@@ -31,13 +32,12 @@ test("with no earlier state the outer part stays, and a part with no option is n
     assert.deepEqual(CjsPaperDollInstance.exclusiveParts(Tops([ true, "tshirtf01" ], [ true, "" ]), new Map(), GROUPS), []);
 });
 
-test("the groups are library data with a default; the paper doll applies the groups it is given", () =>
+test("the groups are the paper doll's, the defaults file their default; it applies the groups it is given", () =>
 {
     assert.deepEqual(GROUPS, [ [ "topMiddle", "topOuter" ] ]);
-    const library = new CjsCharacterLibraryManager();
-    assert.deepEqual(library.GetExclusiveParts(), GROUPS);
-    library.SetExclusiveParts([]);
-    assert.deepEqual(library.GetExclusiveParts(), []);
     assert.deepEqual(new CjsPaperDollInstance().Initialize({ error() {} }).exclusive, GROUPS, "an instance starts with the defaults");
-    assert.deepEqual(CjsPaperDollInstance.exclusiveParts(Tops([ true, "tshirtf01" ], [ true, "shirtmilf01" ]), new Map(), library.GetExclusiveParts()), [], "no groups: both worn");
+    // Kept on the library only until Graphene stops copying the groups from it.
+    assert.deepEqual(new CjsCharacterLibraryManager().GetExclusiveParts(), GROUPS);
+    assert.equal(typeof CjsCharacterLibraryManager.prototype.SetExclusiveParts, "undefined", "no library setter");
+    assert.deepEqual(CjsPaperDollInstance.exclusiveParts(Tops([ true, "tshirtf01" ], [ true, "shirtmilf01" ]), new Map(), []), [], "no groups: both worn");
 });

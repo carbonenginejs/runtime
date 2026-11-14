@@ -124,32 +124,12 @@ export class CjsCharacterLibraryManager
 
     /**
      * The morph corrections in force, by id: rules the morph bake applies on top of the shipped data
-     * (`CjsCharacterMorphCorrections`). A setting with a default (character-structure-and-plugins: a correction is a
-     * setting with a default): the defaults file `factory/defaults/morphCorrections.json` until a host sets its own.
+     * (`CjsCharacterMorphCorrections`), read from the defaults file `factory/defaults/morphCorrections.json`, which
+     * only the library loads (character-structure-and-plugins: a correction is a setting with a default). No consumer
+     * overrides them yet; an override comes with the generic when one does.
      * @type {Record<string, object>}
      */
     _morphCorrections = { ...morphCorrectionDefaults.corrections };
-
-    /**
-     * Replaces the morph corrections in force. Pass the defaults file's rules edited, other rules, or `{}` for none.
-     *
-     * Ours (no Carbon counterpart); see `CjsCharacterMorphCorrections`.
-     * @param {Record<string, object>} corrections The rules, by id.
-     * @returns {void}
-     */
-    SetMorphCorrections(corrections)
-    {
-        this._morphCorrections = { ...corrections };
-    }
-
-    /**
-     * The morph corrections in force, by id.
-     * @returns {Record<string, object>} A copy of the rules.
-     */
-    GetMorphCorrections()
-    {
-        return { ...this._morphCorrections };
-    }
 
     /**
      * One mesh's morph offsets as the library hands them out: the shipped offsets with the corrections in force
@@ -170,37 +150,19 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The shipped default morph corrections (`factory/defaults/morphCorrections.json`), by id.
-     * @returns {Record<string, object>} A copy of the rules.
-     */
-    static morphCorrectionDefaults()
-    {
-        return { ...morphCorrectionDefaults.corrections };
-    }
-
-    /**
      * The body carriers in force: the nude parts every character wears under its garments (each with the dependant
      * categories it names as its own carriers), the dependant categories a garment's own body pieces come from
      * (`garmentDependants`), which carrier areas the composed cut mask clips (`cutMaskClip`, applied by
      * `CjsPaperDollInstance.cutMaskClipEffects`), and when a garment's mesh is its own copy of a carrier's
      * (`meshCopy`: the vertex share and the position scale it is measured at), whether the cut-mask shells draw
-     * (`shells`), and the backing areas' cutout weight (`backingCutout`). A setting with a default: the defaults file
-     * `factory/defaults/bodyCarriers.json` until a host sets its own.
+     * (`shells`), and the backing areas' cutout weight (`backingCutout`). Read from the defaults file
+     * `factory/defaults/bodyCarriers.json`, which only the library loads; no consumer overrides it yet.
      * @type {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: { resource: string, influence: string, above: number, clip: string }, meshCopy: { share: number, positionScale: number }, shells: { draw: boolean }, backingCutout: { parameter: string, alpha: number } }}
      */
-    _bodyCarriers = CjsCharacterLibraryManager.bodyCarrierDefaults();
-
-    /**
-     * Replaces the body carriers in force. Pass the defaults file's edited, or other carriers.
-     *
-     * Ours (no Carbon counterpart): the client's paper doll is Python.
-     * @param {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: object }} carriers The carriers.
-     * @returns {void}
-     */
-    SetBodyCarriers(carriers)
-    {
-        this._bodyCarriers = CjsCharacterLibraryManager.copy(carriers);
-    }
+    _bodyCarriers = CjsCharacterLibraryManager.copy({
+        parts: bodyCarrierDefaults.parts, garmentDependants: bodyCarrierDefaults.garmentDependants, cutMaskClip: bodyCarrierDefaults.cutMaskClip,
+        meshCopy: bodyCarrierDefaults.meshCopy, shells: bodyCarrierDefaults.shells, backingCutout: bodyCarrierDefaults.backingCutout
+    });
 
     /**
      * The body carriers in force (`_bodyCarriers`).
@@ -212,72 +174,24 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The shipped default body carriers (`factory/defaults/bodyCarriers.json`), without its description.
-     * @returns {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: object }} A copy.
-     */
-    static bodyCarrierDefaults()
-    {
-        const { parts, garmentDependants, cutMaskClip, meshCopy, shells, backingCutout } = bodyCarrierDefaults;
-        return CjsCharacterLibraryManager.copy({ parts, garmentDependants, cutMaskClip, meshCopy, shells, backingCutout });
-    }
-
-    /**
-     * The paper doll parts that cannot be worn together, as groups of definition members (applied by
-     * `CjsPaperDollInstance.exclusiveParts`). A setting with a default: the defaults file
-     * `factory/defaults/exclusiveParts.json` until a host sets its own.
-     * @type {string[][]}
-     */
-    _exclusiveParts = CjsCharacterLibraryManager.exclusivePartDefaults();
-
-    /**
-     * Replaces the exclusive part groups in force. Pass the defaults file's edited, other groups, or `[]` for none.
+     * The shipped exclusive part groups (`factory/defaults/exclusiveParts.json`). The paper doll owns them now
+     * (`CjsPaperDollInstance.exclusive`); this stays only until Graphene stops copying them from here, then goes.
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
-     * @param {string[][]} groups The groups, each its definition members.
-     * @returns {void}
-     */
-    SetExclusiveParts(groups)
-    {
-        this._exclusiveParts = CjsCharacterLibraryManager.copy(groups);
-    }
-
-    /**
-     * The exclusive part groups in force (`_exclusiveParts`).
      * @returns {string[][]} A copy.
      */
     GetExclusiveParts()
-    {
-        return CjsCharacterLibraryManager.copy(this._exclusiveParts);
-    }
-
-    /**
-     * The shipped default exclusive part groups (`factory/defaults/exclusiveParts.json`).
-     * @returns {string[][]} A copy.
-     */
-    static exclusivePartDefaults()
     {
         return CjsCharacterLibraryManager.copy(exclusivePartDefaults.groups);
     }
 
     /**
      * The dependant meshes the paper doll draws with their owner's diffuse (`CjsPaperDollInstance.meshDependantStates`):
-     * each its path, owner member, the owner's state field, effect parameters and diffuse size. A setting with a
-     * default: the defaults file `factory/defaults/meshDependants.json` until a host sets its own.
+     * each its path, owner member, the owner's state field, effect parameters and diffuse size. Read from the defaults
+     * file `factory/defaults/meshDependants.json`, which only the library loads; no consumer overrides it yet.
      * @type {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>}
      */
-    _meshDependants = CjsCharacterLibraryManager.meshDependantDefaults();
-
-    /**
-     * Replaces the drawn dependant meshes in force. Pass the defaults file's edited, others, or `[]` for none.
-     *
-     * Ours (no Carbon counterpart): the client's paper doll is Python.
-     * @param {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>} dependants The entries.
-     * @returns {void}
-     */
-    SetMeshDependants(dependants)
-    {
-        this._meshDependants = CjsCharacterLibraryManager.copy(dependants);
-    }
+    _meshDependants = CjsCharacterLibraryManager.copy(meshDependantDefaults.dependants);
 
     /**
      * The drawn dependant meshes in force (`_meshDependants`).
@@ -286,15 +200,6 @@ export class CjsCharacterLibraryManager
     GetMeshDependants()
     {
         return CjsCharacterLibraryManager.copy(this._meshDependants);
-    }
-
-    /**
-     * The shipped default drawn dependant meshes (`factory/defaults/meshDependants.json`).
-     * @returns {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>} A copy.
-     */
-    static meshDependantDefaults()
-    {
-        return CjsCharacterLibraryManager.copy(meshDependantDefaults.dependants);
     }
 
     /**

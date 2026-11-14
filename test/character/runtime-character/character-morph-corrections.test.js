@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterLibraryManager, CjsCharacterMorphCorrections } from "../../../npm/dist/character/index.js";
+import file from "../../../npm/dist/character/factory/defaults/morphCorrections.json.js";
+
+/** The rules of the defaults file, by id. */
+const fileRules = () => structuredClone(file.corrections);
 
 const { carryOffsets, correctOffsets, findMirrorPartners } = CjsCharacterMorphCorrections;
 const parameters = { mirrorTolerance: 5e-4, seamPrecision: 1e6, cell: 1 / 2000, carrySmoothing: .005 };
@@ -44,15 +48,13 @@ test("a right region mirrors the right half from the left and leaves the left un
     assert.deepEqual(Array.from(repaired.slice(3)), Array.from(position.slice(3)));
 });
 
-test("the rules come from data: the defaults file, replaceable through the library", () =>
+test("the rules come from data: the defaults file, which only the library loads", () =>
 {
-    const defaults = CjsCharacterLibraryManager.morphCorrectionDefaults();
-    assert.deepEqual(Object.keys(defaults), [ "male-head-weight-face", "male-head-weight-mouth" ]);
-    const library = Object.create(CjsCharacterLibraryManager.prototype);
-    library._morphCorrections = { ...defaults };
-    assert.deepEqual(Object.keys(library.GetMorphCorrections()), Object.keys(defaults));
-    library.SetMorphCorrections({});
-    assert.deepEqual(library.GetMorphCorrections(), {});
+    assert.deepEqual(Object.keys(fileRules()), [ "male-head-weight-face", "male-head-weight-mouth" ]);
+    const library = new CjsCharacterLibraryManager();
+    assert.deepEqual(library._morphCorrections, fileRules());
+    assert.equal(typeof library.SetMorphCorrections, "undefined", "no public setter");
+    assert.equal(typeof library.GetMorphCorrections, "undefined", "no public getter");
 });
 
 test("offsetsFor applies a rule in force to its model and mesh only", () =>
@@ -60,7 +62,7 @@ test("offsetsFor applies a rule in force to its model and mesh only", () =>
     const base = Float32Array.of(-.01, 0, 0, .01, 0, 0), position = Float32Array.of(0, -.003, 0, -.0002, -.0001, 0);
     const source = { GetMeshName: () => "TeethLower_GeoShape", GetMeshMorphName: () => "fatShape", GetMorphTargetOffsets: () => ({ base, position, normal: null }) };
     const path = "res:/Graphics/Character/Male/Paperdoll/Head/Head_Generic/Head_Generic.gr2";
-    const rules = CjsCharacterLibraryManager.morphCorrectionDefaults();
+    const rules = fileRules();
     assert.ok(CjsCharacterMorphCorrections.offsetsFor(source, path, 0, 0, rules).changed > 0);
     assert.equal(CjsCharacterMorphCorrections.offsetsFor(source, "res:/other.gr2", 0, 0, rules), null);
     assert.equal(CjsCharacterMorphCorrections.offsetsFor(source, path, 0, 0, {}), null);
@@ -72,8 +74,8 @@ test("the library hands the bake corrected offsets, or none once its corrections
     const source = { GetMeshName: () => "TeethLower_GeoShape", GetMeshMorphName: () => "fatShape", GetMorphTargetOffsets: () => ({ base, position, normal: null }) };
     const path = "res:/graphics/character/male/paperdoll/head/head_generic/head_generic.gr2";
     const library = Object.create(CjsCharacterLibraryManager.prototype);
-    library._morphCorrections = CjsCharacterLibraryManager.morphCorrectionDefaults();
+    library._morphCorrections = fileRules();
     assert.ok(library.GetCorrectedMorphOffsets(source, path, 0, 0).changed > 0);
-    library.SetMorphCorrections({});
+    library._morphCorrections = {};
     assert.equal(library.GetCorrectedMorphOffsets(source, path, 0, 0), null);
 });

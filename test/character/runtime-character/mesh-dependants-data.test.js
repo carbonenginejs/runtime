@@ -4,19 +4,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterLibraryManager, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
 
-const [ DRAPE ] = CjsCharacterLibraryManager.meshDependantDefaults();
+import file from "../../../npm/dist/character/factory/defaults/meshDependants.json.js";
 
-test("the library hands out the drape entry as a setting with a default, as copies", () =>
+const [ DRAPE ] = structuredClone(file.dependants);
+
+test("the library hands out the drape entry of its defaults file, as copies", () =>
 {
-    assert.deepEqual(CjsCharacterLibraryManager.meshDependantDefaults(), [
+    assert.deepEqual(file.dependants, [
         { path: "dependants/drape/standard", owner: "topMiddle", state: "tuck", parameters: { TransformUV0: [ 0, 0, 1, 1 ], DecalClip: 1 }, diffuseSize: [ 2048, 2048 ] }
     ]);
     const library = new CjsCharacterLibraryManager();
     const entries = library.GetMeshDependants();
     entries[0].owner = "changed";
     assert.equal(library.GetMeshDependants()[0].owner, "topMiddle", "the caller's own copy");
-    library.SetMeshDependants([]);
-    assert.deepEqual(library.GetMeshDependants(), []);
+    assert.deepEqual(library.GetMeshDependants(), file.dependants);
+    assert.equal(typeof library.SetMeshDependants, "undefined", "no public setter: only the library loads the file");
 });
 
 test("the drape draws in its owner's state while the owner is worn, lists it and nothing removes it", () =>

@@ -1,4 +1,5 @@
-import { meta } from "#schema";
+import { meta, type } from "#schema";
+import exclusivePartDefaults from "../factory/defaults/exclusiveParts.json" with { type: "json" };
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
 import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
@@ -41,12 +42,13 @@ export class CjsPaperDollInstance
     _applying = false;
 
     /**
-     * The parts that cannot be worn together, each group its definition members (`exclusiveParts`). The library's
-     * setting (`CjsCharacterLibraryManager.GetExclusiveParts`): its defaults file until the host sets the library's
-     * current groups here.
+     * The parts that cannot be worn together, each group its definition members (`exclusiveParts`): a paper doll rule
+     * with a default, the defaults file `factory/defaults/exclusiveParts.json`, until a host sets its own.
      * @type {string[][]}
      */
-    exclusive = CjsCharacterLibraryManager.exclusivePartDefaults();
+    @meta.mapAttribute(meta.READWRITE)
+    @type.list({ kind: "list", itemType: "string" })
+    exclusive = exclusivePartDefaults.groups.map(group => [ ...group ]);
 
     /** The part each `exclusive` group last wore, by group index (`exclusiveParts`). */
     _exclusiveWorn = new Map();
@@ -200,8 +202,8 @@ export class CjsPaperDollInstance
      * the others are switched off. With no earlier state (a restored character wearing both), the later part in the
      * group stays.
      *
-     * Ours (no Carbon counterpart): the client's paper doll is Python. The library holds the groups
-     * (`CjsCharacterLibraryManager.GetExclusiveParts`, defaults file `exclusiveParts.json`); this applies them.
+     * Ours (no Carbon counterpart): the client's paper doll is Python. The instance holds the groups (`exclusive`,
+     * defaults file `exclusiveParts.json`); this applies them.
      * @param {import("./CjsPaperDollDefinition.js").CjsPaperDollDefinition} definition The settings.
      * @param {Map<number, ?string>} last The part each group wore at the previous call, by group index; updated.
      * @param {string[][]} groups The groups, each its definition members.
