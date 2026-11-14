@@ -385,7 +385,7 @@ export class CjsCharacterLibraryManager
      * The shipped paper doll category rules (`factory/defaults/categories.json`, which says what each value means),
      * by category path below the sex's paper doll root. An empty rule is no rule. The parts library reads the rules
      * in force through `_Categories`, where a library's generic overrides these by name.
-     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"accessory"|"catalog"|"garment"), palettes: (""|"own"|"shared"|"variant"|"folders"), areas: (""|"zone"|"detail"|"count"|"stated"|"none"), defaultColors?: number[][] }>}
+     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"accessory"|"catalog"|"garment"), palettes: (""|"own"|"shared"|"variant"|"folders"), areas: (""|"zone"|"detail"|"count"|"stated"|"none"), defaultColors?: number[][], requiresModel?: boolean, skipPatternedPalettes?: boolean }>}
      */
     static categories = categoryDefaults.categories;
 
@@ -417,7 +417,8 @@ export class CjsCharacterLibraryManager
     /**
      * A category's options, from the index alone (no file is read): each option's id, its `.type` (null for a
      * folder option), its folder and its path below the root, and for a folder option the bloodlines its `.type`
-     * names say wear it. Sorted by `.type` path, or by folder.
+     * names say wear it. Sorted by `.type` path, or by folder. A category that `requiresModel` (`categories`) offers
+     * only the types whose part ships a mesh, which reads their `.type`s.
      *
      * Ours (non-carbon-extensions.md § *The shared character library*): the game's paper doll is Python client
      * code, not Carbon. The listing each paper doll source made for itself, moved into the parts library.
@@ -441,7 +442,13 @@ export class CjsCharacterLibraryManager
             if (rule.options === "type")
             {
                 // A type's folder is the one its `types/` folder sits in, as the part join slices it.
-                return types.map(path => option(path.slice(path.lastIndexOf("/") + 1, -".type".length), path, [ path ], path.slice(0, path.lastIndexOf("/types/") + 1), []));
+                const listed = types.map(path => option(path.slice(path.lastIndexOf("/") + 1, -".type".length), path, [ path ], path.slice(0, path.lastIndexOf("/types/") + 1), []));
+                if (!rule.requiresModel) return listed;
+                // Derived (moved from Graphene's accessories): an item is offered only when its variation's or its part's
+                // folder holds a mesh (a `.black` that is not a lower LOD); this reads each `.type`.
+                const shown = await Promise.all(listed.map(async value => (await this.FetchOptionPart(value)).folders
+                    .some(dir => this._PaperDollFiles(dir).some(path => path.lastIndexOf("/") === dir.length - 1 && path.endsWith(".black") && !/_lod\d+\.black$/u.test(path)))));
+                return listed.filter((_, index) => shown[index]);
             }
             return [ ...new Set(files.map(path => path.slice(0, path.indexOf("/", folder.length) + 1))) ].map(dir =>
             {
@@ -731,7 +738,12 @@ export class CjsCharacterLibraryManager
             {
                 const paths = (await this._AccessoryFolders(option)).flatMap(folder => this._PaperDollFiles(folder)
                     .filter(path => path.endsWith(".color") && path.lastIndexOf("/") === folder.length - 1));
-                return [ ...new Set(paths) ].map(path => CjsCharacterLibraryManager.paletteRecord(path));
+                const unique = [ ...new Set(paths) ];
+                // Derived (moved from Graphene's accessories): a patterned palette is not offered where the category
+                // says so (`skipPatternedPalettes`), because nothing composes its pattern yet; this reads each palette.
+                const offered = this._Categories().get(option.category).skipPatternedPalettes
+                    ? await Promise.all(unique.map(async path => (await this.FetchPalette(path, { pattern: "skip" })) !== null)) : unique.map(() => true);
+                return unique.filter((_, index) => offered[index]).map(path => CjsCharacterLibraryManager.paletteRecord(path));
             }
             const category = rule === "own" ? [] : this._PaperDollFiles(shared).filter(path => path.endsWith(".color"));
             if (rule === "variant")
@@ -1089,20 +1101,23 @@ export class CjsCharacterLibraryManager
     /**
      * The paper doll category rules in force, by category path: the shipped defaults (`categories`), each replaced by
      * the installed library's generic category of the same name. Built once per install. A default that lists no
-     * `defaultColors` has none.
-     * @returns {Map<string, { options: string, maps: string, palettes: string, areas: string, defaultColors: number[][] }>}
+     * `defaultColors` has none; one that lists no `requiresModel` or `skipPatternedPalettes` has them off.
+     * @returns {Map<string, { options: string, maps: string, palettes: string, areas: string, defaultColors: number[][], requiresModel: boolean, skipPatternedPalettes: boolean }>}
      *   The rules; not to be changed.
      */
     _Categories()
     {
         if (this._categories === null || this._categoriesGeneration !== this._installGeneration)
         {
-            const rules = new Map(Object.entries(CjsCharacterLibraryManager.categories).map(([ name, rule ]) => [ name, { ...rule, defaultColors: rule.defaultColors ?? [] } ]));
+            const rules = new Map(Object.entries(CjsCharacterLibraryManager.categories).map(([ name, rule ]) => [ name, {
+                ...rule, defaultColors: rule.defaultColors ?? [], requiresModel: rule.requiresModel ?? false, skipPatternedPalettes: rule.skipPatternedPalettes ?? false
+            } ]));
             for (const [ name, category ] of this._library.generic.categories)
             {
                 rules.set(name, {
                     options: category.options, maps: category.maps, palettes: category.palettes, areas: category.areas,
-                    defaultColors: category.defaultColors.map(color => Array.from(color))
+                    defaultColors: category.defaultColors.map(color => Array.from(color)),
+                    requiresModel: category.requiresModel, skipPatternedPalettes: category.skipPatternedPalettes
                 });
             }
             this._categories = rules;

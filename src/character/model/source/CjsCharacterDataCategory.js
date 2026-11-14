@@ -37,4 +37,14 @@ export class CjsCharacterDataCategory
     @type.array("vec4")
     defaultColors = [];
 
+    /** Whether an option is offered only when its part ships a mesh (accessories). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.boolean
+    requiresModel = false;
+
+    /** Whether a patterned palette is left out of an option's palettes, because nothing composes its pattern yet. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.boolean
+    skipPatternedPalettes = false;
+
 }

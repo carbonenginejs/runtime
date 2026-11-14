@@ -37,6 +37,12 @@ function fixture(t)
         [ "accessories/glasses/glasses01/colorize_acc_z.png", OPAQUE ],
         [ "accessories/glasses/glasses01/normal_n.png", OPAQUE ],
         [ "accessories/glasses/glasses01/gold.color", COLOR ],
+        [ "accessories/glasses/glasses01/glasses01.black", OPAQUE ],
+        [ "accessories/glasses/glasses01/glasses01_lod1.black", OPAQUE ],
+        [ "accessories/glasses/glasses01/stripes.color", COLOR.replace("pattern: ''", "pattern: 'res:/graphics/character/stripes.png'") ],
+        // An item whose part ships only a lower LOD is not offered.
+        [ "accessories/glasses/glasses02/types/glasses02.type", "!!python/tuple [accessories/glasses/glasses02, '', '']\n" ],
+        [ "accessories/glasses/glasses02/glasses02_lod1.black", OPAQUE ],
         [ "accessories/shared/metal/comp_acc_s.png", OPAQUE ],
         [ "accessories/shared/metal/silver.color", COLOR ],
         // A piercing type naming a part in another location; the part has no metadata.
@@ -48,7 +54,8 @@ function fixture(t)
         [ "makeup/eyelashes/eyelashes_01/colorize_head_z.png", OPAQUE ],
         [ "makeup/eyelashes/eyelashes_01/comp_head_s.png", OPAQUE ],
         [ "makeup/eyelashes/eyelashes_02/colorize_head_l.png", OPAQUE ],
-        [ "accessories/earslow/stud02/comp_acc_d.png", OPAQUE ]
+        [ "accessories/earslow/stud02/comp_acc_d.png", OPAQUE ],
+        [ "accessories/earslow/stud02/stud02.black", OPAQUE ]
     ].map(([ path, value ]) => [ ROOT + path, value ]));
     const cache = new RemoteFileCache();
     cache.AddFileIndex([ ...text.keys() ].map((path, index) => `${path},synthetic/${index},checksum,1`).join("\n"));
@@ -128,7 +135,9 @@ test("lashes: one option per .type, their composed maps, no palette, so the cate
 test("accessories: maps by region across the item's folders, palettes of those folders, areas as its metadata states", async t =>
 {
     const library = fixture(t);
-    const [ glasses ] = await library.FetchOptions("female", "accessories/glasses");
+    const listed = await library.FetchOptions("female", "accessories/glasses");
+    assert.deepEqual(listed.map(option => option.id), [ "glasses01" ], "an item whose part ships no mesh but a lower LOD is not offered");
+    const [ glasses ] = listed;
     const [ stud ] = await library.FetchOptions("female", "accessories/piercings");
     const maps = await library.FetchOptionMaps(glasses);
     assert.deepEqual(maps.folders.map(local), [ "accessories/glasses/glasses01/v1/", "accessories/glasses/glasses01/", "accessories/shared/metal/" ]);
