@@ -28,21 +28,22 @@ const STRING_KINDS = new Set([ CARBON_TYPE.STRING, CARBON_TYPE.PATH, CARBON_TYPE
 @meta.carbon("Tr2BindingPoint")
 export class Tr2BindingPoint
 {
-  // Every embedding owner exposes these READWRITE|PERSIST|NOTIFY
-  // (Tr2ActionSetValue_Blue.cpp:18, Tr2ActionAnimateValue_Blue.cpp:19).
+  // Carbon gives Tr2BindingPoint no exposure block and no INotify: it is a plain class. Each owner maps these members
+  // as its own rows, READWRITE|PERSIST|NOTIFY on the owner, which is the INotify that is told
+  // (Tr2ActionSetValue_Blue.cpp:18-20, Tr2ActionAnimateValue_Blue.cpp:19-21). So NOTIFY is not on these.
 
   /** m_path: a reference from one of the roots, or empty to use `object`. */
-  @meta.mapAttribute(meta.READWRITE | meta.NOTIFY | meta.PERSIST)
+  @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
   @type.string
   path = "";
 
   /** m_object: the destination object when `path` is empty. */
-  @meta.mapAttribute(meta.READWRITE | meta.NOTIFY | meta.PERSIST)
+  @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
   @type.object.ref.weak("IRoot")
   object = null;
 
   /** m_attribute: the member name, optionally with a one-letter swizzle (`color.a`). */
-  @meta.mapAttribute(meta.READWRITE | meta.NOTIFY | meta.PERSIST)
+  @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
   @type.string
   attribute = "";
 
