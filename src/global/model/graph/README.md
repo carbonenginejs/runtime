@@ -13,14 +13,14 @@ facts, among them `bases`, its C++ base list, and `chainTo`, the class its expos
 into. Member lookup walks `chainTo`, as Carbon's walks `mParentClassInfo`; the prototype chain is the bases. Default values are not cloned or instantiated, and must not later be assigned as shared
 mutable instance storage.
 
-A compiled member holds: `name`, `key`, `index`, `role`, `type`, `vartype`, `handler`, `direct`,
-`length`, `bits`, `signed`, `ctor`, `item`, `flags`, `wrapped`, `options`, `edgeKind`, `edgeType`,
-`collection`, `destination` and `owner`. `flags` is one integer: Carbon's `EDITFLAGS` from
+A compiled member is a `VarEntry` row, listed in every table and never copied. The graph sets `name`,
+`key` (a field), `index` (-1 for none), `role`, `kind` (the type name), `type` (the VARTYPE),
+`handler`, `direct`, `length`, `bits`, `signed`, `ctor`, `item`, `flags`, `wrapped`, `options`,
+`edgeKind`, `edgeType`, `collection` and `owner`. `flags` is one integer: Carbon's `EDITFLAGS` from
 `global/consts`, and above `EDMASK` `GraphMemberFlags.BINARY` and `RUNTIMEONLY`, which are ours and which
 no value operation reads. A member takes a value through WRITE, PERSIST or RPERSIST, or when it has no
 access flags; READ alone refuses one.
-`edgeType` is always a list, the declared class first; empty is dynamic. `destination` says where a
-reader puts the value: `list`, `dict`, `structureList`, `embedded`, `wrapper`, or null.
+`edgeType` is always a list, the declared class first; empty is dynamic.
 
 A class with `ownValues` holds values that are not members, through `GetOwnValues`, `SetOwnValues`
 and `IsOwnValues`: its bags carry those names beside its members.

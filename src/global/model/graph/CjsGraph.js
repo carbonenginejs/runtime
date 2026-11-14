@@ -182,7 +182,7 @@ export class CjsGraph
     return row;
   }
 
-  /** The compiled entry for a member's items: a type name, or { type, item } for a nested list. @cjs */
+  /** The compiled row for a member's items, or null; the declaration is a type name, or { type, item } for a nested list. @cjs */
   static _compileItem(member)
   {
     if (member.item === undefined) return null;

@@ -117,9 +117,11 @@ export class VarEntry
   floatArraySize = 0;
 
   /**
-   * What an IROOT member is (see `BLACK_DESTINATION`).
+   * What an IROOT member is (see `BLACK_DESTINATION`). Only the schema's compile sets it, and only
+   * Blue's readers read it: a row the graph compiled keeps the default, which says nothing.
    *
    * @cjs Carbon casts the live member to IList, IBlueDict or IBlueStructureList (IRootReader.cpp:160-187).
+   * @type {number}
    */
   destination = BLACK_DESTINATION.OBJECT;
 
@@ -161,7 +163,8 @@ export class VarEntry
   /**
    * Whether the row is an attribute or a property.
    *
-   * @cjs
+   * @cjs Carbon tells them apart by mGetProperty and mSetProperty; the graph's tables ask before either is set.
+   * @type {"attribute"|"property"}
    */
   role = "attribute";
 
@@ -169,57 +172,121 @@ export class VarEntry
    * The member's type name, a key of GRAPH_TYPES ("float32", "vec3", "rootRef").
    *
    * @cjs Carbon has the C++ member type; `type` above is the VARTYPE it stores as.
+   * @type {string}
    */
   kind = "invalid";
 
   /**
    * The graph handler for the member's storage kind, or null on a row no value operation reads.
    *
-   * @cjs
+   * @cjs Carbon's readers switch on mType; a handler is that switch's case, found once.
+   * @type {object|null}
    */
   handler = null;
 
-  /** Whether a value operation may assign the value with no handler call. @cjs */
+  /**
+   * Whether a value operation may assign the value with no handler call.
+   *
+   * @cjs A JavaScript primitive needs no copy; Carbon copies mSize bytes either way.
+   * @type {boolean}
+   */
   direct = false;
 
-  /** An array member's element count, 0 for any length. @cjs */
+  /**
+   * An array member's element count, 0 for any length.
+   *
+   * @cjs Carbon divides mSize; a JavaScript member has no byte size.
+   * @type {number}
+   */
   length = 0;
 
-  /** An integer member's width in bits. @cjs */
+  /**
+   * An integer member's width in bits.
+   *
+   * @cjs Carbon has mSize.
+   * @type {number}
+   */
   bits = 0;
 
-  /** The typed-array class an array member stores, or null. @cjs */
+  /**
+   * The typed-array class an array member stores, or null.
+   *
+   * @cjs Carbon's member is a C++ array of a known element type.
+   * @type {Function|null}
+   */
   ctor = null;
 
-  /** A check a value must pass, or null. @cjs */
+  /**
+   * A check a value must pass, or null.
+   *
+   * @cjs C++ refuses a wrongly typed value at compile time; a JavaScript member takes anything.
+   * @type {((value: *) => boolean)|null}
+   */
   check = null;
 
-  /** The compiled type of a values list's items, or null. @cjs */
+  /**
+   * The compiled row for a values list's items, or null.
+   *
+   * @cjs Carbon's list knows its own item type.
+   * @type {VarEntry|null}
+   */
   item = null;
 
   /**
    * The member's Be::EDITFLAGS with ours merged in, and the graph's own bits (GraphMemberFlags).
    *
    * @cjs `editFlags` above keeps what Carbon's macro wrote.
+   * @type {number}
    */
   flags = 0;
 
-  /** The GRAPH_WRAPPERS record a wrapped member is written through, or null. @cjs */
+  /**
+   * The GRAPH_WRAPPERS record a wrapped member is written through, or null.
+   *
+   * @cjs Carbon's member is a real TriMatrix or TriVector; ours is a math array written as one.
+   * @type {object|null}
+   */
   wrapped = null;
 
-  /** Anything rare the member's definition carries, or null. @cjs */
+  /**
+   * Anything rare the member's definition carries, or null.
+   *
+   * @cjs Ours only: a slot, so a rare fact does not widen every row.
+   * @type {object|null}
+   */
   options = null;
 
-  /** How the member holds another object: "embed", "ref", "refWeak", "weak", or null for a value. @cjs */
+  /**
+   * How the member holds another object: "embed", "ref", "refWeak", "weak", or null for a value.
+   *
+   * @cjs Carbon reads it from the member's C++ type: a value member, a smart pointer or a weak one.
+   * @type {string|null}
+   */
   edgeKind = null;
 
-  /** The class names an object member may hold, the declared one first; empty means any. @cjs */
+  /**
+   * The class names an object member may hold, the declared one first; empty means any. The graph's
+   * compile always sets a list; null only on a row it has not compiled.
+   *
+   * @cjs Carbon's row has one mIID; ours may accept several.
+   * @type {string[]|null}
+   */
   edgeType = null;
 
-  /** The collection an object member is: "list", "array", "set", "map", or null. @cjs */
+  /**
+   * The collection an object member is: "list", "array", "set", "map", or null.
+   *
+   * @cjs Carbon casts the live member to find out (IRootReader.cpp:160-187).
+   * @type {string|null}
+   */
   collection = null;
 
-  /** The class record that declares this row. @cjs */
+  /**
+   * The class record that declares this row; null on an item row.
+   *
+   * @cjs Carbon's row sits in its class's own table and needs no pointer back.
+   * @type {import("./ClassInfo.js").ClassInfo|null}
+   */
   owner = null;
 
   /** The resolved accepted classes, once every name has resolved. */
