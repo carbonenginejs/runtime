@@ -1,0 +1,11 @@
+{
+  "description": "Each character sex's resource facts, which only the library loads (CjsCharacterLibraryManager.sexFacts): `root`, the paper doll content root every category path is relative to; `skeleton`, the master skeleton the character is skinned to. Ours: the client's paper doll is Python. Edit freely: the engine reads this file as data.",
+  "female": {
+    "root": "res:/graphics/character/female/paperdoll/",
+    "skeleton": "res:/graphics/character/female/skeleton/masterskeletonfemale.gr2"
+  },
+  "male": {
+    "root": "res:/graphics/character/male/paperdoll/",
+    "skeleton": "res:/graphics/character/male/skeleton/masterskeletonmale.gr2"
+  }
+}

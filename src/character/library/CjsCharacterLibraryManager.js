@@ -18,6 +18,7 @@ import meshDependantDefaults from "../factory/defaults/meshDependants.json" with
 import categoryDefaults from "../factory/defaults/categories.json" with { type: "json" };
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
 import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json" with { type: "json" };
+import sexDefaults from "../factory/defaults/sexes.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
@@ -336,15 +337,18 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The paper doll content root of a sex, which every category path is relative to.
-     * @param {"female"|"male"} sex The sex.
-     * @returns {string} The root's `res:` path, with its trailing slash.
-     * @throws {Error} For another sex.
+     * A sex's resource facts (`factory/defaults/sexes.json`, which only the library loads): `root`, the paper doll
+     * content root every category path is relative to, with its trailing slash; `skeleton`, the master skeleton.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {string} sex The sex.
+     * @returns {{ root: string, skeleton: string }} A copy the caller may change.
+     * @throws {Error} For a sex the library does not know.
      */
-    static paperDollRoot(sex)
+    static sexFacts(sex)
     {
-        if (sex !== "female" && sex !== "male") throw new Error("Unknown character sex " + sex);
-        return "res:/graphics/character/" + sex + "/paperdoll/";
+        if (sex === "description" || !Object.hasOwn(sexDefaults, sex)) throw new Error("Unknown character sex " + sex);
+        return { ...sexDefaults[sex] };
     }
 
     /**
@@ -380,7 +384,7 @@ export class CjsCharacterLibraryManager
         const rule = this._CategoryRule(category, "options");
         return (await this._Query("options|" + sex + "|" + category, async () =>
         {
-            const root = CjsCharacterLibraryManager.paperDollRoot(sex), folder = root + category + "/", files = this._PaperDollFiles(folder);
+            const root = CjsCharacterLibraryManager.sexFacts(sex).root, folder = root + category + "/", files = this._PaperDollFiles(folder);
             const option = (id, typePath, typePaths, optionFolder, bloodlines) =>
                 ({ sex, category, id, typePath, typePaths, folder: optionFolder, path: optionFolder.slice(root.length, -1), bloodlines });
             if (rule.options === "self") return [ option(category.split("/").at(-1), null, [], folder, []) ];
@@ -423,7 +427,7 @@ export class CjsCharacterLibraryManager
     async FetchFoldersWithoutOptions(sex, category)
     {
         if (this._CategoryRule(category, "options").options !== "type") throw new Error("The paper doll category " + category + " does not list options by .type");
-        const root = CjsCharacterLibraryManager.paperDollRoot(sex), folder = root + category + "/", files = this._PaperDollFiles(folder);
+        const root = CjsCharacterLibraryManager.sexFacts(sex).root, folder = root + category + "/", files = this._PaperDollFiles(folder);
         const typed = new Set(files.filter(path => path.endsWith(".type")).map(path => path.slice(0, path.lastIndexOf("/types/") + 1)));
         return [ ...new Set(files.filter(path => path.indexOf("/", folder.length) >= 0).map(path => path.slice(0, path.indexOf("/", folder.length) + 1))) ]
             .filter(dir => !typed.has(dir))
@@ -447,7 +451,7 @@ export class CjsCharacterLibraryManager
     {
         return this._Query("part|" + CjsCharacterLibraryManager._OptionKey(option), async () =>
         {
-            const root = CjsCharacterLibraryManager.paperDollRoot(option.sex);
+            const root = CjsCharacterLibraryManager.sexFacts(option.sex).root;
             let part = option.path, variation = "", colorVariant = "", folders = [ option.folder ];
             if (option.typePath === null && option.variation)
             {
@@ -538,7 +542,7 @@ export class CjsCharacterLibraryManager
         const lower = path.toLowerCase();
         return this._Query("dependant|" + sex + "|" + lower + "|" + variation, async () =>
         {
-            const folder = CjsCharacterLibraryManager.paperDollRoot(sex) + lower + "/", files = this._PaperDollFiles(folder);
+            const folder = CjsCharacterLibraryManager.sexFacts(sex).root + lower + "/", files = this._PaperDollFiles(folder);
             const metadataPath = [ ...(variation ? [ folder + variation + "/" ] : []), folder ].map(value => value + "metadata.yaml").find(value => files.includes(value));
             if (!metadataPath) return null;
             const metadata = await this.FetchAvatarPartMetaData(metadataPath);
@@ -647,7 +651,7 @@ export class CjsCharacterLibraryManager
                 }
                 return { channels };
             }
-            const maps = CjsCharacterTextureRoles.pickGarmentMaps(facts.folders, files), root = CjsCharacterLibraryManager.paperDollRoot(option.sex);
+            const maps = CjsCharacterTextureRoles.pickGarmentMaps(facts.folders, files), root = CjsCharacterLibraryManager.sexFacts(option.sex).root;
             const fromDependants = facts.dependants.filter(path => !/^utilityshapes\//iu.test(path)).map(path =>
             {
                 const dir = root + path.toLowerCase() + "/";
@@ -681,7 +685,7 @@ export class CjsCharacterLibraryManager
     {
         return (await this._Query("palettes|" + CjsCharacterLibraryManager._OptionKey(option), async () =>
         {
-            const shared = CjsCharacterLibraryManager.paperDollRoot(option.sex) + option.category + "/colors/";
+            const shared = CjsCharacterLibraryManager.sexFacts(option.sex).root + option.category + "/colors/";
             const own = this._PaperDollFiles(option.folder).filter(path => path.endsWith(".color") && path.lastIndexOf("/") === option.folder.length - 1);
             const rule = this._CategoryRule(option.category, "palettes").palettes;
             if (rule === "styles")
@@ -948,7 +952,7 @@ export class CjsCharacterLibraryManager
     {
         return this._Query("bloodline|" + sex + "|" + archetype, async () =>
         {
-            const heads = CjsCharacterLibraryManager.paperDollRoot(sex) + "head/";
+            const heads = CjsCharacterLibraryManager.sexFacts(sex).root + "head/";
             const paths = this._PaperDollFiles(heads).filter(path => path.endsWith("/metadata.yaml") && path.indexOf("/", heads.length) === path.length - "/metadata.yaml".length);
             const found = [];
             for (const path of paths)
@@ -1019,7 +1023,7 @@ export class CjsCharacterLibraryManager
     async FetchRecipeOption(sex, category, { path, variation = "" })
     {
         this._CategoryRule(category, "options");
-        const lower = path.toLowerCase(), folder = CjsCharacterLibraryManager.paperDollRoot(sex) + lower + "/";
+        const lower = path.toLowerCase(), folder = CjsCharacterLibraryManager.sexFacts(sex).root + lower + "/";
         if (!this._PaperDollFiles(folder).length) return null;
         return { sex, category, id: "recipe", typePath: null, typePaths: [], folder, path: lower, bloodlines: [], variation: variation.toLowerCase() };
     }
@@ -1062,7 +1066,7 @@ export class CjsCharacterLibraryManager
     async _AccessoryFolders(option)
     {
         const facts = await this.FetchOptionPart(option), own = await this.FetchPartMetadata([ facts.folders.at(-1) ]);
-        const root = CjsCharacterLibraryManager.paperDollRoot(option.sex), source = own ? own.alternativeTextureSourcePath : "";
+        const root = CjsCharacterLibraryManager.sexFacts(option.sex).root, source = own ? own.alternativeTextureSourcePath : "";
         const folders = [ ...facts.folders, ...(source ? [ root + source.toLowerCase().replace(/\/?$/u, "/") ] : []), option.folder ];
         return [ ...new Set(folders) ].filter(folder => this._PaperDollFiles(folder).length);
     }

@@ -92,7 +92,8 @@ test("options come from the index alone, one per .type, per underwear folder, or
     await assert.rejects(library.FetchOptions("female", "head"), /No options rule for the paper doll category head/);
     assert.deepEqual(await library.FetchOptions("female", "hair"), [], "a listed category this build ships nothing in");
     await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "bottominner", id: "long01" }), /No maps rule for the paper doll category bottominner/);
-    assert.throws(() => CjsCharacterLibraryManager.paperDollRoot("other"), /Unknown character sex/);
+    assert.throws(() => CjsCharacterLibraryManager.sexFacts("other"), /Unknown character sex/);
+    assert.deepEqual(CjsCharacterLibraryManager.sexFacts("male"), { root: "res:/graphics/character/male/paperdoll/", skeleton: "res:/graphics/character/male/skeleton/masterskeletonmale.gr2" });
 });
 
 test("an option's part: its type's tuple, the variation folder before the part folder, and its metadata decoded", async t =>
