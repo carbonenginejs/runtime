@@ -619,4 +619,42 @@ export class Tr2GStateAnimation extends IRoot
     }
   }
 
+  /**
+   * Carbon: Tr2GStateAnimation::Initialize (trinity/trinity/Tr2GStateAnimation.h:110), `bool Initialize()`.
+   * Compiled only when GSTATE_ENABLED (Tr2GStateAnimation.h:7).
+   *
+   * @notImplemented
+   * @returns {boolean} Whether initialization succeeded.
+   * @throws {Error} Always.
+   */
+  Initialize()
+  {
+    throw new Error("Tr2GStateAnimation.Initialize is not implemented in CarbonEngineJS.");
+  }
+
+  /**
+   * Carbon: Tr2GStateAnimation::GetAnimationTransforms (trinity/trinity/Tr2GStateAnimation.h:116), `const Matrix* GetAnimationTransforms()`.
+   * Compiled only when GSTATE_ENABLED (Tr2GStateAnimation.h:7).
+   *
+   * @notImplemented
+   * @returns {Float32Array[]} The animation's bone transforms (const Matrix*).
+   * @throws {Error} Always.
+   */
+  GetAnimationTransforms()
+  {
+    throw new Error("Tr2GStateAnimation.GetAnimationTransforms is not implemented in CarbonEngineJS.");
+  }
+
+  /**
+   * Carbon: Tr2GStateAnimation::GetAnimationBoneList (trinity/trinity/Tr2GStateAnimation.h:117), `const std::string* GetAnimationBoneList( unsigned int& numBones ) const`.
+   * Compiled only when GSTATE_ENABLED (Tr2GStateAnimation.h:7).
+   *
+   * @notImplemented
+   * @returns {string[]} The bone names; Carbon's numBones output is the array length.
+   * @throws {Error} Always.
+   */
+  GetAnimationBoneList()
+  {
+    throw new Error("Tr2GStateAnimation.GetAnimationBoneList is not implemented in CarbonEngineJS.");
+  }
 }
