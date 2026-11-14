@@ -110,6 +110,8 @@ export * from "./exposure/IBlueClasses.js";
 export * from "./exposure/BlueClasses.js";
 export { ClassInfo } from "./base/ClassInfo.js";
 export { VarEntry } from "./base/VarEntry.js";
+export { IBlueRtti } from "./exposure/IBlueRtti.js";
+export { BlueRttiValue } from "./exposure/BlueRttiValue.js";
 export { BlueRttiType } from "./exposure/BlueRttiType.js";
 export * from "./exposure/ICopier.js";
 export * from "./exposure/ICopierCustomAssignment.js";

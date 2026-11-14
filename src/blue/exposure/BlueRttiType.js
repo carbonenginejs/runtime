@@ -1,5 +1,8 @@
 // Source: blueexposure/BlueClasses.cpp:72-231 (BlueRttiType)
 // Source: blueexposure/include/IBlueRtti.h:14-35 (BlueRttiValue, IBlueRtti)
+import { CjsSchema } from "#schema";
+import { IBlueRtti } from "./IBlueRtti.js";
+import { BlueRttiValue } from "./BlueRttiValue.js";
 
 /**
  * A class's run-time type information: every exposed member and method under
@@ -7,8 +10,8 @@
  * walks the class tree. Carbon's `BlueRttiType`, which `BlueClasses::GetRtti`
  * builds on first request and keeps on the `ClassInfo` (BlueClasses.cpp:586-593).
  *
- * A value is Carbon's `BlueRttiValue`: `{ type: "var" | "pyproperty", var }`
- * for a member, `{ type: "pymethod", method }` for a method.
+ * A value is a BlueRttiValue, built once in Init: `var` for a member, `pyProperty` for a
+ * property and `pyMethod` for a method, with `type` naming which.
  *
  * Adapted: Carbon's `mXtraOffset` and `mTotalOffset` locate a member's bytes
  * through each parent's offset; a JavaScript member is reached by its key on
@@ -19,7 +22,7 @@
  *
  * @adapted no member offsets are kept, and parent rows a class hides with `hideInherited` are left out (see `Init`).
  */
-export class BlueRttiType
+export class BlueRttiType extends IBlueRtti
 {
 
   /**
@@ -43,6 +46,7 @@ export class BlueRttiType
    */
   constructor(ci)
   {
+    super();
     this.Init(ci);
   }
 
@@ -68,20 +72,33 @@ export class BlueRttiType
         // Be::HIDDEN (BlueTypes.h:292).
         if (entry.editFlags & 0x008) continue;
         if (type !== ci && ci.hiddenInherited.has(entry.meta.key)) continue;
-        tmp.push([ entry.name, entry.getProperty ? { type: "pyproperty", var: entry } : { type: "var", var: entry } ]);
+        const value = new BlueRttiValue();
+        if (entry.getProperty)
+        {
+          value.type = BlueRttiValue.Type.pyproperty;
+          value.pyProperty = entry;
+        }
+        else
+        {
+          value.var = entry;
+        }
+        tmp.push([ entry.name, value ]);
       }
     }
     // mPyMethodTable holds the class's methods and its parents' (BlueClasses.cpp:126-138).
     const methodTable = ci.pyMethodTable;
     for (let i = 0; i < methodTable.length; i++)
     {
-      tmp.push([ methodTable[i].name, { type: "pymethod", method: methodTable[i] } ]);
+      const value = new BlueRttiValue();
+      value.type = BlueRttiValue.Type.pymethod;
+      value.pyMethod = methodTable[i];
+      tmp.push([ methodTable[i].name, value ]);
     }
     for (let i = 0; i < tmp.length; i++)
     {
       const [ name, value ] = tmp[i];
       if (!this.fullMap.has(name)) this.fullMap.set(name, value);
-      if (value.type !== "pymethod" && !this.varMap.has(name)) this.varMap.set(name, value);
+      if (value.type !== BlueRttiValue.Type.pymethod && !this.varMap.has(name)) this.varMap.set(name, value);
     }
   }
 
@@ -95,7 +112,7 @@ export class BlueRttiType
   GetMethodsAsList()
   {
     const list = [];
-    for (const [ name, value ] of this.fullMap) if (value.type === "pymethod") list.push(name);
+    for (const [ name, value ] of this.fullMap) if (value.type === BlueRttiValue.Type.pymethod) list.push(name);
     return list;
   }
 
@@ -104,7 +121,7 @@ export class BlueRttiType
    *
    * @implemented
    * @param {string} name Exposed name.
-   * @returns {object|null} The member or property, or null.
+   * @returns {BlueRttiValue|null} The member or property, or null.
    */
   FindAttribute(name)
   {
@@ -116,7 +133,7 @@ export class BlueRttiType
    *
    * @implemented
    * @param {string} name Exposed name.
-   * @returns {object|null} The entry, or null.
+   * @returns {BlueRttiValue|null} The entry, or null.
    */
   FindMethod(name)
   {
@@ -133,3 +150,4 @@ export class BlueRttiType
 
 }
 
+CjsSchema.exposure.mapInterface(IBlueRtti)(BlueRttiType);
