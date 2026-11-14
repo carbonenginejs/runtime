@@ -266,7 +266,7 @@ function varEntryOf(Constructor, member, entry)
   entry.iid = typeof reference === "function" ? Schema.getClassName(reference) : reference || null;
   entry.description = member.jessica && member.jessica.description ? member.jessica.description : "";
   // Blue's stamp comes only from Carbon's exposure (`be`, which names its macro); ours (`meta.mapAttribute`, no macro) is
-  // in the table but not Blue's (operator, 2026-11-10).
+  // in the table but not Blue's.
   entry.origin = typeof member.exposure?.macro === "string" ? ClassInfo.Origin.BLUE : ClassInfo.Origin.CJS;
   entry.editFlags = getEditFlags(member);
   // A chooser names its enum, which may register after the class: the row resolves it on first read.
@@ -336,7 +336,7 @@ export function compileClassInfo(Constructor)
   // Carbon's member-table order where the class declares an exposure bag (CjsSchema.orderByExposureRows).
   // Only exposed members enter the table, as only Carbon's MAP_* macros fill mMemberTable (BlueExposureMacros.h:149-155):
   // Carbon's exposure (`be`) and ours (`meta.mapAttribute`). A typed or edit-flagged field without exposure is private and
-  // stays out (operator, 2026-11-10).
+  // stays out.
   const declared = [ ...schema.members, ...schema.properties ];
 
   // Edit flags are what an exposure macro writes; on a stored member with no exposure they would be dropped silently. A

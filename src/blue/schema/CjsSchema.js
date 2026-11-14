@@ -466,7 +466,7 @@ export class CjsSchema
      * The installed values-transport implementation.
      *
      * The transport API lives HERE - everything is called through the schema
-     * (operator direction, 2026-09-05) - while the implementation currently
+     * - while the implementation currently
      * still lives in the model layer, which registers itself at load. Layering
      * forbids the reverse import (schema never imports model), so this is a
      * composition seam: the physical relocation of the transport bodies is the
@@ -2713,8 +2713,8 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
 
 // The state-free transport's import. A declared REFERENCE field - a
 // rootRef, or a list or Map of them - treats a non-plain object as the
-// reference itself and assigns it, Carbon's IRoot* member (operator ruling,
-// 2026-09-14). The DECLARED TYPE decides that the field holds references; the
+// reference itself and assigns it, Carbon's IRoot* member.
+// The DECLARED TYPE decides that the field holds references; the
 // value's class is never inspected. Plain bags, and every other field kind,
 // import by value exactly as before.
 function importDeclaredValue(value, field)
