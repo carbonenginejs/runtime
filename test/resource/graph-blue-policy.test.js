@@ -170,6 +170,27 @@ test("a member that declares a Carbon interface holds a class that maps it", () 
 
   probe.customSourceTexture = create("Tr2MeshArea");
   assert.throws(() => CjsGraph.traverse(probe, () => {}), /not assignable to ITriTextureRes/);
+
+  // And it maps ITr2TextureProvider (TriTextureRes_Blue.cpp:140), which a runtime texture parameter declares.
+  const parameter = create("Tr2RuntimeTextureParameter");
+  parameter.texture = create("TriTextureRes");
+  const reached = [];
+  CjsGraph.traverse(parameter, object => { reached.push(object); });
+  assert.equal(reached.includes(parameter.texture), true);
+
+  // A class of ours that maps ITr2WorldTransformUpdater is held by a skinned object's member.
+  const { exposure: be } = CjsSchema;
+  class GraphPolicyUpdater
+  {
+    UpdateTransform() {}
+  }
+  be.mapInterface(blue.classes.Get("ITr2WorldTransformUpdater"))(GraphPolicyUpdater, { kind: "class" });
+  be.define("GraphPolicyUpdater")(GraphPolicyUpdater);
+  const skinned = create("Tr2SkinnedObject");
+  skinned.worldTransformUpdater = new GraphPolicyUpdater();
+  const walked = [];
+  CjsGraph.traverse(skinned, object => { walked.push(object); });
+  assert.equal(walked.includes(skinned.worldTransformUpdater), true);
 });
 
 test("a mapped interface counts as assignable, and a legacy material sits in an effect member", () =>

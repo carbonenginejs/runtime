@@ -23,10 +23,11 @@ import { exposure as be } from "#be";
 import { CjsSchema, meta, type } from "#schema";
 import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
-import { BlueAsyncRes, ICacheable } from "#blue";
+import { BlueAsyncRes, IBlueResource, ICacheable } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "../procedural/solidColorTexture.js";
 import { Tr2Event } from "#trinity/core/Tr2Event";
 import { ITriTextureRes } from "./ITriTextureRes.js";
+import { ITr2TextureProvider } from "../../core/ITr2TextureProvider.js";
 import {
   resourceBoundaryError,
   resourceFormatRequiredError,
@@ -1143,10 +1144,14 @@ CjsSchema.decorateMethod(TriTextureRes, "GetPipeline", be.mapMethodAndWrap());
 CjsSchema.decorateMethod(TriTextureRes, "GetOriginalMemoryUsage", be.mapMethodAndWrap());
 CjsSchema.decorateMethod(TriTextureRes, "PrepareResources", be.mapMethodAndWrap());
 be.define("TriTextureRes")(TriTextureRes);
+// Carbon's base list after BlueAsyncRes (TriTextureRes.h:28-31), and its interface map in its order
+// (TriTextureRes_Blue.cpp:138-142; the class's own line is the define above).
+be.inherit(ITr2TextureProvider)(TriTextureRes, { kind: "class" });
 be.inherit(ICacheable)(TriTextureRes, { kind: "class" });
-// Carbon's base list names ITriTextureRes after ICacheable (TriTextureRes.h:28-31) and maps it first (TriTextureRes_Blue.cpp:138).
 be.inherit(ITriTextureRes)(TriTextureRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ITriTextureRes)(TriTextureRes);
+CjsSchema.exposure.mapInterface(ITr2TextureProvider)(TriTextureRes);
+CjsSchema.exposure.mapInterface(IBlueResource)(TriTextureRes);
 CjsSchema.exposure.mapInterface(ICacheable)(TriTextureRes);
 // Carbon: TriTextureRes::ExposeToBlue (trinity/trinity/Resources/TriTextureRes_Blue.cpp:318).
 CjsSchema.be.chainTo(BlueAsyncRes)(TriTextureRes);
