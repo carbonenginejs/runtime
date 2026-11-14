@@ -3,6 +3,7 @@ import test from "node:test";
 import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
 import { DictReader } from "../../src/blue/formats/graph/DictReader.js";
 import { DictWriter } from "../../src/blue/formats/graph/DictWriter.js";
+import { INotify } from "../../src/blue/exposure/INotify.js";
 
 let sequence = 0;
 const identity = () => `DictionaryDeclarations${++sequence}`;
@@ -10,6 +11,14 @@ const scalar = (name, key = name, extra = {}) => ({ name, key, type: { kind: "in
 // Strict: an attribute the class does not expose fails the read, as Carbon's DictReader does.
 const read = (target, values, notify = null) => new DictReader({ strict: true }).ReadInto(target, values, notify);
 const write = (target, options = {}) => new DictWriter().WriteObject(target, {}, options);
+// The reader tells a notify target only through a cast to INotify (Carbon DictReader.cpp:162-168).
+const notifier = calls =>
+{
+  class Notifier { OnModified(name) { calls.push(name); return true; } }
+  CjsSchema.define(Notifier, { name: identity(), members: [] });
+  CjsSchema.exposure.mapInterface(INotify)(Notifier);
+  return new Notifier();
+};
 
 test("same-owner stored members use exposed names without calling paired live accessors", () => {
   class Pair {
@@ -22,7 +31,7 @@ test("same-owner stored members use exposed names without calling paired live ac
     properties: [scalar("boosters", "boosters", { property: { persisted: false } })] });
   const value = new Pair();
   const calls = [];
-  assert.deepEqual([...read(value, { boosters: 3 }, { OnModified(name) { calls.push(name); } })], ["boosters"]);
+  assert.deepEqual([...read(value, { boosters: 3 }, notifier(calls))], ["boosters"]);
   assert.equal(value._boosters, 3);
   assert.deepEqual(calls, ["boosters"]);
   assert.deepEqual(write(value), { boosters: 3 });

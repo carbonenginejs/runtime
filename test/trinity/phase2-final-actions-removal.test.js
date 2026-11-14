@@ -121,8 +121,10 @@ test("Python retains queued host capture across notification and requires contro
   action.Link(controller);
   action.Start(controller);
   action.Update(30000000, 50000000);
-  // Existing explicit notification seam; canonical construction uses IInitialize instead.
-  new DictReader().ReadInto(action, { className: "new" }, action);
+  // A live edit: Tr2ActionPython is IInitialize, so Carbon's reader sends it no member notifications
+  // (DictReader.cpp:162-168); the editor's write is the field plus OnModified.
+  action.className = "new";
+  action.OnModified("className");
   ExecuteMainThreadActions();
   assert.deepEqual(events, ["old:start", ["old", 2, 3], "old:stop", "new:start"]);
   assert.equal(updates.has(action), true);

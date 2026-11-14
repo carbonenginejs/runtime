@@ -208,7 +208,10 @@ export class DictReader extends IRootReaderBase
       }
       if (source._id !== undefined && source._id !== null) this._anchors.register(source._id, instance);
 
-      const changed = this.ReadMembers(instance, this._options.declarations === true ? this._DeclaredNotify(instance) : notify, onWrite);
+      // Carbon (DictReader.cpp:162-168): the object is told only through a BlueCastPtr to INotify, and not at all
+      // when it is IInitialize. A caller's notify target goes through the same cast; no target means none.
+      const target = this._options.declarations === true ? instance : notify;
+      const changed = this.ReadMembers(instance, target ? this._DeclaredNotify(target) : null, onWrite);
       this._Finish();
       return changed;
     }
