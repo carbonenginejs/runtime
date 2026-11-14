@@ -91,7 +91,7 @@ test("options come from the index alone, one per .type, per underwear folder, or
     await assert.rejects(library.FetchOptions("female", "bodyshapes"), /No paper doll category bodyshapes/);
     await assert.rejects(library.FetchOptions("female", "head"), /No options rule for the paper doll category head/);
     assert.deepEqual(await library.FetchOptions("female", "hair"), [], "a listed category this build ships nothing in");
-    await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "hair", id: "long01" }), /No maps rule for the paper doll category hair/);
+    await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "bottominner", id: "long01" }), /No maps rule for the paper doll category bottominner/);
     assert.throws(() => CjsCharacterLibraryManager.paperDollRoot("other"), /Unknown character sex/);
 });
 

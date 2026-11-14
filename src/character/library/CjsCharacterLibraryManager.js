@@ -385,7 +385,7 @@ export class CjsCharacterLibraryManager
      * The shipped paper doll category rules (`factory/defaults/categories.json`, which says what each value means),
      * by category path below the sex's paper doll root. An empty rule is no rule. The parts library reads the rules
      * in force through `_Categories`, where a library's generic overrides these by name.
-     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"catalog"|"garment"), palettes: (""|"own"|"shared"), areas: (""|"zone"|"detail"|"none") }>}
+     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"catalog"|"garment"), palettes: (""|"own"|"shared"|"variant"), areas: (""|"zone"|"detail"|"count"|"none") }>}
      */
     static categories = categoryDefaults.categories;
 
@@ -626,6 +626,8 @@ export class CjsCharacterLibraryManager
      * An option's maps at the character texture quality, by its category's rule (`categories`):
      * - `name`: `{ paths }`, one map per name, a variation's replacing the part folder's;
      * - `composed`: `{ roles, skipped }`, the option folder's composed maps by role, and those not named so;
+     * - `variation`: `{ roles, skipped }`, as `composed` over the option's folders (`FetchOptionPart`), a name in the
+     *   variation's folder replacing the part folder's;
      * - `catalog`: `{ channels }`, one map per stem directly in the part folder;
      * - `garment`: `{ maps, skipped, masks, maskedNormal }`, the garment maps by key, the folder's other maps (overridden
      *   or unruled), its body cut masks (its own, then each dependant folder's; utility shapes are not folders), and
@@ -644,6 +646,23 @@ export class CjsCharacterLibraryManager
         return this._Query("maps|" + tier + "|" + CjsCharacterLibraryManager._OptionKey(option), async () =>
         {
             if (rule === "composed") return CjsCharacterTextureRoles.readFolder(option.folder, this._PaperDollFiles(option.folder));
+            if (rule === "variation")
+            {
+                // Derived (moved from Graphene's hair): a name is found in the variation's folder, else the part folder.
+                const roles = new Map(), skipped = new Set();
+                for (const folder of (await this.FetchOptionPart(option)).folders)
+                {
+                    const read = CjsCharacterTextureRoles.readFolder(folder, this._PaperDollFiles(folder));
+                    for (const role of read.roles)
+                    {
+                        const stem = CjsCharacterTextureRoles.splitTier(role.path)[0];
+                        const name = stem.slice(stem.lastIndexOf("/") + 1);
+                        if (!roles.has(name)) roles.set(name, role);
+                    }
+                    for (const name of read.skipped) skipped.add(name);
+                }
+                return { roles: [ ...roles.values() ], skipped: [ ...skipped ] };
+            }
             const facts = await this.FetchOptionPart(option), base = facts.folders.at(-1), files = this._PaperDollFiles(base);
             const inFolder = folder => files.filter(file => file.startsWith(folder) && file.lastIndexOf("/") === folder.length - 1 && file.endsWith(".png"));
             if (rule === "name")
@@ -683,8 +702,9 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * An option's palettes by path, with their kinds (`paletteRecord`): the `.color` files directly in its folder,
-     * then, for a category whose palettes are `shared` (`categories`), those in its `colors/`. No colour is read.
+     * An option's palettes by path, with their kinds (`paletteRecord`), by its category's rule (`categories`): `own`,
+     * the `.color` files directly in its folder; `shared`, those, then those in the category's `colors/`; `variant`,
+     * its own where its `.type`'s colour variant names one of them, else the category's `colors/`. No colour is read.
      *
      * Ours, as `FetchOptions`.
      *
@@ -698,7 +718,16 @@ export class CjsCharacterLibraryManager
         {
             const shared = CjsCharacterLibraryManager.paperDollRoot(option.sex) + option.category + "/colors/";
             const own = this._PaperDollFiles(option.folder).filter(path => path.endsWith(".color") && path.lastIndexOf("/") === option.folder.length - 1);
-            const category = this._CategoryRule(option.category, "palettes").palettes === "shared" ? this._PaperDollFiles(shared).filter(path => path.endsWith(".color")) : [];
+            const rule = this._CategoryRule(option.category, "palettes").palettes;
+            const category = rule === "own" ? [] : this._PaperDollFiles(shared).filter(path => path.endsWith(".color"));
+            if (rule === "variant")
+            {
+                // Derived (moved from Graphene's hair): a style whose type names a palette of its own (aura_hp's `aura`)
+                // is coloured from its folder; the rest from the shared swatches (hair_bob_02's own rbvf.color is unused).
+                const colorVariant = option.typePath !== null ? (await this.FetchOptionPart(option)).colorVariant : "";
+                const named = own.some(path => path.slice(path.lastIndexOf("/") + 1, -".color".length) === colorVariant);
+                return (named ? own : category).map(path => CjsCharacterLibraryManager.paletteRecord(path));
+            }
             return [ ...new Set([ ...own, ...category ]) ].map(path => CjsCharacterLibraryManager.paletteRecord(path));
         })).slice();
     }
@@ -707,7 +736,8 @@ export class CjsCharacterLibraryManager
      * The colour areas (1 to 3) an option paints, decoded once, by its category's rule (`categories`): `zone`, the
      * areas its zone map selects (`FetchMaterialMaskAreas__Zone`: layers that paint every pixel of their zone);
      * `detail`, the areas its colourise detail paints through its zone (`FetchMaterialMaskAreas`), each region's
-     * pair joined, or for a garment its metadata's `numColorAreas` where stated; `none`, no colour.
+     * pair joined, or for a garment its metadata's `numColorAreas` where stated; `count`, its metadata's
+     * `numColorAreas` where stated, else as `detail`; `none`, no colour.
      *
      * Ours, as `FetchOptions`.
      *
@@ -720,6 +750,12 @@ export class CjsCharacterLibraryManager
         if (rule.areas === "none") return [];
         return (await this._Query("areas|" + CjsCharacterTextureRoles.tierOrder()[0] + "|" + CjsCharacterLibraryManager._OptionKey(option), async () =>
         {
+            if (rule.areas === "count")
+            {
+                // Derived (moved from Graphene's hair): a style whose metadata is absent or silent takes its zone map's.
+                const count = (await this.FetchOptionPart(option)).numColorAreas;
+                if (count >= 0) return Array.from({ length: count }, (_, index) => index + 1);
+            }
             const maps = await this.FetchOptionMaps(option);
             if (rule.maps === "garment")
             {
@@ -733,7 +769,7 @@ export class CjsCharacterLibraryManager
             {
                 const detail = CjsCharacterTextureRoles.one(roles, role => role.region === region && role.operation === "Colorized");
                 const zone = CjsCharacterTextureRoles.one(roles, role => role.region === region && role.inputOf === "l");
-                if (!zone || rule.areas === "detail" && !detail) continue;
+                if (!zone || rule.areas !== "zone" && !detail) continue;
                 const found = rule.areas === "zone" ? await this.FetchMaterialMaskAreas__Zone(zone.path) : await this.FetchMaterialMaskAreas(detail.path, zone.path);
                 for (const area of found) areas.add(area);
             }
