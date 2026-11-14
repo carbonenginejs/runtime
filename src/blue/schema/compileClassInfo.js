@@ -527,7 +527,8 @@ export function classInfoOf(Constructor)
  * and `BlueClasses._RegisterSingleClass` all register through here.
  *
  * @param {{name: string, type: Function, createFn?: Function, flags?: number, classInfo?: ClassInfo}} registration The entry.
- *   Without `classInfo`, the class's own is compiled now.
+ *   Without `classInfo`, the class's own is compiled now. The record holds the factory and flags too, since ours
+ *   has one record per class where Carbon has a registration beside its ClassInfo.
  * @returns {boolean} True when registered; a duplicate logs and returns false.
  */
 export function registerClassInfo(registration)
@@ -535,7 +536,12 @@ export function registerClassInfo(registration)
   // registerClass rejects a non-constructor; compiling one first would fail on its missing prototype instead.
   const isConstructor = typeof registration.type === "function";
   const classInfo = registration.classInfo ?? (isConstructor ? ClassInfo.exposeToBlue(registration.type) : null);
-  return registerClass({ ...registration, classInfo });
+  // The registry's own default, made here so the record and the registration hold one function.
+  const createFn = registration.createFn ?? (isConstructor ? () => new registration.type() : undefined);
+  if (!registerClass({ ...registration, createFn, classInfo })) return false;
+  classInfo.createFn = createFn;
+  classInfo.flags = registration.flags ?? 0;
+  return true;
 }
 
 /**

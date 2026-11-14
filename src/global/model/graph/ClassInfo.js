@@ -86,6 +86,23 @@ export class ClassInfo
   origin = "CJS";
 
   /**
+   * `ClassRegistration::mCreateFn`: makes an instance, or answers null to refuse (ClassRegistrarNullFactory).
+   * Null until the class registers; a class registered again holds the factory of its last registration.
+   *
+   * @cjs Carbon keeps it on the ClassRegistration that points at this record (BlueTypes.h:409-413); ours has one record per class.
+   * @type {(() => (object|null))|null}
+   */
+  createFn = null;
+
+  /**
+   * `ClassRegistration::mFlags`: `ClassRegistration::Flags` bits (DISABLE_PYTHON_CONSTRUCTION is 1).
+   *
+   * @cjs Kept here for the reason `createFn` is.
+   * @type {number}
+   */
+  flags = 0;
+
+  /**
    * Ours: the keys of parent rows this class hides (`hideInherited`), which its RTTI leaves out. Carbon has no way to
    * hide an inherited member; our classes declare it where a subclass drops a base's member.
    * @cjs

@@ -19,6 +19,20 @@ const registrations = getClassRegistrations();
 /** Be::HIDDEN (BlueTypes.h:292). */
 const HIDDEN = 0x008;
 
+test("a class's record holds the factory and flags of one of its registrations", () =>
+{
+  const byType = new Map();
+  for (const registration of registrations) byType.set(registration.type, [ ...(byType.get(registration.type) ?? []), registration ]);
+
+  const problems = [];
+  for (const [ type, entries ] of byType)
+  {
+    const ci = ClassInfo.exposeToBlue(type);
+    if (!entries.some(entry => entry.createFn === ci.createFn && entry.flags === ci.flags)) problems.push(entries[0].name);
+  }
+  assert.deepEqual(problems.slice(0, 20), [], `${problems.length} records hold no registration's factory`);
+});
+
 test("the store is built once per class and its RTTI once per class info", () =>
 {
   assert.ok(registrations.length > 1000, `expected the whole runtime registered, got ${registrations.length} classes`);
