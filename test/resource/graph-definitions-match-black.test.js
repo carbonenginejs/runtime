@@ -10,9 +10,9 @@ import { ImportAllDistModules } from "../support/allDistClasses.js";
 await ImportAllDistModules();
 CjsBlueGraph.register(blue.classes);
 
-// What the readers read: each class's ClassInfo record (ClassInfoMeta, of PersistedMember entries).
+// What the readers read: each class's ClassInfo record (ClassInfoMeta, of VarEntry rows).
 const { ClassInfo } = await import("../../npm/dist/blue/base/ClassInfo.js");
-const { BLACK_DESTINATION } = await import("../../npm/dist/blue/base/PersistedMember.js");
+const { BLACK_DESTINATION } = await import("../../npm/dist/blue/base/VarEntry.js");
 
 const DESTINATIONS = BLACK_DESTINATION && {
   [BLACK_DESTINATION.LIST]: "list", [BLACK_DESTINATION.ARRAY]: "array", [BLACK_DESTINATION.SET]: "set",

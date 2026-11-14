@@ -612,7 +612,7 @@ export class BlackReader extends IRootReaderBase
      * @cjs Carbon's list members are all IList; these are the ones still being converted
      * @param {object} holder The object holding the member.
      * @param {string|number} key The member's place in the holder.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      * @throws {IRootReaderException} When the member holds something else.
      */
     ReadArray(holder, key, entry)
@@ -648,7 +648,7 @@ export class BlackReader extends IRootReaderBase
      * @cjs Carbon has no set member
      * @param {object} holder The object holding the member.
      * @param {string|number} key The member's place in the holder.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      * @throws {IRootReaderException} When the member holds something else.
      */
     ReadSet(holder, key, entry)
@@ -684,7 +684,7 @@ export class BlackReader extends IRootReaderBase
      * @adapted a member's dictionary is a JavaScript Map, created if the member holds none
      * @param {object} holder The object holding the member.
      * @param {string|number} key The member's place in the holder.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      * @throws {IRootReaderException} When the member holds something else.
      */
     ReadDict(holder, key, entry)
@@ -720,7 +720,7 @@ export class BlackReader extends IRootReaderBase
      * data written before Carbon appended members (Locator.partTag, trinity a9a60056). The rest keep their defaults.
      * @param {object} holder The object holding the member.
      * @param {string|number} key The member's place in the holder.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      * @throws {IRootReaderException} When the records do not fit the layout.
      */
     ReadStructureList(holder, key, entry)
@@ -794,7 +794,7 @@ export class BlackReader extends IRootReaderBase
      *
      * @cjs Carbon's member is a TriMatrix, TriVector or similar object; ours is its typed array
      * @param {Float32Array} value The member's array.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      * @throws {IRootReaderException} When the member does not hold an array of the right length.
      */
     ReadWrapper(value, entry)
@@ -813,7 +813,7 @@ export class BlackReader extends IRootReaderBase
      *
      * @cjs Carbon's are the members of a TriMatrix, TriVector or similar object
      * @param {Float32Array|number[]} value The array.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      * @throws {IRootReaderException} When the file holds another class, or a member it does not have.
      */
     _ReadWrapperElements(value, entry)

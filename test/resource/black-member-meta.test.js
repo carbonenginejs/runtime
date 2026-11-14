@@ -9,7 +9,7 @@ import "../../npm/dist/sof/index.js";
 import { CjsSchema } from "../../npm/dist/blue/schema/CjsSchema.js";
 import { type } from "../../npm/dist/blue/schema/index.js";
 import { ClassInfo } from "../../npm/dist/blue/base/ClassInfo.js";
-import { BLACK_DESTINATION } from "../../npm/dist/blue/base/PersistedMember.js";
+import { BLACK_DESTINATION } from "../../npm/dist/blue/base/VarEntry.js";
 import { declaredMemberType, structureLayout } from "../../npm/dist/blue/schema/compileClassInfo.js";
 import { VARTYPE } from "../../npm/dist/global/consts/blue.js";
 import { exposure as be } from "../../npm/dist/blue/exposure/be.js";

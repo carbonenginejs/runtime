@@ -1,5 +1,5 @@
 // Ours: what the readers ask about a class beyond Carbon's ClassInfo: its
-// persisted members as PersistedMember records, and the interfaces they test
+// persisted members as their VarEntry rows, and the interfaces they test
 // for with BlueCastPtr in Carbon. The schema's compile fills it
 // (compileClassInfo), walking the rows as Carbon's IRootReaderBase::FindEntry
 // does (IRootReader.cpp:303-319): the class's table, then each parent's, a row
@@ -16,7 +16,7 @@ export class ClassInfoMeta
   /**
    * The persisted members by name.
    *
-   * @type {Map<string, import("./PersistedMember.js").PersistedMember>}
+   * @type {Map<string, import("./VarEntry.js").VarEntry>}
    */
   entries = new Map();
 

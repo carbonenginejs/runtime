@@ -1,5 +1,21 @@
 // Source: blueexposure/include/BlueTypes.h:321-375 (Be::VarEntry)
-import { VARTYPE } from "../../global/consts/blue.js";
+import { EDITFLAGS, VARTYPE } from "../../global/consts/blue.js";
+
+/**
+ * What an IROOT member is. Carbon casts the destination to find out; a plain
+ * record, and plain JavaScript storage, cannot be cast.
+ *
+ * @enum {number}
+ */
+export const BLACK_DESTINATION = Object.freeze({
+  OBJECT: 0,
+  LIST: 1,
+  ARRAY: 2,
+  SET: 3,
+  DICT: 4,
+  STRUCTURELIST: 5,
+  WRAPPER: 6
+});
 
 /**
  * One row of a class's member table: Carbon's `Be::VarEntry`, which
@@ -12,6 +28,11 @@ import { VARTYPE } from "../../global/consts/blue.js";
  * in for both. Carbon's table holds only Blue rows; ours also holds the rows
  * our own classes declare with `meta.map*`, and `meta.blue` says which a row is
  * (`be` is `meta` plus Blue, decorator-upgrade.md § 6.8).
+ *
+ * Ours, on the same row: what Carbon reads from the C++ member type and a
+ * JavaScript property cannot say - the element index, the sign, the float
+ * count, what an IROOT member is, and the classes it accepts. The readers read
+ * them here; names the compile cannot resolve yet resolve on first read.
  *
  * Carbon: Be::VarEntry (blueexposure/include/BlueTypes.h:321-375)
  *
@@ -64,6 +85,159 @@ export class VarEntry
    * @implemented
    */
   editFlags = 0;
+
+  /**
+   * The element of an array member this row names, or -1 for the whole member.
+   *
+   * @cjs Carbon's row is a byte offset, so an element is just another offset.
+   */
+  index = -1;
+
+  /**
+   * Whether an integer member is signed.
+   *
+   * @cjs Carbon reads the sign from the C++ member type (IRootReader.cpp:130-138).
+   */
+  signed = false;
+
+  /**
+   * A FLOATARRAY member's element count.
+   *
+   * @cjs Carbon's GetFloatArraySize() divides mSize (BlueTypes.h:339-349); a JavaScript member has no byte size.
+   */
+  floatArraySize = 0;
+
+  /**
+   * What an IROOT member is (see `BLACK_DESTINATION`).
+   *
+   * @cjs Carbon casts the live member to IList, IBlueDict or IBlueStructureList (IRootReader.cpp:160-187).
+   */
+  destination = BLACK_DESTINATION.OBJECT;
+
+  /**
+   * Whether a null item stays in the member's collection.
+   *
+   * @cjs Ours only: Carbon always drops a null list item (BlackReader.cpp:497-502).
+   */
+  keepsNulls = false;
+
+  /**
+   * The Blue math wrapper class a wrapped member is read through, or null.
+   *
+   * @cjs Carbon's member is a real TriMatrix or TriVector read through its own ClassInfo (IRootReader.cpp:183).
+   */
+  wrapperClass = null;
+
+  /**
+   * A wrapped member's declared kind, which picks the wrapper's layout, or null.
+   *
+   * @cjs
+   */
+  wrapperKind = null;
+
+  /**
+   * The classes an object member accepts, as declared: classes or registered names.
+   *
+   * @cjs Carbon's row has one mIID; ours may accept several.
+   */
+  accepts = [];
+
+  /**
+   * A structure list's item class, or its registered name, or null.
+   *
+   * @cjs Carbon's list object answers GetStructureDefinition() itself (BlackReader.cpp:546).
+   */
+  structClass = null;
+
+  /** The resolved accepted classes, once every name has resolved. */
+  _iids = null;
+
+  /** The structure layout, once asked for. */
+  _structure = undefined;
+
+  /**
+   * The compile's class lookup by registered name, or null before the schema loads.
+   *
+   * @type {((name: string) => Function|null)|null}
+   */
+  static classResolver = null;
+
+  /**
+   * The compile's structure-list layout for an item class, or null before the schema loads.
+   *
+   * @type {((item: string|Function) => object)|null}
+   */
+  static structureResolver = null;
+
+  /**
+   * The member's JavaScript key.
+   *
+   * @cjs Stands in for mOffset.
+   * @returns {string} The key.
+   */
+  get key()
+  {
+    return this.meta.key;
+  }
+
+  /**
+   * Whether `mEditFlags` has NOTIFY.
+   *
+   * @cjs
+   * @returns {boolean} True when it has.
+   */
+  get notify()
+  {
+    return (this.editFlags & EDITFLAGS.NOTIFY) !== 0;
+  }
+
+  /**
+   * Whether an accessor takes the value.
+   *
+   * @cjs
+   * @returns {boolean} True when the row has a getter or a setter.
+   */
+  get isProperty()
+  {
+    return this.getProperty !== null || this.setProperty !== null;
+  }
+
+  /**
+   * The accepted classes that are registered; empty means any object. Kept once
+   * every declared name has resolved, so a class registered later still counts.
+   *
+   * @cjs
+   * @returns {Function[]} The classes.
+   */
+  get iids()
+  {
+    if (this._iids !== null) return this._iids;
+    const found = [];
+    let complete = true;
+    for (const accepted of this.accepts)
+    {
+      const Class = typeof accepted === "function" ? accepted : VarEntry.classResolver(accepted);
+      if (Class) found.push(Class);
+      else complete = false;
+    }
+    if (complete) this._iids = found;
+    return found;
+  }
+
+  /**
+   * A structure list's layout: the item class's `meta.struct` record, each
+   * field as an entry the handlers read as a member, or null.
+   *
+   * @cjs
+   * @returns {{size: number, boundaries: number[], Item: Function, fields: object[], definition: object}|null} The layout.
+   * @throws {TypeError} When the item class is unregistered or declares no structure.
+   */
+  get structure()
+  {
+    if (this._structure !== undefined) return this._structure;
+    this._structure = this.structClass ? VarEntry.structureResolver(this.structClass) : null;
+    return this._structure;
+  }
 
   /**
    * `mChooserTable`: `[name, value, description]` rows, or null. A chooser that

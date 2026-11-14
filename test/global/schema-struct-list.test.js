@@ -7,7 +7,7 @@ import { DictReader, CreateAnchorTable } from "../../npm/dist/blue/formats/graph
 import { IInitialize } from "../../npm/dist/blue/exposure/IInitialize.js";
 import { INotify } from "../../npm/dist/blue/exposure/INotify.js";
 import { ClassInfo } from "../../npm/dist/blue/base/ClassInfo.js";
-import { BLACK_DESTINATION } from "../../npm/dist/blue/base/PersistedMember.js";
+import { BLACK_DESTINATION } from "../../npm/dist/blue/base/VarEntry.js";
 import "../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 import { exposure as be } from "../../npm/dist/blue/exposure/be.js";

@@ -14,7 +14,7 @@ import { BlackReader } from "./BlackReader.js";
 import { cast } from "../../compose/interface.js";
 import { BeClasses } from "../../exposure/classes/registry.js";
 import { ClassInfo } from "../../base/ClassInfo.js";
-import { BLACK_DESTINATION } from "../../base/PersistedMember.js";
+import { BLACK_DESTINATION } from "../../base/VarEntry.js";
 import { getWrapperLayout } from "./blueMathWrappers.js";
 import { IRootReaderBase } from "./IRootReaderBase.js";
 
@@ -105,7 +105,7 @@ export class CjsBlackRecordReader extends BlackReader
      * decode its bytes, and returns the member that holds the result.
      *
      * @param {string} typeName The owner's class name, as the file gives it.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The block's member.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The block's member.
      * @returns {*} The decoded member.
      */
     _ReadBinaryBlockValue(typeName, entry)
@@ -181,7 +181,7 @@ export class CjsBlackRecordReader extends BlackReader
      *
      * @param {object} holder The record.
      * @param {string} key The member's name.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      */
     HandlePropertyFloatArray(holder, key, entry)
     {
@@ -199,7 +199,7 @@ export class CjsBlackRecordReader extends BlackReader
      *
      * @param {object} holder The record.
      * @param {string} key The member's name.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      */
     HandlePropertyInt64(holder, key, entry)
     {
@@ -211,7 +211,7 @@ export class CjsBlackRecordReader extends BlackReader
      *
      * @param {object} holder The record.
      * @param {string} key The member's name.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      */
     HandlePropertyUInt64(holder, key, entry)
     {
@@ -223,7 +223,7 @@ export class CjsBlackRecordReader extends BlackReader
      *
      * @param {object} holder The record.
      * @param {string} key The member's name.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      */
     HandlePropertyIRootPtr(holder, key, entry)
     {
@@ -236,7 +236,7 @@ export class CjsBlackRecordReader extends BlackReader
      *
      * @param {object} holder The record.
      * @param {string} key The member's name.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      */
     HandlePropertyIRoot(holder, key, entry)
     {
@@ -275,7 +275,7 @@ export class CjsBlackRecordReader extends BlackReader
      *
      * @param {object} holder The record.
      * @param {string} key The member's name.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      */
     ReadArray(holder, key, entry)
     {
@@ -295,7 +295,7 @@ export class CjsBlackRecordReader extends BlackReader
      *
      * @param {object} holder The record.
      * @param {string} key The member's name.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      */
     ReadDict(holder, key, entry)
     {
@@ -316,7 +316,7 @@ export class CjsBlackRecordReader extends BlackReader
      *
      * @param {object} holder The record.
      * @param {string} key The member's name.
-     * @param {import("../../base/PersistedMember.js").PersistedMember} entry The member's compiled entry.
+     * @param {import("../../base/VarEntry.js").VarEntry} entry The member's compiled entry.
      * @throws {IRootReaderException} When the records do not fit the layout.
      */
     ReadStructureList(holder, key, entry)

@@ -1,7 +1,7 @@
 // The one compile of a class into its Blue type information (Blue plan step 6).
 // It reads the schema's sealed record once, at registration, and fills the base
 // records (blue/base): ClassInfo with its VarEntry rows, and on first use the
-// readers' ClassInfoMeta of PersistedMember entries. The records import nothing
+// readers' ClassInfoMeta of VarEntry rows. The records import nothing
 // but global/consts; everything that looks things up lives here.
 //
 // A late change to a registered class - a chain, an interface or a base declared
@@ -17,8 +17,7 @@ import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { registerClass } from "../exposure/classes/registry.js";
 import { ClassInfo } from "../base/ClassInfo.js";
 import { ClassInfoMeta } from "../base/ClassInfoMeta.js";
-import { BLACK_DESTINATION, PersistedMember } from "../base/PersistedMember.js";
-import { VarEntry } from "../base/VarEntry.js";
+import { BLACK_DESTINATION, VarEntry } from "../base/VarEntry.js";
 import { blueEnums } from "../enums/CjsBlueEnumRegistry.js";
 
 /** The schema, from `installClassInfoCompile`. @type {typeof import("./CjsSchema.js").CjsSchema} */
@@ -217,7 +216,18 @@ function varEntryOf(Constructor, member)
   const reference = type && (type.kind === "rootRef" || type.kind === "rootWeak") ? type.className : null;
   entry.name = member.name;
   entry.meta.key = member.key ?? member.name;
-  entry.type = declaredMemberType(type).type;
+  const declared = declaredMemberType(type);
+  entry.type = declared.type;
+  // Ours, beside Carbon's: what the readers need that a JavaScript property cannot say.
+  entry.index = member.index ?? -1;
+  entry.signed = declared.signed;
+  entry.floatArraySize = declared.floatArraySize;
+  entry.destination = declared.destination;
+  entry.keepsNulls = type?.kind === "array";
+  entry.wrapperClass = declared.wrapperClass;
+  entry.wrapperKind = declared.wrapperClass ? type.kind : null;
+  entry.accepts = declared.type === VARTYPE.INVALID ? [] : type?.accepts ?? (type?.className ? [ type.className ] : []);
+  entry.structClass = declared.structClass;
   entry.iid = typeof reference === "function" ? Schema.getClassName(reference) : reference || null;
   entry.description = member.jessica && member.jessica.description ? member.jessica.description : "";
   // Blue's stamp comes only from Carbon's exposure (`be`, which names its macro); ours (`meta.mapAttribute`, no macro) is
@@ -384,32 +394,6 @@ function provides(mapped, Constructor, Interface)
 }
 
 /**
- * One persisted member: its Carbon row and ours.
- *
- * @param {VarEntry} row The row.
- * @param {object} declaration Its declaration.
- * @returns {PersistedMember} The member.
- */
-function persistedMemberOf(row, declaration)
-{
-  const declared = declaration.type;
-  const member = declaredMemberType(declared);
-  const entry = new PersistedMember();
-  entry.var = row;
-  entry.key = row.meta.key;
-  entry.index = declaration.index ?? -1;
-  entry.signed = member.signed;
-  entry.floatArraySize = member.floatArraySize;
-  entry.destination = member.destination;
-  entry.keepsNulls = declared?.kind === "array";
-  entry.wrapperClass = member.wrapperClass;
-  entry.wrapperKind = member.wrapperClass ? declared.kind : null;
-  entry.accepts = member.type === VARTYPE.INVALID ? [] : declared?.accepts ?? (declared?.className ? [ declared.className ] : []);
-  entry.structClass = member.structClass;
-  return entry;
-}
-
-/**
  * The readers' record of a class: its persisted members, walked as Carbon's
  * `IRootReaderBase::FindEntry` does (IRootReader.cpp:303-319) - the class's
  * table, then each parent's, a row with PERSIST, first name wins - and the
@@ -431,7 +415,7 @@ export function buildClassInfoMeta(ci)
       if (type !== ci && ci.hiddenInherited.has(row.meta.key)) continue;
       const declaration = type.declarationOf(row);
       if (!(row.editFlags & EDITFLAGS.PERSIST) && declaration.edit?.persist !== true && declaration.edit?.persistOnly !== true) continue;
-      record.entries.set(row.name, persistedMemberOf(row, declaration));
+      record.entries.set(row.name, row);
     }
   }
   const Constructor = ci._type, mapped = mappedInterfaces(Constructor);
@@ -575,6 +559,6 @@ export function installClassInfoCompile(schema)
   ClassInfo.compiler = compileClassInfo;
   ClassInfo.metaBuilder = buildClassInfoMeta;
   VarEntry.chooserResolver = blueEnumChooser;
-  PersistedMember.classResolver = name => Schema.getConstructor(name);
-  PersistedMember.structureResolver = structureLayout;
+  VarEntry.classResolver = name => Schema.getConstructor(name);
+  VarEntry.structureResolver = structureLayout;
 }

@@ -25,7 +25,7 @@ import { cast, mappedInterfaces } from "../../compose/interface.js";
 import { IList } from "../../exposure/IList.js";
 import { InvalidAttributeException } from "../../format/InvalidAttributeException.js";
 import { IRootReaderException } from "../../format/IRootReaderException.js";
-import { BLACK_DESTINATION } from "../../base/PersistedMember.js";
+import { BLACK_DESTINATION } from "../../base/VarEntry.js";
 import { getWrapperLayout } from "./blueMathWrappers.js";
 
 const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
